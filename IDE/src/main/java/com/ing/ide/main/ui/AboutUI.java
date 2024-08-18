@@ -89,7 +89,7 @@ public class AboutUI extends javax.swing.JDialog {
         jTextPane1.setEditable(false);
         jTextPane1.setContentType("text/html"); // NOI18N
         jTextPane1.setFont(new java.awt.Font("sansserif", 0, 13)); // NOI18N
-        jTextPane1.setText("<html> <body> INGenious is a scriptless test automation platform that provides a unified interface for all the \"day-to-day\" test automation activities such as test design, test development, test execution, reporting and maintenance <p>Visit <a href=\"https://theforge.ing.net/product/239813/documentation/latest/index\">INGenious ING Forge Page</a>&nbsp;for more details</p> </body> </html>");
+        jTextPane1.setText("<html> <body> INGenious is a test automation platform that provides a unified interface for all the \"day-to-day\" test automation activities such as test design, test development, test execution, reporting and maintenance <p>Visit <a href=\"https://ing-bank.github.io/ingenious-doc/\">INGenious Documentation</a>&nbsp;for more details</p> </body> </html>");
         jScrollPane3.setViewportView(jTextPane1);
 
         jPanel4.add(jScrollPane3, java.awt.BorderLayout.CENTER);
