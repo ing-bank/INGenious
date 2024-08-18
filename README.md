@@ -10,7 +10,6 @@
 Developed and perfected by <span style="color:#FF6200;width:100px">**ING Bank**</span> for over 4 years of real-world usage, **INGenious** is now open-source and available to everyone. Designed to simplify and streamline test automation, this robust solution empowers teams of all sizes to achieve efficient, high-quality testing. By joining the global testing community, ING aims to collaborate, innovate, and elevate automated testing together.
 
 > [!NOTE]
-
 > It provides an easy and simple way to create highly reliable automated tests. It leverages the power of __Playwright-Java__ and combines it with a user-friendly IDE which makes it a highly effective solution. 
 > The idea behind INGenious is to enable engineers, business analysts and even non-technical stakeholders to design high quality automated tests which focus on the business goals, without them having to worry about coding.
 
@@ -25,25 +24,23 @@ Developed and perfected by <span style="color:#FF6200;width:100px">**ING Bank**<
 -----------------------
 
 
-<div class="grid cards" markdown>
+
 
 -   [x] __Get Started in 5 minutes__
 
-    ---
-
+    <a target="_blank" href="https://ing-bank.github.io/ingenious-doc/gettingstarted/">
     Download <span style="color:#FF6200">INGenious</span> and get up and running in minutes. Create and execute your test cases in no time.
 
     [:arrow_right: Getting started](gettingstarted.md)
 
 -   [x] __No Code/Low Code__
 
-    ---
 
     <span style="color:#FF6200">INGenious</span> comes with an intuitive IDE which makes test designing simple, easy and fun.
 
     [:arrow_right: IDE](knowyourframework.md)
 
--   :fontawesome-brands-chrome:{ .lg .middle .ing-sky} __Browser Automation__
+-   [x] __Browser Automation__
 
     ---
 
@@ -104,7 +101,7 @@ Developed and perfected by <span style="color:#FF6200;width:100px">**ING Bank**<
 
 
 
-</div>
+
 
 
 --------
