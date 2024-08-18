@@ -33,7 +33,7 @@ public class AppSettings {
         ELEMENT_WAIT_TIME("elementWaitTime", "10"),
         LOAD_RECENT("loadRecentProject", "true"),
         STANDALONE_REPORT("standaloneReport", "false"),
-        HELP_DOC("helpdoc", "https://theforge.ing.net/product/239813/documentation/latest/index");
+        HELP_DOC("helpdoc", "https://ing-bank.github.io/ingenious-doc/");
 
         private final String key;
         private final String val;
