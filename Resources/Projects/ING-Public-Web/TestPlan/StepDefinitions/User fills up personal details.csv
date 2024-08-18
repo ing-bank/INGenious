@@ -1,0 +1,8 @@
+Step,ObjectName,Description,Action,Input,Condition,Reference
+1,First name *(required),"Click the [<Object>] ",Click,,,Contactus
+2,First name *(required),Enter the value [<Data>] in the Field [<Object>],Fill,@John,,Contactus
+3,Last name *(required),"Click the [<Object>] ",Click,,,Contactus
+4,Last name *(required),Enter the value [<Data>] in the Field [<Object>],Fill,@Doe,,Contactus
+5,Email address *(required),"Click the [<Object>] ",Click,,,Contactus
+6,Email address *(required),Enter the value [<Data>] in the Field [<Object>],Fill,@John.Doe@email.com,,Contactus
+7,Country *(required),Select item in [<Object>] which has text: [<Data>],SelectSingleByText,@Austria,,Contactus

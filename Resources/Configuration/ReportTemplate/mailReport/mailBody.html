@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Test Results</title>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    </head>
+    <body style = "width: 80%;margin-left: auto;margin-right: auto; font-size: 14px;line-height: 20px;
+          font-weight: 400;margin-top: 3%;background-color: aliceblue;">
+        <h2 style = "text-align: center;">{releaseName}: {testSetName}</h2>
+        <div class="wrapper">
+            <h3>Test Details</h3>
+            <table border="1" style = "border: 1px solid #ccc;">
+                <thead>
+                    <tr style = "background-color: beige;">
+                        <th>Parallel Threads</th>
+                        <th>Run Configurations</th>
+                        <th>Start Time</th>
+                        <th>End Time</th>
+                        <th>Total Duration</th>
+                        <th>Passed Tests</th>
+                        <th>Failed Tests</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>{parallelThreads}</td>
+                        <td>{runConfig}</td>
+                        <td>{startTime}</td>
+                        <td>{endTime}</td>
+                        <td>{totalDuration}</td>
+                        <td>{passedTests}</td>
+                        <td>{failedTests}</td>
+                    </tr>
+                </tbody>
+            </table>
+
+            <h3>Detailed Report</h3>
+            <table border="1" style = "border: 1px solid #ccc;">
+                <thead>
+                    <tr style = "background-color: beige;">
+                        <th>Scenario</th>
+                        <th>TestCase</th>
+                        <th>Browser</th>
+                        <th>Execution Time</th>
+                        <th>Status</th>
+                        <th>Browser Version</th>
+                        <th>Platform</th>
+                        <th>Iterations</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {reportData}
+                </tbody>
+            </table>
+        </div>
+    </body>
+</html>

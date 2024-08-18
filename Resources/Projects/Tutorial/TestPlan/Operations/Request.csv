@@ -1,0 +1,2 @@
+Step,ObjectName,Description,Action,Input,Condition,Reference
+1,transaction-request,"Click the [<Object>] ",Click,,,Myfirstscript

@@ -1,0 +1,5 @@
+Step,ObjectName,Description,Action,Input,Condition,Reference
+1,Execute,Given  User is logged in,StepDefinitions:User is logged in,,,
+2,Execute,When  User creates a new transaction,StepDefinitions:User creates a new transaction,,,
+3,Execute,And  chooses to request,StepDefinitions:chooses to request,,,
+4,Execute,Then  user should be able to complete the operation,StepDefinitions:user should be able to complete the operation,,,

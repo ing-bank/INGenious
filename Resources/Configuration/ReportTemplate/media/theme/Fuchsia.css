@@ -1,0 +1,55 @@
+
+.tsetDetails.heading thread ,th {
+    color: whitesmoke;  //Test Details table header font
+}
+.tsetDetails.heading tbody {
+    background: #F6E5EF;      //Test Details table rows
+}
+.grp.head{
+    color: white;
+    background: #AB0066;    //header for tables
+}.grp.head.browsers{
+    color:white;
+    background: #AB0066;
+}
+thead{
+    background: #AB0066;    //Test Details table header    
+    font-size: 12px;
+}
+.tesetDetails.heading table thead tr{
+    background: #AB0066;
+}
+thead input{
+    border-bottom-left-radius: 5px;
+    border-top-right-radius: 5px;
+    border-top-left-radius: 5px;
+    border-bottom-right-radius: 5px;
+}
+.exe.table thead  { 			
+    border-spacing: 1px;  font-size: 14px ;
+    background: #AB0066;   ;
+    color: white;
+}
+.exe.table.step.evenx,.exe.table.step.evenx td,.exe.table.step.evenx td a,.exe.table.step.evenx td label{
+    background:white; //For even steps in test case steps
+}
+.exe.table.ng-scope.even,.exe.table.ng-scope.even td,.exe.table.ng-scope.even td a,.exe.table.ng-scope.even td label{
+    background:white; 
+}
+.exe.table.step.oddx,.exe.table.step.oddx td{
+    background:#F6E5EF;       //test case details steps
+}
+.exe.table.ng-scope.odd,.exe.table.ng-scope.odd td{
+    background:#F6E5EF;       //test case details steps
+}
+.exe.table.iteration{
+    background: aliceblue;
+    color: black;   
+}
+.exe.table.reusable{
+    background: beige;     
+    font-size: medium;
+}
+.exe.table.time{
+    background:inherit;  
+}

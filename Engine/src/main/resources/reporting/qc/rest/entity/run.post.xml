@@ -1,0 +1,17 @@
+<?xml version='1.0' encoding='UTF-8' standalone='yes'?>
+<Entity Type='run'>
+<Fields>
+<Field Name='name'><Value>{run.name}</Value></Field>
+<Field Name='duration'><Value>{run.time}</Value></Field>
+<Field Name='comments'><Value>{run.desc}</Value></Field>
+<Field Name='test-instance'><Value>1</Value></Field>
+<Field Name='testcycl-id'><Value>{instance.id}</Value></Field> 
+<Field Name='cycle-id'><Value>{testset.id}</Value></Field>
+<Field Name='test-id'><Value>{testcase.id}</Value></Field>
+<Field Name='subtype-id'><Value>hp.qc.run.MANUAL</Value></Field>
+<Field Name='status'><Value>{run.status}</Value></Field>
+<Field Name='owner'><Value>{user.name}</Value></Field>
+<Field Name='host'><Value>{host.name}</Value></Field>
+</Fields>
+<RelatedEntities/>
+</Entity>

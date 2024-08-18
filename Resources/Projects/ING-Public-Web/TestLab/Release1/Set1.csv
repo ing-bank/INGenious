@@ -1,0 +1,3 @@
+Execute,TestScenario,TestCase,Iteration,Status,Browser,BrowserVersion,Platform
+true,Contact Us,User should be able to send a question on Sustainability,Single,Passed,Chromium,Default,Any
+true,Contact Us,User should be able to send a question on Innovation,Single,Passed,Chromium,Default,Any

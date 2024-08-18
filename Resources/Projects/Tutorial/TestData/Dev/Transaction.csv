@@ -1,0 +1,3 @@
+Scenario,Flow,Iteration,SubIteration,Amount,Text for note,Recipient
+Transactions,LowAmount,1,1,$10,Thanks for the lunch,Kristian Bradtke
+Transactions,HighAmount,1,1,$1000,Thanks for the lunch,Darrel Ortiz

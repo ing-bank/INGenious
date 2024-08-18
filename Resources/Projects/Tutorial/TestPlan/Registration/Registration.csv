@@ -1,0 +1,20 @@
+Step,ObjectName,Description,Action,Input,Condition,Reference
+1,Browser,Open the Url [<Data>] in the Browser,Open,@http://localhost:3000/signin,,
+2,signup,"Click the [<Object>] ",Click,,,Registration
+3,signup,"Click the [<Object>] ",Click,,,Registration
+4,First Name *,Enter the value [<Data>] in the Field [<Object>],Fill,"=Concat(John_,=Round(=Random(3))):",,Registration
+5,Last Name *,"Click the [<Object>] ",Click,,,Registration
+6,Last Name *,Enter the value [<Data>] in the Field [<Object>],Fill,"=Concat(Doe_,=Round(=Random(3))):",,Registration
+7,Username *,"Click the [<Object>] ",Click,,,Registration
+8,Browser,Add a variable to access within testcase,AddVar,"=Concat(John_,=Round(=Random(3))):",%uname%,
+9,Username *,Enter the value [<Data>] in the Field [<Object>],Fill,%uname%,,Registration
+10,Refactor_Object,"Click the [<Object>] ",Click,,,Registration
+11,Browser,Add a variable to access within testcase,AddVar,"=Concat(pass_,=Round(=Random(3))):",%password%,
+12,Refactor_Object_1,Enter the value [<Data>] in the Field [<Object>],Fill,%password%,,Registration
+13,Confirm Password *,"Click the [<Object>] ",Click,,,Registration
+14,Confirm Password *,Enter the value [<Data>] in the Field [<Object>],Fill,%password%,,Registration
+15,signup-submit,"Click the [<Object>] ",Click,,,Registration
+16,Username,Enter the value [<Data>] in the Field [<Object>],Fill,%uname%,,Registration
+17,Password,"Click the [<Object>] ",Click,,,Registration
+18,Password,Enter the value [<Data>] in the Field [<Object>],Fill,%password%,,Registration
+19,signin-submit,"Click the [<Object>] ",Click,,,Registration

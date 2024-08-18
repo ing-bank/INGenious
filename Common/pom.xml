@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <name>Common</name>
+    <parent>
+        <groupId>com.ing</groupId>
+        <artifactId>ingenious-playwright</artifactId>
+        <version>1.2</version>
+    </parent>
+    <artifactId>Common</artifactId>
+    <properties>
+        <file.path.target.POM>${project.parent.basedir}\Resources\Engine\pom.xml</file.path.target.POM>
+        <file.path.source.POM>${project.parent.basedir}\pom.xml</file.path.source.POM>
+        <file.path.storyWriter.POM>${project.parent.basedir}\StoryWriter\pom.xml</file.path.storyWriter.POM>
+        <file.path.datalib.POM>${project.parent.basedir}\Datalib\pom.xml</file.path.datalib.POM>
+        <file.path.testdata.POM>${project.parent.basedir}\TestData - Csv\pom.xml</file.path.testdata.POM>
+        <file.path.engine.POM>${project.parent.basedir}\Engine\pom.xml</file.path.engine.POM>
+        <file.path.ide.POM>${project.parent.basedir}\IDE\pom.xml</file.path.ide.POM>
+        
+    </properties>
+    <build>
+        <plugins>
+            <plugin>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.8.1</version>
+                <configuration>
+                    <source>11</source>
+                    <target>11</target>
+                </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>exec-maven-plugin</artifactId>
+                <version>1.6.0</version>
+                <executions>
+                    <execution>
+                        <id>generate-merged-pom</id>
+                        <phase>compile</phase>
+                        <goals>
+                            <goal>java</goal>
+                        </goals>
+                        <configuration>
+                            <mainClass>com.ing.parent.createParentPOM</mainClass>
+                            <arguments>
+                                <argument>${file.path.target.POM}</argument>
+                                <argument>${file.path.source.POM}</argument>
+                                <argument>${file.path.storyWriter.POM}</argument>
+                                <argument>${file.path.datalib.POM}</argument>
+                                <argument>${file.path.testdata.POM}</argument>
+                                <argument>${file.path.engine.POM}</argument>
+                                <argument>${file.path.ide.POM}</argument>
+                            </arguments>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+    <dependencies>
+        
+    </dependencies>
+</project>

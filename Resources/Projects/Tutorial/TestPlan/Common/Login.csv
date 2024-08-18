@@ -1,0 +1,7 @@
+Step,ObjectName,Description,Action,Input,Condition,Reference
+1,Browser,Open the Url [<Data>] in the Browser,Open,Login:URL,,
+2,Username,"Click the [<Object>] ",Click,,,Myfirstscript
+3,Username,Enter the value [<Data>] in the Field [<Object>],Fill,%username%,,Myfirstscript
+4,Password,"Click the [<Object>] ",Click,,,Myfirstscript
+5,Password,Enter the value [<Data>] in the Field [<Object>],Fill,%pwd%,,Myfirstscript
+6,signin-submit,"Click the [<Object>] ",Click,,,Myfirstscript

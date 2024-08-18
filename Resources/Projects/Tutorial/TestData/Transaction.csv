@@ -1,0 +1,5 @@
+Scenario,Flow,Iteration,SubIteration,Amount,Text for note,Recipient
+Transactions,LowAmount,1,1,$10,Thanks for the lunch,Kristian Bradtke
+Transactions,HighAmount,1,1,$1000,Thanks for the lunch,Darrel Ortiz
+Payment Operations,Pay money to an existing contact,1,1,$50,Lunch,Kristian Bradtke
+Payment Operations,Request money from existing contact,1,1,$30,Dinner,Darrel Ortiz

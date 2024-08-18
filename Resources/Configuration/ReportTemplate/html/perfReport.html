@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+
+<html ng-app="report">
+    <head >
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">  
+        <meta http-equiv="X-UA-Compatible" content="IE=Edge" />
+        <title>Performance Report</title>
+        <link id="favIcon" href="../../../../media/images/favicon.png" rel="icon" type="image/x-icon" />
+        <link rel="stylesheet" type="text/css" href="../../../../media/css/bootstrap.min.css" />
+        <link rel="stylesheet" type="text/css" href="../../../../media/css/perf.css" />
+        <link rel="stylesheet" type="text/css" href="../../../../media/css/dataTables.bootstrap.min.css" />
+        <script type="text/javascript" src="../../../../media/js/angular.min.js"></script> 
+        <script type="text/javascript" src="../../../../media/js/jquery.js"></script> 
+        <script src="../../../../media/js/jquery.dataTables.min.js" type="text/javascript"></script>
+        <script type="text/javascript" src="../../../../media/js/bootstrap.min.js"></script>
+        <script src="../../../../media/js/isinViewport.js" type="text/javascript"></script>
+        <script type="text/javascript" src="../../../../media/js/perf.js"></script>   
+        <script src="perfLog.js" type="text/javascript"></script> 
+    </head>
+    <body id="doc">
+    <noscript>
+        For full functionality of this site it is necessary to enable JavaScript.
+        <a href="http://www.enable-javascript.com/" target="_blank">To know about how to enable javascript click here</a></div>
+    </noscript>
+    <div class="panel panel-primary perContainer" ng-cloak ng-controller = "main" >
+        <div class = "panel-heading">
+            <label>Performance Report</label>
+            <span class="label label-success" ng-click = "expandOrcollapse();">{{status}} All</span>
+        </div>
+        <ul class="nav nav-tabs">
+            <li class="active"><a href="#chart" ng-click = 'cView = "chart"' role="tab" data-toggle="tab">Graph View</a></li>
+            <li><a href="#table" ng-click = 'cView = "table"' role="tab" data-toggle="tab">Table View</a></li>
+            <li ng-if="psdata && psdata.length > 0"><a href="#pageSpeed" role="tab" data-toggle="tab">Page Metrics</a></li>
+        </ul>
+        <div id = "pageSpeed" class="pageSpeed" ng-controller="pageSpeed" 
+             ng-init="init();$parent.psdata = data;" style = "display: none;" >
+            <div class ="panel-body pages"  ng-if="data">
+                <div class="page panel-group" id="accordion" role="tablist" aria-multiselectable="true" ng-repeat="page in data" >
+                    <div class = "panel" ng-init="page._show = false;
+                                                    page._color = getColor(page.score);"
+                         ng-click="page._show = !page._show">
+                        <link-ps-page-title/>
+                    </div>
+                    <div class='page content' style = "margin-left: 35px;"> 
+                        <div ng-show="page._show" ng-if="log.score>0" ng-repeat="log in page.logs">
+                            <div ng-init="log._show = false;
+                                                                log._color = getColor(log.score);" 
+                                 ng-click="log._show = !log._show">
+                                <link-ps-log-title/>                                 
+                            </div>
+                            <div class="info" ng-show="log._show && log.desc">
+                                <p ng-bind-html="::trust(log.desc)"></p>
+                                <ol ng-show="log.data">
+                                    <li ng-repeat="data in log.data">
+                                    <link-ps-data/>
+                                    </li>
+                                </ol>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <div ng-controller="har" class="scrollHar">
+            <span class="label noHarfound" ng-show="har.length < 1">
+                Performance log not found. Make sure "capturePageTimings" action is included in testcase.
+            </span>
+            <div id="harDiv" ng-repeat="entry in har" class = "panel">
+                <div id="pageDiv" ng-repeat="page in entry.har.log.pages">
+                    <div ng-init="initPage(page);page._show = false;" 
+                         class="page {{page._show}}">
+                        <div ng-click="page._show = !page._show;" class = "hideOrShow" style="cursor:pointer;overflow: hidden;max-height: 20px;">
+                            <span class="">{{(page._show)?'-':'+'}}</span>
+                            <label style="cursor:pointer;font-size: 16px;font-weight: 300;" title="{{::page.title}}">{{::shortLink(page.title)}}</label> 
+                            <label style="cursor:pointer;font-size: 12px;font-weight: 300;">{{::entry.name}}</label>
+                        </div>
+                        <div ng-if="page._show" class="page content"
+                             ng-init="page._id = har.indexOf(entry) + '_' + $index" ng-switch ="$parent.cView">                                
+                            <div class="container_chart" ng-switch-when="chart">
+                                <div class="container_pageGraph">
+                                    <div  class="chart page lt" style = "padding: 12px 0% 12px 0%;">
+                                        <svg id="dnSVG_{{page._id}}" svg-def="[0,0,120,120]">
+                                        <g id="dnGrpLT_{{page._id}}"
+                                           elem-ready="{callback:'drawDnLT',data:'page'}">
+                                        </g>
+                                        <circle cx="60" cy="60" r="30" fill="#fff" ></circle>                                                                          
+                                        </svg>
+                                    </div>
+                                    <div  class="chart page ot">
+                                        <table class = "table table-bordered">
+                                            <tr>
+                                                <td>Unload</td>
+                                                <td class="time">{{::page.raw.unloadEventEnd - page.raw.unloadEventStart}} ms</td>
+                                            </tr>
+                                            <tr>
+                                                <td>Redirect</td>
+                                                <td class="time">{{::page.raw.redirectEnd - page.raw.redirectStart}} ms</td>
+                                            </tr>
+                                            <tr>
+                                                <td>App Cache</td>
+                                                <td class="time">{{::page.raw.domainLookupStart - page.raw.fetchStart}} ms</td>
+                                            </tr>
+                                        </table>
+                                        <table class = "table table-bordered">
+                                            <tr title="Time to First Bit">
+                                                <td>TTFB</td>
+                                                <td class="time">{{::page.raw.responseStart - page.raw.connectEnd}} ms</td>
+                                            </tr>
+                                            <tr>
+                                                <td>Processing</td>
+                                                <td class="time">{{::page.raw.loadEventStart - page.raw.responseEnd}} ms</td>
+                                            </tr>
+                                            <tr>
+                                                <td>Dom Interactive</td>
+                                                <td class="time">{{::page.raw.domInteractive - page.raw.domLoading}} ms</td>
+                                            </tr>
+                                        </table>
+                                        <table class = "table table-bordered">
+                                            <tr>
+                                                <td>Dom Complete</td>
+                                                <td class="time">{{::page.raw.domComplete - page.raw.domLoading}} ms</td>
+                                            </tr>
+                                            <tr>
+                                                <td>Content Load</td>
+                                                <td class="time">{{::page.pageTimings.onContentLoad}} ms</td>
+                                            </tr>
+                                            <tr>
+                                                <td>Page Load</td>
+                                                <td class="time">{{::page.pageTimings.onLoad}} ms</td>
+                                            </tr>
+                                        </table>
+                                    </div>
+                                </div>
+                                <div class="container_waterfalltable" style = "overflow-x: auto;">
+                                    <table  id="harWaterfall" class="table">
+                                        <!--<col width ="20%" ><col width="680px">-->
+                                        <col width ="20%"><col>
+                                        <tbody >
+                                            <tr class="erow" ng-repeat="e in page.entries" style="height:18px;max-height: 18px;">
+                                                <td class="entry {{e._hover}}" style="height:100%;max-height: 18px;padding-top: 2px;"
+                                                    ng-mouseenter="e._hover = 'sel'" ng-mouseleave="e._hover = ''" >
+                                                    <div ng-init="e.request.label = resolvedLink(e.request);
+                                                                                            e.request.hover = false;"
+                                                         style="height:16px;min-width: 170px;">
+                                                        <label style ="white-space: nowrap;" title="{{::e.request.url}}">
+                                                            {{::e.request.label}}</label></div>
+                                                </td>
+                                                <td  class="timeGraph"
+                                                     ng-mouseenter="e._hover = 'sel'" ng-mouseleave="e._hover = ''"
+                                                     style="padding-top:0px;height:18px;max-height: 18px;" data-bar="true">
+
+                                                    <svg id="svg-bar-0" class="svg-bar" width="100%" height="100%" data-bar="true"
+                                                         style = "width: 97%;max-width: 1023px;display: block;" preserveAspectRatio = "none meet"
+                                                         viewBox = "0 2 900 16">
+                                                    <g class="timeline" ng-click="onClickResource(e, page, $event);">
+                                                    <rect ng-repeat="t in timings" ng-if="e.timings[t.key] > 0" 
+                                                          ng:attr:x="{{::getX(page, e.timings._x[t.key])}}" ng:attr:width="{{::e._width[t.key]}}" 
+                                                          class="{{::t.key}}"  y="5" height="16" data-bar="true">
+
+                                                    <title>{{::t.name + ' ' + e.timings[t.key] + 'ms'}}</title>
+                                                    </rect>                                    
+                                                    <text ng-attr-x="{{::e.timings._x.next + 8}}" y="15" data-bar="true">{{::e.time}} ms </text>
+                                                    </g>
+                                                    <g class="reference">
+                                                    <rect ng:attr:x="{{::page.pageTimings._contentLoad}}" width="2" height="20"
+                                                          class="onContentLoad" y="2" data-bar="true">
+                                                    <title>Content Load {{::page.pageTimings.onContentLoad}} ms</title>
+                                                    </rect>
+                                                    <rect ng:attr:x="{{::page.pageTimings._pageLoad}}" width="2" height="20"
+                                                          class="onLoad"  y="2"  data-bar="true">
+                                                    <title>Page Load {{::page.pageTimings.onLoad}} ms</title>  
+                                                    </rect>    
+                                                    </g>
+                                                    </svg>
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>                                
+                            <div class = "table_container" ng-switch-when="table">
+                                <!-- Table -->
+                                <div  class="chart page ot">
+                                    <table class = "table table-bordered">
+                                        <tr>
+                                            <td>Unload</td>
+                                            <td class="time">{{::page.raw.unloadEventEnd - page.raw.unloadEventStart}} ms</td>
+                                        </tr>
+                                        <tr>
+                                            <td>Redirect</td>
+                                            <td class="time">{{::page.raw.redirectEnd - page.raw.redirectStart}} ms</td>
+                                        </tr>
+                                        <tr>
+                                            <td>App Cache</td>
+                                            <td class="time">{{::page.raw.domainLookupStart - page.raw.fetchStart}} ms</td>
+                                        </tr>
+                                    </table>
+                                    <table class = "table table-bordered">
+                                        <tr title="Time to First Bit">
+                                            <td>TTFB</td>
+                                            <td class="time">{{::page.raw.responseStart - page.raw.connectEnd}} ms</td>
+                                        </tr>
+                                        <tr>
+                                            <td>Processing</td>
+                                            <td class="time">{{::page.raw.loadEventStart - page.raw.responseEnd}} ms</td>
+                                        </tr>
+                                        <tr>
+                                            <td>Dom Interactive</td>
+                                            <td class="time">{{::page.raw.domInteractive - page.raw.domLoading}} ms</td>
+                                        </tr>
+                                    </table>
+                                    <table class = "table table-bordered">
+                                        <tr>
+                                            <td>Dom Complete</td>
+                                            <td class="time">{{::page.raw.domComplete - page.raw.domLoading}} ms</td>
+                                        </tr>
+                                        <tr>
+                                            <td>Content Load</td>
+                                            <td class="time">{{::page.pageTimings.onContentLoad}} ms</td>
+                                        </tr>
+                                        <tr>
+                                            <td>Page Load</td>
+                                            <td class="time">{{::page.pageTimings.onLoad}} ms</td>
+                                        </tr>
+                                    </table>
+                                </div>
+                                <table id="{{::page._id}}" class="table report_table table-striped table-bordered" 
+                                       cellspacing="0" width="100%" elem-ready="{callback:'initDataTable'}">
+                                    <thead>
+                                        <tr>
+                                            <th >URL</th>
+                                            <th ng-repeat="t in timings" >{{::t.name}}</th>
+                                            <th >Total</th>
+                                            <th> Timestamp</th>
+                                        </tr>
+                                        <tr ng-if="true" ng-init="filterclass = 'search_init text_filter form-control';">
+                                            <td style="border-top: none;max-width: 150px;">
+                                                <input type="text" class="{{::filterclass}}" name="url" 
+                                                       style="width: 80%;" filter-text>
+                                            </td>
+                                            <td ng-repeat="t in timings" style="border-top: none;min-width: 52px;max-width: 56px;">                                                   
+                                                <input type="text" name="{{::t.key}}"
+                                                       class="{{::filterclass}}" style="width: 98%;" 
+                                                       ng-model="q[t.key][page._id].v"   ng-pattern="pattern"  filter-timings>
+                                            </td>
+                                            <td style="border-top: none;max-width: 53px;min-width: 52px;">
+                                                <input type="text" class="{{::filterclass}}" style="width: 98%;" name="total"
+                                                       ng-model="q.total[page._id].v" ng-pattern="pattern"  filter-timings>
+                                            </td>
+                                            <td style="border-top: none;max-width: 172px;">
+                                                <input type="text" class="{{::filterclass}}" name="time"
+                                                       style="width: 80%;" filter-text>
+                                            </td>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr ng-repeat="e in ::page.entries| filter:filterRow" ng-init="e._accept = true;" ng-show="e._accept"
+                                            id="{{::page._id + '_' + $index}}" style="font-size:12px;"  >
+                                            <td><label title="{{::e.request.url}}">{{::resolvedLink(e.request)}}</label></td>
+                                            <td ng-repeat="t in timings">{{::e.timings[t.key]}}</td>
+                                            <td>{{ ::e.time}}</td>
+                                            <td >{{::e.startedDateTime}}</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div id="popover" class="popover mod_popover" data-bar="true">
+                <div data-bar="true" style = "font-size: 12px;">
+                    Request started +<label style="font-size: 12px;" title="{{p.startedDateTime}}" data-bar="true">{{p.startedTime}}</label> ms since beginning
+                    <div id="closePopup" onclick="$('#popover').fadeOut(400);" data-bar="true"
+                         style=" float: right;cursor:pointer;font: 15px bold; margin-right: -8px; margin-top: -5px;">x</div>
+                </div>
+                <table data-bar="true" style = "margin-top: 5px;">
+                    <tr data-bar="true">
+                        <td style="width:50%;" data-bar="true">
+                            <table class = "popup_table">
+                                <tr data-bar="true">
+                                    <td >Duration</td>
+                                    <td data-bar="true">{{p.time}} ms</td>
+                                </tr>
+                                <tr data-bar="true" ng-repeat="t in timings" ng-if="p.timings[t.key] > 0">
+                                    <td class="time"  data-bar="true">
+                                        {{::t.name}}
+                                    </td>
+                                    <td data-bar="true">{{p.timings[t.key]}} ms</td>
+                                </tr>
+                            </table>
+                        </td>
+                        <td style="width:50%;" data-bar="true">
+                            <div id="pieChart" class="chart" data-bar="true">
+                                <svg id="pieSVG" data-bar="true" svg-def="[0,0,120,120]">
+                                <g id="pieGrp" data-bar="true">
+
+                                </g>
+                                <g class="shaddow">
+                                <circle cx="60" cy="60" r="30" fill="#777" ></circle>
+                                <circle cx="60" cy="60" r="29" fill="#999" ></circle> 
+                                <circle cx="60" cy="60" r="28" fill="#9d9d9d" ></circle>  
+                                <circle cx="60" cy="60" r="26" fill="#ccc" ></circle>  
+                                <circle cx="59" cy="61" r="27" fill="#fff" ></circle>
+                                </g>                                 
+                                </svg>
+                            </div>
+                        </td>
+                    </tr>
+                </table>
+                <div data-bar="true" style = "font-size: 11px;">                        
+                    DOM event timings relative to request start: <br/>
+                    <span class="dom onContentLoad"> </span> {{p.evt.onContentLoad}}ms  Content Load
+                    <span class="dom onLoad"> </span> {{p.evt.onLoad}}ms  Page Load
+                </div>
+            </div>
+        </div>
+    </div> 
+    <div id="pieTip" class="pieTip" style="display: none;"></div>
+    <script>
+        $(document).click(function(e) {
+            if (!$(e.target).data().bar) {
+                $('#pieTip').fadeOut(200);
+                $('#popover').fadeOut(400);
+            }
+        });
+        window.piePopup.init($("#pieGrp"));
+    </script>
+</body>
+</html>

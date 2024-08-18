@@ -1,0 +1,142 @@
+
+
+.node-data{
+    padding: 15px 15px;
+    border-bottom: 1px solid #ccc;
+    line-height: 1.4em;
+}
+.highlight-pane{
+    /*background-color: #ddffdd;*/
+    background-color: #e6e6e6;
+    padding: 10px 10px;
+    border-left: 6px solid #4CAF50;
+}
+
+.highlight-pane-error{
+	border-left: 6px solid #c11d1d;
+}
+
+.axe-issue-list-nav ul{
+    list-style-type: none;
+    padding: 0px;
+    cursor: pointer;
+}
+.vio-list p{
+    display: inline-block;
+    max-width: 200px;
+    white-space: nowrap;
+    overflow: hidden;
+    margin: 0;
+    text-overflow: ellipsis;
+}
+.total-violation label{
+    vertical-align: sub;
+    vertical-align: -webkit-baseline-middle;
+}
+/*.axe-issue-list-nav ul > li:first-child{
+    color: #ececec;
+    background-color: #0e8cc5;
+}*/
+.axe-issue-list-nav ul > li{
+    padding: 15px 15px;
+}
+.total-violation {    
+    float: right;
+    background-color: rgba(0, 0, 0, 0.14);
+    border-radius: 50%;
+    width: 20px;
+    height: 20px;
+    font-size: 10px;
+    position: relative;
+    margin-top: -5px;
+    text-align: center;
+    padding: 5px;
+}
+#issue-details textarea {
+    resize: vertical;
+    overflow-y: hidden;
+}
+.current_vio_list{
+    color: #ececec;
+    background-color: #0e8cc5;
+}
+.current_node{
+    display: block !important;
+}
+label{
+    font-weight: bold;
+}
+#toolbar{
+    padding: 15.6px 20px;
+    border-bottom: 1px solid #a3a3a3;
+}
+#toolbar select > option{
+    background-color: #ecf0f3;
+}
+#toolbar select{
+    width: 90%;
+    height: 24px;
+    border-color: #e4e4e4;
+    border-radius: 4px;
+    padding: 3px 10px;
+}
+button, select{
+    outline: none;
+}
+#url{
+    padding: 14px 15px;
+    border-bottom: 1px solid #a3a3a3;
+}
+#url input{
+    width: 90%;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    white-space: nowrap;
+    padding: 4px 8px;
+}
+.node-data ul{
+    list-style-type: none;
+}
+.node-data ul > li:before{
+    color: #0e8cc5;
+    /* content: "\2022"; */
+    content: "\25A0";
+    display: block;
+    font-size: 17px;
+    left: -17px;
+    max-height: 0px;
+    max-width: 0px;
+    position: relative;
+    top: -1px;
+}
+#tags text{
+    background-color: #c1c1c1;
+    border-radius: 7px;
+    padding: 2px 5px;
+    margin-right: 8px;
+}
+#title{
+    border-bottom: 1px solid #115d80;
+    padding: 10px 0px 12px;
+    width: 100%;
+    display: flex;
+    color: #10729e;
+}
+#title h2{
+    margin: auto;
+    padding: 0px 10px;
+    text-overflow: ellipsis;
+    overflow-x: hidden;
+    white-space: nowrap;
+}
+.axe-issue-details-content{
+    margin-bottom: 30px;
+}
+#test_type{
+    padding: 3px 5px;
+    vertical-align: middle;
+    font-size: 16px;
+    font-weight: 600;
+    color: #10729e;
+    width: 250px;
+}

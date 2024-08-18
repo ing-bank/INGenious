@@ -1,0 +1,9 @@
+Step,ObjectName,Description,Action,Input,Condition,Reference
+1,Webservice,"Set End Point ",setEndPoint,@http://localhost:3000/customers,,
+2,Webservice,"Add Header ",addHeader,@Content-Type=application/json,,
+3,Webservice,"POST Rest Request ",postRestRequest,"{
+    ""name"": ""Phillip Matthews"",
+    ""country"": ""New Zealand""
+}",,
+4,Webservice,"Assert Response Code ",assertResponseCode,@200,,
+5,Webservice,"Store JSON Element In DataSheet ",storeJSONelementInDataSheet,API:CustomerID,$.id,

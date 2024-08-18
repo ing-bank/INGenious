@@ -1,0 +1,195 @@
+<html>
+    <head>
+        <title>Galen Page Dump</title>
+        <link rel="stylesheet" type="text/css" href="DumpResources/css/galen-pagedump.css"/>
+        <link rel="stylesheet" type="text/css" href="DumpResources/css/select2.min.css"/>
+
+        <script src="DumpResources/js/jquery-3.4.1.min.js"></script>
+        <script src="DumpResources/js/galen-pagedump.js"></script>
+        <script src="DumpResources/js/select2.full.min.js"></script>
+        <script src="pageDetails.js"></script>
+        <script>
+            var testCase = [];
+            var currTcName;
+            $(function() {
+                for (key in pageMap) {
+                    testCase.push(key);
+                }
+                $(".tc-array").select2({data: testCase});
+                var $eventSelect = $(".tc-array");
+                $eventSelect.on("change", onTcChange);
+                if (testCase.length > 0)
+                {
+                    currTcName = testCase[0];
+                    loadPageList();
+                }
+                if (testCase.length === 1)
+                {
+                    $("#tesctcaseSelect").hide();
+                }
+            });
+
+            function onTcChange(e)
+            {
+                currTcName = e.target.value;
+                loadPageList();
+            }
+
+            function loadPageList()
+            {
+                var pageList = pageMap[currTcName];
+				$('.page-array').select2().empty();
+                $(".page-array").select2({data: pageList});
+
+                var $eventSelect = $(".page-array");
+                $eventSelect.on("change", pageChange);
+                if (pageList.length > 0)
+                {
+                    $(".page-array").select2('val', pageList[0]);
+                    loadPageDump(pageList[0]);
+                }
+            }
+
+            function pageChange(e) {
+                loadPageDump(e.target.value);
+            }
+
+            function loadPageDump(pageName) {
+                document.getElementById("pageImage").setAttribute("src", currTcName + "/" + pageName + "/page.png");
+                setJSONData(pageName);
+            }
+
+            function setJSONData(pageName)
+            {
+
+                var s = document.createElement("script");
+                s.type = "text/javascript";
+                s.src = currTcName + "/" + pageName + "/page.js";
+                s.innerHTML = null;
+                s.id = "widget";
+                document.getElementById("pageData").innerHTML = "";
+                document.getElementById("pageData").appendChild(s);
+                setTimeout(function() {
+                    initGalenPageDump(page);
+                }, 100);
+
+            }
+
+        </script>
+        <script id="resize">
+            $(function() {
+                var sidebar = $("#sidebar");
+                var main = $("#main");
+                var mainwrap = $("#mainwrap");
+                var imageview = $("#imageview");
+                var bottombar = $("#bottombar");
+                var dragbarH = $("#dragbarH");
+                var dragbarV = $("#dragbarV");
+                var mainChildren = [mainwrap, imageview, bottombar];
+
+                var barw = 5;
+                var pressed;
+                var start;
+                var startX;
+                var startY;
+                var startWidth;
+                var startHeight;
+
+                dragbarH.mousedown(function(e) {
+                    e.preventDefault();
+                    start = dragbarH;
+                    startX = e.pageX;
+                    startWidth = sidebar.width();
+                    pressed = true;
+                }).dblclick(function(e) {
+                });
+                dragbarV.mousedown(function(e) {
+                    e.preventDefault();
+                    start = dragbarV;
+                    startY = e.pageY;
+                    startHeight = bottombar.height();
+                    pressed = true;
+                }).dblclick(function(e) {
+                });
+                function resizeSideBar(x) {
+                    var newWidth = startWidth + (x - startX);
+                    sidebar.width(newWidth);
+                    var div=(document.documentElement.clientWidth-3)-newWidth;
+                    dragbarH.css("left", newWidth);
+                    main.css("left", newWidth);                    
+                    main.width(div);                   
+                    mainChildren.forEach(function(val) {
+                        val.css("left", newWidth + barw);
+                        val.width(div-barw);
+                    });
+
+                }
+                function resizeBottombar(y) {
+                    var newHeight = startHeight - (y - startY);
+                    bottombar.height(newHeight);
+                    var div = (document.documentElement.clientHeight-10)-newHeight;                   
+                    dragbarV.css("top", div);
+                    bottombar.css("top", div - barw);
+                    imageview.height(div-barw);
+                    
+                }
+                $(document).mousemove(function(e) {
+
+                    if (pressed) {
+                        e.preventDefault();
+                        if (start === dragbarH) {
+                            resizeSideBar(e.pageX);
+                        } else {
+                            resizeBottombar(e.pageY);
+                        }
+                    }
+                });
+
+                $(document).mouseup(function() {
+                    if (pressed) {
+                        pressed = false;
+                    }
+                });
+            });
+
+        </script>
+    </head>
+    <body>
+        <div id="pageData">
+        </div>
+        <div id="page">
+            <div id="sidebar">
+                <div class="wrapper">
+                    <div id="object-list">
+                        <label><b>Page Dump for </b> </label><div id="tesctcaseSelect"><select class="tc-array" style="width:200px"></select></div><br/>  <div> <select class="page-array" style="width:200px"></select></div>
+                        <br/>       
+                        <ul>
+                        </ul>
+                    </div>   
+                    <div id="object-details" style="display: none;"><br/>
+                        <h4 class="field-value xf-object-name"></h4>  
+                        <div class="image"></div>
+                    </div>
+                </div>
+            </div> 
+            <div id="main">   
+                <div id="dragbarH"></div>
+                <div id="mainwrap">        
+                    <div id="imageview" class="image">
+                        <div class="canvas">
+                        </div>
+                        <img id="pageImage" src="">
+                        <div class="bottombarstub"></div>
+                    </div>
+                    <div id="bottombar">
+                        <div id="dragbarV"></div>
+                        <div class="wrapper">
+                            <div id="object-suggestions" style="display: none;">
+                                <h2>Spec Suggestions</h2>
+                                <div class="spec-list">
+                                </div>
+                            </div>
+                        </div></div>
+                </div></div>       
+        </div></body>
+</html>

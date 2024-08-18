@@ -1,0 +1,21 @@
+<Root ref="Tutorial" type="RC">
+    <Folder ref="INGeniousTestingBank">
+        <Scenario ref="Operations">
+            <TestCase exeType="Executable" ref="Validation"/>
+            <TestCase exeType="Executable" ref="Request"/>
+            <TestCase exeType="Executable" ref="Initaition"/>
+            <TestCase exeType="Executable" ref="Pay"/>
+        </Scenario>
+        <Scenario ref="Common">
+            <TestCase exeType="Executable" ref="Logout"/>
+            <TestCase exeType="Executable" ref="Login"/>
+        </Scenario>
+        <Scenario ref="StepDefinitions">
+            <TestCase exeType="Executable" ref="chooses to pay"/>
+            <TestCase exeType="Executable" ref="user should be able to complete the operation"/>
+            <TestCase exeType="Executable" ref="User is logged in"/>
+            <TestCase exeType="Executable" ref="chooses to request"/>
+            <TestCase exeType="Executable" ref="User creates a new transaction"/>
+        </Scenario>
+    </Folder>
+</Root>

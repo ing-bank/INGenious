@@ -1,0 +1,5 @@
+Step,ObjectName,Description,Action,Input,Condition,Reference
+1,Execute,Given  User navigates to the Contact-Us page,StepDefinitions:User navigates to the Contact-Us page,,,
+2,Execute,When  User fills up personal details,StepDefinitions:User fills up personal details,,,
+3,Execute,And  submits relevant question,StepDefinitions:submits relevant question,,,
+4,Execute,Then  the question should be sent,StepDefinitions:the question should be sent,,,

@@ -1,0 +1,312 @@
+Step,Description,Expected Result
+asserttitle,Assert if the current page title is: [<Data>],The current page title should be [<Data>]
+asserttext,Assert if [<Object>] element has text: [<Data>],The [<Object>] element should have [<Data>] as text
+acceptalert,Accept the alert present,The Alert present should be accepted
+addcookie,Add the cookie of name [<Data>].,The cookie of name [<Data>] should be added.
+answeralert,Answer the alert present with [<Data>],The Alert present should be answered by [<Data>]
+assertvalue,Assert if [<Object>] contains value: [<Data>],The [<Object>] element should contain[<Data>]
+assertvariable,Assert if Key:Value -> [<Data>] is valid,The [<Data>] should be valid
+assertalerttext,Assert if an alert with text: [<Data>] is present ,The alert present should contain [<Data>] as text
+assertcurrenturl,Assert if url of current page is: [<Data>],The url of the current page should be [<Data>]
+assertpagesource,Assert if Page source of current page is: [<Data>],The page source of the current page should be [<Data>]
+assertalertpresent,Assert if an alert is present ,An alert should be present
+assertcontainstext,Assert if text: [<Data>] is contained in the [<object>],The [<Object>] element should contain [<Data>] as text
+assertcontainsvalue,Assert if [<Object>] contains value: [<Data>],The [<Object>] element should contain [<Data>] as value
+assertcookiepresent,Assert if cookie: [<Object>] is present,The [<Object>] cookie should be present
+assertcookiebyname,Assert if cookie: [<Object>] has name: [<Data>],The [<Object>] element should contain [<Data>] as name
+assertelementenabled,Assert if [<Object>] is enabled on the current page,The [<Object>] element should be enabled
+assertelementattribute,Assert if [<Object>] element has attribute: [<Data>],The [<Object>] element should contain [<Data>] as attribute
+assertelementselected,Assert if [<Object>] element is selected,The [<Object>] element should be selected
+assertelementdisplayed,Assert if [<Object>] element is displayed,The [<Object>] element should be displayed
+asserttextpresentinpage,Assert if text: [<Data>] is present on the page,The [<Data>] should be present on the page
+assertvariablefromdatasheet,Assert if  the  variable value matches with given value from datasheet(variable:datasheet->  [<Data>] ),The assertion of variable [<Data>] from given datasheet  should be done
+assertalertext,Assert if  text [<Data>] present in the alert,The assertion of text [<Data>] present in the alert should be done.
+back,Navigate to previous page,The browser should navigate to the previous page
+close,Close the current browser session,The browser should be closed
+click,Click the [<Object>] ,The [<Object>]  should be clicked
+clear,clear text [<Data>] from object [<Object>].,The text [<Data>] should be cleared from the object [<Object>].
+check,Check the [<Object>] element,The [<Object>] element should be checked
+closeapp,[<Data>] app is closed,The [<Data>] app should be closed
+changewaittime,changing wait time by [<Data>] seconds,Wait time should be changed to [<Data>] seconds.
+clickandholdelement,Click and hold the [<Object>] element , The [<Object>] element should be clicked and held
+deselectall,Deselect all items in  [<Object>],All items in  [<Object>] should be deselected 
+dismissalert,Dismiss the alert present,The Alert present should be dismissed
+deletecookie,delete the cookie having name [<Data>].,The cookie having name [<Data>] should be deleted.
+deselectbyvalue,Deselect item in [<Object>] which has value: [<Data>],The item with value: [<Data>] should be deselected from [<Object>]
+deselectbyindex,Deselect  item in [<Object>] which has index: [<Data>],The item with index: [<Data>] should be deselected from [<Object>]
+draganddropelement,Start to drag from: [<Object>] element, The [<Object>] element should start dragging
+doubleclickelement,Double click [<Object>] element, The [<Object>] element should be double clicked
+deselectbyvisibletext,Deselect item in [<Object>] which has text: [<Data>],The item with value: [<Data>] should be deselected from [<Object>]
+dragtoanddropelement,drag and drop operation of , drag and drop operation
+forward,browser navigates to next page.,The browser should navigate to the next page
+handleauthentication,handle browser authentication , browser authentication  should be handle
+imgset, [<Data>] is set in the image [<Object>].,The [<Data>] should be set in the image [<Object>].
+imgdrag,image [<Object>] is dragged.,image [<Object>] should be dragged.
+imgclick,[<Data>] image is clicked,The [<Data>] image is clicked.
+imgtype,text [<Data>] is typed in the image [<Object>],The text [<Data>] is should be typed inside the image [<Object>].
+imghover,mouse hovering is done on the image [<Data>].,The mouse hovering action should be done on the image [<Data>].
+imgwait,wait for the [<Object>] to be present on the screen is done,The wait action for the [<Object>] to be present on the screen should be done.
+imgdropat,Drag the image [<Object>] and Drop at  [<Data>].,The Image [<Object>] should be Drag and Dropped at [<Data>].
+imgrightclick,Perform  Right click  action on the image [<Object>],Right click action should be performed on the image [<Object>].
+imgmouseup,Perform  Mouse key Up  action on the image [<Object>],Mouse key Up should be done on on the image [<Object>]
+imgcleartext,Clear the text present inside the [<Object>],text present inside the image [<Object>] should be cleared.
+imgstoretext,Store image text into  the the variable  [<Data>].,The image text should be stored in the variable named [<Data>].
+imgasserttext,Assert if the text [<Data>] is present inside the image [<Object>].,The [<Data>] should be present inside the [<Object>].
+imgfindinpage,Find the image  [<Data>] inside the webpage/application on screen. ,The finding of image on the screen in time [<Data>] should be done.
+imgverifytext,Verify if the text [<Data>] is present inside the image [<Object>].,The [<Data>] should be present inside the [<Object>].
+imgdoubleclick,Double click on image [<Object>],image [<Object>] should be double clicked.
+imgwaitvanish,Wait for the [<Object>] to get vanish from the screen,The wait action for the [<Object>] to get vanish from the screen should be done.
+imgassertimage,Assert if the image [<Data>] is present on the screen.,The [<Data>] should be present on the screen.
+imgmousedown,Perform  Mouse key Down action on the image [<Object>], Mouse key Down should be done on on the image [<Object>]
+imgverifyimage,Verify if the image [<Data>] is present on the screen.,The image [<Data>] should be present on the screen.
+imgdraganddrop,Drag  image [<Object>]  and drop at image [<Data>] ,drag and drop of image [<Object>] at [<Data>] should be done.
+imgstoretextleft,Find Image [<Object>]  and store text on left into variable [<Data>] .,The text present on the right side of the [<Object>] should be stored in a user defined variable [<Data>] .
+imgasserttextleft,Find Image [<Object>]  and assert text on left  matches [<Data>],The text [<Data>] should be present on the left side of the [<Object>].
+imgverifytextleft,Find Image [<Object>]  and verify text on left  matches [<Data>],The text [<Data>] should be present on the left side of the [<Object>].
+imgstoretextright,Find Image [<Object>]  and store text on right into variable [<Data>] .,The text present on the right side of the [<Object>] should be stored in a user defined variable [<Data>] .
+imgasserttextright,Find Image [<Object>]  and assert text on right  matches [<Data>],The text [<Data>] should be present on the right side of the [<Object>].
+imgstoretextbelow,Find Image [<Object>]  and store below  into variable [<Data>] .,The text present below the [<Object>] should be stored in a user defined variable [<Data>] .
+imgverifytextright,Find Image [<Object>]  and verify text on right  matches [<Data>],The text [<Data>] should be present on the right side of the [<Object>].
+imgstoretextabove,Find Image [<Object>]  and store text above into variable [<Data>] .,The text present above the [<Object>] should be stored in a user defined variable [<Data>] .
+imgasserttextbelow,Find Image [<Object>]  and assert text on below  matches [<Data>],The text [<Data>] should be present below the [<Object>].
+imgasserttextabove,Find Image [<Object>]  and assert text on above  matches [<Data>],The text [<Data>] should be present above the [<Object>].
+imgverifytextbelow,Find Image [<Object>]  and verify text below  matches [<Data>],The text [<Data>] should be present below the [<Object>].
+imgverifytextabove,Find Image [<Object>]  and verify text above  matches [<Data>],The text [<Data>] should be present above the [<Object>].
+keyboardkey,Press [<Data>] key on keyboard ,The [<Data>] key  should be pressed.
+maximize,Maximize the browser.,The browser should be maximized.
+mouseoverelement,Hover over the [<Object>] element, The mouse should hover over the element: [<Object>]
+open,Open the Url [<Data>] in the Browser,The Url [<Data>] should open
+openapp,Open the Application [<Data>],The [<Data>] app should be opened
+print,print the data [<Data>],The  value for   [<Data>] should be printed
+pause,Wait for [<Data>] milli seconds,The Driver should wait for  [<Data>] milli seconds
+pagedown,Perform page down [<Data>]  times,Page down should be performed  [<Data>] times.
+releasekeys,Release key [<Data>].,The already pressed [<Data>] key should be pressed.
+refreshdriver,Refresh current page ,The browser should refresh the current page 
+releaseelement,Release the dragged element over the [<Object>] element , The dragged element should be dropped at the  [<Object>]
+set,Enter the value [<Data>] in the Field [<Object>],The value  [<Data>] should be entered in [<Object>]
+select,Select [<Data>] from [<Object>]element  drop down(by sending keys),The option [<Data>] should be selected from the [<Object>] element
+storetitle,store the webpage title in variable named [<Data>].,The title of web page should be stored in variable named [<Data>].
+switchtoframe,Switch to frame by name: [<Data>],Session should switch to the frame with name: [<Data>]
+setencrypted,Enter the Decrypted value [<Data>] in the Field [<Object>],The Decrypted value  [<Data>] should be entered in [<Object>]
+selectbyvalue,Select item in [<Object>] which has the value: [<Data>],The item with value: [<Data>] should be selected from [<Object>]
+selectbyindex,Select item in [<Object>] which has index: [<Data>],The item with index: [<Data>] should be selected from [<Object>]
+storevariable,Store the key:value -> [<Data>] as Run Time variable,Run Time variable key value  [<Data>] should be stored
+storealerttext,Store the text of alert present into -> [<Data>] Runtime variable,The text of alert present should be stored into the variable -> [<Data>]
+shortcutkeys,Perform keyboard shortcut  [<Data>],The keyboard [<Data>] shortcut action should be performed.
+submitelement,Submit the on [<Object>] ,The [<Object>] form should be submitted
+savescreenshot,Take screenshot of the current page,Screenshot of the current page should be taken
+storecurrenturl,Store the current page url into the Runtime variable: [<Data>],The current url should be stored into the Runtime variable: [<Data>]
+storebodytext,Store the [<Object>] element's body text into the Runtime variable: [<Data>],The [<Object>] element's body text should be stored into the Runtime variable: [<Data>]
+storetextpresent,Store in variable true or false based on presence of text in [<Object>] element -> [<Data>],"Exist should be stored into the variable if given text is present in [<Object>] element, or else not exist -> [<Data>]"
+storepagesource,Store the [<Object>] page source into the Runtime variable: -> [<Data>],The page source should be stored into the Runtime variable: [<Data>]
+storealertpresent,"Store ""Exist"" or ""Not Exist"" based on the alert presence into -> [<Data>] Runtime variable","Should store ""Exist"" to ->[<Data>] Runtime variable if the alert is present else ""Not Exist"""
+setobjectproperty,Set object [<Object>] property  as [<Data>] at runtime,Object [<Object>] property should be changed  to [<Data>] at runtime 
+selectbyvisibletext,Select item in [<Object>] which has text: [<Data>],The item with text: [<Data>] should be selected from [<Object>]
+storeelementvalue,Store [<Object>] element's  value  into Runtime variable: -> [<Data>],The [<Object>] element's  value should be stored  into variable
+storecookiepresent,Store in Runtime variable Exist/Not Exist based on the  presence of cookie ->[<Data>],"Exist should be stored into the variable if given cookie is present, or else not exist -> [<Data>]"
+storecookiebyname,Store value of cookie into Runtime variable -> [<Data>],The value of cookie should be stored into the variable -> [<Data>]
+sendkeystoelement,Send Keys [<Data>]  to object [<Object>].,keyboard event [<Data>] with respective to object [<Object>] should be performed.
+sendkeystowindow,Send Keys [<Data>]  to Window.,keyboard event [<Data>] with respective to window[<Object>] should be performed.
+storeelementattribute,Store [<Object>] element's  attribute into Runtime variable ->  [<Data>],The [<Object>] elements attribute shoule be stored int [<Data>]
+switchtodefaultcontant,Switch to DefaultContant,Current Context should switch by to the Default Content
+switchtoframebyindex,Switch to frame which has index: [<Data>],Session should switch to the frame with index: [<Data>]
+storeelementselected,Store [<Object>] element  selection state into Runtime variable: -> [<Data>],The [<Object>] element  selection state should be stored  into variable
+switchtowindowbytitle,switching to frame by title [<Data>] is done,switching to frame by title [<Data>] should be done
+switchtowindowbyindex,Switch to Window by Index: [<Data>],Current Context should swtich to Window By Index: [<Data>]
+setglobalobjectproperty,Set  all objects property to [<Data>] at runtime.,Dynamic properties for all objects should be changed to  [<Data>] at runtime.
+switchtowindowbyname,Switch to Window by Name: [<Data>],Current Context should swtich to Window By Name: [<Data>]
+selectvaluefromunorderedlist,selecting value [<Data>] from unordered list .,selecting value [<Data>] from unordered list should be performed.
+selectindexfromunorderedlist,selecting value by index [<Data>] from unordered list .,selecting value by index [<Data>] from unordered list should be performed.
+uncheck,Uncheck the [<Object>] element,The [<Object>]  element should be unchecked
+verifytitle,Verify if the current page title is: [<Data>],The[<Data>] title has to be present
+verifytext,Verify if the current page text is: [<Data>],The[<Data>] text has to be present
+verifyvalue,Verify if [<Object>] element has value attribute: [<Data>],The [<Object>] element has to  contain [<Data>] 
+verifyalerttext,Verify the specified [<Data>] text is present in the alert pop up box [<Object>],The alert present has to contain [<Data>] as text
+verifyvariable,Verify if the specific [<Data>] is present,The [<Data>] has to be present
+verifycurrenturl,Verify if current url is: [<Data>],The url of the current page has to be [<Data>]
+verifypagesource,Verify if Page source of current page is: [<Data>],The page source of the current page has to be [<Data>]
+verifyalertpresent,Verify if the specific alert[<Object>] is present ,An alert has to  be present
+verifycontainstext,Assert if [<Object>] contains text: [<Data>],The [<Object>] element has to  contain [<Data>] as text
+verifycontainsvalue,Assert if [<Object>] contains value: [<Data>],The [<Object>] element has to  contain [<Data>] as value
+verifycookiepresent,Verify if cookie: [<Data>] is present,The [<Object>] cookie has to be enabled
+verifycookiebyname,Verify if cookie by name: [<Data>] is present ,The [<Object>] cookie has to be enabled
+verifyelementpresent,Verify if [<Object>] element is present,The [<Object>] element has to be present
+verifyelementenabled,Verify if [<Object>] element is enabled,The [<Object>] element has to beenabled
+verifyelementattribute,Verify if [<Object>] element has attribute: [<Data>],The [<Object>] element has to  contain [<Data>] as attribute
+verifyelementselected,Verify if [<Object>] element is selected,The [<Object>] element has to be selected
+verifyelementdisplayed,Verify if [<Object>] element is displayed,The [<Object>] element has to be displayed
+verifytextpresentinpage,Assert if text: [<Data>] is present on the page,The text: [<Data>] has to be present on the current page
+waitfortitletobe,Wait for page's title to be [<Data>],The page title should be [<Data>] within the stipulated wait time
+waitforalertpresent,Wait for alert to be present ,The alert should be present within the stipulated wait time
+waitfortitletocontain,Wait for page's title to contain [<Data>],The page title should contain [<Data>] within the stipulated wait time
+waitforelementtobevisible,Wait for element: [<Object>] to be visible,The element should be visible within the stipulated wait time
+waitforelementtobeclickable,Wait for element: [<Object>] to be clickable,The element: [<Object>] should become clickable within the stipulated wait time
+waitforelementtocontaintext,Wait for element: [<Object>] to contain text [<Data>],The [<Object>] element's text should contain [<Data>] within the stipulated wait time
+waitforelementtocontainvalue,Wait for [<Object>] element to contain value: [<Data>],The [<Object>] element's value should contain [<Data>] within the stipulated wait time
+waitforelementselectiontobetrue,Wait for [<Object>] element to be selected,The [<Object>] element should be selected within the stipulated wait time
+waitforelementselectiontobefalse,Wait for [<Object>] element to be deselected,The [<Object>] element should be deselected within the stipulated wait time
+assertelementabove,Assert if [<Object>] is  above [<Object2>] [<Data>],The [<Object>] should be above [<Object2>] [<Data>]
+assertelementalignedhoriz,Assert if [<Object>] is aligned horizontally [<Data>] with [<Object2>],The[<Object>] should be aligned horizontally [<Data>] with[<Object2>]
+assertelementalignedvert,Assert if [<Object>] is aligned vertically [<Data>] with [<Object2>],The[<Object>] should be aligned vertically [<Data>] with[<Object2>]
+assertelementattrcontains,Assert if [<Object>]'s Attribute Contains [<Data>],The[<Object>]'s attribute should contains [<Data>] 
+assertelementattrendswith,Assert if [<Object>]'s Attribute EndsWith [<Data>],The[<Object>]'s attribute should EndsWith [<Data>] 
+assertelementattrequals,Assert if [<Object>]'s Attribute Equals [<Data>],The[<Object>]'s attribute should Equals [<Data>] 
+assertelementattricontains,Assert if [<Object>]'s Attribute Contains [Ignorecase] [<Data>],The[<Object>]'s attribute should contains [Ignorecase] [<Data>] 
+assertelementattriendswith,Assert if [<Object>]'s Attribute EndsWith [Ignorecase] [<Data>],The[<Object>]'s attribute should EndsWith [Ignorecase] [<Data>] 
+assertelementattriequals,Assert if [<Object>]'s Attribute Equals [Ignorecase] [<Data>],The[<Object>]'s attribute should Equals [Ignorecase] [<Data>] 
+assertelementattristartswith,Assert if [<Object>]'s Attribute StartsWith [Ignorecase] [<Data>],The[<Object>]'s attribute should StartsWith [Ignorecase] [<Data>] 
+assertelementattrmatches,Assert if [<Object>]'s Attribute Matches [<Data>],The[<Object>]'s attribute should Match [<Data>] 
+assertelementattrstartswith,Assert if [<Object>]'s Attribute StartsWith [<Data>],The[<Object>]'s attribute should StartsWith [<Data>] 
+assertelementbelow,Assert if [<Object>] is  below [<Object2>] [<Data>],The [<Object>] should be  below [<Object2>] [<Data>]
+assertelementcenteredainside,Assert if [<Object>] is centeredAllInside [<Object2>] [<Data>],The [<Object>] should be centeredAllInside [<Object2>] [<Data>]
+assertelementcenteredaon,Assert if [<Object>] is centeredAllOn [<Object2>] [<Data>],The [<Object>] should be centeredAllOn [<Object2>] [<Data>]
+assertelementcenteredhinside,Assert if [<Object>] is centeredHorizontallyInside [<Object2>] [<Data>],The [<Object>] should be centeredHorizontallyInside [<Object2>] [<Data>]
+assertelementcenteredhon,Assert if [<Object>] is centeredHorizontallyOn [<Object2>] [<Data>],The [<Object>] should be centeredHorizontallyOn [<Object2>] [<Data>]
+assertelementcenteredvinside,Assert if [<Object>] is centeredVerticallyInside [<Object2>] [<Data>],The [<Object>] should be centeredVerticallyInside [<Object2>] [<Data>]
+assertelementcenteredvon,Assert if [<Object>] is centeredVerticallyOn [<Object2>] [<Data>],The [<Object>] should be centeredVerticallyOn [<Object2>] [<Data>]
+assertelementcolorscheme,Assert if [<Object>] color scheme matches [<Data>] ,The[<Object>] color scheme should match with[<Data>] 
+assertelementcontains,Assert if [<Object>] contains <Object2> ,The[<Object>] should contains <Object2> 
+assertelementcontainspartly,Assert if [<Object>] partly contains  <Object2> ,The[<Object>] should partly contains <Object2> 
+assertelementcsspropcontains,Assert if [<Object>]'s Css Property Contains [<Data>],The[<Object>]'s Css Property should contains [<Data>] 
+assertelementcsspropendswith,Assert if [<Object>]'s Css Property EndsWith [<Data>],The[<Object>]'s Css Property should EndsWith [<Data>] 
+assertelementcsspropequals,Assert if [<Object>]'s Css Property Equals [<Data>],The[<Object>]'s Css Property should Equals [<Data>] 
+assertelementcsspropicontains,Assert if [<Object>]'s Css Property Contains [Ignorecase] [<Data>],The[<Object>]'s Css Property should contains [Ignorecase] [<Data>] 
+assertelementcsspropiendswith,Assert if [<Object>]'s Css Property EndsWith [Ignorecase] [<Data>],The[<Object>]'s Css Property should EndsWith [Ignorecase] [<Data>] 
+assertelementcsspropiequals,Assert if [<Object>]'s Css Property Equals [Ignorecase] [<Data>],The[<Object>]'s Css Property should Equals [Ignorecase] [<Data>] 
+assertelementcsspropistartswith,Assert if [<Object>]'s Css Property StartsWith [Ignorecase] [<Data>],The[<Object>]'s Css Property should StartsWith [Ignorecase] [<Data>] 
+assertelementcsspropmatches,Assert if [<Object>]'s Css Property Matches [<Data>],The[<Object>]'s Css Property should Match [<Data>] 
+assertelementcsspropstartswith,Assert if [<Object>]'s Css Property StartsWith [<Data>],The[<Object>]'s Css Property should StartsWith [<Data>] 
+assertelementheight,Assert if [<Object>]'s height is [<Data>] ,The[<Object>]'s height should be [<Data>] 
+assertelementheightelement,Assert if [<Object>] 's height is [<Data>] of [<Object2>],The[<Object>]'s height should be [<Data>] of [<Object2>]
+assertelementimage,Assert if [<Object>]'s image has [<Data>],Assert if [<Object>]'s image has [<Data>]
+assertelementinside,Assert if [<Object>] is inside [<Object2>] [<Data>],The [<Object>] should be inside [<Object2>] [<Data>]
+assertelementinsidepartly,Assert if [<Object>] is partly inside [<Object2>] [<Data>],The [<Object>] should be partly inside [<Object2>] [<Data>]
+assertelementleftof,Assert if [<Object>] is leftof [<Object2>] [<Data>],The [<Object>] should be leftof [<Object2>] [<Data>]
+assertelementnear,Assert if [<Object>] is near [<Object2>] [<Data>],The [<Object>] should be near [<Object2>] [<Data>]
+assertelementnotdisplayed,Assert if [<Object>] is not displayed,The [<Object>] should be not present
+assertelementnotenabled,Assert if [<Object>] is not enabled,The [<Object>] should be not enabled
+assertelementnotselected,Assert if [<Object>] is not selected,The [<Object>] should be not selected
+assertelementonbottomleft,Assert if [<Object>] is  on bottom left of [<Object2>] [<Data>],The [<Object>] should be  on bottom left of [<Object2>] [<Data>]
+assertelementonbottomright,Assert if [<Object>] is  on bottom right of [<Object2>] [<Data>],The [<Object>] should be  on bottom right of [<Object2>] [<Data>]
+assertelementontopleft,Assert if [<Object>] is  on top left of [<Object2>] [<Data>],The [<Object>] should be  on top left of [<Object2>] [<Data>]
+assertelementontopright,Assert if [<Object>] is  on top right of [<Object2>] [<Data>],The [<Object>] should be  on top right of [<Object2>] [<Data>]
+assertelementpresent,Assert if [<Object>] is present,The [<Object>] should be present
+assertelementrightof,Assert if [<Object>] is rightof [<Object2>] [<Data>],The[<Object>] should be displayed with [<Data>] right of the [<Object2>]
+assertelementtextcontains,Assert if [<Object>]'s Text Contains [<Data>],The[<Object>]'s Text should contains [<Data>] 
+assertelementtextendswith,Assert if [<Object>]'s Text EndsWith [<Data>],The[<Object>]'s Text should EndsWith [<Data>] 
+assertelementtextequals,Assert if [<Object>]'s Text Equals [<Data>],The[<Object>]'s Text should Equals [<Data>] 
+assertelementtexticontains,Assert if [<Object>]'s Text Contains [Ignorecase] [<Data>],The[<Object>]'s Text should contains [Ignorecase] [<Data>] 
+assertelementtextiendswith,Assert if [<Object>]'s Text EndsWith [Ignorecase] [<Data>],The[<Object>]'s Text should EndsWith [Ignorecase] [<Data>] 
+assertelementtextiequals,Assert if [<Object>]'s Text Equals [Ignorecase] [<Data>],The[<Object>]'s Text should Equals [Ignorecase] [<Data>] 
+assertelementtextistartswith,Assert if [<Object>]'s Text StartsWith [Ignorecase] [<Data>],The[<Object>]'s Text should StartsWith [Ignorecase] [<Data>] 
+assertelementtextmatches,Assert if [<Object>]'s Text Matches [<Data>],The[<Object>]'s Text should Match [<Data>] 
+assertelementtextstartswith,Assert if [<Object>]'s Text StartsWith [<Data>],The[<Object>]'s Text should StartsWith [<Data>] 
+assertelementwidth,Assert if [<Object>]'s width is [<Data>] ,The[<Object>]'s width should be [<Data>] 
+assertelementwidthelement,Assert if [<Object>] 's width is [<Data>] of [<Object2>],The[<Object>]'s width should be [<Data>] of [<Object2>]
+asserthscrollbarnotpresent,Assert if the Horizontal Scrollbar is not present,The Horizontal Scrollbar should not be present
+asserthscrollbarpresent,Assert if the Horizontal Scrollbar is present,The Horizontal Scrollbar should be present
+assertvscrollbarnotpresent,Assert if the Vertical Scrollbar is not present,The Vertical Scrollbar should not be present
+assertvscrollbarpresent,Assert if the Vertical Scrollbar is present,The Vertical Scrollbar should be present
+asserttitlecontains,Assert if Browser's Title Contains [<Data>],TheBrowser's Title should contains [<Data>] 
+asserttitleendswith,Assert if Browser's Title EndsWith [<Data>],TheBrowser's Title should EndsWith [<Data>] 
+asserttitleequals,Assert if Browser's Title Equals [<Data>],TheBrowser's Title should Equals [<Data>] 
+asserttitleicontains,Assert if Browser's Title Contains [Ignorecase] [<Data>],TheBrowser's Title should contains [Ignorecase] [<Data>] 
+asserttitleiendswith,Assert if Browser's Title EndsWith [Ignorecase] [<Data>],TheBrowser's Title should EndsWith [Ignorecase] [<Data>] 
+asserttitleiequals,Assert if Browser's Title Equals [Ignorecase] [<Data>],TheBrowser's Title should Equals [Ignorecase] [<Data>] 
+asserttitleistartswith,Assert if Browser's Title StartsWith [Ignorecase] [<Data>],TheBrowser's Title should StartsWith [Ignorecase] [<Data>] 
+asserttitlematches,Assert if Browser's Title Matches [<Data>],TheBrowser's Title should Match [<Data>] 
+asserttitlestartswith,Assert if Browser's Title StartsWith [<Data>],TheBrowser's Title should StartsWith [<Data>] 
+asserturlcontains,Assert if Browser's Url Contains [<Data>],TheBrowser's Url should contains [<Data>] 
+asserturlendswith,Assert if Browser's Url EndsWith [<Data>],TheBrowser's Url should EndsWith [<Data>] 
+asserturlequals,Assert if Browser's Url Equals [<Data>],TheBrowser's Url should Equals [<Data>] 
+asserturlicontains,Assert if Browser's Url Contains [Ignorecase] [<Data>],TheBrowser's Url should contains [Ignorecase] [<Data>] 
+asserturliendswith,Assert if Browser's Url EndsWith [Ignorecase] [<Data>],TheBrowser's Url should EndsWith [Ignorecase] [<Data>] 
+asserturliequals,Assert if Browser's Url Equals [Ignorecase] [<Data>],TheBrowser's Url should Equals [Ignorecase] [<Data>] 
+asserturlistartswith,Assert if Browser's Url StartsWith [Ignorecase] [<Data>],TheBrowser's Url should StartsWith [Ignorecase] [<Data>] 
+asserturlmatches,Assert if Browser's Url Matches [<Data>],TheBrowser's Url should Match [<Data>] 
+asserturlstartswith,Assert if Browser's Url StartsWith [<Data>],TheBrowser's Url should StartsWith [<Data>] 
+createpagedump,Creates Page dump for Page [<Data>],Page dump should be created for Page [<Data>]
+verfiyelementpresent,Verify if [<Object>] element is present,The [<Object>] element has to be present
+clickandwait,Click the [<Object>] and Wait for Page to be loaded,The [<Object>]  should be clicked and the Page should be loaded within the stipulated wait time
+clickon,Click the [<Object>] on the text[<Data>],The [<Object>]  should be clicked on the text [<Data>]
+typeonscreen,Type [<Data>] on the screen,The [<Data>] should be typed on the screen
+createandswitchtowindow,Open a new Browser window,The new browser window should be opened
+dragelement,Drags the [<Object>],The [<Object>] should be dragged
+dropelement,Drops the Dragged Object to [<Object>],The dragged Object should be dropped on  [<Object>]
+filler,This a dummy function helpful with testing.,This a dummy function helpful with testing.
+imgclearandset,clear text from image[<Object>] and enters the new text [<Data>],The text of the image[<Object>] should be cleared and replaced with text [<Data>]
+imgsetencrypted,Enters encrypted text [<Data>] in the image[<Object>],Encrypted text  [<Data>] should be entered in image[<Object>]
+setbrowsersize,Changes the browser size into [<Data>],Browser size should be changed into [<Data>]
+focusapp,[<Data>] app should be focused,The [<Data>] app should be focused
+deselectmultiplebyindex,Deselect items [<Data>] of [<Object>] by index,All items in  [<Data>] index should be deselected in [<Object>]
+deselectmultiplebytext,Deselect items [<Data>] of [<Object>] by visible Text,All items in  [<Data>] text should be deselected in [<Object>]
+deselectmultiplebyvalue,Deselect items [<Data>] of [<Object>] by value,All items in  [<Data>] value should be deselected in [<Object>]
+selectmultiplebyindex,Select items [<Data>] of [<Object>] by index,All items in  [<Data>] index should be selected in [<Object>]
+selectmultiplebytext,Select items [<Data>] of [<Object>] by visible Text,All items in  [<Data>] text should be selected in [<Object>]
+selectmultiplebyvalue,Select items [<Data>] of [<Object>] by value,All items in  [<Data>] value should be selected in [<Object>]
+setandcheck,Enter the value [<Data>] in the Field [<Object>] and check [<Data>] matches with [<Object>] value,The value  [<Data>] should be entered in [<Object>] and [<Data>] should be matched with [<Object>] value
+storetext,Store the [<Object>] element's text into the Runtime variable: [<Data>],The [<Object>] element's text should be stored into the Runtime variable: [<Data>]
+restartbrowser,Restarts the Browser,Browser should be restarted
+presskeys,Keyboard[<Data>] shortcut press action is enabled,The keyboard [<Data>] shortcut action press should be enabled
+switchtowindowbytitlecontains,switching to window by title [<Data>],switching to window by title [<Data>] should be done
+switchtowindowbytitlestartswith,switching to window by title starts with [<Data>],switching to window by title starts with [<Data>] should be done
+switchtowindowbytitleendswith,switching to window by title ends with [<Data>],switching to window by title ends with [<Data>] should be done
+switchtowindowbytitlematches,switching to window by title matches with [<Data>],switching to window by title matches with [<Data>] should be done
+verifyvariablefromdatasheet,Verify of variable [<Data>] from given datasheet is done,The verification of variable [<Data>] from given datasheet  should be done
+verfiyelementnotdisplayed,Verify if [<Object>] element is not displayed,The [<Object>] element has to be not displayed
+verfiyelementnotenabled,Verify if [<Object>] element is not enabled,The [<Object>] element has to be not enabled
+verfiyelementnotpresent,Verify if [<Object>] element is not present,The [<Object>] element has to be not present
+verfiyelementnotselected,Verify if [<Object>] element is not selected,The [<Object>] element has to be not selected
+waitforelementtobepresent,Wait for [<Object>] element to be present,The [<Object>] element should be present within the stipulated wait time
+waitforpageloaded,Wait for Page to be loaded,The Page should be loaded within the stipulated wait time
+storeTextinDataSheet,Store the [<Object>] element's text into datasheet:columname [<Data>],The [<Object>] element's text should be stored into datasheet:columname [<Data>]
+ClickIfExists,Click the [<Object>] if it exists,The [<Object>] should be clicked if it exists
+SubmitIfExists,Submit the [<Object>] if it exists,The [<Object>] should be submitted if it exists
+SetIfExists,Enter the value [<Data>] in the [<Object>] if it exists,The value [<Data>] should be entered in [<Object>] if it exists
+moveMouseTo,Move the mouse to the location [<Data>],The mouse should be moved to the location [<Data>]
+tap,Tap on the [<Object>],Should tap on [<Object>]
+tapAt,Tap at [<Data>],Should tap at [<Data>]
+zoom,Zoom in [<Object>],Should Zoom in [<Object>]
+pinch,Pinch  [<Object>],Should pint [<Object>]
+toggleLocationServices,Toggle the Location Services,Should toggle the loation services
+mScrollToExact,Scroll to exact text [<Data>],Should scroll to [<Data>]
+openNotifications,Open the Notifications ,Should open the Notifications
+zoomAt,Zoom at [<Data>],Should zoom at [<Data>]
+pinchAt,Pinch at [<Data>],Should pinch at [<Data>]
+mScrollTo,Scroll to text containing [<Data>],Should scroll to text containing [<Data>]
+lockScreen,Lock the screen,Should lock the screen
+switchContext,Switch the context to [<Data>],Should switch to context [<Data>]
+launchApp,Launch the app given in Capabillities,Should launch the app given in Capabillities
+installApp,install the App [<Data>],Should install the app [<Data>]
+hideKeyboard,Hide the Keyboard,Should hide the Keyboard
+resetApp,reset the app,Should reset the app
+swipeRight,Swipe right [<Data>],Should swipe right [<Data>]
+swipeLeft,Swipe left [<Data>],Should swipe left [<Data>]
+swipeDown,Swipe down [<Data>],Should swipe down [<Data>]
+swipeUp,Swipe up [<Data>],Should swipe up [<Data>]
+settings,Press settings key,Should press settings key
+search,Press search key,Should press search key
+enter,Press enter key,Should press enter key
+menu,Press menu key,Should press menu key
+home,Press home key,Should press home key
+setKey,Press  key [<Data>],Should press key [<Data>]
+clickByJS,Click on [<Object>],The element [<Object>] should be clicked
+setByJS,Set [<Data>] on [<Object>],The value [<Data>] should be entered in [<Object>]
+selectBYJS,Select element [<Object>] ,The element [<Object>] should be selected
+clearByJS,Clear the element [<Object>],The element [<Object>] should be cleared
+dragAndDropBy,Drad and drop the element [<Object>] at location [<Data>],The element [<Object>] should dropped at [<Data>]
+setInputByLabel ,Set [<Data>] on input based on label [<Object>],The value [<Data>] should be entered on the Input by label [<Object>]
+takeScreenShot,Take a Screen Shot ,Current screen shot should be saved
+checkAllCheckBoxes,Check all the check boxes in the context,All the check boxes should be selected
+assertSelectContains,Assert if the  select list [<Object>] contains [<Data>],The select list [<Object>] should contain [<Data>]
+closeAndSwitchToWindow,Close the current window and switch to default window,Current window should be closed and the context should switch to default window
+scrollHorizontallyTo,Scroll horizondally to [<Data>],Should scroll the page horizondally to [<Data>]
+scrollVerticallyTo,Scroll vertically to [<Data>],Should scroll the page vertically to [<Data>]
+scrollTo,Scroll to [<Data>],Should scroll the page to [<Data>]
+scrollToTop,Scroll to top,Should scroll to top of the page
+scrollToBottom,Scroll to bottom,Should scroll to bottom of the page
+scrollToLeft,Scroll to left,Should scroll to left of the page
+scrollToRight,Scroll to page,Should scroll to right of the page
+click_Relative,Click on element based on parent [<Object>],Should click on element based on parent [<Object>]
+set_Relative,Set [<Data>] on element based on parent [<Object>],The value [<Data>] should be entered on [<Object>]
+capturepagetimings,Capture the PageTimings for the Page [<Data>],The PageTimings for the Page [<Data>] should be captured and stored

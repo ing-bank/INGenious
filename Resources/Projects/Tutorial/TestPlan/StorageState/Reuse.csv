@@ -1,0 +1,3 @@
+Step,ObjectName,Description,Action,Input,Condition,Reference
+1,Browser,Open the Url [<Data>] in the Browser,Open,@http://localhost:3000/notifications,,
+*2,Browser,Wait for [<Data>] milli seconds,pause,@1,,

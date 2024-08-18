@@ -1,0 +1,131 @@
+
+
+html, body {
+    padding: 0;
+    margin: 0;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    flex: 0 0 100%;
+    font-size: 13px;
+    font-family: sans-serif;
+    background: #eee;
+    color: #333;
+    overflow: hidden;
+}
+.main-content {
+    height: 100%;
+}
+
+.main-content > div {
+    flex: 1 0 auto;
+}
+
+.axe-results {
+    height: 100%;
+    display: flex;
+    flex-direction: row;
+}
+@media only screen and (max-width: 580px) {
+    .axe-results {
+        flex-direction: column;
+    }
+    .axe-results .axe-issue-list {
+        flex-basis: 180px;
+        border-right: none;
+        border-bottom: 1px solid #a3a3a3;
+    }
+}
+.axe-issue-details {
+    flex: 1 1 auto;
+    flex-direction: column;
+    display: flex;
+}
+.axe-issue-list {
+    flex: 0 0 280px;
+    flex-direction: column;
+    display: flex;
+    background: #eee;
+    border-right: 1px solid #a3a3a3;
+}
+.axe-issue-list li {
+    padding: 0;
+    margin: 0;
+}
+.vio-toolbar {
+    flex: 0 0 auto;
+    display: flex;
+    align-items: center;
+    align-content: center;
+    background: #eee;
+    border-bottom: 1px solid #a3a3a3;
+    padding: 3px 4px;
+}
+.vio-toolbar > div {
+    flex: 1 auto;
+}
+
+.vio-toolbar .axe-vio-toolbar {
+    padding: 0 8px;
+}
+
+.vio-toolbar .axe-vio-toolbar.right {
+    text-align: right;
+}
+
+.axe-issue-list-nav, .axe-issue-details-content {
+    flex: 1 0 auto;
+    overflow: auto;
+    height: 100px;
+}
+
+.axe-issue-details-content {
+    padding: 0 0 8px;
+}
+
+.axe-issue-details-content .vio-toolbarbutton {
+    border-color: rgba(0, 0, 0, .25);
+    border: 1px solid rgba(0, 0, 0, .25);
+}
+
+.axe-issue-details-content .description a {
+    display: block;
+    margin: .25em 0 1em;
+}
+.axe-issue-details-content pre {
+    border-radius: 4px;
+    word-break: break-all;
+    word-wrap: break-word;
+    white-space: pre-wrap;
+    padding: 9px;
+    background: rgba(0, 0, 0, .1);
+    border: 1px solid rgba(0, 0, 0, .25);
+}
+
+#impact {
+    font-weight: bold;
+    text-shadow: 1px 1px 1px rgba(0, 0, 0, 0.05);
+}
+
+#impact::before {
+    display: inline-block;
+    content: " ";
+    box-shadow: -.5ex -.5ex 1ex rgba(0, 0, 0, 0.25) inset,
+        1px 1px 1px rgba(0, 0, 0, 0.15);
+    background: green;
+    vertical-align: top;
+    width: 2ex;
+    height: 2ex;
+    border-radius: 50%;
+    margin: 1px .375em 0 0;
+}
+
+#impact.critical::before {
+    background: red;
+}
+#impact.serious::before {
+    background: orange;
+}
+#impact.moderate::before {
+    background: yellow;
+}

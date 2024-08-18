@@ -1,0 +1,7 @@
+Step,ObjectName,Description,Action,Input,Condition,Reference
+1,nav-top-new-transaction,"Click the [<Object>] ",Click,,,Myfirstscript
+2,Recipient,Set object [<Object>] property  as [<Data>] at runtime,setObjectProperty,Transaction:Recipient,"#name",Myfirstscript
+3,Recipient,"Click the [<Object>] ",Click,,,Myfirstscript
+4,Amount,Enter the value [<Data>] in the Field [<Object>],Fill,Transaction:Amount,,Myfirstscript
+5,Add a note,"Click the [<Object>] ",Click,,,Myfirstscript
+6,Add a note,Enter the value [<Data>] in the Field [<Object>],Fill,Transaction:Text for note,,Myfirstscript

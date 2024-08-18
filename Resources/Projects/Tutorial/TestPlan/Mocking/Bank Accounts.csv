@@ -1,0 +1,22 @@
+Step,ObjectName,Description,Action,Input,Condition,Reference
+1,Browser,Set Endpoint for mocking request,RouteFulfillEndpoint,@http://localhost:3001/graphql,,
+2,Browser,Set body for mocking request,RouteFulfillSetBody,"{
+    ""data"": {
+        ""listBankAccount"": [
+            {
+                ""id"": ""pgl34JtnfhX"",
+                ""uuid"": ""0939b3fe-02da-46f4-a3a6-f06f0fc49f75"",
+                ""userId"": ""uBmeaz5pX"",
+                ""bankName"": ""ING Bank"",
+                ""accountNumber"": ""7774132232"",
+                ""routingNumber"": ""996645387"",
+                ""isDeleted"": false,
+                ""createdAt"": ""2023-03-28T21:55:07.857Z"",
+                ""modifiedAt"": ""2024-03-07T20:50:34.541Z""
+            }
+        ]
+    }
+}",,
+3,Execute,,Common:Login,,,
+*4,Bank Accounts,"Click the [<Object>] ",Click,,,Home Page
+5,Bank Name,Assert if [<Object>] is visible,assertElementIsVisible,,,Home Page

@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html ng-app="report">
+    <head>
+        <title>Har Compare</title>       
+        <link rel="stylesheet" type="text/css" href="/media/css/bootstrap.min.css">
+        <link rel="stylesheet" type="text/css" href="lib/toastr.css">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+        <script type="text/javascript"  src="/media/js/angular.min.js"></script>
+        <script type="text/javascript"  src="/media/js/jquery.js"></script>        
+        <script type="text/javascript"  src="/media/js/bootstrap.min.js"></script>
+        <script src="lib/toastr.js" type="text/javascript"></script>
+        <script src="app/init.js" type="text/javascript"></script>
+        <script src="app/api.js" type="text/javascript"></script>
+        <link rel="stylesheet" type="text/css" href="app/app.css">
+        <script type="text/javascript"  src="app/home.js"></script>
+        <link rel="shortcut icon" href="/favicon.png"/>
+    </head>
+    <body ng-controller="home">
+        <noscript>
+        For full functionality of this site it is necessary to enable JavaScript.
+        <a href="http://www.enable-javascript.com/" target="_blank">Know more</a>
+        </noscript>
+        <div class = "topWrap">
+            <header class="navbar navbar-static-top bs-docs-nav" id="top" role="banner">
+                <div class="container">
+                    <div ng-click="homeView = views.harCompare;" class="harComparePage">
+                        <a href="" class="navbar-brand">Har Comparator</a>
+                    </div>
+                    <nav id="bs-navbar" class="collapse navbar-collapse">
+                        <ul class="nav navbar-nav navbar-right">
+                            <li ng-click="homeView = views.selectHar;"><a href = "" 
+                                                                          style = "font-size: 18px;">Select Har</a></li>
+                        </ul>
+                    </nav>
+                </div>
+            </header>
+        </div>
+        <div class="container loading"  ng-show="if (views.loading)">
+            <center><span class='loading msg glyphicon glyphicon-refresh'></span></center>
+        </div>
+        <div class="container" ng-cloak>
+            <!--  har selector module-->
+            <div class="container harSelect"  ng-show="if (views.selectHar)">           
+                <div class="selecter testset" >
+                    <div  ng-controller="harSelecter"  style = "display: inline;">
+                        
+                        <!--har delete pop up-->
+                            <div id="confirm_delete_har" style = "display: none;position: absolute;">
+                                <div class="modal-body">Selected har file will be permanently deleted!</div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-primary" ng-click="onDelete();" id="delete">Delete</button>
+                                    <button type="button" class="btn confirm_delete">Cancel</button>
+                                </div>
+                            </div>
+                        <!--end har delete pop up-->
+                        
+                        <div class="card reportlist">
+                            <div class="container toolbar har"  style = "margin-bottom: 10px;">
+                                <button  class="btn compare" ng-click="onCompare();" ng-disabled="selected.length === 0">Compare </button>
+                                <button id="btn_clr_s1" class="btn clear" ng-click="onClear();">Clear</button>
+                                <button class="btn delete" ng-disabled="selected.length === 0">Delete</button>
+                                <button  class="btn counter" > {{selected.length}} </button>
+                            </div>
+                            <div class="group testset"   ng-init="reload();">
+                                <div class="panel-group" ng-repeat="harPage in dataSet" >
+                                    <!--har data-->
+                                    <div class="panel panel-primary {{harPage.active}}">
+                                        <div class = "panel-heading" data-toggle="collapse" data-target="#{{'t' + $index}}">{{harPage.name}}</div>
+
+                                        <div id="{{'t' + $index}}" class="collapse panel-collapse harSelect-container">
+                                            <div class="har-names" ng-init="initfilter(harPage)">
+                                                <div class = "harSelect-header">
+                                                    <table class = "table harSelect-table">
+                                                        <thead>
+                                                            <tr>
+                                                                <th><button type="checkbox" class="btn check {{harPage.allSelected}}" ng-click="harPage.allSelected = !harPage.allSelected;
+                                                                                        selectAllHar(filteredItems, harPage.allSelected);"></button></th>
+                                                                <th><input ng-model="harPage.reportVal" type="text" class="form-control" placeholder="Report Search"></th>
+                                                                <th> <div class="dropdown img-filter" ng-init="browser = harPage.filterD.browser;">
+                                                                        <button class="btn btn-default dropdown-toggle flbtn_{{flbtn(browser)}}" type="button" id="brwoser" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+                                                                            Browser
+                                                                            <span class="caret"></span>
+                                                                        </button>
+                                                                        <ul class="dropdown-menu filter-browser" aria-labelledby="brwoser">
+                                                                            <li>
+                                                                                <img ng-init = "browser.Chrome = true;" ng-click="toggle(browser, fltr.bro.Chrome);" 
+                                                                                     data-type="browser" img-src="Chrome">
+                                                                                <img ng-init = "browser.Safari = true;" ng-click="toggle(browser, fltr.bro.Safari);" 
+                                                                                     data-type="browser" img-src="Safari">
+                                                                                <img ng-init = "browser.Firefox = true;" ng-click="toggle(browser, fltr.bro.Firefox)" 
+                                                                                     data-type="browser" img-src="Firefox">
+                                                                                <img ng-init = "browser.IE = true;" ng-click="toggle(browser, fltr.bro.IE)" 
+                                                                                     data-type="browser" img-src="IE">
+                                                                            </li>
+                                                                        </ul>
+                                                                    </div>
+                                                                </th>
+                                                                <th>
+                                                                    <div class="dropdown img-filter" ng-init="platform = harPage.filterD.platform;">
+                                                                        <button class="btn btn-default dropdown-toggle flbtn_{{flbtmP(platform)}}" type="button" id="platform" data-toggle="dropdown" aria-haspopup="true" aria-expanded="true">
+                                                                            Platform <span class="caret"></span>
+                                                                        </button>
+                                                                        <ul class="dropdown-menu filter-platform" aria-labelledby="brwoser">
+                                                                            <li>
+                                                                                <img ng-init = "platform.WIN7 = true" ng-click="toggle(platform, fltr.platf.WIN)" 
+                                                                                     data-type="platform" img-src="WIN7">
+                                                                                <img ng-init = "platform.MAC = true" ng-click="toggle(platform, fltr.platf.MAC)" 
+                                                                                     data-type="platform" img-src="MAC">
+                                                                                <img ng-init = "platform.LINUX = true" ng-click="toggle(platform, fltr.platf.LINUX)"
+                                                                                     data-type="platform" img-src="LINUX">
+                                                                                <img ng-init = "platform.ANDROID = true" ng-click="toggle(platform, fltr.platf.ANDROID)"
+                                                                                     data-type="platform" img-src="ANDROID">
+                                                                                <img ng-init = "platform.IOS = true" ng-click="toggle(platform, fltr.platf.IOS)"
+                                                                                     data-type="platform" img-src="IOS">
+                                                                            </li>
+                                                                        </ul>
+                                                                    </div>
+                                                                </th>
+                                                            </tr>
+                                                        </thead>
+                                                    </table>
+                                                </div>
+                                                <div class = "harSelect-tbody">
+                                                    <table class = "table harSelect-table">
+                                                        <tbody>
+                                                            <tr ng-click="onSelectHar(har)" ng-repeat="har in harPage.hars| filtrContains:'config.report':harPage.reportVal | filter:filterFn(harPage.filterD) as filteredItems">
+                                                                <td><button type="checkbox" class="btn check {{har.selected}}"></button></td>
+                                                                <td>{{har.config.report}}</td>
+                                                                <td>{{har.config.browser}}(v{{har.config.version}})</td>
+                                                                <td>{{har.config.platform}}</td>
+                                                            </tr>
+                                                        </tbody>
+                                                    </table>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <span class="label" style = "background-color: #f0ad4e;margin: 36px;position: absolute;" ng-show="dataSet.length===0">
+                                No har files found. To generate har files please execute the testcases with Performance reporting enabled.
+                            </span>
+                        </div>
+                    </div>                                    
+                </div>
+            </div>
+            <!--  har selector module-->
+            <!--        har Compare-->
+            <div class="container outer harCompare" ng-show="if (views.harCompare)" >
+                <div class="inner harCompare" ng-controller="harCompare">
+                    <div class = "row">
+                        <span class="label label-info">Tolerance</span> : 
+                        <input type="number" ng-model="tolerance" class="form-control tolerance">                            
+                        <span style="margin-left: 5px;font: 16px bold;">%</span>
+                        <div class="form-group" style = "float: right;margin-bottom: 0px;">
+                            <div class = "sortDiv" style = "float: left;margin-right: 10px;">
+                                <div class="input-group" style = "width: 145px;">
+                                    <div class="input-group-btn" ng-model="sort.with">
+                                        <button class="btn asc" ng-click="sort.by = !sort.by;
+                                                            onSort()"
+                                                title = "Sort Hars">{{sort.by?'Desc':'Asc'}}</button>
+                                        <button type="button" class="btn btn-default dropdown-toggle sortWith" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Sort by {{sort.with.name}} <span class="caret"></span></button>
+                                        <ul class="dropdown-menu" style = "width: 100%;">
+                                            <li ng-repeat="op in sort.options" ng-click="sort.with = op"><a href="#">{{op.name}}</a></li>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                            <button class="btn clear" ng-click="clearAll()">Clear</button>
+                        </div>
+                    </div>
+                    <br>
+                    <div class = "table-cover">
+                        <div class = "report-tables">
+                            <div class = "table1" style = "width: 370px;float: left;margin-right: 2px;">
+                                <div class = "table1-header">
+                                    <table class="table report_table table-striped table-bordered" ng-show="d.hars.length > 0">
+                                        <thead>
+                                            <tr>
+                                                <th class="ref" style="text-align: center;vertical-align: middle;">Resource</th>
+                                                <th class="ref" style = "text-align: center;vertical-align: bottom;">
+                                                    <div class = "bench_label">
+                                                        <label ng-hide='editRef' tool-tip title = "{{ref.har.config.name}}" data-placement="left" data-original-title="{{ref.har.config.name}}">{{ref.har.config.name}}</label>
+                                                        <input ng-show='editRef' style='width:132px' class='form-control editRefflt'
+                                                               type='text' ng-model = "ref.har.config.name">
+                                                    </div>
+                                                    <div class ="tools" style="display: inline-block;vertical-align: top;">                                          
+                                                        <span ng-show="editRef">
+                                                            <span class="glyphicon glyphicon-share-alt back" 
+                                                                  ng-click="onRefCancel();
+                                                                                      onEditRef();" aria-hidden="true"></span>
+                                                            <br>
+                                                            <span class="glyphicon glyphicon-floppy-save" 
+                                                                  ng-click="onRefSave();" aria-hidden="true"></span>
+                                                        </span>    
+                                                        <span ng-show="!editRef">
+                                                            <span class="glyphicon glyphicon-import" title = "Import Benchmark"
+                                                                  ng-click="onImportRef();" 
+                                                                  aria-hidden="true"></span>
+                                                            <br>
+                                                            <span class="glyphicon glyphicon-pencil"  title = "Edit Benchmark"
+                                                                  ng-click="onEditRef();" 
+                                                                  aria-hidden="true"></span>
+                                                            <br>
+                                                            <span class="glyphicon glyphicon-star" 
+                                                                  aria-hidden="true">                            
+                                                            </span>
+                                                        </span> 
+                                                    </div> 
+                                                </th>
+                                            </tr>                                         
+                                        </thead>
+                                    </table>
+                                </div>
+                                <div class = "table1-body">
+                                    <div class = "table1-bodyScroll">
+                                        <table class="table report_table table-striped table-bordered" ng-show="d.hars.length > 0">
+                                            <tbody>                      
+                                                <tr style="font-size:12px;" >
+                                                    <td class="ref">Content Load</td>     
+                                                    <td class="ref {{(editRef)?'editRef':''}}">
+                                                        <input ng-show="editRef" type="number" class="form-control time" ng-model="r_p.onContentLoad">                                  
+                                                        <div ng-show="!(editRef)" class="stat e0">
+                                                            <span class="time"> {{r_p.onContentLoad}}</span>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                                <tr style="font-size:12px;" >
+                                                    <td>Page Load</td>      
+                                                    <td  class="ref {{(editRef)?'editRef':''}}">
+                                                        <input ng-show="editRef" type="number" class="form-control time" ng-model="r_p.onLoad">
+                                                        <div ng-show="!(editRef)" class="stat e0">
+                                                            <span class="time">{{r_p.onLoad}}</span>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                                <tr ng-repeat="r_e in ref.har.log.entries"  style="font-size:12px;"  >
+                                                    <td class="ref">
+
+                                                        <span id="urlSpan" tool-tip title="{{r_e.request.url}}">{{resolvedLink(r_e.request)}}</span>
+
+                                                        <script>
+                                                        const urlSpan = document.getElementById('urlSpan');
+                                                        const encodedUrl = encodeURIComponent(urlSpan.getAttribute('title'));
+                                                        const resolvedLink = encodeURIComponent(urlSpan.textContent);
+                                                        
+                                                        urlSpan.setAttribute('title', encodedUrl);
+                                                        urlSpan.textContent = resolvedLink;
+                                                        </script>
+                                                        
+
+
+
+
+                                                <!--        <span tool-tip title="{{r_e.request.url}}">{{resolvedLink(r_e.request)}}</span> -->
+                                                        <input  ng-show="editRef && r_e.request.url === ''" type="text" 
+                                                                class="form-control resource" ng-model-options="{updateOn: 'blur'}" 
+                                                                ng-model="r_e.request.url"></input>  
+                                                    </td>    
+                                                    <td class="ref {{(editRef)?'editRef':''}}">
+                                                        <div  ng-show="editRef">
+                                                            <input  type="number" class="form-control time" ng-model="r_e.time">                      
+                                                            <span class="glyphicon glyphicon-remove-sign resource tools" 
+                                                                  ng-click="removeResource(r_e, $index);" aria-hidden="true"></span>
+                                                            <span ng-show="$last" class="glyphicon glyphicon-plus resource tools" 
+                                                                  ng-click="addResource(r_e, $index);" aria-hidden="true"></span>
+                                                        </div>
+                                                        <div ng-show="!(editRef)" class="stat e0">
+                                                            <span class="time"> {{r_e.time}}</span>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class = "report_table-container" style = "width: 67%;display: inline-block;margin-left: -2px;">
+                                <div class = "table-header" style = "left: 0px;margin-left: -2px;">
+                                    <table  class="table report_table table-striped table-bordered" ng-show="d.hars.length > 0">
+                                        <thead>
+                                            <tr>
+                                                <th ng-repeat="e in d.hars" class="{{(($index * 2) + 1) === d.hars.length ? 'median' : ''}}">
+                                                    <div ng-hide="e.ref" style="display: inline-block;text-overflow: ellipsis;overflow: hidden;max-width: 76%">
+                                                        <label >
+                                                            <span tool-tip title = "{{::e.name}}">{{::e.name.split('_')[0]}}</span><br>
+                                                            <img class = "harcompare_{{::e.har.config.browser}}" img-srci = "{{$index}}"
+                                                                 tool-tip title = "{{::e.har.config.browser + ' ' + e.har.config.version}}"  style="width: 20px;height: 20px;"/>
+                                                            <smaller>{{::e.har.config.version}}</smaller>
+                                                            <br><span style = "font-weight: 400;font-size: 12px;">{{::e.har.config.platform}}</span>
+                                                        </label>
+                                                    </div>
+                                                    <span class ="tools" style="display: inline-block;vertical-align: top;">
+                                                        <span class="glyphicon glyphicon-remove" ng-click="removeHar(e);"  title = "Remove Har"
+                                                              aria-hidden="true"></span><br> 
+                                                        <span class="glyphicon glyphicon-alert" ng-show="e._newAssets"  title = "New Resources found"
+                                                              ng-click="onDiff(e);" aria-hidden="true">                            
+                                                        </span><br ng-show="e._newAssets">
+                                                        <span class="glyphicon glyphicon-star-empty"  title = "Set as Benchmark"
+                                                              ng-click="setRef(e);" aria-hidden="true">                            
+                                                        </span>
+                                                    </span>
+                                                </th>
+                                            </tr>   
+                                        </thead>
+                                    </table>
+                                </div>
+                                <div class = "table-body">
+                                    <table class="table report_table table-striped table-bordered" ng-show="d.hars.length > 0">
+                                        <tbody>                      
+                                            <tr style="font-size:12px;">
+                                                <td ng-repeat="ele in d.hars" ng-init="p = ele.har.log.pages[0].pageTimings;">
+                                                    <div class="stat e{{checkTime(r_p.onContentLoad, p.onContentLoad)}}">
+                                                        <span class="time"> {{p.onContentLoad}}</span>
+                                                        <small class="diff" > {{timeDiff(r_p.onContentLoad, p.onContentLoad)}}</small>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                            <tr style="font-size:12px;">
+                                                <td ng-repeat="ele in d.hars" ng-init="p = ele.har.log.pages[0].pageTimings;">
+                                                    <div class="stat e{{checkTime(r_p.onLoad, p.onLoad)}}">
+                                                        <span class="time">{{p.onLoad}}</span>
+                                                        <small class="diff" > {{timeDiff(r_p.onLoad, p.onLoad)}}</small>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                            <!--1st two rows ends here-->
+                                            <tr ng-repeat="r_e in ref.har.log.entries"  style="font-size:12px;">
+                                                <td ng-repeat="ele in d.hars" 
+                                                    ng-init="e = ele._assetMap[resolvedLongLink(r_e.request)]">
+                                                    <small ng-hide="resolvedLongLink(r_e.request) === resolvedLongLink(e.request)">!</small>
+                                                    <div  class="stat e{{checkTime(r_e.time, e.time)}}">
+                                                        <span class="time"> {{e.time}}</span>
+                                                        <small class="diff" > {{timeDiff(r_e.time, e.time)}}</small>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- end of har Compare-->      
+            <!--    ref selector       -->
+            <div class="container selectRef"  ng-show="if (views.selectRef)">
+                <div class="selectRef inner">Select BenchMark<br>
+                    <div class="card list ref">
+                        <ul class="list-group">
+                            <li class="list-group-item ref item" ng-repeat="ref in refList" ng-click="onSelectRef(ref)">
+                                <span >{{ref.name}}</span>
+                            </li>
+                        </ul>
+                    </div>
+                </div> 
+            </div>
+            <!--    ref selector       -->  
+            <!--    asset selector       -->
+            <div class="container selectRef selectAsset"  ng-show="if (views.selectAsset)">
+                <div class="selectRef inner"><span>New Resources</span>
+                    <div class="card list ref">
+                        <div class="toolbar addAssets"> 
+                            <span class="label label-success tools right" ng-click="onAddtoRef();">Add to Ref</span>
+                            <span class="label label-danger tools right" ng-click="onAssetsSelect(false);">Clear</span>
+                            <span class="label label-info tools right" ng-click="onAssetsSelect(true);">Select All</span>
+                        </div><br>
+                        <ul class="list-group">
+                            <li class="list-group-item ref item" ng-repeat="asset in newAssets" 
+                                ng-init="e = cAssetsMap[asset];
+                                            e._sel = false;"
+                                ng-click="e._sel = !e._sel;
+                                        onSelectAsset(asset, e._sel)">
+                                <div class ="item asset">
+                                    <button class="btn check {{e._sel}}"></button>
+                                    <span title="{{e.request.url}}">{{resolvedLink(e.request)}}</span>
+                                </div>
+                            </li>
+                        </ul>
+                    </div>
+                </div> 
+            </div>
+            <!--    asset selector       -->  
+        </div>
+    </body>
+</html>

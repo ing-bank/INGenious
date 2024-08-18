@@ -1,0 +1,5 @@
+Step,ObjectName,Description,Action,Input,Condition,Reference
+1,Webservice,"Set End Point ",setEndPoint,@http://localhost:3000/transactions/567a,,
+2,Webservice,"Add Header ",addHeader,@Content-Type=application/json,,
+3,Webservice,"POST Rest Request ",deleteRestRequest,,,
+4,Webservice,"Assert Response Code ",assertResponseCode,@200,,

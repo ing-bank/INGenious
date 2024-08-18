@@ -1,0 +1,2 @@
+Scenario,Flow,Iteration,SubIteration,OriginalName,Country,CustID,NewName,AccountNumber,AccountID,Amount,Date,Type,TransactionID
+API Testing,ConnectedFlow,1,1,Peter Parker,US,d084,Bruce Wayne,123654789,979e,1500,2024-07-15,deposit,7af1

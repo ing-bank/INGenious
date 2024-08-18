@@ -1,0 +1,14 @@
+<Root ref="ING-Public-Web" type="RC">
+    <Folder ref="New Group">
+        <Scenario ref="Scenario1">
+            <TestCase exeType="Executable" ref="Reusable2"/>
+            <TestCase exeType="Executable" ref="Reusable1"/>
+        </Scenario>
+        <Scenario ref="StepDefinitions">
+            <TestCase exeType="Executable" ref="User fills up personal details"/>
+            <TestCase exeType="Executable" ref="submits relevant question"/>
+            <TestCase exeType="Executable" ref="User navigates to the Contact-Us page"/>
+            <TestCase exeType="Executable" ref="the question should be sent"/>
+        </Scenario>
+    </Folder>
+</Root>

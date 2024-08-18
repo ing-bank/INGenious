@@ -1,0 +1,190 @@
+{
+  "id" : "Tutorial",
+  "name" : "Tutorial",
+  "version" : "1.3",
+  "attributes" : [ ],
+  "tags" : [ ],
+  "_meta" : [ {
+    "type" : "attribute",
+    "name" : "scenario",
+    "desc" : "High level classification of test requirement/cases grouped together",
+    "ref" : "com.ing.datalib.model.Attribute",
+    "attributes" : [ ],
+    "tags" : [ ]
+  }, {
+    "type" : "tag",
+    "name" : "@smoke",
+    "desc" : "Non-exhaustive set of tests that aim at ensuring that the most important functions work",
+    "ref" : "com.ing.datalib.model.Tag",
+    "attributes" : [ ],
+    "tags" : [ ]
+  }, {
+    "type" : "tag",
+    "name" : "@uat",
+    "ref" : "com.ing.datalib.model.Tag",
+    "attributes" : [ ],
+    "tags" : [ ]
+  }, {
+    "type" : "tag",
+    "name" : "@load",
+    "ref" : "com.ing.datalib.model.Tag",
+    "attributes" : [ ],
+    "tags" : [ ]
+  }, {
+    "type" : "scenario",
+    "name" : "Transactions",
+    "ref" : "com.ing.datalib.model.Attribute",
+    "attributes" : [ ],
+    "tags" : [ ]
+  }, {
+    "type" : "scenario",
+    "name" : "Payment Operations",
+    "desc" : "User should be able to perform credit and debit transactions.",
+    "ref" : "com.ing.datalib.model.Attribute",
+    "attributes" : [ {
+      "name" : "feature.line",
+      "value" : "1"
+    } ],
+    "tags" : [ ]
+  } ],
+  "data" : [ {
+    "id" : "LowAmount",
+    "name" : "LowAmount",
+    "tags" : [ ],
+    "attributes" : [ {
+      "name" : "scenario",
+      "value" : "Transactions"
+    } ]
+  }, {
+    "id" : "HighAmount",
+    "name" : "HighAmount",
+    "tags" : [ ],
+    "attributes" : [ {
+      "name" : "scenario",
+      "value" : "Transactions"
+    } ]
+  }, {
+    "id" : "Pay money to an existing contact",
+    "name" : "Pay money to an existing contact",
+    "tags" : [ {
+      "value" : "@Pay"
+    } ],
+    "attributes" : [ {
+      "name" : "scenario",
+      "value" : "Payment Operations"
+    }, {
+      "name" : "feature.children.line",
+      "value" : "7"
+    }, {
+      "name" : "feature.children.name",
+      "value" : "Pay money to an existing contact"
+    }, {
+      "name" : "feature.children.keyword",
+      "value" : "Scenario"
+    } ]
+  }, {
+    "id" : "User is logged in",
+    "name" : "User is logged in",
+    "tags" : [ ],
+    "attributes" : [ {
+      "name" : "scenario",
+      "value" : "StepDefinitions"
+    }, {
+      "name" : "feature.children.step.line",
+      "value" : "8"
+    }, {
+      "name" : "feature.children.step.text",
+      "value" : "User is logged in"
+    }, {
+      "name" : "feature.children.step.keyword",
+      "value" : "Given "
+    } ]
+  }, {
+    "id" : "User creates a new transaction",
+    "name" : "User creates a new transaction",
+    "tags" : [ ],
+    "attributes" : [ {
+      "name" : "scenario",
+      "value" : "StepDefinitions"
+    }, {
+      "name" : "feature.children.step.line",
+      "value" : "9"
+    }, {
+      "name" : "feature.children.step.text",
+      "value" : "User creates a new transaction"
+    }, {
+      "name" : "feature.children.step.keyword",
+      "value" : "When "
+    } ]
+  }, {
+    "id" : "chooses to pay",
+    "name" : "chooses to pay",
+    "tags" : [ ],
+    "attributes" : [ {
+      "name" : "scenario",
+      "value" : "StepDefinitions"
+    }, {
+      "name" : "feature.children.step.line",
+      "value" : "10"
+    }, {
+      "name" : "feature.children.step.text",
+      "value" : "chooses to pay"
+    }, {
+      "name" : "feature.children.step.keyword",
+      "value" : "And "
+    } ]
+  }, {
+    "id" : "user should be able to complete the operation",
+    "name" : "user should be able to complete the operation",
+    "tags" : [ ],
+    "attributes" : [ {
+      "name" : "scenario",
+      "value" : "StepDefinitions"
+    }, {
+      "name" : "feature.children.step.line",
+      "value" : "11"
+    }, {
+      "name" : "feature.children.step.text",
+      "value" : "user should be able to complete the operation"
+    }, {
+      "name" : "feature.children.step.keyword",
+      "value" : "Then "
+    } ]
+  }, {
+    "id" : "Request money from existing contact",
+    "name" : "Request money from existing contact",
+    "tags" : [ {
+      "value" : "@Request"
+    } ],
+    "attributes" : [ {
+      "name" : "scenario",
+      "value" : "Payment Operations"
+    }, {
+      "name" : "feature.children.line",
+      "value" : "14"
+    }, {
+      "name" : "feature.children.name",
+      "value" : "Request money from existing contact"
+    }, {
+      "name" : "feature.children.keyword",
+      "value" : "Scenario"
+    } ]
+  }, {
+    "id" : "chooses to request",
+    "name" : "chooses to request",
+    "tags" : [ ],
+    "attributes" : [ {
+      "name" : "scenario",
+      "value" : "StepDefinitions"
+    }, {
+      "name" : "feature.children.step.line",
+      "value" : "17"
+    }, {
+      "name" : "feature.children.step.text",
+      "value" : "chooses to request"
+    }, {
+      "name" : "feature.children.step.keyword",
+      "value" : "And "
+    } ]
+  } ]
+}
