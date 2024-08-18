@@ -25,4 +25,4 @@ jobs:
         uses: actions/upload-artifact@v4.3.6
         with:
           name: INGenious framework
-          path: /Dist/target/*.zip
+          path: Dist/target/*.zip

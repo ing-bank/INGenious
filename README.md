@@ -1,5 +1,8 @@
 # INGenious Playwright Studio - Test Automation for Everyone
 
+[![Build INGenious Source Code](https://github.com/ing-bank/INGenious/actions/workflows/maven.yml/badge.svg)](https://github.com/ing-bank/INGenious/actions/workflows/maven.yml)
+
+![Static Badge](https://img.shields.io/badge/Version-1.0-%23FF6200)
 
 --------------------------------------------------------------------
 
@@ -9,94 +12,71 @@
 
 Developed and perfected by <span style="color:#FF6200;width:100px">**ING Bank**</span> for over 4 years of real-world usage, **INGenious** is now open-source and available to everyone. Designed to simplify and streamline test automation, this robust solution empowers teams of all sizes to achieve efficient, high-quality testing. By joining the global testing community, ING aims to collaborate, innovate, and elevate automated testing together.
 
-> [!NOTE]
+> [!NOTE About INGenious]
 > It provides an easy and simple way to create highly reliable automated tests. It leverages the power of __Playwright-Java__ and combines it with a user-friendly IDE which makes it a highly effective solution. 
 > The idea behind INGenious is to enable engineers, business analysts and even non-technical stakeholders to design high quality automated tests which focus on the business goals, without them having to worry about coding.
 
 
-
-
-
-
-
+:atom: **The complete documentation is available here :** https://ing-bank.github.io/ingenious-doc/
 
 ## At a Glance
------------------------
 
 
+-   :white_check_mark: __Get Started in 5 minutes__
 
-
--   [x] __Get Started in 5 minutes__
-
-    <a target="_blank" href="https://ing-bank.github.io/ingenious-doc/gettingstarted/">
     Download <span style="color:#FF6200">INGenious</span> and get up and running in minutes. Create and execute your test cases in no time.
 
-    [:arrow_right: Getting started](gettingstarted.md)
+    [:arrow_right: Getting started](https://ing-bank.github.io/ingenious-doc/gettingstarted/)
 
--   [x] __No Code/Low Code__
-
+-   :white_check_mark: __No Code/Low Code__
 
     <span style="color:#FF6200">INGenious</span> comes with an intuitive IDE which makes test designing simple, easy and fun.
 
-    [:arrow_right: IDE](knowyourframework.md)
+    [:arrow_right: IDE](https://ing-bank.github.io/ingenious-doc/knowyourframework/)
 
--   [x] __Browser Automation__
-
-    ---
+-   :white_check_mark: __Browser Automation__
 
     <span style="color:#FF6200">INGenious</span> leverages the power of **Playwright** to create robust and stable browser tests.
 
-    [:octicons-arrow-right-24: Browser Testing](BrowserTesting/)
+    [:arrow_right: Browser Testing](https://ing-bank.github.io/ingenious-doc/browsertesting/)
 
--   :material-api:{ .lg .middle .cicd} __API Automation__
-
-    ---
+-   :white_check_mark: __API Automation__
 
     <span style="color:#FF6200">INGenious</span> leverages **Java HTTP Client** to create API tests.
 
-    [:octicons-arrow-right-24: API Testing](api/)
+    [:arrow_right: API Testing](https://ing-bank.github.io/ingenious-doc/api/)
 
 
 
--   :material-code-json:{ .lg .middle .customization } __Full customization__
-
-    ---
+-   :white_check_mark: __Full customization__
 
     <span style="color:#FF6200">INGenious</span> comes with a full blown `maven` project which can be easily customized based on project needs.
 
-    [:octicons-arrow-right-24: Customizations](customizations/)
+    [:arrow_right: Customizations](https://ing-bank.github.io/ingenious-doc/customizations/)
 
--   :simple-cucumber:{ .lg .middle .cucumber} __Integrated BDD__
-
-    ---
+-   :white_check_mark: __Integrated BDD__
 
     <span style="color:#FF6200">INGenious</span> supports BDD way of working and comes with a built-in feature file editor.
 
-    [:octicons-arrow-right-24: BDD Support](bdd/)
+    [:arrow_right: BDD Support](https://ing-bank.github.io/ingenious-doc/bdd/)
 
--   :material-microsoft-azure-devops:{ .lg .middle .azure } __Seamless Azure Test Plan Integration__
-
-    ---
+-   :white_check_mark: __Seamless Azure Test Plan Integration__
 
     Test Case and Defect Management via Azure DevOps Test Plan can be done with <span style="color:#FF6200">INGenious</span> very easily
 
-    [:octicons-arrow-right-24: Test Plan](testplan/)
+    [:arrow_right: Test Plan](https://ing-bank.github.io/ingenious-doc/testplan/)
 
--   :material-rocket-launch:{ .lg .middle .cicd} __Seamless integration with any CI tool__
-
-    ---
+-   :white_check_mark: __Seamless integration with any CI tool__
 
     <span style="color:#FF6200">INGenious</span> is built in Java and has a strong command line interface. This makes integration with any CI tool, very easy.
 
-    [:octicons-arrow-right-24: Integration](ci.md)
+    [:arrow_right: Integration](https://ing-bank.github.io/ingenious-doc/ci/)
 
--   :material-scale-balance:{ .lg .middle .grey  } __Open Source, MIT__
+-   :white_check_mark: __Open Source, MIT__
 
-    ---
+    <span style="color:#FF6200">INGenious</span> is licensed under MIT and available on **GitHub**
 
-    <span style="color:#FF6200">INGenious</span>  is licensed under MIT and available on **GitHub**
-
-    [:octicons-arrow-right-24: License](https://github.com/ing-bank/INGenious)
+    [:arrow_right: License](https://github.com/ing-bank/INGenious)
 
 
 
@@ -112,11 +92,10 @@ INGenious will also cater to the following types of testing. Currently, these ar
 
 <div class="grid cards" markdown>
 
-- :octicons-device-mobile-16: __Mobile Apps__ testing
-- :octicons-database-16: __Database__ testing
+- :iphone: __Mobile App__ testing
+- :open_file_folder: __Database__ testing
 
 </div>
-
 
 
 --------
