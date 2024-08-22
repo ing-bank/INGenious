@@ -23,7 +23,6 @@ nbproject
 nbactions*.xml
 nb-configuration.xml
 .settings/
-.project
 .classpath
 .idea/
 
