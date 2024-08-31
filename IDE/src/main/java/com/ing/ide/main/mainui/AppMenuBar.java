@@ -199,10 +199,10 @@ public class AppMenuBar extends JMenuBar {
                 withMnemonics(
                         withIcon(
                                 Utils.createMenuItem("Browser Configuration", sActionListener)), 'B'));
-        configure.add(
-                withMnemonics(
-                        withIcon(
-                                Utils.createMenuItem("AzureDevOps TestPlan Configuration", sActionListener)), 'T'));
+     //   configure.add(
+     //           withMnemonics(
+     //                   withIcon(
+     //                           Utils.createMenuItem("AzureDevOps TestPlan Configuration", sActionListener)), 'T'));
         configure.addSeparator();
 
       //  configure.add(
