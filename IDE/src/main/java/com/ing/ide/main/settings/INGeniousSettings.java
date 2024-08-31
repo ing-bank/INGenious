@@ -215,11 +215,11 @@ public class INGeniousSettings extends javax.swing.JFrame {
         fullpagescreenshot.setSelected(execSettings.getRunSettings().getTakeFullPageScreenShot());
 
         reRunNo.getModel().setValue(execSettings.getRunSettings().getRerunTimes());
-        useExistingDriver.setSelected(execSettings.getRunSettings().useExistingDriver());
+       // useExistingDriver.setSelected(execSettings.getRunSettings().useExistingDriver());
         reportPerformanceLog.setSelected(execSettings.getRunSettings().isPerformanceLogEnabled());
         bddReport.setSelected(execSettings.getRunSettings().isBddReportEnabled());
-        sendMail.setSelected(execSettings.getRunSettings().isMailSend());
-        excelReporting.setSelected(execSettings.getRunSettings().isExcelReport());
+       // sendMail.setSelected(execSettings.getRunSettings().isMailSend());
+       // excelReporting.setSelected(execSettings.getRunSettings().isExcelReport());
         extent.setSelected(execSettings.getRunSettings().isExtentReport());
         azure.setSelected(execSettings.getRunSettings().isAzureEnabled());
         rpUpdate.setSelected(execSettings.getRunSettings().isRPUpdate());
@@ -309,17 +309,17 @@ public class INGeniousSettings extends javax.swing.JFrame {
         execSettings.getRunSettings().setTracingEnabled(enableTracing.isSelected());
         execSettings.getRunSettings().setHARrecordingEnabled(enableHAR.isSelected());
         execSettings.getRunSettings().setRerunTimes(reRunNo.getModel().getValue().toString());
-        execSettings.getRunSettings().useExistingDriver(useExistingDriver.isSelected());
+       // execSettings.getRunSettings().useExistingDriver(useExistingDriver.isSelected());
         execSettings.getRunSettings().setReportPerformanceLog(reportPerformanceLog.isSelected());
         execSettings.getRunSettings().setBddReport(bddReport.isSelected());
-        execSettings.getRunSettings().setMailSend(sendMail.isSelected());
-        execSettings.getRunSettings().setExcelReport(excelReporting.isSelected());
+       // execSettings.getRunSettings().setMailSend(sendMail.isSelected());
+       // execSettings.getRunSettings().setExcelReport(excelReporting.isSelected());
         execSettings.getRunSettings().setRPUpdate(rpUpdate.isSelected());
         execSettings.getRunSettings().setExtentReport(extent.isSelected());
         execSettings.getRunSettings().setAzureReport(azure.isSelected());
         execSettings.getRunSettings().setSlackNotification(slackNotify.isSelected());
         execSettings.getRunSettings().setTestEnv(testEnv.getSelectedItem().toString());
-        execSettings.getRunSettings().setAutoHealMode(autoHeal.isSelected());
+       // execSettings.getRunSettings().setAutoHealMode(autoHeal.isSelected());
         execSettings.getRunSettings().save();
         sMainFrame.reloadSettings();
     }
@@ -495,18 +495,14 @@ public class INGeniousSettings extends javax.swing.JFrame {
         jLabel29 = new javax.swing.JLabel();
         reRunNo = new javax.swing.JSpinner();
         jLabel30 = new javax.swing.JLabel();
-        useExistingDriver = new javax.swing.JCheckBox();
         reportPerformanceLog = new javax.swing.JCheckBox();
         envLabel = new javax.swing.JLabel();
         testEnv = new javax.swing.JComboBox<>();
         bddReport = new javax.swing.JCheckBox();
-        sendMail = new javax.swing.JCheckBox();
-        excelReporting = new javax.swing.JCheckBox();
         slackNotify = new javax.swing.JCheckBox();
         rpUpdate = new javax.swing.JCheckBox();
         extent = new javax.swing.JCheckBox();
         azure = new javax.swing.JCheckBox();
-        autoHeal = new javax.swing.JCheckBox();
         recordVideo = new javax.swing.JCheckBox();
         enableTracing = new javax.swing.JCheckBox();
         enableHAR = new javax.swing.JCheckBox();
@@ -530,8 +526,9 @@ public class INGeniousSettings extends javax.swing.JFrame {
                 formWindowClosing(evt);
             }
         });
+        getContentPane().setLayout(new java.awt.BorderLayout());
 
-        savePanel.setBorder(javax.swing.BorderFactory.createBevelBorder(javax.swing.border.BevelBorder.RAISED));
+        savePanel.setBorder(javax.swing.BorderFactory.createEmptyBorder(1, 1, 1, 1));
         savePanel.setFont(new java.awt.Font("sansserif", 0, 11)); // NOI18N
 
         saveSettings.setFont(UIManager.getFont("TableMenu.font"));
@@ -555,7 +552,7 @@ public class INGeniousSettings extends javax.swing.JFrame {
         savePanelLayout.setHorizontalGroup(
             savePanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(savePanelLayout.createSequentialGroup()
-                .addContainerGap(478, Short.MAX_VALUE)
+                .addContainerGap(466, Short.MAX_VALUE)
                 .addComponent(saveSettings)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(resetSettings)
@@ -575,7 +572,7 @@ public class INGeniousSettings extends javax.swing.JFrame {
 
         runSettingsTab.setFont(new java.awt.Font("sansserif", 0, 11)); // NOI18N
 
-        globalSettings.setBorder(javax.swing.BorderFactory.createBevelBorder(javax.swing.border.BevelBorder.RAISED));
+        globalSettings.setBorder(javax.swing.BorderFactory.createEmptyBorder(1, 1, 1, 1));
 
         jLabel1.setFont(UIManager.getFont("TableMenu.font"));
         jLabel1.setText("ExecutionTimeOut");
@@ -649,10 +646,6 @@ public class INGeniousSettings extends javax.swing.JFrame {
         jLabel30.setFont(UIManager.getFont("TableMenu.font"));
         jLabel30.setText("Times");
 
-        useExistingDriver.setFont(UIManager.getFont("TableMenu.font"));
-        useExistingDriver.setText("Use Existing Browser");
-        useExistingDriver.setToolTipText("Will use the same browser instance for all the TestCases and Iterations in Testsets");
-
         reportPerformanceLog.setFont(UIManager.getFont("TableMenu.font"));
         reportPerformanceLog.setText("Performance Reporting");
         reportPerformanceLog.setToolTipText("Report page performance logs.");
@@ -666,13 +659,6 @@ public class INGeniousSettings extends javax.swing.JFrame {
 
         bddReport.setFont(UIManager.getFont("TableMenu.font"));
         bddReport.setText("Bdd Reporting");
-
-        sendMail.setFont(UIManager.getFont("TableMenu.font"));
-        sendMail.setText("Send Mail after Execution");
-
-        excelReporting.setFont(UIManager.getFont("TableMenu.font"));
-        excelReporting.setText("Excel Reporting");
-        excelReporting.setToolTipText("Excel Reporting");
 
         slackNotify.setFont(UIManager.getFont("TableMenu.font"));
         slackNotify.setText("Slack Notification");
@@ -700,15 +686,6 @@ public class INGeniousSettings extends javax.swing.JFrame {
         azure.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 azureActionPerformed(evt);
-            }
-        });
-
-        autoHeal.setFont(UIManager.getFont("TableMenu.font"));
-        autoHeal.setText("Auto Heal Mode");
-        autoHeal.setToolTipText("Auto Heal of Elements");
-        autoHeal.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                autoHealActionPerformed(evt);
             }
         });
 
@@ -748,79 +725,68 @@ public class INGeniousSettings extends javax.swing.JFrame {
                 .addGroup(globalSettingsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addGroup(globalSettingsLayout.createSequentialGroup()
                         .addGroup(globalSettingsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(envLabel, javax.swing.GroupLayout.PREFERRED_SIZE, 84, javax.swing.GroupLayout.PREFERRED_SIZE)
-                            .addGroup(globalSettingsLayout.createSequentialGroup()
-                                .addGap(4, 4, 4)
-                                .addGroup(globalSettingsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                    .addComponent(excelReporting)
-                                    .addGroup(globalSettingsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                        .addComponent(autoHeal, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, 137, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                        .addComponent(useExistingDriver, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, 137, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                        .addGroup(globalSettingsLayout.createSequentialGroup()
-                                            .addComponent(rpUpdate)
-                                            .addGap(44, 44, 44))))
-                                .addGroup(globalSettingsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                    .addComponent(bddReport)
-                                    .addComponent(sendMail)
-                                    .addComponent(extent))
-                                .addGap(2, 2, 2)
-                                .addGroup(globalSettingsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                    .addComponent(reportPerformanceLog)
-                                    .addComponent(slackNotify)
-                                    .addComponent(azure))
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                                .addGroup(globalSettingsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                    .addComponent(enableHAR)
-                                    .addComponent(enableTracing)
-                                    .addComponent(recordVideo))))
-                        .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-                    .addGroup(globalSettingsLayout.createSequentialGroup()
-                        .addGroup(globalSettingsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                            .addGroup(globalSettingsLayout.createSequentialGroup()
-                                .addComponent(jLabel1)
-                                .addGap(18, 18, 18)
-                                .addComponent(executionTimeOut, javax.swing.GroupLayout.PREFERRED_SIZE, 252, javax.swing.GroupLayout.PREFERRED_SIZE))
-                            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, globalSettingsLayout.createSequentialGroup()
-                                .addGroup(globalSettingsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                    .addComponent(jLabel2)
-                                    .addComponent(jLabel3)
-                                    .addComponent(jLabel4))
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                .addGroup(globalSettingsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                    .addGroup(globalSettingsLayout.createSequentialGroup()
-                                        .addComponent(jRadioButton1)
-                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                                        .addComponent(jRadioButton2))
-                                    .addGroup(globalSettingsLayout.createSequentialGroup()
-                                        .addComponent(jRadioButton3)
-                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                        .addComponent(jRadioButton4))
-                                    .addComponent(threadCount, javax.swing.GroupLayout.PREFERRED_SIZE, 116, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                    .addComponent(testEnv, javax.swing.GroupLayout.PREFERRED_SIZE, 121, javax.swing.GroupLayout.PREFERRED_SIZE))
-                                .addGap(56, 56, 56))
-                            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, globalSettingsLayout.createSequentialGroup()
-                                .addGroup(globalSettingsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                    .addComponent(jLabel5)
-                                    .addComponent(jLabel9))
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                .addGroup(globalSettingsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                    .addGroup(globalSettingsLayout.createSequentialGroup()
-                                        .addComponent(passCheckBox)
-                                        .addGap(18, 18, 18)
-                                        .addComponent(failCheckBox))
-                                    .addComponent(remoteGridURL, javax.swing.GroupLayout.PREFERRED_SIZE, 252, javax.swing.GroupLayout.PREFERRED_SIZE))))
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 36, Short.MAX_VALUE)
-                        .addComponent(fullpagescreenshot)
-                        .addGap(46, 46, 46))
-                    .addGroup(globalSettingsLayout.createSequentialGroup()
-                        .addGroup(globalSettingsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(jLabel29)
                             .addGroup(globalSettingsLayout.createSequentialGroup()
                                 .addGap(111, 111, 111)
                                 .addComponent(reRunNo, javax.swing.GroupLayout.PREFERRED_SIZE, 116, javax.swing.GroupLayout.PREFERRED_SIZE)
                                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                                 .addComponent(jLabel30)))
-                        .addGap(0, 0, Short.MAX_VALUE))))
+                        .addGap(0, 0, Short.MAX_VALUE))
+                    .addGroup(globalSettingsLayout.createSequentialGroup()
+                        .addGroup(globalSettingsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(envLabel, javax.swing.GroupLayout.PREFERRED_SIZE, 84, javax.swing.GroupLayout.PREFERRED_SIZE)
+                            .addGroup(globalSettingsLayout.createSequentialGroup()
+                                .addGap(4, 4, 4)
+                                .addGroup(globalSettingsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                    .addComponent(reportPerformanceLog)
+                                    .addComponent(rpUpdate)
+                                    .addComponent(slackNotify))
+                                .addGap(60, 60, 60)
+                                .addGroup(globalSettingsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                    .addComponent(extent)
+                                    .addComponent(bddReport)
+                                    .addComponent(azure)))
+                            .addGroup(globalSettingsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
+                                .addGroup(globalSettingsLayout.createSequentialGroup()
+                                    .addComponent(jLabel1)
+                                    .addGap(18, 18, 18)
+                                    .addComponent(executionTimeOut, javax.swing.GroupLayout.PREFERRED_SIZE, 252, javax.swing.GroupLayout.PREFERRED_SIZE))
+                                .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, globalSettingsLayout.createSequentialGroup()
+                                    .addGroup(globalSettingsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                        .addComponent(jLabel2)
+                                        .addComponent(jLabel3)
+                                        .addComponent(jLabel4))
+                                    .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                    .addGroup(globalSettingsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                        .addGroup(globalSettingsLayout.createSequentialGroup()
+                                            .addComponent(jRadioButton1)
+                                            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                                            .addComponent(jRadioButton2))
+                                        .addGroup(globalSettingsLayout.createSequentialGroup()
+                                            .addComponent(jRadioButton3)
+                                            .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                            .addComponent(jRadioButton4))
+                                        .addComponent(threadCount, javax.swing.GroupLayout.PREFERRED_SIZE, 116, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                        .addComponent(testEnv, javax.swing.GroupLayout.PREFERRED_SIZE, 121, javax.swing.GroupLayout.PREFERRED_SIZE))
+                                    .addGap(56, 56, 56))
+                                .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, globalSettingsLayout.createSequentialGroup()
+                                    .addGroup(globalSettingsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                        .addComponent(jLabel5)
+                                        .addComponent(jLabel9))
+                                    .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                                    .addGroup(globalSettingsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                        .addGroup(globalSettingsLayout.createSequentialGroup()
+                                            .addComponent(passCheckBox)
+                                            .addGap(18, 18, 18)
+                                            .addComponent(failCheckBox)
+                                            .addGap(95, 95, 95)
+                                            .addComponent(fullpagescreenshot))
+                                        .addComponent(remoteGridURL, javax.swing.GroupLayout.PREFERRED_SIZE, 252, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                                .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, globalSettingsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                    .addComponent(enableTracing)
+                                    .addComponent(recordVideo)
+                                    .addComponent(enableHAR))))
+                        .addGap(114, 136, Short.MAX_VALUE))))
         );
         globalSettingsLayout.setVerticalGroup(
             globalSettingsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -862,32 +828,27 @@ public class INGeniousSettings extends javax.swing.JFrame {
                     .addComponent(jLabel29)
                     .addComponent(reRunNo, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(jLabel30))
-                .addGap(35, 35, 35)
-                .addComponent(autoHeal)
-                .addGap(18, 18, 18)
+                .addGap(74, 74, 74)
                 .addGroup(globalSettingsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(useExistingDriver)
-                    .addComponent(sendMail)
                     .addComponent(reportPerformanceLog)
-                    .addComponent(recordVideo))
+                    .addComponent(recordVideo)
+                    .addComponent(bddReport))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addGroup(globalSettingsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(bddReport)
-                    .addComponent(slackNotify)
                     .addComponent(rpUpdate)
-                    .addComponent(enableTracing))
+                    .addComponent(enableTracing)
+                    .addComponent(extent))
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addGroup(globalSettingsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(excelReporting)
-                    .addComponent(extent)
                     .addComponent(azure)
-                    .addComponent(enableHAR))
-                .addContainerGap(50, Short.MAX_VALUE))
+                    .addComponent(enableHAR)
+                    .addComponent(slackNotify))
+                .addContainerGap(40, Short.MAX_VALUE))
         );
 
         runSettingsTab.addTab("Run Settings", globalSettings);
 
-        qcrunSettings.setBorder(javax.swing.BorderFactory.createBevelBorder(javax.swing.border.BevelBorder.RAISED));
+        qcrunSettings.setBorder(javax.swing.BorderFactory.createEmptyBorder(1, 1, 1, 1));
         qcrunSettings.setLayout(new java.awt.BorderLayout());
 
         tsTMTable.setModel(new javax.swing.table.DefaultTableModel(
@@ -1043,10 +1004,6 @@ public class INGeniousSettings extends javax.swing.JFrame {
         // TODO add your handling code here:
     }//GEN-LAST:event_jRadioButton1ActionPerformed
 
-    private void autoHealActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_autoHealActionPerformed
-        // TODO add your handling code here:
-    }//GEN-LAST:event_autoHealActionPerformed
-
     private void recordVideoActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_recordVideoActionPerformed
         // TODO add your handling code here:
     }//GEN-LAST:event_recordVideoActionPerformed
@@ -1080,14 +1037,12 @@ public class INGeniousSettings extends javax.swing.JFrame {
 
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
-    private javax.swing.JCheckBox autoHeal;
     private javax.swing.JCheckBox azure;
     private javax.swing.JCheckBox bddReport;
     private javax.swing.ButtonGroup eModeBgroup;
     private javax.swing.JCheckBox enableHAR;
     private javax.swing.JCheckBox enableTracing;
     private javax.swing.JLabel envLabel;
-    private javax.swing.JCheckBox excelReporting;
     private javax.swing.JTextField executionTimeOut;
     private javax.swing.JCheckBox extent;
     private javax.swing.JCheckBox failCheckBox;
@@ -1124,7 +1079,6 @@ public class INGeniousSettings extends javax.swing.JFrame {
     private javax.swing.JTabbedPane runSettingsTab;
     private javax.swing.JPanel savePanel;
     private javax.swing.JButton saveSettings;
-    private javax.swing.JCheckBox sendMail;
     private javax.swing.JCheckBox slackNotify;
     private javax.swing.JButton testConn;
     private javax.swing.JComboBox<String> testEnv;
@@ -1132,6 +1086,5 @@ public class INGeniousSettings extends javax.swing.JFrame {
     private javax.swing.JSpinner threadCount;
     private javax.swing.JTable tsTMTable;
     private javax.swing.JCheckBox updateresultscheckbox;
-    private javax.swing.JCheckBox useExistingDriver;
     // End of variables declaration//GEN-END:variables
 }
