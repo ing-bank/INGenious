@@ -694,11 +694,12 @@ public class Assertions extends General {
             if (strAns.equals(strTemp[1])) {
                 System.out.println("Condition '" + Input + "' is true ");
                 Report.updateTestLog("assertVariable",
-                        "Variable matched with Provided data", Status.PASS);
+                        "Variable value matches with provided data "+strTemp[1], Status.PASSNS);
 
             } else {
                 System.out.println("Condition '" + Input + "' is false ");
-                throw new Exception("Variable did not match with provided data");
+                Report.updateTestLog("assertVariable",
+                        "Variable value is "+strAns+" but expected value is "+strTemp[1], Status.FAILNS);
             }
         } catch (Exception ex) {
             Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, null, ex);
