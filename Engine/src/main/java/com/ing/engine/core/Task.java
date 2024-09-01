@@ -1,4 +1,3 @@
-
 package com.ing.engine.core;
 
 import com.ing.datalib.component.Project;
@@ -67,12 +66,13 @@ public class Task implements Runnable {
             try {
                 System.out.println("Running Iteration " + iter);
                 runIteration(iter++);
+                closePlaywrightInstance(iter-1);
             } catch (Exception ex) {
                 LOG.log(Level.SEVERE, ex.getMessage(), ex);
             }
         }
         Date endEexcDate = new Date();
-        
+
         if (report != null) {
             Status s = report.finalizeReport();
             Control.ReportManager.startDate = startexecDate;
@@ -80,6 +80,25 @@ public class Task implements Runnable {
             Control.ReportManager.updateTestCaseResults(runContext, report, s, runTime.timeRun());
             SystemDefaults.reportComplete.set(false);
         }
+    }
+
+    private void closePlaywrightInstance(int iter) {
+        String browserName = playwrightDriver.getCurrentBrowser();
+        if (playwrightDriver != null) {
+            playwrightDriver.closeBrowser();
+            playwrightDriver.playwright.close();
+        }
+        String closureConfirmationText = "Playwright instance with [" + browserName + "] has been closed for Iteration : " + iter;
+        System.out.println("\n");
+        for (int i = 0; i < closureConfirmationText.length() + 7; i++) {
+            System.out.print("-");
+        }
+        System.out.println();
+        System.out.println("| " + closureConfirmationText + " |");
+        for (int i = 0; i < closureConfirmationText.length() + 7; i++) {
+            System.out.print("-");
+        }
+        System.out.println("\n");
     }
 
     private TestCase getTestCase() {
@@ -144,7 +163,7 @@ public class Task implements Runnable {
     }
 
     private CommandControl createControl() {
-        return new CommandControl(playwrightDriver,playwrightDriver,playwrightDriver, report) {
+        return new CommandControl(playwrightDriver, playwrightDriver, playwrightDriver, report) {
             @Override
             public void execute(String com, int sub) {
                 runner.runTestCase(com, sub);
