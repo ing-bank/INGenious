@@ -27,15 +27,15 @@ public class AppToolBar extends JToolBar {
         add(createButton("Save Project"));
         addSeparator();
        
-        add(createButton("Object Spy"));
-        add(createButton("Object Heal"));
-        addSeparator();
+     //   add(createButton("Object Spy"));
+     //   add(createButton("Object Heal"));
+     //   addSeparator();
      //   add(createButton("Mobile Spy"));
-        add(createButton("Image Spy"));
+     //   add(createButton("Image Spy"));
         addSeparator();
         add(createButton("Run Settings"));
         add(createButton("Browser Configuration"));
-        add(createButton("AzureDevOps TestPlan Configuration"));
+       // add(createButton("AzureDevOps TestPlan Configuration"));
         addSeparator();
         add(new javax.swing.Box.Filler(new java.awt.Dimension(0, 0), new java.awt.Dimension(0, 0), new java.awt.Dimension(32767, 32767)));
       //  add(createButton("Refresh"));
