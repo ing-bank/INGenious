@@ -83,7 +83,7 @@ public class CLI {
 
     static void reRun() {
         try {
-            Control.call(true);
+            Control.call();
         } catch (UnCaughtException ex) {
             Logger.getLogger(CLI.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -115,7 +115,7 @@ public class CLI {
         }
         if (execution.containsKey(Op.RUN)) {
             try {
-                Control.call(true);
+                Control.call();
             } catch (UnCaughtException ex) {
                 Logger.getLogger(CLI.class.getName()).log(Level.SEVERE, null, ex);
             }

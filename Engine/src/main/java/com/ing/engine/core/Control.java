@@ -8,7 +8,6 @@ import com.ing.engine.cli.LookUp;
 import com.ing.engine.constants.FilePath;
 import com.ing.engine.constants.SystemDefaults;
 import com.ing.engine.drivers.PlaywrightDriver;
-import com.ing.engine.drivers.WebDriverFactory;
 import com.ing.engine.execution.exception.UnCaughtException;
 import com.ing.engine.execution.run.ProjectRunner;
 
@@ -42,13 +41,11 @@ public class Control {
     
     private static PlaywrightDriver playwrightDriver;
 
-    private static void start(Boolean quit) {
+    private static void start() {
         do {
             Control control = new Control();
             control.startRun();
             control.resetAll();
-            if(quit)
-              System.exit(0);
         } while (exe.retryExecution());
          ConsoleReport.reset();
 
@@ -57,15 +54,15 @@ public class Control {
     public static void call(Project project) throws UnCaughtException {
         RunManager.init();
         exe = ProjectRunner.load(project);
-        start(false);
+        start();
     }
 
-    public static void call(Boolean quit) throws UnCaughtException {
+    public static void call() throws UnCaughtException {
         RunManager.init();
         if (exe == null) {
             exe = ProjectRunner.load(RunManager.getGlobalSettings().getProjectPath());
         }
-        start(quit);
+        start();
     }
 
     public static Project getCurrentProject() {
@@ -213,8 +210,7 @@ public class Control {
         if (args != null && args.length > 0) {
             LookUp.exe(args);
         } else {
-        	if( Arrays.asList(args).contains("quit"))
-            call(true);         
+            call();         
         }
     }
 
