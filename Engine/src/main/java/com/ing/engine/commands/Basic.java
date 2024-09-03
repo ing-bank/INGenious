@@ -173,7 +173,16 @@ public class Basic extends General {
 
     @Action(object = ObjectType.BROWSER, desc = "Add a Global variable to access across test set", input = InputType.YES, condition = InputType.YES)
     public void AddGlobalVar() {
+                if (Input.startsWith("=Replace(")) {
+            replaceFunction();
+        } else if (Input.startsWith("=Split(")) {
+            splitFunction();
+        } else if (Input.startsWith("=Substring(")) {
+            subStringFunction();
+        } 
+        else{        
         addGlobalVar(Condition, Data);
+        }
         if (getVar(Condition) != null) {
             Report.updateTestLog(Action, "Variable " + Condition + " added with value " + Data, Status.DONE);
         } else {
@@ -483,7 +492,11 @@ public class Basic extends General {
         } catch (Exception ex) {
             ex.printStackTrace();
         }
-        addVar(Condition, op);
+        if (Action.equals("AddGlobalVar")) {
+            addGlobalVar(Condition, op);
+        } else {
+            addVar(Condition, op);
+        }
     }
 
     public void splitFunction() {
@@ -520,7 +533,13 @@ public class Basic extends General {
                 stringSplit = original.split(regex, Integer.parseInt(splitLength));
             }
             op = stringSplit[Integer.parseInt(stringIndex)];
-            addVar(Condition, op);
+
+            if (Action.equals("AddGlobalVar")) {
+                addGlobalVar(Condition, op);
+            } else {
+                addVar(Condition, op);
+            }
+
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -564,7 +583,13 @@ public class Basic extends General {
             } else {
                 op = original.substring(Integer.parseInt(startIndex), Integer.parseInt(endIndex));
             }
-            addVar(Condition, op);
+
+            if (Action.equals("AddGlobalVar")) {
+                addGlobalVar(Condition, op);
+            } else {
+                addVar(Condition, op);
+            }
+
         } catch (Exception e) {
             e.printStackTrace();
         }
