@@ -154,16 +154,21 @@ public class Basic extends General {
 
     @Action(object = ObjectType.BROWSER, desc = "Add a variable to access within testcase", input = InputType.YES, condition = InputType.YES)
     public void AddVar() {
-        if (Input.startsWith("=Replace(")) {
-            replaceFunction();
-        } else if (Input.startsWith("=Split(")) {
-            splitFunction();
-        } else if (Input.startsWith("=Substring(")) {
-            subStringFunction();
-        } else {
-            addVar(Condition, Data);
+        String stringOpration = Input.split("\\(", 2)[0].replace("=", "").trim();
+        switch (stringOpration) {
+            case "Replace":
+                replaceFunction();
+                break;
+            case "Split":
+                splitFunction();
+                break;
+            case "Substring":
+                subStringFunction();
+                break;
+            default:
+                addVar(Condition, Data);
+                break;
         }
-
         if (getVar(Condition) != null) {
             Report.updateTestLog("addVar", "Variable " + Condition + " added with value " + Data, Status.DONE);
         } else {
@@ -173,15 +178,21 @@ public class Basic extends General {
 
     @Action(object = ObjectType.BROWSER, desc = "Add a Global variable to access across test set", input = InputType.YES, condition = InputType.YES)
     public void AddGlobalVar() {
-                if (Input.startsWith("=Replace(")) {
-            replaceFunction();
-        } else if (Input.startsWith("=Split(")) {
-            splitFunction();
-        } else if (Input.startsWith("=Substring(")) {
-            subStringFunction();
-        } 
-        else{        
-        addGlobalVar(Condition, Data);
+        //Added for  Replace, Split and Substring functions to work with AddGlobalVar
+        String stringOpration = Input.split("\\(", 2)[0].replace("=", "").trim();
+        switch (stringOpration) {
+            case "Replace":
+                replaceFunction();
+                break;
+            case "Split":
+                splitFunction();
+                break;
+            case "Substring":
+                subStringFunction();
+                break;
+            default:
+                addGlobalVar(Condition, Data);
+                break;
         }
         if (getVar(Condition) != null) {
             Report.updateTestLog(Action, "Variable " + Condition + " added with value " + Data, Status.DONE);
@@ -492,10 +503,13 @@ public class Basic extends General {
         } catch (Exception ex) {
             ex.printStackTrace();
         }
-        if (Action.equals("AddGlobalVar")) {
-            addGlobalVar(Condition, op);
-        } else {
-            addVar(Condition, op);
+        switch (Action) {
+            case "AddGlobalVar":
+                addGlobalVar(Condition, op);
+                break;
+            case "AddVar":
+                addVar(Condition, op);
+                break;
         }
     }
 
@@ -516,7 +530,6 @@ public class Basic extends General {
                 args2 = args1.substring(0, args1.length() - 1).split(",'");
             }
             regex = args2[1].split("',")[0];
-//            int arrayLength = args2.length;
             Pattern pattern = Pattern.compile("%.*%");
             Matcher matcher = pattern.matcher(args2[0]);
             if (matcher.find()) {
@@ -534,10 +547,13 @@ public class Basic extends General {
             }
             op = stringSplit[Integer.parseInt(stringIndex)];
 
-            if (Action.equals("AddGlobalVar")) {
-                addGlobalVar(Condition, op);
-            } else {
-                addVar(Condition, op);
+            switch (Action) {
+                case "AddGlobalVar":
+                    addGlobalVar(Condition, op);
+                    break;
+                case "AddVar":
+                    addVar(Condition, op);
+                    break;
             }
 
         } catch (Exception e) {
@@ -584,10 +600,13 @@ public class Basic extends General {
                 op = original.substring(Integer.parseInt(startIndex), Integer.parseInt(endIndex));
             }
 
-            if (Action.equals("AddGlobalVar")) {
-                addGlobalVar(Condition, op);
-            } else {
-                addVar(Condition, op);
+            switch (Action) {
+                case "AddGlobalVar":
+                    addGlobalVar(Condition, op);
+                    break;
+                case "AddVar":
+                    addVar(Condition, op);
+                    break;
             }
 
         } catch (Exception e) {
