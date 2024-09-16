@@ -403,6 +403,7 @@ public class DriverSettings extends javax.swing.JFrame {
         saveSettings = new javax.swing.JButton();
         resetSettings = new javax.swing.JButton();
         filler5 = new javax.swing.Box.Filler(new java.awt.Dimension(0, 10), new java.awt.Dimension(0, 10), new java.awt.Dimension(32767, 10));
+        addNewEmulator = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         setTitle("Configurations");
@@ -485,6 +486,19 @@ public class DriverSettings extends javax.swing.JFrame {
         jToolBar3.add(browserCombo);
         jToolBar3.add(filler7);
 
+	    addNewEmulator.setIcon(new javax.swing.ImageIcon(getClass().getResource("/ui/resources/toolbar/addIcon.png"))); // NOI18N
+        addNewEmulator.setToolTipText("Add New Emulator");
+        addNewEmulator.setFocusable(false);
+        addNewEmulator.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        addNewEmulator.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        addNewEmulator.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                addNewEmulatorActionPerformed(evt);
+            }
+        });
+        jToolBar3.add(addNewEmulator);
+        editEmulator.setIcon(new javax.swing.ImageIcon(getClass().getResource("/ui/resources/toolbar/editIcon.png")));
+        
         editEmulator.setToolTipText("Rename Emulator");
         editEmulator.setContentAreaFilled(false);
         editEmulator.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
@@ -496,6 +510,7 @@ public class DriverSettings extends javax.swing.JFrame {
         });
         jToolBar3.add(editEmulator);
 
+        deleteEmulator.setIcon(new javax.swing.ImageIcon(getClass().getResource("/ui/resources/toolbar/deleteIcon.png")));
         deleteEmulator.setToolTipText("Remove Emulator");
         deleteEmulator.setContentAreaFilled(false);
         deleteEmulator.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
@@ -805,6 +820,10 @@ public class DriverSettings extends javax.swing.JFrame {
         sMainFrame.reloadBrowsers();
     }//GEN-LAST:event_formWindowClosing
 
+    private void addNewEmulatorActionPerformed(java.awt.event.ActionEvent evt) {
+        addNewEmulator();
+    }
+
     private void editEmulatorActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_editEmulatorActionPerformed
         renameEmulator();
     }//GEN-LAST:event_editEmulatorActionPerformed
@@ -877,6 +896,7 @@ public class DriverSettings extends javax.swing.JFrame {
     private javax.swing.JButton deleteEmulator;
     private javax.swing.JTable driverPropTable;
     private javax.swing.JComboBox<String> dupDriverCombo;
+    private javax.swing.JButton addNewEmulator;
     private javax.swing.JRadioButton duplicateEmulator;
     private javax.swing.JButton editEmulator;
     private javax.swing.JTabbedPane emCapTab;
