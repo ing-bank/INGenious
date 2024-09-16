@@ -211,6 +211,12 @@
             <version>${commons-lang3.version}</version>
             <type>jar</type>
         </dependency>
+        <dependency>
+            <groupId>io.appium</groupId>
+            <artifactId>java-client</artifactId>
+            <version>9.3.0</version>
+            <type>jar</type>
+        </dependency>
     </dependencies>
     
     <build>

@@ -14,6 +14,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import com.microsoft.playwright.*;
 import java.nio.file.Paths;
+import io.appium.java_client.android.AndroidDriver;
 
 /**
  * Class to handle driver related operation
@@ -25,6 +26,7 @@ public class PlaywrightDriver {
     public Page page;
     public BrowserContext browserContext;
     protected RunContext runContext;
+    public AndroidDriver driver;
 
     public Page getPage() {
         return page;
@@ -35,6 +37,7 @@ public class PlaywrightDriver {
     }
     public void launchDriver(RunContext context) throws UnCaughtException {
         runContext = context;
+        if (isBrowserExecution()) {
         System.out.println("Launching " + runContext.BrowserName);
         try {
             playwright = WebDriverFactory.createPlaywright();
@@ -47,7 +50,6 @@ public class PlaywrightDriver {
                 browserContext = WebDriverFactory.createContext(false, browserType, runContext.BrowserName, Control.getCurrentProject().getProjectSettings(), runContext);
 
             }
-
             page = WebDriverFactory.createPage(browserContext);
             System.out.println(runContext.BrowserName + " Launched");
 
@@ -55,6 +57,58 @@ public class PlaywrightDriver {
             Logger.getLogger(this.getClass().getName()).log(Level.OFF, null, ex);
             throw new UnCaughtException("[Playwright Browser Exception] Cannot Initiate Browser " + ex.getMessage());
         }
+        }
+        else if (isNoBrowserExecution()) {
+
+        } else if (isMobileExecution()) {
+            try{
+            System.out.println("Launching Local Driver");
+            driver = WebDriverFactory.create(context, Control.getCurrentProject().getProjectSettings());
+            }
+           catch (UnCaughtException ex) {
+                Logger.getLogger(this.getClass().getName()).log(Level.OFF, null, ex);
+                throw new UnCaughtException("[Appium driver Exception] unable to launch APK file " + ex.getMessage());
+            }
+            
+        }
+    }
+
+    public boolean isBrowserExecution() {
+        boolean isBrowserExecution = false;
+        try {
+            String browserName = runContext.BrowserName;
+            if (browserName.equals("Chromium") || browserName.equals("Webkit") || browserName.equals("Firefox")) {
+                isBrowserExecution = true;
+            }
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+        return isBrowserExecution;
+    }
+
+    public boolean isNoBrowserExecution() {
+        boolean isNoBrowserExecution = false;
+        try {
+            String browserName = runContext.BrowserName;
+            if (browserName.equals("NoBrowser")) {
+                isNoBrowserExecution = true;
+            }
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+        return isNoBrowserExecution;
+    }
+
+    public boolean isMobileExecution() {
+        boolean isMobileExecution = false;
+        try {
+            if (!isBrowserExecution() && !isNoBrowserExecution()) {
+                isMobileExecution = true;
+            }
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+        return isMobileExecution;
     }
 
     public void launchDriver(String browser) throws UnCaughtException {

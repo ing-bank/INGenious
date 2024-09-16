@@ -274,6 +274,11 @@
             <version>${httpcore.version}</version>
             <type>jar</type>
         </dependency><dependency>
+            <groupId>io.appium</groupId>
+            <artifactId>java-client</artifactId>
+            <version>9.3.0</version>
+            <type>jar</type>
+        </dependency><dependency>
             <groupId>com.ing</groupId>
             <artifactId>ingenious-datalib</artifactId>
             <version>${project.version}</version>
