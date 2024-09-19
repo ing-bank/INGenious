@@ -342,7 +342,7 @@
                                 <resource>
                                     <directory>${project.basedir}</directory>
                                     <includes>
-                                        <include>.classpath</include>
+                                        <!--<include>.classpath</include>-->
                                         <include>.project</include>
                                     </includes>
                                 </resource>
@@ -367,7 +367,7 @@
                                 <fileset>
                                     <directory>${project.basedir}</directory>
                                     <includes>
-                                        <include>.classpath</include>
+                                        <!--<include>.classpath</include>-->
                                         <include>.project</include>
                                     </includes>
                                 </fileset>
