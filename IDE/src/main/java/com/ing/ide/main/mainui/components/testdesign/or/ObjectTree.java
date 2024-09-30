@@ -59,7 +59,9 @@ import org.w3c.dom.Document;
 import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
-
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 /**
  *
  * 
@@ -505,18 +507,20 @@ public abstract class ObjectTree implements ActionListener {
 
     }
     
-    public Map usedObject() {
+        public Map usedObject() {   
         Map<String, ArrayList<String>> attributeMap = new HashMap<>();
-        ArrayList<String> records = new ArrayList<String>();
+        ArrayList<String> records = new ArrayList<>();
         try {
             String testPlanPath = getProject().getLocation() + "/TestPlan";
             String[] scenarioList = getFolderOrFileList(testPlanPath);
-            for (int i = 0; i < scenarioList.length; i++) {
-                String[] csvList = getFolderOrFileList(testPlanPath + "/" + scenarioList[i]);
-                for (int j = 0; j < csvList.length; j++) {
-                    String csvFilePath = testPlanPath + "/" + scenarioList[i] + "/" + csvList[j];
+            for (String scenario : scenarioList) {
+                Path path = Paths.get(testPlanPath + "/" + scenario);
+                if(Files.isDirectory(path))
+                {
+                String[] csvList = getFolderOrFileList(testPlanPath + "/" + scenario);
+                for (String csv : csvList) {
+                    String csvFilePath = testPlanPath + "/" + scenario + "/" + csv;
                     String[] values = null;
-                    List objList = null;
                     try (BufferedReader br = new BufferedReader(new FileReader(csvFilePath))) {
                         String line;
                         while ((line = br.readLine()) != null) {
@@ -524,7 +528,7 @@ public abstract class ObjectTree implements ActionListener {
                             if (!values[1].equals("Browser") && !values[1].equals("ObjectName") && (values.length == 7)) {//&& (values[1])!= "Browser" )
                                 records.add(values[1]);
                                 if (!(attributeMap.containsKey(values[6]))) {
-                                    attributeMap.put(values[6], new ArrayList<String>());
+                                    attributeMap.put(values[6], new ArrayList<>());
                                     attributeMap.get(values[6]).add(values[1]);
                                 } else {
                                     attributeMap.get(values[6]).add(values[1]);
@@ -537,6 +541,7 @@ public abstract class ObjectTree implements ActionListener {
                     }
                 }
             }
+        }
 
         } catch (Exception e) {
             e.printStackTrace();
@@ -584,7 +589,17 @@ public abstract class ObjectTree implements ActionListener {
                     }
                 }
             }
-
+            else{
+                for(int s=0;s<allSelectedObject.get(selectedPage).size();s++)
+                        {
+                     if (!unUsedObject.containsKey(selectedPage.toString())) {
+                            unUsedObject.put(selectedPage.toString(), new ArrayList<String>());
+                            unUsedObject.get(selectedPage.toString()).add((String) allSelectedObject.get(selectedPage).get(s));
+                        } else {
+                             unUsedObject.get(selectedPage.toString()).add((String) allSelectedObject.get(selectedPage).get(s));
+                        }
+                        }
+            }
         }
         return unUsedObject;
 
@@ -606,7 +621,7 @@ public abstract class ObjectTree implements ActionListener {
             Transformer t = tf.newTransformer();
             StreamResult result = new StreamResult(new File(orFilePath));
             t.transform(new DOMSource(document), result);
-            result.getOutputStream().close();
+//            result.getOutputStream().close();
 
         } catch (Exception e) {
             e.printStackTrace();

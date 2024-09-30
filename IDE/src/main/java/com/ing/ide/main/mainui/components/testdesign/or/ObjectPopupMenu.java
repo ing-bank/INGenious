@@ -152,6 +152,7 @@ public class ObjectPopupMenu extends JPopupMenu {
 
     private void forRoot() {
         addPage.setEnabled(true);
+        removeUnusedObject.setEnabled(false);
 
         renamePage.setEnabled(false);
         deletePage.setEnabled(false);
