@@ -407,6 +407,9 @@ public class PlaywrightRecordingParser {
         if (line.contains(".navigate(")) {
             input = "@" + line.split("\\.navigate\\(\"")[1].split("\"")[0];
         }
+        if (input.contains(",")) {
+            input = "\"" + input + "\"";
+        }
         return input;
 
     }
@@ -555,6 +558,7 @@ public class PlaywrightRecordingParser {
             if (stringLine.contains(".press(\"")) {
                 testCase.put("ObjectName", "Browser");
             }
+            testCase.put("ObjectName", testCase.get("ObjectName").replace(",", ""));
         } catch (Exception e) {
             testCase.put("ObjectName", "Refactor_Object");
         }
