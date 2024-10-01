@@ -203,6 +203,9 @@ var isTCMatched = function(exe) {
                     // onResized();
                 }
             });
+            $scope.videoReport = DATA.videoReport;
+            $scope.steps = $scope.Details[$scope.view].STEPS;
+            $scope.myLink = $scope.steps.length == 1 ? $scope.steps[0].videoReportDir : 'videoReport.html?SC='+ $scope.Details[$scope.view].scenarioName +'&TC='+ $scope.Details[$scope.view].testcaseName;
         }]);
 })();
 var setCImage = function(url) {

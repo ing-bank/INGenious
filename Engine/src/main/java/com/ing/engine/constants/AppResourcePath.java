@@ -1,4 +1,3 @@
-
 package com.ing.engine.constants;
 
 import com.ing.engine.core.RunManager;
@@ -32,6 +31,7 @@ public class AppResourcePath {
     private final static String DETAILED_HTML = "detailed.html";
     private final static String PERF_HTML = "perfReport.html";
     private final static String REPORT_HISTORY_HTML = "ReportHistory.html";
+    private final static String VIDEO_HTML = "videoReport.html";
     private final static String REPORT_DATA = "data.js";
     private final static String REPORT_HISTORY_DATA = "reportHistory.js";
 
@@ -53,7 +53,7 @@ public class AppResourcePath {
     private static String date;
     private static String time;
 
-    public static String getAppRoot(){
+    public static String getAppRoot() {
         try {
             // return System.getProperty("user.dir");
             return new File(System.getProperty("user.dir")).getCanonicalPath();
@@ -62,7 +62,6 @@ public class AppResourcePath {
         }
         return null;
     }
-    
 
     public static String getExternalCommandsConfig() {
         return getLibPath() + File.separator + EXTERNAL_COMMANDS_CONFIG;
@@ -123,7 +122,7 @@ public class AppResourcePath {
     public static String getSummaryHTMLPath() {
         return getReportTemplatePath() + File.separator + SUMMARY_HTML;
     }
-    
+
     public static String getDetailedHTMLPath() {
         return getReportTemplatePath() + File.separator + DETAILED_HTML;
     }
@@ -161,17 +160,17 @@ public class AppResourcePath {
     public static String getCurrentResultsLocation() {
         return getResultsPath() + getResultPath();
     }
-    
+
     public static String getCurrentTestCaseLogsLocation() {
-        return getCurrentResultsLocation() + File.separator + date + " " + time+ File.separator + "logs";
+        return getCurrentResultsLocation() + File.separator + date + " " + time + File.separator + "logs";
     }
-    
+
     public static String getCurrentTestCaseAccessibilityLocation() {
-        return getCurrentResultsLocation() + File.separator + date + " " + time+ File.separator + "aXe";
+        return getCurrentResultsLocation() + File.separator + date + " " + time + File.separator + "aXe";
     }
-    
+
     public static String getCurrentTestCaseVideosLocation() {
-        return getCurrentResultsLocation() + File.separator + date + " " + time+ File.separator + "videos";
+        return getCurrentResultsLocation() + File.separator + date + " " + time + File.separator + "videos";
     }
 
     public static String getLatestResultsLocation() {
@@ -185,15 +184,15 @@ public class AppResourcePath {
     public static String getCurrentExtentReportPath() {
         return getCurrentResultsPath() + File.separator + EXTENT_HTML;
     }
-    
+
     public static String getCurrentAzureReportPath() {
         return getCurrentResultsPath() + File.separator + AZURE_XML;
     }
-    
+
     public static String getCurrentExtentPDFReportPath() {
         return getCurrentResultsPath() + File.separator + EXTENT_PDF;
     }
-    
+
     public static String getCurrentSummaryHTMLPath() {
         return getCurrentResultsPath() + File.separator + SUMMARY_HTML;
     }
@@ -282,5 +281,13 @@ public class AppResourcePath {
 
     public static String getCurrentPerfReportHTMLPath() {
         return getCurrentResultsPath() + File.separator + PERF_HTML;
+    }
+
+    public static String getVideoReportHTMLPath() {
+        return getReportTemplatePath() + File.separator + VIDEO_HTML;
+    }
+
+    public static String getCurrentVideoReportHTMLPath() {
+        return getCurrentResultsPath() + File.separator + VIDEO_HTML;
     }
 }

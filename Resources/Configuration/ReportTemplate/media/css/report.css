@@ -271,6 +271,20 @@ div.dataTables_wrapper {
     background-image:url("../../media/images/poll.svg");
 }
 
+.footer-icons>.footer-video{
+    background-image:url("../../media/images/video.png");
+    background-size: 80%;
+    }
+    
+.noVideoFound{
+    background-color: #f0ad4e;
+    margin: 8px;
+    position: absolute;
+    font-size: 13px;
+    font-weight: 500;
+    padding: 4px 12px;
+    }
+
 .dataTables_filter{
     position: relative;
 }

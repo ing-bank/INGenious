@@ -1,4 +1,3 @@
-
 package com.ing.engine.reporting.impl.html;
 
 import com.ing.datalib.util.data.FileScanner;
@@ -96,21 +95,19 @@ public class HtmlTestCaseHandler extends TestCaseHandler implements PrimaryHandl
             data.put(RDS.Step.Data.DESCRIPTION, ReportUtils.resolveDesc(stepDescription));
             data.put(RDS.Step.Data.TIME_STAMP, time);
             data.put(RDS.Step.Data.STATUS, state.toString());
-            
-            String payloadfiles="";
-            String filename="";
+
+            String payloadfiles = "";
+            String filename = "";
             if (link != null) {
-            	payloadfiles = testCaseData.get(TestCase.SCENARIO_NAME)
-      		             + "_"
-      		             + testCaseData.get(TestCase.TESTCASE_NAME)
-      		             + "_Step-"
-      		             + getStepCount()
-      		             + "_";
-            	filename=AppResourcePath.getCurrentResultsPath()+link+File.separator+payloadfiles;
+                payloadfiles = testCaseData.get(TestCase.SCENARIO_NAME)
+                        + "_"
+                        + testCaseData.get(TestCase.TESTCASE_NAME)
+                        + "_Step-"
+                        + getStepCount()
+                        + "_";
+                filename = AppResourcePath.getCurrentResultsPath() + link + File.separator + payloadfiles;
                 data.put(RDS.Step.Data.LINK, filename);
             }
-            
-            
             /*if (link != null) {
                data.put(RDS.Step.Data.LINK, link);
             }*/
@@ -120,12 +117,18 @@ public class HtmlTestCaseHandler extends TestCaseHandler implements PrimaryHandl
             } else {
                 ((JSONArray) reusable.get(RDS.Step.DATA)).add(step);
             }
+            if (Control.exe.getExecSettings().getRunSettings().isVideoEnabled()) {
+                if (isIteration) {
+                    iteration.put(RDS.TestSet.VIDEO_REPORT_DIR, getDriver().page.video().path().toString());
+                } else {
+                    reusable.put(RDS.TestSet.VIDEO_REPORT_DIR, getDriver().page.video().path().toString());
+                }
+            }
         } catch (Exception ex) {
             LOG.log(Level.SEVERE, ex.getMessage(), ex);
         }
     }
-    
-    
+
     /**
      * creates new iteration object
      *
@@ -188,7 +191,7 @@ public class HtmlTestCaseHandler extends TestCaseHandler implements PrimaryHandl
     }
 
     private void onSetpDone() {
-        DoneSteps++;                
+        DoneSteps++;
         if (reusable != null && reusable.get(TestCase.STATUS).equals("")) {
             reusable.put(TestCase.STATUS, "PASS");
         }
@@ -233,7 +236,7 @@ public class HtmlTestCaseHandler extends TestCaseHandler implements PrimaryHandl
             case FAILNS:
                 onSetpFailed();
                 break;
-            case COMPLETE:            
+            case COMPLETE:
                 break;
 
         }
