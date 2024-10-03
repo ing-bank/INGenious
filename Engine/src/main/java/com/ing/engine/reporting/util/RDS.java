@@ -1,4 +1,3 @@
-
 package com.ing.engine.reporting.util;
 
 import java.io.BufferedWriter;
@@ -11,7 +10,7 @@ import org.json.simple.JSONObject;
 
 /**
  *
- * 
+ *
  */
 @SuppressWarnings("unchecked")
 public class RDS {
@@ -80,6 +79,8 @@ public class RDS {
         public static final String BDD_STYLE = "bddReport";
         public static final String AXE_REPORT = "axeReport";
         public static final String PERF_REPORT = "perfReport";
+        public static final String VIDEO_REPORT = "videoReport";
+        public static final String VIDEO_REPORT_DIR = "videoReportDir";
     }
 
     public class TestCase {

@@ -1,4 +1,3 @@
-
 package com.ing.engine.reporting.impl.html;
 
 import com.ing.engine.constants.FilePath;
@@ -56,7 +55,7 @@ public class HtmlSummaryHandler extends SummaryHandler implements PrimaryHandler
             perf = new PerformanceReport();
         }
         createReportIfNotExists(FilePath.getResultsPath());
-        
+
     }
 
     @Override
@@ -65,7 +64,6 @@ public class HtmlSummaryHandler extends SummaryHandler implements PrimaryHandler
             perf.addHar(h, report, pageName);
         }
     }
-    
 
     private void createReportIfNotExists(String path) {
         File file = new File(path + File.separator + "media");
@@ -154,7 +152,7 @@ public class HtmlSummaryHandler extends SummaryHandler implements PrimaryHandler
                 testSetData.put(RDS.TestSet.EXECUTIONS, executions);
                 testSetData.put(RDS.TestSet.END_TIME, endTime);
                 testSetData.put(RDS.TestSet.EXE_TIME, exeTime);
-               
+
                 testSetData.put(RDS.TestSet.NO_OF_FAIL_TESTS, String.valueOf(FailedTestCases));
                 testSetData.put(RDS.TestSet.NO_OF_PASS_TESTS, String.valueOf(PassedTestCases));
                 RDS.writeToDataJS(FilePath.getCurrentReportDataPath(), testSetData);
@@ -183,7 +181,7 @@ public class HtmlSummaryHandler extends SummaryHandler implements PrimaryHandler
             } else {
                 createHtmls();
             }
-           
+
             createBddReport();
         } catch (Exception ex) {
             LOGGER.log(Level.SEVERE, ex.getMessage(), ex);
@@ -201,6 +199,10 @@ public class HtmlSummaryHandler extends SummaryHandler implements PrimaryHandler
         if (perf != null) {
             perf.exportReport();
             FileUtils.copyFileToDirectory(new File(FilePath.getPerfReportHTMLPath()),
+                    new File(FilePath.getCurrentResultsPath()));
+        }
+        if (Control.exe.getExecSettings().getRunSettings().isVideoEnabled()) {
+            FileUtils.copyFileToDirectory(new File(FilePath.getVideoReportHTMLPath()),
                     new File(FilePath.getCurrentResultsPath()));
         }
     }
@@ -261,14 +263,15 @@ public class HtmlSummaryHandler extends SummaryHandler implements PrimaryHandler
             return Control.getCurrentProject().getProjectSettings()
                     .getExecSettings(RunManager.getGlobalSettings().getRelease(), RunManager.getGlobalSettings().getTestSet()).getRunSettings().isExtentReport();
         }
-        
+
         return false;
     }
+
     /**
      * open the summary report when execution is finished
      */
     public synchronized void launchResultSummary() {
-        if (!isExtentEnabled()){
+        if (!isExtentEnabled()) {
             if (SystemDefaults.canLaunchSummary()) {
                 DesktopApi.open(new File(FilePath.getCurrentSummaryHTMLPath()));
             }
