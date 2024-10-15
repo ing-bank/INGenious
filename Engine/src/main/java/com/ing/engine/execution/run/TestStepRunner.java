@@ -148,6 +148,8 @@ public class TestStepRunner {
     }
 
     public void executeAction(TestCaseRunner context, String action) throws Throwable {
+        System.out.println("**** Inside TesSteptrunner executeAction ");
+         System.out.println("**** Inside TesSteptrunner executeAction action  "+action);
         if (!MethodExecutor.executeMethod(action, context.getControl())) {
             System.out.println("[ERROR][Could not find Action:" + action + "]");
             context.getReport().updateTestLog(action, "[Could not find Action]",

@@ -5,6 +5,7 @@ import com.ing.datalib.component.Scenario;
 import com.ing.datalib.component.TestCase;
 import com.ing.datalib.settings.RunSettings;
 import com.ing.engine.constants.SystemDefaults;
+import com.ing.engine.drivers.MobileDriver;
 import com.ing.engine.drivers.PlaywrightDriver;
 import com.ing.engine.execution.data.Parameter;
 import com.ing.engine.execution.data.UserDataAccess;
@@ -15,6 +16,7 @@ import com.ing.engine.execution.run.TestCaseRunner;
 import com.ing.engine.reporting.TestCaseReport;
 import com.ing.engine.reporting.util.DateTimeUtils;
 import com.ing.engine.support.Status;
+//import io.appium.java_client.android.AndroidDriver;
 
 import java.util.Date;
 import java.util.logging.Level;
@@ -25,6 +27,7 @@ public class Task implements Runnable {
     TestCaseReport report;
     RunContext runContext;
     PlaywrightDriver playwrightDriver;
+    MobileDriver mobileDriver;
     DateTimeUtils runTime;
     UserDataAccess userData;
     TestCaseRunner runner;
@@ -65,7 +68,9 @@ public class Task implements Runnable {
         while (!SystemDefaults.stopExecution.get() && iter <= runner.getMaxIter()) {
             try {
                 System.out.println("Running Iteration " + iter);
+                System.out.println("**** Inside Task --> Run");
                 runIteration(iter++);
+                if(isBrowserExecution())
                 closePlaywrightInstance(iter-1);
             } catch (Exception ex) {
                 LOG.log(Level.SEVERE, ex.getMessage(), ex);
@@ -122,7 +127,37 @@ public class Task implements Runnable {
     private static final Logger LOG = Logger.getLogger(Task.class.getName());
 
     public boolean runIteration(int iter) {
+        System.out.println("**** Inside Task -->  runIteration ");
         boolean success = false;
+         if(isMobileExecution())
+        {
+            System.out.println("**** Inside Task -->  runIteration --> Mobile driver ");
+            mobileDriver=getMobileDriver();
+            try {
+            SystemDefaults.reportComplete.set(true);
+            report.startIteration(iter);
+            launchEmulator();
+            SystemDefaults.stopCurrentIteration.set(false);
+            runner.run(createControl(), iter);
+            success = true;
+        } catch (DriverClosedException ex) {
+            LOG.log(Level.SEVERE, ex.getMessage(), ex);
+            report.updateTestLog("DriverClosedException", ex.getMessage(), Status.FAILNS);
+        } catch (TestFailedException ex) {
+            onFail(ex, ex.getMessage(), Status.DEBUG);
+        } catch (UnCaughtException ex) {
+            onError(ex, "Unhandled Error", ex.getMessage());
+        } catch (Throwable ex) {
+            onError(ex, "Error", ex.getMessage());
+        } finally {
+            report.endIteration(iter);
+        }
+        return success;
+            
+        }
+        if(isBrowserExecution())
+        {
+        System.out.println("**** Inside Task -->  runIteration --> Playwright driver ");
         playwrightDriver = getDriver();
         try {
             SystemDefaults.reportComplete.set(true);
@@ -153,6 +188,9 @@ public class Task implements Runnable {
             report.endIteration(iter);
         }
         return success;
+        }
+
+        return success;
     }
 
     private void launchBrowser() throws UnCaughtException {
@@ -161,9 +199,16 @@ public class Task implements Runnable {
         }
         report.setDriver(playwrightDriver);
     }
+    
+        private void launchEmulator() throws UnCaughtException {
+        if (!getRunSettings().useExistingDriver() || mobileDriver.driver == null) {
+            mobileDriver.launchDriver(runContext);
+        }
+        report.setMobileDriver(mobileDriver);
+    }
 
     private CommandControl createControl() {
-        return new CommandControl(playwrightDriver, playwrightDriver, playwrightDriver, report) {
+        return new CommandControl(playwrightDriver, playwrightDriver, playwrightDriver,mobileDriver, report) {
             @Override
             public void execute(String com, int sub) {
                 runner.runTestCase(com, sub);
@@ -208,6 +253,60 @@ public class Task implements Runnable {
             seDriver = Control.getPlaywrightDriver();
         }
         return seDriver;
+    }
+    
+     private MobileDriver getMobileDriver() {
+         System.out.println("**** Inside Task -->  getMobileDriver ");
+        MobileDriver mobileDriver;
+        if (!getRunSettings().useExistingDriver()
+                || Control.getMobileDriver() == null) {
+            System.out.println("**** Inside if of Task -->  getMobileDriver ");
+            mobileDriver=new MobileDriver();
+//            mobileDriver=mobileDriver.launchDriver(runContext);
+            Control.setMobileDriver(mobileDriver);
+        } else {
+            System.out.println("**** Inside else of Task -->  getMobileDriver ");
+            mobileDriver = Control.getMobileDriver();
+        }
+        return mobileDriver;
+    }
+     
+         public boolean isBrowserExecution() {
+        boolean isBrowserExecution = false;
+        try {
+            String browserName = runContext.BrowserName;
+            if (browserName.equals("Chromium") || browserName.equals("Webkit") || browserName.equals("Firefox")) {
+                isBrowserExecution = true;
+            }
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+        return isBrowserExecution;
+    }
+
+    public boolean isNoBrowserExecution() {
+        boolean isNoBrowserExecution = false;
+        try {
+            String browserName = runContext.BrowserName;
+            if (browserName.equals("NoBrowser")) {
+                isNoBrowserExecution = true;
+            }
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+        return isNoBrowserExecution;
+    }
+
+    public boolean isMobileExecution() {
+        boolean isMobileExecution = false;
+        try {
+            if (!isBrowserExecution() && !isNoBrowserExecution()) {
+                isMobileExecution = true;
+            }
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+        return isMobileExecution;
     }
 
 }

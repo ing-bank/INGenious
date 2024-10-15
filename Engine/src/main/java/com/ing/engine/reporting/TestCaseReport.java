@@ -7,6 +7,7 @@ import com.ing.engine.constants.SystemDefaults;
 import com.ing.engine.core.Control;
 import com.ing.engine.core.RunContext;
 import com.ing.engine.core.RunManager;
+import com.ing.engine.drivers.MobileDriver;
 import com.ing.engine.drivers.PlaywrightDriver;
 import com.ing.engine.reporting.impl.handlers.PrimaryHandler;
 import com.ing.engine.reporting.impl.handlers.TestCaseHandler;
@@ -49,6 +50,7 @@ public final class TestCaseReport implements Report {
 
     public final DateTimeUtils startTime;
     PlaywrightDriver playwrightdriver;
+    MobileDriver mobileDiver;
 
     Step curr;
     Status currentStatus;
@@ -97,6 +99,13 @@ public final class TestCaseReport implements Report {
         playwrightdriver = driver;
         for (TestCaseHandler handler : handlers) {
             handler.setDriver(driver);
+        }
+    }
+    
+        public void setMobileDriver(MobileDriver driver) {
+        mobileDiver = driver;
+        for (TestCaseHandler handler : handlers) {
+            handler.setMobileDriver(driver);
         }
     }
 

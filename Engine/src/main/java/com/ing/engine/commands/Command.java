@@ -4,6 +4,8 @@ import com.ing.datalib.or.common.ObjectGroup;
 import com.ing.datalib.or.image.ImageORObject;
 import com.ing.engine.core.CommandControl;
 import com.ing.engine.drivers.AutomationObject;
+import com.ing.engine.drivers.MobileDriver;
+import com.ing.engine.drivers.MobileObject;
 import com.ing.engine.drivers.PlaywrightDriver;
 import com.ing.engine.execution.data.UserDataAccess;
 import com.ing.engine.reporting.TestCaseReport;
@@ -13,12 +15,14 @@ import com.microsoft.playwright.BrowserContext;
 import com.microsoft.playwright.Locator;
 import com.microsoft.playwright.Page;
 import com.microsoft.playwright.Playwright;
+import io.appium.java_client.android.AndroidDriver;
 import javax.net.ssl.HttpsURLConnection;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Stack;
+import org.openqa.selenium.WebElement;
 
 public class Command {
 
@@ -39,6 +43,10 @@ public class Command {
     public String Reference;
     private final CommandControl Commander;
     public UserDataAccess userData;
+    
+    public AndroidDriver mDriver;
+    public WebElement Element;
+    public MobileObject mObject;
 
     /**
      * ******API*******
@@ -76,6 +84,24 @@ public class Command {
      */
     public Command(CommandControl cc) {
         Commander = cc;
+        if(Commander.mobileDriver.driver!=null)
+        {
+        mDriver = Commander.mobileDriver.driver;
+        mObject = Commander.MObject;
+        Data = Commander.Data;
+        ObjectName = Commander.ObjectName;
+        Element = Commander.Element;
+        imageObjectGroup = Commander.imageObjectGroup;
+        Description = Commander.Description;
+        Condition = Commander.Condition;
+        Input = Commander.Input;
+        Report = Commander.Report;
+        Reference = Commander.Reference;
+        Action = Commander.Action;
+        userData = Commander.userData;
+        }
+        else
+        {
         Page = Commander.Page.page;
         Playwright = Commander.Playwright.playwright;
         BrowserContext = Commander.BrowserContext.browserContext;
@@ -92,6 +118,7 @@ public class Command {
         Reference = Commander.Reference;
         Action = Commander.Action;
         userData = Commander.userData;
+        }
 
         /**
          * ******Webservice*******

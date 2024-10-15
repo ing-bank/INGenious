@@ -23,6 +23,9 @@ public class MouseClick extends General {
     @Action(object = ObjectType.PLAYWRIGHT, desc = "Click the [<Object>] ")
     public void Click() {
         try {
+           
+            System.out.println("Inside Playwright");
+//            Element.click();
             Locator.click();
             Report.updateTestLog(Action, "Clicking on " + "[" + ObjectName + "]", Status.DONE);
         } catch (PlaywrightException e) {

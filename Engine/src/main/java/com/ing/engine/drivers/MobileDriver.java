@@ -1,5 +1,8 @@
+/*
+ * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
+ * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
+ */
 package com.ing.engine.drivers;
-
 import com.ing.datalib.settings.emulators.Emulator;
 import com.ing.engine.core.Control;
 import com.ing.engine.core.RunContext;
@@ -15,18 +18,18 @@ import java.util.logging.Logger;
 import com.microsoft.playwright.*;
 import java.nio.file.Paths;
 import io.appium.java_client.android.AndroidDriver;
+import org.openqa.selenium.WebDriver;
 
 /**
- * Class to handle driver related operation
  *
+ * @author AP01BP
  */
-public class PlaywrightDriver {
-
-    public Playwright playwright;
+public class MobileDriver {
+//    public Playwright playwright;
     public Page page;
     public BrowserContext browserContext;
     protected RunContext runContext;
-    public AndroidDriver driver;
+    public WebDriver driver;
 
     public Page getPage() {
         return page;
@@ -35,40 +38,21 @@ public class PlaywrightDriver {
     public void setPage(Page page) {
         this.page = page;
     }
-
     public void launchDriver(RunContext context) throws UnCaughtException {
         runContext = context;
-        if (isBrowserExecution()) {
-            System.out.println("Launching " + runContext.BrowserName);
-            try {
-                playwright = WebDriverFactory.createPlaywright();
-                BrowserType browserType = (BrowserType) WebDriverFactory.createBrowserType(playwright, runContext.BrowserName, context, Control.getCurrentProject().getProjectSettings());
-                if (Control.exe.getExecSettings().getRunSettings().isGridExecution()) {
-                    System.out.println("Launching Remote Driver");
-                    browserContext = WebDriverFactory.createContext(true, browserType, runContext.BrowserName, Control.getCurrentProject().getProjectSettings(), runContext);
-                } else {
-                    System.out.println("Launching Local Driver");
-                    browserContext = WebDriverFactory.createContext(false, browserType, runContext.BrowserName, Control.getCurrentProject().getProjectSettings(), runContext);
 
-                }
-                page = WebDriverFactory.createPage(browserContext);
-                System.out.println(runContext.BrowserName + " Launched");
-
-            } catch (UnCaughtException ex) {
-                Logger.getLogger(this.getClass().getName()).log(Level.OFF, null, ex);
-                throw new UnCaughtException("[Playwright Browser Exception] Cannot Initiate Browser " + ex.getMessage());
-            }
-        } else if (isNoBrowserExecution()) {
+         if (isNoBrowserExecution()) {
 
         } else if (isMobileExecution()) {
-            try {
-                System.out.println("Launching Local Driver");
-//            driver = MobileWebDriverFactory.create(context, Control.getCurrentProject().getProjectSettings());
-            } catch (UnCaughtException ex) {
+            try{
+            System.out.println("Launching Local Driver");
+            driver = MobileWebDriverFactory.create(context, Control.getCurrentProject().getProjectSettings());
+            }
+           catch (UnCaughtException ex) {
                 Logger.getLogger(this.getClass().getName()).log(Level.OFF, null, ex);
                 throw new UnCaughtException("[Appium driver Exception] unable to launch APK file " + ex.getMessage());
             }
-
+            
         }
     }
 
@@ -192,16 +176,15 @@ public class PlaywrightDriver {
 
     public Boolean isAlive() {
         try {
-            if (driver instanceof AndroidDriver) {
-                driver.manage();
+            
+             if (driver instanceof AndroidDriver) 
+//                driver.manage();
                 return true;
-            } else {
-                this.page.url();
-                return true;
-            }
+            
         } catch (Exception ex) {
             throw new DriverClosedException(runContext.BrowserName);
         }
+        return false;
     }
 
     public File createScreenShot() throws IOException {
@@ -215,5 +198,4 @@ public class PlaywrightDriver {
     public String getBrowserVersion() {
         return browserContext.browser().version();
     }
-
 }

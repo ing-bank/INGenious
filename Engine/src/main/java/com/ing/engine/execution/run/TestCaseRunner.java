@@ -6,6 +6,7 @@ import com.ing.datalib.component.TestCase;
 import com.ing.datalib.component.TestStep;
 import com.ing.engine.constants.SystemDefaults;
 import com.ing.engine.core.CommandControl;
+import com.ing.engine.drivers.PlaywrightDriver;
 import com.ing.engine.execution.data.DataIterator;
 import com.ing.engine.execution.data.Parameter;
 import com.ing.engine.execution.data.StepSet;
@@ -18,6 +19,7 @@ import com.ing.engine.execution.exception.data.GlobalDataNotFoundException;
 import com.ing.engine.execution.exception.data.TestDataNotFoundException;
 import com.ing.engine.execution.exception.element.ElementException;
 import com.ing.engine.reporting.TestCaseReport;
+import static com.ing.engine.reporting.reportportal.ReportPortalClient.runContext;
 import com.ing.engine.support.Status;
 import com.ing.engine.support.Step;
 import java.util.HashMap;
@@ -161,7 +163,10 @@ public class TestCaseRunner {
     }
 
     public CommandControl createControl(final TestCaseRunner newThis) {
-        return new CommandControl(getRoot().getControl().Playwright,getRoot().getControl().Page,getRoot().getControl().BrowserContext, getRoot().getControl().Report) {
+        PlaywrightDriver playwrightDriver1=new PlaywrightDriver();
+        if(playwrightDriver1.isBrowserExecution())
+        {
+        return new CommandControl(getRoot().getControl().Playwright,getRoot().getControl().Page,getRoot().getControl().BrowserContext,getRoot().getControl().mobileDriver, getRoot().getControl().Report) {
             @Override
             public void execute(String com, int sub) {
                 newThis.runTestCase(com, sub);
@@ -177,6 +182,25 @@ public class TestCaseRunner {
                 return newThis;
             }
         };
+        }
+        else{
+            return new CommandControl(getRoot().getControl().Playwright,getRoot().getControl().Page,getRoot().getControl().BrowserContext,getRoot().getControl().mobileDriver, getRoot().getControl().Report) {
+            @Override
+            public void execute(String com, int sub) {
+                newThis.runTestCase(com, sub);
+            }
+
+            @Override
+            public void executeAction(String action) {
+                newThis.runAction(action);
+            }
+
+            @Override
+            public Object context() {
+                return newThis;
+            }
+        };
+        }
     }
 
     public boolean isReusable() {

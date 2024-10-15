@@ -26,11 +26,13 @@ public class Discovery {
 
     public static List<Class<?>> getClassesForPackage() {
         ArrayList<Class<?>> clazz = new ArrayList<>();
+        System.out.println("!!!!!!!!!! Classes from package list : " +getClassesFromPackageList());
+         System.out.println("!!!!!!!!!! Classes from User Defined package list : " +getClassesFromUserDefinedPackage());
         clazz.addAll(getClassesFromPackageList());
         clazz.addAll(getClassesFromUserDefinedPackage());
         return clazz;
     }
-
+    
     public static ArrayList<Class<?>> getClassesFromPackageList() {
         ArrayList<Class<?>> clazz = new ArrayList<>();
         try {
@@ -83,6 +85,7 @@ public class Discovery {
             if (file.exists()) {
                 prop.load(new FileInputStream(file));
                 if (prop.containsKey("actions")) {
+                    System.out.println("########## inside loadPackagesFromProperties prop : " +prop);
                     packages = prop.getProperty("actions").split(",");
                 }
             }
@@ -90,8 +93,10 @@ public class Discovery {
             Logger.getLogger(Discovery.class.getName()).log(Level.SEVERE, null, ex);
         }
         if (packages == null) {
+            System.out.println("########## inside loadPackagesFromProperties null : ");
             packages = new String[]{"com.ing.engine.commands"};
         }
+        System.out.println("########## inside loadPackagesFromProperties : "+packages);
     }
 
     public static List<Class<?>> getClassList() {

@@ -49,16 +49,32 @@ public class MethodInfoManager {
         AnnontationUtil.detect(ANNOTATION_DETECTOR, "com.ing.engine.commands");
     }
     
-    private static void loadMethod(String className, String methodName) {
+    private static void loadMethod1(String className, String methodName) {
         try {
+            System.out.println("*&&^&$%#$  className : "+className+" -- methodName : "+methodName);
             Method method = getClass(className).getMethod(methodName);
             Action mInfo = method.getAnnotation(Action.class);
+              System.out.println("*&&^&$%#$  mInfo : "+mInfo+" -- method : "+method);
+              
             methodInfoMap.put(methodName, mInfo);
+            System.out.println("=====================================================");
+            System.out.println(methodInfoMap);
+            System.out.println("=====================================================");
         } catch (NoSuchMethodException | SecurityException ex) {
             Logger.getLogger(MethodInfoManager.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
     
+       private static void loadMethod(String className, String methodName) {
+        try {
+            Method method = getClass(className).getMethod(methodName);
+            Action mInfo = method.getAnnotation(Action.class);              
+            methodInfoMap.put(methodName, mInfo);
+        } catch (NoSuchMethodException | SecurityException ex) {
+            Logger.getLogger(MethodInfoManager.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+       
     private static Class<?> getClass(String className) {
         try {
             Class<?> class_ = Discovery.getClassByName(className);
@@ -75,15 +91,21 @@ public class MethodInfoManager {
     public static List<String> getMethodListFor(ObjectType type, ObjectType... others) {
         List<String> methodList = new ArrayList<>();
         for (Map.Entry<String, Action> entry : methodInfoMap.entrySet()) {
+            System.out.println("^^^^^^^^  methodInfoMap : "+entry);
             String methodName = entry.getKey();
             Action mInfo = entry.getValue();
+            System.out.println("********  methodName : "+methodName);
+            System.out.println("********  action : "+mInfo);
+            System.out.println("********  type : "+type);
             if (mInfo.object().equals(type)
                     || (others != null
                     && Arrays.asList(others).contains(mInfo.object()))) {
+                System.out.println("_________  inside minfo : ");
                 methodList.add(methodName);
             }
         }
         Collections.sort(methodList);
+        System.out.println("*********  Method list : "+methodList);
         return methodList;
     }
     

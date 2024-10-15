@@ -108,6 +108,7 @@ public class ActionRenderer extends AbstractRenderer {
                     valid = MethodInfoManager.getMethodListFor(ObjectType.IMAGE)
                             .contains(action);
                 } else if (isWebObject(step)) {
+                    System.out.println("$$$$$$$$$$ inside webObject");
                     valid = MethodInfoManager.getMethodListFor(ObjectType.PLAYWRIGHT, ObjectType.WEB).contains(action);
                 } else if (isMobileObject(step)) {
                     valid = MethodInfoManager.getMethodListFor(ObjectType.PLAYWRIGHT, ObjectType.MOBILE).contains(action);

@@ -7,6 +7,8 @@ import com.ing.engine.cli.LookUp;
 
 import com.ing.engine.constants.FilePath;
 import com.ing.engine.constants.SystemDefaults;
+import com.ing.engine.drivers.MobileDriver;
+import com.ing.engine.drivers.MobileWebDriverFactory;
 import com.ing.engine.drivers.PlaywrightDriver;
 import com.ing.engine.execution.exception.UnCaughtException;
 import com.ing.engine.execution.run.ProjectRunner;
@@ -40,9 +42,11 @@ public class Control {
     public static String triggerId;
     
     private static PlaywrightDriver playwrightDriver;
+    private static MobileDriver mobileDriver;
 
     private static void start() {
         do {
+            System.out.println("**** Inside Control --> start");
             Control control = new Control();
             control.startRun();
             control.resetAll();
@@ -52,6 +56,7 @@ public class Control {
     }
 
     public static void call(Project project) throws UnCaughtException {
+        System.out.println("**** Inside Control --> Call 1"); 
         RunManager.init();
         exe = ProjectRunner.load(project);
         start();
@@ -104,7 +109,7 @@ public class Control {
         SystemDefaults.printSystemInfo();
         System.out.println("Run Started on " + new Date().toString());
         System.out.println("Loading Browser Profile");
-       // WebDriverFactory.initDriverLocation(exe.getProject().getProjectSettings());
+        MobileWebDriverFactory.initDriverLocation(exe.getProject().getProjectSettings());
         System.out.println("Loading RunManager");
         RunManager.loadRunManager();
         System.out.println("Initializing Report");
@@ -114,6 +119,7 @@ public class Control {
 
     private void startRun() {
         try {
+            System.out.println("**** Inside Control --> StartRun");
             initRun();
             TMIntegration.init(ReportManager);
             ReportManager.createReport(DateTimeUtils.DateTimeNow(), RunManager.queue().size());
@@ -170,9 +176,20 @@ public class Control {
     static PlaywrightDriver getPlaywrightDriver() {
         return playwrightDriver;
     }
+    
+    static MobileDriver getMobileDriver()
+    {
+        System.out.println("**** Inside control -->  getMobileDriver ");
+        return mobileDriver;
+    }
 
     static void setSeDriver(PlaywrightDriver Driver) {
     	playwrightDriver = Driver;
+    }
+    
+        static void setMobileDriver(MobileDriver Driver) {
+            System.out.println("**** Inside control -->  setMobileDriver ");
+    	mobileDriver = Driver;
     }
 
     private void endExecution() {

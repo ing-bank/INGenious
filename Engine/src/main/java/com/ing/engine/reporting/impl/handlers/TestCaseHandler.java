@@ -2,6 +2,7 @@
 package com.ing.engine.reporting.impl.handlers;
 
 import com.ing.engine.core.RunContext;
+import com.ing.engine.drivers.MobileDriver;
 import com.ing.engine.drivers.PlaywrightDriver;
 import com.ing.engine.reporting.TestCaseReport;
 import com.ing.engine.reporting.intf.Report;
@@ -87,6 +88,10 @@ public class TestCaseHandler implements Report {
     }
 
     public void setDriver(PlaywrightDriver driver) {
+
+    }
+    
+    public void setMobileDriver(MobileDriver driver) {
 
     }
 
