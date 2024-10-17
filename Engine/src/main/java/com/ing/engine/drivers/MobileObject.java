@@ -42,10 +42,7 @@ import org.jsoup.nodes.Element;
 import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.support.ui.WebDriverWait;
-/**
- *
- * @author AP01BP
- */
+
 public class MobileObject {
     
     public MobileObject(CommandControl cc) {

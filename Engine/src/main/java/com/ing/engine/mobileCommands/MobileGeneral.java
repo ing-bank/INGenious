@@ -13,10 +13,7 @@ import java.util.logging.Logger;
 import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.NoAlertPresentException;
 
-/**
- *
- * @author AP01BP
- */
+
 public class MobileGeneral  extends Command{
     
     public MobileGeneral(CommandControl cc) {

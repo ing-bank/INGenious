@@ -20,10 +20,7 @@ import java.nio.file.Paths;
 import io.appium.java_client.android.AndroidDriver;
 import org.openqa.selenium.WebDriver;
 
-/**
- *
- * @author AP01BP
- */
+
 public class MobileDriver {
 //    public Playwright playwright;
     protected RunContext runContext;

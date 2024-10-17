@@ -21,10 +21,6 @@ import java.util.Properties;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.remote.DesiredCapabilities;
 
-/**
- *
- * @author AP01BP
- */
 public class MobileWebDriverFactory {
        public static WebDriver create(RunContext context, ProjectSettings settings) {
         return create(context, settings, false, null);
