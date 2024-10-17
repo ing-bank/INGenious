@@ -175,31 +175,6 @@ public class Basic extends MobileGeneral {
 
     }
 
-    @Action(object = ObjectType.BROWSER,
-            desc = "Open the Url [<Data>] in the Browser",
-            input = InputType.YES)
-    public void Open() {
-        Boolean pageTimeOut = false;
-        try {
-            if (Condition.matches("[0-9]+")) {
-                setPageTimeOut(Integer.valueOf(Condition));
-                pageTimeOut = true;
-            }
-            mDriver.get(Data);
-            Report.updateTestLog("Open", "Opened Url: " + Data, Status.DONE);
-        } catch (TimeoutException e) {
-            Report.updateTestLog("Open",
-                    "Opened Url: " + Data + " and cancelled page load after " + Condition + " seconds",
-                    Status.DONE);
-        } catch (Exception e) {
-            Logger.getLogger(this.getClass().getName()).log(Level.OFF, null, e);
-            Report.updateTestLog("Open", e.getMessage(), Status.FAIL);
-            throw new ForcedException("Open", e.getMessage());
-        }
-        if (pageTimeOut) {
-            setPageTimeOut(300);
-        }
-    }
 
     private void setPageTimeOut(int sec) {
         try {
@@ -208,44 +183,7 @@ public class Basic extends MobileGeneral {
             System.out.println("Couldn't set PageTimeOut to " + sec);
         }
     }
-
-    @Action(object = ObjectType.BROWSER, desc = "Start a specified browser", input = InputType.YES)
-    public void StartBrowser() {
-        try {
-            getDriverControl().StartBrowser(Data);
-            Report.setDriver(getDriverControl());
-            Report.updateTestLog("StartBrowser", "Browser Started: " + Data,
-                    Status.DONE);
-        } catch (Exception e) {
-            Logger.getLogger(this.getClass().getName()).log(Level.OFF, null, e);
-            Report.updateTestLog("StartBrowser", "Error: " + e.getMessage(),
-                    Status.FAIL);
-        }
-
-    }
-
-    @Action(object = ObjectType.BROWSER, desc = "Restarts the Browser")
-    public void RestartBrowser() {
-        try {
-            getDriverControl().RestartBrowser();
-            Report.setDriver(getDriverControl());
-            Report.updateTestLog("RestartBrowser", "Restarted Browser",
-                    Status.DONE);
-        } catch (Exception ex) {
-            Report.updateTestLog("RestartBrowser", "Unable Restart Browser",
-                    Status.FAIL);
-            Logger.getLogger(Basic.class.getName()).log(Level.SEVERE, null, ex);
-        }
-
-    }
-
-    @Action(object = ObjectType.BROWSER, desc = "Stop the current browser")
-
-    public void StopBrowser() {
-        getDriverControl().StopBrowser();
-        Report.updateTestLog("StopBrowser", "Browser Stopped: ", Status.DONE);
-    }
-
+    
     @Action(object = ObjectType.BROWSER, desc = "Add a variable to access within testcase", input = InputType.YES, condition = InputType.YES)
     public void AddVar() {
         if (Input.startsWith("=Replace(")) {
@@ -314,26 +252,6 @@ public class Basic extends MobileGeneral {
 
     }
 
-    @Action(object = ObjectType.BROWSER, desc = "Changes the browser size into [<Data>]", input = InputType.YES)
-    public void setBrowserSize() {
-        try {
-            if (Data.matches("\\d*(x|,| )\\d*")) {
-                String size = Data.replaceFirst("(x|,| )", " ");
-                String[] sizes = size.split(" ", 2);
-                mDriver.manage().window().setSize(new Dimension(Integer.parseInt(sizes[0]), Integer.parseInt(sizes[1])));
-                Report.updateTestLog(Action, " Browser is resized to " + Data,
-                        Status.DONE);
-            } else {
-                Report.updateTestLog(Action, " Invalid Browser size [" + Data + "]",
-                        Status.DEBUG);
-            }
-        } catch (Exception ex) {
-            Report.updateTestLog(Action, "Unable to resize the Window ",
-                    Status.FAIL);
-            Logger.getLogger(Basic.class.getName()).log(Level.SEVERE, null, ex);
-        }
-    }
-
     @Action(object = ObjectType.MOBILE, desc = "Highlight the element [<Object>]", input = InputType.OPTIONAL)
     public void highlight() {
         if (elementDisplayed()) {
@@ -348,7 +266,7 @@ public class Basic extends MobileGeneral {
     }
 
     private void highlightElement(WebElement element, String color) {
-        JavascriptExecutor js = (JavascriptExecutor) Driver;
+        JavascriptExecutor js = (JavascriptExecutor) mDriver;
         js.executeScript("arguments[0].setAttribute('style', arguments[1]);", element, " outline:" + color + " solid 2px;");
     }
 

@@ -177,7 +177,7 @@ public class SwitchTo extends Command {
     @Action(object = ObjectType.BROWSER, desc ="Open a new Browser window", input =InputType.OPTIONAL)
     public void createAndSwitchToWindow() {
         try {
-            JavascriptExecutor js = (JavascriptExecutor) Driver;
+            JavascriptExecutor js = (JavascriptExecutor) mDriver;
             js.executeScript("window.open(arguments[0])", Data);
             Set<String> Handles = mDriver.getWindowHandles();
             mDriver.switchTo().window((String) Handles.toArray()[Handles.size() - 1]);

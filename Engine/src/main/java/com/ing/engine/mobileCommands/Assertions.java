@@ -201,7 +201,7 @@ public class Assertions extends MobileGeneral {
             input = InputType.YES)
     public void assertEval() {
         try {
-            JavascriptExecutor js = (JavascriptExecutor) Driver;
+            JavascriptExecutor js = (JavascriptExecutor) mDriver;
 
             String strExpScript = Data.split(":", 2)[0];
             String strExpValue = Data.split(":", 2)[1];

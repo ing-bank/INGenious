@@ -45,7 +45,6 @@ public class Command {
     public String Reference;
     private final CommandControl Commander;
     public UserDataAccess userData;
-    
     //Added for Mobile
     public WebDriver mDriver;
     public WebElement Element;
@@ -87,7 +86,7 @@ public class Command {
      */
     public Command(CommandControl cc) {
         Commander = cc;
-        if(Commander.mobileDriver.driver!=null)
+        if(Commander.mobileDriver!=null)
         {
         mDriver = Commander.mobileDriver.driver;
         mObject = Commander.MObject;

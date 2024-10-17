@@ -228,9 +228,9 @@ public class Verifications extends Command {
         }
     }
 
-    private boolean isAlertPresent(WebDriver Driver) {
+    private boolean isAlertPresent(WebDriver mDriver) {
         try {
-            Driver.switchTo().alert();
+            mDriver.switchTo().alert();
             return true;
         } catch (NoAlertPresentException e) {
             Logger.getLogger(this.getClass().getName()).log(Level.OFF, null, e);

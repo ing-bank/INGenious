@@ -49,7 +49,7 @@ public abstract class CommandControl {
     private Stack<Locator> runTimeElement = new Stack<>();
     
     public MobileObject MObject;
-    public static MobileDriver mobileDriver;
+    public MobileDriver mobileDriver;
     public WebElement Element;
 
     public CommandControl(PlaywrightDriver playwright, PlaywrightDriver page, PlaywrightDriver browserContext ,MobileDriver driver,TestCaseReport report) {

@@ -544,7 +544,7 @@ public class AppMainFrame extends JFrame {
     private void load() {
         testDesign.load();
         testExecution.load();
-//        spyHealReco.load();
+        spyHealReco.load();
     }
 
     public void save() {

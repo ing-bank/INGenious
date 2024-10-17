@@ -801,7 +801,7 @@ public class MobileObjectSpy extends javax.swing.JFrame {
             Notification.show("Please select an object from OR to update");
         }
     }
-
+    
     private void saveObject(MobileTreeNode mobileNode) {
         if (addToSelectedPage.isSelected()) {
             saveObjectToSelected(mobileNode);

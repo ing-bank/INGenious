@@ -83,22 +83,8 @@ public class CommonMethods extends MobileGeneral {
         }
     }
 
-    @Action(desc = "To Perform Right Click action on WebPage/Element")
-    public void rightClick() {
-        String desc = "Right click action performed on ";
-        Actions action = new Actions(mDriver);
-        if (Element != null) {
-            action.contextClick(Element).build().perform();
-            desc += "Element - " + ObjectName;
-        } else {
-            action.contextClick().build().perform();
-            desc += "Webpage";
-        }
-        Report.updateTestLog(Action, desc, Status.DONE);
-    }
-
     @Action(object = ObjectType.MOBILE, desc = "Double click [<Object>] element")
-    public void doubleClickElement() {
+    public void doubleTapElement() {
         if (elementEnabled()) {
             new Actions(mDriver).doubleClick(Element).build().perform();
             Report.updateTestLog("doubleClickElement", "'" + Element
@@ -357,30 +343,6 @@ public class CommonMethods extends MobileGeneral {
         return HashTable;
     }
 
-    @Action(object = ObjectType.BROWSER, desc = "Store the current page url into the Runtime variable: [<Data>]", input = InputType.YES)
-    public void storeCurrentUrl() {
-        String strObj = Input;
-        if (strObj.startsWith("%") && strObj.endsWith("%")) {
-            addVar(strObj, mDriver.getCurrentUrl());
-            Report.updateTestLog(Action, "Current URL '" + mDriver.getCurrentUrl()
-                    + "' is stored in variable '" + strObj + "'", Status.PASS);
-        } else {
-            Report.updateTestLog(Action, "Variable format is not correct", Status.FAIL);
-        }
-    }
-
-    @Action(object = ObjectType.BROWSER, desc = "store the webpage title in variable named [<Data>].", input = InputType.YES)
-    public void storeTitle() {
-        String strObj = Input;
-        if (strObj.startsWith("%") && strObj.endsWith("%")) {
-            addVar(strObj, mDriver.getTitle());
-            Report.updateTestLog(Action, "Page title '" + mDriver.getTitle() + "' is stored in '"
-                    + strObj + "'", Status.PASS);
-        } else {
-            Report.updateTestLog(Action, "Variable format is not correct", Status.FAIL);
-        }
-    }
-
     @Action(object = ObjectType.MOBILE, desc = "Store the [<Object>] element's text into the Runtime variable: [<Data>]", input = InputType.YES)
     public void storeText() {
         if (elementPresent()) {
@@ -606,20 +568,7 @@ public class CommonMethods extends MobileGeneral {
         }
     }
 
-    @Action(object = ObjectType.BROWSER, desc = "Store the result of Javascript expression value in a variable", input = InputType.YES, condition = InputType.YES)
-    public void storeEval() {
-        String javaScript = Data;
-        String variableName = Condition;
-        if (variableName.matches("%.*%")) {
-            JavascriptExecutor js = (JavascriptExecutor) Driver;
-            addVar(variableName, js.executeScript(javaScript).toString());
-            Report.updateTestLog(Action, "Eval Stored", Status.DONE);
-        } else {
-            Report.updateTestLog(Action, "Variable format is not correct", Status.FAIL);
-        }
-    }
-
-    private boolean isAlertPresent(WebDriver Driver) {
+    private boolean isAlertPresent(WebDriver mDriver) {
         try {
             mDriver.switchTo().alert();
             return true;

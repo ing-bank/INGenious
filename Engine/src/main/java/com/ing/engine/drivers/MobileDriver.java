@@ -31,10 +31,7 @@ public class MobileDriver {
 
     public void launchDriver(RunContext context) throws UnCaughtException {
         runContext = context;
-
-         if (isNoBrowserExecution()) {
-
-        } else if (isMobileExecution()) {
+        if (isMobileExecution()) {
             try{
             System.out.println("Launching Local Driver");
             driver = MobileWebDriverFactory.create(context, Control.getCurrentProject().getProjectSettings());
@@ -42,8 +39,10 @@ public class MobileDriver {
            catch (UnCaughtException ex) {
                 Logger.getLogger(this.getClass().getName()).log(Level.OFF, null, ex);
                 throw new UnCaughtException("[Appium driver Exception] unable to launch APK file " + ex.getMessage());
-            }
-            
+            }            
+        }
+        else{
+            driver=null;
         }
     }
 

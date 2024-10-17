@@ -106,7 +106,7 @@ public class Scroll extends MobileGeneral {
 
     private void scrollTo(String x, String y) {
         if (checkIfDriverIsAlive()) {
-            ((JavascriptExecutor) Driver).executeScript("window.scrollTo(" + x + ", " + y + ");");
+            ((JavascriptExecutor) mDriver).executeScript("window.scrollTo(" + x + ", " + y + ");");
             Report.updateTestLog(Action, "Browser Scrolled to [" + Data + "]", Status.DONE);
         }
 

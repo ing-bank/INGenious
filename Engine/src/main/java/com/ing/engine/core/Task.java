@@ -128,6 +128,8 @@ public class Task implements Runnable {
 
     public boolean runIteration(int iter) {
         boolean success = false;
+//        mobileDriver=getMobileDriver();
+//        launchEmulator();
          if(isMobileExecution())
         {
             mobileDriver=getMobileDriver();
