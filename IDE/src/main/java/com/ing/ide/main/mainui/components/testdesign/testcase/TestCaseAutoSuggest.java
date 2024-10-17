@@ -224,7 +224,7 @@ public class TestCaseAutoSuggest {
                     } else if (isWebObject(objectName, pageName)) {
                         return MethodInfoManager.getMethodListFor(ObjectType.PLAYWRIGHT, ObjectType.WEB, ObjectType.ANY);
                     } else if (isMobileObject(objectName, pageName)) {
-                        return MethodInfoManager.getMethodListFor(ObjectType.PLAYWRIGHT, ObjectType.MOBILE, ObjectType.ANY);
+                        return MethodInfoManager.getMethodListFor(ObjectType.MOBILE, ObjectType.MOBILE, ObjectType.ANY);
                     }
             }
             return new ArrayList<>();

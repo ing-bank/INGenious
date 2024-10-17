@@ -1,4 +1,3 @@
-
 package com.ing.engine.core;
 
 import com.ing.datalib.component.Project;
@@ -26,6 +25,10 @@ import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+//Added for Mobile
+import com.ing.engine.drivers.MobileDriver;
+import com.ing.engine.drivers.MobileWebDriverFactory;
+
 public class Control {
 
     static {
@@ -38,8 +41,10 @@ public class Control {
     public Boolean executionFinished = false;
     public static ProjectRunner exe;
     public static String triggerId;
-    
+
     private static PlaywrightDriver playwrightDriver;
+
+    private static MobileDriver mobileDriver;
 
     private static void start() {
         do {
@@ -47,7 +52,7 @@ public class Control {
             control.startRun();
             control.resetAll();
         } while (exe.retryExecution());
-         ConsoleReport.reset();
+        ConsoleReport.reset();
 
     }
 
@@ -73,7 +78,7 @@ public class Control {
     }
 
     void resetAll() {
-    	
+
         exe.afterExecution(ReportManager.isPassed());
         SystemDefaults.resetAll();
         SummaryReport.reset();
@@ -87,9 +92,9 @@ public class Control {
             public void run() {
                 if (!executionFinished) {
                     endExecution();
-                    
+
                     ConsoleReport.reset();
-                   
+
                 }
             }
         });
@@ -104,12 +109,13 @@ public class Control {
         SystemDefaults.printSystemInfo();
         System.out.println("Run Started on " + new Date().toString());
         System.out.println("Loading Browser Profile");
-       // WebDriverFactory.initDriverLocation(exe.getProject().getProjectSettings());
+        // WebDriverFactory.initDriverLocation(exe.getProject().getProjectSettings());
+        MobileWebDriverFactory.initDriverLocation(exe.getProject().getProjectSettings());
         System.out.println("Loading RunManager");
         RunManager.loadRunManager();
         System.out.println("Initializing Report");
-        ReportManager = new SummaryReport(); 
-        triggerId = UUID.randomUUID().toString().replace("-", "").toUpperCase().substring(0,15);
+        ReportManager = new SummaryReport();
+        triggerId = UUID.randomUUID().toString().replace("-", "").toUpperCase().substring(0, 15);
     }
 
     private void startRun() {
@@ -155,15 +161,15 @@ public class Control {
                         Status.FAIL, "");
             }
         } finally {
-			
-			  while (SystemDefaults.reportComplete.get()) {
-			  
-			  SystemDefaults.pollWait();
-			  
-			  }
-			 
+
+            while (SystemDefaults.reportComplete.get()) {
+
+                SystemDefaults.pollWait();
+
+            }
+
             endExecution();
-            
+
         }
     }
 
@@ -171,8 +177,16 @@ public class Control {
         return playwrightDriver;
     }
 
+    static MobileDriver getMobileDriver() {
+        return mobileDriver;
+    }
+
     static void setSeDriver(PlaywrightDriver Driver) {
-    	playwrightDriver = Driver;
+        playwrightDriver = Driver;
+    }
+
+    static void setMobileDriver(MobileDriver Driver) {
+        mobileDriver = Driver;
     }
 
     private void endExecution() {
@@ -184,14 +198,13 @@ public class Control {
                 if (ReportManager.sync != null) {
                     ReportManager.sync.disConnect();
                 }
-                
+
             }
-           
+
             if (playwrightDriver != null) {
-            	playwrightDriver.closeBrowser();
+                playwrightDriver.closeBrowser();
                 playwrightDriver.playwright.close();
             }
-            
 
         } catch (Exception ex) {
             Logger.getLogger(Control.class.getName()).log(Level.SEVERE, null, ex);
@@ -210,7 +223,7 @@ public class Control {
         if (args != null && args.length > 0) {
             LookUp.exe(args);
         } else {
-            call();         
+            call();
         }
     }
 

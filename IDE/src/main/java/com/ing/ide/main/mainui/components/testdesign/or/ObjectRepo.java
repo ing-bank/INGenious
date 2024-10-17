@@ -57,7 +57,7 @@ public class ObjectRepo extends JPanel implements ItemListener {
     private void initRepos() {
         repos.setLayout(new CardLayout());
         repos.add(webOR, "Web");
-       // repos.add(mobileOR, "Mobile");
+        repos.add(mobileOR, "Mobile");
         switchToolBar.bgroup.getElements().nextElement().setSelected(true);
     }
 
@@ -71,12 +71,12 @@ public class ObjectRepo extends JPanel implements ItemListener {
 
     public void load() {
         webOR.load();
-      //  mobileOR.load();
+        mobileOR.load();
     }
 
     public void adjustUI() {
         webOR.adjustUI();
-     //   mobileOR.adjustUI();
+        mobileOR.adjustUI();
     }
 
     public WebORPanel getWebOR() {
@@ -135,7 +135,7 @@ public class ObjectRepo extends JPanel implements ItemListener {
             add(new javax.swing.Box.Filler(new java.awt.Dimension(0, 0), new java.awt.Dimension(0, 0), new java.awt.Dimension(32767, 32767)));
             add(webButton = create("Web"));
             add(imageButton = create("Image"));
-          //  add(mobileButton = create("Mobile"));
+            add(mobileButton = create("Mobile"));
         }
 
         private JToggleButton create(String text) {

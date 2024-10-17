@@ -155,10 +155,10 @@ public class AppMenuBar extends JMenuBar {
                 withShortCut(
                         withIcon(
                                 Utils.createMenuItem("Image Spy", sActionListener))), 'I'));
-      //  object.add(withMnemonics(
-      //          withShortCut(
-      //                  withIcon(
-      //                          Utils.createMenuItem("Mobile Spy", sActionListener))), 'M'));
+        object.add(withMnemonics(
+                withShortCut(
+                        withIcon(
+                                Utils.createMenuItem("Mobile Spy", sActionListener))), 'M'));
         object.addSeparator();
       //  object.add(
       //          withMnemonics(

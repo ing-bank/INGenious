@@ -20,8 +20,14 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Stack;
 
+//Added for Mobile
+import com.ing.engine.drivers.MobileDriver;
+import com.ing.engine.drivers.MobileObject;
+import io.appium.java_client.android.AndroidDriver;
+import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.WebElement;
 public class Command {
-
+    
     public Page Page;
     public Playwright Playwright;
     public BrowserContext BrowserContext;
@@ -39,6 +45,11 @@ public class Command {
     public String Reference;
     private final CommandControl Commander;
     public UserDataAccess userData;
+    
+    //Added for Mobile
+    public WebDriver mDriver;
+    public WebElement Element;
+    public MobileObject mObject;
 
     /**
      * ******API*******
@@ -76,6 +87,24 @@ public class Command {
      */
     public Command(CommandControl cc) {
         Commander = cc;
+        if(Commander.mobileDriver.driver!=null)
+        {
+        mDriver = Commander.mobileDriver.driver;
+        mObject = Commander.MObject;
+        Data = Commander.Data;
+        ObjectName = Commander.ObjectName;
+        Element = Commander.Element;
+        imageObjectGroup = Commander.imageObjectGroup;
+        Description = Commander.Description;
+        Condition = Commander.Condition;
+        Input = Commander.Input;
+        Report = Commander.Report;
+        Reference = Commander.Reference;
+        Action = Commander.Action;
+        userData = Commander.userData;
+        }
+        else
+        {
         Page = Commander.Page.page;
         Playwright = Commander.Playwright.playwright;
         BrowserContext = Commander.BrowserContext.browserContext;
@@ -92,7 +121,7 @@ public class Command {
         Reference = Commander.Reference;
         Action = Commander.Action;
         userData = Commander.userData;
-
+        }
         /**
          * ******Webservice*******
          */
@@ -130,7 +159,7 @@ public class Command {
     public Stack<Locator> getRunTimeElement() {
         return Commander.getRunTimeElement();
     }
-
+    
     public void executeMethod(String Action) {
         Commander.executeAction(Action);
     }
@@ -154,9 +183,21 @@ public class Command {
     public PlaywrightDriver getDriverControl() {
         return Commander.Page;
     }
+    
+    public MobileDriver getMobileDriverControl()
+    {
+        return Commander.mobileDriver;
+    }
 
     public Boolean isDriverAlive() {
+        if(mDriver!=null)
+        {
+           return getMobileDriverControl().isAlive();
+        }
+        else
+        {
         return getDriverControl().isAlive();
+        }
     }
 
     private void setElement(Locator Locator) {

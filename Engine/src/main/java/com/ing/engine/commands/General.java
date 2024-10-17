@@ -24,7 +24,7 @@ public class General extends Command {
     }
 
     public Boolean elementPresent() {
-        return checkIfDriverIsAlive() && Locator != null;
+        return checkIfDriverIsAlive() && Locator != null;       
     }
 
     public Boolean elementSelected() {

@@ -28,6 +28,10 @@ public class MobileOR implements ORRootInf<MobileORPage> {
                     "id",
                     "Accessibility",
                     "xpath",
+                    "css",
+                    "name",
+                    "tagName",
+                    "link_text",
                     "class"));
 
     @JacksonXmlProperty(isAttribute = true, localName = "ref")

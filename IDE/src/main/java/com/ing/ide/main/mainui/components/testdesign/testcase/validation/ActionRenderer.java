@@ -110,7 +110,7 @@ public class ActionRenderer extends AbstractRenderer {
                 } else if (isWebObject(step)) {
                     valid = MethodInfoManager.getMethodListFor(ObjectType.PLAYWRIGHT, ObjectType.WEB).contains(action);
                 } else if (isMobileObject(step)) {
-                    valid = MethodInfoManager.getMethodListFor(ObjectType.PLAYWRIGHT, ObjectType.MOBILE).contains(action);
+                    valid = MethodInfoManager.getMethodListFor(ObjectType.MOBILE, ObjectType.MOBILE).contains(action);
                 }
                 break;
         }

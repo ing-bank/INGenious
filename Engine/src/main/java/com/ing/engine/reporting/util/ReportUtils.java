@@ -69,6 +69,8 @@ public class ReportUtils {
 
     public static Boolean takeScreenshot(PlaywrightDriver playwrightdriver, String imgSrc) {
         try {
+            if(playwrightdriver!=null)
+           {
             File scrFile = playwrightdriver.createScreenShot();
             if (scrFile != null) {
                 File imgFile = new File(FilePath.getCurrentResultsPath() + imgSrc);
@@ -76,6 +78,7 @@ public class ReportUtils {
                 scrFile.delete();
                 return true;
             }
+           }
         } catch (Exception ex) {
             Logger.getLogger(ReportUtils.class.getName()).log(Level.SEVERE, null, ex);
         }
