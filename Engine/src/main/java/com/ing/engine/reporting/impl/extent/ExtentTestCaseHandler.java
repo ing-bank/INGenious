@@ -360,7 +360,7 @@ public class ExtentTestCaseHandler extends TestCaseHandler implements PrimaryHan
 			if (optional != null) {
 				data.put(RDS.Step.Data.OBJECTS, optional.get(0));
 			}
-			if (ReportUtils.takeScreenshot(getDriver(), imgSrc)) {
+			if (ReportUtils.takeScreenshot(getDriver(),getMobileDriver(), imgSrc)) {
 				data.put(RDS.Step.Data.LINK, imgSrc);
 			}
 		}

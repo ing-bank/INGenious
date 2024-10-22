@@ -48,6 +48,11 @@ public class TestCaseHandler implements Report {
     }
 
     @Override
+    public MobileDriver getMobileDriver() {
+        return report.getMobileDriver();
+    }
+    
+    @Override
     public String getScreenShotName() {
         return report.getScreenShotName();
     }

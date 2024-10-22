@@ -50,7 +50,7 @@ public final class TestCaseReport implements Report {
 
     public final DateTimeUtils startTime;
     PlaywrightDriver playwrightdriver;
-    MobileDriver mobileDiver;
+    MobileDriver mobileDriver;
 
     Step curr;
     Status currentStatus;
@@ -102,7 +102,7 @@ public final class TestCaseReport implements Report {
         }
     }
         public void setMobileDriver(MobileDriver driver) {
-        mobileDiver = driver;
+        mobileDriver = driver;
         for (TestCaseHandler handler : handlers) {
             handler.setMobileDriver(driver);
         }
@@ -265,6 +265,10 @@ public final class TestCaseReport implements Report {
         return playwrightdriver;
     }
 
+    @Override
+    public MobileDriver getMobileDriver() {
+        return mobileDriver;
+    }
     public int getIter() {
         return iterCounter;
     }

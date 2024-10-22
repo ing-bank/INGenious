@@ -3,6 +3,9 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
  */
 package com.ing.engine.drivers;
+import com.galenframework.config.GalenConfig;
+import com.galenframework.config.GalenProperty;
+import com.galenframework.utils.GalenUtils;
 import com.ing.datalib.settings.emulators.Emulator;
 import com.ing.engine.core.Control;
 import com.ing.engine.core.RunContext;
@@ -10,6 +13,7 @@ import com.ing.engine.drivers.WebDriverFactory.Browser;
 import com.ing.engine.execution.exception.DriverClosedException;
 import com.ing.engine.execution.exception.UnCaughtException;
 import com.ing.engine.constants.FilePath;
+import com.ing.engine.drivers.customWebDriver.EmptyDriver;
 import com.ing.engine.reporting.util.DateTimeUtils;
 import java.io.File;
 import java.io.IOException;
@@ -18,17 +22,22 @@ import java.util.logging.Logger;
 import com.microsoft.playwright.*;
 import java.nio.file.Paths;
 import io.appium.java_client.android.AndroidDriver;
+import javax.imageio.ImageIO;
+import org.openqa.selenium.OutputType;
+import org.openqa.selenium.TakesScreenshot;
 import org.openqa.selenium.WebDriver;
+import ru.yandex.qatools.ashot.AShot;
+import ru.yandex.qatools.ashot.Screenshot;
+import ru.yandex.qatools.ashot.shooting.ShootingStrategies;
+import ru.yandex.qatools.ashot.shooting.ShootingStrategy;
 
 
 public class MobileDriver {
-//    public Playwright playwright;
     protected RunContext runContext;
     public WebDriver driver;
 
     public void launchDriver(RunContext context) throws UnCaughtException {
         runContext = context;
-        if (isMobileExecution()) {
             try{
             System.out.println("Launching Local Driver");
             driver = MobileWebDriverFactory.create(context, Control.getCurrentProject().getProjectSettings());
@@ -37,12 +46,8 @@ public class MobileDriver {
                 Logger.getLogger(this.getClass().getName()).log(Level.OFF, null, ex);
                 throw new UnCaughtException("[Appium driver Exception] unable to launch APK file " + ex.getMessage());
             }            
-        }
-        else{
-            driver=null;
-        }
     }
-
+    
     public boolean isBrowserExecution() {
         boolean isBrowserExecution = false;
         try {
@@ -81,20 +86,6 @@ public class MobileDriver {
         return isMobileExecution;
     }
 
-    public void launchDriver(String browser) throws UnCaughtException {
-        RunContext context = new RunContext();
-        context.BrowserName = browser;
-        context.Browser = Browser.fromString(browser);
-        context.PlatformValue = System.getProperty("os.name");
-        context.BrowserVersion = "default";
-        launchDriver(context);
-    }
-
-
-    public String getCurrentBrowser() {
-        return runContext.BrowserName;
-    }
-
     public String getDriverName(String browserName) {
         try {
             Emulator emulator = Control.getCurrentProject().getProjectSettings().getEmulators()
@@ -121,12 +112,66 @@ public class MobileDriver {
         return false;
     }
 
-//    public File createScreenShot() throws IOException {
-//        Boolean fullpageScreenshot = Control.exe.getExecSettings().getRunSettings().getTakeFullPageScreenShot();
-////        this.page.screenshot(new Page.ScreenshotOptions().setPath(Paths.get("screenshot.png")).setFullPage(fullpageScreenshot));
-//        File file = new File("screenshot.png");
-//        return file;
-//
-//    }
+    	public String getCurrentBrowser() {
+		return runContext.BrowserName;
+	}
+
+    public File createScreenShot() {
+		try {
+			if (driver == null) {
+				System.err.println("Report Driver[" + runContext.BrowserName + "]  is not initialized");
+			} else if (isAlive()) {
+				if (alertPresent()) {
+					System.err.println("Couldn't take ScreenShot Alert Present in the page");
+					return ((TakesScreenshot) (new EmptyDriver())).getScreenshotAs(OutputType.FILE);
+				} else if ( driver instanceof AndroidDriver ||  driver instanceof EmptyDriver) {
+					return ((TakesScreenshot) (driver)).getScreenshotAs(OutputType.FILE);
+				} else {
+					return createNewScreenshot();
+				}
+			}
+		} catch (DriverClosedException ex) {
+			System.err.println("Couldn't take ScreenShot Driver is closed or connection is lost with driver");
+		}
+		return null;
+	}
+    
+
+	private File createNewScreenshot() {
+		try {
+			boolean fullPage = GalenConfig.getConfig().getBooleanProperty(GalenProperty.SCREENSHOT_FULLPAGE);
+			return getScreenShotFromGalen(driver, fullPage);
+			
+		} catch (Exception ex) {
+			throw new RuntimeException("Error making screenshot", ex);
+		}
+	}
+
+	private File getScreenShotFromAShot(WebDriver driver, boolean fullPage) throws Exception {
+		ShootingStrategy strategy = fullPage ? ShootingStrategies.viewportPasting(400) : ShootingStrategies.simple();
+		return getScreenShotFromAShot(driver, strategy);
+	}
+
+	private File getScreenShotFromGalen(WebDriver driver, boolean fullPage) throws Exception {
+		return fullPage ? GalenUtils.makeFullScreenshot(driver) : GalenUtils.takeScreenshot(driver);
+	}
+
+	private File getScreenShotFromAShot(WebDriver driver, ShootingStrategy strategy) throws IOException {
+		File file = File.createTempFile("screenshot", ".png");
+		Screenshot screenshot = new AShot().shootingStrategy(strategy).takeScreenshot(driver);
+		ImageIO.write(screenshot.getImage(), "png", file);
+		return file;
+	}
+
+	private boolean alertPresent() {
+		try {
+			driver.switchTo().alert();
+			driver.switchTo().defaultContent();
+			return true;
+		} catch (Exception e) {
+			return false;
+		}
+	}
+
 
 }
