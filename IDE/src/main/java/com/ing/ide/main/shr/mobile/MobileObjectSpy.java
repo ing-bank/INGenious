@@ -645,7 +645,7 @@ public class MobileObjectSpy extends javax.swing.JFrame {
         gridBagConstraints.insets = new java.awt.Insets(28, 19, 0, 0);
         iosSettings.add(jLabel6, gridBagConstraints);
 
-        appiumServerLoc.setText("http://127.0.0.1:4723/wd/hub");
+        appiumServerLoc.setText("http://127.0.0.1:4723/");
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 1;
         gridBagConstraints.gridy = 2;
@@ -1197,8 +1197,8 @@ public class MobileObjectSpy extends javax.swing.JFrame {
             @Override
             public void run() {
                 String remoteServer = "";
-                if(appiumServerLoc.getText().equals("http://127.0.0.1:4723/wd/hub"))
-                    remoteServer = "http://127.0.0.1:4723/wd/hub";
+                if(appiumServerLoc.getText().equals("http://127.0.0.1:4723/"))
+                    remoteServer = "http://127.0.0.1:4723/";
                 else{
                     Matcher matcher = Pattern.compile("^((http[s]?):\\/)?\\/?([^:\\/\\s]+)(:([^\\/]*))?((\\/\\w+)*\\/)([\\w\\-\\.]+[^#?\\s]+)(\\?([^#]*))?(#(.*))?$").matcher(appiumServerLoc.getText()); 
                     if(matcher.matches()){

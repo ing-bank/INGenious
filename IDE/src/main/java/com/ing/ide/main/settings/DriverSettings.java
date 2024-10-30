@@ -536,7 +536,7 @@ public class DriverSettings extends javax.swing.JFrame {
         userAgent.setEnabled(false);
         jScrollPane2.setViewportView(userAgent);
 
-        appiumConnectionString.setText("http://127.0.0.1:4723/wd/hub");
+        appiumConnectionString.setText("http://127.0.0.1:4723/");
         appiumConnectionString.setEnabled(false);
 
         emulatorGroup.add(chromeBrowser);

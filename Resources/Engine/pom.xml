@@ -360,7 +360,12 @@
             <version>2.4.4</version>
             <type>jar</type>
         </dependency>
-        
+        <dependency>
+            <groupId>ru.yandex.qatools.ashot</groupId>
+            <artifactId>ashot</artifactId>
+            <version>1.5.4</version>
+            <type>jar</type>
+        </dependency>
     
 		
 		<dependency>

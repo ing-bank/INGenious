@@ -40,7 +40,7 @@ public class DynamicObject extends Command {
     }
 
     @Action(object = ObjectType.MOBILE, desc = "Set object [<Object>] property  as [<Data>] at runtime", input = InputType.YES, condition = InputType.YES)
-    public void setObjectProperty() {
+    public void setMobileObjectProperty() {
         if (!Data.isEmpty()) {
             if (Condition.isEmpty()) {
                 String[] groups = Data.split(",");
