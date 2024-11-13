@@ -41,7 +41,8 @@
 	<commons-lang.version>2.6</commons-lang.version>
 	<httpcore.version>4.4.16</httpcore.version>
 	<guava.version>32.0.1-jre</guava.version>
-		
+        <mac.version>mac-aarch64</mac.version>
+        <ioAppium.version>LATEST</ioAppium.version>	
 	<setupDir>../Dist/release</setupDir>
         <resourceDir>../Resources</resourceDir>  
         
@@ -345,7 +346,7 @@
         <dependency>
             <groupId>io.appium</groupId>
             <artifactId>java-client</artifactId>
-            <version>9.3.0</version>
+            <version>${ioAppium.version}</version>
             <type>jar</type>
         </dependency>
         <dependency>
@@ -525,37 +526,37 @@
 			<groupId>org.openjfx</groupId>
 			<artifactId>javafx-web</artifactId>
 			<version>${javafx.version}</version>
-			<classifier>mac-aarch64</classifier>
+			<classifier>${mac.version}</classifier>
 		</dependency>
 		<dependency>
 			<groupId>org.openjfx</groupId>
 			<artifactId>javafx-media</artifactId>
 			<version>${javafx.version}</version>
-			<classifier>mac-aarch64</classifier>
+			<classifier>${mac.version}</classifier>
 		</dependency>
 		<dependency>
 			<groupId>org.openjfx</groupId>
 			<artifactId>javafx-swing</artifactId>
 			<version>${javafx.version}</version>
-			<classifier>mac-aarch64</classifier>
+			<classifier>${mac.version}</classifier>
 		</dependency>
 		<dependency>
 			<groupId>org.openjfx</groupId>
 			<artifactId>javafx-graphics</artifactId>
 			<version>${javafx.version}</version>
-			<classifier>mac-aarch64</classifier>
+			<classifier>${mac.version}</classifier>
 		</dependency>
 		<dependency>
 			<groupId>org.openjfx</groupId>
 			<artifactId>javafx-controls</artifactId>
 			<version>${javafx.version}</version>
-			<classifier>mac-aarch64</classifier>
+			<classifier>${mac.version}</classifier>
 		</dependency>
 		<dependency>
 			<groupId>org.openjfx</groupId>
 			<artifactId>javafx-base</artifactId>
 			<version>${javafx.version}</version>
-			<classifier>mac-aarch64</classifier>
+			<classifier>${mac.version}</classifier>
 		</dependency>
 		<!-- javafx for non aarch64 -->
 		<!--<dependency>
@@ -563,8 +564,8 @@
             <artifactId>javafx-web</artifactId>
             <version>${javafx.version}</version>
             <classifier>mac</classifier>
-        </dependency>
-        <dependency>
+            </dependency>
+            <dependency>
             <groupId>org.openjfx</groupId>
             <artifactId>javafx-media</artifactId>
             <version>${javafx.version}</version>

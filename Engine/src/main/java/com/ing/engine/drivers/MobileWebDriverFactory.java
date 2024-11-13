@@ -12,8 +12,6 @@ import com.ing.engine.core.Control;
 import com.ing.engine.core.RunContext;
 import com.ing.engine.drivers.findObjectBy.support.ByObjectProp;
 import static com.ing.engine.execution.data.DataProcessor.resolve;
-import io.appium.java_client.android.AndroidDriver;
-import io.appium.java_client.android.options.UiAutomator2Options;
 import java.net.URL;
 import java.util.Map;
 import java.util.Objects;
@@ -23,13 +21,11 @@ import org.openqa.selenium.remote.DesiredCapabilities;
 
 public class MobileWebDriverFactory {
        public static WebDriver create(RunContext context, ProjectSettings settings) {
-        return create(context, settings, false, null);
+        return create(context, settings,false, null);
     }
        
        public static void initDriverLocation(ProjectSettings settings) {
 		ByObjectProp.load();
-		// System.setProperty("webdriver.chrome.driver",
-		// resolve(settings.getDriverSettings().getChromeDriverPath()));
 		System.setProperty("webdriver.edge.driver", resolve(settings.getDriverSettings().getEdgeDriverPath()));
 		GalenConfig.getConfig().setProperty(GalenProperty.SCREENSHOT_FULLPAGE,
 				String.valueOf(Control.exe.getExecSettings().getRunSettings().getTakeFullPageScreenShot()));
@@ -40,15 +36,8 @@ public class MobileWebDriverFactory {
 
     private static WebDriver create(RunContext context, ProjectSettings settings, Boolean isGrid, String remoteUrl) {
         DesiredCapabilities caps = new DesiredCapabilities();
-        UiAutomator2Options mobileOptions = new UiAutomator2Options();
-        caps = getEmulatorCapabilities(context.BrowserName, settings);
-        mobileOptions.setDeviceName(caps.getCapability("appium:deviceName").toString())
-                .setPlatformVersion(caps.getCapability("appium:platformVersion").toString())
-                .setAppPackage(caps.getCapability("appium:appPackage").toString())
-                .setAppActivity(caps.getCapability("appium:appActivity").toString())
-                .setPlatformName(caps.getCapability("platformName").toString());
-
-        return create(context.BrowserName, caps, mobileOptions, settings, isGrid, remoteUrl);
+        caps = getEmulatorCapabilities(context.BrowserName, settings);    
+        return create(context.BrowserName, caps, settings);
     }
 
     private static DesiredCapabilities getEmulatorCapabilities(String browserName, ProjectSettings settings) {
@@ -61,19 +50,17 @@ public class MobileWebDriverFactory {
         return caps;
     }
 
-    private static WebDriver create(String browserName, DesiredCapabilities caps, UiAutomator2Options mobileOptions,
-            ProjectSettings settings, Boolean isGrid, String remoteUrl) {
-        return checkEmulators(browserName, caps, mobileOptions, settings, isGrid, remoteUrl);
+    private static WebDriver create(String browserName, DesiredCapabilities caps,
+            ProjectSettings settings) {
+        return checkEmulators(browserName, caps, settings);
     }
 
-    private static WebDriver checkEmulators(String browserName, DesiredCapabilities caps, UiAutomator2Options mobileOptions, ProjectSettings settings,
-            Boolean isGrid, String remoteUrl) {
+    private static WebDriver checkEmulators(String browserName, DesiredCapabilities caps, ProjectSettings settings) {
         Emulator emulator = settings.getEmulators().getEmulator(browserName);
         if (emulator != null) {
             switch (emulator.getType()) {
                 case "Remote URL": {
-                    return createRemoteDriver(browserName, emulator.getRemoteUrl(), caps, mobileOptions, false,
-                            settings.getDriverSettings());
+                    return createRemoteDriver(emulator.getRemoteUrl(), caps);
 
                 }
             }
@@ -81,14 +68,13 @@ public class MobileWebDriverFactory {
         return null;
     }
 
-    private static WebDriver createRemoteDriver(String browserName, String url,
-            DesiredCapabilities caps, UiAutomator2Options mobileOptions, Boolean checkForProxy, Properties props) {
+    private static WebDriver createRemoteDriver(String url,DesiredCapabilities caps) {
         try {
             if (isAppiumNative(url, caps.asMap())) {
                 if (isAndroidNative(caps.asMap())) {
-                    return new AndroidDriver(new URL(url), mobileOptions);
+                    return new io.appium.java_client.android.AndroidDriver(new URL(url), caps);
                 } else if (isIOSNative(caps.asMap())) {
-                    return new AndroidDriver(new URL(url), mobileOptions);
+                    return new io.appium.java_client.ios.IOSDriver(new URL(url), caps);
                 }
             }
 

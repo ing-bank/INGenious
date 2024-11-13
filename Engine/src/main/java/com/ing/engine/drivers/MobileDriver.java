@@ -22,6 +22,7 @@ import java.util.logging.Logger;
 import com.microsoft.playwright.*;
 import java.nio.file.Paths;
 import io.appium.java_client.android.AndroidDriver;
+import io.appium.java_client.ios.IOSDriver;
 import javax.imageio.ImageIO;
 import org.openqa.selenium.OutputType;
 import org.openqa.selenium.TakesScreenshot;
@@ -100,9 +101,8 @@ public class MobileDriver {
     }
 
     public Boolean isAlive() {
-        try {
-            
-             if (driver instanceof AndroidDriver) 
+        try {           
+             if (driver instanceof AndroidDriver || driver instanceof IOSDriver) 
 //                driver.manage();
                 return true;
             
@@ -124,7 +124,7 @@ public class MobileDriver {
 				if (alertPresent()) {
 					System.err.println("Couldn't take ScreenShot Alert Present in the page");
 					return ((TakesScreenshot) (new EmptyDriver())).getScreenshotAs(OutputType.FILE);
-				} else if ( driver instanceof AndroidDriver ||  driver instanceof EmptyDriver) {
+				} else if ( driver instanceof AndroidDriver ||  driver instanceof EmptyDriver ||driver instanceof IOSDriver) {
 					return ((TakesScreenshot) (driver)).getScreenshotAs(OutputType.FILE);
 				} else {
 					return createNewScreenshot();

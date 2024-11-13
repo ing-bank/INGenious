@@ -12,10 +12,7 @@ import com.ing.engine.support.Status;
 import java.util.Arrays;
 import org.openqa.selenium.support.ui.Select;
 
-/**
- *
- *
- */
+
 public class Text extends General {
 
     public Text(CommandControl cc) {

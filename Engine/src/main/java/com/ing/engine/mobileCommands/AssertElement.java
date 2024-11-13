@@ -9,10 +9,7 @@ import com.ing.engine.support.methodInf.Action;
 import com.ing.engine.support.methodInf.InputType;
 import com.ing.engine.support.methodInf.ObjectType;
 
-/**
- *
- * 
- */
+
 public class AssertElement extends MobileGeneral {
 
 	public AssertElement(CommandControl cc) {
@@ -70,7 +67,7 @@ public class AssertElement extends MobileGeneral {
 		}
 	}
 
-	private void assertElement(Boolean status) {
+	private void assertElement(Boolean status) {            
 		assertElement(status, status ? "" : "not ");
 	}
 

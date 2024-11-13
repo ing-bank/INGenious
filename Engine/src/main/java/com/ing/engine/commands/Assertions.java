@@ -275,7 +275,7 @@ public class Assertions extends General {
     public void assertElementTextMatches() {
         String text = "";
         try {
-            text = Locator.textContent();
+            text = Locator.textContent();          
             assertThat(Locator).hasText(Pattern.compile(Data));
             highlightElement();
             Report.updateTestLog(Action, "[" + ObjectName + "] has text '" + Data + "'", Status.PASS);
