@@ -63,6 +63,8 @@ public class INGeniousSettings extends javax.swing.JFrame {
     private XTablePanel extentSettingsPanel;
 
     private XTablePanel contextSettingsPanel;
+    
+    private XTablePanel lambdatestCapsPanel;
 
     private XTablePanel uDPanel;
 
@@ -91,6 +93,8 @@ public class INGeniousSettings extends javax.swing.JFrame {
         runSettingsTab.addTab("Extent Report Settings", extentSettingsPanel);
         contextSettingsPanel = new XTablePanel(true);
         runSettingsTab.addTab("Authenticate Context", contextSettingsPanel);
+        lambdatestCapsPanel = new XTablePanel(true);
+        runSettingsTab.addTab("LambdaTest Capabilities", lambdatestCapsPanel);
         
         
         mailConnect = new ConnectButton() {
@@ -167,6 +171,7 @@ public class INGeniousSettings extends javax.swing.JFrame {
         loadRPSettings();
         loadExtentSettings();
         loadContextSettings();
+        loadLambdaTestCapabilities();
         showSettings();
     }
 
@@ -195,6 +200,7 @@ public class INGeniousSettings extends javax.swing.JFrame {
         loadRPSettings();
         loadExtentSettings();
         loadContextSettings();
+        loadLambdaTestCapabilities();
     }
 
     private void loadRunSettings() {
@@ -279,6 +285,12 @@ public class INGeniousSettings extends javax.swing.JFrame {
         PropUtils.loadPropertiesInTable(
                 sProject.getProjectSettings().getContextSettings(),
                 contextSettingsPanel.table);
+    }
+    
+    private void loadLambdaTestCapabilities() {
+        PropUtils.loadPropertiesInTable(
+                sProject.getProjectSettings().getLambdaTestCaps(),
+                lambdatestCapsPanel.table);
     }
 
     private void loadDBSettings() {
@@ -420,6 +432,13 @@ public class INGeniousSettings extends javax.swing.JFrame {
         sProject.getProjectSettings().getContextSettings().save();
     }
     
+    private void saveLambdaTestCaps() {
+        Properties properties = encryptpassword(PropUtils.getPropertiesFromTable(((XTablePanel) lambdatestCapsPanel).table), " Enc");
+        PropUtils.loadPropertiesInTable(properties, lambdatestCapsPanel.table, "");
+        sProject.getProjectSettings().getLambdaTestCaps().set(properties);
+        sProject.getProjectSettings().getLambdaTestCaps().save();
+    }
+    
     public void saveAll() {
         saveRunSettings();
         saveTestSetTMSettings();
@@ -430,6 +449,7 @@ public class INGeniousSettings extends javax.swing.JFrame {
         saveRPSettings();
         saveExtentSettings();
         saveContextSettings();
+        saveLambdaTestCaps();
     }
 
     private void loadTMTestSetSettings(String module) {
@@ -506,6 +526,7 @@ public class INGeniousSettings extends javax.swing.JFrame {
         recordVideo = new javax.swing.JCheckBox();
         enableTracing = new javax.swing.JCheckBox();
         enableHAR = new javax.swing.JCheckBox();
+        hyperexecute = new javax.swing.JCheckBox();
         qcrunSettings = new javax.swing.JPanel();
         jScrollPane5 = new javax.swing.JScrollPane();
         tsTMTable = new XTable();
@@ -526,7 +547,6 @@ public class INGeniousSettings extends javax.swing.JFrame {
                 formWindowClosing(evt);
             }
         });
-        getContentPane().setLayout(new java.awt.BorderLayout());
 
         savePanel.setBorder(javax.swing.BorderFactory.createEmptyBorder(1, 1, 1, 1));
         savePanel.setFont(new java.awt.Font("sansserif", 0, 11)); // NOI18N
@@ -716,6 +736,14 @@ public class INGeniousSettings extends javax.swing.JFrame {
             }
         });
 
+        hyperexecute.setFont(UIManager.getFont("TableMenu.font"));
+        hyperexecute.setText("Run on HyperExecute");
+        hyperexecute.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                hyperexecuteActionPerformed(evt);
+            }
+        });
+
         javax.swing.GroupLayout globalSettingsLayout = new javax.swing.GroupLayout(globalSettings);
         globalSettings.setLayout(globalSettingsLayout);
         globalSettingsLayout.setHorizontalGroup(
@@ -723,15 +751,6 @@ public class INGeniousSettings extends javax.swing.JFrame {
             .addGroup(globalSettingsLayout.createSequentialGroup()
                 .addContainerGap()
                 .addGroup(globalSettingsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(globalSettingsLayout.createSequentialGroup()
-                        .addGroup(globalSettingsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addComponent(jLabel29)
-                            .addGroup(globalSettingsLayout.createSequentialGroup()
-                                .addGap(111, 111, 111)
-                                .addComponent(reRunNo, javax.swing.GroupLayout.PREFERRED_SIZE, 116, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                                .addComponent(jLabel30)))
-                        .addGap(0, 0, Short.MAX_VALUE))
                     .addGroup(globalSettingsLayout.createSequentialGroup()
                         .addGroup(globalSettingsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                             .addComponent(envLabel, javax.swing.GroupLayout.PREFERRED_SIZE, 84, javax.swing.GroupLayout.PREFERRED_SIZE)
@@ -786,7 +805,17 @@ public class INGeniousSettings extends javax.swing.JFrame {
                                     .addComponent(enableTracing)
                                     .addComponent(recordVideo)
                                     .addComponent(enableHAR))))
-                        .addGap(114, 136, Short.MAX_VALUE))))
+                        .addGap(114, 136, Short.MAX_VALUE))
+                    .addGroup(globalSettingsLayout.createSequentialGroup()
+                        .addGroup(globalSettingsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                            .addComponent(jLabel29)
+                            .addGroup(globalSettingsLayout.createSequentialGroup()
+                                .addGap(111, 111, 111)
+                                .addComponent(reRunNo, javax.swing.GroupLayout.PREFERRED_SIZE, 116, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                                .addComponent(jLabel30))
+                            .addComponent(hyperexecute))
+                        .addGap(0, 0, Short.MAX_VALUE))))
         );
         globalSettingsLayout.setVerticalGroup(
             globalSettingsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -817,6 +846,8 @@ public class INGeniousSettings extends javax.swing.JFrame {
                 .addGroup(globalSettingsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel5)
                     .addComponent(remoteGridURL, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGap(27, 27, 27)
+                .addComponent(hyperexecute)
                 .addGap(18, 18, 18)
                 .addGroup(globalSettingsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel9)
@@ -828,7 +859,7 @@ public class INGeniousSettings extends javax.swing.JFrame {
                     .addComponent(jLabel29)
                     .addComponent(reRunNo, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(jLabel30))
-                .addGap(74, 74, 74)
+                .addGap(26, 26, 26)
                 .addGroup(globalSettingsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(reportPerformanceLog)
                     .addComponent(recordVideo)
@@ -843,7 +874,7 @@ public class INGeniousSettings extends javax.swing.JFrame {
                     .addComponent(azure)
                     .addComponent(enableHAR)
                     .addComponent(slackNotify))
-                .addContainerGap(40, Short.MAX_VALUE))
+                .addContainerGap(42, Short.MAX_VALUE))
         );
 
         runSettingsTab.addTab("Run Settings", globalSettings);
@@ -1016,6 +1047,10 @@ public class INGeniousSettings extends javax.swing.JFrame {
         // TODO add your handling code here:
     }//GEN-LAST:event_enableHARActionPerformed
 
+    private void hyperexecuteActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_hyperexecuteActionPerformed
+        // TODO add your handling code here:
+    }//GEN-LAST:event_hyperexecuteActionPerformed
+
     private void testConnection(final Sync connection) {
         try {
             if (connection != null) {
@@ -1051,6 +1086,7 @@ public class INGeniousSettings extends javax.swing.JFrame {
     private javax.swing.Box.Filler filler5;
     private javax.swing.JCheckBox fullpagescreenshot;
     private javax.swing.JPanel globalSettings;
+    private javax.swing.JCheckBox hyperexecute;
     private javax.swing.ButtonGroup iModeBgroup;
     private javax.swing.JLabel jLabel1;
     private javax.swing.JLabel jLabel2;

@@ -15,6 +15,7 @@ import com.ing.engine.execution.run.TestCaseRunner;
 import com.ing.engine.reporting.TestCaseReport;
 import com.ing.engine.reporting.util.DateTimeUtils;
 import com.ing.engine.support.Status;
+import java.io.UnsupportedEncodingException;
 
 import java.util.Date;
 import java.util.logging.Level;
@@ -155,7 +156,7 @@ public class Task implements Runnable {
         return success;
     }
 
-    private void launchBrowser() throws UnCaughtException {
+    private void launchBrowser() throws UnCaughtException, UnsupportedEncodingException {
         if (!getRunSettings().useExistingDriver() || playwrightDriver.page == null) {
             playwrightDriver.launchDriver(runContext);
         }

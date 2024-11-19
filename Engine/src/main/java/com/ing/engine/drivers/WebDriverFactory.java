@@ -1,5 +1,6 @@
 package com.ing.engine.drivers;
 
+import com.google.gson.JsonObject;
 import com.ing.datalib.settings.ProjectSettings;
 import com.ing.engine.constants.FilePath;
 import com.ing.engine.core.Control;
@@ -16,6 +17,8 @@ import com.ing.util.encryption.Encryption;
 import com.microsoft.playwright.*;
 import com.microsoft.playwright.Browser.NewContextOptions;
 import com.microsoft.playwright.BrowserType.LaunchOptions;
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
@@ -97,7 +100,7 @@ public class WebDriverFactory {
 
     }
 
-    public static BrowserContext createContext(Boolean isGrid, BrowserType browserType, String browserName, ProjectSettings settings, RunContext context) {
+    public static BrowserContext createContext(Boolean isGrid, BrowserType browserType, String browserName, ProjectSettings settings, RunContext context) throws UnsupportedEncodingException {
 
         List<String> capabilities = getCapability(browserName, settings);
         LaunchOptions launchOptions = new LaunchOptions();
@@ -107,7 +110,11 @@ public class WebDriverFactory {
         BrowserContext browserContext = null;
 
         if (isGrid) {
-            browserContext = browserType.connect("").newContext(newContextOptions);
+            String cdpURL = Control.exe.getExecSettings().getRunSettings().getRemoteGridURL();
+            if(!cdpURL.endsWith("/"))
+                cdpURL = cdpURL + "/";
+            cdpURL = cdpURL + "playwright?capabilities=" + lambdaTestCapabilities(context, capabilities);
+            browserContext = browserType.connect(cdpURL).newContext(newContextOptions);
         } else {
             browserContext = browserType.launch(launchOptions).newContext(newContextOptions);
         }
@@ -166,8 +173,76 @@ public class WebDriverFactory {
     private static String getContextSetting(String property) {
         return Control.getCurrentProject().getProjectSettings().getContextSettings().getProperty(property);
     }
+    
+    private static String getLambdaTestCap(String property) {
+        return Control.getCurrentProject().getProjectSettings().getLambdaTestCaps().getProperty(property);
+    }
+    
+    private static String lambdaTestCapabilities(RunContext context, List<String> caps) throws UnsupportedEncodingException {
 
-    private static NewContextOptions addcontextOptions(NewContextOptions newContextOptions, RunContext context, List<String> options) {
+        JsonObject ltcapabilities = new JsonObject();
+        JsonObject ltOptions = new JsonObject();
+
+        String browserName = "pw-"+context.BrowserName.toLowerCase();
+        
+        if (!caps.isEmpty()) {
+            for (String cap : caps) {
+                String key = cap.split("=")[0];
+                String value = cap.split("=")[1];
+                
+                if (key.toLowerCase().contains("setchannel")) {
+                    if(value.toLowerCase().contains("edge"))
+                        browserName = "Microsoft Edge";
+                    else
+                        browserName = "Chrome";
+                    break;
+                }
+            }
+        }      
+        
+        String platform = "";
+        if(context.PlatformValue.contains("Mac"))
+            platform = "macOS";
+        else if(context.PlatformValue.contains("Any"))
+            platform = "Windows 11";
+        else
+            platform = context.PlatformValue;
+        
+        String browserVersion = "";
+        if(context.BrowserVersionValue.contains("Default"))
+            browserVersion = "latest";
+        else
+            browserVersion = context.BrowserVersionValue;
+        
+        
+        ltcapabilities.addProperty("browserName", browserName);
+        ltcapabilities.addProperty("browserVersion", browserVersion);
+        ltOptions.addProperty("platform", platform);
+        ltOptions.addProperty("name", context.Scenario + " : " + context.TestCase);
+        ltOptions.addProperty("build", getLambdaTestCap("build"));
+        ltOptions.addProperty("user", getLambdaTestCap("user"));
+        ltOptions.addProperty("accessKey", getLambdaTestCap("accessKey"));
+        ltOptions.addProperty("video", Boolean.valueOf(getLambdaTestCap("video")));
+        ltOptions.addProperty("console", Boolean.valueOf(getLambdaTestCap("console")));
+        ltOptions.addProperty("network", Boolean.valueOf(getLambdaTestCap("network")));
+        ltOptions.addProperty("resolution", getLambdaTestCap("resolution"));
+        ltOptions.addProperty("visual", Boolean.valueOf(getLambdaTestCap("visual")));
+        ltOptions.addProperty("tunnel", Boolean.valueOf(getLambdaTestCap("tunnel")));
+        if(!getLambdaTestCap("tunnelName").isEmpty())
+             ltOptions.addProperty("tunnel", getLambdaTestCap("tunnelName"));
+        if(!getLambdaTestCap("geoLocation").isEmpty())
+             ltOptions.addProperty("tunnel", getLambdaTestCap("geoLocation"));
+        ltOptions.addProperty("idleTimeout", Integer.valueOf(getLambdaTestCap("idleTimeout")));
+        ltOptions.addProperty("useSpecificBundleVersion", Boolean.valueOf(getLambdaTestCap("useSpecificBundleVersion")));
+        
+        ltcapabilities.add("LT:Options", ltOptions);
+
+
+        return URLEncoder.encode(ltcapabilities.toString(), "utf-8");
+    }
+
+    
+       private static NewContextOptions addcontextOptions(NewContextOptions newContextOptions, RunContext context, List<String> options) {
 
 
         Boolean isVideoEnabled = Control.exe.getExecSettings().getRunSettings().isVideoEnabled();

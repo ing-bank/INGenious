@@ -29,6 +29,8 @@ public class ProjectSettings {
     private final ExtentReportSettings extentSettings;
 
     private final ContextSettings contextSettings;
+    
+    private final LambdaTestCaps lambdaTestCaps;
 
     private final ExecutionSettings execSettings;
 
@@ -45,6 +47,7 @@ public class ProjectSettings {
         this.rpSettings = new ReportPortalSettings(getLocation());
         this.extentSettings = new ExtentReportSettings(getLocation());
         this.contextSettings = new ContextSettings(getLocation());
+        this.lambdaTestCaps = new LambdaTestCaps(getLocation());
     }
 
     public void resetLocation() {
@@ -59,6 +62,7 @@ public class ProjectSettings {
         rpSettings.setLocation(getLocation());
         extentSettings.setLocation(getLocation());
         contextSettings.setLocation(getLocation());
+        lambdaTestCaps.setLocation(getLocation());
     }
 
     public final String getLocation() {
@@ -87,6 +91,10 @@ public class ProjectSettings {
 
     public ContextSettings getContextSettings(){
         return contextSettings;
+    }
+    
+    public LambdaTestCaps getLambdaTestCaps(){
+        return lambdaTestCaps;
     }
     
     public DriverSettings getDriverSettings() {
@@ -128,5 +136,6 @@ public class ProjectSettings {
         dbSettings.save();
         extentSettings.save();
         contextSettings.save();
+        lambdaTestCaps.save();
     }
 }
