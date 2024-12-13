@@ -32,7 +32,7 @@ public class WidthAndHeight extends General {
     }
 
     
-    @Action(object = ObjectType.MOBILE, 
+    @Action(object = ObjectType.APP, 
     		desc ="Assert if [<Object>]'s width is [<Data>] ", 
     		input =InputType.YES,
     		condition = InputType.OPTIONAL)
@@ -40,7 +40,7 @@ public class WidthAndHeight extends General {
         assertWidth(RelativeElement.None);
     }
 
-    @Action(object = ObjectType.MOBILE, 
+    @Action(object = ObjectType.APP, 
     		desc ="Assert if [<Object>] 's width is [<Data>] of [<Object2>]", 
     		input =InputType.YES, 
     		condition = InputType.YES
@@ -49,11 +49,11 @@ public class WidthAndHeight extends General {
         assertWidth(RelativeElement.WebElement);
     }
 
-    @Action(object = ObjectType.MOBILE, desc ="Assert if [<Object>]'s height is [<Data>] ", input =InputType.YES, condition = InputType.OPTIONAL)
+    @Action(object = ObjectType.APP, desc ="Assert if [<Object>]'s height is [<Data>] ", input =InputType.YES, condition = InputType.OPTIONAL)
     public void assertElementHeight() {
         assertHeight(RelativeElement.None);
     }
-    @Action(object = ObjectType.MOBILE, desc ="Assert if [<Object>] 's height is [<Data>] of [<Object2>]", input =InputType.YES, condition = InputType.YES)
+    @Action(object = ObjectType.APP, desc ="Assert if [<Object>] 's height is [<Data>] of [<Object2>]", input =InputType.YES, condition = InputType.YES)
     public void assertElementHeightElement() {
         assertHeight(RelativeElement.WebElement);
     }

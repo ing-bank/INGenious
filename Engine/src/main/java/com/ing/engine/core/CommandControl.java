@@ -153,7 +153,7 @@ public abstract class CommandControl {
     }
 
     private Boolean canIFindElement() {
-                if(mobileDriver!=null)
+        if(mobileDriver!=null)
         {
         if(mobileDriver.isAlive())
         {

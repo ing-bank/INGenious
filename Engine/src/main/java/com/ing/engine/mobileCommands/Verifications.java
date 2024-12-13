@@ -1,7 +1,6 @@
 package com.ing.engine.mobileCommands;
 
 import com.ing.engine.commands.Command;
-import com.ing.engine.commands.General;
 import com.ing.engine.core.CommandControl;
 import com.ing.engine.support.Status;
 import com.ing.engine.support.methodInf.Action;
@@ -9,8 +8,6 @@ import com.ing.engine.support.methodInf.InputType;
 import com.ing.engine.support.methodInf.ObjectType;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.openqa.selenium.By;
-import org.openqa.selenium.Cookie;
 import org.openqa.selenium.NoAlertPresentException;
 import org.openqa.selenium.WebDriver;
 
@@ -26,7 +23,6 @@ public class Verifications extends Command {
      *
      * ******************************************
      */
-    
     @Action(object = ObjectType.BROWSER, desc = "Verify if the title is [<Input>]", input = InputType.YES)
     public void verifyTitle() {
         String strObj = Data;
@@ -46,125 +42,7 @@ public class Verifications extends Command {
         }
     }
 
-    /**
-     * ******************************************
-     * Function to verify the text present
-     * ******************************************
-     */
-    @Action(object = ObjectType.BROWSER, desc = "Assert if text: [<Data>] is present on the page", input = InputType.YES)
-
-    public void verifyTextPresentInPage() {
-        String strObj = Data;
-        if (mDriver.findElement(By.tagName("html")).getText().contains(strObj)) {
-            Report.updateTestLog(Action, "Expected text "
-                    + Data + " is present in the page", Status.PASS);
-        } else {
-            Report.updateTestLog(Action, "Expected text "
-                    + Data + " is not present in the page", Status.FAIL);
-
-        }
-    }
-
-    /**
-     * ******************************************
-     * Function to verify cookies present
-     * ******************************************
-     */
-    @Action(object = ObjectType.BROWSER, desc = "Verify if cookie: [<Data>] is present", input = InputType.YES)
-
-    public void verifyCookiePresent() {
-        try {
-
-            String strCookieName = Data;
-            if ((mDriver.manage().getCookieNamed(strCookieName) != null)) {
-                System.out.println(Action + " Passed");
-                Report.updateTestLog(Action,
-                        "Cookie with name [" + Data + "] is available",
-                        Status.PASS);
-            } else {
-                System.out.println(Action + " Failed");
-                Report.updateTestLog(Action,
-                        "Cookie with name [" + Data + "] is not available",
-                        Status.FAIL);
-            }
-        } catch (Exception e) {
-            Report.updateTestLog(Action, e.getMessage(),
-                    Status.FAIL);
-            Logger.getLogger(Verifications.class.getName()).log(Level.SEVERE, null, e);
-        }
-    }
-
-    /**
-     * ******************************************
-     * Function to verify cookies by name
-     * ******************************************
-     */
-    @Action(object = ObjectType.BROWSER, desc = "Verify if cookie by name: [<Data>] is present ", input = InputType.YES)
-
-    public void verifyCookieByName() {
-        try {
-
-            String strCookieName = Data.split(":", 2)[0];
-            String strCookieValue = Data.split(":", 2)[1];
-            Cookie cookie = mDriver.manage().getCookieNamed(strCookieName);
-            if (cookie != null) {
-                if ((strCookieValue.equals(cookie.getValue()))) {
-                    System.out.println(Action + " Passed");
-                    Report.updateTestLog(Action,
-                            "Cookie value  is matched with the expected result",
-                            Status.PASS);
-                } else {
-                    Report.updateTestLog(Action, "Cookie value doesn't match with the expected result",
-                            Status.FAIL);
-                }
-            } else {
-                System.out.println(Action + " Failed");
-                Report.updateTestLog(Action,
-                        "Cookie with name [" + Data + "] is not available",
-                        Status.FAIL);
-            }
-        } catch (Exception e) {
-            Report.updateTestLog(Action, e.getMessage(),
-                    Status.FAIL);
-            Logger.getLogger(Verifications.class.getName()).log(Level.SEVERE, null, e);
-        }
-    }
-
-    /**
-     * ******************************************
-     * Function to verify AlertText
-     *
-     * ******************************************
-     */
-    @Action(object = ObjectType.BROWSER, desc = "Verify the specified [<Data>] text is present in the alert pop up box [<Object>]", input = InputType.YES)
-
-    public void verifyAlertText() {
-        try {
-
-            String strExpAlertText = Data;
-            if ((mDriver.switchTo().alert().getText().equals(strExpAlertText))) {
-                System.out.println(Action + " Passed");
-                Report.updateTestLog(Action,
-                        "Alert text is matched with the expected result",
-                        Status.PASSNS);
-            } else {
-                Report.updateTestLog(Action,
-                        "Alert text doesn't match with the expected result",
-                        Status.FAILNS);
-            }
-        } catch (Exception e) {
-            Report.updateTestLog(Action, e.getMessage(), Status.FAILNS);
-            Logger.getLogger(Verifications.class.getName()).log(Level.SEVERE, null, e);
-        }
-    }
-
-    /**
-     * ******************************************
-     * Function to verify AlertTextPresent
-     * ******************************************
-     */
     @Action(object = ObjectType.BROWSER, desc = "Verify if the specific alert[<Object>] is present ")
-
     public void verifyAlertPresent() {
         try {
             if ((isAlertPresent(mDriver))) {
@@ -191,7 +69,6 @@ public class Verifications extends Command {
      * ******************************************
      */
     @Action(object = ObjectType.BROWSER, desc = "Verify if the specific [<Data>] is present", input = InputType.YES)
-
     public void verifyVariable() {
         String strObj = Data;
         String[] strTemp = strObj.split("=", 2);

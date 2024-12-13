@@ -2,6 +2,7 @@
 package com.ing.engine.commands;
 
 import com.ing.engine.core.CommandControl;
+import com.ing.engine.execution.exception.ActionException;
 import com.ing.engine.support.Status;
 import com.ing.engine.support.methodInf.Action;
 import com.ing.engine.support.methodInf.InputType;
@@ -33,6 +34,7 @@ public class CommonMethods extends General {
         } catch (Exception e) {
             Report.updateTestLog(Action, e.getMessage(), Status.DEBUG);
             Logger.getLogger(CommonMethods.class.getName()).log(Level.SEVERE, null, e);
+            throw new ActionException(e);
         }
     }
     
@@ -50,6 +52,7 @@ public class CommonMethods extends General {
         } catch (Exception ex) {
             Logger.getLogger(this.getClass().getName()).log(Level.OFF, null, ex);
             Report.updateTestLog(Action, "Error Storing Element count:" + "\n" + ex.getMessage(), Status.DEBUG);
+            throw new ActionException(ex);
         }
     }
     
@@ -61,6 +64,7 @@ public class CommonMethods extends General {
         } catch(Exception e) {
             Logger.getLogger(this.getClass().getName()).log(Level.OFF, null, e);
             Report.updateTestLog("Could not perfom ["+Action+"] action", "Error: " + e.getMessage(),Status.FAIL);
+            throw new ActionException(e);
         }
     }
 }

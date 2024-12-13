@@ -33,48 +33,48 @@ public class Attribute extends General {
         validate(spec, RelativeElement.None);
     }
 
-    @Action(object = ObjectType.MOBILE, desc ="Assert if [<Object>]'s Attribute Equals [<Data>]", input =InputType.YES)
+    @Action(object = ObjectType.APP, desc ="Assert if [<Object>]'s Attribute Equals [<Data>]", input =InputType.YES)
     public void assertElementAttrEquals() {
         assertElementAttr(SpecText.Type.IS);
     }
 
     
-    @Action(object = ObjectType.MOBILE, desc ="Assert if [<Object>]'s Attribute Contains [<Data>]", input =InputType.YES)
+    @Action(object = ObjectType.APP, desc ="Assert if [<Object>]'s Attribute Contains [<Data>]", input =InputType.YES)
     public void assertElementAttrContains() {
         assertElementAttr(SpecText.Type.CONTAINS);
     }
 
-    @Action(object = ObjectType.MOBILE, desc ="Assert if [<Object>]'s Attribute StartsWith [<Data>]", input =InputType.YES)
+    @Action(object = ObjectType.APP, desc ="Assert if [<Object>]'s Attribute StartsWith [<Data>]", input =InputType.YES)
     public void assertElementAttrStartsWith() {
         assertElementAttr(SpecText.Type.STARTS);
     }
 
-    @Action(object = ObjectType.MOBILE, desc ="Assert if [<Object>]'s Attribute EndsWith [<Data>]", input =InputType.YES)
+    @Action(object = ObjectType.APP, desc ="Assert if [<Object>]'s Attribute EndsWith [<Data>]", input =InputType.YES)
     public void assertElementAttrEndsWith() {
         assertElementAttr(SpecText.Type.ENDS);
     }
 
-    @Action(object = ObjectType.MOBILE, desc ="Assert if [<Object>]'s Attribute Matches [<Data>]", input =InputType.YES)
+    @Action(object = ObjectType.APP, desc ="Assert if [<Object>]'s Attribute Matches [<Data>]", input =InputType.YES)
     public void assertElementAttrMatches() {
         assertElementAttr(SpecText.Type.MATCHES);
     }
 
-    @Action(object = ObjectType.MOBILE, desc ="Assert if [<Object>]'s Attribute Equals [Ignorecase] [<Data>]", input =InputType.YES)
+    @Action(object = ObjectType.APP, desc ="Assert if [<Object>]'s Attribute Equals [Ignorecase] [<Data>]", input =InputType.YES)
     public void assertElementAttrIEquals() {
         assertElementAttrI(SpecText.Type.IS);
     }
 
-    @Action(object = ObjectType.MOBILE, desc ="Assert if [<Object>]'s Attribute Contains [Ignorecase] [<Data>]", input =InputType.YES)
+    @Action(object = ObjectType.APP, desc ="Assert if [<Object>]'s Attribute Contains [Ignorecase] [<Data>]", input =InputType.YES)
     public void assertElementAttrIContains() {
         assertElementAttrI(SpecText.Type.CONTAINS);
     }
 
-    @Action(object = ObjectType.MOBILE, desc ="Assert if [<Object>]'s Attribute StartsWith [Ignorecase] [<Data>]", input =InputType.YES)
+    @Action(object = ObjectType.APP, desc ="Assert if [<Object>]'s Attribute StartsWith [Ignorecase] [<Data>]", input =InputType.YES)
     public void assertElementAttrIStartsWith() {
         assertElementAttrI(SpecText.Type.STARTS);
     }
 
-    @Action(object = ObjectType.MOBILE, desc ="Assert if [<Object>]'s Attribute EndsWith [Ignorecase] [<Data>]", input =InputType.YES)
+    @Action(object = ObjectType.APP, desc ="Assert if [<Object>]'s Attribute EndsWith [Ignorecase] [<Data>]", input =InputType.YES)
     public void assertElementAttrIEndsWith() {
         assertElementAttrI(SpecText.Type.ENDS);
     }

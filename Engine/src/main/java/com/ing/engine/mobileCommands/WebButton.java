@@ -12,7 +12,7 @@ final class WebButton extends MobileGeneral {
         super(cc);
     }
 
-    @Action(object = ObjectType.MOBILE, desc = "Object [<Object> is enabled]")
+    @Action(object = ObjectType.APP, desc = "Object [<Object> is enabled]")
     public void isEnabled() {
         if (elementEnabled()) {
             Report.updateTestLog(Action, "Web Element is enabled", Status.PASS);

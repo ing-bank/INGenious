@@ -12,6 +12,7 @@ import com.ing.engine.execution.data.StepSet;
 import com.ing.engine.execution.exception.DriverClosedException;
 import com.ing.engine.execution.exception.ForcedException;
 import com.ing.engine.execution.exception.TestFailedException;
+import com.ing.engine.execution.exception.ActionException;
 import com.ing.engine.execution.exception.UnCaughtException;
 import com.ing.engine.execution.exception.data.DataNotFoundException;
 import com.ing.engine.execution.exception.data.GlobalDataNotFoundException;
@@ -302,6 +303,12 @@ public class TestCaseRunner {
             throw new TestFailedException(scenario(), testcase(), ex);
         }
     }
+        private void onPlaywrightException(RuntimeException ex) {
+        if (exe.isContinueOnError()) {
+        } else {
+            throw new TestFailedException(scenario(), testcase(), ex);
+        }
+    }
 
     private String getStepName() {
         return Objects.nonNull(getControl().Action) ? getControl().Action : "Error";
@@ -371,7 +378,10 @@ public class TestCaseRunner {
                         }
                     } catch (ForcedException | ElementException ex) {
                         onRuntimeException(ex);
-                    } catch (Throwable ex) {
+                    } catch (ActionException ex ) {
+                    	onPlaywrightException(ex);
+                    }
+                    catch (Throwable ex) {
                         onError(ex);
                     }
                     currStep = checkForEndLoop(testStep, currStep);

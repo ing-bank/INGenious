@@ -2,26 +2,20 @@ package com.ing.engine.mobileCommands;
 
 import com.ing.engine.constants.SystemDefaults;
 import com.ing.engine.core.CommandControl;
-import com.ing.engine.execution.exception.ForcedException;
 import com.ing.engine.execution.exception.element.ElementException;
 import com.ing.engine.execution.exception.element.ElementException.ExceptionType;
 import com.ing.engine.support.Status;
 import com.ing.engine.support.methodInf.Action;
 import com.ing.engine.support.methodInf.InputType;
 import com.ing.engine.support.methodInf.ObjectType;
-
 import com.ing.util.encryption.Encryption;
 import java.time.Duration;
-
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import org.apache.commons.codec.binary.Base64;
-import org.openqa.selenium.Dimension;
 import org.openqa.selenium.JavascriptExecutor;
-import org.openqa.selenium.TimeoutException;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.interactions.Actions;
 
@@ -31,17 +25,17 @@ public class Basic extends MobileGeneral {
         super(cc);
     }
 
-    @Action(object = ObjectType.MOBILE, desc = "Click the [<Object>] ")
+    @Action(object = ObjectType.APP, desc = "Tap the [<Object>] ")
     public void Tap() {
         if (elementEnabled()) {
             Element.click();
-            Report.updateTestLog(Action, "Clicking on " + ObjectName, Status.DONE);
-        } else{
+            Report.updateTestLog(Action, "Taping on " + ObjectName, Status.DONE);
+        } else {
             throw new ElementException(ExceptionType.Element_Not_Enabled, ObjectName);
         }
     }
 
-    @Action(object = ObjectType.MOBILE, desc = "Click the [<Object>] if it exists")
+    @Action(object = ObjectType.APP, desc = "Tap the [<Object>] if it exists")
     public void TapIfExists() {
         if (Element != null) {
             Tap();
@@ -50,7 +44,7 @@ public class Basic extends MobileGeneral {
         }
     }
 
-    @Action(object = ObjectType.MOBILE, desc = "Click the [<Object>] if it is displayed")
+    @Action(object = ObjectType.APP, desc = "Tap the [<Object>] if it is displayed")
     public void TapIfVisible() {
         if (Element != null) {
             if (Element.isDisplayed()) {
@@ -63,7 +57,7 @@ public class Basic extends MobileGeneral {
         }
     }
 
-    @Action(object = ObjectType.MOBILE, desc = "Submit action on the browser")
+    @Action(object = ObjectType.APP, desc = "Submit action on the browser")
     public void Submit() {
         if (elementEnabled()) {
             Element.submit();
@@ -74,7 +68,7 @@ public class Basic extends MobileGeneral {
         }
     }
 
-    @Action(object = ObjectType.MOBILE, desc = "Submit the [<Object>] if it exists")
+    @Action(object = ObjectType.APP, desc = "Submit the [<Object>] if it exists")
     public void SubmitIfExists() {
         if (Element != null) {
             Submit();
@@ -83,7 +77,7 @@ public class Basic extends MobileGeneral {
         }
     }
 
-    @Action(object = ObjectType.MOBILE, desc = "Enter the value [<Data>] in the Field [<Object>]", input = InputType.YES)
+    @Action(object = ObjectType.APP, desc = "Enter the value [<Data>] in the Field [<Object>]", input = InputType.YES)
     public void Set() {
         if (elementEnabled()) {
             Element.clear();
@@ -95,7 +89,7 @@ public class Basic extends MobileGeneral {
         }
     }
 
-    @Action(object = ObjectType.MOBILE, desc = "Enter the value [<Data>] in the [<Object>] if it exists", input = InputType.YES)
+    @Action(object = ObjectType.APP, desc = "Enter the value [<Data>] in the [<Object>] if it exists", input = InputType.YES)
     public void SetIfExists() {
         if (Element != null) {
             Set();
@@ -104,7 +98,7 @@ public class Basic extends MobileGeneral {
         }
     }
 
-    @Action(object = ObjectType.MOBILE, desc = "Enter the value [<Data>] in the Field [<Object>] and check [<Data>] matches with [<Object>] value", input = InputType.YES)
+    @Action(object = ObjectType.APP, desc = "Enter the value [<Data>] in the Field [<Object>] and check [<Data>] matches with [<Object>] value", input = InputType.YES)
     public void SetAndCheck() {
         if (elementEnabled()) {
             Element.clear();
@@ -121,7 +115,7 @@ public class Basic extends MobileGeneral {
         }
     }
 
-    @Action(object = ObjectType.MOBILE, desc = "Clear text [<Data>] from object [<Object>].")
+    @Action(object = ObjectType.APP, desc = "Clear text [<Data>] from object [<Object>].")
     public void clear() {
         if (elementEnabled()) {
             Element.clear();
@@ -131,7 +125,7 @@ public class Basic extends MobileGeneral {
         }
     }
 
-    @Action(object = ObjectType.MOBILE, desc = "Enter the Decrypted value [<Data>] in the Field [<Object>]", input = InputType.YES)
+    @Action(object = ObjectType.APP, desc = "Enter the Decrypted value [<Data>] in the Field [<Object>]", input = InputType.YES)
     public void setEncrypted() {
         if (Data != null && Data.matches(".* Enc")) {
             if (elementEnabled()) {
@@ -153,7 +147,7 @@ public class Basic extends MobileGeneral {
         }
     }
 
-    @Action(object = ObjectType.MOBILE,
+    @Action(object = ObjectType.APP,
             desc = "Move the Browser View to the specified element [<Object>]")
     public void moveTo() {
         if (elementDisplayed()) {
@@ -175,7 +169,6 @@ public class Basic extends MobileGeneral {
 
     }
 
-
     private void setPageTimeOut(int sec) {
         try {
             mDriver.manage().timeouts().pageLoadTimeout(sec, TimeUnit.SECONDS);
@@ -183,7 +176,7 @@ public class Basic extends MobileGeneral {
             System.out.println("Couldn't set PageTimeOut to " + sec);
         }
     }
-    
+
     @Action(object = ObjectType.BROWSER, desc = "Add a variable to access within testcase", input = InputType.YES, condition = InputType.YES)
     public void AddVar() {
         if (Input.startsWith("=Replace(")) {
@@ -252,7 +245,7 @@ public class Basic extends MobileGeneral {
 
     }
 
-    @Action(object = ObjectType.MOBILE, desc = "Highlight the element [<Object>]", input = InputType.OPTIONAL)
+    @Action(object = ObjectType.APP, desc = "Highlight the element [<Object>]", input = InputType.OPTIONAL)
     public void highlight() {
         if (elementDisplayed()) {
             if (Data != null && !Data.trim().isEmpty()) {

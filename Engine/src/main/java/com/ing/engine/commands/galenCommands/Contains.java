@@ -8,10 +8,6 @@ import com.ing.engine.support.methodInf.InputType;
 import com.ing.engine.support.methodInf.ObjectType;
 import com.galenframework.specs.SpecContains;
 
-/**
- *
- * 
- */
 public class Contains extends General {
 
     public Contains(CommandControl cc) {
@@ -25,7 +21,7 @@ public class Contains extends General {
     }
 
     
-    @Action(object = ObjectType.MOBILE, 
+    @Action(object = ObjectType.APP, 
     		desc ="Assert if [<Object>] contains <Object2> ", 
     	
     		condition = InputType.YES)
@@ -33,7 +29,7 @@ public class Contains extends General {
         assertElementContains(false);
     }
 
-    @Action(object = ObjectType.MOBILE, 
+    @Action(object = ObjectType.APP, 
     		desc ="Assert if [<Object>] partly contains  <Object2> ", 
     		input =InputType.NO, 
     		condition = InputType.YES)

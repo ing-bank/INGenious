@@ -1,7 +1,6 @@
 package com.ing.engine.mobileCommands;
 
 import com.ing.engine.commands.Command;
-import com.ing.engine.commands.General;
 import com.ing.engine.constants.SystemDefaults;
 import com.ing.engine.core.CommandControl;
 import com.ing.engine.execution.exception.ForcedException;
@@ -44,12 +43,12 @@ public class WaitFor extends Command {
         super(cc);
     }
 
-    @Action(object = ObjectType.MOBILE, desc = "Click the [<Object>] and Wait for Page to be loaded", condition = InputType.OPTIONAL)
-    public void clickAndWait() {
+    @Action(object = ObjectType.APP, desc = "Tap the [<Object>] and Wait for Page to be loaded", condition = InputType.OPTIONAL)
+    public void TapAndWait() {
         if (Element != null) {
             Element.click();
             waitForPageLoaded();
-            Report.updateTestLog(Action, "Click and wait for page load is done",
+            Report.updateTestLog(Action, "Tap and wait for page load is done",
                     Status.DONE);
         } else {
             throw new ElementException(ElementException.ExceptionType.Element_Not_Found, Condition);
@@ -69,56 +68,56 @@ public class WaitFor extends Command {
                 "Alert popped up in stipulated time");
     }
 
-    @Action(object = ObjectType.MOBILE, desc = "Wait for [<Object>] to be visible ", condition = InputType.OPTIONAL)
+    @Action(object = ObjectType.APP, desc = "Wait for [<Object>] to be visible ", condition = InputType.OPTIONAL)
     public void waitForAppElementToBeVisible() {
         waitForElement(WaitType.VISIBLE, "'"
                 + this.ObjectName
                 + "' Element becomes visible in stipulated time");
     }
 
-    @Action(object = ObjectType.MOBILE, desc = "Wait for [<Object>] to be invisible ", condition = InputType.OPTIONAL)
+    @Action(object = ObjectType.APP, desc = "Wait for [<Object>] to be invisible ", condition = InputType.OPTIONAL)
     public void waitForElementToBeInVisible() {
         waitForElement(WaitType.INVISIBLE, "'"
                 + this.ObjectName
                 + "' Element becomes invisible in stipulated time");
     }
 
-    @Action(object = ObjectType.MOBILE, desc = "Wait for [<Object>] to be clickable ", condition = InputType.OPTIONAL)
-    public void waitForElementToBeClickable() {
+    @Action(object = ObjectType.APP, desc = "Wait for [<Object>] to be Tapable ", condition = InputType.OPTIONAL)
+    public void waitForElementToBeTapable() {
         waitForElement(WaitType.CLICKABLE, "'"
                 + this.ObjectName
-                + "' Element becomes Clickable in stipulated time");
+                + "' Element becomes Tapable in stipulated time");
     }
 
-    @Action(object = ObjectType.MOBILE, desc = "Wait for [<Object>] to be selected ", condition = InputType.OPTIONAL)
+    @Action(object = ObjectType.APP, desc = "Wait for [<Object>] to be selected ", condition = InputType.OPTIONAL)
     public void waitForElementToBeSelected() {
         waitForElement(WaitType.SELECTED, "'"
                 + this.ObjectName
                 + "' Element Selected in stipulated time");
     }
 
-    @Action(object = ObjectType.MOBILE, desc = "Wait for element: [<Object>] to contain text [<Data>]", condition = InputType.OPTIONAL, input = InputType.YES)
+    @Action(object = ObjectType.APP, desc = "Wait for element: [<Object>] to contain text [<Data>]", condition = InputType.OPTIONAL, input = InputType.YES)
     public void waitForElementToContainText() {
         waitForElement(WaitType.TEXT_CONTAINS, "'"
                 + this.ObjectName + "' Element contained the text: "
                 + Data + " in stipulated Time");
     }
 
-    @Action(object = ObjectType.MOBILE, desc = "Wait for [<Object>] element to contain value: [<Data>]", condition = InputType.OPTIONAL, input = InputType.YES)
+    @Action(object = ObjectType.APP, desc = "Wait for [<Object>] element to contain value: [<Data>]", condition = InputType.OPTIONAL, input = InputType.YES)
     public void waitForElementToContainValue() {
         waitForElement(WaitType.VALUE_CONTAINS, "'"
                 + this.ObjectName + "' Element contained the value: "
                 + Data + " in stipulated Time");
     }
 
-    @Action(object = ObjectType.MOBILE, desc = "Wait for [<Object>] element to be selected: [<Data>]", condition = InputType.OPTIONAL)
+    @Action(object = ObjectType.APP, desc = "Wait for [<Object>] element to be selected: [<Data>]", condition = InputType.OPTIONAL)
     public void waitForElementSelectionToBeTrue() {
         waitForElement(WaitType.EL_SELECT_TRUE, "'"
                 + this.ObjectName
                 + "' Element got Selected in the stipulated time");
     }
 
-    @Action(object = ObjectType.MOBILE, desc = "Wait for [<Object>] element to be deselected", condition = InputType.OPTIONAL)
+    @Action(object = ObjectType.APP, desc = "Wait for [<Object>] element to be deselected", condition = InputType.OPTIONAL)
     public void waitForElementSelectionToBeFalse() {
         waitForElement(WaitType.EL_SELECT_FALSE, "'"
                 + this.ObjectName
@@ -154,7 +153,7 @@ public class WaitFor extends Command {
         }
     }
 
-    @Action(object = ObjectType.MOBILE, desc = "Wait  for the element [<Object>] to be present", condition = InputType.OPTIONAL)
+    @Action(object = ObjectType.APP, desc = "Wait  for the element [<Object>] to be present", condition = InputType.OPTIONAL)
     public void waitForElementToBePresent() {
         AObject.setWaitTime(getWaitTime());
         try {
@@ -174,9 +173,7 @@ public class WaitFor extends Command {
         }
     }
 
-   
-
-    @Action(object = ObjectType.ANY, desc = "Wait for Frame To Be Available and Switch to it",input=InputType.OPTIONAL,
+    @Action(object = ObjectType.APP, desc = "Wait for Frame To Be Available and Switch to it", input = InputType.OPTIONAL,
             condition = InputType.OPTIONAL)
     public void waitForFrameAndSwitch() {
         if (Element != null) {

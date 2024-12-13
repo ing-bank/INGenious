@@ -10,10 +10,6 @@ import com.ing.engine.support.methodInf.ObjectType;
 import java.util.HashMap;
 import java.util.Map;
 
-/**
- *
- * 
- */
 public class DynamicObject extends Command {
 
     public DynamicObject(CommandControl cc) {
@@ -21,7 +17,7 @@ public class DynamicObject extends Command {
     }
 
     @Action(object = ObjectType.BROWSER, desc = "Set  all objects property to [<Data>] at runtime.", input = InputType.YES, condition = InputType.YES)
-    public void setglobalObjectProperty() {
+    public void setMobileglobalObjectProperty() {
         if (!Data.isEmpty()) {
             if (Condition.isEmpty()) {
                 String[] groups = Data.split(",");
@@ -39,7 +35,7 @@ public class DynamicObject extends Command {
         }
     }
 
-    @Action(object = ObjectType.MOBILE, desc = "Set object [<Object>] property  as [<Data>] at runtime", input = InputType.YES, condition = InputType.YES)
+    @Action(object = ObjectType.APP, desc = "Set object [<Object>] property  as [<Data>] at runtime", input = InputType.YES, condition = InputType.YES)
     public void setMobileObjectProperty() {
         if (!Data.isEmpty()) {
             if (Condition.isEmpty()) {

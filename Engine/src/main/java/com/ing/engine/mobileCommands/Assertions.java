@@ -1,4 +1,3 @@
-
 package com.ing.engine.mobileCommands;
 
 import com.ing.engine.core.CommandControl;
@@ -10,7 +9,7 @@ import com.ing.engine.support.methodInf.ObjectType;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.openqa.selenium.By;
-import org.openqa.selenium.JavascriptExecutor;
+//import org.openqa.selenium.JavascriptExecutor;
 
 public class Assertions extends MobileGeneral {
 
@@ -68,7 +67,7 @@ public class Assertions extends MobileGeneral {
                         "Variable matched with Provided data", Status.PASS);
 
             } else {
-                 System.out.println("Condition '" + Input + "' is false ");
+                System.out.println("Condition '" + Input + "' is false ");
                 throw new Exception("Variable did not match with provided data");
             }
         } catch (Exception ex) {
@@ -137,97 +136,6 @@ public class Assertions extends MobileGeneral {
         }
     }
 
-    /**
-     * ******************************************
-     * Function to assert AlertText ******************************************
-     */
-     /**
-    @Action(object = ObjectType.BROWSER, desc = "Assert if an alert with text: [<Data>] is present", input = InputType.YES)
-    public void assertAlertText() {
-
-        try {
-            String strExpAlertText = Data;
-            if (isAlertPresent()) {
-                if ((mDriver.switchTo().alert().getText()
-                        .equals(strExpAlertText))) {
-                    System.out.println("assertAlertText Passed");
-                    Report.updateTestLog("assertAlertText",
-                            "Alert text matched with provided data",
-                            Status.PASSNS);
-                } else {
-                    throw new Exception(
-                            "Alert text did not match with the provided data");
-                }
-            } else {
-                throw new Exception("Alert not present");
-            }
-
-        } catch (Exception ex) {
-            System.out.println("assertAlertText Failed");
-            Logger.getLogger(Assertions.class.getName()).log(Level.SEVERE, null, ex);
-            throw new ForcedException("assertAlertText", ex.getMessage());
-        }
-    }
-
-    /**
-     * ******************************************
-     * Function to assert AlertTextPresent
-     * ******************************************
-     */
-//    @Action(object = ObjectType.BROWSER, desc = "Assert if an alert is present ")
-//    public void assertAlertPresent() {
-//        try {
-//            if ((isAlertPresent())) {
-//                System.out.println("assertAIertPresent Passed");
-//                Report.updateTestLog("assertAIertPresent", "Alert present",
-//                        Status.PASSNS);
-//            } else {
-//                throw new Exception("Alert not present");
-//            }
-//        } catch (Exception ex) {
-//            System.out.println("assertAIertPresent Failed");
-//            Logger.getLogger(Assertions.class.getName()).log(Level.SEVERE, null, ex);
-//            throw new ForcedException("assertAIertPresent", ex.getMessage());
-//        }
-//    }
-
-    /**
-     * ******************************************
-     * Function to assert to evaluate JS expression
-     * ******************************************
-     */
-    @Action(object = ObjectType.BROWSER,
-            desc = "Assert if the evaluated javascript expression equals [<Data>]",
-            input = InputType.YES)
-    public void assertEval() {
-        try {
-            JavascriptExecutor js = (JavascriptExecutor) mDriver;
-
-            String strExpScript = Data.split(":", 2)[0];
-            String strExpValue = Data.split(":", 2)[1];
-            Object result = js.executeScript(strExpScript);
-            if (result != null && result.toString().trim().equals(strExpValue)) {
-                System.out.println("assertEval Passed");
-                Report.updateTestLog(
-                        "assertEval",
-                        "JS script return value matched with the expected result",
-                        Status.DONE);
-            } else {
-                throw new Exception(
-                        "JS script return value did not match with the expected result");
-            }
-        } catch (Exception ex) {
-            System.out.println("assertEval Failed");
-            Logger.getLogger(Assertions.class.getName()).log(Level.SEVERE, null, ex);
-            throw new ForcedException("assertEval", ex.getMessage());
-        }
-    }
-
-    /**
-     * ******************************************
-     * Function to assert the variable with the value from DataSheet
-     * *****************************************
-     */
     @Action(object = ObjectType.BROWSER,
             desc = "Assert if  the  variable value matches with given value from datasheet(variable:datasheet->  [<Data>] )",
             input = InputType.YES,

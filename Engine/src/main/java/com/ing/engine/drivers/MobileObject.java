@@ -3,6 +3,7 @@
  * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
  */
 package com.ing.engine.drivers;
+
 import com.ing.datalib.or.ObjectRepository;
 import com.ing.datalib.or.common.ORAttribute;
 import com.ing.datalib.or.common.ObjectGroup;
@@ -44,7 +45,7 @@ import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
 public class MobileObject {
-    
+
     public MobileObject(CommandControl cc) {
         super();
     }
@@ -77,7 +78,7 @@ public class MobileObject {
     }
 
     public MobileObject(WebDriver Driver) {
-        this.driver = Driver; 
+        this.driver = Driver;
     }
 
     /**
@@ -114,7 +115,7 @@ public class MobileObject {
         return findElement(element, objectKey, pageKey, Attribute, FindmType.DEFAULT);
     }
 
-    public WebElement findElement(String objectKey, String pageKey, FindmType condition) {      
+    public WebElement findElement(String objectKey, String pageKey, FindmType condition) {
         return findElement(driver, objectKey, pageKey, condition);
     }
 
@@ -346,7 +347,7 @@ public class MobileObject {
 
                         if (elements != null) {
                             return elements;
-                        } else if (elements == null) {  
+                        } else if (elements == null) {
                             By by = ByObjectProp.get().getBy(tag, value);
                             if (by != null) {
 
@@ -771,5 +772,5 @@ public class MobileObject {
         }
         return minKey;
     }
-    
+
 }

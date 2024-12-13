@@ -8,10 +8,6 @@ import com.ing.engine.support.methodInf.InputType;
 import com.ing.engine.support.methodInf.ObjectType;
 import com.galenframework.specs.SpecCentered;
 
-/**
- *
- * 
- */
 public class Centered extends General {
 
     public Centered(CommandControl cc) {
@@ -24,32 +20,32 @@ public class Centered extends General {
         validate(spec);
     }
 
-    @Action(object = ObjectType.MOBILE, desc ="Assert if [<Object>] is centeredAllOn [<Object2>] [<Data>]", input =InputType.OPTIONAL, condition = InputType.YES)
+    @Action(object = ObjectType.APP, desc ="Assert if [<Object>] is centeredAllOn [<Object2>] [<Data>]", input =InputType.OPTIONAL, condition = InputType.YES)
     public void assertElementCenteredAOn() {
         assertElementCentered(SpecCentered.Alignment.ALL, SpecCentered.Location.ON);
     }
 
-    @Action(object = ObjectType.MOBILE, desc ="Assert if [<Object>] is centeredAllInside [<Object2>] [<Data>]", input =InputType.OPTIONAL, condition = InputType.YES)
+    @Action(object = ObjectType.APP, desc ="Assert if [<Object>] is centeredAllInside [<Object2>] [<Data>]", input =InputType.OPTIONAL, condition = InputType.YES)
     public void assertElementCenteredAInside() {
         assertElementCentered(SpecCentered.Alignment.ALL, SpecCentered.Location.INSIDE);
     }
 
-    @Action(object = ObjectType.MOBILE, desc ="Assert if [<Object>] is centeredHorizontallyOn [<Object2>] [<Data>]", input =InputType.OPTIONAL, condition = InputType.YES)
+    @Action(object = ObjectType.APP, desc ="Assert if [<Object>] is centeredHorizontallyOn [<Object2>] [<Data>]", input =InputType.OPTIONAL, condition = InputType.YES)
     public void assertElementCenteredHOn() {
         assertElementCentered(SpecCentered.Alignment.HORIZONTALLY, SpecCentered.Location.ON);
     }
 
-    @Action(object = ObjectType.MOBILE, desc ="Assert if [<Object>] is centeredHorizontallyInside [<Object2>] [<Data>]", input =InputType.OPTIONAL, condition = InputType.YES)
+    @Action(object = ObjectType.APP, desc ="Assert if [<Object>] is centeredHorizontallyInside [<Object2>] [<Data>]", input =InputType.OPTIONAL, condition = InputType.YES)
     public void assertElementCenteredHInside() {
         assertElementCentered(SpecCentered.Alignment.HORIZONTALLY, SpecCentered.Location.INSIDE);
     }
 
-    @Action(object = ObjectType.MOBILE, desc ="Assert if [<Object>] is centeredVerticallyOn [<Object2>] [<Data>]", input =InputType.OPTIONAL, condition = InputType.YES)
+    @Action(object = ObjectType.APP, desc ="Assert if [<Object>] is centeredVerticallyOn [<Object2>] [<Data>]", input =InputType.OPTIONAL, condition = InputType.YES)
     public void assertElementCenteredVOn() {
         assertElementCentered(SpecCentered.Alignment.VERTICALLY, SpecCentered.Location.ON);
     }
 
-    @Action(object = ObjectType.MOBILE, desc ="Assert if [<Object>] is centeredVerticallyInside [<Object2>] [<Data>]", input =InputType.OPTIONAL, condition = InputType.YES)
+    @Action(object = ObjectType.APP, desc ="Assert if [<Object>] is centeredVerticallyInside [<Object2>] [<Data>]", input =InputType.OPTIONAL, condition = InputType.YES)
     public void assertElementCenteredVInside() {
         assertElementCentered(SpecCentered.Alignment.VERTICALLY, SpecCentered.Location.INSIDE);
     }

@@ -3,6 +3,7 @@ package com.ing.engine.commands;
 
 import com.ing.engine.core.CommandControl;
 import com.ing.engine.core.Control;
+import com.ing.engine.execution.exception.ActionException;
 import com.ing.engine.reporting.TestCaseReport;
 import com.ing.engine.reporting.performance.PerformanceTimings;
 import com.ing.engine.reporting.performance.ResourceTimings;
@@ -38,6 +39,7 @@ public class Performance extends Command {
             Report.updateTestLog(Action, "Cookies Cleared", Status.DONE);
         } catch (Exception e) {
             Report.updateTestLog(Action, "Failed to clear cookies", Status.DONE);
+            throw new ActionException(e);
         }
     }
 
@@ -55,6 +57,7 @@ public class Performance extends Command {
                 Report.updateTestLog(Action, "Unable to update PageTimings : " + ex.getMessage(),
                         Status.FAIL);
                 Logger.getLogger(Performance.class.getName()).log(Level.SEVERE, ex.getMessage(), ex);
+                throw new ActionException(ex);
             }
         }
     }

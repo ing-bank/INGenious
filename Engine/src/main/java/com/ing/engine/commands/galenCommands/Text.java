@@ -45,7 +45,7 @@ public class Text extends General {
         }
     }
 
-    @Action(object = ObjectType.MOBILE,
+    @Action(object = ObjectType.APP,
             desc = "Assert if [<Object>]'s Text Equals [<Data>]",
             input = InputType.YES)
     public void assertElementTextEquals() {
@@ -61,7 +61,7 @@ public class Text extends General {
        }
     }
 
-    @Action(object = ObjectType.MOBILE,
+    @Action(object = ObjectType.APP,
             desc = "Assert if [<Object>]'s Text Contains [<Data>]",
             input = InputType.YES)
     public void assertElementTextContains() {
@@ -77,7 +77,7 @@ public class Text extends General {
        }
     }
 
-    @Action(object = ObjectType.MOBILE,
+    @Action(object = ObjectType.APP,
             desc = "Assert if [<Object>]'s Text StartsWith [<Data>]",
             input = InputType.YES)
     public void assertElementTextStartsWith() {
@@ -93,7 +93,7 @@ public class Text extends General {
        }
     }
 
-    @Action(object = ObjectType.MOBILE,
+    @Action(object = ObjectType.APP,
             desc = "Assert if [<Object>]'s Text EndsWith [<Data>]",
             input = InputType.YES)
     public void assertElementTextEndsWith() {
@@ -109,7 +109,7 @@ public class Text extends General {
        }
     }
 
-    @Action(object = ObjectType.MOBILE,
+    @Action(object = ObjectType.APP,
             desc = "Assert if [<Object>]'s Text Matches [<Data>]",
             input = InputType.YES)
     public void assertMElementTextMatches() {

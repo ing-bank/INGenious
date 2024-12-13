@@ -1,7 +1,6 @@
 package com.ing.engine.mobileCommands;
 
 import com.ing.engine.commands.Command;
-import com.ing.engine.commands.General;
 import com.ing.engine.core.CommandControl;
 import com.ing.engine.support.Status;
 import com.ing.engine.support.methodInf.Action;
@@ -17,8 +16,8 @@ public class Table extends Command {
         super(cc);
     }
 
-    @Action(object = ObjectType.MOBILE, 
-    		desc ="Get data from the desired cell of the web table and store it in a variable", input =InputType.YES)
+    @Action(object = ObjectType.APP,
+            desc = "Get data from the desired cell of the web table and store it in a variable", input = InputType.YES)
     public void getCellValue() {
         if (Element != null) {
             String strValue = Data;
@@ -67,9 +66,9 @@ public class Table extends Command {
         }
     }
 
-    @Action(object = ObjectType.MOBILE,
-    		desc ="Count the number of columns in a row in a web table and store it in a variable", 
-    		input =InputType.YES)
+    @Action(object = ObjectType.APP,
+            desc = "Count the number of columns in a row in a web table and store it in a variable",
+            input = InputType.YES)
     public void getColCount() {
         if (Element != null) {
             String inputData = Data;
@@ -117,9 +116,9 @@ public class Table extends Command {
 
     }
 
-    @Action(object = ObjectType.MOBILE, 
-    		desc ="Count the number of rows in a web table and store it in variable", 
-    			input =InputType.YES)
+    @Action(object = ObjectType.APP,
+            desc = "Count the number of rows in a web table and store it in variable",
+            input = InputType.YES)
     public void getRowCount() {
         if (Element != null) {
             int intRowCount = 0;
@@ -141,7 +140,7 @@ public class Table extends Command {
         }
     }
 
-    @Action(object = ObjectType.MOBILE, desc ="Get the number of the row having the desired data [<Data>] in a web table and store it in a variable", input =InputType.YES)
+    @Action(object = ObjectType.APP, desc = "Get the number of the row having the desired data [<Data>] in a web table and store it in a variable", input = InputType.YES)
     public void getRowNumber() {
         if (Element != null) {
             String userInput = Data;
@@ -199,9 +198,9 @@ public class Table extends Command {
 
     }
 
-    @Action(object = ObjectType.MOBILE, 
-    		desc ="Get the column number of the column having the [<Data>] in a web table and store it in a variable", 
-    		input =InputType.YES)
+    @Action(object = ObjectType.APP,
+            desc = "Get the column number of the column having the [<Data>] in a web table and store it in a variable",
+            input = InputType.YES)
     public void getColNumber() {
         if (Element != null) {
             String userInput = Data;

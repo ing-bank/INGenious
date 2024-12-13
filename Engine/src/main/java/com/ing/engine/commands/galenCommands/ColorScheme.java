@@ -18,7 +18,7 @@ public class ColorScheme extends General {
         super(cc);
     }
 
-    @Action(object = ObjectType.MOBILE, desc ="Assert if [<Object>] color scheme matches [<Data>] ", input =InputType.YES)
+    @Action(object = ObjectType.APP, desc ="Assert if [<Object>] color scheme matches [<Data>] ", input =InputType.YES)
     public void assertElementColorScheme() {
         SpecColorScheme spec = SpecReader.reader().getSpecColorScheme(Data);
         spec.setOriginalText(getMessage());

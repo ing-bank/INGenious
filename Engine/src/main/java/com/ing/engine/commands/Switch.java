@@ -1,5 +1,6 @@
 package com.ing.engine.commands;
 import com.ing.engine.core.CommandControl;
+import com.ing.engine.execution.exception.ActionException;
 import com.ing.engine.support.Status;
 import com.ing.engine.support.methodInf.Action;
 import com.ing.engine.support.methodInf.InputType;
@@ -27,6 +28,7 @@ public class Switch extends Command {
             Report.updateTestLog(Action, "Successfully switched to new Page", Status.DONE);
         } catch (Exception e) {
             Report.updateTestLog(Action, "Something went wrong" + e.getMessage(), Status.DEBUG);
+            throw new ActionException(e);
         }
     }
 
@@ -43,6 +45,7 @@ public class Switch extends Command {
             Report.updateTestLog(Action, "Successfully switched to new Page with URL: " + Data, Status.DONE);
         } catch (Exception e) {
             Report.updateTestLog(Action, "Something went wrong" + e.getMessage(), Status.DEBUG);
+            throw new ActionException(e);
         }
     }
 
@@ -65,6 +68,7 @@ public class Switch extends Command {
             Report.updateTestLog(Action, "Successfully switched to new Context with URL: " + Data, Status.DONE);
         } catch (Exception e) {
             Report.updateTestLog(Action, "Something went wrong" + e.getMessage(), Status.DEBUG);
+            throw new ActionException(e);
         }
     }
 
@@ -77,10 +81,10 @@ public class Switch extends Command {
             Page = pages.get(index);
             Page.bringToFront();
             Driver.setPage(pages.get(index));
-
             Report.updateTestLog(Action, "Successfully switched to Page [" + index + "]", Status.DONE);
         } catch (Exception e) {
             Report.updateTestLog(Action, "Something went wrong" + e.getMessage(), Status.DEBUG);
+            throw new ActionException(e);
         }
     }
 
@@ -95,15 +99,14 @@ public class Switch extends Command {
             if (!Condition.isEmpty()) {
                 pageIndex = Integer.parseInt(Condition);
             }
-
             Page = BrowserContext.pages().get(pageIndex);
             AObject.setPage(Page);
             Page.bringToFront();
             Driver.setPage(Page);
-
             Report.updateTestLog(Action, "Successfully switched to Context [" + index + "]", Status.DONE);
         } catch (Exception e) {
             Report.updateTestLog(Action, "Something went wrong" + e.getMessage(), Status.DEBUG);
+            throw new ActionException(e);
         }
     }
 
@@ -133,6 +136,7 @@ public class Switch extends Command {
             }
         } catch (Exception e) {
             Report.updateTestLog(Action, "Something went wrong" + e.getMessage(), Status.DEBUG);
+            throw new ActionException(e);
         }
     }
 
@@ -162,6 +166,7 @@ public class Switch extends Command {
             }
         } catch (Exception e) {
             Report.updateTestLog(Action, "Something went wrong" + e.getMessage(), Status.DEBUG);
+            throw new ActionException(e);
         }
     }
 
@@ -169,15 +174,14 @@ public class Switch extends Command {
     public void switchToMainPage() {
         try {
             List<Page> pages = BrowserContext.pages();
-
             AObject.setPage(pages.get(0));
             Page = pages.get(0);
             Page.bringToFront();
             Driver.setPage(pages.get(0));
-
             Report.updateTestLog(Action, "Successfully switched to main Page", Status.DONE);
         } catch (Exception e) {
             Report.updateTestLog(Action, "Something went wrong" + e.getMessage(), Status.DEBUG);
+            throw new ActionException(e);
         }
     }
 

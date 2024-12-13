@@ -20,23 +20,24 @@ import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.remote.DesiredCapabilities;
 
 public class MobileWebDriverFactory {
-       public static WebDriver create(RunContext context, ProjectSettings settings) {
-        return create(context, settings,false, null);
-    }
-       
-       public static void initDriverLocation(ProjectSettings settings) {
-		ByObjectProp.load();
-		System.setProperty("webdriver.edge.driver", resolve(settings.getDriverSettings().getEdgeDriverPath()));
-		GalenConfig.getConfig().setProperty(GalenProperty.SCREENSHOT_FULLPAGE,
-				String.valueOf(Control.exe.getExecSettings().getRunSettings().getTakeFullPageScreenShot()));
-		GalenConfig.getConfig().setProperty(GalenProperty.SCREENSHOT_AUTORESIZE, "false");
 
-		GalenConfig.getConfig().setProperty(GalenProperty.SCREENSHOT_FULLPAGE_SCROLLWAIT, "200");
-	}
+    public static WebDriver create(RunContext context, ProjectSettings settings) {
+        return create(context, settings, false, null);
+    }
+
+    public static void initDriverLocation(ProjectSettings settings) {
+        ByObjectProp.load();
+        System.setProperty("webdriver.edge.driver", resolve(settings.getDriverSettings().getEdgeDriverPath()));
+        GalenConfig.getConfig().setProperty(GalenProperty.SCREENSHOT_FULLPAGE,
+                String.valueOf(Control.exe.getExecSettings().getRunSettings().getTakeFullPageScreenShot()));
+        GalenConfig.getConfig().setProperty(GalenProperty.SCREENSHOT_AUTORESIZE, "false");
+
+        GalenConfig.getConfig().setProperty(GalenProperty.SCREENSHOT_FULLPAGE_SCROLLWAIT, "200");
+    }
 
     private static WebDriver create(RunContext context, ProjectSettings settings, Boolean isGrid, String remoteUrl) {
         DesiredCapabilities caps = new DesiredCapabilities();
-        caps = getEmulatorCapabilities(context.BrowserName, settings);    
+        caps = getEmulatorCapabilities(context.BrowserName, settings);
         return create(context.BrowserName, caps, settings);
     }
 
@@ -68,7 +69,7 @@ public class MobileWebDriverFactory {
         return null;
     }
 
-    private static WebDriver createRemoteDriver(String url,DesiredCapabilities caps) {
+    private static WebDriver createRemoteDriver(String url, DesiredCapabilities caps) {
         try {
             if (isAppiumNative(url, caps.asMap())) {
                 if (isAndroidNative(caps.asMap())) {
@@ -89,9 +90,11 @@ public class MobileWebDriverFactory {
                 && toLString(props.get("platformName")).matches("android|ios")
                 && (!props.containsKey("browserName") || isNullOrEmpty(props.get("browserName")));
     }
-	private static boolean isNullOrEmpty(Object o) {
-		return Objects.isNull(o) || o.toString().isEmpty();
-	}
+
+    private static boolean isNullOrEmpty(Object o) {
+        return Objects.isNull(o) || o.toString().isEmpty();
+    }
+
     private static boolean isAndroidNative(Map props) {
         return toLString(props.get("platformName")).matches("android");
     }
@@ -99,7 +102,8 @@ public class MobileWebDriverFactory {
     private static boolean isIOSNative(Map props) {
         return toLString(props.get("platformName")).matches("ios");
     }
-    	private static String toLString(Object o) {
-		return Objects.toString(o, "").toLowerCase();
-	}
+
+    private static String toLString(Object o) {
+        return Objects.toString(o, "").toLowerCase();
+    }
 }

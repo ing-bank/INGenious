@@ -1,6 +1,7 @@
 package com.ing.engine.commands;
 
 import com.ing.engine.core.CommandControl;
+import com.ing.engine.execution.exception.ActionException;
 import com.ing.engine.support.Status;
 import com.ing.engine.support.methodInf.Action;
 import com.ing.engine.support.methodInf.InputType;
@@ -23,6 +24,7 @@ public class SelectOptions extends General {
         } catch (Exception e) {
             Logger.getLogger(this.getClass().getName()).log(Level.OFF, null, e);
             Report.updateTestLog("Could not perfom [" + Action + "] action", "Error: " + e.getMessage(), Status.FAIL);
+            throw new ActionException(e);
         }
     }
 
@@ -36,6 +38,7 @@ public class SelectOptions extends General {
         } catch (Exception e) {
             Logger.getLogger(this.getClass().getName()).log(Level.OFF, null, e);
             Report.updateTestLog("Could not perfom [" + Action + "] action", "Error: " + e.getMessage(), Status.FAIL);
+            throw new ActionException(e);
         }
     }
 

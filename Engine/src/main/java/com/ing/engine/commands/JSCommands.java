@@ -2,6 +2,7 @@
 package com.ing.engine.commands;
 
 import com.ing.engine.core.CommandControl;
+import com.ing.engine.execution.exception.ActionException;
 import com.ing.engine.support.Status;
 import com.ing.engine.support.methodInf.Action;
 import com.ing.engine.support.methodInf.InputType;
@@ -29,8 +30,8 @@ public class JSCommands extends General {
 
         } catch (Exception ex) {
             Logger.getLogger(JSCommands.class.getName()).log(Level.SEVERE, null, ex);
-
             Report.updateTestLog(Action, "Javascript execution failed", Status.DEBUG);
+            throw new ActionException(ex);
 
         }
     }
@@ -43,9 +44,8 @@ public class JSCommands extends General {
 
         } catch (Exception ex) {
             Logger.getLogger(JSCommands.class.getName()).log(Level.SEVERE, null, ex);
-
             Report.updateTestLog(Action, "Javascript execution failed", Status.DEBUG);
-
+            throw new ActionException(ex);
         }
     }
     
@@ -65,6 +65,7 @@ public class JSCommands extends General {
         } catch (Exception ex) {
             Logger.getLogger(JSCommands.class.getName()).log(Level.SEVERE, null, ex);
             Report.updateTestLog(Action, "Javascript execution failed", Status.DEBUG);
+            throw new ActionException(ex);
 
         }
     }
@@ -77,6 +78,7 @@ public class JSCommands extends General {
          } catch(PlaywrightException e) {
             Logger.getLogger(this.getClass().getName()).log(Level.OFF, null, e);
             Report.updateTestLog("Could not perfom ["+Action+"] action", "Error: " + e.getMessage(),Status.FAIL);
+            throw new ActionException(e);
         }
     }
 
@@ -105,6 +107,7 @@ public class JSCommands extends General {
         } catch(Exception e) {
             Logger.getLogger(this.getClass().getName()).log(Level.OFF, null, e);
             Report.updateTestLog("Could not perfom ["+Action+"] action", "Error: " + e.getMessage(),Status.FAIL);
+            throw new ActionException(e);
         }
     }
 

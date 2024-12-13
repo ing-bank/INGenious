@@ -204,6 +204,10 @@ public class Control {
             if (playwrightDriver != null) {
                 playwrightDriver.closeBrowser();
                 playwrightDriver.playwright.close();
+            } 
+           else if(mobileDriver != null)
+            {
+                mobileDriver.driver.quit();
             }
 
         } catch (Exception ex) {

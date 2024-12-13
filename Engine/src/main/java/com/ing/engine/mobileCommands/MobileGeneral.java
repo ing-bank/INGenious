@@ -13,13 +13,12 @@ import java.util.logging.Logger;
 import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.NoAlertPresentException;
 
+public class MobileGeneral extends Command {
 
-public class MobileGeneral  extends Command{
-    
     public MobileGeneral(CommandControl cc) {
         super(cc);
     }
-    
+
     public Boolean checkIfDriverIsAlive() {
         if (isDriverAlive()) {
             return true;

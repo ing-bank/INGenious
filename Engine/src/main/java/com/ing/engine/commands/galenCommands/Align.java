@@ -19,14 +19,14 @@ public class Align extends General {
         super(cc);
     }
 
-    @Action(object = ObjectType.MOBILE, desc ="Assert if [<Object>] is aligned horizontally [<Data>] with [<Object2>]", input =InputType.YES, condition = InputType.YES)
+    @Action(object = ObjectType.APP, desc ="Assert if [<Object>] is aligned horizontally [<Data>] with [<Object2>]", input =InputType.YES, condition = InputType.YES)
     public void assertElementAlignedHoriz() {
         SpecHorizontally spec = SpecReader.reader().getSpecHorizontally(Condition, Data);
         spec.setOriginalText(getMessage("Horizontally", spec.getErrorRate()));
         validate(spec);
     }
 
-    @Action(object = ObjectType.MOBILE, desc ="Assert if [<Object>] is aligned vertically [<Data>] with [<Object2>]", input =InputType.YES, condition = InputType.YES)
+    @Action(object = ObjectType.APP, desc ="Assert if [<Object>] is aligned vertically [<Data>] with [<Object2>]", input =InputType.YES, condition = InputType.YES)
     public void assertElementAlignedVert() {
         SpecVertically spec = SpecReader.reader().getSpecVertically(Condition, Data);
         spec.setOriginalText(getMessage("Vertically", spec.getErrorRate()));

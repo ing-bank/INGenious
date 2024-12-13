@@ -12,24 +12,20 @@ import com.galenframework.specs.SpecBelow;
 import com.galenframework.specs.SpecLeftOf;
 import com.galenframework.specs.SpecRightOf;
 
-/**
- *
- * 
- */
 public class Direction extends General {
 
     public Direction(CommandControl cc) {
         super(cc);
     }
 
-    @Action(object = ObjectType.MOBILE, desc ="Assert if [<Object>] is  above [<Data>]", input =InputType.OPTIONAL, condition = InputType.YES)
+    @Action(object = ObjectType.APP, desc ="Assert if [<Object>] is  above [<Data>]", input =InputType.OPTIONAL, condition = InputType.YES)
     public void assertElementAbove() {
         SpecAbove spec = SpecReader.reader().getSpecAbove(Condition, Data);
         spec.setOriginalText(getMessage("above", spec.getRange()));
         validate(spec);
     }
 
-    @Action(object = ObjectType.MOBILE, 
+    @Action(object = ObjectType.APP, 
     		desc ="Assert if [<Object>] is  below [<Object2>] [<Data>]", 
     		input =InputType.OPTIONAL, 
     		condition = InputType.YES)
@@ -39,7 +35,7 @@ public class Direction extends General {
         validate(spec);
     }
 
-    @Action(object = ObjectType.MOBILE, 
+    @Action(object = ObjectType.APP, 
     		desc ="Assert if [<Object>] is leftof [<Object2>] [<Data>]", 
     		input =InputType.OPTIONAL,
     		condition = InputType.YES)
@@ -49,7 +45,7 @@ public class Direction extends General {
         validate(spec);
     }
 
-    @Action(object = ObjectType.MOBILE, 
+    @Action(object = ObjectType.APP, 
     		desc ="Assert if [<Object>] is rightof [<Object2>] [<Data>]", 
     		input =InputType.OPTIONAL,condition = InputType.YES)
     public void assertElementRightOf() {

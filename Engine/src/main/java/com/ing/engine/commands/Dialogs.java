@@ -2,6 +2,7 @@
 package com.ing.engine.commands;
 
 import com.ing.engine.core.CommandControl;
+import com.ing.engine.execution.exception.ActionException;
 import com.ing.engine.support.Status;
 import com.ing.engine.support.methodInf.Action;
 import com.ing.engine.support.methodInf.InputType;
@@ -29,6 +30,7 @@ public class Dialogs extends General {
         } catch (Exception e) {
             Report.updateTestLog(Action, e.getMessage(), Status.FAILNS);
             Logger.getLogger(CommonMethods.class.getName()).log(Level.SEVERE, null, e);
+            throw new ActionException(e);
         }
     }
     
@@ -44,6 +46,7 @@ public class Dialogs extends General {
         } catch (Exception e) {
             Report.updateTestLog(Action, e.getMessage(), Status.FAILNS);
             Logger.getLogger(CommonMethods.class.getName()).log(Level.SEVERE, null, e);
+            throw new ActionException(e);
         }
     }
 
@@ -57,6 +60,7 @@ public class Dialogs extends General {
         } catch (Exception e) {
             Report.updateTestLog(Action, e.getMessage(), Status.FAILNS);
             Logger.getLogger(CommonMethods.class.getName()).log(Level.SEVERE, null, e);
+            throw new ActionException(e);
         }
     }
     
@@ -70,6 +74,7 @@ public class Dialogs extends General {
         } catch (Exception e) {
             Report.updateTestLog(Action, e.getMessage(), Status.FAILNS);
             Logger.getLogger(CommonMethods.class.getName()).log(Level.SEVERE, null, e);
+            throw new ActionException(e);
         }
     }
 
@@ -84,6 +89,7 @@ public class Dialogs extends General {
         } catch (Exception e) {
             Report.updateTestLog(Action, e.getMessage(), Status.FAILNS);
             Logger.getLogger(CommonMethods.class.getName()).log(Level.SEVERE, null, e);
+            throw new ActionException(e);
         }
     }
     
@@ -98,6 +104,7 @@ public class Dialogs extends General {
         } catch (Exception e) {
             Report.updateTestLog(Action, e.getMessage(), Status.FAILNS);
             Logger.getLogger(CommonMethods.class.getName()).log(Level.SEVERE, null, e);
+            throw new ActionException(e);
         }
     }
 
@@ -116,6 +123,7 @@ public class Dialogs extends General {
         } catch (Exception e) {
             Report.updateTestLog(Action, e.getMessage(), Status.FAILNS);
             Logger.getLogger(CommonMethods.class.getName()).log(Level.SEVERE, null, e);
+            throw new ActionException(e);
         }
     }
     
@@ -134,6 +142,7 @@ public class Dialogs extends General {
         } catch (Exception e) {
             Report.updateTestLog(Action, e.getMessage(), Status.FAILNS);
             Logger.getLogger(CommonMethods.class.getName()).log(Level.SEVERE, null, e);
+            throw new ActionException(e);
         }
     }
     
@@ -152,6 +161,7 @@ public class Dialogs extends General {
         } catch (Exception e) {
             Report.updateTestLog(Action, e.getMessage(), Status.FAILNS);
             Logger.getLogger(CommonMethods.class.getName()).log(Level.SEVERE, null, e);
+            throw new ActionException(e);
         }
     }
 }

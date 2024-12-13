@@ -1,7 +1,6 @@
 package com.ing.engine.mobileCommands;
 
 import com.ing.engine.commands.Command;
-import com.ing.engine.commands.General;
 import com.ing.engine.core.CommandControl;
 import com.ing.engine.execution.exception.element.ElementException;
 import com.ing.engine.support.Status;
@@ -10,10 +9,6 @@ import com.ing.engine.support.methodInf.InputType;
 import com.ing.engine.support.methodInf.ObjectType;
 import org.openqa.selenium.WebElement;
 
-/**
- *
- *
- */
 public class RelativeCommand extends Command {
 
     private enum RelativeAction {
@@ -31,10 +26,8 @@ public class RelativeCommand extends Command {
 
     private void doRelative(RelativeAction action) {
         if (isConditionValid()) {
-        	System.out.println("**** inside do Relative --> Relative command : "+ObjectName);
             WebElement parent = mObject.findElement(Condition, Reference);
             if (parent != null) {
-            	System.out.println("**** inside do Relative --> Relative command 1 : "+ObjectName);
                 Element = mObject.findElement(parent, ObjectName, Reference);
                 if (Element != null) {
                     getCommander().Element = Element;
@@ -57,13 +50,12 @@ public class RelativeCommand extends Command {
         }
     }
 
-    @Action(object = ObjectType.MOBILE, desc = "Click on element based on parent [<Object>]",
-            condition = InputType.YES)
-    public void click_Relative() {
+    @Action(object = ObjectType.APP, desc = "Tap on element based on parent [<Object>]", condition = InputType.YES)
+    public void Tap_Relative() {
         doRelative(RelativeAction.TAP);
     }
 
-    @Action(object = ObjectType.MOBILE, desc = "Set [<Data>] on element based on parent [<Object>]", input = InputType.YES, condition = InputType.YES)
+    @Action(object = ObjectType.APP, desc = "Set [<Data>] on element based on parent [<Object>]", input = InputType.YES, condition = InputType.YES)
     public void set_Relative() {
         doRelative(RelativeAction.SET);
     }

@@ -10,10 +10,6 @@ import com.galenframework.specs.Location;
 import com.galenframework.specs.SpecInside;
 import java.util.List;
 
-/**
- *
- * 
- */
 public class Inside extends General {
 
     public Inside(CommandControl cc) {
@@ -26,7 +22,7 @@ public class Inside extends General {
         validate(spec);
     }
 
-    @Action(object = ObjectType.MOBILE, 
+    @Action(object = ObjectType.APP, 
     		desc ="Assert if [<Object>] is inside [<Object2>] [<Data>]", 
     		input =InputType.OPTIONAL,
     		condition = InputType.YES)
@@ -34,7 +30,7 @@ public class Inside extends General {
         assertElement(false);
     }
 
-    @Action(object = ObjectType.MOBILE, 
+    @Action(object = ObjectType.APP, 
     		desc ="Assert if [<Object>] is partly inside [<Object2>] [<Data>]", 
     		input =InputType.OPTIONAL,
     		condition = InputType.YES)

@@ -15,6 +15,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import com.ing.engine.core.CommandControl;
 import com.ing.engine.core.Control;
+import com.ing.engine.execution.exception.ActionException;
 import java.io.FileNotFoundException;
 import java.util.Collection;
 
@@ -49,6 +50,7 @@ public class RequestFulfill extends Command {
         } catch (Exception ex) {
             Logger.getLogger(this.getClass().getName()).log(Level.OFF, null, ex);
             Report.updateTestLog(Action, "Error setting the body :" + "\n" + ex.getMessage(), Status.DEBUG);
+            throw new ActionException(ex);
         }
     }
 

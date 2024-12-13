@@ -1,6 +1,5 @@
 package com.ing.engine.mobileCommands;
 
-import com.ing.engine.commands.General;
 import com.ing.engine.core.CommandControl;
 import com.ing.engine.execution.exception.ForcedException;
 import com.ing.engine.support.Status;
@@ -160,7 +159,7 @@ public class SwitchTo extends Command {
      * Function to switch to default content
      * ******************************************
      */
-    @Action(object = ObjectType.BROWSER, desc ="Switching control to the default window")
+    @Action(object = ObjectType.BROWSER, desc = "Switching control to the default window")
 
     public void switchToDefaultContent() {
         try {
@@ -174,7 +173,7 @@ public class SwitchTo extends Command {
         }
     }
 
-    @Action(object = ObjectType.BROWSER, desc ="Open a new Browser window", input =InputType.OPTIONAL)
+    @Action(object = ObjectType.BROWSER, desc = "Open a new Browser window", input = InputType.OPTIONAL)
     public void createAndSwitchToWindow() {
         try {
             JavascriptExecutor js = (JavascriptExecutor) mDriver;
@@ -188,7 +187,7 @@ public class SwitchTo extends Command {
         }
     }
 
-    @Action(object = ObjectType.BROWSER, desc ="Close the current window and switch to default window")
+    @Action(object = ObjectType.BROWSER, desc = "Close the current window and switch to default window")
     public void closeAndSwitchToWindow() {
         try {
             mDriver.close();

@@ -16,10 +16,6 @@ import java.util.logging.Logger;
 import java.util.stream.Stream;
 import org.openqa.selenium.WebElement;
 
-/**
- *
- *
- */
 public class General extends Report {
 
     public enum RelativeElement {

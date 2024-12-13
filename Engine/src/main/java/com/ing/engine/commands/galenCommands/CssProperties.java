@@ -9,10 +9,6 @@ import com.ing.engine.support.methodInf.ObjectType;
 import com.galenframework.specs.SpecCss;
 import com.galenframework.specs.SpecText.Type;
 
-/**
- *
- * 
- */
 public class CssProperties extends General {
 
     public CssProperties(CommandControl cc) {
@@ -25,27 +21,27 @@ public class CssProperties extends General {
         validate(spec);
     }
 
-    @Action(object = ObjectType.MOBILE, desc = "Assert if [<Object>]'s Css Property Equals [<Data>]", input = InputType.YES)
+    @Action(object = ObjectType.APP, desc = "Assert if [<Object>]'s Css Property Equals [<Data>]", input = InputType.YES)
     public void assertElementCssPropEquals() {
         assertElementCss(Type.IS);
     }
 
-    @Action(object = ObjectType.MOBILE, desc = "Assert if [<Object>]'s Css Property Contains [<Data>]", input = InputType.YES)
+    @Action(object = ObjectType.APP, desc = "Assert if [<Object>]'s Css Property Contains [<Data>]", input = InputType.YES)
     public void assertElementCssPropContains() {
         assertElementCss(Type.CONTAINS);
     }
 
-    @Action(object = ObjectType.MOBILE, desc = "Assert if [<Object>]'s Css Property StartsWith [<Data>]", input = InputType.YES)
+    @Action(object = ObjectType.APP, desc = "Assert if [<Object>]'s Css Property StartsWith [<Data>]", input = InputType.YES)
     public void assertElementCssPropStartsWith() {
         assertElementCss(Type.STARTS);
     }
 
-    @Action(object = ObjectType.MOBILE, desc = "Assert if [<Object>]'s Css Property EndsWith [<Data>]", input = InputType.YES)
+    @Action(object = ObjectType.APP, desc = "Assert if [<Object>]'s Css Property EndsWith [<Data>]", input = InputType.YES)
     public void assertElementCssPropEndsWith() {
         assertElementCss(Type.ENDS);
     }
 
-    @Action(object = ObjectType.MOBILE, desc = "Assert if [<Object>]'s Css Property Matches [<Data>]", input = InputType.YES)
+    @Action(object = ObjectType.APP, desc = "Assert if [<Object>]'s Css Property Matches [<Data>]", input = InputType.YES)
     public void assertElementCssPropMatches() {
         assertElementCss(Type.MATCHES);
     }

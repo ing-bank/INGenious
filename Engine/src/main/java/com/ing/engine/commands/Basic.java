@@ -1,6 +1,7 @@
 package com.ing.engine.commands;
 
 import com.ing.engine.core.CommandControl;
+import com.ing.engine.execution.exception.ActionException;
 import com.ing.engine.execution.exception.ForcedException;
 import com.ing.engine.support.Status;
 import com.ing.engine.support.methodInf.Action;
@@ -72,6 +73,7 @@ public class Basic extends General {
         } catch (Exception e) {
             Logger.getLogger(this.getClass().getName()).log(Level.OFF, null, e);
             Report.updateTestLog(Action, e.getMessage(), Status.FAIL);
+            throw new ActionException(e);
         }
 
     }
@@ -88,6 +90,7 @@ public class Basic extends General {
         } catch (Exception e) {
             Logger.getLogger(this.getClass().getName()).log(Level.OFF, null, e);
             Report.updateTestLog(Action, e.getMessage(), Status.FAIL);
+            throw new ActionException(e);
         }
 
     }
@@ -104,6 +107,7 @@ public class Basic extends General {
         } catch (Exception e) {
             Logger.getLogger(this.getClass().getName()).log(Level.OFF, null, e);
             Report.updateTestLog(Action, e.getMessage(), Status.FAIL);
+            throw new ActionException(e);
         }
 
     }
@@ -116,6 +120,7 @@ public class Basic extends General {
         } catch (Exception e) {
             Logger.getLogger(this.getClass().getName()).log(Level.OFF, null, e);
             Report.updateTestLog(Action, e.getMessage(), Status.FAIL);
+            throw new ActionException(e);
         }
     }
 
@@ -127,6 +132,7 @@ public class Basic extends General {
         } catch (Exception e) {
             Logger.getLogger(this.getClass().getName()).log(Level.OFF, null, e);
             Report.updateTestLog(Action, e.getMessage(), Status.FAIL);
+            throw new ActionException(e);
         }
     }
 
@@ -138,6 +144,7 @@ public class Basic extends General {
         } catch (Exception e) {
             Logger.getLogger(this.getClass().getName()).log(Level.OFF, null, e);
             Report.updateTestLog(Action, e.getMessage(), Status.FAIL);
+            throw new ActionException(e);
         }
     }
 
@@ -148,7 +155,7 @@ public class Basic extends General {
             Page.setDefaultTimeout(timeout);
             Report.updateTestLog(Action, "Default timeout changed to [" + Data + "] millisecond/s", Status.DONE);
         } else {
-            Report.updateTestLog(Action, "Couldn't change default timeout (invalid input) " + Data, Status.DEBUG);
+            Report.updateTestLog(Action, "Couldn't change default timeout (invalid input) " + Data, Status.DEBUG);            
         }
     }
 
@@ -215,6 +222,7 @@ public class Basic extends General {
         } catch (Exception ex) {
             Report.updateTestLog(Action, "Unable to change viewport size ", Status.FAIL);
             Logger.getLogger(Basic.class.getName()).log(Level.SEVERE, null, ex);
+            throw new ActionException(ex);
         }
     }
 
@@ -457,6 +465,7 @@ public class Basic extends General {
         Report.updateTestLog(Action, "Unique Element [" + ObjectName + "] not found on Page. Error :" + e.getMessage(),
                 Status.FAIL);
         Logger.getLogger(this.getClass().getName()).log(Level.OFF, null, e);
+        throw new ActionException(e);
     }
 
     public void replaceFunction() {

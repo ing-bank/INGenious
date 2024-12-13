@@ -10,17 +10,13 @@ import com.galenframework.specs.Location;
 import com.galenframework.specs.SpecNear;
 import java.util.List;
 
-/**
- *
- * 
- */
 public class Near extends General {
 
     public Near(CommandControl cc) {
         super(cc);
     }
 
-    @Action(object = ObjectType.MOBILE, 
+    @Action(object = ObjectType.APP, 
     		desc ="Assert if [<Object>] is near [<Object2>] [<Data>]", 
     		input =InputType.OPTIONAL, 
     		condition = InputType.YES)

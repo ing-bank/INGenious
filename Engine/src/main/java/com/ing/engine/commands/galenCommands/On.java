@@ -11,10 +11,6 @@ import com.galenframework.specs.Side;
 import com.galenframework.specs.SpecOn;
 import java.util.List;
 
-/**
- *
- * 
- */
 public class On extends General {
 
     public On(CommandControl cc) {
@@ -27,7 +23,7 @@ public class On extends General {
         validate(spec);
     }
 
-    @Action(object = ObjectType.MOBILE, 
+    @Action(object = ObjectType.APP, 
     		desc ="Assert if [<Object>] is  on top left of [<Object2>] [<Data>]", 
     		input =InputType.OPTIONAL, 
     		condition = InputType.YES)
@@ -35,7 +31,7 @@ public class On extends General {
         asssertElementOn(Side.TOP, Side.LEFT);
     }
 
-    @Action(object = ObjectType.MOBILE, 
+    @Action(object = ObjectType.APP, 
     		desc ="Assert if [<Object>] is  on top right of [<Object2>] [<Data>]", 
     		input =InputType.OPTIONAL,
     		condition = InputType.YES)
@@ -43,7 +39,7 @@ public class On extends General {
         asssertElementOn(Side.TOP, Side.RIGHT);
     }
 
-    @Action(object = ObjectType.MOBILE, 
+    @Action(object = ObjectType.APP, 
     		desc ="Assert if [<Object>] is  on bottom left of [<Object2>] [<Data>]", 
     		input =InputType.OPTIONAL,
     		condition = InputType.YES)
@@ -51,7 +47,7 @@ public class On extends General {
         asssertElementOn(Side.BOTTOM, Side.LEFT);
     }
 
-    @Action(object = ObjectType.MOBILE, 
+    @Action(object = ObjectType.APP, 
     		desc ="Assert if [<Object>] is  on bottom right of [<Object2>] [<Data>]", 
     		input =InputType.OPTIONAL, 
     		condition = InputType.YES)

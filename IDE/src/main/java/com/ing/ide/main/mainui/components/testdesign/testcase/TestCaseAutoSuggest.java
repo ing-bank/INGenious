@@ -121,7 +121,7 @@ public class TestCaseAutoSuggest {
         List<String> objectList = new ArrayList<>();
         objectList.add("Browser");
         objectList.add("Execute");
-        //objectList.add("App");
+        objectList.add("Mobile");
         //objectList.add("Database");
         // objectList.add("ProtractorJS");
         objectList.add("Webservice");
@@ -208,8 +208,8 @@ public class TestCaseAutoSuggest {
                     return getReusables();
                 case "Browser":
                     return MethodInfoManager.getMethodListFor(ObjectType.BROWSER, ObjectType.ANY);
-                case "App":
-                    return MethodInfoManager.getMethodListFor(ObjectType.APP, ObjectType.ANY);
+                case "Mobile":
+                    return MethodInfoManager.getMethodListFor(ObjectType.MOBILE, ObjectType.MOBILE);
                 case "Database":
                     return MethodInfoManager.getMethodListFor(ObjectType.DATABASE, ObjectType.DATABASE);
                 case "ProtractorJS":
@@ -224,7 +224,7 @@ public class TestCaseAutoSuggest {
                     } else if (isWebObject(objectName, pageName)) {
                         return MethodInfoManager.getMethodListFor(ObjectType.PLAYWRIGHT, ObjectType.WEB, ObjectType.ANY);
                     } else if (isMobileObject(objectName, pageName)) {
-                        return MethodInfoManager.getMethodListFor(ObjectType.MOBILE, ObjectType.MOBILE, ObjectType.ANY);
+                        return MethodInfoManager.getMethodListFor(ObjectType.APP);
                     }
             }
             return new ArrayList<>();

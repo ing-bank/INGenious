@@ -1,7 +1,6 @@
 package com.ing.engine.mobileCommands;
 
 import com.ing.engine.commands.Command;
-import com.ing.engine.commands.General;
 import com.ing.engine.core.CommandControl;
 import com.ing.engine.support.Status;
 import com.ing.engine.support.methodInf.Action;
@@ -18,7 +17,7 @@ public class CheckBox extends Command {
         super(cc);
     }
 
-    @Action(object = ObjectType.MOBILE, desc = "Check the [<Object>] element")
+    @Action(object = ObjectType.APP, desc = "Check the [<Object>] element")
     public void check() {
         if (Element != null) {
             if (Element.isEnabled()) {
@@ -42,7 +41,7 @@ public class CheckBox extends Command {
         }
     }
 
-    @Action(object = ObjectType.WEB, desc = "Uncheck the [<Object>] element")
+    @Action(object = ObjectType.APP, desc = "Uncheck the [<Object>] element")
 
     public void uncheck() {
         if (Element != null) {

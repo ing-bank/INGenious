@@ -8,7 +8,7 @@ import com.ing.engine.support.methodInf.ObjectType;
 
 /**
  *
- * 
+ *
  */
 public class VerifyElement extends MobileGeneral {
 
@@ -16,42 +16,42 @@ public class VerifyElement extends MobileGeneral {
         super(cc);
     }
 
-    @Action(object = ObjectType.MOBILE, desc = "Verify if [<Object>] element is not present")
+    @Action(object = ObjectType.APP, desc = "Verify if [<Object>] element is not present")
     public void verifyElementNotPresent() {
         verifyNotElement(!elementPresent());
     }
 
-    @Action(object = ObjectType.MOBILE, desc = "Verify if [<Object>] element is not selected")
+    @Action(object = ObjectType.APP, desc = "Verify if [<Object>] element is not selected")
     public void verifyElementNotSelected() {
         verifyNotElement(!elementSelected());
     }
 
-    @Action(object = ObjectType.MOBILE, desc = "Verify if [<Object>] element is not displayed")
+    @Action(object = ObjectType.APP, desc = "Verify if [<Object>] element is not displayed")
     public void verifyElementNotDisplayed() {
         verifyNotElement(!elementDisplayed());
     }
 
-    @Action(object = ObjectType.MOBILE, desc = "Verify if [<Object>] element is not enabled")
+    @Action(object = ObjectType.APP, desc = "Verify if [<Object>] element is not enabled")
     public void verifyElementNotEnabled() {
         verifyNotElement(!elementEnabled());
     }
 
-    @Action(object = ObjectType.MOBILE, desc = "Verify if [<Object>] element is present")
+    @Action(object = ObjectType.APP, desc = "Verify if [<Object>] element is present")
     public void verifyElementPresent() {
         verifyElement(elementPresent());
     }
 
-    @Action(object = ObjectType.MOBILE, desc = "Verify if [<Object>] element is selected")
+    @Action(object = ObjectType.APP, desc = "Verify if [<Object>] element is selected")
     public void verifyElementSelected() {
         verifyElement(elementSelected());
     }
 
-    @Action(object = ObjectType.MOBILE, desc = "Verify if [<Object>] element is displayed")
+    @Action(object = ObjectType.APP, desc = "Verify if [<Object>] element is displayed")
     public void verifyElementDisplayed() {
         verifyElement(elementDisplayed());
     }
 
-    @Action(object = ObjectType.MOBILE, desc = "Verify if [<Object>] element is enabled")
+    @Action(object = ObjectType.APP, desc = "Verify if [<Object>] element is enabled")
     public void verifyElementEnabled() {
         verifyElement(elementEnabled());
     }

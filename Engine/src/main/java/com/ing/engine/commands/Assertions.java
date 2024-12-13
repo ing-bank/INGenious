@@ -1,6 +1,7 @@
 package com.ing.engine.commands;
 
 import com.ing.engine.core.CommandControl;
+import com.ing.engine.execution.exception.ActionException;
 import com.ing.engine.execution.exception.ForcedException;
 import com.ing.engine.support.Status;
 import com.ing.engine.support.methodInf.Action;
@@ -275,7 +276,7 @@ public class Assertions extends General {
     public void assertElementTextMatches() {
         String text = "";
         try {
-            text = Locator.textContent();          
+            text = Locator.textContent();
             assertThat(Locator).hasText(Pattern.compile(Data));
             highlightElement();
             Report.updateTestLog(Action, "[" + ObjectName + "] has text '" + Data + "'", Status.PASS);
@@ -638,7 +639,7 @@ public class Assertions extends General {
             assertionLogging(err, "[" + ObjectName + "] is visible");
         }
     }
-    
+
     /**
      * *************************************************************************************************************
      */
@@ -651,6 +652,8 @@ public class Assertions extends General {
         } catch (AssertionFailedError e) {
             Logger.getLogger(this.getClass().getName()).log(Level.OFF, null, e);
             Report.updateTestLog("Assertion Failed", "Page does not have title matching '" + Data + "'", Status.FAIL);
+        } catch (PlaywrightException e) {
+            throw new ActionException(e);
         }
     }
 
@@ -663,12 +666,15 @@ public class Assertions extends General {
         } catch (AssertionFailedError e) {
             Logger.getLogger(this.getClass().getName()).log(Level.OFF, null, e);
             Report.updateTestLog("Assertion Failed", "Page does not have URL matching '" + Data + "'", Status.FAIL);
+        } catch (PlaywrightException e) {
+            throw new ActionException(e);
         }
     }
 
     private void PlaywrightExceptionLogging(PlaywrightException e) {
         Report.updateTestLog(Action, "Unique Element [" + ObjectName + "] not found on Page. Error :" + e.getMessage(), Status.FAIL);
         Logger.getLogger(this.getClass().getName()).log(Level.OFF, null, e);
+        throw new ActionException(e);
     }
 
     private void assertionLogging(AssertionFailedError err, String message) {
@@ -694,12 +700,12 @@ public class Assertions extends General {
             if (strAns.equals(strTemp[1])) {
                 System.out.println("Condition '" + Input + "' is true ");
                 Report.updateTestLog("assertVariable",
-                        "Variable value matches with provided data "+strTemp[1], Status.PASSNS);
+                        "Variable value matches with provided data " + strTemp[1], Status.PASSNS);
 
             } else {
                 System.out.println("Condition '" + Input + "' is false ");
                 Report.updateTestLog("assertVariable",
-                        "Variable value is "+strAns+" but expected value is "+strTemp[1], Status.FAILNS);
+                        "Variable value is " + strAns + " but expected value is " + strTemp[1], Status.FAILNS);
             }
         } catch (Exception ex) {
             Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, null, ex);
@@ -731,11 +737,12 @@ public class Assertions extends General {
             throw new ForcedException("assertVariableFromDataSheet", e.getMessage());
         }
     }
-    
+
     private void highlightElement() {
         Locator.scrollIntoViewIfNeeded();
         Locator.evaluate("element => element.style.outline = '2px solid red'");
     }
+
     private void removeHighlightFromElement() {
         Locator.evaluate("element => element.style.outline = ''");
     }

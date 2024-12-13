@@ -1,9 +1,6 @@
-
 package com.ing.engine.mobileCommands;
 
 import com.ing.engine.core.CommandControl;
-import com.ing.engine.drivers.MobileObject;
-import com.ing.engine.execution.exception.ForcedException;
 import com.ing.engine.execution.exception.element.ElementException;
 import com.ing.engine.execution.exception.element.ElementException.ExceptionType;
 import com.ing.engine.support.Status;
@@ -19,7 +16,6 @@ import java.util.logging.Logger;
 import org.apache.commons.io.FileUtils;
 import org.openqa.selenium.By;
 import org.openqa.selenium.Cookie;
-import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.Keys;
 import org.openqa.selenium.NoAlertPresentException;
 import org.openqa.selenium.WebDriver;
@@ -34,19 +30,6 @@ public class CommonMethods extends MobileGeneral {
         super(cc);
     }
 
-    @Action(object = ObjectType.BROWSER, desc = "Refresh current page ")
-    public void refreshDriver() {
-        try {
-            mDriver.navigate().refresh();
-            Report.updateTestLog("refreshDriver", "Page is refreshed",
-                    Status.DONE);
-        } catch (WebDriverException e) {
-            Report.updateTestLog("refreshDriver", e.getMessage(), Status.FAIL);
-            Logger.getLogger(CommonMethods.class.getName()).log(Level.SEVERE, null, e);
-        }
-
-    }
-
     @Action(object = ObjectType.BROWSER, desc = "Navigate to previous page")
     public void back() {
         try {
@@ -59,42 +42,7 @@ public class CommonMethods extends MobileGeneral {
         }
     }
 
-    @Action(object = ObjectType.BROWSER, desc = "browser navigates to next page.")
-    public void forward() {
-        try {
-            mDriver.navigate().forward();
-            Report.updateTestLog("forward", "Navigate page forward is success",
-                    Status.DONE);
-        } catch (WebDriverException e) {
-            Report.updateTestLog("forward", e.getMessage(), Status.FAIL);
-            Logger.getLogger(CommonMethods.class.getName()).log(Level.SEVERE, null, e);
-        }
-    }
-
-    @Action(object = ObjectType.BROWSER, desc = "Close the current browser session")
-    public void close() {
-        try {
-            mDriver.close();
-            Report.updateTestLog("close", "Selenium Webdriver is closed",
-                    Status.DONE);
-        } catch (WebDriverException e) {
-            Report.updateTestLog("close", e.getMessage(), Status.FAIL);
-            Logger.getLogger(CommonMethods.class.getName()).log(Level.SEVERE, null, e);
-        }
-    }
-
-    @Action(object = ObjectType.MOBILE, desc = "Double click [<Object>] element")
-    public void doubleTapElement() {
-        if (elementEnabled()) {
-            new Actions(mDriver).doubleClick(Element).build().perform();
-            Report.updateTestLog("doubleClickElement", "'" + Element
-                    + "' is doubleClicked", Status.DONE);
-        } else {
-            throw new ElementException(ExceptionType.Element_Not_Enabled, ObjectName);
-        }
-    }
-
-    @Action(object = ObjectType.MOBILE, desc = "Hover over the [<Object>] element")
+    @Action(object = ObjectType.APP, desc = "Hover over the [<Object>] element")
     public void mouseOverElement() {
         if (elementPresent()) {
             new Actions(mDriver).moveToElement(Element).build().perform();
@@ -104,59 +52,35 @@ public class CommonMethods extends MobileGeneral {
             throw new ElementException(ElementException.ExceptionType.Element_Not_Found, ObjectName);
         }
     }
-/* check later
-    
-    @Action(object = ObjectType.MOBILE, desc = "Drags the [<Object>]")
-    public void dragElement() {
-        if (elementPresent()) {
-            getRunTimeElement().push(Element);
-            Report.updateTestLog(Action, "'" + ObjectName
-                    + "' dragged", Status.DONE);
-        } else {
-            throw new ElementException(ElementException.ExceptionType.Element_Not_Found, ObjectName);
-        }
-    }
 
-    @Action(object = ObjectType.MOBILE, desc = "Drops the Dragged Object to [<Object>]")
-    public void dropElement() {
-        if (elementPresent()) {
-            if (!getRunTimeElement().empty()) {
-                new Actions(mDriver)
-                        .dragAndDrop(getRunTimeElement().pop(), Element)
-                        .build().perform();
-                Report.updateTestLog(Action, "Element  dropped to '"
-                        + ObjectName + "' ", Status.DONE);
-            } else {
-                throw new ElementException(ElementException.ExceptionType.Element_Not_Found, "Drop Target");
-            }
-        } else {
-            throw new ElementException(ElementException.ExceptionType.Element_Not_Found, ObjectName);
-        }
-    }
-    
-    */
-
-    @Action(object = ObjectType.MOBILE, desc = "Drad and drop the element [<Object>] at location [<Data>]", input = InputType.YES)
-    public void dragAndDropBy() {
-        try {
-            if (elementPresent()) {
-                String[] coords = Data.split(",", 2);
-                new Actions(mDriver).dragAndDropBy(Element, Integer.parseInt(coords[0]), Integer.parseInt(coords[1]))
-                        .build().perform();
-                Report.updateTestLog(Action, "Element [" + ObjectName + "] dropped at '"
-                        + Data + "' ", Status.PASS);
-
-            } else {
-                throw new ElementException(ElementException.ExceptionType.Element_Not_Found, ObjectName);
-            }
-        } catch (Exception e) {
-            Report.updateTestLog(Action, e.getMessage(), Status.DEBUG);
-            Logger.getLogger(CommonMethods.class.getName()).log(Level.SEVERE, null, e);
-        }
-
-    }
-
-    @Action(object = ObjectType.MOBILE, desc = "drag and drop operation of ", input = InputType.YES)
+//    @Action(object = ObjectType.APP, desc = "Drags the [<Object>]")
+//    public void dragElement() {
+//        if (elementPresent()) {
+//            getRunTimeElement().push(Element);
+//            Report.updateTestLog(Action, "'" + ObjectName
+//                    + "' dragged", Status.DONE);
+//        } else {
+//            throw new ElementException(ElementException.ExceptionType.Element_Not_Found, ObjectName);
+//        }
+//    }
+//
+//    @Action(object = ObjectType.APP, desc = "Drops the Dragged Object to [<Object>]")
+//    public void dropElement() {
+//        if (elementPresent()) {
+//            if (!getRunTimeElement().empty()) {
+//                new Actions(mDriver)
+//                        .dragAndDrop(getRunTimeElement().pop(), Element)
+//                        .build().perform();
+//                Report.updateTestLog(Action, "Element  dropped to '"
+//                        + ObjectName + "' ", Status.DONE);
+//            } else {
+//                throw new ElementException(ElementException.ExceptionType.Element_Not_Found, "Drop Target");
+//            }
+//        } else {
+//            throw new ElementException(ElementException.ExceptionType.Element_Not_Found, ObjectName);
+//        }
+//    }
+    @Action(object = ObjectType.APP, desc = "drag and drop operation of ", input = InputType.YES)
     public void dragToAndDropElement() {
         try {
             String Page = Data.split(":", 2)[0];
@@ -181,17 +105,17 @@ public class CommonMethods extends MobileGeneral {
         }
     }
 
-    @Action(object = ObjectType.MOBILE, desc = "Click and hold the [<Object>] element ")
-    public void clickAndHoldElement() {
+    @Action(object = ObjectType.APP, desc = "Tap and hold the [<Object>] element ")
+    public void TapAndHoldElement() {
         if (elementEnabled()) {
             new Actions(mDriver).clickAndHold(Element).build().perform();
-            Report.updateTestLog(Action, "Click and hold done", Status.DONE);
+            Report.updateTestLog(Action, "Tap and hold done", Status.DONE);
         } else {
             throw new ElementException(ElementException.ExceptionType.Element_Not_Enabled, ObjectName);
         }
     }
 
-    @Action(object = ObjectType.MOBILE,
+    @Action(object = ObjectType.APP,
             desc = "Release the dragged element over the [<Object>] element ")
     public void releaseElement() {
         if (elementEnabled()) {
@@ -199,43 +123,6 @@ public class CommonMethods extends MobileGeneral {
             Report.updateTestLog(Action, "releaseElement action is done", Status.DONE);
         } else {
             throw new ElementException(ElementException.ExceptionType.Element_Not_Enabled, ObjectName);
-        }
-    }
-
-    @Action(object = ObjectType.BROWSER, desc = "Add the cookie of name with value [<Data>].", input = InputType.YES)
-    public void addCookie() {
-
-        try {
-            String strCookieName = Data.split(":", 2)[0];
-            String strCookieValue = Data.split(":", 2)[1];
-            Cookie oCookie = new Cookie.Builder(strCookieName, strCookieValue)
-                    .build();
-            mDriver.manage().addCookie(oCookie);
-            Report.updateTestLog(Action, "Cookie Name- '" + strCookieName
-                    + "' with value '" + strCookieValue + "' is added",
-                    Status.DONE);
-        } catch (Exception e) {
-            Report.updateTestLog(Action, e.getMessage(), Status.FAIL);
-            Logger.getLogger(CommonMethods.class.getName()).log(Level.SEVERE, null, e);
-        }
-    }
-
-    @Action(object = ObjectType.BROWSER, desc = "delete the cookie having name [<Data>].", input = InputType.YES)
-    public void deleteCookie() {
-        try {
-            String strCookieName = Data;
-            Cookie oCookie = mDriver.manage().getCookieNamed(strCookieName);
-            if (oCookie != null) {
-                mDriver.manage().deleteCookie(oCookie);
-                Report.updateTestLog(Action, "Cookie Name- '"
-                        + strCookieName + "' is deleted", Status.DONE);
-            } else {
-                Report.updateTestLog(Action, "Cookie doesn't exist",
-                        Status.FAIL);
-            }
-        } catch (Exception e) {
-            Report.updateTestLog(Action, e.getMessage(), Status.FAIL);
-            Logger.getLogger(CommonMethods.class.getName()).log(Level.SEVERE, null, e);
         }
     }
 
@@ -343,7 +230,7 @@ public class CommonMethods extends MobileGeneral {
         return HashTable;
     }
 
-    @Action(object = ObjectType.MOBILE, desc = "Store the [<Object>] element's text into the Runtime variable: [<Data>]", input = InputType.YES)
+    @Action(object = ObjectType.APP, desc = "Store the [<Object>] element's text into the Runtime variable: [<Data>]", input = InputType.YES)
     public void storeText() {
         if (elementPresent()) {
             String strObj = Input;
@@ -359,7 +246,7 @@ public class CommonMethods extends MobileGeneral {
         }
     }
 
-    @Action(object = ObjectType.MOBILE, desc = "Store the [<Object>] element's text into datasheet:columname [<Data>]", input = InputType.YES)
+    @Action(object = ObjectType.APP, desc = "Store the [<Object>] element's text into datasheet:columname [<Data>]", input = InputType.YES)
     public void storeTextinDataSheet() {
         if (elementPresent()) {
             String strObj = Input;
@@ -386,7 +273,7 @@ public class CommonMethods extends MobileGeneral {
         }
     }
 
-    @Action(object = ObjectType.MOBILE, desc = "Store in variable true or false based on presence of text in [<Object>] element -> [<Data>]", input = InputType.YES, condition = InputType.YES)
+    @Action(object = ObjectType.APP, desc = "Store in variable true or false based on presence of text in [<Object>] element -> [<Data>]", input = InputType.YES, condition = InputType.YES)
     public void storeTextPresent() {
         try {
             if (elementPresent()) {
@@ -415,21 +302,7 @@ public class CommonMethods extends MobileGeneral {
         }
     }
 
-    @Action(object = ObjectType.BROWSER, desc = "Store the [<Object>] page source into the Runtime variable: -> [<Data>]", input = InputType.YES)
-    public void storePageSource() {
-        String strObj = Input;
-        if (strObj.startsWith("%") && strObj.endsWith("%")) {
-            addVar(strObj, mDriver.getPageSource());
-            Report.updateTestLog(Action,
-                    "Page source is stored in variable '" + strObj + "'",
-                    Status.DONE);
-        } else {
-            Report.updateTestLog(Action,
-                    "Variable format is not correct", Status.FAIL);
-        }
-    }
-
-    @Action(object = ObjectType.MOBILE, desc = "Store [<Object>] element  selection state into Runtime variable: -> [<Data>]", input = InputType.YES)
+    @Action(object = ObjectType.APP, desc = "Store [<Object>] element  selection state into Runtime variable: -> [<Data>]", input = InputType.YES)
     public void storeElementSelected() {
         if (elementPresent()) {
             String strObj = Input;
@@ -452,7 +325,7 @@ public class CommonMethods extends MobileGeneral {
         }
     }
 
-    @Action(object = ObjectType.MOBILE, desc = "Store [<Object>] element's  attribute into Runtime variable ->  [<Data>]", input = InputType.YES, condition = InputType.YES)
+    @Action(object = ObjectType.APP, desc = "Store [<Object>] element's  attribute into Runtime variable ->  [<Data>]", input = InputType.YES, condition = InputType.YES)
     public void storeElementAttribute() {
         if (elementPresent()) {
             addVar(Condition, Element.getAttribute(Data));
@@ -462,7 +335,7 @@ public class CommonMethods extends MobileGeneral {
         }
     }
 
-    @Action(object = ObjectType.MOBILE, desc = "Store [<Object>] element's  value  into Runtime variable: -> [<Data>]", input = InputType.YES)
+    @Action(object = ObjectType.APP, desc = "Store [<Object>] element's  value  into Runtime variable: -> [<Data>]", input = InputType.YES)
     public void storeElementValue() {
         if (elementPresent()) {
             String strObj = Input;
@@ -491,32 +364,6 @@ public class CommonMethods extends MobileGeneral {
             Report.updateTestLog(Action,
                     "Cookie presense flag is stored in variable " + variableName + "",
                     Status.DONE);
-        } else {
-            Report.updateTestLog(Action, "Variable format is not correct", Status.DEBUG);
-        }
-    }
-
-    @Action(object = ObjectType.BROWSER, desc = "Store value of cookie into Runtime variable -> [<Data>]", input = InputType.YES, condition = InputType.YES)
-    public void storeCookieByName() {
-        String variableName = Condition;
-        String cookieName = Data;
-        if (variableName.matches("%.*%")) {
-            addVar(variableName, mDriver.manage().getCookieNamed(cookieName)
-                    .getValue());
-            Report.updateTestLog(Action, "Cookie Stored", Status.DONE);
-        } else {
-            Report.updateTestLog(Action, "Variable format is not correct", Status.DEBUG);
-        }
-    }
-
-    @Action(object = ObjectType.BROWSER, desc = "Store the text of alert present into -> [<Data>] Runtime variable", input = InputType.YES)
-    public void storeAlertText() {
-        String strObj = Input;
-        if (strObj.startsWith("%") && strObj.endsWith("%")) {
-            addVar(strObj, mDriver.switchTo().alert().getText());
-            Report.updateTestLog(Action, "Alert Text "
-                    + mDriver.switchTo().alert().getText()
-                    + " is Stored in variable " + strObj + "", Status.DONE);
         } else {
             Report.updateTestLog(Action, "Variable format is not correct", Status.DEBUG);
         }
@@ -578,7 +425,7 @@ public class CommonMethods extends MobileGeneral {
         }
     }
 
-    @Action(object = ObjectType.MOBILE, desc = "Send Keys [<Data>]  to object [<Object>].", input = InputType.YES)
+    @Action(object = ObjectType.APP, desc = "Send Keys [<Data>]  to object [<Object>].", input = InputType.YES)
     public void sendKeysToElement() {
         if (elementPresent()) {
             String[] Values = Data.toLowerCase().split("\\+");
@@ -678,10 +525,10 @@ public class CommonMethods extends MobileGeneral {
                 return Keys.HOME;
             default:
                 try {
-                    return Keys.valueOf(data.toUpperCase());
-                } catch (Exception ex) {
-                    return null;
-                }
+                return Keys.valueOf(data.toUpperCase());
+            } catch (Exception ex) {
+                return null;
+            }
         }
     }
 

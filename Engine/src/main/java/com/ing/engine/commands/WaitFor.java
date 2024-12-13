@@ -1,6 +1,7 @@
 package com.ing.engine.commands;
 
 import com.ing.engine.core.CommandControl;
+import com.ing.engine.execution.exception.ActionException;
 import com.ing.engine.support.Status;
 import com.ing.engine.support.methodInf.Action;
 import com.ing.engine.support.methodInf.InputType;
@@ -46,6 +47,7 @@ public class WaitFor extends Command {
         } catch (Exception ex) {
             Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, null, ex);
             Report.updateTestLog(Action, "Wait Action Failed", Status.DEBUG);
+            throw new ActionException(ex);
         }
     }
     
@@ -63,6 +65,7 @@ public class WaitFor extends Command {
         } catch (Exception ex) {
             Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, null, ex);
             Report.updateTestLog(Action, "Wait Action Failed", Status.DEBUG);
+            throw new ActionException(ex);
         }
     }
 

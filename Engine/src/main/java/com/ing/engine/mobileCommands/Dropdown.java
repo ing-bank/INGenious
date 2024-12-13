@@ -47,12 +47,12 @@ public class Dropdown extends MobileGeneral {
         super(cc);
     }
 
-    @Action(object = ObjectType.MOBILE, desc = "selecting value [<Data>] from unordered list .", input = InputType.YES)
+    @Action(object = ObjectType.APP, desc = "selecting value [<Data>] from unordered list .", input = InputType.YES)
     public void selectValueFromUnorderedList() {
         selectFromUnorderedList(SelectBy.Text);
     }
 
-    @Action(object = ObjectType.MOBILE, desc = "selecting value by index [<Data>] from unordered list .", input = InputType.YES)
+    @Action(object = ObjectType.APP, desc = "selecting value by index [<Data>] from unordered list .", input = InputType.YES)
     public void selectIndexFromUnorderedList() {
         selectFromUnorderedList(SelectBy.Index);
     }
@@ -92,81 +92,81 @@ public class Dropdown extends MobileGeneral {
         }
     }
 
-    @Action(object = ObjectType.MOBILE, desc = "Select item in [<Object>] which has text: [<Data>]", input = InputType.YES)
+    @Action(object = ObjectType.APP, desc = "Select item in [<Object>] which has text: [<Data>]", input = InputType.YES)
     public void selectByVisibleText() {
         select(SelectType.Select, SelectRange.Single, SelectBy.Text);
     }
 
-    @Action(object = ObjectType.MOBILE, desc = "Select item in [<Object>] which has the value: [<Data>]", input = InputType.YES)
+    @Action(object = ObjectType.APP, desc = "Select item in [<Object>] which has the value: [<Data>]", input = InputType.YES)
     public void selectByValue() {
         select(SelectType.Select, SelectRange.Single, SelectBy.Value);
     }
 
-    @Action(object = ObjectType.MOBILE, desc = "Select all options from a select Element [<Object>]", input = InputType.YES)
+    @Action(object = ObjectType.APP, desc = "Select all options from a select Element [<Object>]", input = InputType.YES)
     public void selectByIndex() {
         select(SelectType.Select, SelectRange.Single, SelectBy.Index);
     }
 
-    @Action(object = ObjectType.MOBILE, desc = "Select items [<Data>] of [<Object>] by visible Text", input = InputType.YES)
+    @Action(object = ObjectType.APP, desc = "Select items [<Data>] of [<Object>] by visible Text", input = InputType.YES)
     public void selectMultipleOptionsByText() {
         select(SelectType.Select, SelectRange.Multiple, SelectBy.Text);
     }
 
-    @Action(object = ObjectType.MOBILE, desc = "Select items [<Data>] of [<Object>] by value", input = InputType.YES)
+    @Action(object = ObjectType.APP, desc = "Select items [<Data>] of [<Object>] by value", input = InputType.YES)
     public void selectMultipleByValue() {
         select(SelectType.Select, SelectRange.Multiple, SelectBy.Value);
     }
 
-    @Action(object = ObjectType.MOBILE, desc = "Select items [<Data>] of [<Object>] by index", input = InputType.YES)
+    @Action(object = ObjectType.APP, desc = "Select items [<Data>] of [<Object>] by index", input = InputType.YES)
     public void selectMultipleByIndex() {
         select(SelectType.Select, SelectRange.Multiple, SelectBy.Index);
     }
 
-    @Action(object = ObjectType.MOBILE, desc = "Select all options from a select Element [<Object>]")
+    @Action(object = ObjectType.APP, desc = "Select all options from a select Element [<Object>]")
     public void selectAll() {
         select(SelectType.Select, SelectRange.All, null);
     }
 
-    @Action(object = ObjectType.MOBILE,
+    @Action(object = ObjectType.APP,
             desc = "Deselect item in [<Object>] which has text: [<Data>]", input = InputType.YES)
     public void deSelectByVisibleText() {
         select(SelectType.DeSelect, SelectRange.Single, SelectBy.Text);
     }
 
-    @Action(object = ObjectType.MOBILE,
+    @Action(object = ObjectType.APP,
             desc = "Deselect item in [<Object>] which has value: [<Data>]",
             input = InputType.YES)
     public void deSelectByValue() {
         select(SelectType.DeSelect, SelectRange.Single, SelectBy.Value);
     }
 
-    @Action(object = ObjectType.MOBILE,
+    @Action(object = ObjectType.APP,
             desc = "Deselect  item in [<Object>] which has index: [<Data>]", input = InputType.YES)
     public void deSelectByIndex() {
         select(SelectType.DeSelect, SelectRange.Single, SelectBy.Index);
     }
 
-    @Action(object = ObjectType.MOBILE, desc = "Deselect items [<Data>] of [<Object>] by visible Text", input = InputType.YES)
+    @Action(object = ObjectType.APP, desc = "Deselect items [<Data>] of [<Object>] by visible Text", input = InputType.YES)
     public void deSelectMultipleByText() {
         select(SelectType.DeSelect, SelectRange.Multiple, SelectBy.Text);
     }
 
-    @Action(object = ObjectType.MOBILE, desc = "Deselect items [<Data>] of [<Object>] by value", input = InputType.YES)
+    @Action(object = ObjectType.APP, desc = "Deselect items [<Data>] of [<Object>] by value", input = InputType.YES)
     public void deSelectMultipleByValue() {
         select(SelectType.DeSelect, SelectRange.Multiple, SelectBy.Value);
     }
 
-    @Action(object = ObjectType.MOBILE, desc = "Deselect items [<Data>] of [<Object>] by index", input = InputType.YES)
+    @Action(object = ObjectType.APP, desc = "Deselect items [<Data>] of [<Object>] by index", input = InputType.YES)
     public void deSelectMultipleByIndex() {
         select(SelectType.DeSelect, SelectRange.Multiple, SelectBy.Index);
     }
 
-    @Action(object = ObjectType.MOBILE, desc = "Deselect all items in  [<Object>]")
+    @Action(object = ObjectType.APP, desc = "Deselect all items in  [<Object>]")
     public void deSelectAll() {
         select(SelectType.DeSelect, SelectRange.All, null);
     }
 
-    @Action(object = ObjectType.MOBILE,
+    @Action(object = ObjectType.APP,
             desc = "Assert if the  select list [<Object>] contains [<Data>]",
             input = InputType.YES)
     public void assertSelectContains() {

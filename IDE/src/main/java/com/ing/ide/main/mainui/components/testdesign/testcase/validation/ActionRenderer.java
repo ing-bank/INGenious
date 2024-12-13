@@ -83,8 +83,8 @@ public class ActionRenderer extends AbstractRenderer {
                 valid = MethodInfoManager.getMethodListFor(ObjectType.BROWSER)
                         .contains(action);
                 break;
-            case "App":
-                valid = MethodInfoManager.getMethodListFor(ObjectType.APP)
+            case "Mobile":
+                valid = MethodInfoManager.getMethodListFor(ObjectType.MOBILE)
                         .contains(action);
                 break;
             case "Database":
@@ -110,7 +110,7 @@ public class ActionRenderer extends AbstractRenderer {
                 } else if (isWebObject(step)) {
                     valid = MethodInfoManager.getMethodListFor(ObjectType.PLAYWRIGHT, ObjectType.WEB).contains(action);
                 } else if (isMobileObject(step)) {
-                    valid = MethodInfoManager.getMethodListFor(ObjectType.MOBILE, ObjectType.MOBILE).contains(action);
+                   valid = MethodInfoManager.getMethodListFor(ObjectType.APP).contains(action);
                 }
                 break;
         }
