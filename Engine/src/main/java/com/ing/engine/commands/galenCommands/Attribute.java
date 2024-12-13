@@ -26,13 +26,6 @@ public class Attribute extends General {
         validate(spec, RelativeElement.None);
     }
 
-    private void assertElementAttrI(SpecText.Type type) {
-        SpecAttribute spec = SpecReader.reader().getSpecAttribute(type, Data.toLowerCase());
-        spec.setOperations(Arrays.asList(new String[]{"lowercase"}));
-        spec.setOriginalText(getMessage(spec));
-        validate(spec, RelativeElement.None);
-    }
-
     @Action(object = ObjectType.APP, desc ="Assert if [<Object>]'s Attribute Equals [<Data>]", input =InputType.YES)
     public void assertElementAttrEquals() {
         assertElementAttr(SpecText.Type.IS);
@@ -58,27 +51,6 @@ public class Attribute extends General {
     public void assertElementAttrMatches() {
         assertElementAttr(SpecText.Type.MATCHES);
     }
-
-    @Action(object = ObjectType.APP, desc ="Assert if [<Object>]'s Attribute Equals [Ignorecase] [<Data>]", input =InputType.YES)
-    public void assertElementAttrIEquals() {
-        assertElementAttrI(SpecText.Type.IS);
-    }
-
-    @Action(object = ObjectType.APP, desc ="Assert if [<Object>]'s Attribute Contains [Ignorecase] [<Data>]", input =InputType.YES)
-    public void assertElementAttrIContains() {
-        assertElementAttrI(SpecText.Type.CONTAINS);
-    }
-
-    @Action(object = ObjectType.APP, desc ="Assert if [<Object>]'s Attribute StartsWith [Ignorecase] [<Data>]", input =InputType.YES)
-    public void assertElementAttrIStartsWith() {
-        assertElementAttrI(SpecText.Type.STARTS);
-    }
-
-    @Action(object = ObjectType.APP, desc ="Assert if [<Object>]'s Attribute EndsWith [Ignorecase] [<Data>]", input =InputType.YES)
-    public void assertElementAttrIEndsWith() {
-        assertElementAttrI(SpecText.Type.ENDS);
-    }
-
     private String getMessage(SpecAttribute spec) {
         return String.format("%s's Attribute %s %s %s ", ObjectName, spec.getAtributeName(), spec.getType().toString(), spec.getText());
     }
