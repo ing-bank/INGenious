@@ -53,7 +53,7 @@ public class DriverSettings extends javax.swing.JFrame {
 
         setIconImage(((ImageIcon) Utils.getIconByResourceName("/ui/resources/main/BrowserConfiguration")).getImage());
 
-        loadChromeEmulators();
+        //loadChromeEmulators();
         initAddEmulatorListener();
 
         final JTextField resolutionText = new JTextField();
@@ -88,15 +88,15 @@ public class DriverSettings extends javax.swing.JFrame {
         });
     }
 
-    private void loadChromeEmulators() {
-        chromeEmulatorList.setModel(
-                new DefaultComboBoxModel(
-                        ChromeEmulators.getEmulatorsList().toArray()));
-        if (chromeEmulatorList.getItemCount() == 0) {
-            chromeEmulator.setEnabled(false);
-            chromeEmulator.setToolTipText("Not Supported");
-        }
-    }
+//    private void loadChromeEmulators() {
+//        chromeEmulatorList.setModel(
+//                new DefaultComboBoxModel(
+//                        ChromeEmulators.getEmulatorsList().toArray()));
+//        if (chromeEmulatorList.getItemCount() == 0) {
+//            chromeEmulator.setEnabled(false);
+//            chromeEmulator.setToolTipText("Not Supported");
+//        }
+//    }
 
     public void load() {
         this.sProject = sMainFrame.getProject();
@@ -121,8 +121,8 @@ public class DriverSettings extends javax.swing.JFrame {
     private void loadBrowsers() {
         DefaultComboBoxModel model = new DefaultComboBoxModel(getTotalBrowserList().toArray());
         browserCombo.setModel(model);
-        dupDriverCombo.setModel(new DefaultComboBoxModel(
-                getTotalBrowserList().toArray()));
+//        dupDriverCombo.setModel(new DefaultComboBoxModel(
+//                getTotalBrowserList().toArray()));
         checkAndLoadCapabilities();
     }
 
@@ -167,17 +167,6 @@ public class DriverSettings extends javax.swing.JFrame {
         String type = emulator.getType();
         setButtonGroup(type, customDeviceGroup);
         switch (type) {
-            case "Duplicate":
-                dupDriverCombo.setSelectedItem(emulator.getDriver());
-                break;
-            case "Emulator":
-                setButtonGroup(emulator.getDriver(), emulatorGroup);
-                resolution.setText(emulator.getSize());
-                userAgent.setText(emulator.getUserAgent());
-                break;
-            case "Chrome Emulator":
-                chromeEmulatorList.setSelectedItem(emulator.getDriver());
-                break;
             case "Remote URL":
                 appiumConnectionString.setText(emulator.getRemoteUrl());
                 break;
@@ -206,7 +195,7 @@ public class DriverSettings extends javax.swing.JFrame {
         if (!getTotalBrowserList().contains(newEmName)) {
             settings.getEmulators().addEmulator(newEmName);
             browserCombo.addItem(newEmName);
-            dupDriverCombo.addItem(newEmName);
+            //dupDriverCombo.addItem(newEmName);
             browserCombo.setSelectedItem(newEmName);
         } else {
             Notification.show("Emulator/Browser [" + newEmName + "] already Present");
@@ -221,12 +210,12 @@ public class DriverSettings extends javax.swing.JFrame {
                 Emulator emulator = settings.getEmulators().getEmulator(oldName);
                 emulator.setName(newEmName);
                 DefaultComboBoxModel combomodel = (DefaultComboBoxModel) browserCombo.getModel();
-                DefaultComboBoxModel dupCombomodel = (DefaultComboBoxModel) dupDriverCombo.getModel();
+              //  DefaultComboBoxModel dupCombomodel = (DefaultComboBoxModel) dupDriverCombo.getModel();
                 int index = browserCombo.getSelectedIndex();
                 combomodel.removeElement(oldName);
-                dupCombomodel.removeElement(oldName);
+             //   dupCombomodel.removeElement(oldName);
                 combomodel.insertElementAt(newEmName, index);
-                dupCombomodel.insertElementAt(newEmName, index);
+              //  dupCombomodel.insertElementAt(newEmName, index);
                 browserCombo.setSelectedIndex(index);
             } else {
                 Notification.show("Emulator/Browser [" + newEmName + "] already Present");
@@ -240,7 +229,7 @@ public class DriverSettings extends javax.swing.JFrame {
         if (emulator != null) {
             settings.getEmulators().deleteEmulator(emName);
             browserCombo.removeItem(emName);
-            dupDriverCombo.removeItem(emName);
+          //  dupDriverCombo.removeItem(emName);
         } else {
 
         }
@@ -262,17 +251,6 @@ public class DriverSettings extends javax.swing.JFrame {
                 getEmulator(browserCombo.getSelectedItem().toString());
         emulator.setType(customDeviceGroup.getSelection().getActionCommand());
         switch (emulator.getType()) {
-            case "Duplicate":
-                emulator.setDriver(dupDriverCombo.getSelectedItem().toString());
-                break;
-            case "Emulator":
-                emulator.setDriver(emulatorGroup.getSelection().getActionCommand());
-                emulator.setSize(Objects.toString(resolution.getText(), ""));
-                emulator.setUserAgent(userAgent.getText());
-                break;
-            case "Chrome Emulator":
-                emulator.setDriver(chromeEmulatorList.getSelectedItem().toString());
-                break;
             case "Remote URL":
                 emulator.setRemoteUrl(appiumConnectionString.getText());
                 break;
@@ -375,21 +353,8 @@ public class DriverSettings extends javax.swing.JFrame {
         jPanel2 = new javax.swing.JPanel();
         emCapTab = new javax.swing.JTabbedPane();
         emulatorPanel = new javax.swing.JPanel();
-        jScrollPane2 = new javax.swing.JScrollPane();
-        userAgent = new javax.swing.JTextArea();
         appiumConnectionString = new javax.swing.JTextField();
-        chromeBrowser = new javax.swing.JRadioButton();
-        firefoxBrowser = new javax.swing.JRadioButton();
-        uaEmulator = new javax.swing.JRadioButton();
-        chromeEmulator = new javax.swing.JRadioButton();
         appiumEmulator = new javax.swing.JRadioButton();
-        chromeEmulatorList = new javax.swing.JComboBox<>();
-        chromeEmulatorHint = new javax.swing.JLabel();
-        duplicateEmulator = new javax.swing.JRadioButton();
-        dupDriverCombo = new javax.swing.JComboBox<>();
-        pxLabel = new javax.swing.JLabel();
-        syncChromeEmulators = new javax.swing.JButton();
-        resolution = new javax.swing.JTextField();
         capabilityPanel = new javax.swing.JPanel();
         jScrollPane1 = new javax.swing.JScrollPane();
         capTable = new XTable();
@@ -403,7 +368,6 @@ public class DriverSettings extends javax.swing.JFrame {
         saveSettings = new javax.swing.JButton();
         resetSettings = new javax.swing.JButton();
         filler5 = new javax.swing.Box.Filler(new java.awt.Dimension(0, 10), new java.awt.Dimension(0, 10), new java.awt.Dimension(32767, 10));
-        addNewEmulator = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         setTitle("Configurations");
@@ -479,25 +443,12 @@ public class DriverSettings extends javax.swing.JFrame {
         browserCombo.setMinimumSize(new java.awt.Dimension(150, 26));
         browserCombo.setPreferredSize(new java.awt.Dimension(150, 26));
         browserCombo.addItemListener(new java.awt.event.ItemListener() {
-        public void itemStateChanged(java.awt.event.ItemEvent evt) {
+            public void itemStateChanged(java.awt.event.ItemEvent evt) {
                 browserComboItemStateChanged(evt);
             }
         });
         jToolBar3.add(browserCombo);
         jToolBar3.add(filler7);
-
-	    addNewEmulator.setIcon(new javax.swing.ImageIcon(getClass().getResource("/ui/resources/toolbar/addIcon.png"))); // NOI18N
-        addNewEmulator.setToolTipText("Add New Emulator");
-        addNewEmulator.setFocusable(false);
-        addNewEmulator.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
-        addNewEmulator.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
-        addNewEmulator.addActionListener(new java.awt.event.ActionListener() {
-        public void actionPerformed(java.awt.event.ActionEvent evt) {
-                addNewEmulatorActionPerformed(evt);
-            }
-        });
-        jToolBar3.add(addNewEmulator);
-        editEmulator.setIcon(new javax.swing.ImageIcon(getClass().getResource("/ui/resources/toolbar/editIcon.png")));
 
         editEmulator.setToolTipText("Rename Emulator");
         editEmulator.setContentAreaFilled(false);
@@ -510,7 +461,6 @@ public class DriverSettings extends javax.swing.JFrame {
         });
         jToolBar3.add(editEmulator);
 
-        deleteEmulator.setIcon(new javax.swing.ImageIcon(getClass().getResource("/ui/resources/toolbar/deleteIcon.png")));
         deleteEmulator.setToolTipText("Remove Emulator");
         deleteEmulator.setContentAreaFilled(false);
         deleteEmulator.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
@@ -529,43 +479,8 @@ public class DriverSettings extends javax.swing.JFrame {
 
         emulatorPanel.setBorder(javax.swing.BorderFactory.createEtchedBorder());
 
-        userAgent.setColumns(20);
-        userAgent.setRows(5);
-        userAgent.setText("User Agent\n");
-        userAgent.setToolTipText("User Agent String");
-        userAgent.setEnabled(false);
-        jScrollPane2.setViewportView(userAgent);
-
         appiumConnectionString.setText("http://127.0.0.1:4723/");
         appiumConnectionString.setEnabled(false);
-
-        emulatorGroup.add(chromeBrowser);
-        chromeBrowser.setText("Chrome");
-        chromeBrowser.setEnabled(false);
-        chromeBrowser.setActionCommand("Chrome");
-
-        emulatorGroup.add(firefoxBrowser);
-        firefoxBrowser.setText("Firefox");
-        firefoxBrowser.setEnabled(false);
-        firefoxBrowser.setActionCommand("Firefox");
-
-        customDeviceGroup.add(uaEmulator);
-        uaEmulator.setText("Emulator");
-        uaEmulator.addItemListener(new java.awt.event.ItemListener() {
-            public void itemStateChanged(java.awt.event.ItemEvent evt) {
-                uaEmulatorItemStateChanged(evt);
-            }
-        });
-        uaEmulator.setActionCommand("Emulator");
-
-        customDeviceGroup.add(chromeEmulator);
-        chromeEmulator.setText("Chrome Emulator");
-        chromeEmulator.addItemListener(new java.awt.event.ItemListener() {
-            public void itemStateChanged(java.awt.event.ItemEvent evt) {
-                chromeEmulatorItemStateChanged(evt);
-            }
-        });
-        chromeEmulator.setActionCommand("Chrome Emulator");
 
         customDeviceGroup.add(appiumEmulator);
         appiumEmulator.setText("Remote URL/Appium");
@@ -576,116 +491,30 @@ public class DriverSettings extends javax.swing.JFrame {
             }
         });
 
-        chromeEmulatorList.setEnabled(false);
-
-        chromeEmulatorHint.setText("<html><a href=\"https://sites.google.com/a/chromium.org/chromedriver/mobile-emulation\">What's this?</a></html>");
-        chromeEmulatorHint.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
-        chromeEmulatorHint.addMouseListener(new java.awt.event.MouseAdapter() {
-            public void mouseClicked(java.awt.event.MouseEvent evt) {
-                chromeEmulatorHintMouseClicked(evt);
-            }
-        });
-
-        customDeviceGroup.add(duplicateEmulator);
-        duplicateEmulator.setText("Duplicate");
-        duplicateEmulator.addItemListener(new java.awt.event.ItemListener() {
-            public void itemStateChanged(java.awt.event.ItemEvent evt) {
-                duplicateEmulatorItemStateChanged(evt);
-            }
-        });
-        duplicateEmulator.setActionCommand("Duplicate");
-
-        dupDriverCombo.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Item 1", "Item 2", "Item 3", "Item 4" }));
-        dupDriverCombo.setEnabled(false);
-
-        pxLabel.setFont(new java.awt.Font("sansserif", 1, 12)); // NOI18N
-        pxLabel.setText("PT");
-        pxLabel.setEnabled(false);
-
-        syncChromeEmulators.setIcon(new javax.swing.ImageIcon(getClass().getResource("/ui/resources/refresh.png"))); // NOI18N
-        syncChromeEmulators.setToolTipText("Refresh the list of Emulators from Chrome");
-        syncChromeEmulators.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                syncChromeEmulatorsActionPerformed(evt);
-            }
-        });
-
-        resolution.setToolTipText("Please enter viewport size of device. Eg: 414 x 736");
-
         javax.swing.GroupLayout emulatorPanelLayout = new javax.swing.GroupLayout(emulatorPanel);
         emulatorPanel.setLayout(emulatorPanelLayout);
         emulatorPanelLayout.setHorizontalGroup(
             emulatorPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(emulatorPanelLayout.createSequentialGroup()
-                .addGap(26, 26, 26)
+                .addGap(17, 17, 17)
                 .addGroup(emulatorPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(duplicateEmulator)
-                    .addGroup(emulatorPanelLayout.createSequentialGroup()
-                        .addGap(24, 24, 24)
-                        .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 388, javax.swing.GroupLayout.PREFERRED_SIZE))
-                    .addGroup(emulatorPanelLayout.createSequentialGroup()
-                        .addComponent(chromeEmulator)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                        .addComponent(chromeEmulatorHint, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                     .addComponent(appiumEmulator)
                     .addGroup(emulatorPanelLayout.createSequentialGroup()
                         .addGap(24, 24, 24)
-                        .addComponent(appiumConnectionString, javax.swing.GroupLayout.PREFERRED_SIZE, 383, javax.swing.GroupLayout.PREFERRED_SIZE))
-                    .addGroup(emulatorPanelLayout.createSequentialGroup()
-                        .addGap(24, 24, 24)
-                        .addComponent(chromeBrowser)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(firefoxBrowser)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(resolution, javax.swing.GroupLayout.PREFERRED_SIZE, 91, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                        .addComponent(pxLabel))
-                    .addGroup(emulatorPanelLayout.createSequentialGroup()
-                        .addGap(30, 30, 30)
-                        .addComponent(chromeEmulatorList, javax.swing.GroupLayout.PREFERRED_SIZE, 204, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(syncChromeEmulators, javax.swing.GroupLayout.PREFERRED_SIZE, 31, javax.swing.GroupLayout.PREFERRED_SIZE))
-                    .addGroup(emulatorPanelLayout.createSequentialGroup()
-                        .addGap(22, 22, 22)
-                        .addComponent(dupDriverCombo, javax.swing.GroupLayout.PREFERRED_SIZE, 204, javax.swing.GroupLayout.PREFERRED_SIZE))
-                    .addComponent(uaEmulator))
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+                        .addComponent(appiumConnectionString, javax.swing.GroupLayout.PREFERRED_SIZE, 383, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                .addContainerGap(20, Short.MAX_VALUE))
         );
         emulatorPanelLayout.setVerticalGroup(
             emulatorPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, emulatorPanelLayout.createSequentialGroup()
-                .addGap(18, 18, 18)
-                .addComponent(duplicateEmulator)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addComponent(dupDriverCombo, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(18, 18, Short.MAX_VALUE)
-                .addComponent(uaEmulator)
-                .addGap(16, 16, 16)
-                .addGroup(emulatorPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(emulatorPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                        .addComponent(chromeBrowser)
-                        .addComponent(firefoxBrowser))
-                    .addGroup(emulatorPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                        .addComponent(resolution, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addComponent(pxLabel)))
-                .addGap(18, 18, 18)
-                .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(20, 20, 20)
-                .addGroup(emulatorPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(chromeEmulator)
-                    .addComponent(chromeEmulatorHint, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addGap(15, 15, 15)
-                .addGroup(emulatorPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                    .addComponent(chromeEmulatorList, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(syncChromeEmulators))
-                .addGap(24, 24, 24)
+            .addGroup(emulatorPanelLayout.createSequentialGroup()
+                .addGap(41, 41, 41)
                 .addComponent(appiumEmulator)
                 .addGap(18, 18, 18)
                 .addComponent(appiumConnectionString, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(51, 51, 51))
+                .addContainerGap(352, Short.MAX_VALUE))
         );
 
-        emCapTab.addTab("Emulator", emulatorPanel);
+        emCapTab.addTab("Mobile", emulatorPanel);
 
         capabilityPanel.setLayout(new java.awt.BorderLayout());
 
@@ -750,6 +579,8 @@ public class DriverSettings extends javax.swing.JFrame {
         emCapTab.addTab("Capabilities/Options", capabilityPanel);
 
         jPanel2.add(emCapTab, java.awt.BorderLayout.CENTER);
+        emCapTab.getAccessibleContext().setAccessibleName("Mobile");
+
         jPanel2.add(filler8, java.awt.BorderLayout.PAGE_START);
 
         browserPanel.add(jPanel2, java.awt.BorderLayout.CENTER);
@@ -779,8 +610,6 @@ public class DriverSettings extends javax.swing.JFrame {
 
         getContentPane().add(jPanel1, java.awt.BorderLayout.SOUTH);
         getContentPane().add(filler5, java.awt.BorderLayout.PAGE_START);
-
-        getAccessibleContext().setAccessibleName("Configurations");
 
         pack();
     }// </editor-fold>//GEN-END:initComponents
@@ -846,35 +675,9 @@ public class DriverSettings extends javax.swing.JFrame {
         model.addRow(new Object[]{});
     }//GEN-LAST:event_addCapActionPerformed
 
-    private void syncChromeEmulatorsActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_syncChromeEmulatorsActionPerformed
-        ChromeEmulators.sync();
-        loadChromeEmulators();
-    }//GEN-LAST:event_syncChromeEmulatorsActionPerformed
-
-    private void duplicateEmulatorItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_duplicateEmulatorItemStateChanged
-        dupDriverCombo.setEnabled(duplicateEmulator.isSelected());
-    }//GEN-LAST:event_duplicateEmulatorItemStateChanged
-
-    private void chromeEmulatorHintMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_chromeEmulatorHintMouseClicked
-        Help.openInBrowser("Couldn't Open Help in default Browser",
-            URI.create("https://sites.google.com/a/chromium.org/chromedriver/mobile-emulation"));
-    }//GEN-LAST:event_chromeEmulatorHintMouseClicked
-
     private void appiumEmulatorItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_appiumEmulatorItemStateChanged
         appiumConnectionString.setEnabled(appiumEmulator.isSelected());
     }//GEN-LAST:event_appiumEmulatorItemStateChanged
-
-    private void chromeEmulatorItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_chromeEmulatorItemStateChanged
-        chromeEmulatorList.setEnabled(chromeEmulator.isSelected());
-    }//GEN-LAST:event_chromeEmulatorItemStateChanged
-
-    private void uaEmulatorItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_uaEmulatorItemStateChanged
-        chromeBrowser.setEnabled(uaEmulator.isSelected());
-        firefoxBrowser.setEnabled(uaEmulator.isSelected());
-        resolution.setEnabled(uaEmulator.isSelected());
-        userAgent.setEnabled(uaEmulator.isSelected());
-        pxLabel.setEnabled(uaEmulator.isSelected());
-    }//GEN-LAST:event_uaEmulatorItemStateChanged
 
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
@@ -886,18 +689,11 @@ public class DriverSettings extends javax.swing.JFrame {
     private javax.swing.JPanel browserPanel;
     private javax.swing.JTable capTable;
     private javax.swing.JPanel capabilityPanel;
-    private javax.swing.JRadioButton chromeBrowser;
-    private javax.swing.JRadioButton chromeEmulator;
-    private javax.swing.JLabel chromeEmulatorHint;
-    private javax.swing.JComboBox<String> chromeEmulatorList;
     private javax.swing.JPanel commonPanel;
     private javax.swing.ButtonGroup customDeviceGroup;
     private javax.swing.JButton deleteEmulator;
     private javax.swing.JTable driverPropTable;
-    private javax.swing.JComboBox<String> dupDriverCombo;
-    private javax.swing.JRadioButton duplicateEmulator;
     private javax.swing.JButton editEmulator;
-    private javax.swing.JButton addNewEmulator;
     private javax.swing.JTabbedPane emCapTab;
     private javax.swing.ButtonGroup emulatorGroup;
     private javax.swing.JPanel emulatorPanel;
@@ -909,26 +705,19 @@ public class DriverSettings extends javax.swing.JFrame {
     private javax.swing.Box.Filler filler6;
     private javax.swing.Box.Filler filler7;
     private javax.swing.Box.Filler filler8;
-    private javax.swing.JRadioButton firefoxBrowser;
     private javax.swing.JLabel jLabel2;
     private javax.swing.JPanel jPanel1;
     private javax.swing.JPanel jPanel2;
     private javax.swing.JScrollPane jScrollPane1;
-    private javax.swing.JScrollPane jScrollPane2;
     private javax.swing.JScrollPane jScrollPane3;
     private javax.swing.JToolBar.Separator jSeparator1;
     private javax.swing.JToolBar jToolBar1;
     private javax.swing.JToolBar jToolBar2;
     private javax.swing.JToolBar jToolBar3;
     private javax.swing.JTabbedPane mainTab;
-    private javax.swing.JLabel pxLabel;
     private javax.swing.JButton removeCap;
     private javax.swing.JButton removePropButton;
     private javax.swing.JButton resetSettings;
-    private javax.swing.JTextField resolution;
     private javax.swing.JButton saveSettings;
-    private javax.swing.JButton syncChromeEmulators;
-    private javax.swing.JRadioButton uaEmulator;
-    private javax.swing.JTextArea userAgent;
     // End of variables declaration//GEN-END:variables
 }

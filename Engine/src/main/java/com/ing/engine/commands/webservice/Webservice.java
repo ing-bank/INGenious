@@ -1,6 +1,6 @@
 package com.ing.engine.commands.webservice;
 
-import com.ing.engine.commands.General;
+import com.ing.engine.commands.browser.General;
 import com.ing.engine.constants.FilePath;
 import com.ing.engine.core.CommandControl;
 import com.ing.engine.core.Control;

@@ -104,7 +104,7 @@ public class ObjectRepo extends JPanel implements ItemListener {
         private ButtonGroup bgroup;
 
         private JToggleButton webButton;
-        private JToggleButton imageButton;
+        //private JToggleButton imageButton;
         private JToggleButton mobileButton;
 
         public SwitchToolBar() {
@@ -134,7 +134,7 @@ public class ObjectRepo extends JPanel implements ItemListener {
             add(label);
             add(new javax.swing.Box.Filler(new java.awt.Dimension(0, 0), new java.awt.Dimension(0, 0), new java.awt.Dimension(32767, 32767)));
             add(webButton = create("Web"));
-            add(imageButton = create("Image"));
+            //add(imageButton = create("Image"));
             add(mobileButton = create("Mobile"));
         }
 

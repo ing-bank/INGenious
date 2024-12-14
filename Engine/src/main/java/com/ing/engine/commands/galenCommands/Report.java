@@ -1,7 +1,7 @@
 
 package com.ing.engine.commands.galenCommands;
 
-import com.ing.engine.commands.Command;
+import com.ing.engine.commands.browser.Command;
 import com.ing.engine.constants.FilePath;
 import com.ing.engine.core.CommandControl;
 import com.ing.engine.support.Status;

@@ -1,0 +1,3 @@
+Scenario,Flow,Iteration,SubIteration,Uname,Pwd,Fname,Lname,Zip
+App Testing,Purchase Product_Android,1,1,standard_user,secret_sauce,Ashish,Ghosh,1123KY
+App Testing,Purchase Product_iOS,1,1,standard_user,secret_sauce,Ashish,Ghosh,1123KY

@@ -1,11 +1,11 @@
 package com.ing.engine.commands.aXe;
 
-import com.ing.engine.commands.General;
+import com.ing.engine.commands.browser.General;
 import com.ing.engine.core.CommandControl;
 import com.deque.html.axecore.playwright.*;
 import com.deque.html.axecore.results.AxeResults;
 import com.deque.html.axecore.playwright.Reporter;
-import com.ing.engine.commands.Performance;
+import com.ing.engine.commands.browser.Performance;
 import com.ing.engine.constants.FilePath;
 import com.ing.engine.support.Status;
 import com.ing.engine.support.methodInf.Action;

@@ -1,0 +1,3 @@
+Execute,TestScenario,TestCase,Iteration,Status,Browser,BrowserVersion,Platform
+true,App Testing,Purchase Product_Android,Single,Passed,AndroidEmulator1,Default,Any
+true,App Testing,Purchase Product_iOS,Single,Passed,iOSEmulator1,Default,Any

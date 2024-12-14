@@ -1,7 +1,7 @@
 
 package com.ing.engine.support.reflect;
 
-import com.ing.engine.commands.Command;
+import com.ing.engine.commands.browser.Command;
 import com.ing.engine.constants.FilePath;
 import com.ing.engine.constants.SystemDefaults;
 import com.google.common.base.Predicate;
