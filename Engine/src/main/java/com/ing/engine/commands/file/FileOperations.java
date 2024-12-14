@@ -1,6 +1,6 @@
 package com.ing.engine.commands.file;
 
-import com.ing.engine.commands.General;
+import com.ing.engine.commands.browser.General;
 import com.ing.engine.core.CommandControl;
 import com.ing.engine.core.Control;
 import com.ing.engine.support.Status;

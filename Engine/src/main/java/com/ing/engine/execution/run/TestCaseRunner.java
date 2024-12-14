@@ -1,4 +1,3 @@
-
 package com.ing.engine.execution.run;
 
 import com.ing.datalib.component.Project;
@@ -6,12 +5,14 @@ import com.ing.datalib.component.TestCase;
 import com.ing.datalib.component.TestStep;
 import com.ing.engine.constants.SystemDefaults;
 import com.ing.engine.core.CommandControl;
+import com.ing.engine.drivers.MobileDriver;
 import com.ing.engine.execution.data.DataIterator;
 import com.ing.engine.execution.data.Parameter;
 import com.ing.engine.execution.data.StepSet;
 import com.ing.engine.execution.exception.DriverClosedException;
 import com.ing.engine.execution.exception.ForcedException;
 import com.ing.engine.execution.exception.TestFailedException;
+import com.ing.engine.execution.exception.ActionException;
 import com.ing.engine.execution.exception.UnCaughtException;
 import com.ing.engine.execution.exception.data.DataNotFoundException;
 import com.ing.engine.execution.exception.data.GlobalDataNotFoundException;
@@ -45,7 +46,7 @@ public class TestCaseRunner {
     private final Parameter parameter;
     private final TestRunner exe;
     private DataIterator iterater;
-    private final Map<String,Object> varMap= new HashMap<>();
+    private final Map<String, Object> varMap = new HashMap<>();
     private int iter = -1;
 
     private TestCaseRunner context;
@@ -161,22 +162,42 @@ public class TestCaseRunner {
     }
 
     public CommandControl createControl(final TestCaseRunner newThis) {
-        return new CommandControl(getRoot().getControl().Playwright,getRoot().getControl().Page,getRoot().getControl().BrowserContext, getRoot().getControl().Report) {
-            @Override
-            public void execute(String com, int sub) {
-                newThis.runTestCase(com, sub);
-            }
+        MobileDriver mDriver = new MobileDriver();
+        if (mDriver.isBrowserExecution()) {
+            return new CommandControl(getRoot().getControl().Playwright, getRoot().getControl().Page, getRoot().getControl().BrowserContext, getRoot().getControl().mobileDriver, getRoot().getControl().Report) {
+                @Override
+                public void execute(String com, int sub) {
+                    newThis.runTestCase(com, sub);
+                }
 
-            @Override
-            public void executeAction(String action) {
-                newThis.runAction(action);
-            }
+                @Override
+                public void executeAction(String action) {
+                    newThis.runAction(action);
+                }
 
-            @Override
-            public Object context() {
-                return newThis;
-            }
-        };
+                @Override
+                public Object context() {
+                    return newThis;
+                }
+            };
+        } else {
+            return new CommandControl(getRoot().getControl().Playwright, getRoot().getControl().Page, getRoot().getControl().BrowserContext, getRoot().getControl().mobileDriver, getRoot().getControl().Report) {
+                @Override
+                public void execute(String com, int sub) {
+                    newThis.runTestCase(com, sub);
+                }
+
+                @Override
+                public void executeAction(String action) {
+                    newThis.runAction(action);
+                }
+
+                @Override
+                public Object context() {
+                    return newThis;
+                }
+            };
+        }
     }
 
     public boolean isReusable() {
@@ -282,6 +303,12 @@ public class TestCaseRunner {
             throw new TestFailedException(scenario(), testcase(), ex);
         }
     }
+        private void onPlaywrightException(RuntimeException ex) {
+        if (exe.isContinueOnError()) {
+        } else {
+            throw new TestFailedException(scenario(), testcase(), ex);
+        }
+    }
 
     private String getStepName() {
         return Objects.nonNull(getControl().Action) ? getControl().Action : "Error";
@@ -351,7 +378,10 @@ public class TestCaseRunner {
                         }
                     } catch (ForcedException | ElementException ex) {
                         onRuntimeException(ex);
-                    } catch (Throwable ex) {
+                    } catch (ActionException ex ) {
+                    	onPlaywrightException(ex);
+                    }
+                    catch (Throwable ex) {
                         onError(ex);
                     }
                     currStep = checkForEndLoop(testStep, currStep);

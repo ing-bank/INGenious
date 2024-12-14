@@ -49,7 +49,7 @@ public class ReferenceRenderer extends AbstractRenderer {
         switch (val) {
             case "Execute":
                 return Color.BLUE;//.darker();
-            case "App":
+            case "Mobile":
                 return Color.CYAN;//.darker();
             case "Browser":
                 return Color.RED;//.darker();
@@ -59,7 +59,7 @@ public class ReferenceRenderer extends AbstractRenderer {
     }
 
     private Boolean isOptional(TestStep step) {
-        return step.getObject().matches("Execute|App|Browser|Database|ProtractorJS|Webservice|File");
+        return step.getObject().matches("Execute|Mobile|Browser|Database|ProtractorJS|Webservice|File");
     }
 
     private Boolean isObjectPresent(TestStep step) {

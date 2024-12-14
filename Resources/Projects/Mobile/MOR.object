@@ -1,0 +1,214 @@
+<Root type="MOR" ref="Mobile">
+  <Page packageName="com.swaglabsmobileapp" ref="swaglabsmobileapp">
+    <ObjectGroup ref="Username">
+      <Object ref="Username">
+        <Property value="" ref="UiAutomator" pref="1"/>
+        <Property value="" ref="UiAutomation" pref="2"/>
+        <Property value="" ref="id" pref="3"/>
+        <Property value="test-Username" ref="Accessibility" pref="4"/>
+        <Property value="" ref="xpath" pref="5"/>
+        <Property value="" ref="css" pref="6"/>
+        <Property value="" ref="name" pref="7"/>
+        <Property value="" ref="tagName" pref="8"/>
+        <Property value="" ref="link_text" pref="9"/>
+        <Property value="" ref="class" pref="10"/>
+      </Object>
+    </ObjectGroup>
+    <ObjectGroup ref="Password">
+      <Object ref="Password">
+        <Property value="" ref="UiAutomator" pref="1"/>
+        <Property value="" ref="UiAutomation" pref="2"/>
+        <Property value="" ref="id" pref="3"/>
+        <Property value="test-Password" ref="Accessibility" pref="4"/>
+        <Property value="" ref="xpath" pref="5"/>
+        <Property value="" ref="css" pref="6"/>
+        <Property value="" ref="name" pref="7"/>
+        <Property value="" ref="tagName" pref="8"/>
+        <Property value="" ref="link_text" pref="9"/>
+        <Property value="" ref="class" pref="10"/>
+      </Object>
+    </ObjectGroup>
+    <ObjectGroup ref="Login Button">
+      <Object ref="Login Button">
+        <Property value="" ref="UiAutomator" pref="1"/>
+        <Property value="" ref="UiAutomation" pref="2"/>
+        <Property value="" ref="id" pref="3"/>
+        <Property value="test-LOGIN" ref="Accessibility" pref="4"/>
+        <Property value="" ref="xpath" pref="5"/>
+        <Property value="" ref="css" pref="6"/>
+        <Property value="" ref="name" pref="7"/>
+        <Property value="" ref="tagName" pref="8"/>
+        <Property value="" ref="link_text" pref="9"/>
+        <Property value="" ref="class" pref="10"/>
+      </Object>
+    </ObjectGroup>
+    <ObjectGroup ref="ADD TO CART">
+      <Object ref="ADD TO CART">
+        <Property value="" ref="UiAutomator" pref="1"/>
+        <Property value="" ref="UiAutomation" pref="2"/>
+        <Property value="" ref="id" pref="3"/>
+        <Property value="" ref="Accessibility" pref="4"/>
+        <Property value="(//*[@content-desc='test-ADD TO CART'])[3] | (//*[@name=&quot;test-ADD TO CART&quot;])[1]" ref="xpath" pref="5"/>
+        <Property value="" ref="css" pref="6"/>
+        <Property value="" ref="name" pref="7"/>
+        <Property value="" ref="tagName" pref="8"/>
+        <Property value="" ref="link_text" pref="9"/>
+        <Property value="" ref="class" pref="10"/>
+      </Object>
+    </ObjectGroup>
+    <ObjectGroup ref="Cart1">
+      <Object ref="Cart1">
+        <Property value="" ref="UiAutomator" pref="1"/>
+        <Property value="" ref="UiAutomation" pref="2"/>
+        <Property value="" ref="id" pref="3"/>
+        <Property value="" ref="Accessibility" pref="4"/>
+        <Property value="(//*[@name=&quot;1&quot;])[4] | //android.view.ViewGroup[@content-desc=&quot;test-Cart&quot;]/android.view.ViewGroup/android.widget.ImageView" ref="xpath" pref="5"/>
+        <Property value="" ref="css" pref="6"/>
+        <Property value="" ref="name" pref="7"/>
+        <Property value="" ref="tagName" pref="8"/>
+        <Property value="" ref="link_text" pref="9"/>
+        <Property value="" ref="class" pref="10"/>
+      </Object>
+    </ObjectGroup>
+    <ObjectGroup ref="CHECKOUT">
+      <Object ref="CHECKOUT">
+        <Property value="" ref="UiAutomator" pref="1"/>
+        <Property value="" ref="UiAutomation" pref="2"/>
+        <Property value="" ref="id" pref="3"/>
+        <Property value="" ref="Accessibility" pref="4"/>
+        <Property value="//*[@name=&quot;test-CHECKOUT&quot;] | //*[@content-desc=&quot;test-CHECKOUT&quot;]" ref="xpath" pref="5"/>
+        <Property value="" ref="css" pref="6"/>
+        <Property value="" ref="name" pref="7"/>
+        <Property value="" ref="tagName" pref="8"/>
+        <Property value="" ref="link_text" pref="9"/>
+        <Property value="" ref="class" pref="10"/>
+      </Object>
+    </ObjectGroup>
+    <ObjectGroup ref="First Name">
+      <Object ref="First Name">
+        <Property value="" ref="UiAutomator" pref="1"/>
+        <Property value="" ref="UiAutomation" pref="2"/>
+        <Property value="" ref="id" pref="3"/>
+        <Property value="" ref="Accessibility" pref="4"/>
+        <Property value="//*[@content-desc='test-First Name'] | //*[@name=&quot;test-First Name&quot;]" ref="xpath" pref="5"/>
+        <Property value="" ref="css" pref="6"/>
+        <Property value="" ref="name" pref="7"/>
+        <Property value="" ref="tagName" pref="8"/>
+        <Property value="" ref="link_text" pref="9"/>
+        <Property value="" ref="class" pref="10"/>
+      </Object>
+    </ObjectGroup>
+    <ObjectGroup ref="Last Name">
+      <Object ref="Last Name">
+        <Property value="" ref="UiAutomator" pref="1"/>
+        <Property value="" ref="UiAutomation" pref="2"/>
+        <Property value="" ref="id" pref="3"/>
+        <Property value="" ref="Accessibility" pref="4"/>
+        <Property value="//*[@content-desc='test-Last Name'] | //*[@name=&quot;test-Last Name&quot;]" ref="xpath" pref="5"/>
+        <Property value="" ref="css" pref="6"/>
+        <Property value="" ref="name" pref="7"/>
+        <Property value="" ref="tagName" pref="8"/>
+        <Property value="" ref="link_text" pref="9"/>
+        <Property value="" ref="class" pref="10"/>
+      </Object>
+    </ObjectGroup>
+    <ObjectGroup ref="Zip/Postal Code">
+      <Object ref="Zip/Postal Code">
+        <Property value="" ref="UiAutomator" pref="1"/>
+        <Property value="" ref="UiAutomation" pref="2"/>
+        <Property value="" ref="id" pref="3"/>
+        <Property value="" ref="Accessibility" pref="4"/>
+        <Property value="//*[@content-desc='test-Zip/Postal Code'] | //*[@name=&quot;test-Zip/Postal Code&quot;]" ref="xpath" pref="5"/>
+        <Property value="" ref="css" pref="6"/>
+        <Property value="" ref="name" pref="7"/>
+        <Property value="" ref="tagName" pref="8"/>
+        <Property value="" ref="link_text" pref="9"/>
+        <Property value="" ref="class" pref="10"/>
+      </Object>
+    </ObjectGroup>
+    <ObjectGroup ref="CONTINUE">
+      <Object ref="CONTINUE">
+        <Property value="" ref="UiAutomator" pref="1"/>
+        <Property value="" ref="UiAutomation" pref="2"/>
+        <Property value="" ref="id" pref="3"/>
+        <Property value="" ref="Accessibility" pref="4"/>
+        <Property value="//*[@name=&quot;test-CONTINUE&quot;] | //*[@content-desc=&quot;test-CONTINUE&quot;]" ref="xpath" pref="5"/>
+        <Property value="" ref="css" pref="6"/>
+        <Property value="" ref="name" pref="7"/>
+        <Property value="" ref="tagName" pref="8"/>
+        <Property value="" ref="link_text" pref="9"/>
+        <Property value="" ref="class" pref="10"/>
+      </Object>
+    </ObjectGroup>
+    <ObjectGroup ref="Sauce Labs Backpack">
+      <Object ref="Sauce Labs Backpack">
+        <Property value="" ref="UiAutomator" pref="1"/>
+        <Property value="" ref="UiAutomation" pref="2"/>
+        <Property value="" ref="id" pref="3"/>
+        <Property value="" ref="Accessibility" pref="4"/>
+        <Property value="//*[@name=&quot;Sauce Labs Backpack&quot;] | //*[@text=&quot;Sauce Labs Backpack&quot;]" ref="xpath" pref="5"/>
+        <Property value="" ref="css" pref="6"/>
+        <Property value="" ref="name" pref="7"/>
+        <Property value="" ref="tagName" pref="8"/>
+        <Property value="" ref="link_text" pref="9"/>
+        <Property value="" ref="class" pref="10"/>
+      </Object>
+    </ObjectGroup>
+    <ObjectGroup ref="Amount">
+      <Object ref="Amount">
+        <Property value="" ref="UiAutomator" pref="1"/>
+        <Property value="" ref="UiAutomation" pref="2"/>
+        <Property value="" ref="id" pref="3"/>
+        <Property value="" ref="Accessibility" pref="4"/>
+        <Property value="//*[@name=&quot;$29.99&quot;] | //*[@text=&quot;$29.99&quot;]" ref="xpath" pref="5"/>
+        <Property value="" ref="css" pref="6"/>
+        <Property value="" ref="name" pref="7"/>
+        <Property value="" ref="tagName" pref="8"/>
+        <Property value="" ref="link_text" pref="9"/>
+        <Property value="" ref="class" pref="10"/>
+      </Object>
+    </ObjectGroup>
+    <ObjectGroup ref="FINISH">
+      <Object ref="FINISH">
+        <Property value="" ref="UiAutomator" pref="1"/>
+        <Property value="" ref="UiAutomation" pref="2"/>
+        <Property value="" ref="id" pref="3"/>
+        <Property value="" ref="Accessibility" pref="4"/>
+        <Property value="//*[@content-desc='test-FINISH'] | //*[@name=&quot;test-FINISH&quot;]" ref="xpath" pref="5"/>
+        <Property value="" ref="css" pref="6"/>
+        <Property value="" ref="name" pref="7"/>
+        <Property value="" ref="tagName" pref="8"/>
+        <Property value="" ref="link_text" pref="9"/>
+        <Property value="" ref="class" pref="10"/>
+      </Object>
+    </ObjectGroup>
+    <ObjectGroup ref="Success Message">
+      <Object ref="Success Message">
+        <Property value="" ref="UiAutomator" pref="1"/>
+        <Property value="" ref="UiAutomation" pref="2"/>
+        <Property value="" ref="id" pref="3"/>
+        <Property value="" ref="Accessibility" pref="4"/>
+        <Property value="//*[@text=&quot;THANK YOU FOR YOU ORDER&quot;] | //*[@name=&quot;THANK YOU FOR YOU ORDER&quot;] " ref="xpath" pref="5"/>
+        <Property value="" ref="css" pref="6"/>
+        <Property value="" ref="name" pref="7"/>
+        <Property value="" ref="tagName" pref="8"/>
+        <Property value="" ref="link_text" pref="9"/>
+        <Property value="" ref="class" pref="10"/>
+      </Object>
+    </ObjectGroup>
+    <ObjectGroup ref="Cart1_iOS">
+      <Object ref="Cart1_iOS">
+        <Property value="" ref="UiAutomator" pref="1"/>
+        <Property value="" ref="UiAutomation" pref="2"/>
+        <Property value="" ref="id" pref="3"/>
+        <Property value="" ref="Accessibility" pref="4"/>
+        <Property value="(//XCUIElementTypeOther[@name=&quot;1&quot;])[4]" ref="xpath" pref="5"/>
+        <Property value="" ref="css" pref="6"/>
+        <Property value="" ref="name" pref="7"/>
+        <Property value="" ref="tagName" pref="8"/>
+        <Property value="" ref="link_text" pref="9"/>
+        <Property value="" ref="class" pref="10"/>
+      </Object>
+    </ObjectGroup>
+  </Page>
+</Root>

@@ -47,7 +47,7 @@ public class ObjectRenderer extends AbstractRenderer {
         switch (val) {
             case "Execute":
                 return Color.BLUE;//.darker();
-            case "App":
+            case "Mobile":
                 return Color.CYAN;//.darker();
             case "Browser":
                 return Color.RED;//.darker();
@@ -63,7 +63,7 @@ public class ObjectRenderer extends AbstractRenderer {
 
     private Boolean isValidObject(Object value) {
         return Objects.toString(value, "").trim()
-                .matches("Execute|App|Browser|Database|ProtractorJS|Webservice|File");
+                .matches("Execute|Mobile|Browser|Database|ProtractorJS|Webservice|File");
     }
 
 }

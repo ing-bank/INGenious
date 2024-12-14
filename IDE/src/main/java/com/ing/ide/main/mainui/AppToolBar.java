@@ -30,7 +30,7 @@ public class AppToolBar extends JToolBar {
      //   add(createButton("Object Spy"));
      //   add(createButton("Object Heal"));
      //   addSeparator();
-     //   add(createButton("Mobile Spy"));
+        add(createButton("Mobile Spy"));
      //   add(createButton("Image Spy"));
         addSeparator();
         add(createButton("Run Settings"));

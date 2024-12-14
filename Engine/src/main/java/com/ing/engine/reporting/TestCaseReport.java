@@ -25,6 +25,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.io.FileWriter;
 import org.json.simple.JSONObject;
+import com.ing.engine.drivers.MobileDriver;
         
 
 public final class TestCaseReport implements Report {
@@ -49,6 +50,7 @@ public final class TestCaseReport implements Report {
 
     public final DateTimeUtils startTime;
     PlaywrightDriver playwrightdriver;
+    MobileDriver mobileDriver;
 
     Step curr;
     Status currentStatus;
@@ -99,7 +101,12 @@ public final class TestCaseReport implements Report {
             handler.setDriver(driver);
         }
     }
-
+        public void setMobileDriver(MobileDriver driver) {
+        mobileDriver = driver;
+        for (TestCaseHandler handler : handlers) {
+            handler.setMobileDriver(driver);
+        }
+    }
     /**
      * updates the current step details and resolves DESCRIPTION if not
      * available
@@ -258,6 +265,10 @@ public final class TestCaseReport implements Report {
         return playwrightdriver;
     }
 
+    @Override
+    public MobileDriver getMobileDriver() {
+        return mobileDriver;
+    }
     public int getIter() {
         return iterCounter;
     }

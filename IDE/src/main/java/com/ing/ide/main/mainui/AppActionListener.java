@@ -100,9 +100,9 @@ public class AppActionListener implements ActionListener {
             }
                 break;
 
-//            case "Mobile Spy":
-//                sMainFrame.getSpyHealReco().showMobileSpy();
-//               break;
+           case "Mobile Spy":
+               sMainFrame.getSpyHealReco().showMobileSpy();
+              break;
             case "Exploratory":
             {
                 try {

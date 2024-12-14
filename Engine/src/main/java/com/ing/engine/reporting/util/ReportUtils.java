@@ -7,6 +7,7 @@ import com.ing.engine.constants.FilePath;
 import com.ing.engine.core.Control;
 import com.ing.engine.core.RunContext;
 import com.ing.engine.core.RunManager;
+import com.ing.engine.drivers.MobileDriver;
 import com.ing.engine.drivers.PlaywrightDriver;
 import java.io.File;
 import java.util.Arrays;
@@ -67,14 +68,27 @@ public class ReportUtils {
         return val;
     }
 
-    public static Boolean takeScreenshot(PlaywrightDriver playwrightdriver, String imgSrc) {
+    public static Boolean takeScreenshot(PlaywrightDriver playwrightdriver,MobileDriver mobileDriver, String imgSrc) {
         try {
+            if(playwrightdriver!=null)
+           {
             File scrFile = playwrightdriver.createScreenShot();
             if (scrFile != null) {
                 File imgFile = new File(FilePath.getCurrentResultsPath() + imgSrc);
                 FileUtils.copyFile(scrFile, imgFile, true);
                 scrFile.delete();
                 return true;
+            }
+           }
+            else if(mobileDriver!=null)
+            {
+                File scrFile = mobileDriver.createScreenShot();
+            if (scrFile != null) {
+                File imgFile = new File(FilePath.getCurrentResultsPath() + imgSrc);
+                FileUtils.copyFile(scrFile, imgFile, true);
+                scrFile.delete();
+                return true;
+            }
             }
         } catch (Exception ex) {
             Logger.getLogger(ReportUtils.class.getName()).log(Level.SEVERE, null, ex);

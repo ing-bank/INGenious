@@ -1,4 +1,3 @@
-
 package com.ing.engine.reporting.impl.handlers;
 
 import com.ing.engine.core.RunContext;
@@ -9,10 +8,11 @@ import com.ing.engine.support.Status;
 import com.ing.engine.support.Step;
 import java.io.File;
 import java.util.List;
+import com.ing.engine.drivers.MobileDriver;
 
 /**
  *
- * 
+ *
  */
 public class TestCaseHandler implements Report {
 
@@ -23,7 +23,7 @@ public class TestCaseHandler implements Report {
     }
 
     @Override
-    public void startComponent(String component,String desc) {
+    public void startComponent(String component, String desc) {
 
     }
 
@@ -47,6 +47,11 @@ public class TestCaseHandler implements Report {
         return report.getDriver();
     }
 
+    @Override
+    public MobileDriver getMobileDriver() {
+        return report.getMobileDriver();
+    }
+    
     @Override
     public String getScreenShotName() {
         return report.getScreenShotName();
@@ -90,4 +95,7 @@ public class TestCaseHandler implements Report {
 
     }
 
+    public void setMobileDriver(MobileDriver driver) {
+
+    }
 }

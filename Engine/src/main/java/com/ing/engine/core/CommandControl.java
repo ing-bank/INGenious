@@ -19,6 +19,12 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Stack;
 
+//Added For Mobile
+import com.ing.engine.drivers.MobileDriver;
+import com.ing.engine.drivers.MobileObject;
+import static com.ing.engine.reporting.reportportal.ReportPortalClient.runContext;
+import com.ing.engine.drivers.MobileObject.FindmType;
+import org.openqa.selenium.WebElement;
 
 public abstract class CommandControl {
 
@@ -41,18 +47,30 @@ public abstract class CommandControl {
     public UserDataAccess userData;
     private HashMap<String, String> runTimeVars = new HashMap<>();
     private Stack<Locator> runTimeElement = new Stack<>();
+    
+    public MobileObject MObject;
+    public MobileDriver mobileDriver;
+    public WebElement Element;
 
-    public CommandControl(PlaywrightDriver playwright, PlaywrightDriver page, PlaywrightDriver browserContext ,TestCaseReport report) {
+    public CommandControl(PlaywrightDriver playwright, PlaywrightDriver page, PlaywrightDriver browserContext ,MobileDriver driver,TestCaseReport report) {
         Playwright = playwright;
         BrowserContext = browserContext;
         Page = page;
+        mobileDriver=driver;
         userData = new UserDataAccess() {
             @Override
             public TestCaseRunner context() {
                 return (TestCaseRunner) CommandControl.this.context();
             }
         };
-        AObject = new AutomationObject(Page.page);
+        if(mobileDriver==null)
+        {
+           AObject = new AutomationObject(Page.page); 
+        }
+        else if(mobileDriver!=null)
+        {
+           MObject=new MobileObject(mobileDriver.driver); 
+        }
         Report = (TestCaseReport) report;
 
     }
@@ -64,6 +82,8 @@ public abstract class CommandControl {
     }
 
     public void sync(Step curr) throws UnCaughtException {
+        if(mobileDriver==null)
+        {
         refresh();
         //AObject.setDriver(seDriver.driver);
         this.Description = curr.Description;
@@ -96,8 +116,62 @@ public abstract class CommandControl {
             }
         }
     }
+         else
+    { 
+       refresh();
+//        mobileObject.setDriver(mobileDriver.driver);
+        this.Description = curr.Description;
+        this.Action = curr.Action;
+        this.Input = curr.Input;
+        this.Data = curr.Data;
+
+        /********** Updates the Action for NLP_locator****************/
+        MobileObject.Action = this.Action;
+        /**************************************************************/
+
+        if (curr.Condition != null && curr.Condition.length() > 0) {
+            this.Condition = curr.Condition;
+        }
+
+        if (curr.ObjectName != null && curr.ObjectName.length() > 0) {
+            this.ObjectName = curr.ObjectName.trim();
+
+            if (!(ObjectName.matches("(?i:app|browser|execute|executeclass)"))) {
+                this.Reference = curr.Reference;
+                if (!curr.Action.startsWith("img")) {
+                    if (canIFindElement()) {
+                        Element = MObject.findElement(ObjectName, Reference, FindmType.fromString(Condition));
+
+
+                    }
+                } else {
+                    imageObjectGroup = AObject.getImageObjects(Reference, ObjectName);
+                }
+            }
+        } 
+    }
+    }
 
     private Boolean canIFindElement() {
+        if(mobileDriver!=null)
+        {
+        if(mobileDriver.isAlive())
+        {
+            if (mobileDriver.getCurrentBrowser().equalsIgnoreCase("ProtractorJS")) {
+                return false;
+            } else {
+                switch (Action) {
+                    case "waitForElementToBePresent":
+                    case "setObjectProperty":
+                        return false;
+                    default:
+                        return true;
+                }
+            }
+        }
+        }
+        else
+        {
         if (Page.isAlive()) {
                 switch (Action) {
                     case "waitForElementToBePresent":
@@ -107,6 +181,7 @@ public abstract class CommandControl {
                         return true;
                 }
             
+        }
         }
         return false;
     }

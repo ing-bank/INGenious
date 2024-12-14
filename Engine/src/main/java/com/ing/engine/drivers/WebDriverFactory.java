@@ -98,14 +98,13 @@ public class WebDriverFactory {
     }
 
     public static BrowserContext createContext(Boolean isGrid, BrowserType browserType, String browserName, ProjectSettings settings, RunContext context) {
-
+        
         List<String> capabilities = getCapability(browserName, settings);
         LaunchOptions launchOptions = new LaunchOptions();
         launchOptions = addLaunchOptions(launchOptions, capabilities);
         NewContextOptions newContextOptions = new NewContextOptions();
         newContextOptions = addcontextOptions(newContextOptions, context, capabilities);
         BrowserContext browserContext = null;
-
         if (isGrid) {
             browserContext = browserType.connect("").newContext(newContextOptions);
         } else {

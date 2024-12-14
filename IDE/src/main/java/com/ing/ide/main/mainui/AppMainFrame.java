@@ -20,7 +20,7 @@ import com.ing.ide.main.dashboard.server.DashBoardManager;
 import com.ing.ide.main.mainui.components.DashBoard;
 import com.ing.ide.main.mainui.components.testdesign.TestDesign;
 import com.ing.ide.main.mainui.components.testexecution.TestExecution;
-//import com.ing.ide.main.shr.SHR;
+import com.ing.ide.main.shr.SHR;
 import com.ing.ide.main.ui.About;
 import com.ing.ide.main.ui.StartUp;
 import com.ing.ide.main.utils.LoaderScreen;
@@ -74,7 +74,7 @@ public class AppMainFrame extends JFrame {
 
     private final DashBoardManager dashBoardManager;
 
-//    private final SHR spyHealReco;
+    private final SHR spyHealReco;
 
     private final AppActionListener sActionListener;
 
@@ -118,7 +118,7 @@ public class AppMainFrame extends JFrame {
         dashBoard = new DashBoard(testExecution);
         progressed(60);
         dashBoardManager = new DashBoardManager(this);
-//        spyHealReco = new SHR(this);
+        spyHealReco = new SHR(this);
         progressed(70);
         menuBar = new AppMenuBar(sActionListener);
         toolBar = new AppToolBar(sActionListener);
@@ -246,10 +246,10 @@ public class AppMainFrame extends JFrame {
     public DashBoardManager getDashBoardManager() {
         return dashBoardManager;
     }
-//
-//    public SHR getSpyHealReco() {
-//        return spyHealReco;
-//    }
+
+   public SHR getSpyHealReco() {
+       return spyHealReco;
+   }
 
     public RecentItems getRecentItems() {
         return recentItems;
@@ -544,7 +544,7 @@ public class AppMainFrame extends JFrame {
     private void load() {
         testDesign.load();
         testExecution.load();
-//        spyHealReco.load();
+        spyHealReco.load();
     }
 
     public void save() {

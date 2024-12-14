@@ -1,7 +1,7 @@
 
 package com.ing.engine.execution.run;
 
-import com.ing.engine.commands.General;
+import com.ing.engine.commands.browser.General;
 import com.ing.engine.core.CommandControl;
 
 /**

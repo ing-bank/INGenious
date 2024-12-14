@@ -40,7 +40,7 @@ public class ConditionRenderer extends AbstractRenderer {
         switch (val) {
             case "Execute":
                 return Color.BLUE;//.darker();
-            case "App":
+            case "Mobile":
                 return Color.CYAN;//.darker();
             case "Browser":
                 return Color.RED;//.darker();

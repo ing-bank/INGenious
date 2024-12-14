@@ -20,6 +20,9 @@ import java.util.Date;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+//Added for Mobile
+import com.ing.engine.drivers.MobileDriver;
+
 public class Task implements Runnable {
 
     TestCaseReport report;
@@ -28,6 +31,7 @@ public class Task implements Runnable {
     DateTimeUtils runTime;
     UserDataAccess userData;
     TestCaseRunner runner;
+    MobileDriver mobileDriver;
 
     public Task(RunContext RC) {
         runContext = RC;
@@ -66,6 +70,7 @@ public class Task implements Runnable {
             try {
                 System.out.println("Running Iteration " + iter);
                 runIteration(iter++);
+                if(isBrowserExecution())
                 closePlaywrightInstance(iter-1);
             } catch (Exception ex) {
                 LOG.log(Level.SEVERE, ex.getMessage(), ex);
@@ -123,6 +128,35 @@ public class Task implements Runnable {
 
     public boolean runIteration(int iter) {
         boolean success = false;
+//        mobileDriver=getMobileDriver();
+//        launchEmulator();
+         if(isMobileExecution())
+        {
+            mobileDriver=getMobileDriver();
+            try {
+            SystemDefaults.reportComplete.set(true);
+            report.startIteration(iter);
+            launchEmulator();
+            SystemDefaults.stopCurrentIteration.set(false);
+            runner.run(createControl(), iter);
+            success = true;
+        } catch (DriverClosedException ex) {
+            LOG.log(Level.SEVERE, ex.getMessage(), ex);
+            report.updateTestLog("DriverClosedException", ex.getMessage(), Status.FAILNS);
+        } catch (TestFailedException ex) {
+            onFail(ex, ex.getMessage(), Status.DEBUG);
+        } catch (UnCaughtException ex) {
+            onError(ex, "Unhandled Error", ex.getMessage());
+        } catch (Throwable ex) {
+            onError(ex, "Error", ex.getMessage());
+        } finally {
+            report.endIteration(iter);
+        }
+        return success;
+
+        }
+        if(isBrowserExecution())
+        {
         playwrightDriver = getDriver();
         try {
             SystemDefaults.reportComplete.set(true);
@@ -153,17 +187,27 @@ public class Task implements Runnable {
             report.endIteration(iter);
         }
         return success;
-    }
+                }
 
+        return success;
+    }
+ 
     private void launchBrowser() throws UnCaughtException {
         if (!getRunSettings().useExistingDriver() || playwrightDriver.page == null) {
             playwrightDriver.launchDriver(runContext);
         }
         report.setDriver(playwrightDriver);
     }
+    
+        private void launchEmulator() throws UnCaughtException {
+        if (!getRunSettings().useExistingDriver() || mobileDriver.driver == null) {
+            mobileDriver.launchDriver(runContext);
+        }
+        report.setMobileDriver(mobileDriver);
+    }
 
     private CommandControl createControl() {
-        return new CommandControl(playwrightDriver, playwrightDriver, playwrightDriver, report) {
+        return new CommandControl(playwrightDriver, playwrightDriver, playwrightDriver, mobileDriver, report) {
             @Override
             public void execute(String com, int sub) {
                 runner.runTestCase(com, sub);
@@ -209,5 +253,57 @@ public class Task implements Runnable {
         }
         return seDriver;
     }
+    
+      private MobileDriver getMobileDriver() {
+        MobileDriver mobileDriver;
+        if (!getRunSettings().useExistingDriver()
+                || Control.getMobileDriver() == null) {
+            mobileDriver=new MobileDriver();
+//            mobileDriver=mobileDriver.launchDriver(runContext);
+            Control.setMobileDriver(mobileDriver);
+        } else {
+            mobileDriver = Control.getMobileDriver();
+        }
+        return mobileDriver;
+    }
+
+         public boolean isBrowserExecution() {
+        boolean isBrowserExecution = false;
+        try {
+            String browserName = runContext.BrowserName;
+            if (browserName.equals("Chromium") || browserName.equals("Webkit") || browserName.equals("Firefox")) {
+                isBrowserExecution = true;
+            }
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+        return isBrowserExecution;
+    }
+
+    public boolean isNoBrowserExecution() {
+        boolean isNoBrowserExecution = false;
+        try {
+            String browserName = runContext.BrowserName;
+            if (browserName.equals("NoBrowser")) {
+                isNoBrowserExecution = true;
+            }
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+        return isNoBrowserExecution;
+    }
+
+    public boolean isMobileExecution() {
+        boolean isMobileExecution = false;
+        try {
+            if (!isBrowserExecution() && !isNoBrowserExecution()) {
+                isMobileExecution = true;
+            }
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+        return isMobileExecution;
+    }
+
 
 }
