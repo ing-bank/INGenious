@@ -6,7 +6,6 @@ import com.ing.engine.core.Control;
 import com.ing.engine.core.RunContext;
 import com.ing.engine.reporting.util.DateTimeUtils;
 import java.io.File;
-import java.sql.SQLOutput;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Properties;

@@ -38,6 +38,12 @@ public class PlaywrightDriver {
         System.out.println("Launching " + runContext.BrowserName);
         try {
             playwright = WebDriverFactory.createPlaywright();
+            
+            if(Control.getCurrentProject().getProjectSettings().getUserDefinedSettings().containsKey("testIdAttribute"))
+            {
+             playwright.selectors().setTestIdAttribute(Control.getCurrentProject().getProjectSettings().getUserDefinedSettings().getProperty("testIdAttribute"));
+            }
+            
             BrowserType browserType = (BrowserType) WebDriverFactory.createBrowserType(playwright,runContext.BrowserName, context, Control.getCurrentProject().getProjectSettings());
             if (Control.exe.getExecSettings().getRunSettings().isGridExecution()) {
                 System.out.println("Launching Remote Driver");

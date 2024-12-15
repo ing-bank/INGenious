@@ -430,6 +430,31 @@ public class Basic extends General {
             PlaywrightExceptionLogging(e);
         }
     }
+    
+    @Action(object = ObjectType.PLAYWRIGHT, desc = "Store [<Object>] element's  CSS value  into Runtime variable: -> [<Data>]", input = InputType.YES, condition=InputType.YES)
+    public void storeElementCSSValueinVariable() {
+        
+        String cssValue = "";
+        String strObj = Input;
+        try {
+            cssValue = (String) Locator.evaluate("(element) => window.getComputetStyle(element).getPropertyValue("+Condition+")");
+            if (strObj.matches(".*:.*")) {
+                String sheetName = strObj.split(":", 2)[0];
+                String columnName = strObj.split(":", 2)[1];
+                userData.putData(sheetName, columnName, cssValue);
+                Report.updateTestLog(Action, "Element's '"+Condition+"' value [" + cssValue + "] is stored in " + strObj, Status.DONE);
+            } else {
+                Report.updateTestLog(Action,
+                        "Given input [" + Input + "] format is invalid. It should be [sheetName:ColumnName]",
+                        Status.DEBUG);
+            }
+
+        } catch (Exception ex) {
+            Logger.getLogger(JSCommands.class.getName()).log(Level.SEVERE, null, ex);
+            Report.updateTestLog(Action, "Javascript execution failed", Status.DEBUG);
+
+        }
+    }
 
     @Action(object = ObjectType.BROWSER, desc = "store variable value [<Condition>] in data sheet[<Data>]", input = InputType.YES, condition = InputType.YES)
     public void storeVariableInDataSheet() {

@@ -26,6 +26,7 @@ import java.awt.Component;
 import java.awt.Font;
 import java.awt.FontFormatException;
 import java.awt.GraphicsEnvironment;
+import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
@@ -885,7 +886,7 @@ public class ProjectTree implements ActionListener {
             return menuItem;
         }
 
-        private void setCCP() {
+        private void setCCP() {            
             TransferActionListener actionListener = new TransferActionListener();
             cut = new JMenuItem("Cut");
             cut.setActionCommand((String) TransferHandler.getCutAction().getValue(Action.NAME));
@@ -893,8 +894,8 @@ public class ProjectTree implements ActionListener {
             cut.setAccelerator(Keystroke.CUT);
             cut.setMnemonic(KeyEvent.VK_T);
             add(cut);
-
-            copy = new JMenuItem("Copy");
+            
+            copy = new JMenuItem("Copy");           
             copy.setActionCommand((String) TransferHandler.getCopyAction().getValue(Action.NAME));
             copy.addActionListener(actionListener);
             copy.setAccelerator(Keystroke.COPY);

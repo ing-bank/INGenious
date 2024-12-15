@@ -50,7 +50,7 @@ public class JSCommands extends General {
     }
     
     @Action(object = ObjectType.BROWSER, desc = "To Store value from the JavaScript command", input = InputType.YES, condition=InputType.YES)
-    public void StoreEval() {
+    public void BrowserStoreEval() {
         try {
             String variableName = Condition;
             String value = "";
@@ -66,6 +66,26 @@ public class JSCommands extends General {
             Logger.getLogger(JSCommands.class.getName()).log(Level.SEVERE, null, ex);
             Report.updateTestLog(Action, "Javascript execution failed", Status.DEBUG);
             throw new ActionException(ex);
+
+        }
+    }
+    
+    @Action(object = ObjectType.PLAYWRIGHT, desc = "To Store value from the JavaScript command on a Locator", input = InputType.YES, condition=InputType.YES)
+    public void LocatorStoreEval() {
+        try {
+            String variableName = Condition;
+            String value = "";
+            if (variableName.matches("%.*%")) {
+                value = (String) Locator.evaluate(Data);
+                addVar(variableName, value);
+                Report.updateTestLog(Action, "JS evaluated value stored", Status.DONE);
+            } else {
+                Report.updateTestLog(Action, "Variable format is not correct", Status.DEBUG);
+            }
+
+        } catch (Exception ex) {
+            Logger.getLogger(JSCommands.class.getName()).log(Level.SEVERE, null, ex);
+            Report.updateTestLog(Action, "Javascript execution failed", Status.DEBUG);
 
         }
     }

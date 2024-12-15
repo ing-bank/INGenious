@@ -7,7 +7,7 @@ import javax.swing.KeyStroke;
 
 public class Keystroke {
 
-    private static final int SHORTCUT = Toolkit.getDefaultToolkit().getMenuShortcutKeyMask();
+    private static final int SHORTCUT = Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx();
     public static final KeyStroke DELETE = KeyStroke.getKeyStroke(KeyEvent.VK_DELETE, 0),
             RENAME = KeyStroke.getKeyStroke(KeyEvent.VK_F2, 0),
             CUT = KeyStroke.getKeyStroke(KeyEvent.VK_X, SHORTCUT),
