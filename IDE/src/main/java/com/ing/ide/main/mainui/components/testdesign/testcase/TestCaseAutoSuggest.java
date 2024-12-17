@@ -167,7 +167,7 @@ public class TestCaseAutoSuggest {
 
     private boolean isRestWebservicePostStep(TestStep step) {
         return step != null && step.isWebserviceStep()
-                && (step.getAction().contains("postRest") || step.getAction().contains("putRest") || step.getAction().contains("patchRest"));
+                && (step.getAction().contains("postRest") || step.getAction().contains("putRest") || step.getAction().contains("patchRest") || step.getAction().contains("deleteWithPayload"));
     }
 
     private boolean isSetEndPointStep(TestStep step) {

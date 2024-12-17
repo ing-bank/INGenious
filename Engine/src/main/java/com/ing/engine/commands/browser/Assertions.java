@@ -8,7 +8,10 @@ import com.ing.engine.support.methodInf.Action;
 import com.ing.engine.support.methodInf.InputType;
 import com.ing.engine.support.methodInf.ObjectType;
 import com.microsoft.playwright.PlaywrightException;
+import com.microsoft.playwright.assertions.LocatorAssertions;
+import com.microsoft.playwright.assertions.PageAssertions;
 import static com.microsoft.playwright.assertions.PlaywrightAssertions.assertThat;
+import com.microsoft.playwright.options.AriaRole;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
@@ -31,8 +34,29 @@ public class Assertions extends General {
     public void assertElementContainsText() {
         String text = "";
         try {
+            LocatorAssertions.ContainsTextOptions options = new LocatorAssertions.ContainsTextOptions();
+            options.setTimeout(getTimeoutValue());
+            assertThat(Locator).containsText(Data,options);
             text = Locator.textContent();
-            assertThat(Locator).containsText(Data);
+            highlightElement();
+            Report.updateTestLog(Action, "Element [" + ObjectName + "] contains text '" + Data + "'", Status.PASS);
+            removeHighlightFromElement();
+        } catch (PlaywrightException e) {
+            PlaywrightExceptionLogging(e);
+        } catch (AssertionFailedError err) {
+            assertionLogging(err, "[" + ObjectName + "] does not contain text '" + Data + "'. Actual text is '" + text + "'");
+        }
+    }
+    
+    @Action(object = ObjectType.PLAYWRIGHT, desc = "Assert if [<Object>] contains the text [<Data>]", input = InputType.YES)
+    public void assertElementContainsTextIgnoreCase() {
+        String text = "";
+        try {
+            LocatorAssertions.ContainsTextOptions options = new LocatorAssertions.ContainsTextOptions();
+            options.setTimeout(getTimeoutValue());
+            options.setIgnoreCase(true);
+            assertThat(Locator).containsText(Data,options);
+            text = Locator.textContent();
             highlightElement();
             Report.updateTestLog(Action, "Element [" + ObjectName + "] contains text '" + Data + "'", Status.PASS);
             removeHighlightFromElement();
@@ -47,8 +71,10 @@ public class Assertions extends General {
     public void assertElementNotContainsText() {
         String text = "";
         try {
+            LocatorAssertions.ContainsTextOptions options = new LocatorAssertions.ContainsTextOptions();
+            options.setTimeout(getTimeoutValue());
+            assertThat(Locator).not().containsText(Data,options);
             text = Locator.textContent();
-            assertThat(Locator).not().containsText(Data);
             highlightElement();
             Report.updateTestLog(Action, "Element [" + ObjectName + "] dos not contain text '" + Data + "'. Actual text is '" + text + "'", Status.PASS);
             removeHighlightFromElement();
@@ -62,14 +88,55 @@ public class Assertions extends General {
     /**
      * * Assertion for 'Attribute' **
      */
+    
+    @Action(object = ObjectType.PLAYWRIGHT, desc = "Assert if [<Object>] has Accessible Description [<Data>]", input = InputType.YES)
+    public void assertElementHasAccessibleDescription() {
+
+        try {
+            LocatorAssertions.HasAccessibleDescriptionOptions options = new LocatorAssertions.HasAccessibleDescriptionOptions();
+            options.setTimeout(getTimeoutValue());
+            assertThat(Locator).hasAccessibleDescription(Data,options);
+            highlightElement();
+            Report.updateTestLog(Action, "Element [" + ObjectName + "] has Accessible Description '" + Data + "'", Status.PASS);
+            removeHighlightFromElement();
+        } catch (PlaywrightException e) {
+            PlaywrightExceptionLogging(e);
+        } catch (AssertionFailedError err) {
+            assertionLogging(err, "[" + ObjectName + "] does not contain expected Accessible Description");
+        }
+    }
+    
+    @Action(object = ObjectType.PLAYWRIGHT, desc = "Assert if [<Object>] has Accessible Name [<Data>]", input = InputType.YES)
+    public void assertElementHasAccessibleName() {
+
+        try {
+            LocatorAssertions.HasAccessibleNameOptions options = new LocatorAssertions.HasAccessibleNameOptions();
+            options.setTimeout(getTimeoutValue());
+            assertThat(Locator).hasAccessibleName(Data,options);
+            highlightElement();
+            Report.updateTestLog(Action, "Element [" + ObjectName + "] has Accessible Name '" + Data + "'", Status.PASS);
+            removeHighlightFromElement();
+        } catch (PlaywrightException e) {
+            PlaywrightExceptionLogging(e);
+        } catch (AssertionFailedError err) {
+            assertionLogging(err, "[" + ObjectName + "] does not contain expected Accessible Name");
+        }
+    }
+    
+    /**
+     * * Assertion for 'Attribute' **
+     */
+    
     @Action(object = ObjectType.PLAYWRIGHT, desc = "Assert if [<Object>] has the attribute [<Data>]", input = InputType.YES)
     public void assertElementAttributeMatches() {
         String attributeName = Data.split("=")[0];
         String attributeValue = Data.split("=")[1];
         String actualattributeValue = "";
         try {
+            LocatorAssertions.HasAttributeOptions options = new LocatorAssertions.HasAttributeOptions();
+            options.setTimeout(getTimeoutValue());
+            assertThat(Locator).hasAttribute(attributeName, attributeValue,options);
             actualattributeValue = Locator.getAttribute(attributeName);
-            assertThat(Locator).hasAttribute(attributeName, attributeValue);
             highlightElement();
             Report.updateTestLog(Action, "Element [" + ObjectName + "] has attribute '" + attributeName + "' with value '" + attributeValue + "'", Status.PASS);
             removeHighlightFromElement();
@@ -86,8 +153,10 @@ public class Assertions extends General {
         String attributeValue = Data.split("=")[1];
         String actualAttributeValue = "";
         try {
+            LocatorAssertions.HasAttributeOptions options = new LocatorAssertions.HasAttributeOptions();
+            options.setTimeout(getTimeoutValue());
+            assertThat(Locator).not().hasAttribute(attributeName, attributeValue, options);
             actualAttributeValue = Locator.getAttribute(attributeName);
-            assertThat(Locator).not().hasAttribute(attributeName, attributeValue);
             highlightElement();
             Report.updateTestLog(Action, "Element [" + ObjectName + "] does not have attribute '" + attributeName + "' with value '" + attributeValue + "'. Actual value is '" + actualAttributeValue + "'", Status.PASS);
             removeHighlightFromElement();
@@ -105,8 +174,10 @@ public class Assertions extends General {
     public void assertElementClassMatches() {
         String actualClassValue = "";
         try {
+            LocatorAssertions.HasClassOptions options = new LocatorAssertions.HasClassOptions();
+            options.setTimeout(getTimeoutValue());
+            assertThat(Locator).hasClass(Pattern.compile(Data),options);
             actualClassValue = Locator.getAttribute("class");
-            assertThat(Locator).hasClass(Pattern.compile(Data));
             highlightElement();
             Report.updateTestLog(Action, "[" + ObjectName + "] has 'class' matching '" + Data + "'", Status.PASS);
             removeHighlightFromElement();
@@ -121,8 +192,10 @@ public class Assertions extends General {
     public void assertElementClassNotMatches() {
         String actualClassValue = "";
         try {
+            LocatorAssertions.HasClassOptions options = new LocatorAssertions.HasClassOptions();
+            options.setTimeout(getTimeoutValue());
+            assertThat(Locator).not().hasClass(Pattern.compile(Data),options);
             actualClassValue = Locator.getAttribute("class");
-            assertThat(Locator).not().hasClass(Pattern.compile(Data));
             highlightElement();
             Report.updateTestLog(Action, "[" + ObjectName + "] does not have 'class' matching '" + Data + "'. Actual value is '" + actualClassValue + "'", Status.PASS);
             removeHighlightFromElement();
@@ -140,8 +213,10 @@ public class Assertions extends General {
     public void assertElementCountMatches() {
         int elementCount = 0;
         try {
+            LocatorAssertions.HasCountOptions options = new LocatorAssertions.HasCountOptions();
+            options.setTimeout(getTimeoutValue());
+            assertThat(Locator).hasCount(Integer.parseInt(Data),options);
             elementCount = Locator.count();
-            assertThat(Locator).hasCount(Integer.parseInt(Data));
             Report.updateTestLog(Action, "[" + ObjectName + "] count matches '" + Data + "'", Status.PASS);
         } catch (PlaywrightException e) {
             PlaywrightExceptionLogging(e);
@@ -154,8 +229,10 @@ public class Assertions extends General {
     public void assertElementCountNotMatches() {
         int elementCount = 0;
         try {
+            LocatorAssertions.HasCountOptions options = new LocatorAssertions.HasCountOptions();
+            options.setTimeout(getTimeoutValue());
+            assertThat(Locator).not().hasCount(Integer.parseInt(Data),options);
             elementCount = Locator.count();
-            assertThat(Locator).not().hasCount(Integer.parseInt(Data));
             Report.updateTestLog(Action, "[" + ObjectName + "] count does not match '" + Data + "'. Actual count is +'" + elementCount + "'", Status.PASS);
         } catch (PlaywrightException e) {
             PlaywrightExceptionLogging(e);
@@ -169,17 +246,21 @@ public class Assertions extends General {
      */
     @Action(object = ObjectType.PLAYWRIGHT, desc = "Assert if [<Object>] has the CSS [<Data>]", input = InputType.YES)
     public void assertElementCSSMatches() {
-        String attributeName = Data.split("=")[0];
-        String attributeValue = Data.split("=")[1];
+        String attributeName = Data.split("=",2)[0];
+        String attributeValue = Data.split("=",2)[1];
+        String value = "";
         try {
-            assertThat(Locator).hasCSS(attributeName, attributeValue);
+            LocatorAssertions.HasCSSOptions options = new LocatorAssertions.HasCSSOptions();
+            options.setTimeout(getTimeoutValue());
+            assertThat(Locator).hasCSS(attributeName, attributeValue, options);
+            value = (String) Locator.evaluate("(element) => window.getComputetStyle(element).getPropertyValue("+attributeName+")");
             highlightElement();
             Report.updateTestLog(Action, "[" + ObjectName + "] has CSS attribute '" + attributeName + "' with value '" + attributeValue + "'", Status.PASS);
             removeHighlightFromElement();
         } catch (PlaywrightException e) {
             PlaywrightExceptionLogging(e);
         } catch (AssertionFailedError err) {
-            assertionLogging(err, "[" + ObjectName + "] does not have CSS attribute '" + attributeName + "' with value '" + attributeValue + "'");
+            assertionLogging(err, "[" + ObjectName + "] does not have CSS attribute '" + attributeName + "' with value '" + attributeValue + "'. Actual value is '"+value+"'");
         }
     }
 
@@ -187,10 +268,14 @@ public class Assertions extends General {
     public void assertElementCSSNotMatches() {
         String attributeName = Data.split("=")[0];
         String attributeValue = Data.split("=")[1];
+        String value = "";
         try {
-            assertThat(Locator).not().hasCSS(attributeName, attributeValue);
+            LocatorAssertions.HasCSSOptions options = new LocatorAssertions.HasCSSOptions();
+            options.setTimeout(getTimeoutValue());
+            assertThat(Locator).not().hasCSS(attributeName, attributeValue, options);
+            value = (String) Locator.evaluate("(element) => window.getComputetStyle(element).getPropertyValue("+attributeName+")");
             highlightElement();
-            Report.updateTestLog(Action, "[" + ObjectName + "] does not have CSS attribute '" + attributeName + "' with value '" + attributeValue + "'", Status.PASS);
+            Report.updateTestLog(Action, "[" + ObjectName + "] does not have CSS attribute '" + attributeName + "' with value '" + attributeValue + "'. Actual value is '"+value+"'", Status.PASS);
             removeHighlightFromElement();
         } catch (PlaywrightException e) {
             PlaywrightExceptionLogging(e);
@@ -206,8 +291,10 @@ public class Assertions extends General {
     public void assertElementIdMatches() {
         String actualIdValue = "";
         try {
+            LocatorAssertions.HasIdOptions options = new LocatorAssertions.HasIdOptions();
+            options.setTimeout(getTimeoutValue());         
+            assertThat(Locator).hasId(Pattern.compile(Data),options);
             actualIdValue = Locator.getAttribute("id");
-            assertThat(Locator).hasId(Pattern.compile(Data));
             highlightElement();
             Report.updateTestLog(Action, "[" + ObjectName + "] has 'ID' matching '" + Data + "'", Status.PASS);
             removeHighlightFromElement();
@@ -222,8 +309,10 @@ public class Assertions extends General {
     public void assertElementIdNotMatches() {
         String actualIdValue = "";
         try {
+            LocatorAssertions.HasIdOptions options = new LocatorAssertions.HasIdOptions();
+            options.setTimeout(getTimeoutValue());            
+            assertThat(Locator).not().hasId(Pattern.compile(Data),options);
             actualIdValue = Locator.getAttribute("id");
-            assertThat(Locator).not().hasId(Pattern.compile(Data));
             highlightElement();
             Report.updateTestLog(Action, "[" + ObjectName + "] does not have 'ID' matching '" + Data + "'. Actual value is '" + actualIdValue + "'", Status.PASS);
             removeHighlightFromElement();
@@ -242,7 +331,9 @@ public class Assertions extends General {
         String attributeName = Data.split("=")[0];
         String attributeValue = Data.split("=")[1];
         try {
-            assertThat(Locator).hasJSProperty(attributeName, attributeValue);
+            LocatorAssertions.HasJSPropertyOptions options = new LocatorAssertions.HasJSPropertyOptions();
+            options.setTimeout(getTimeoutValue());        
+            assertThat(Locator).hasJSProperty(attributeName, attributeValue, options);
             highlightElement();
             Report.updateTestLog(Action, "[" + ObjectName + "] has JS Property attribute '" + attributeName + "' with value '" + attributeValue + "'", Status.PASS);
             removeHighlightFromElement();
@@ -258,7 +349,9 @@ public class Assertions extends General {
         String attributeName = Data.split("=")[0];
         String attributeValue = Data.split("=")[1];
         try {
-            assertThat(Locator).not().hasJSProperty(attributeName, attributeValue);
+            LocatorAssertions.HasJSPropertyOptions options = new LocatorAssertions.HasJSPropertyOptions();
+            options.setTimeout(getTimeoutValue());    
+            assertThat(Locator).not().hasJSProperty(attributeName, attributeValue, options);
             highlightElement();
             Report.updateTestLog(Action, "[" + ObjectName + "] does not have JS Property attribute '" + attributeName + "' with value '" + attributeValue + "'", Status.PASS);
             removeHighlightFromElement();
@@ -268,7 +361,44 @@ public class Assertions extends General {
             assertionLogging(err, "[" + ObjectName + "] has JS Property attribute '" + attributeName + "' with value '" + attributeValue + "'");
         }
     }
+    
+    /**
+     * * Assertion for 'Role' **
+     */
 
+    @Action(object = ObjectType.PLAYWRIGHT, desc = "Assert if [<Object>] has Role [<Data>]", input = InputType.YES)
+    public void assertElementRoleMatches() {
+        String actualIdValue = "";
+        try {
+            LocatorAssertions.HasRoleOptions options = new LocatorAssertions.HasRoleOptions();
+            options.setTimeout(getTimeoutValue());         
+            assertThat(Locator).hasRole(AriaRole.valueOf(Data.toUpperCase()),options);
+            highlightElement();
+            Report.updateTestLog(Action, "[" + ObjectName + "] has 'Role' matching '" + Data + "'", Status.PASS);
+            removeHighlightFromElement();
+        } catch (PlaywrightException e) {
+            PlaywrightExceptionLogging(e);
+        } catch (AssertionFailedError err) {
+            assertionLogging(err, "[" + ObjectName + "] does not have 'Role' matching '" + Data + "'. Actual value is '" + actualIdValue + "'");
+        }
+    }
+
+    @Action(object = ObjectType.PLAYWRIGHT, desc = "Assert if [<Object>] does not have Role [<Data>]", input = InputType.YES)
+    public void assertElementRoleNotMatches() {
+        try {
+            LocatorAssertions.HasRoleOptions options = new LocatorAssertions.HasRoleOptions();
+            options.setTimeout(getTimeoutValue());      
+            assertThat(Locator).not().hasRole(AriaRole.valueOf(Data.toUpperCase()),options);
+            highlightElement();
+            Report.updateTestLog(Action, "[" + ObjectName + "] does not have 'Role' matching '" + Data + "'", Status.PASS);
+            removeHighlightFromElement();
+        } catch (PlaywrightException e) {
+            PlaywrightExceptionLogging(e);
+        } catch (AssertionFailedError err) {
+            assertionLogging(err, "[" + ObjectName + "] has 'Role' matching '" + Data + "'");
+        }
+    }
+    
     /**
      * * Assertion for 'Text' **
      */
@@ -276,8 +406,10 @@ public class Assertions extends General {
     public void assertElementTextMatches() {
         String text = "";
         try {
+            LocatorAssertions.HasTextOptions options = new LocatorAssertions.HasTextOptions();
+            options.setTimeout(getTimeoutValue());      
+            assertThat(Locator).hasText(Pattern.compile(Data),options);
             text = Locator.textContent();
-            assertThat(Locator).hasText(Pattern.compile(Data));
             highlightElement();
             Report.updateTestLog(Action, "[" + ObjectName + "] has text '" + Data + "'", Status.PASS);
             removeHighlightFromElement();
@@ -292,8 +424,10 @@ public class Assertions extends General {
     public void assertElementTextNotMatches() {
         String text = "";
         try {
+            LocatorAssertions.HasTextOptions options = new LocatorAssertions.HasTextOptions();
+            options.setTimeout(getTimeoutValue());  
+            assertThat(Locator).not().hasText(Pattern.compile(Data),options);
             text = Locator.textContent();
-            assertThat(Locator).not().hasText(Pattern.compile(Data));
             highlightElement();
             Report.updateTestLog(Action, "[" + ObjectName + "] does not have text '" + Data + "'. Actual text is '" + text + "'", Status.PASS);
             removeHighlightFromElement();
@@ -312,8 +446,10 @@ public class Assertions extends General {
 
         String value = "";
         try {
+            LocatorAssertions.HasValueOptions options = new LocatorAssertions.HasValueOptions();
+            options.setTimeout(getTimeoutValue());      
+            assertThat(Locator).hasValue(Pattern.compile(Data),options);
             value = Locator.getAttribute("value");
-            assertThat(Locator).hasValue(Pattern.compile(Data));
             highlightElement();
             Report.updateTestLog(Action, "[" + ObjectName + "] has value '" + Data + "'", Status.PASS);
             removeHighlightFromElement();
@@ -329,8 +465,10 @@ public class Assertions extends General {
 
         String value = "";
         try {
+            LocatorAssertions.HasValueOptions options = new LocatorAssertions.HasValueOptions();
+            options.setTimeout(getTimeoutValue());   
+            assertThat(Locator).not().hasValue(Pattern.compile(Data),options);
             value = Locator.getAttribute("value");
-            assertThat(Locator).not().hasValue(Pattern.compile(Data));
             highlightElement();
             Report.updateTestLog(Action, "[" + ObjectName + "] does not have value '" + Data + "'. Actual value is '" + value + "'", Status.PASS);
             removeHighlightFromElement();
@@ -344,12 +482,14 @@ public class Assertions extends General {
     @Action(object = ObjectType.PLAYWRIGHT, desc = "Assert if [<Object>] has values [<Data>]", input = InputType.YES)
     public void assertElementValuesMatch() {
         try {
+            LocatorAssertions.HasValuesOptions options = new LocatorAssertions.HasValuesOptions();
+            options.setTimeout(getTimeoutValue()); 
             String values[] = Data.split("=");
             Pattern[] pattern = new Pattern[values.length];
             for (int i = 0; i < values.length; i++) {
                 pattern[i] = Pattern.compile(values[i]);
             }
-            assertThat(Locator).hasValues(pattern);
+            assertThat(Locator).hasValues(pattern,options);
             highlightElement();
             Report.updateTestLog(Action, "[" + ObjectName + "] has values '" + Data + "'", Status.PASS);
             removeHighlightFromElement();
@@ -363,12 +503,14 @@ public class Assertions extends General {
     @Action(object = ObjectType.PLAYWRIGHT, desc = "Assert if [<Object>] does not have values [<Data>]", input = InputType.YES)
     public void assertElementValuesNotMatch() {
         try {
+            LocatorAssertions.HasValuesOptions options = new LocatorAssertions.HasValuesOptions();
+            options.setTimeout(getTimeoutValue()); 
             String values[] = Data.split("=");
             Pattern[] pattern = new Pattern[values.length];
             for (int i = 0; i < values.length; i++) {
                 pattern[i] = Pattern.compile(values[i]);
             }
-            assertThat(Locator).not().hasValues(pattern);
+            assertThat(Locator).not().hasValues(pattern,options);
             highlightElement();
             Report.updateTestLog(Action, "[" + ObjectName + "] does not have values '" + Data + "'", Status.PASS);
             removeHighlightFromElement();
@@ -385,7 +527,9 @@ public class Assertions extends General {
     @Action(object = ObjectType.PLAYWRIGHT, desc = "Assert if [<Object>] points to an attached DOM node")
     public void assertElementIsAttached() {
         try {
-            assertThat(Locator).isAttached();
+            LocatorAssertions.IsAttachedOptions options = new LocatorAssertions.IsAttachedOptions();
+            options.setTimeout(getTimeoutValue()); 
+            assertThat(Locator).isAttached(options);
             highlightElement();
             Report.updateTestLog(Action, "[" + ObjectName + "] is attached to the DOM", Status.PASS);
             removeHighlightFromElement();
@@ -399,7 +543,9 @@ public class Assertions extends General {
     @Action(object = ObjectType.PLAYWRIGHT, desc = "Assert if [<Object>] does not point to an attached DOM node")
     public void assertElementIsNotAttached() {
         try {
-            assertThat(Locator).not().isAttached();
+            LocatorAssertions.IsAttachedOptions options = new LocatorAssertions.IsAttachedOptions();
+            options.setTimeout(getTimeoutValue()); 
+            assertThat(Locator).not().isAttached(options);
             Report.updateTestLog(Action, "[" + ObjectName + "] is not attached to the DOM", Status.PASS);
         } catch (PlaywrightException e) {
             PlaywrightExceptionLogging(e);
@@ -411,7 +557,9 @@ public class Assertions extends General {
     @Action(object = ObjectType.PLAYWRIGHT, desc = "Assert if [<Object>] is checked")
     public void assertElementIsChecked() {
         try {
-            assertThat(Locator).isChecked();
+            LocatorAssertions.IsCheckedOptions options = new LocatorAssertions.IsCheckedOptions();
+            options.setTimeout(getTimeoutValue()); 
+            assertThat(Locator).isChecked(options);
             highlightElement();
             Report.updateTestLog(Action, "[" + ObjectName + "] is checked", Status.PASS);
             removeHighlightFromElement();
@@ -425,7 +573,9 @@ public class Assertions extends General {
     @Action(object = ObjectType.PLAYWRIGHT, desc = "Assert if [<Object>] is not checked")
     public void assertElementIsNotChecked() {
         try {
-            assertThat(Locator).not().isChecked();
+            LocatorAssertions.IsCheckedOptions options = new LocatorAssertions.IsCheckedOptions();
+            options.setTimeout(getTimeoutValue()); 
+            assertThat(Locator).not().isChecked(options);
             Report.updateTestLog(Action, "[" + ObjectName + "] is not checked", Status.PASS);
         } catch (PlaywrightException e) {
             PlaywrightExceptionLogging(e);
@@ -437,7 +587,9 @@ public class Assertions extends General {
     @Action(object = ObjectType.PLAYWRIGHT, desc = "Assert if [<Object>] is disabled")
     public void assertElementIsDisabled() {
         try {
-            assertThat(Locator).isDisabled();
+            LocatorAssertions.IsDisabledOptions options = new LocatorAssertions.IsDisabledOptions();
+            options.setTimeout(getTimeoutValue());
+            assertThat(Locator).isDisabled(options);
             highlightElement();
             Report.updateTestLog(Action, "[" + ObjectName + "] is disabled", Status.PASS);
             removeHighlightFromElement();
@@ -451,7 +603,9 @@ public class Assertions extends General {
     @Action(object = ObjectType.PLAYWRIGHT, desc = "Assert if [<Object>] is not disabled")
     public void assertElementIsNotDisabled() {
         try {
-            assertThat(Locator).not().isDisabled();
+            LocatorAssertions.IsDisabledOptions options = new LocatorAssertions.IsDisabledOptions();
+            options.setTimeout(getTimeoutValue());
+            assertThat(Locator).not().isDisabled(options);
             Report.updateTestLog(Action, "[" + ObjectName + "] is not disabled", Status.PASS);
         } catch (PlaywrightException e) {
             PlaywrightExceptionLogging(e);
@@ -463,7 +617,9 @@ public class Assertions extends General {
     @Action(object = ObjectType.PLAYWRIGHT, desc = "Assert if [<Object>] is editable")
     public void assertElementIsEditable() {
         try {
-            assertThat(Locator).isEditable();
+            LocatorAssertions.IsEditableOptions options = new LocatorAssertions.IsEditableOptions();
+            options.setTimeout(getTimeoutValue());
+            assertThat(Locator).isEditable(options);
             highlightElement();
             Report.updateTestLog(Action, "[" + ObjectName + "] is editable", Status.PASS);
             removeHighlightFromElement();
@@ -477,7 +633,9 @@ public class Assertions extends General {
     @Action(object = ObjectType.PLAYWRIGHT, desc = "Assert if [<Object>] is not editable")
     public void assertElementIsNotEditable() {
         try {
-            assertThat(Locator).not().isEditable();
+            LocatorAssertions.IsEditableOptions options = new LocatorAssertions.IsEditableOptions();
+            options.setTimeout(getTimeoutValue());
+            assertThat(Locator).not().isEditable(options);
             Report.updateTestLog(Action, "[" + ObjectName + "] is not editable", Status.PASS);
         } catch (PlaywrightException e) {
             PlaywrightExceptionLogging(e);
@@ -489,7 +647,9 @@ public class Assertions extends General {
     @Action(object = ObjectType.PLAYWRIGHT, desc = "Assert if [<Object>] is empty")
     public void assertElementIsEmpty() {
         try {
-            assertThat(Locator).isEmpty();
+            LocatorAssertions.IsEmptyOptions options = new LocatorAssertions.IsEmptyOptions();
+            options.setTimeout(getTimeoutValue());
+            assertThat(Locator).isEmpty(options);
             highlightElement();
             Report.updateTestLog(Action, "[" + ObjectName + "] is empty", Status.PASS);
             removeHighlightFromElement();
@@ -503,7 +663,9 @@ public class Assertions extends General {
     @Action(object = ObjectType.PLAYWRIGHT, desc = "Assert if [<Object>] is not empty")
     public void assertElementIsNotEmpty() {
         try {
-            assertThat(Locator).not().isEmpty();
+            LocatorAssertions.IsEmptyOptions options = new LocatorAssertions.IsEmptyOptions();
+            options.setTimeout(getTimeoutValue());
+            assertThat(Locator).not().isEmpty(options);
             Report.updateTestLog(Action, "[" + ObjectName + "] is not empty", Status.PASS);
         } catch (PlaywrightException e) {
             PlaywrightExceptionLogging(e);
@@ -515,7 +677,9 @@ public class Assertions extends General {
     @Action(object = ObjectType.PLAYWRIGHT, desc = "Assert if [<Object>] is enabled")
     public void assertElementIsEnabled() {
         try {
-            assertThat(Locator).isEnabled();
+            LocatorAssertions.IsEnabledOptions options = new LocatorAssertions.IsEnabledOptions();
+            options.setTimeout(getTimeoutValue());
+            assertThat(Locator).isEnabled(options);
             highlightElement();
             Report.updateTestLog(Action, "[" + ObjectName + "] is enabled", Status.PASS);
             removeHighlightFromElement();
@@ -529,7 +693,9 @@ public class Assertions extends General {
     @Action(object = ObjectType.PLAYWRIGHT, desc = "Assert if [<Object>] is not enabled")
     public void assertElementIsNotEnabled() {
         try {
-            assertThat(Locator).not().isEnabled();
+            LocatorAssertions.IsEnabledOptions options = new LocatorAssertions.IsEnabledOptions();
+            options.setTimeout(getTimeoutValue());
+            assertThat(Locator).not().isEnabled(options);
             Report.updateTestLog(Action, "[" + ObjectName + "] is not enabled", Status.PASS);
         } catch (PlaywrightException e) {
             PlaywrightExceptionLogging(e);
@@ -541,7 +707,9 @@ public class Assertions extends General {
     @Action(object = ObjectType.PLAYWRIGHT, desc = "Assert if [<Object>] is focused")
     public void assertElementIsFocused() {
         try {
-            assertThat(Locator).isFocused();
+            LocatorAssertions.IsFocusedOptions options = new LocatorAssertions.IsFocusedOptions();
+            options.setTimeout(getTimeoutValue());
+            assertThat(Locator).isFocused(options);
             highlightElement();
             Report.updateTestLog(Action, "[" + ObjectName + "] is focused", Status.PASS);
             removeHighlightFromElement();
@@ -555,7 +723,9 @@ public class Assertions extends General {
     @Action(object = ObjectType.PLAYWRIGHT, desc = "Assert if [<Object>] is not focused")
     public void assertElementIsNotFocused() {
         try {
-            assertThat(Locator).not().isFocused();
+            LocatorAssertions.IsFocusedOptions options = new LocatorAssertions.IsFocusedOptions();
+            options.setTimeout(getTimeoutValue());
+            assertThat(Locator).not().isFocused(options);
             Report.updateTestLog(Action, "[" + ObjectName + "] is not focused", Status.PASS);
         } catch (PlaywrightException e) {
             PlaywrightExceptionLogging(e);
@@ -567,7 +737,9 @@ public class Assertions extends General {
     @Action(object = ObjectType.PLAYWRIGHT, desc = "Assert if [<Object>] is hidden")
     public void assertElementIsHidden() {
         try {
-            assertThat(Locator).isHidden();
+            LocatorAssertions.IsHiddenOptions options = new LocatorAssertions.IsHiddenOptions();
+            options.setTimeout(getTimeoutValue());
+            assertThat(Locator).isHidden(options);
             Report.updateTestLog(Action, "[" + ObjectName + "] is hidden", Status.PASS);
         } catch (PlaywrightException e) {
             PlaywrightExceptionLogging(e);
@@ -579,7 +751,9 @@ public class Assertions extends General {
     @Action(object = ObjectType.PLAYWRIGHT, desc = "Assert if [<Object>] is not hidden")
     public void assertElementIsNotHidden() {
         try {
-            assertThat(Locator).not().isHidden();
+            LocatorAssertions.IsHiddenOptions options = new LocatorAssertions.IsHiddenOptions();
+            options.setTimeout(getTimeoutValue());
+            assertThat(Locator).not().isHidden(options);
             Report.updateTestLog(Action, "[" + ObjectName + "] is not hidden", Status.PASS);
         } catch (PlaywrightException e) {
             PlaywrightExceptionLogging(e);
@@ -591,7 +765,9 @@ public class Assertions extends General {
     @Action(object = ObjectType.PLAYWRIGHT, desc = "Assert if [<Object>] is in viewport")
     public void assertElementIsInViewport() {
         try {
-            assertThat(Locator).isInViewport();
+            LocatorAssertions.IsInViewportOptions options = new LocatorAssertions.IsInViewportOptions();
+            options.setTimeout(getTimeoutValue()); 
+            assertThat(Locator).isInViewport(options);
             highlightElement();
             Report.updateTestLog(Action, "[" + ObjectName + "] is in viewport", Status.PASS);
             removeHighlightFromElement();
@@ -605,7 +781,9 @@ public class Assertions extends General {
     @Action(object = ObjectType.PLAYWRIGHT, desc = "Assert if [<Object>] is not in viewport")
     public void assertElementIsNotInViewport() {
         try {
-            assertThat(Locator).not().isInViewport();
+            LocatorAssertions.IsInViewportOptions options = new LocatorAssertions.IsInViewportOptions();
+            options.setTimeout(getTimeoutValue());            
+            assertThat(Locator).not().isInViewport(options);
             Report.updateTestLog(Action, "[" + ObjectName + "] is not in viewport", Status.PASS);
         } catch (PlaywrightException e) {
             PlaywrightExceptionLogging(e);
@@ -617,7 +795,9 @@ public class Assertions extends General {
     @Action(object = ObjectType.PLAYWRIGHT, desc = "Assert if [<Object>] is visible")
     public void assertElementIsVisible() {
         try {
-            assertThat(Locator).isVisible();
+            LocatorAssertions.IsVisibleOptions options = new LocatorAssertions.IsVisibleOptions();
+            options.setTimeout(getTimeoutValue());              
+            assertThat(Locator).isVisible(options);
             highlightElement();
             Report.updateTestLog(Action, "[" + ObjectName + "] is visible", Status.PASS);
             removeHighlightFromElement();
@@ -631,7 +811,9 @@ public class Assertions extends General {
     @Action(object = ObjectType.PLAYWRIGHT, desc = "Assert if [<Object>] is not visible")
     public void assertElementIsNotVisible() {
         try {
-            assertThat(Locator).not().isVisible();
+            LocatorAssertions.IsVisibleOptions options = new LocatorAssertions.IsVisibleOptions();
+            options.setTimeout(getTimeoutValue());             
+            assertThat(Locator).not().isVisible(options);
             Report.updateTestLog(Action, "[" + ObjectName + "] is not visible", Status.PASS);
         } catch (PlaywrightException e) {
             PlaywrightExceptionLogging(e);
@@ -647,7 +829,9 @@ public class Assertions extends General {
     public void assertPageTitleMatches() {
 
         try {
-            assertThat(Page).hasTitle(Pattern.compile(Data));
+            PageAssertions.HasTitleOptions options = new PageAssertions.HasTitleOptions();
+            options.setTimeout(getTimeoutValue()); 
+            assertThat(Page).hasTitle(Pattern.compile(Data),options);
             Report.updateTestLog(Action, "Page has title matching '" + Data + "'", Status.PASS);
         } catch (AssertionFailedError e) {
             Logger.getLogger(this.getClass().getName()).log(Level.OFF, null, e);
@@ -661,7 +845,9 @@ public class Assertions extends General {
     public void assertPageURLMatches() {
 
         try {
-            assertThat(Page).hasURL(Pattern.compile(Data));
+            PageAssertions.HasURLOptions options = new PageAssertions.HasURLOptions();
+            options.setTimeout(getTimeoutValue()); 
+            assertThat(Page).hasURL(Pattern.compile(Data),options);
             Report.updateTestLog(Action, "Page has URL matching '" + Data + "'", Status.PASS);
         } catch (AssertionFailedError e) {
             Logger.getLogger(this.getClass().getName()).log(Level.OFF, null, e);
@@ -745,5 +931,19 @@ public class Assertions extends General {
 
     private void removeHighlightFromElement() {
         Locator.evaluate("element => element.style.outline = ''");
+    }
+    
+    private double getTimeoutValue(){
+      double timeout = 5000;
+      if(Condition != null || !Condition.isEmpty())
+      {
+        try {
+             timeout = Double.parseDouble(Condition.trim());   
+         } catch (NumberFormatException e) {
+             Report.updateTestLog(Action,
+                        "'"+Condition+"' cannot be converted to timeout of type Double", Status.DEBUG);
+         }
+      }
+      return timeout;
     }
 }

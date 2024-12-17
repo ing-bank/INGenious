@@ -17,9 +17,13 @@ public class Switch extends Command {
     @Action(object = ObjectType.PLAYWRIGHT, desc = "Switch to new Page", input = InputType.NO)
     public void clickAndSwitchToNewPage() {
         try {
-            Page popup = Page.waitForPopup(() -> {
+            Page.WaitForPopupOptions options = new Page.WaitForPopupOptions();
+            options.setTimeout(getTimeoutValue());
+            
+            Page popup = Page.waitForPopup(options, () -> { 
                 Locator.click();
             });
+            
             BrowserContext = popup.context();
             AObject.setPage(popup);
             Page = popup;
@@ -35,8 +39,10 @@ public class Switch extends Command {
     @Action(object = ObjectType.BROWSER, desc = "Switch to new Page", input = InputType.YES)
     public void createAndSwitchToNewPage() {
         try {
+            Page.NavigateOptions options = new Page.NavigateOptions();
+            options.setTimeout(getTimeoutValue());
             Page page = BrowserContext.newPage();
-            page.navigate(Data);
+            page.navigate(Data,options);
             AObject.setPage(page);
             Page = page;
             Page.bringToFront();
@@ -56,11 +62,12 @@ public class Switch extends Command {
         Browser.NewContextOptions newContextOptions = new Browser.NewContextOptions();
         newContextOptions.setHttpCredentials(userName, Control.getCurrentProject().getProjectSettings().getUserDefinedSettings().getProperty(userName));
              */
-
+            Page.NavigateOptions options = new Page.NavigateOptions();
+            options.setTimeout(getTimeoutValue());
             Browser browser = BrowserContext.browser();
             BrowserContext = browser.newContext();
             Page = BrowserContext.newPage();
-            Page.navigate(Data);
+            Page.navigate(Data,options);
             AObject.setPage(Page);
             Page.bringToFront();
             Driver.setPage(Page);
@@ -185,4 +192,17 @@ public class Switch extends Command {
         }
     }
 
+    private double getTimeoutValue(){
+      double timeout = 30000;
+      if(Condition != null || !Condition.isEmpty())
+      {
+        try {
+             timeout = Double.parseDouble(Condition.trim());   
+         } catch (NumberFormatException e) {
+             Report.updateTestLog(Action,
+                        "'"+Condition+"' cannot be converted to timeout of type Double", Status.DEBUG);
+         }
+      }
+      return timeout;
+    }
 }

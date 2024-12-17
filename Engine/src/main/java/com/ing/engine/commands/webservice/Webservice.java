@@ -13,7 +13,6 @@ import java.util.logging.Logger;
 import java.net.InetSocketAddress;
 import java.net.ProxySelector;
 import java.net.URI;
-import javax.net.ssl.*;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
@@ -38,8 +37,6 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpRequest.BodyPublisher;
 import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
-import java.security.SecureRandom;
-import java.security.cert.X509Certificate;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.HashMap;
@@ -68,7 +65,8 @@ public class Webservice extends General {
         PUT,
         PATCH,
         GET,
-        DELETE
+        DELETE,
+        DELETEWITHPAYLOAD
     }
 
     @Action(object = ObjectType.WEBSERVICE, desc = "PUT Rest Request ", input = InputType.YES, condition = InputType.OPTIONAL)
@@ -124,6 +122,16 @@ public class Webservice extends General {
     public void deleteRestRequest() {
         try {
             createhttpRequest(RequestMethod.DELETE);
+        } catch (InterruptedException e) {
+            // TODO Auto-generated catch block
+            e.printStackTrace();
+        }
+    }
+    
+    @Action(object = ObjectType.WEBSERVICE, desc = "DELETE with Payload ", input = InputType.YES)
+    public void deleteWithPayload() {
+        try {
+            createhttpRequest(RequestMethod.DELETEWITHPAYLOAD);
         } catch (InterruptedException e) {
             // TODO Auto-generated catch block
             e.printStackTrace();
@@ -657,7 +665,7 @@ public class Webservice extends General {
         try {
             ArrayList<String> params = urlParams.get(key);
             for (String param : params) {
-                parameters.put(param.split("=")[0], param.split("=")[1]);
+                parameters.put(param.split("=",2)[0], param.split("=",2)[1]);
             }
             urlParamString = parameters.entrySet()
                     .stream()
@@ -821,6 +829,10 @@ public class Webservice extends General {
                     httpRequestBuilder.put(key, httpRequestBuilder.get(key).DELETE());
                     break;
                 }
+                case "DELETEWITHPAYLOAD": {
+                    httpRequestBuilder.put(key, httpRequestBuilder.get(key).DELETE());
+                    break;
+                }
 
             }
             headers.remove(key);
@@ -831,7 +843,7 @@ public class Webservice extends General {
     }
 
     private void setRequestMethod(RequestMethod requestmethod) throws FileNotFoundException {
-        if (requestmethod.toString().equals("PUT") || requestmethod.toString().equals("POST") || requestmethod.toString().equals("PATCH")) {
+        if (requestmethod.toString().equals("PUT") || requestmethod.toString().equals("POST") || requestmethod.toString().equals("PATCH") || requestmethod.toString().equals("DELETEWITHPAYLOAD")) {
 
             setRequestMethod(requestmethod.toString(), handlePayloadorEndpoint(Data));
         } else {
