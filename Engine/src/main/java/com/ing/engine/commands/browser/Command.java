@@ -2,6 +2,7 @@ package com.ing.engine.commands.browser;
 
 import com.ing.datalib.or.common.ObjectGroup;
 import com.ing.datalib.or.image.ImageORObject;
+import com.ing.datalib.util.data.LinkedProperties;
 import com.ing.engine.core.CommandControl;
 import com.ing.engine.drivers.AutomationObject;
 import com.ing.engine.drivers.PlaywrightDriver;
@@ -14,6 +15,7 @@ import com.microsoft.playwright.Locator;
 import com.microsoft.playwright.Page;
 import com.microsoft.playwright.Playwright;
 import javax.net.ssl.HttpsURLConnection;
+import java.io.File;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -149,10 +151,22 @@ public class Command {
         return Commander.getUserDefinedData(key);
     }
 
-    public String getDataBaseData(String key) {
+    /*public String getDataBaseData(String key) {
         String data = Commander.getDataBaseProperty(key);
 
         return data;
+    }*/
+
+    public LinkedProperties getDataBaseData(String val) {
+        LinkedProperties data = Commander.getDataBaseProperty(val);
+
+        return data;
+    }
+
+    public File getDBFile(String val)
+    {
+        File dbFile = new File(Commander.getDBFile(val));
+        return dbFile;
     }
 
     public Stack<Locator> getRunTimeElement() {

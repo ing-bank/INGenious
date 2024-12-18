@@ -22,15 +22,18 @@ public class ProjectSettings {
 
     private final MailSettings mailSettings;
     
-    private final DatabaseSettings dbSettings;
+    //private final DatabaseSettings dbSettings;
     
     private final ReportPortalSettings rpSettings;
     
     private final ExtentReportSettings extentSettings;
 
-    private final ContextSettings contextSettings;
+   // private final ContextSettings contextSettings;
 
     private final ExecutionSettings execSettings;
+
+    private final DBProperties dbProperties;
+    private final ContextOptions contextOptions;
 
     public ProjectSettings(Project sProject) {
         this.sProject = sProject;
@@ -41,10 +44,14 @@ public class ProjectSettings {
         this.testMgmtModule = new TestMgmtModule(getLocation());
         this.execSettings = new ExecutionSettings(getLocation());
         this.mailSettings = new MailSettings(getLocation());
-        this.dbSettings = new DatabaseSettings(getLocation());
+        //this.dbSettings = new DatabaseSettings(getLocation());
         this.rpSettings = new ReportPortalSettings(getLocation());
         this.extentSettings = new ExtentReportSettings(getLocation());
-        this.contextSettings = new ContextSettings(getLocation());
+       // this.contextSettings = new ContextSettings(getLocation());
+        this.dbProperties = new DBProperties(getLocation());
+        this.contextOptions = new ContextOptions(getLocation());
+
+
     }
 
     public void resetLocation() {
@@ -55,10 +62,12 @@ public class ProjectSettings {
         testMgmtModule.setLocation(getLocation());
         execSettings.setLocation(getLocation());
         mailSettings.setLocation(getLocation());
-        dbSettings.setLocation(getLocation());
+        //dbSettings.setLocation(getLocation());
         rpSettings.setLocation(getLocation());
         extentSettings.setLocation(getLocation());
-        contextSettings.setLocation(getLocation());
+        //contextSettings.setLocation(getLocation());
+        dbProperties.setLocation(getLocation());
+        contextOptions.setLocation(getLocation());
     }
 
     public final String getLocation() {
@@ -73,9 +82,9 @@ public class ProjectSettings {
         return mailSettings;
     }
     
-    public DatabaseSettings getDatabaseSettings(){
+    /*public DatabaseSettings getDatabaseSettings(){
         return dbSettings;
-    }
+    }*/
     
     public ReportPortalSettings getRPSettings(){
         return rpSettings;
@@ -85,9 +94,9 @@ public class ProjectSettings {
         return extentSettings;
     }
 
-    public ContextSettings getContextSettings(){
+   /* public ContextSettings getContextSettings(){
         return contextSettings;
-    }
+    }*/
     
     public DriverSettings getDriverSettings() {
         return driverSettings;
@@ -117,6 +126,14 @@ public class ProjectSettings {
         return userDefinedSettings;
     }
 
+    public DBProperties getDBProperty() {
+        return dbProperties;
+    }
+
+    public ContextOptions getContextOption() {
+        return contextOptions;
+    }
+
     public void save() {
         userDefinedSettings.save();
         execSettings.save();
@@ -125,8 +142,10 @@ public class ProjectSettings {
         capabilities.save();
         testMgmtModule.save();
         mailSettings.save();
-        dbSettings.save();
+       // dbSettings.save();
         extentSettings.save();
-        contextSettings.save();
+        //contextSettings.save();
+        dbProperties.save();
+        contextOptions.save();
     }
 }

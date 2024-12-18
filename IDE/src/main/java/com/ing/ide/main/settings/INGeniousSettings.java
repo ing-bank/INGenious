@@ -90,7 +90,7 @@ public class INGeniousSettings extends javax.swing.JFrame {
         extentSettingsPanel = new XTablePanel(true);
         runSettingsTab.addTab("Extent Report Settings", extentSettingsPanel);
         contextSettingsPanel = new XTablePanel(true);
-        runSettingsTab.addTab("Authenticate Context", contextSettingsPanel);
+     //   runSettingsTab.addTab("Authenticate Context", contextSettingsPanel);
         
         
         mailConnect = new ConnectButton() {
@@ -163,10 +163,10 @@ public class INGeniousSettings extends javax.swing.JFrame {
         loadRunSettings();
         loadTestSetTMSettings();
         loadMailSettings();
-        loadDBSettings();
+      //  loadDBSettings();
         loadRPSettings();
         loadExtentSettings();
-        loadContextSettings();
+      //  loadContextSettings();
         showSettings();
     }
 
@@ -191,10 +191,10 @@ public class INGeniousSettings extends javax.swing.JFrame {
         PropUtils.loadPropertiesInTable(sProject.getProjectSettings()
                 .getUserDefinedSettings(), uDPanel.table);
         loadMailSettings();
-        loadDBSettings();
+     //   loadDBSettings();
         loadRPSettings();
         loadExtentSettings();
-        loadContextSettings();
+     //   loadContextSettings();
     }
 
     private void loadRunSettings() {
@@ -275,7 +275,7 @@ public class INGeniousSettings extends javax.swing.JFrame {
                 extentSettingsPanel.table);
     }
 
-    private void loadContextSettings() {
+    /*private void loadContextSettings() {
         PropUtils.loadPropertiesInTable(
                 sProject.getProjectSettings().getContextSettings(),
                 contextSettingsPanel.table);
@@ -286,7 +286,7 @@ public class INGeniousSettings extends javax.swing.JFrame {
                 sProject.getProjectSettings().getDatabaseSettings(),
                 databaseSettingsPanel.table);
         dbConnect.reset();
-    }
+    }*/
 
     private void setButtonModelFromText(String text, ButtonGroup Bgroup) {
         for (Enumeration<AbstractButton> buttons = Bgroup.getElements(); buttons.hasMoreElements();) {
@@ -392,12 +392,12 @@ public class INGeniousSettings extends javax.swing.JFrame {
         sProject.getProjectSettings().getMailSettings().save();
     }
 
-    private void saveDBSettings() {
+    /*private void saveDBSettings() {
         Properties properties = encryptpassword(PropUtils.getPropertiesFromTable(((XTablePanel) databaseSettingsPanel).table), " Enc");
         PropUtils.loadPropertiesInTable(properties, databaseSettingsPanel.table, "");
         sProject.getProjectSettings().getDatabaseSettings().set(properties);
         sProject.getProjectSettings().getDatabaseSettings().save();
-    }
+    }*/
     
     private void saveRPSettings() {
         Properties properties = encryptpassword(PropUtils.getPropertiesFromTable(((XTablePanel) rpSettingsPanel).table), " Enc");
@@ -413,12 +413,12 @@ public class INGeniousSettings extends javax.swing.JFrame {
         sProject.getProjectSettings().getExtentSettings().save();
     }
 
-    private void saveContextSettings() {
+    /*private void saveContextSettings() {
         Properties properties = encryptpassword(PropUtils.getPropertiesFromTable(((XTablePanel) contextSettingsPanel).table), " Enc");
         PropUtils.loadPropertiesInTable(properties, contextSettingsPanel.table, "");
         sProject.getProjectSettings().getContextSettings().set(properties);
         sProject.getProjectSettings().getContextSettings().save();
-    }
+    }*/
     
     public void saveAll() {
         saveRunSettings();
@@ -426,10 +426,10 @@ public class INGeniousSettings extends javax.swing.JFrame {
         saveTMSettings();
         saveuserDefinedSettings();
         saveMailSettings();
-        saveDBSettings();
+      //  saveDBSettings();
         saveRPSettings();
         saveExtentSettings();
-        saveContextSettings();
+      //  saveContextSettings();
     }
 
     private void loadTMTestSetSettings(String module) {

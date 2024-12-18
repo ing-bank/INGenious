@@ -199,9 +199,9 @@ public class ProjectRunner implements TestRunner {
                     } else if (key.startsWith("user.")) {
                         getProject().getProjectSettings().getUserDefinedSettings().put(
                                 key.replace("user.", ""), value);
-                    } else if (key.startsWith("context.")) {
+                   /* } else if (key.startsWith("context.")) {
                         getProject().getProjectSettings().getContextSettings().put(
-                                key.replace("context.", ""), value);
+                                key.replace("context.", ""), value);*/
                     } else if (key.startsWith("tm.")) {
                         getExecSettings().getTestMgmgtSettings().put(
                                 key.replace("tm.", ""), value);
@@ -214,6 +214,14 @@ public class ProjectRunner implements TestRunner {
                         String capability = args[2];
                         getProject().getProjectSettings().getCapabilities().getCapabiltiesFor(browser).update(capability,value);
 
+                    } else if (key.startsWith("db.alias@")) {
+                        String args[] = key.split("\\.");
+                        String db = args[1];
+                        getProject().getProjectSettings().getDBProperty().getDBPropertiesFor(db).update(db, value);
+                    } else if (key.startsWith("context.alias@")) {
+                        String args[] = key.split("\\.");
+                        String context = args[1];
+                        getProject().getProjectSettings().getContextOption().getContextOptionsFor(context).update(context,value);
                     }
                 } catch (Exception ex) {
                     Logger.getLogger(ProjectRunner.class.getName()).log(Level.SEVERE, null, ex);

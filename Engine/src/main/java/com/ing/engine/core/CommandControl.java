@@ -4,6 +4,7 @@ package com.ing.engine.core;
 import com.ing.datalib.or.common.ObjectGroup;
 import com.ing.datalib.or.image.ImageORObject;
 import com.ing.datalib.settings.DriverSettings;
+import com.ing.datalib.util.data.LinkedProperties;
 import com.ing.engine.drivers.AutomationObject;
 import com.ing.engine.drivers.AutomationObject.FindType;
 import com.ing.engine.drivers.PlaywrightDriver;
@@ -247,8 +248,17 @@ public abstract class CommandControl {
         return runTimeVars;
     }
 
-    public String getDataBaseProperty(String key) {
+    /*public String getDataBaseProperty(String key) {
         return Control.getCurrentProject().getProjectSettings().getDatabaseSettings().getProperty(key);
+    }*/
+
+    public String getDBFile(String value)
+    {
+        return Control.getCurrentProject().getProjectSettings().getDBProperty().getDBLocation(value);
+    }
+
+    public LinkedProperties getDataBaseProperty(String key) {
+        return Control.getCurrentProject().getProjectSettings().getDBProperty().getDBPropertiesFor(key);
     }
     
     public Map<String, String> getProxySettings() {

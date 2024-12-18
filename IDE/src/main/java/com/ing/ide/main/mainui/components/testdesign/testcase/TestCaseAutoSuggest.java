@@ -68,7 +68,10 @@ public class TestCaseAutoSuggest {
     private void initAutoSuggest() {
         objAutoSuggest = new AutoSuggest().withSearchList(getObjectList())
                 .withOnHide(stopEditingOnFocusLost());
-        conditionAutoSuggest = new AutoSuggest().withSearchList(getConditionList())
+        /*conditionAutoSuggest = new AutoSuggest().withSearchList(getConditionList())
+                .withOnHide(stopEditingOnFocusLost());*/
+
+        conditionAutoSuggest = (ConditionAutoSuggest) new ConditionAutoSuggest()
                 .withOnHide(stopEditingOnFocusLost());
         conditionAutoSuggest.setRenderer(
                 new ComboSeparatorsRenderer(conditionAutoSuggest.getRenderer()) {
@@ -104,17 +107,36 @@ public class TestCaseAutoSuggest {
         table.getColumnModel().getColumn(Input.getIndex()).setCellEditor(new AutoSuggestCellEditor(inputAutoSuggest));
     }
 
-    private List<String> getConditionList() {
-        List<String> conditionList = new ArrayList<>();
-        conditionList.add("Start Param");
-        conditionList.add("End Param");
-        conditionList.add("End Param:@n");
-        conditionList.add("Start Loop");
-        conditionList.add("End Loop:@n");
-        conditionList.add("GlobalObject");
-        conditionList.add("screen");
-        conditionList.add("viewport");
-        return conditionList;
+
+    class ConditionAutoSuggest extends AutoSuggest {
+        private List<String> getConditionBasedOnText(String value) {
+            if (value.startsWith("#")) {
+                return getContextAliasList();
+            }
+            return null;
+        }
+
+        @Override
+        public void beforeSearch(String text) {
+            if (text.isEmpty()) {
+                setSearchList(getConditionList());
+            } else {
+                setSearchList(getConditionBasedOnText(text));
+            }
+        }
+
+        private List<String> getConditionList() {
+            List<String> conditionList = new ArrayList<>();
+            conditionList.add("Start Param");
+            conditionList.add("End Param");
+            conditionList.add("End Param:@n");
+            conditionList.add("Start Loop");
+            conditionList.add("End Loop:@n");
+            conditionList.add("GlobalObject");
+            conditionList.add("screen");
+            conditionList.add("viewport");
+            return conditionList;
+        }
     }
 
     private List<String> getObjectList() {
@@ -127,6 +149,24 @@ public class TestCaseAutoSuggest {
         objectList.add("Webservice");
         objectList.add("File");
         return objectList;
+    }
+
+    public List<String> getContextAliasList() {
+        List<String> values = sProject.getProjectSettings().getContextOption().getContextList();
+        List<String> newList = new ArrayList<>();
+        for (String string : values) {
+            newList.add("#"+string);
+        }
+        return newList;
+    }
+
+    public List<String> getDatabaseAliasList() {
+        List<String> values = sProject.getProjectSettings().getDBProperty().getDbList();
+        List<String> newList = new ArrayList<>();
+        for (String string : values) {
+            newList.add("#"+string);
+        }
+        return newList;
     }
 
     private void startEditing(final AutoSuggest suggest) {
@@ -284,8 +324,10 @@ public class TestCaseAutoSuggest {
                 return getUserDefinedList();
             } else if (value.startsWith("=")) {
                 return getFunctionList();
+            }else if(value.startsWith("#")) {
+                return getDatabaseAliasList();
             }
-            return setupTestData(value);
+           return setupTestData(value);
         }
 
         public List<String> getUserDefinedList() {

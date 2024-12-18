@@ -3,6 +3,8 @@ package com.ing.datalib.settings;
 
 import com.ing.datalib.util.data.LinkedProperties;
 import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
@@ -129,6 +131,36 @@ public class Capabilities {
         File caps = new File(getLocation());
         if (!caps.exists()) {
             caps.mkdirs();
+            createDefaultFile(getLocation());
+        }
+    }
+
+    private void createDefaultFile(String location) {
+        String fileName = location + File.separator + "Chromium.properties";
+        File propertiesFile = new File(fileName);
+        if (!propertiesFile.exists()) {
+            try (FileOutputStream fos = new FileOutputStream(propertiesFile)) {
+                Properties prop = new Properties();
+                // Add default key-value pairs
+                prop.setProperty("setHeadless", "false");
+                prop.setProperty("setSlowMo", "false");
+                prop.setProperty("startMaximized", "false");
+                prop.setProperty("setChannel", "chrome");
+                prop.setProperty("setChromiumSandbox","false");
+                prop.setProperty("setDevtools", "false");
+                prop.setProperty("setDownloadsPath", "<your_download_path>");
+                prop.setProperty("setExecutablePath", "<your_executable_path>");
+                prop.setProperty("setTimeout", "3000");
+                prop.setProperty("setProxy", "<proxy>");
+
+                // Write properties to the file
+                prop.store(fos, "Default Properties");
+                System.out.println("Chromium.properties file created: " + location);
+            } catch (IOException e) {
+                System.err.println("Error writing to Chromium.properties file: " + e.getMessage());
+            }
+        } else {
+            System.out.println("Chromium.properties file already exists: " + location);
         }
     }
 

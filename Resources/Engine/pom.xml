@@ -42,7 +42,8 @@
 	<httpcore.version>4.4.16</httpcore.version>
 	<guava.version>32.0.1-jre</guava.version>
         <mac.version>mac-aarch64</mac.version>
-        <ioAppium.version>LATEST</ioAppium.version>	
+        <appium.version>LATEST</appium.version>
+        <mysql-connector-j.version>9.1.0</mysql-connector-j.version>
 	<setupDir>../Dist/release</setupDir>
         <resourceDir>../Resources</resourceDir>  
         
@@ -346,7 +347,7 @@
         <dependency>
             <groupId>io.appium</groupId>
             <artifactId>java-client</artifactId>
-            <version>${ioAppium.version}</version>
+            <version>${appium.version}</version>
             <type>jar</type>
         </dependency>
         <dependency>
@@ -366,6 +367,11 @@
             <artifactId>ashot</artifactId>
             <version>1.5.4</version>
             <type>jar</type>
+        </dependency>
+        <dependency>
+            <groupId>com.mysql</groupId>
+            <artifactId>mysql-connector-j</artifactId>
+            <version>${mysql-connector-j.version}</version>
         </dependency>
     
 		
