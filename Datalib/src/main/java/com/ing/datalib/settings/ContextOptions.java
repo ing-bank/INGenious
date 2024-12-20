@@ -28,8 +28,7 @@ import java.util.*;
  */
 public class ContextOptions {
 
-    public static ArrayList<String> contextList = new ArrayList<>();
-
+    private static ArrayList<String> contextList = new ArrayList<>();
     private static String location;
     private final Map<String, LinkedProperties> contextOptions = new HashMap<>();
 
@@ -53,8 +52,9 @@ public class ContextOptions {
 
     public ArrayList<String> getContextList() {
         load();
-        if(!contextList.contains("default"))
+        if (!contextList.contains("default")) {
             contextList.add("default");
+        }
         return contextList;
     }
 
@@ -63,9 +63,14 @@ public class ContextOptions {
     }
 
     private void load() {
-        File contextFile = new File(getLocation().toString());
+        System.out.println("-----getLocation()------" + getLocation().toString());
+        System.out.println("-----contextList------" + contextList.toString());
+
+        File contextFile = new File(getLocation());
         if (contextFile.exists()) {
             for (File contextfile : contextFile.listFiles()) {
+                System.out.println("----contextfile-----" + contextfile.getName());
+
                 // if (contextfile.getName().equals("default")) {
                 if (contextfile.getName().endsWith(".properties")) {
                     String contextAlias = contextfile.getName().replace(".properties", "");
@@ -89,7 +94,7 @@ public class ContextOptions {
     }
 
     public void addContextOptions(String contextName) {
-        addDefaultContextOptions(contextName, false, false, "<yourpath>", "<userID>", "<password>", "52.1326,5.2913", "1280, 1024",  "2", false, false, "1280, 1024", "<useragent>", "nl-NL", "Europe/Amsterdam", false);
+        addDefaultContextOptions(contextName, false, false, "<yourpath>", "<userID>", "<password>", "52.1326,5.2913", "1280,1024", "2", false, false, "1280,1024", "<useragent>", "nl-NL", "Europe/Amsterdam", false);
     }
 
     public void addDefaultContextOptions(String contextName, Boolean authenticateContext,
@@ -155,7 +160,11 @@ public class ContextOptions {
         File contexts = new File(getLocation());
         if (!contexts.exists()) {
             contexts.mkdirs();
-            createDefaultFile(getLocation());
+            for (File contextfile : contexts.listFiles()) {
+                System.out.println("----contextfile----"+contextfile.getName());
+                if (!(contextfile.getName().equals("default")))
+                    createDefaultFile(getLocation());
+            }
         }
     }
 
@@ -167,10 +176,10 @@ public class ContextOptions {
                 Properties prop = new Properties();
                 // Add default key-value pairs
                 prop.setProperty("authenticateContext", "false");
-                prop.setProperty("useStorageState", "false");
                 prop.setProperty("userID", "<userID>");
                 prop.setProperty("password", "<password>");
-                prop.setProperty("storageStatePath","<yourpath>");
+                prop.setProperty("useStorageState", "false");
+                prop.setProperty("storageStatePath", "<yourpath>");
                 prop.setProperty("setGeolocation", "52.1326,5.2913");
                 prop.setProperty("setViewportSize", "1280,1024");
                 prop.setProperty("setDeviceScaleFactor", "2");

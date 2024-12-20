@@ -30,7 +30,7 @@ public class DBProperties {
     private final Map<String, LinkedProperties> dbProperties = new HashMap<>();
 
     private static String location;
-    public static ArrayList<String> dbList = new ArrayList<>();
+    private static ArrayList<String> dbList = new ArrayList<>();
 
     public DBProperties(String location) {
         this.location = location;
@@ -43,8 +43,9 @@ public class DBProperties {
 
     public ArrayList<String> getDbList() {
         load();
-        if(!dbList.contains("default"))
+        if (!dbList.contains("default")) {
             dbList.add("default");
+        }
         return dbList;
     }
 
@@ -56,6 +57,7 @@ public class DBProperties {
         File dbFile = new File(getLocation());
         if (dbFile.exists()) {
             for (File dbfile : dbFile.listFiles()) {
+                System.out.println("----dbfile-----" + dbfile.getName());
                 if (dbfile.getName().endsWith(".properties")) {
                     String dbAlias = dbfile.getName().replace(".properties", "");
                     if (!dbList.contains(dbAlias)) {
@@ -73,18 +75,6 @@ public class DBProperties {
         dbList.add(dbName);
     }
 
-    public static ArrayList<String> getValuesAsList() {
-        File folder = new File(getLocation().toString());
-        File[] listOfDBs = folder.listFiles();
-        if (listOfDBs != null) {
-            for (File file : listOfDBs) {
-                if (file.isFile()) {
-                    dbList.add(file.getName());
-                }
-            }
-        }
-        return dbList;
-    }
 
     public void addDB(String dbName, LinkedProperties props) {
         dbProperties.put(dbName, props);

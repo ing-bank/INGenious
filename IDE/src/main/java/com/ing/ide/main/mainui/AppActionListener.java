@@ -7,7 +7,7 @@ import com.ing.ide.main.explorer.ExplorerBar;
 import com.ing.ide.main.help.Help;
 import com.ing.ide.main.mainui.components.testdesign.testdata.ImportTestData;
 import com.ing.ide.main.settings.INGeniousSettings;
-import com.ing.ide.main.settings.DriverSettings;
+import com.ing.ide.main.settings.DriverSettings11;
 import com.ing.ide.main.settings.TMSettings;
 import com.ing.ide.main.googlerecordingjson.JsonParser;
 import com.ing.ide.main.playwrightrecording.PlaywrightRecordingParser;
@@ -33,7 +33,7 @@ public class AppActionListener implements ActionListener {
 
     private final INGeniousSettings cogITSSettings;
 
-    private final DriverSettings driverSettings;
+    private final DriverSettings11 driverSettings;
 
     private final TMSettings tmSettings;
 
@@ -55,7 +55,7 @@ public class AppActionListener implements ActionListener {
         this.sMainFrame = sMainFrame;
         nProject = new NewProject(sMainFrame);
         cogITSSettings = new INGeniousSettings(sMainFrame);
-        driverSettings = new DriverSettings(sMainFrame);
+        driverSettings = new DriverSettings11(sMainFrame);
         tmSettings = new TMSettings(sMainFrame);
         options = new Options();
        // scheduler = new SchedulerUI();

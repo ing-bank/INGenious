@@ -5,9 +5,7 @@ import com.ing.datalib.component.Project;
 import com.ing.datalib.settings.ProjectSettings;
 import com.ing.datalib.settings.emulators.Emulator;
 import com.ing.datalib.util.data.LinkedProperties;
-import com.ing.engine.drivers.ChromeEmulators;
 import com.ing.engine.drivers.WebDriverFactory;
-import com.ing.ide.main.help.Help;
 import com.ing.ide.main.mainui.AppMainFrame;
 import com.ing.ide.main.utils.Utils;
 import com.ing.ide.main.utils.table.XTable;
@@ -19,11 +17,7 @@ import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
-import java.net.URI;
-import java.util.Enumeration;
-import java.util.List;
-import java.util.Objects;
-import java.util.Properties;
+import java.util.*;
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 
@@ -31,7 +25,7 @@ import javax.swing.table.DefaultTableModel;
  *
  *
  */
-public class DriverSettings extends javax.swing.JFrame {
+public class DriverSettings11 extends javax.swing.JFrame {
 
     private final AppMainFrame sMainFrame;
     Project sProject;
@@ -42,7 +36,7 @@ public class DriverSettings extends javax.swing.JFrame {
      *
      * @param sMainFrame
      */
-    public DriverSettings(AppMainFrame sMainFrame) {
+    public DriverSettings11(AppMainFrame sMainFrame) {
         this.sMainFrame = sMainFrame;
         initComponents();
 
@@ -144,11 +138,11 @@ public class DriverSettings extends javax.swing.JFrame {
     }
 
     private void loadDatabases() {
-        dbCombo.setModel(new DefaultComboBoxModel(sProject.getProjectSettings().getDBProperty().getDbList().toArray()));
+        dbCombo.setModel(new DefaultComboBoxModel(getTotalDBList().toArray()));
     }
 
     private void loadContexts() {
-        contextCombo.setModel(new DefaultComboBoxModel(sProject.getProjectSettings().getContextOption().getContextList().toArray()));
+        contextCombo.setModel(new DefaultComboBoxModel(getTotalContextList().toArray()));
 
     }
 
@@ -690,16 +684,16 @@ public class DriverSettings extends javax.swing.JFrame {
 
         capTable.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
-                {"setheadless", "false"},
-                {"setslowmo", "123"},
-                {"startmaximized", "true"},
-                {"setchannel", null},
-                {"setchromiumsandbox", "false"},
-                {"setdevtools", "false"},
-                {"setdownloadspath", "<your_download_path>"},
-                {"setexecutablepath", "<your_executable_path>"},
-                {"settimeout", "300"},
-                {"setproxy", "false"},
+                {"setHeadless", "false"},
+                {"setSlowMo", "123"},
+                {"startMaximized", "true"},
+                {"setChannel", "chrome"},
+                {"setChromiumSandbox", "false"},
+                {"setDevtools", "false"},
+                {"setDownloadsPath", "<your_download_path>"},
+                {"setExecutablePath", "<your_executable_path>"},
+                {"setTimeout", "30000"},
+                {"setProxy", "false"},
             },
             new String [] {
                 "Property", "Value"
@@ -810,15 +804,16 @@ public class DriverSettings extends javax.swing.JFrame {
         });
         jToolBar5.add(deleteDB);
 
+
         dbPropTable.setModel(new javax.swing.table.DefaultTableModel(
                 new Object[][]{
-                        {"db.alias", null},
+                        {"db.alias", "<alias_name>"},
                         {"connectionString", "jdbc:<Database>://<Host>:<Port>/<Database name>"},
-                        {"user", null},
-                        {"password", null},
-                        {"driver", null},
+                        {"user", "<username"},
+                        {"password", "<password>"},
+                        {"driver", "com.mysql.cj.jdbc.Driver"},
                         {"commit", "false"},
-                        {"timeout", "50"},
+                        {"timeout", "30"},
 
                 },
                 new String[]{
@@ -833,14 +828,15 @@ public class DriverSettings extends javax.swing.JFrame {
                 return canEdit[columnIndex];
             }
         });
+        jScrollPane4.setViewportView(dbPropTable);
+
         dbPropTable.setMinimumSize(new java.awt.Dimension(30, 120));
         dbPropTable.setOpaque(false);
         dbPropTable.setPreferredSize(new java.awt.Dimension(150, 120));
-        jScrollPane4.setViewportView(dbPropTable);
         databasePanel.add(jScrollPane4, java.awt.BorderLayout.CENTER);
 
 
-        javax.swing.GroupLayout jPanel5Layout = new javax.swing.GroupLayout(jPanel5);
+       /* javax.swing.GroupLayout jPanel5Layout = new javax.swing.GroupLayout(jPanel5);
         jPanel5.setLayout(jPanel5Layout);
         jPanel5Layout.setHorizontalGroup(
                 jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -849,7 +845,7 @@ public class DriverSettings extends javax.swing.JFrame {
         jPanel5Layout.setVerticalGroup(
                 jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                         .addComponent(jScrollPane4, javax.swing.GroupLayout.DEFAULT_SIZE, 557, Short.MAX_VALUE)
-        );
+        );*/
 
         javax.swing.GroupLayout databasePanelLayout = new javax.swing.GroupLayout(databasePanel);
         databasePanel.setLayout(databasePanelLayout);
@@ -1239,6 +1235,7 @@ public class DriverSettings extends javax.swing.JFrame {
     private javax.swing.JLabel jLabel1;
     private javax.swing.JToolBar jToolBar5;
     private javax.swing.JToolBar.Separator jSeparator2;
+
     private javax.swing.JScrollPane jScrollPane4;
     private javax.swing.JPanel jPanel5;
     private javax.swing.JScrollPane jScrollPane5;
