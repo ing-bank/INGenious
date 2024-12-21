@@ -3,12 +3,12 @@ package com.ing.ide.main.utils.table;
 import com.ing.datalib.undoredo.UndoRedoModel;
 import com.ing.ide.main.utils.keys.ClipboardKeyAdapter;
 import com.ing.ide.main.utils.keys.Keystroke;
-import com.ing.ide.util.logging.UILogger;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Font;
 import java.awt.FontFormatException;
 import java.awt.GraphicsEnvironment;
+import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
@@ -32,8 +32,6 @@ import javax.swing.JTable;
 import static javax.swing.JTable.AUTO_RESIZE_OFF;
 import static javax.swing.JTable.AUTO_RESIZE_SUBSEQUENT_COLUMNS;
 import javax.swing.KeyStroke;
-import javax.swing.UIManager;
-import javax.swing.border.LineBorder;
 import javax.swing.event.ChangeEvent;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.TableCellRenderer;
@@ -79,6 +77,7 @@ public class XTable extends JTable {
         setColumnSelectionAllowed(true);
         setGridColor(new Color(246, 227, 221));
         addKeyListeners();
+        
         putClientProperty("terminateEditOnFocusLost", true);
         addFocusListener(new FocusListener() {
             @Override
@@ -105,6 +104,16 @@ public class XTable extends JTable {
                 deleteSelectedCells();
             }
         });
+        int menuShortcutKeyMask = Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx();
+        getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_X, menuShortcutKeyMask), "none");
+        getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_C, menuShortcutKeyMask), "none");
+        getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_V, menuShortcutKeyMask), "none");
+        getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_A, menuShortcutKeyMask), "none");
+
+        getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_X, menuShortcutKeyMask), "cut");
+        getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_C, menuShortcutKeyMask), "copy");
+        getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_V, menuShortcutKeyMask), "paste");
+        
         
         getInputMap(JComponent.WHEN_FOCUSED).put(Keystroke.INSERT_ROW, "Insert");
         getInputMap(JComponent.WHEN_FOCUSED).put(Keystroke.ADD_ROW, "Add");
@@ -144,6 +153,13 @@ public class XTable extends JTable {
                 if (getModel() instanceof UndoRedoModel) {
                     ((UndoRedoModel) getModel()).getUndoManager().redo();
                 }
+            }
+        });
+        getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_A, menuShortcutKeyMask), "selectAll");
+        getActionMap().put("selectAll", new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                selectAll();
             }
         });
     }
@@ -474,3 +490,5 @@ class SearchRenderer extends DefaultTableCellRenderer {
     }
     
 }
+
+

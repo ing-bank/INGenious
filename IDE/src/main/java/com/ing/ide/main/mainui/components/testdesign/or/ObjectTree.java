@@ -28,6 +28,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 import com.ing.ide.main.mainui.AppMainFrame;
+import java.awt.Toolkit;
+import java.awt.event.KeyEvent;
 import java.util.List;
 import javax.swing.AbstractAction;
 import javax.swing.Icon;
@@ -84,6 +86,9 @@ public abstract class ObjectTree implements ActionListener {
         tree.setComponentPopupMenu(popupMenu);
         tree.setDragEnabled(true);
         tree.setInvokesStopCellEditing(true);
+        
+        alterDefaultKeyBindings();
+        
         tree.setTransferHandler(new ObjectDnD(tree));
 
         tree.getInputMap(JComponent.WHEN_FOCUSED).put(Keystroke.NEW, "New");
@@ -835,6 +840,20 @@ public abstract class ObjectTree implements ActionListener {
                 tree.addSelectionPaths(new TreePath[]{path.getParentPath(), path});
             }
         });
+    }
+    
+    private void alterDefaultKeyBindings() {
+        
+         int menuShortcutKeyMask = Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx();
+         tree.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_X, menuShortcutKeyMask), "none");
+         tree.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_C, menuShortcutKeyMask), "none");
+         tree.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_V, menuShortcutKeyMask), "none");
+
+         tree.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_X, menuShortcutKeyMask), "cut");
+         tree.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_C, menuShortcutKeyMask), "copy");
+         tree.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_V, menuShortcutKeyMask), "paste");
+        
+        
     }
 
 }

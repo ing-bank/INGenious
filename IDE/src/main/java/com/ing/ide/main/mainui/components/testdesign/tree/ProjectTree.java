@@ -26,7 +26,6 @@ import java.awt.Component;
 import java.awt.Font;
 import java.awt.FontFormatException;
 import java.awt.GraphicsEnvironment;
-import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
@@ -59,6 +58,9 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.PopupMenuEvent;
 import javax.swing.event.PopupMenuListener;
 import javax.swing.tree.TreePath;
+import java.awt.Toolkit;
+import java.awt.event.KeyEvent;
+import javax.swing.KeyStroke;
 
 /**
  *
@@ -108,6 +110,8 @@ public class ProjectTree implements ActionListener {
         popupMenu = getNewPopupMenu();
         treeModel = getNewTreeModel();
         tree.setModel(treeModel);
+        
+        alterTreeDefaultKeyBindings();
 
         tree.setToggleClickCount(0);
         tree.setEditable(true);
@@ -774,7 +778,7 @@ public class ProjectTree implements ActionListener {
             add(addTestCase = create("Add TestCase", Keystroke.NEW));
             add(renameTestCase = create("Rename TestCase", Keystroke.RENAME));
             add(deleteTestCase = create("Delete TestCase", Keystroke.DELETE));
-
+            
             addSeparator();
             JMenu menu = new JMenu("Export As");
             menu.setFont(UIManager.getFont("TableMenu.font"));
@@ -879,6 +883,7 @@ public class ProjectTree implements ActionListener {
             }
 			
             JMenuItem menuItem = new JMenuItem(name);
+        
             menuItem.setActionCommand(name);
             menuItem.setAccelerator(keyStroke);
             menuItem.addActionListener(ProjectTree.this);
@@ -888,6 +893,7 @@ public class ProjectTree implements ActionListener {
 
         private void setCCP() {            
             TransferActionListener actionListener = new TransferActionListener();
+            
             cut = new JMenuItem("Cut");
             cut.setActionCommand((String) TransferHandler.getCutAction().getValue(Action.NAME));
             cut.addActionListener(actionListener);
@@ -910,6 +916,20 @@ public class ProjectTree implements ActionListener {
             add(paste);
         }
 
+    }
+    
+    private void alterTreeDefaultKeyBindings() {
+        
+         int menuShortcutKeyMask = Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx();
+         tree.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_X, menuShortcutKeyMask), "none");
+         tree.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_C, menuShortcutKeyMask), "none");
+         tree.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_V, menuShortcutKeyMask), "none");
+
+         tree.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_X, menuShortcutKeyMask), "cut");
+         tree.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_C, menuShortcutKeyMask), "copy");
+         tree.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_V, menuShortcutKeyMask), "paste");
+        
+        
     }
 
 }
