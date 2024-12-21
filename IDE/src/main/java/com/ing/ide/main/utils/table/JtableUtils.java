@@ -37,6 +37,7 @@ import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPopupMenu;
 import javax.swing.JTable;
+import javax.swing.KeyStroke;
 import javax.swing.event.PopupMenuEvent;
 import javax.swing.event.PopupMenuListener;
 import javax.swing.event.TableModelListener;
@@ -64,12 +65,13 @@ public class JtableUtils {
     public static final JMenuItem CUT = new JMenuItem("Cut");
     public static final JMenuItem PASTE = new JMenuItem("Paste");
 
-    static {
+    static {        
+        
         COPY.setIcon(new Canvas.EmptyIcon());
         COPY.addActionListener(new ActionListener() {
 
             @Override
-            public void actionPerformed(ActionEvent e) {
+            public void actionPerformed(ActionEvent e) {                           
                 JPopupMenu p = (JPopupMenu) COPY.getParent();
                 Object val = p.getClientProperty("Table");
                 if (val != null) {
@@ -118,11 +120,12 @@ public class JtableUtils {
      * @param hasFixedRows flag to know whether the table has fixed rows are not
      */
     public static void addlisteners(final JTable table, Boolean hasFixedRows) {
-        table.setSurrendersFocusOnKeystroke(false);
+        table.setSurrendersFocusOnKeystroke(false);  
         table.addKeyListener(new KeyAdapter() {
             @Override
             public void keyReleased(KeyEvent e) {
-                if (e.isControlDown() && !e.isShiftDown() && !e.isAltDown()) {
+                if (e.isControlDown() || e.isMetaDown() && !e.isShiftDown() && !e.isAltDown()) {
+               // if ((e.getModifiersEx() & KeyEvent.CTRL_DOWN_MASK) != 0 || (e.getModifiersEx() & KeyEvent.META_DOWN_MASK) != 0){
                     switch (e.getKeyCode()) {
                         case KeyEvent.VK_C:
                             cancelEditing(table);
@@ -922,4 +925,6 @@ public class JtableUtils {
             }
         }
     }
+    
+
 }

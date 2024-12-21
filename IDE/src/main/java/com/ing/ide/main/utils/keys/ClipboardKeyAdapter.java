@@ -2,9 +2,11 @@
 package com.ing.ide.main.utils.keys;
 
 import com.ing.ide.main.utils.table.XTableUtils;
+import java.awt.Toolkit;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import javax.swing.JTable;
+import javax.swing.KeyStroke;
 
 /**
  *
@@ -49,5 +51,7 @@ public class ClipboardKeyAdapter extends KeyAdapter {
             table.getCellEditor().cancelCellEditing();
         }
     }
+    
+    
 
 }
