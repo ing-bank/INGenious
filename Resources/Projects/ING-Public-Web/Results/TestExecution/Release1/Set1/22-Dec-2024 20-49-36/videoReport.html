@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<!--Added by: Chester Luzon 02/16/2024-->
+<html ng-app="videoReport">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="IE=Edge"/>
+    <title>Video Report</title>
+    <link id="favIcon" href="../../../../media/images/favicon.png" rel="icon" type="image/x-icon"/>
+    <link rel="stylesheet" type="text/css" href="../../../../media/css/bootstrap.min.css"/>
+    <link rel="stylesheet" type="text/css" href="../../../../media/css/perf.css"/>
+    <link rel="stylesheet" type="text/css" href="../../../../media/css/dataTables.bootstrap.min.css"/>
+    <script type="text/javascript" src="../../../../media/js/angular.min.js"></script>
+    <script type="text/javascript" src="../../../../media/js/jquery.js"></script>
+    <script src="../../../../media/js/jquery.dataTables.min.js" type="text/javascript"></script>
+    <script type="text/javascript" src="../../../../media/js/bootstrap.min.js"></script>
+    <script src="../../../../media/js/isinViewport.js" type="text/javascript"></script>
+    <script type="text/javascript" src="../../../../media/js/video.js"></script>
+    <script type="text/javascript" src="data.js"></script>
+    <link rel="stylesheet" type="text/css" href="../../../../media/css/report.css"/>
+</head>
+<body id="doc">
+<noscript>
+    For full functionality of this site it is necessary to enable JavaScript.
+    <a href="http://www.enable-javascript.com/" target="_blank">To know about how to enable javascript click
+        here</a></div>
+</noscript>
+<div class="panel panel-primary perContainer" ng-cloak>
+    <div class="panel-heading">
+        <label>Video Report</label>
+        <!--        <span class="label label-success" ng-click = "expandOrcollapse();">{{status}} All</span>-->
+    </div>
+    <!--    <ul class="nav nav-tabs">-->
+    <!--        <li class="active"><a href="#chart" ng-click = 'cView = "chart"' role="tab" data-toggle="tab">Graph View</a></li>-->
+    <!--        <li><a href="#table" ng-click = 'cView = "table"' role="tab" data-toggle="tab">Table View</a></li>-->
+    <!--        <li ng-if="psdata && psdata.length > 0"><a href="#pageSpeed" role="tab" data-toggle="tab">Page Metrics</a></li>-->
+    <!--    </ul>-->
+
+    <div ng-controller="videoCtrl" class="scrollHar">
+            <span class="label noVideoFound" ng-show="steps.length < 1">
+                Video Recordings not found.
+            </span>
+            <div ng-repeat="step in steps" class = "panel">
+                <div style="cursor:pointer;overflow: hidden;max-height: 20px;">
+                    <a ng-href={{step.videoReportDir}}>{{step.name}}: Video</a>
+                </div>
+            </div>
+    </div>
+</div>
+</body>
+</html>

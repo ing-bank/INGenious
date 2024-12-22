@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+<title>Report History</title>
+<link rel="stylesheet" type="text/css" href="../../../media/css/jquery.dataTables.css">
+<link rel="stylesheet" type="text/css" href="../../../media/css/newReport.css">
+	<script type="text/javascript" language="javascript" src="../../../media/js/jquery.js"></script>
+	<script type="text/javascript" language="javascript" src="../../../media/js/jquery.dataTables.min.js"></script>
+	<script type="text/javascript" language="javascript" src="reportHistory.js"></script>
+	<script type="text/javascript" language="javascript" class="init">
+	
+	
+	function openLatest()
+	{
+	if(window.location.search.substring(1)==="Latest")
+	window.location.href=dataSet[dataSet.length-1].ReportPath;
+	}
+	(
+window.onpopstate = function() {
+openLatest();
+})();
+$(document).ready(function() {
+$('#reportId').html(reportName);
+    $('#demo').html( '<table cellpadding="0" cellspacing="0" border="0" class="display" id="example"></table>' );
+ 
+    $('#example').DataTable( {
+        data: dataSet,
+        columns: [
+		 { "title": "Execution Time","data": "ExecutionDate" ,"class": "dt-center" },
+		    { "title": "Executed Testcases","data": "ExecTC" ,"class": "dt-center" },
+            { "title": "Passed Testcases","data": "PassTC" ,"class": "dt-center" },
+            { "title": "Failed Testcases","data": "FailTC","class": "dt-center"  },
+			 { "title": "Time Taken","data": "ExecTime","class": "dt-center"  }
+		 
+                   ],
+	 "fnRowCallback": function( nRow, aData, iDisplayIndex ) {
+            $('td:eq(0)', nRow).html('<a href="' + aData.ReportPath + '">' +
+                aData.ExecutionDate + '</a>');
+				 return nRow;
+        },
+		columnDefs: [
+   { orderable: false, targets: [1,2,3,4] }
+] 
+		        
+    } );
+	
+	
+	} );
+	</script>
+</head>
+<body>
+<center><h1>Report History</h1></center>
+<center><h3 id="reportId"></h3></center>
+<div id="demo"></div>
+</body>
+</html>

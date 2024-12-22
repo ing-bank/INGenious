@@ -1,0 +1,237 @@
+Run Information
+========================
+INGenious Playwright Studio engine : 2.0
+java.runtime.name    : OpenJDK Runtime Environment
+java.version         : 17.0.13
+java.home            : /Library/Java/JavaVirtualMachines/temurin-17.jdk/Contents/Home
+os.name              : Mac OS X
+os.arch              : aarch64
+os.version           : 14.7.1
+file.encoding        : UTF-8
+========================
+👉 Run Started on Sun Dec 22 20:49:36 CET 2024
+
+[Scenario:Contact Us] [TestCase: User should be able to send a question on Sustainability] [Description: User should be able to send a question on Sustainability] [Browser: Chromium] [BrowserVersion: Default] [Platform: Mac OS X][ExistingBrowser: false]
+[Scenario:Contact Us] [TestCase: User should be able to send a question on Innovation] [Description: User should be able to send a question on Innovation] [Browser: Chromium] [BrowserVersion: Default] [Platform: Mac OS X][ExistingBrowser: false]
+----------------------------------------------------------
+[2] TestCases selected for execution from [//Release1/Set1]
+----------------------------------------------------------
+testset : Set1
+
+👉 Run Manager : true
+
+👉 Continue Execution : true
+
+👉 Running Iteration 1
+
+🚀 Launching Chromium
+
+👉 Running Iteration 1
+
+🚀 Launching Chromium
+
+🚀 Launching Local Driver 
+
+🚀 Launching Local Driver 
+
+Step:1   | Object: Browser | Action: Open | Input: @https://www.ing.com/web/show | Conditon:  | @22-Dec-2024 20:49:40.040
+Step:1   | Object: Browser | Action: Open | Input: @https://www.ing.com/web/show | Conditon:  | @22-Dec-2024 20:49:40.040
+[DONE]   | Opened Url: https://www.ing.com/web/show 🟢
+
+===================================================================================================
+
+Step:2   | Object: Accept Cookies | Action: Click | Input:  | Conditon:  | @22-Dec-2024 20:49:41.041
+[DONE]   | Opened Url: https://www.ing.com/web/show 🟢
+
+===================================================================================================
+
+Step:2   | Object: Accept Cookies | Action: Click | Input:  | Conditon:  | @22-Dec-2024 20:49:41.041
+[DONE]   | Clicking on [Accept Cookies] 🟢
+
+===================================================================================================
+
+Step:3   | Object: [Contact Us] Button | Action: Click | Input:  | Conditon:  | @22-Dec-2024 20:49:41.041
+Object being identified with [Role] = [Link;Contact Us], 
+[DONE]   | Clicking on [Accept Cookies] 🟢
+
+===================================================================================================
+
+Step:3   | Object: [Contact Us] Button | Action: Click | Input:  | Conditon:  | @22-Dec-2024 20:49:41.041
+Object being identified with [Role] = [Link;Contact Us], 
+[DONE]   | Clicking on [[Contact Us] Button] 🟢
+
+===================================================================================================
+
+[DONE]   | Clicking on [[Contact Us] Button] 🟢
+Step:1   | Object: First name *(required) | Action: Click | Input:  | Conditon:  | @22-Dec-2024 20:49:42.042
+
+===================================================================================================
+
+Object being identified with [Label] = [First name *(required)], 
+Step:1   | Object: First name *(required) | Action: Click | Input:  | Conditon:  | @22-Dec-2024 20:49:42.042
+Object being identified with [Label] = [First name *(required)], 
+[DONE]   | Clicking on [First name *(required)] 🟢
+
+===================================================================================================
+
+Step:2   | Object: First name *(required) | Action: Fill | Input: @John | Conditon:  | @22-Dec-2024 20:49:42.042
+Object being identified with [Label] = [First name *(required)], 
+[DONE]   | Clicking on [First name *(required)] 🟢
+[DONE]   | Entered Text 'John' on '[First name *(required)]' 🟢
+
+===================================================================================================
+
+
+===================================================================================================
+
+Step:2   | Object: First name *(required) | Action: Fill | Input: @John | Conditon:  | @22-Dec-2024 20:49:42.042
+Step:3   | Object: Last name *(required) | Action: Click | Input:  | Conditon:  | @22-Dec-2024 20:49:42.042
+Object being identified with [Label] = [First name *(required)], 
+Object being identified with [Label] = [Last name *(required)], 
+[DONE]   | Entered Text 'John' on '[First name *(required)]' 🟢
+
+===================================================================================================
+
+Step:3   | Object: Last name *(required) | Action: Click | Input:  | Conditon:  | @22-Dec-2024 20:49:42.042
+Object being identified with [Label] = [Last name *(required)], 
+[DONE]   | Clicking on [Last name *(required)] 🟢
+
+===================================================================================================
+
+Step:4   | Object: Last name *(required) | Action: Fill | Input: @Doe | Conditon:  | @22-Dec-2024 20:49:42.042
+Object being identified with [Label] = [Last name *(required)], 
+[DONE]   | Entered Text 'Doe' on '[Last name *(required)]' 🟢
+
+===================================================================================================
+
+[DONE]   | Clicking on [Last name *(required)] 🟢
+Step:5   | Object: Email address *(required) | Action: Click | Input:  | Conditon:  | @22-Dec-2024 20:49:42.042
+
+===================================================================================================
+
+Object being identified with [Label] = [Email address *(required)], 
+Step:4   | Object: Last name *(required) | Action: Fill | Input: @Doe | Conditon:  | @22-Dec-2024 20:49:42.042
+Object being identified with [Label] = [Last name *(required)], 
+[DONE]   | Entered Text 'Doe' on '[Last name *(required)]' 🟢
+
+===================================================================================================
+
+Step:5   | Object: Email address *(required) | Action: Click | Input:  | Conditon:  | @22-Dec-2024 20:49:42.042
+Object being identified with [Label] = [Email address *(required)], 
+[DONE]   | Clicking on [Email address *(required)] 🟢
+
+===================================================================================================
+
+Step:6   | Object: Email address *(required) | Action: Fill | Input: @John.Doe@email.com | Conditon:  | @22-Dec-2024 20:49:42.042
+Object being identified with [Label] = [Email address *(required)], 
+[DONE]   | Entered Text 'John.Doe@email.com' on '[Email address *(required)]' 🟢
+
+===================================================================================================
+
+Step:7   | Object: Country *(required) | Action: SelectSingleByText | Input: @Austria | Conditon:  | @22-Dec-2024 20:49:42.042
+[DONE]   | Clicking on [Email address *(required)] 🟢
+Object being identified with [Label] = [Country *(required)], 
+
+===================================================================================================
+
+Step:6   | Object: Email address *(required) | Action: Fill | Input: @John.Doe@email.com | Conditon:  | @22-Dec-2024 20:49:42.042
+Object being identified with [Label] = [Email address *(required)], 
+[DONE]   | Item 'Austria' is selected from list [Country *(required)] 🟢
+
+===================================================================================================
+
+[DONE]   | Entered Text 'John.Doe@email.com' on '[Email address *(required)]' 🟢
+
+===================================================================================================
+
+Step:7   | Object: Country *(required) | Action: SelectSingleByText | Input: @Austria | Conditon:  | @22-Dec-2024 20:49:42.042
+Object being identified with [Label] = [Country *(required)], 
+[DONE]   | Item 'Austria' is selected from list [Country *(required)] 🟢
+
+===================================================================================================
+
+Step:2   | Object: Clearly describe your | Action: Click | Input:  | Conditon:  | @22-Dec-2024 20:49:42.042
+Step:2   | Object: Clearly describe your | Action: Click | Input:  | Conditon:  | @22-Dec-2024 20:49:42.042
+Object being identified with [Label] = [Clearly describe your], 
+Object being identified with [Label] = [Clearly describe your], 
+[DONE]   | Clicking on [Clearly describe your] 🟢
+[DONE]   | Clicking on [Clearly describe your] 🟢
+
+===================================================================================================
+
+
+===================================================================================================
+
+Step:3   | Object: Clearly describe your | Action: Fill | Input: TestData:Description | Conditon:  | @22-Dec-2024 20:49:42.042
+Step:3   | Object: Clearly describe your | Action: Fill | Input: TestData:Description | Conditon:  | @22-Dec-2024 20:49:42.042
+Object being identified with [Label] = [Clearly describe your], 
+Object being identified with [Label] = [Clearly describe your], 
+[DONE]   | Entered Text 'What are ING's policies for a greener earth' on '[Clearly describe your]' 🟢
+
+===================================================================================================
+
+[DONE]   | Entered Text 'What are ING's innovation policies' on '[Clearly describe your]' 🟢
+Step:4   | Object: Send | Action: Click | Input:  | Conditon:  | @22-Dec-2024 20:49:42.042
+
+===================================================================================================
+
+Object being identified with [Role] = [BUTTON;Send], 
+Step:4   | Object: Send | Action: Click | Input:  | Conditon:  | @22-Dec-2024 20:49:42.042
+Object being identified with [Role] = [BUTTON;Send], 
+[DONE]   | Clicking on [Send] 🟢
+
+===================================================================================================
+
+Step:1   | Object: Browser | Action: TakePageScreenshot | Input:  | Conditon:  | @22-Dec-2024 20:49:42.042
+[DONE]   | Clicking on [Send] 🟢
+[PASS]   | Screenshot is taken ✅
+
+===================================================================================================
+
+
+===================================================================================================
+
+Step:1   | Object: Browser | Action: TakePageScreenshot | Input:  | Conditon:  | @22-Dec-2024 20:49:42.042
+[PASS]   | Screenshot is taken ✅
+
+===================================================================================================
+
+
+
+
+
+----------------------------------------------------------------------------
+----------------------------------------------------------------------------
+| Playwright instance with [Chromium] has been closed for Iteration : 1 |
+----------------------------------------------------------------------------
+
+| Playwright instance with [Chromium] has been closed for Iteration : 1 |
+----------------------------------------------------------------------------
+
+
+---------------------------------------------------
+Testcase Name        : Contact Us:User should be able to send a question on Sustainability
+Executed Steps       : 14
+Passed Steps         : 14
+Failed Steps         : 0
+Time Taken           : 00:00:05
+-----------------------------------------------------
+
+
+---------------------------------------------------
+Testcase Name        : Contact Us:User should be able to send a question on Innovation
+Executed Steps       : 14
+Passed Steps         : 14
+Failed Steps         : 0
+Time Taken           : 00:00:05
+-----------------------------------------------------
+
+Run Finished on Sun Dec 22 20:49:43 CET 2024
+-----------------------------------------------------
+ExecutionDate        : 22-Dec-2024 20-49-36
+Executed TestCases   : 2
+Passed TestCases     : 2
+Failed TestCases     : 0
+Time Taken           : 00:00:06
+ReportPath           : file:////Users/la56qs/MyDevelopmentWork/INGeniousOpensource/SourceCode/INGenious2.0/INGenious/Resources/Projects/ING-Public-Web/Results/TestExecution/Release1/Set1/22-Dec-2024 20-49-36/summary.html
+-----------------------------------------------------

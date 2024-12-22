@@ -1,0 +1,393 @@
+
+
+body{
+    margin: 5px; padding: 10px 5px 5px 5px ; }
+h1 {
+    font-size: 24px;
+    margin-top: 4px;
+    font-family:fantasy;
+    color:cornflowerblue;
+}
+.newTabBtn {
+    position: absolute;
+    margin: 13px 15px;
+    font-size: 10px;
+    background-color: #dcdcdc;
+    padding: 2px 7px;
+    border-radius: 6px;
+    cursor: pointer;
+    z-index: 2;
+}
+.small{
+    font-family:fantasy;    font-size:8px;
+}
+.big{
+    font-family:fantasy;    font-size:12px;
+}
+.tsetDetails.heading p{
+    color:cornflowerblue;    font-family:fantasy;    font-size:18px; }
+
+.tsetDetails.heading table{ 			
+    border: 1px  solid #8B8B8B;  border-spacing: 2px; 
+    width: 60%;min-width: 700px; height:80px;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.15);
+  } 
+
+.tsetDetails.heading td ,th {
+    border: 0px  solid #8B8B8B; height:50px; padding: 5px 5px 5px 5px ;  
+    margin: 4px;
+    width: 150px;
+}
+
+th.ng-binding.ng-scope {}
+.tesetDetails.heading table thead tr{
+    background: #e8e8e8;   
+}
+.tsetDetails.heading.endTime,.tsetDetails.heading.startTime{
+    font-size: 11px;
+}
+.tsetDetails.heading.nopassTests{
+    color:green;
+}
+.tsetDetails.heading.nofailTests{
+    color:red;
+}
+.tsetDetails.heading.nofailTests{
+    color:red;
+}
+.grp{
+    border: 2px  solid #8B8B8B;  border-spacing: 2px; 
+    height:80px;  
+}
+.grp.head{
+    background: #e8e8e8;
+}.grp.head.browsers{
+    background: #e8e8e8;
+}
+thead{
+    background: #e8e8e8;
+    font-size: 12px;
+}
+.tsetDetails.heading.PASS,Pass{
+    color:green;
+}
+.tsetDetails.heading.FAIL,Fail{
+    color:red;
+}
+.exe.heading p{
+    color:cornflowerblue; font-family:fantasy; font-size:18px; }
+
+.exe.heading table    { 			
+    border: 0px;  width: 100%; font-size: 12px ;	 } 
+
+.exe.heading select {
+    width:50%;	 right: 0px;	 }	 
+
+.exe table { 	
+    border-spacing: 2px;  
+    border: 1px  solid #8B8B8B; 
+    width: 100%;  font-size: 14px ;
+    box-shadow: 0 0 20px rgba(0, 0, 0, 0.15);	 } 
+
+.dataTables_scrollHeadInner table{
+    margin-left: 26px; 
+}
+.exe.table tbody tr td { 	
+    text-align: left;
+    font-size: 14px;
+} 
+.exe.table thead  { 			
+    border-spacing: 1px;  font-size: 14px ;
+    background: #e8e8e8;   ;
+}
+.exe.table.col.stepno{
+    text-align:  center;
+    width: 12%;
+}
+.exe.table.col.exeTime{
+    text-align:  center;
+    width: 15%;
+}
+.exe.table.col.bv{  
+    width: 10%;
+    min-width: 120px;
+    text-align:  center;
+}
+.exe.table.col.platf{   
+    width: 10%;
+    min-width: 110px;
+    text-align:  center;
+}
+.exe.table.col.iter{   
+    width: 10%;
+    min-width: 110px;
+    text-align:  center;
+}
+.exe.table td {
+    padding-left: 20px;   
+}
+.exe.table.wrapper{
+    overflow-x: auto;
+    overflow-y: hidden;
+}
+.exe.table thead tr th{
+    /* min-width: 100px; */
+    max-height: 25px;
+}
+.exe.table.iteration{
+    background:#69b5bd;
+    color: black;
+    height:10px;   
+}
+.exe.table.reusable{
+    background: #c9e2b3;   
+    height:10px;   
+    font-size: medium;
+}
+.exe.table.step.oddx,.exe.table.step.oddx td{
+    background:white; 
+}
+.exe.table.step.evenx,.exe.table.step.evenx td,.exe.table.step.evenx td a,.exe.table.step.evenx td p{
+    background:#e8e8e8; 
+}
+.exe.table th {
+    height: 12px;  
+    font-size: 12px ; 
+    text-align: center;   
+    border: 0px solid #8B8B8B;
+}
+tr{
+    max-height: 15px;
+}
+.exe.table td { 
+    max-height: 10px;  
+    text-align: left; 
+}
+.exe.table.PASS,.exe.table.PASSED,.exe.table.DONE,.exe.table.FAIL,.exe.table.FAILED,.exe.table.DEBUG,.exe.table.WARNING,.exe.table.COMPLETE{
+    max-width: 100px;
+    font-size: 12px;
+    text-align: center;   
+    background: inherit;
+}
+.exe.table.res{
+    text-align: center;   
+}
+.exe.table.PASS,.exe.table.PASSED,.exe.table.COMPLETE {
+    color:green;  
+}
+.exe.table.DONE,.exe.table.DEBUG,.exe.table.WARNING{
+    color:black;
+}
+
+.exe.table.FAIL,.exe.table.FAILED {     
+    color:red;  
+}
+.exe.table.time{
+    text-align: center;   
+    color:black;  
+    font-size: 11px;
+}
+.exe.table.res{
+    text-align: center;
+    font-size: 11px;
+    max-height: 20px;
+    width: 15%;
+    min-width:90px;
+    max-width:120px;
+}
+.exe.table.ng-scope.odd,.exe.table.ng-scope.odd td{
+    background:white; 
+}
+.exe.table.ng-scope.even,.exe.table.ng-scope.even td,.exe.table.ng-scope.even td a,.exe.table.ng-scope.even td p{
+    background:#e8e8e8; 
+}
+.GRPTabDiv{
+    width: 98%;
+    overflow-x:scroll;  
+}
+
+.tsetDetails.footer table  
+{ 			
+    border: 0px; width: 98%;  }
+
+.tsetDetails.footer.PASS {
+    color:green;  }
+
+.tsetDetails.footer.FAIL {     
+    color:red;  }
+small { 
+    font-size:smaller;
+}
+
+div.dataTables_wrapper {
+    width: 100%;
+    margin: 0 auto;
+}
+
+
+.footer-icons {  
+    position: fixed;
+    float: right;
+    display: flex;
+    bottom: 10px;  
+    right: 10px;
+}
+
+.footer-icons a{
+    margin-left: 6px;
+    background: #69b5bd;
+    background-repeat: no-repeat;
+    background-position: center;
+    display: block;
+    width: 40px;
+    height: 40px; 
+}
+
+.footer-icons>.footer-scroll{
+	background-image: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAYAAACNiR0NAAAAuklEQVQ4T+3SMQ4BQRQG4I9CNDqNA+hcQO0IWiUnEIkjKJxA1AqHULqBygFUKo0okE2GbNauHaE01WT2n+/NvpmKH4/Kjz1/8PuOxvSwilkoNcX1XdkYcIFRQJapea5bBo4xz+yc5Kw9I+/APtZIfjk9bhhglXfEIrCLDeoF/Tqjh232ex7YDsFmyZ0fkRTep3NZsBGwTuQD2gX09MhnwRaSm6xFghcMcSgCI53iWNmz+bjAH/y4ZS8b7qUTFRUHsobWAAAAAElFTkSuQmCC");
+}
+
+.footer-icons>.footer-axe{
+	background-size: 70%;
+	background-image: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADAAAAAwCAYAAABXAvmHAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAAZdEVYdFNvZnR3YXJlAHBhaW50Lm5ldCA0LjAuMTM0A1t6AAACqElEQVRoQ+1ZwXHCMBCkhJSQB/DglRIyDE8eqQD48E8JdJASKCElUAIlUAIlkFvPSnO6GJ/BMhYz3MwO6Gzd7cnySoJRXzaZTN7H4/GezeczIX8QXASfdD2PgTTJAwe6n8eE9EkVcJHptOGl8k3IfmvyxGk2m73xlnINJIXs2ZAP2PG2ck1I/hjSGmcoE28tzyibdcQ1ypVVIRdk00N5sgpShmQTypNVIZXIpoeiZPWKbHooQ1Yd2fQwvKwKiSbZ9DCsrLaUTQ/DyaokbyubHh4vq0hqSHTB42VVkt4kmx4eKqt3yqaHx8hqR9n00L+sSpIusumhX1nNJJse+pNVCZ5LNj3kl1UENUn6RH5ZlaBZZdNDVlntSTY95JHVnmXTQ3dZXS6XP/P5/DIEFovFebVa3S+r6LzZbC4D435ZXa/Xh5qAQ+B2WUUnE2QwYCBJq71Jx5MNNCSkiPayyrm/Kwk3FfCyl73suk2n049w6MB3We4/Q3u73b5x7fhA2xr8uI776IqGGIjHZl7jfggnMb0nwu40tKs9ixA8CiB7Z1sE2vTj+i/d2OXuVBwA3/MeLSXgUSWoQ5UQUkeCSRH4ZDvxS7+9iaOR52SGfbkK+ivAlPmST11UHDFbBNt15JN/MdkGkCP4u5/MJEg4RibLudlmJ4/cFBGLEcRpJX30jwMYDOQJCP7uT0EF/Dcvm64JWaygsQAUxUuVqb5N6H60RBAGiy8erOkJYKQFYdpcewJ6/iOHRvAnOe8yme/6OLkDcUgegms/b697YfWTiEXwPQr994jJQYmFia/7/odBW6kQyJFkQvaaOkk/PdoW+X6ZYBF6xAPsOhC24JFkMFNENTUYt+6Xvj2uVR1zGqdOJXdIYFdikBagiIR8MBZxtCsxC4lx6W5po9EfuMFmbGvK8GcAAAAASUVORK5CYII=");	
+}
+
+.footer-icons>.footer-log{
+	background-image:url("../../media/images/log.png");  
+	background-size: 80%;	
+}
+
+.footer-icons>.footer-bdd{
+	background-image:url("../../media/images/bdd.svg");
+	background-size: 80%;
+}
+
+.footer-icons>.footer-perf{
+	background-image:url("../../media/images/poll.svg");
+	background-size: 80%;
+}
+.vulog.perfReport{     
+	background-size: 80%;  
+    background-image:url("../../media/images/poll.svg");
+}
+
+.footer-icons>.footer-video{
+    background-image:url("../../media/images/video.png");
+    background-size: 80%;
+    }
+    
+.noVideoFound{
+    background-color: #f0ad4e;
+    margin: 8px;
+    position: absolute;
+    font-size: 13px;
+    font-weight: 500;
+    padding: 4px 12px;
+    }
+
+.dataTables_filter{
+    position: relative;
+}
+.dataTables_wrapper.dataTables_filter{
+    float:right;
+    position: relative;
+}
+thead input{
+    color:black;
+}
+.form-control{
+    font-size:12px;
+    padding: 0px 0px;
+}
+table.dataTable.no-footer {
+    border-bottom: 1px solid #8B8B8B;
+}
+/* Added for displaying request and response*/
+/* The Modal (background) */
+.modal {
+  display: none; /* Hidden by default */
+  position: fixed; /* Stay in place */
+  z-index: 1; /* Sit on top */
+  padding-top: 100px; /* Location of the box */
+  left: 0;
+  top: 0;
+  width: 100%; /* Full width */
+  height: 100%; /* Full height */
+  overflow: auto; /* Enable scroll if needed */
+  background-color: rgb(0,0,0); /* Fallback color */
+  background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+}
+
+/* Modal Content */
+.modal-content {
+  background-color: #fefefe;
+  margin: auto;
+  padding: 20px;
+  border: 1px solid #888;
+  width: 80%;
+}
+
+/* The Close Button */
+.close {
+  color: #aaaaaa;
+  float: right;
+  font-size: 28px;
+  font-weight: bold;
+}
+
+.close:hover,
+.close:focus {
+  color: #000;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.tab {
+	overflow: hidden;
+	border: 1px solid #ccc;
+	background-color: #f1f1f1;
+}
+
+/* Style the buttons that are used to open the tab content */
+.tab button {
+	background-color: inherit;
+	float: left;
+	border: none;
+	outline: none;
+	cursor: pointer;
+	padding: 14px 16px;
+	transition: 0.3s;
+}
+
+/* Change background color of buttons on hover */
+.tab button:hover {
+	background-color: #ddd;
+}
+
+/* Create an active/current tablink class */
+.tab button.active {
+	background-color: #ccc;
+}
+
+/* Style the tab content */
+.tabcontent {
+	display: none;
+	padding: 6px 12px;
+	border: 1px solid #ccc;
+	border-top: none;
+}
+
+.tabcontent {
+	animation: fadeEffect 1s; /* Fading effect takes 1 second */
+}
+
+/* Go from zero to full opacity */
+@
+keyframes fadeEffect {
+	from {opacity: 0;
+}
+
+to {
+	opacity: 1;
+}
+}

@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<meta charset="utf-8"/>
+
+<html ng-app="detailedReport" ng-controller="TestCase">
+
+    <head>
+        <style>
+            [ng\:cloak], [ng-cloak], [data-ng-cloak], [x-ng-cloak], .ng-cloak, .x-ng-cloak {
+                display: none !important;}
+            </style>
+            <link rel="stylesheet" type="text/css" href="../../../../media/css/bootstrap.min.css" />
+            <script type="text/javascript" src="../../../../media/js/angular.min.js"></script>
+            <link rel="stylesheet" type="text/css" href="../../../../media/css/jquery.dataTables.css">
+            <link  rel="stylesheet" type="text/css" href="../../../../media/css/dataTables.colVis.css"/>
+            <script type="text/javascript" language="javascript" src="../../../../media/js/jquery.js"></script>
+            <link rel="stylesheet" type="text/css" href="../../../../media/css/report.css"/>        
+            <script src="../../../../media/js/jquery.dataTables.min.js" type="text/javascript"></script>
+            <script src="../../../../media/js/dataTables.colVis.js" type="text/javascript"></script>     
+            <script  type="text/javascript" src="data.js"></script>   
+            <link rel="stylesheet" type="text/css" href="../../../../media/css/galenReport.css"/>
+            <script type="text/javascript" src="../../../../media/js/galenReport.js"></script>  
+            <script type="text/javascript" src="../../../../media/js/select2.full.min.js"></script>  
+            <link rel="stylesheet" type="text/css" href="../../../../media/css/select2.min.css"/>
+            <script type="text/javascript" src="../../../../media/js/detailed.js"></script>    
+            <link rel="stylesheet" type="text/css"  id="themecss" href=""/>
+        <script>
+            document.getElementById('themecss').setAttribute('href', "../../../../media/theme/" + DATA.theme + ".css");
+
+        </script>
+        <style>           
+            .ColVis{margin-right: 18px;}.select2{text-align: left;margin-right: 20px;}
+	    @media print {
+		.status.PASS, .PASS {
+			color: green !important;
+		}
+		.status.FAIL, .FAIL {
+			color: red !important;
+		}
+		.hideOnPrint {
+			display: none !important;
+		}
+	    }
+		.button {
+		  background-color: #4CAF50;
+		  border: none;
+		  color: white;
+		  padding: 15px 32px;
+		  text-align: center;
+		  text-decoration: none;
+		  display: inline-block;
+		  font-size: 16px;
+		  margin: 4px 2px;
+		  cursor: pointer;
+		}
+        </style>
+        <title ng-bind="Title"></title>	        
+    </head>
+    <body ng-cloak>
+        <div>
+            <!--  Report Header  -->       
+            <header>
+                <h1 class="text-center">{{Title}}</h1>      
+            </header>
+            <div class="tsetDetails heading"> 	
+                <p class="tsetDetails heading">  Test  Details </p><br>
+                <table class="tsetDetails heading" ng-show="view !== GRP"> 
+                    <thead> <tr>
+                            <th ng-repeat="col in tcDetails">{{col}}</th>
+                        </tr></thead>
+                    <tbody> <tr> 
+                            <td ng-repeat="val in tcDetails_ID" class="tsetDetails heading {{val + ' ' + cDetails[val]}}">{{cDetails[val]}}</td>
+                        </tr>
+                    </tbody>
+                </table>
+                <table class="grp" ng-show="view === GRP" style='width:{{getWidth()}}%'>  
+                    <colgroup><col style='width:15%'/>                      
+                    </colgroup>
+                    <tbody> 
+                        <tr>
+                            <td class="grp head"><b>Browser</b></td>
+                            <td class="grp head browsers" ng-repeat="browser in browsers">{{browser}}</td>
+                        </tr>
+                        <tr> <td ><b>Status</b></td>
+                            <td  ng-repeat="browser in browsers" >
+                                <a ng-click="setView(browser)" class="tsetDetails heading {{Details[browser].status}}"
+                                   style='cursor:pointer;'>
+                                    {{Details[browser].status}}</a></td>
+                        </tr>
+                    </tbody>
+                </table><br><br>
+            </div>
+
+            <div class="exe"> 	
+                <div class="exe heading">
+                    <table><tr>
+                            <td><p>  Detailed Report </p> </td>    
+                            <td align="right" width="300px" class = "hideOnPrint">	 
+                                <select ng-model="view" ng-options="v for v in views" 
+                                        title="View" class="form-control" > </select>
+                                <label style="display: none;" ng-bind="view" onchange="SetView(view)"></label>
+                            </td>
+                        </tr> </table><br>
+                </div>
+                <div ng-repeat="browser in browsers" >	  
+                    <div ng-show="view === browser" >
+                        <table id='exeTABSNGL{{(browser).escape()}}' class='exe table' ng-bind-html="SNGLTabs[browser]" >    
+                        </table> 
+                    </div>
+                </div>
+                <div id="GRPTabDiv" ng-show="view === GRP">	 
+                    <table id='exeTABGRP' class='exe table' ng-bind-html="cRowsGRP">                         
+                    </table> 
+                </div>
+            </div>
+            <div class="tsetDetails footer" ng-show="false">
+                <br>
+                <table><colgroup><col style='width: 25%'/><col style='width: 20%'/><col style='width: 10%'/>
+                        <col style='width: 20%'/><col style='width: 25%'/></colgroup>
+                    <tr><td align="center" colspan="5">Completed Run On : {{Details[view].endTime}} || Total Time : {{Details[view].exeTime}} </td> </tr>
+                    <tr><td><p></p></td><td align="right" class="tsetDetails footer PASS" colspan="1">Steps Passed : {{Details[view].nopassTests}}</td><td><p></p></td>
+                        <td align="left" class="tsetDetails footer FAIL" colspan="1">Steps Failed : {{Details[view].nofailTests}} </td><td><p></p></td></tr> 
+                </table>
+            </div>	
+        </div>
+        <div id="screen-shadow"></div>
+        <div id="popup" class="popup">
+	    <text class = "newTabBtn" onClick="window.open($('#screenShotImage').attr('src'), '_blank');">Open in New Tab</text>
+            <div class="popup-wrapper">
+                <a class="popup-close-link" href="#">close</a>
+                <div class="popup-content"></div>
+            </div>
+        </div>
+		 <div id="popup-web" class="popup">	    
+            <div class="popup-wrapper">
+                <a class="popup-close-link" href="#">close</a>
+                <div class="popup-content">
+					<br>
+					<table align="center">
+						<tr>
+							<td><p>To view the detailed request body click here :</p></td>
+							<td>&emsp;&emsp;&emsp;</td>
+							<td><p>To view the detailed response body click here :</p></td>
+						</tr>
+						<tr>
+							<td align="center"><a id="Request" target="_blank" rel="noopener noreferrer" style="background-color: #008CBA" class="button" align="center">Request</a></td>
+							<td>&emsp;&emsp;&emsp;</td>
+							<td align="center"><a id="Response" target="_blank" rel="noopener noreferrer" class="button" align="center">Response</a></td>
+						</tr>
+					</table>
+				</div>
+            </div>
+        </div>
+		<script>
+			document.getElementById("defaultOpen").click();
+		</script>
+        <div class="image-comparison">
+            <h5>Actual</h5>
+            <img id="actual" src=""/>
+
+            <h5>Expected</h5>
+            <img id="expected" src=""/>
+
+            <h5>Comparison map</h5>
+            <img id="comparison" src=""/>
+        </div>
+
+        <div class="screenshot-canvas">
+            <img id="screenShotImage" src=""/>
+        </div> 
+		
+		 <div class="footer-icons hideOnPrint">
+			 <a  ng-show="videoReport" ng-href="{{myLink}}" target="_blank" class="footer-video" title="Video Report"> </a>
+		 	<a ng-show="perfReport" ng-href="perfReport.html?SC={{Details[view].scenarioName}}&TC={{Details[view].testcaseName}}" target="_blank" class="footer-perf" title="Performance Report"></a>
+                        <a href="" id="logs" target="_blank" class="footer-log" title="Individual TestCaseLog"></a>
+			<a href="#" class="footer-scroll"></a>
+		</div>
+        <script>
+                    $(document).ready(function () {
+                        var js = document.createElement('script');
+                        js.src = "./perfLog.js";
+                        document.body.appendChild(js);
+                    });
+        </script>
+    </body>
+</html>

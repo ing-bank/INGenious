@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+
+<html  ng-controller="TestSet" ng-app="summaryReport">
+    <head>
+        <style>
+            [ng\:cloak], [ng-cloak], [data-ng-cloak], [x-ng-cloak], .ng-cloak, .x-ng-cloak {
+                display: none !important;}
+            </style>
+            <link rel="stylesheet" type="text/css" href="../../../../media/css/bootstrap.min.css" />
+            <script type="text/javascript" src="../../../../media/js/angular.min.js"></script>
+            <link rel="stylesheet" type="text/css" href="../../../../media/css/jquery.dataTables.css">
+            <link  rel="stylesheet" type="text/css" href="../../../../media/css/dataTables.colVis.css"/>
+            <script type="text/javascript" language="javascript" src="../../../../media/js/jquery.js"></script>
+            <script src="../../../../media/js/jquery.dataTables.min.js" type="text/javascript"></script>
+            <script src="../../../../media/js/dataTables.colVis.js" type="text/javascript"></script>          
+            <script type="text/javascript" src="../../../../media/js/select2.full.min.js"></script>  
+            <link rel="stylesheet" type="text/css" href="../../../../media/css/select2.min.css"/>
+            <link rel="stylesheet" type="text/css" href="../../../../media/css/report.css"/>
+            <script  type="text/javascript" src="data.js"></script>   
+            <script type="text/javascript" src="../../../../media/js/summary.js"></script>
+            <link rel="stylesheet" type="text/css"  id="themecss" href=""/>
+        <script>
+            document.getElementById('themecss').setAttribute('href', "../../../../media/theme/" + DATA.theme + ".css");
+        </script>
+        <title>{{Title}}</title>	
+        <style>           
+            .ColVis{margin-right: 18px;}
+            .select2{
+                text-align: left;
+                margin-right: 20px;
+            }
+            .vubdd {               
+                right: 110px;
+            }
+            @media print {
+                .status.PASS, .PASS {
+                    color: green !important;
+                }
+                .status.FAIL, .FAIL {
+                    color: red !important;
+                }
+                .hideOnPrint, .ColVis {
+                    display: none !important;
+                }
+                .showOnPrint span{
+                    color: #337ab7 !important;
+                }
+                .showOnPrint {
+                    display: block !important;
+                }
+            }
+        </style>
+    </head>
+    <body ng-cloak>
+        <!--  Report Header  -->
+        <div>
+            <header ng-hide="Details.testRun">
+                <h1 class="text-center">{{Title}}</h1>     
+            </header>
+            <div class="tsetDetails heading"> 	
+                <p class="tsetDetails heading">  Test Details </p>    
+                <table class="tsetDetails heading" ng-show="view === 'Single View' || Details.testRun"> 
+                    <thead> <tr>
+                            <th ng-repeat="col in tSetDetails">{{col}}</th>
+                        </tr></thead>
+                    <tbody> <tr> 
+                            <td ng-repeat="val in tSetDetails_ID" class="tsetDetails heading {{val}}">
+                                {{Details[val]}}</td>
+                        </tr>
+                    </tbody>
+                </table>
+                <table class="tsetDetails heading" style='width:{{getBrowsersWidth(GRPBrowsers)}}%'
+                       ng-show="view === 'Group View' && !Details.testRun" > 
+                    <thead> <tr>
+                            <th ng-repeat="browser in GRPBrowsersX" > 
+                                {{browser.name + "-" + browser.ver + " "}}<br>
+                                <small>{{browser.platf}}</small></th>
+                        </tr></thead>
+                    <tbody> <tr> 
+                            <td ng-repeat="browser in GRPBrowsersX" > <div class="big"><b>                        
+                                        <label class="tsetDetails heading PASS">{{browser.res.pass}}</label>
+                                        /
+                                        <label class="tsetDetails heading FAIL">{{browser.res.fail}}</label>
+                                    </b><label class="small"> ({{browser.res.no}})</label></div>                                
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="exe"> 	
+                <div class="exe heading">
+                    <br><br><br>
+                    <table><tr>
+                            <td><p>  Detailed Report </p> </td>    
+                            <td align="right" width="270px" class = "hideOnPrint">	 
+                                <select ng-model="view" ng-options="v for v in ['Single View', 'Group View']" 
+                                        title="View" > </select>
+                            </td>
+                        </tr> </table><br>
+                </div>
+                <div ng-show="view === 'Single View'">	  
+                    <table id='exeTAB' class='exe table'> 
+                        <colgroup><col style='width:20%'/><col style='width: 18%'/><col style='width: 18%'/>
+                            <col style='width:20%'/><col style='width: 10%'/>
+                            <col style='width: 15%;min-width: 160px'/>
+                            <col style='width: 10%'/>
+                            <col style='width: 10%'/>
+                        </colgroup> 
+                        <thead align="center" class='exe table'> 
+                            <tr>  <th ng-repeat="col in colsTitle">{{col}}</th>
+                            </tr> 
+                        </thead> 
+                        <tbody class='exe table'>
+                            <tr class='exe table' ng-repeat="exe in Executions">
+                                <td>{{exe.scenarioName}}</td>
+                                <td>
+                                    <a class = "hideOnPrint" href='detailed.html?{{getQParamTCLink(exe)}}'>{{exe.testcaseName}}</a>
+                                    <span class = "showOnPrint" style = "display: none;">{{exe.testcaseName}}</span>
+                                </td>
+                                <td>{{exe.browser}}</td><td class='exe table col exeTime'>{{exe.exeTime}}</td>
+                                <td class='exe table {{exe.status}}'>{{exe.status}}</td>
+                                <td class='exe table col bv'>{{exe.bversion}}</td>
+                                <td class='exe table col platf'>{{exe.platform}}</td>
+                                <td class='exe table col iter' title="{{exe.iterationType}}">{{exe.iterations}}</td>
+                            </tr>
+                        </tbody>
+                    </table> 
+                </div>
+
+                <div ng-show="view === 'Group View'">
+                    <table id='exeTABGRP' class='exe table'>   
+                        <colgroup><col style='width:20%'/><col style='width: 20%'/>                           
+                        </colgroup> 
+                        <thead align="center" class='exe table'> 
+                            <tr>
+                                <th  style='min-width: 120px;'>{{GRPExecolsTitle[0]}}</th>
+                                <th  style='min-width: 120px;'>{{GRPExecolsTitle[1]}}</th>
+                                <th  ng-repeat="browser in GRPBrowsers" class="exe table res">
+                                    {{browser.name + "-" + browser.ver + " "}}<small>{{browser.platf + " " + browser.iType}}</small></th>
+                            </tr> 
+                        </thead> 
+                        <tbody class='exe table'>
+                            <tr class='exe table' ng-repeat="exe in GRPExecutions">
+                                <td>{{exe[GRPExecolsTitle[0]]}}</td>
+                                <td>
+                                   <a class = "hideOnPrint" href='detailed.html?{{getQParamTCLinkAll(exe)}}'>{{exe[GRPExecolsTitle[1]]}}</a>
+                                   <span class = "showOnPrint" style = "display: none;">{{exe[GRPExecolsTitle[1]]}}</span>
+                                </td>
+                                <td ng-repeat="browser in GRPBrowsers" align="center" class="exe table res">
+                        <label ng-if="getResStatus(exe, browser) === NA" >{{getResStatus(exe, browser)}}</label>
+                        <a class = "hideOnPrint" ng-if="getResStatus(exe, browser) !== NA" class='exe table {{getResStatus(exe, browser)}}' 
+                           href='detailed.html?{{getQParamTCLinkFor(exe, browser)}}' >{{getResStatus(exe, browser)}}
+                        </a>
+			<span class = "showOnPrint" style = "display: none;" ng-if="getResStatus(exe, browser) !== NA" class='exe table {{getResStatus(exe, browser)}}'>
+			    {{getResStatus(exe, browser)}}
+                        </span>
+			<br><label class='exe table time'>{{getResTime(exe, browser)}}</label>                                                                     
+                        </td>
+                        </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="tsetDetails footer" ng-show="false"><br>
+                    <table><colgroup><col style='width: 25%'/><col style='width: 20%'/><col style='width: 10%'/>
+                            <col style='width: 20%'/><col style='width: 25%'/></colgroup>
+                        <tr><td align="center" colspan="5">Completed Run On : {{Details.endTime}} || Total Time : {{Details.exeTime}} </td> </tr>
+                        <tr><td><p></p></td><td align="right" class="tsetDetails footer PASS" colspan="1">Tests Passed : {{Details.nopassTests}}</td><td><p></p></td>
+                            <td align="left" class="tsetDetails footer FAIL" colspan="1">Tests Failed : {{Details.nofailTests}} </td><td><p></p></td></tr> 
+                    </table>
+                </div>	
+            </div>                
+        </div>
+		
+        <div class="footer-icons hideOnPrint">
+			<a ng-show="Details.bddReport" ng-href="{{Details.bddLink}}" target="_blank" class="footer-bdd" title="BDD Report"></a>
+			<a ng-show="Details.axeReport" href="aXe/aXe.html" target="_blank" class="footer-axe" title="AXE Accessibility Report"></a>
+			<a href="console.txt" target="_blank" class="footer-log" title="Console Log"></a>
+			<a href="#" class="footer-scroll"></a>
+		</div>
+    </body>
+</html>

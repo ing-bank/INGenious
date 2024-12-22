@@ -1,0 +1,1 @@
+var reportName="Release1:Set1";var dataSet=[{"PassTC":"2","FailTC":"0","ReportPath":"22-Dec-2024 20-49-36/summary.html","ExecTC":"2","ExecutionDate":"22-Dec-2024 20-49-36","ExecTime":"00:00:05"}]
