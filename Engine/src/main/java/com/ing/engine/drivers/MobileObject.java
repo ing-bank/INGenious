@@ -1,7 +1,3 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
 package com.ing.engine.drivers;
 
 import com.ing.datalib.or.ObjectRepository;
@@ -16,7 +12,6 @@ import com.ing.engine.constants.SystemDefaults;
 import com.ing.engine.core.Control;
 import com.ing.engine.drivers.findObjectBy.support.ByObjectProp;
 import com.ing.engine.core.CommandControl;
-import com.ing.engine.core.RunManager;
 import info.debatty.java.stringsimilarity.Levenshtein;
 import io.appium.java_client.android.AndroidDriver;
 import java.time.Duration;
@@ -25,8 +20,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import java.util.regex.Pattern;
 
 import org.openqa.selenium.By;
@@ -37,10 +30,9 @@ import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.ui.ExpectedCondition;
 import org.openqa.selenium.support.ui.ExpectedConditions;
 //import org.openqa.selenium.support.ui.WebDriverWait;
-import org.jsoup.Jsoup;
-import org.jsoup.nodes.Document;
-import org.jsoup.nodes.Element;
-import org.openqa.selenium.JavascriptExecutor;
+//import org.jsoup.Jsoup;
+//import org.jsoup.nodes.Document;
+//import org.jsoup.nodes.Element;
 import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
@@ -376,22 +368,6 @@ public class MobileObject {
                         }
                     }
                 }
-                if (found.equals("no") && isAutoHealEnabled()) {
-                    System.out.println("\n-------------------- Auto Heal has been invoked --------------------");
-                    tag = "css";
-                    value = elementHeal(elementString, tagName);
-                    By by = ByObjectProp.get().getBy(tag, value);
-                    elements = context.findElements(by);
-                    if (!elements.isEmpty()) {
-                        System.out.println("Element has been healed. Attribute [CSS Selector] with value [" + value + "] is used");
-                        System.out.print(foundElementBy(tag, value));
-                        storeElementDetailsinOR(attributes, "tagName", elements.get(0).getTagName());
-                        storeElementDetailsinOR(attributes, "outerHTML",
-                                elements.get(0).getAttribute("outerHTML"));
-                        storeElementDetailsinOR(attributes, "css", value);
-                    }
-                    return elements;
-                }
                 return null;
             });
         } catch (Exception ex) {
@@ -721,26 +697,7 @@ public class MobileObject {
 
     }
 
-    public String elementHeal(String elementString, String tagName) {
-        Levenshtein levenshtein = new Levenshtein();
-        String html = driver.getPageSource();
-        Document doc = Jsoup.parse(html);
-        List<Element> elements = doc.getElementsByTag(tagName);
 
-        Map<Integer, Integer> distance = new HashMap<>();
-        Map<Integer, Element> elementStrings = new HashMap<>();
-        for (int i = 0; i < elements.size(); i++) {
-
-            distance.put(i, (int) levenshtein.distance(elementString, elements.get(i).toString()));
-            elementStrings.put(i, elements.get(i));
-        }
-
-        int minKey = getMinKey(distance, distance.keySet().toArray());
-        Element targetElementString = elementStrings.get(minKey);
-
-        return targetElementString.cssSelector();
-
-    }
 
     public void storeElementDetailsinOR(List<ORAttribute> attributes, String attribute, String value) {
         for (ORAttribute attr : attributes) {

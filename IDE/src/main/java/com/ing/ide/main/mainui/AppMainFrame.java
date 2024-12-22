@@ -200,6 +200,7 @@ public class AppMainFrame extends JFrame {
     public void showTestExecution() {
         getGlassPane().setVisible(false);
         slideShow.showSlide("TestExecution");
+        testExecution.getTestExecutionUI().adjustUI();
     }
 
     public void showDashBoard() {

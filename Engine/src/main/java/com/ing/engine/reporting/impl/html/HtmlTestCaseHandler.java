@@ -5,7 +5,8 @@ import com.ing.engine.constants.AppResourcePath;
 import com.ing.engine.constants.FilePath;
 import com.ing.engine.core.Control;
 import com.ing.engine.core.RunContext;
-import com.ing.engine.drivers.PlaywrightDriver;
+import com.ing.engine.drivers.PlaywrightDriverCreation;
+import com.ing.engine.drivers.WebDriverCreation;
 import com.ing.engine.reporting.TestCaseReport;
 import com.ing.engine.reporting.impl.handlers.PrimaryHandler;
 import com.ing.engine.reporting.impl.handlers.TestCaseHandler;
@@ -57,10 +58,17 @@ public class HtmlTestCaseHandler extends TestCaseHandler implements PrimaryHandl
     }
 
     @Override
-    public void setDriver(PlaywrightDriver driver) {
-        testCaseData.put(TestCase.B_VERSION, getDriver().getBrowserVersion());
-//        testCaseData.put(TestCase.PLATFORM, getDriver().getPlatformName());
-        testCaseData.put(TestCase.BROWSER, getDriver().getCurrentBrowser());
+    public void setPlaywrightDriver(PlaywrightDriverCreation driver) {
+        testCaseData.put(TestCase.B_VERSION, getPlaywrightDriver().getBrowserVersion());
+        testCaseData.put(TestCase.PLATFORM, System.getProperty("os.name")+ " " +System.getProperty("os.version")+ " " +System.getProperty("os.arch"));
+        testCaseData.put(TestCase.BROWSER, getPlaywrightDriver().getCurrentBrowser());
+    }
+    
+    @Override
+    public void setWebDriver(WebDriverCreation driver) {
+        testCaseData.put(TestCase.B_VERSION, getWebDriver().getCurrentBrowserVersion());
+        testCaseData.put(TestCase.PLATFORM, getWebDriver().getPlatform());
+        testCaseData.put(TestCase.BROWSER, getWebDriver().getCurrentBrowser());
     }
 
     @Override
@@ -119,9 +127,9 @@ public class HtmlTestCaseHandler extends TestCaseHandler implements PrimaryHandl
             }
             if (Control.exe.getExecSettings().getRunSettings().isVideoEnabled()) {
                 if (isIteration) {
-                    iteration.put(RDS.TestSet.VIDEO_REPORT_DIR, getDriver().page.video().path().toString());
+                    iteration.put(RDS.TestSet.VIDEO_REPORT_DIR, getPlaywrightDriver().page.video().path().toString());
                 } else {
-                    reusable.put(RDS.TestSet.VIDEO_REPORT_DIR, getDriver().page.video().path().toString());
+                    reusable.put(RDS.TestSet.VIDEO_REPORT_DIR, getPlaywrightDriver().page.video().path().toString());
                 }
             }
         } catch (Exception ex) {
@@ -293,7 +301,7 @@ public class HtmlTestCaseHandler extends TestCaseHandler implements PrimaryHandl
             if (optional != null) {
                 data.put(RDS.Step.Data.OBJECTS, optional.get(0));
             }
-            if (ReportUtils.takeScreenshot(getDriver(),getMobileDriver(), imgSrc)) {
+            if (ReportUtils.takeScreenshot(getPlaywrightDriver(),getWebDriver(), imgSrc)) {
                 data.put(RDS.Step.Data.LINK, imgSrc);
             }
         }

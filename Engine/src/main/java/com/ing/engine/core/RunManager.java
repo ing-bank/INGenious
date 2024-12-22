@@ -5,7 +5,7 @@ import com.ing.datalib.component.ExecutionStep;
 import com.ing.datalib.component.TestSet;
 import com.ing.engine.cli.LookUp;
 import com.ing.engine.constants.FilePath;
-import com.ing.engine.drivers.WebDriverFactory.Browser;
+import com.ing.engine.drivers.PlaywrightDriverFactory.Browser;
 import com.ing.engine.settings.GlobalSettings;
 import com.ing.datalib.model.Tags;
 import org.apache.commons.lang.ArrayUtils;

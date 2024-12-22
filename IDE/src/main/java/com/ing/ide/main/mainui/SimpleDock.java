@@ -10,12 +10,10 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import javax.swing.BorderFactory;
 import javax.swing.Box.Filler;
 import javax.swing.JButton;
 import javax.swing.JPanel;
 import javax.swing.SwingConstants;
-import javax.swing.border.BevelBorder;
 
 /**
  *
@@ -92,8 +90,6 @@ public class SimpleDock extends JPanel implements ActionListener {
         button.setIcon(Utils.getIconByResourceName("/ui/resources/dock/" + text.toLowerCase()));
         button.setActionCommand(text);
         button.setHorizontalTextPosition(SwingConstants.CENTER);
-        //button.setToolTipText(text);
-        //button.setBorder(BorderFactory.createBevelBorder(BevelBorder.RAISED));
         button.setBackground(Color.WHITE);
        
         button.addActionListener(this);

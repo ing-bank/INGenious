@@ -2,8 +2,8 @@
 package com.ing.engine.reporting.intf;
 
 import com.ing.engine.core.RunContext;
-import com.ing.engine.drivers.MobileDriver;
-import com.ing.engine.drivers.PlaywrightDriver;
+import com.ing.engine.drivers.WebDriverCreation;
+import com.ing.engine.drivers.PlaywrightDriverCreation;
 import com.ing.engine.support.Status;
 import com.ing.engine.support.Step;
 import java.io.File;
@@ -25,9 +25,9 @@ public interface Report {
 
     public void endIteration(int iteration);
 
-    public PlaywrightDriver getDriver();
+    public PlaywrightDriverCreation getPlaywrightDriver();
     
-    public MobileDriver getMobileDriver();
+    public WebDriverCreation getWebDriver();
 
     public String getScreenShotName();
     

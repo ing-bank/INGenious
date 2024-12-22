@@ -1,7 +1,7 @@
 
 package com.ing.ide.main.mainui.components.testexecution.testset;
 
-import com.ing.engine.drivers.WebDriverFactory;
+import com.ing.engine.drivers.PlaywrightDriverFactory;
 import com.ing.ide.main.utils.Utils;
 import com.ing.ide.main.utils.keys.Keystroke;
 import com.ing.ide.util.Canvas;
@@ -77,7 +77,7 @@ public class TestSetPopupMenu extends JPopupMenu {
 
     void loadBrowsers(List<String> emulators) {
         changeBrowser.removeAll();
-        loadBrowsersToMenu(WebDriverFactory.Browser.getValuesAsList());
+        loadBrowsersToMenu(PlaywrightDriverFactory.Browser.getValuesAsList());
         if (!emulators.isEmpty()) {
             changeBrowser.addSeparator();
             loadBrowsersToMenu(emulators);

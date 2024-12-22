@@ -1,4 +1,3 @@
-
 package com.ing.engine.reporting;
 
 import com.ing.engine.constants.AppResourcePath;
@@ -7,7 +6,7 @@ import com.ing.engine.constants.SystemDefaults;
 import com.ing.engine.core.Control;
 import com.ing.engine.core.RunContext;
 import com.ing.engine.core.RunManager;
-import com.ing.engine.drivers.PlaywrightDriver;
+import com.ing.engine.drivers.PlaywrightDriverCreation;
 import com.ing.engine.reporting.impl.handlers.PrimaryHandler;
 import com.ing.engine.reporting.impl.handlers.TestCaseHandler;
 import com.ing.engine.reporting.impl.html.HtmlTestCaseHandler;
@@ -25,8 +24,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.io.FileWriter;
 import org.json.simple.JSONObject;
-import com.ing.engine.drivers.MobileDriver;
-        
+import com.ing.engine.drivers.WebDriverCreation;
 
 public final class TestCaseReport implements Report {
 
@@ -38,10 +36,9 @@ public final class TestCaseReport implements Report {
     public String RequestFileName;
     public String ResponseFileName;
     public String LogFileName;
-    private static final String FileExt=".txt";
-    private static final String LogFolderName="logs";
+    private static final String FileExt = ".txt";
+    private static final String LogFolderName = "logs";
     private StringBuilder sb;
-
 
     public boolean runComplete = false;
 
@@ -49,36 +46,40 @@ public final class TestCaseReport implements Report {
     int stepNo = 0;
 
     public final DateTimeUtils startTime;
-    PlaywrightDriver playwrightdriver;
-    MobileDriver mobileDriver;
+    PlaywrightDriverCreation playwrightdriver;
+    WebDriverCreation webDriver;
 
     Step curr;
     Status currentStatus;
 
     public PrimaryHandler primaryHandler;
     private final List<TestCaseHandler> handlers;
-    private static String folderName="webservice";
+    private static String folderName = "webservice";
 
     public TestCaseReport() {
         ++tcCount;
         startTime = new DateTimeUtils();
         handlers = new ArrayList<>();
-        if(isExtentEnabled())
-          register(new ExtentTestCaseHandler(this), true);
-        if(isRPEnabled())
-          register(new RPTestCaseHandler(this), true);
+        if (isExtentEnabled()) {
+            register(new ExtentTestCaseHandler(this), true);
+        }
+        if (isRPEnabled()) {
+            register(new RPTestCaseHandler(this), true);
+        }
         register(new HtmlTestCaseHandler(this), true);
-        if(isAzureEnabled())
-          register(new AzureTestCaseHandler(this), true);
+        if (isAzureEnabled()) {
+            register(new AzureTestCaseHandler(this), true);
+        }
     }
 
     public boolean isExtentEnabled() {
-            if (!RunManager.getGlobalSettings().isTestRun()) {
-                return Control.getCurrentProject().getProjectSettings()
-                        .getExecSettings(RunManager.getGlobalSettings().getRelease(), RunManager.getGlobalSettings().getTestSet()).getRunSettings().isExtentReport();
-            }
-            return false;
+        if (!RunManager.getGlobalSettings().isTestRun()) {
+            return Control.getCurrentProject().getProjectSettings()
+                    .getExecSettings(RunManager.getGlobalSettings().getRelease(), RunManager.getGlobalSettings().getTestSet()).getRunSettings().isExtentReport();
         }
+        return false;
+    }
+
     public boolean isRPEnabled() {
         if (!RunManager.getGlobalSettings().isTestRun()) {
             return Control.getCurrentProject().getProjectSettings()
@@ -86,27 +87,29 @@ public final class TestCaseReport implements Report {
         }
         return false;
     }
-    
+
     public boolean isAzureEnabled() {
-	if (!RunManager.getGlobalSettings().isTestRun()) {
+        if (!RunManager.getGlobalSettings().isTestRun()) {
             return Control.getCurrentProject().getProjectSettings()
                     .getExecSettings(RunManager.getGlobalSettings().getRelease(), RunManager.getGlobalSettings().getTestSet()).getRunSettings().isAzureEnabled();
         }
         return false;
     }
 
-    public void setDriver(PlaywrightDriver driver) {
+    public void setPlaywrightDriver(PlaywrightDriverCreation driver) {
         playwrightdriver = driver;
         for (TestCaseHandler handler : handlers) {
-            handler.setDriver(driver);
+            handler.setPlaywrightDriver(driver);
         }
     }
-        public void setMobileDriver(MobileDriver driver) {
-        mobileDriver = driver;
+
+    public void setWebDriver(WebDriverCreation driver) {
+        webDriver = driver;
         for (TestCaseHandler handler : handlers) {
-            handler.setMobileDriver(driver);
+            handler.setWebDriver(driver);
         }
     }
+
     /**
      * updates the current step details and resolves DESCRIPTION if not
      * available
@@ -132,7 +135,7 @@ public final class TestCaseReport implements Report {
         this.Scenario = runContext.Scenario;
         this.TestCase = runContext.TestCase;
         this.sb = new StringBuilder();
-        this.sb.append(createRunInfoString(runContext.Scenario,runContext.TestCase,runContext.BrowserName,runContext.BrowserVersionValue,runContext.PlatformValue,runContext.Iteration));
+        this.sb.append(createRunInfoString(runContext.Scenario, runContext.TestCase, runContext.BrowserName, runContext.BrowserVersionValue, runContext.PlatformValue, runContext.Iteration));
         for (TestCaseHandler handler : handlers) {
             handler.createReport(runContext, runTime);
         }
@@ -140,11 +143,11 @@ public final class TestCaseReport implements Report {
     //<editor-fold defaultstate="collapsed" desc="wrapper functions">
 
     public void updateTestLog(String stepName, String stepDescription, Status state) {
-        if(state==Status.COMPLETE){
-            String location=File.separator+folderName;
-            updateTestLog(stepName, stepDescription, state,location , null);
-        }else{
-        updateTestLog(stepName, stepDescription, state, null, null);
+        if (state == Status.COMPLETE) {
+            String location = File.separator + folderName;
+            updateTestLog(stepName, stepDescription, state, location, null);
+        } else {
+            updateTestLog(stepName, stepDescription, state, null, null);
         }
     }
 
@@ -171,12 +174,21 @@ public final class TestCaseReport implements Report {
         currentStatus = state;
         stepNo++;
         setScreenShotName();
-        System.out.println(String.format("[%s]   | %s", state, stepDescription));
+        String emoji = "";
+        if(state.toString().contains("PASS"))
+          emoji = "✅";
+        if(state.toString().contains("FAIL"))
+          emoji = "❌";
+        if(state.toString().contains("DONE"))
+          emoji = "🟢"; 
+        if(state.toString().contains("WARNING"))
+          emoji = "🟡"; 
+        if(state.toString().contains("DEBUG"))
+          emoji = "🔴"; 
+        System.out.println(String.format("[%s]   | %s " + emoji, state, stepDescription));
         System.out.println(String.format("\n%99s\n", "=").replace(" ", "="));
-        String stepInfo = stepLevelLog(String.valueOf(getStep().StepNum),getStep().ObjectName,getStep().Action,getStep().Input,getStep().Condition,state,stepDescription);
+        String stepInfo = stepLevelLog(String.valueOf(getStep().StepNum), getStep().ObjectName, getStep().Action, getStep().Input, getStep().Condition, state, stepDescription);
         this.sb.append(stepInfo).append("\n");
-        //log(String.valueOf(getStep().StepNum),getStep().ObjectName,getStep().Action,getStep().Input,getStep().Condition); 
-       // log(String.format("Step %s: [%s]   | %s",stepNo, state, stepDescription));
         for (TestCaseHandler handler : handlers) {
             handler.updateTestLog(stepName, stepDescription, state, optionalLink, optional);
         }
@@ -194,17 +206,17 @@ public final class TestCaseReport implements Report {
         for (TestCaseHandler handler : handlers) {
             handler.finalizeReport();
         }
-        JSONObject testcasedata = (JSONObject)primaryHandler.getData();
+        JSONObject testcasedata = (JSONObject) primaryHandler.getData();
         String testcase = testcasedata.get("testcaseName").toString();
         String scenario = testcasedata.get("scenarioName").toString();
         String eSteps = testcasedata.get("noTests").toString();
         String pSteps = testcasedata.get("nopassTests").toString();
         String fSteps = testcasedata.get("nofailTests").toString();
         String exeTime = testcasedata.get("exeTime").toString();
-        
-        this.sb.append(closingLog(scenario+":"+testcase,eSteps,pSteps,fSteps,exeTime));
+
+        this.sb.append(closingLog(scenario + ":" + testcase, eSteps, pSteps, fSteps, exeTime));
         log(this.sb.toString());
-     //   log(System.getProperty("line.separator")+"Status:"+primaryHandler.getCurrentStatus());
+        //   log(System.getProperty("line.separator")+"Status:"+primaryHandler.getCurrentStatus());
         return (currentStatus = primaryHandler.getCurrentStatus());
     }
 
@@ -261,14 +273,15 @@ public final class TestCaseReport implements Report {
      * @return the screen shot NAME for the current step
      */
     @Override
-    public PlaywrightDriver getDriver() {
+    public PlaywrightDriverCreation getPlaywrightDriver() {
         return playwrightdriver;
     }
 
     @Override
-    public MobileDriver getMobileDriver() {
-        return mobileDriver;
+    public WebDriverCreation getWebDriver() {
+        return webDriver;
     }
+
     public int getIter() {
         return iterCounter;
     }
@@ -303,57 +316,52 @@ public final class TestCaseReport implements Report {
                 + DateTimeUtils.TimeNowForFolder()
                 + ".png";
     }
-  
+
     public String getWebserviceResponseFileName() {
-        int currentStep=stepNo+1;
+        int currentStep = stepNo + 1;
         return File.separator
-        	+ "webservice"
-        	+ File.separator
-        	+ Scenario
+                + "webservice"
+                + File.separator
+                + Scenario
                 + "_"
                 + TestCase
-                +"_Step-"
+                + "_Step-"
                 + currentStep + "_"
                 + "Response"
                 + FileExt;
     }
-    
+
     public String getWebserviceRequestFileName() {
-        int currentStep=stepNo+1;
+        int currentStep = stepNo + 1;
         return File.separator
-        	+ "webservice"
-        	+ File.separator
-        	+ Scenario
+                + "webservice"
+                + File.separator
+                + Scenario
                 + "_"
                 + TestCase
-                +"_Step-"
+                + "_Step-"
                 + currentStep + "_"
                 + "Request"
                 + FileExt;
     }
-  
+
     public String getPdfResultName() {
-        return 
-                Scenario
+        return Scenario
                 + "_"
                 + TestCase
                 + "_Step-"
                 + stepNo + "_"
-               
                 + DateTimeUtils.TimeNowForFolder()
                 + ".pdf";
     }
-    
-    public String getLogFileName(){
-        return 
-                File.separator 
-                + Scenario 
-                +"_"
-                + TestCase 
+
+    public String getLogFileName() {
+        return File.separator
+                + Scenario
+                + "_"
+                + TestCase
                 + FileExt;
     }
-
-  
 
     @Override
     public File getReportLoc() {
@@ -406,71 +414,72 @@ public final class TestCaseReport implements Report {
         }
     }
 //</editor-fold>
-    private String createRunInfoString( String Scenario, String TestCase, String Browser, String BrowserVersion, String Platform, String iteration){
-    String runInfo="Run Information" +"\n"
-            + "========================"+"\n"
-            + "INGenious Playwright Studio.engine :  "+ SystemDefaults.getBuildVersion()+"\n"
-            + "java.runtime.name                          :  "+ System.getProperty("java.runtime.name")+"\n"
-            + "java.version                               :  "+ System.getProperty("java.version")+"\n"
-            + "java.home                                  :  "+ System.getProperty("java.home")+"\n"
-            + "os.name                                    :  "+ System.getProperty("os.name")+"\n"
-            + "os.arch                                    :  "+ System.getProperty("os.arch")+"\n"
-            + "os.version                                 :  "+ System.getProperty("os.version")+"\n"
-            + "file.encoding                              :  "+ System.getProperty("file.encoding")+"\n"
-            + "========================\n"
-            + "Run Started on " + new Date().toString()+"\n\n"
-            + "Scenario         :  ["+ Scenario+"]\n"
-            + "TestCase         :  ["+ TestCase+"]\n"
-            + "Browser          :  ["+ Browser+"]\n"
-            + "Browser Version  :  ["+ BrowserVersion+"]\n"
-            + "Platform         :  ["+ Platform+"]\n"
-            + "----------------------------------------------------------\n"
-            + "Initializing Report\n"
-            + "Running Iteration :  ["+iteration+"]\n";
 
-    return runInfo;
+    private String createRunInfoString(String Scenario, String TestCase, String Browser, String BrowserVersion, String Platform, String iteration) {
+        String runInfo = "Run Information" + "\n"
+                + "========================" + "\n"
+                + "INGenious Playwright Studio                :  " + SystemDefaults.getBuildVersion() + "\n"
+                + "java.runtime.name                          :  " + System.getProperty("java.runtime.name") + "\n"
+                + "java.version                               :  " + System.getProperty("java.version") + "\n"
+                + "java.home                                  :  " + System.getProperty("java.home") + "\n"
+                + "os.name                                    :  " + System.getProperty("os.name") + "\n"
+                + "os.arch                                    :  " + System.getProperty("os.arch") + "\n"
+                + "os.version                                 :  " + System.getProperty("os.version") + "\n"
+                + "file.encoding                              :  " + System.getProperty("file.encoding") + "\n"
+                + "========================\n"
+                + "Run Started on " + new Date().toString() + "\n\n"
+                + "Scenario         :  [" + Scenario + "]\n"
+                + "TestCase         :  [" + TestCase + "]\n"
+                + "Browser          :  [" + Browser + "]\n"
+                + "Browser Version  :  [" + BrowserVersion + "]\n"
+                + "Platform         :  [" + Platform + "]\n"
+                + "----------------------------------------------------------\n"
+                + "Initializing Report\n"
+                + "Running Iteration :  [" + iteration + "]\n\n";
+
+        return runInfo;
     }
-    
-    private String stepLevelLog(String Step,String Object,String Action,String Input,String Condition, Status state, String stepDesc){
-    String stepInfo= String.format("\n%99s\n", "=").replace(" ", "=") +"\n"
-            + "Step:"+String.valueOf(getStep().StepNum)+"  |  Object:"+getStep().ObjectName+"  |  Action:"+getStep().Action+"  |  Input:"+getStep().Input+"  |  Condition:"+getStep().Condition+"  | @"+DateTimeUtils.DateTimeNow() +"\n"
-            + String.format("[%s]   | %s", state, stepDesc)+"\n";
-    return stepInfo;
+
+    private String stepLevelLog(String Step, String Object, String Action, String Input, String Condition, Status state, String stepDesc) {
+        String stepInfo = String.format("\n%99s\n", "=").replace(" ", "=") + "\n"
+                + "Step:" + String.valueOf(getStep().StepNum) + "  |  Object:" + getStep().ObjectName + "  |  Action:" + getStep().Action + "  |  Input:" + getStep().Input + "  |  Condition:" + getStep().Condition + "  | @" + DateTimeUtils.DateTimeNow() + "\n"
+                + String.format("[%s]   | %s", state, stepDesc) + "\n";
+        return stepInfo;
     }
-    
-    private String closingLog(String TestCase,String eSteps,String pSteps,String fSteps,String exeTime){
-    String closeInfo= "---------------------------------------------------"+"\n"
-            + "Testcase Name        : "+TestCase+"\n"
-            + "Executed Steps       : "+eSteps+"\n"
-            + "Passed Steps         : "+pSteps+"\n"
-            + "Failed Steps         : "+fSteps+"\n"
-            + "Time Taken           : "+exeTime+"\n"
-            + "---------------------------------------------------"+"\n";
-    return closeInfo;
+
+    private String closingLog(String TestCase, String eSteps, String pSteps, String fSteps, String exeTime) {
+        String closeInfo = "---------------------------------------------------" + "\n"
+                + "Testcase Name        : " + TestCase + "\n"
+                + "Executed Steps       : " + eSteps + "\n"
+                + "Passed Steps         : " + pSteps + "\n"
+                + "Failed Steps         : " + fSteps + "\n"
+                + "Time Taken           : " + exeTime + "\n"
+                + "---------------------------------------------------" + "\n";
+        return closeInfo;
     }
-    
+
     private void log(String info) {
-        String path= AppResourcePath.getCurrentResultsPath()+File.separator+LogFolderName;
-        String fileName= path + getLogFileName();
-        File f= new File(fileName);
+        String path = AppResourcePath.getCurrentResultsPath() + File.separator + LogFolderName;
+        String fileName = path + getLogFileName();
+        File f = new File(fileName);
         FileWriter fr = null;
-        
-        try{
-            if(!f.exists()){
-               new File(path).mkdir();
-               f.createNewFile();
+
+        try {
+            if (!f.exists()) {
+                new File(path).mkdir();
+                f.createNewFile();
             }
             fr = new FileWriter(f, true);
             fr.write(info);
             fr.write(System.getProperty("line.separator"));
-        }catch(Exception e){
+        } catch (Exception e) {
             System.out.println("Error in generation of seperate logs.");
             e.printStackTrace();
-        }finally{
-            try{
+        } finally {
+            try {
                 fr.close();
-            }catch (Exception e){                
-            }            
+            } catch (Exception e) {
+            }
         }
     }
 

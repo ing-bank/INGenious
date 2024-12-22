@@ -3,7 +3,7 @@ package com.ing.engine.drivers;
 import com.ing.datalib.settings.emulators.Emulator;
 import com.ing.engine.core.Control;
 import com.ing.engine.core.RunContext;
-import com.ing.engine.drivers.WebDriverFactory.Browser;
+import com.ing.engine.drivers.PlaywrightDriverFactory.Browser;
 import com.ing.engine.execution.exception.DriverClosedException;
 import com.ing.engine.execution.exception.UnCaughtException;
 import com.ing.engine.constants.FilePath;
@@ -19,7 +19,7 @@ import java.nio.file.Paths;
  * Class to handle driver related operation
  *
  */
-public class PlaywrightDriver {
+public class PlaywrightDriverCreation {
 
     public Playwright playwright;
     public Page page;
@@ -35,27 +35,26 @@ public class PlaywrightDriver {
     }
     public void launchDriver(RunContext context) throws UnCaughtException {
         runContext = context;
-        System.out.println("Launching " + runContext.BrowserName);
+        System.out.println("\n🚀 Launching " + runContext.BrowserName+"\n");
         try {
-            playwright = WebDriverFactory.createPlaywright();
+            playwright = PlaywrightDriverFactory.createPlaywright();
             
             if(Control.getCurrentProject().getProjectSettings().getUserDefinedSettings().containsKey("testIdAttribute"))
             {
              playwright.selectors().setTestIdAttribute(Control.getCurrentProject().getProjectSettings().getUserDefinedSettings().getProperty("testIdAttribute"));
             }
             
-            BrowserType browserType = (BrowserType) WebDriverFactory.createBrowserType(playwright,runContext.BrowserName, context, Control.getCurrentProject().getProjectSettings());
+            BrowserType browserType = (BrowserType) PlaywrightDriverFactory.createBrowserType(playwright,runContext.BrowserName, context, Control.getCurrentProject().getProjectSettings());
             if (Control.exe.getExecSettings().getRunSettings().isGridExecution()) {
-                System.out.println("Launching Remote Driver");
-                browserContext = WebDriverFactory.createContext(true, browserType, runContext.BrowserName, Control.getCurrentProject().getProjectSettings(), runContext);
+                System.out.println("🚀 Launching Remote Driver \n");
+                browserContext = PlaywrightDriverFactory.createContext(true, browserType, runContext.BrowserName, Control.getCurrentProject().getProjectSettings(), runContext);
             } else {
-                System.out.println("Launching Local Driver");
-                browserContext = WebDriverFactory.createContext(false, browserType, runContext.BrowserName, Control.getCurrentProject().getProjectSettings(), runContext);
+                System.out.println("🚀 Launching Local Driver \n");
+                browserContext = PlaywrightDriverFactory.createContext(false, browserType, runContext.BrowserName, Control.getCurrentProject().getProjectSettings(), runContext);
 
             }
 
-            page = WebDriverFactory.createPage(browserContext);
-            System.out.println(runContext.BrowserName + " Launched");
+            page = PlaywrightDriverFactory.createPage(browserContext);
 
         } catch (UnCaughtException ex) {
             Logger.getLogger(this.getClass().getName()).log(Level.OFF, null, ex);

@@ -4,7 +4,7 @@ import com.ing.datalib.or.common.ObjectGroup;
 import com.ing.datalib.or.image.ImageORObject;
 import com.ing.engine.core.CommandControl;
 import com.ing.engine.drivers.AutomationObject;
-import com.ing.engine.drivers.PlaywrightDriver;
+import com.ing.engine.drivers.PlaywrightDriverCreation;
 import com.ing.engine.execution.data.UserDataAccess;
 import com.ing.engine.reporting.TestCaseReport;
 import com.microsoft.playwright.APIRequestContext;
@@ -13,7 +13,6 @@ import com.microsoft.playwright.BrowserContext;
 import com.microsoft.playwright.Locator;
 import com.microsoft.playwright.Page;
 import com.microsoft.playwright.Playwright;
-import javax.net.ssl.HttpsURLConnection;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -21,9 +20,8 @@ import java.util.Map;
 import java.util.Stack;
 
 //Added for Mobile
-import com.ing.engine.drivers.MobileDriver;
+import com.ing.engine.drivers.WebDriverCreation;
 import com.ing.engine.drivers.MobileObject;
-import io.appium.java_client.android.AndroidDriver;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 public class Command {
@@ -32,7 +30,7 @@ public class Command {
     public Playwright Playwright;
     public BrowserContext BrowserContext;
     public AutomationObject AObject;
-    public PlaywrightDriver Driver;
+    public PlaywrightDriverCreation Driver;
     public String Data;
     public String ObjectName;
     public Locator Locator;
@@ -86,9 +84,9 @@ public class Command {
      */
     public Command(CommandControl cc) {
         Commander = cc;
-        if(Commander.mobileDriver!=null)
+        if(Commander.webDriver!=null)
         {
-        mDriver = Commander.mobileDriver.driver;
+        mDriver = Commander.webDriver.driver;
         mObject = Commander.MObject;
         Data = Commander.Data;
         ObjectName = Commander.ObjectName;
@@ -179,13 +177,13 @@ public class Command {
         executeMethod(Action);
     }
 
-    public PlaywrightDriver getDriverControl() {
+    public PlaywrightDriverCreation getDriverControl() {
         return Commander.Page;
     }
     
-    public MobileDriver getMobileDriverControl()
+    public WebDriverCreation getMobileDriverControl()
     {
-        return Commander.mobileDriver;
+        return Commander.webDriver;
     }
 
     public Boolean isDriverAlive() {

@@ -6,7 +6,7 @@ import com.ing.datalib.or.image.ImageORObject;
 import com.ing.datalib.settings.DriverSettings;
 import com.ing.engine.drivers.AutomationObject;
 import com.ing.engine.drivers.AutomationObject.FindType;
-import com.ing.engine.drivers.PlaywrightDriver;
+import com.ing.engine.drivers.PlaywrightDriverCreation;
 import com.ing.engine.execution.data.DataProcessor;
 import com.ing.engine.execution.data.UserDataAccess;
 import com.ing.engine.execution.exception.UnCaughtException;
@@ -20,17 +20,16 @@ import java.util.Map;
 import java.util.Stack;
 
 //Added For Mobile
-import com.ing.engine.drivers.MobileDriver;
+import com.ing.engine.drivers.WebDriverCreation;
 import com.ing.engine.drivers.MobileObject;
-import static com.ing.engine.reporting.reportportal.ReportPortalClient.runContext;
 import com.ing.engine.drivers.MobileObject.FindmType;
 import org.openqa.selenium.WebElement;
 
 public abstract class CommandControl {
 
-    public PlaywrightDriver Playwright;
-    public PlaywrightDriver Page;
-    public PlaywrightDriver BrowserContext;
+    public PlaywrightDriverCreation Playwright;
+    public PlaywrightDriverCreation Page;
+    public PlaywrightDriverCreation BrowserContext;
     public AutomationObject AObject;
     public String Data;
     public String Action;
@@ -49,27 +48,27 @@ public abstract class CommandControl {
     private Stack<Locator> runTimeElement = new Stack<>();
     
     public MobileObject MObject;
-    public MobileDriver mobileDriver;
+    public WebDriverCreation webDriver;
     public WebElement Element;
 
-    public CommandControl(PlaywrightDriver playwright, PlaywrightDriver page, PlaywrightDriver browserContext ,MobileDriver driver,TestCaseReport report) {
+    public CommandControl(PlaywrightDriverCreation playwright, PlaywrightDriverCreation page, PlaywrightDriverCreation browserContext ,WebDriverCreation driver,TestCaseReport report) {
         Playwright = playwright;
         BrowserContext = browserContext;
         Page = page;
-        mobileDriver=driver;
+        webDriver = driver;
         userData = new UserDataAccess() {
             @Override
             public TestCaseRunner context() {
                 return (TestCaseRunner) CommandControl.this.context();
             }
         };
-        if(mobileDriver==null)
+        if(webDriver==null)
         {
            AObject = new AutomationObject(Page.page); 
         }
-        else if(mobileDriver!=null)
+        else if(webDriver!=null)
         {
-           MObject=new MobileObject(mobileDriver.driver); 
+           MObject=new MobileObject(webDriver.driver); 
         }
         Report = (TestCaseReport) report;
 
@@ -82,7 +81,7 @@ public abstract class CommandControl {
     }
 
     public void sync(Step curr) throws UnCaughtException {
-        if(mobileDriver==null)
+        if(webDriver==null)
         {
         refresh();
         //AObject.setDriver(seDriver.driver);
@@ -153,11 +152,11 @@ public abstract class CommandControl {
     }
 
     private Boolean canIFindElement() {
-        if(mobileDriver!=null)
+        if(webDriver!=null)
         {
-        if(mobileDriver.isAlive())
+        if(webDriver.isAlive())
         {
-            if (mobileDriver.getCurrentBrowser().equalsIgnoreCase("ProtractorJS")) {
+            if (webDriver.getCurrentBrowser().equalsIgnoreCase("ProtractorJS")) {
                 return false;
             } else {
                 switch (Action) {

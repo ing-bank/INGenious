@@ -185,8 +185,8 @@ public class PerformanceReport {
 
     private static String getFullName(TestCaseReport r) {
         return r.Scenario + "-" + r.TestCase + "_[i" + r.getIter() + "  "
-                + r.getDriver().getCurrentBrowser() + "v" + r.getDriver().getBrowserVersion();
-//                + " " + r.getDriver().getPlatformName() + "]";
+                + r.getPlaywrightDriver().getCurrentBrowser() + "v" + r.getPlaywrightDriver().getBrowserVersion()
+                + " " + System.getProperty("os.name")+ " " +System.getProperty("os.version")+ " " +System.getProperty("os.arch") + "]";
     }
 
     private static String getName(String sc, String tc) {

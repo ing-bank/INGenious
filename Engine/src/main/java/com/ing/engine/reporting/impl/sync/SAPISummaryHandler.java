@@ -53,7 +53,7 @@ public class SAPISummaryHandler extends SummaryHandler {
                 sapi_Link.clientData((JSONObject) report.pHandler.getData());
                 sapi_Link.update();
             } else {
-                System.out.println(String.format("ApiLink not available!!"));
+                
             }
         } catch (Exception ex) {
             Logger.getLogger(SAPISummaryHandler.class.getName()).log(Level.SEVERE, null, ex);

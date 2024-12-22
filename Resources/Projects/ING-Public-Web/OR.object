@@ -16,7 +16,7 @@
     </ObjectGroup>
     <ObjectGroup ref="[Contact Us] Button">
       <Object frame="" ref="[Contact Us] Button">
-        <Property value="" ref="Role" pref="1"/>
+        <Property value="Link;Contact Us" ref="Role" pref="1"/>
         <Property value="" ref="xpath" pref="2"/>
         <Property value="" ref="Text" pref="3"/>
         <Property value="" ref="css" pref="4"/>
@@ -25,7 +25,7 @@
         <Property value="" ref="AltText" pref="7"/>
         <Property value="" ref="Title" pref="8"/>
         <Property value="" ref="TestId" pref="9"/>
-        <Property value="getByRole(AriaRole.BANNER);getByRole(AriaRole.LINK, new Locator.GetByRoleOptions().setName(&quot;Contact us&quot;))" ref="ChainedLocator" pref="10"/>
+        <Property value="" ref="ChainedLocator" pref="10"/>
       </Object>
     </ObjectGroup>
     <ObjectGroup ref="First name *(required)">

@@ -1,7 +1,7 @@
 
 package com.ing.engine.core;
 
-import com.ing.engine.drivers.WebDriverFactory.Browser;
+import com.ing.engine.drivers.PlaywrightDriverFactory.Browser;
 
 public class RunContext {
 
