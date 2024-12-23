@@ -1,12 +1,9 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
 package com.ing.engine.drivers;
 
 import com.galenframework.config.GalenConfig;
 import com.galenframework.config.GalenProperty;
 import com.galenframework.utils.GalenUtils;
+import com.ing.datalib.settings.ProjectSettings;
 import com.ing.datalib.settings.emulators.Emulator;
 import com.ing.engine.core.Control;
 import com.ing.engine.core.RunContext;
@@ -19,6 +16,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import io.appium.java_client.android.AndroidDriver;
 import io.appium.java_client.ios.IOSDriver;
+import java.util.Properties;
 import javax.imageio.ImageIO;
 import org.openqa.selenium.OutputType;
 import org.openqa.selenium.TakesScreenshot;
@@ -28,7 +26,7 @@ import ru.yandex.qatools.ashot.Screenshot;
 import ru.yandex.qatools.ashot.shooting.ShootingStrategies;
 import ru.yandex.qatools.ashot.shooting.ShootingStrategy;
 
-public class MobileDriver {
+public class WebDriverCreation {
 
     protected RunContext runContext;
     public WebDriver driver;
@@ -36,8 +34,8 @@ public class MobileDriver {
     public void launchDriver(RunContext context) throws UnCaughtException {
         runContext = context;
         try {
-            System.out.println("Launching Local Driver");
-            driver = MobileWebDriverFactory.create(context, Control.getCurrentProject().getProjectSettings());
+            System.out.println("\n🚀 Launching Driver \n");
+            driver = WebDriverFactory.create(context, Control.getCurrentProject().getProjectSettings());
         } catch (UnCaughtException ex) {
             Logger.getLogger(this.getClass().getName()).log(Level.OFF, null, ex);
             throw new UnCaughtException("[Appium driver Exception] unable to launch APK file " + ex.getMessage());
@@ -48,7 +46,7 @@ public class MobileDriver {
         boolean isBrowserExecution = false;
         try {
             String browserName = runContext.BrowserName;
-            if (browserName.equals("Chromium") || browserName.equals("Webkit") || browserName.equals("Firefox")) {
+            if (browserName.equals("Chromium") || browserName.equals("WebKit") || browserName.equals("Firefox")) {
                 isBrowserExecution = true;
             }
         } catch (Exception ex) {
@@ -61,7 +59,7 @@ public class MobileDriver {
         boolean isNoBrowserExecution = false;
         try {
             String browserName = runContext.BrowserName;
-            if (browserName.equals("NoBrowser")) {
+            if (browserName.equals("No Browser")) {
                 isNoBrowserExecution = true;
             }
         } catch (Exception ex) {
@@ -87,6 +85,7 @@ public class MobileDriver {
             Emulator emulator = Control.getCurrentProject().getProjectSettings().getEmulators()
                     .getEmulator(browserName);
             if (emulator != null) {
+
                 return emulator.getDriver();
             }
         } catch (Exception ex) {
@@ -97,8 +96,7 @@ public class MobileDriver {
 
     public Boolean isAlive() {
         try {
-            if (driver instanceof AndroidDriver || driver instanceof IOSDriver) //                driver.manage();
-            {
+            if (driver instanceof AndroidDriver || driver instanceof IOSDriver) {
                 return true;
             }
 
@@ -109,7 +107,24 @@ public class MobileDriver {
     }
 
     public String getCurrentBrowser() {
-        return runContext.BrowserName;
+        if (isNoBrowserExecution()) {
+            return runContext.BrowserName;
+        }
+        return getEmulatorCapabilityValue(runContext.BrowserName,Control.getCurrentProject().getProjectSettings(),"deviceName");        
+    }
+
+    public String getCurrentBrowserVersion() {
+        if (isNoBrowserExecution()) {
+            return "NA";
+        }
+        return getEmulatorCapabilityValue(runContext.BrowserName,Control.getCurrentProject().getProjectSettings(),"platformVersion");
+    }
+
+    public String getPlatform() {
+        if (isNoBrowserExecution()) 
+            return System.getProperty("os.name") + " " + System.getProperty("os.version") + " " + System.getProperty("os.arch");
+        else 
+            return getEmulatorCapabilityValue(runContext.BrowserName,Control.getCurrentProject().getProjectSettings(),"platformName");
     }
 
     public File createScreenShot() {
@@ -166,6 +181,19 @@ public class MobileDriver {
         } catch (Exception e) {
             return false;
         }
+    }
+    
+    private String getEmulatorCapabilityValue(String browserName, ProjectSettings settings, String cap) {
+        
+        Properties prop = settings.getCapabilities().getCapabiltiesFor(browserName);
+        for (Object key : prop.keySet()) {
+            String capability = key.toString().trim().replace("appium:", "");
+            String value = prop.getProperty(key.toString()).trim();  
+            if (capability.contains(cap)) 
+                    return value;             
+        
+       }
+            return null;
     }
 
 }

@@ -41,6 +41,8 @@ public class TransferActionListener implements ActionListener,
         if (focusOwner == null) {
             return;
         }
+        
+        
         String action = (String) e.getActionCommand();
         Action a = focusOwner.getActionMap().get(action);
         if (a != null) {

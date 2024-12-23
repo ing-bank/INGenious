@@ -7,7 +7,7 @@ import static com.ing.datalib.component.ExecutionStep.HEADERS.Platform;
 import static com.ing.datalib.component.ExecutionStep.HEADERS.TestCase;
 import static com.ing.datalib.component.ExecutionStep.HEADERS.TestScenario;
 import com.ing.datalib.component.Project;
-import com.ing.engine.drivers.WebDriverFactory;
+import com.ing.engine.drivers.PlaywrightDriverFactory;
 import com.ing.ide.main.utils.Utils;
 import com.ing.ide.main.utils.table.autosuggest.AutoSuggest;
 import com.ing.ide.main.utils.table.autosuggest.AutoSuggestCellEditor;
@@ -89,7 +89,7 @@ public class TestSetAutoSuggest {
    
 
     void loadBrowsers() {
-        List<String> browsers = WebDriverFactory.Browser.getValuesAsList();
+        List<String> browsers = PlaywrightDriverFactory.Browser.getValuesAsList();
         browsers.addAll(sProject.getProjectSettings().getEmulators().getEmulatorNames());
         browserAutoSuggest.setSearchList(browsers);
     }

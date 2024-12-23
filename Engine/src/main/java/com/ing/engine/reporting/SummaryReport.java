@@ -182,7 +182,7 @@ public final class SummaryReport implements OverviewReport {
     @Override
     public void updateTestCaseResults(String testScenario, String testCase, String Iteration, String testDescription,
             String executionTime, String fileName, Status state, String Browser) {
-        System.out.println("--------------->[UPDATING SUMMARY]");
+        System.out.println("\n======================== [UPDATING SUMMARY] ========================\n");
         for (SummaryHandler handler : REPORT_HANDLERS) {
             handler.updateTestCaseResults(testScenario, testCase, Iteration, testDescription, executionTime, fileName,
                     state, Browser);

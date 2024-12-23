@@ -12,6 +12,6 @@ Step,ObjectName,Description,Action,Input,Condition,Reference
 11,CONTINUE,"Click the [<Object>] ",Tap,,,swaglabsmobileapp
 12,Sauce Labs Backpack,Assert if [<Object>] element is displayed,assertElementDisplayed,,,swaglabsmobileapp
 13,Amount,Assert if [<Object>] element is displayed,assertElementDisplayed,,,swaglabsmobileapp
-*14,Browser,Scroll to bottom,scrollToElement,@label=FINISH,down,swaglabsmobileapp
+*14,Mobile,Scroll to bottom,scrollInIOS,@label=FINISH,down,
 15,FINISH,"Click the [<Object>] ",Tap,,,swaglabsmobileapp
 16,Success Message,Assert if [<Object>] element is displayed,assertElementDisplayed,,,swaglabsmobileapp

@@ -2,7 +2,7 @@ Step,ObjectName,Description,Action,Input,Condition,Reference
 1,Username,Enter the value [<Data>] in the Field [<Object>],Set,Data:Uname,,swaglabsmobileapp
 2,Password,Enter the value [<Data>] in the Field [<Object>],Set,Data:Pwd,,swaglabsmobileapp
 3,Login Button,"Click the [<Object>] ",Tap,,,swaglabsmobileapp
-*4,Browser,Scroll to bottom,scrollToText,@Sauce Labs Onesie,,swaglabsmobileapp
+*4,Mobile,Scroll to bottom,scrollInAndroid,@Sauce Labs Onesie,,
 5,ADD TO CART,"Click the [<Object>] ",Tap,,,swaglabsmobileapp
 *6,Cart1,"Click the [<Object>] ",Tap,,,swaglabsmobileapp
 //7,Cart1,"Click the [<Object>] ",doubleTapElement,,,swaglabsmobileapp
@@ -13,6 +13,6 @@ Step,ObjectName,Description,Action,Input,Condition,Reference
 12,CONTINUE,"Click the [<Object>] ",Tap,,,swaglabsmobileapp
 //13,Sauce Labs Backpack,Assert if [<Object>] element is displayed,assertElementDisplayed,,,swaglabsmobileapp
 //14,Amount,Assert if [<Object>] element is displayed,assertElementDisplayed,,,swaglabsmobileapp
-*15,Browser,Scroll to bottom,scrollToText,@FINISH,,swaglabsmobileapp
+*15,Mobile,Scroll to bottom,scrollInAndroid,@FINISH,,
 16,FINISH,"Click the [<Object>] ",Tap,,,swaglabsmobileapp
 17,Success Message,Assert if [<Object>] element is displayed,assertElementDisplayed,,,swaglabsmobileapp

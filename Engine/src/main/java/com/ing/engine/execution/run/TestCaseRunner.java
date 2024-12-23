@@ -5,7 +5,7 @@ import com.ing.datalib.component.TestCase;
 import com.ing.datalib.component.TestStep;
 import com.ing.engine.constants.SystemDefaults;
 import com.ing.engine.core.CommandControl;
-import com.ing.engine.drivers.MobileDriver;
+import com.ing.engine.drivers.WebDriverCreation;
 import com.ing.engine.execution.data.DataIterator;
 import com.ing.engine.execution.data.Parameter;
 import com.ing.engine.execution.data.StepSet;
@@ -162,42 +162,22 @@ public class TestCaseRunner {
     }
 
     public CommandControl createControl(final TestCaseRunner newThis) {
-        MobileDriver mDriver = new MobileDriver();
-        if (mDriver.isBrowserExecution()) {
-            return new CommandControl(getRoot().getControl().Playwright, getRoot().getControl().Page, getRoot().getControl().BrowserContext, getRoot().getControl().mobileDriver, getRoot().getControl().Report) {
-                @Override
-                public void execute(String com, int sub) {
-                    newThis.runTestCase(com, sub);
-                }
+        return new CommandControl(getRoot().getControl().Playwright, getRoot().getControl().Page, getRoot().getControl().BrowserContext, getRoot().getControl().webDriver, getRoot().getControl().Report) {
+            @Override
+            public void execute(String com, int sub) {
+                newThis.runTestCase(com, sub);
+            }
 
-                @Override
-                public void executeAction(String action) {
-                    newThis.runAction(action);
-                }
+            @Override
+            public void executeAction(String action) {
+                newThis.runAction(action);
+            }
 
-                @Override
-                public Object context() {
-                    return newThis;
-                }
-            };
-        } else {
-            return new CommandControl(getRoot().getControl().Playwright, getRoot().getControl().Page, getRoot().getControl().BrowserContext, getRoot().getControl().mobileDriver, getRoot().getControl().Report) {
-                @Override
-                public void execute(String com, int sub) {
-                    newThis.runTestCase(com, sub);
-                }
-
-                @Override
-                public void executeAction(String action) {
-                    newThis.runAction(action);
-                }
-
-                @Override
-                public Object context() {
-                    return newThis;
-                }
-            };
-        }
+            @Override
+            public Object context() {
+                return newThis;
+            }
+        };
     }
 
     public boolean isReusable() {
@@ -303,7 +283,8 @@ public class TestCaseRunner {
             throw new TestFailedException(scenario(), testcase(), ex);
         }
     }
-        private void onPlaywrightException(RuntimeException ex) {
+
+    private void onPlaywrightException(RuntimeException ex) {
         if (exe.isContinueOnError()) {
         } else {
             throw new TestFailedException(scenario(), testcase(), ex);
@@ -378,10 +359,9 @@ public class TestCaseRunner {
                         }
                     } catch (ForcedException | ElementException ex) {
                         onRuntimeException(ex);
-                    } catch (ActionException ex ) {
-                    	onPlaywrightException(ex);
-                    }
-                    catch (Throwable ex) {
+                    } catch (ActionException ex) {
+                        onPlaywrightException(ex);
+                    } catch (Throwable ex) {
                         onError(ex);
                     }
                     currStep = checkForEndLoop(testStep, currStep);

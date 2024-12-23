@@ -25,7 +25,8 @@ import com.ing.engine.constants.FilePath;
 import com.ing.engine.core.Control;
 import com.ing.engine.core.RunContext;
 import com.ing.engine.core.RunManager;
-import com.ing.engine.drivers.PlaywrightDriver;
+import com.ing.engine.drivers.PlaywrightDriverCreation;
+import com.ing.engine.drivers.WebDriverCreation;
 import com.ing.engine.reporting.TestCaseReport;
 import com.ing.engine.reporting.impl.azureNunit.AzureReport;
 import com.ing.engine.reporting.impl.handlers.PrimaryHandler;
@@ -87,11 +88,18 @@ public class AzureTestCaseHandler extends TestCaseHandler implements PrimaryHand
         return false;
     }
 
+   @Override
+    public void setPlaywrightDriver(PlaywrightDriverCreation driver) {
+        testCaseData.put(TestCase.B_VERSION, getPlaywrightDriver().getBrowserVersion());
+        platform = System.getProperty("os.name")+ " " +System.getProperty("os.version")+ " " +System.getProperty("os.arch");
+        browserName = getPlaywrightDriver().getCurrentBrowser();
+    }
+    
     @Override
-    public void setDriver(PlaywrightDriver driver) {
-        testCaseData.put(TestCase.B_VERSION, getDriver().getBrowserVersion());
-        //testCaseData.put(TestCase.PLATFORM, getDriver().getPlatformName());
-        testCaseData.put(TestCase.BROWSER, getDriver().getCurrentBrowser());
+    public void setWebDriver(WebDriverCreation driver) {
+        testCaseData.put(TestCase.B_VERSION, getWebDriver().getCurrentBrowserVersion());
+        platform = getWebDriver().getPlatform();
+        browserName = getWebDriver().getCurrentBrowser();
     }
 
     @Override
@@ -100,8 +108,6 @@ public class AzureTestCaseHandler extends TestCaseHandler implements PrimaryHand
             try {
                 testcasename = runContext.Scenario + ":" + runContext.TestCase;
                 description = runContext.Description;
-                platform = runContext.PlatformValue;
-                browserName = runContext.BrowserName;
                 iterationValue = runContext.Iteration;
                 addTestCase();
             } catch (Exception e) {
@@ -349,7 +355,7 @@ public class AzureTestCaseHandler extends TestCaseHandler implements PrimaryHand
             if (optional != null) {
                 data.put(RDS.Step.Data.OBJECTS, optional.get(0));
             }
-            if (ReportUtils.takeScreenshot(getDriver(),getMobileDriver(), imgSrc)) {
+            if (ReportUtils.takeScreenshot(getPlaywrightDriver(),getWebDriver(), imgSrc)) {
                 data.put(RDS.Step.Data.LINK, imgSrc);
             }
         }

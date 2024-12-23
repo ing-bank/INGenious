@@ -6,6 +6,7 @@ import java.awt.Color;
 import java.awt.Component;
 import java.awt.Cursor;
 import java.awt.Font;
+import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
@@ -269,7 +270,8 @@ public class JSList<T> extends JPanel {
             add(sp, BorderLayout.CENTER);
             list.setSelectionModel(new MultiSelectionModel(this::onSelect));
             list.addKeyListener(onDelete());
-            list.getInputMap(JComponent.WHEN_FOCUSED).put(KeyStroke.getKeyStroke("ctrl A"), "SelectAll");
+            int SHORTCUT = Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx();
+            list.getInputMap(JComponent.WHEN_FOCUSED).put(KeyStroke.getKeyStroke(KeyEvent.VK_A, SHORTCUT), "SelectAll");
             list.getActionMap().put("SelectAll", new AbstractAction() {
                 @Override
                 public void actionPerformed(ActionEvent ae) {

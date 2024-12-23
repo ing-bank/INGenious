@@ -7,8 +7,11 @@ import com.ing.datalib.or.web.WebORObject;
 import com.ing.ide.main.mainui.components.testdesign.TestDesign;
 import com.ing.ide.main.utils.tree.TreeSearch;
 import java.awt.BorderLayout;
+import java.awt.Toolkit;
+import java.awt.event.KeyEvent;
 import javax.swing.JPanel;
 import javax.swing.JSplitPane;
+import javax.swing.KeyStroke;
 
 /**
  *
@@ -40,6 +43,7 @@ public class WebORPanel extends JPanel {
         splitPane.setResizeWeight(.5);
         splitPane.setDividerLocation(.5);
         add(splitPane);
+       
     }
 
     void loadTableModelForSelection(Object object) {
@@ -85,5 +89,7 @@ public class WebORPanel extends JPanel {
     public WebORTable getObjectTable() {
         return objectTable;
     }
+    
+    
 
 }

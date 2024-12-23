@@ -125,10 +125,10 @@ class Prop {
         conf.put("testcase", r.TestCase);
         conf.put("scenario", r.TestCase);
         conf.put("iteration", r.getIter());
-        conf.put("version", r.getDriver().getBrowserVersion());
-        conf.put("browser", r.getDriver().getCurrentBrowser());
-//        conf.put("platform", r.getDriver().getPlatformName());
-        conf.put("driver", r.getDriver().getDriverName(r.getDriver().getCurrentBrowser()));
+        conf.put("version", r.getPlaywrightDriver().getBrowserVersion());
+        conf.put("browser", r.getPlaywrightDriver().getCurrentBrowser());
+        conf.put("platform", System.getProperty("os.name")+ " " +System.getProperty("os.version")+ " " +System.getProperty("os.arch"));
+        conf.put("driver", r.getPlaywrightDriver().getDriverName(r.getPlaywrightDriver().getCurrentBrowser()));
         return conf;
     }
 ;

@@ -6,7 +6,7 @@ import com.ing.datalib.settings.ProjectSettings;
 import com.ing.datalib.settings.emulators.Emulator;
 import com.ing.datalib.util.data.LinkedProperties;
 import com.ing.engine.drivers.ChromeEmulators;
-import com.ing.engine.drivers.WebDriverFactory;
+import com.ing.engine.drivers.PlaywrightDriverFactory;
 import com.ing.ide.main.help.Help;
 import com.ing.ide.main.mainui.AppMainFrame;
 import com.ing.ide.main.utils.Utils;
@@ -127,7 +127,7 @@ public class DriverSettings extends javax.swing.JFrame {
     }
 
     private List<String> getTotalBrowserList() {
-        List<String> list = WebDriverFactory.Browser.getValuesAsList();
+        List<String> list = PlaywrightDriverFactory.Browser.getValuesAsList();
         List<String> list2 = settings.getEmulators().getEmulatorNames();
         list.addAll(list2);
         return list;

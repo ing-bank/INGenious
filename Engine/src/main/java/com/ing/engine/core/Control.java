@@ -6,7 +6,7 @@ import com.ing.engine.cli.LookUp;
 
 import com.ing.engine.constants.FilePath;
 import com.ing.engine.constants.SystemDefaults;
-import com.ing.engine.drivers.PlaywrightDriver;
+import com.ing.engine.drivers.PlaywrightDriverCreation;
 import com.ing.engine.execution.exception.UnCaughtException;
 import com.ing.engine.execution.run.ProjectRunner;
 
@@ -17,17 +17,14 @@ import com.ing.engine.support.Status;
 import com.ing.engine.support.methodInf.MethodInfoManager;
 import com.ing.engine.support.reflect.MethodExecutor;
 import com.ing.util.encryption.Encryption;
-import java.sql.SQLException;
-import java.util.Arrays;
 import java.util.Date;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-//Added for Mobile
-import com.ing.engine.drivers.MobileDriver;
-import com.ing.engine.drivers.MobileWebDriverFactory;
+import com.ing.engine.drivers.WebDriverCreation;
+import com.ing.engine.drivers.WebDriverFactory;
 
 public class Control {
 
@@ -42,9 +39,9 @@ public class Control {
     public static ProjectRunner exe;
     public static String triggerId;
 
-    private static PlaywrightDriver playwrightDriver;
+    private static PlaywrightDriverCreation playwrightDriver;
 
-    private static MobileDriver mobileDriver;
+    private static WebDriverCreation webDriver;
 
     private static void start() {
         do {
@@ -107,13 +104,9 @@ public class Control {
         MethodExecutor.init();
         ConsoleReport.init();
         SystemDefaults.printSystemInfo();
-        System.out.println("Run Started on " + new Date().toString());
-        System.out.println("Loading Browser Profile");
-        // WebDriverFactory.initDriverLocation(exe.getProject().getProjectSettings());
-        MobileWebDriverFactory.initDriverLocation(exe.getProject().getProjectSettings());
-        System.out.println("Loading RunManager");
+        System.out.println("👉 Run Started on " + new Date().toString()+"\n");
+        WebDriverFactory.initDriverLocation(exe.getProject().getProjectSettings());
         RunManager.loadRunManager();
-        System.out.println("Initializing Report");
         ReportManager = new SummaryReport();
         triggerId = UUID.randomUUID().toString().replace("-", "").toUpperCase().substring(0, 15);
     }
@@ -127,8 +120,8 @@ public class Control {
                     exe.getExecSettings().getRunSettings().getThreadCount(),
                     exe.getExecSettings().getRunSettings().getExecutionTimeOut(),
                     exe.getExecSettings().getRunSettings().isGridExecution());
-            System.out.println("Run Manager " + !RunManager.queue().isEmpty());
-            System.out.println("Continue Execution " + !SystemDefaults.stopExecution.get());
+            System.out.println("\n👉 Run Manager : " + !RunManager.queue().isEmpty()+"\n");
+            System.out.println("👉 Continue Execution : " + !SystemDefaults.stopExecution.get()+"\n");
             while (!RunManager.queue().isEmpty() && !SystemDefaults.stopExecution.get()) {
                 Task t = null;
                 try {
@@ -173,20 +166,20 @@ public class Control {
         }
     }
 
-    static PlaywrightDriver getPlaywrightDriver() {
+    static PlaywrightDriverCreation getPlaywrightDriver() {
         return playwrightDriver;
     }
 
-    static MobileDriver getMobileDriver() {
-        return mobileDriver;
+    static WebDriverCreation getWebDriver() {
+        return webDriver;
     }
 
-    static void setSeDriver(PlaywrightDriver Driver) {
+    static void setPlaywrightDriver(PlaywrightDriverCreation Driver) {
         playwrightDriver = Driver;
     }
 
-    static void setMobileDriver(MobileDriver Driver) {
-        mobileDriver = Driver;
+    static void setWebDriver(WebDriverCreation Driver) {
+        webDriver = Driver;
     }
 
     private void endExecution() {
@@ -205,9 +198,9 @@ public class Control {
                 playwrightDriver.closeBrowser();
                 playwrightDriver.playwright.close();
             } 
-           else if(mobileDriver != null)
+           else if(webDriver != null)
             {
-                mobileDriver.driver.quit();
+                webDriver.driver.quit();
             }
 
         } catch (Exception ex) {

@@ -1,6 +1,6 @@
 package com.ing.engine.core;
 
-import com.ing.engine.drivers.WebDriverFactory.Browser;
+import com.ing.engine.drivers.PlaywrightDriverFactory.Browser;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Map;
@@ -52,7 +52,6 @@ public class ThreadPool extends ThreadPoolExecutor {
 
     public void shutdownExecution() {
         if (!doSelectiveThreading) {
-            System.out.println("Shutting Down Thread as there is no need for SelectiveThreading");
             shutdown();
         }
     }

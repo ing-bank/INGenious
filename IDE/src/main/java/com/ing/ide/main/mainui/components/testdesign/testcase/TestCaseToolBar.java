@@ -2,7 +2,7 @@
 package com.ing.ide.main.mainui.components.testdesign.testcase;
 
 import com.ing.engine.core.RunManager;
-import com.ing.engine.drivers.WebDriverFactory;
+import com.ing.engine.drivers.PlaywrightDriverFactory;
 import com.ing.ide.main.utils.SearchBox;
 import com.ing.ide.main.utils.Utils;
 import com.ing.ide.settings.IconSettings;
@@ -108,7 +108,7 @@ public class TestCaseToolBar extends JToolBar {
 
     void loadBrowsers(List<String> emulators) {
         browsersMenu.removeAll();
-        List<String> browsers = WebDriverFactory.Browser.getValuesAsList();
+        List<String> browsers = PlaywrightDriverFactory.Browser.getValuesAsList();
         setBrowserListPopupMenu(browsers);
         if (!emulators.isEmpty()) {
             browsersMenu.addSeparator();
