@@ -163,10 +163,8 @@ public class INGeniousSettings extends javax.swing.JFrame {
         loadRunSettings();
         loadTestSetTMSettings();
         loadMailSettings();
-        loadDBSettings();
         loadRPSettings();
         loadExtentSettings();
-        loadContextSettings();
         showSettings();
     }
 
@@ -191,10 +189,8 @@ public class INGeniousSettings extends javax.swing.JFrame {
         PropUtils.loadPropertiesInTable(sProject.getProjectSettings()
                 .getUserDefinedSettings(), uDPanel.table);
         loadMailSettings();
-        loadDBSettings();
         loadRPSettings();
         loadExtentSettings();
-        loadContextSettings();
     }
 
     private void loadRunSettings() {
@@ -273,19 +269,6 @@ public class INGeniousSettings extends javax.swing.JFrame {
         PropUtils.loadPropertiesInTable(
                 sProject.getProjectSettings().getExtentSettings(),
                 extentSettingsPanel.table);
-    }
-
-    private void loadContextSettings() {
-        PropUtils.loadPropertiesInTable(
-                sProject.getProjectSettings().getContextSettings(),
-                contextSettingsPanel.table);
-    }
-
-    private void loadDBSettings() {
-        PropUtils.loadPropertiesInTable(
-                sProject.getProjectSettings().getDatabaseSettings(),
-                databaseSettingsPanel.table);
-        dbConnect.reset();
     }
 
     private void setButtonModelFromText(String text, ButtonGroup Bgroup) {
@@ -392,12 +375,6 @@ public class INGeniousSettings extends javax.swing.JFrame {
         sProject.getProjectSettings().getMailSettings().save();
     }
 
-    private void saveDBSettings() {
-        Properties properties = encryptpassword(PropUtils.getPropertiesFromTable(((XTablePanel) databaseSettingsPanel).table), " Enc");
-        PropUtils.loadPropertiesInTable(properties, databaseSettingsPanel.table, "");
-        sProject.getProjectSettings().getDatabaseSettings().set(properties);
-        sProject.getProjectSettings().getDatabaseSettings().save();
-    }
     
     private void saveRPSettings() {
         Properties properties = encryptpassword(PropUtils.getPropertiesFromTable(((XTablePanel) rpSettingsPanel).table), " Enc");
@@ -413,12 +390,6 @@ public class INGeniousSettings extends javax.swing.JFrame {
         sProject.getProjectSettings().getExtentSettings().save();
     }
 
-    private void saveContextSettings() {
-        Properties properties = encryptpassword(PropUtils.getPropertiesFromTable(((XTablePanel) contextSettingsPanel).table), " Enc");
-        PropUtils.loadPropertiesInTable(properties, contextSettingsPanel.table, "");
-        sProject.getProjectSettings().getContextSettings().set(properties);
-        sProject.getProjectSettings().getContextSettings().save();
-    }
     
     public void saveAll() {
         saveRunSettings();
@@ -426,10 +397,8 @@ public class INGeniousSettings extends javax.swing.JFrame {
         saveTMSettings();
         saveuserDefinedSettings();
         saveMailSettings();
-        saveDBSettings();
         saveRPSettings();
         saveExtentSettings();
-        saveContextSettings();
     }
 
     private void loadTMTestSetSettings(String module) {

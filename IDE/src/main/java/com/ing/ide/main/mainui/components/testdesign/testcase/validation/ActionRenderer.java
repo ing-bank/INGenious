@@ -1,4 +1,3 @@
-
 package com.ing.ide.main.mainui.components.testdesign.testcase.validation;
 
 import com.ing.datalib.component.Scenario;
@@ -41,7 +40,7 @@ public class ActionRenderer extends AbstractRenderer {
                 setWebserviceStop(comp);
             } else if ((step.isWebserviceRequestStep())) {
                 setWebserviceRequest(comp);
-            }else if ((step.getObject().equals("Execute"))) {
+            } else if ((step.getObject().equals("Execute"))) {
                 setReusable(comp);
             } else if (isActionValid(step, value)) {
                 setDefault(comp);
@@ -95,12 +94,24 @@ public class ActionRenderer extends AbstractRenderer {
                 valid = MethodInfoManager.getMethodListFor(ObjectType.PROTRACTORJS)
                         .contains(action);
                 break;
-	    case "Webservice":
+            case "Webservice":
                 valid = MethodInfoManager.getMethodListFor(ObjectType.WEBSERVICE)
                         .contains(action);
                 break;
             case "File":
                 valid = MethodInfoManager.getMethodListFor(ObjectType.FILE)
+                        .contains(action);
+                break;
+            case "Synthetic Data":
+                valid = MethodInfoManager.getMethodListFor(ObjectType.DATA)
+                        .contains(action);
+                break;
+            case "Queue":
+                valid = MethodInfoManager.getMethodListFor(ObjectType.QUEUE)
+                        .contains(action);
+                break;
+            case "Kafka":
+                valid = MethodInfoManager.getMethodListFor(ObjectType.KAFKA)
                         .contains(action);
                 break;
             default:
@@ -110,7 +121,7 @@ public class ActionRenderer extends AbstractRenderer {
                 } else if (isWebObject(step)) {
                     valid = MethodInfoManager.getMethodListFor(ObjectType.PLAYWRIGHT, ObjectType.WEB).contains(action);
                 } else if (isMobileObject(step)) {
-                   valid = MethodInfoManager.getMethodListFor(ObjectType.APP).contains(action);
+                    valid = MethodInfoManager.getMethodListFor(ObjectType.APP).contains(action);
                 }
                 break;
         }

@@ -229,6 +229,17 @@
             <version>1.5.4</version>
             <type>jar</type>
         </dependency>
+        <dependency>
+            <groupId>com.github.javafaker</groupId>
+            <artifactId>javafaker</artifactId>
+            <version>${javafaker.version}</version>
+        </dependency>
+        <!-- add your respective jms dependency here -->
+        <dependency>
+            <groupId>com.ibm.mq</groupId>
+            <artifactId>com.ibm.mq.allclient</artifactId>
+            <version>${ibmmq.version}</version>
+        </dependency>
     </dependencies>
     
     <build>

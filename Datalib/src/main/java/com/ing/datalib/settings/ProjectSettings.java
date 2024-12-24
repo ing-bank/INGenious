@@ -21,16 +21,15 @@ public class ProjectSettings {
     private final TestMgmtModule testMgmtModule;
 
     private final MailSettings mailSettings;
-    
-    private final DatabaseSettings dbSettings;
-    
+      
     private final ReportPortalSettings rpSettings;
     
     private final ExtentReportSettings extentSettings;
 
-    private final ContextSettings contextSettings;
-
     private final ExecutionSettings execSettings;
+    
+    private final DBProperties dbSettings;
+    private final ContextOptions contextSettings;
 
     public ProjectSettings(Project sProject) {
         this.sProject = sProject;
@@ -41,10 +40,10 @@ public class ProjectSettings {
         this.testMgmtModule = new TestMgmtModule(getLocation());
         this.execSettings = new ExecutionSettings(getLocation());
         this.mailSettings = new MailSettings(getLocation());
-        this.dbSettings = new DatabaseSettings(getLocation());
+        this.dbSettings = new DBProperties(getLocation());
         this.rpSettings = new ReportPortalSettings(getLocation());
         this.extentSettings = new ExtentReportSettings(getLocation());
-        this.contextSettings = new ContextSettings(getLocation());
+        this.contextSettings = new ContextOptions(getLocation());
     }
 
     public void resetLocation() {
@@ -73,7 +72,7 @@ public class ProjectSettings {
         return mailSettings;
     }
     
-    public DatabaseSettings getDatabaseSettings(){
+    public DBProperties getDatabaseSettings(){
         return dbSettings;
     }
     
@@ -85,7 +84,7 @@ public class ProjectSettings {
         return extentSettings;
     }
 
-    public ContextSettings getContextSettings(){
+    public ContextOptions getContextSettings(){
         return contextSettings;
     }
     

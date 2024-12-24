@@ -27,6 +27,8 @@ import javax.swing.DefaultComboBoxModel;
 import javax.swing.ImageIcon;
 import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
+import javax.swing.UIManager;
+
 import javax.swing.table.DefaultTableModel;
 
 /**
@@ -52,6 +54,8 @@ public class DriverSettings extends javax.swing.JFrame {
 
         //loadChromeEmulators();
         initAddEmulatorListener();
+        initAddNewDBListener();
+        initAddNewContextListener();
 
         final JTextField resolutionText = new JTextField();
         //final JTextField resolutionText = (JTextField) resolution.getEditor().getEditorComponent();
@@ -85,15 +89,23 @@ public class DriverSettings extends javax.swing.JFrame {
         });
     }
 
-//    private void loadChromeEmulators() {
-//        chromeEmulatorList.setModel(
-//                new DefaultComboBoxModel(
-//                        ChromeEmulators.getEmulatorsList().toArray()));
-//        if (chromeEmulatorList.getItemCount() == 0) {
-//            chromeEmulator.setEnabled(false);
-//            chromeEmulator.setToolTipText("Not Supported");
-//        }
-//    }
+    private void initAddNewDBListener() {
+        dbCombo.getEditor().addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent ae) {
+                addNewDB();
+            }
+        });
+    }
+
+    private void initAddNewContextListener() {
+        contextCombo.getEditor().addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent ae) {
+                addNewContext();
+            }
+        });
+    }
 
     public void load() {
         this.sProject = sMainFrame.getProject();
@@ -104,6 +116,8 @@ public class DriverSettings extends javax.swing.JFrame {
     private void loadSettings() {
         loadDriverPropTable();
         loadBrowsers();
+        loadDatabases();
+        loadContexts();
     }
 
     private void loadDriverPropTable() {
@@ -120,9 +134,33 @@ public class DriverSettings extends javax.swing.JFrame {
         browserCombo.setModel(model);
 //        dupDriverCombo.setModel(new DefaultComboBoxModel(
 //                getTotalBrowserList().toArray()));
+        browserCombo.setSelectedItem(getTotalBrowserList().get(0));
         checkAndLoadCapabilities();
     }
 
+    private void loadDatabases() {
+
+        dbCombo.setModel(new DefaultComboBoxModel(getTotalDBList().toArray()));
+        dbCombo.setSelectedItem("default");
+        checkAndLoadDatabases();
+    }
+
+    private void loadContexts() {
+        contextCombo.setModel(new DefaultComboBoxModel(getTotalContextList().toArray()));
+        contextCombo.setSelectedItem("default");
+        checkAndLoadContexts();
+    }
+    
+        private List<String> getTotalDBList() {
+        List<String> list = settings.getDatabaseSettings().getDbList();
+        return list;
+    }
+
+    private List<String> getTotalContextList() {
+        List<String> list = settings.getContextSettings().getContextList();
+        return list;
+    }
+    
     private List<String> getTotalBrowserList() {
         List<String> list = PlaywrightDriverFactory.Browser.getValuesAsList();
         List<String> list2 = settings.getEmulators().getEmulatorNames();
@@ -147,11 +185,58 @@ public class DriverSettings extends javax.swing.JFrame {
         }
         loadCapabilities(selBrowser);
     }
+    
+    private void checkAndLoadDatabases() {
+        String dbName = dbCombo.getSelectedItem().toString();
+        if (settings.getDatabaseSettings().getDbList() != null) {
+            deleteDB.setEnabled(true);
+            loadDB(dbName);
+        } else {
+            deleteDB.setEnabled(false);
+        }
+        loadDB(dbName);
+    }
+
+    private void checkAndLoadContexts() {
+        String contextName = contextCombo.getSelectedItem().toString();
+        if (settings.getContextSettings().getContextList() != null) {
+            deleteContext.setEnabled(true);
+            loadContext(contextName);
+        } else {
+            deleteContext.setEnabled(false);
+        }
+        loadContext(contextName);
+    }
 
     private void loadCapabilities(String browserName) {
         DefaultTableModel model = (DefaultTableModel) capTable.getModel();
         model.setRowCount(0);
         LinkedProperties prop = settings.getCapabilities().getCapabiltiesFor(browserName);
+        if (prop != null) {
+            for (Object key : prop.orderedKeys()) {
+                Object value = prop.get(key);
+                model.addRow(new Object[]{key, value});
+            }
+        }
+    }
+    
+    private void loadDB(String dbName) {
+        DefaultTableModel model = (DefaultTableModel) dbPropTable.getModel();
+        model.setRowCount(0);
+        LinkedProperties prop = settings.getDatabaseSettings().getDBPropertiesFor(dbName);
+        if (prop != null) {
+            for (Object key : prop.orderedKeys()) {
+                Object value = prop.get(key);
+                model.addRow(new Object[]{key, value});
+            }
+        }
+    }
+
+    private void loadContext(String contextName) {
+        DefaultTableModel model = (DefaultTableModel) contextPropTable.getModel();
+        model.setRowCount(0);
+        LinkedProperties prop = settings.getContextSettings().getContextOptionsFor(contextName);
+
         if (prop != null) {
             for (Object key : prop.orderedKeys()) {
                 Object value = prop.get(key);
@@ -235,10 +320,13 @@ public class DriverSettings extends javax.swing.JFrame {
     private void saveSettings() {
         if (mainTab.getSelectedIndex() == 0) {
             saveCommonSettings();
+            saveCapabilities();
         } else if (emCapTab.getSelectedIndex() == 0) {
             saveEmulator();
         } else {
             saveCapabilities();
+            saveDBProperties();
+            saveContextProperties();
         }
     }
 
@@ -286,6 +374,50 @@ public class DriverSettings extends javax.swing.JFrame {
                 String value = Objects.toString(model.getValueAt(i, 1), "");
                 settings.getDriverSettings().setProperty(prop, value);
             }
+        }
+    }
+    
+    private void saveDBProperties() {
+        if (dbCombo.getSelectedIndex() != -1) {
+            if (dbPropTable.isEditing()) {
+                dbPropTable.getCellEditor().stopCellEditing();
+            }
+
+            Properties driveProps = encryptpassword(PropUtils.getPropertiesFromTable(dbPropTable));
+            PropUtils.loadPropertiesInTable(driveProps, dbPropTable, "");
+
+            DefaultTableModel model = (DefaultTableModel) dbPropTable.getModel();
+            LinkedProperties properties = new LinkedProperties();
+            for (int i = 0; i < model.getRowCount(); i++) {
+                String prop = Objects.toString(model.getValueAt(i, 0), "").trim();
+                if (!prop.isEmpty()) {
+                    String value = Objects.toString(model.getValueAt(i, 1), "");
+                    properties.setProperty(prop, value);
+                }
+            }
+            settings.getDatabaseSettings().addDB(dbCombo.getSelectedItem().toString(), properties);
+        }
+    }
+
+    private void saveContextProperties() {
+        if (contextCombo.getSelectedIndex() != -1) {
+            if (contextPropTable.isEditing()) {
+                contextPropTable.getCellEditor().stopCellEditing();
+            }
+
+            Properties contextProps = encryptpassword(PropUtils.getPropertiesFromTable(contextPropTable));
+            PropUtils.loadPropertiesInTable(contextProps, contextPropTable, "");
+
+            DefaultTableModel model = (DefaultTableModel) contextPropTable.getModel();
+            LinkedProperties properties = new LinkedProperties();
+            for (int i = 0; i < model.getRowCount(); i++) {
+                String prop = Objects.toString(model.getValueAt(i, 0), "").trim();
+                if (!prop.isEmpty()) {
+                    String value = Objects.toString(model.getValueAt(i, 1), "");
+                    properties.setProperty(prop, value);
+                }
+            }
+            settings.getContextSettings().addContext(contextCombo.getSelectedItem().toString(), properties);
         }
     }
 
@@ -365,6 +497,45 @@ public class DriverSettings extends javax.swing.JFrame {
         saveSettings = new javax.swing.JButton();
         resetSettings = new javax.swing.JButton();
         filler5 = new javax.swing.Box.Filler(new java.awt.Dimension(0, 10), new java.awt.Dimension(0, 10), new java.awt.Dimension(32767, 10));
+
+        databasePanel = new javax.swing.JPanel();
+        dbCombo = new javax.swing.JComboBox<>();
+        addNewDB = new javax.swing.JButton();
+        deleteDB = new javax.swing.JButton();
+        dbPropTable = new XTable();
+        contextCombo = new javax.swing.JComboBox<>();
+        contextjLabel = new javax.swing.JLabel();
+        contextJToolBar = new javax.swing.JToolBar();
+        addNewContext = new javax.swing.JButton();
+        deleteContext = new javax.swing.JButton();
+        contextPropTable = new XTable();
+        contextPanel = new javax.swing.JPanel();
+        addContextPropButton = new javax.swing.JButton();
+        removeContextPropButton = new javax.swing.JButton();
+        jLabel1 = new javax.swing.JLabel();
+        jToolBar5 = new javax.swing.JToolBar();
+        jSeparator2 = new javax.swing.JToolBar.Separator();
+        jScrollPane4 = new javax.swing.JScrollPane();
+        jPanel5 = new javax.swing.JPanel();
+        jScrollPane5 = new javax.swing.JScrollPane();
+        jPanel6 = new javax.swing.JPanel();
+        filler9 = new javax.swing.Box.Filler(new java.awt.Dimension(0, 0), new java.awt.Dimension(0, 0), new java.awt.Dimension(32767, 32767));
+        filler10 = new javax.swing.Box.Filler(new java.awt.Dimension(10, 0), new java.awt.Dimension(10, 0), new java.awt.Dimension(10, 32767));
+        filler11 = new javax.swing.Box.Filler(new java.awt.Dimension(0, 0), new java.awt.Dimension(0, 0), new java.awt.Dimension(32767, 32767));
+        filler14 = new javax.swing.Box.Filler(new java.awt.Dimension(10, 0), new java.awt.Dimension(10, 0), new java.awt.Dimension(10, 32767));
+        filler16 = new javax.swing.Box.Filler(new java.awt.Dimension(0, 0), new java.awt.Dimension(0, 0), new java.awt.Dimension(32767, 32767));
+        filler18 = new javax.swing.Box.Filler(new java.awt.Dimension(0, 0), new java.awt.Dimension(0, 0), new java.awt.Dimension(32767, 32767));
+
+        mainTab.addTab("Launch Configurations", browserPanel);
+        mainTab.addTab("Context Configurations", contextPanel);
+        mainTab.addTab("API Configurations", commonPanel);
+        mainTab.addTab("Database Configurations", databasePanel);
+
+        browserPanel.setLayout(new java.awt.BorderLayout());
+        contextPanel.setLayout(new java.awt.BorderLayout());
+        commonPanel.setLayout(new java.awt.BorderLayout());
+        databasePanel.setLayout(new java.awt.BorderLayout());
+
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         setTitle("Configurations");
@@ -517,22 +688,7 @@ public class DriverSettings extends javax.swing.JFrame {
 
         capTable.setModel(new javax.swing.table.DefaultTableModel(
             new Object [][] {
-                {null, null},
-                {null, null},
-                {null, null},
-                {null, null},
-                {null, null},
-                {null, null},
-                {null, null},
-                {null, null},
-                {null, null},
-                {null, null},
-                {null, null},
-                {null, null},
-                {null, null},
-                {null, null},
-                {null, null},
-                {null, null}
+
             },
             new String [] {
                 "Property", "Value"
@@ -583,6 +739,231 @@ public class DriverSettings extends javax.swing.JFrame {
         browserPanel.add(jPanel2, java.awt.BorderLayout.CENTER);
 
         mainTab.addTab("Manage Browsers", browserPanel);
+        mainTab.setFont(UIManager.getFont("Table.font"));
+
+        jToolBar5.setBorder(javax.swing.BorderFactory.createEtchedBorder());
+        jToolBar5.setRollover(true);
+        jToolBar5.add(filler9);
+        jToolBar5.add(jSeparator2);
+
+        jLabel1.setText("Database Alias");
+        jToolBar5.add(jLabel1);
+        jToolBar5.add(filler10);
+        jToolBar5.add(dbCombo);
+        jToolBar5.add(filler11);
+
+        dbCombo.setEditable(true);
+        //dbCombo.setModel(new javax.swing.DefaultComboBoxModel<>(new String[]{"No Database"}));
+        dbCombo.setMinimumSize(new java.awt.Dimension(150, 26));
+        dbCombo.setPreferredSize(new java.awt.Dimension(150, 26));
+        dbCombo.addItemListener(new java.awt.event.ItemListener() {
+            public void itemStateChanged(java.awt.event.ItemEvent evt) {
+                dbComboItemStateChanged(evt);
+            }
+        });
+
+
+
+       /* testConn.setIcon(new javax.swing.ImageIcon(getClass().getResource("/ui/resources/toolbar/bulb_yellow.png")));
+        testConn.setText("Test Connection");
+        testConn.setFocusable(false);
+        testConn.setHorizontalTextPosition(javax.swing.SwingConstants.RIGHT);
+       testConn.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+               testConnActionPerformed(evt);
+            }
+        });
+        jToolBar5.add(testConn);*/
+
+
+        addNewDB.setIcon(new javax.swing.ImageIcon(getClass().getResource("/ui/resources/toolbar/addIcon.png")));
+        addNewDB.setToolTipText("Add New Database");
+        addNewDB.setFocusable(false);
+        addNewDB.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        addNewDB.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        addNewDB.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                addNewDBActionPerformed(evt);
+            }
+        });
+        jToolBar5.add(addNewDB);
+
+        deleteDB.setIcon(new javax.swing.ImageIcon(getClass().getResource("/ui/resources/toolbar/deleteIcon.png")));
+        deleteDB.setToolTipText("Delete Database");
+        deleteDB.setFocusable(false);
+        deleteDB.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        deleteDB.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        deleteDB.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                deleteDBActionPerformed(evt);
+            }
+        });
+        jToolBar5.add(deleteDB);
+
+
+        dbPropTable.setModel(new javax.swing.table.DefaultTableModel(
+                new Object[][]{},
+                new String[]{
+                        "Property", "Value"
+                }
+        ) {
+            boolean[] canEdit = new boolean[]{
+                    true, true
+            };
+
+            public boolean isCellEditable(int rowIndex, int columnIndex) {
+                return canEdit[columnIndex];
+            }
+        });
+        jScrollPane4.setViewportView(dbPropTable);
+
+        dbPropTable.setMinimumSize(new java.awt.Dimension(30, 120));
+        dbPropTable.setOpaque(false);
+        dbPropTable.setPreferredSize(new java.awt.Dimension(150, 120));
+        databasePanel.add(jScrollPane4, java.awt.BorderLayout.CENTER);
+
+
+        javax.swing.GroupLayout jPanel5Layout = new javax.swing.GroupLayout(jPanel5);
+        jPanel5.setLayout(jPanel5Layout);
+        jPanel5Layout.setHorizontalGroup(
+                jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                        .addComponent(jScrollPane4, javax.swing.GroupLayout.DEFAULT_SIZE, 652, Short.MAX_VALUE)
+        );
+        jPanel5Layout.setVerticalGroup(
+                jPanel5Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                        .addComponent(jScrollPane4, javax.swing.GroupLayout.DEFAULT_SIZE, 557, Short.MAX_VALUE)
+        );
+
+        javax.swing.GroupLayout databasePanelLayout = new javax.swing.GroupLayout(databasePanel);
+        databasePanel.setLayout(databasePanelLayout);
+        databasePanelLayout.setHorizontalGroup(
+                databasePanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                        .addComponent(jToolBar5, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addComponent(jPanel5, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+        );
+        databasePanelLayout.setVerticalGroup(
+                databasePanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                        .addGroup(databasePanelLayout.createSequentialGroup()
+                                .addComponent(jToolBar5, javax.swing.GroupLayout.PREFERRED_SIZE, 50, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(jPanel5, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+        );
+
+
+        contextJToolBar.setBorder(javax.swing.BorderFactory.createEtchedBorder());
+        contextJToolBar.setRollover(true);
+        contextJToolBar.add(filler18);
+
+        contextjLabel.setText("Context Alias");
+        contextJToolBar.add(contextjLabel);
+        contextJToolBar.add(filler14);
+        contextJToolBar.add(contextCombo);
+        contextJToolBar.add(filler16);
+
+        contextCombo.setEditable(true);
+        //contextCombo.setModel(new javax.swing.DefaultComboBoxModel<>(new String[]{"Item 1", "Item 2", "Item 3", "Item 4"}));
+        contextCombo.setMinimumSize(new java.awt.Dimension(150, 26));
+        contextCombo.setPreferredSize(new java.awt.Dimension(150, 26));
+        contextCombo.addItemListener(new java.awt.event.ItemListener() {
+            public void itemStateChanged(java.awt.event.ItemEvent evt) {
+                contextComboItemStateChanged(evt);
+            }
+        });
+
+
+        addNewContext.setIcon(new javax.swing.ImageIcon(getClass().getResource("/ui/resources/toolbar/addIcon.png")));
+        addNewContext.setToolTipText("Add New Context");
+        addNewContext.setFocusable(false);
+        addNewContext.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        addNewContext.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        addNewContext.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                addNewContextActionPerformed(evt);
+            }
+        });
+        contextJToolBar.add(addNewContext);
+
+        deleteContext.setIcon(new javax.swing.ImageIcon(getClass().getResource("/ui/resources/toolbar/deleteIcon.png")));
+        deleteContext.setToolTipText("Delete Context");
+        deleteContext.setFocusable(false);
+        deleteContext.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        deleteContext.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        deleteContext.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                deleteContextActionPerformed(evt);
+            }
+        });
+        contextJToolBar.add(deleteContext);
+
+        addContextPropButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/ui/resources/toolbar/add.png")));
+        addContextPropButton.setToolTipText("Add Property");
+        addContextPropButton.setFocusable(false);
+        addContextPropButton.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        addContextPropButton.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        addContextPropButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                addContextPropButtonActionPerformed(evt);
+            }
+        });
+        contextJToolBar.add(addContextPropButton);
+
+        removeContextPropButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/ui/resources/toolbar/remove.png")));
+        removeContextPropButton.setToolTipText("Remove Property");
+        removeContextPropButton.setFocusable(false);
+        removeContextPropButton.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
+        removeContextPropButton.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
+        removeContextPropButton.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+
+                removeContextPropButtonActionPerformed(evt);
+            }
+        });
+        contextJToolBar.add(removeContextPropButton);
+
+        contextPropTable.setModel(new javax.swing.table.DefaultTableModel(
+                new Object[][]{},
+                new String[]{
+                        "Property", "Value"
+                }
+        ) {
+            boolean[] canEdit = new boolean[]{
+                    true, true
+            };
+
+            public boolean isCellEditable(int rowIndex, int columnIndex) {
+                return canEdit[columnIndex];
+            }
+        });
+        contextPropTable.setMinimumSize(new java.awt.Dimension(30, 120));
+        contextPropTable.setOpaque(false);
+        contextPropTable.setPreferredSize(new java.awt.Dimension(150, 120));
+        jScrollPane5.setViewportView(contextPropTable);
+        contextPanel.add(jScrollPane5, java.awt.BorderLayout.CENTER);
+
+        javax.swing.GroupLayout jPanel6Layout = new javax.swing.GroupLayout(jPanel6);
+        jPanel6.setLayout(jPanel6Layout);
+        jPanel6Layout.setHorizontalGroup(
+                jPanel6Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                        .addComponent(jScrollPane5, javax.swing.GroupLayout.DEFAULT_SIZE, 652, Short.MAX_VALUE)
+        );
+        jPanel6Layout.setVerticalGroup(
+                jPanel6Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                        .addComponent(jScrollPane5, javax.swing.GroupLayout.DEFAULT_SIZE, 557, Short.MAX_VALUE)
+        );
+        javax.swing.GroupLayout contextPanelLayout = new javax.swing.GroupLayout(contextPanel);
+        contextPanel.setLayout(contextPanelLayout);
+        contextPanelLayout.setHorizontalGroup(
+                contextPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                        .addComponent(contextJToolBar, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addComponent(jPanel6, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+        );
+        contextPanelLayout.setVerticalGroup(
+                contextPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                        .addGroup(contextPanelLayout.createSequentialGroup()
+                                .addComponent(contextJToolBar, javax.swing.GroupLayout.PREFERRED_SIZE, 50, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                                .addComponent(jPanel6, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+        );
 
         getContentPane().add(mainTab, java.awt.BorderLayout.CENTER);
 
@@ -634,6 +1015,22 @@ public class DriverSettings extends javax.swing.JFrame {
         }
     }//GEN-LAST:event_removePropButtonActionPerformed
 
+    private void addContextPropButtonActionPerformed(java.awt.event.ActionEvent evt) {
+        DefaultTableModel model = (DefaultTableModel) contextPropTable.getModel();
+        model.addRow(new Object[]{});
+    }
+
+    private void removeContextPropButtonActionPerformed(java.awt.event.ActionEvent evt) {
+        int[] rows = contextPropTable.getSelectedRows();
+        if (rows != null) {
+            DefaultTableModel model = (DefaultTableModel) contextPropTable.getModel();
+            for (int i = rows.length - 1; i >= 0; i--) {
+                model.removeRow(rows[i]);
+            }
+        }
+    }
+
+
     private void saveSettingsActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_saveSettingsActionPerformed
         saveSettings();
     }//GEN-LAST:event_saveSettingsActionPerformed
@@ -676,6 +1073,83 @@ public class DriverSettings extends javax.swing.JFrame {
         appiumConnectionString.setEnabled(appiumEmulator.isSelected());
     }//GEN-LAST:event_appiumEmulatorItemStateChanged
 
+    private void addNewDBActionPerformed(java.awt.event.ActionEvent evt) {
+        addNewDB();
+    }
+
+    private void deleteDBActionPerformed(java.awt.event.ActionEvent evt) {
+        deleteDB();
+    }
+
+    private void dbComboItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_dbComboItemStateChanged
+        if (evt.getStateChange() == ItemEvent.SELECTED) {
+            SwingUtilities.invokeLater(() -> {
+                checkAndLoadDatabases();
+            });
+        }
+    }//GEN-LAST:event_dbComboItemStateChanged
+
+    private void addNewDB() {
+        String newdbName = dbCombo.getEditor().getItem().toString();
+        if (!getTotalDBList().contains(newdbName)) {
+            settings.getDatabaseSettings().addDBName(newdbName);
+            dbCombo.addItem(newdbName);
+            dbCombo.setSelectedItem(newdbName);
+            settings.getDatabaseSettings().addDBProperty(newdbName);
+            loadDB(newdbName);
+        } else {
+            Notification.show("Database [" + newdbName + "] already Present");
+        }
+    }
+
+    private void deleteDB() {
+        if (dbCombo.getSelectedIndex() != -1) {
+            String dbName = dbCombo.getSelectedItem().toString();
+            settings.getDatabaseSettings().delete(dbName);
+            dbCombo.removeItem(dbName);
+        }
+    }
+
+    private void addNewContextActionPerformed(java.awt.event.ActionEvent evt) {
+        addNewContext();
+    }
+
+    private void deleteContextActionPerformed(java.awt.event.ActionEvent evt) {
+        deleteContext();
+    }
+
+    private void contextComboItemStateChanged(java.awt.event.ItemEvent evt) {
+        if (evt.getStateChange() == ItemEvent.SELECTED) {
+            SwingUtilities.invokeLater(() -> {
+                checkAndLoadContexts();
+            });
+        }
+    }
+
+    private void addNewContext() {
+        String newContextName = contextCombo.getEditor().getItem().toString();
+        if (!newContextName.isBlank()) {
+            if (!getTotalContextList().contains(newContextName) || getTotalContextList().isEmpty()) {
+                settings.getContextSettings().addContextName(newContextName);
+                contextCombo.addItem(newContextName);
+                contextCombo.setSelectedItem(newContextName);
+                settings.getContextSettings().addContextOptions(newContextName);
+                loadContext(newContextName);
+            } else {
+                Notification.show("Context [" + newContextName + "] already Present");
+            }
+        } else {
+            Notification.show("Context Alias is blank");
+        }
+    }
+
+    private void deleteContext() {
+        if (contextCombo.getSelectedIndex() != -1) {
+            String contextName = contextCombo.getSelectedItem().toString();
+            settings.getContextSettings().delete(contextName);
+            contextCombo.removeItem(contextName);
+        }
+    }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton addCap;
@@ -716,5 +1190,33 @@ public class DriverSettings extends javax.swing.JFrame {
     private javax.swing.JButton removePropButton;
     private javax.swing.JButton resetSettings;
     private javax.swing.JButton saveSettings;
+    private javax.swing.JButton addNewDB;
+    private javax.swing.JComboBox<String> dbCombo;
+    private javax.swing.JTable dbPropTable;
+    private javax.swing.JButton deleteDB;
+    private javax.swing.JPanel databasePanel;
+    private javax.swing.JTable contextPropTable;
+    private javax.swing.JButton addNewContext;
+    private javax.swing.JComboBox<String> contextCombo;
+    private javax.swing.JButton deleteContext;
+    private javax.swing.JPanel contextPanel;
+    private javax.swing.JToolBar contextJToolBar;
+    private javax.swing.JLabel contextjLabel;
+    private javax.swing.JButton addContextPropButton;
+    private javax.swing.JButton removeContextPropButton;
+    private javax.swing.JLabel jLabel1;
+    private javax.swing.JToolBar jToolBar5;
+    private javax.swing.JToolBar.Separator jSeparator2;
+
+    private javax.swing.JScrollPane jScrollPane4;
+    private javax.swing.JPanel jPanel5;
+    private javax.swing.JScrollPane jScrollPane5;
+    private javax.swing.JPanel jPanel6;
+    private javax.swing.Box.Filler filler9;
+    private javax.swing.Box.Filler filler10;
+    private javax.swing.Box.Filler filler11;
+    private javax.swing.Box.Filler filler14;
+    private javax.swing.Box.Filler filler16;
+    private javax.swing.Box.Filler filler18;
     // End of variables declaration//GEN-END:variables
 }

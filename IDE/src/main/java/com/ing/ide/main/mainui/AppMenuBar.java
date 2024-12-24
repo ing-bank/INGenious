@@ -187,7 +187,7 @@ public class AppMenuBar extends JMenuBar {
     }
 
     private JMenu createConfigurationMenu() {
-        JMenu configure = new JMenu("Configuration");
+        JMenu configure = new JMenu("Configurations");
         configure.setMnemonic('C');
 
         configure.add(

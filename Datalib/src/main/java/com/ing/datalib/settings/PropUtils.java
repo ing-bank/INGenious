@@ -26,6 +26,7 @@ public class PropUtils {
         try (FileInputStream fis = new FileInputStream(file)) {
             properties.load(fis);
         } catch (IOException ex) {
+            System.out.println(file.getName() + properties.entrySet());
             Logger.getLogger(PropUtils.class.getName()).log(Level.SEVERE, null, ex);
         }
         return properties;
@@ -40,11 +41,14 @@ public class PropUtils {
 
     private static void saveProperties(Properties prop, String filename) {
         File file = new File(filename);
+        System.out.println("++++++++++++++++" + file.getAbsolutePath());
         try (BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file), "ISO_8859_1"))) {
             synchronized (prop) {
                 for (Map.Entry<Object, Object> e : prop.entrySet()) {
                     String key = (String) e.getKey();
                     String val = (String) e.getValue();
+                    key = escapeUnicode(key);
+                    val = escapeUnicode(val);
                     bw.write(key + "=" + val);
                     bw.newLine();
                 }
@@ -53,5 +57,17 @@ public class PropUtils {
             Logger.getLogger(PropUtils.class.getName()).log(Level.SEVERE, filename, ex);
         }
 
+    }
+    
+    private static String escapeUnicode(String input) {
+        StringBuilder sb = new StringBuilder();
+        for (char c : input.toCharArray()) {
+            if (c > 127) {
+                sb.append(String.format("\\u%04x", (int) c));
+            } else {
+                sb.append(c);
+            }
+        }
+        return sb.toString();
     }
 }

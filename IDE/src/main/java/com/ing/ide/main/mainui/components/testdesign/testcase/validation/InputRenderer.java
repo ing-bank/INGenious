@@ -11,7 +11,7 @@ import javax.swing.JComponent;
 
 public class InputRenderer extends AbstractRenderer {
 	String testDataNotPresent = "TestData/Column not avaliable in the Project";
-	String inValidInput = "Syntax error. Input should be one of [@val ,%var% ,=Function ,Sheet:Column]";
+	String inValidInput = "Syntax error. Input should be one of [@val , #val, %var% ,=Function ,Sheet:Column]";
 	String shouldBeEmpty = "Syntax error. Input should be empty for the Action";
 
 	public InputRenderer() {
@@ -77,7 +77,7 @@ public class InputRenderer extends AbstractRenderer {
 
 	private Boolean isInputValid(Object value) {
 		String val = Objects.toString(value, "").trim();
-                if (val.matches("(@.+)|(=.+)|(%.+%)"))
+                if (val.matches("(@.+)|(=.+)|(%.+%)|(#.+)"))
 		// return Boolean.valueOf(val.matches("(@.+)|(=.+)|(%.+%)"));
                    return true;
                 else if (val.startsWith("<") || val.startsWith("{") || val.startsWith("["))

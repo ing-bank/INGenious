@@ -310,6 +310,10 @@ public class TestStep {
     public Boolean isFileStep() {
         return getObject().equals("File");
     }
+    
+    public Boolean isMessageStep() {
+        return getObject().equals("Queue") || getObject().equals("Kafka");
+    }
 
     public Boolean isWebserviceRequestStep() {
         String requests[] = new String[]{"get", "delete", "post", "put", "patch"};

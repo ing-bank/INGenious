@@ -1,7 +1,11 @@
 package com.ing.engine.commands.browser;
 
+import com.github.javafaker.Faker;
+import com.ibm.msg.client.jms.JmsConnectionFactory;
+import com.ibm.msg.client.jms.JmsFactoryFactory;
 import com.ing.datalib.or.common.ObjectGroup;
 import com.ing.datalib.or.image.ImageORObject;
+import com.ing.datalib.util.data.LinkedProperties;
 import com.ing.engine.core.CommandControl;
 import com.ing.engine.drivers.AutomationObject;
 import com.ing.engine.drivers.PlaywrightDriverCreation;
@@ -19,13 +23,19 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Stack;
 
-//Added for Mobile
 import com.ing.engine.drivers.WebDriverCreation;
 import com.ing.engine.drivers.MobileObject;
+import java.io.File;
+import javax.jms.Destination;
+import javax.jms.JMSConsumer;
+import javax.jms.JMSContext;
+import javax.jms.JMSProducer;
+import javax.jms.TextMessage;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
+
 public class Command {
-    
+
     public Page Page;
     public Playwright Playwright;
     public BrowserContext BrowserContext;
@@ -43,7 +53,6 @@ public class Command {
     public String Reference;
     private final CommandControl Commander;
     public UserDataAccess userData;
-    //Added for Mobile
     public WebDriver mDriver;
     public WebElement Element;
     public MobileObject mObject;
@@ -82,42 +91,72 @@ public class Command {
     /**
      * ************************
      */
+    
+    /**
+     * Data faker *
+     */
+    static public Map<String, Faker> faker = new HashMap<>();
+
+    /**
+     * ************************
+     */
+    
+    /**
+     * *** Queue ****
+     */
+    static public Map<String, String> jmsHost = new HashMap<>();
+    static public Map<String, Integer> jmsPort = new HashMap<>();
+    static public Map<String, String> jmsChannel = new HashMap<>();
+    static public Map<String, String> jmsQmgr = new HashMap<>();
+    static public Map<String, String> WMQ_SSL_CIPHER_SUITE = new HashMap<>();
+    static public Map<String, String> jmsReqQueueName = new HashMap<>();
+    static public Map<String, String> jmsRespQueueName = new HashMap<>();
+    static public Map<String, JMSContext> jmsContext = new HashMap<>();
+    static public Map<String, Destination> jmsDestination = new HashMap<>();
+    static public Map<String, JMSProducer> jmsProducer = new HashMap<>();
+    static public Map<String, JMSConsumer> jmsConsumer = new HashMap<>();
+    static public Map<String, JmsFactoryFactory> jmsFactoryFactory = new HashMap<>();
+    static public Map<String, JmsConnectionFactory> jmsConnectionFactory = new HashMap<>();
+    static public Map<String, TextMessage> jmsMessage = new HashMap<>();
+    static public Map<String, String> jmsCorrelationID = new HashMap<>();
+    static public Map<String, String> receivedMessage = new HashMap<>();
+
+    /**
+     * **********
+     */
     public Command(CommandControl cc) {
         Commander = cc;
-        if(Commander.webDriver!=null)
-        {
-        mDriver = Commander.webDriver.driver;
-        mObject = Commander.MObject;
-        Data = Commander.Data;
-        ObjectName = Commander.ObjectName;
-        Element = Commander.Element;
-        imageObjectGroup = Commander.imageObjectGroup;
-        Description = Commander.Description;
-        Condition = Commander.Condition;
-        Input = Commander.Input;
-        Report = Commander.Report;
-        Reference = Commander.Reference;
-        Action = Commander.Action;
-        userData = Commander.userData;
-        }
-        else
-        {
-        Page = Commander.Page.page;
-        Playwright = Commander.Playwright.playwright;
-        BrowserContext = Commander.BrowserContext.browserContext;
-        AObject = Commander.AObject;
-        Driver=Commander.Page;
-        Data = Commander.Data;
-        ObjectName = Commander.ObjectName;
-        Locator = Commander.Locator;
-        imageObjectGroup = Commander.imageObjectGroup;
-        Description = Commander.Description;
-        Condition = Commander.Condition;
-        Input = Commander.Input;
-        Report = Commander.Report;
-        Reference = Commander.Reference;
-        Action = Commander.Action;
-        userData = Commander.userData;
+        if (Commander.webDriver != null) {
+            mDriver = Commander.webDriver.driver;
+            mObject = Commander.MObject;
+            Data = Commander.Data;
+            ObjectName = Commander.ObjectName;
+            Element = Commander.Element;
+            imageObjectGroup = Commander.imageObjectGroup;
+            Description = Commander.Description;
+            Condition = Commander.Condition;
+            Input = Commander.Input;
+            Report = Commander.Report;
+            Reference = Commander.Reference;
+            Action = Commander.Action;
+            userData = Commander.userData;
+        } else {
+            Page = Commander.Page.page;
+            Playwright = Commander.Playwright.playwright;
+            BrowserContext = Commander.BrowserContext.browserContext;
+            AObject = Commander.AObject;
+            Driver = Commander.Page;
+            Data = Commander.Data;
+            ObjectName = Commander.ObjectName;
+            Locator = Commander.Locator;
+            imageObjectGroup = Commander.imageObjectGroup;
+            Description = Commander.Description;
+            Condition = Commander.Condition;
+            Input = Commander.Input;
+            Report = Commander.Report;
+            Reference = Commander.Reference;
+            Action = Commander.Action;
+            userData = Commander.userData;
         }
         /**
          * ******Webservice*******
@@ -147,16 +186,18 @@ public class Command {
         return Commander.getUserDefinedData(key);
     }
 
-    public String getDataBaseData(String key) {
-        String data = Commander.getDataBaseProperty(key);
+    public LinkedProperties getDataBaseData(String val) {
+        return Commander.getDataBaseProperty(val);
+    }
 
-        return data;
+    public File getDBFile(String val) {
+        return new File(Commander.getDBFile(val));
     }
 
     public Stack<Locator> getRunTimeElement() {
         return Commander.getRunTimeElement();
     }
-    
+
     public void executeMethod(String Action) {
         Commander.executeAction(Action);
     }
@@ -180,20 +221,16 @@ public class Command {
     public PlaywrightDriverCreation getDriverControl() {
         return Commander.Page;
     }
-    
-    public WebDriverCreation getMobileDriverControl()
-    {
+
+    public WebDriverCreation getMobileDriverControl() {
         return Commander.webDriver;
     }
 
     public Boolean isDriverAlive() {
-        if(mDriver!=null)
-        {
-           return getMobileDriverControl().isAlive();
-        }
-        else
-        {
-        return getDriverControl().isAlive();
+        if (mDriver != null) {
+            return getMobileDriverControl().isAlive();
+        } else {
+            return getDriverControl().isAlive();
         }
     }
 
