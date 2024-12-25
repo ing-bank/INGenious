@@ -24,7 +24,7 @@ public class ContextOptions {
     }
 
     public static String getLocation() {
-        return location + File.separator + "Contexts";
+        return location + File.separator + "BrowserContexts";
     }
 
     public void setLocation(String location) {
@@ -138,7 +138,6 @@ public class ContextOptions {
         if (!propertiesFile.exists()) {
             try (FileOutputStream fos = new FileOutputStream(propertiesFile)) {
                 Properties prop = new Properties();
-                // Add default key-value pairs
                 prop.setProperty("authenticateContext", "false");
                 prop.setProperty("userID", "");
                 prop.setProperty("password", "");

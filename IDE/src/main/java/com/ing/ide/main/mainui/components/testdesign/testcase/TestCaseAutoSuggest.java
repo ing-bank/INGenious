@@ -269,9 +269,7 @@ public class TestCaseAutoSuggest {
                 case "File":
                     return MethodInfoManager.getMethodListFor(ObjectType.FILE, ObjectType.FILE);
                 default:
-                    if (isImageObject(objectName, pageName)) {
-                        return MethodInfoManager.getMethodListFor(ObjectType.IMAGE, ObjectType.ANY);
-                    } else if (isWebObject(objectName, pageName)) {
+                     if (isWebObject(objectName, pageName)) {
                         return MethodInfoManager.getMethodListFor(ObjectType.PLAYWRIGHT, ObjectType.WEB, ObjectType.ANY);
                     } else if (isMobileObject(objectName, pageName)) {
                         return MethodInfoManager.getMethodListFor(ObjectType.APP);
@@ -291,10 +289,6 @@ public class TestCaseAutoSuggest {
             return reusableList;
         }
 
-        private boolean isImageObject(String objectName, String pageName) {
-            ORPageInf page = sProject.getObjectRepository().getImageOR().getPageByName(pageName);
-            return page != null && page.getObjectGroupByName(objectName) != null;
-        }
 
         private boolean isWebObject(String objectName, String pageName) {
             ORPageInf page = sProject.getObjectRepository().getWebOR().getPageByName(pageName);

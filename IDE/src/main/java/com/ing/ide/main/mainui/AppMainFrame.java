@@ -305,9 +305,6 @@ public class AppMainFrame extends JFrame {
         final String _Enc = " Enc";
         boolean isMigrted = true;
         try {
-            //Mail Settings updated
-            project.getProjectSettings().getMailSettings().put("mail.smtp.starttls.required", "true");
-            Logger.getLogger(AppMainFrame.class.getName()).log(Level.INFO, "Mail setting new property is copied ");
 
             //Updating new TM Properties
             List<TestMgModule> modules = project.getProjectSettings().getTestMgmtModule().getModules();

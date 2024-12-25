@@ -62,8 +62,6 @@ public class INGeniousSettings extends javax.swing.JFrame {
     
     private XTablePanel extentSettingsPanel;
 
-    private XTablePanel contextSettingsPanel;
-
     private XTablePanel uDPanel;
 
     private ConnectButton mailConnect;
@@ -89,8 +87,6 @@ public class INGeniousSettings extends javax.swing.JFrame {
         //runSettingsTab.addTab("Report Portal Settings", rpSettingsPanel);
         extentSettingsPanel = new XTablePanel(true);
         runSettingsTab.addTab("Extent Report Settings", extentSettingsPanel);
-        contextSettingsPanel = new XTablePanel(true);
-        runSettingsTab.addTab("Authenticate Context", contextSettingsPanel);
         
         
         mailConnect = new ConnectButton() {
@@ -162,7 +158,6 @@ public class INGeniousSettings extends javax.swing.JFrame {
         this.execSettings = sProject.getProjectSettings().getExecSettings();
         loadRunSettings();
         loadTestSetTMSettings();
-        loadMailSettings();
         loadRPSettings();
         loadExtentSettings();
         showSettings();
@@ -188,7 +183,6 @@ public class INGeniousSettings extends javax.swing.JFrame {
         loadTMSettings();
         PropUtils.loadPropertiesInTable(sProject.getProjectSettings()
                 .getUserDefinedSettings(), uDPanel.table);
-        loadMailSettings();
         loadRPSettings();
         loadExtentSettings();
     }
@@ -250,13 +244,6 @@ public class INGeniousSettings extends javax.swing.JFrame {
             updateresultscheckbox.setSelected(false);
         }
         updateresultscheckboxItemStateChanged(null);
-    }
-
-    private void loadMailSettings() {
-        PropUtils.loadPropertiesInTable(
-                sProject.getProjectSettings().getMailSettings(),
-                mailSettingsPanel.table);
-        mailConnect.reset();
     }
     
     private void loadRPSettings() {
@@ -368,13 +355,6 @@ public class INGeniousSettings extends javax.swing.JFrame {
         sProject.getProjectSettings().getUserDefinedSettings().save();
     }
 
-    private void saveMailSettings() {
-        Properties properties = encryptpassword(PropUtils.getPropertiesFromTable(((XTablePanel) mailSettingsPanel).table), " Enc");
-        PropUtils.loadPropertiesInTable(properties, mailSettingsPanel.table, "");
-        sProject.getProjectSettings().getMailSettings().set(properties);
-        sProject.getProjectSettings().getMailSettings().save();
-    }
-
     
     private void saveRPSettings() {
         Properties properties = encryptpassword(PropUtils.getPropertiesFromTable(((XTablePanel) rpSettingsPanel).table), " Enc");
@@ -396,7 +376,6 @@ public class INGeniousSettings extends javax.swing.JFrame {
         saveTestSetTMSettings();
         saveTMSettings();
         saveuserDefinedSettings();
-        saveMailSettings();
         saveRPSettings();
         saveExtentSettings();
     }
@@ -495,7 +474,6 @@ public class INGeniousSettings extends javax.swing.JFrame {
                 formWindowClosing(evt);
             }
         });
-        getContentPane().setLayout(new java.awt.BorderLayout());
 
         savePanel.setBorder(javax.swing.BorderFactory.createEmptyBorder(1, 1, 1, 1));
         savePanel.setFont(new java.awt.Font("sansserif", 0, 11)); // NOI18N
@@ -521,7 +499,7 @@ public class INGeniousSettings extends javax.swing.JFrame {
         savePanelLayout.setHorizontalGroup(
             savePanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(savePanelLayout.createSequentialGroup()
-                .addContainerGap(466, Short.MAX_VALUE)
+                .addContainerGap(332, Short.MAX_VALUE)
                 .addComponent(saveSettings)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
                 .addComponent(resetSettings)
@@ -716,17 +694,32 @@ public class INGeniousSettings extends javax.swing.JFrame {
                                     .addComponent(bddReport)
                                     .addComponent(azure)))
                             .addGroup(globalSettingsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                                .addGroup(globalSettingsLayout.createSequentialGroup()
-                                    .addComponent(jLabel1)
-                                    .addGap(18, 18, 18)
-                                    .addComponent(executionTimeOut, javax.swing.GroupLayout.PREFERRED_SIZE, 252, javax.swing.GroupLayout.PREFERRED_SIZE))
+                                .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, globalSettingsLayout.createSequentialGroup()
+                                    .addGroup(globalSettingsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                        .addComponent(jLabel5)
+                                        .addComponent(jLabel9))
+                                    .addGap(81, 81, 81)
+                                    .addGroup(globalSettingsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                        .addComponent(remoteGridURL, javax.swing.GroupLayout.PREFERRED_SIZE, 252, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                        .addComponent(fullpagescreenshot)
+                                        .addGroup(globalSettingsLayout.createSequentialGroup()
+                                            .addComponent(passCheckBox)
+                                            .addGap(18, 18, 18)
+                                            .addComponent(failCheckBox)))
+                                    .addGap(0, 29, Short.MAX_VALUE))
+                                .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, globalSettingsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                    .addComponent(enableTracing)
+                                    .addComponent(recordVideo)
+                                    .addComponent(enableHAR))
                                 .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, globalSettingsLayout.createSequentialGroup()
                                     .addGroup(globalSettingsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                                         .addComponent(jLabel2)
                                         .addComponent(jLabel3)
-                                        .addComponent(jLabel4))
+                                        .addComponent(jLabel4)
+                                        .addComponent(jLabel1))
                                     .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
                                     .addGroup(globalSettingsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                        .addComponent(executionTimeOut, javax.swing.GroupLayout.PREFERRED_SIZE, 252, javax.swing.GroupLayout.PREFERRED_SIZE)
                                         .addGroup(globalSettingsLayout.createSequentialGroup()
                                             .addComponent(jRadioButton1)
                                             .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
@@ -737,25 +730,8 @@ public class INGeniousSettings extends javax.swing.JFrame {
                                             .addComponent(jRadioButton4))
                                         .addComponent(threadCount, javax.swing.GroupLayout.PREFERRED_SIZE, 116, javax.swing.GroupLayout.PREFERRED_SIZE)
                                         .addComponent(testEnv, javax.swing.GroupLayout.PREFERRED_SIZE, 121, javax.swing.GroupLayout.PREFERRED_SIZE))
-                                    .addGap(56, 56, 56))
-                                .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, globalSettingsLayout.createSequentialGroup()
-                                    .addGroup(globalSettingsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                        .addComponent(jLabel5)
-                                        .addComponent(jLabel9))
-                                    .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                                    .addGroup(globalSettingsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                        .addGroup(globalSettingsLayout.createSequentialGroup()
-                                            .addComponent(passCheckBox)
-                                            .addGap(18, 18, 18)
-                                            .addComponent(failCheckBox)
-                                            .addGap(95, 95, 95)
-                                            .addComponent(fullpagescreenshot))
-                                        .addComponent(remoteGridURL, javax.swing.GroupLayout.PREFERRED_SIZE, 252, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                                .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, globalSettingsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                    .addComponent(enableTracing)
-                                    .addComponent(recordVideo)
-                                    .addComponent(enableHAR))))
-                        .addGap(114, 136, Short.MAX_VALUE))))
+                                    .addGap(29, 29, 29))))
+                        .addContainerGap(29, Short.MAX_VALUE))))
         );
         globalSettingsLayout.setVerticalGroup(
             globalSettingsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
@@ -787,17 +763,20 @@ public class INGeniousSettings extends javax.swing.JFrame {
                     .addComponent(jLabel5)
                     .addComponent(remoteGridURL, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
                 .addGap(18, 18, 18)
-                .addGroup(globalSettingsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                .addGroup(globalSettingsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
                     .addComponent(jLabel9)
-                    .addComponent(passCheckBox)
-                    .addComponent(failCheckBox)
-                    .addComponent(fullpagescreenshot))
-                .addGap(32, 32, 32)
+                    .addGroup(globalSettingsLayout.createSequentialGroup()
+                        .addGroup(globalSettingsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                            .addComponent(passCheckBox)
+                            .addComponent(failCheckBox))
+                        .addGap(18, 18, 18)
+                        .addComponent(fullpagescreenshot)))
+                .addGap(39, 39, 39)
                 .addGroup(globalSettingsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(jLabel29)
                     .addComponent(reRunNo, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
                     .addComponent(jLabel30))
-                .addGap(74, 74, 74)
+                .addGap(26, 26, 26)
                 .addGroup(globalSettingsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
                     .addComponent(reportPerformanceLog)
                     .addComponent(recordVideo)
@@ -812,7 +791,7 @@ public class INGeniousSettings extends javax.swing.JFrame {
                     .addComponent(azure)
                     .addComponent(enableHAR)
                     .addComponent(slackNotify))
-                .addContainerGap(40, Short.MAX_VALUE))
+                .addContainerGap(44, Short.MAX_VALUE))
         );
 
         runSettingsTab.addTab("Run Settings", globalSettings);

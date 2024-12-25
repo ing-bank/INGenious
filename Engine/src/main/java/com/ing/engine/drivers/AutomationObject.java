@@ -196,22 +196,6 @@ public class AutomationObject {
         return null;
     }
 
-    public ObjectGroup<ImageORObject> getImageObjects(String page, String object) {
-        ObjectRepository objRep = Control.getCurrentProject().getObjectRepository();
-        if (objRep.getImageOR().getPageByName(page) != null) {
-            return objRep.getImageOR().getPageByName(page).getObjectGroupByName(object);
-        }
-        return null;
-    }
-
-    public ImageORObject getImageObject(String page, String object) {
-        ObjectRepository objRep = Control.getCurrentProject().getObjectRepository();
-        if (objRep.getImageOR().getPageByName(page) != null) {
-            return objRep.getImageOR().getPageByName(page).getObjectGroupByName(object).getObjects().get(0);
-        }
-        return null;
-    }
-
     @SuppressWarnings({"unchecked", "rawtypes"})
     private synchronized List<Locator> findElements(ObjectGroup objectGroup, String prop) {
 

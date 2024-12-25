@@ -25,7 +25,6 @@ public class ObjectRepository {
 
     private WebOR webOR;
     private MobileOR mobileOR;
-    private ImageOR imageOR;
 
     public ObjectRepository(Project sProject) {
         this.sProject = sProject;
@@ -46,16 +45,11 @@ public class ObjectRepository {
             } else {
                 mobileOR = new MobileOR(sProject.getName());
             }
-            if (new File(getIORLocation()).exists()) {
-                imageOR = XML_MAPPER.readValue(new File(getIORLocation()), ImageOR.class);
-                imageOR.setName(sProject.getName());
-            } else {
-                imageOR = new ImageOR(sProject.getName());
-            }
+
             webOR.setObjectRepository(this);
             webOR.setSaved(true);
             mobileOR.setObjectRepository(this);
-            imageOR.setObjectRepository(this);
+          
         } catch (IOException ex) {
             Logger.getLogger(ObjectRepository.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -97,16 +91,13 @@ public class ObjectRepository {
         return mobileOR;
     }
 
-    public ImageOR getImageOR() {
-        return imageOR;
-    }
+
 
     public void save() {
         try {
             if (!webOR.isSaved()) {
                 XML_MAPPER.writerWithDefaultPrettyPrinter().writeValue(new File(getORLocation()), webOR);
             }
-            XML_MAPPER.writerWithDefaultPrettyPrinter().writeValue(new File(getIORLocation()), imageOR);
             XML_MAPPER.writerWithDefaultPrettyPrinter().writeValue(new File(getMORLocation()), mobileOR);
         } catch (IOException ex) {
             Logger.getLogger(ObjectRepository.class.getName()).log(Level.SEVERE, null, ex);
@@ -117,11 +108,6 @@ public class ObjectRepository {
         Boolean present = false;
         if (webOR.getPageByName(pageName) != null) {
             present = webOR.getPageByName(pageName).getObjectGroupByName(objectName) != null;
-        }
-        if (!present) {
-            if (imageOR.getPageByName(pageName) != null) {
-                present = imageOR.getPageByName(pageName).getObjectGroupByName(objectName) != null;
-            }
         }
         if (!present) {
             if (mobileOR.getPageByName(pageName) != null) {

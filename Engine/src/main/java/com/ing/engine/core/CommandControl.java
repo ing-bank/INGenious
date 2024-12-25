@@ -110,8 +110,6 @@ public abstract class CommandControl {
                         Locator = AObject.findElement(ObjectName, Reference, FindType.fromString(Condition));
                         
                     }
-                } else {
-                    imageObjectGroup = AObject.getImageObjects(Reference, ObjectName);
                 }
             }
         }
@@ -144,8 +142,6 @@ public abstract class CommandControl {
 
 
                     }
-                } else {
-                    imageObjectGroup = AObject.getImageObjects(Reference, ObjectName);
                 }
             }
         } 

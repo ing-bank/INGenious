@@ -41,14 +41,13 @@ public class PropUtils {
 
     private static void saveProperties(Properties prop, String filename) {
         File file = new File(filename);
-        System.out.println("++++++++++++++++" + file.getAbsolutePath());
         try (BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file), "ISO_8859_1"))) {
             synchronized (prop) {
                 for (Map.Entry<Object, Object> e : prop.entrySet()) {
                     String key = (String) e.getKey();
                     String val = (String) e.getValue();
-                    key = escapeUnicode(key);
-                    val = escapeUnicode(val);
+                    key = escapeSpecialCharacters(key);
+                    val = escapeSpecialCharacters(val);
                     bw.write(key + "=" + val);
                     bw.newLine();
                 }
@@ -59,13 +58,28 @@ public class PropUtils {
 
     }
     
-    private static String escapeUnicode(String input) {
+    private static String escapeSpecialCharacters(String input) {
         StringBuilder sb = new StringBuilder();
         for (char c : input.toCharArray()) {
-            if (c > 127) {
-                sb.append(String.format("\\u%04x", (int) c));
-            } else {
-                sb.append(c);
+            switch (c) {
+                case '\\':
+                    sb.append("\\\\");
+                    break;
+                case '\n':
+                    sb.append("\\n");
+                    break;
+                case '\r':
+                    sb.append("\\r");
+                    break;
+                case '\t':
+                    sb.append("\\t");
+                    break;
+                default:
+                    if (c > 127) {
+                        sb.append(String.format("\\u%04x", (int) c));
+                    } else {
+                        sb.append(c);
+                    }
             }
         }
         return sb.toString();

@@ -115,10 +115,7 @@ public class ActionRenderer extends AbstractRenderer {
                         .contains(action);
                 break;
             default:
-                if (isImageObject(step)) {
-                    valid = MethodInfoManager.getMethodListFor(ObjectType.IMAGE)
-                            .contains(action);
-                } else if (isWebObject(step)) {
+                if (isWebObject(step)) {
                     valid = MethodInfoManager.getMethodListFor(ObjectType.PLAYWRIGHT, ObjectType.WEB).contains(action);
                 } else if (isMobileObject(step)) {
                     valid = MethodInfoManager.getMethodListFor(ObjectType.APP).contains(action);
@@ -131,12 +128,6 @@ public class ActionRenderer extends AbstractRenderer {
                     .contains(action);
         }
         return valid;
-    }
-
-    private boolean isImageObject(TestStep step) {
-        ORPageInf page = step.getProject().
-                getObjectRepository().getImageOR().getPageByName(step.getReference());
-        return page != null && page.getObjectGroupByName(step.getObject()) != null;
     }
 
     private boolean isWebObject(TestStep step) {

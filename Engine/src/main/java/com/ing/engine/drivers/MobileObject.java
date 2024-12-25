@@ -12,7 +12,6 @@ import com.ing.engine.constants.SystemDefaults;
 import com.ing.engine.core.Control;
 import com.ing.engine.drivers.findObjectBy.support.ByObjectProp;
 import com.ing.engine.core.CommandControl;
-import info.debatty.java.stringsimilarity.Levenshtein;
 import io.appium.java_client.android.AndroidDriver;
 import java.time.Duration;
 
@@ -215,22 +214,6 @@ public class MobileObject {
         ObjectRepository objRep = Control.getCurrentProject().getObjectRepository();
         if (objRep.getMobileOR().getPageByName(page) != null) {
             return objRep.getMobileOR().getPageByName(page).getObjectGroupByName(object).getObjects().get(0);
-        }
-        return null;
-    }
-
-    public ObjectGroup<ImageORObject> getImageObjects(String page, String object) {
-        ObjectRepository objRep = Control.getCurrentProject().getObjectRepository();
-        if (objRep.getImageOR().getPageByName(page) != null) {
-            return objRep.getImageOR().getPageByName(page).getObjectGroupByName(object);
-        }
-        return null;
-    }
-
-    public ImageORObject getImageObject(String page, String object) {
-        ObjectRepository objRep = Control.getCurrentProject().getObjectRepository();
-        if (objRep.getImageOR().getPageByName(page) != null) {
-            return objRep.getImageOR().getPageByName(page).getObjectGroupByName(object).getObjects().get(0);
         }
         return null;
     }
