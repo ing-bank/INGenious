@@ -149,8 +149,8 @@ public class DriverSettings extends javax.swing.JFrame {
         contextCombo.setSelectedItem("default");
         checkAndLoadContexts();
     }
-    
-        private List<String> getTotalDBList() {
+
+    private List<String> getTotalDBList() {
         List<String> list = settings.getDatabaseSettings().getDbList();
         return list;
     }
@@ -159,7 +159,7 @@ public class DriverSettings extends javax.swing.JFrame {
         List<String> list = settings.getContextSettings().getContextList();
         return list;
     }
-    
+
     private List<String> getTotalBrowserList() {
         List<String> list = PlaywrightDriverFactory.Browser.getValuesAsList();
         List<String> list2 = settings.getEmulators().getEmulatorNames();
@@ -184,7 +184,7 @@ public class DriverSettings extends javax.swing.JFrame {
         }
         loadCapabilities(selBrowser);
     }
-    
+
     private void checkAndLoadDatabases() {
         String dbName = dbCombo.getSelectedItem().toString();
         if (settings.getDatabaseSettings().getDbList() != null) {
@@ -218,13 +218,13 @@ public class DriverSettings extends javax.swing.JFrame {
             }
         }
     }
-    
+
     private void loadDB(String dbName) {
         DefaultTableModel model = (DefaultTableModel) dbPropTable.getModel();
         model.setRowCount(0);
-        LinkedProperties prop = settings.getDatabaseSettings().getDBPropertiesFor(dbName);
+        Properties prop = settings.getDatabaseSettings().getDBPropertiesFor(dbName);
         if (prop != null) {
-            for (Object key : prop.orderedKeys()) {
+            for (Object key : prop.keySet()) {
                 Object value = prop.get(key);
                 model.addRow(new Object[]{key, value});
             }
@@ -291,12 +291,12 @@ public class DriverSettings extends javax.swing.JFrame {
                 Emulator emulator = settings.getEmulators().getEmulator(oldName);
                 emulator.setName(newEmName);
                 DefaultComboBoxModel combomodel = (DefaultComboBoxModel) browserCombo.getModel();
-              //  DefaultComboBoxModel dupCombomodel = (DefaultComboBoxModel) dupDriverCombo.getModel();
+                //  DefaultComboBoxModel dupCombomodel = (DefaultComboBoxModel) dupDriverCombo.getModel();
                 int index = browserCombo.getSelectedIndex();
                 combomodel.removeElement(oldName);
-             //   dupCombomodel.removeElement(oldName);
+                //   dupCombomodel.removeElement(oldName);
                 combomodel.insertElementAt(newEmName, index);
-              //  dupCombomodel.insertElementAt(newEmName, index);
+                //  dupCombomodel.insertElementAt(newEmName, index);
                 browserCombo.setSelectedIndex(index);
             } else {
                 Notification.show("Emulator/Browser [" + newEmName + "] already Present");
@@ -310,23 +310,19 @@ public class DriverSettings extends javax.swing.JFrame {
         if (emulator != null) {
             settings.getEmulators().deleteEmulator(emName);
             browserCombo.removeItem(emName);
-          //  dupDriverCombo.removeItem(emName);
+            //  dupDriverCombo.removeItem(emName);
         } else {
 
         }
     }
 
     private void saveSettings() {
-        if (mainTab.getSelectedIndex() == 0) {
-            saveCommonSettings();
-            saveCapabilities();
-        } else if (emCapTab.getSelectedIndex() == 0) {
-            saveEmulator();
-        } else {
-            saveCapabilities();
-            saveDBProperties();
-            saveContextProperties();
-        }
+        saveCommonSettings();
+        saveContextProperties();
+        saveCapabilities();
+        saveDBProperties();
+        saveEmulator();
+
     }
 
     private void saveEmulator() {
@@ -375,7 +371,7 @@ public class DriverSettings extends javax.swing.JFrame {
             }
         }
     }
-    
+
     private void saveDBProperties() {
         if (dbCombo.getSelectedIndex() != -1) {
             if (dbPropTable.isEditing()) {

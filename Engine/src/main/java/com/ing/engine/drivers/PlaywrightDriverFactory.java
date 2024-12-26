@@ -17,7 +17,6 @@ import com.microsoft.playwright.BrowserType.LaunchOptions;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
-import com.ing.datalib.util.data.LinkedProperties;
 import java.awt.Dimension;
 import java.awt.Toolkit;
 
@@ -163,10 +162,6 @@ public class PlaywrightDriverFactory {
         return launchOptions;
     }
 
-   /* private static String getContextSetting(String property) {
-        return Control.getCurrentProject().getProjectSettings().getContextSettings().getProperty(property);
-    }*/
-
     private static NewContextOptions addcontextOptions(NewContextOptions newContextOptions, RunContext context, List<String> options, ProjectSettings settings) {
 
 
@@ -277,9 +272,19 @@ public class PlaywrightDriverFactory {
                             int height = Integer.parseInt(value.split(",")[1]);
                             newContextOptions.setScreenSize(width, height);
                         }
+                        
+                        if (key.toLowerCase().contains("setrecordvideosize")) {
+                            int width = Integer.parseInt(value.split(",")[0]);
+                            int height = Integer.parseInt(value.split(",")[1]);
+                            newContextOptions.setRecordVideoSize(width, height);
+                        }
 
                         if (key.toLowerCase().contains("setuseragent")) {
                             newContextOptions.setUserAgent(value);
+                        }
+                        
+                        if (key.toLowerCase().contains("setrecordvideodir")) {
+                            newContextOptions.setRecordVideoDir(Paths.get(value));
                         }
 
                         if (key.toLowerCase().contains("setlocale")) {

@@ -65,35 +65,15 @@ public class ContextOptions {
 
     public void addContext(String contextName, Properties prop) {
         contextOptions.put(contextName, prop);
+        save();
     }
 
     public void addContextOptions(String contextName) {
-       // addDefaultContextOptions(contextName, false);
         Properties prop = new Properties();
         prop = setBrowserContextOptions(prop, false);
         addContext(contextName, prop);
 
     }
-
-//    public void addDefaultContextOptions(String contextName, Boolean authenticateContext) {
-//        LinkedProperties x = new LinkedProperties();
-//        x.setProperty("authenticateContext", String.valueOf(authenticateContext));
-//        x.setProperty("userID", "");
-//        x.setProperty("password", "");
-//        x.setProperty("useStorageState", "");
-//        x.setProperty("storageStatePath", "");
-//        x.setProperty("setGeolocation", "");
-//        x.setProperty("setViewportSize", "");
-//        x.setProperty("setDeviceScaleFactor", "");
-//        x.setProperty("setHasTouch", "");
-//        x.setProperty("setIsMobile", "");
-//        x.setProperty("setScreenSize", "");
-//        x.setProperty("setUserAgent", "");
-//        x.setProperty("setLocale", "");
-//        x.setProperty("setTimezoneId", "");
-//        x.setProperty("setOffline", "");
-//        addContext(contextName, x);
-//    }
 
     public void save() {
         for (Map.Entry<String, Properties> entry : contextOptions.entrySet()) {
@@ -162,10 +142,13 @@ public class ContextOptions {
         prop.setProperty("setHasTouch", "");
         prop.setProperty("setIsMobile", "");
         prop.setProperty("setScreenSize", "");
+        prop.setProperty("setRecordVideoSize", "");
         prop.setProperty("setUserAgent", "");
         prop.setProperty("setLocale", "");
         prop.setProperty("setTimezoneId", "");
         prop.setProperty("setOffline", "");
+        prop.setProperty("setRecordVideoDir", "");
+        prop.setProperty("pageTimeout", "30000");
         return prop;
 
     }

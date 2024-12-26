@@ -26,6 +26,7 @@ import java.util.Stack;
 import com.ing.engine.drivers.WebDriverCreation;
 import com.ing.engine.drivers.MobileObject;
 import java.io.File;
+import java.util.Properties;
 import javax.jms.Destination;
 import javax.jms.JMSConsumer;
 import javax.jms.JMSContext;
@@ -186,7 +187,7 @@ public class Command {
         return Commander.getUserDefinedData(key);
     }
 
-    public LinkedProperties getDataBaseData(String val) {
+    public Properties getDataBaseData(String val) {
         return Commander.getDataBaseProperty(val);
     }
 

@@ -67,7 +67,7 @@ public class ClassFinder {
 
     private static List<Class<?>> checkJarFile(String jf, String[] pkgs)
             throws IOException {
-        LOG.log(Level.INFO, "Finding Commands in {0}", jf);
+       // LOG.log(Level.INFO, "Finding Commands in {0}", jf);
         List<Class<?>> classes = new ArrayList<>();
         try (JarFile jarFile = new JarFile(jf)) {
             Enumeration<JarEntry> entries = jarFile.entries();

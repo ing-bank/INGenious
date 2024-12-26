@@ -49,6 +49,7 @@ public class Capabilities {
 
     public void addCapability(String browserName, LinkedProperties props) {
         browserCapabilties.put(browserName, props);
+        save();
     }
 
     public void updateCapabiltyFor(String browserName, String key, String newvalue) {

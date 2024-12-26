@@ -12,7 +12,7 @@ import java.util.*;
  */
 public class DBProperties {
 
-    private final Map<String, LinkedProperties> dbProperties = new HashMap<>();
+    private final Map<String, Properties> dbProperties = new HashMap<>();
 
     private static String location;
     private static ArrayList<String> dbList = new ArrayList<>();
@@ -23,7 +23,7 @@ public class DBProperties {
         load();
     }
 
-    public Map<String, LinkedProperties> getDBProperties() {
+    public Map<String, Properties> getDBProperties() {
         return dbProperties;
     }
 
@@ -32,7 +32,7 @@ public class DBProperties {
         return dbList;
     }
 
-    public LinkedProperties getDBPropertiesFor(String dbName) {
+    public Properties getDBPropertiesFor(String dbName) {
         return dbProperties.get(dbName);
     }
 
@@ -57,8 +57,9 @@ public class DBProperties {
     }
 
 
-    public void addDB(String dbName, LinkedProperties props) {
-        dbProperties.put(dbName, props);
+    public void addDB(String dbName, Properties prop) {
+        dbProperties.put(dbName, prop);
+        save();
     }
 
     public void addDBProperty(String dbName) {
@@ -66,22 +67,16 @@ public class DBProperties {
     }
 
     public void addDBProperty(String dbName, String driver, String connectionString, String timeout, String commit) {
-        LinkedProperties x = new LinkedProperties();
-        x.setProperty("db.alias", dbName);
-        x.setProperty("user", "");
-        x.setProperty("password", "");
-        x.setProperty("driver", driver);
-        x.setProperty("connectionString", connectionString);
-        x.setProperty("timeout", timeout);
-        x.setProperty("commit", commit);
-        addDB(dbName, x);
+        Properties prop = new Properties();
+        prop = setDatabaseProperties(prop);
+        addDB(dbName, prop);
 
     }
 
 
     public void save() {
        // createDBFolder();
-        for (Map.Entry<String, LinkedProperties> entry : dbProperties.entrySet()) {
+        for (Map.Entry<String, Properties> entry : dbProperties.entrySet()) {
             String dbName = entry.getKey();
             Properties dbProp = entry.getValue();
             PropUtils.save(dbProp, getDBLocation(dbName));
@@ -132,14 +127,7 @@ public class DBProperties {
         if (!propertiesFile.exists()) {
             try (FileOutputStream fos = new FileOutputStream(propertiesFile)) {
                 Properties prop = new Properties();
-                // Add default key-value pairs
-                prop.setProperty("db.alias", "default");
-                prop.setProperty("user", "");
-                prop.setProperty("password", "");
-                prop.setProperty("driver", "com.mysql.cj.jdbc.Driver");
-                prop.setProperty("connectionString", "jdbc:<Database>://<Host>:<Port>/<Database name>");
-                prop.setProperty("timeout", "30");
-                prop.setProperty("commit", "false");
+                prop = setDatabaseProperties(prop);
                 prop.store(fos, null);
             } catch (IOException e) {
                 System.err.println("Error writing to default.properties file: " + e.getMessage());
@@ -147,6 +135,18 @@ public class DBProperties {
         } else {
             System.out.println("default.properties file already exists: " + location);
         }
+    }
+    
+    private Properties setDatabaseProperties(Properties prop) {
+        prop.setProperty("db.alias", "default");
+        prop.setProperty("user", "");
+        prop.setProperty("password", "");
+        prop.setProperty("driver", "com.mysql.cj.jdbc.Driver");
+        prop.setProperty("connectionString", "jdbc:<Database>://<Host>:<Port>/<Database name>");
+        prop.setProperty("timeout", "30");
+        prop.setProperty("commit", "false");
+        return prop;
+
     }
 
 

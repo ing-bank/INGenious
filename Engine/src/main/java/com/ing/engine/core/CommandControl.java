@@ -24,6 +24,7 @@ import java.util.Stack;
 import com.ing.engine.drivers.WebDriverCreation;
 import com.ing.engine.drivers.MobileObject;
 import com.ing.engine.drivers.MobileObject.FindmType;
+import java.util.Properties;
 import org.openqa.selenium.WebElement;
 
 public abstract class CommandControl {
@@ -247,7 +248,7 @@ public abstract class CommandControl {
         return Control.getCurrentProject().getProjectSettings().getDatabaseSettings().getDBLocation(value);
     }
 
-    public LinkedProperties getDataBaseProperty(String key) {
+    public Properties getDataBaseProperty(String key) {
         return Control.getCurrentProject().getProjectSettings().getDatabaseSettings().getDBPropertiesFor(key);
     }
     
