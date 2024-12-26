@@ -1,4 +1,3 @@
-
 package com.ing.ide.main.settings;
 
 import com.ing.datalib.component.Project;
@@ -235,10 +234,10 @@ public class DriverSettings extends javax.swing.JFrame {
     private void loadContext(String contextName) {
         DefaultTableModel model = (DefaultTableModel) contextPropTable.getModel();
         model.setRowCount(0);
-        LinkedProperties prop = settings.getContextSettings().getContextOptionsFor(contextName);
+        Properties prop = settings.getContextSettings().getContextOptionsFor(contextName);
 
         if (prop != null) {
-            for (Object key : prop.orderedKeys()) {
+            for (Object key : prop.keySet()) {
                 Object value = prop.get(key);
                 model.addRow(new Object[]{key, value});
             }

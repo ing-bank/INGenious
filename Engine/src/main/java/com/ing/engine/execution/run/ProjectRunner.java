@@ -211,12 +211,12 @@ public class ProjectRunner implements TestRunner {
                         getProject().getProjectSettings().getCapabilities().getCapabiltiesFor(browser).update(capability,value);
                     }else if (key.startsWith("db.alias@")) {
                         String args[] = key.split("\\.");
-                        String db = args[1];
-                        getProject().getProjectSettings().getDatabaseSettings().getDBPropertiesFor(db).update(db, value);
+                     //   String db = args[1];
+                     //   getProject().getProjectSettings().getDatabaseSettings().getDBPropertiesFor(db).update(db, value);
                     } else if (key.startsWith("context.alias@")) {
                         String args[] = key.split("\\.");
-                        String context = args[1];
-                        getProject().getProjectSettings().getContextSettings().getContextOptionsFor(context).update(context,value);
+                     //   String context = args[1];
+                     //   getProject().getProjectSettings().getContextSettings().getContextOptionsFor(context).update(context,value);
                     }
                 } catch (Exception ex) {
                     Logger.getLogger(ProjectRunner.class.getName()).log(Level.SEVERE, null, ex);

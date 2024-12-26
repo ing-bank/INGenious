@@ -104,7 +104,7 @@ public class FileUtils {
                 LOGGER.log(Level.SEVERE, null, ex);
             }
         } else {
-            LOGGER.log(Level.SEVERE, "File [{0}] doesn''t exist", file.getAbsolutePath());
+            //LOGGER.log(Level.SEVERE, "File [{0}] doesn''t exist", file.getAbsolutePath());
         }
         return null;
     }

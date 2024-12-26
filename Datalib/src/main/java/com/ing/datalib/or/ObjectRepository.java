@@ -4,7 +4,6 @@ package com.ing.datalib.or;
 import com.ing.datalib.component.Project;
 import com.ing.datalib.or.common.ORPageInf;
 import com.ing.datalib.or.common.ObjectGroup;
-import com.ing.datalib.or.image.ImageOR;
 import com.ing.datalib.or.mobile.MobileOR;
 import com.ing.datalib.or.web.WebOR;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;

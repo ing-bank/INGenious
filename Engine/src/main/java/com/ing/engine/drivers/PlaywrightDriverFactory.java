@@ -193,7 +193,7 @@ public class PlaywrightDriverFactory {
                     + ".har"));
         }
 
-        LinkedProperties contextDetails = getContextDetails("default");
+        Properties contextDetails = getContextDetails("default");
 
         Boolean isContextAuthenticated = Boolean.valueOf(contextDetails.getProperty("authenticateContext"));
         if (isContextAuthenticated) {
@@ -362,7 +362,7 @@ public class PlaywrightDriverFactory {
         return options;
     }
 
-    private static LinkedProperties getContextDetails(String contextAlias) {
+    private static Properties getContextDetails(String contextAlias) {
         return Control.getCurrentProject().getProjectSettings().getContextSettings().getContextOptionsFor(contextAlias);
 
     }

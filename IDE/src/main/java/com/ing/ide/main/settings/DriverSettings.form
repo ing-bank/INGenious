@@ -159,8 +159,8 @@
         <Container class="javax.swing.JPanel" name="browserPanel">
           <Constraints>
             <Constraint layoutClass="org.netbeans.modules.form.compat2.layouts.support.JTabbedPaneSupportLayout" value="org.netbeans.modules.form.compat2.layouts.support.JTabbedPaneSupportLayout$JTabbedPaneConstraintsDescription">
-              <JTabbedPaneConstraints tabName="Manage Browsers">
-                <Property name="tabTitle" type="java.lang.String" value="Manage Browsers"/>
+              <JTabbedPaneConstraints tabName="Launch Configurations">
+                <Property name="tabTitle" type="java.lang.String" value="Launch Configurations"/>
               </JTabbedPaneConstraints>
             </Constraint>
           </Constraints>

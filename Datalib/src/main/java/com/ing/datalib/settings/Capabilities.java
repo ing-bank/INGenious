@@ -163,8 +163,7 @@ public class Capabilities {
                     prop.setProperty("setChromiumSandbox", "");
                 }
                 // Write properties to the file
-                prop.store(fos, "Default Properties");
-                System.out.println(fileName + " properties file created: " + location);
+                prop.store(fos, null);
             } catch (IOException e) {
                 System.err.println("Error writing to Chromium.properties file: " + e.getMessage());
             }

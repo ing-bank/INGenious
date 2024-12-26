@@ -77,7 +77,7 @@ public class Utils {
         if (url != null) {
             return new ImageIcon(url);
         } else {
-            Logger.getLogger(Utils.class.getName()).log(Level.WARNING, "{0}.png Icon - not available", name);
+            //Logger.getLogger(Utils.class.getName()).log(Level.WARNING, "{0}.png Icon - not available", name);
         }
         return null;
     }

@@ -37,6 +37,7 @@ public class DBProperties {
     }
 
     private void load() {
+        dbList.clear();
         File dbFile = new File(getLocation());
         if (dbFile.exists()) {
             for (File dbfile : dbFile.listFiles()) {
@@ -139,9 +140,7 @@ public class DBProperties {
                 prop.setProperty("connectionString", "jdbc:<Database>://<Host>:<Port>/<Database name>");
                 prop.setProperty("timeout", "30");
                 prop.setProperty("commit", "false");
-                // Write properties to the file
-                prop.store(fos, "Default Properties");
-                System.out.println("default.properties file created: " + location);
+                prop.store(fos, null);
             } catch (IOException e) {
                 System.err.println("Error writing to default.properties file: " + e.getMessage());
             }

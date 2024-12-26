@@ -14,12 +14,11 @@ public class ContextOptions {
 
     private static ArrayList<String> contextList = new ArrayList<>();
     private static String location;
-    private final Map<String, LinkedProperties> contextOptions = new HashMap<>();
-
+    private final Map<String, Properties> contextOptions = new HashMap<>();
 
     public ContextOptions(String location) {
         this.location = location;
-        createContextFolder();
+        createContextDirectory();
         load();
     }
 
@@ -31,7 +30,7 @@ public class ContextOptions {
         this.location = location;
     }
 
-    public Map<String, LinkedProperties> getContextOptions() {
+    public Map<String, Properties> getContextOptions() {
         return contextOptions;
     }
 
@@ -40,11 +39,12 @@ public class ContextOptions {
         return contextList;
     }
 
-    public LinkedProperties getContextOptionsFor(String contextName) {
+    public Properties getContextOptionsFor(String contextName) {
         return contextOptions.get(contextName);
     }
 
     private void load() {
+        contextList.clear();
         File contextFile = new File(getLocation());
         if (contextFile.exists()) {
             for (File contextfile : contextFile.listFiles()) {
@@ -63,37 +63,40 @@ public class ContextOptions {
         contextList.add(contextName);
     }
 
-    public void addContext(String contextName, LinkedProperties props) {
-        contextOptions.put(contextName, props);
+    public void addContext(String contextName, Properties prop) {
+        contextOptions.put(contextName, prop);
     }
 
     public void addContextOptions(String contextName) {
-        addDefaultContextOptions(contextName, false);
+       // addDefaultContextOptions(contextName, false);
+        Properties prop = new Properties();
+        prop = setBrowserContextOptions(prop, false);
+        addContext(contextName, prop);
 
     }
 
-    public void addDefaultContextOptions(String contextName, Boolean authenticateContext){
-    LinkedProperties x = new LinkedProperties();
-        x.setProperty("authenticateContext", String.valueOf(authenticateContext));
-        x.setProperty("userID", "");
-        x.setProperty("password", "");
-        x.setProperty("useStorageState", "");
-        x.setProperty("storageStatePath", "");
-        x.setProperty("setGeolocation", "");
-        x.setProperty("setViewportSize", "");
-        x.setProperty("setDeviceScaleFactor", "");
-        x.setProperty("setHasTouch", "");
-        x.setProperty("setIsMobile", "");
-        x.setProperty("setScreenSize", "");
-        x.setProperty("setUserAgent", "");
-        x.setProperty("setLocale", "");
-        x.setProperty("setTimezoneId", "");
-        x.setProperty("setOffline", "");
-        addContext(contextName, x);
-    }
+//    public void addDefaultContextOptions(String contextName, Boolean authenticateContext) {
+//        LinkedProperties x = new LinkedProperties();
+//        x.setProperty("authenticateContext", String.valueOf(authenticateContext));
+//        x.setProperty("userID", "");
+//        x.setProperty("password", "");
+//        x.setProperty("useStorageState", "");
+//        x.setProperty("storageStatePath", "");
+//        x.setProperty("setGeolocation", "");
+//        x.setProperty("setViewportSize", "");
+//        x.setProperty("setDeviceScaleFactor", "");
+//        x.setProperty("setHasTouch", "");
+//        x.setProperty("setIsMobile", "");
+//        x.setProperty("setScreenSize", "");
+//        x.setProperty("setUserAgent", "");
+//        x.setProperty("setLocale", "");
+//        x.setProperty("setTimezoneId", "");
+//        x.setProperty("setOffline", "");
+//        addContext(contextName, x);
+//    }
 
     public void save() {
-        for (Map.Entry<String, LinkedProperties> entry : contextOptions.entrySet()) {
+        for (Map.Entry<String, Properties> entry : contextOptions.entrySet()) {
             String contextName = entry.getKey();
             Properties contextProp = entry.getValue();
             if (!contextName.isBlank()) {
@@ -123,40 +126,22 @@ public class ContextOptions {
         return getLocation() + File.separator + contextName + ".properties";
     }
 
-    private void createContextFolder() {
+    private void createContextDirectory() {
         File contexts = new File(getLocation());
         if (!contexts.exists()) {
             contexts.mkdirs();
-            createDefaultFile(getLocation());
-            }
+            createDefaultContext(getLocation());
         }
+    }
 
-
-    private void createDefaultFile(String location) {
+    private void createDefaultContext(String location) {
         String fileName = location + File.separator + "default.properties";
         File propertiesFile = new File(fileName);
         if (!propertiesFile.exists()) {
             try (FileOutputStream fos = new FileOutputStream(propertiesFile)) {
                 Properties prop = new Properties();
-                prop.setProperty("authenticateContext", "false");
-                prop.setProperty("userID", "");
-                prop.setProperty("password", "");
-                prop.setProperty("useStorageState", "");
-                prop.setProperty("storageStatePath", "");
-                prop.setProperty("setGeolocation", "");
-                prop.setProperty("setViewportSize", "");
-                prop.setProperty("setDeviceScaleFactor", "");
-                prop.setProperty("setHasTouch", "");
-                prop.setProperty("setIsMobile", "");
-                prop.setProperty("setScreenSize", "");
-                prop.setProperty("setUserAgent", "");
-                prop.setProperty("setLocale", "");
-                prop.setProperty("setTimezoneId", "");
-                prop.setProperty("setOffline", "");
-
-                // Write properties to the file
-                prop.store(fos, "Default Properties");
-                System.out.println("default.properties file created: " + location);
+                prop = setBrowserContextOptions(prop, false);
+                prop.store(fos, null);
             } catch (IOException e) {
                 System.err.println("Error writing to default.properties file: " + e.getMessage());
             }
@@ -165,5 +150,24 @@ public class ContextOptions {
         }
     }
 
+    private Properties setBrowserContextOptions(Properties prop, Boolean isAuthenticated) {
+        prop.setProperty("isAuthenticated", String.valueOf(isAuthenticated));
+        prop.setProperty("userID", "");
+        prop.setProperty("password", "");
+        prop.setProperty("useStorageState", "");
+        prop.setProperty("storageStatePath", "");
+        prop.setProperty("setGeolocation", "");
+        prop.setProperty("setViewportSize", "");
+        prop.setProperty("setDeviceScaleFactor", "");
+        prop.setProperty("setHasTouch", "");
+        prop.setProperty("setIsMobile", "");
+        prop.setProperty("setScreenSize", "");
+        prop.setProperty("setUserAgent", "");
+        prop.setProperty("setLocale", "");
+        prop.setProperty("setTimezoneId", "");
+        prop.setProperty("setOffline", "");
+        return prop;
+
+    }
 
 }
