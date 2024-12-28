@@ -23,7 +23,7 @@ public class Verifications extends Command {
      *
      * ******************************************
      */
-    @Action(object = ObjectType.BROWSER, desc = "Verify if the title is [<Input>]", input = InputType.YES)
+    @Action(object = ObjectType.MOBILE, desc = "Verify if the title is [<Input>]", input = InputType.YES)
     public void verifyTitle() {
         String strObj = Data;
         if (mDriver.getTitle().equals(strObj)) {
@@ -42,7 +42,7 @@ public class Verifications extends Command {
         }
     }
 
-    @Action(object = ObjectType.BROWSER, desc = "Verify if the specific alert[<Object>] is present ")
+    @Action(object = ObjectType.MOBILE, desc = "Verify if the specific alert[<Object>] is present ")
     public void verifyAlertPresent() {
         try {
             if ((isAlertPresent(mDriver))) {
@@ -68,7 +68,7 @@ public class Verifications extends Command {
      *
      * ******************************************
      */
-    @Action(object = ObjectType.BROWSER, desc = "Verify if the specific [<Data>] is present", input = InputType.YES)
+    @Action(object = ObjectType.MOBILE, desc = "Verify if the specific [<Data>] is present", input = InputType.YES)
     public void verifyVariable() {
         String strObj = Data;
         String[] strTemp = strObj.split("=", 2);
@@ -87,7 +87,7 @@ public class Verifications extends Command {
         }
     }
 
-    @Action(object = ObjectType.BROWSER, desc = "Verify of variable [<Data>] from given datasheet", input = InputType.YES, condition = InputType.YES)
+    @Action(object = ObjectType.MOBILE, desc = "Verify of variable [<Data>] from given datasheet", input = InputType.YES, condition = InputType.YES)
     public void verifyVariableFromDataSheet() {
         String strAns = getVar(Condition);
         if (strAns.equals(Data)) {

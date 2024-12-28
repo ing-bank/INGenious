@@ -35,7 +35,7 @@ public class Scroll extends MobileGeneral {
         super(cc);
     }
 
-    @Action(object = ObjectType.BROWSER, desc = "Scroll horizondally to [<Data>]", input = InputType.YES)
+    @Action(object = ObjectType.MOBILE, desc = "Scroll horizondally to [<Data>]", input = InputType.YES)
     public void scrollHorizontallyTo() {
         if (Data != null && Data.trim().toLowerCase().matches("(left|right|\\d*)")) {
             scrollTo(getScrollData(Data), currentVScrollPos);
@@ -44,7 +44,7 @@ public class Scroll extends MobileGeneral {
         }
     }
 
-    @Action(object = ObjectType.BROWSER, desc = "Scroll vertically to [<Data>]", input = InputType.YES)
+    @Action(object = ObjectType.MOBILE, desc = "Scroll vertically to [<Data>]", input = InputType.YES)
     public void scrollVerticallyTo() {
         if (Data != null && Data.trim().toLowerCase().matches("(top|bottom|\\d*)")) {
             scrollTo(currentHScrollPos, getScrollData(Data));
@@ -53,7 +53,7 @@ public class Scroll extends MobileGeneral {
         }
     }
 
-    @Action(object = ObjectType.BROWSER, desc = "Scroll to [<Data>]", input = InputType.YES)
+    @Action(object = ObjectType.MOBILE, desc = "Scroll to [<Data>]", input = InputType.YES)
     public void scrollTo() {
         if (Data != null && Data.trim().toLowerCase().matches("(left|right|\\d*),(top|bottom|\\d*)")) {
             scrollTo(getScrollData(Data.split(",")[0]), getScrollData(Data.split(",")[1]));
@@ -62,22 +62,22 @@ public class Scroll extends MobileGeneral {
         }
     }
 
-    @Action(object = ObjectType.BROWSER, desc = "Scroll to top")
+    @Action(object = ObjectType.MOBILE, desc = "Scroll to top")
     public void scrollToTop() {
         scrollTo(currentHScrollPos, "0");
     }
 
-    @Action(object = ObjectType.BROWSER, desc = "Scroll to bottom")
+    @Action(object = ObjectType.MOBILE, desc = "Scroll to bottom")
     public void scrollToBottom() {
         scrollTo(currentHScrollPos, docScrollHeight);
     }
 
-    @Action(object = ObjectType.BROWSER, desc = "Scroll to left")
+    @Action(object = ObjectType.MOBILE, desc = "Scroll to left")
     public void scrollToLeft() {
         scrollTo("0", currentVScrollPos);
     }
 
-    @Action(object = ObjectType.BROWSER, desc = "Scroll to page")
+    @Action(object = ObjectType.MOBILE, desc = "Scroll to page")
     public void scrollToRight() {
         scrollTo(docScrollWidth, currentVScrollPos);
     }

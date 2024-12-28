@@ -5,7 +5,6 @@ import com.ibm.msg.client.jms.JmsConnectionFactory;
 import com.ibm.msg.client.jms.JmsFactoryFactory;
 import com.ing.datalib.or.common.ObjectGroup;
 import com.ing.datalib.or.image.ImageORObject;
-import com.ing.datalib.util.data.LinkedProperties;
 import com.ing.engine.core.CommandControl;
 import com.ing.engine.drivers.AutomationObject;
 import com.ing.engine.drivers.PlaywrightDriverCreation;
@@ -125,6 +124,20 @@ public class Command {
     /**
      * **********
      */
+    
+    
+    /**
+     * *** Queue ****
+     */
+    
+    static public Map<String, String> kafkaHeaderKey = new HashMap<>();
+    static public Map<String, String> kafkaHeaderValue = new HashMap<>();
+    
+    /**
+     * **********
+     */
+    
+    
     public Command(CommandControl cc) {
         Commander = cc;
         if (Commander.webDriver != null) {

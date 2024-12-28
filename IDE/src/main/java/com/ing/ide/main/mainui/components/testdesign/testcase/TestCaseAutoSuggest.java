@@ -195,7 +195,7 @@ public class TestCaseAutoSuggest {
     
     private boolean isMessageStep(TestStep step) {
         return step != null && step.isMessageStep()
-                && step.getAction().contains("sendMessage");
+                && (step.getAction().contains("sendMessage")|| step.getAction().contains("produceMessage"));
     }
 
     private boolean isRouteFulfillEndpointStep(TestStep step) {

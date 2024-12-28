@@ -9,12 +9,15 @@ import com.ing.engine.support.methodInf.ObjectType;
 import com.ing.engine.core.Control;
 import com.ing.util.encryption.Encryption;
 import com.microsoft.playwright.*;
+import java.awt.Dimension;
+import java.awt.Toolkit;
 import java.nio.file.Files;
 import java.util.List;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Properties;
 
 public class Switch extends Command {
@@ -245,9 +248,9 @@ public class Switch extends Command {
 
     private void configureAuthentication(Browser.NewContextOptions newContextOptions, Properties contextDetails) {
         if (Boolean.parseBoolean(contextDetails.getProperty(AUTHENTICATE_CONTEXT))) {
-            String userID = contextDetails.getProperty(USER_ID);
-            String password = contextDetails.getProperty(PASSWORD);
-
+            String userID = handleVariablesOrDatasheet(contextDetails.getProperty(USER_ID));
+            String password = handleVariablesOrDatasheet(contextDetails.getProperty(PASSWORD));
+            
             if (password.endsWith(ENC_SUFFIX)) {
                 password = password.substring(0, password.lastIndexOf(ENC_SUFFIX));
                 password = new String(Encryption.getInstance().decrypt(password).getBytes());
@@ -276,16 +279,10 @@ public class Switch extends Command {
 
         switch (key.toLowerCase()) {
             case "setgeolocation":
-                String[] geo = value.split(",");
-                newContextOptions.setGeolocation(Double.parseDouble(geo[0]), Double.parseDouble(geo[1]))
-                        .setPermissions(Arrays.asList("geolocation"));
+                setGeolocation(newContextOptions, value);
                 break;
             case "setviewportsize":
-                String[] viewport = value.split(",");
-                newContextOptions.setViewportSize(Integer.parseInt(viewport[0]), Integer.parseInt(viewport[1]));
-                break;
-            case "startmaximized":
-                newContextOptions.setViewportSize(null);
+                setViewportSize(newContextOptions, value);
                 break;
             case "setdevicescalefactor":
                 newContextOptions.setDeviceScaleFactor(Integer.parseInt(value));
@@ -300,12 +297,10 @@ public class Switch extends Command {
                 newContextOptions.setRecordVideoDir(Paths.get(value));
                 break;    
             case "setscreensize":
-                String[] screenSize = value.split(",");
-                newContextOptions.setScreenSize(Integer.parseInt(screenSize[0]), Integer.parseInt(screenSize[1]));
+                setScreenSize(newContextOptions, value);
                 break;
             case "setrecordvideosize":
-                String[] videoSize = value.split(",");
-                newContextOptions.setRecordVideoSize(Integer.parseInt(videoSize[0]), Integer.parseInt(videoSize[1]));
+                setRecordVideoSize(newContextOptions, value);
                 break;    
             case "setuseragent":
                 newContextOptions.setUserAgent(value);
@@ -323,6 +318,39 @@ public class Switch extends Command {
                 // Ignore unknown keys
                 break;
         }
+    }
+    
+    private static void setViewportSize(Browser.NewContextOptions newContextOptions, String value) {
+        if (value.equals("maximized")) {
+            Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+            newContextOptions.setViewportSize((int) screenSize.getWidth(), (int) screenSize.getHeight());
+        } else {
+            String[] dimensions = value.split(",");
+            int width = Integer.parseInt(dimensions[0]);
+            int height = Integer.parseInt(dimensions[1]);
+            newContextOptions.setViewportSize(width, height);
+        }
+    }
+    
+    private static void setGeolocation(Browser.NewContextOptions newContextOptions, String value) {
+        String[] coordinates = value.split(",");
+        double latitude = Double.parseDouble(coordinates[0]);
+        double longitude = Double.parseDouble(coordinates[1]);
+        newContextOptions.setGeolocation(latitude, longitude).setPermissions(Arrays.asList("geolocation"));
+    }
+
+    private static void setScreenSize(Browser.NewContextOptions newContextOptions, String value) {
+        String[] dimensions = value.split(",");
+        int width = Integer.parseInt(dimensions[0]);
+        int height = Integer.parseInt(dimensions[1]);
+        newContextOptions.setScreenSize(width, height);
+    }
+
+    private static void setRecordVideoSize(Browser.NewContextOptions newContextOptions, String value) {
+        String[] dimensions = value.split(",");
+        int width = Integer.parseInt(dimensions[0]);
+        int height = Integer.parseInt(dimensions[1]);
+        newContextOptions.setRecordVideoSize(width, height);
     }
 
     private static List<String> getContextOptions(String contextName) {
@@ -349,4 +377,42 @@ public class Switch extends Command {
         return contextDetails.getProperty(option);
         
     }
+    
+    private String handleDataSheet(String value) {
+        List<String> sheetlist = Control.getCurrentProject().getTestData().getTestDataFor(Control.exe.runEnv())
+                .getTestDataNames();
+        for (int sheet = 0; sheet < sheetlist.size(); sheet++) {
+            if (value.contains("{" + sheetlist.get(sheet) + ":")) {
+                com.ing.datalib.testdata.model.TestDataModel tdModel = Control.getCurrentProject()
+                        .getTestData().getTestDataByName(sheetlist.get(sheet));
+                List<String> columns = tdModel.getColumns();
+                for (int col = 0; col < columns.size(); col++) {
+                    if (value.contains("{" + sheetlist.get(sheet) + ":" + columns.get(col) + "}")) {
+                        value = value.replace("{" + sheetlist.get(sheet) + ":" + columns.get(col) + "}",
+                                userData.getData(sheetlist.get(sheet), columns.get(col)));
+                    }
+                }
+            }
+        }
+        return value;
+    }
+
+    private String handleUserDefinedVariables(String value) {
+        Collection<Object> keys = Control.getCurrentProject().getProjectSettings().getUserDefinedSettings().keySet();
+        for (Object key : keys) {
+            if (value.equals("%"+key+"%")) {   
+                return Control.getCurrentProject().getProjectSettings().getUserDefinedSettings().getProperty(key.toString());
+            }
+        }
+        return value;
+    }
+    
+    private String handleVariablesOrDatasheet(String value) {
+        
+        value = handleDataSheet(value);
+        value = handleUserDefinedVariables(value);
+        
+        return value;
+    }
+
 }

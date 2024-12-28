@@ -32,11 +32,12 @@ public class Basic extends General {
 
     @Action(object = ObjectType.BROWSER, desc = "Open the Url [<Data>] in the Browser", input = InputType.YES, condition = InputType.OPTIONAL)
     public void Open() {
+        
         Boolean pageTimeOut = false;
         NavigateOptions navigateOptions = new NavigateOptions();
         try {
             if (Condition.matches("[0-9]+")) {
-                navigateOptions.setTimeout(Double.valueOf(Condition));
+                navigateOptions.setTimeout(Double.parseDouble(Condition));
             }
             Page.navigate(Data, navigateOptions);
             Report.updateTestLog("Open", "Opened Url: " + Data, Status.DONE);

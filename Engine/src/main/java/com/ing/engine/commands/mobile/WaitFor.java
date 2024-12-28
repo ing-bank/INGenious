@@ -55,14 +55,14 @@ public class WaitFor extends Command {
         }
     }
 
-    @Action(object = ObjectType.BROWSER, desc = "Wait for Page to be loaded", condition = InputType.OPTIONAL)
+    @Action(object = ObjectType.MOBILE, desc = "Wait for Page to be loaded", condition = InputType.OPTIONAL)
     public void waitForPageLoaded() {
         waitFor(WaitType.CUSTOM_SCRIPT,
                 "Page load completed in stipulated time",
                 "return document.readyState==='complete'");
     }
 
-    @Action(object = ObjectType.BROWSER, desc = "Wait for alert to be present ", condition = InputType.OPTIONAL)
+    @Action(object = ObjectType.MOBILE, desc = "Wait for alert to be present ", condition = InputType.OPTIONAL)
     public void waitForAlertPresent() {
         waitFor(WaitType.ALERT_PRESENT,
                 "Alert popped up in stipulated time");
@@ -124,21 +124,21 @@ public class WaitFor extends Command {
                 + "' Element got Deselected in the stipulated time");
     }
 
-    @Action(object = ObjectType.BROWSER, desc = "Wait for page's title to be [<Data>]", input = InputType.YES, condition = InputType.OPTIONAL)
+    @Action(object = ObjectType.MOBILE, desc = "Wait for page's title to be [<Data>]", input = InputType.YES, condition = InputType.OPTIONAL)
     public void waitForTitleToBe() {
         waitFor(WaitType.TITLE_IS,
                 "Title Equals '"
                 + Data + "' in stipulated Time");
     }
 
-    @Action(object = ObjectType.BROWSER, desc = "Wait for page's title to contain [<Data>]", condition = InputType.OPTIONAL, input = InputType.YES)
+    @Action(object = ObjectType.MOBILE, desc = "Wait for page's title to contain [<Data>]", condition = InputType.OPTIONAL, input = InputType.YES)
     public void waitForTitleToContain() {
         waitFor(WaitType.TITLE_CONTAINS,
                 "Title Contains the value '"
                 + Data + "' in stipulated Time");
     }
 
-    @Action(object = ObjectType.BROWSER, desc = "Wait till the given javascript condition [<Data>] returns true", input = InputType.YES, condition = InputType.OPTIONAL)
+    @Action(object = ObjectType.MOBILE, desc = "Wait till the given javascript condition [<Data>] returns true", input = InputType.YES, condition = InputType.OPTIONAL)
     public void waitTillCustomScript() {
         if (Data != null && !Data.trim().isEmpty()) {
             if (Data.contains("return")) {

@@ -16,14 +16,13 @@ import com.ing.engine.support.methodInf.ObjectType;
 import io.appium.java_client.android.AndroidDriver;
 import io.appium.java_client.ios.IOSDriver;
 import io.appium.java_client.remote.SupportsRotation;
-import static java.util.Arrays.asList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.openqa.selenium.interactions.Pause;
 
-public class appiumCommands extends MobileGeneral {
+public class AppiumCommands extends MobileGeneral {
 
-    public appiumCommands(CommandControl cc) {
+    public AppiumCommands(CommandControl cc) {
         super(cc);
         // TODO Auto-generated constructor stub
     }

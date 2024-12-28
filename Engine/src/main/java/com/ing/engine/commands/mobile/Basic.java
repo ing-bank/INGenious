@@ -197,7 +197,7 @@ public class Basic extends MobileGeneral {
         }
     }
 
-    @Action(object = ObjectType.BROWSER, desc = "This a dummy function helpful with testing.")
+    @Action(object = ObjectType.MOBILE, desc = "This a dummy function helpful with testing.")
     public void filler() {
 
     }
@@ -210,7 +210,7 @@ public class Basic extends MobileGeneral {
         }
     }
 
-    @Action(object = ObjectType.BROWSER, desc = "Add a variable to access within testcase", input = InputType.YES, condition = InputType.YES)
+    @Action(object = ObjectType.MOBILE, desc = "Add a variable to access within testcase", input = InputType.YES, condition = InputType.YES)
     public void AddVar() {
         if (Input.startsWith("=Replace(")) {
             replaceFunction();
@@ -229,7 +229,7 @@ public class Basic extends MobileGeneral {
         }
     }
 
-    @Action(object = ObjectType.BROWSER, desc = "Add a Global variable to access across test set", input = InputType.YES, condition = InputType.YES)
+    @Action(object = ObjectType.MOBILE, desc = "Add a Global variable to access across test set", input = InputType.YES, condition = InputType.YES)
     public void AddGlobalVar() {
         addGlobalVar(Condition, Data);
         if (getVar(Condition) != null) {
@@ -241,7 +241,7 @@ public class Basic extends MobileGeneral {
         }
     }
 
-    @Action(object = ObjectType.BROWSER, desc = "changing wait time by [<Data>] seconds", input = InputType.YES)
+    @Action(object = ObjectType.MOBILE, desc = "changing wait time by [<Data>] seconds", input = InputType.YES)
     public void changeWaitTime() {
         try {
             Duration t = Duration.ofSeconds(Integer.parseInt(Data));
@@ -262,7 +262,7 @@ public class Basic extends MobileGeneral {
         }
     }
 
-    @Action(object = ObjectType.BROWSER,
+    @Action(object = ObjectType.MOBILE,
             desc = "Change Default Element finding wait time by [<Data>] seconds",
             input = InputType.YES)
     public void setElementTimeOut() {

@@ -22,7 +22,7 @@ public class Assertions extends MobileGeneral {
      * Function to assert if a given Text is Present in the WebPage
      * ******************************************
      */
-    @Action(object = ObjectType.BROWSER,
+    @Action(object = ObjectType.MOBILE,
             desc = "Assert if text: [<Data>] is present on the page",
             input = InputType.YES)
     public void assertTextPresentInPage() throws RuntimeException {
@@ -53,7 +53,7 @@ public class Assertions extends MobileGeneral {
      * Function to assert the variable
      * ******************************************
      */
-    @Action(object = ObjectType.BROWSER,
+    @Action(object = ObjectType.MOBILE,
             desc = "Assert if Key:Value -> [<Data>] is valid",
             input = InputType.YES)
     public void assertVariable() throws RuntimeException {
@@ -82,7 +82,7 @@ public class Assertions extends MobileGeneral {
      *
      * ******************************************
      */
-    @Action(object = ObjectType.BROWSER, desc = "Assert if cookie name: [<Data>] is present", input = InputType.YES)
+    @Action(object = ObjectType.MOBILE, desc = "Assert if cookie name: [<Data>] is present", input = InputType.YES)
     public void assertCookiePresent() {
         try {
             String strCookieName = Data;
@@ -107,7 +107,7 @@ public class Assertions extends MobileGeneral {
      * Function to assert cookies by name
      * ******************************************
      */
-    @Action(object = ObjectType.BROWSER, desc = "Assert if cookie: [<Object>] has name: [<Data>]", input = InputType.YES)
+    @Action(object = ObjectType.MOBILE, desc = "Assert if cookie: [<Object>] has name: [<Data>]", input = InputType.YES)
     public void assertCookieByName() {
         try {
 
@@ -136,7 +136,7 @@ public class Assertions extends MobileGeneral {
         }
     }
 
-    @Action(object = ObjectType.BROWSER,
+    @Action(object = ObjectType.MOBILE,
             desc = "Assert if  the  variable value matches with given value from datasheet(variable:datasheet->  [<Data>] )",
             input = InputType.YES,
             condition = InputType.YES)

@@ -16,7 +16,7 @@ public class DynamicObject extends Command {
         super(cc);
     }
 
-    @Action(object = ObjectType.BROWSER, desc = "Set  all objects property to [<Data>] at runtime.", input = InputType.YES, condition = InputType.YES)
+    @Action(object = ObjectType.MOBILE, desc = "Set  all objects property to [<Data>] at runtime.", input = InputType.YES, condition = InputType.YES)
     public void setMobileglobalObjectProperty() {
         if (!Data.isEmpty()) {
             if (Condition.isEmpty()) {

@@ -20,6 +20,8 @@ import java.util.Enumeration;
 import java.util.List;
 import java.util.Objects;
 import java.util.Properties;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import javax.swing.AbstractButton;
 import javax.swing.ButtonGroup;
 import javax.swing.DefaultComboBoxModel;
@@ -317,12 +319,17 @@ public class DriverSettings extends javax.swing.JFrame {
     }
 
     private void saveSettings() {
-        saveCommonSettings();
-        saveContextProperties();
-        saveCapabilities();
-        saveDBProperties();
-        saveEmulator();
-
+        if (mainTab.getSelectedIndex() == 0) {
+            saveContextProperties();
+        } else if(mainTab.getSelectedIndex() == 1){
+            saveDBProperties();
+        } else if(mainTab.getSelectedIndex() == 2){
+            saveCommonSettings();
+        } else if (emCapTab.getSelectedIndex() == 0) {
+            saveEmulator();
+        } else {
+            saveCapabilities();
+        }
     }
 
     private void saveEmulator() {
@@ -358,7 +365,8 @@ public class DriverSettings extends javax.swing.JFrame {
         if (driverPropTable.isEditing()) {
             driverPropTable.getCellEditor().stopCellEditing();
         }
-        Properties driveProps = encryptpassword(PropUtils.getPropertiesFromTable(driverPropTable));
+        //Properties driveProps = encryptpassword(PropUtils.getPropertiesFromTable(driverPropTable));
+        Properties driveProps = PropUtils.getPropertiesFromTable(driverPropTable);
         PropUtils.loadPropertiesInTable(driveProps, driverPropTable, "");
 
         DefaultTableModel model = (DefaultTableModel) driverPropTable.getModel();
@@ -378,7 +386,8 @@ public class DriverSettings extends javax.swing.JFrame {
                 dbPropTable.getCellEditor().stopCellEditing();
             }
 
-            Properties driveProps = encryptpassword(PropUtils.getPropertiesFromTable(dbPropTable));
+            //Properties driveProps = encryptpassword(PropUtils.getPropertiesFromTable(dbPropTable));
+            Properties driveProps = PropUtils.getPropertiesFromTable(dbPropTable);
             PropUtils.loadPropertiesInTable(driveProps, dbPropTable, "");
 
             DefaultTableModel model = (DefaultTableModel) dbPropTable.getModel();
@@ -400,7 +409,8 @@ public class DriverSettings extends javax.swing.JFrame {
                 contextPropTable.getCellEditor().stopCellEditing();
             }
 
-            Properties contextProps = encryptpassword(PropUtils.getPropertiesFromTable(contextPropTable));
+            //Properties contextProps = encryptpassword(PropUtils.getPropertiesFromTable(contextPropTable));
+            Properties contextProps = PropUtils.getPropertiesFromTable(contextPropTable);
             PropUtils.loadPropertiesInTable(contextProps, contextPropTable, "");
 
             DefaultTableModel model = (DefaultTableModel) contextPropTable.getModel();
@@ -421,12 +431,22 @@ public class DriverSettings extends javax.swing.JFrame {
             String key = (String) e.getKey();
             String value = (String) e.getValue();
             if (value != null && !value.isEmpty()) {
-                if (key.toLowerCase().contains("passw")) {
+                if (key.toLowerCase().contains("passw") && !isDatasheetOrVariable(value)) {
                     properties.setProperty(key, Utility.encrypt(value));
                 }
             }
         });
         return properties;
+    }
+    
+    private Boolean isDatasheetOrVariable(String value) {
+        String pattern1 = "\\{[^:]+:[^}]+\\}";
+        String pattern2 = "%[^%]+%";
+        Pattern regex1 = Pattern.compile(pattern1);
+        Pattern regex2 = Pattern.compile(pattern2);
+        Matcher matcher1 = regex1.matcher(value);
+        Matcher matcher2 = regex2.matcher(value);
+        return  matcher1.matches() || matcher2.matches();
     }
 
     private void resFilter() {

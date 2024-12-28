@@ -1,6 +1,5 @@
 package com.ing.datalib.settings;
 
-import com.ing.datalib.util.data.LinkedProperties;
 
 import java.io.File;
 import java.io.FileOutputStream;

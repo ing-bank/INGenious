@@ -21,21 +21,18 @@ import java.util.logging.Logger;
 public class SyntheticDataGenerator extends Command {
     public SyntheticDataGenerator(CommandControl cc) {
         super(cc);
+        faker.put(key,new Faker());
  }
 
 
 
-    @Action(object = ObjectType.DATA, desc = "Set Faker locale for testing", input = InputType.YES, condition = InputType.YES)
-    public void inputFakerLocale() {
+    @Action(object = ObjectType.DATA, desc = "Set Faker locale for testing", input = InputType.YES)
+    public void setLocale() {
         try {
-            String strObj = Input;
-            String locale = Condition.split(":", 1)[0];
-            Faker faker1 = new Faker(new Locale(locale));
-            faker.put(key,faker1);
+            String locale = Data;
+            Faker fakerWithLocale = new Faker(new Locale(locale));
+            faker.put(key,fakerWithLocale);
             Report.updateTestLog(Action, "Faker locale set to " + locale, Status.DONE);
-            String sheetName = strObj.split(":", 2)[0];
-            String columnName = strObj.split(":", 2)[1];
-            userData.putData(sheetName, columnName, locale);
         } catch (Exception ex) {
             Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during locale setup", ex);
             Report.updateTestLog(Action, "Error setting locale: " + "\n" + ex.getMessage(), Status.DEBUG);

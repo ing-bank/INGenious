@@ -66,7 +66,7 @@ public class CheckBox extends Command {
         }
     }
 
-    @Action(object = ObjectType.BROWSER, desc = "Check all the check boxes in the context")
+    @Action(object = ObjectType.MOBILE, desc = "Check all the check boxes in the context")
     public void checkAllCheckBoxes() {
         try {
             List<WebElement> checkboxes = mDriver.findElements(By.cssSelector("input[type=checkbox]"));

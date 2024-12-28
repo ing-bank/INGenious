@@ -19,6 +19,7 @@ import java.nio.file.Paths;
 import java.util.Arrays;
 import java.awt.Dimension;
 import java.awt.Toolkit;
+import java.util.Collection;
 
 public class PlaywrightDriverFactory {
 
@@ -86,9 +87,6 @@ public class PlaywrightDriverFactory {
             case Firefox:
                 browserType = playwright.firefox();
                 break;
-//            case API:
-//                browserType = (BrowserType) playwright.request();
-//                break;
 
             default:
                 throw new AssertionError(browser.name());
@@ -98,12 +96,11 @@ public class PlaywrightDriverFactory {
     }
 
     public static BrowserContext createContext(Boolean isGrid, BrowserType browserType, String browserName, ProjectSettings settings, RunContext context) {
-
         List<String> capabilities = getCapability(browserName, settings);
         LaunchOptions launchOptions = new LaunchOptions();
         launchOptions = addLaunchOptions(launchOptions, capabilities);
         NewContextOptions newContextOptions = new NewContextOptions();
-        newContextOptions = addcontextOptions(newContextOptions, context, capabilities, settings);
+        newContextOptions = addContextOptions(newContextOptions, context, capabilities, settings);
         BrowserContext browserContext = null;
         if (isGrid) {
             browserContext = browserType.connect("").newContext(newContextOptions);
@@ -126,14 +123,15 @@ public class PlaywrightDriverFactory {
             for (String cap : caps) {
                 String key = cap.split("=", 2)[0];
                 String value = cap.split("=", 2)[1];
-                launchOptions.setArgs(List.of("--auth-server-allowlist='_'"));
+                
                 if (key.toLowerCase().contains("setheadless")) {
                     launchOptions.setHeadless((boolean) getPropertyValueAsDesiredType(value));
                 }
                 if (key.toLowerCase().contains("setslowmo")) {
                     launchOptions.setSlowMo((double) getPropertyValueAsDesiredType(value));
                 }
-                if (key.toLowerCase().contains("startmaximized")) {
+                if (key.toLowerCase().contains("startmaximized") && (boolean) getPropertyValueAsDesiredType(value)) {
+                    launchOptions.setArgs(List.of("--auth-server-allowlist='_'"));
                     launchOptions.setArgs(List.of("--start-maximized"));
                 }
                 if (key.toLowerCase().contains("setchannel")) {
@@ -162,11 +160,11 @@ public class PlaywrightDriverFactory {
         return launchOptions;
     }
 
-    private static NewContextOptions addcontextOptions(NewContextOptions newContextOptions, RunContext context, List<String> options, ProjectSettings settings) {
 
+    private static NewContextOptions addContextOptions(NewContextOptions newContextOptions, RunContext context, List<String> options, ProjectSettings settings) {
+        boolean isVideoEnabled = Control.exe.getExecSettings().getRunSettings().isVideoEnabled();
+        boolean isHARrecordingEnabled = Control.exe.getExecSettings().getRunSettings().isHARrecordingEnabled();
 
-        Boolean isVideoEnabled = Control.exe.getExecSettings().getRunSettings().isVideoEnabled();
-        Boolean isHARrecordingEnabled = Control.exe.getExecSettings().getRunSettings().isHARrecordingEnabled();
         if (isVideoEnabled) {
             newContextOptions.setRecordVideoDir(Paths.get(FilePath.getCurrentResultsPath() + File.separator
                     + "videos"
@@ -189,122 +187,122 @@ public class PlaywrightDriverFactory {
         }
 
         Properties contextDetails = getContextDetails("default");
-
-        Boolean isContextAuthenticated = Boolean.valueOf(contextDetails.getProperty("authenticateContext"));
-        if (isContextAuthenticated) {
-            String userID = contextDetails.getProperty("userID");
-            String password = contextDetails.getProperty("password");
-            if (password.endsWith(" Enc")) {
-                password = password.substring(0, password.lastIndexOf(" Enc"));
-                byte[] valueDecoded = Encryption.getInstance().decrypt(password).getBytes();
-                password = new String(valueDecoded);
-            }
-            newContextOptions.setHttpCredentials(userID, password);
-
-        }
-        Boolean useStorageState = Boolean.valueOf(contextDetails.getProperty("useStorageState"));
-        if (useStorageState) {
-            String storageStatePath = contextDetails.getProperty("storageStatePath");
-            Path filePath = Paths.get(storageStatePath);
-            if (filePath.toFile().exists()) {
-                System.out.println("\n" + "========================" + "\n" + "Storage State used : +'"
-                        + storageStatePath + "'" + "\n" + "========================" + "\n");
-                newContextOptions.setStorageStatePath(filePath);
-            } else
-                System.out.println("\n" + "========================" + "\n"
-                        + "Storage State Path does not exist. Skipping setting Storage State" + "\n"
-                        + "========================" + "\n");
-        }
+        setHttpCredentialsIfAuthenticated(newContextOptions, contextDetails);
+        setStorageStateIfEnabled(newContextOptions, contextDetails);
 
         List<String> contextOptions = getContextOptions("default", settings);
+        if (!contextOptions.isEmpty()) {
+            for (String prop : contextOptions) {
+                String[] keyValue = prop.split("=", 2);
+                String key = keyValue[0].toLowerCase();
+                String value = keyValue[1];
 
-        if (!contextOptions.isEmpty() && contextOptions != null) {
-            for (int i = 0; i < contextOptions.size(); i++) {
-                String prop = contextOptions.get(i);
-                String key = prop.split("=", 2)[0];
-                String value = prop.split("=", 2)[1];
-                if (value != null && !value.isEmpty())
-                {
-                    if (key.toLowerCase().contains("authenticatecontext")
-                            || key.toLowerCase().contains("usestoragestate")
-                            || key.toLowerCase().contains("storagestatepath")
-                            || key.toLowerCase().contains("userid")
-                            || key.toLowerCase().contains("password")) {
-
-                    } else {
-
-
-                        if (key.toLowerCase().contains("setgeolocation")) {
-                            Double latitude = Double.valueOf(value.split(",")[0]);
-                            Double longitude = Double.valueOf(value.split(",")[1]);
-                            newContextOptions.setGeolocation(latitude, longitude)
-                                    .setPermissions(Arrays.asList("geolocation"));
-                        }
-
-                        if (key.toLowerCase().contains("setviewportsize")) {
-                            if (value.equals("maximized")) {
-                                Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
-                                double width = screenSize.getWidth();
-                                double height = screenSize.getHeight();
-                                newContextOptions.setViewportSize((int) width, (int) height);
-                            } else {
-                                int width = Integer.parseInt(value.split(",")[0]);
-                                int height = Integer.parseInt(value.split(",")[1]);
-                                newContextOptions.setViewportSize(width, height);
-                            }
-                        }
-
-                        if (key.toLowerCase().contains("setdevicescalefactor")) {
-                            int factor = Integer.parseInt(value);
-                            newContextOptions.setDeviceScaleFactor(factor);
-                        }
-
-                        if (key.toLowerCase().contains("sethastouch")) {
+                if (value != null && !value.isEmpty()) {
+                    switch (key) {
+                        case "setgeolocation":
+                            setGeolocation(newContextOptions, value);
+                            break;
+                        case "setviewportsize":
+                            setViewportSize(newContextOptions, value);
+                            break;
+                        case "setdevicescalefactor":
+                            newContextOptions.setDeviceScaleFactor(Integer.parseInt(value));
+                            break;
+                        case "sethastouch":
                             newContextOptions.setHasTouch(Boolean.parseBoolean(value));
-                        }
-
-                        if (key.toLowerCase().contains("setismobile")) {
+                            break;
+                        case "setismobile":
                             newContextOptions.setIsMobile(Boolean.parseBoolean(value));
-                        }
-
-                        if (key.toLowerCase().contains("setscreensize")) {
-                            int width = Integer.parseInt(value.split(",")[0]);
-                            int height = Integer.parseInt(value.split(",")[1]);
-                            newContextOptions.setScreenSize(width, height);
-                        }
-                        
-                        if (key.toLowerCase().contains("setrecordvideosize")) {
-                            int width = Integer.parseInt(value.split(",")[0]);
-                            int height = Integer.parseInt(value.split(",")[1]);
-                            newContextOptions.setRecordVideoSize(width, height);
-                        }
-
-                        if (key.toLowerCase().contains("setuseragent")) {
+                            break;
+                        case "setscreensize":
+                            setScreenSize(newContextOptions, value);
+                            break;
+                        case "setrecordvideosize":
+                            setRecordVideoSize(newContextOptions, value);
+                            break;
+                        case "setuseragent":
                             newContextOptions.setUserAgent(value);
-                        }
-                        
-                        if (key.toLowerCase().contains("setrecordvideodir")) {
+                            break;
+                        case "setrecordvideodir":
                             newContextOptions.setRecordVideoDir(Paths.get(value));
-                        }
-
-                        if (key.toLowerCase().contains("setlocale")) {
+                            break;
+                        case "setlocale":
                             newContextOptions.setLocale(value);
-                        }
-
-                        if (key.toLowerCase().contains("settimezoneid")) {
+                            break;
+                        case "settimezoneid":
                             newContextOptions.setTimezoneId(value);
-                        }
-
-                        if (key.toLowerCase().contains("setoffline")) {
+                            break;
+                        case "setoffline":
                             newContextOptions.setOffline(Boolean.parseBoolean(value));
-                        }
-
+                            break;
                     }
                 }
             }
         }
 
         return newContextOptions;
+    }
+
+    private static void setHttpCredentialsIfAuthenticated(NewContextOptions newContextOptions, Properties contextDetails) {
+        boolean isContextAuthenticated = Boolean.parseBoolean(contextDetails.getProperty("isAuthenticated"));
+        if (isContextAuthenticated) {
+            String userID = handleUserDefinedVariables(contextDetails.getProperty("userID"));
+            String password = handleUserDefinedVariables(contextDetails.getProperty("password"));
+
+            if (password.endsWith(" Enc")) {
+                password = password.substring(0, password.lastIndexOf(" Enc"));
+                byte[] valueDecoded = Encryption.getInstance().decrypt(password).getBytes();
+                password = new String(valueDecoded);
+            }
+            newContextOptions.setHttpCredentials(userID, password);
+        }
+    }
+
+    private static void setStorageStateIfEnabled(NewContextOptions newContextOptions, Properties contextDetails) {
+        boolean useStorageState = Boolean.parseBoolean(contextDetails.getProperty("useStorageState"));
+        if (useStorageState) {
+            String storageStatePath = contextDetails.getProperty("storageStatePath");
+            Path filePath = Paths.get(storageStatePath);
+            if (filePath.toFile().exists()) {
+                System.out.println("\n========================\nStorage State used : '" + storageStatePath + "'\n========================\n");
+                newContextOptions.setStorageStatePath(filePath);
+            } else {
+                System.out.println("\n========================\nStorage State Path does not exist. Skipping setting Storage State\n========================\n");
+            }
+        }
+    }
+
+    private static void setGeolocation(NewContextOptions newContextOptions, String value) {
+        String[] coordinates = value.split(",");
+        double latitude = Double.parseDouble(coordinates[0]);
+        double longitude = Double.parseDouble(coordinates[1]);
+        newContextOptions.setGeolocation(latitude, longitude).setPermissions(Arrays.asList("geolocation"));
+    }
+
+    private static void setViewportSize(NewContextOptions newContextOptions, String value) {
+        if (value.equals("maximized")) {
+            Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+            newContextOptions.setViewportSize((int) screenSize.getWidth(), (int) screenSize.getHeight());
+        } else {
+            String[] dimensions = value.split(",");
+            int width = Integer.parseInt(dimensions[0]);
+            int height = Integer.parseInt(dimensions[1]);
+            newContextOptions.setViewportSize(width, height);
+        }
+    }
+
+    private static void setScreenSize(NewContextOptions newContextOptions, String value) {
+        String[] dimensions = value.split(",");
+        int width = Integer.parseInt(dimensions[0]);
+        int height = Integer.parseInt(dimensions[1]);
+        newContextOptions.setScreenSize(width, height);
+    }
+
+    private static void setRecordVideoSize(NewContextOptions newContextOptions, String value) {
+        String[] dimensions = value.split(",");
+        int width = Integer.parseInt(dimensions[0]);
+        int height = Integer.parseInt(dimensions[1]);
+        newContextOptions.setRecordVideoSize(width, height);
     }
 
     private static BrowserContext enhanceContext(BrowserContext browserContext) {
@@ -371,4 +369,15 @@ public class PlaywrightDriverFactory {
         return Control.getCurrentProject().getProjectSettings().getContextSettings().getContextOptionsFor(contextAlias);
 
     }
+
+    private static String handleUserDefinedVariables(String value) {
+        Collection<Object> keys = Control.getCurrentProject().getProjectSettings().getUserDefinedSettings().keySet();
+        for (Object key : keys) {
+            if (value.equals("%" + key + "%")) {
+                return Control.getCurrentProject().getProjectSettings().getUserDefinedSettings().getProperty(key.toString());
+            }
+        }
+        return value;
+    }
+
 }

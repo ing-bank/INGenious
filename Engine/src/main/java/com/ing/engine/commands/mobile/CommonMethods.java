@@ -15,7 +15,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.commons.io.FileUtils;
 import org.openqa.selenium.By;
-import org.openqa.selenium.Cookie;
 import org.openqa.selenium.Keys;
 import org.openqa.selenium.NoAlertPresentException;
 import org.openqa.selenium.WebDriver;
@@ -30,7 +29,7 @@ public class CommonMethods extends MobileGeneral {
         super(cc);
     }
 
-    @Action(object = ObjectType.BROWSER, desc = "Navigate to previous page")
+    @Action(object = ObjectType.MOBILE, desc = "Navigate to previous page")
     public void back() {
         try {
             mDriver.navigate().back();
@@ -126,7 +125,7 @@ public class CommonMethods extends MobileGeneral {
         }
     }
 
-    @Action(object = ObjectType.BROWSER, desc = "Take screenshot of the current page and store it in the location [<Input>]", input = InputType.YES)
+    @Action(object = ObjectType.MOBILE, desc = "Take screenshot of the current page and store it in the location [<Input>]", input = InputType.YES)
     public void saveScreenshot() {
         try {
             String strFullpath = Data;
@@ -141,7 +140,7 @@ public class CommonMethods extends MobileGeneral {
 
     }
 
-    @Action(object = ObjectType.BROWSER, desc = "Take a Screen Shot ")
+    @Action(object = ObjectType.MOBILE, desc = "Take a Screen Shot ")
     public void takeScreenshot() {
         try {
             Report.updateTestLog(Action, "Screenshot is taken", Status.PASS);
@@ -151,26 +150,7 @@ public class CommonMethods extends MobileGeneral {
         }
     }
 
-    @Action(object = ObjectType.BROWSER, desc = "print the data [<Data>]", input = InputType.YES)
-    public void print() {
-        System.out.println(Data);
-        Report.updateTestLog("print", String.format("printed %s", Data), Status.DONE);
-    }
-
-    @Action(object = ObjectType.BROWSER, desc = "Wait for [<Data>] milli seconds", input = InputType.YES)
-    public void pause() {
-        try {
-            Thread.sleep(Long.parseLong(Data));
-            Report.updateTestLog(Action,
-                    "Thread sleep for '" + Long.parseLong(Data), Status.DONE);
-        } catch (Exception e) {
-            Report.updateTestLog(Action, e.getMessage(), Status.FAIL);
-            Logger.getLogger(CommonMethods.class.getName()).log(Level.SEVERE, null, e);
-        }
-
-    }
-
-    @Action(object = ObjectType.BROWSER, desc = "Answer the alert present with [<Data>]", input = InputType.YES)
+    @Action(object = ObjectType.MOBILE, desc = "Answer the alert present with [<Data>]", input = InputType.YES)
     public void answerAlert() {
         String setAlertText = Data;
         try {
@@ -183,7 +163,7 @@ public class CommonMethods extends MobileGeneral {
         }
     }
 
-    @Action(object = ObjectType.BROWSER, desc = "Accept the alert present")
+    @Action(object = ObjectType.MOBILE, desc = "Accept the alert present")
     public void acceptAlert() {
         try {
             mDriver.switchTo().alert().accept();
@@ -194,7 +174,7 @@ public class CommonMethods extends MobileGeneral {
         }
     }
 
-    @Action(object = ObjectType.BROWSER, desc = "Dismiss the alert present")
+    @Action(object = ObjectType.MOBILE, desc = "Dismiss the alert present")
     public void dismissAlert() {
         try {
             mDriver.switchTo().alert().dismiss();
@@ -351,7 +331,7 @@ public class CommonMethods extends MobileGeneral {
         }
     }
 
-    @Action(object = ObjectType.BROWSER, desc = "Store in Runtime variable Exist/Not Exist based on the  presence of cookie ->[<Data>]", input = InputType.YES, condition = InputType.YES)
+    @Action(object = ObjectType.MOBILE, desc = "Store in Runtime variable Exist/Not Exist based on the  presence of cookie ->[<Data>]", input = InputType.YES, condition = InputType.YES)
     public void storeCookiePresent() {
         String variableName = Condition;
         String cookieName = Data;
@@ -369,7 +349,7 @@ public class CommonMethods extends MobileGeneral {
         }
     }
 
-    @Action(object = ObjectType.BROWSER, desc = "Store \"Exist\" or \"Not Exist\" based on the alert presence into -> [<Data>] Runtime variable", input = InputType.YES)
+    @Action(object = ObjectType.MOBILE, desc = "Store \"Exist\" or \"Not Exist\" based on the alert presence into -> [<Data>] Runtime variable", input = InputType.YES)
     public void storeAlertPresent() {
         String strObj = Input;
         if (strObj.startsWith("%") && strObj.endsWith("%")) {
@@ -384,7 +364,7 @@ public class CommonMethods extends MobileGeneral {
         }
     }
 
-    @Action(object = ObjectType.BROWSER, desc = "store variable value [<Condition>] in data sheet[<Data>]", input = InputType.YES, condition = InputType.YES)
+    @Action(object = ObjectType.MOBILE, desc = "store variable value [<Condition>] in data sheet[<Data>]", input = InputType.YES, condition = InputType.YES)
     public void storeVariableInDataSheet() {
         if (Input != null && Condition != null) {
             if (!getVar(Condition).isEmpty()) {
@@ -403,7 +383,7 @@ public class CommonMethods extends MobileGeneral {
         }
     }
 
-    @Action(object = ObjectType.BROWSER, desc = "store  value [<Data>] in Variable [<Condition>]", input = InputType.YES, condition = InputType.YES)
+    @Action(object = ObjectType.MOBILE, desc = "store  value [<Data>] in Variable [<Condition>]", input = InputType.YES, condition = InputType.YES)
     public void storeVariable() {
         if (Condition.startsWith("%") && Condition.endsWith("%")) {
             addVar(Condition, Data);
@@ -459,7 +439,7 @@ public class CommonMethods extends MobileGeneral {
         }
     }
 
-    @Action(object = ObjectType.BROWSER, desc = "Send Keys [<Data>]  to Window.", input = InputType.YES)
+    @Action(object = ObjectType.MOBILE, desc = "Send Keys [<Data>]  to Window.", input = InputType.YES)
     public void sendKeysToWindow() {
         Actions builder = new Actions(mDriver);
         String[] Values = Data.toLowerCase().split("\\+");
