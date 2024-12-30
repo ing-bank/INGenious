@@ -20,9 +20,9 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.openqa.selenium.interactions.Pause;
 
-public class AppiumCommands extends MobileGeneral {
+public class AppiumDeviceCommands extends MobileGeneral {
 
-    public AppiumCommands(CommandControl cc) {
+    public AppiumDeviceCommands(CommandControl cc) {
         super(cc);
         // TODO Auto-generated constructor stub
     }
