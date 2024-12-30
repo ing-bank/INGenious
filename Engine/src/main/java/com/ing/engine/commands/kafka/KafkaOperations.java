@@ -1,7 +1,5 @@
 package com.ing.engine.commands.kafka;
 
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ing.engine.commands.browser.General;
 import com.ing.engine.core.CommandControl;
 import com.ing.engine.core.Control;
@@ -10,13 +8,6 @@ import com.ing.engine.support.methodInf.Action;
 import com.ing.engine.support.methodInf.InputType;
 import com.ing.engine.support.methodInf.ObjectType;
 
-import freemarker.core.Environment;
-
-import java.net.URISyntaxException;
-import java.net.URL;
-import java.nio.ByteBuffer;
-import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
 import java.time.Duration;
 import java.util.*;
 import java.util.logging.Level;
@@ -24,14 +15,12 @@ import java.util.logging.Logger;
 import java.io.File;
 import java.io.IOException;
 
-import org.apache.kafka.clients.CommonClientConfigs;
 import org.apache.kafka.clients.consumer.*;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.Producer;
 import org.apache.kafka.clients.producer.ProducerConfig;
 import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.TopicPartition;
-import org.apache.kafka.common.config.SslConfigs;
 import org.apache.kafka.common.header.Header;
 import org.apache.kafka.common.header.internals.RecordHeader;
 import org.apache.kafka.common.serialization.StringDeserializer;
@@ -307,12 +296,6 @@ public class KafkaOperations extends General {
                     topic, null, "", "", header);
             createUnencryptedProducer(serverConfig, schemaRegistryUrl).send(producedRecord);
 
-            //Convert ByteBuffer to byte array
-            //ByteBuffer buffer = record.getCdmPayload();
-            //byte[] byteArray = new byte[buffer.remaining()];
-            //buffer.get(byteArray);
-            // Print the byte array as a string
-            //System.out.println("record is " + new String(byteArray, StandardCharsets.UTF_8));
             Report.updateTestLog(Action, "Message has been Produced. ", Status.DONE);
 
         } catch (Exception ex) {
@@ -329,7 +312,6 @@ public class KafkaOperations extends General {
         }
         Properties props = new Properties();
         props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, serverConfig);
-        //props.put(ProducerConfig.CLIENT_ID_CONFIG, "P27243-functional-tests-unencrypted-producer");
         props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
         // props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, KafkaAvroSerializer.class.getName());
         props.put("schema.registry.url", schemaRegistryUrl);

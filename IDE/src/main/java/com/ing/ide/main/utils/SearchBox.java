@@ -112,5 +112,6 @@ public class SearchBox extends JTextField implements DocumentListener {
         textPrompt.setToolTipText(toolTip);
         textPrompt.setFont(UIManager.getFont("Table.font"));
     }
+    
 
 }

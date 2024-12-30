@@ -1,14 +1,15 @@
-
 package com.ing.ide.main.utils.table;
 
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Point;
 import java.awt.Rectangle;
+import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.FocusAdapter;
 import java.awt.event.FocusEvent;
+import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.Arrays;
@@ -26,7 +27,7 @@ import javax.swing.table.TableColumn;
 
 /**
  *
- * 
+ *
  */
 public class EditHeader {
 
@@ -64,6 +65,9 @@ public class EditHeader {
         };
         header.addMouseListener(editAdatper);
         text = new JTextField();
+        
+        changeDefaultKeyBindings(text);
+        
         text.setBorder(null);
         text.addActionListener(new ActionListener() {
             @Override
@@ -147,5 +151,21 @@ public class EditHeader {
 
     public final void disableEdit() {
         header.removeMouseListener(editAdatper);
+    }
+
+    private void changeDefaultKeyBindings(JTextField editor) {
+
+        int menuShortcutKeyMask = Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx();
+        editor.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_X, menuShortcutKeyMask), "cut");
+        editor.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_C, menuShortcutKeyMask), "copy");
+        editor.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_V, menuShortcutKeyMask), "paste");
+        editor.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_A, menuShortcutKeyMask), "selectAll");
+        editor.getActionMap().put("selectAll", new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                editor.selectAll();
+            }
+        });
+
     }
 }

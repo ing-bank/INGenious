@@ -108,6 +108,8 @@ public class Command {
     static public Map<String, Integer> jmsPort = new HashMap<>();
     static public Map<String, String> jmsChannel = new HashMap<>();
     static public Map<String, String> jmsQmgr = new HashMap<>();
+    static public Map<String, String> jmsUsername = new HashMap<>();
+    static public Map<String, String> jmsPassword = new HashMap<>();
     static public Map<String, String> WMQ_SSL_CIPHER_SUITE = new HashMap<>();
     static public Map<String, String> jmsReqQueueName = new HashMap<>();
     static public Map<String, String> jmsRespQueueName = new HashMap<>();

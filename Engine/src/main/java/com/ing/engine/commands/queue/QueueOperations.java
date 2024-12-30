@@ -6,25 +6,42 @@ import com.ing.engine.commands.browser.Command;
 import static com.ing.engine.commands.browser.Command.after;
 import static com.ing.engine.commands.browser.Command.before;
 import static com.ing.engine.commands.browser.Command.duration;
+import static com.ing.engine.commands.browser.Command.responsebodies;
 import com.ing.engine.core.CommandControl;
 import com.ing.engine.core.Control;
 import com.ing.engine.support.Status;
 import com.ing.engine.support.methodInf.Action;
 import com.ing.engine.support.methodInf.InputType;
 import com.ing.engine.support.methodInf.ObjectType;
+import com.jayway.jsonpath.JsonPath;
 import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.StringReader;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.xpath.XPath;
+import javax.xml.xpath.XPathConstants;
+import javax.xml.xpath.XPathExpressionException;
+import javax.xml.xpath.XPathFactory;
+import org.w3c.dom.DOMException;
+import org.w3c.dom.Document;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+import org.xml.sax.InputSource;
+import org.xml.sax.SAXException;
 
 public class QueueOperations extends Command {
-
+    
     public QueueOperations(CommandControl cc) {
         super(cc);
     }
-
+    
     @Action(object = ObjectType.QUEUE, desc = "Set Host", input = InputType.YES, condition = InputType.NO)
     public void setHost() {
         try {
@@ -35,7 +52,7 @@ public class QueueOperations extends Command {
             Report.updateTestLog(Action, "Error in setting Host: " + "\n" + ex.getMessage(), Status.DEBUG);
         }
     }
-
+    
     @Action(object = ObjectType.QUEUE, desc = "Set Port", input = InputType.YES, condition = InputType.NO)
     public void setPort() {
         try {
@@ -46,7 +63,7 @@ public class QueueOperations extends Command {
             Report.updateTestLog(Action, "Error in setting Port: " + "\n" + ex.getMessage(), Status.DEBUG);
         }
     }
-
+    
     @Action(object = ObjectType.QUEUE, desc = "Set Channel", input = InputType.YES, condition = InputType.NO)
     public void setChannel() {
         try {
@@ -57,7 +74,7 @@ public class QueueOperations extends Command {
             Report.updateTestLog(Action, "Error in setting Channel: " + "\n" + ex.getMessage(), Status.DEBUG);
         }
     }
-
+    
     @Action(object = ObjectType.QUEUE, desc = "Set Queue Manager", input = InputType.YES, condition = InputType.NO)
     public void setQueueManager() {
         try {
@@ -68,7 +85,29 @@ public class QueueOperations extends Command {
             Report.updateTestLog(Action, "Error in setting Queue manager: " + "\n" + ex.getMessage(), Status.DEBUG);
         }
     }
-
+    
+    @Action(object = ObjectType.QUEUE, desc = "Set Username", input = InputType.YES, condition = InputType.NO)
+    public void setUserName() {
+        try {
+            jmsUsername.put(key, Data);
+            Report.updateTestLog(Action, "Username has been set successfully", Status.DONE);
+        } catch (Exception ex) {
+            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during queue connection setup", ex);
+            Report.updateTestLog(Action, "Error in setting Username: " + "\n" + ex.getMessage(), Status.DEBUG);
+        }
+    }
+    
+    @Action(object = ObjectType.QUEUE, desc = "Set Password", input = InputType.YES, condition = InputType.NO)
+    public void setPassword() {
+        try {
+            jmsPassword.put(key, Data);
+            Report.updateTestLog(Action, "Password has been set successfully", Status.DONE);
+        } catch (Exception ex) {
+            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during queue connection setup", ex);
+            Report.updateTestLog(Action, "Error in setting Password: " + "\n" + ex.getMessage(), Status.DEBUG);
+        }
+    }
+    
     @Action(object = ObjectType.QUEUE, desc = "Set SSL Cipher Suite", input = InputType.YES, condition = InputType.NO)
     public void setSSLCipherSuite() {
         try {
@@ -79,7 +118,7 @@ public class QueueOperations extends Command {
             Report.updateTestLog(Action, "Error in setting SSL Cipher Suite: " + "\n" + ex.getMessage(), Status.DEBUG);
         }
     }
-
+    
     @Action(object = ObjectType.QUEUE, desc = "Set Request Queue", input = InputType.YES, condition = InputType.NO)
     public void setRequestQueue() {
         try {
@@ -90,7 +129,7 @@ public class QueueOperations extends Command {
             Report.updateTestLog(Action, "Error in setting Request Queue: " + "\n" + ex.getMessage(), Status.DEBUG);
         }
     }
-
+    
     @Action(object = ObjectType.QUEUE, desc = "Set Response Queue", input = InputType.YES, condition = InputType.NO)
     public void setResponseQueue() {
         try {
@@ -101,7 +140,7 @@ public class QueueOperations extends Command {
             Report.updateTestLog(Action, "Error in setting Response Queue: " + "\n" + ex.getMessage(), Status.DEBUG);
         }
     }
-
+    
     private void createConnectionFactory() {
         try {
             jmsFactoryFactory.put(key, JmsFactoryFactory.getInstance(WMQConstants.WMQ_PROVIDER));
@@ -112,14 +151,18 @@ public class QueueOperations extends Command {
             jmsConnectionFactory.get(key).setStringProperty(WMQConstants.WMQ_QUEUE_MANAGER, jmsQmgr.get(key));
             jmsConnectionFactory.get(key).setIntProperty(WMQConstants.WMQ_CONNECTION_MODE, WMQConstants.WMQ_CM_CLIENT);
             jmsConnectionFactory.get(key).setStringProperty(WMQConstants.WMQ_SSL_CIPHER_SUITE, WMQ_SSL_CIPHER_SUITE.get(key));
-            jmsConnectionFactory.get(key).setBooleanProperty(WMQConstants.USER_AUTHENTICATION_MQCSP, false);
-            jmsContext.put(key, jmsConnectionFactory.get(key).createContext());
-
+            if (jmsUsername.get(key).isEmpty()) {
+                jmsConnectionFactory.get(key).setBooleanProperty(WMQConstants.USER_AUTHENTICATION_MQCSP, false);
+                jmsContext.put(key, jmsConnectionFactory.get(key).createContext());
+            } else {
+                jmsContext.put(key, jmsConnectionFactory.get(key).createContext(jmsUsername.get(key), jmsPassword.get(key)));
+            }
+            
         } catch (Exception ex) {
             Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during JMS properties setup", ex);
         }
     }
-
+    
     @Action(object = ObjectType.QUEUE, desc = "Set Correlation ID", input = InputType.YES, condition = InputType.NO)
     public void setCorrelationID() {
         try {
@@ -130,10 +173,33 @@ public class QueueOperations extends Command {
             Report.updateTestLog(Action, "Error in setting Correlation ID: " + "\n" + ex.getMessage(), Status.DEBUG);
         }
     }
-
+    
+    @Action(object = ObjectType.QUEUE, desc = "Set Message ID", input = InputType.YES, condition = InputType.NO)
+    public void setMesssageID() {
+        try {
+            jmsMessage.get(key).setJMSMessageID(Data);
+            Report.updateTestLog(Action, "Message ID set", Status.DONE);
+        } catch (Exception ex) {
+            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during setting of Message ID", ex);
+            Report.updateTestLog(Action, "Error in setting Message ID: " + "\n" + ex.getMessage(), Status.DEBUG);
+        }
+    }
+    
+    @Action(object = ObjectType.QUEUE, desc = "Set Text", input = InputType.YES, condition = InputType.NO)
+    public void setText() {
+        try {
+            jmsMessage.get(key).setText(Data);
+            Report.updateTestLog(Action, "Text set", Status.DONE);
+        } catch (Exception ex) {
+            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during setting of Text", ex);
+            Report.updateTestLog(Action, "Error in setting Message ID: " + "\n" + ex.getMessage(), Status.DEBUG);
+        }
+    }
+    
     @Action(object = ObjectType.QUEUE, desc = "Create and Send Message", input = InputType.YES, condition = InputType.NO)
     public void sendMessage() {
         try {
+            createConnectionFactory();
             jmsDestination.put(key, jmsContext.get(key).createQueue(jmsReqQueueName.get(key)));
             jmsMessage.put(key, jmsContext.get(key).createTextMessage(handlePayloadorEndpoint(Data)));
             jmsProducer.put(key, jmsContext.get(key).createProducer());
@@ -145,7 +211,7 @@ public class QueueOperations extends Command {
             Report.updateTestLog(Action, "Error in sending message: " + "\n" + ex.getMessage(), Status.DEBUG);
         }
     }
-
+    
     @Action(object = ObjectType.QUEUE, desc = "Receive Message based on Filter", input = InputType.YES, condition = InputType.YES)
     public void receiveMessageWithFilter() {
         try {
@@ -165,7 +231,18 @@ public class QueueOperations extends Command {
             Report.updateTestLog(Action, "Error in receiving message: " + "\n" + ex.getMessage(), Status.DEBUG);
         }
     }
-
+    
+    @Action(object = ObjectType.QUEUE, desc = "Close the connection", input = InputType.NO, condition = InputType.NO)
+    public void closeContext() {
+        try {
+            jmsContext.get(key).close();
+            Report.updateTestLog(Action, "Message created and Sent", Status.DONE);
+        } catch (Exception ex) {
+            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during Message Creation", ex);
+            Report.updateTestLog(Action, "Error in sending message: " + "\n" + ex.getMessage(), Status.DEBUG);
+        }
+    }
+    
     private String handlePayloadorEndpoint(String data) throws FileNotFoundException {
         String payloadstring = data;
         payloadstring = handleDataSheetVariables(payloadstring);
@@ -173,7 +250,7 @@ public class QueueOperations extends Command {
         System.out.println("Payload :" + payloadstring);
         return payloadstring;
     }
-
+    
     private String handleDataSheetVariables(String payloadstring) {
         List<String> sheetlist = Control.getCurrentProject().getTestData().getTestDataFor(Control.exe.runEnv())
                 .getTestDataNames();
@@ -192,7 +269,7 @@ public class QueueOperations extends Command {
         }
         return payloadstring;
     }
-
+    
     private String handleuserDefinedVariables(String payloadstring) {
         Collection<Object> valuelist = Control.getCurrentProject().getProjectSettings().getUserDefinedSettings()
                 .values();
@@ -203,5 +280,188 @@ public class QueueOperations extends Command {
         }
         return payloadstring;
     }
+    
+    @Action(object = ObjectType.QUEUE, desc = "Store XML tag In DataSheet ", input = InputType.YES, condition = InputType.YES)
+    public void storeXMLtagInDataSheet() {
 
+        try {
+            String strObj = Input;
+            if (strObj.matches(".*:.*")) {
+                try {
+                    System.out.println("Updating value in SubIteration " + userData.getSubIteration());
+                    String sheetName = strObj.split(":", 2)[0];
+                    String columnName = strObj.split(":", 2)[1];
+                    String xmlText = receivedMessage.get(key);
+                    DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
+                    DocumentBuilder dBuilder;
+                    InputSource inputSource = new InputSource();
+                    inputSource.setCharacterStream(new StringReader(xmlText));
+                    dBuilder = dbFactory.newDocumentBuilder();
+                    Document doc = dBuilder.parse(inputSource);
+                    doc.getDocumentElement().normalize();
+                    XPath xPath = XPathFactory.newInstance().newXPath();
+                    String expression = Condition;
+                    NodeList nodeList = (NodeList) xPath.compile(expression).evaluate(doc, XPathConstants.NODESET);
+                    Node nNode = nodeList.item(0);
+                    String value = nNode.getNodeValue();
+                    userData.putData(sheetName, columnName, value);
+                    Report.updateTestLog(Action, "Element text [" + value + "] is stored in " + strObj, Status.DONE);
+                } catch (IOException | ParserConfigurationException | XPathExpressionException | DOMException
+                        | SAXException ex) {
+                    Logger.getLogger(this.getClass().getName()).log(Level.OFF, ex.getMessage(), ex);
+                    Report.updateTestLog(Action, "Error Storing XML element in datasheet :" + "\n" + ex.getMessage(),
+                            Status.DEBUG);
+                }
+            } else {
+                Report.updateTestLog(Action,
+                        "Given input [" + Input + "] format is invalid. It should be [sheetName:ColumnName]",
+                        Status.DEBUG);
+            }
+        } catch (Exception ex) {
+            Logger.getLogger(this.getClass().getName()).log(Level.OFF, null, ex);
+            Report.updateTestLog(Action, "Error Storing XML element in datasheet :" + "\n" + ex.getMessage(),
+                    Status.DEBUG);
+        }
+    }
+    
+    @Action(object = ObjectType.QUEUE, desc = "Assert XML Tag Equals ", input = InputType.YES, condition = InputType.YES)
+    public void assertXMLtagEquals() {
+
+        try {
+            DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
+            DocumentBuilder dBuilder;
+            InputSource inputSource = new InputSource();
+            inputSource.setCharacterStream(new StringReader(receivedMessage.get(key)));
+            dBuilder = dbFactory.newDocumentBuilder();
+            Document doc = dBuilder.parse(inputSource);
+            doc.getDocumentElement().normalize();
+            XPath xPath = XPathFactory.newInstance().newXPath();
+            String expression = Condition;
+            NodeList nodeList = (NodeList) xPath.compile(expression).evaluate(doc, XPathConstants.NODESET);
+            Node nNode = nodeList.item(0);
+            String value = nNode.getNodeValue();
+            if (value.equals(Data)) {
+                Report.updateTestLog(Action, "Element text [" + value + "] is as expected", Status.PASSNS);
+            } else {
+                Report.updateTestLog(Action, "Element text [" + value + "] is not as expected", Status.FAILNS);
+            }
+        } catch (IOException | ParserConfigurationException | XPathExpressionException | DOMException
+                | SAXException ex) {
+            Logger.getLogger(this.getClass().getName()).log(Level.OFF, null, ex);
+            Report.updateTestLog(Action, "Error validating XML element :" + "\n" + ex.getMessage(), Status.DEBUG);
+        }
+    }
+
+    @Action(object = ObjectType.QUEUE, desc = "Assert XML Tag Contains ", input = InputType.YES, condition = InputType.YES)
+    public void assertXMLtagContains() {
+
+        try {
+            DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
+            DocumentBuilder dBuilder;
+            InputSource inputSource = new InputSource();
+            inputSource.setCharacterStream(new StringReader(receivedMessage.get(key)));
+            dBuilder = dbFactory.newDocumentBuilder();
+            Document doc = dBuilder.parse(inputSource);
+            doc.getDocumentElement().normalize();
+            XPath xPath = XPathFactory.newInstance().newXPath();
+            String expression = Condition;
+            NodeList nodeList = (NodeList) xPath.compile(expression).evaluate(doc, XPathConstants.NODESET);
+            Node nNode = nodeList.item(0);
+            String value = nNode.getNodeValue();
+            if (value.contains(Data)) {
+                Report.updateTestLog(Action, "Element text contains [" + Data + "] is as expected", Status.PASSNS);
+            } else {
+                Report.updateTestLog(Action, "Element text [" + value + "] does not contain [" + Data + "]",
+                        Status.FAILNS);
+            }
+        } catch (IOException | ParserConfigurationException | XPathExpressionException | DOMException
+                | SAXException ex) {
+            Logger.getLogger(this.getClass().getName()).log(Level.OFF, null, ex);
+            Report.updateTestLog(Action, "Error validating XML element :" + "\n" + ex.getMessage(), Status.DEBUG);
+        }
+    }
+    
+     @Action(object = ObjectType.QUEUE, desc = "Assert Response Message contains ", input = InputType.YES)
+    public void assertResponseMessageContains() {
+        try {
+            if (receivedMessage.get(key).contains(Data)) {
+                Report.updateTestLog(Action, "Response Message contains : " + Data, Status.PASSNS);
+            } else {
+                Report.updateTestLog(Action, "Response Message does not contain : " + Data, Status.FAILNS);
+            }
+        } catch (Exception ex) {
+            Logger.getLogger(this.getClass().getName()).log(Level.OFF, null, ex);
+            Report.updateTestLog(Action, "Error in validating response body :" + "\n" + ex.getMessage(), Status.DEBUG);
+        }
+    }
+
+    @Action(object = ObjectType.QUEUE, desc = "Assert JSON Tag Equals ", input = InputType.YES, condition = InputType.YES)
+    public void assertJSONtagEquals() {
+        try {
+            String response = receivedMessage.get(key);
+            String jsonpath = Condition;
+            String value = JsonPath.read(response, jsonpath).toString();
+            if (value.equals(Data)) {
+                Report.updateTestLog(Action, "Element text [" + value + "] is as expected", Status.PASSNS);
+            } else {
+                Report.updateTestLog(Action, "Element text is [" + value + "] but is expected to be [" + Data + "]",
+                        Status.FAILNS);
+            }
+        } catch (Exception ex) {
+            Logger.getLogger(this.getClass().getName()).log(Level.OFF, null, ex);
+            Report.updateTestLog(Action, "Error in validating JSON element :" + "\n" + ex.getMessage(), Status.DEBUG);
+        }
+    }
+
+    @Action(object = ObjectType.QUEUE, desc = "Assert JSON Tag Contains ", input = InputType.YES, condition = InputType.YES)
+    public void assertJSONtagContains() {
+        try {
+            String response = receivedMessage.get(key);
+            String jsonpath = Condition;
+            String value = JsonPath.read(response, jsonpath).toString();
+            if (value.contains(Data)) {
+                Report.updateTestLog(Action, "Element text contains [" + Data + "] is as expected", Status.PASSNS);
+            } else {
+                Report.updateTestLog(Action, "Element text [" + value + "] does not contain [" + Data + "]",
+                        Status.FAILNS);
+            }
+        } catch (Exception ex) {
+            Logger.getLogger(this.getClass().getName()).log(Level.OFF, null, ex);
+            Report.updateTestLog(Action, "Error in validating JSON element :" + "\n" + ex.getMessage(), Status.DEBUG);
+        }
+    }
+
+    @Action(object = ObjectType.QUEUE, desc = "Store JSON Tag In DataSheet ", input = InputType.YES, condition = InputType.YES)
+    public void storeJSONtagInDataSheet() {
+
+        try {
+            String strObj = Input;
+            if (strObj.matches(".*:.*")) {
+                try {
+                    System.out.println("Updating value in SubIteration " + userData.getSubIteration());
+                    String sheetName = strObj.split(":", 2)[0];
+                    String columnName = strObj.split(":", 2)[1];
+                    String response = receivedMessage.get(key);
+                    String jsonpath = Condition;
+                    String value = JsonPath.read(response, jsonpath).toString();
+                    userData.putData(sheetName, columnName, value);
+                    Report.updateTestLog(Action, "Element text [" + value + "] is stored in " + strObj, Status.DONE);
+                } catch (Exception ex) {
+                    Logger.getLogger(this.getClass().getName()).log(Level.OFF, ex.getMessage(), ex);
+                    Report.updateTestLog(Action, "Error Storing JSON element in datasheet :" + "\n" + ex.getMessage(),
+                            Status.DEBUG);
+                }
+            } else {
+                Report.updateTestLog(Action,
+                        "Given input [" + Input + "] format is invalid. It should be [sheetName:ColumnName]",
+                        Status.DEBUG);
+            }
+        } catch (Exception ex) {
+            Logger.getLogger(this.getClass().getName()).log(Level.OFF, null, ex);
+            Report.updateTestLog(Action, "Error Storing JSON element in datasheet :" + "\n" + ex.getMessage(),
+                    Status.DEBUG);
+        }
+    }
+
+    
 }

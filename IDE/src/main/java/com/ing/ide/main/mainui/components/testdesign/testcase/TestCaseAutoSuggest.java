@@ -511,10 +511,12 @@ public class TestCaseAutoSuggest {
         Timer showTimerd;
         Timer showTimerw;
         Timer showTimerf;
+        Timer showTimerm;
         Timer disposeTimerp;
         Timer disposeTimerd;
         Timer disposeTimerw;
         Timer disposeTimerf;
+        Timer disposeTimerm;
         JPopupMenu popupp;
         JPopupMenu popupd;
         JPopupMenu popupw;
@@ -669,6 +671,28 @@ public class TestCaseAutoSuggest {
             disposeTimerf.setRepeats(false);
             disposeTimerf.setCoalesce(true);
             
+            //Timer m
+            showTimerm = new Timer(1000, (ActionEvent ae) -> {
+                if (hintCell != null) {
+                    disposeTimerm.stop();
+                    popupm.setVisible(false);
+
+                    Rectangle bounds = table.getCellRect(hintCell.y, hintCell.x, true);
+                    int x = bounds.x;
+                    int y = bounds.y + bounds.height;
+                    popupm.show(table, x, y);
+                    disposeTimerm.start();
+                }
+            });
+            showTimerm.setRepeats(false);
+            showTimerm.setCoalesce(true);
+
+            disposeTimerm = new Timer(2000, (ActionEvent ae) -> {
+                popupm.setVisible(false);
+            });
+            disposeTimerm.setRepeats(false);
+            disposeTimerm.setCoalesce(true);
+            
 
         }
 
@@ -720,7 +744,7 @@ public class TestCaseAutoSuggest {
                 else if ((isMessageStep(step) && col == Input.getIndex())) {
                     if (hintCell == null || (hintCell.x != col || hintCell.y != row)) {
                         hintCell = new Point(col, row);
-                        showTimerw.restart();
+                        showTimerm.restart();
                     }
                     
                 }else {

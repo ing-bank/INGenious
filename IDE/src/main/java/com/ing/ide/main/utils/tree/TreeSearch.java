@@ -4,8 +4,10 @@ package com.ing.ide.main.utils.tree;
 import com.ing.datalib.or.common.ORObjectInf;
 import com.ing.ide.main.utils.Utils;
 import java.awt.BorderLayout;
+import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
 import javax.swing.AbstractAction;
 import static javax.swing.Action.ACTION_COMMAND_KEY;
 import javax.swing.BorderFactory;
@@ -151,7 +153,9 @@ public class TreeSearch extends JPanel implements ActionListener {
 
     private void addTreeListener() {
 
-        tree.getInputMap(JComponent.WHEN_FOCUSED).put(KeyStroke.getKeyStroke("ctrl F"), "Search");
+        int menuShortcutKeyMask = Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx();
+        tree.getInputMap(JComponent.WHEN_FOCUSED).put(KeyStroke.getKeyStroke(KeyEvent.VK_F, menuShortcutKeyMask), "Search");
+        //tree.getInputMap(JComponent.WHEN_FOCUSED).put(KeyStroke.getKeyStroke("ctrl F"), "Search");
 
         tree.getActionMap().put("Search", new AbstractAction() {
 

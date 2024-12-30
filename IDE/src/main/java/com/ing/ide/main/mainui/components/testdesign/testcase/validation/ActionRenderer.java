@@ -40,6 +40,8 @@ public class ActionRenderer extends AbstractRenderer {
                 setWebserviceStop(comp);
             } else if ((step.isWebserviceRequestStep())) {
                 setWebserviceRequest(comp);
+            } else if ((step.isSendMessageStep())) {
+                setSendMessage(comp);
             } else if ((step.getObject().equals("Execute"))) {
                 setReusable(comp);
             } else if (isActionValid(step, value)) {

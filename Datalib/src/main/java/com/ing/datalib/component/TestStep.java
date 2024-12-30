@@ -314,6 +314,10 @@ public class TestStep {
     public Boolean isMessageStep() {
         return getObject().equals("Queue") || getObject().equals("Kafka");
     }
+    
+    public Boolean isSendMessageStep() {
+        return (getObject().equals("Queue") && getAction().contains("sendMessage")) || (getObject().equals("Kafka") && getAction().contains("produceMessage"));
+    }
 
     public Boolean isWebserviceRequestStep() {
         String requests[] = new String[]{"get", "delete", "post", "put", "patch"};
