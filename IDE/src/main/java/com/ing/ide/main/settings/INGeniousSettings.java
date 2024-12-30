@@ -14,8 +14,10 @@ import com.ing.ide.main.utils.table.XTablePanel;
 import com.ing.ide.settings.IconSettings;
 import com.ing.ide.util.Notification;
 import com.ing.ide.util.Utility;
+import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ItemEvent;
+import java.awt.event.KeyEvent;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -28,10 +30,13 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.swing.AbstractAction;
 import javax.swing.AbstractButton;
 import javax.swing.ButtonGroup;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.ImageIcon;
+import javax.swing.JTextField;
+import javax.swing.KeyStroke;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.UIManager;
 
@@ -189,8 +194,10 @@ public class INGeniousSettings extends javax.swing.JFrame {
 
     private void loadRunSettings() {
         executionTimeOut.setText(execSettings.getRunSettings().getExecutionTimeOut() + "");
+        alterDefaultKeyBindings(executionTimeOut);
         threadCount.setValue(execSettings.getRunSettings().getThreadCount());
         remoteGridURL.setText(execSettings.getRunSettings().getRemoteGridURL());
+        alterDefaultKeyBindings(remoteGridURL);
         String iterMode = execSettings.getRunSettings().getIterationMode();
         setButtonModelFromText(iterMode, iModeBgroup);
         String execMode = execSettings.getRunSettings().getExecutionMode();
@@ -220,6 +227,30 @@ public class INGeniousSettings extends javax.swing.JFrame {
          */
         testEnv.setModel(new DefaultComboBoxModel(getEnvList()));
         testEnv.setSelectedItem(execSettings.getRunSettings().getTestEnv());
+    }
+    
+    private void alterDefaultKeyBindings(JTextField textField) {
+        // Customize key bindings
+        int menuShortcutKeyMask = Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx();
+
+        // Remove default Ctrl key bindings
+        textField.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_X, menuShortcutKeyMask), "none");
+        textField.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_C, menuShortcutKeyMask), "none");
+        textField.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_V, menuShortcutKeyMask), "none");
+        textField.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_A, menuShortcutKeyMask), "none");
+
+        // Add Cmd key bindings
+        textField.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_X, menuShortcutKeyMask), "cut");
+        textField.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_C, menuShortcutKeyMask), "copy");
+        textField.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_V, menuShortcutKeyMask), "paste");
+        textField.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_A, menuShortcutKeyMask), "selectAll");
+        textField.getActionMap().put("selectAll", new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                textField.selectAll();
+            }
+        });
+
     }
 
     private Object[] getEnvList() {

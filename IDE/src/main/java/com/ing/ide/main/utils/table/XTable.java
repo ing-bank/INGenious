@@ -39,7 +39,6 @@ import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableColumn;
 import javax.swing.table.TableModel;
-import javax.swing.text.DefaultEditorKit;
 
 public class XTable extends JTable {
 

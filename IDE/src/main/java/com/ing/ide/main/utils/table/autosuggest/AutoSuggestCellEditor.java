@@ -11,6 +11,7 @@ public class AutoSuggestCellEditor extends DefaultCellEditor {
         super(jcb);
         autosugg = jcb;
         setClickCountToStart(2);
+        
     }
 
     @Override

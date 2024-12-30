@@ -1,9 +1,10 @@
-
 package com.ing.ide.main.utils.table.autosuggest;
 
 import java.awt.Color;
 import java.awt.Graphics2D;
 import java.awt.Insets;
+import java.awt.Toolkit;
+import java.awt.event.ActionEvent;
 import java.awt.event.FocusAdapter;
 import java.awt.event.FocusEvent;
 import java.awt.event.KeyAdapter;
@@ -11,6 +12,7 @@ import java.awt.event.KeyEvent;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.BorderFactory;
 import javax.swing.ComboBoxModel;
@@ -19,13 +21,14 @@ import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JTextField;
+import javax.swing.KeyStroke;
 import javax.swing.Painter;
 import javax.swing.SwingUtilities;
 import javax.swing.UIDefaults;
 
 /**
  *
- * 
+ *
  */
 public class AutoSuggest extends JComboBox<String> {
 
@@ -42,6 +45,9 @@ public class AutoSuggest extends JComboBox<String> {
     public AutoSuggest() {
         setEditable(true);
         textField = (JTextField) getEditor().getEditorComponent();
+
+        alterDefaultKeyBindings();
+
         textField.setText("");
         handler = new AutoSuggestKeyHandler();
         textField.addKeyListener(handler);
@@ -137,12 +143,12 @@ public class AutoSuggest extends JComboBox<String> {
     }
 
     public void reset() {
-        Object old=getSelectedItem();
+        Object old = getSelectedItem();
         String val = Objects.toString(old, "");
         if (val.isEmpty()) {
             val = textField.getText();
         }
-        removeAllItems();        
+        removeAllItems();
         setSelectedItem(old);
         beforeSearch(val);
         for (String item : searchList) {
@@ -226,7 +232,7 @@ public class AutoSuggest extends JComboBox<String> {
         }
 
         @Override
-        public void keyPressed(KeyEvent e) {            
+        public void keyPressed(KeyEvent e) {
             shouldHide = false;
             switch (e.getKeyCode()) {
                 case KeyEvent.VK_ENTER:
@@ -262,5 +268,29 @@ public class AutoSuggest extends JComboBox<String> {
             m = new DefaultComboBoxModel<>(searchList.toArray(new String[searchList.size()]));
         }
         return m;
+    }
+
+    private void alterDefaultKeyBindings() {
+        // Customize key bindings
+        int menuShortcutKeyMask = Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx();
+
+        // Remove default Ctrl key bindings
+        textField.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_X, menuShortcutKeyMask), "none");
+        textField.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_C, menuShortcutKeyMask), "none");
+        textField.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_V, menuShortcutKeyMask), "none");
+        textField.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_A, menuShortcutKeyMask), "none");
+
+        // Add Cmd key bindings
+        textField.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_X, menuShortcutKeyMask), "cut");
+        textField.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_C, menuShortcutKeyMask), "copy");
+        textField.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_V, menuShortcutKeyMask), "paste");
+        textField.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_A, menuShortcutKeyMask), "selectAll");
+        textField.getActionMap().put("selectAll", new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                textField.selectAll();
+            }
+        });
+
     }
 }
