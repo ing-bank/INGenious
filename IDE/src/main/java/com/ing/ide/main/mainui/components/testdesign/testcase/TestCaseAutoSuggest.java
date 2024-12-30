@@ -210,21 +210,19 @@ public class TestCaseAutoSuggest {
 
     class ConditionAutoSuggest extends AutoSuggest {
         private List<String> getConditionBasedOnText(String value) {
-            if (value.startsWith("#")) {
-                return getContextAliasList();
-            }
-            return null;
+            return getContextAliasList();
         }
-
+ 
         @Override
         public void beforeSearch(String text) {
             if (text.isEmpty()) {
                 setSearchList(getConditionList());
             } else {
-                setSearchList(getConditionBasedOnText(text));
+                if (text.startsWith("#")) {
+                    setSearchList(getConditionBasedOnText(text));
+                }
             }
         }
-
         private List<String> getConditionList() {
             List<String> conditionList = new ArrayList<>();
             conditionList.add("Start Param");
