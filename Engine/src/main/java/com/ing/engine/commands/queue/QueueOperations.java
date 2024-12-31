@@ -6,7 +6,6 @@ import com.ing.engine.commands.browser.Command;
 import static com.ing.engine.commands.browser.Command.after;
 import static com.ing.engine.commands.browser.Command.before;
 import static com.ing.engine.commands.browser.Command.duration;
-import static com.ing.engine.commands.browser.Command.responsebodies;
 import com.ing.engine.core.CommandControl;
 import com.ing.engine.core.Control;
 import com.ing.engine.support.Status;

@@ -18,12 +18,17 @@ import com.ing.ide.main.ui.Options;
 import com.ing.ide.main.utils.CMProjectCreator;
 import com.ing.ide.main.utils.Utils;
 import com.ing.ide.util.logging.UILogger;
+import java.awt.Color;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
 import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.swing.JToggleButton;
+import java.util.Timer;
+import java.util.TimerTask;
+import javax.swing.UIManager;
 
 public class AppActionListener implements ActionListener {
 
@@ -50,9 +55,15 @@ public class AppActionListener implements ActionListener {
     private final ImportTestData importTestData;
     
     public final PlaywrightRecordingParser playwrightRecordingParser;
+    
+    private final AppToolBar appToolBar;
+    
+    private Timer autoSaveTimer;
+    
 
-    public AppActionListener(AppMainFrame sMainFrame) throws IOException {
+    public AppActionListener(AppMainFrame sMainFrame, AppToolBar appToolBar) throws IOException {
         this.sMainFrame = sMainFrame;
+        this.appToolBar = appToolBar;
         nProject = new NewProject(sMainFrame);
         cogITSSettings = new INGeniousSettings(sMainFrame);
         driverSettings = new DriverSettings(sMainFrame);
@@ -64,6 +75,7 @@ public class AppActionListener implements ActionListener {
         injectScript = new InjectScript();
         importTestData = new ImportTestData(sMainFrame);
         playwrightRecordingParser=new PlaywrightRecordingParser(sMainFrame);
+
     }
 
     @Override
@@ -84,12 +96,18 @@ public class AppActionListener implements ActionListener {
             case "Quit":
                 sMainFrame.quit();
                 break;
-//            case "Object Spy":
-//                sMainFrame.getSpyHealReco().showObjectSpy();
-//                break;
-//            case "Object Heal":
-//                sMainFrame.getSpyHealReco().showObjectHeal();
-//                break;
+            case "Auto Save":
+                JToggleButton toggleSwitch = appToolBar.getToggleSwitch();
+                if (toggleSwitch.isSelected()) {
+                    toggleSwitch.setText("ON");
+                    toggleSwitch.setBackground(Color.decode("#349651"));
+                    startAutoSave();
+                } else {
+                    toggleSwitch.setText("OFF");
+                    toggleSwitch.setBackground(UIManager.getColor("text"));
+                    stopAutoSave();
+                }
+                break;    
             case "Recorder":
             {
                 try {
@@ -212,6 +230,22 @@ public class AppActionListener implements ActionListener {
                 System.out.println(ae.getActionCommand());
                 sMainFrame.getLoader().showIDontCare();
 
+        }
+    }
+    
+    private void startAutoSave() {
+        autoSaveTimer = new Timer();
+        autoSaveTimer.schedule(new TimerTask() {
+            @Override
+            public void run() {
+                sMainFrame.autoSave();
+            }
+        }, 0, 60000); // Save every 60 seconds
+    }
+
+    private void stopAutoSave() {
+        if (autoSaveTimer != null) {
+            autoSaveTimer.cancel();
         }
     }
 

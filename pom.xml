@@ -57,6 +57,8 @@
         <appium.version>LATEST</appium.version>
         <javafaker.version>LATEST</javafaker.version>
         <kafka-clients.version>LATEST</kafka-clients.version>
+        <avro.version>LATEST</avro.version>
+        <kafka-avro-serializer.version>LATEST</kafka-avro-serializer.version>
         <ibmmq.version>LATEST</ibmmq.version>
         <mac.version>mac-aarch64</mac.version>	
 	<setupDir>../Dist/release</setupDir>

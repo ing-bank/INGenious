@@ -25,6 +25,7 @@ import java.util.Stack;
 import com.ing.engine.drivers.WebDriverCreation;
 import com.ing.engine.drivers.MobileObject;
 import java.io.File;
+import java.util.List;
 import java.util.Properties;
 import javax.jms.Destination;
 import javax.jms.JMSConsumer;
@@ -33,6 +34,7 @@ import javax.jms.JMSProducer;
 import javax.jms.TextMessage;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
+import org.apache.kafka.common.header.Header;
 
 public class Command {
 
@@ -132,8 +134,17 @@ public class Command {
      * *** Queue ****
      */
     
-    static public Map<String, String> kafkaHeaderKey = new HashMap<>();
-    static public Map<String, String> kafkaHeaderValue = new HashMap<>();
+    static public Map<String, List<Header>> kafkaHeaders = new HashMap<>();
+    static public Map<String, String> kafkaTopic = new HashMap<>();
+    static public Map<String, String> kafkaServers = new HashMap<>();
+    static public Map<String, String> kafkaSchemaRegistryURL = new HashMap<>();
+    static public Map<String, Integer> kafkaPartition = new HashMap<>();
+    static public Map<String, Long> kafkaTimeStamp = new HashMap<>();
+    static public Map<String, String> kafkaKey = new HashMap<>();
+    static public Map<String, String> kafkaKeySerializer = new HashMap<>();
+    static public Map<String, String> kafkaValue = new HashMap<>();
+    static public Map<String, String> kafkaValueSerializer = new HashMap<>();
+    
     
     /**
      * **********

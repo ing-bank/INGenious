@@ -7,6 +7,7 @@ import com.ing.engine.support.Status;
 import com.ing.engine.support.methodInf.Action;
 import com.ing.engine.support.methodInf.InputType;
 import com.ing.engine.support.methodInf.ObjectType;
+import io.confluent.kafka.serializers.KafkaAvroSerializer;
 
 import java.time.Duration;
 import java.util.*;
@@ -14,6 +15,9 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.io.File;
 import java.io.IOException;
+import org.apache.avro.Schema;
+import org.apache.avro.generic.GenericData;
+import org.apache.avro.generic.GenericRecord;
 
 import org.apache.kafka.clients.consumer.*;
 import org.apache.kafka.clients.producer.KafkaProducer;
@@ -23,45 +27,147 @@ import org.apache.kafka.clients.producer.ProducerRecord;
 import org.apache.kafka.common.TopicPartition;
 import org.apache.kafka.common.header.Header;
 import org.apache.kafka.common.header.internals.RecordHeader;
+import org.apache.kafka.common.serialization.ByteArraySerializer;
 import org.apache.kafka.common.serialization.StringDeserializer;
 import org.apache.kafka.common.serialization.StringSerializer;
 
 public class KafkaOperations extends General {
-
+    
     public KafkaOperations(CommandControl cc) {
         super(cc);
     }
-    private static KafkaConsumer<String, String> consumer;
-    private static Producer<String, Object> unencryptedProducer;
-    private String headerKey;
-    private String headerValue;
-
-    @Action(object = ObjectType.KAFKA, desc = "Add Kafka Header", input = InputType.YES, condition = InputType.OPTIONAL)
+    
+    private static final Map<String, String> serializerMap = new HashMap<>();
+    
+    static {
+        serializerMap.put("string", StringSerializer.class.getName());
+        serializerMap.put("json", StringSerializer.class.getName());
+        serializerMap.put("bytearray", ByteArraySerializer.class.getName());
+        serializerMap.put("avro", KafkaAvroSerializer.class.getName());
+    }
+    
+    @Action(object = ObjectType.KAFKA, desc = "Add Kafka Header", input = InputType.YES)
     public void addKafkaHeader() {
         try {
-
-            String strObj = Data;
-            if (strObj.matches(".*;.*")) {
-                String[] parts = strObj.split(";", 3); // Split into key and value, allowing colons in value
-                kafkaHeaderKey.put(key, parts[0]);
-                String headerValue1 = parts[1];
-                String headerValue2 = parts[2];
-                String headerValue = headerValue1 + ":" + headerValue2;
-                kafkaHeaderValue.put(key, headerValue);
-                Report.updateTestLog(Action, "Kafka Header has been added. ", Status.DONE);
-
-            } else {
-                System.out.println("Invalid input format. It should be key:value");
-                Report.updateTestLog(Action, "Invalid input format. It should be key:value" + "\n",
-                        Status.FAILNS);
+            
+            List<String> sheetlist = Control.getCurrentProject().getTestData().getTestDataFor(Control.exe.runEnv())
+                    .getTestDataNames();
+            for (int sheet = 0; sheet < sheetlist.size(); sheet++) {
+                if (Data.contains("{" + sheetlist.get(sheet) + ":")) {
+                    com.ing.datalib.testdata.model.TestDataModel tdModel = Control.getCurrentProject().getTestData()
+                            .getTestDataByName(sheetlist.get(sheet));
+                    List<String> columns = tdModel.getColumns();
+                    for (int col = 0; col < columns.size(); col++) {
+                        if (Data.contains("{" + sheetlist.get(sheet) + ":" + columns.get(col) + "}")) {
+                            Data = Data.replace("{" + sheetlist.get(sheet) + ":" + columns.get(col) + "}",
+                                    userData.getData(sheetlist.get(sheet), columns.get(col)));
+                        }
+                    }
+                }
             }
+            
+            Collection<Object> valuelist = Control.getCurrentProject().getProjectSettings().getUserDefinedSettings()
+                    .values();
+            for (Object prop : valuelist) {
+                if (Data.contains("{" + prop + "}")) {
+                    Data = Data.replace("{" + prop + "}", prop.toString());
+                }
+            }
+            String headerKey = Data.split("=", 2)[0];
+            String headerValue = Data.split("=", 2)[1];
+            
+            if (kafkaHeaders.containsKey(key)) {
+                kafkaHeaders.get(key).add(new RecordHeader(headerKey, headerValue.getBytes()));
+            } else {
+                ArrayList<Header> toBeAdded = new ArrayList<Header>();
+                toBeAdded.add(new RecordHeader(headerKey, headerValue.getBytes()));
+                kafkaHeaders.put(key, toBeAdded);
+            }
+            
+            Report.updateTestLog(Action, "Header added " + Data, Status.DONE);
         } catch (Exception ex) {
-            Report.updateTestLog(Action, "Something went wrong in storing the UUID" + "\n" + ex.getMessage(),
-                    Status.FAILNS);
-            ex.printStackTrace();
+            Logger.getLogger(this.getClass().getName()).log(Level.OFF, null, ex);
+            Report.updateTestLog(Action, "Error adding Header :" + "\n" + ex.getMessage(), Status.DEBUG);
         }
     }
-
+    
+    @Action(object = ObjectType.QUEUE, desc = "Set Topic", input = InputType.YES, condition = InputType.NO)
+    public void setTopic() {
+        try {
+            kafkaTopic.put(key, Data);
+            Report.updateTestLog(Action, "Topic has been set successfully", Status.DONE);
+        } catch (Exception ex) {
+            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during Topic setup", ex);
+            Report.updateTestLog(Action, "Error in setting Topic: " + "\n" + ex.getMessage(), Status.DEBUG);
+        }
+    }
+    
+    @Action(object = ObjectType.QUEUE, desc = "Set Bootstrap Servers", input = InputType.YES, condition = InputType.NO)
+    public void setBootstrapServers() {
+        try {
+            kafkaServers.put(key, Data);
+            Report.updateTestLog(Action, "Bootstrap Servers have been set successfully", Status.DONE);
+        } catch (Exception ex) {
+            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during Bootstrap Servers setup", ex);
+            Report.updateTestLog(Action, "Error in setting Bootstrap Servers: " + "\n" + ex.getMessage(), Status.DEBUG);
+        }
+    }
+    
+    @Action(object = ObjectType.QUEUE, desc = "Set Schema Registry URL", input = InputType.YES, condition = InputType.NO)
+    public void setSchemaRegistryURL() {
+        try {
+            kafkaSchemaRegistryURL.put(key, Data);
+            Report.updateTestLog(Action, "Schema Registry URL has been set successfully", Status.DONE);
+        } catch (Exception ex) {
+            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during Schema Registry URL setup", ex);
+            Report.updateTestLog(Action, "Error in setting Schema Registry URL: " + "\n" + ex.getMessage(), Status.DEBUG);
+        }
+    }
+    
+    @Action(object = ObjectType.QUEUE, desc = "Set Key", input = InputType.YES, condition = InputType.NO)
+    public void setKey() {
+        try {
+            kafkaKey.put(key, Data);
+            Report.updateTestLog(Action, "Key has been set successfully", Status.DONE);
+        } catch (Exception ex) {
+            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during Key setup", ex);
+            Report.updateTestLog(Action, "Error in setting Key: " + "\n" + ex.getMessage(), Status.DEBUG);
+        }
+    }
+    
+    @Action(object = ObjectType.QUEUE, desc = "Set Partition", input = InputType.YES, condition = InputType.NO)
+    public void setPartition() {
+        try {
+            kafkaPartition.put(key, Integer.parseInt(Data));
+            Report.updateTestLog(Action, "Partition has been set successfully", Status.DONE);
+        } catch (NumberFormatException ex) {
+            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during Partition setup", ex);
+            Report.updateTestLog(Action, "Error in setting Partition: " + "\n" + ex.getMessage(), Status.DEBUG);
+        }
+    }
+    
+    @Action(object = ObjectType.QUEUE, desc = "Set TimeStamp", input = InputType.NO, condition = InputType.NO)
+    public void setTimeStamp() {
+        try {
+            kafkaTimeStamp.put(key, System.currentTimeMillis());
+            Report.updateTestLog(Action, "Time Stamp has been set successfully", Status.DONE);
+        } catch (NumberFormatException ex) {
+            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during Time Stamp setup", ex);
+            Report.updateTestLog(Action, "Error in setting Time Stamp: " + "\n" + ex.getMessage(), Status.DEBUG);
+        }
+    }
+    
+    @Action(object = ObjectType.QUEUE, desc = "Set Key Serializer", input = InputType.YES, condition = InputType.NO)
+    public void setKeySerializer() {
+        try {
+            kafkaKeySerializer.put(key, Data);
+            Report.updateTestLog(Action, "Key Serializer has been set successfully", Status.DONE);
+        } catch (Exception ex) {
+            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during Key Serializer setup", ex);
+            Report.updateTestLog(Action, "Error in setting Key Serializer: " + "\n" + ex.getMessage(), Status.DEBUG);
+        }
+    }
+    
     public static synchronized KafkaConsumer<String, Object> createConsumer(String serverConfig, String schemaRegistryUrl, String groupId) {
         Properties props = new Properties();
         props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, serverConfig);
@@ -73,7 +179,7 @@ public class KafkaOperations extends General {
         props.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
         return new KafkaConsumer<>(props);
     }
-
+    
     @Action(object = ObjectType.KAFKA, desc = "Consume Kafka Message", input = InputType.YES, condition = InputType.YES)
     public void consumeKafkaMessage() {
         String serverConfig = getVar("%serverConfig%");
@@ -88,9 +194,9 @@ public class KafkaOperations extends General {
 
             // Get the current offset for a specific partition
             Set<TopicPartition> assignedPartitions = consumer.assignment();
-
+            
             for (TopicPartition partition : assignedPartitions) {
-
+                
                 long currentOffset = consumer.position(partition);
                 System.out.println("Current Offset for Partition " + partition.partition() + ": " + currentOffset);
                 Report.updateTestLog("consumeKafkaMessage", "Current Offset for Partition " + partition.partition() + ": " + currentOffset, Status.DONE);
@@ -154,7 +260,7 @@ public class KafkaOperations extends General {
     private ConsumerRecord<String, Object> pollKafkaMessage(KafkaConsumer<String, Object> consumer) {
         int maxRetries = 20; // Maximum number of retries
         int attempt = 0;
-
+        
         while (attempt < maxRetries) {
             // Poll Kafka for a message with a timeout of 1000ms (1 second)
             ConsumerRecords<String, Object> records = consumer.poll(Duration.ofMillis(1000));
@@ -164,14 +270,14 @@ public class KafkaOperations extends General {
                 // Return the first record from the poll
                 return records.iterator().next();
             }
-
+            
             attempt++; // Increment the retry count
         }
 
         // If we exhaust all retries, return null
         return null;
     }
-
+    
     @Action(object = ObjectType.KAFKA, desc = "Validate Consumed Kafka Message Is Null/Empty", input = InputType.NO, condition = InputType.YES)
     public void validateKafkaMessageIsNullOrEmpty() {
         String serverConfig = getVar("%serverConfig%");
@@ -201,7 +307,7 @@ public class KafkaOperations extends General {
             consumer.close(); // Close the consumer after processing
         }
     }
-
+    
     @Action(object = ObjectType.KAFKA, desc = "Store Current Kafka Offset in Datasheet", input = InputType.YES, condition = InputType.YES)
     public void storeKafkaOffset() {
         String serverConfig = getVar("%serverConfig%");
@@ -228,14 +334,14 @@ public class KafkaOperations extends General {
                     Report.updateTestLog(Action, "Offset [" + currentOffset + "] is stored in " + Input, Status.DONE);
                 }
             }
-
+            
             consumer.close();
         } catch (Exception ex) {
             Logger.getLogger(this.getClass().getName()).log(Level.OFF, null, ex);
             Report.updateTestLog(Action, "Error in storing Kafka offset: " + ex.getMessage(), Status.FAIL);
         }
     }
-
+    
     @Action(object = ObjectType.KAFKA, desc = "Validate if Kafka Offset has Incremented by 1", input = InputType.NO)
     public void validateOffsetIncrement() {
         String serverConfig = getVar("%serverConfig%");
@@ -248,7 +354,7 @@ public class KafkaOperations extends General {
         try {
             // Poll Kafka for messages (with a timeout of 5 seconds)
             ConsumerRecord<String, Object> record = pollKafkaMessage(consumer);
-
+            
             long storedOffset = Long.parseLong(storedOffsetStr);
 
             // Get current offset for assigned partitions
@@ -265,39 +371,31 @@ public class KafkaOperations extends General {
                     Report.updateTestLog(Action, "Offset not incremented as expected: Stored [" + storedOffset + "], Current [" + currentOffset + "]", Status.FAIL);
                 }
             }
-
+            
             consumer.close();
         } catch (Exception ex) {
             Logger.getLogger(this.getClass().getName()).log(Level.OFF, null, ex);
             Report.updateTestLog(Action, "Error in validating Kafka offset increment: " + ex.getMessage(), Status.FAIL);
         }
     }
-
-    @Action(object = ObjectType.KAFKA, desc = "Produce and send Kafka Message", input = InputType.YES, condition = InputType.YES)
+    
+    @Action(object = ObjectType.KAFKA, desc = "Produce and send Kafka Message", input = InputType.YES, condition = InputType.NO)
     public void produceMessage() {
         try {
             //  CdmRecord record = new CdmRecord();
-            String payload = readFileToString(Data); // Read from file
-            if (payload == null || payload.isEmpty()) {
-                payload = Data; // Use Data directly if file read is empty
-            }
-            payload = processPayload(payload); // Process payload to remove new lines and replace separators
-            payload = handleDataSheetVariables(payload); // Handle data sheet variables
-            payload = handleuserDefinedVariables(payload); // Handle user-defined
+            String value = Data;
+            value = handleDataSheetVariables(value); // Handle data sheet variables
+            value = handleuserDefinedVariables(value); // Handle user-defined
             // record.setCdmPayload(Charset.forName("UTF-8").encode(payload));
 
-            // Send the message over Kafka
-            String serverConfig = getVar("%serverConfig%");
-            String schemaRegistryUrl = getVar("%schemaRegistryUrl%");
-            String topic = Condition;
-
-            List<Header> header = List.of(new RecordHeader(kafkaHeaderKey.get(key), kafkaHeaderValue.get(key).getBytes()));
-            ProducerRecord<String, Object> producedRecord = new ProducerRecord<>(
-                    topic, null, "", "", header);
-            createUnencryptedProducer(serverConfig, schemaRegistryUrl).send(producedRecord);
-
+            GenericRecord avroValue = null;
+            String stringValue = null;
+            byte[] byteArrayValue = null;
+            
+            sendMessage(byteArrayValue);
+            
             Report.updateTestLog(Action, "Message has been Produced. ", Status.DONE);
-
+            
         } catch (Exception ex) {
             Logger.getLogger(this.getClass().getName()).log(Level.OFF, null, ex);
             Report.updateTestLog(Action, "Something went wrong in producing the message" + "\n" + ex.getMessage(),
@@ -305,58 +403,65 @@ public class KafkaOperations extends General {
             ex.printStackTrace();
         }
     }
-
-    public static synchronized Producer<String, Object> createUnencryptedProducer(String serverConfig, String schemaRegistryUrl) {
-        if (unencryptedProducer != null) {
-            return unencryptedProducer;
-        }
+    
+    private <T> void sendMessage(T value) {
+        KafkaProducer<String, T> producer = new KafkaProducer<>(configureProducerProperties(kafkaValueSerializer.get(key)));
+        ProducerRecord<String, T> record = new ProducerRecord<>(kafkaTopic.get(key), null, "", value, kafkaHeaders.get(key));
+        producer.send(record);
+        producer.close();
+    }
+    
+    private <T> Properties configureProducerProperties(String serializer) {
         Properties props = new Properties();
-        props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, serverConfig);
+        props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, kafkaServers.get(key));
+        
+        if (serializer.toLowerCase().contains("string")) {
+            props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
+        } else if (serializer.toLowerCase().contains("bytearray")) {
+            props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, ByteArraySerializer.class.getName());
+        } else if (serializer.toLowerCase().contains("avro")) {
+            props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, KafkaAvroSerializer.class.getName());
+            props.put("schema.registry.url", kafkaSchemaRegistryURL.get(key));
+        } else {
+            throw new IllegalArgumentException("Unsupported value type");
+        }
+        
         props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
-        // props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, KafkaAvroSerializer.class.getName());
-        props.put("schema.registry.url", schemaRegistryUrl);
-        unencryptedProducer = new KafkaProducer<>(props);
-        return unencryptedProducer;
+        return props;
     }
+//
+//    private Properties configureProducerProperties() {
+//        
+//        Properties props = new Properties();
+//        props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, kafkaServers.get(key));        
+//   
+//        configureSerializers(props);
+//        
+//        return props;
+//    }
+//    
+//    public void configureSerializers(Properties props) {
+//        String keySerializer = kafkaKeySerializer.get(key).toLowerCase();
+//        String valueSerializer = kafkaValueSerializer.get(key).toLowerCase();
+//
+//        serializerMap.forEach((type, serializerClass) -> {
+//            if (keySerializer.contains(type)) {
+//                props.put(ProducerConfig.KEY_SERIALIZER_CLASS_CONFIG, serializerClass);
+//            }
+//            if (valueSerializer.contains(type)) {
+//                props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, serializerClass);
+//            }
+//        });
+//    }
+//    
 
-    /**
-     * The producer will not use any encryption and will send the bytes as is to
-     * kafka topic.
-     */
     public static void closeProducer() {
-        if (unencryptedProducer != null) {
-            unencryptedProducer.flush();
-            unencryptedProducer.close();
-        }
+//        if (unencryptedProducer != null) {
+//            unencryptedProducer.flush();
+//            unencryptedProducer.close();
+//        }
     }
-
-    public static String readFileToString(String filePath) {
-        File file = new File(filePath);
-        StringBuilder data = new StringBuilder();
-        try {
-            if (file.exists()) {
-                Scanner scanner = new Scanner(file);
-                while (scanner.hasNextLine()) {
-                    data.append(
-                            scanner.nextLine()); //replaceAll("\\\\", "").replaceAll("\"", "'")).append(" ");
-                }
-                scanner.close();
-            }
-            String uuid = UUID.randomUUID().toString();
-            String result = data.toString().replace("{UUID}", uuid).replaceAll("\\s+", " ")
-                    .replaceAll("> <", "><");
-            return result.trim(); // Trim to remove any trailing space
-
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    public static String processPayload(String payload) {
-        String uuid = UUID.randomUUID().toString();
-        return payload.replace("{UUID}", uuid).replaceAll("\\s+", " ").replaceAll("> <", "><").trim();
-    }
-
+    
     private String handleDataSheetVariables(String payloadstring) {
         List<String> sheetlist = Control.getCurrentProject().getTestData().getTestDataFor(Control.exe.runEnv())
                 .getTestDataNames();
@@ -375,7 +480,7 @@ public class KafkaOperations extends General {
         }
         return payloadstring;
     }
-
+    
     private String handleuserDefinedVariables(String payloadstring) {
         Collection<Object> valuelist = Control.getCurrentProject().getProjectSettings().getUserDefinedSettings()
                 .values();
@@ -386,7 +491,7 @@ public class KafkaOperations extends General {
         }
         return payloadstring;
     }
-
+    
     @Action(object = ObjectType.KAFKA, desc = "Stores a UUID in a datasheet", input = InputType.YES)
     public void StoreUUID() {
         try {
@@ -403,10 +508,10 @@ public class KafkaOperations extends General {
             Logger.getLogger(this.getClass().getName()).log(Level.OFF, null, ex);
             Report.updateTestLog(Action, "Something went wrong in storing the UUID" + "\n" + ex.getMessage(),
                     Status.FAILNS);
-
+            
         }
     }
-
+    
     @Action(object = ObjectType.KAFKA, desc = "Stores ErrorCode in DataSheet", input = InputType.YES, condition = InputType.YES)
     public void storeErrorCodeinDataSheet() {
         String serverConfig = getVar("%serverConfig%");
@@ -418,7 +523,7 @@ public class KafkaOperations extends General {
         try {
             // Poll Kafka for messages (with a timeout of 5 seconds)
             ConsumerRecord<String, Object> record = pollKafkaMessage(consumer);
-
+            
             if (record == null || record.value() == null) {
                 Report.updateTestLog("storeErrorCodeinDataSheet", "Consumed message is null or empty.", Status.FAIL);
                 return;
@@ -433,7 +538,7 @@ public class KafkaOperations extends General {
             // GalaxyError errorCode = tradeErrorRecord.getErrorCode();
             //  String extractedErrorCode = errorCode != null ? errorCode.name() : "UNKNOWN";
             System.out.println("Extracted Error Code: " + "error");
-
+            
             Report.updateTestLog("storeErrorCodeinDataSheet", "Extracted Error Code: " + "errorcode", Status.DONE);
 
             // Store the error code in the datasheet
@@ -444,7 +549,7 @@ public class KafkaOperations extends General {
                     Report.updateTestLog("storeErrorCodeinDataSheet", "Invalid Input format. Expected format: sheetName:columnName", Status.FAIL);
                     return;
                 }
-
+                
                 String sheetName = sheetDetails[0];
                 String columnName = sheetDetails[1];
 
@@ -455,7 +560,7 @@ public class KafkaOperations extends General {
             } else {
                 Report.updateTestLog("storeErrorCodeinDataSheet", "Input is null or improperly formatted", Status.FAIL);
             }
-
+            
         } catch (Exception e) {
             Report.updateTestLog("storeErrorCodeinDataSheet", "Exception occurred: " + e.getMessage(), Status.FAIL);
             e.printStackTrace();
@@ -463,7 +568,7 @@ public class KafkaOperations extends General {
             consumer.close(); // Ensure the consumer is closed
         }
     }
-
+    
     @Action(object = ObjectType.KAFKA, desc = "Assert Kafka Result", input = InputType.YES, condition = InputType.YES)
     public void assertResult() {
         try {
@@ -520,5 +625,5 @@ public class KafkaOperations extends General {
             e.printStackTrace();
         }
     }
-
+    
 }
