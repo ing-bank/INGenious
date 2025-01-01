@@ -22,6 +22,8 @@ import java.util.List;
 import java.util.Stack;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import io.opentelemetry.exporter.logging.SystemOutLogRecordExporter;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 
@@ -115,17 +117,19 @@ public class HtmlTestCaseHandler extends TestCaseHandler implements PrimaryHandl
                         + "_";
                 filename = AppResourcePath.getCurrentResultsPath() + link + File.separator + payloadfiles;
                 data.put(RDS.Step.Data.LINK, filename);
+               
             }
             /*if (link != null) {
                data.put(RDS.Step.Data.LINK, link);
             }*/
+            
             putStatus(state, links, link, data);
             if (isIteration) {
                 ((JSONArray) iteration.get(RDS.Step.DATA)).add(step);
             } else {
                 ((JSONArray) reusable.get(RDS.Step.DATA)).add(step);
             }
-            if (Control.exe.getExecSettings().getRunSettings().isVideoEnabled()) {
+            if (isVideoEnabled()) {
                 if (isIteration) {
                     iteration.put(RDS.TestSet.VIDEO_REPORT_DIR, getPlaywrightDriver().page.video().path().toString());
                 } else {
@@ -135,6 +139,10 @@ public class HtmlTestCaseHandler extends TestCaseHandler implements PrimaryHandl
         } catch (Exception ex) {
             LOG.log(Level.SEVERE, ex.getMessage(), ex);
         }
+    }
+
+    private Boolean isVideoEnabled(){
+        return Control.exe.getExecSettings().getRunSettings().isVideoEnabled();
     }
 
     /**

@@ -15,6 +15,7 @@ import com.microsoft.playwright.options.AriaRole;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
+import org.apache.commons.lang3.StringUtils;
 import org.opentest4j.AssertionFailedError;
 
 /**
@@ -933,17 +934,16 @@ public class Assertions extends General {
         Locator.evaluate("element => element.style.outline = ''");
     }
     
-    private double getTimeoutValue(){
-      double timeout = 5000;
-      if(Condition != null || !Condition.isEmpty())
-      {
+    
+    private double getTimeoutValue() {
+    double timeout = 5000;
+    if (StringUtils.isNotBlank(Condition)) {
         try {
-             timeout = Double.parseDouble(Condition.trim());   
-         } catch (NumberFormatException e) {
-             Report.updateTestLog(Action,
-                        "'"+Condition+"' cannot be converted to timeout of type Double", Status.DEBUG);
-         }
-      }
-      return timeout;
+            timeout = Double.parseDouble(Condition.trim());
+        } catch (NumberFormatException e) {
+            Report.updateTestLog(Action, "'" + Condition + "' cannot be converted to timeout of type Double", Status.DEBUG);
+        }
     }
+    return timeout;
+}
 }

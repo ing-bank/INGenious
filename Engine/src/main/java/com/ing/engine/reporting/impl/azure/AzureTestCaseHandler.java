@@ -88,13 +88,13 @@ public class AzureTestCaseHandler extends TestCaseHandler implements PrimaryHand
         return false;
     }
 
-   @Override
+    @Override
     public void setPlaywrightDriver(PlaywrightDriverCreation driver) {
         testCaseData.put(TestCase.B_VERSION, getPlaywrightDriver().getBrowserVersion());
-        platform = System.getProperty("os.name")+ " " +System.getProperty("os.version")+ " " +System.getProperty("os.arch");
+        platform = System.getProperty("os.name") + " " + System.getProperty("os.version") + " " + System.getProperty("os.arch");
         browserName = getPlaywrightDriver().getCurrentBrowser();
     }
-    
+
     @Override
     public void setWebDriver(WebDriverCreation driver) {
         testCaseData.put(TestCase.B_VERSION, getWebDriver().getCurrentBrowserVersion());
@@ -173,8 +173,11 @@ public class AzureTestCaseHandler extends TestCaseHandler implements PrimaryHand
                     + getStepCount()
                     + "_";
 
-            String linkPath=AppResourcePath.getCurrentResultsPath()+link+File.separator+payloadfiles;
-            data.put(RDS.Step.Data.LINK, linkPath);
+            String linkPath = AppResourcePath.getCurrentResultsPath() + link + File.separator + payloadfiles;
+
+            if (linkPath.contains("webservice")) {
+                data.put(RDS.Step.Data.LINK, linkPath);
+            }
 
             if (isAzureEnabled()) {
                 try {
@@ -355,7 +358,7 @@ public class AzureTestCaseHandler extends TestCaseHandler implements PrimaryHand
             if (optional != null) {
                 data.put(RDS.Step.Data.OBJECTS, optional.get(0));
             }
-            if (ReportUtils.takeScreenshot(getPlaywrightDriver(),getWebDriver(), imgSrc)) {
+            if (ReportUtils.takeScreenshot(getPlaywrightDriver(), getWebDriver(), imgSrc)) {
                 data.put(RDS.Step.Data.LINK, imgSrc);
             }
         }
