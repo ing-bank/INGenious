@@ -25,22 +25,19 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.xpath.XPath;
-import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpressionException;
 import javax.xml.xpath.XPathFactory;
 import org.w3c.dom.DOMException;
 import org.w3c.dom.Document;
-import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
 public class QueueOperations extends Command {
-    
+
     public QueueOperations(CommandControl cc) {
         super(cc);
     }
-    
+
     @Action(object = ObjectType.QUEUE, desc = "Set Host", input = InputType.YES, condition = InputType.NO)
     public void setHost() {
         try {
@@ -51,7 +48,7 @@ public class QueueOperations extends Command {
             Report.updateTestLog(Action, "Error in setting Host: " + "\n" + ex.getMessage(), Status.DEBUG);
         }
     }
-    
+
     @Action(object = ObjectType.QUEUE, desc = "Set Port", input = InputType.YES, condition = InputType.NO)
     public void setPort() {
         try {
@@ -62,7 +59,7 @@ public class QueueOperations extends Command {
             Report.updateTestLog(Action, "Error in setting Port: " + "\n" + ex.getMessage(), Status.DEBUG);
         }
     }
-    
+
     @Action(object = ObjectType.QUEUE, desc = "Set Channel", input = InputType.YES, condition = InputType.NO)
     public void setChannel() {
         try {
@@ -73,7 +70,7 @@ public class QueueOperations extends Command {
             Report.updateTestLog(Action, "Error in setting Channel: " + "\n" + ex.getMessage(), Status.DEBUG);
         }
     }
-    
+
     @Action(object = ObjectType.QUEUE, desc = "Set Queue Manager", input = InputType.YES, condition = InputType.NO)
     public void setQueueManager() {
         try {
@@ -84,7 +81,7 @@ public class QueueOperations extends Command {
             Report.updateTestLog(Action, "Error in setting Queue manager: " + "\n" + ex.getMessage(), Status.DEBUG);
         }
     }
-    
+
     @Action(object = ObjectType.QUEUE, desc = "Set Username", input = InputType.YES, condition = InputType.NO)
     public void setUserName() {
         try {
@@ -95,7 +92,7 @@ public class QueueOperations extends Command {
             Report.updateTestLog(Action, "Error in setting Username: " + "\n" + ex.getMessage(), Status.DEBUG);
         }
     }
-    
+
     @Action(object = ObjectType.QUEUE, desc = "Set Password", input = InputType.YES, condition = InputType.NO)
     public void setPassword() {
         try {
@@ -106,7 +103,7 @@ public class QueueOperations extends Command {
             Report.updateTestLog(Action, "Error in setting Password: " + "\n" + ex.getMessage(), Status.DEBUG);
         }
     }
-    
+
     @Action(object = ObjectType.QUEUE, desc = "Set SSL Cipher Suite", input = InputType.YES, condition = InputType.NO)
     public void setSSLCipherSuite() {
         try {
@@ -117,29 +114,39 @@ public class QueueOperations extends Command {
             Report.updateTestLog(Action, "Error in setting SSL Cipher Suite: " + "\n" + ex.getMessage(), Status.DEBUG);
         }
     }
-    
+
     @Action(object = ObjectType.QUEUE, desc = "Set Request Queue", input = InputType.YES, condition = InputType.NO)
     public void setRequestQueue() {
         try {
-            jmsReqQueueName.put(key, Data);
+            if (Data.startsWith("queue:///")) {
+                jmsReqQueueName.put(key, Data);
+            } else {
+                Data = "queue:///" + Data;
+                jmsReqQueueName.put(key, Data);
+            }
             Report.updateTestLog(Action, "Request Queue has been set successfully", Status.DONE);
         } catch (Exception ex) {
             Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during queue connection setup", ex);
             Report.updateTestLog(Action, "Error in setting Request Queue: " + "\n" + ex.getMessage(), Status.DEBUG);
         }
     }
-    
+
     @Action(object = ObjectType.QUEUE, desc = "Set Response Queue", input = InputType.YES, condition = InputType.NO)
     public void setResponseQueue() {
         try {
-            jmsRespQueueName.put(key, Data);
+            if (Data.startsWith("queue:///")) {
+                jmsRespQueueName.put(key, Data);
+            } else {
+                Data = "queue:///" + Data;
+                jmsRespQueueName.put(key, Data);
+            }
             Report.updateTestLog(Action, "Response Queue has been set successfully", Status.DONE);
         } catch (Exception ex) {
             Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during queue connection setup", ex);
             Report.updateTestLog(Action, "Error in setting Response Queue: " + "\n" + ex.getMessage(), Status.DEBUG);
         }
     }
-    
+
     private void createConnectionFactory() {
         try {
             jmsFactoryFactory.put(key, JmsFactoryFactory.getInstance(WMQConstants.WMQ_PROVIDER));
@@ -149,19 +156,21 @@ public class QueueOperations extends Command {
             jmsConnectionFactory.get(key).setStringProperty(WMQConstants.WMQ_CHANNEL, jmsChannel.get(key));
             jmsConnectionFactory.get(key).setStringProperty(WMQConstants.WMQ_QUEUE_MANAGER, jmsQmgr.get(key));
             jmsConnectionFactory.get(key).setIntProperty(WMQConstants.WMQ_CONNECTION_MODE, WMQConstants.WMQ_CM_CLIENT);
-            jmsConnectionFactory.get(key).setStringProperty(WMQConstants.WMQ_SSL_CIPHER_SUITE, WMQ_SSL_CIPHER_SUITE.get(key));
-            if (jmsUsername.get(key).isEmpty()) {
+            if (WMQ_SSL_CIPHER_SUITE.get(key) != null) {
+                jmsConnectionFactory.get(key).setStringProperty(WMQConstants.WMQ_SSL_CIPHER_SUITE, WMQ_SSL_CIPHER_SUITE.get(key));
+            }
+            if (jmsUsername.get(key) == null) {
                 jmsConnectionFactory.get(key).setBooleanProperty(WMQConstants.USER_AUTHENTICATION_MQCSP, false);
                 jmsContext.put(key, jmsConnectionFactory.get(key).createContext());
             } else {
                 jmsContext.put(key, jmsConnectionFactory.get(key).createContext(jmsUsername.get(key), jmsPassword.get(key)));
             }
-            
+            jmsMessage.put(key, jmsContext.get(key).createTextMessage(""));
         } catch (Exception ex) {
             Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during JMS properties setup", ex);
         }
     }
-    
+
     @Action(object = ObjectType.QUEUE, desc = "Set Correlation ID", input = InputType.YES, condition = InputType.NO)
     public void setCorrelationID() {
         try {
@@ -172,7 +181,7 @@ public class QueueOperations extends Command {
             Report.updateTestLog(Action, "Error in setting Correlation ID: " + "\n" + ex.getMessage(), Status.DEBUG);
         }
     }
-    
+
     @Action(object = ObjectType.QUEUE, desc = "Set Message ID", input = InputType.YES, condition = InputType.NO)
     public void setMesssageID() {
         try {
@@ -183,44 +192,43 @@ public class QueueOperations extends Command {
             Report.updateTestLog(Action, "Error in setting Message ID: " + "\n" + ex.getMessage(), Status.DEBUG);
         }
     }
-    
+
     @Action(object = ObjectType.QUEUE, desc = "Set Text", input = InputType.YES, condition = InputType.NO)
     public void setText() {
         try {
-            jmsMessage.get(key).setText(Data);
+            createConnectionFactory();
+            jmsDestination.put(key, jmsContext.get(key).createQueue(jmsReqQueueName.get(key)));
+            jmsMessage.get(key).setText(handlePayloadorEndpoint(Data));
             Report.updateTestLog(Action, "Text set", Status.DONE);
         } catch (Exception ex) {
             Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during setting of Text", ex);
-            Report.updateTestLog(Action, "Error in setting Message ID: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Report.updateTestLog(Action, "Error in setting Text: " + "\n" + ex.getMessage(), Status.DEBUG);
         }
     }
-    
-    @Action(object = ObjectType.QUEUE, desc = "Create and Send Message", input = InputType.YES, condition = InputType.NO)
+
+    @Action(object = ObjectType.QUEUE, desc = "Send Message", input = InputType.NO, condition = InputType.NO)
     public void sendMessage() {
         try {
-            createConnectionFactory();
-            jmsDestination.put(key, jmsContext.get(key).createQueue(jmsReqQueueName.get(key)));
-            jmsMessage.put(key, jmsContext.get(key).createTextMessage(handlePayloadorEndpoint(Data)));
             jmsProducer.put(key, jmsContext.get(key).createProducer());
             before.put(key, Instant.now());
             jmsProducer.get(key).send(jmsDestination.get(key), jmsMessage.get(key));
-            Report.updateTestLog(Action, "Message created and Sent", Status.DONE);
+            Report.updateTestLog(Action, "Message sent", Status.DONE);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during Message Creation", ex);
+            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception while sending message", ex);
             Report.updateTestLog(Action, "Error in sending message: " + "\n" + ex.getMessage(), Status.DEBUG);
         }
     }
-    
+
     @Action(object = ObjectType.QUEUE, desc = "Receive Message based on Filter", input = InputType.YES, condition = InputType.YES)
     public void receiveMessageWithFilter() {
         try {
-            long timeout = Long.valueOf(Condition);
+            long timeout = Long.parseLong(Condition);
             jmsDestination.put(key, jmsContext.get(key).createQueue(jmsRespQueueName.get(key)));
             jmsConsumer.put(key, jmsContext.get(key).createConsumer(jmsDestination.get(key), Data));
             receivedMessage.put(key, jmsConsumer.get(key).receiveBody(String.class, timeout));
             after.put(key, Instant.now());
             duration.put(key, Duration.between(before.get(key), after.get(key)).toMillis());
-            if (receivedMessage != null) {
+            if (receivedMessage.get(key) != null) {
                 Report.updateTestLog(Action, "Message received in : [" + duration.get(key) + "ms]. Message body is : \n" + receivedMessage, Status.DONE);
             } else {
                 Report.updateTestLog(Action, "No Message received with filter " + Data, Status.DONE);
@@ -230,18 +238,18 @@ public class QueueOperations extends Command {
             Report.updateTestLog(Action, "Error in receiving message: " + "\n" + ex.getMessage(), Status.DEBUG);
         }
     }
-    
+
     @Action(object = ObjectType.QUEUE, desc = "Close the connection", input = InputType.NO, condition = InputType.NO)
     public void closeContext() {
         try {
             jmsContext.get(key).close();
-            Report.updateTestLog(Action, "Message created and Sent", Status.DONE);
+            Report.updateTestLog(Action, "Context closed", Status.DONE);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during Message Creation", ex);
-            Report.updateTestLog(Action, "Error in sending message: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during context closure", ex);
+            Report.updateTestLog(Action, "Error while closing context: " + "\n" + ex.getMessage(), Status.DEBUG);
         }
     }
-    
+
     private String handlePayloadorEndpoint(String data) throws FileNotFoundException {
         String payloadstring = data;
         payloadstring = handleDataSheetVariables(payloadstring);
@@ -249,7 +257,7 @@ public class QueueOperations extends Command {
         System.out.println("Payload :" + payloadstring);
         return payloadstring;
     }
-    
+
     private String handleDataSheetVariables(String payloadstring) {
         List<String> sheetlist = Control.getCurrentProject().getTestData().getTestDataFor(Control.exe.runEnv())
                 .getTestDataNames();
@@ -268,7 +276,7 @@ public class QueueOperations extends Command {
         }
         return payloadstring;
     }
-    
+
     private String handleuserDefinedVariables(String payloadstring) {
         Collection<Object> valuelist = Control.getCurrentProject().getProjectSettings().getUserDefinedSettings()
                 .values();
@@ -279,7 +287,7 @@ public class QueueOperations extends Command {
         }
         return payloadstring;
     }
-    
+
     @Action(object = ObjectType.QUEUE, desc = "Store XML tag In DataSheet ", input = InputType.YES, condition = InputType.YES)
     public void storeXMLtagInDataSheet() {
 
@@ -300,9 +308,7 @@ public class QueueOperations extends Command {
                     doc.getDocumentElement().normalize();
                     XPath xPath = XPathFactory.newInstance().newXPath();
                     String expression = Condition;
-                    NodeList nodeList = (NodeList) xPath.compile(expression).evaluate(doc, XPathConstants.NODESET);
-                    Node nNode = nodeList.item(0);
-                    String value = nNode.getNodeValue();
+                    String value = (String) xPath.compile(expression).evaluate(doc);
                     userData.putData(sheetName, columnName, value);
                     Report.updateTestLog(Action, "Element text [" + value + "] is stored in " + strObj, Status.DONE);
                 } catch (IOException | ParserConfigurationException | XPathExpressionException | DOMException
@@ -322,7 +328,7 @@ public class QueueOperations extends Command {
                     Status.DEBUG);
         }
     }
-    
+
     @Action(object = ObjectType.QUEUE, desc = "Assert XML Tag Equals ", input = InputType.YES, condition = InputType.YES)
     public void assertXMLtagEquals() {
 
@@ -336,9 +342,7 @@ public class QueueOperations extends Command {
             doc.getDocumentElement().normalize();
             XPath xPath = XPathFactory.newInstance().newXPath();
             String expression = Condition;
-            NodeList nodeList = (NodeList) xPath.compile(expression).evaluate(doc, XPathConstants.NODESET);
-            Node nNode = nodeList.item(0);
-            String value = nNode.getNodeValue();
+            String value = (String) xPath.compile(expression).evaluate(doc);
             if (value.equals(Data)) {
                 Report.updateTestLog(Action, "Element text [" + value + "] is as expected", Status.PASSNS);
             } else {
@@ -364,9 +368,7 @@ public class QueueOperations extends Command {
             doc.getDocumentElement().normalize();
             XPath xPath = XPathFactory.newInstance().newXPath();
             String expression = Condition;
-            NodeList nodeList = (NodeList) xPath.compile(expression).evaluate(doc, XPathConstants.NODESET);
-            Node nNode = nodeList.item(0);
-            String value = nNode.getNodeValue();
+            String value = (String) xPath.compile(expression).evaluate(doc);
             if (value.contains(Data)) {
                 Report.updateTestLog(Action, "Element text contains [" + Data + "] is as expected", Status.PASSNS);
             } else {
@@ -379,8 +381,8 @@ public class QueueOperations extends Command {
             Report.updateTestLog(Action, "Error validating XML element :" + "\n" + ex.getMessage(), Status.DEBUG);
         }
     }
-    
-     @Action(object = ObjectType.QUEUE, desc = "Assert Response Message contains ", input = InputType.YES)
+
+    @Action(object = ObjectType.QUEUE, desc = "Assert Response Message contains ", input = InputType.YES)
     public void assertResponseMessageContains() {
         try {
             if (receivedMessage.get(key).contains(Data)) {
@@ -462,5 +464,4 @@ public class QueueOperations extends Command {
         }
     }
 
-    
 }

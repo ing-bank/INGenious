@@ -48,33 +48,6 @@ public class Assertions extends MobileGeneral {
         }
     }
 
-    /**
-     * ******************************************
-     * Function to assert the variable
-     * ******************************************
-     */
-    @Action(object = ObjectType.MOBILE,
-            desc = "Assert if Key:Value -> [<Data>] is valid",
-            input = InputType.YES)
-    public void assertVariable() throws RuntimeException {
-        try {
-            String strObj = Data;
-            String[] strTemp = strObj.split("=", 2);
-            String strAns = strTemp[0].matches("%.+%") ? getVar(strTemp[0]) : strTemp[0];
-            if (strAns.equals(strTemp[1])) {
-                System.out.println("Condition '" + Input + "' is true ");
-                Report.updateTestLog("assertVariable",
-                        "Variable matched with Provided data", Status.PASS);
-
-            } else {
-                System.out.println("Condition '" + Input + "' is false ");
-                throw new Exception("Variable did not match with provided data");
-            }
-        } catch (Exception ex) {
-            Logger.getLogger(Assertions.class.getName()).log(Level.SEVERE, null, ex);
-            throw new ForcedException("assertVariable", ex.getMessage());
-        }
-    }
 
     /**
      * ******************************************
@@ -133,31 +106,6 @@ public class Assertions extends MobileGeneral {
             System.out.println("assertCookieByName Failed");
             Logger.getLogger(Assertions.class.getName()).log(Level.SEVERE, null, ex);
             throw new ForcedException("assertCookieByName", ex.getMessage());
-        }
-    }
-
-    @Action(object = ObjectType.MOBILE,
-            desc = "Assert if  the  variable value matches with given value from datasheet(variable:datasheet->  [<Data>] )",
-            input = InputType.YES,
-            condition = InputType.YES)
-    public void assertVariableFromDataSheet() throws RuntimeException {
-        try {
-            String strAns = getVar(Condition);
-            if (strAns.equals(Data)) {
-                System.out.println("Variable " + Condition + " equals "
-                        + Input);
-                Report.updateTestLog(Action,
-                        "Variable is matched with the expected result", Status.DONE);
-
-            } else {
-                System.out.println("Variable " + Condition + " is not equal "
-                        + Input);
-                throw new ForcedException(Action,
-                        "Variable did not match with provided data");
-            }
-        } catch (Exception e) {
-            Logger.getLogger(Assertions.class.getName()).log(Level.SEVERE, null, e);
-            throw new ForcedException("assertVariableFromDataSheet", e.getMessage());
         }
     }
 

@@ -7,7 +7,7 @@ import com.ing.engine.core.Control;
 import com.ing.engine.support.Status;
 import com.ing.engine.support.methodInf.Action;
 import com.ing.engine.support.methodInf.InputType;
-import com.ing.engine.support.methodInf.ObjectType;										  
+import com.ing.engine.support.methodInf.ObjectType;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.net.InetSocketAddress;
@@ -37,6 +37,8 @@ import java.net.http.HttpRequest;
 import java.net.http.HttpRequest.BodyPublisher;
 import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
+import java.security.SecureRandom;
+import java.security.cert.X509Certificate;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.HashMap;
@@ -44,6 +46,9 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.X509TrustManager;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.xpath.XPathExpressionException;
 import org.json.simple.JSONArray;
@@ -51,8 +56,6 @@ import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.w3c.dom.DOMException;
 import org.xml.sax.SAXException;
-								 
-									
 
 public class Webservice extends General {
 
@@ -127,7 +130,7 @@ public class Webservice extends General {
             e.printStackTrace();
         }
     }
-    
+
     @Action(object = ObjectType.WEBSERVICE, desc = "DELETE with Payload ", input = InputType.YES)
     public void deleteWithPayload() {
         try {
@@ -152,7 +155,6 @@ public class Webservice extends General {
             Report.updateTestLog(Action, "Error in validating response code :" + "\n" + ex.getMessage(), Status.DEBUG);
         }
     }
-
 
     @Action(object = ObjectType.WEBSERVICE, desc = "Assert Response Body contains ", input = InputType.YES)
     public void assertResponsebodycontains() {
@@ -426,18 +428,20 @@ public class Webservice extends General {
     private void returnResponseDetails() throws IOException, InterruptedException {
 
         initiateClientBuilder();
+        sslCertificateVerification();
         handleProxy();
 
         /**
          * *** need to add timeout,version******
          */
-	 
         httpClient.put(key, httpClientBuilder.get(key).build());
         httpRequest.put(key, httpRequestBuilder.get(key).build());
         response.put(key, httpClient.get(key).send(httpRequest.get(key), HttpResponse.BodyHandlers.ofString()));
 
-		
         responsebodies.put(key, (String) response.get(key).body());
+        
+        
+        responsebodies.put(key,responsebodies.get(key).replace(")]}',","")); /***** To be Removed ****/
 
         after.put(key, Instant.now());
         savePayload("response", (String) response.get(key).body());
@@ -445,8 +449,6 @@ public class Webservice extends General {
         responsecodes.put(key, Integer.toString(response.get(key).statusCode()));
 
     }
-
-	
 
     @Action(object = ObjectType.WEBSERVICE, desc = "Assert JSON Element Count ", input = InputType.YES, condition = InputType.YES)
     public void assertJSONelementCount() {
@@ -609,8 +611,6 @@ public class Webservice extends General {
                 }
             }
 
-														  
-
             if (headers.containsKey(key)) {
                 headers.get(key).add(Data);
             } else {
@@ -665,7 +665,7 @@ public class Webservice extends General {
         try {
             ArrayList<String> params = urlParams.get(key);
             for (String param : params) {
-                parameters.put(param.split("=",2)[0], param.split("=",2)[1]);
+                parameters.put(param.split("=", 2)[0], param.split("=", 2)[1]);
             }
             urlParamString = parameters.entrySet()
                     .stream()
@@ -676,7 +676,6 @@ public class Webservice extends General {
         }
         return urlParamString;
     }
-
 
     @Action(object = ObjectType.WEBSERVICE, desc = "Close the connection ", input = InputType.NO)
     public void closeConnection() {
@@ -777,17 +776,15 @@ public class Webservice extends General {
                 System.out.println(headerlist);
                 if (headerlist.size() > 0) {
                     headerlist.forEach((header) -> {
-                       httpRequestBuilder.put(key, httpRequestBuilder.get(key).setHeader(header.substring(0,header.indexOf("=")),header.substring(header.indexOf("=")+1,header.length())));
+                        httpRequestBuilder.put(key, httpRequestBuilder.get(key).setHeader(header.substring(0, header.indexOf("=")), header.substring(header.indexOf("=") + 1, header.length())));
                     });
                 }
             }
-            
+
         } catch (Exception ex) {
             Logger.getLogger(this.getClass().getName()).log(Level.OFF, ex.getMessage(), ex);
         }
     }
-
-
 
     private void httpAgentCheck() {
         try {
@@ -830,7 +827,8 @@ public class Webservice extends General {
                     break;
                 }
                 case "DELETEWITHPAYLOAD": {
-                    httpRequestBuilder.put(key, httpRequestBuilder.get(key).DELETE());
+                    httpRequestBuilder.put(key, httpRequestBuilder.get(key).method("DELETE", payloadBody));
+                    savePayload("request", payload);
                     break;
                 }
 
@@ -847,7 +845,7 @@ public class Webservice extends General {
 
             setRequestMethod(requestmethod.toString(), handlePayloadorEndpoint(Data));
         } else {
-			  
+
             setRequestMethod(requestmethod.toString(), "");
         }
     }
@@ -929,7 +927,7 @@ public class Webservice extends General {
             e.printStackTrace();
         }
     }
-    
+
     private void handleProxy() {
         try {
             if (getProxyDetails() != null) {
@@ -947,6 +945,37 @@ public class Webservice extends General {
         } catch (Exception ex) {
             Logger.getLogger(this.getClass().getName()).log(Level.OFF, ex.getMessage(), ex);
         }
+    }
+
+    TrustManager[] trustAllCerts = new TrustManager[]{new X509TrustManager() {
+        @Override
+        public X509Certificate[] getAcceptedIssuers() {
+            return null;
+        }
+
+        @Override
+        public void checkClientTrusted(X509Certificate[] certs, String authType) {
+        }
+
+        @Override
+        public void checkServerTrusted(X509Certificate[] certs, String authType) {
+        }
+    }};
+
+    private void sslCertificateVerification() {
+        try {
+            if (!isSSLCertificateVerification()) {
+                SSLContext sc = SSLContext.getInstance("TLS");
+                sc.init(null, trustAllCerts, new SecureRandom());
+                httpClientBuilder.put(key, httpClientBuilder.get(key).sslContext(sc));
+            }
+        } catch (Exception ex) {
+            Logger.getLogger(this.getClass().getName()).log(Level.OFF, ex.getMessage(), ex);
+        }
+    }
+    
+    private Boolean isSSLCertificateVerification() {
+        return Control.getCurrentProject().getProjectSettings().getDriverSettings().sslCertificateVerification();
     }
 
 }

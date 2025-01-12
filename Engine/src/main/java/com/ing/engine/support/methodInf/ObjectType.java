@@ -16,6 +16,7 @@ public enum ObjectType {
     FILE,
     KAFKA,
     QUEUE,
-    DATA
+    DATA,
+    GENERAL
     
 }

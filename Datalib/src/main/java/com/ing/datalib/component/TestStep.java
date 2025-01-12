@@ -315,8 +315,8 @@ public class TestStep {
         return getObject().equals("Queue") || getObject().equals("Kafka");
     }
     
-    public Boolean isSendMessageStep() {
-        return (getObject().equals("Queue") && getAction().contains("sendMessage")) || (getObject().equals("Kafka") && getAction().contains("produceMessage"));
+    public Boolean isSetTextStep() {
+        return (getObject().equals("Queue") && getAction().contains("setText")) || (getObject().equals("Kafka") && getAction().contains("produceMessage"));
     }
 
     public Boolean isWebserviceRequestStep() {

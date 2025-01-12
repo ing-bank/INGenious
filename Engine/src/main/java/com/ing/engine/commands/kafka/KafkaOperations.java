@@ -91,7 +91,7 @@ public class KafkaOperations extends General {
         }
     }
     
-    @Action(object = ObjectType.QUEUE, desc = "Set Topic", input = InputType.YES, condition = InputType.NO)
+    @Action(object = ObjectType.KAFKA, desc = "Set Topic", input = InputType.YES, condition = InputType.NO)
     public void setTopic() {
         try {
             kafkaTopic.put(key, Data);
@@ -102,7 +102,7 @@ public class KafkaOperations extends General {
         }
     }
     
-    @Action(object = ObjectType.QUEUE, desc = "Set Bootstrap Servers", input = InputType.YES, condition = InputType.NO)
+    @Action(object = ObjectType.KAFKA, desc = "Set Bootstrap Servers", input = InputType.YES, condition = InputType.NO)
     public void setBootstrapServers() {
         try {
             kafkaServers.put(key, Data);
@@ -113,7 +113,7 @@ public class KafkaOperations extends General {
         }
     }
     
-    @Action(object = ObjectType.QUEUE, desc = "Set Schema Registry URL", input = InputType.YES, condition = InputType.NO)
+    @Action(object = ObjectType.KAFKA, desc = "Set Schema Registry URL", input = InputType.YES, condition = InputType.NO)
     public void setSchemaRegistryURL() {
         try {
             kafkaSchemaRegistryURL.put(key, Data);
@@ -124,7 +124,7 @@ public class KafkaOperations extends General {
         }
     }
     
-    @Action(object = ObjectType.QUEUE, desc = "Set Key", input = InputType.YES, condition = InputType.NO)
+    @Action(object = ObjectType.KAFKA, desc = "Set Key", input = InputType.YES, condition = InputType.NO)
     public void setKey() {
         try {
             kafkaKey.put(key, Data);
@@ -135,10 +135,10 @@ public class KafkaOperations extends General {
         }
     }
     
-    @Action(object = ObjectType.QUEUE, desc = "Set Partition", input = InputType.YES, condition = InputType.NO)
+    @Action(object = ObjectType.KAFKA, desc = "Set Partition", input = InputType.YES, condition = InputType.NO)
     public void setPartition() {
         try {
-            kafkaPartition.put(key, Integer.parseInt(Data));
+            kafkaPartition.put(key, Integer.valueOf(Data));
             Report.updateTestLog(Action, "Partition has been set successfully", Status.DONE);
         } catch (NumberFormatException ex) {
             Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during Partition setup", ex);
@@ -146,7 +146,7 @@ public class KafkaOperations extends General {
         }
     }
     
-    @Action(object = ObjectType.QUEUE, desc = "Set TimeStamp", input = InputType.NO, condition = InputType.NO)
+    @Action(object = ObjectType.KAFKA, desc = "Set TimeStamp", input = InputType.NO, condition = InputType.NO)
     public void setTimeStamp() {
         try {
             kafkaTimeStamp.put(key, System.currentTimeMillis());
@@ -157,7 +157,7 @@ public class KafkaOperations extends General {
         }
     }
     
-    @Action(object = ObjectType.QUEUE, desc = "Set Key Serializer", input = InputType.YES, condition = InputType.NO)
+    @Action(object = ObjectType.KAFKA, desc = "Set Key Serializer", input = InputType.YES, condition = InputType.NO)
     public void setKeySerializer() {
         try {
             kafkaKeySerializer.put(key, Data);

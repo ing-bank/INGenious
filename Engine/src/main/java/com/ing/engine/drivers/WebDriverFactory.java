@@ -13,10 +13,14 @@ import java.net.URL;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Properties;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.remote.DesiredCapabilities;
 
 public class WebDriverFactory {
+    
+    private static final Logger LOGGER = Logger.getLogger(WebDriverFactory.class.getName());
 
     public static WebDriver create(RunContext context, ProjectSettings settings) {
         return create(context, settings, false, null);
@@ -92,7 +96,7 @@ public class WebDriverFactory {
             }
 
         } catch (Exception ex) {
-//            LOGGER.log(Level.SEVERE, ex.getMessage(), ex);
+            LOGGER.log(Level.SEVERE, ex.getMessage(), ex);
         }
         return null;
     }
@@ -118,4 +122,5 @@ public class WebDriverFactory {
     private static String toLString(Object o) {
         return Objects.toString(o, "").toLowerCase();
     }
+    
 }

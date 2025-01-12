@@ -115,7 +115,7 @@ public class PlaywrightDriverFactory {
         return page;
     }
 
-    private static final Logger LOGGER = Logger.getLogger(WebDriverFactory.class.getName());
+    private static final Logger LOGGER = Logger.getLogger(PlaywrightDriverFactory.class.getName());
 
     private static LaunchOptions addLaunchOptions(LaunchOptions launchOptions, List<String> caps) {
 

@@ -30,6 +30,7 @@ public class Basic extends MobileGeneral {
         if (elementEnabled()) {
             Element.click();
             Report.updateTestLog(Action, "Taping on " + ObjectName, Status.DONE);
+            
         } else {
             throw new ElementException(ExceptionType.Element_Not_Enabled, ObjectName);
         }
@@ -197,11 +198,7 @@ public class Basic extends MobileGeneral {
         }
     }
 
-    @Action(object = ObjectType.MOBILE, desc = "This a dummy function helpful with testing.")
-    public void filler() {
-
-    }
-
+   
     private void setPageTimeOut(int sec) {
         try {
             mDriver.manage().timeouts().pageLoadTimeout(sec, TimeUnit.SECONDS);

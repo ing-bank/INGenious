@@ -10,6 +10,7 @@ import com.ing.ide.main.utils.Utils;
 import com.ing.ide.main.utils.table.XTable;
 import com.ing.ide.util.Notification;
 import com.ing.ide.util.Utility;
+import java.awt.Toolkit;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -27,6 +28,7 @@ import javax.swing.ButtonGroup;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.ImageIcon;
 import javax.swing.JTextField;
+import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 
@@ -438,7 +440,7 @@ public class DriverSettings extends javax.swing.JFrame {
         });
         return properties;
     }
-    
+
     private Boolean isDatasheetOrVariable(String value) {
         String pattern1 = "\\{[^:]+:[^}]+\\}";
         String pattern2 = "%[^%]+%";
@@ -498,6 +500,7 @@ public class DriverSettings extends javax.swing.JFrame {
         emCapTab = new javax.swing.JTabbedPane();
         emulatorPanel = new javax.swing.JPanel();
         appiumConnectionString = new javax.swing.JTextField();
+        alterDefaultKeyBindings();
         appiumEmulator = new javax.swing.JRadioButton();
         capabilityPanel = new javax.swing.JPanel();
         jScrollPane1 = new javax.swing.JScrollPane();
@@ -563,15 +566,15 @@ public class DriverSettings extends javax.swing.JFrame {
         commonPanel.setLayout(new java.awt.BorderLayout());
 
         driverPropTable.setModel(new javax.swing.table.DefaultTableModel(
-            new Object [][] {
-                {null, null},
-                {null, null},
-                {null, null},
-                {null, null}
-            },
-            new String [] {
-                "Property", "Value"
-            }
+                new Object [][] {
+                        {null, null},
+                        {null, null},
+                        {null, null},
+                        {null, null}
+                },
+                new String [] {
+                        "Property", "Value"
+                }
         ));
         jScrollPane3.setViewportView(driverPropTable);
 
@@ -677,24 +680,24 @@ public class DriverSettings extends javax.swing.JFrame {
         javax.swing.GroupLayout emulatorPanelLayout = new javax.swing.GroupLayout(emulatorPanel);
         emulatorPanel.setLayout(emulatorPanelLayout);
         emulatorPanelLayout.setHorizontalGroup(
-            emulatorPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(emulatorPanelLayout.createSequentialGroup()
-                .addGap(17, 17, 17)
-                .addGroup(emulatorPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(appiumEmulator)
-                    .addGroup(emulatorPanelLayout.createSequentialGroup()
-                        .addGap(24, 24, 24)
-                        .addComponent(appiumConnectionString, javax.swing.GroupLayout.PREFERRED_SIZE, 383, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                .addContainerGap(20, Short.MAX_VALUE))
+                emulatorPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                        .addGroup(emulatorPanelLayout.createSequentialGroup()
+                                .addGap(17, 17, 17)
+                                .addGroup(emulatorPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                        .addComponent(appiumEmulator)
+                                        .addGroup(emulatorPanelLayout.createSequentialGroup()
+                                                .addGap(24, 24, 24)
+                                                .addComponent(appiumConnectionString, javax.swing.GroupLayout.PREFERRED_SIZE, 383, javax.swing.GroupLayout.PREFERRED_SIZE)))
+                                .addContainerGap(20, Short.MAX_VALUE))
         );
         emulatorPanelLayout.setVerticalGroup(
-            emulatorPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(emulatorPanelLayout.createSequentialGroup()
-                .addGap(41, 41, 41)
-                .addComponent(appiumEmulator)
-                .addGap(18, 18, 18)
-                .addComponent(appiumConnectionString, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(352, Short.MAX_VALUE))
+                emulatorPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                        .addGroup(emulatorPanelLayout.createSequentialGroup()
+                                .addGap(41, 41, 41)
+                                .addComponent(appiumEmulator)
+                                .addGap(18, 18, 18)
+                                .addComponent(appiumConnectionString, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
+                                .addContainerGap(352, Short.MAX_VALUE))
         );
 
         emCapTab.addTab("Mobile", emulatorPanel);
@@ -702,12 +705,12 @@ public class DriverSettings extends javax.swing.JFrame {
         capabilityPanel.setLayout(new java.awt.BorderLayout());
 
         capTable.setModel(new javax.swing.table.DefaultTableModel(
-            new Object [][] {
+                new Object [][] {
 
-            },
-            new String [] {
-                "Property", "Value"
-            }
+                },
+                new String [] {
+                        "Property", "Value"
+                }
         ));
         jScrollPane1.setViewportView(capTable);
 
@@ -1164,6 +1167,20 @@ public class DriverSettings extends javax.swing.JFrame {
             settings.getContextSettings().delete(contextName);
             contextCombo.removeItem(contextName);
         }
+    }
+
+    private void alterDefaultKeyBindings() {
+
+        int menuShortcutKeyMask = Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx();
+        appiumConnectionString.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_X, menuShortcutKeyMask), "none");
+        appiumConnectionString.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_C, menuShortcutKeyMask), "none");
+        appiumConnectionString.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_V, menuShortcutKeyMask), "none");
+
+        appiumConnectionString.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_X, menuShortcutKeyMask), "cut");
+        appiumConnectionString.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_C, menuShortcutKeyMask), "copy");
+        appiumConnectionString.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_V, menuShortcutKeyMask), "paste");
+
+
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables

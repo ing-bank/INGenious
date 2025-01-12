@@ -114,6 +114,7 @@ public class TestCaseAutoSuggest {
         objectList.add("Queue");
         objectList.add("Synthetic Data");
         objectList.add("File");
+        objectList.add("General");
         objectList.add("Execute");
         return objectList;
     }
@@ -195,7 +196,7 @@ public class TestCaseAutoSuggest {
     
     private boolean isMessageStep(TestStep step) {
         return step != null && step.isMessageStep()
-                && (step.getAction().contains("sendMessage")|| step.getAction().contains("produceMessage"));
+                && (step.getAction().contains("setText")|| step.getAction().contains("produceMessage"));
     }
 
     private boolean isRouteFulfillEndpointStep(TestStep step) {
@@ -266,6 +267,8 @@ public class TestCaseAutoSuggest {
                      return MethodInfoManager.getMethodListFor(ObjectType.KAFKA, ObjectType.KAFKA);    
                 case "File":
                     return MethodInfoManager.getMethodListFor(ObjectType.FILE, ObjectType.FILE);
+                case "General":
+                    return MethodInfoManager.getMethodListFor(ObjectType.GENERAL, ObjectType.GENERAL);    
                 default:
                      if (isWebObject(objectName, pageName)) {
                         return MethodInfoManager.getMethodListFor(ObjectType.PLAYWRIGHT, ObjectType.WEB, ObjectType.ANY);

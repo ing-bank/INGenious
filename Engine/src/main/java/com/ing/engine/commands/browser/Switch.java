@@ -19,6 +19,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.Properties;
+import org.apache.commons.lang3.StringUtils;
 
 public class Switch extends Command {
 
@@ -209,7 +210,7 @@ public class Switch extends Command {
 
     private double getTimeoutValue() {
         double timeout = 30000;
-        if (Condition != null || !Condition.isEmpty()) {
+        if (StringUtils.isNotBlank(Condition)) {
             try {
                 timeout = Double.parseDouble(Condition.trim());
             } catch (NumberFormatException e) {

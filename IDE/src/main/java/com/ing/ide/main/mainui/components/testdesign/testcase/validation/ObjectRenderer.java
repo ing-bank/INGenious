@@ -63,7 +63,7 @@ public class ObjectRenderer extends AbstractRenderer {
 
     private Boolean isValidObject(Object value) {
         return Objects.toString(value, "").trim()
-                .matches("Execute|Mobile|Browser|Database|Webservice|Kafka|Synthetic Data|Queue|File");
+                .matches("Execute|Mobile|Browser|Database|Webservice|Kafka|Synthetic Data|Queue|File|General");
     }
 
 }

@@ -40,8 +40,8 @@ public class ActionRenderer extends AbstractRenderer {
                 setWebserviceStop(comp);
             } else if ((step.isWebserviceRequestStep())) {
                 setWebserviceRequest(comp);
-            } else if ((step.isSendMessageStep())) {
-                setSendMessage(comp);
+            } else if ((step.isSetTextStep())) {
+                setText(comp);
             } else if ((step.getObject().equals("Execute"))) {
                 setReusable(comp);
             } else if (isActionValid(step, value)) {
@@ -116,6 +116,10 @@ public class ActionRenderer extends AbstractRenderer {
                 valid = MethodInfoManager.getMethodListFor(ObjectType.KAFKA)
                         .contains(action);
                 break;
+            case "General":
+                valid = MethodInfoManager.getMethodListFor(ObjectType.GENERAL)
+                        .contains(action);
+                break;    
             default:
                 if (isWebObject(step)) {
                     valid = MethodInfoManager.getMethodListFor(ObjectType.PLAYWRIGHT, ObjectType.WEB).contains(action);

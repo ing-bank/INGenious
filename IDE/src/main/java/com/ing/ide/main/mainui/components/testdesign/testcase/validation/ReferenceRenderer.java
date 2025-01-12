@@ -59,7 +59,7 @@ public class ReferenceRenderer extends AbstractRenderer {
     }
 
     private Boolean isOptional(TestStep step) {
-        return step.getObject().matches("Execute|Mobile|Browser|Database|Webservice|Kafka|Synthetic Data|Queue|File");
+        return step.getObject().matches("Execute|Mobile|Browser|Database|Webservice|Kafka|Synthetic Data|Queue|File|General");
     }
 
     private Boolean isObjectPresent(TestStep step) {

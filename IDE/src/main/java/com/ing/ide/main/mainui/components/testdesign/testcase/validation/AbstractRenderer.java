@@ -58,7 +58,7 @@ public abstract class AbstractRenderer extends DefaultTableCellRenderer {
         comp.setForeground(new Color(0,204,0));
     }
     
-    protected void setSendMessage(JComponent comp) {
+    protected void setText(JComponent comp) {
         comp.setForeground(new Color(0,204,0));
     }
     
