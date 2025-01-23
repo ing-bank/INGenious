@@ -13,7 +13,7 @@ public class Centered extends General {
     public Centered(CommandControl cc) {
         super(cc);
     }
-
+/*
     private void assertElementCentered(SpecCentered.Alignment alignment, SpecCentered.Location location) {
         SpecCentered spec = SpecReader.reader().getSpecCentered(Condition, Data, location, alignment);
         spec.setOriginalText(getMessage(alignment, location, spec.getErrorRate()));
@@ -57,5 +57,5 @@ public class Centered extends General {
         }
         return message;
     }
-
+*/
 }

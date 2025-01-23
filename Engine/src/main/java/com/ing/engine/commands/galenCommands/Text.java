@@ -60,7 +60,7 @@ public class Text extends General {
     }
 
     @Action(object = ObjectType.APP, desc = "Assert if [<Object>]'s Text Matches [<Data>]", input = InputType.YES)
-    public void assertElementTextMatches() {
+    public void assertElementTextMatchesWith() {
         assertElementText(Type.MATCHES);
     }
 }

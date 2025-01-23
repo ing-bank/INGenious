@@ -17,7 +17,7 @@ public class ColorScheme extends General {
     public ColorScheme(CommandControl cc) {
         super(cc);
     }
-
+/*
     @Action(object = ObjectType.APP, desc ="Assert if [<Object>] color scheme matches [<Data>] ", input =InputType.YES)
     public void assertElementColorScheme() {
         SpecColorScheme spec = SpecReader.reader().getSpecColorScheme(Data);
@@ -28,5 +28,5 @@ public class ColorScheme extends General {
     private String getMessage() {
         return String.format("%s's color scheme matches with %s", ObjectName, Data);
     }
-
+*/
 }

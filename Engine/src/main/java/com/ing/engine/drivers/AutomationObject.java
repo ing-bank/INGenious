@@ -315,7 +315,7 @@ public class AutomationObject {
                             break;
                         case "css":
                             System.out.println(foundElementBy("CSS", value));
-                            elements.add(this.getPage().locator("css=" + value));
+                            elements.add(this.getPage().locator("css=" + value).first());
                             break;
                         case "xpath":
                             System.out.println(foundElementBy("Xpath", value));
@@ -428,7 +428,7 @@ public class AutomationObject {
                             break;
                         case "css":
                             System.out.println(foundElementBy("CSS", value));
-                            elements.add(framelocator.locator("css=" + value));
+                            elements.add(framelocator.locator("css=" + value).first());
                             break;
                         case "xpath":
                             System.out.println(foundElementBy("Xpath", value));

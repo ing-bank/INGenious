@@ -42,6 +42,7 @@ public class Command {
     public Playwright Playwright;
     public BrowserContext BrowserContext;
     public AutomationObject AObject;
+    public MobileObject MObject;
     public PlaywrightDriverCreation Driver;
     public String Data;
     public String ObjectName;

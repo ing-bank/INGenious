@@ -13,7 +13,7 @@ import java.util.logging.Logger;
 import org.openqa.selenium.JavascriptExecutor;
 
 public class Scroll extends MobileGeneral {
-
+/*
     private final String currentHScrollPos = "Math.max("
             + "document.body.scrollLeft, document.documentElement.scrollLeft,"
             + "document.body.offsetLeft, document.documentElement.offsetLeft,"
@@ -30,11 +30,11 @@ public class Scroll extends MobileGeneral {
             + "document.body.scrollWidth, document.documentElement.scrollWidth,"
             + "document.body.offsetWidth, document.documentElement.offsetWidth,"
             + "document.body.clientWidth, document.documentElement.clientWidth)";
-
+*/
     public Scroll(CommandControl cc) {
         super(cc);
     }
-
+/*
     @Action(object = ObjectType.MOBILE, desc = "Scroll horizondally to [<Data>]", input = InputType.YES)
     public void scrollHorizontallyTo() {
         if (Data != null && Data.trim().toLowerCase().matches("(left|right|\\d*)")) {
@@ -110,7 +110,7 @@ public class Scroll extends MobileGeneral {
         }
 
     }
-    
+*/    
     @Action(object = ObjectType.MOBILE, desc ="Scroll to Text in Android", input = InputType.YES)
     public void scrollInAndroid() {
         try {

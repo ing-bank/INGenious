@@ -10,6 +10,7 @@ import com.ing.engine.core.RunContext;
 import com.ing.engine.execution.exception.DriverClosedException;
 import com.ing.engine.execution.exception.UnCaughtException;
 import com.ing.engine.drivers.customWebDriver.EmptyDriver;
+import com.ing.engine.execution.exception.AppiumDriverException;
 import java.io.File;
 import java.io.IOException;
 import java.util.logging.Level;
@@ -36,9 +37,9 @@ public class WebDriverCreation {
         try {
             System.out.println("\n🚀 Launching Driver \n");
             driver = WebDriverFactory.create(context, Control.getCurrentProject().getProjectSettings());
-        } catch (UnCaughtException ex) {
+        } catch (Exception ex) {
             Logger.getLogger(this.getClass().getName()).log(Level.OFF, null, ex);
-            throw new UnCaughtException("[Appium driver Exception] unable to launch APK file " + ex.getMessage());
+                   
         }
     }
 
@@ -110,21 +111,22 @@ public class WebDriverCreation {
         if (isNoBrowserExecution()) {
             return runContext.BrowserName;
         }
-        return getEmulatorCapabilityValue(runContext.BrowserName,Control.getCurrentProject().getProjectSettings(),"deviceName");        
+        return getEmulatorCapabilityValue(runContext.BrowserName, Control.getCurrentProject().getProjectSettings(), "deviceName");
     }
 
     public String getCurrentBrowserVersion() {
         if (isNoBrowserExecution()) {
             return "NA";
         }
-        return getEmulatorCapabilityValue(runContext.BrowserName,Control.getCurrentProject().getProjectSettings(),"platformVersion");
+        return getEmulatorCapabilityValue(runContext.BrowserName, Control.getCurrentProject().getProjectSettings(), "platformVersion");
     }
 
     public String getPlatform() {
-        if (isNoBrowserExecution()) 
+        if (isNoBrowserExecution()) {
             return System.getProperty("os.name") + " " + System.getProperty("os.version") + " " + System.getProperty("os.arch");
-        else 
-            return getEmulatorCapabilityValue(runContext.BrowserName,Control.getCurrentProject().getProjectSettings(),"platformName");
+        } else {
+            return getEmulatorCapabilityValue(runContext.BrowserName, Control.getCurrentProject().getProjectSettings(), "platformName");
+        }
     }
 
     public File createScreenShot() {
@@ -182,18 +184,28 @@ public class WebDriverCreation {
             return false;
         }
     }
-    
+
     private String getEmulatorCapabilityValue(String browserName, ProjectSettings settings, String cap) {
-        
+
         Properties prop = settings.getCapabilities().getCapabiltiesFor(browserName);
         for (Object key : prop.keySet()) {
             String capability = key.toString().trim().replace("appium:", "");
-            String value = prop.getProperty(key.toString()).trim();  
-            if (capability.contains(cap)) 
-                    return value;             
-        
-       }
-            return null;
+            String value = prop.getProperty(key.toString()).trim();
+            if (capability.contains(cap)) {
+                return value;
+            }
+
+        }
+        return null;
+    }
+
+    public void StopBrowser() {
+        try {
+            driver.quit();
+        } catch (Exception ex) {
+            Logger.getLogger(this.getClass().getName()).log(Level.OFF, null, ex);
+        }
+        driver = null;
     }
 
 }

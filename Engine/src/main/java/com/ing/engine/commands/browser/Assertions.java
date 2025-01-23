@@ -38,7 +38,7 @@ public class Assertions extends General {
             LocatorAssertions.ContainsTextOptions options = new LocatorAssertions.ContainsTextOptions();
             options.setTimeout(getTimeoutValue());
             assertThat(Locator).containsText(Data, options);
-            text = Locator.textContent();
+            text = Locator.innerHTML();
             highlightElement();
             Report.updateTestLog(Action, "Element [" + ObjectName + "] contains text '" + Data + "'", Status.PASS);
             removeHighlightFromElement();
@@ -57,7 +57,7 @@ public class Assertions extends General {
             options.setTimeout(getTimeoutValue());
             options.setIgnoreCase(true);
             assertThat(Locator).containsText(Data, options);
-            text = Locator.textContent();
+            text = Locator.innerHTML();
             highlightElement();
             Report.updateTestLog(Action, "Element [" + ObjectName + "] contains text '" + Data + "'", Status.PASS);
             removeHighlightFromElement();
@@ -75,14 +75,14 @@ public class Assertions extends General {
             LocatorAssertions.ContainsTextOptions options = new LocatorAssertions.ContainsTextOptions();
             options.setTimeout(getTimeoutValue());
             assertThat(Locator).not().containsText(Data, options);
-            text = Locator.textContent();
+            text = Locator.innerHTML();
             highlightElement();
             Report.updateTestLog(Action, "Element [" + ObjectName + "] dos not contain text '" + Data + "'. Actual text is '" + text + "'", Status.PASS);
             removeHighlightFromElement();
         } catch (PlaywrightException e) {
             PlaywrightExceptionLogging(e);
         } catch (AssertionFailedError err) {
-            assertionLogging(err, "[" + ObjectName + "] does not contain text '" + Data + "'");
+            assertionLogging(err, "[" + ObjectName + "] contains text '" + Data + "'");
         }
     }
 
@@ -407,7 +407,7 @@ public class Assertions extends General {
             LocatorAssertions.HasTextOptions options = new LocatorAssertions.HasTextOptions();
             options.setTimeout(getTimeoutValue());
             assertThat(Locator).hasText(Pattern.compile(Data), options);
-            text = Locator.textContent();
+            text = Locator.innerHTML();
             highlightElement();
             Report.updateTestLog(Action, "[" + ObjectName + "] has text '" + Data + "'", Status.PASS);
             removeHighlightFromElement();
@@ -425,7 +425,7 @@ public class Assertions extends General {
             LocatorAssertions.HasTextOptions options = new LocatorAssertions.HasTextOptions();
             options.setTimeout(getTimeoutValue());
             assertThat(Locator).not().hasText(Pattern.compile(Data), options);
-            text = Locator.textContent();
+            text = Locator.innerHTML();
             highlightElement();
             Report.updateTestLog(Action, "[" + ObjectName + "] does not have text '" + Data + "'. Actual text is '" + text + "'", Status.PASS);
             removeHighlightFromElement();

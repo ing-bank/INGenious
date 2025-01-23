@@ -48,7 +48,6 @@ public class Assertions extends MobileGeneral {
         }
     }
 
-
     /**
      * ******************************************
      * Function to assert cookies present
@@ -109,4 +108,30 @@ public class Assertions extends MobileGeneral {
         }
     }
 
+    /*
+     @Action(object = ObjectType.MOBILE,desc = "Assert if the evaluated javascript expression equals [<Data>]",
+            input = InputType.YES)
+    public void assertEval() {
+        try {
+            JavascriptExecutor js = (JavascriptExecutor) mDriver;
+            String strExpScript = Data.split(":", 2)[0];
+            String strExpValue = Data.split(":", 2)[1];
+            Object result = js.executeScript(strExpScript);
+            if (result != null && result.toString().trim().equals(strExpValue)) {
+                System.out.println("assertEval Passed");
+                Report.updateTestLog(
+                        "assertEval",
+                        "JS script return value matched with the expected result",
+                        Status.DONE);
+            } else {
+                throw new Exception(
+                        "JS script return value did not match with the expected result");
+            }
+        } catch (Exception ex) {
+            System.out.println("assertEval Failed");
+            Logger.getLogger(Assertions.class.getName()).log(Level.SEVERE, null, ex);
+            throw new ForcedException("assertEval", ex.getMessage());
+        }
+    }
+     */
 }

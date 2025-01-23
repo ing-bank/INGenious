@@ -185,6 +185,7 @@ public class CommonMethods extends MobileGeneral {
             Logger.getLogger(CommonMethods.class.getName()).log(Level.SEVERE, null, e);
         }
     }
+    
 
     public HashMap<String, String> getCellValue(WebElement Element, int tr,
             int td) {
@@ -505,11 +506,218 @@ public class CommonMethods extends MobileGeneral {
                 return Keys.HOME;
             default:
                 try {
-                return Keys.valueOf(data.toUpperCase());
-            } catch (Exception ex) {
-                return null;
-            }
+                    return Keys.valueOf(data.toUpperCase());
+                } catch (Exception ex) {
+                    return null;
+                }
         }
     }
 
+    /*
+    @Action(object = ObjectType.MOBILE, desc = "Refresh current page ")
+    public void refreshDriver() {
+        try {
+            mDriver.navigate().refresh();
+            Report.updateTestLog("refreshDriver", "Page is refreshed",
+                    Status.DONE);
+        } catch (WebDriverException e) {
+            Report.updateTestLog("refreshDriver", e.getMessage(), Status.FAIL);
+            Logger.getLogger(CommonMethods.class.getName()).log(Level.SEVERE, null, e);
+        }
+
+    }
+
+    @Action(object = ObjectType.MOBILE, desc = "browser navigates to next page.")
+    public void forward() {
+        try {
+            mDriver.navigate().forward();
+            Report.updateTestLog("forward", "Navigate page forward is success",
+                    Status.DONE);
+        } catch (WebDriverException e) {
+            Report.updateTestLog("forward", e.getMessage(), Status.FAIL);
+            Logger.getLogger(CommonMethods.class.getName()).log(Level.SEVERE, null, e);
+        }
+    }
+
+    @Action(object = ObjectType.MOBILE, desc = "Close the current browser session")
+    public void close() {
+        try {
+            mDriver.close();
+            Report.updateTestLog("close", "Selenium Webdriver is closed",
+                    Status.DONE);
+        } catch (WebDriverException e) {
+            Report.updateTestLog("close", e.getMessage(), Status.FAIL);
+            Logger.getLogger(CommonMethods.class.getName()).log(Level.SEVERE, null, e);
+        }
+    }
+
+    @Action(object = ObjectType.APP, desc = "To Perform Right Click action on WebPage/Element")
+    public void rightClick() {
+        String desc = "Right click action performed on ";
+        Actions action = new Actions(mDriver);
+        if (Element != null) {
+            action.contextClick(Element).build().perform();
+            desc += "Element - " + ObjectName;
+        } else {
+            action.contextClick().build().perform();
+            desc += "Webpage";
+        }
+        Report.updateTestLog(Action, desc, Status.DONE);
+    }
+
+    @Action(object = ObjectType.APP, desc = "Double click [<Object>] element")
+    public void doubleClickElement() {
+        if (elementEnabled()) {
+            new Actions(mDriver).doubleClick(Element).build().perform();
+            Report.updateTestLog("doubleClickElement", "'" + Element
+                    + "' is doubleClicked", Status.DONE);
+        } else {
+            throw new ElementException(ExceptionType.Element_Not_Enabled, ObjectName);
+        }
+    }
+
+    @Action(object = ObjectType.APP, desc = "Drags the [<Object>]")
+    public void dragElement() {
+        if (elementPresent()) {
+            getRunTimeElement().push(Element);
+            Report.updateTestLog(Action, "'" + ObjectName
+                    + "' dragged", Status.DONE);
+        } else {
+            throw new ElementException(ElementException.ExceptionType.Element_Not_Found, ObjectName);
+        }
+    }
+
+    @Action(object = ObjectType.APP, desc = "Drops the Dragged Object to [<Object>]")
+    public void dropElement() {
+        if (elementPresent()) {
+            if (!getRunTimeElement().empty()) {
+                new Actions(mDriver)
+                        .dragAndDrop(getRunTimeElement().pop(), Element)
+                        .build().perform();
+                Report.updateTestLog(Action, "Element  dropped to '"
+                        + ObjectName + "' ", Status.DONE);
+            } else {
+                throw new ElementException(ElementException.ExceptionType.Element_Not_Found, "Drop Target");
+            }
+        } else {
+            throw new ElementException(ElementException.ExceptionType.Element_Not_Found, ObjectName);
+        }
+    }
+
+    @Action(object = ObjectType.MOBILE, desc = "Add the cookie of name with value [<Data>].", input = InputType.YES)
+    public void addCookie() {
+
+        try {
+            String strCookieName = Data.split(":", 2)[0];
+            String strCookieValue = Data.split(":", 2)[1];
+            Cookie oCookie = new Cookie.Builder(strCookieName, strCookieValue)
+                    .build();
+            mDriver.manage().addCookie(oCookie);
+            Report.updateTestLog(Action, "Cookie Name- '" + strCookieName
+                    + "' with value '" + strCookieValue + "' is added",
+                    Status.DONE);
+        } catch (Exception e) {
+            Report.updateTestLog(Action, e.getMessage(), Status.FAIL);
+            Logger.getLogger(CommonMethods.class.getName()).log(Level.SEVERE, null, e);
+        }
+    }
+
+    @Action(object = ObjectType.MOBILE, desc = "delete the cookie having name [<Data>].", input = InputType.YES)
+    public void deleteCookie() {
+        try {
+            String strCookieName = Data;
+            Cookie oCookie = mDriver.manage().getCookieNamed(strCookieName);
+            if (oCookie != null) {
+                mDriver.manage().deleteCookie(oCookie);
+                Report.updateTestLog(Action, "Cookie Name- '"
+                        + strCookieName + "' is deleted", Status.DONE);
+            } else {
+                Report.updateTestLog(Action, "Cookie doesn't exist",
+                        Status.FAIL);
+            }
+        } catch (Exception e) {
+            Report.updateTestLog(Action, e.getMessage(), Status.FAIL);
+            Logger.getLogger(CommonMethods.class.getName()).log(Level.SEVERE, null, e);
+        }
+    }
+
+    @Action(object = ObjectType.MOBILE, desc = "Take a Screen Shot ")
+    public void takeScreenshot() {
+        try {
+            Report.updateTestLog(Action, "Screenshot is taken", Status.PASS);
+        } catch (Exception e) {
+            Report.updateTestLog(Action, e.getMessage(), Status.DEBUG);
+            Logger.getLogger(CommonMethods.class.getName()).log(Level.SEVERE, null, e);
+        }
+    }
+
+    @Action(object = ObjectType.MOBILE, desc = "Store the current page url into the Runtime variable: [<Data>]", input = InputType.YES)
+    public void storeCurrentUrl() {
+        String strObj = Input;
+        if (strObj.startsWith("%") && strObj.endsWith("%")) {
+            addVar(strObj, mDriver.getCurrentUrl());
+            Report.updateTestLog(Action, "Current URL '" + mDriver.getCurrentUrl()
+                    + "' is stored in variable '" + strObj + "'", Status.PASS);
+        } else {
+            Report.updateTestLog(Action, "Variable format is not correct", Status.FAIL);
+        }
+    }
+
+    @Action(object = ObjectType.MOBILE, desc = "store the webpage title in variable named [<Data>].", input = InputType.YES)
+    public void storeTitle() {
+        String strObj = Input;
+        if (strObj.startsWith("%") && strObj.endsWith("%")) {
+            addVar(strObj, mDriver.getTitle());
+            Report.updateTestLog(Action, "Page title '" + mDriver.getTitle() + "' is stored in '"
+                    + strObj + "'", Status.PASS);
+        } else {
+            Report.updateTestLog(Action, "Variable format is not correct", Status.FAIL);
+        }
+    }
+
+    @Action(object = ObjectType.MOBILE, desc = "Store in Runtime variable Exist/Not Exist based on the  presence of cookie ->[<Data>]", input = InputType.YES, condition = InputType.YES)
+    public void storeCookiePresent() {
+        String variableName = Condition;
+        String cookieName = Data;
+        if (variableName.matches("%.*%")) {
+            if (mDriver.manage().getCookieNamed(cookieName) != null) {
+                addVar(variableName, "Exist");
+            } else {
+                addVar(variableName, "Not Exist");
+            }
+            Report.updateTestLog(Action,
+                    "Cookie presense flag is stored in variable " + variableName + "",
+                    Status.DONE);
+        } else {
+            Report.updateTestLog(Action, "Variable format is not correct", Status.DEBUG);
+        }
+    }
+
+    @Action(object = ObjectType.MOBILE, desc = "Store value of cookie into Runtime variable -> [<Data>]", input = InputType.YES, condition = InputType.YES)
+    public void storeCookieByName() {
+        String variableName = Condition;
+        String cookieName = Data;
+        if (variableName.matches("%.*%")) {
+            addVar(variableName, mDriver.manage().getCookieNamed(cookieName)
+                    .getValue());
+            Report.updateTestLog(Action, "Cookie Stored", Status.DONE);
+        } else {
+            Report.updateTestLog(Action, "Variable format is not correct", Status.DEBUG);
+        }
+    }
+    
+        @Action(object = ObjectType.MOBILE, desc = "Store the result of Javascript expression value in a variable", input = InputType.YES, condition = InputType.YES)
+    public void storeEval() {
+        String javaScript = Data;
+        String variableName = Condition;
+        if (variableName.matches("%.*%")) {
+            JavascriptExecutor js = (JavascriptExecutor) mDriver;
+            addVar(variableName, js.executeScript(javaScript).toString());
+            Report.updateTestLog(Action, "Eval Stored", Status.DONE);
+        } else {
+            Report.updateTestLog(Action, "Variable format is not correct", Status.FAIL);
+        }
+    }
+
+     */
 }

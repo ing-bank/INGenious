@@ -62,49 +62,7 @@ public class Verifications extends Command {
         }
     }
 
-    /**
-     * ******************************************
-     * Function to verify variable
-     *
-     * ******************************************
-     */
-    @Action(object = ObjectType.MOBILE, desc = "Verify if the specific [<Data>] is present", input = InputType.YES)
-    public void verifyVariable() {
-        String strObj = Data;
-        String[] strTemp = strObj.split("=", 2);
-        String strAns = getVar(strTemp[0]);
-        if (strAns.equals(strTemp[1])) {
-            System.out.println("Variable " + strTemp[0] + " equals "
-                    + strTemp[1]);
-            Report.updateTestLog(Action,
-                    "Variable is matched with the expected result", Status.PASS);
-        } else {
-            System.out.println("Variable " + strTemp[0] + " not equals "
-                    + strTemp[1]);
-            Report.updateTestLog(Action,
-                    "Variable doesn't match with the expected result",
-                    Status.FAIL);
-        }
-    }
-
-    @Action(object = ObjectType.MOBILE, desc = "Verify of variable [<Data>] from given datasheet", input = InputType.YES, condition = InputType.YES)
-    public void verifyVariableFromDataSheet() {
-        String strAns = getVar(Condition);
-        if (strAns.equals(Data)) {
-            System.out.println("Variable " + Condition + " equals "
-                    + Input);
-            Report.updateTestLog(Action,
-                    "Variable is matched with the expected result", Status.DONE);
-
-        } else {
-            System.out.println("Variable " + Condition + " is not equal "
-                    + Input);
-            Report.updateTestLog(Action,
-                    "Variable doesn't matched with the expected result",
-                    Status.DEBUG);
-        }
-    }
-
+    
     private boolean isAlertPresent(WebDriver mDriver) {
         try {
             mDriver.switchTo().alert();

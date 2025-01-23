@@ -16,7 +16,7 @@ public class On extends General {
     public On(CommandControl cc) {
         super(cc);
     }
-
+/*
     private void asssertElementOn(Side horizontal, Side vertical) {
         SpecOn spec = SpecReader.reader().getSpecOn(Condition, horizontal, vertical, Data);
         spec.setOriginalText(getMessage(horizontal, vertical, spec.getLocations()));
@@ -62,4 +62,5 @@ public class On extends General {
         }
         return message;
     }
+*/
 }

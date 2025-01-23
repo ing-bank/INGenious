@@ -43,6 +43,7 @@ public class WaitFor extends Command {
         super(cc);
     }
 
+    /*
     @Action(object = ObjectType.APP, desc = "Tap the [<Object>] and Wait for Page to be loaded", condition = InputType.OPTIONAL)
     public void TapAndWait() {
         if (Element != null) {
@@ -61,7 +62,8 @@ public class WaitFor extends Command {
                 "Page load completed in stipulated time",
                 "return document.readyState==='complete'");
     }
-
+   */
+    
     @Action(object = ObjectType.MOBILE, desc = "Wait for alert to be present ", condition = InputType.OPTIONAL)
     public void waitForAlertPresent() {
         waitFor(WaitType.ALERT_PRESENT,
@@ -138,6 +140,7 @@ public class WaitFor extends Command {
                 + Data + "' in stipulated Time");
     }
 
+    /*
     @Action(object = ObjectType.MOBILE, desc = "Wait till the given javascript condition [<Data>] returns true", input = InputType.YES, condition = InputType.OPTIONAL)
     public void waitTillCustomScript() {
         if (Data != null && !Data.trim().isEmpty()) {
@@ -152,13 +155,14 @@ public class WaitFor extends Command {
             Report.updateTestLog(Action, "Include a proper javascript condition to check", Status.DEBUG);
         }
     }
-
+    */
+    
     @Action(object = ObjectType.APP, desc = "Wait  for the element [<Object>] to be present", condition = InputType.OPTIONAL)
     public void waitForElementToBePresent() {
-        AObject.setWaitTime(getWaitTime());
+        MObject.setWaitTime(getWaitTime());
         try {
             Element = mObject.findElement(ObjectName, Reference);
-            AObject.resetWaitTime();
+            MObject.resetWaitTime();
             if (Element != null) {
                 Report.updateTestLog(Action, "'" + this.ObjectName
                         + "' Element Present in the stipulated time", Status.PASS);
@@ -273,6 +277,7 @@ public class WaitFor extends Command {
                 throw new UnsupportedOperationException();
         }
     }
+ 
 
     private ExpectedCondition<?> getCustomCondition(final String javascript) {
         return new ExpectedCondition<Boolean>() {

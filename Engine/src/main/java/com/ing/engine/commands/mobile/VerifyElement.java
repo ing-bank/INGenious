@@ -79,6 +79,7 @@ public class VerifyElement extends MobileGeneral {
                 Status.getValue(value));
     }
 
+    /*
     @Action(object = ObjectType.MOBILE, desc = "Verify if the HScrollBar is present")
     public void verifyHScrollBarPresent() {
         verifyHScorllBar("", isHScrollBarPresent());
@@ -111,4 +112,8 @@ public class VerifyElement extends MobileGeneral {
         String desc = type + " Scrollbar is " + isNot + " present";
         Report.updateTestLog(Action, desc, Status.getValue(value));
     }
+    
+    */
+   
+
 }

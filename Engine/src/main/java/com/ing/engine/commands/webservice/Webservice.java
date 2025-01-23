@@ -439,9 +439,6 @@ public class Webservice extends General {
         response.put(key, httpClient.get(key).send(httpRequest.get(key), HttpResponse.BodyHandlers.ofString()));
 
         responsebodies.put(key, (String) response.get(key).body());
-        
-        
-        responsebodies.put(key,responsebodies.get(key).replace(")]}',","")); /***** To be Removed ****/
 
         after.put(key, Instant.now());
         savePayload("response", (String) response.get(key).body());

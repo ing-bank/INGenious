@@ -9,6 +9,7 @@ import com.ing.engine.core.RunContext;
 import com.ing.engine.drivers.customWebDriver.EmptyDriver;
 import com.ing.engine.drivers.findObjectBy.support.ByObjectProp;
 import static com.ing.engine.execution.data.DataProcessor.resolve;
+import com.ing.engine.execution.exception.AppiumDriverException;
 import java.net.URL;
 import java.util.Map;
 import java.util.Objects;
@@ -19,7 +20,7 @@ import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.remote.DesiredCapabilities;
 
 public class WebDriverFactory {
-    
+
     private static final Logger LOGGER = Logger.getLogger(WebDriverFactory.class.getName());
 
     public static WebDriver create(RunContext context, ProjectSettings settings) {
@@ -37,12 +38,10 @@ public class WebDriverFactory {
     }
 
     private static WebDriver create(RunContext context, ProjectSettings settings, Boolean isGrid, String remoteUrl) {
-        if(context.BrowserName.equals ("No Browser"))
-        {
+        if (context.BrowserName.equals("No Browser")) {
             return new EmptyDriver();
-        }
-        else{
-            
+        } else {
+
             DesiredCapabilities caps = new DesiredCapabilities();
             caps = getEmulatorCapabilities(context.BrowserName, settings);
             return create(context.BrowserName, caps, settings);
@@ -50,20 +49,23 @@ public class WebDriverFactory {
     }
 
     private static DesiredCapabilities getEmulatorCapabilities(String browserName, ProjectSettings settings) {
-        
+
         Properties prop = settings.getCapabilities().getCapabiltiesFor(browserName);
         DesiredCapabilities caps = new DesiredCapabilities();
+        System.out.println("\n🚀 Capabilities used : \n");
         for (Object key : prop.keySet()) {
             String capability = key.toString().trim().replace("appium:", "");
-            String value = prop.getProperty(key.toString()).trim();  
-            if (capability.contains("platformName") || capability.toLowerCase().contains("browserName")) { 
-                    caps.setCapability(capability, value);               
+            String value = prop.getProperty(key.toString()).trim();
+            if (capability.contains("platformName") || capability.toLowerCase().contains("browserName")) {
+                System.out.println("\"" + capability + "\"" + " : " + "\"" + value + "\"");
+                caps.setCapability(capability, value);
             } else {
-                    caps.setCapability("appium:" + capability, value);
+                System.out.println("\"" + "appium:" + capability + "\"" + " : " + "\"" + value + "\"");
+                caps.setCapability("appium:" + capability, value);
             }
         }
         return caps;
-        
+
     }
 
     private static WebDriver create(String browserName, DesiredCapabilities caps,
@@ -81,7 +83,7 @@ public class WebDriverFactory {
                 }
             }
         }
-        
+
         return null;
     }
 
@@ -95,8 +97,9 @@ public class WebDriverFactory {
                 }
             }
 
-        } catch (Exception ex) {
+        } catch (Exception ex) {            
             LOGGER.log(Level.SEVERE, ex.getMessage(), ex);
+            throw new AppiumDriverException("[Appium Driver Exception]. Please verify if the capabilities are passed correctly. Please visit  'https://appium.io/docs/en/2.0/guides/caps/' for more details. \n" +ex.getMessage());
         }
         return null;
     }
@@ -122,5 +125,5 @@ public class WebDriverFactory {
     private static String toLString(Object o) {
         return Objects.toString(o, "").toLowerCase();
     }
-    
+
 }

@@ -15,7 +15,9 @@ import com.ing.engine.support.methodInf.InputType;
 import com.ing.engine.support.methodInf.ObjectType;
 import io.appium.java_client.android.AndroidDriver;
 import io.appium.java_client.ios.IOSDriver;
+import io.appium.java_client.remote.SupportsContextSwitching;
 import io.appium.java_client.remote.SupportsRotation;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.openqa.selenium.interactions.Pause;
@@ -306,6 +308,22 @@ public class AppiumDeviceCommands extends MobileGeneral {
             Report.updateTestLog(Action, "Unable to open Notifications, Error: " + e.getMessage(), Status.FAIL);
         }
     }
+    
+    @Action(object = ObjectType.MOBILE, desc = "Shake Device")
+    public void shake() {
+        try {
+            if (mDriver instanceof AndroidDriver) {
+                ((AndroidDriver) mDriver).executeScript("mobile: shake");
+            } else if (mDriver instanceof IOSDriver) {
+                ((IOSDriver) mDriver).executeScript("mobile: shake");
+
+            }
+            Report.updateTestLog(Action, "Performed Shake Operation", Status.DONE);
+        } catch (Exception e) {
+            Logger.getLogger(this.getClass().getName()).log(Level.OFF, null, e);
+            Report.updateTestLog(Action, "Unable to perform Shake operation, Error: " + e.getMessage(), Status.FAIL);
+        }
+    }
 
     @Action(object = ObjectType.MOBILE, desc = "Hide Keyboard", input = InputType.NO, condition = InputType.NO)
     public void hideKeyboard() {
@@ -428,6 +446,34 @@ public class AppiumDeviceCommands extends MobileGeneral {
 
             ((RemoteWebDriver) mDriver).perform(Arrays.asList(pinchAndZoom1, pinchAndZoom2));
 
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+    
+    @Action(object = ObjectType.MOBILE, desc = "Switch Context When Name Contains", input = InputType.YES, condition = InputType.NO)
+    public void switchContextWhenNameContains() {
+        try {
+            Set<String> contextNames = ((SupportsContextSwitching) mDriver).getContextHandles();
+            for (String contextName : contextNames) {
+                if (contextName.contains(Data)) {
+                    ((SupportsContextSwitching) mDriver).context(contextName);
+                }
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+    }
+    
+    @Action(object = ObjectType.MOBILE, desc = "Switch Context When Name Equals", input = InputType.YES, condition = InputType.NO)
+    public void switchContextWhenNameEquals() {
+        try {
+            Set<String> contextNames = ((SupportsContextSwitching) mDriver).getContextHandles();
+            for (String contextName : contextNames) {
+                if (contextName.equals(Data)) {
+                    ((SupportsContextSwitching) mDriver).context(contextName);
+                }
+            }
         } catch (Exception e) {
             e.printStackTrace();
         }

@@ -18,7 +18,7 @@ public class WidthAndHeight extends General {
     public WidthAndHeight(CommandControl cc) {
         super(cc);
     }
-
+/*
     private void assertWidth(RelativeElement rElement) {
         SpecWidth spec = SpecReader.reader().getSpecWidth(rElement, Data, Condition);
         spec.setOriginalText(getMessage("width", rElement));
@@ -65,5 +65,5 @@ public class WidthAndHeight extends General {
         }
         return message;
     }
-
+*/
 }

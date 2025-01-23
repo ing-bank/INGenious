@@ -15,7 +15,7 @@ public class Near extends General {
     public Near(CommandControl cc) {
         super(cc);
     }
-
+/*
     @Action(object = ObjectType.APP, 
     		desc ="Assert if [<Object>] is near [<Object2>] [<Data>]", 
     		input =InputType.OPTIONAL, 
@@ -29,4 +29,5 @@ public class Near extends General {
     private String getMessage(List<Location> locations) {
         return String.format("%s is Near %s over location %s", ObjectName, Condition, Data);
     }
+*/
 }

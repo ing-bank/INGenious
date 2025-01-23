@@ -17,7 +17,7 @@ public class Direction extends General {
     public Direction(CommandControl cc) {
         super(cc);
     }
-
+/*
     @Action(object = ObjectType.APP, desc ="Assert if [<Object>] is  above [<Data>]", input =InputType.OPTIONAL, condition = InputType.YES)
     public void assertElementAbove() {
         SpecAbove spec = SpecReader.reader().getSpecAbove(Condition, Data);
@@ -61,4 +61,5 @@ public class Direction extends General {
         }
         return message;
     }
+*/
 }
