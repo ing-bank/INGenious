@@ -5,7 +5,6 @@ import com.ing.datalib.component.TestCase;
 import com.ing.datalib.component.TestStep;
 import com.ing.engine.constants.SystemDefaults;
 import com.ing.engine.core.CommandControl;
-import com.ing.engine.drivers.WebDriverCreation;
 import com.ing.engine.execution.data.DataIterator;
 import com.ing.engine.execution.data.Parameter;
 import com.ing.engine.execution.data.StepSet;
@@ -13,6 +12,7 @@ import com.ing.engine.execution.exception.DriverClosedException;
 import com.ing.engine.execution.exception.ForcedException;
 import com.ing.engine.execution.exception.TestFailedException;
 import com.ing.engine.execution.exception.ActionException;
+import com.ing.engine.execution.exception.AppiumDriverException;
 import com.ing.engine.execution.exception.UnCaughtException;
 import com.ing.engine.execution.exception.data.DataNotFoundException;
 import com.ing.engine.execution.exception.data.GlobalDataNotFoundException;
@@ -264,7 +264,8 @@ public class TestCaseRunner {
 
     //<editor-fold defaultstate="collapsed" desc="error handling">
     private void onError(Throwable ex) {
-        reportOnError(getStepName(), ex.getMessage(), Status.FAIL);
+        if (!ex.getMessage().contains("ActionException"))
+          reportOnError(getStepName(), ex.getMessage(), Status.DEBUG);
         if (exe.isContinueOnError()) {
             LOG.log(Level.SEVERE, ex.getMessage(), Optional.ofNullable(ex.getCause()).orElse(ex));
         } else {

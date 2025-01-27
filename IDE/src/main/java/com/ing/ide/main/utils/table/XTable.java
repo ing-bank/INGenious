@@ -27,10 +27,12 @@ import java.util.regex.PatternSyntaxException;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.BorderFactory;
+import javax.swing.DefaultCellEditor;
 import javax.swing.JComponent;
 import javax.swing.JTable;
 import static javax.swing.JTable.AUTO_RESIZE_OFF;
 import static javax.swing.JTable.AUTO_RESIZE_SUBSEQUENT_COLUMNS;
+import javax.swing.JTextField;
 import javax.swing.KeyStroke;
 import javax.swing.event.ChangeEvent;
 import javax.swing.table.DefaultTableCellRenderer;
@@ -39,22 +41,22 @@ import javax.swing.table.TableColumn;
 import javax.swing.table.TableModel;
 
 public class XTable extends JTable {
-    
+
     private boolean inLayout;
-    
+
     private SearchRenderer searchRenderer;
-    
+
     private EditHeader editHeader;
-    
+
     public XTable() {
         init();
     }
-    
+
     public XTable(TableModel tm) {
         super(tm);
         init();
     }
-    
+
     private void init() {
         try {
             Font customFont = Font.createFont(Font.TRUETYPE_FONT, new File("resources/ui/resources/fonts/ingme_regular.ttf"));//.deriveFont(12f);
@@ -76,8 +78,12 @@ public class XTable extends JTable {
         setCellSelectionEnabled(true);
         setColumnSelectionAllowed(true);
         setGridColor(new Color(246, 227, 221));
+        
+        setDefaultEditor(Object.class, new CustomTableCellEditor());
         addKeyListeners();
         
+
+
         putClientProperty("terminateEditOnFocusLost", true);
         addFocusListener(new FocusListener() {
             @Override
@@ -85,7 +91,7 @@ public class XTable extends JTable {
                 searchRenderer.focused = true;
                 repaint();
             }
-            
+
             @Override
             public void focusLost(FocusEvent fe) {
                 searchRenderer.focused = false;
@@ -94,7 +100,7 @@ public class XTable extends JTable {
         });
         TableCellDrag.install(this);
     }
-    
+
     private void addKeyListeners() {
         addKeyListener(new ClipboardKeyAdapter(this));
         getInputMap(JComponent.WHEN_FOCUSED).put(Keystroke.DELETE, "Clear");
@@ -113,8 +119,7 @@ public class XTable extends JTable {
         getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_X, menuShortcutKeyMask), "cut");
         getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_C, menuShortcutKeyMask), "copy");
         getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_V, menuShortcutKeyMask), "paste");
-        
-        
+
         getInputMap(JComponent.WHEN_FOCUSED).put(Keystroke.INSERT_ROW, "Insert");
         getInputMap(JComponent.WHEN_FOCUSED).put(Keystroke.ADD_ROW, "Add");
         getInputMap(JComponent.WHEN_FOCUSED).put(Keystroke.ADD_ROWX, "Add");
@@ -136,7 +141,7 @@ public class XTable extends JTable {
         getInputMap(JComponent.WHEN_FOCUSED).put(Keystroke.BREAKPOINT, "BreakPoint");
         getInputMap(JComponent.WHEN_FOCUSED).put(Keystroke.UP, "MoveUp");
         getInputMap(JComponent.WHEN_FOCUSED).put(Keystroke.DOWN, "MoveDown");
-        
+
         getInputMap(JComponent.WHEN_FOCUSED).put(Keystroke.UNDO, "Undo");
         getActionMap().put("Undo", new AbstractAction() {
             @Override
@@ -163,7 +168,7 @@ public class XTable extends JTable {
             }
         });
     }
-    
+
     private void deleteSelectedCells() {
         if (getModel() instanceof UndoRedoModel) {
             ((UndoRedoModel) getModel()).startGroupEdit();
@@ -183,23 +188,23 @@ public class XTable extends JTable {
             ((UndoRedoModel) getModel()).stopGroupEdit();
         }
     }
-    
+
     @Override
     public TableCellRenderer getCellRenderer(int row, int column) {
         return searchRenderer.setDefRenderer(super.getCellRenderer(row, column));
     }
-    
+
     @Override
     public boolean getScrollableTracksViewportWidth() {
         return hasExcessWidth();
-        
+
     }
-    
+
     @Override
     public int getRowHeight() {
         return 25;
     }
-    
+
     @Override
     public void doLayout() {
         if (hasExcessWidth()) {
@@ -211,11 +216,11 @@ public class XTable extends JTable {
         inLayout = false;
         autoResizeMode = AUTO_RESIZE_OFF;
     }
-    
+
     protected boolean hasExcessWidth() {
         return getPreferredSize().width < getParent().getWidth();
     }
-    
+
     @Override
     public void columnMarginChanged(ChangeEvent e) {
         if (isEditing()) {
@@ -231,7 +236,7 @@ public class XTable extends JTable {
         }
         resizeAndRepaint();
     }
-    
+
     @Override
     public boolean editCellAt(int i, int i1, EventObject e) {
         Boolean flag = super.editCellAt(i, i1, e);
@@ -246,25 +251,25 @@ public class XTable extends JTable {
         }
         return flag;
     }
-    
+
     public void setActionFor(String value, Action action) {
         getActionMap().put(value, action);
     }
-    
+
     public void setKeyStrokeFor(String value, KeyStroke keyStroke) {
         getInputMap(JComponent.WHEN_FOCUSED).put(keyStroke, value);
     }
-    
+
     public void setColumnRename(Action onColumnRenameAction, Integer... dontEditTheseColumns) {
         editHeader = EditHeader.setEditableHeader(this, onColumnRenameAction, dontEditTheseColumns);
     }
-    
+
     public void disableColumnRename() {
         if (editHeader != null) {
             editHeader.disableEdit();
         }
     }
-    
+
     public void searchFor(String text) {
         /**
          * *************Header Search **************
@@ -279,21 +284,21 @@ public class XTable extends JTable {
                         headerRenderer.setForeground(Color.BLACK);
                         headerRenderer.setBackground(Color.ORANGE);
                         getTableHeader().getColumnModel().getColumn(i).setHeaderRenderer(headerRenderer);
-                        
+
                     } else {
                         DefaultTableCellRenderer headerRenderer = new DefaultTableCellRenderer();
                         headerRenderer.setBackground(Color.decode("#f0edf6"));
                         getTableHeader().setForeground(Color.decode("#342245"));
                         getTableHeader().getColumnModel().getColumn(i).setHeaderRenderer(headerRenderer);
-                        
+
                     }
-                    
+
                 } else {
                     DefaultTableCellRenderer headerRenderer = new DefaultTableCellRenderer();
                     headerRenderer.setBackground(Color.decode("#f0edf6"));
                     getTableHeader().setForeground(Color.decode("#342245"));
                     getTableHeader().getColumnModel().getColumn(i).setHeaderRenderer(headerRenderer);
-                    
+
                 }
             }
         }
@@ -329,7 +334,7 @@ public class XTable extends JTable {
         }
         repaint();
     }
-    
+
     private Boolean isRegexValid(String regex) {
         try {
             Pattern.compile(regex);
@@ -338,14 +343,14 @@ public class XTable extends JTable {
             return false;
         }
     }
-    
+
     public void goToNextSearch() {
         int selectedRow = getSelectedRow();
         int selectedColumn = getSelectedColumn();
-        
+
         int nextRow = -1;
         int nextColumn = -1;
-        
+
         if (!searchRenderer.searchRowMap.isEmpty()) {
             List<Integer> searchedRowList = new ArrayList<>(searchRenderer.searchRowMap.keySet());
             Collections.sort(searchedRowList);
@@ -370,16 +375,16 @@ public class XTable extends JTable {
                 changeSelection(nextRow, nextColumn, false, false);
             }
         }
-        
+
     }
-    
+
     public void goToPrevoiusSearch() {
         int selectedRow = getSelectedRow();
         int selectedColumn = getSelectedColumn();
-        
+
         int nextRow = -1;
         int nextColumn = -1;
-        
+
         if (!searchRenderer.searchRowMap.isEmpty() && selectedColumn != -1) {
             List<Integer> searchedRowList = new ArrayList<>(searchRenderer.searchRowMap.keySet());
             Collections.sort(searchedRowList, Collections.reverseOrder());
@@ -406,19 +411,19 @@ public class XTable extends JTable {
             }
         }
     }
-    
+
     public void cut() {
         XTableUtils.copyToClipboard(this, true);
     }
-    
+
     public void copy() {
         XTableUtils.copyToClipboard(this, false);
     }
-    
+
     public void paste() {
         XTableUtils.pasteFromClipboard(this);
     }
-    
+
     public void selectColumn(int colIndex) {
         if (getRowCount() > 0) {
             changeSelection(0, colIndex, false, false);
@@ -428,6 +433,33 @@ public class XTable extends JTable {
         }
     }
     
+    public class CustomTableCellEditor extends DefaultCellEditor {
+
+    public CustomTableCellEditor() {
+        super(new JTextField());
+        JTextField editor = (JTextField) getComponent();
+        int menuShortcutKeyMask = Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx();
+
+        // Remove default Ctrl key bindings
+        editor.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_X, menuShortcutKeyMask), "none");
+        editor.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_C, menuShortcutKeyMask), "none");
+        editor.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_V, menuShortcutKeyMask), "none");
+        editor.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_A, menuShortcutKeyMask), "none");
+
+        // Add Cmd key bindings
+        editor.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_X, menuShortcutKeyMask), "cut");
+        editor.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_C, menuShortcutKeyMask), "copy");
+        editor.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_V, menuShortcutKeyMask), "paste");
+        editor.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_A, menuShortcutKeyMask), "selectAll");
+        editor.getActionMap().put("selectAll", new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                editor.selectAll();
+            }
+        });
+    }
+}    
+
 }
 
 class SearchRenderer extends DefaultTableCellRenderer {
@@ -436,18 +468,18 @@ class SearchRenderer extends DefaultTableCellRenderer {
     private static final Color BG_SEARCH_COLOR = Color.decode("#C8FACF");
     private static final Color DEF_SELECTION_COLOR = Color.decode("#FF6200");
     private static final Color NOFOCUS_SELECTION_COLOR = Color.decode("#ffcfb2");
-    
+
     public Map<Integer, List<Integer>> searchRowMap = new LinkedHashMap<>();
-    
+
     TableCellRenderer defCellRenderer;
-    
+
     Boolean focused = true;
-    
+
     public SearchRenderer setDefRenderer(TableCellRenderer defCellRenderer) {
         this.defCellRenderer = defCellRenderer;
         return this;
     }
-    
+
     @Override
     public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
         JComponent comp = (JComponent) defCellRenderer.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
@@ -458,12 +490,12 @@ class SearchRenderer extends DefaultTableCellRenderer {
                 break;
             }
         }
-        
+
         setSelectionColor(rowSelected, isSelected, comp, table.getBackground());
         setSearchColor(comp, row, column, isSelected);
         return comp;
     }
-    
+
     private void setSearchColor(JComponent comp, int row, int column, Boolean cellSelected) {
         if (!cellSelected) {
             if (searchRowMap.get(row) != null && searchRowMap.get(row).indexOf(column) != -1) {
@@ -471,7 +503,7 @@ class SearchRenderer extends DefaultTableCellRenderer {
             }
         }
     }
-    
+
     private void setSelectionColor(Boolean rowSelected, Boolean cellSelected,
             JComponent comp, Color defalutRowBgColor) {
         if (rowSelected) {
@@ -490,5 +522,6 @@ class SearchRenderer extends DefaultTableCellRenderer {
     }
     
 }
+
 
 

@@ -310,6 +310,14 @@ public class TestStep {
     public Boolean isFileStep() {
         return getObject().equals("File");
     }
+    
+    public Boolean isMessageStep() {
+        return getObject().equals("Queue") || getObject().equals("Kafka");
+    }
+    
+    public Boolean isSetTextStep() {
+        return (getObject().equals("Queue") && getAction().contains("setText")) || (getObject().equals("Kafka") && getAction().contains("produceMessage"));
+    }
 
     public Boolean isWebserviceRequestStep() {
         String requests[] = new String[]{"get", "delete", "post", "put", "patch"};

@@ -1,4 +1,3 @@
-
 package com.ing.ide.main.mainui.components.testdesign.testcase.validation;
 
 import com.ing.datalib.component.Scenario;
@@ -41,7 +40,9 @@ public class ActionRenderer extends AbstractRenderer {
                 setWebserviceStop(comp);
             } else if ((step.isWebserviceRequestStep())) {
                 setWebserviceRequest(comp);
-            }else if ((step.getObject().equals("Execute"))) {
+            } else if ((step.isSetTextStep())) {
+                setText(comp);
+            } else if ((step.getObject().equals("Execute"))) {
                 setReusable(comp);
             } else if (isActionValid(step, value)) {
                 setDefault(comp);
@@ -95,7 +96,7 @@ public class ActionRenderer extends AbstractRenderer {
                 valid = MethodInfoManager.getMethodListFor(ObjectType.PROTRACTORJS)
                         .contains(action);
                 break;
-	    case "Webservice":
+            case "Webservice":
                 valid = MethodInfoManager.getMethodListFor(ObjectType.WEBSERVICE)
                         .contains(action);
                 break;
@@ -103,14 +104,27 @@ public class ActionRenderer extends AbstractRenderer {
                 valid = MethodInfoManager.getMethodListFor(ObjectType.FILE)
                         .contains(action);
                 break;
+            case "Synthetic Data":
+                valid = MethodInfoManager.getMethodListFor(ObjectType.DATA)
+                        .contains(action);
+                break;
+            case "Queue":
+                valid = MethodInfoManager.getMethodListFor(ObjectType.QUEUE)
+                        .contains(action);
+                break;
+            case "Kafka":
+                valid = MethodInfoManager.getMethodListFor(ObjectType.KAFKA)
+                        .contains(action);
+                break;
+            case "General":
+                valid = MethodInfoManager.getMethodListFor(ObjectType.GENERAL)
+                        .contains(action);
+                break;    
             default:
-                if (isImageObject(step)) {
-                    valid = MethodInfoManager.getMethodListFor(ObjectType.IMAGE)
-                            .contains(action);
-                } else if (isWebObject(step)) {
+                if (isWebObject(step)) {
                     valid = MethodInfoManager.getMethodListFor(ObjectType.PLAYWRIGHT, ObjectType.WEB).contains(action);
                 } else if (isMobileObject(step)) {
-                   valid = MethodInfoManager.getMethodListFor(ObjectType.APP).contains(action);
+                    valid = MethodInfoManager.getMethodListFor(ObjectType.APP).contains(action);
                 }
                 break;
         }
@@ -120,12 +134,6 @@ public class ActionRenderer extends AbstractRenderer {
                     .contains(action);
         }
         return valid;
-    }
-
-    private boolean isImageObject(TestStep step) {
-        ORPageInf page = step.getProject().
-                getObjectRepository().getImageOR().getPageByName(step.getReference());
-        return page != null && page.getObjectGroupByName(step.getObject()) != null;
     }
 
     private boolean isWebObject(TestStep step) {

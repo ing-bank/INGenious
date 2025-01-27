@@ -107,7 +107,11 @@ public class AppMainFrame extends JFrame {
         recentItems = new RecentItems(this);
         startUp = new StartUp(this);
         progressed(25);
-        sActionListener = new AppActionListener(this);
+        
+        toolBar = new AppToolBar(null);
+        sActionListener = new AppActionListener(this, toolBar);
+        toolBar.setActionListener(sActionListener);
+        
         slideShow = new SlideShow();
         docker = new SimpleDock(this);
         progressed(35);
@@ -121,7 +125,7 @@ public class AppMainFrame extends JFrame {
         spyHealReco = new SHR(this);
         progressed(70);
         menuBar = new AppMenuBar(sActionListener);
-        toolBar = new AppToolBar(sActionListener);
+       // toolBar = new AppToolBar(sActionListener);
         stepMap = new StepMap();
         loader = new LoaderScreen();
         progressed(75);
@@ -305,9 +309,6 @@ public class AppMainFrame extends JFrame {
         final String _Enc = " Enc";
         boolean isMigrted = true;
         try {
-            //Mail Settings updated
-            project.getProjectSettings().getMailSettings().put("mail.smtp.starttls.required", "true");
-            Logger.getLogger(AppMainFrame.class.getName()).log(Level.INFO, "Mail setting new property is copied ");
 
             //Updating new TM Properties
             List<TestMgModule> modules = project.getProjectSettings().getTestMgmtModule().getModules();
@@ -552,6 +553,12 @@ public class AppMainFrame extends JFrame {
         if (sProject != null) {
             saveLoadedProject();
             Notification.show("Project [" + sProject.getName() + "] Saved");
+        }
+    }
+    
+    public void autoSave() {
+        if (sProject != null) {
+            saveLoadedProject();
         }
     }
 

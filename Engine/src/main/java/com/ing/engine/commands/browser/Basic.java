@@ -25,18 +25,15 @@ public class Basic extends General {
         super(cc);
     }
 
-    @Action(object = ObjectType.BROWSER, desc = "This a dummy function helpful with testing.")
-    public void filler() {
-
-    }
 
     @Action(object = ObjectType.BROWSER, desc = "Open the Url [<Data>] in the Browser", input = InputType.YES, condition = InputType.OPTIONAL)
     public void Open() {
+        
         Boolean pageTimeOut = false;
         NavigateOptions navigateOptions = new NavigateOptions();
         try {
             if (Condition.matches("[0-9]+")) {
-                navigateOptions.setTimeout(Double.valueOf(Condition));
+                navigateOptions.setTimeout(Double.parseDouble(Condition));
             }
             Page.navigate(Data, navigateOptions);
             Report.updateTestLog("Open", "Opened Url: " + Data, Status.DONE);
@@ -159,54 +156,6 @@ public class Basic extends General {
         }
     }
 
-    @Action(object = ObjectType.BROWSER, desc = "Add a variable to access within testcase", input = InputType.YES, condition = InputType.YES)
-    public void AddVar() {
-        String stringOpration = Input.split("\\(", 2)[0].replace("=", "").trim();
-        switch (stringOpration) {
-            case "Replace":
-                replaceFunction();
-                break;
-            case "Split":
-                splitFunction();
-                break;
-            case "Substring":
-                subStringFunction();
-                break;
-            default:
-                addVar(Condition, Data);
-                break;
-        }
-        if (getVar(Condition) != null) {
-            Report.updateTestLog("addVar", "Variable " + Condition + " added with value " + Data, Status.DONE);
-        } else {
-            Report.updateTestLog("addVar", "Variable " + Condition + " not added ", Status.DEBUG);
-        }
-    }
-
-    @Action(object = ObjectType.BROWSER, desc = "Add a Global variable to access across test set", input = InputType.YES, condition = InputType.YES)
-    public void AddGlobalVar() {
-        //Added for  Replace, Split and Substring functions to work with AddGlobalVar
-        String stringOpration = Input.split("\\(", 2)[0].replace("=", "").trim();
-        switch (stringOpration) {
-            case "Replace":
-                replaceFunction();
-                break;
-            case "Split":
-                splitFunction();
-                break;
-            case "Substring":
-                subStringFunction();
-                break;
-            default:
-                addGlobalVar(Condition, Data);
-                break;
-        }
-        if (getVar(Condition) != null) {
-            Report.updateTestLog(Action, "Variable " + Condition + " added with value " + Data, Status.DONE);
-        } else {
-            Report.updateTestLog(Action, "Variable " + Condition + " not added ", Status.DEBUG);
-        }
-    }
 
     @Action(object = ObjectType.BROWSER, desc = "Changes the browser size into [<Data>]", input = InputType.YES)
     public void setViewPortSize() {
@@ -226,23 +175,7 @@ public class Basic extends General {
         }
     }
 
-    @Action(object = ObjectType.BROWSER, desc = "print the data [<Data>]", input = InputType.YES)
-    public void print() {
-        System.out.println(Data);
-        Report.updateTestLog("print", String.format("printed %s", Data), Status.DONE);
-    }
-
-    @Action(object = ObjectType.BROWSER, desc = "Wait for [<Data>] milli seconds", input = InputType.YES)
-    public void pause() {
-        try {
-            Thread.sleep(Long.parseLong(Data));
-            Report.updateTestLog(Action, "Thread sleep for '" + Long.parseLong(Data), Status.DONE);
-        } catch (Exception e) {
-            Report.updateTestLog(Action, e.getMessage(), Status.FAIL);
-            Logger.getLogger(CommonMethods.class.getName()).log(Level.SEVERE, null, e);
-        }
-
-    }
+    
 
     @Action(object = ObjectType.PLAYWRIGHT, desc = "Store the [<Object>] element's text into the Runtime variable: [<Data>]", input = InputType.YES)
     public void storeElementTextinVariable() {
@@ -456,196 +389,12 @@ public class Basic extends General {
         }
     }
 
-    @Action(object = ObjectType.BROWSER, desc = "store variable value [<Condition>] in data sheet[<Data>]", input = InputType.YES, condition = InputType.YES)
-    public void storeVariableInDataSheet() {
-        if (Input != null && Condition != null) {
-            if (!getVar(Condition).isEmpty()) {
-                System.out.println(Condition);
-                String[] sheetDetail = Input.split(":");
-                String sheetName = sheetDetail[0];
-                String columnName = sheetDetail[1];
-                userData.putData(sheetName, columnName, getVar(Condition));
-                Report.updateTestLog(Action,
-                        "Value of variable " + Condition + " has been stored into " + "the data sheet", Status.DONE);
-            } else {
-                Report.updateTestLog(Action, "The variable " + Condition + " does not contain any value", Status.FAIL);
-            }
-        } else {
-            Report.updateTestLog(Action, "Incorrect input format", Status.DEBUG);
-            System.out.println("Incorrect input format " + Condition);
-        }
-    }
-
-    @Action(object = ObjectType.BROWSER, desc = "store  value [<Data>] in Variable [<Condition>]", input = InputType.YES, condition = InputType.YES)
-    public void storeVariable() {
-        if (Condition.startsWith("%") && Condition.endsWith("%")) {
-            addVar(Condition, Data);
-            Report.updateTestLog(Action, "Value" + Data + "' is stored in Variable '" + Condition + "'", Status.DONE);
-        } else {
-            Report.updateTestLog(Action, "Variable format is not correct", Status.DEBUG);
-        }
-    }
 
     private void PlaywrightExceptionLogging(PlaywrightException e) {
         Report.updateTestLog(Action, "Unique Element [" + ObjectName + "] not found on Page. Error :" + e.getMessage(),
                 Status.FAIL);
         Logger.getLogger(this.getClass().getName()).log(Level.OFF, null, e);
         throw new ActionException(e);
-    }
-
-    public void replaceFunction() {
-        String op = "";
-        String original = "";
-        String targetString = "";
-        String replaceString = "";
-        String occurance = "";
-        String[] args2 = null;
-        String args1 = Input.split("Replace\\(")[1];
-        if (args1.substring(args1.length() - 1).equals(":")) {
-            args2 = args1.substring(0, args1.length() - 2).split(",'");
-        } else {
-            args2 = args1.substring(0, args1.length() - 1).split(",'");
-        }
-        targetString = args2[1].substring(0, args2[1].length() - 1);
-        replaceString = args2[2].split("',")[0];
-        occurance = args2[2].split("',")[1];
-        Pattern pattern = Pattern.compile("%.*%");
-        Matcher matcher = pattern.matcher(args2[0]);
-        if (matcher.find()) {
-            original = getVar(args2[0]);
-        } else {
-            original = args2[0].substring(1, args2[0].length() - 1);
-        }
-        try {
-            if (args2.length > 0) {
-                if (occurance.toLowerCase().equals("first")) {
-                    System.out.println("original " + original);
-                    System.out.println("targetString " + targetString);
-                    System.out.println("replaceString " + replaceString);
-                    System.out.println("occurance " + occurance);
-
-                    op = original.replaceFirst(targetString, replaceString);
-                } else {
-                    System.out.println("original " + original);
-                    System.out.println("targetString " + targetString);
-                    System.out.println("replaceString " + replaceString);
-                    System.out.println("occurance " + occurance);
-                    op = original.replace(targetString, replaceString);
-                }
-            }
-
-        } catch (Exception ex) {
-            ex.printStackTrace();
-        }
-        switch (Action) {
-            case "AddGlobalVar":
-                addGlobalVar(Condition, op);
-                break;
-            case "AddVar":
-                addVar(Condition, op);
-                break;
-        }
-    }
-
-    public void splitFunction() {
-        try {
-            String op = "";
-            String original = "";
-            String regex = "";
-            String stringIndex = "";
-            String splitLength = "";
-            String[] args2 = null;
-            String[] stringSplit = null;
-            String args1 = Input.split("Split\\(")[1];
-
-            if (args1.substring(args1.length() - 1).equals(":")) {
-                args2 = args1.substring(0, args1.length() - 2).split(",'");
-            } else {
-                args2 = args1.substring(0, args1.length() - 1).split(",'");
-            }
-            regex = args2[1].split("',")[0];
-            Pattern pattern = Pattern.compile("%.*%");
-            Matcher matcher = pattern.matcher(args2[0]);
-            if (matcher.find()) {
-                original = getVar(args2[0]);
-            } else {
-                original = args2[0].substring(1, args2[0].length() - 1);
-            }
-            if (!(args2[1].split("',")[1]).contains(",")) {
-                stringIndex = args2[1].split("',")[1];
-                stringSplit = original.split(regex);
-            } else {
-                stringIndex = args2[1].split("',")[1].split(",")[1];
-                splitLength = args2[1].split("',")[1].split(",")[0];
-                stringSplit = original.split(regex, Integer.parseInt(splitLength));
-            }
-            op = stringSplit[Integer.parseInt(stringIndex)];
-
-            switch (Action) {
-                case "AddGlobalVar":
-                    addGlobalVar(Condition, op);
-                    break;
-                case "AddVar":
-                    addVar(Condition, op);
-                    break;
-            }
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
-    public void subStringFunction() {
-        try {
-            String op = "";
-            String original = "";
-            String startIndex = "";
-            String endIndex = "";
-            String[] args2 = null;
-            String args1 = Input.split("Substring\\(")[1];
-
-            if (args1.substring(args1.length() - 1).equals(":")) {
-                args2 = args1.substring(0, args1.length() - 2).split(",");
-            } else {
-                args2 = args1.substring(0, args1.length() - 1).split(",");
-            }
-            Pattern pattern = Pattern.compile("%.*%");
-            Matcher matcher = pattern.matcher(args2[0]);
-            if (matcher.find()) {
-                original = getVar(args2[0]);
-                startIndex = args2[1];
-                if (args2.length == 3) {
-                    endIndex = args2[2];
-                }
-            } else {
-                String[] args3 = args1.substring(0, args1.length() - 2).split("',");
-                original = args3[0].substring(1, args2[0].length() - 1);
-                if (args3[1].contains(",")) {
-                    startIndex = args3[1].split(",")[0];
-                    endIndex = args3[1].split(",")[1];
-                } else {
-                    startIndex = args3[1];
-                }
-            }
-
-            if (endIndex.equals("")) {
-                op = original.substring(Integer.parseInt(startIndex));
-            } else {
-                op = original.substring(Integer.parseInt(startIndex), Integer.parseInt(endIndex));
-            }
-
-            switch (Action) {
-                case "AddGlobalVar":
-                    addGlobalVar(Condition, op);
-                    break;
-                case "AddVar":
-                    addVar(Condition, op);
-                    break;
-            }
-
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
     }
 
 }

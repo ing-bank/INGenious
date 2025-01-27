@@ -11,6 +11,8 @@ import com.ing.datalib.or.web.WebORPage;
 import com.ing.engine.constants.SystemDefaults;
 import com.ing.engine.core.Control;
 import com.ing.engine.core.CommandControl;
+import com.ing.engine.reporting.intf.Report;
+import com.ing.engine.support.Status;
 import com.microsoft.playwright.BrowserContext;
 import com.microsoft.playwright.FrameLocator;
 import com.microsoft.playwright.Locator;
@@ -196,22 +198,6 @@ public class AutomationObject {
         return null;
     }
 
-    public ObjectGroup<ImageORObject> getImageObjects(String page, String object) {
-        ObjectRepository objRep = Control.getCurrentProject().getObjectRepository();
-        if (objRep.getImageOR().getPageByName(page) != null) {
-            return objRep.getImageOR().getPageByName(page).getObjectGroupByName(object);
-        }
-        return null;
-    }
-
-    public ImageORObject getImageObject(String page, String object) {
-        ObjectRepository objRep = Control.getCurrentProject().getObjectRepository();
-        if (objRep.getImageOR().getPageByName(page) != null) {
-            return objRep.getImageOR().getPageByName(page).getObjectGroupByName(object).getObjects().get(0);
-        }
-        return null;
-    }
-
     @SuppressWarnings({"unchecked", "rawtypes"})
     private synchronized List<Locator> findElements(ObjectGroup objectGroup, String prop) {
 
@@ -329,7 +315,7 @@ public class AutomationObject {
                             break;
                         case "css":
                             System.out.println(foundElementBy("CSS", value));
-                            elements.add(this.getPage().locator("css=" + value));
+                            elements.add(this.getPage().locator("css=" + value).first());
                             break;
                         case "xpath":
                             System.out.println(foundElementBy("Xpath", value));
@@ -442,7 +428,7 @@ public class AutomationObject {
                             break;
                         case "css":
                             System.out.println(foundElementBy("CSS", value));
-                            elements.add(framelocator.locator("css=" + value));
+                            elements.add(framelocator.locator("css=" + value).first());
                             break;
                         case "xpath":
                             System.out.println(foundElementBy("Xpath", value));

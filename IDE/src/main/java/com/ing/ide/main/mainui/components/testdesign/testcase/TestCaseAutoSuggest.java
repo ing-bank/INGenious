@@ -68,7 +68,7 @@ public class TestCaseAutoSuggest {
     private void initAutoSuggest() {
         objAutoSuggest = new AutoSuggest().withSearchList(getObjectList())
                 .withOnHide(stopEditingOnFocusLost());
-        conditionAutoSuggest = new AutoSuggest().withSearchList(getConditionList())
+        conditionAutoSuggest = (ConditionAutoSuggest) new ConditionAutoSuggest()
                 .withOnHide(stopEditingOnFocusLost());
         conditionAutoSuggest.setRenderer(
                 new ComboSeparatorsRenderer(conditionAutoSuggest.getRenderer()) {
@@ -104,30 +104,39 @@ public class TestCaseAutoSuggest {
         table.getColumnModel().getColumn(Input.getIndex()).setCellEditor(new AutoSuggestCellEditor(inputAutoSuggest));
     }
 
-    private List<String> getConditionList() {
-        List<String> conditionList = new ArrayList<>();
-        conditionList.add("Start Param");
-        conditionList.add("End Param");
-        conditionList.add("End Param:@n");
-        conditionList.add("Start Loop");
-        conditionList.add("End Loop:@n");
-        conditionList.add("GlobalObject");
-        conditionList.add("screen");
-        conditionList.add("viewport");
-        return conditionList;
-    }
-
     private List<String> getObjectList() {
         List<String> objectList = new ArrayList<>();
         objectList.add("Browser");
-        objectList.add("Execute");
         objectList.add("Mobile");
-        //objectList.add("Database");
-        // objectList.add("ProtractorJS");
         objectList.add("Webservice");
+        objectList.add("Database");
+        objectList.add("Kafka");
+        objectList.add("Queue");
+        objectList.add("Synthetic Data");
         objectList.add("File");
+        objectList.add("General");
+        objectList.add("Execute");
         return objectList;
     }
+
+    public List<String> getContextAliasList() {
+        List<String> values = sProject.getProjectSettings().getContextSettings().getContextList();
+        List<String> newList = new ArrayList<>();
+        for (String string : values) {
+            newList.add("#"+string);
+        }
+        return newList;
+    }
+
+    public List<String> getDatabaseAliasList() {
+        List<String> values = sProject.getProjectSettings().getDatabaseSettings().getDbList();
+        List<String> newList = new ArrayList<>();
+        for (String string : values) {
+            newList.add("#"+string);
+        }
+        return newList;
+    }
+
 
     private void startEditing(final AutoSuggest suggest) {
         SwingUtilities.invokeLater(new Runnable() {
@@ -184,6 +193,11 @@ public class TestCaseAutoSuggest {
         return step != null && step.isFileStep()
                 && step.getAction().contains("populateData");
     }
+    
+    private boolean isMessageStep(TestStep step) {
+        return step != null && step.isMessageStep()
+                && (step.getAction().contains("setText")|| step.getAction().contains("produceMessage"));
+    }
 
     private boolean isRouteFulfillEndpointStep(TestStep step) {
         return step != null && step.isBrowserStep()
@@ -193,6 +207,35 @@ public class TestCaseAutoSuggest {
     private boolean isRouteFulfillSetBodyStep(TestStep step) {
         return step != null && step.isBrowserStep()
                 && step.getAction().contains("RouteFulfillSetBody");
+    }
+
+    class ConditionAutoSuggest extends AutoSuggest {
+        private List<String> getConditionBasedOnText(String value) {
+            return getContextAliasList();
+        }
+ 
+        @Override
+        public void beforeSearch(String text) {
+            if (text.isEmpty()) {
+                setSearchList(getConditionList());
+            } else {
+                if (text.startsWith("#")) {
+                    setSearchList(getConditionBasedOnText(text));
+                }
+            }
+        }
+        private List<String> getConditionList() {
+            List<String> conditionList = new ArrayList<>();
+            conditionList.add("Start Param");
+            conditionList.add("End Param");
+            conditionList.add("End Param:@n");
+            conditionList.add("Start Loop");
+            conditionList.add("End Loop:@n");
+            conditionList.add("GlobalObject");
+            conditionList.add("screen");
+            conditionList.add("viewport");
+            return conditionList;
+        }
     }
 
     class ActionAutoSuggest extends AutoSuggest {
@@ -216,12 +259,18 @@ public class TestCaseAutoSuggest {
                     return MethodInfoManager.getMethodListFor(ObjectType.PROTRACTORJS, ObjectType.PROTRACTORJS);
                 case "Webservice":
                     return MethodInfoManager.getMethodListFor(ObjectType.WEBSERVICE, ObjectType.WEBSERVICE);
+                case "Synthetic Data":
+                     return MethodInfoManager.getMethodListFor(ObjectType.DATA, ObjectType.DATA);
+                case "Queue":
+                     return MethodInfoManager.getMethodListFor(ObjectType.QUEUE, ObjectType.QUEUE);
+                case "Kafka":
+                     return MethodInfoManager.getMethodListFor(ObjectType.KAFKA, ObjectType.KAFKA);    
                 case "File":
                     return MethodInfoManager.getMethodListFor(ObjectType.FILE, ObjectType.FILE);
+                case "General":
+                    return MethodInfoManager.getMethodListFor(ObjectType.GENERAL, ObjectType.GENERAL);    
                 default:
-                    if (isImageObject(objectName, pageName)) {
-                        return MethodInfoManager.getMethodListFor(ObjectType.IMAGE, ObjectType.ANY);
-                    } else if (isWebObject(objectName, pageName)) {
+                     if (isWebObject(objectName, pageName)) {
                         return MethodInfoManager.getMethodListFor(ObjectType.PLAYWRIGHT, ObjectType.WEB, ObjectType.ANY);
                     } else if (isMobileObject(objectName, pageName)) {
                         return MethodInfoManager.getMethodListFor(ObjectType.APP);
@@ -241,10 +290,6 @@ public class TestCaseAutoSuggest {
             return reusableList;
         }
 
-        private boolean isImageObject(String objectName, String pageName) {
-            ORPageInf page = sProject.getObjectRepository().getImageOR().getPageByName(pageName);
-            return page != null && page.getObjectGroupByName(objectName) != null;
-        }
 
         private boolean isWebObject(String objectName, String pageName) {
             ORPageInf page = sProject.getObjectRepository().getWebOR().getPageByName(pageName);
@@ -284,6 +329,8 @@ public class TestCaseAutoSuggest {
                 return getUserDefinedList();
             } else if (value.startsWith("=")) {
                 return getFunctionList();
+            }else if(value.startsWith("#")) {
+                return getDatabaseAliasList();
             }
             return setupTestData(value);
         }
@@ -438,6 +485,9 @@ public class TestCaseAutoSuggest {
                     if ((isFileStep(step) && isInputclicked)) {
                         new WebservicePayloadArea(null, step, "SOAP", getInputs());
                     }
+                    if ((isMessageStep(step) && isInputclicked)) {
+                        new WebservicePayloadArea(null, step, "SOAP", getInputs());
+                    }
                     if ((isRouteFulfillSetBodyStep(step) && isInputclicked)) {
                         new WebservicePayloadArea(null, step, "REST", getInputs());
                     }
@@ -462,14 +512,17 @@ public class TestCaseAutoSuggest {
         Timer showTimerd;
         Timer showTimerw;
         Timer showTimerf;
+        Timer showTimerm;
         Timer disposeTimerp;
         Timer disposeTimerd;
         Timer disposeTimerw;
         Timer disposeTimerf;
+        Timer disposeTimerm;
         JPopupMenu popupp;
         JPopupMenu popupd;
         JPopupMenu popupw;
         JPopupMenu popupf;
+        JPopupMenu popupm;
 
         TestStep step;
 
@@ -478,15 +531,18 @@ public class TestCaseAutoSuggest {
             popupd = new JPopupMenu();
             popupw = new JPopupMenu();
             popupf = new JPopupMenu();
+            popupm = new JPopupMenu();
             final JMenuItem jMenuItemp = new JMenuItem("Click to open ProtractorJS command editor");
             final JMenuItem jMenuItemd = new JMenuItem("Click to Open SQL Query Editor ");
             final JMenuItem jMenuItemw = new JMenuItem("Click to Open Webservice Editor ");
             final JMenuItem jMenuItemf = new JMenuItem("Click to Open File Editor ");
+            final JMenuItem jMenuItemm = new JMenuItem("Click to Open Message Editor ");
 
             popupp.add(jMenuItemp);
             popupd.add(jMenuItemd);
             popupw.add(jMenuItemw);
             popupf.add(jMenuItemf);
+            popupm.add(jMenuItemm);
 
             jMenuItemp.addActionListener((ActionEvent ae) -> {
                 if (step != null && (isProtractorjsStep(step))) {
@@ -519,6 +575,12 @@ public class TestCaseAutoSuggest {
 
             jMenuItemf.addActionListener((ActionEvent ae) -> {
                 if (step != null && (isFileStep(step))) {
+                    new WebservicePayloadArea(null, step, "SOAP", getInputs());
+                }
+            });
+            
+            jMenuItemm.addActionListener((ActionEvent ae) -> {
+                if (step != null && (isMessageStep(step))) {
                     new WebservicePayloadArea(null, step, "SOAP", getInputs());
                 }
             });
@@ -609,6 +671,29 @@ public class TestCaseAutoSuggest {
             });
             disposeTimerf.setRepeats(false);
             disposeTimerf.setCoalesce(true);
+            
+            //Timer m
+            showTimerm = new Timer(1000, (ActionEvent ae) -> {
+                if (hintCell != null) {
+                    disposeTimerm.stop();
+                    popupm.setVisible(false);
+
+                    Rectangle bounds = table.getCellRect(hintCell.y, hintCell.x, true);
+                    int x = bounds.x;
+                    int y = bounds.y + bounds.height;
+                    popupm.show(table, x, y);
+                    disposeTimerm.start();
+                }
+            });
+            showTimerm.setRepeats(false);
+            showTimerm.setCoalesce(true);
+
+            disposeTimerm = new Timer(2000, (ActionEvent ae) -> {
+                popupm.setVisible(false);
+            });
+            disposeTimerm.setRepeats(false);
+            disposeTimerm.setCoalesce(true);
+            
 
         }
 
@@ -655,14 +740,22 @@ public class TestCaseAutoSuggest {
                     if (hintCell == null || (hintCell.x != col || hintCell.y != row)) {
                         hintCell = new Point(col, row);
                         showTimerw.restart();
+                    }                    
+                } 
+                else if ((isMessageStep(step) && col == Input.getIndex())) {
+                    if (hintCell == null || (hintCell.x != col || hintCell.y != row)) {
+                        hintCell = new Point(col, row);
+                        showTimerm.restart();
                     }
-                } else {
+                    
+                }else {
                     hintCell = null;
-                    if (popupp.isVisible() || popupd.isVisible() || popupw.isVisible() || popupf.isVisible()) {
+                    if (popupp.isVisible() || popupd.isVisible() || popupw.isVisible() || popupf.isVisible()|| popupm.isVisible()) {
                         popupp.setVisible(false);
                         popupd.setVisible(false);
                         popupw.setVisible(false);
                         popupf.setVisible(false);
+                        popupm.setVisible(false);
                     }
 
                 }

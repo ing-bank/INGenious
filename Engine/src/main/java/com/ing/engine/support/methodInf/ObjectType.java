@@ -13,6 +13,10 @@ public enum ObjectType {
     PROTRACTORJS,
     ANY,
     WEBSERVICE,
-    FILE
+    FILE,
+    KAFKA,
+    QUEUE,
+    DATA,
+    GENERAL
     
 }

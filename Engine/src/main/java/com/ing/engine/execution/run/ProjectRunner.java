@@ -14,7 +14,6 @@ import com.ing.engine.execution.data.DataIterator;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
-import java.sql.SQLOutput;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -199,10 +198,7 @@ public class ProjectRunner implements TestRunner {
                     } else if (key.startsWith("user.")) {
                         getProject().getProjectSettings().getUserDefinedSettings().put(
                                 key.replace("user.", ""), value);
-                    } else if (key.startsWith("context.")) {
-                        getProject().getProjectSettings().getContextSettings().put(
-                                key.replace("context.", ""), value);
-                    } else if (key.startsWith("tm.")) {
+                    }else if (key.startsWith("tm.")) {
                         getExecSettings().getTestMgmgtSettings().put(
                                 key.replace("tm.", ""), value);
                     } else if (key.startsWith("driver.")) {
@@ -213,7 +209,14 @@ public class ProjectRunner implements TestRunner {
                         String browser = capitalizeFirstLetter(args[1]);
                         String capability = args[2];
                         getProject().getProjectSettings().getCapabilities().getCapabiltiesFor(browser).update(capability,value);
-
+                    }else if (key.startsWith("db.alias@")) {
+                        String args[] = key.split("\\.");
+                     //   String db = args[1];
+                     //   getProject().getProjectSettings().getDatabaseSettings().getDBPropertiesFor(db).update(db, value);
+                    } else if (key.startsWith("context.alias@")) {
+                        String args[] = key.split("\\.");
+                     //   String context = args[1];
+                     //   getProject().getProjectSettings().getContextSettings().getContextOptionsFor(context).update(context,value);
                     }
                 } catch (Exception ex) {
                     Logger.getLogger(ProjectRunner.class.getName()).log(Level.SEVERE, null, ex);

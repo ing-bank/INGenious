@@ -22,7 +22,7 @@ public class Assertions extends MobileGeneral {
      * Function to assert if a given Text is Present in the WebPage
      * ******************************************
      */
-    @Action(object = ObjectType.BROWSER,
+    @Action(object = ObjectType.MOBILE,
             desc = "Assert if text: [<Data>] is present on the page",
             input = InputType.YES)
     public void assertTextPresentInPage() throws RuntimeException {
@@ -50,39 +50,11 @@ public class Assertions extends MobileGeneral {
 
     /**
      * ******************************************
-     * Function to assert the variable
-     * ******************************************
-     */
-    @Action(object = ObjectType.BROWSER,
-            desc = "Assert if Key:Value -> [<Data>] is valid",
-            input = InputType.YES)
-    public void assertVariable() throws RuntimeException {
-        try {
-            String strObj = Data;
-            String[] strTemp = strObj.split("=", 2);
-            String strAns = strTemp[0].matches("%.+%") ? getVar(strTemp[0]) : strTemp[0];
-            if (strAns.equals(strTemp[1])) {
-                System.out.println("Condition '" + Input + "' is true ");
-                Report.updateTestLog("assertVariable",
-                        "Variable matched with Provided data", Status.PASS);
-
-            } else {
-                System.out.println("Condition '" + Input + "' is false ");
-                throw new Exception("Variable did not match with provided data");
-            }
-        } catch (Exception ex) {
-            Logger.getLogger(Assertions.class.getName()).log(Level.SEVERE, null, ex);
-            throw new ForcedException("assertVariable", ex.getMessage());
-        }
-    }
-
-    /**
-     * ******************************************
      * Function to assert cookies present
      *
      * ******************************************
      */
-    @Action(object = ObjectType.BROWSER, desc = "Assert if cookie name: [<Data>] is present", input = InputType.YES)
+    @Action(object = ObjectType.MOBILE, desc = "Assert if cookie name: [<Data>] is present", input = InputType.YES)
     public void assertCookiePresent() {
         try {
             String strCookieName = Data;
@@ -107,7 +79,7 @@ public class Assertions extends MobileGeneral {
      * Function to assert cookies by name
      * ******************************************
      */
-    @Action(object = ObjectType.BROWSER, desc = "Assert if cookie: [<Object>] has name: [<Data>]", input = InputType.YES)
+    @Action(object = ObjectType.MOBILE, desc = "Assert if cookie: [<Object>] has name: [<Data>]", input = InputType.YES)
     public void assertCookieByName() {
         try {
 
@@ -136,29 +108,30 @@ public class Assertions extends MobileGeneral {
         }
     }
 
-    @Action(object = ObjectType.BROWSER,
-            desc = "Assert if  the  variable value matches with given value from datasheet(variable:datasheet->  [<Data>] )",
-            input = InputType.YES,
-            condition = InputType.YES)
-    public void assertVariableFromDataSheet() throws RuntimeException {
+    /*
+     @Action(object = ObjectType.MOBILE,desc = "Assert if the evaluated javascript expression equals [<Data>]",
+            input = InputType.YES)
+    public void assertEval() {
         try {
-            String strAns = getVar(Condition);
-            if (strAns.equals(Data)) {
-                System.out.println("Variable " + Condition + " equals "
-                        + Input);
-                Report.updateTestLog(Action,
-                        "Variable is matched with the expected result", Status.DONE);
-
+            JavascriptExecutor js = (JavascriptExecutor) mDriver;
+            String strExpScript = Data.split(":", 2)[0];
+            String strExpValue = Data.split(":", 2)[1];
+            Object result = js.executeScript(strExpScript);
+            if (result != null && result.toString().trim().equals(strExpValue)) {
+                System.out.println("assertEval Passed");
+                Report.updateTestLog(
+                        "assertEval",
+                        "JS script return value matched with the expected result",
+                        Status.DONE);
             } else {
-                System.out.println("Variable " + Condition + " is not equal "
-                        + Input);
-                throw new ForcedException(Action,
-                        "Variable did not match with provided data");
+                throw new Exception(
+                        "JS script return value did not match with the expected result");
             }
-        } catch (Exception e) {
-            Logger.getLogger(Assertions.class.getName()).log(Level.SEVERE, null, e);
-            throw new ForcedException("assertVariableFromDataSheet", e.getMessage());
+        } catch (Exception ex) {
+            System.out.println("assertEval Failed");
+            Logger.getLogger(Assertions.class.getName()).log(Level.SEVERE, null, ex);
+            throw new ForcedException("assertEval", ex.getMessage());
         }
     }
-
+     */
 }

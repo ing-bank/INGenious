@@ -2,8 +2,14 @@
 package com.ing.ide.main.mainui.components.testexecution.quickSettings;
 
 import com.ing.datalib.settings.RunSettings;
+import java.awt.Toolkit;
+import java.awt.event.ActionEvent;
 import java.awt.event.ItemEvent;
+import java.awt.event.KeyEvent;
+import javax.swing.AbstractAction;
 import javax.swing.DefaultComboBoxModel;
+import javax.swing.JTextField;
+import javax.swing.KeyStroke;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.UIManager;
@@ -26,6 +32,7 @@ public abstract class QuickSettingsUIRight extends QuickSettingsUI {
     public QuickSettingsUIRight() {
         initComponents();
         listenToGridUrl();
+        alterDefaultKeyBindings(gridUrl);
     }
 
     private void listenToGridUrl() {
@@ -274,6 +281,30 @@ public abstract class QuickSettingsUIRight extends QuickSettingsUI {
         } else {
             localMode.setSelected(true);
         }
+    }
+    
+    private void alterDefaultKeyBindings(JTextField textField) {
+        // Customize key bindings
+        int menuShortcutKeyMask = Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx();
+
+        // Remove default Ctrl key bindings
+        textField.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_X, menuShortcutKeyMask), "none");
+        textField.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_C, menuShortcutKeyMask), "none");
+        textField.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_V, menuShortcutKeyMask), "none");
+        textField.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_A, menuShortcutKeyMask), "none");
+
+        // Add Cmd key bindings
+        textField.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_X, menuShortcutKeyMask), "cut");
+        textField.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_C, menuShortcutKeyMask), "copy");
+        textField.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_V, menuShortcutKeyMask), "paste");
+        textField.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_A, menuShortcutKeyMask), "selectAll");
+        textField.getActionMap().put("selectAll", new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                textField.selectAll();
+            }
+        });
+
     }
 
      public abstract Object[] getEnvList() ;

@@ -54,8 +54,13 @@
 	<commons-lang.version>2.6</commons-lang.version>
 	<httpcore.version>4.4.16</httpcore.version>
 	<guava.version>32.0.1-jre</guava.version>
-        <mac.version>mac-aarch64</mac.version>
-        <appium.version>LATEST</appium.version>	
+        <appium.version>LATEST</appium.version>
+        <javafaker.version>LATEST</javafaker.version>
+        <kafka-clients.version>LATEST</kafka-clients.version>
+        <avro.version>LATEST</avro.version>
+        <kafka-avro-serializer.version>LATEST</kafka-avro-serializer.version>
+        <ibmmq.version>LATEST</ibmmq.version>
+        <mac.version>mac-aarch64</mac.version>	
 	<setupDir>../Dist/release</setupDir>
         <resourceDir>../Resources</resourceDir>  
         

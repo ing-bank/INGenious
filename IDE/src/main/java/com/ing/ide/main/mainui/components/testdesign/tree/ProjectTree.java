@@ -1,4 +1,3 @@
-
 package com.ing.ide.main.mainui.components.testdesign.tree;
 
 import com.ing.datalib.component.Project;
@@ -28,14 +27,12 @@ import java.awt.FontFormatException;
 import java.awt.GraphicsEnvironment;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import java.util.logging.Level;
@@ -49,7 +46,6 @@ import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPopupMenu;
 import javax.swing.JTree;
-import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
 import javax.swing.TransferHandler;
 import javax.swing.UIManager;
@@ -82,7 +78,6 @@ public class ProjectTree implements ActionListener {
 
     public ProjectTree(TestDesign testDesign) {
         this.testDesign = testDesign;
-
         tree = new JTree();
         projectProperties = new ProjectProperties(testDesign.getsMainFrame());
         init();
@@ -98,19 +93,19 @@ public class ProjectTree implements ActionListener {
 
     private void init() {
         try {
-                //create the font to use. Specify the size!
-                Font customFont = Font.createFont(Font.TRUETYPE_FONT, new File("resources/ui/resources/fonts/ingme_regular.ttf"));//.deriveFont(12f);
-                GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
-                //register the font
-                ge.registerFont(customFont);
-            } catch (IOException | FontFormatException e) {
-             //   e.printStackTrace();
-            }
-        
+            //create the font to use. Specify the size!
+            Font customFont = Font.createFont(Font.TRUETYPE_FONT, new File("resources/ui/resources/fonts/ingme_regular.ttf"));//.deriveFont(12f);
+            GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
+            //register the font
+            ge.registerFont(customFont);
+        } catch (IOException | FontFormatException e) {
+            //   e.printStackTrace();
+        }
+
         popupMenu = getNewPopupMenu();
         treeModel = getNewTreeModel();
         tree.setModel(treeModel);
-        
+
         alterTreeDefaultKeyBindings();
 
         tree.setToggleClickCount(0);
@@ -208,7 +203,7 @@ public class ProjectTree implements ActionListener {
             //register the font
             ge.registerFont(customFont);
         } catch (IOException | FontFormatException e) {
-          //  e.printStackTrace();
+            //  e.printStackTrace();
         }
         tree.setFont(new Font("ING Me", Font.PLAIN, 11));
         new TreeSelectionRenderer(tree) {
@@ -309,15 +304,14 @@ public class ProjectTree implements ActionListener {
             case "Details":
                 showDetails();
                 break;
-            case "Manual Testcase":
-            {
+            case "Manual Testcase": {
                 try {
                     convertToManual();
                 } catch (IOException ex) {
                     Logger.getLogger(ProjectTree.class.getName()).log(Level.SEVERE, null, ex);
                 }
             }
-                break;
+            break;
 
             case "Get Impacted TestCases":
                 getImpactedTestCases();
@@ -325,7 +319,7 @@ public class ProjectTree implements ActionListener {
             case "Get CmdLine Syntax":
                 getCmdLineSyntax();
                 break;
-             
+
             default:
                 throw new UnsupportedOperationException();
         }
@@ -702,8 +696,7 @@ public class ProjectTree implements ActionListener {
             Notification.show("Select a Valid TestCase");
         }
     }
-    
-    
+
     private String getBatRCommand() {
         String os = System.getProperty("os.name").toLowerCase();
         if (os.contains("windows")) {
@@ -778,7 +771,7 @@ public class ProjectTree implements ActionListener {
             add(addTestCase = create("Add TestCase", Keystroke.NEW));
             add(renameTestCase = create("Rename TestCase", Keystroke.RENAME));
             add(deleteTestCase = create("Delete TestCase", Keystroke.DELETE));
-            
+
             addSeparator();
             JMenu menu = new JMenu("Export As");
             menu.setFont(UIManager.getFont("TableMenu.font"));
@@ -791,7 +784,7 @@ public class ProjectTree implements ActionListener {
             addSeparator();
             add(impactAnalysis = create("Get Impacted TestCases", null));
             add(getCmdSyntax = create("Get CmdLine Syntax", null));
-            
+
             addSeparator();
             add(sort = create("Sort", null));
             addSeparator();
@@ -879,11 +872,11 @@ public class ProjectTree implements ActionListener {
                 //register the font
                 ge.registerFont(customFont);
             } catch (IOException | FontFormatException e) {
-              //  e.printStackTrace();
+                //  e.printStackTrace();
             }
-			
+
             JMenuItem menuItem = new JMenuItem(name);
-        
+
             menuItem.setActionCommand(name);
             menuItem.setAccelerator(keyStroke);
             menuItem.addActionListener(ProjectTree.this);
@@ -891,17 +884,17 @@ public class ProjectTree implements ActionListener {
             return menuItem;
         }
 
-        private void setCCP() {            
+        private void setCCP() {
             TransferActionListener actionListener = new TransferActionListener();
-            
+
             cut = new JMenuItem("Cut");
             cut.setActionCommand((String) TransferHandler.getCutAction().getValue(Action.NAME));
             cut.addActionListener(actionListener);
             cut.setAccelerator(Keystroke.CUT);
             cut.setMnemonic(KeyEvent.VK_T);
             add(cut);
-            
-            copy = new JMenuItem("Copy");           
+
+            copy = new JMenuItem("Copy");
             copy.setActionCommand((String) TransferHandler.getCopyAction().getValue(Action.NAME));
             copy.addActionListener(actionListener);
             copy.setAccelerator(Keystroke.COPY);
@@ -917,19 +910,18 @@ public class ProjectTree implements ActionListener {
         }
 
     }
-    
-    private void alterTreeDefaultKeyBindings() {
-        
-         int menuShortcutKeyMask = Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx();
-         tree.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_X, menuShortcutKeyMask), "none");
-         tree.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_C, menuShortcutKeyMask), "none");
-         tree.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_V, menuShortcutKeyMask), "none");
 
-         tree.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_X, menuShortcutKeyMask), "cut");
-         tree.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_C, menuShortcutKeyMask), "copy");
-         tree.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_V, menuShortcutKeyMask), "paste");
-        
-        
+    private void alterTreeDefaultKeyBindings() {
+
+        int menuShortcutKeyMask = Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx();
+        tree.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_X, menuShortcutKeyMask), "none");
+        tree.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_C, menuShortcutKeyMask), "none");
+        tree.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_V, menuShortcutKeyMask), "none");
+
+        tree.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_X, menuShortcutKeyMask), "cut");
+        tree.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_C, menuShortcutKeyMask), "copy");
+        tree.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_V, menuShortcutKeyMask), "paste");
+
     }
 
 }

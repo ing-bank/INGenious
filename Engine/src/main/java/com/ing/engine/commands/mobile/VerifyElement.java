@@ -70,7 +70,7 @@ public class VerifyElement extends MobileGeneral {
         verifyElement(status, status ? "not " : "");
     }
 
-    @Action(object = ObjectType.BROWSER, desc = "Verify if Page source of current page is: [<Data>]", input = InputType.YES)
+    @Action(object = ObjectType.MOBILE, desc = "Verify if Page source of current page is: [<Data>]", input = InputType.YES)
     public void verifyPageSource() {
         boolean value = mDriver.getPageSource().equals(Data);
         Report.updateTestLog(
@@ -79,22 +79,23 @@ public class VerifyElement extends MobileGeneral {
                 Status.getValue(value));
     }
 
-    @Action(object = ObjectType.BROWSER, desc = "Verify if the HScrollBar is present")
+    /*
+    @Action(object = ObjectType.MOBILE, desc = "Verify if the HScrollBar is present")
     public void verifyHScrollBarPresent() {
         verifyHScorllBar("", isHScrollBarPresent());
     }
 
-    @Action(object = ObjectType.BROWSER, desc = "Verify if the HScrollBar is not present")
+    @Action(object = ObjectType.MOBILE, desc = "Verify if the HScrollBar is not present")
     public void verifyHScrollBarNotPresent() {
         verifyHScorllBar("not", !isHScrollBarPresent());
     }
 
-    @Action(object = ObjectType.BROWSER, desc = "Verify if the VScrollBar is present")
+    @Action(object = ObjectType.MOBILE, desc = "Verify if the VScrollBar is present")
     public void verifyVScrollBarPresent() {
         verifyVScorllBar("", isvScrollBarPresent());
     }
 
-    @Action(object = ObjectType.BROWSER, desc = "Verify if the VScrollBar is not present")
+    @Action(object = ObjectType.MOBILE, desc = "Verify if the VScrollBar is not present")
     public void verifyVScrollBarNotPresent() {
         verifyVScorllBar("not", !isvScrollBarPresent());
     }
@@ -111,4 +112,8 @@ public class VerifyElement extends MobileGeneral {
         String desc = type + " Scrollbar is " + isNot + " present";
         Report.updateTestLog(Action, desc, Status.getValue(value));
     }
+    
+    */
+   
+
 }

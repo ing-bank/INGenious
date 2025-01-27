@@ -4,8 +4,10 @@ package com.ing.ide.main.utils.tree;
 import com.ing.datalib.or.common.ORObjectInf;
 import com.ing.ide.main.utils.Utils;
 import java.awt.BorderLayout;
+import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
 import javax.swing.AbstractAction;
 import static javax.swing.Action.ACTION_COMMAND_KEY;
 import javax.swing.BorderFactory;
@@ -79,7 +81,7 @@ public class TreeSearch extends JPanel implements ActionListener {
         searchField = new JTextField();
         searchField.setActionCommand("SearchField");
         searchField.addActionListener(this);
-
+        alterDefaultKeyBindings();
         searchBar.add(searchLabel);
         searchBar.add(new javax.swing.Box.Filler(new java.awt.Dimension(5, 0),
                 new java.awt.Dimension(5, 0),
@@ -151,7 +153,8 @@ public class TreeSearch extends JPanel implements ActionListener {
 
     private void addTreeListener() {
 
-        tree.getInputMap(JComponent.WHEN_FOCUSED).put(KeyStroke.getKeyStroke("ctrl F"), "Search");
+        int menuShortcutKeyMask = Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx();
+        tree.getInputMap(JComponent.WHEN_FOCUSED).put(KeyStroke.getKeyStroke(KeyEvent.VK_F, menuShortcutKeyMask), "Search");
 
         tree.getActionMap().put("Search", new AbstractAction() {
 
@@ -602,6 +605,30 @@ public class TreeSearch extends JPanel implements ActionListener {
             retNodes[retNodes.length - depth] = aNode;
         }
         return retNodes;
+    }
+    
+    private void alterDefaultKeyBindings() {
+        // Customize key bindings
+        int menuShortcutKeyMask = Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx();
+
+        // Remove default Ctrl key bindings
+        searchField.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_X, menuShortcutKeyMask), "none");
+        searchField.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_C, menuShortcutKeyMask), "none");
+        searchField.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_V, menuShortcutKeyMask), "none");
+        searchField.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_A, menuShortcutKeyMask), "none");
+
+        // Add Cmd key bindings
+        searchField.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_X, menuShortcutKeyMask), "cut");
+        searchField.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_C, menuShortcutKeyMask), "copy");
+        searchField.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_V, menuShortcutKeyMask), "paste");
+        searchField.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_A, menuShortcutKeyMask), "selectAll");
+        searchField.getActionMap().put("selectAll", new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                searchField.selectAll();
+            }
+        });
+
     }
 
 }

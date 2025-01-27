@@ -14,7 +14,7 @@ public class CssProperties extends General {
     public CssProperties(CommandControl cc) {
         super(cc);
     }
-
+/*
     private void assertElementCss(Type type) {
         SpecCss spec = SpecReader.reader().getSpecCSS(type, Data);
         spec.setOriginalText(getMessage(spec));
@@ -48,4 +48,5 @@ public class CssProperties extends General {
     private String getMessage(SpecCss spec) {
         return String.format("%s's CssProperty %s %s %s ", ObjectName, spec.getCssPropertyName(), spec.getType().toString(), spec.getText());
     }
+*/
 }

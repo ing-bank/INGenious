@@ -1,7 +1,3 @@
-/*
- * Click nbfs://nbhost/SystemFileSystem/Templates/Licenses/license-default.txt to change this license
- * Click nbfs://nbhost/SystemFileSystem/Templates/Classes/Class.java to edit this template
- */
 package com.ing.engine.commands.mobile;
 
 import com.ing.engine.commands.browser.Command;
@@ -20,10 +16,10 @@ public class MobileGeneral extends Command {
     }
 
     public Boolean checkIfDriverIsAlive() {
-        if (isDriverAlive()) {
-            return true;
+        if (mDriver != null) {
+            return getMobileDriverControl().isAlive();
         } else {
-            throw new RuntimeException("Seems like Connection with the driver is lost/driver is closed");
+            throw new RuntimeException("Seems like connection with the driver is lost/driver is closed");
         }
     }
 

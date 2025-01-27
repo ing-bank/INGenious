@@ -1,3 +1,4 @@
+
 package com.ing.engine.commands.mobile;
 
 import com.ing.engine.core.CommandControl;
@@ -19,13 +20,8 @@ public class SwitchTo extends Command {
         super(cc);
     }
 
-    /**
-     * **************************************
-     * Function to switch between frames
-     *
-     * **************************************
-     */
-    @Action(object = ObjectType.BROWSER, desc = "Switch to frame by name: [<Data>]", input = InputType.YES)
+/*
+    @Action(object = ObjectType.MOBILE, desc = "Switch to frame by name: [<Data>]", input = InputType.YES)
     public void switchToFrame() {
         String strTargetFrame = Data;
         try {
@@ -39,11 +35,7 @@ public class SwitchTo extends Command {
         }
     }
 
-    /**
-     * ****************************************** Function to switch between
-     * frames by index ******************************************
-     */
-    @Action(object = ObjectType.BROWSER, desc = "Switch to frame which has index: [<Data>]", input = InputType.YES)
+    @Action(object = ObjectType.MOBILE, desc = "Switch to frame which has index: [<Data>]", input = InputType.YES)
     public void switchToFrameByIndex() {
         if (Data != null && Data.matches("[0-9]+")) {
             int frameIndex = Integer.parseInt(Data);
@@ -62,12 +54,7 @@ public class SwitchTo extends Command {
         }
     }
 
-    /**
-     * ******************************************
-     * Function to switch between windows By Name
-     *
-     * ******************************************
-     */
+
     private void switchToWindow(String title, SpecText.Type type) {
         Boolean windowFlag = false;
         Set<String> Handles = mDriver.getWindowHandles();
@@ -103,39 +90,35 @@ public class SwitchTo extends Command {
         }
     }
 
-    @Action(object = ObjectType.BROWSER, desc = "switching to window by title [<Data>] is done", input = InputType.YES)
+    @Action(object = ObjectType.MOBILE, desc = "switching to window by title [<Data>] is done", input = InputType.YES)
     public void switchToWindowByTitle() {
         switchToWindow(Data, SpecText.Type.IS);
     }
 
-    @Action(object = ObjectType.BROWSER, desc = "switching to window by title [<Data>]", input = InputType.YES)
+    @Action(object = ObjectType.MOBILE, desc = "switching to window by title [<Data>]", input = InputType.YES)
     public void switchToWindowByTitleContains() {
         switchToWindow(Data, SpecText.Type.CONTAINS);
     }
 
-    @Action(object = ObjectType.BROWSER, desc = "switching to window by title starts with [<Data>]", input = InputType.YES)
+    @Action(object = ObjectType.MOBILE, desc = "switching to window by title starts with [<Data>]", input = InputType.YES)
     public void switchToWindowByTitleStartsWith() {
         switchToWindow(Data, SpecText.Type.STARTS);
     }
 
-    @Action(object = ObjectType.BROWSER, desc = "switching to window by title ends with [<Data>]", input = InputType.YES)
+    @Action(object = ObjectType.MOBILE, desc = "switching to window by title ends with [<Data>]", input = InputType.YES)
     public void switchToWindowByTitleEndsWith() {
         switchToWindow(Data, SpecText.Type.ENDS);
     }
 
-    @Action(object = ObjectType.BROWSER, desc = "switching to window by title matches with [<Data>]", input = InputType.YES)
+    @Action(object = ObjectType.MOBILE, desc = "switching to window by title matches with [<Data>]", input = InputType.YES)
 
     public void switchToWindowByTitleMatches() {
         switchToWindow(Data, SpecText.Type.MATCHES);
     }
 
-    /**
-     * ******************************************
-     * Function to switch between windows By Index
-     * ****************************************** *
-     */
+
     @Action(object
-            = ObjectType.BROWSER, desc = "Switch to Window by Index: [<Data>]", input
+            = ObjectType.MOBILE, desc = "Switch to Window by Index: [<Data>]", input
             = InputType.YES)
 
     public void switchToWindowByIndex() {
@@ -154,12 +137,7 @@ public class SwitchTo extends Command {
         }
     }
 
-    /**
-     * ******************************************
-     * Function to switch to default content
-     * ******************************************
-     */
-    @Action(object = ObjectType.BROWSER, desc = "Switching control to the default window")
+    @Action(object = ObjectType.MOBILE, desc ="Switching control to the default window")
 
     public void switchToDefaultContent() {
         try {
@@ -173,10 +151,10 @@ public class SwitchTo extends Command {
         }
     }
 
-    @Action(object = ObjectType.BROWSER, desc = "Open a new Browser window", input = InputType.OPTIONAL)
+    @Action(object = ObjectType.MOBILE, desc ="Open a new Browser window", input =InputType.OPTIONAL)
     public void createAndSwitchToWindow() {
         try {
-            JavascriptExecutor js = (JavascriptExecutor) mDriver;
+            JavascriptExecutor js = (JavascriptExecutor) Driver;
             js.executeScript("window.open(arguments[0])", Data);
             Set<String> Handles = mDriver.getWindowHandles();
             mDriver.switchTo().window((String) Handles.toArray()[Handles.size() - 1]);
@@ -187,16 +165,16 @@ public class SwitchTo extends Command {
         }
     }
 
-    @Action(object = ObjectType.BROWSER, desc = "Close the current window and switch to default window")
+    @Action(object = ObjectType.MOBILE, desc ="Close the current window and switch to default window")
     public void closeAndSwitchToWindow() {
         try {
             mDriver.close();
-            mDriver.switchTo().window((String) mDriver.getWindowHandles().toArray()[0]);
+           mDriver.switchTo().window((String) mDriver.getWindowHandles().toArray()[0]);
             Report.updateTestLog(Action, "Current Window Closed and Switched to Default window ", Status.DONE);
         } catch (Exception ex) {
             Logger.getLogger(this.getClass().getName()).log(Level.OFF, null, ex);
             Report.updateTestLog(Action, "Error in Switching Window -" + ex.getMessage(), Status.FAIL);
         }
     }
-
+*/
 }

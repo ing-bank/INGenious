@@ -4,6 +4,7 @@ package com.ing.engine.core;
 import com.ing.datalib.or.common.ObjectGroup;
 import com.ing.datalib.or.image.ImageORObject;
 import com.ing.datalib.settings.DriverSettings;
+import com.ing.datalib.util.data.LinkedProperties;
 import com.ing.engine.drivers.AutomationObject;
 import com.ing.engine.drivers.AutomationObject.FindType;
 import com.ing.engine.drivers.PlaywrightDriverCreation;
@@ -23,6 +24,7 @@ import java.util.Stack;
 import com.ing.engine.drivers.WebDriverCreation;
 import com.ing.engine.drivers.MobileObject;
 import com.ing.engine.drivers.MobileObject.FindmType;
+import java.util.Properties;
 import org.openqa.selenium.WebElement;
 
 public abstract class CommandControl {
@@ -109,8 +111,6 @@ public abstract class CommandControl {
                         Locator = AObject.findElement(ObjectName, Reference, FindType.fromString(Condition));
                         
                     }
-                } else {
-                    imageObjectGroup = AObject.getImageObjects(Reference, ObjectName);
                 }
             }
         }
@@ -143,8 +143,6 @@ public abstract class CommandControl {
 
 
                     }
-                } else {
-                    imageObjectGroup = AObject.getImageObjects(Reference, ObjectName);
                 }
             }
         } 
@@ -246,8 +244,12 @@ public abstract class CommandControl {
         return runTimeVars;
     }
 
-    public String getDataBaseProperty(String key) {
-        return Control.getCurrentProject().getProjectSettings().getDatabaseSettings().getProperty(key);
+    public String getDBFile(String value){
+        return Control.getCurrentProject().getProjectSettings().getDatabaseSettings().getDBLocation(value);
+    }
+
+    public Properties getDataBaseProperty(String key) {
+        return Control.getCurrentProject().getProjectSettings().getDatabaseSettings().getDBPropertiesFor(key);
     }
     
     public Map<String, String> getProxySettings() {

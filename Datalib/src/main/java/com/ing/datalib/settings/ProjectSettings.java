@@ -19,18 +19,11 @@ public class ProjectSettings {
     private final Capabilities capabilities;
     private final Emulators emulators;
     private final TestMgmtModule testMgmtModule;
-
-    private final MailSettings mailSettings;
-    
-    private final DatabaseSettings dbSettings;
-    
-    private final ReportPortalSettings rpSettings;
-    
+    private final ReportPortalSettings rpSettings;    
     private final ExtentReportSettings extentSettings;
-
-    private final ContextSettings contextSettings;
-
-    private final ExecutionSettings execSettings;
+    private final ExecutionSettings execSettings;   
+    private final DBProperties dbSettings;
+    private final ContextOptions contextSettings;
 
     public ProjectSettings(Project sProject) {
         this.sProject = sProject;
@@ -40,11 +33,10 @@ public class ProjectSettings {
         this.emulators = new Emulators(getLocation());
         this.testMgmtModule = new TestMgmtModule(getLocation());
         this.execSettings = new ExecutionSettings(getLocation());
-        this.mailSettings = new MailSettings(getLocation());
-        this.dbSettings = new DatabaseSettings(getLocation());
+        this.dbSettings = new DBProperties(getLocation());
         this.rpSettings = new ReportPortalSettings(getLocation());
         this.extentSettings = new ExtentReportSettings(getLocation());
-        this.contextSettings = new ContextSettings(getLocation());
+        this.contextSettings = new ContextOptions(getLocation());
     }
 
     public void resetLocation() {
@@ -54,7 +46,6 @@ public class ProjectSettings {
         emulators.setLocation(getLocation());
         testMgmtModule.setLocation(getLocation());
         execSettings.setLocation(getLocation());
-        mailSettings.setLocation(getLocation());
         dbSettings.setLocation(getLocation());
         rpSettings.setLocation(getLocation());
         extentSettings.setLocation(getLocation());
@@ -69,11 +60,8 @@ public class ProjectSettings {
         return sProject;
     }
 
-    public MailSettings getMailSettings() {
-        return mailSettings;
-    }
     
-    public DatabaseSettings getDatabaseSettings(){
+    public DBProperties getDatabaseSettings(){
         return dbSettings;
     }
     
@@ -85,7 +73,7 @@ public class ProjectSettings {
         return extentSettings;
     }
 
-    public ContextSettings getContextSettings(){
+    public ContextOptions getContextSettings(){
         return contextSettings;
     }
     
@@ -124,7 +112,6 @@ public class ProjectSettings {
         emulators.save();
         capabilities.save();
         testMgmtModule.save();
-        mailSettings.save();
         dbSettings.save();
         extentSettings.save();
         contextSettings.save();

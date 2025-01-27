@@ -1,4 +1,3 @@
-
 package com.ing.ide.main.mainui.components.testdesign.testcase;
 
 import com.ing.engine.core.RunManager;
@@ -125,29 +124,28 @@ public class TestCaseToolBar extends JToolBar {
     }
 
     private void setBrowserListPopupMenu(List<String> browsers) {
-         JRadioButtonMenuItem browserMenuItem;
-         
+        JRadioButtonMenuItem browserMenuItem;
+
         for (String browser : browsers) {
             browsersMenu.add(browserMenuItem = new JRadioButtonMenuItem(browser));
             browserMenuItem.setActionCommand(browser);
             browserMenuItem.setFont(UIManager.getFont("TableMenu.font"));
             browserMenuItem.addItemListener((ItemEvent ie) -> {
                 if (ie.getStateChange() == ItemEvent.SELECTED) {
-                    
+
                     String selBrowser = ((JRadioButtonMenuItem) ie.getSource()).getText() + ". Right Click to change the browser";
-					if(((JRadioButtonMenuItem) ie.getSource()).getText().equalsIgnoreCase("ProtractorJS"))
-                    {selBrowser= "Ensure that ProtractorJS is installed globally";
-                     runButton.setToolTipText(selBrowser);
-                     debugButton.setToolTipText(selBrowser);
+                    if (((JRadioButtonMenuItem) ie.getSource()).getText().equalsIgnoreCase("ProtractorJS")) {
+                        selBrowser = "Ensure that ProtractorJS is installed globally";
+                        runButton.setToolTipText(selBrowser);
+                        debugButton.setToolTipText(selBrowser);
+                    } else {
+                        runButton.setToolTipText("Run [F6] - with " + selBrowser);
+                        debugButton.setToolTipText("Debug [Ctrl+F6] - with " + selBrowser);
                     }
-					else{
-                    runButton.setToolTipText("Run [F6] - with " + selBrowser);
-                    debugButton.setToolTipText("Debug [Ctrl+F6] - with " + selBrowser);
-					}
                 }
             });
             browserSelectButtonGroup.add(browserMenuItem);
-                   
+
         }
     }
 

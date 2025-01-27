@@ -15,7 +15,7 @@ public class Inside extends General {
     public Inside(CommandControl cc) {
         super(cc);
     }
-
+/*
     private void assertElement(Boolean isPartly) {
         SpecInside spec = SpecReader.reader().getSpecInside(Condition, Data, isPartly);
         spec.setOriginalText(getMessage(isPartly, spec.getLocations()));
@@ -46,5 +46,5 @@ public class Inside extends General {
         }
         return message;
     }
-
+*/
 }

@@ -13,7 +13,7 @@ public class Image extends General {
     public Image(CommandControl cc) {
         super(cc);
     }
-
+/*
     @Action(object = ObjectType.APP, desc ="Assert if [<Object>]'s image has [<Data>]", input =InputType.YES)
     public void assertElementImage() {
         SpecImage spec = SpecReader.reader().getSpecImage(Reference, ObjectName, Data);
@@ -24,4 +24,5 @@ public class Image extends General {
     private String getMessage(SpecImage spec) {
         return String.format("%s's image matches with given image with attibutes %s ", ObjectName, Data);
     }
+*/
 }

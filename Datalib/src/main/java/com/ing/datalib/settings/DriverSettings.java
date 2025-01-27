@@ -17,6 +17,7 @@ public class DriverSettings extends AbstractPropSettings {
     }
 
     private void loadDefault() {
+        setSSLCertVerification(getSSLCertVerification());
         setUseProxy(getUseProxy());
         setProxyHost(getProxyHost());
         setProxyPort(getProxyPort());
@@ -77,6 +78,7 @@ public class DriverSettings extends AbstractPropSettings {
         return Boolean.valueOf(getProperty("useProxy", "false"));
     }
     
+    
     public void setUseProxy(String value) {
         setProperty("useProxy", value);
     }
@@ -99,6 +101,18 @@ public class DriverSettings extends AbstractPropSettings {
 
     public String getProxyPort() {
         return getProperty("proxyPort", "");
+    }
+    
+    public void setSSLCertVerification(String value) {
+        setProperty("setSSLCertVerification", value);
+    }
+
+    public String getSSLCertVerification() {
+        return getProperty("setSSLCertVerification", "false");
+    }
+    
+    public Boolean sslCertificateVerification() {
+        return Boolean.valueOf(getProperty("sslCertificateVerification", "false"));
     }
 
 

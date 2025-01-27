@@ -58,6 +58,10 @@ public abstract class AbstractRenderer extends DefaultTableCellRenderer {
         comp.setForeground(new Color(0,204,0));
     }
     
+    protected void setText(JComponent comp) {
+        comp.setForeground(new Color(0,204,0));
+    }
+    
     protected void setWebserviceStart(JComponent comp) {
         comp.setForeground(Color.BLUE);
     }
@@ -67,38 +71,12 @@ public abstract class AbstractRenderer extends DefaultTableCellRenderer {
     }
     
     protected void setReusable(JComponent comp) {
-//        try {
-//            //create the font to use. Specify the size!
-//            Font customFont = Font.createFont(Font.TRUETYPE_FONT, new File("resources/ui/resources/fonts/ingme_regular.ttf"));//.deriveFont(12f);
-//            GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
-//            //register the font
-//            ge.registerFont(customFont);
-//        } catch (IOException | FontFormatException e) {
-//            e.printStackTrace();
-//        }
-//        
-//        comp.setFont(new Font("ING Me", Font.PLAIN, 11));
-//        
-        //comp.setForeground(Color.BLACK);
         comp.setForeground(Color.green);
         comp.setToolTipText(null);
     }
 	
     protected void setDefault(JComponent comp) {
         
-//      try {
-//            //create the font to use. Specify the size!
-//            Font customFont = Font.createFont(Font.TRUETYPE_FONT, new File("resources/ui/resources/fonts/ingme_regular.ttf"));//.deriveFont(12f);
-//            GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
-//            //register the font
-//            ge.registerFont(customFont);
-//        } catch (IOException | FontFormatException e) {
-//            e.printStackTrace();
-//        }
-//        
-//        comp.setFont(new Font("ING Me", Font.PLAIN, 11));
-//        
-        //comp.setForeground(Color.BLACK);
         comp.setForeground(UIManager.getColor("text"));
         comp.setToolTipText(null);
     }

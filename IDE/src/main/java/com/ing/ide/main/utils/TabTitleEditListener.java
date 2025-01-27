@@ -3,6 +3,7 @@ package com.ing.ide.main.utils;
 
 import java.awt.Dimension;
 import java.awt.Rectangle;
+import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.FocusAdapter;
@@ -23,11 +24,7 @@ import javax.swing.SwingUtilities;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
-/**
- * Credit to
- * http://java-swing-tips.blogspot.in/2008/09/double-click-on-each-tab-and-change-its.html
- *
- */
+
 public class TabTitleEditListener extends MouseAdapter implements ChangeListener {
 
     private final JTabbedPane tabbedPane;
@@ -48,6 +45,7 @@ public class TabTitleEditListener extends MouseAdapter implements ChangeListener
         this.dontEdit = dontEdit;
         this.onRenameAction = onrenameAction;
         tabbedPane.getInputMap(JComponent.WHEN_FOCUSED).put(KeyStroke.getKeyStroke(KeyEvent.VK_F2, 0), "start-editing");
+                
         tabbedPane.getActionMap().put("start-editing", new AbstractAction() {
             @Override
             public void actionPerformed(ActionEvent e) {

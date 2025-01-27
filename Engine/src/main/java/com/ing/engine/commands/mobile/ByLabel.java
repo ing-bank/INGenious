@@ -34,7 +34,7 @@ public class ByLabel extends Command {
         new Basic(cc).Tap();
     }
 
-    @Action(object = ObjectType.BROWSER,
+    @Action(object = ObjectType.MOBILE,
             desc = "Tap on the element whose label is provided in the [<Input>]",
             input = InputType.YES)
     public void TapInputByText() {
