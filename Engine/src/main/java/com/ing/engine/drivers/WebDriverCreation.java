@@ -38,7 +38,7 @@ public class WebDriverCreation {
             System.out.println("\n🚀 Launching Driver \n");
             driver = WebDriverFactory.create(context, Control.getCurrentProject().getProjectSettings());
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.OFF, null, ex);
+            throw new AppiumDriverException("[Appium Driver Exception]. Please verify if the capabilities are passed correctly. Please visit  'https://appium.io/docs/en/2.0/guides/caps/' for more details. \n" +ex.getMessage());
                    
         }
     }

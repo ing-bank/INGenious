@@ -123,16 +123,12 @@ public class PlaywrightDriverFactory {
             for (String cap : caps) {
                 String key = cap.split("=", 2)[0];
                 String value = cap.split("=", 2)[1];
-                
+                launchOptions.setArgs(List.of("--auth-server-allowlist='_'"));
                 if (key.toLowerCase().contains("setheadless")) {
                     launchOptions.setHeadless((boolean) getPropertyValueAsDesiredType(value));
                 }
                 if (key.toLowerCase().contains("setslowmo")) {
                     launchOptions.setSlowMo((double) getPropertyValueAsDesiredType(value));
-                }
-                if (key.toLowerCase().contains("startmaximized") && (boolean) getPropertyValueAsDesiredType(value)) {
-                    launchOptions.setArgs(List.of("--auth-server-allowlist='_'"));
-                    launchOptions.setArgs(List.of("--start-maximized"));
                 }
                 if (key.toLowerCase().contains("setchannel")) {
                     launchOptions.setChannel((String) getPropertyValueAsDesiredType(value));

@@ -1582,7 +1582,7 @@ public class SyntheticDataGenerator extends Command {
     }
 
     @Action(object = ObjectType.DATA, desc = "Generate a random currency code", input = InputType.YES, condition = InputType.NO)
-    public void CurrencyCode() {
+    public void currencyCode() {
         try {
             String strObj = Input;
             String currencyCode = faker.get(key).currency().code();
@@ -2367,7 +2367,7 @@ public class SyntheticDataGenerator extends Command {
     }
 
     @Action(object = ObjectType.DATA, desc = "Generate a random character name from the Game of Thrones series", input = InputType.YES, condition = InputType.NO)
-    public void GOTCharacter() {
+    public void characterGOT() {
         try {
             String strObj = Input;
             String character = faker.get(key).gameOfThrones().character();
@@ -2382,7 +2382,7 @@ public class SyntheticDataGenerator extends Command {
     }
 
     @Action(object = ObjectType.DATA, desc = "Generate a random house name from the Game of Thrones series", input = InputType.YES, condition = InputType.NO)
-    public void GOTHouse() {
+    public void houseGOT() {
         try {
             String strObj = Input;
             String house = faker.get(key).gameOfThrones().house();
@@ -2397,7 +2397,7 @@ public class SyntheticDataGenerator extends Command {
     }
 
     @Action(object = ObjectType.DATA, desc = "Generate a random city name from the Game of Thrones series", input = InputType.YES, condition = InputType.NO)
-    public void GOTCity() {
+    public void cityGOT() {
         try {
             String strObj = Input;
             String city = faker.get(key).gameOfThrones().city();
@@ -2412,7 +2412,7 @@ public class SyntheticDataGenerator extends Command {
     }
 
     @Action(object = ObjectType.DATA, desc = "Generate a random dragon name from the Game of Thrones series", input = InputType.YES, condition = InputType.NO)
-    public void GOTDragon() {
+    public void dragonGOT() {
         try {
             String strObj = Input;
             String dragon = faker.get(key).gameOfThrones().dragon();
@@ -2427,7 +2427,7 @@ public class SyntheticDataGenerator extends Command {
     }
 
     @Action(object = ObjectType.DATA, desc = "Generate a random quote from the Game of Thrones series", input = InputType.YES, condition = InputType.NO)
-    public void GOTQuote() {
+    public void quoteGOT() {
         try {
             String strObj = Input;
             String quote = faker.get(key).gameOfThrones().quote();
@@ -2517,7 +2517,7 @@ public class SyntheticDataGenerator extends Command {
     }
 
     @Action(object = ObjectType.DATA, desc = "Generate a random character name from the Harry Potter series", input = InputType.YES, condition = InputType.NO)
-    public void HarryPotterCharacter() {
+    public void characterHarryPotter() {
         try {
             String strObj = Input;
             String character = faker.get(key).harryPotter().character();
@@ -2532,7 +2532,7 @@ public class SyntheticDataGenerator extends Command {
     }
 
     @Action(object = ObjectType.DATA, desc = "Generate a random location from the Harry Potter series", input = InputType.YES, condition = InputType.NO)
-    public void HarryPotterLocation() {
+    public void locationHarryPotter() {
         try {
             String strObj = Input;
             String location = faker.get(key).harryPotter().location();
@@ -2547,7 +2547,7 @@ public class SyntheticDataGenerator extends Command {
     }
 
     @Action(object = ObjectType.DATA, desc = "Generate a random quote from the Harry Potter series", input = InputType.YES, condition = InputType.NO)
-    public void HarryPotterQuote() {
+    public void quoteHarryPotter() {
         try {
             String strObj = Input;
             String quote = faker.get(key).harryPotter().quote();
@@ -2562,7 +2562,7 @@ public class SyntheticDataGenerator extends Command {
     }
 
     @Action(object = ObjectType.DATA, desc = "Generate a random book name from the Harry Potter series", input = InputType.YES, condition = InputType.NO)
-    public void HarryPotterBook() {
+    public void bookHarryPotter() {
         try {
             String strObj = Input;
             String book = faker.get(key).harryPotter().book();
@@ -3460,7 +3460,7 @@ public class SyntheticDataGenerator extends Command {
     }
 
     @Action(object = ObjectType.DATA, desc = "Generate a random League of Legends champion", input = InputType.YES, condition = InputType.NO)
-    public void LOLchampion() {
+    public void championLOL() {
         try {
             String strObj = Input;
             String champion = faker.get(key).leagueOfLegends().champion();
@@ -3475,7 +3475,7 @@ public class SyntheticDataGenerator extends Command {
     }
 
     @Action(object = ObjectType.DATA, desc = "Generate a random League of Legends summoner spell", input = InputType.YES, condition = InputType.NO)
-    public void LOLsummonerSpell() {
+    public void summonerSpellLOL() {
         try {
             String strObj = Input;
             String summonerSpell = faker.get(key).leagueOfLegends().summonerSpell();
@@ -3490,7 +3490,7 @@ public class SyntheticDataGenerator extends Command {
     }
 
     @Action(object = ObjectType.DATA, desc = "Generate a random League of Legends masteries", input = InputType.YES, condition = InputType.NO)
-    public void LOLmasteries() {
+    public void masteriesLOL() {
         try {
             String strObj = Input;
             String mastery = faker.get(key).leagueOfLegends().masteries();
@@ -3505,7 +3505,7 @@ public class SyntheticDataGenerator extends Command {
     }
 
     @Action(object = ObjectType.DATA, desc = "Generate a random League of Legends quote", input = InputType.YES, condition = InputType.NO)
-    public void LOLquote() {
+    public void quoteLOL() {
         try {
             String strObj = Input;
             String quote = faker.get(key).leagueOfLegends().quote();
@@ -3520,7 +3520,7 @@ public class SyntheticDataGenerator extends Command {
     }
 
     @Action(object = ObjectType.DATA, desc = "Generate a random League of Legends rank", input = InputType.YES, condition = InputType.NO)
-    public void LOLrank() {
+    public void rankLOL() {
         try {
             String strObj = Input;
             String rank = faker.get(key).leagueOfLegends().rank();
@@ -3535,7 +3535,7 @@ public class SyntheticDataGenerator extends Command {
     }
 
     @Action(object = ObjectType.DATA, desc = "Generate a random League of Legends location", input = InputType.YES, condition = InputType.NO)
-    public void LOLlocation() {
+    public void locationLOL() {
         try {
             String strObj = Input;
             String location = faker.get(key).leagueOfLegends().location();

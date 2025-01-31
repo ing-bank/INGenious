@@ -16,7 +16,7 @@ public class CheckBox extends Command {
     public CheckBox(CommandControl cc) {
         super(cc);
     }
-
+/*
     @Action(object = ObjectType.APP, desc = "Check the [<Object>] element")
     public void check() {
         if (Element != null) {
@@ -85,5 +85,5 @@ public class CheckBox extends Command {
             Logger.getLogger(CheckBox.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
-
+*/
 }

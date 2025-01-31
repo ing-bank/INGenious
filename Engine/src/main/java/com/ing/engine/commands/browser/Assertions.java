@@ -37,15 +37,16 @@ public class Assertions extends General {
         try {
             LocatorAssertions.ContainsTextOptions options = new LocatorAssertions.ContainsTextOptions();
             options.setTimeout(getTimeoutValue());
-            assertThat(Locator).containsText(Data, options);
             text = Locator.innerHTML();
             highlightElement();
+            assertThat(Locator).containsText(Data, options);
             Report.updateTestLog(Action, "Element [" + ObjectName + "] contains text '" + Data + "'", Status.PASS);
-            removeHighlightFromElement();
         } catch (PlaywrightException e) {
             PlaywrightExceptionLogging(e);
         } catch (AssertionFailedError err) {
             assertionLogging(err, "[" + ObjectName + "] does not contain text '" + Data + "'. Actual text is '" + text + "'");
+        } finally {
+            removeHighlightFromElement();
         }
     }
 
@@ -56,15 +57,16 @@ public class Assertions extends General {
             LocatorAssertions.ContainsTextOptions options = new LocatorAssertions.ContainsTextOptions();
             options.setTimeout(getTimeoutValue());
             options.setIgnoreCase(true);
-            assertThat(Locator).containsText(Data, options);
             text = Locator.innerHTML();
             highlightElement();
+            assertThat(Locator).containsText(Data, options);
             Report.updateTestLog(Action, "Element [" + ObjectName + "] contains text '" + Data + "'", Status.PASS);
-            removeHighlightFromElement();
         } catch (PlaywrightException e) {
             PlaywrightExceptionLogging(e);
         } catch (AssertionFailedError err) {
             assertionLogging(err, "[" + ObjectName + "] does not contain text '" + Data + "'. Actual text is '" + text + "'");
+        } finally {
+            removeHighlightFromElement();
         }
     }
 
@@ -74,15 +76,16 @@ public class Assertions extends General {
         try {
             LocatorAssertions.ContainsTextOptions options = new LocatorAssertions.ContainsTextOptions();
             options.setTimeout(getTimeoutValue());
-            assertThat(Locator).not().containsText(Data, options);
             text = Locator.innerHTML();
             highlightElement();
+            assertThat(Locator).not().containsText(Data, options);
             Report.updateTestLog(Action, "Element [" + ObjectName + "] dos not contain text '" + Data + "'. Actual text is '" + text + "'", Status.PASS);
-            removeHighlightFromElement();
         } catch (PlaywrightException e) {
             PlaywrightExceptionLogging(e);
         } catch (AssertionFailedError err) {
             assertionLogging(err, "[" + ObjectName + "] contains text '" + Data + "'");
+        } finally {
+            removeHighlightFromElement();
         }
     }
 
@@ -95,14 +98,15 @@ public class Assertions extends General {
         try {
             LocatorAssertions.HasAccessibleDescriptionOptions options = new LocatorAssertions.HasAccessibleDescriptionOptions();
             options.setTimeout(getTimeoutValue());
-            assertThat(Locator).hasAccessibleDescription(Data, options);
             highlightElement();
+            assertThat(Locator).hasAccessibleDescription(Data, options);
             Report.updateTestLog(Action, "Element [" + ObjectName + "] has Accessible Description '" + Data + "'", Status.PASS);
-            removeHighlightFromElement();
         } catch (PlaywrightException e) {
             PlaywrightExceptionLogging(e);
         } catch (AssertionFailedError err) {
             assertionLogging(err, "[" + ObjectName + "] does not contain expected Accessible Description");
+        } finally {
+            removeHighlightFromElement();
         }
     }
 
@@ -112,14 +116,15 @@ public class Assertions extends General {
         try {
             LocatorAssertions.HasAccessibleNameOptions options = new LocatorAssertions.HasAccessibleNameOptions();
             options.setTimeout(getTimeoutValue());
-            assertThat(Locator).hasAccessibleName(Data, options);
             highlightElement();
+            assertThat(Locator).hasAccessibleName(Data, options);
             Report.updateTestLog(Action, "Element [" + ObjectName + "] has Accessible Name '" + Data + "'", Status.PASS);
-            removeHighlightFromElement();
         } catch (PlaywrightException e) {
             PlaywrightExceptionLogging(e);
         } catch (AssertionFailedError err) {
             assertionLogging(err, "[" + ObjectName + "] does not contain expected Accessible Name");
+        } finally {
+            removeHighlightFromElement();
         }
     }
 
@@ -134,15 +139,16 @@ public class Assertions extends General {
         try {
             LocatorAssertions.HasAttributeOptions options = new LocatorAssertions.HasAttributeOptions();
             options.setTimeout(getTimeoutValue());
-            assertThat(Locator).hasAttribute(attributeName, attributeValue, options);
             actualattributeValue = Locator.getAttribute(attributeName);
             highlightElement();
+            assertThat(Locator).hasAttribute(attributeName, attributeValue, options);
             Report.updateTestLog(Action, "Element [" + ObjectName + "] has attribute '" + attributeName + "' with value '" + attributeValue + "'", Status.PASS);
-            removeHighlightFromElement();
         } catch (PlaywrightException e) {
             PlaywrightExceptionLogging(e);
         } catch (AssertionFailedError err) {
             assertionLogging(err, "[" + ObjectName + "] does not have attribute '" + attributeName + " = " + attributeValue + "'. Actual value is '" + actualattributeValue + "'");
+        } finally {
+            removeHighlightFromElement();
         }
     }
 
@@ -154,15 +160,16 @@ public class Assertions extends General {
         try {
             LocatorAssertions.HasAttributeOptions options = new LocatorAssertions.HasAttributeOptions();
             options.setTimeout(getTimeoutValue());
-            assertThat(Locator).not().hasAttribute(attributeName, attributeValue, options);
             actualAttributeValue = Locator.getAttribute(attributeName);
             highlightElement();
+            assertThat(Locator).not().hasAttribute(attributeName, attributeValue, options);
             Report.updateTestLog(Action, "Element [" + ObjectName + "] does not have attribute '" + attributeName + "' with value '" + attributeValue + "'. Actual value is '" + actualAttributeValue + "'", Status.PASS);
-            removeHighlightFromElement();
         } catch (PlaywrightException e) {
             PlaywrightExceptionLogging(e);
         } catch (AssertionFailedError err) {
             assertionLogging(err, "[" + ObjectName + "] has attribute '" + attributeName + " = " + actualAttributeValue + "'");
+        } finally {
+            removeHighlightFromElement();
         }
     }
 
@@ -175,15 +182,16 @@ public class Assertions extends General {
         try {
             LocatorAssertions.HasClassOptions options = new LocatorAssertions.HasClassOptions();
             options.setTimeout(getTimeoutValue());
-            assertThat(Locator).hasClass(Pattern.compile(Data), options);
             actualClassValue = Locator.getAttribute("class");
             highlightElement();
+            assertThat(Locator).hasClass(Pattern.compile(Data), options);
             Report.updateTestLog(Action, "[" + ObjectName + "] has 'class' matching '" + Data + "'", Status.PASS);
-            removeHighlightFromElement();
         } catch (PlaywrightException e) {
             PlaywrightExceptionLogging(e);
         } catch (AssertionFailedError err) {
             assertionLogging(err, "[" + ObjectName + "] does not have 'class' matching '" + Data + "'. Actual value is '" + actualClassValue + "'");
+        } finally {
+            removeHighlightFromElement();
         }
     }
 
@@ -193,15 +201,16 @@ public class Assertions extends General {
         try {
             LocatorAssertions.HasClassOptions options = new LocatorAssertions.HasClassOptions();
             options.setTimeout(getTimeoutValue());
-            assertThat(Locator).not().hasClass(Pattern.compile(Data), options);
             actualClassValue = Locator.getAttribute("class");
             highlightElement();
+            assertThat(Locator).not().hasClass(Pattern.compile(Data), options);
             Report.updateTestLog(Action, "[" + ObjectName + "] does not have 'class' matching '" + Data + "'. Actual value is '" + actualClassValue + "'", Status.PASS);
-            removeHighlightFromElement();
         } catch (PlaywrightException e) {
             PlaywrightExceptionLogging(e);
         } catch (AssertionFailedError err) {
             assertionLogging(err, "[" + ObjectName + "] has 'class' matching '" + Data + "'");
+        } finally {
+            removeHighlightFromElement();
         }
     }
 
@@ -214,8 +223,8 @@ public class Assertions extends General {
         try {
             LocatorAssertions.HasCountOptions options = new LocatorAssertions.HasCountOptions();
             options.setTimeout(getTimeoutValue());
-            assertThat(Locator).hasCount(Integer.parseInt(Data), options);
             elementCount = Locator.count();
+            assertThat(Locator).hasCount(Integer.parseInt(Data), options);
             Report.updateTestLog(Action, "[" + ObjectName + "] count matches '" + Data + "'", Status.PASS);
         } catch (PlaywrightException e) {
             PlaywrightExceptionLogging(e);
@@ -230,14 +239,14 @@ public class Assertions extends General {
         try {
             LocatorAssertions.HasCountOptions options = new LocatorAssertions.HasCountOptions();
             options.setTimeout(getTimeoutValue());
-            assertThat(Locator).not().hasCount(Integer.parseInt(Data), options);
             elementCount = Locator.count();
+            assertThat(Locator).not().hasCount(Integer.parseInt(Data), options);
             Report.updateTestLog(Action, "[" + ObjectName + "] count does not match '" + Data + "'. Actual count is +'" + elementCount + "'", Status.PASS);
         } catch (PlaywrightException e) {
             PlaywrightExceptionLogging(e);
         } catch (AssertionFailedError err) {
             assertionLogging(err, "[" + ObjectName + "] count matches '" + Data + "'");
-        }
+        } 
     }
 
     /**
@@ -251,15 +260,16 @@ public class Assertions extends General {
         try {
             LocatorAssertions.HasCSSOptions options = new LocatorAssertions.HasCSSOptions();
             options.setTimeout(getTimeoutValue());
-            assertThat(Locator).hasCSS(attributeName, attributeValue, options);
             value = (String) Locator.evaluate("(element) => window.getComputetStyle(element).getPropertyValue(" + attributeName + ")");
             highlightElement();
+            assertThat(Locator).hasCSS(attributeName, attributeValue, options);
             Report.updateTestLog(Action, "[" + ObjectName + "] has CSS attribute '" + attributeName + "' with value '" + attributeValue + "'", Status.PASS);
-            removeHighlightFromElement();
         } catch (PlaywrightException e) {
             PlaywrightExceptionLogging(e);
         } catch (AssertionFailedError err) {
             assertionLogging(err, "[" + ObjectName + "] does not have CSS attribute '" + attributeName + "' with value '" + attributeValue + "'. Actual value is '" + value + "'");
+        } finally {
+            removeHighlightFromElement();
         }
     }
 
@@ -271,15 +281,16 @@ public class Assertions extends General {
         try {
             LocatorAssertions.HasCSSOptions options = new LocatorAssertions.HasCSSOptions();
             options.setTimeout(getTimeoutValue());
-            assertThat(Locator).not().hasCSS(attributeName, attributeValue, options);
             value = (String) Locator.evaluate("(element) => window.getComputetStyle(element).getPropertyValue(" + attributeName + ")");
             highlightElement();
+            assertThat(Locator).not().hasCSS(attributeName, attributeValue, options);
             Report.updateTestLog(Action, "[" + ObjectName + "] does not have CSS attribute '" + attributeName + "' with value '" + attributeValue + "'. Actual value is '" + value + "'", Status.PASS);
-            removeHighlightFromElement();
         } catch (PlaywrightException e) {
             PlaywrightExceptionLogging(e);
         } catch (AssertionFailedError err) {
             assertionLogging(err, "[" + ObjectName + "] has CSS attribute '" + attributeName + "' with value '" + attributeValue + "'");
+        } finally {
+            removeHighlightFromElement();
         }
     }
 
@@ -292,15 +303,16 @@ public class Assertions extends General {
         try {
             LocatorAssertions.HasIdOptions options = new LocatorAssertions.HasIdOptions();
             options.setTimeout(getTimeoutValue());
-            assertThat(Locator).hasId(Pattern.compile(Data), options);
             actualIdValue = Locator.getAttribute("id");
             highlightElement();
+            assertThat(Locator).hasId(Pattern.compile(Data), options);
             Report.updateTestLog(Action, "[" + ObjectName + "] has 'ID' matching '" + Data + "'", Status.PASS);
-            removeHighlightFromElement();
         } catch (PlaywrightException e) {
             PlaywrightExceptionLogging(e);
         } catch (AssertionFailedError err) {
             assertionLogging(err, "[" + ObjectName + "] does not have 'ID' matching '" + Data + "'. Actual value is '" + actualIdValue + "'");
+        } finally {
+            removeHighlightFromElement();
         }
     }
 
@@ -310,15 +322,16 @@ public class Assertions extends General {
         try {
             LocatorAssertions.HasIdOptions options = new LocatorAssertions.HasIdOptions();
             options.setTimeout(getTimeoutValue());
-            assertThat(Locator).not().hasId(Pattern.compile(Data), options);
             actualIdValue = Locator.getAttribute("id");
             highlightElement();
+            assertThat(Locator).not().hasId(Pattern.compile(Data), options);
             Report.updateTestLog(Action, "[" + ObjectName + "] does not have 'ID' matching '" + Data + "'. Actual value is '" + actualIdValue + "'", Status.PASS);
-            removeHighlightFromElement();
         } catch (PlaywrightException e) {
             PlaywrightExceptionLogging(e);
         } catch (AssertionFailedError err) {
             assertionLogging(err, "[" + ObjectName + "] has 'ID' matching '" + Data + "'");
+        } finally {
+            removeHighlightFromElement();
         }
     }
 
@@ -331,15 +344,16 @@ public class Assertions extends General {
         String attributeValue = Data.split("=")[1];
         try {
             LocatorAssertions.HasJSPropertyOptions options = new LocatorAssertions.HasJSPropertyOptions();
-            options.setTimeout(getTimeoutValue());
-            assertThat(Locator).hasJSProperty(attributeName, attributeValue, options);
+            options.setTimeout(getTimeoutValue());            
             highlightElement();
+            assertThat(Locator).hasJSProperty(attributeName, attributeValue, options);
             Report.updateTestLog(Action, "[" + ObjectName + "] has JS Property attribute '" + attributeName + "' with value '" + attributeValue + "'", Status.PASS);
-            removeHighlightFromElement();
         } catch (PlaywrightException e) {
             PlaywrightExceptionLogging(e);
         } catch (AssertionFailedError err) {
             assertionLogging(err, "[" + ObjectName + "] does not have JS Property attribute '" + attributeName + "' with value '" + attributeValue + "'");
+        } finally {
+            removeHighlightFromElement();
         }
     }
 
@@ -350,14 +364,15 @@ public class Assertions extends General {
         try {
             LocatorAssertions.HasJSPropertyOptions options = new LocatorAssertions.HasJSPropertyOptions();
             options.setTimeout(getTimeoutValue());
-            assertThat(Locator).not().hasJSProperty(attributeName, attributeValue, options);
             highlightElement();
+            assertThat(Locator).not().hasJSProperty(attributeName, attributeValue, options);
             Report.updateTestLog(Action, "[" + ObjectName + "] does not have JS Property attribute '" + attributeName + "' with value '" + attributeValue + "'", Status.PASS);
-            removeHighlightFromElement();
         } catch (PlaywrightException e) {
             PlaywrightExceptionLogging(e);
         } catch (AssertionFailedError err) {
             assertionLogging(err, "[" + ObjectName + "] has JS Property attribute '" + attributeName + "' with value '" + attributeValue + "'");
+        } finally {
+            removeHighlightFromElement();
         }
     }
 
@@ -370,14 +385,15 @@ public class Assertions extends General {
         try {
             LocatorAssertions.HasRoleOptions options = new LocatorAssertions.HasRoleOptions();
             options.setTimeout(getTimeoutValue());
-            assertThat(Locator).hasRole(AriaRole.valueOf(Data.toUpperCase()), options);
             highlightElement();
+            assertThat(Locator).hasRole(AriaRole.valueOf(Data.toUpperCase()), options);
             Report.updateTestLog(Action, "[" + ObjectName + "] has 'Role' matching '" + Data + "'", Status.PASS);
-            removeHighlightFromElement();
         } catch (PlaywrightException e) {
             PlaywrightExceptionLogging(e);
         } catch (AssertionFailedError err) {
             assertionLogging(err, "[" + ObjectName + "] does not have 'Role' matching '" + Data + "'. Actual value is '" + actualIdValue + "'");
+        } finally {
+            removeHighlightFromElement();
         }
     }
 
@@ -386,14 +402,15 @@ public class Assertions extends General {
         try {
             LocatorAssertions.HasRoleOptions options = new LocatorAssertions.HasRoleOptions();
             options.setTimeout(getTimeoutValue());
-            assertThat(Locator).not().hasRole(AriaRole.valueOf(Data.toUpperCase()), options);
             highlightElement();
+            assertThat(Locator).not().hasRole(AriaRole.valueOf(Data.toUpperCase()), options);
             Report.updateTestLog(Action, "[" + ObjectName + "] does not have 'Role' matching '" + Data + "'", Status.PASS);
-            removeHighlightFromElement();
         } catch (PlaywrightException e) {
             PlaywrightExceptionLogging(e);
         } catch (AssertionFailedError err) {
             assertionLogging(err, "[" + ObjectName + "] has 'Role' matching '" + Data + "'");
+        } finally {
+            removeHighlightFromElement();
         }
     }
 
@@ -406,15 +423,16 @@ public class Assertions extends General {
         try {
             LocatorAssertions.HasTextOptions options = new LocatorAssertions.HasTextOptions();
             options.setTimeout(getTimeoutValue());
-            assertThat(Locator).hasText(Pattern.compile(Data), options);
             text = Locator.innerHTML();
             highlightElement();
+            assertThat(Locator).hasText(Pattern.compile(Data), options);
             Report.updateTestLog(Action, "[" + ObjectName + "] has text '" + Data + "'", Status.PASS);
-            removeHighlightFromElement();
         } catch (PlaywrightException e) {
             PlaywrightExceptionLogging(e);
         } catch (AssertionFailedError err) {
             assertionLogging(err, "[" + ObjectName + "] does not have text '" + Data + "'. Actual text is '" + text + "'");
+        } finally {
+            removeHighlightFromElement();
         }
     }
 
@@ -424,15 +442,16 @@ public class Assertions extends General {
         try {
             LocatorAssertions.HasTextOptions options = new LocatorAssertions.HasTextOptions();
             options.setTimeout(getTimeoutValue());
-            assertThat(Locator).not().hasText(Pattern.compile(Data), options);
             text = Locator.innerHTML();
             highlightElement();
+            assertThat(Locator).not().hasText(Pattern.compile(Data), options);
             Report.updateTestLog(Action, "[" + ObjectName + "] does not have text '" + Data + "'. Actual text is '" + text + "'", Status.PASS);
-            removeHighlightFromElement();
         } catch (PlaywrightException e) {
             PlaywrightExceptionLogging(e);
         } catch (AssertionFailedError err) {
             assertionLogging(err, "[" + ObjectName + "] has text '" + Data + "'");
+        } finally {
+            removeHighlightFromElement();
         }
     }
 
@@ -446,15 +465,16 @@ public class Assertions extends General {
         try {
             LocatorAssertions.HasValueOptions options = new LocatorAssertions.HasValueOptions();
             options.setTimeout(getTimeoutValue());
-            assertThat(Locator).hasValue(Pattern.compile(Data), options);
             value = Locator.getAttribute("value");
             highlightElement();
+            assertThat(Locator).hasValue(Pattern.compile(Data), options);
             Report.updateTestLog(Action, "[" + ObjectName + "] has value '" + Data + "'", Status.PASS);
-            removeHighlightFromElement();
         } catch (PlaywrightException e) {
             PlaywrightExceptionLogging(e);
         } catch (AssertionFailedError err) {
             assertionLogging(err, "[" + ObjectName + "] does not have value '" + Data + "'. Actual value is '" + value + "'");
+        } finally {
+            removeHighlightFromElement();
         }
     }
 
@@ -465,15 +485,16 @@ public class Assertions extends General {
         try {
             LocatorAssertions.HasValueOptions options = new LocatorAssertions.HasValueOptions();
             options.setTimeout(getTimeoutValue());
-            assertThat(Locator).not().hasValue(Pattern.compile(Data), options);
             value = Locator.getAttribute("value");
             highlightElement();
+            assertThat(Locator).not().hasValue(Pattern.compile(Data), options);
             Report.updateTestLog(Action, "[" + ObjectName + "] does not have value '" + Data + "'. Actual value is '" + value + "'", Status.PASS);
-            removeHighlightFromElement();
         } catch (PlaywrightException e) {
             PlaywrightExceptionLogging(e);
         } catch (AssertionFailedError err) {
             assertionLogging(err, "[" + ObjectName + "] has value '" + Data + "'");
+        } finally {
+            removeHighlightFromElement();
         }
     }
 
@@ -487,14 +508,15 @@ public class Assertions extends General {
             for (int i = 0; i < values.length; i++) {
                 pattern[i] = Pattern.compile(values[i]);
             }
-            assertThat(Locator).hasValues(pattern, options);
             highlightElement();
+            assertThat(Locator).hasValues(pattern, options);
             Report.updateTestLog(Action, "[" + ObjectName + "] has values '" + Data + "'", Status.PASS);
-            removeHighlightFromElement();
         } catch (PlaywrightException e) {
             PlaywrightExceptionLogging(e);
         } catch (AssertionFailedError err) {
             assertionLogging(err, "[" + ObjectName + "] does not have values '" + Data + "'");
+        } finally {
+            removeHighlightFromElement();
         }
     }
 
@@ -508,14 +530,15 @@ public class Assertions extends General {
             for (int i = 0; i < values.length; i++) {
                 pattern[i] = Pattern.compile(values[i]);
             }
-            assertThat(Locator).not().hasValues(pattern, options);
             highlightElement();
+            assertThat(Locator).not().hasValues(pattern, options);
             Report.updateTestLog(Action, "[" + ObjectName + "] does not have values '" + Data + "'", Status.PASS);
-            removeHighlightFromElement();
         } catch (PlaywrightException e) {
             PlaywrightExceptionLogging(e);
         } catch (AssertionFailedError err) {
             assertionLogging(err, "[" + ObjectName + "] has values '" + Data + "'");
+        } finally {
+            removeHighlightFromElement();
         }
     }
 
@@ -527,14 +550,15 @@ public class Assertions extends General {
         try {
             LocatorAssertions.IsAttachedOptions options = new LocatorAssertions.IsAttachedOptions();
             options.setTimeout(getTimeoutValue());
-            assertThat(Locator).isAttached(options);
             highlightElement();
+            assertThat(Locator).isAttached(options);
             Report.updateTestLog(Action, "[" + ObjectName + "] is attached to the DOM", Status.PASS);
-            removeHighlightFromElement();
         } catch (PlaywrightException e) {
             PlaywrightExceptionLogging(e);
         } catch (AssertionFailedError err) {
             assertionLogging(err, "[" + ObjectName + "] is not attached to the DOM");
+        } finally {
+            removeHighlightFromElement();
         }
     }
 
@@ -557,14 +581,15 @@ public class Assertions extends General {
         try {
             LocatorAssertions.IsCheckedOptions options = new LocatorAssertions.IsCheckedOptions();
             options.setTimeout(getTimeoutValue());
-            assertThat(Locator).isChecked(options);
             highlightElement();
+            assertThat(Locator).isChecked(options);
             Report.updateTestLog(Action, "[" + ObjectName + "] is checked", Status.PASS);
-            removeHighlightFromElement();
         } catch (PlaywrightException e) {
             PlaywrightExceptionLogging(e);
         } catch (AssertionFailedError err) {
             assertionLogging(err, "[" + ObjectName + "] is not checked");
+        } finally {
+            removeHighlightFromElement();
         }
     }
 
@@ -579,6 +604,8 @@ public class Assertions extends General {
             PlaywrightExceptionLogging(e);
         } catch (AssertionFailedError err) {
             assertionLogging(err, "[" + ObjectName + "] is checked");
+        } finally {
+            removeHighlightFromElement();
         }
     }
 
@@ -587,14 +614,15 @@ public class Assertions extends General {
         try {
             LocatorAssertions.IsDisabledOptions options = new LocatorAssertions.IsDisabledOptions();
             options.setTimeout(getTimeoutValue());
-            assertThat(Locator).isDisabled(options);
             highlightElement();
+            assertThat(Locator).isDisabled(options);
             Report.updateTestLog(Action, "[" + ObjectName + "] is disabled", Status.PASS);
-            removeHighlightFromElement();
         } catch (PlaywrightException e) {
             PlaywrightExceptionLogging(e);
         } catch (AssertionFailedError err) {
             assertionLogging(err, "[" + ObjectName + "] is not disabled");
+        } finally {
+            removeHighlightFromElement();
         }
     }
 
@@ -609,7 +637,7 @@ public class Assertions extends General {
             PlaywrightExceptionLogging(e);
         } catch (AssertionFailedError err) {
             assertionLogging(err, "[" + ObjectName + "] is disabled");
-        }
+        } 
     }
 
     @Action(object = ObjectType.PLAYWRIGHT, desc = "Assert if [<Object>] is editable")
@@ -617,14 +645,15 @@ public class Assertions extends General {
         try {
             LocatorAssertions.IsEditableOptions options = new LocatorAssertions.IsEditableOptions();
             options.setTimeout(getTimeoutValue());
-            assertThat(Locator).isEditable(options);
             highlightElement();
+            assertThat(Locator).isEditable(options);
             Report.updateTestLog(Action, "[" + ObjectName + "] is editable", Status.PASS);
-            removeHighlightFromElement();
         } catch (PlaywrightException e) {
             PlaywrightExceptionLogging(e);
         } catch (AssertionFailedError err) {
             assertionLogging(err, "[" + ObjectName + "] is not editable");
+        } finally {
+            removeHighlightFromElement();
         }
     }
 
@@ -647,14 +676,15 @@ public class Assertions extends General {
         try {
             LocatorAssertions.IsEmptyOptions options = new LocatorAssertions.IsEmptyOptions();
             options.setTimeout(getTimeoutValue());
-            assertThat(Locator).isEmpty(options);
             highlightElement();
+            assertThat(Locator).isEmpty(options);
             Report.updateTestLog(Action, "[" + ObjectName + "] is empty", Status.PASS);
-            removeHighlightFromElement();
         } catch (PlaywrightException e) {
             PlaywrightExceptionLogging(e);
         } catch (AssertionFailedError err) {
             assertionLogging(err, "[" + ObjectName + "] is not empty");
+        } finally {
+            removeHighlightFromElement();
         }
     }
 
@@ -677,14 +707,15 @@ public class Assertions extends General {
         try {
             LocatorAssertions.IsEnabledOptions options = new LocatorAssertions.IsEnabledOptions();
             options.setTimeout(getTimeoutValue());
-            assertThat(Locator).isEnabled(options);
             highlightElement();
+            assertThat(Locator).isEnabled(options);
             Report.updateTestLog(Action, "[" + ObjectName + "] is enabled", Status.PASS);
-            removeHighlightFromElement();
         } catch (PlaywrightException e) {
             PlaywrightExceptionLogging(e);
         } catch (AssertionFailedError err) {
             assertionLogging(err, "[" + ObjectName + "] is not enabled");
+        } finally {
+            removeHighlightFromElement();
         }
     }
 
@@ -707,14 +738,15 @@ public class Assertions extends General {
         try {
             LocatorAssertions.IsFocusedOptions options = new LocatorAssertions.IsFocusedOptions();
             options.setTimeout(getTimeoutValue());
-            assertThat(Locator).isFocused(options);
             highlightElement();
+            assertThat(Locator).isFocused(options);
             Report.updateTestLog(Action, "[" + ObjectName + "] is focused", Status.PASS);
-            removeHighlightFromElement();
         } catch (PlaywrightException e) {
             PlaywrightExceptionLogging(e);
         } catch (AssertionFailedError err) {
             assertionLogging(err, "[" + ObjectName + "] is not focused");
+        } finally {
+            removeHighlightFromElement();
         }
     }
 
@@ -765,14 +797,15 @@ public class Assertions extends General {
         try {
             LocatorAssertions.IsInViewportOptions options = new LocatorAssertions.IsInViewportOptions();
             options.setTimeout(getTimeoutValue());
-            assertThat(Locator).isInViewport(options);
             highlightElement();
+            assertThat(Locator).isInViewport(options);
             Report.updateTestLog(Action, "[" + ObjectName + "] is in viewport", Status.PASS);
-            removeHighlightFromElement();
         } catch (PlaywrightException e) {
             PlaywrightExceptionLogging(e);
         } catch (AssertionFailedError err) {
             assertionLogging(err, "[" + ObjectName + "] is not in viewport");
+        } finally {
+            removeHighlightFromElement();
         }
     }
 
@@ -795,14 +828,15 @@ public class Assertions extends General {
         try {
             LocatorAssertions.IsVisibleOptions options = new LocatorAssertions.IsVisibleOptions();
             options.setTimeout(getTimeoutValue());
-            assertThat(Locator).isVisible(options);
             highlightElement();
+            assertThat(Locator).isVisible(options);
             Report.updateTestLog(Action, "[" + ObjectName + "] is visible", Status.PASS);
-            removeHighlightFromElement();
         } catch (PlaywrightException e) {
             PlaywrightExceptionLogging(e);
         } catch (AssertionFailedError err) {
             assertionLogging(err, "[" + ObjectName + "] is not visible");
+        } finally {
+            removeHighlightFromElement();
         }
     }
 
@@ -873,8 +907,6 @@ public class Assertions extends General {
     /**
      * *********************************************************************************************
      */
-    
-
     private void highlightElement() {
         Locator.scrollIntoViewIfNeeded();
         Locator.evaluate("element => element.style.outline = '2px solid red'");

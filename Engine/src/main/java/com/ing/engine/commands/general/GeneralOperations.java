@@ -142,16 +142,6 @@ public class GeneralOperations extends General {
         }
     }
 
-    @Action(object = ObjectType.GENERAL, desc = "store  value [<Data>] in Variable [<Condition>]", input = InputType.YES, condition = InputType.YES)
-    public void storeVariable() {
-        if (Condition.startsWith("%") && Condition.endsWith("%")) {
-            addVar(Condition, Data);
-            Report.updateTestLog(Action, "Value" + Data + "' is stored in Variable '" + Condition + "'", Status.DONE);
-        } else {
-            Report.updateTestLog(Action, "Variable format is not correct", Status.DEBUG);
-        }
-    }
-
     public void replaceFunction() {
         String op = "";
         String original = "";

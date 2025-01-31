@@ -61,39 +61,6 @@ public class Basic extends MobileGeneral {
         }
     }
 
-    @Action(object = ObjectType.APP, desc = "Double click [<Object>] element")
-    public void doubleTapElement() {
-        if (elementEnabled()) {
-            new Actions(mDriver).doubleClick(Element).build().perform();
-            Report.updateTestLog("doubleClickElement", "'" + Element
-                    + "' is doubleClicked", Status.DONE);
-        } else {
-            throw new ElementException(ExceptionType.Element_Not_Enabled, ObjectName);
-        }
-    }
-
-    @Action(object = ObjectType.APP, desc = "Tap the [<Object>] if it exists")
-    public void doubleTapIfExists() {
-        if (Element != null) {
-            doubleTapElement();
-        } else {
-            Report.updateTestLog(Action, "Element [" + ObjectName + "] not Exists", Status.DONE);
-        }
-    }
-
-    @Action(object = ObjectType.APP, desc = "Tap the [<Object>] if it is displayed")
-    public void doubleTapIfVisible() {
-        if (Element != null) {
-            if (Element.isDisplayed()) {
-                doubleTapElement();
-            } else {
-                Report.updateTestLog(Action, "Element [" + ObjectName + "] not Visible", Status.DONE);
-            }
-        } else {
-            Report.updateTestLog(Action, "Element [" + ObjectName + "] not Exists", Status.DONE);
-        }
-    }
-
     @Action(object = ObjectType.APP, desc = "Submit action on the browser")
     public void Submit() {
         if (elementEnabled()) {
@@ -245,6 +212,7 @@ public class Basic extends MobileGeneral {
         }
 
     }
+    /*
 
     @Action(object = ObjectType.BROWSER, desc = "Open the Url [<Data>] in the Browser", input = InputType.YES)
     public void Open() {
@@ -325,5 +293,5 @@ public class Basic extends MobileGeneral {
                     Status.PASS);
         }
     }
-
+     */
 }

@@ -153,7 +153,6 @@ public class Capabilities {
                 // Add default key-value pairs
                 prop.setProperty("setHeadless", "false");
                 prop.setProperty("setSlowMo", "");
-                prop.setProperty("startMaximized", "");
                 prop.setProperty("setDevtools", "");
                 prop.setProperty("setDownloadsPath", "");
                 prop.setProperty("setExecutablePath", "");

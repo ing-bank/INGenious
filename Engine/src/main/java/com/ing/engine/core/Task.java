@@ -177,7 +177,7 @@ public class Task implements Runnable {
     }
     
     private void closeWebDriver() {
-        if (webDriver != null && !getRunSettings().useExistingDriver()) {
+        if (webDriver.driver != null && !getRunSettings().useExistingDriver()) {
             try {
                 webDriver.driver.quit();
             } catch (Exception ex) {
