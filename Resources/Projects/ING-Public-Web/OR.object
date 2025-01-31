@@ -77,7 +77,7 @@
         <Property value="" ref="Text" pref="3"/>
         <Property value="" ref="css" pref="4"/>
         <Property value="" ref="Placeholder" pref="5"/>
-        <Property value="Country *(required)" ref="Label" pref="6"/>
+        <Property value="Country" ref="Label" pref="6"/>
         <Property value="" ref="AltText" pref="7"/>
         <Property value="" ref="Title" pref="8"/>
         <Property value="" ref="TestId" pref="9"/>

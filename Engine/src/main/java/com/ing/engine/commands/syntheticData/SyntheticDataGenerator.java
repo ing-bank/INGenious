@@ -1,4 +1,5 @@
 package com.ing.engine.commands.syntheticData;
+
 import com.github.javafaker.CreditCardType;
 import com.github.javafaker.Faker;
 import com.github.javafaker.Internet;
@@ -19,19 +20,20 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class SyntheticDataGenerator extends Command {
+
     public SyntheticDataGenerator(CommandControl cc) {
         super(cc);
-        faker.put(key,new Faker());
- }
-
-
+        if (faker.get(key) == null) {
+            faker.put(key, new Faker(new Locale("en-US")));
+        }
+    }
 
     @Action(object = ObjectType.DATA, desc = "Set Faker locale for testing", input = InputType.YES)
     public void setLocale() {
         try {
             String locale = Data;
             Faker fakerWithLocale = new Faker(new Locale(locale));
-            faker.put(key,fakerWithLocale);
+            faker.put(key, fakerWithLocale);
             Report.updateTestLog(Action, "Faker locale set to " + locale, Status.DONE);
         } catch (Exception ex) {
             Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during locale setup", ex);
@@ -300,7 +302,7 @@ public class SyntheticDataGenerator extends Command {
     public void streetAddressIncludeSecondary() {
         try {
             String strObj = Input;
-            boolean includeSecondary=true;
+            boolean includeSecondary = true;
             String streetAddress = faker.get(key).address().streetAddress(includeSecondary);
             Report.updateTestLog(Action, "Generated data: " + streetAddress, Status.DONE);
             String sheetName = strObj.split(":", 2)[0];
@@ -1066,7 +1068,7 @@ public class SyntheticDataGenerator extends Command {
     public void isbn10WithSeparator() {
         try {
             String strObj = Input;
-            boolean separator= true;
+            boolean separator = true;
             String isbn10 = faker.get(key).code().isbn10(separator);
             Report.updateTestLog(Action, "Generated data: " + isbn10, Status.DONE);
             String sheetName = strObj.split(":", 2)[0];
@@ -1113,7 +1115,7 @@ public class SyntheticDataGenerator extends Command {
     public void hex() {
         try {
             String strObj = Input;
-            String hex = "color"+faker.get(key).color().hex();
+            String hex = "color" + faker.get(key).color().hex();
             Report.updateTestLog(Action, "Generated data: " + hex, Status.DONE);
             String sheetName = strObj.split(":", 2)[0];
             String columnName = strObj.split(":", 2)[1];
@@ -1129,7 +1131,7 @@ public class SyntheticDataGenerator extends Command {
         try {
             String strObj = Input;
             boolean includeHashSign = true;
-            String hex = "color"+faker.get(key).color().hex(includeHashSign);
+            String hex = "color" + faker.get(key).color().hex(includeHashSign);
             Report.updateTestLog(Action, "Generated data: " + hex, Status.DONE);
             String sheetName = strObj.split(":", 2)[0];
             String columnName = strObj.split(":", 2)[1];
@@ -1253,7 +1255,7 @@ public class SyntheticDataGenerator extends Command {
     public void promotionCodeWithDigits() {
         try {
             String strObj = Input;
-            String digitStr= Condition.split(":", 1)[0];
+            String digitStr = Condition.split(":", 1)[0];
             Integer digits = Integer.parseInt(digitStr);
             String promotionCode = faker.get(key).commerce().promotionCode(digits);
             Report.updateTestLog(Action, "Generated data: " + promotionCode, Status.DONE);
@@ -1601,9 +1603,9 @@ public class SyntheticDataGenerator extends Command {
         try {
             String strObj = Input;
             String max = Condition.split(":", 2)[0];
-            int atMost=Integer.parseInt(max);
+            int atMost = Integer.parseInt(max);
             String unitStr = Condition.split(":", 2)[1];
-            TimeUnit unit=TimeUnit.valueOf(unitStr);
+            TimeUnit unit = TimeUnit.valueOf(unitStr);
             Date futureDate = faker.get(key).date().future(atMost, unit);
             Report.updateTestLog(Action, "Generated data: " + futureDate, Status.DONE);
             String sheetName = strObj.split(":", 2)[0];
@@ -1621,10 +1623,10 @@ public class SyntheticDataGenerator extends Command {
             String strObj = Input;
             String max = Condition.split(":", 3)[0];
             String min = Condition.split(":", 3)[1];
-            int atMost=Integer.parseInt(max);
-            int minimum=Integer.parseInt(min);
+            int atMost = Integer.parseInt(max);
+            int minimum = Integer.parseInt(min);
             String unitStr = Condition.split(":", 3)[2];
-            TimeUnit unit=TimeUnit.valueOf(unitStr);
+            TimeUnit unit = TimeUnit.valueOf(unitStr);
             Date futureDate = faker.get(key).date().future(atMost, minimum, unit);
             Report.updateTestLog(Action, "Generated data: " + futureDate, Status.DONE);
             String sheetName = strObj.split(":", 2)[0];
@@ -1642,9 +1644,9 @@ public class SyntheticDataGenerator extends Command {
             String strObj = Input;
             SimpleDateFormat formatter = new SimpleDateFormat("dd/MM/yyyy");
             String max = Condition.split(":", 3)[0];
-            int atMost=Integer.parseInt(max);
+            int atMost = Integer.parseInt(max);
             String unitStr = Condition.split(":", 3)[1];
-            TimeUnit unit=TimeUnit.valueOf(unitStr);
+            TimeUnit unit = TimeUnit.valueOf(unitStr);
             String dateStr = Condition.split(":", 3)[2];
             Date referenceDate = formatter.parse(dateStr);
             Date futureDate = faker.get(key).date().future(atMost, unit, referenceDate);
@@ -1663,9 +1665,9 @@ public class SyntheticDataGenerator extends Command {
         try {
             String strObj = Input;
             String max = Condition.split(":", 2)[0];
-            int atMost=Integer.parseInt(max);
+            int atMost = Integer.parseInt(max);
             String unitStr = Condition.split(":", 2)[1];
-            TimeUnit unit=TimeUnit.valueOf(unitStr);
+            TimeUnit unit = TimeUnit.valueOf(unitStr);
             Date pastDate = faker.get(key).date().past(atMost, unit);
             Report.updateTestLog(Action, "Generated data: " + pastDate, Status.DONE);
             String sheetName = strObj.split(":", 2)[0];
@@ -1683,10 +1685,10 @@ public class SyntheticDataGenerator extends Command {
             String strObj = Input;
             String max = Condition.split(":", 3)[0];
             String min = Condition.split(":", 3)[1];
-            int atMost=Integer.parseInt(max);
-            int minimum=Integer.parseInt(min);
+            int atMost = Integer.parseInt(max);
+            int minimum = Integer.parseInt(min);
             String unitStr = Condition.split(":", 3)[2];
-            TimeUnit unit=TimeUnit.valueOf(unitStr);
+            TimeUnit unit = TimeUnit.valueOf(unitStr);
             Date pastDate = faker.get(key).date().past(atMost, minimum, unit);
             Report.updateTestLog(Action, "Generated data: " + pastDate, Status.DONE);
             String sheetName = strObj.split(":", 2)[0];
@@ -1704,9 +1706,9 @@ public class SyntheticDataGenerator extends Command {
             String strObj = Input;
             SimpleDateFormat formatter = new SimpleDateFormat("dd/MM/yyyy");
             String max = Condition.split(":", 3)[0];
-            int atMost=Integer.parseInt(max);
+            int atMost = Integer.parseInt(max);
             String unitStr = Condition.split(":", 3)[1];
-            TimeUnit unit=TimeUnit.valueOf(unitStr);
+            TimeUnit unit = TimeUnit.valueOf(unitStr);
             String dateStr = Condition.split(":", 3)[2];
             Date referenceDate = formatter.parse(dateStr);
             Date pastDate = faker.get(key).date().past(atMost, unit, referenceDate);
@@ -1727,8 +1729,8 @@ public class SyntheticDataGenerator extends Command {
             SimpleDateFormat formatter = new SimpleDateFormat("dd/MM/yyyy");
             String from = Condition.split(":", 2)[0];
             String to = Condition.split(":", 2)[1];
-            Date startDate= formatter.parse(from);
-            Date endDate= formatter.parse(to);
+            Date startDate = formatter.parse(from);
+            Date endDate = formatter.parse(to);
             Date betweenDate = faker.get(key).date().between(startDate, endDate);
             Report.updateTestLog(Action, "Generated data: " + betweenDate, Status.DONE);
             String sheetName = strObj.split(":", 2)[0];
@@ -1761,8 +1763,8 @@ public class SyntheticDataGenerator extends Command {
             String strObj = Input;
             String from = Condition.split(":", 2)[0];
             String to = Condition.split(":", 2)[1];
-            int minAge=Integer.parseInt(from);
-            int maxAge=Integer.parseInt(to);
+            int minAge = Integer.parseInt(from);
+            int maxAge = Integer.parseInt(to);
             Date birthdayDate = faker.get(key).date().birthday(minAge, maxAge);
             Report.updateTestLog(Action, "Generated data: " + birthdayDate, Status.DONE);
             String sheetName = strObj.split(":", 2)[0];
@@ -2203,7 +2205,7 @@ public class SyntheticDataGenerator extends Command {
         try {
             String strObj = Input;
             String type = Condition.split(":", 1)[0];
-            CreditCardType creditCardType=CreditCardType.valueOf(type);
+            CreditCardType creditCardType = CreditCardType.valueOf(type);
             String creditCard = faker.get(key).finance().creditCard(creditCardType);
             Report.updateTestLog(Action, "Generated data: " + creditCard, Status.DONE);
             String sheetName = strObj.split(":", 2)[0];
@@ -2457,7 +2459,7 @@ public class SyntheticDataGenerator extends Command {
     }
 
     @Action(object = ObjectType.DATA, desc = "Generate a random adjective used in hacker slang", input = InputType.YES, condition = InputType.NO)
-    public void hackerAdjective()  {
+    public void hackerAdjective() {
         try {
             String strObj = Input;
             String adjective = faker.get(key).hacker().adjective();
@@ -2472,7 +2474,7 @@ public class SyntheticDataGenerator extends Command {
     }
 
     @Action(object = ObjectType.DATA, desc = "Generate a random noun used in hacker slang", input = InputType.YES, condition = InputType.NO)
-    public void hackerNoun()  {
+    public void hackerNoun() {
         try {
             String strObj = Input;
             String noun = faker.get(key).hacker().noun();
@@ -2487,7 +2489,7 @@ public class SyntheticDataGenerator extends Command {
     }
 
     @Action(object = ObjectType.DATA, desc = "Generate a random verb used in hacker slang", input = InputType.YES, condition = InputType.NO)
-    public void hackerVerb()  {
+    public void hackerVerb() {
         try {
             String strObj = Input;
             String verb = faker.get(key).hacker().verb();
@@ -2502,7 +2504,7 @@ public class SyntheticDataGenerator extends Command {
     }
 
     @Action(object = ObjectType.DATA, desc = "Generate a random ingverb used in hacker slang", input = InputType.YES, condition = InputType.NO)
-    public void hackerIngVerb()  {
+    public void hackerIngVerb() {
         try {
             String strObj = Input;
             String ingVerb = faker.get(key).hacker().ingverb();
@@ -3092,7 +3094,7 @@ public class SyntheticDataGenerator extends Command {
     public void macAddressWithPrefix() {
         try {
             String strObj = Input;
-            String prefix="A32";
+            String prefix = "A32";
             String macAddress = faker.get(key).internet().macAddress(prefix);
             Report.updateTestLog(Action, "Generated data: " + macAddress, Status.DONE);
             String sheetName = strObj.split(":", 2)[0];
@@ -3172,9 +3174,9 @@ public class SyntheticDataGenerator extends Command {
             String heightStr = Condition.split(":", 4)[1];
             String grayStr = Condition.split(":", 4)[2];
             String text = Condition.split(":", 4)[3];
-            Integer width=Integer.parseInt(widthStr);
-            Integer height=Integer.parseInt(heightStr);
-            Boolean gray= Boolean.valueOf(grayStr);
+            Integer width = Integer.parseInt(widthStr);
+            Integer height = Integer.parseInt(heightStr);
+            Boolean gray = Boolean.valueOf(grayStr);
             String image = faker.get(key).internet().image(width, height, gray, text);
             Report.updateTestLog(Action, "Generated data: " + image, Status.DONE);
             String sheetName = strObj.split(":", 2)[0];
@@ -3192,8 +3194,8 @@ public class SyntheticDataGenerator extends Command {
             String strObj = Input;
             String minStr = Condition.split(":", 2)[0];
             String maxStr = Condition.split(":", 2)[1];
-            int minLength=Integer.parseInt(minStr);
-            int maxLength=Integer.parseInt(maxStr);
+            int minLength = Integer.parseInt(minStr);
+            int maxLength = Integer.parseInt(maxStr);
             String password = faker.get(key).internet().password(minLength, maxLength);
             Report.updateTestLog(Action, "Generated data: " + password, Status.DONE);
             String sheetName = strObj.split(":", 2)[0];
@@ -3224,7 +3226,7 @@ public class SyntheticDataGenerator extends Command {
     public void internetPasswordWithDigits() {
         try {
             String strObj = Input;
-            boolean includeDigit=true;
+            boolean includeDigit = true;
             String password = faker.get(key).internet().password(includeDigit);
             Report.updateTestLog(Action, "Generated data: " + password, Status.DONE);
             String sheetName = strObj.split(":", 2)[0];
@@ -3242,9 +3244,9 @@ public class SyntheticDataGenerator extends Command {
             String strObj = Input;
             String minStr = Condition.split(":", 2)[0];
             String maxStr = Condition.split(":", 2)[1];
-            int minLength=Integer.parseInt(minStr);
-            int maxLength=Integer.parseInt(maxStr);
-            boolean includeUppercase=true;
+            int minLength = Integer.parseInt(minStr);
+            int maxLength = Integer.parseInt(maxStr);
+            boolean includeUppercase = true;
             String password = faker.get(key).internet().password(minLength, maxLength, includeUppercase);
             Report.updateTestLog(Action, "Generated data: " + password, Status.DONE);
             String sheetName = strObj.split(":", 2)[0];
@@ -3262,10 +3264,10 @@ public class SyntheticDataGenerator extends Command {
             String strObj = Input;
             String minStr = Condition.split(":", 2)[0];
             String maxStr = Condition.split(":", 2)[1];
-            int minLength=Integer.parseInt(minStr);
-            int maxLength=Integer.parseInt(maxStr);
-            boolean includeUppercase=true;
-            boolean includeSpecial=true;
+            int minLength = Integer.parseInt(minStr);
+            int maxLength = Integer.parseInt(maxStr);
+            boolean includeUppercase = true;
+            boolean includeSpecial = true;
             String password = faker.get(key).internet().password(minLength, maxLength, includeUppercase, includeSpecial);
             Report.updateTestLog(Action, "Generated data: " + password, Status.DONE);
             String sheetName = strObj.split(":", 2)[0];
@@ -3283,11 +3285,11 @@ public class SyntheticDataGenerator extends Command {
             String strObj = Input;
             String minStr = Condition.split(":", 2)[0];
             String maxStr = Condition.split(":", 2)[1];
-            int minLength=Integer.parseInt(minStr);
-            int maxLength=Integer.parseInt(maxStr);
-            boolean includeUppercase=true;
-            boolean includeSpecial=true;
-            boolean includeDigit=true;
+            int minLength = Integer.parseInt(minStr);
+            int maxLength = Integer.parseInt(maxStr);
+            boolean includeUppercase = true;
+            boolean includeSpecial = true;
+            boolean includeDigit = true;
             String password = faker.get(key).internet().password(minLength, maxLength, includeUppercase, includeSpecial, includeDigit);
             Report.updateTestLog(Action, "Generated data: " + password, Status.DONE);
             String sheetName = strObj.split(":", 2)[0];
@@ -3318,14 +3320,13 @@ public class SyntheticDataGenerator extends Command {
     public void slugWithSpecs() {
         try {
             String strObj = Input;
-            List<String> wordsOrNull= new ArrayList<>();
-            char splitChar=':';
+            List<String> wordsOrNull = new ArrayList<>();
+            char splitChar = ':';
             int count = (int) Condition.chars().filter(ch -> ch == splitChar).count();
-            for(int i=0; i<count; i++)
-            {
-                wordsOrNull.add(Condition.split(":", count+1)[i]);
+            for (int i = 0; i < count; i++) {
+                wordsOrNull.add(Condition.split(":", count + 1)[i]);
             }
-            String glueOrNull=Condition.split(":", count+1)[count];
+            String glueOrNull = Condition.split(":", count + 1)[count];
             String slug = faker.get(key).internet().slug(wordsOrNull, glueOrNull);
             Report.updateTestLog(Action, "Generated data: " + slug, Status.DONE);
             String sheetName = strObj.split(":", 2)[0];
@@ -3338,7 +3339,7 @@ public class SyntheticDataGenerator extends Command {
     }
 
     @Action(object = ObjectType.DATA, desc = "Generate a random user agent with Agent type", input = InputType.YES, condition = InputType.YES)
-    public void userAgentWithAgentType()  {
+    public void userAgentWithAgentType() {
         try {
             String strObj = Input;
             String option = Condition.split(":", 1)[0];
@@ -3355,7 +3356,7 @@ public class SyntheticDataGenerator extends Command {
     }
 
     @Action(object = ObjectType.DATA, desc = "Generate a random user agent", input = InputType.YES, condition = InputType.NO)
-    public void userAgentAny()   {
+    public void userAgentAny() {
         try {
             String strObj = Input;
             String userAgentAny = faker.get(key).internet().userAgentAny();
@@ -3370,7 +3371,7 @@ public class SyntheticDataGenerator extends Command {
     }
 
     @Action(object = ObjectType.DATA, desc = "Generate any random uuid", input = InputType.YES, condition = InputType.NO)
-    public void internetUUID()   {
+    public void internetUUID() {
         try {
             String strObj = Input;
             String uuid = faker.get(key).internet().uuid();
@@ -3659,7 +3660,7 @@ public class SyntheticDataGenerator extends Command {
         try {
             String strObj = Input;
             String countStr = Condition.split(":", 1)[0];
-            int count=Integer.parseInt(countStr);
+            int count = Integer.parseInt(countStr);
             List<String> words = faker.get(key).lorem().words(count);
             Report.updateTestLog(Action, "Generated data: " + words, Status.DONE);
             String sheetName = strObj.split(":", 2)[0];
@@ -3691,7 +3692,7 @@ public class SyntheticDataGenerator extends Command {
         try {
             String strObj = Input;
             String wordCountStr = Condition.split(":", 1)[0];
-            int wordCount=Integer.parseInt(wordCountStr);
+            int wordCount = Integer.parseInt(wordCountStr);
             String sentence = faker.get(key).lorem().sentence(wordCount);
             Report.updateTestLog(Action, "Generated data: " + sentence + ": " + sentence, Status.DONE);
             String sheetName = strObj.split(":", 2)[0];
@@ -3709,8 +3710,8 @@ public class SyntheticDataGenerator extends Command {
             String strObj = Input;
             String wordCountStr = Condition.split(":", 2)[0];
             String wordsToAddStr = Condition.split(":", 2)[1];
-            int wordCount=Integer.parseInt(wordCountStr);
-            int randomWordsToAdd=Integer.parseInt(wordsToAddStr);
+            int wordCount = Integer.parseInt(wordCountStr);
+            int randomWordsToAdd = Integer.parseInt(wordsToAddStr);
             String sentence = faker.get(key).lorem().sentence(wordCount, randomWordsToAdd);
             Report.updateTestLog(Action, "Generated data: " + sentence + ": " + sentence, Status.DONE);
             String sheetName = strObj.split(":", 2)[0];
@@ -3727,7 +3728,7 @@ public class SyntheticDataGenerator extends Command {
         try {
             String strObj = Input;
             String sentenceCountStr = Condition.split(":", 1)[0];
-            int sentenceCount=Integer.parseInt(sentenceCountStr);
+            int sentenceCount = Integer.parseInt(sentenceCountStr);
             String sentence = faker.get(key).lorem().sentence(sentenceCount);
             Report.updateTestLog(Action, "Generated data: " + sentence + ": " + sentence, Status.DONE);
             String sheetName = strObj.split(":", 2)[0];
@@ -3759,7 +3760,7 @@ public class SyntheticDataGenerator extends Command {
         try {
             String strObj = Input;
             String sentenceCountStr = Condition.split(":", 1)[0];
-            int sentenceCount=Integer.parseInt(sentenceCountStr);
+            int sentenceCount = Integer.parseInt(sentenceCountStr);
             String paragraph = faker.get(key).lorem().paragraph(sentenceCount);
             Report.updateTestLog(Action, "Generated data: " + sentenceCount + ": " + paragraph, Status.DONE);
             String sheetName = strObj.split(":", 2)[0];
@@ -3776,7 +3777,7 @@ public class SyntheticDataGenerator extends Command {
         try {
             String strObj = Input;
             String paragraphCountStr = Condition.split(":", 1)[0];
-            int paragraphCount=Integer.parseInt(paragraphCountStr);
+            int paragraphCount = Integer.parseInt(paragraphCountStr);
             List<String> paragraphs = faker.get(key).lorem().paragraphs(paragraphCount);
             Report.updateTestLog(Action, "Generated data: " + paragraphs, Status.DONE);
             String sheetName = strObj.split(":", 2)[0];
@@ -3822,7 +3823,7 @@ public class SyntheticDataGenerator extends Command {
     public void loremCharacterIncludeUpperCase() {
         try {
             String strObj = Input;
-            boolean includeUppercase=true;
+            boolean includeUppercase = true;
             char character = faker.get(key).lorem().character(includeUppercase);
             Report.updateTestLog(Action, "Generated data: " + character, Status.DONE);
             String sheetName = strObj.split(":", 2)[0];
@@ -3838,7 +3839,7 @@ public class SyntheticDataGenerator extends Command {
     public void loremCharactersIncludeUpperCase() {
         try {
             String strObj = Input;
-            boolean includeUppercase=true;
+            boolean includeUppercase = true;
             String characters = faker.get(key).lorem().characters(includeUppercase);
             Report.updateTestLog(Action, "Generated data: " + characters, Status.DONE);
             String sheetName = strObj.split(":", 2)[0];
@@ -3855,7 +3856,7 @@ public class SyntheticDataGenerator extends Command {
         try {
             String strObj = Input;
             String charsStr = Condition.split(":", 1)[0];
-            int fixedNumberOfCharacters=Integer.parseInt(charsStr);
+            int fixedNumberOfCharacters = Integer.parseInt(charsStr);
             String characters = faker.get(key).lorem().characters(fixedNumberOfCharacters);
             Report.updateTestLog(Action, "Generated data: " + characters, Status.DONE);
             String sheetName = strObj.split(":", 2)[0];
@@ -3872,8 +3873,8 @@ public class SyntheticDataGenerator extends Command {
         try {
             String strObj = Input;
             String charsStr = Condition.split(":", 1)[0];
-            int fixedNumberOfCharacters=Integer.parseInt(charsStr);
-            boolean includeUppercase=true;
+            int fixedNumberOfCharacters = Integer.parseInt(charsStr);
+            boolean includeUppercase = true;
             String characters = faker.get(key).lorem().characters(fixedNumberOfCharacters, includeUppercase);
             Report.updateTestLog(Action, "Generated data: " + characters, Status.DONE);
             String sheetName = strObj.split(":", 2)[0];
@@ -3890,9 +3891,9 @@ public class SyntheticDataGenerator extends Command {
         try {
             String strObj = Input;
             String charsStr = Condition.split(":", 1)[0];
-            int fixedNumberOfCharacters=Integer.parseInt(charsStr);
-            boolean includeUppercase=true;
-            boolean includeDigit=true;
+            int fixedNumberOfCharacters = Integer.parseInt(charsStr);
+            boolean includeUppercase = true;
+            boolean includeDigit = true;
             String characters = faker.get(key).lorem().characters(fixedNumberOfCharacters, includeUppercase, includeDigit);
             Report.updateTestLog(Action, "Generated data: " + characters, Status.DONE);
             String sheetName = strObj.split(":", 2)[0];
@@ -3910,8 +3911,8 @@ public class SyntheticDataGenerator extends Command {
             String strObj = Input;
             String minStr = Condition.split(":", 2)[0];
             String maxStr = Condition.split(":", 2)[1];
-            int minimumLength=Integer.parseInt(minStr);
-            int maximumLength=Integer.parseInt(maxStr);
+            int minimumLength = Integer.parseInt(minStr);
+            int maximumLength = Integer.parseInt(maxStr);
             String characters = faker.get(key).lorem().characters(minimumLength, maximumLength);
             Report.updateTestLog(Action, "Generated data: " + characters, Status.DONE);
             String sheetName = strObj.split(":", 2)[0];
@@ -3929,9 +3930,9 @@ public class SyntheticDataGenerator extends Command {
             String strObj = Input;
             String minStr = Condition.split(":", 2)[0];
             String maxStr = Condition.split(":", 2)[1];
-            int minimumLength=Integer.parseInt(minStr);
-            int maximumLength=Integer.parseInt(maxStr);
-            boolean includeUppercase=true;
+            int minimumLength = Integer.parseInt(minStr);
+            int maximumLength = Integer.parseInt(maxStr);
+            boolean includeUppercase = true;
             String characters = faker.get(key).lorem().characters(minimumLength, maximumLength, includeUppercase);
             Report.updateTestLog(Action, "Generated data: " + characters, Status.DONE);
             String sheetName = strObj.split(":", 2)[0];
@@ -3949,10 +3950,10 @@ public class SyntheticDataGenerator extends Command {
             String strObj = Input;
             String minStr = Condition.split(":", 2)[0];
             String maxStr = Condition.split(":", 2)[1];
-            int minimumLength=Integer.parseInt(minStr);
-            int maximumLength=Integer.parseInt(maxStr);
-            boolean includeUppercase=true;
-            boolean includeDigit=true;
+            int minimumLength = Integer.parseInt(minStr);
+            int maximumLength = Integer.parseInt(maxStr);
+            boolean includeUppercase = true;
+            boolean includeDigit = true;
             String characters = faker.get(key).lorem().characters(minimumLength, maximumLength, includeUppercase, includeDigit);
             Report.updateTestLog(Action, "Generated data: " + characters, Status.DONE);
             String sheetName = strObj.split(":", 2)[0];
@@ -3969,7 +3970,7 @@ public class SyntheticDataGenerator extends Command {
         try {
             String strObj = Input;
             String countStr = Condition.split(":", 1)[0];
-            int numberOfLetters=Integer.parseInt(countStr);
+            int numberOfLetters = Integer.parseInt(countStr);
             String characters = faker.get(key).lorem().characters(numberOfLetters);
             Report.updateTestLog(Action, "Generated data: " + characters, Status.DONE);
             String sheetName = strObj.split(":", 2)[0];
@@ -4272,7 +4273,7 @@ public class SyntheticDataGenerator extends Command {
         try {
             String strObj = Input;
             String countStr = Condition.split(":", 1)[0];
-            int count=Integer.parseInt(countStr);
+            int count = Integer.parseInt(countStr);
             String digit = faker.get(key).number().digits(count);
             Report.updateTestLog(Action, "Generated data: " + digit, Status.DONE);
             String sheetName = strObj.split(":", 2)[0];
@@ -4414,7 +4415,7 @@ public class SyntheticDataGenerator extends Command {
         try {
             String strObj = Input;
             String digitStr = Condition.split(":", 1)[0];
-            int numOfDigits=Integer.parseInt(digitStr);
+            int numOfDigits = Integer.parseInt(digitStr);
             boolean strict = true;
             long randomNumber = faker.get(key).number().randomNumber(numOfDigits, strict);
             Report.updateTestLog(Action, "Generated data: " + randomNumber, Status.DONE);
@@ -4446,12 +4447,11 @@ public class SyntheticDataGenerator extends Command {
     public void optionFromIntegers() {
         try {
             String strObj = Input;
-            char splitChar=':';
+            char splitChar = ':';
             int count = (int) Condition.chars().filter(ch -> ch == splitChar).count();
-            Integer[] numbersList = new Integer[count+1];
-            for(int i=0; i<=count; i++)
-            {
-                numbersList[i]= Integer.valueOf(Condition.split(":", count+1)[i]);
+            Integer[] numbersList = new Integer[count + 1];
+            for (int i = 0; i <= count; i++) {
+                numbersList[i] = Integer.valueOf(Condition.split(":", count + 1)[i]);
             }
             Integer randomNumber = faker.get(key).options().option(numbersList);
             Report.updateTestLog(Action, "Generated data: " + randomNumber, Status.DONE);
@@ -4468,12 +4468,11 @@ public class SyntheticDataGenerator extends Command {
     public void optionFromDoubles() {
         try {
             String strObj = Input;
-            char splitChar=':';
+            char splitChar = ':';
             int count = (int) Condition.chars().filter(ch -> ch == splitChar).count();
-            Double[] doubleList = new Double[count+1];
-            for(int i=0; i<=count; i++)
-            {
-                doubleList[i]= Double.valueOf(Condition.split(":", count+1)[i]);
+            Double[] doubleList = new Double[count + 1];
+            for (int i = 0; i <= count; i++) {
+                doubleList[i] = Double.valueOf(Condition.split(":", count + 1)[i]);
             }
             Double randomDouble = faker.get(key).options().option(doubleList);
             Report.updateTestLog(Action, "Generated data: " + randomDouble, Status.DONE);
@@ -4490,12 +4489,11 @@ public class SyntheticDataGenerator extends Command {
     public void optionFromLong() {
         try {
             String strObj = Input;
-            char splitChar=':';
+            char splitChar = ':';
             int count = (int) Condition.chars().filter(ch -> ch == splitChar).count();
-            Long[] longList = new Long[count+1];
-            for(int i=0; i<=count; i++)
-            {
-                longList[i]= Long.valueOf(Condition.split(":", count+1)[i]);
+            Long[] longList = new Long[count + 1];
+            for (int i = 0; i <= count; i++) {
+                longList[i] = Long.valueOf(Condition.split(":", count + 1)[i]);
             }
             Long randomDouble = faker.get(key).options().option(longList);
             Report.updateTestLog(Action, "Generated data: " + randomDouble, Status.DONE);
@@ -4512,12 +4510,11 @@ public class SyntheticDataGenerator extends Command {
     public void optionFromStrings() {
         try {
             String strObj = Input;
-            char splitChar=':';
+            char splitChar = ':';
             int count = (int) Condition.chars().filter(ch -> ch == splitChar).count();
-            String[] stringList = new String[count+1];
-            for(int i=0; i<=count; i++)
-            {
-                stringList[i]= String.valueOf(Condition.split(":", count+1)[i]);
+            String[] stringList = new String[count + 1];
+            for (int i = 0; i <= count; i++) {
+                stringList[i] = String.valueOf(Condition.split(":", count + 1)[i]);
             }
             String randomString = faker.get(key).options().option(stringList);
             Report.updateTestLog(Action, "Generated data: " + randomString, Status.DONE);
@@ -4534,12 +4531,11 @@ public class SyntheticDataGenerator extends Command {
     public void nextElementStringArray() {
         try {
             String strObj = Input;
-            char splitChar=':';
+            char splitChar = ':';
             int count = (int) Condition.chars().filter(ch -> ch == splitChar).count();
-            String[] stringList = new String[count+1];
-            for(int i=0; i<=count; i++)
-            {
-                stringList[i]= String.valueOf(Condition.split(":", count+1)[i]);
+            String[] stringList = new String[count + 1];
+            for (int i = 0; i <= count; i++) {
+                stringList[i] = String.valueOf(Condition.split(":", count + 1)[i]);
             }
             String element = faker.get(key).options().nextElement(stringList);
             Report.updateTestLog(Action, "Generated data: " + element, Status.DONE);
@@ -4568,9 +4564,6 @@ public class SyntheticDataGenerator extends Command {
     public enum Day {
         MONDAY, TUESDAY, WEDNESDAY, THURSDAY, FRIDAY, SATURDAY, SUNDAY
     }
-
-
-
 
     @Action(object = ObjectType.DATA, desc = "Generate a random Overwatch hero", input = InputType.YES, condition = InputType.NO)
     public void overWatchHero() {
@@ -4697,7 +4690,7 @@ public class SyntheticDataGenerator extends Command {
         try {
             String strObj = Input;
             String lengthStr = Condition.split(":", 1)[0];
-            int length=Integer.parseInt(lengthStr);
+            int length = Integer.parseInt(lengthStr);
             String hex = faker.get(key).random().hex(length);
             Report.updateTestLog(Action, "Generated data: " + hex, Status.DONE);
             String sheetName = strObj.split(":", 2)[0];
@@ -4732,8 +4725,8 @@ public class SyntheticDataGenerator extends Command {
             String strObj = Input;
             String minStr = Condition.split(":", 2)[0];
             String maxStr = Condition.split(":", 2)[1];
-            int min=Integer.parseInt(minStr);
-            int max=Integer.parseInt(maxStr);
+            int min = Integer.parseInt(minStr);
+            int max = Integer.parseInt(maxStr);
             int randomInt = faker.get(key).random().nextInt(min, max);
             Report.updateTestLog(Action, "Generated data: " + randomInt, Status.DONE);
             String sheetName = strObj.split(":", 2)[0];
@@ -4765,7 +4758,7 @@ public class SyntheticDataGenerator extends Command {
         try {
             String strObj = Input;
             String numStr = Condition.split(":", 1)[0];
-            long num=Long.parseLong(numStr);
+            long num = Long.parseLong(numStr);
             long randomLong = faker.get(key).random().nextLong(num);
             Report.updateTestLog(Action, "Generated data: " + randomLong, Status.DONE);
             String sheetName = strObj.split(":", 2)[0];
@@ -5638,8 +5631,8 @@ public class SyntheticDataGenerator extends Command {
             String strObj = Input;
             String minTempStr = Condition.split(":", 2)[0];
             String maxTempStr = Condition.split(":", 3)[1];
-            int minTemp=Integer.parseInt(minTempStr);
-            int maxTemp=Integer.parseInt(maxTempStr);
+            int minTemp = Integer.parseInt(minTempStr);
+            int maxTemp = Integer.parseInt(maxTempStr);
             String temperature = faker.get(key).weather().temperatureCelsius(minTemp, maxTemp);
             Report.updateTestLog(Action, "Generated data: " + temperature, Status.DONE);
             String sheetName = strObj.split(":", 2)[0];
@@ -5657,8 +5650,8 @@ public class SyntheticDataGenerator extends Command {
             String strObj = Input;
             String minTempStr = Condition.split(":", 2)[0];
             String maxTempStr = Condition.split(":", 3)[1];
-            int minTemp=Integer.parseInt(minTempStr);
-            int maxTemp=Integer.parseInt(maxTempStr);
+            int minTemp = Integer.parseInt(minTempStr);
+            int maxTemp = Integer.parseInt(maxTempStr);
             String temperature = faker.get(key).weather().temperatureFahrenheit(minTemp, maxTemp);
             Report.updateTestLog(Action, "Generated data: " + temperature, Status.DONE);
             String sheetName = strObj.split(":", 2)[0];
@@ -5825,7 +5818,7 @@ public class SyntheticDataGenerator extends Command {
     public void bothify() {
         try {
             String strObj = Input;
-            String pattern=Condition.split(":", 1)[0];
+            String pattern = Condition.split(":", 1)[0];
             String evaluated = faker.get(key).bothify(pattern);
             Report.updateTestLog(Action, "Generated data: " + evaluated, Status.DONE);
             String sheetName = strObj.split(":", 2)[0];
@@ -5841,7 +5834,7 @@ public class SyntheticDataGenerator extends Command {
     public void bothifyWithUpper() {
         try {
             String strObj = Input;
-            String pattern=Condition.split(":", 1)[0];
+            String pattern = Condition.split(":", 1)[0];
             boolean isUpper = true;
             String evaluated = faker.get(key).bothify(pattern, isUpper);
             Report.updateTestLog(Action, "Generated data: " + evaluated, Status.DONE);
@@ -5858,7 +5851,7 @@ public class SyntheticDataGenerator extends Command {
     public void letterify() {
         try {
             String strObj = Input;
-            String pattern=Condition.split(":", 1)[0];
+            String pattern = Condition.split(":", 1)[0];
             String evaluated = faker.get(key).letterify(pattern);
             Report.updateTestLog(Action, "Generated data: " + evaluated, Status.DONE);
             String sheetName = strObj.split(":", 2)[0];
@@ -5874,7 +5867,7 @@ public class SyntheticDataGenerator extends Command {
     public void letterifyWithUpper() {
         try {
             String strObj = Input;
-            String pattern=Condition.split(":", 1)[0];
+            String pattern = Condition.split(":", 1)[0];
             boolean isUpper = true;
             String evaluated = faker.get(key).letterify(pattern, isUpper);
             Report.updateTestLog(Action, "Generated data: " + evaluated, Status.DONE);
@@ -5891,7 +5884,7 @@ public class SyntheticDataGenerator extends Command {
     public void numerify() {
         try {
             String strObj = Input;
-            String pattern=Condition.split(":", 1)[0];
+            String pattern = Condition.split(":", 1)[0];
             String evaluated = faker.get(key).numerify(pattern);
             Report.updateTestLog(Action, "Generated data: " + evaluated, Status.DONE);
             String sheetName = strObj.split(":", 2)[0];
@@ -5907,7 +5900,7 @@ public class SyntheticDataGenerator extends Command {
     public void regexify() {
         try {
             String strObj = Input;
-            String pattern=Condition.split(":", 1)[0];
+            String pattern = Condition.split(":", 1)[0];
             String evaluated = faker.get(key).regexify(pattern);
             Report.updateTestLog(Action, "Generated data: " + evaluated, Status.DONE);
             String sheetName = strObj.split(":", 2)[0];

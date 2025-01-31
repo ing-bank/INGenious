@@ -1,6 +1,5 @@
 package com.ing.engine.commands.kafka;
 
-import static com.ing.engine.commands.browser.Command.before;
 import com.ing.engine.commands.browser.General;
 import com.ing.engine.core.CommandControl;
 import com.ing.engine.core.Control;
@@ -46,15 +45,6 @@ public class KafkaOperations extends General {
 
     public KafkaOperations(CommandControl cc) {
         super(cc);
-    }
-
-    private static final Map<String, String> serializerMap = new HashMap<>();
-
-    static {
-        serializerMap.put("string", StringSerializer.class.getName());
-        serializerMap.put("json", StringSerializer.class.getName());
-        serializerMap.put("bytearray", ByteArraySerializer.class.getName());
-        serializerMap.put("avro", KafkaAvroSerializer.class.getName());
     }
 
     @Action(object = ObjectType.KAFKA, desc = "Add Kafka Header", input = InputType.YES)
@@ -178,7 +168,7 @@ public class KafkaOperations extends General {
             Report.updateTestLog(Action, "Error in setting Key: " + "\n" + ex.getMessage(), Status.DEBUG);
         }
     }
-    
+
     @Action(object = ObjectType.KAFKA, desc = "Set Consumer GroupId", input = InputType.YES, condition = InputType.NO)
     public void setConsumerGroupId() {
         try {
@@ -193,7 +183,11 @@ public class KafkaOperations extends General {
     @Action(object = ObjectType.KAFKA, desc = "Set Partition", input = InputType.YES, condition = InputType.NO)
     public void setPartition() {
         try {
-            kafkaPartition.put(key, Integer.valueOf(Data));
+            if (Data.toLowerCase().equals("null")) {
+                kafkaPartition.put(key, null);
+            } else {
+                kafkaPartition.put(key, Integer.valueOf(Data));
+            }
             Report.updateTestLog(Action, "Partition has been set successfully", Status.DONE);
         } catch (NumberFormatException ex) {
             Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during Partition setup", ex);
@@ -234,6 +228,17 @@ public class KafkaOperations extends General {
         }
     }
 
+    @Action(object = ObjectType.KAFKA, desc = "Set Value Deserializer", input = InputType.YES, condition = InputType.NO)
+    public void setValueDeserializer() {
+        try {
+            kafkaValueDeserializer.put(key, Data);
+            Report.updateTestLog(Action, "Value Deserializer has been set successfully", Status.DONE);
+        } catch (Exception ex) {
+            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during Value Deserializer setup", ex);
+            Report.updateTestLog(Action, "Error in setting Value Deserializer: " + "\n" + ex.getMessage(), Status.DEBUG);
+        }
+    }
+
     @Action(object = ObjectType.KAFKA, desc = "Produce Kafka Message", input = InputType.YES, condition = InputType.NO)
     public void produceMessage() {
         try {
@@ -248,7 +253,7 @@ public class KafkaOperations extends General {
                 produceMessage(kafkaProducerTopic.get(key), kafkaPartition.get(key), kafkaKey.get(key), kafkaValue.get(key), kafkaHeaders.get(key));
             } else if (kafkaTimeStamp.get(key) != null) {
                 produceMessage(kafkaProducerTopic.get(key), kafkaPartition.get(key), kafkaTimeStamp.get(key), kafkaKey.get(key), kafkaValue.get(key));
-            } else if (kafkaPartition.get(key) != null) {
+            } else if (kafkaPartition.containsKey(key)) {
                 produceMessage(kafkaProducerTopic.get(key), kafkaPartition.get(key), kafkaKey.get(key), kafkaValue.get(key));
             } else if (kafkaKey.get(key) != null) {
                 produceMessage(kafkaProducerTopic.get(key), kafkaKey.get(key), kafkaValue.get(key));
@@ -266,17 +271,19 @@ public class KafkaOperations extends General {
         }
     }
 
-    @Action(object = ObjectType.QUEUE, desc = "Send Message", input = InputType.NO, condition = InputType.NO)
+    @Action(object = ObjectType.KAFKA, desc = "Send Message", input = InputType.NO, condition = InputType.NO)
     public void sendKafkaMessage() {
         try {
             createProducer(kafkaValueSerializer.get(key));
-            before.put(key, Instant.now());
+            //before.put(key, Instant.now());
             kafkaProducer.get(key).send(kafkaProducerRecord.get(key));
             Report.updateTestLog(Action, "Record sent", Status.DONE);
             kafkaProducer.get(key).close();
         } catch (Exception ex) {
             Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception while sending record", ex);
             Report.updateTestLog(Action, "Error in sending record: " + "\n" + ex.getMessage(), Status.DEBUG);
+        } finally {
+            clearProducerDetails();
         }
     }
 
@@ -301,32 +308,26 @@ public class KafkaOperations extends General {
 
     private void produceMessage(String topic, String value) {
         kafkaProducerRecord.put(key, new ProducerRecord<>(topic, value));
-        System.out.println("Record Produced with topic '" + topic + "': " + value);
     }
 
-    private void produceMessage(String topic, String key, String value) {
-        kafkaProducerRecord.put(key, new ProducerRecord<>(topic, key, value));
-        System.out.println("Record Produced with topic '" + topic + "' with key '" + key + "': " + value);
+    private void produceMessage(String topic, String kafkaKey, String value) {
+        kafkaProducerRecord.put(key, new ProducerRecord<>(topic, kafkaKey, value));
     }
 
-    private void produceMessage(String topic, int partition, String key, String value) {
-        kafkaProducerRecord.put(key, new ProducerRecord<>(topic, partition, key, value));
-        System.out.println("Record Produced with topic '" + topic + "' to partition '" + partition + "' with key '" + key + "': " + value);
+    private void produceMessage(String topic, Integer partition, String kafkaKey, String value) {
+        kafkaProducerRecord.put(key, new ProducerRecord<>(topic, partition, kafkaKey, value));
     }
 
-    private void produceMessage(String topic, int partition, long timestamp, String key, String value) {
-        kafkaProducerRecord.put(key, new ProducerRecord<>(topic, partition, timestamp, key, value));
-        System.out.println("Record Produced with topic '" + topic + "' to partition '" + partition + "' with timestamp '" + timestamp + "' and key '" + key + "': " + value);
+    private void produceMessage(String topic, Integer partition, long timestamp, String kafkaKey, String value) {
+        kafkaProducerRecord.put(key, new ProducerRecord<>(topic, partition, timestamp, kafkaKey, value));
     }
 
-    private void produceMessage(String topic, int partition, String key, String value, List<Header> headers) {
-        kafkaProducerRecord.put(key, new ProducerRecord<>(topic, partition, key, value, headers));
-        System.out.println("Record Produced with topic '" + topic + "' to partition '" + partition + "' with headers '" + headers + "' and key '" + key + "': " + value);
+    private void produceMessage(String topic, Integer partition, String kafkaKey, String value, List<Header> headers) {
+        kafkaProducerRecord.put(key, new ProducerRecord<>(topic, partition, kafkaKey, value, headers));
     }
 
-    private void produceMessage(String topic, int partition, long timestamp, String key, String value, List<Header> headers) {
-        kafkaProducerRecord.put(key, new ProducerRecord<>(topic, partition, timestamp, key, value, headers));
-        System.out.println("Record Produced with topic '" + topic + "' to partition '" + partition + "' with timestamp '" + timestamp + "' and key '" + key + "': " + value + "' with headers '" + headers);
+    private void produceMessage(String topic, Integer partition, long timestamp, String kafkaKey, String value, List<Header> headers) {
+        kafkaProducerRecord.put(key, new ProducerRecord<>(topic, partition, timestamp, kafkaKey, value, headers));
     }
 
     private String handleDataSheetVariables(String payloadstring) {
@@ -359,6 +360,19 @@ public class KafkaOperations extends General {
         return payloadstring;
     }
 
+    private void clearProducerDetails() {
+        kafkaKey.clear();
+        kafkaHeaders.clear();
+        kafkaProducerTopic.clear();
+        kafkaPartition.clear();
+        kafkaTimeStamp.clear();
+        kafkaKeySerializer.clear();
+        kafkaValue.clear();
+        kafkaValueSerializer.clear();
+        kafkaProducer.clear();
+        kafkaProducerRecord.clear();
+    }
+
     public void createConsumer(String deserializer) {
         Properties props = new Properties();
 
@@ -382,17 +396,18 @@ public class KafkaOperations extends General {
         kafkaConsumer.put(key, new KafkaConsumer<>(props));
     }
 
-    @Action(object = ObjectType.KAFKA, desc = "Consume Kafka Message", input = InputType.YES)
+    @Action(object = ObjectType.KAFKA, desc = "Consume Kafka Message", input = InputType.NO)
     public void consumeKafkaMessage() {
 
         createConsumer(kafkaValueDeserializer.get(key));
         kafkaConsumer.get(key).subscribe(Arrays.asList(kafkaConsumerTopic.get(key)));
         try {
             ConsumerRecord record = pollKafkaConsumer();
-            if(record!=null)
+            if (record != null) {
                 Report.updateTestLog(Action, "Kafka message consumed successfully. ", Status.DONE);
-            else
+            } else {
                 Report.updateTestLog(Action, "Kafka message not received. ", Status.FAIL);
+            }
         } catch (Exception e) {
             e.printStackTrace();
             Report.updateTestLog(Action, "Error while consuming Kafka message: " + e.getMessage(), Status.FAIL);
@@ -416,7 +431,7 @@ public class KafkaOperations extends General {
         return null;
     }
 
-    @Action(object = ObjectType.KAFKA, desc = "Store XML tag In DataSheet ", input = InputType.YES, condition = InputType.YES)
+    @Action(object = ObjectType.KAFKA, desc = "Store XML tag In DataSheet ", input = InputType.YES, condition = InputType.NO)
     public void storeKafkaXMLtagInDataSheet() {
 
         try {
@@ -591,8 +606,8 @@ public class KafkaOperations extends General {
                     Status.DEBUG);
         }
     }
-    
-    @Action(object = ObjectType.KAFKA, desc = "Store Response In DataSheet ", input = InputType.YES, condition = InputType.YES)
+
+    @Action(object = ObjectType.KAFKA, desc = "Store Response In DataSheet ", input = InputType.YES, condition = InputType.NO)
     public void storeKafkaResponseInDataSheet() {
 
         try {
@@ -621,6 +636,5 @@ public class KafkaOperations extends General {
                     Status.DEBUG);
         }
     }
-
 
 }

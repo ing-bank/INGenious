@@ -1,4 +1,8 @@
-logs
+LICENSE
+logs/
+Projects/*/Results/*/
+web/
+recent.items
 log.txt
-Installation.md
+Tools/
 lib/*.jar

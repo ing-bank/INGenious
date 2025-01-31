@@ -136,7 +136,7 @@ public class Command {
     
     
     /**
-     * *** Queue ****
+     * *** Kafka ****
      */
     
     static public Map<String, List<Header>> kafkaHeaders = new HashMap<>();
