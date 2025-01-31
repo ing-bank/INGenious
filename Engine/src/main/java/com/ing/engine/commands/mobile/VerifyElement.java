@@ -6,10 +6,7 @@ import com.ing.engine.support.methodInf.Action;
 import com.ing.engine.support.methodInf.InputType;
 import com.ing.engine.support.methodInf.ObjectType;
 
-/**
- *
- *
- */
+/*
 public class VerifyElement extends MobileGeneral {
 
     public VerifyElement(CommandControl cc) {
@@ -113,7 +110,8 @@ public class VerifyElement extends MobileGeneral {
         Report.updateTestLog(Action, desc, Status.getValue(value));
     }
     
-    */
+    
    
 
 }
+*/

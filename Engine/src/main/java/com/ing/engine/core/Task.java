@@ -1,9 +1,11 @@
 package com.ing.engine.core;
 
+import com.github.javafaker.Faker;
 import com.ing.datalib.component.Project;
 import com.ing.datalib.component.Scenario;
 import com.ing.datalib.component.TestCase;
 import com.ing.datalib.settings.RunSettings;
+import static com.ing.engine.commands.browser.Command.faker;
 import com.ing.engine.constants.SystemDefaults;
 import com.ing.engine.drivers.PlaywrightDriverCreation;
 import com.ing.engine.execution.data.Parameter;
@@ -21,6 +23,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import com.ing.engine.drivers.WebDriverCreation;
+import java.util.Locale;
 
 public class Task implements Runnable {
 
@@ -131,6 +134,7 @@ public class Task implements Runnable {
         try {
             SystemDefaults.reportComplete.set(true);
             report.startIteration(iter);
+            faker.put(runContext.Scenario + runContext.TestCase, new Faker(new Locale("en-US")));
             if (isPlaywrightExecution()) {
                 playwrightDriver = getPlaywrightDriver();
                 launchPlaywright();
@@ -177,7 +181,7 @@ public class Task implements Runnable {
     }
     
     private void closeWebDriver() {
-        if (webDriver != null && !getRunSettings().useExistingDriver()) {
+        if (webDriver.driver != null && !getRunSettings().useExistingDriver()) {
             try {
                 webDriver.driver.quit();
             } catch (Exception ex) {

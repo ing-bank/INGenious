@@ -331,7 +331,7 @@ public class CommonMethods extends MobileGeneral {
             throw new ElementException(ExceptionType.Element_Not_Found, ObjectName);
         }
     }
-
+/*
     @Action(object = ObjectType.MOBILE, desc = "Store in Runtime variable Exist/Not Exist based on the  presence of cookie ->[<Data>]", input = InputType.YES, condition = InputType.YES)
     public void storeCookiePresent() {
         String variableName = Condition;
@@ -349,7 +349,7 @@ public class CommonMethods extends MobileGeneral {
             Report.updateTestLog(Action, "Variable format is not correct", Status.DEBUG);
         }
     }
-
+*/
     @Action(object = ObjectType.MOBILE, desc = "Store \"Exist\" or \"Not Exist\" based on the alert presence into -> [<Data>] Runtime variable", input = InputType.YES)
     public void storeAlertPresent() {
         String strObj = Input;
@@ -365,36 +365,6 @@ public class CommonMethods extends MobileGeneral {
         }
     }
 
-    @Action(object = ObjectType.MOBILE, desc = "store variable value [<Condition>] in data sheet[<Data>]", input = InputType.YES, condition = InputType.YES)
-    public void storeVariableInDataSheet() {
-        if (Input != null && Condition != null) {
-            if (!getVar(Condition).isEmpty()) {
-                System.out.println(Condition);
-                String[] sheetDetail = Input.split(":");
-                String sheetName = sheetDetail[0];
-                String columnName = sheetDetail[1];
-                userData.putData(sheetName, columnName, getVar(Condition));
-                Report.updateTestLog(Action, "Value of variable " + Condition + " has been stored into " + "the data sheet", Status.DONE);
-            } else {
-                Report.updateTestLog(Action, "The variable " + Condition + " does not contain any value", Status.FAIL);
-            }
-        } else {
-            Report.updateTestLog(Action, "Incorrect input format", Status.DEBUG);
-            System.out.println("Incorrect input format " + Condition);
-        }
-    }
-
-    @Action(object = ObjectType.MOBILE, desc = "store  value [<Data>] in Variable [<Condition>]", input = InputType.YES, condition = InputType.YES)
-    public void storeVariable() {
-        if (Condition.startsWith("%") && Condition.endsWith("%")) {
-            addVar(Condition, Data);
-            Report.updateTestLog(Action, "Value" + Data
-                    + "' is stored in Variable '" + Condition + "'",
-                    Status.DONE);
-        } else {
-            Report.updateTestLog(Action, "Variable format is not correct", Status.DEBUG);
-        }
-    }
 
     private boolean isAlertPresent(WebDriver mDriver) {
         try {

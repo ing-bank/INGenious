@@ -10,6 +10,7 @@ import com.ing.engine.drivers.customWebDriver.EmptyDriver;
 import com.ing.engine.drivers.findObjectBy.support.ByObjectProp;
 import static com.ing.engine.execution.data.DataProcessor.resolve;
 import com.ing.engine.execution.exception.AppiumDriverException;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.Map;
 import java.util.Objects;
@@ -23,7 +24,7 @@ public class WebDriverFactory {
 
     private static final Logger LOGGER = Logger.getLogger(WebDriverFactory.class.getName());
 
-    public static WebDriver create(RunContext context, ProjectSettings settings) {
+    public static WebDriver create(RunContext context, ProjectSettings settings) throws MalformedURLException {
         return create(context, settings, false, null);
     }
 
@@ -37,7 +38,7 @@ public class WebDriverFactory {
         GalenConfig.getConfig().setProperty(GalenProperty.SCREENSHOT_FULLPAGE_SCROLLWAIT, "200");
     }
 
-    private static WebDriver create(RunContext context, ProjectSettings settings, Boolean isGrid, String remoteUrl) {
+    private static WebDriver create(RunContext context, ProjectSettings settings, Boolean isGrid, String remoteUrl) throws MalformedURLException {
         if (context.BrowserName.equals("No Browser")) {
             return new EmptyDriver();
         } else {
@@ -69,11 +70,11 @@ public class WebDriverFactory {
     }
 
     private static WebDriver create(String browserName, DesiredCapabilities caps,
-            ProjectSettings settings) {
+            ProjectSettings settings) throws MalformedURLException {
         return checkEmulators(browserName, caps, settings);
     }
 
-    private static WebDriver checkEmulators(String browserName, DesiredCapabilities caps, ProjectSettings settings) {
+    private static WebDriver checkEmulators(String browserName, DesiredCapabilities caps, ProjectSettings settings) throws MalformedURLException {
         Emulator emulator = settings.getEmulators().getEmulator(browserName);
         if (emulator != null) {
             switch (emulator.getType()) {
@@ -87,20 +88,16 @@ public class WebDriverFactory {
         return null;
     }
 
-    private static WebDriver createRemoteDriver(String url, DesiredCapabilities caps) {
-        try {
-            if (isAppiumNative(url, caps.asMap())) {
-                if (isAndroidNative(caps.asMap())) {
-                    return new io.appium.java_client.android.AndroidDriver(new URL(url), caps);
-                } else if (isIOSNative(caps.asMap())) {
-                    return new io.appium.java_client.ios.IOSDriver(new URL(url), caps);
-                }
-            }
+    private static WebDriver createRemoteDriver(String url, DesiredCapabilities caps) throws MalformedURLException {
 
-        } catch (Exception ex) {            
-            LOGGER.log(Level.SEVERE, ex.getMessage(), ex);
-            throw new AppiumDriverException("[Appium Driver Exception]. Please verify if the capabilities are passed correctly. Please visit  'https://appium.io/docs/en/2.0/guides/caps/' for more details. \n" +ex.getMessage());
-        }
+        if (isAppiumNative(url, caps.asMap())) {
+            if (isAndroidNative(caps.asMap())) {
+                return new io.appium.java_client.android.AndroidDriver(new URL(url), caps);
+            } else if (isIOSNative(caps.asMap())) {
+                return new io.appium.java_client.ios.IOSDriver(new URL(url), caps);
+            }
+        } 
+        
         return null;
     }
 

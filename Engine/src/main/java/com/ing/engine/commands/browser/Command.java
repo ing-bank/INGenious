@@ -32,6 +32,10 @@ import javax.jms.JMSConsumer;
 import javax.jms.JMSContext;
 import javax.jms.JMSProducer;
 import javax.jms.TextMessage;
+import org.apache.kafka.clients.consumer.ConsumerRecord;
+import org.apache.kafka.clients.consumer.KafkaConsumer;
+import org.apache.kafka.clients.producer.KafkaProducer;
+import org.apache.kafka.clients.producer.ProducerRecord;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.apache.kafka.common.header.Header;
@@ -132,19 +136,29 @@ public class Command {
     
     
     /**
-     * *** Queue ****
+     * *** Kafka ****
      */
     
     static public Map<String, List<Header>> kafkaHeaders = new HashMap<>();
-    static public Map<String, String> kafkaTopic = new HashMap<>();
+    static public Map<String, String> kafkaProducerTopic = new HashMap<>();
+    static public Map<String, String> kafkaConsumerTopic = new HashMap<>();
+    static public Map<String, String> kafkaConsumerGroupId = new HashMap<>();
     static public Map<String, String> kafkaServers = new HashMap<>();
     static public Map<String, String> kafkaSchemaRegistryURL = new HashMap<>();
     static public Map<String, Integer> kafkaPartition = new HashMap<>();
     static public Map<String, Long> kafkaTimeStamp = new HashMap<>();
     static public Map<String, String> kafkaKey = new HashMap<>();
     static public Map<String, String> kafkaKeySerializer = new HashMap<>();
+    static public Map<String, String> kafkaKeyDeserializer = new HashMap<>();
     static public Map<String, String> kafkaValue = new HashMap<>();
     static public Map<String, String> kafkaValueSerializer = new HashMap<>();
+    static public Map<String, String> kafkaValueDeserializer = new HashMap<>();
+    static public Map<String, ProducerRecord> kafkaProducerRecord = new HashMap<>();
+    static public Map<String, ConsumerRecord> kafkaConsumerRecord = new HashMap<>();
+    static public Map<String, KafkaProducer> kafkaProducer = new HashMap<>();
+    static public Map<String, KafkaConsumer> kafkaConsumer = new HashMap<>();
+    static public Map<String, Integer> kafkaConsumerPollRetries = new HashMap<>();
+    static public Map<String, Long> kafkaConsumerPollDuration = new HashMap<>();
     
     
     /**

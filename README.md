@@ -1,7 +1,7 @@
 # INGenious Playwright Studio - Test Automation for Everyone
 
 [![Build INGenious Source Code](https://github.com/ing-bank/INGenious/actions/workflows/maven.yml/badge.svg)](https://github.com/ing-bank/INGenious/actions/workflows/maven.yml)
-![Static Badge](https://img.shields.io/badge/Version-1.0-%23FF6200)
+![Static Badge](https://img.shields.io/badge/Version-2.0-%23FF6200)
 
 --------------------------------------------------------------------
 
@@ -39,13 +39,35 @@ Developed and perfected by <span style="color:#FF6200;width:100px">**ING Bank**<
 
     [:arrow_right: Browser Testing](https://ing-bank.github.io/ingenious-doc/browsertesting/)
 
+-   :white_check_mark: __Mobile Automation__
+
+    <span style="color:#FF6200">INGenious</span> leverages the power of **Appium** to create robust and stable mobile app tests.
+
+    [:arrow_right: Mobile Testing](https://ing-bank.github.io/ingenious-doc/mobiletesting/)
+
 -   :white_check_mark: __API Automation__
 
     <span style="color:#FF6200">INGenious</span> leverages **Java HTTP Client** to create API tests.
 
     [:arrow_right: API Testing](https://ing-bank.github.io/ingenious-doc/api/)
 
+-   :white_check_mark: __JMS/Kafka Testing__
 
+    <span style="color:#FF6200">INGenious</span> leverages **JMS** and **Kafka** clients to create Message based tests.
+
+    [:arrow_right: JMS/Kafka Testing](https://ing-bank.github.io/ingenious-doc/messageTesting/)
+
+-   :white_check_mark: __Database Testing__
+
+    <span style="color:#FF6200">INGenious</span> leverages **JDBC** to connect and test databases.
+
+    [:arrow_right: Database Testing](https://ing-bank.github.io/ingenious-doc/databaseTesting/)    
+
+-   :white_check_mark: __Synthetic Data Generation__
+
+    <span style="color:#FF6200">INGenious</span> leverages **Java Faker** to generate Synthetic Data for Testing.
+
+    [:arrow_right: Synthetic Data Generation](https://ing-bank.github.io/ingenious-doc/syntheticData/)     
 
 -   :white_check_mark: __Full customization__
 
@@ -79,25 +101,5 @@ Developed and perfected by <span style="color:#FF6200;width:100px">**ING Bank**<
 
 
 
-
-
-
-
---------
-
-## Features coming soon
-
-INGenious will also cater to the following types of testing. Currently, these are in the beta-testing stage in ING.
-
-
-
-:iphone: __Mobile App__ testing
-
-:open_file_folder: __Database__ testing
-
-
-
-
---------
 
 

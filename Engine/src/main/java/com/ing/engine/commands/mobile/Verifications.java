@@ -11,18 +11,14 @@ import java.util.logging.Logger;
 import org.openqa.selenium.NoAlertPresentException;
 import org.openqa.selenium.WebDriver;
 
+/*
 public class Verifications extends Command {
 
     public Verifications(CommandControl cc) {
         super(cc);
     }
 
-    /**
-     * ******************************************
-     * Function to verify the title
-     *
-     * ******************************************
-     */
+
     @Action(object = ObjectType.MOBILE, desc = "Verify if the title is [<Input>]", input = InputType.YES)
     public void verifyTitle() {
         String strObj = Data;
@@ -74,3 +70,4 @@ public class Verifications extends Command {
     }
 
 }
+*/

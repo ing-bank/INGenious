@@ -289,7 +289,7 @@ public class QueueOperations extends Command {
     }
 
     @Action(object = ObjectType.QUEUE, desc = "Store XML tag In DataSheet ", input = InputType.YES, condition = InputType.YES)
-    public void storeXMLtagInDataSheet() {
+    public void storeQueueXMLtagInDataSheet() {
 
         try {
             String strObj = Input;
@@ -330,7 +330,7 @@ public class QueueOperations extends Command {
     }
 
     @Action(object = ObjectType.QUEUE, desc = "Assert XML Tag Equals ", input = InputType.YES, condition = InputType.YES)
-    public void assertXMLtagEquals() {
+    public void assertQueueXMLtagEquals() {
 
         try {
             DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
@@ -356,7 +356,7 @@ public class QueueOperations extends Command {
     }
 
     @Action(object = ObjectType.QUEUE, desc = "Assert XML Tag Contains ", input = InputType.YES, condition = InputType.YES)
-    public void assertXMLtagContains() {
+    public void assertQueueXMLtagContains() {
 
         try {
             DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
@@ -383,7 +383,7 @@ public class QueueOperations extends Command {
     }
 
     @Action(object = ObjectType.QUEUE, desc = "Assert Response Message contains ", input = InputType.YES)
-    public void assertResponseMessageContains() {
+    public void assertQueueResponseMessageContains() {
         try {
             if (receivedMessage.get(key).contains(Data)) {
                 Report.updateTestLog(Action, "Response Message contains : " + Data, Status.PASSNS);
@@ -397,7 +397,7 @@ public class QueueOperations extends Command {
     }
 
     @Action(object = ObjectType.QUEUE, desc = "Assert JSON Tag Equals ", input = InputType.YES, condition = InputType.YES)
-    public void assertJSONtagEquals() {
+    public void assertQueueJSONtagEquals() {
         try {
             String response = receivedMessage.get(key);
             String jsonpath = Condition;
@@ -415,7 +415,7 @@ public class QueueOperations extends Command {
     }
 
     @Action(object = ObjectType.QUEUE, desc = "Assert JSON Tag Contains ", input = InputType.YES, condition = InputType.YES)
-    public void assertJSONtagContains() {
+    public void assertQueueJSONtagContains() {
         try {
             String response = receivedMessage.get(key);
             String jsonpath = Condition;
@@ -433,7 +433,7 @@ public class QueueOperations extends Command {
     }
 
     @Action(object = ObjectType.QUEUE, desc = "Store JSON Tag In DataSheet ", input = InputType.YES, condition = InputType.YES)
-    public void storeJSONtagInDataSheet() {
+    public void storeQueueJSONtagInDataSheet() {
 
         try {
             String strObj = Input;
