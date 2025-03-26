@@ -5,7 +5,7 @@
     <parent>
         <groupId>com.ing</groupId>
         <artifactId>ingenious-playwright</artifactId>
-        <version>2.0</version>
+        <version>2.1</version>
     </parent>
     <artifactId>ingenious-engine</artifactId>
     <packaging>jar</packaging>
@@ -239,7 +239,7 @@
             <artifactId>kafka-clients</artifactId>
             <version>${kafka-clients.version}</version>
         </dependency>
-        <dependency>
+        <!-- <dependency>
             <groupId>org.apache.avro</groupId>
             <artifactId>avro</artifactId>
             <version>${avro.version}</version>
@@ -248,7 +248,7 @@
             <groupId>io.confluent</groupId>
             <artifactId>kafka-avro-serializer</artifactId>
             <version>${kafka-avro-serializer.version}</version>
-        </dependency>
+        </dependency> -->
         <!-- add your respective jms dependency here -->
         <dependency>
             <groupId>com.ibm.mq</groupId>
@@ -256,12 +256,14 @@
             <version>${ibmmq.version}</version>
         </dependency>
     </dependencies>
+<!-- 
     <repositories>
         <repository>
             <id>confluent</id>
             <url>https://packages.confluent.io/maven/</url>
         </repository>
     </repositories>
+-->
     <build>
         <resources>
             <resource>

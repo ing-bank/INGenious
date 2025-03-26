@@ -358,6 +358,15 @@ public class PlaywrightRecordingParser {
                 case "press":
                     actionType = "KeyPress";
                     break;
+                case "isEmpty":
+                    actionType = "assertElementIsEmpty";
+                    break;
+                case "isVisible":
+                    actionType = "assertElementIsVisible";
+                    break;
+                case "containsText":
+                    actionType = "assertElementContainsText";
+                    break;
 
             }
         } else {
@@ -402,6 +411,15 @@ public class PlaywrightRecordingParser {
                 case "press":
                     input = "@" + ((line.split("\\)\\.")[length - 1])).split("\\(")[1].split("\"")[1];
                     break;
+                case "isEmpty":
+                    input = "";
+                    break;
+                case "isVisible":
+                    input = "";
+                    break;
+                case "containsText":
+                    input = "@" + ((line.split("\\)\\.")[length - 1])).split("\\(")[1].split("\"")[1];
+                    break;
             }
         }
         if (line.contains(".navigate(")) {
@@ -425,6 +443,18 @@ public class PlaywrightRecordingParser {
                 line = stringLine.split("\\.selectOption\\(")[0];
             } else if (stringLine.contains(").check(")) {
                 line = stringLine.split("\\.check\\(")[0];
+            } else if (stringLine.contains("assertThat(page")) {
+                stringLine = stringLine.split("assertThat\\(")[1];
+                if (stringLine.contains(")).isVisible(")) {
+                    stringLine = stringLine.replace("\\)\\)\\.isVisible(", "\\)\\.isVisible\\(");
+                    line = stringLine.split("\\.isVisible\\(")[0];
+                } else if (stringLine.contains(")).isEmpty(")) {
+                    stringLine = stringLine.replace("\\)\\)\\.isEmpty(", "\\)\\.isEmpty\\(");
+                    line = stringLine.split("\\.isEmpty\\(")[0];
+                } else if (stringLine.contains(")).containsText(")) {
+                    stringLine = stringLine.replace("\\)\\)\\.containsText(", "\\)\\.containsText\\(");
+                    line = stringLine.split("\\.isEmpty\\(")[0];
+                }
             }
             if (line.contains("frameLocator(")) {
                 String frame = line.split("\"\\)\\.")[0].split("frameLocator\\(\"")[1];
