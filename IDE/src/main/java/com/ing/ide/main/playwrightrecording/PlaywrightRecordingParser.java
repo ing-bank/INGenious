@@ -367,6 +367,10 @@ public class PlaywrightRecordingParser {
                 case "containsText":
                     actionType = "assertElementContainsText";
                     break;
+                case "hasValue":
+                    actionType = "assertElementValueMatches";
+                    break;
+    
 
             }
         } else {
@@ -397,29 +401,21 @@ public class PlaywrightRecordingParser {
             String action = ((line.split("\\)\\.")[length - 1])).split("\\(")[0];
             switch (action) {
                 case "click":
-                    input = "";
-                    break;
-                case "fill":
-                    input = "@" + ((line.split("\\)\\.")[length - 1])).split("\\(")[1].split("\"")[1];
-                    break;
-                case "selectOption":
-                    input = "@" + ((line.split("\\)\\.")[length - 1])).split("\\(")[1].split("\"")[1];
-                    break;
-                case "check":
-                    input = "";
-                    break;
-                case "press":
-                    input = "@" + ((line.split("\\)\\.")[length - 1])).split("\\(")[1].split("\"")[1];
-                    break;
+                case "check": 
                 case "isEmpty":
+                case "isVisible":    
                     input = "";
                     break;
-                case "isVisible":
-                    input = "";
-                    break;
+ 
+                case "press":    
+                case "selectOption":    
+                case "fill":    
+                case "hasValue":    
                 case "containsText":
                     input = "@" + ((line.split("\\)\\.")[length - 1])).split("\\(")[1].split("\"")[1];
                     break;
+                
+        
             }
         }
         if (line.contains(".navigate(")) {
@@ -453,7 +449,11 @@ public class PlaywrightRecordingParser {
                     line = stringLine.split("\\.isEmpty\\(")[0];
                 } else if (stringLine.contains(")).containsText(")) {
                     stringLine = stringLine.replace("\\)\\)\\.containsText(", "\\)\\.containsText\\(");
-                    line = stringLine.split("\\.isEmpty\\(")[0];
+                    line = stringLine.split("\\.containsText\\(")[0];
+                }
+                else if (stringLine.contains(")).hasValue(")) {
+                    stringLine = stringLine.replace("\\)\\)\\.hasValue(", "\\)\\.hasValue\\(");
+                    line = stringLine.split("\\.hasValue\\(")[0];
                 }
             }
             if (line.contains("frameLocator(")) {

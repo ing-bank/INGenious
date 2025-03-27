@@ -75,7 +75,7 @@ public class PropUtils {
                     sb.append("\\t");
                     break;
                 case ' ':
-                    sb.append("\\");
+                    sb.append("\\ ");
                     break;
                 default:
                     if (c > 127) {
