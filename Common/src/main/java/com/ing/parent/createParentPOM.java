@@ -42,8 +42,11 @@ public class createParentPOM {
             // Create a new document for the target pom.xml file
             Document targetDocument = createTargetDocument(targetPath);
 
-            // Remove content under dependencies tag from target document
+            // Remove content under dependencies and Repositories tag from target document
             removeExistingDependencies(targetDocument);
+            removeExistingRepositories(targetDocument);
+            removeExistingPluginRepositories(targetDocument);
+ 
 
             // Copy dependencies from modules pom to target pom
             for (int i = 2; i < args.length; i++) {
@@ -53,8 +56,8 @@ public class createParentPOM {
 
                 // Copy repositories and pluginRepositories
                 if (args[i].contains("Engine")) {
-                    copyRepositories(sourceDocument, targetDocument);
-                    removeDuplicateRepositories(targetDocument);
+                    //copyRepositories(sourceDocument, targetDocument);
+                    //removeDuplicateRepositories(targetDocument);
                     copyPluginRepositories(sourceDocument,targetDocument);
                     removeDuplicatePluginRepositories(targetDocument);
                 }
@@ -232,5 +235,24 @@ public class createParentPOM {
         DOMSource domSource = new DOMSource(doc);
         StreamResult streamResult = new StreamResult(file);
         transformer.transform(domSource, streamResult);
+    }
+    
+    private static void removeExistingRepositories(Document targetDocument) {
+        NodeList dependencyList = targetDocument.getElementsByTagName("repositories");
+        if (dependencyList.getLength() > 0) {
+            Node dependenciesNode = dependencyList.item(0);
+            while (dependenciesNode.hasChildNodes()) {
+                dependenciesNode.removeChild(dependenciesNode.getFirstChild());
+            }
+        }
+    }
+    private static void removeExistingPluginRepositories(Document targetDocument) {
+        NodeList dependencyList = targetDocument.getElementsByTagName("pluginRepositories");
+        if (dependencyList.getLength() > 0) {
+            Node dependenciesNode = dependencyList.item(0);
+            while (dependenciesNode.hasChildNodes()) {
+                dependenciesNode.removeChild(dependenciesNode.getFirstChild());
+            }
+        }
     }
 }
