@@ -43,8 +43,8 @@ public class AppToolBar extends JToolBar {
         addSeparator();
         add(createLabel("Auto Save  "));
         add(createToggleButton("Auto Save"));
-        addSeparator();
-        add(createButton("Mobile Spy"));
+        //addSeparator();
+        //add(createButton("Mobile Spy")); /**** This is disabled to ensure that the mobile capabilities are captured from Appium Inspector ****/
         addSeparator();
         add(createButton("Run Settings"));
         add(createButton("Browser Configuration"));

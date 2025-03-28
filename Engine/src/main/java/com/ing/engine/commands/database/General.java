@@ -6,7 +6,8 @@ import com.ing.engine.commands.browser.Command;
 import com.ing.engine.core.CommandControl;
 import com.ing.engine.support.Status;
 import com.ing.util.encryption.Encryption;
-
+import com.ing.engine.core.Control;
+import java.util.Collection;
 import java.sql.*;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -75,13 +76,21 @@ public class General extends Command {
     }
 
     public void executeSelect() throws SQLException {
-        result = statement.executeQuery(Data);
+        String query = Data;
+    	query = handleDataSheetVariables(query);
+    	query = handleuserDefinedVariables(query);
+        System.out.println("Query :" + query);
+        result = statement.executeQuery(query);
         resultData = result.getMetaData();
         populateColumnNames();
     }
 
     public boolean executeDML() throws SQLException {
-        return (statement.executeUpdate(Data) >= 0);
+        String query = Data;
+    	query = handleDataSheetVariables(query);
+    	query = handleuserDefinedVariables(query);
+        System.out.println("Query :" + query);
+        return (statement.executeUpdate(query) >= 0);
     }
 
     private void initialize(Boolean commit,int timeout) throws SQLException {
@@ -189,4 +198,33 @@ public class General extends Command {
         return colNames.indexOf(columnName);
     }
 
+    private String handleDataSheetVariables(String query) {
+        List<String> sheetlist = Control.getCurrentProject().getTestData().getTestDataFor(Control.exe.runEnv())
+                .getTestDataNames();
+        for (int sheet = 0; sheet < sheetlist.size(); sheet++) {
+            if (query.contains("{" + sheetlist.get(sheet) + ":")) {
+                com.ing.datalib.testdata.model.TestDataModel tdModel = Control.getCurrentProject()
+                        .getTestData().getTestDataByName(sheetlist.get(sheet));
+                List<String> columns = tdModel.getColumns();
+                for (int col = 0; col < columns.size(); col++) {
+                    if (query.contains("{" + sheetlist.get(sheet) + ":" + columns.get(col) + "}")) {
+                    	query = query.replace("{" + sheetlist.get(sheet) + ":" + columns.get(col) + "}",
+                                userData.getData(sheetlist.get(sheet), columns.get(col)));
+                    }
+                }
+            }
+        }
+        return query;
+    }
+
+    private String handleuserDefinedVariables(String query) {
+        Collection<Object> valuelist = Control.getCurrentProject().getProjectSettings().getUserDefinedSettings()
+                .values();
+        for (Object prop : valuelist) {
+            if (query.contains("{" + prop + "}")) {
+            	query = query.replace("{" + prop + "}", prop.toString());
+            }
+        }
+        return query;
+    }
 }

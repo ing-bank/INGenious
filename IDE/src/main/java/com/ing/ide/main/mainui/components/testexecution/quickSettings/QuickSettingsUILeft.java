@@ -92,6 +92,7 @@ public class QuickSettingsUILeft extends QuickSettingsUI {
         useExistingDriver.setFont(UIManager.getFont("TableMenu.font"));
         useExistingDriver.setText("Use Existing Browser");
         useExistingDriver.setToolTipText("Will use the same browser instance for all the TestCases and Iterations in Testsets");
+        useExistingDriver.setEnabled(false);
         useExistingDriver.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 useExistingDriverActionPerformed(evt);

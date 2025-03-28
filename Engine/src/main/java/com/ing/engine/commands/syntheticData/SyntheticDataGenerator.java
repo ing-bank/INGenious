@@ -165,7 +165,7 @@ public class SyntheticDataGenerator extends Command {
     public void zipCodeByState() {
         try {
             String strObj = Input;
-            String stateAbbreviation = Condition.split(":", 1)[0];
+            String stateAbbreviation = Condition;
             String zipCodeByState = faker.get(key).address().zipCodeByState(stateAbbreviation);
             Report.updateTestLog(Action, "Generated data: " + zipCodeByState, Status.DONE);
             String sheetName = strObj.split(":", 2)[0];
@@ -286,7 +286,7 @@ public class SyntheticDataGenerator extends Command {
     public void countryByZipCode() {
         try {
             String strObj = Input;
-            String zipCode = Condition.split(":", 1)[0];
+            String zipCode = Condition;
             String countryByZipCode = faker.get(key).address().countyByZipCode(zipCode);
             Report.updateTestLog(Action, "Generated data: " + countryByZipCode, Status.DONE);
             String sheetName = strObj.split(":", 2)[0];
@@ -600,7 +600,7 @@ public class SyntheticDataGenerator extends Command {
     }
 
     @Action(object = ObjectType.DATA, desc = "Generate a character name from Back to the Future", input = InputType.YES, condition = InputType.NO)
-    public void backToTheFutureCharacter() {
+    public void characterBackToTheFuture() {
         try {
             String strObj = Input;
             String character = faker.get(key).backToTheFuture().character();
@@ -615,7 +615,7 @@ public class SyntheticDataGenerator extends Command {
     }
 
     @Action(object = ObjectType.DATA, desc = "Generate a quote from Back to the Future", input = InputType.YES, condition = InputType.NO)
-    public void backToTheFutureQuote() {
+    public void quoteBackToTheFuture() {
         try {
             String strObj = Input;
             String quote = faker.get(key).backToTheFuture().quote();
@@ -630,7 +630,7 @@ public class SyntheticDataGenerator extends Command {
     }
 
     @Action(object = ObjectType.DATA, desc = "Generate a date from Back to the Future", input = InputType.YES, condition = InputType.NO)
-    public void backToTheFutureDate() {
+    public void dateBackToTheFuture() {
         try {
             String strObj = Input;
             String date = faker.get(key).backToTheFuture().date();
@@ -1255,7 +1255,7 @@ public class SyntheticDataGenerator extends Command {
     public void promotionCodeWithDigits() {
         try {
             String strObj = Input;
-            String digitStr = Condition.split(":", 1)[0];
+            String digitStr = Condition;
             Integer digits = Integer.parseInt(digitStr);
             String promotionCode = faker.get(key).commerce().promotionCode(digits);
             Report.updateTestLog(Action, "Generated data: " + promotionCode, Status.DONE);
@@ -1972,7 +1972,7 @@ public class SyntheticDataGenerator extends Command {
     }
 
     @Action(object = ObjectType.DATA, desc = "Generate a random Dragon Ball character name", input = InputType.YES, condition = InputType.NO)
-    public void dragonBallCharacter() {
+    public void characterDragonBall() {
         try {
             String strObj = Input;
             String character = faker.get(key).dragonBall().character();
@@ -2204,7 +2204,7 @@ public class SyntheticDataGenerator extends Command {
     public void creditCardNumberBasedOnType() {
         try {
             String strObj = Input;
-            String type = Condition.split(":", 1)[0];
+            String type = Condition;
             CreditCardType creditCardType = CreditCardType.valueOf(type);
             String creditCard = faker.get(key).finance().creditCard(creditCardType);
             Report.updateTestLog(Action, "Generated data: " + creditCard, Status.DONE);
@@ -2251,7 +2251,7 @@ public class SyntheticDataGenerator extends Command {
     public void ibanByCountry() {
         try {
             String strObj = Input;
-            String countryCode = Condition.split(":", 1)[0];
+            String countryCode = Condition;
             String iban = faker.get(key).finance().iban(countryCode);
             Report.updateTestLog(Action, "Generated data: " + iban, Status.DONE);
             String sheetName = strObj.split(":", 2)[0];
@@ -2309,7 +2309,7 @@ public class SyntheticDataGenerator extends Command {
     }
 
     @Action(object = ObjectType.DATA, desc = "Generate a random character name from the TV show \"Friends\"", input = InputType.YES, condition = InputType.NO)
-    public void friendsCharacter() {
+    public void characterFriends() {
         try {
             String strObj = Input;
             String character = faker.get(key).friends().character();
@@ -2324,7 +2324,7 @@ public class SyntheticDataGenerator extends Command {
     }
 
     @Action(object = ObjectType.DATA, desc = "Generate a random location from the TV show \"Friends\"", input = InputType.YES, condition = InputType.NO)
-    public void friendsLocation() {
+    public void locationFriends() {
         try {
             String strObj = Input;
             String location = faker.get(key).friends().location();
@@ -2339,7 +2339,7 @@ public class SyntheticDataGenerator extends Command {
     }
 
     @Action(object = ObjectType.DATA, desc = "Generate a random quote from the TV show \"Friends\"", input = InputType.YES, condition = InputType.NO)
-    public void friendsQuote() {
+    public void quoteFriends() {
         try {
             String strObj = Input;
             String quote = faker.get(key).friends().quote();
@@ -2594,7 +2594,7 @@ public class SyntheticDataGenerator extends Command {
     }
 
     @Action(object = ObjectType.DATA, desc = "Generate a random character name from the Hitchhiker's Guide to the Galaxy series", input = InputType.YES, condition = InputType.NO)
-    public void hitchhikerCharacter() {
+    public void characterHitchhiker() {
         try {
             String strObj = Input;
             String character = faker.get(key).hitchhikersGuideToTheGalaxy().character();
@@ -2609,7 +2609,7 @@ public class SyntheticDataGenerator extends Command {
     }
 
     @Action(object = ObjectType.DATA, desc = "Generate a random location name from the Hitchhiker's Guide to the Galaxy series", input = InputType.YES, condition = InputType.NO)
-    public void hitchhikerLocation() {
+    public void locationHitchhiker() {
         try {
             String strObj = Input;
             String location = faker.get(key).hitchhikersGuideToTheGalaxy().location();
@@ -2624,7 +2624,7 @@ public class SyntheticDataGenerator extends Command {
     }
 
     @Action(object = ObjectType.DATA, desc = "Generate a random marvin quote from the Hitchhiker's Guide to the Galaxy series", input = InputType.YES, condition = InputType.NO)
-    public void hitchhikerMarvinQuote() {
+    public void marvinQuoteHitchhiker() {
         try {
             String strObj = Input;
             String quote = faker.get(key).hitchhikersGuideToTheGalaxy().marvinQuote();
@@ -2639,7 +2639,7 @@ public class SyntheticDataGenerator extends Command {
     }
 
     @Action(object = ObjectType.DATA, desc = "Generate a random quote from the Hitchhiker's Guide to the Galaxy series", input = InputType.YES, condition = InputType.NO)
-    public void hitchhikerQuote() {
+    public void quoteHitchhiker() {
         try {
             String strObj = Input;
             String quote = faker.get(key).hitchhikersGuideToTheGalaxy().quote();
@@ -2654,7 +2654,7 @@ public class SyntheticDataGenerator extends Command {
     }
 
     @Action(object = ObjectType.DATA, desc = "Generate a random planet name from the Hitchhiker's Guide to the Galaxy series", input = InputType.YES, condition = InputType.NO)
-    public void hitchhikerPlanet() {
+    public void planetHitchhiker() {
         try {
             String strObj = Input;
             String planet = faker.get(key).hitchhikersGuideToTheGalaxy().planet();
@@ -2669,7 +2669,7 @@ public class SyntheticDataGenerator extends Command {
     }
 
     @Action(object = ObjectType.DATA, desc = "Generate a random species name from the Hitchhiker's Guide to the Galaxy series", input = InputType.YES, condition = InputType.NO)
-    public void hitchhikerSpecie() {
+    public void specieHitchhiker() {
         try {
             String strObj = Input;
             String species = faker.get(key).hitchhikersGuideToTheGalaxy().specie();
@@ -2684,7 +2684,7 @@ public class SyntheticDataGenerator extends Command {
     }
 
     @Action(object = ObjectType.DATA, desc = "Generate a random starship from the Hitchhiker's Guide to the Galaxy series", input = InputType.YES, condition = InputType.NO)
-    public void hitchhikerStarship() {
+    public void starshipHitchhiker() {
         try {
             String strObj = Input;
             String starShip = faker.get(key).hitchhikersGuideToTheGalaxy().starship();
@@ -2699,7 +2699,7 @@ public class SyntheticDataGenerator extends Command {
     }
 
     @Action(object = ObjectType.DATA, desc = "Generate a random character name from The Hobbit series", input = InputType.YES, condition = InputType.NO)
-    public void hobbitCharacter() {
+    public void characterHobbit() {
         try {
             String strObj = Input;
             String character = faker.get(key).hobbit().character();
@@ -2714,7 +2714,7 @@ public class SyntheticDataGenerator extends Command {
     }
 
     @Action(object = ObjectType.DATA, desc = "Generate a random location name from The Hobbit series", input = InputType.YES, condition = InputType.NO)
-    public void hobbitLocation() {
+    public void locationHobbit() {
         try {
             String strObj = Input;
             String location = faker.get(key).hobbit().location();
@@ -2729,7 +2729,7 @@ public class SyntheticDataGenerator extends Command {
     }
 
     @Action(object = ObjectType.DATA, desc = "Generate a random quote from The Hobbit series", input = InputType.YES, condition = InputType.NO)
-    public void hobbitQuote() {
+    public void quoteHobbit() {
         try {
             String strObj = Input;
             String quote = faker.get(key).hobbit().quote();
@@ -2744,7 +2744,7 @@ public class SyntheticDataGenerator extends Command {
     }
 
     @Action(object = ObjectType.DATA, desc = "Generate a random hobbit Thorins Company from The Hobbit series", input = InputType.YES, condition = InputType.NO)
-    public void hobbitThorinsCompany() {
+    public void thorinsCompanyHobbit() {
         try {
             String strObj = Input;
             String company = faker.get(key).hobbit().thorinsCompany();
@@ -2759,7 +2759,7 @@ public class SyntheticDataGenerator extends Command {
     }
 
     @Action(object = ObjectType.DATA, desc = "Generate a random character name from How I Met Your Mother", input = InputType.YES, condition = InputType.NO)
-    public void howIMetYourMotherCharacter() {
+    public void characterHowIMetYourMother() {
         try {
             String strObj = Input;
             String character = faker.get(key).howIMetYourMother().character();
@@ -2774,7 +2774,7 @@ public class SyntheticDataGenerator extends Command {
     }
 
     @Action(object = ObjectType.DATA, desc = "Generate a random quote from How I Met Your Mother", input = InputType.YES, condition = InputType.NO)
-    public void howIMetYourMotherQuote() {
+    public void quoteHowIMetYourMother() {
         try {
             String strObj = Input;
             String quote = faker.get(key).howIMetYourMother().quote();
@@ -2789,7 +2789,7 @@ public class SyntheticDataGenerator extends Command {
     }
 
     @Action(object = ObjectType.DATA, desc = "Generate a random catchphrase from How I Met Your Mother", input = InputType.YES, condition = InputType.NO)
-    public void howIMetYourMotherCatchPhrase() {
+    public void catchPhraseHowIMetYourMother() {
         try {
             String strObj = Input;
             String catchphrase = faker.get(key).howIMetYourMother().catchPhrase();
@@ -2804,7 +2804,7 @@ public class SyntheticDataGenerator extends Command {
     }
 
     @Action(object = ObjectType.DATA, desc = "Generate a random high five from How I Met Your Mother", input = InputType.YES, condition = InputType.NO)
-    public void howIMetYourMotherHighFive() {
+    public void highFiveHowIMetYourMother() {
         try {
             String strObj = Input;
             String highFive = faker.get(key).howIMetYourMother().highFive();
@@ -2912,7 +2912,7 @@ public class SyntheticDataGenerator extends Command {
     public void emailAddressWithLocalPart() {
         try {
             String strObj = Input;
-            String localPart = Condition.split(":", 1)[0];
+            String localPart = Condition;
             String email = faker.get(key).internet().emailAddress(localPart);
             Report.updateTestLog(Action, "Generated data: " + email, Status.DONE);
             String sheetName = strObj.split(":", 2)[0];
@@ -2943,7 +2943,7 @@ public class SyntheticDataGenerator extends Command {
     public void safeEmailAddressWithLocalPart() {
         try {
             String strObj = Input;
-            String localPart = Condition.split(":", 1)[0];
+            String localPart = Condition;
             String safeEmail = faker.get(key).internet().safeEmailAddress(localPart);
             Report.updateTestLog(Action, "Generated data: " + safeEmail, Status.DONE);
             String sheetName = strObj.split(":", 2)[0];
@@ -3342,7 +3342,7 @@ public class SyntheticDataGenerator extends Command {
     public void userAgentWithAgentType() {
         try {
             String strObj = Input;
-            String option = Condition.split(":", 1)[0];
+            String option = Condition;
             Internet.UserAgent userAgent = Internet.UserAgent.valueOf(option);
             String userAgent1 = faker.get(key).internet().userAgent(userAgent);
             Report.updateTestLog(Action, "Generated data: " + userAgent1, Status.DONE);
@@ -3551,7 +3551,7 @@ public class SyntheticDataGenerator extends Command {
     }
 
     @Action(object = ObjectType.DATA, desc = "Generate a random character name from The Big Lebowski", input = InputType.YES, condition = InputType.NO)
-    public void lebowskiCharacter() {
+    public void characterLebowski() {
         try {
             String strObj = Input;
             String character = faker.get(key).lebowski().character();
@@ -3566,7 +3566,7 @@ public class SyntheticDataGenerator extends Command {
     }
 
     @Action(object = ObjectType.DATA, desc = "Generate a random quote from The Big Lebowski", input = InputType.YES, condition = InputType.NO)
-    public void lebowskiQuote() {
+    public void quoteLebowski() {
         try {
             String strObj = Input;
             String quote = faker.get(key).lebowski().quote();
@@ -3581,7 +3581,7 @@ public class SyntheticDataGenerator extends Command {
     }
 
     @Action(object = ObjectType.DATA, desc = "Generate a random actor from The Big Lebowski", input = InputType.YES, condition = InputType.NO)
-    public void lebowskiActor() {
+    public void actorLebowski() {
         try {
             String strObj = Input;
             String actor = faker.get(key).lebowski().actor();
@@ -3596,7 +3596,7 @@ public class SyntheticDataGenerator extends Command {
     }
 
     @Action(object = ObjectType.DATA, desc = "Generate a random Lord of the Rings character name", input = InputType.YES, condition = InputType.NO)
-    public void lordOfTheRingsCharacter() {
+    public void characterLordOfTheRings() {
         try {
             String strObj = Input;
             String character = faker.get(key).lordOfTheRings().character();
@@ -3611,7 +3611,7 @@ public class SyntheticDataGenerator extends Command {
     }
 
     @Action(object = ObjectType.DATA, desc = "Generate a random Lord of the Rings location", input = InputType.YES, condition = InputType.NO)
-    public void lordOfTheRingsLocation() {
+    public void locationLordOfTheRings() {
         try {
             String strObj = Input;
             String location = faker.get(key).lordOfTheRings().location();
@@ -3659,7 +3659,7 @@ public class SyntheticDataGenerator extends Command {
     public void loremWordsWithCount() {
         try {
             String strObj = Input;
-            String countStr = Condition.split(":", 1)[0];
+            String countStr = Condition;
             int count = Integer.parseInt(countStr);
             List<String> words = faker.get(key).lorem().words(count);
             Report.updateTestLog(Action, "Generated data: " + words, Status.DONE);
@@ -3691,7 +3691,7 @@ public class SyntheticDataGenerator extends Command {
     public void sentenceWithCount() {
         try {
             String strObj = Input;
-            String wordCountStr = Condition.split(":", 1)[0];
+            String wordCountStr = Condition;
             int wordCount = Integer.parseInt(wordCountStr);
             String sentence = faker.get(key).lorem().sentence(wordCount);
             Report.updateTestLog(Action, "Generated data: " + sentence + ": " + sentence, Status.DONE);
@@ -3727,7 +3727,7 @@ public class SyntheticDataGenerator extends Command {
     public void sentences() {
         try {
             String strObj = Input;
-            String sentenceCountStr = Condition.split(":", 1)[0];
+            String sentenceCountStr = Condition;
             int sentenceCount = Integer.parseInt(sentenceCountStr);
             String sentence = faker.get(key).lorem().sentence(sentenceCount);
             Report.updateTestLog(Action, "Generated data: " + sentence + ": " + sentence, Status.DONE);
@@ -3759,7 +3759,7 @@ public class SyntheticDataGenerator extends Command {
     public void paragraphWithSentenceCount() {
         try {
             String strObj = Input;
-            String sentenceCountStr = Condition.split(":", 1)[0];
+            String sentenceCountStr = Condition;
             int sentenceCount = Integer.parseInt(sentenceCountStr);
             String paragraph = faker.get(key).lorem().paragraph(sentenceCount);
             Report.updateTestLog(Action, "Generated data: " + sentenceCount + ": " + paragraph, Status.DONE);
@@ -3776,7 +3776,7 @@ public class SyntheticDataGenerator extends Command {
     public void paragraphsWithParagraphCount() {
         try {
             String strObj = Input;
-            String paragraphCountStr = Condition.split(":", 1)[0];
+            String paragraphCountStr = Condition;
             int paragraphCount = Integer.parseInt(paragraphCountStr);
             List<String> paragraphs = faker.get(key).lorem().paragraphs(paragraphCount);
             Report.updateTestLog(Action, "Generated data: " + paragraphs, Status.DONE);
@@ -3855,7 +3855,7 @@ public class SyntheticDataGenerator extends Command {
     public void loremCharactersWithNumberOfChars() {
         try {
             String strObj = Input;
-            String charsStr = Condition.split(":", 1)[0];
+            String charsStr = Condition;
             int fixedNumberOfCharacters = Integer.parseInt(charsStr);
             String characters = faker.get(key).lorem().characters(fixedNumberOfCharacters);
             Report.updateTestLog(Action, "Generated data: " + characters, Status.DONE);
@@ -3872,7 +3872,7 @@ public class SyntheticDataGenerator extends Command {
     public void loremCharactersWithNumberOfCharsUpperCase() {
         try {
             String strObj = Input;
-            String charsStr = Condition.split(":", 1)[0];
+            String charsStr = Condition;
             int fixedNumberOfCharacters = Integer.parseInt(charsStr);
             boolean includeUppercase = true;
             String characters = faker.get(key).lorem().characters(fixedNumberOfCharacters, includeUppercase);
@@ -3890,7 +3890,7 @@ public class SyntheticDataGenerator extends Command {
     public void loremCharactersWithNumberOfCharsUpperCaseDigit() {
         try {
             String strObj = Input;
-            String charsStr = Condition.split(":", 1)[0];
+            String charsStr = Condition;
             int fixedNumberOfCharacters = Integer.parseInt(charsStr);
             boolean includeUppercase = true;
             boolean includeDigit = true;
@@ -3969,7 +3969,7 @@ public class SyntheticDataGenerator extends Command {
     public void loremFixedString() {
         try {
             String strObj = Input;
-            String countStr = Condition.split(":", 1)[0];
+            String countStr = Condition;
             int numberOfLetters = Integer.parseInt(countStr);
             String characters = faker.get(key).lorem().characters(numberOfLetters);
             Report.updateTestLog(Action, "Generated data: " + characters, Status.DONE);
@@ -3983,7 +3983,7 @@ public class SyntheticDataGenerator extends Command {
     }
 
     @Action(object = ObjectType.DATA, desc = "Generate a random Matz quote", input = InputType.YES, condition = InputType.NO)
-    public void matzQuote() {
+    public void quoteMatz() {
         try {
             String strObj = Input;
             String quote = faker.get(key).matz().quote();
@@ -4272,7 +4272,7 @@ public class SyntheticDataGenerator extends Command {
     public void digits() {
         try {
             String strObj = Input;
-            String countStr = Condition.split(":", 1)[0];
+            String countStr = Condition;
             int count = Integer.parseInt(countStr);
             String digit = faker.get(key).number().digits(count);
             Report.updateTestLog(Action, "Generated data: " + digit, Status.DONE);
@@ -4414,7 +4414,7 @@ public class SyntheticDataGenerator extends Command {
     public void randomNumberWithNoOfDigits() {
         try {
             String strObj = Input;
-            String digitStr = Condition.split(":", 1)[0];
+            String digitStr = Condition;
             int numOfDigits = Integer.parseInt(digitStr);
             boolean strict = true;
             long randomNumber = faker.get(key).number().randomNumber(numOfDigits, strict);
@@ -4566,7 +4566,7 @@ public class SyntheticDataGenerator extends Command {
     }
 
     @Action(object = ObjectType.DATA, desc = "Generate a random Overwatch hero", input = InputType.YES, condition = InputType.NO)
-    public void overWatchHero() {
+    public void heroOverWatch() {
         try {
             String strObj = Input;
             String hero = faker.get(key).overwatch().hero();
@@ -4581,7 +4581,7 @@ public class SyntheticDataGenerator extends Command {
     }
 
     @Action(object = ObjectType.DATA, desc = "Generate a random Overwatch location", input = InputType.YES, condition = InputType.NO)
-    public void overWatchLocation() {
+    public void locationOverWatch() {
         try {
             String strObj = Input;
             String location = faker.get(key).overwatch().location();
@@ -4596,7 +4596,7 @@ public class SyntheticDataGenerator extends Command {
     }
 
     @Action(object = ObjectType.DATA, desc = "Generate a random Overwatch quote", input = InputType.YES, condition = InputType.NO)
-    public void overWatchQuote() {
+    public void quoteOverWatch() {
         try {
             String strObj = Input;
             String quote = faker.get(key).overwatch().quote();
@@ -4641,7 +4641,7 @@ public class SyntheticDataGenerator extends Command {
     }
 
     @Action(object = ObjectType.DATA, desc = "Generate a random Pokemon name", input = InputType.YES, condition = InputType.NO)
-    public void pokemonName() {
+    public void namePokemon() {
         try {
             String strObj = Input;
             String pokemonName = faker.get(key).pokemon().name();
@@ -4656,7 +4656,7 @@ public class SyntheticDataGenerator extends Command {
     }
 
     @Action(object = ObjectType.DATA, desc = "Generate a random Pokemon location", input = InputType.YES, condition = InputType.NO)
-    public void pokemonLocation() {
+    public void locationPokemon() {
         try {
             String strObj = Input;
             String pokemonLocation = faker.get(key).pokemon().location();
@@ -4689,7 +4689,7 @@ public class SyntheticDataGenerator extends Command {
     public void randomHexWithLength() {
         try {
             String strObj = Input;
-            String lengthStr = Condition.split(":", 1)[0];
+            String lengthStr = Condition;
             int length = Integer.parseInt(lengthStr);
             String hex = faker.get(key).random().hex(length);
             Report.updateTestLog(Action, "Generated data: " + hex, Status.DONE);
@@ -4706,7 +4706,7 @@ public class SyntheticDataGenerator extends Command {
     public void randomNextIntWithLength() {
         try {
             String strObj = Input;
-            String numStr = Condition.split(":", 1)[0];
+            String numStr = Condition;
             int num = Integer.parseInt(numStr);
             int randomInt = faker.get(key).random().nextInt(num);
             Report.updateTestLog(Action, "Generated data: " + randomInt, Status.DONE);
@@ -4757,7 +4757,7 @@ public class SyntheticDataGenerator extends Command {
     public void randomNextLongWithLength() {
         try {
             String strObj = Input;
-            String numStr = Condition.split(":", 1)[0];
+            String numStr = Condition;
             long num = Long.parseLong(numStr);
             long randomLong = faker.get(key).random().nextLong(num);
             Report.updateTestLog(Action, "Generated data: " + randomLong, Status.DONE);
@@ -4801,7 +4801,7 @@ public class SyntheticDataGenerator extends Command {
     }
 
     @Action(object = ObjectType.DATA, desc = "Generate a random Rick and Morty character", input = InputType.YES, condition = InputType.NO)
-    public void rickAndMortyCharacter() {
+    public void characterRickAndMorty() {
         try {
             String strObj = Input;
             String character = faker.get(key).rickAndMorty().character();
@@ -4816,7 +4816,7 @@ public class SyntheticDataGenerator extends Command {
     }
 
     @Action(object = ObjectType.DATA, desc = "Generate a random Rick and Morty location", input = InputType.YES, condition = InputType.NO)
-    public void rickAndMortyLocation() {
+    public void locationRickAndMorty() {
         try {
             String strObj = Input;
             String location = faker.get(key).rickAndMorty().location();
@@ -4831,7 +4831,7 @@ public class SyntheticDataGenerator extends Command {
     }
 
     @Action(object = ObjectType.DATA, desc = "Generate a random Rick and Morty quote", input = InputType.YES, condition = InputType.NO)
-    public void rickAndMortyQuote() {
+    public void quoteRickAndMorty() {
         try {
             String strObj = Input;
             String quote = faker.get(key).rickAndMorty().quote();
@@ -4846,7 +4846,7 @@ public class SyntheticDataGenerator extends Command {
     }
 
     @Action(object = ObjectType.DATA, desc = "Generate a random Robin quote", input = InputType.YES, condition = InputType.NO)
-    public void robinQuote() {
+    public void quoteRobin() {
         try {
             String strObj = Input;
             String quote = faker.get(key).robin().quote();
@@ -4861,7 +4861,7 @@ public class SyntheticDataGenerator extends Command {
     }
 
     @Action(object = ObjectType.DATA, desc = "Generate a random RockBand name", input = InputType.YES, condition = InputType.NO)
-    public void rockBandName() {
+    public void nameRockBand() {
         try {
             String strObj = Input;
             String name = faker.get(key).rockBand().name();
@@ -4876,7 +4876,7 @@ public class SyntheticDataGenerator extends Command {
     }
 
     @Action(object = ObjectType.DATA, desc = "Generate a random Hamlet quote", input = InputType.YES, condition = InputType.NO)
-    public void hamletQuote() {
+    public void quoteHamlet() {
         try {
             String strObj = Input;
             String hamletQuote = faker.get(key).shakespeare().hamletQuote();
@@ -4891,7 +4891,7 @@ public class SyntheticDataGenerator extends Command {
     }
 
     @Action(object = ObjectType.DATA, desc = "Generate a random As You Like It quote", input = InputType.YES, condition = InputType.NO)
-    public void asYouLikeItQuote() {
+    public void quoteAsYouLikeIt() {
         try {
             String strObj = Input;
             String asYouLikeItQuote = faker.get(key).shakespeare().asYouLikeItQuote();
@@ -4906,7 +4906,7 @@ public class SyntheticDataGenerator extends Command {
     }
 
     @Action(object = ObjectType.DATA, desc = "Generate a random King Richard III quote", input = InputType.YES, condition = InputType.NO)
-    public void kingRichardQuote() {
+    public void quoteKingRichard() {
         try {
             String strObj = Input;
             String kingRichardQuote = faker.get(key).shakespeare().kingRichardIIIQuote();
@@ -4921,7 +4921,7 @@ public class SyntheticDataGenerator extends Command {
     }
 
     @Action(object = ObjectType.DATA, desc = "Generate a random Romeo and Juliet quote", input = InputType.YES, condition = InputType.NO)
-    public void romeoAndJulietQuote() {
+    public void quoteRomeoAndJuliet() {
         try {
             String strObj = Input;
             String romeoAndJulietQuote = faker.get(key).shakespeare().romeoAndJulietQuote();
@@ -5266,7 +5266,7 @@ public class SyntheticDataGenerator extends Command {
     }
 
     @Action(object = ObjectType.DATA, desc = "Generate a random Star Trek character name", input = InputType.YES, condition = InputType.NO)
-    public void starTrekCharacter() {
+    public void characterStarTrek() {
         try {
             String strObj = Input;
             String character = faker.get(key).starTrek().character();
@@ -5281,7 +5281,7 @@ public class SyntheticDataGenerator extends Command {
     }
 
     @Action(object = ObjectType.DATA, desc = "Generate a random Star Trek location", input = InputType.YES, condition = InputType.NO)
-    public void starTrekLocation() {
+    public void locationStarTrek() {
         try {
             String strObj = Input;
             String location = faker.get(key).starTrek().location();
@@ -5296,7 +5296,7 @@ public class SyntheticDataGenerator extends Command {
     }
 
     @Action(object = ObjectType.DATA, desc = "Generate a random Star Trek species", input = InputType.YES, condition = InputType.NO)
-    public void starTrekSpecies() {
+    public void specieStarTrek() {
         try {
             String strObj = Input;
             String species = faker.get(key).starTrek().specie();
@@ -5311,7 +5311,7 @@ public class SyntheticDataGenerator extends Command {
     }
 
     @Action(object = ObjectType.DATA, desc = "Generate a random Star Trek villain", input = InputType.YES, condition = InputType.NO)
-    public void starTrekVillain() {
+    public void villainStarTrek() {
         try {
             String strObj = Input;
             String villain = faker.get(key).starTrek().villain();
@@ -5491,7 +5491,7 @@ public class SyntheticDataGenerator extends Command {
     }
 
     @Action(object = ObjectType.DATA, desc = "Generate a random Twin Peaks character", input = InputType.YES, condition = InputType.NO)
-    public void twinPeaksCharacter() {
+    public void characterTwinPeaks() {
         try {
             String strObj = Input;
             String character = faker.get(key).twinPeaks().character();
@@ -5506,7 +5506,7 @@ public class SyntheticDataGenerator extends Command {
     }
 
     @Action(object = ObjectType.DATA, desc = "Generate a random Twin Peaks location", input = InputType.YES, condition = InputType.NO)
-    public void twinPeaksLocation() {
+    public void locationTwinPeaks() {
         try {
             String strObj = Input;
             String location = faker.get(key).twinPeaks().location();
@@ -5521,7 +5521,7 @@ public class SyntheticDataGenerator extends Command {
     }
 
     @Action(object = ObjectType.DATA, desc = "Generate a random Twin Peaks quote", input = InputType.YES, condition = InputType.NO)
-    public void twinPeaksQuote() {
+    public void quoteTwinPeaks() {
         try {
             String strObj = Input;
             String quote = faker.get(key).twinPeaks().quote();
@@ -5664,7 +5664,7 @@ public class SyntheticDataGenerator extends Command {
     }
 
     @Action(object = ObjectType.DATA, desc = "Generate a random Witcher character", input = InputType.YES, condition = InputType.NO)
-    public void witcherCharacter() {
+    public void characterWitcher() {
         try {
             String strObj = Input;
             String character = faker.get(key).witcher().character();
@@ -5679,7 +5679,7 @@ public class SyntheticDataGenerator extends Command {
     }
 
     @Action(object = ObjectType.DATA, desc = "Generate a random Witcher location", input = InputType.YES, condition = InputType.NO)
-    public void witcherLocation() {
+    public void locationWitcher() {
         try {
             String strObj = Input;
             String location = faker.get(key).witcher().location();
@@ -5694,7 +5694,7 @@ public class SyntheticDataGenerator extends Command {
     }
 
     @Action(object = ObjectType.DATA, desc = "Generate a random Witcher quote", input = InputType.YES, condition = InputType.NO)
-    public void witcherQuote() {
+    public void quoteWitcher() {
         try {
             String strObj = Input;
             String quote = faker.get(key).witcher().quote();
@@ -5724,7 +5724,7 @@ public class SyntheticDataGenerator extends Command {
     }
 
     @Action(object = ObjectType.DATA, desc = "Generate a random Witcher monster", input = InputType.YES, condition = InputType.NO)
-    public void witcherMonster() {
+    public void monsterWitcher() {
         try {
             String strObj = Input;
             String monster = faker.get(key).witcher().monster();
@@ -5739,7 +5739,7 @@ public class SyntheticDataGenerator extends Command {
     }
 
     @Action(object = ObjectType.DATA, desc = "Generate a random Witcher school", input = InputType.YES, condition = InputType.NO)
-    public void witcherSchool() {
+    public void schoolWitcher() {
         try {
             String strObj = Input;
             String school = faker.get(key).witcher().school();
@@ -5754,7 +5754,7 @@ public class SyntheticDataGenerator extends Command {
     }
 
     @Action(object = ObjectType.DATA, desc = "Generate a random yoda Quote", input = InputType.YES, condition = InputType.NO)
-    public void yodaQuote() {
+    public void quoteYoda() {
         try {
             String strObj = Input;
             String quote = faker.get(key).yoda().quote();
@@ -5769,7 +5769,7 @@ public class SyntheticDataGenerator extends Command {
     }
 
     @Action(object = ObjectType.DATA, desc = "Generate a random Zelda character", input = InputType.YES, condition = InputType.NO)
-    public void zeldaCharacter() {
+    public void characterZelda() {
         try {
             String strObj = Input;
             String character = faker.get(key).zelda().character();
@@ -5784,7 +5784,7 @@ public class SyntheticDataGenerator extends Command {
     }
 
     @Action(object = ObjectType.DATA, desc = "Generate a random Zelda game", input = InputType.YES, condition = InputType.NO)
-    public void zeldaGame() {
+    public void gameZelda() {
         try {
             String strObj = Input;
             String game = faker.get(key).zelda().game();
@@ -5802,7 +5802,7 @@ public class SyntheticDataGenerator extends Command {
     public void expression() {
         try {
             String strObj = Input;
-            String expression = Condition.split(":", 1)[0];
+            String expression = Condition;
             String evaluated = faker.get(key).expression(expression);
             Report.updateTestLog(Action, "Generated data: " + evaluated, Status.DONE);
             String sheetName = strObj.split(":", 2)[0];
@@ -5818,7 +5818,7 @@ public class SyntheticDataGenerator extends Command {
     public void bothify() {
         try {
             String strObj = Input;
-            String pattern = Condition.split(":", 1)[0];
+            String pattern = Condition;
             String evaluated = faker.get(key).bothify(pattern);
             Report.updateTestLog(Action, "Generated data: " + evaluated, Status.DONE);
             String sheetName = strObj.split(":", 2)[0];
@@ -5834,7 +5834,7 @@ public class SyntheticDataGenerator extends Command {
     public void bothifyWithUpper() {
         try {
             String strObj = Input;
-            String pattern = Condition.split(":", 1)[0];
+            String pattern = Condition;
             boolean isUpper = true;
             String evaluated = faker.get(key).bothify(pattern, isUpper);
             Report.updateTestLog(Action, "Generated data: " + evaluated, Status.DONE);
@@ -5851,7 +5851,7 @@ public class SyntheticDataGenerator extends Command {
     public void letterify() {
         try {
             String strObj = Input;
-            String pattern = Condition.split(":", 1)[0];
+            String pattern = Condition;
             String evaluated = faker.get(key).letterify(pattern);
             Report.updateTestLog(Action, "Generated data: " + evaluated, Status.DONE);
             String sheetName = strObj.split(":", 2)[0];
@@ -5867,7 +5867,7 @@ public class SyntheticDataGenerator extends Command {
     public void letterifyWithUpper() {
         try {
             String strObj = Input;
-            String pattern = Condition.split(":", 1)[0];
+            String pattern = Condition;
             boolean isUpper = true;
             String evaluated = faker.get(key).letterify(pattern, isUpper);
             Report.updateTestLog(Action, "Generated data: " + evaluated, Status.DONE);
@@ -5884,7 +5884,7 @@ public class SyntheticDataGenerator extends Command {
     public void numerify() {
         try {
             String strObj = Input;
-            String pattern = Condition.split(":", 1)[0];
+            String pattern = Condition;
             String evaluated = faker.get(key).numerify(pattern);
             Report.updateTestLog(Action, "Generated data: " + evaluated, Status.DONE);
             String sheetName = strObj.split(":", 2)[0];
@@ -5900,7 +5900,7 @@ public class SyntheticDataGenerator extends Command {
     public void regexify() {
         try {
             String strObj = Input;
-            String pattern = Condition.split(":", 1)[0];
+            String pattern = Condition;
             String evaluated = faker.get(key).regexify(pattern);
             Report.updateTestLog(Action, "Generated data: " + evaluated, Status.DONE);
             String sheetName = strObj.split(":", 2)[0];

@@ -140,10 +140,10 @@ public class PlaywrightDriverFactory {
                     launchOptions.setDevtools((boolean) getPropertyValueAsDesiredType(value));
                 }
                 if (key.toLowerCase().contains("setdownloadspath")) {
-                    launchOptions.setDownloadsPath((Path) getPropertyValueAsDesiredType(value));
+                    launchOptions.setDownloadsPath(Paths.get((String) getPropertyValueAsDesiredType(value)));
                 }
                 if (key.toLowerCase().contains("setexecutablepath")) {
-                    launchOptions.setExecutablePath((Path) getPropertyValueAsDesiredType(value));
+                    launchOptions.setExecutablePath(Paths.get((String) getPropertyValueAsDesiredType(value)));
                 }
                 if (key.toLowerCase().contains("settimeout")) {
                     launchOptions.setTimeout((double) getPropertyValueAsDesiredType(value));

@@ -8,9 +8,9 @@ import com.ing.engine.support.methodInf.Action;
 import com.ing.engine.support.methodInf.InputType;
 import com.ing.engine.support.methodInf.ObjectType;
 import com.jayway.jsonpath.JsonPath;
-import io.confluent.kafka.serializers.KafkaAvroDeserializer;
-import io.confluent.kafka.serializers.KafkaAvroDeserializerConfig;
-import io.confluent.kafka.serializers.KafkaAvroSerializer;
+//import io.confluent.kafka.serializers.KafkaAvroDeserializer;
+//import io.confluent.kafka.serializers.KafkaAvroDeserializerConfig;
+//import io.confluent.kafka.serializers.KafkaAvroSerializer;
 
 import java.time.Duration;
 import java.util.*;
@@ -296,8 +296,8 @@ public class KafkaOperations extends General {
         } else if (serializer.toLowerCase().contains("bytearray")) {
             props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, ByteArraySerializer.class.getName());
         } else if (serializer.toLowerCase().contains("avro")) {
-            props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, KafkaAvroSerializer.class.getName());
-            props.put("schema.registry.url", kafkaSchemaRegistryURL.get(key));
+           // props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, KafkaAvroSerializer.class.getName());
+           // props.put("schema.registry.url", kafkaSchemaRegistryURL.get(key));
         } else {
             throw new IllegalArgumentException("Unsupported value type");
         }
@@ -384,9 +384,9 @@ public class KafkaOperations extends General {
         } else if (deserializer.toLowerCase().contains("bytearray")) {
             props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, ByteArrayDeserializer.class.getName());
         } else if (deserializer.toLowerCase().contains("avro")) {
-            props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, KafkaAvroDeserializer.class.getName());
-            props.put(KafkaAvroDeserializerConfig.SPECIFIC_AVRO_READER_CONFIG, "true");
-            props.put("schema.registry.url", kafkaSchemaRegistryURL.get(key));
+           // props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, KafkaAvroDeserializer.class.getName());
+           // props.put(KafkaAvroDeserializerConfig.SPECIFIC_AVRO_READER_CONFIG, "true");
+           // props.put("schema.registry.url", kafkaSchemaRegistryURL.get(key));
         } else {
             throw new IllegalArgumentException("Unsupported value type");
         }
