@@ -9,13 +9,13 @@
     </parent>
     <artifactId>Common</artifactId>
     <properties>
-        <file.path.target.POM>${project.parent.basedir}\Resources\Engine\pom.xml</file.path.target.POM>
-        <file.path.source.POM>${project.parent.basedir}\pom.xml</file.path.source.POM>
-        <file.path.storyWriter.POM>${project.parent.basedir}\StoryWriter\pom.xml</file.path.storyWriter.POM>
-        <file.path.datalib.POM>${project.parent.basedir}\Datalib\pom.xml</file.path.datalib.POM>
-        <file.path.testdata.POM>${project.parent.basedir}\TestData - Csv\pom.xml</file.path.testdata.POM>
-        <file.path.engine.POM>${project.parent.basedir}\Engine\pom.xml</file.path.engine.POM>
-        <file.path.ide.POM>${project.parent.basedir}\IDE\pom.xml</file.path.ide.POM>
+        <file.path.target.POM>${project.parent.basedir}${file.separator}Resources${file.separator}Engine${file.separator}pom.xml</file.path.target.POM>
+        <file.path.source.POM>${project.parent.basedir}${file.separator}pom.xml</file.path.source.POM>
+        <file.path.storyWriter.POM>${project.parent.basedir}${file.separator}StoryWriter${file.separator}pom.xml</file.path.storyWriter.POM>
+        <file.path.datalib.POM>${project.parent.basedir}${file.separator}Datalib${file.separator}pom.xml</file.path.datalib.POM>
+        <file.path.testdata.POM>${project.parent.basedir}${file.separator}TestData - Csv${file.separator}pom.xml</file.path.testdata.POM>
+        <file.path.engine.POM>${project.parent.basedir}${file.separator}Engine${file.separator}pom.xml</file.path.engine.POM>
+        <file.path.ide.POM>${project.parent.basedir}${file.separator}IDE${file.separator}pom.xml</file.path.ide.POM>
         
     </properties>
     <build>
