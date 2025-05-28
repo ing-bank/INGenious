@@ -5,7 +5,7 @@
     <parent>
         <groupId>com.ing</groupId>
         <artifactId>ingenious-playwright</artifactId>
-        <version>2.1</version>
+        <version>2.2</version>
     </parent>
     <artifactId>ingenious-engine</artifactId>
     <packaging>jar</packaging>
@@ -256,14 +256,15 @@
             <version>${ibmmq.version}</version>
         </dependency>
     </dependencies>
-<!-- 
+
     <repositories>
-        <repository>
+    <!--     <repository>
             <id>confluent</id>
             <url>https://packages.confluent.io/maven/</url>
         </repository>
+    -->
     </repositories>
--->
+
     <build>
         <resources>
             <resource>
@@ -372,7 +373,6 @@
                         </goals>
                         <configuration>
                             <outputDirectory>${setupDir}/Engine/src</outputDirectory>
-                            <overWriteIfNewer>true</overWriteIfNewer>
                             <resources> 
                                 <resource>
                                     <directory>${project.basedir}/src</directory>
@@ -388,7 +388,6 @@
                         </goals>
                         <configuration>
                             <outputDirectory>${setupDir}/Engine</outputDirectory>
-                            <overWriteIfNewer>true</overWriteIfNewer>
                             <resources>        
                                 <resource>
                                     <directory>${project.basedir}</directory>
