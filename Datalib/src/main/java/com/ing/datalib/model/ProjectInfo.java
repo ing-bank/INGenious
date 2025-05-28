@@ -178,7 +178,6 @@ public class ProjectInfo {
         p.setTags(new ArrayList<>());
         p.setMeta(Meta.def());
         p.setData(new ArrayList<>());
-        p.setVersion("1.3");
         return p;
     }
 

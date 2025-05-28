@@ -54,6 +54,25 @@ public class RequestFulfill extends Command {
         }
     }
 
+    @Action(object = ObjectType.BROWSER, desc = "Block Request", input = InputType.NO)
+    public void RouteAbort() {
+        try {
+            Page.route(mockEndPoints.get(key), route -> {
+                try {
+                    route.abort();
+                    Report.updateTestLog(Action, "Route Aborted", Status.DONE);
+                } catch (Exception ex) {
+
+                    Logger.getLogger(RequestFulfill.class.getName()).log(Level.SEVERE, null, ex);
+                }
+            });
+        } catch (Exception ex) {
+            Logger.getLogger(this.getClass().getName()).log(Level.OFF, null, ex);
+            Report.updateTestLog(Action, "Error while aborting the Route :" + "\n" + ex.getMessage(), Status.DEBUG);
+            throw new ActionException(ex);
+        }
+    }
+
     private String handlePayloadorEndpoint(String data) throws FileNotFoundException {
         String payloadstring = data;
         payloadstring = handleDataSheetVariables(payloadstring);

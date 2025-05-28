@@ -25,6 +25,7 @@ import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
 public class createParentPOM {
+
     public static void main(String[] args) {
         try {
             // Get target pom and source pom for properties
@@ -42,29 +43,28 @@ public class createParentPOM {
             // Create a new document for the target pom.xml file
             Document targetDocument = createTargetDocument(targetPath);
 
-            // Remove content under dependencies and Repositories tag from target document
-            removeExistingDependencies(targetDocument);
-            removeExistingRepositories(targetDocument);
-            removeExistingPluginRepositories(targetDocument);
- 
+            System.out.println("TargetPath = " + targetPath);
+            // Remove content under dependencies,repositories and pluginRepositories tag from target document
+            removeExisting(targetDocument,"dependencies");
+            removeExisting(targetDocument,"repositories");
+            removeExisting(targetDocument,"pluginRepositories");
 
             // Copy dependencies from modules pom to target pom
             for (int i = 2; i < args.length; i++) {
                 String sourcePath = args[i];
-                System.out.println("------------"+sourcePath);
+                System.out.println("------------" + sourcePath);
                 Document sourceDocument = createSourceDocument(sourcePath);
 
                 // Copy repositories and pluginRepositories
                 if (args[i].contains("Engine")) {
-                    //copyRepositories(sourceDocument, targetDocument);
-                    //removeDuplicateRepositories(targetDocument);
-                    copyPluginRepositories(sourceDocument,targetDocument);
-                    removeDuplicatePluginRepositories(targetDocument);
+                    copyChilds(sourceDocument, targetDocument,"repositories");
+                    //removeDuplicates(targetDocument,"repositories","repository");
+                    copyChilds(sourceDocument, targetDocument,"pluginRepositories");
+                    //removeDuplicates(targetDocument,"pluginRepositories","pluginRepository");
                 }
-
                 // Copy dependencies
-                copyDependencies(sourceDocument, targetDocument);
-                removeDuplicateDependencies(targetDocument);
+                copyChilds(sourceDocument, targetDocument,"dependencies");
+                removeDuplicates(targetDocument,"dependencies","dependency");
 
                 // Remove engine artifact
                 removeEngineArtifact(targetDocument);
@@ -100,8 +100,8 @@ public class createParentPOM {
         return document.parse(sourcePomPath);
     }
 
-    private static void removeExistingDependencies(Document targetDocument) {
-        NodeList dependencyList = targetDocument.getElementsByTagName("dependencies");
+    private static void removeExisting(Document targetDocument,String tagName) {
+        NodeList dependencyList = targetDocument.getElementsByTagName(tagName);
         if (dependencyList.getLength() > 0) {
             Node dependenciesNode = dependencyList.item(0);
             while (dependenciesNode.hasChildNodes()) {
@@ -109,28 +109,12 @@ public class createParentPOM {
             }
         }
     }
-    
-    private static void copyPluginRepositories(Document sourceDocument, Document targetDocument) {
-        Node sourcePluginRepositoriesNode = getPluginRepositoriesNode(sourceDocument);
-        Node targetPluginRepositoriesNode = getPluginRepositoriesNode(targetDocument);
-        if (sourcePluginRepositoriesNode != null && targetPluginRepositoriesNode != null) {
-            copyNodes(sourcePluginRepositoriesNode, targetPluginRepositoriesNode, targetDocument);
-        }
-    }
 
-    private static void copyRepositories(Document sourceDocument, Document targetDocument) {
-        Node sourceRepositoriesNode = getRepositoriesNode(sourceDocument);
-        Node targetRepositoriesNode = getRepositoriesNode(targetDocument);
-        if (sourceRepositoriesNode != null && targetRepositoriesNode != null) {
-            copyNodes(sourceRepositoriesNode, targetRepositoriesNode, targetDocument);
-        }
-    }
-
-    private static void copyDependencies(Document sourceDocument, Document targetDocument) {
-        Node sourceDependenciesNode = getDependenciesNode(sourceDocument);
-        Node targetDependenciesNode = getDependenciesNode(targetDocument);
-        if (sourceDependenciesNode != null && targetDependenciesNode != null) {
-            copyNodes(sourceDependenciesNode, targetDependenciesNode, targetDocument);
+    private static void copyChilds(Document sourceDocument, Document targetDocument,String tagName) {
+        Node sourceNode = getNodes(sourceDocument,tagName);
+        Node targetNode = getNodes(targetDocument,tagName);
+        if (sourceNode != null && targetNode != null) {
+            copyNodes(sourceNode, targetNode, targetDocument);
         }
     }
 
@@ -143,33 +127,13 @@ public class createParentPOM {
         }
     }
 
-    private static void removeDuplicateDependencies(Document targetDocument) {
-        Node dependenciesNode = getDependenciesNode(targetDocument);
+    private static void removeDuplicates(Document targetDocument, String tagName, String childTagName) {
+        Node dependenciesNode = getNodes(targetDocument,tagName);
         if (dependenciesNode != null) {
-            removeDuplicateNodes(dependenciesNode, "dependency");
-            System.out.println("Duplicate dependency removed successfully");
+            removeDuplicateNodes(dependenciesNode, childTagName);
+            System.out.println("Duplicate removed successfully");
         } else {
-            System.out.println("No <dependencies> section found.");
-        }
-    }
-
-    private static void removeDuplicateRepositories(Document targetDocument) {
-        Node repositoriesNode = getRepositoriesNode(targetDocument);
-        if (repositoriesNode != null) {
-            removeDuplicateNodes(repositoriesNode, "repository");
-            System.out.println("Duplicate repository removed successfully.");
-        } else {
-            System.out.println("No <repositories> section found.");
-        }
-    }
-    
-    private static void removeDuplicatePluginRepositories(Document targetDocument) {
-        Node pluginRepositoriesNode = getPluginRepositoriesNode(targetDocument);
-        if (pluginRepositoriesNode != null) {
-            removeDuplicateNodes(pluginRepositoriesNode, "pluginRepository");
-            System.out.println("Duplicate plugin repository removed successfully.");
-        } else {
-            System.out.println("No <pluginRepositories> section found.");
+            System.out.println("No section found.");
         }
     }
 
@@ -214,18 +178,8 @@ public class createParentPOM {
         }
     }
 
-    private static Node getDependenciesNode(Document doc) {
-        NodeList nodeList = doc.getElementsByTagName("dependencies");
-        return nodeList.getLength() > 0 ? nodeList.item(0) : null;
-    }
-
-    private static Node getRepositoriesNode(Document doc) {
-        NodeList nodeList = doc.getElementsByTagName("repositories");
-        return nodeList.getLength() > 0 ? nodeList.item(0) : null;
-    }
-    
-    private static Node getPluginRepositoriesNode(Document doc) {
-        NodeList nodeList = doc.getElementsByTagName("pluginRepositories");
+    private static Node getNodes(Document doc, String tagName) {
+        NodeList nodeList = doc.getElementsByTagName(tagName);
         return nodeList.getLength() > 0 ? nodeList.item(0) : null;
     }
 
@@ -236,23 +190,5 @@ public class createParentPOM {
         StreamResult streamResult = new StreamResult(file);
         transformer.transform(domSource, streamResult);
     }
-    
-    private static void removeExistingRepositories(Document targetDocument) {
-        NodeList dependencyList = targetDocument.getElementsByTagName("repositories");
-        if (dependencyList.getLength() > 0) {
-            Node dependenciesNode = dependencyList.item(0);
-            while (dependenciesNode.hasChildNodes()) {
-                dependenciesNode.removeChild(dependenciesNode.getFirstChild());
-            }
-        }
-    }
-    private static void removeExistingPluginRepositories(Document targetDocument) {
-        NodeList dependencyList = targetDocument.getElementsByTagName("pluginRepositories");
-        if (dependencyList.getLength() > 0) {
-            Node dependenciesNode = dependencyList.item(0);
-            while (dependenciesNode.hasChildNodes()) {
-                dependenciesNode.removeChild(dependenciesNode.getFirstChild());
-            }
-        }
-    }
+
 }
