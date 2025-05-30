@@ -1,7 +1,7 @@
 # INGenious Playwright Studio - Test Automation for Everyone
 
 [![Build INGenious Source Code](https://github.com/ing-bank/INGenious/actions/workflows/maven.yml/badge.svg)](https://github.com/ing-bank/INGenious/actions/workflows/maven.yml)
-![Static Badge](https://img.shields.io/badge/Version-2.1-%23FF6200)
+![Static Badge](https://img.shields.io/badge/Version-2.2-%23FF6200)
 
 --------------------------------------------------------------------
 
@@ -9,7 +9,7 @@
 
 
 
-Developed and perfected by <span style="color:#FF6200;width:100px">**ING Bank**</span> for over 4 years of real-world usage, **INGenious** is now open-source and available to everyone. Designed to simplify and streamline test automation, this robust solution empowers teams of all sizes to achieve efficient, high-quality testing. By joining the global testing community, ING aims to collaborate, innovate, and elevate automated testing together.
+Developed and perfected by <span style="color:#FF6200;width:100px">**ING Bank**</span> for over 5 years of real-world usage, **INGenious** is now open-source and available to everyone. Designed to simplify and streamline test automation, this robust solution empowers teams of all sizes to achieve efficient, high-quality testing. By joining the global testing community, ING aims to collaborate, innovate, and elevate automated testing together.
 
 > [!NOTE]
 > It provides an easy and simple way to create highly reliable automated tests. It leverages the power of __Playwright-Java__ and combines it with a user-friendly IDE which makes it a highly effective solution. 

@@ -170,7 +170,7 @@ public class Basic extends MobileGeneral {
 
     private void setPageTimeOut(int sec) {
         try {
-            mDriver.manage().timeouts().pageLoadTimeout(sec, TimeUnit.SECONDS);
+            mDriver.manage().timeouts().pageLoadTimeout(Duration.ofSeconds(sec));
         } catch (Exception ex) {
             System.out.println("Couldn't set PageTimeOut to " + sec);
         }

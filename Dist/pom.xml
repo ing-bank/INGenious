@@ -4,7 +4,7 @@
     <parent>
         <groupId>com.ing</groupId>
         <artifactId>ingenious-playwright</artifactId>
-        <version>2.1</version>
+        <version>2.2</version>
     </parent>
     <artifactId>Dist</artifactId>
     <packaging>pom</packaging>
@@ -76,6 +76,45 @@
                         <goals>
                             <goal>single</goal>
                         </goals>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <artifactId>maven-resources-plugin</artifactId>
+                <version>3.0.2</version>
+                <executions>
+                    <execution>
+                        <id>copy-resources</id>
+                        <phase>install</phase>
+                        <goals>
+                            <goal>copy-resources</goal>
+                        </goals>
+                        <configuration>
+                            <outputDirectory>${setupDir}</outputDirectory>
+                            <includeEmptyDirs>true</includeEmptyDirs>
+                            <resources>
+                                <resource>
+                                    <directory>${resourceDir}</directory>
+                                    <filtering>true</filtering>
+                                    <includes>
+                                        <include>**/*.bat</include>
+                                        <include>**/*.command</include>
+                                        <include>**/*.txt</include>
+                                        <include>**/*.md</include>
+                                    </includes>
+                                </resource>
+                                <resource>
+                                    <directory>${resourceDir}</directory>
+                                    <filtering>false</filtering>
+                                    <excludes>
+                                        <exclude>**/*.bat</exclude>
+                                        <exclude>**/*.command</exclude>
+                                        <exclude>**/*.txt</exclude>
+                                        <exclude>**/*.md</exclude>
+                                    </excludes>
+                                </resource>
+                            </resources>
+                        </configuration>
                     </execution>
                 </executions>
             </plugin>
