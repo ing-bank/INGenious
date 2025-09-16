@@ -15,16 +15,20 @@
         <app.root>../</app.root>
     </properties>
     <dependencies> 
+        <!-- Dependency for kafka -->
+<!--
         <dependency>
-            <groupId>org.apache.kafka</groupId>
-            <artifactId>kafka-clients</artifactId>
-            <version>${kafka-clients.version}</version>
-        </dependency>
-        <dependency>
-            <groupId>io.confluent</groupId>
-            <artifactId>kafka-avro-serializer</artifactId>
-            <version>${kafka-avro-serializer.version}</version>
-        </dependency>
+            <groupId>com.ing.apisdk</groupId>
+            <artifactId>toolkit-connectivity-kafka-avro-serialization_2.13</artifactId>
+            <version>28.2.2</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.glassfish.jersey.core</groupId>
+                    <artifactId>jersey-common</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>    
+--> 
         <dependency>
             <groupId>com.ing</groupId>
             <artifactId>ingenious-testdata-csv</artifactId>
@@ -331,12 +335,22 @@
           <version>LATEST</version>
         </dependency>
     </dependencies>
+    
+            <!-- Repository for kafka -->
+<!--
     <repositories>
-      <repository>
-            <id>confluent</id>
-            <url>https://packages.confluent.io/maven/</url>
+        <repository>
+        <id>P00869-APISDK-releases</id>
+        <url>https://pkgs.dev.azure.com/INGCDaaS/IngOne/_packaging/P00869-APISDK-releases/maven/v1</url>
+        <releases>
+            <enabled>true</enabled>
+        </releases>
+        <snapshots>
+            <enabled>true</enabled>
+        </snapshots>
         </repository>
     </repositories>
+--> 
     <build>
         <resources>
             <resource>

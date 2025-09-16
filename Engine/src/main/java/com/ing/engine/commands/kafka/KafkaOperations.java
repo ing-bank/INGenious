@@ -1,5 +1,5 @@
 package com.ing.engine.commands.kafka;
-
+/*
 import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -61,6 +61,9 @@ import org.w3c.dom.Document;
 import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
+import com.ing.apisdk.toolkit.connectivity.kafka.avro.serde.EncryptingKafkaPayloadAvroSerializer;
+import com.ing.apisdk.toolkit.connectivity.kafka.avro.serde.DecryptingKafkaPayloadAvroDeserializer;
+import com.ing.apisdk.toolkit.connectivity.kafka.avro.serde.EncryptionAwareSerDeConfig;
 public class KafkaOperations extends General {
 
 private final static ObjectMapper mapper = new ObjectMapper();
@@ -334,7 +337,7 @@ private final static ObjectMapper mapper = new ObjectMapper();
             value = handleuserDefinedVariables(value);
             System.out.println("\n Generated Record is : \n " + value + "\n");
             kafkaValue.put(key, value);
-            if (kafkaValueSerializer.get(key).equals("avro")) {
+            if (kafkaValueSerializer.get(key).equals("avro") || kafkaValueSerializer.get(key).equals("apisdk")) {
                 getAvroCompatibleMessage();
                 kafkaValue.put(key, kafkaAvroCompatibleMessage.get(key));
                 produceGenericRecord(kafkaValue.get(key));
@@ -423,6 +426,13 @@ private final static ObjectMapper mapper = new ObjectMapper();
             props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, StringSerializer.class.getName());
         } else if (serializer.toLowerCase().contains("bytearray")) {
             props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, ByteArraySerializer.class.getName());
+        } else if (serializer.toLowerCase().contains("apisdk")) {
+            props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, EncryptingKafkaPayloadAvroSerializer.class.getName());
+            props.put(EncryptionAwareSerDeConfig.SHARED_SECRET_CONFIG, kafkaSharedSecret.get(key));
+            props.put("schema.registry.url", kafkaSchemaRegistryURL.get(key));
+            if (kafkaAutoRegisterSchemas.get(key) != null) {
+                props.put("auto.register.schemas", kafkaAutoRegisterSchemas.get(key));
+            }
         } else if (serializer.toLowerCase().contains("avro")) {
             props.put(ProducerConfig.VALUE_SERIALIZER_CLASS_CONFIG, KafkaAvroSerializer.class.getName());
             props.put("schema.registry.url", kafkaSchemaRegistryURL.get(key));
@@ -526,10 +536,16 @@ private final static ObjectMapper mapper = new ObjectMapper();
             if (kafkaConsumerMaxPollRecords.get(key) != null) {
                 props.put("max.poll.records", kafkaConsumerMaxPollRecords.get(key));
             }
+
             if (deserializer.toLowerCase().contains("string")) {
                 props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, StringDeserializer.class.getName());
             } else if (deserializer.toLowerCase().contains("bytearray")) {
                 props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, ByteArrayDeserializer.class.getName());
+            } else if (deserializer.toLowerCase().contains("apisdk")) {
+                props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, DecryptingKafkaPayloadAvroDeserializer.class.getName());
+                props.put(EncryptionAwareSerDeConfig.SHARED_SECRET_CONFIG, kafkaSharedSecret.get(key));
+                props.put(KafkaAvroDeserializerConfig.SPECIFIC_AVRO_READER_CONFIG, "false");
+                props.put("schema.registry.url", kafkaSchemaRegistryURL.get(key));
             } else if (deserializer.toLowerCase().contains("avro")) {
                 props.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG, KafkaAvroDeserializer.class.getName());
                 props.put(KafkaAvroDeserializerConfig.SPECIFIC_AVRO_READER_CONFIG, "false");
@@ -1121,3 +1137,6 @@ private final static ObjectMapper mapper = new ObjectMapper();
         }
     }
 }
+
+
+*/

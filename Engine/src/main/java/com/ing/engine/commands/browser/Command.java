@@ -35,6 +35,7 @@ import javax.jms.TextMessage;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 
+/*
 import org.apache.kafka.common.header.Header;
 import org.apache.avro.Schema;
 import org.apache.avro.generic.GenericRecord;
@@ -42,6 +43,8 @@ import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerRecord;
+
+*/
 
 public class Command {
 
@@ -142,6 +145,7 @@ public class Command {
      * *** Kafka Parameters ****
      */
     
+    /*
     static public Map<String, List<Header>> kafkaHeaders = new HashMap<>();
     static public Map<String, String> kafkaProducerTopic = new HashMap<>();
     static public Map<String, String> kafkaConsumerTopic = new HashMap<>();
@@ -180,6 +184,9 @@ public class Command {
     static public Map<String, KafkaProducer> kafkaProducer = new HashMap<>();
     static public Map<String, KafkaConsumer> kafkaConsumer = new HashMap<>();       
 
+     */
+    
+    
     public Command(CommandControl cc) {
         Commander = cc;
         if (Commander.webDriver != null) {
