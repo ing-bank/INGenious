@@ -1,0 +1,13 @@
+Step,ObjectName,Description,Action,Input,Condition,Reference
+1,Payments,"Click the [<Object>] ",Click,,,MING_New Transfer
+2,New transfer,"Click the [<Object>] ",Click,,,MING_New Transfer
+3,Open your address book,"Click the [<Object>] ",Click,,,MING_New Transfer
+4,Beneficiary,Set object [<Object>] property  as [<Data>] at runtime,setObjectProperty,MoveMoney:Beneficiary,"#beneficiary",MING_New Transfer
+5,Beneficiary,"Click the [<Object>] ",Click,,,MING_New Transfer
+6,Amount,Enter the value [<Data>] in the Field [<Object>],Fill,MoveMoney:Amount,,MING_New Transfer
+7,Free Description,Enter the value [<Data>] in the Field [<Object>],Fill,MoveMoney:Description,,MING_New Transfer
+8,Submit,"Click the [<Object>] ",Click,,,MING_New Transfer
+//9,Success Message,Assert if [<Object>] has text [<Data>],waitForElementToBeVisible,,,MING_New Transfer
+//10,Success Message,Assert if [<Object>] is visible,assertElementIsVisible,,,MING_New Transfer
+11,Transaction Pending,Assert if [<Object>] has text [<Data>],waitForElementToBeVisible,,,MING_New Transfer
+12,Transaction Pending,Assert if [<Object>] is visible,assertElementIsVisible,,,MING_New Transfer

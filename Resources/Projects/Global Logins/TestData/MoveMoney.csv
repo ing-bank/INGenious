@@ -1,0 +1,2 @@
+Scenario,Flow,Iteration,SubIteration,Beneficiary,Amount,Description
+MING Operations,GUI_Validate User is able to create a New Transfer,1,1,S 131-00016 Oranje spaarrekening,0.01,Test Payment

@@ -1,0 +1,2 @@
+Scenario,Flow,Iteration,SubIteration,corporateKey,issuer,type,level_of_assurance,Url,Branch
+GUI Login,IRIS,1,1,YG81CB,api.accp.iris.ing.net,employee,5,https://accp.iris.ing.net/assisted/dashboard/home,Delft

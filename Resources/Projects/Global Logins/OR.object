@@ -1,0 +1,486 @@
+<Root type="OR" ref="Global Logins">
+  <Page title="" ref="IRIS">
+    <ObjectGroup ref="My service requests">
+      <Object frame="" ref="My service requests">
+        <Property value="Button;My service requests" ref="Role" pref="1"/>
+        <Property value="" ref="Text" pref="2"/>
+        <Property value="" ref="Label" pref="3"/>
+        <Property value="" ref="Placeholder" pref="4"/>
+        <Property value="" ref="xpath" pref="5"/>
+        <Property value="" ref="css" pref="6"/>
+        <Property value="" ref="AltText" pref="7"/>
+        <Property value="" ref="Title" pref="8"/>
+        <Property value="" ref="TestId" pref="9"/>
+        <Property value="" ref="ChainedLocator" pref="10"/>
+      </Object>
+    </ObjectGroup>
+    <ObjectGroup ref="Status">
+      <Object frame="" ref="Status">
+        <Property value="Button;Status" ref="Role" pref="1"/>
+        <Property value="" ref="Text" pref="2"/>
+        <Property value="" ref="Label" pref="3"/>
+        <Property value="" ref="Placeholder" pref="4"/>
+        <Property value="" ref="xpath" pref="5"/>
+        <Property value="" ref="css" pref="6"/>
+        <Property value="" ref="AltText" pref="7"/>
+        <Property value="" ref="Title" pref="8"/>
+        <Property value="" ref="TestId" pref="9"/>
+        <Property value="" ref="ChainedLocator" pref="10"/>
+      </Object>
+    </ObjectGroup>
+    <ObjectGroup ref="Finish Request Checkbox">
+      <Object frame="" ref="Finish Request Checkbox">
+        <Property value="checkbox;Finish request" ref="Role" pref="1"/>
+        <Property value="" ref="Text" pref="2"/>
+        <Property value="" ref="Label" pref="3"/>
+        <Property value="" ref="Placeholder" pref="4"/>
+        <Property value="" ref="xpath" pref="5"/>
+        <Property value="" ref="css" pref="6"/>
+        <Property value="" ref="AltText" pref="7"/>
+        <Property value="" ref="Title" pref="8"/>
+        <Property value="" ref="TestId" pref="9"/>
+        <Property value="" ref="ChainedLocator" pref="10"/>
+      </Object>
+    </ObjectGroup>
+    <ObjectGroup ref="Apply">
+      <Object frame="" ref="Apply">
+        <Property value="Button;Apply" ref="Role" pref="1"/>
+        <Property value="" ref="Text" pref="2"/>
+        <Property value="" ref="Label" pref="3"/>
+        <Property value="" ref="Placeholder" pref="4"/>
+        <Property value="" ref="xpath" pref="5"/>
+        <Property value="" ref="css" pref="6"/>
+        <Property value="" ref="AltText" pref="7"/>
+        <Property value="" ref="Title" pref="8"/>
+        <Property value="" ref="TestId" pref="9"/>
+        <Property value="" ref="ChainedLocator" pref="10"/>
+      </Object>
+    </ObjectGroup>
+    <ObjectGroup ref="Filter Status Tag">
+      <Object frame="" ref="Filter Status Tag">
+        <Property value="Button;Status: Finish request" ref="Role" pref="1"/>
+        <Property value="" ref="Text" pref="2"/>
+        <Property value="" ref="Label" pref="3"/>
+        <Property value="" ref="Placeholder" pref="4"/>
+        <Property value="" ref="xpath" pref="5"/>
+        <Property value="" ref="css" pref="6"/>
+        <Property value="" ref="AltText" pref="7"/>
+        <Property value="" ref="Title" pref="8"/>
+        <Property value="" ref="TestId" pref="9"/>
+        <Property value="" ref="ChainedLocator" pref="10"/>
+      </Object>
+    </ObjectGroup>
+    <ObjectGroup ref="Where do you work today">
+      <Object frame="" ref="Where do you work today">
+        <Property value="TEXTBOX;Branch:" ref="Role" pref="1"/>
+        <Property value="" ref="Text" pref="2"/>
+        <Property value="" ref="Label" pref="3"/>
+        <Property value="" ref="Placeholder" pref="4"/>
+        <Property value="" ref="xpath" pref="5"/>
+        <Property value="" ref="css" pref="6"/>
+        <Property value="" ref="AltText" pref="7"/>
+        <Property value="" ref="Title" pref="8"/>
+        <Property value="" ref="TestId" pref="9"/>
+        <Property value="" ref="ChainedLocator" pref="10"/>
+      </Object>
+    </ObjectGroup>
+    <ObjectGroup ref="Confirm">
+      <Object frame="" ref="Confirm">
+        <Property value="Button;Confirm" ref="Role" pref="1"/>
+        <Property value="" ref="Text" pref="2"/>
+        <Property value="" ref="Label" pref="3"/>
+        <Property value="" ref="Placeholder" pref="4"/>
+        <Property value="" ref="xpath" pref="5"/>
+        <Property value="" ref="css" pref="6"/>
+        <Property value="" ref="AltText" pref="7"/>
+        <Property value="" ref="Title" pref="8"/>
+        <Property value="" ref="TestId" pref="9"/>
+        <Property value="" ref="ChainedLocator" pref="10"/>
+      </Object>
+    </ObjectGroup>
+    <ObjectGroup ref="Branch">
+      <Object frame="" ref="Branch">
+        <Property value="" ref="Role" pref="1"/>
+        <Property value="#branch" ref="Text" pref="2"/>
+        <Property value="" ref="Label" pref="3"/>
+        <Property value="" ref="Placeholder" pref="4"/>
+        <Property value="" ref="xpath" pref="5"/>
+        <Property value="" ref="css" pref="6"/>
+        <Property value="" ref="AltText" pref="7"/>
+        <Property value="" ref="Title" pref="8"/>
+        <Property value="" ref="TestId" pref="9"/>
+        <Property value="" ref="ChainedLocator" pref="10"/>
+      </Object>
+    </ObjectGroup>
+    <ObjectGroup ref="Welcome to Iris">
+      <Object frame="" ref="Welcome to Iris">
+        <Property value="" ref="Role" pref="1"/>
+        <Property value="Welcome to Iris" ref="Text" pref="2"/>
+        <Property value="" ref="Label" pref="3"/>
+        <Property value="" ref="Placeholder" pref="4"/>
+        <Property value="" ref="xpath" pref="5"/>
+        <Property value="" ref="css" pref="6"/>
+        <Property value="" ref="AltText" pref="7"/>
+        <Property value="" ref="Title" pref="8"/>
+        <Property value="" ref="TestId" pref="9"/>
+        <Property value="" ref="ChainedLocator" pref="10"/>
+      </Object>
+    </ObjectGroup>
+    <ObjectGroup ref="Dashboard">
+      <Object frame="" ref="Dashboard">
+        <Property value="" ref="Role" pref="1"/>
+        <Property value="" ref="Text" pref="2"/>
+        <Property value="" ref="Label" pref="3"/>
+        <Property value="" ref="Placeholder" pref="4"/>
+        <Property value="//*[@id=&quot;lion-router-focus-element&quot;]" ref="xpath" pref="5"/>
+        <Property value="" ref="css" pref="6"/>
+        <Property value="" ref="AltText" pref="7"/>
+        <Property value="" ref="Title" pref="8"/>
+        <Property value="" ref="TestId" pref="9"/>
+        <Property value="" ref="ChainedLocator" pref="10"/>
+      </Object>
+    </ObjectGroup>
+  </Page>
+  <Page title="" ref="MING_Login">
+    <ObjectGroup ref="Login Stub">
+      <Object frame="" ref="Login Stub">
+        <Property value="BUTTON;Login Stub" ref="Role" pref="1"/>
+        <Property value="" ref="Text" pref="2"/>
+        <Property value="" ref="Label" pref="3"/>
+        <Property value="" ref="Placeholder" pref="4"/>
+        <Property value="" ref="xpath" pref="5"/>
+        <Property value="" ref="css" pref="6"/>
+        <Property value="" ref="AltText" pref="7"/>
+        <Property value="" ref="Title" pref="8"/>
+        <Property value="" ref="TestId" pref="9"/>
+        <Property value="" ref="ChainedLocator" pref="10"/>
+      </Object>
+    </ObjectGroup>
+    <ObjectGroup ref="Profile Id (access-profile-id)">
+      <Object frame="" ref="Profile Id (access-profile-id)">
+        <Property value="TEXTBOX;Profile Id (access-profile-id)" ref="Role" pref="1"/>
+        <Property value="" ref="Text" pref="2"/>
+        <Property value="" ref="Label" pref="3"/>
+        <Property value="" ref="Placeholder" pref="4"/>
+        <Property value="" ref="xpath" pref="5"/>
+        <Property value="" ref="css" pref="6"/>
+        <Property value="" ref="AltText" pref="7"/>
+        <Property value="" ref="Title" pref="8"/>
+        <Property value="" ref="TestId" pref="9"/>
+        <Property value="" ref="ChainedLocator" pref="10"/>
+      </Object>
+    </ObjectGroup>
+    <ObjectGroup ref="Person Id (party UUID)">
+      <Object frame="" ref="Person Id (party UUID)">
+        <Property value="TEXTBOX;Person Id (party UUID)" ref="Role" pref="1"/>
+        <Property value="" ref="Text" pref="2"/>
+        <Property value="" ref="Label" pref="3"/>
+        <Property value="" ref="Placeholder" pref="4"/>
+        <Property value="" ref="xpath" pref="5"/>
+        <Property value="" ref="css" pref="6"/>
+        <Property value="" ref="AltText" pref="7"/>
+        <Property value="" ref="Title" pref="8"/>
+        <Property value="" ref="TestId" pref="9"/>
+        <Property value="" ref="ChainedLocator" pref="10"/>
+      </Object>
+    </ObjectGroup>
+    <ObjectGroup ref="Level of assurance">
+      <Object frame="" ref="Level of assurance">
+        <Property value="TEXTBOX;Level of assurance" ref="Role" pref="1"/>
+        <Property value="" ref="Text" pref="2"/>
+        <Property value="" ref="Label" pref="3"/>
+        <Property value="" ref="Placeholder" pref="4"/>
+        <Property value="" ref="xpath" pref="5"/>
+        <Property value="" ref="css" pref="6"/>
+        <Property value="" ref="AltText" pref="7"/>
+        <Property value="" ref="Title" pref="8"/>
+        <Property value="" ref="TestId" pref="9"/>
+        <Property value="" ref="ChainedLocator" pref="10"/>
+      </Object>
+    </ObjectGroup>
+    <ObjectGroup ref="Redirect Url">
+      <Object frame="" ref="Redirect Url">
+        <Property value="TEXTBOX;Redirect Url" ref="Role" pref="1"/>
+        <Property value="" ref="Text" pref="2"/>
+        <Property value="" ref="Label" pref="3"/>
+        <Property value="" ref="Placeholder" pref="4"/>
+        <Property value="" ref="xpath" pref="5"/>
+        <Property value="" ref="css" pref="6"/>
+        <Property value="" ref="AltText" pref="7"/>
+        <Property value="" ref="Title" pref="8"/>
+        <Property value="" ref="TestId" pref="9"/>
+        <Property value="" ref="ChainedLocator" pref="10"/>
+      </Object>
+    </ObjectGroup>
+    <ObjectGroup ref="Submit">
+      <Object frame="" ref="Submit">
+        <Property value="BUTTON;Submit" ref="Role" pref="1"/>
+        <Property value="" ref="Text" pref="2"/>
+        <Property value="" ref="Label" pref="3"/>
+        <Property value="" ref="Placeholder" pref="4"/>
+        <Property value="" ref="xpath" pref="5"/>
+        <Property value="" ref="css" pref="6"/>
+        <Property value="" ref="AltText" pref="7"/>
+        <Property value="" ref="Title" pref="8"/>
+        <Property value="" ref="TestId" pref="9"/>
+        <Property value="" ref="ChainedLocator" pref="10"/>
+      </Object>
+    </ObjectGroup>
+    <ObjectGroup ref="Log out">
+      <Object frame="" ref="Log out">
+        <Property value="Button;Log out" ref="Role" pref="1"/>
+        <Property value="" ref="Text" pref="2"/>
+        <Property value="" ref="Label" pref="3"/>
+        <Property value="" ref="Placeholder" pref="4"/>
+        <Property value="" ref="xpath" pref="5"/>
+        <Property value="" ref="css" pref="6"/>
+        <Property value="" ref="AltText" pref="7"/>
+        <Property value="" ref="Title" pref="8"/>
+        <Property value="" ref="TestId" pref="9"/>
+        <Property value="" ref="ChainedLocator" pref="10"/>
+      </Object>
+    </ObjectGroup>
+  </Page>
+  <Page title="" ref="MING_New Transfer">
+    <ObjectGroup ref="Payments">
+      <Object frame="" ref="Payments">
+        <Property value="LINK;Payments" ref="Role" pref="1"/>
+        <Property value="" ref="Text" pref="2"/>
+        <Property value="" ref="Label" pref="3"/>
+        <Property value="" ref="Placeholder" pref="4"/>
+        <Property value="" ref="xpath" pref="5"/>
+        <Property value="" ref="css" pref="6"/>
+        <Property value="" ref="AltText" pref="7"/>
+        <Property value="" ref="Title" pref="8"/>
+        <Property value="" ref="TestId" pref="9"/>
+        <Property value="" ref="ChainedLocator" pref="10"/>
+      </Object>
+    </ObjectGroup>
+    <ObjectGroup ref="New transfer">
+      <Object frame="" ref="New transfer">
+        <Property value="Button;New transfer" ref="Role" pref="1"/>
+        <Property value="" ref="Text" pref="2"/>
+        <Property value="" ref="Label" pref="3"/>
+        <Property value="" ref="Placeholder" pref="4"/>
+        <Property value="" ref="xpath" pref="5"/>
+        <Property value="" ref="css" pref="6"/>
+        <Property value="" ref="AltText" pref="7"/>
+        <Property value="" ref="Title" pref="8"/>
+        <Property value="" ref="TestId" pref="9"/>
+        <Property value="" ref="ChainedLocator" pref="10"/>
+      </Object>
+    </ObjectGroup>
+    <ObjectGroup ref="Open your address book">
+      <Object frame="" ref="Open your address book">
+        <Property value="Button;Open your address book" ref="Role" pref="1"/>
+        <Property value="" ref="Text" pref="2"/>
+        <Property value="" ref="Label" pref="3"/>
+        <Property value="" ref="Placeholder" pref="4"/>
+        <Property value="" ref="xpath" pref="5"/>
+        <Property value="" ref="css" pref="6"/>
+        <Property value="" ref="AltText" pref="7"/>
+        <Property value="" ref="Title" pref="8"/>
+        <Property value="" ref="TestId" pref="9"/>
+        <Property value="" ref="ChainedLocator" pref="10"/>
+      </Object>
+    </ObjectGroup>
+    <ObjectGroup ref="Beneficiary">
+      <Object frame="" ref="Beneficiary">
+        <Property value="" ref="Role" pref="1"/>
+        <Property value="#beneficiary;exact" ref="Text" pref="2"/>
+        <Property value="" ref="Label" pref="3"/>
+        <Property value="" ref="Placeholder" pref="4"/>
+        <Property value="" ref="xpath" pref="5"/>
+        <Property value="" ref="css" pref="6"/>
+        <Property value="" ref="AltText" pref="7"/>
+        <Property value="" ref="Title" pref="8"/>
+        <Property value="" ref="TestId" pref="9"/>
+        <Property value="" ref="ChainedLocator" pref="10"/>
+      </Object>
+    </ObjectGroup>
+    <ObjectGroup ref="Amount">
+      <Object frame="" ref="Amount">
+        <Property value="Textbox;Amount euros" ref="Role" pref="1"/>
+        <Property value="" ref="Text" pref="2"/>
+        <Property value="" ref="Label" pref="3"/>
+        <Property value="" ref="Placeholder" pref="4"/>
+        <Property value="" ref="xpath" pref="5"/>
+        <Property value="" ref="css" pref="6"/>
+        <Property value="" ref="AltText" pref="7"/>
+        <Property value="" ref="Title" pref="8"/>
+        <Property value="" ref="TestId" pref="9"/>
+        <Property value="" ref="ChainedLocator" pref="10"/>
+      </Object>
+    </ObjectGroup>
+    <ObjectGroup ref="Free Description">
+      <Object frame="" ref="Free Description">
+        <Property value="Textbox;Free description (optional)" ref="Role" pref="1"/>
+        <Property value="" ref="Text" pref="2"/>
+        <Property value="" ref="Label" pref="3"/>
+        <Property value="" ref="Placeholder" pref="4"/>
+        <Property value="" ref="xpath" pref="5"/>
+        <Property value="" ref="css" pref="6"/>
+        <Property value="" ref="AltText" pref="7"/>
+        <Property value="" ref="Title" pref="8"/>
+        <Property value="" ref="TestId" pref="9"/>
+        <Property value="" ref="ChainedLocator" pref="10"/>
+      </Object>
+    </ObjectGroup>
+    <ObjectGroup ref="Submit">
+      <Object frame="" ref="Submit">
+        <Property value="Button;Submit" ref="Role" pref="1"/>
+        <Property value="" ref="Text" pref="2"/>
+        <Property value="" ref="Label" pref="3"/>
+        <Property value="" ref="Placeholder" pref="4"/>
+        <Property value="" ref="xpath" pref="5"/>
+        <Property value="" ref="css" pref="6"/>
+        <Property value="" ref="AltText" pref="7"/>
+        <Property value="" ref="Title" pref="8"/>
+        <Property value="" ref="TestId" pref="9"/>
+        <Property value="" ref="ChainedLocator" pref="10"/>
+      </Object>
+    </ObjectGroup>
+    <ObjectGroup ref="Success Message">
+      <Object frame="" ref="Success Message">
+        <Property value="HEADING;Your order is ready!" ref="Role" pref="1"/>
+        <Property value="" ref="Text" pref="2"/>
+        <Property value="" ref="Label" pref="3"/>
+        <Property value="" ref="Placeholder" pref="4"/>
+        <Property value="" ref="xpath" pref="5"/>
+        <Property value="" ref="css" pref="6"/>
+        <Property value="" ref="AltText" pref="7"/>
+        <Property value="" ref="Title" pref="8"/>
+        <Property value="" ref="TestId" pref="9"/>
+        <Property value="" ref="ChainedLocator" pref="10"/>
+      </Object>
+    </ObjectGroup>
+    <ObjectGroup ref="Transaction Pending">
+      <Object frame="" ref="Transaction Pending">
+        <Property value="HEADING;Transaction Pending" ref="Role" pref="1"/>
+        <Property value="" ref="Text" pref="2"/>
+        <Property value="" ref="Label" pref="3"/>
+        <Property value="" ref="Placeholder" pref="4"/>
+        <Property value="" ref="xpath" pref="5"/>
+        <Property value="" ref="css" pref="6"/>
+        <Property value="" ref="AltText" pref="7"/>
+        <Property value="" ref="Title" pref="8"/>
+        <Property value="" ref="TestId" pref="9"/>
+        <Property value="" ref="ChainedLocator" pref="10"/>
+      </Object>
+    </ObjectGroup>
+  </Page>
+  <Page title="" ref="MING_Request Payment">
+    <ObjectGroup ref="Payments">
+      <Object frame="" ref="Payments">
+        <Property value="LINK;Payments" ref="Role" pref="1"/>
+        <Property value="" ref="xpath" pref="2"/>
+        <Property value="" ref="Text" pref="3"/>
+        <Property value="" ref="css" pref="4"/>
+        <Property value="" ref="Placeholder" pref="5"/>
+        <Property value="" ref="Label" pref="6"/>
+        <Property value="" ref="AltText" pref="7"/>
+        <Property value="" ref="Title" pref="8"/>
+        <Property value="" ref="TestId" pref="9"/>
+        <Property value="" ref="ChainedLocator" pref="10"/>
+      </Object>
+    </ObjectGroup>
+    <ObjectGroup ref="Payment request">
+      <Object frame="" ref="Payment request">
+        <Property value="BUTTON;Payment request" ref="Role" pref="1"/>
+        <Property value="" ref="xpath" pref="2"/>
+        <Property value="" ref="Text" pref="3"/>
+        <Property value="" ref="css" pref="4"/>
+        <Property value="" ref="Placeholder" pref="5"/>
+        <Property value="" ref="Label" pref="6"/>
+        <Property value="" ref="AltText" pref="7"/>
+        <Property value="" ref="Title" pref="8"/>
+        <Property value="" ref="TestId" pref="9"/>
+        <Property value="" ref="ChainedLocator" pref="10"/>
+      </Object>
+    </ObjectGroup>
+    <ObjectGroup ref="What amount would you like to request">
+      <Object frame="" ref="What amount would you like to request">
+        <Property value="TEXTBOX;What amount would you like to" ref="Role" pref="1"/>
+        <Property value="" ref="xpath" pref="2"/>
+        <Property value="" ref="Text" pref="3"/>
+        <Property value="" ref="css" pref="4"/>
+        <Property value="" ref="Placeholder" pref="5"/>
+        <Property value="" ref="Label" pref="6"/>
+        <Property value="" ref="AltText" pref="7"/>
+        <Property value="" ref="Title" pref="8"/>
+        <Property value="" ref="TestId" pref="9"/>
+        <Property value="" ref="ChainedLocator" pref="10"/>
+      </Object>
+    </ObjectGroup>
+    <ObjectGroup ref="Can Payer Change the Amount">
+      <Object frame="" ref="Can Payer Change the Amount">
+        <Property value="" ref="Role" pref="1"/>
+        <Property value="" ref="xpath" pref="2"/>
+        <Property value="#canChange" ref="Text" pref="3"/>
+        <Property value="" ref="css" pref="4"/>
+        <Property value="" ref="Placeholder" pref="5"/>
+        <Property value="" ref="Label" pref="6"/>
+        <Property value="" ref="AltText" pref="7"/>
+        <Property value="" ref="Title" pref="8"/>
+        <Property value="" ref="TestId" pref="9"/>
+        <Property value="" ref="ChainedLocator" pref="10"/>
+      </Object>
+    </ObjectGroup>
+    <ObjectGroup ref="Amount For">
+      <Object frame="" ref="Amount For">
+        <Property value="" ref="Role" pref="1"/>
+        <Property value="" ref="xpath" pref="2"/>
+        <Property value="#amountFor" ref="Text" pref="3"/>
+        <Property value="" ref="css" pref="4"/>
+        <Property value="" ref="Placeholder" pref="5"/>
+        <Property value="" ref="Label" pref="6"/>
+        <Property value="" ref="AltText" pref="7"/>
+        <Property value="" ref="Title" pref="8"/>
+        <Property value="" ref="TestId" pref="9"/>
+        <Property value="" ref="ChainedLocator" pref="10"/>
+      </Object>
+    </ObjectGroup>
+    <ObjectGroup ref="How Many People">
+      <Object frame="" ref="How Many People">
+        <Property value="" ref="Role" pref="1"/>
+        <Property value="" ref="xpath" pref="2"/>
+        <Property value="#howManyPeople" ref="Text" pref="3"/>
+        <Property value="" ref="css" pref="4"/>
+        <Property value="" ref="Placeholder" pref="5"/>
+        <Property value="" ref="Label" pref="6"/>
+        <Property value="" ref="AltText" pref="7"/>
+        <Property value="" ref="Title" pref="8"/>
+        <Property value="" ref="TestId" pref="9"/>
+        <Property value="" ref="ChainedLocator" pref="10"/>
+      </Object>
+    </ObjectGroup>
+    <ObjectGroup ref="Create request">
+      <Object frame="" ref="Create request">
+        <Property value="BUTTON;Create request" ref="Role" pref="1"/>
+        <Property value="" ref="xpath" pref="2"/>
+        <Property value="" ref="Text" pref="3"/>
+        <Property value="" ref="css" pref="4"/>
+        <Property value="" ref="Placeholder" pref="5"/>
+        <Property value="" ref="Label" pref="6"/>
+        <Property value="" ref="AltText" pref="7"/>
+        <Property value="" ref="Title" pref="8"/>
+        <Property value="" ref="TestId" pref="9"/>
+        <Property value="" ref="ChainedLocator" pref="10"/>
+      </Object>
+    </ObjectGroup>
+    <ObjectGroup ref="Your payment request is ready">
+      <Object frame="" ref="Your payment request is ready">
+        <Property value="HEADING;Your payment request is ready" ref="Role" pref="1"/>
+        <Property value="" ref="xpath" pref="2"/>
+        <Property value="" ref="Text" pref="3"/>
+        <Property value="" ref="css" pref="4"/>
+        <Property value="" ref="Placeholder" pref="5"/>
+        <Property value="" ref="Label" pref="6"/>
+        <Property value="" ref="AltText" pref="7"/>
+        <Property value="" ref="Title" pref="8"/>
+        <Property value="" ref="TestId" pref="9"/>
+        <Property value="" ref="ChainedLocator" pref="10"/>
+      </Object>
+    </ObjectGroup>
+  </Page>
+</Root>

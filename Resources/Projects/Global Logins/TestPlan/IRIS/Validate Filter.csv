@@ -1,0 +1,6 @@
+Step,ObjectName,Description,Action,Input,Condition,Reference
+1,My service requests,"Click the [<Object>] ",Click,,,IRIS
+2,Status,"Click the [<Object>] ",Click,,,IRIS
+3,Finish Request Checkbox,Check the [<Object>] element,Check,,,IRIS
+4,Apply,"Click the [<Object>] ",Click,,,IRIS
+5,Filter Status Tag,Assert if [<Object>] is visible,assertElementIsVisible,,,IRIS

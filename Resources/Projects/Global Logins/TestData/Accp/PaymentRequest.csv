@@ -1,0 +1,2 @@
+Scenario,Flow,Iteration,SubIteration,Amount,CanChangeAmount,AmountFor,HowManyPeople
+MING Operations,GUI_DirectURL_Validate User is able to Request Payment,1,1,0.01,Yes,Pizza,1 person
