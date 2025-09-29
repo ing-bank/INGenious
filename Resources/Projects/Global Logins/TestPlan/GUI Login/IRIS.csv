@@ -44,4 +44,9 @@ Step,ObjectName,Description,Action,Input,Condition,Reference
 11,Browser,Iris Login,irisTokenizedLogin,,,
 12,Browser,Open the Url [<Data>] in the Browser,Open,IrisLogin:Url,,
 13,Welcome to Iris,Assert if [<Object>] is visible,assertElementIsVisible,,,IRIS
-14,Dashboard,Assert if [<Object>] is visible,assertElementContainsText,@Dashboard,,IRIS
+//14,Where do you work today,Enter the value [<Data>] in the Field [<Object>],Fill,IrisLogin:Branch,,IRIS
+//15,Where do you work today,"Press the [<Object>] ",KeyPressOnElement,@Enter,,IRIS
+//16,Branch,"Click the [<Object>] ",setObjectProperty,IrisLogin:Branch,"#branch",IRIS
+//17,Branch,"Click the [<Object>] ",Click,,,IRIS
+//18,Confirm,"Click the [<Object>] ",Click,,,IRIS
+//19,Dashboard,Assert if [<Object>] is visible,assertElementContainsText,@Dashboard,,IRIS
