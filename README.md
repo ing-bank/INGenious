@@ -1,4 +1,4 @@
-# INGenious Playwright Studio - Test Automation for Everyone
+# INGenious Playwright Studio - Test Automation for Everyone (Test)
 
 [![Build INGenious Source Code](https://github.com/ing-bank/INGenious/actions/workflows/maven.yml/badge.svg)](https://github.com/ing-bank/INGenious/actions/workflows/maven.yml)
 ![Static Badge](https://img.shields.io/badge/Version-2.2-%23FF6200)
