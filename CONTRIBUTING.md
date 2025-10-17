@@ -73,8 +73,9 @@ Go to the original repository on GitHub and open a Pull Request (PR) against the
 ## Contribution Guidelines
 
 - Ensure your code adheres to the existing style guides and best practices.
+- Write doc comments in the proposed code for readability. See [Format of a Doc Comment](https://www.oracle.com/asean/technical-resources/articles/java/javadoc-tool.html#:~:text=Writing%20Doc%20Comments-,Format%20of%20a%20Doc%20Comment,-A%20doc%20comment) for reference.
 - Keep your pull requests focused on a single issue or feature; avoid large, mixed changes.
-- Update documentation if your contribution impacts usage or configuration.
+- Update documentation in the [INGenious Doc GitHub repository](https://github.com/ing-bank/ingenious-doc) if your contribution impacts usage or configuration.
 - Write clear, descriptive commit messages.
 
 ## Reporting Issues
