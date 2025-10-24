@@ -354,10 +354,10 @@ public class AppiumDeviceCommands extends MobileGeneral {
                 ((IOSDriver) mDriver).executeScript("mobile: pressButton", Map.of("name", "home"));
 
             }
-            Report.updateTestLog(Action, "Performed Homescreen Operation", Status.DONE);
+            Report.updateTestLog(Action, "Performed homescreen operation", Status.DONE);
         } catch (Exception e) {
             Logger.getLogger(this.getClass().getName()).log(Level.OFF, null, e);
-            Report.updateTestLog(Action, "Unable to perform Homescreen operation, Error: " + e.getMessage(), Status.FAIL);
+            Report.updateTestLog(Action, "Unable to perform homescreen operation, Error: " + e.getMessage(), Status.FAIL);
         }
     }
 
