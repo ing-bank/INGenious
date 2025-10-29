@@ -346,7 +346,7 @@ public class AppiumDeviceCommands extends MobileGeneral {
     }
 
     @Action(object = ObjectType.MOBILE, desc = "Go to homescreen")
-    public void homescreen() {
+    public void goToHomescreen() {
         try {
             if (mDriver instanceof AndroidDriver) {
                 ((AndroidDriver) mDriver).executeScript("mobile: pressButton", Map.of("name", "home"));
