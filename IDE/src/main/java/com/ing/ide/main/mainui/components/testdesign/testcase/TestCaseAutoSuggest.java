@@ -115,7 +115,7 @@ public class TestCaseAutoSuggest {
         table.getColumnModel().getColumn(ObjectName.getIndex()).setCellEditor(new AutoSuggestCellEditor(objAutoSuggest));
         table.getColumnModel().getColumn(Action.getIndex()).setCellEditor(new AutoSuggestCellEditor(actionAutoSuggest));
         table.getColumnModel().getColumn(Condition.getIndex()).setCellEditor(new AutoSuggestCellEditor(conditionAutoSuggest));
-        table.getColumnModel().getColumn(Input.getIndex()).setCellEditor(new AutoSuggestCellEditor(inputAutoSuggest));
+        table.getColumnModel().getColumn(Input.getIndex()).setCellEditor(new InputAutoSuggestCellEditor(inputAutoSuggest));
     }
 
     private List<String> getObjectList() {
@@ -166,7 +166,6 @@ public class TestCaseAutoSuggest {
         return newList;
     }
 
-
     private void startEditing(final AutoSuggest suggest) {
         SwingUtilities.invokeLater(new Runnable() {
             @Override
@@ -176,8 +175,25 @@ public class TestCaseAutoSuggest {
 
                     boolean isStringOpsEditor = isStringOpsEditor();
                     if(!isStringOpsEditor){
-                        //This breaks the auto-suggestion of columns for a selected sheet, however it resolves an issue where : is automatically added to input fields.
-                        //suggest.getTextField().setText(suggest.getText() + ":");
+                        suggest.getTextField().setText(suggest.getText() + ":");
+                        suggest.getTextField().requestFocusInWindow();
+                        suggest.updateList();
+                    }
+                }
+            }
+        });
+    }
+
+    private void startEditing(final InputMainAutoSuggest suggest) {
+        SwingUtilities.invokeLater(new Runnable() {
+            @Override
+            public void run() {
+                if (!table.isEditing()) {
+                    table.editCellAt(table.getSelectedRow(), table.getSelectedColumn());
+
+                    boolean isStringOpsEditor = isStringOpsEditor();
+                    if(!isStringOpsEditor){
+                        suggest.getTextField().setText(suggest.getText() + ":");
                         suggest.getTextField().requestFocusInWindow();
                         suggest.updateList();
                     }

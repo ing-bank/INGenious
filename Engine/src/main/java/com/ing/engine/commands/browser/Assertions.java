@@ -47,6 +47,8 @@ public class Assertions extends General {
             assertionLogging(err, "[" + ObjectName + "] does not contain text '" + Data + "'. Actual text is '" + text + "'");
         } finally {
             removeHighlightFromElement();
+        }
+    }
 
     /**
      * * Assertion for 'containsText' **
@@ -534,6 +536,9 @@ public class Assertions extends General {
         } catch (AssertionFailedError err) {
             assertionLogging(err, "[" + ObjectName + "] does not have value '" + Data + "'. Actual value is '" + value + "'");
         } finally {
+
+        }
+    }
 
     /**
      * Assertion for 'Value' if Data Exists
