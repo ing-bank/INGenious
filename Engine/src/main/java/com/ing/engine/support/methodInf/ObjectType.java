@@ -18,6 +18,10 @@ public enum ObjectType {
     QUEUE,
     DATA,
     GENERAL,
+    SSH,
+    IBAN,
+    JSON,
+    XML,
     STRINGOPERATIONS
-    
+
 }

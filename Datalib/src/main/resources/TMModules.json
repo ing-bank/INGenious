@@ -4,32 +4,32 @@
         "module": "AzureDevOps TestPlan",
         "options": [
             {
-                "name": "AzureDevOps URL",
+                "name": "AzureDevOpsURL",
                 "value": "https://dev.azure.com/YOUR_AZURE_ORGANIZATION/"
             },
             {
-                "name": "AzureDevOps Project",
-                "value": ""
+                "name": "AzureDevOpsProject",
+                "value": "IngOne"
             },
             {
                 "name": "PersonalAccessToken",
-                "value": ""
+                "value": "xxx"
             },
             {
-                "name": "AzureDevOps TestPlanId",
-                "value": ""
+                "name": "AzureDevOpsTestPlanId",
+                "value": "8103562"
             },
 	    {
                 "name": "useProxy",
-                "value": "false"
+                "value": "true"
             },
 	    {
                 "name": "proxyHost",
-                "value": ""
+                "value": "giba-proxy.wps.ing.net"
             },
 	    {
                 "name": "proxyPort",
-                "value": ""
+                "value": "8080"
             }
         ]
     }

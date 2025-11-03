@@ -16,16 +16,16 @@
         <module>Dist</module>
     </modules>
 
-
+     
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <playwright.version>LATEST</playwright.version>
         <commons-cli.version>1.4</commons-cli.version>
         <javamail.version>1.4.7</javamail.version>
         <json-simple.version>1.1.1</json-simple.version>
-        <jcsv.version>1.4.0</jcsv.version>
+        <jcsv.version>1.4.0</jcsv.version>         
         <javafx.version>17.0.2</javafx.version>
-        <jackson.version>2.15.2</jackson.version>
+        <jackson.version>2.20.0</jackson.version>
         <commonscsv.version>1.10.0</commonscsv.version>
         <commons-codec.version>1.16.0</commons-codec.version>
         <commons-io.version>2.15.0</commons-io.version>
@@ -58,6 +58,12 @@
         <appium.version>LATEST</appium.version>
         <javafaker.version>LATEST</javafaker.version>
         <kafka-clients.version>LATEST</kafka-clients.version>
+        <jsch.version>0.2.23</jsch.version>
+        <zjsonpatch.version>0.4.14</zjsonpatch.version>
+        <json-unit-assertj.version>4.1.0</json-unit-assertj.version>
+        <xmlunit-legacy.version>2.10.0</xmlunit-legacy.version>
+        <iban4j.version>3.2.11-RELEASE</iban4j.version>
+        <exec-maven-plugin.version>1.6.0</exec-maven-plugin.version>
         <avro.version>LATEST</avro.version>
         <kafka-avro-serializer.version>LATEST</kafka-avro-serializer.version>
         <ibmmq.version>LATEST</ibmmq.version>
@@ -97,11 +103,6 @@
                     <source>${maven.compiler.source}</source>
                     <target>${maven.compiler.target}</target>
                 </configuration>
-            </plugin>
-            <plugin>
-                <groupId>org.codehaus.mojo</groupId>
-                <artifactId>versions-maven-plugin</artifactId>
-                <version>2.18.0</version>
             </plugin>
         </plugins>
     </build>

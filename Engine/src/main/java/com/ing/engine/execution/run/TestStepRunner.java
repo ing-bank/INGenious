@@ -97,6 +97,14 @@ public class TestStepRunner {
      */
     private void execute(TestCaseRunner context) throws DataNotFoundException, ForcedException {
         if (getStep().isReusableStep()) {
+
+            String condition = getStep().getCondition();
+            if (!shouldExecute(condition, context)) {
+                System.out.println("Skipping " + getStep().getAction() + " execution due to condition: " + condition);
+                return;
+            } else {
+                System.out.println("Executing reusable " + getStep().getAction());
+            }
             String[] rData = getStep().getReusableData();
             String scenario = rData[0];
             String testcase = rData[1];
@@ -171,6 +179,42 @@ public class TestStepRunner {
             System.out.println("[ERROR][Could not find Action:" + action + "]");
             context.getReport().updateTestLog(action, "[Could not find Action]",
                     Status.DEBUG);
+        }
+    }
+
+    public boolean shouldExecute(String condition, TestCaseRunner context) {
+        // Run by default if condition is null or empty
+        if (condition == null || condition.isEmpty()) {
+            return true;
+        }
+
+        if (condition.contains("=")) {
+            String[] parts = condition.split("=");
+            if (parts.length != 2) {
+                System.out.println("Invalid condition format: " + condition);
+                return false;
+            }
+            String key = parts[0].trim(); // e.g., %execution_origin%=local or %var%=True
+            String[] variables = parts[1].split(",");
+            if (variables.length == 0) {
+                System.out.println("No variable provided in: " + condition);
+                return false;
+            }
+            String varValue = context.getControl().getVar(key);
+            if (varValue == null) {
+                System.out.println("No value found for key: " + key);
+                return false;
+            }
+            for (String variable : variables) {
+                if (varValue.contains(variable.trim())) {
+                    return true;
+                }
+            }
+            System.out.println("Condition [" + key + "] provided 0 matches");
+            return false;
+        } else {
+            // Needs adjustments
+            return true;
         }
     }
 

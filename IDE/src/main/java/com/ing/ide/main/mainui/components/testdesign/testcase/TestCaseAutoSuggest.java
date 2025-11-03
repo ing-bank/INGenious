@@ -115,7 +115,7 @@ public class TestCaseAutoSuggest {
         table.getColumnModel().getColumn(ObjectName.getIndex()).setCellEditor(new AutoSuggestCellEditor(objAutoSuggest));
         table.getColumnModel().getColumn(Action.getIndex()).setCellEditor(new AutoSuggestCellEditor(actionAutoSuggest));
         table.getColumnModel().getColumn(Condition.getIndex()).setCellEditor(new AutoSuggestCellEditor(conditionAutoSuggest));
-        table.getColumnModel().getColumn(Input.getIndex()).setCellEditor(new InputAutoSuggestCellEditor(inputAutoSuggest));
+        table.getColumnModel().getColumn(Input.getIndex()).setCellEditor(new AutoSuggestCellEditor(inputAutoSuggest));
     }
 
     private List<String> getObjectList() {
@@ -131,6 +131,11 @@ public class TestCaseAutoSuggest {
         objectList.add("General");
         objectList.add("Execute");
         objectList.add("String Operations");
+        objectList.add("SSH");
+        objectList.add("IBAN");
+        objectList.add("JSON");
+        objectList.add("XML");
+
         return objectList;
     }
 
@@ -168,28 +173,11 @@ public class TestCaseAutoSuggest {
             public void run() {
                 if (!table.isEditing()) {
                     table.editCellAt(table.getSelectedRow(), table.getSelectedColumn());
-                    
+
                     boolean isStringOpsEditor = isStringOpsEditor();
                     if(!isStringOpsEditor){
-                        suggest.getTextField().setText(suggest.getText() + ":");
-                        suggest.getTextField().requestFocusInWindow();
-                        suggest.updateList();
-                    }
-                }
-            }
-        });
-    }
-    
-    private void startEditing(final InputMainAutoSuggest suggest) {
-        SwingUtilities.invokeLater(new Runnable() {
-            @Override
-            public void run() {
-                if (!table.isEditing()) {
-                    table.editCellAt(table.getSelectedRow(), table.getSelectedColumn());
-                    
-                    boolean isStringOpsEditor = isStringOpsEditor();
-                    if(!isStringOpsEditor){
-                        suggest.getTextField().setText(suggest.getText() + ":");
+                        //This breaks the auto-suggestion of columns for a selected sheet, however it resolves an issue where : is automatically added to input fields.
+                        //suggest.getTextField().setText(suggest.getText() + ":");
                         suggest.getTextField().requestFocusInWindow();
                         suggest.updateList();
                     }
@@ -321,13 +309,21 @@ public class TestCaseAutoSuggest {
                 case "Queue":
                      return MethodInfoManager.getMethodListFor(ObjectType.QUEUE, ObjectType.QUEUE);
                 case "Kafka":
-                     return MethodInfoManager.getMethodListFor(ObjectType.KAFKA, ObjectType.KAFKA);    
+                     return MethodInfoManager.getMethodListFor(ObjectType.KAFKA, ObjectType.KAFKA);
                 case "File":
                     return MethodInfoManager.getMethodListFor(ObjectType.FILE, ObjectType.FILE);
                 case "General":
                     return MethodInfoManager.getMethodListFor(ObjectType.GENERAL, ObjectType.GENERAL);    
                 case "String Operations":
                     return MethodInfoManager.getMethodListFor(ObjectType.STRINGOPERATIONS, ObjectType.STRINGOPERATIONS);  
+                case "SSH":
+                    return MethodInfoManager.getMethodListFor(ObjectType.SSH, ObjectType.SSH);
+                case "IBAN":
+                    return MethodInfoManager.getMethodListFor(ObjectType.IBAN, ObjectType.IBAN);
+                case "JSON":
+                    return MethodInfoManager.getMethodListFor(ObjectType.JSON, ObjectType.JSON);
+                case "XML":
+                    return MethodInfoManager.getMethodListFor(ObjectType.XML, ObjectType.XML);
                 default:
                      if (isWebObject(objectName, pageName)) {
                         return MethodInfoManager.getMethodListFor(ObjectType.PLAYWRIGHT, ObjectType.WEB, ObjectType.ANY);

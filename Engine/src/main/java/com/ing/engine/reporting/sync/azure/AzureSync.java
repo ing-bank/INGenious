@@ -35,8 +35,8 @@ public class AzureSync implements Sync {
      * @param options
      */
     public AzureSync(Properties options) {
-        this(options.getProperty("AzureDevOps URL"), options.getProperty("PersonalAccessToken"),
-                options.getProperty("AzureDevOps Project"), Integer.valueOf(options.getProperty("AzureDevOps TestPlanId")),
+        this(options.getProperty("AzureDevOpsURL"), options.getProperty("PersonalAccessToken"),
+                options.getProperty("AzureDevOpsProject"), Integer.valueOf(options.getProperty("AzureDevOpsTestPlanId")),
                 options);
     }
 

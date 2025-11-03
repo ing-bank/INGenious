@@ -59,6 +59,16 @@ public class DynamicObject extends Command {
         }
     }
 
+    @Action(object = ObjectType.PLAYWRIGHT, desc = "Set object [<Object>] property as [<Data>] at runtime if data exists.", input = InputType.YES, condition = InputType.YES)
+    public void setObjectPropertyIfDataExists() {
+        if (Data.isEmpty()) return;
+
+        setProperty(Condition, Data);
+        String text = String.format("Setting Object Property for %s with %s for Object [%s - %s]",
+                Condition, Data, Reference, ObjectName);
+        Report.updateTestLog(Action, text, Status.DONE);
+    }
+
     private void setProperty(String key, String value) {
         if (!AutomationObject.dynamicValue.containsKey(Reference)) {
             Map<String, Map<String, String>> Object = new HashMap<>();
