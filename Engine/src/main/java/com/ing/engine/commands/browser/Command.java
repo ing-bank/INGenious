@@ -178,7 +178,12 @@ public class Command {
     static public Map<String, ProducerRecord> kafkaProducerRecord = new HashMap<>();
     static public Map<String, ConsumerRecord> kafkaConsumerRecord = new HashMap<>();
     static public Map<String, KafkaProducer> kafkaProducer = new HashMap<>();
-    static public Map<String, KafkaConsumer> kafkaConsumer = new HashMap<>();       
+    static public Map<String, KafkaConsumer> kafkaConsumer = new HashMap<>();
+
+    /**
+     * ******DATABASE*******
+     */
+    static public Map<String, String> replybodies = new HashMap<>();
 
     public Command(CommandControl cc) {
         Commander = cc;
