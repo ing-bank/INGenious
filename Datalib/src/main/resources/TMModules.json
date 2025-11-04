@@ -9,27 +9,27 @@
             },
             {
                 "name": "AzureDevOpsProject",
-                "value": "IngOne"
+                "value": ""
             },
             {
                 "name": "PersonalAccessToken",
-                "value": "xxx"
+                "value": ""
             },
             {
                 "name": "AzureDevOpsTestPlanId",
-                "value": "8103562"
+                "value": ""
             },
 	    {
                 "name": "useProxy",
-                "value": "true"
+                "value": "false"
             },
 	    {
                 "name": "proxyHost",
-                "value": "giba-proxy.wps.ing.net"
+                "value": ""
             },
 	    {
                 "name": "proxyPort",
-                "value": "8080"
+                "value": ""
             }
         ]
     }
