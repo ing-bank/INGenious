@@ -51,8 +51,6 @@ public class CsvTestData extends TestDataModel {
 
     @Override
     public Set<String> loadColumns(File location) {
-//        System.out.println("Loading Data Table below, when INGenious Projects do not load, this is the csv that needs to be fixed:" + "\n");
-//        System.out.println(location.getAbsolutePath() + "\n");
         return CSVUtils.loadColumns(location);
     }
 

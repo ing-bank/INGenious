@@ -3,8 +3,6 @@ package com.ing.engine.core;
 
 import com.ing.datalib.or.common.ObjectGroup;
 import com.ing.datalib.or.image.ImageORObject;
-import com.ing.datalib.settings.DriverSettings;
-import com.ing.datalib.util.data.LinkedProperties;
 import com.ing.datalib.settings.DriverProperties;
 import com.ing.engine.drivers.AutomationObject;
 import com.ing.engine.drivers.AutomationObject.FindType;
@@ -17,15 +15,20 @@ import com.ing.engine.reporting.TestCaseReport;
 import com.ing.engine.support.Status;
 import com.ing.engine.support.Step;
 import com.microsoft.playwright.Locator;
-
-import java.util.*;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Stack;
 
 //Added For Mobile
 import com.ing.engine.drivers.WebDriverCreation;
 import com.ing.engine.drivers.MobileObject;
 import com.ing.engine.drivers.MobileObject.FindmType;
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Properties;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import org.openqa.selenium.WebElement;
 
 public abstract class CommandControl {
@@ -47,7 +50,7 @@ public abstract class CommandControl {
     public String Input;
     public TestCaseReport Report;
     public UserDataAccess userData;
-    //    private HashMap<String, String> runTimeVars = new HashMap<>();
+
     private static final ThreadLocal<HashMap<String, String>> runTimeVars =
         ThreadLocal.withInitial(HashMap::new);
     private Stack<Locator> runTimeElement = new Stack<>();

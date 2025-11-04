@@ -22,8 +22,14 @@ import com.microsoft.playwright.BrowserContext;
 import com.microsoft.playwright.Locator;
 import com.microsoft.playwright.Page;
 import com.microsoft.playwright.Playwright;
+
 import java.time.Instant;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
+import java.util.Stack;
 
 import com.ing.engine.drivers.WebDriverCreation;
 import com.ing.engine.drivers.MobileObject;
@@ -33,21 +39,21 @@ import javax.jms.JMSConsumer;
 import javax.jms.JMSContext;
 import javax.jms.JMSProducer;
 import javax.jms.TextMessage;
+import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.WebElement;
 
+import org.apache.kafka.common.header.Header;
 import org.apache.avro.Schema;
 import org.apache.avro.generic.GenericRecord;
 import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerRecord;
-import org.apache.poi.ss.formula.functions.T;
 import org.iban4j.CountryCode;
 import org.iban4j.Iban;
-import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.WebElement;
-import org.apache.kafka.common.header.Header;
 import org.w3c.dom.Document;
 import org.w3c.dom.Element;
+
 
 public class Command {
 
@@ -142,20 +148,13 @@ public class Command {
     static public Map<String, TextMessage> jmsMessage = new HashMap<>();
     static public Map<String, String> jmsCorrelationID = new HashMap<>();
     static public Map<String, String> receivedMessage = new HashMap<>();
-
     /**
      * **********
-     */
-
-
-    /**
-     * *** Queue ****
      */
 
     /**
      * *** Kafka Parameters ****
      */
-
     static public Map<String, List<Header>> kafkaHeaders = new HashMap<>();
     static public Map<String, String> kafkaProducerTopic = new HashMap<>();
     static public Map<String, String> kafkaConsumerTopic = new HashMap<>();
@@ -193,8 +192,6 @@ public class Command {
     static public Map<String, ConsumerRecord> kafkaConsumerRecord = new HashMap<>();
     static public Map<String, KafkaProducer> kafkaProducer = new HashMap<>();
     static public Map<String, KafkaConsumer> kafkaConsumer = new HashMap<>();
-
-
     /**
      * **********
      */
@@ -203,7 +200,6 @@ public class Command {
     /**
      * ******SSH*******
      */
-
     // Regular SSH Session
     static public Map<String, String> sshHost = new HashMap<>();
     static public Map<String, Integer> sshHostPort = new HashMap<>();
@@ -223,8 +219,6 @@ public class Command {
     static public Map<String, String> sshIntermediaryHostPassword = new HashMap<>();
     static public Map<String, Integer> sshIntermediaryHostTunnelPort = new HashMap<>();
     static public Map<String, Session> sshIntermediaryHostSession = new HashMap<>();
-
-
     /**
      * ************************
      */
@@ -232,7 +226,6 @@ public class Command {
     /**
      * ******Iban4j*******
      */
-
     static public Map<String, Iban> iban = new HashMap<>();
 
     static public Map<String, String> ibanAccountNumber = new HashMap<>();
@@ -246,10 +239,6 @@ public class Command {
     static public Map<String, Boolean> ibanLeftPadding = new HashMap<>();
     static public Map<String, String> ibanNationalCheckDigit = new HashMap<>();
     static public Map<String, String> ibanOwnerAccountType = new HashMap<>();
-
-
-
-
     /**
      * ************************
      */
@@ -257,10 +246,8 @@ public class Command {
     /**
      * ******File*******
      */
-
     static public Map<String, String> setFile = new HashMap<>();
     static public Map<String, List<String>> regexMatches = new HashMap<>();
-
     /**
      * ************************
      */
@@ -268,7 +255,6 @@ public class Command {
     /**
      * ******XML*******
      */
-
     // XML Operations
     static public Map<String, List<String>> ignoreXMLNodes = new HashMap<>();
     static public Map<String, List<String>> ignoreXMLTextNodes = new HashMap<>();
@@ -280,8 +266,6 @@ public class Command {
     static public Map<String, List<Element>> pendingStack = new HashMap<>();
     static public Map<String, List<Boolean>> pendingUsedStack = new HashMap<>();
     static public Map<String, String> lastAttributeName = new HashMap<>();
-
-
     /**
      * ************************
      */
@@ -289,7 +273,6 @@ public class Command {
     /**
      * ******JSON*******
      */
-
     // Json Operations
     static public Map<String, List<String>> ignoreJSONPaths = new HashMap<>();
 
@@ -303,8 +286,6 @@ public class Command {
     static public Map<String, List<Boolean>> isArrayPending = new HashMap<>();
     static public Map<String, String> currentPropertyKey = new HashMap<>();
     static public Map<String, String> currentArrayKey = new HashMap<>();;
-
-
     /**
      * ************************
      */
@@ -343,6 +324,8 @@ public class Command {
             Action = Commander.Action;
             userData = Commander.userData;
         }
+
+
         /**
          * ******Webservice*******
          */
@@ -371,7 +354,6 @@ public class Command {
     public String getRuntimeVar(String key) {
         return Commander.getRuntimeVar(key);
     }
-
 
     public String getVar(String key) {
         return Commander.getVar(key);
@@ -439,7 +421,6 @@ public class Command {
             System.out.println("Splitting parts [" + key + "] provided 0 matches");
             return false;
         } else {
-            // Needs adjustments
             return true;
         }
     }
