@@ -59,19 +59,13 @@ public class ConsoleReport {
         System.setOut(originalOut);
         System.setErr(originalErr);
 
-        Logger.getLogger(ConsoleReport.class.getName()).log(Level.INFO, "Reset system elements.");
         try {
-            Logger.getLogger(ConsoleReport.class.getName()).log(Level.INFO, "Closing file output streams.");
             fout.close();
-            Logger.getLogger(ConsoleReport.class.getName()).log(Level.INFO, "Closing file error streams.");
             ferr.close();
-            Logger.getLogger(ConsoleReport.class.getName()).log(Level.INFO, "Streams closed.");
         } catch (IOException ex) {
             Logger.getLogger(ConsoleReport.class.getName()).log(Level.SEVERE, ex.getMessage(), ex);
         }
-        Logger.getLogger(ConsoleReport.class.getName()).log(Level.INFO, "File output streams closed.");
         resetLogger();
-        Logger.getLogger(ConsoleReport.class.getName()).log(Level.INFO, "Logger was reset.");
     }
 
     public static void resetLogger() {
