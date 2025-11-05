@@ -345,7 +345,7 @@ public class AppiumDeviceCommands extends MobileGeneral {
         }
     }
 
-    @Action(object = ObjectType.MOBILE, desc = "Go to homescreen")
+    @Action(object = ObjectType.MOBILE, desc = "Go to homescreen", input = InputType.NO, condition = InputType.NO)
     public void goToHomescreen() {
         try {
             if (mDriver instanceof AndroidDriver) {
