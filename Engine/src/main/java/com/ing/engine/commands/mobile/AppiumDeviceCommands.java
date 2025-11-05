@@ -352,7 +352,6 @@ public class AppiumDeviceCommands extends MobileGeneral {
                 ((AndroidDriver) mDriver).executeScript("mobile: pressButton", Map.of("name", "home"));
             } else if (mDriver instanceof IOSDriver) {
                 ((IOSDriver) mDriver).executeScript("mobile: pressButton", Map.of("name", "home"));
-
             }
             Report.updateTestLog(Action, "Performed go to Homescreen operation", Status.DONE);
         } catch (Exception e) {
