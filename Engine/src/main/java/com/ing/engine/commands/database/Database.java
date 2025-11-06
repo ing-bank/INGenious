@@ -254,10 +254,12 @@ public class Database extends General {
         }
     }
 
-    /**
-     * 1.similar to assertDBResult but performs a contains check
-     * 2. Under the assumption that 1. DB Query is executed in Previous Step and column values are stored in Condition
-     * 3. Data holds the expected value to be checked for contains
+
+    /** Validates that the DB column value contains the expected value.
+     * <p> Fetches Value from DB column name passed in Condition</p>
+     *
+     * @param - Condition - Actual - A variable which holds the DB column name.
+     *          Input/Data - Expected - Data stored in datasheet and checked against the DB column value.
      */
     @Action(object = ObjectType.DATABASE, desc = "Assert the value [<Input>] contains in the column [<Condition>] ", input = InputType.YES, condition = InputType.YES)
     public void assertDBResultContains() {
@@ -272,10 +274,11 @@ public class Database extends General {
         }
     }
 
-
-    /**
-     * 1. Under the assumption that Select Query is executed in Previous Step
-     * 2. Data holds the DB column value to be validated as not null
+    /** Validates that the DB column value stored in Input/Data is not null or empty
+     *
+     * @param - Condition - Not used in this action.
+     *          Input/Data - Actual - Datasheet Value stored in SheetName:ColumnName format.
+     * @throws  if an error occurs during Validation
      */
     @Action(object = ObjectType.DATABASE, desc = "Assert DB Data Data Not Null ", input = InputType.YES)
     public void assertDBDataNotNull() {
@@ -294,10 +297,11 @@ public class Database extends General {
     }
 
 
-    /**
-     * 1. Under the assumption that 1. DB Query is executed in Previous Step and Value is stored in Condition
-     * 2. Condition is Actual variable which holds the DB column value
-     * 3. Data holds the expected prefix to be matched
+    /** Validates that the DB column value stored in Condition matches the expected prefix.
+     *
+     * @param - Condition - Actual - A variable which holds the DB column value.
+     *          Input/Data - Expected - A prefix to be checked against the DB column value.
+     * @throws  if an error occurs during Validation
      */
     //TODO :Review and Choose over assertDBResultStartsWith
     @Action(object = ObjectType.DATABASE, desc = "Assert DB Data Starts With ", input = InputType.YES, condition = InputType.YES)
@@ -323,6 +327,13 @@ public class Database extends General {
         }
     }
 
+    /** Validates that the DB column value matches the expected prefix.
+     * <p> Fetches Value from DB column name passed in Condition</p>
+     *
+     * @param - Condition - Actual - A variable which holds the DB column name.
+     *          Input/Data - Expected - A prefix to be checked against the DB column value.
+     * @throws  if an error occurs during Validation
+     */
     //TODO :Review and Choose over assertDBDataStartsWith
     @Action(object = ObjectType.DATABASE, desc = "Assert the value [<Input>] starts with column [<Condition>]", input = InputType.YES, condition = InputType.YES)
     public void assertDBResultStartsWith() {
@@ -335,10 +346,11 @@ public class Database extends General {
 
 
 
-    /**
-     * 1. Under the assumption that  DB Query is executed in Previous Step and Value is stored in Condition
-     * 2. Condition can be a variable which holds the Actual DB column value
-     * 3. Data holds the pattern/Reg Exp to be matched
+    /** Validates that the DB column value stored in Condition matches the expected pattern/Reg Exp.
+     *
+     * @param - Condition - Actual - A variable which holds the DB column value.
+     *          Input/Data - Expected - A pattern/Reg Exp to be checked against the DB column value.
+     * @throws  if an error occurs during Validation
      */
     //TODO :Review and Choose over assertDBResultPattern
     @Action(object = ObjectType.DATABASE, desc = "Assert DB Data Pattern ", input = InputType.YES, condition = InputType.YES)
@@ -364,6 +376,13 @@ public class Database extends General {
         }
     }
 
+    /** Validates that the DB column value matches the expected pattern/Reg Exp.
+     * <p> Fetches Value from DB column name passed in Condition</p>
+
+     * @param - Condition - Actual - A variable which holds the DB column name.
+     *          Input/Data - Expected - A pattern/Reg Exp to be checked against the DB column value.
+     * @throws Exception if an error occurs during Validation
+     */
     //TODO :Review and Choose over assertDBDataPattern
     @Action(object = ObjectType.DATABASE, desc = "Assert the value [<Input>] pattern matches column [<Condition>]", input = InputType.YES, condition = InputType.YES)
     public void assertDBResultPattern() {
@@ -376,9 +395,10 @@ public class Database extends General {
 
 
     /**
-     * Under the assumption that 1. DB Query is executed in Previous Step and Value is stored in Condition
-     * Condition can be a variable which holds the DB column value
-     * 2. Data holds the substring to be matched
+     * Validates that the XML elements extracted via XPath expressions match the expected values based on the specified mode (pattern, startsWith, contains).
+     * @param mode The mode of validation: "pattern", "startsWith", or "contains".
+     *             - Condition - Actual - A variable which holds the DB column value.
+     *
      */
     /*TODO : REVIEW CHANGE  :  Tried  Pattern ( Reg Expression Checking ) , StartsWith case , contains addressing in 1 function
        ---> NOT FEASIBLE as can'nott have a action with input argument and INGenious design is actions with no arguments and instead
@@ -430,9 +450,10 @@ public class Database extends General {
     }
 
     /**
-     * Under the assumption that 1. Executes single Stored Procedure Call
-     * 2. Data contains only a single stored procedure call
-     * 3. Stored Procedure execution starts with 'begin' and ends with 'end'
+     * Executes a stored procedure call provided in the Data field.
+     * @param - Condition - Not used in this action.
+     *          Input/Data - The stored procedure call to be executed.
+     * @throws Exception if an error occurs during stored procedure execution or multiple stored procedure calls are detected.
      */
     @Action(object = ObjectType.DATABASE, desc = "Execute the StoredProcedure Query in [<Input>]", input = InputType.YES)
     public void executeStoredProcedureQuery() {
@@ -460,14 +481,11 @@ public class Database extends General {
         }
     }
 
-
     /**
-     * Under the assumption that 1. List of  XML Element .List is seperated by ; in Data sheet
-     * Ensures exact match , node to node comparison; expected node list size should match actual node list size
-     * expected node value should match actual node value
-     * Expected - Data
-     * XPath Expressions - Condition
-     * If Expected Node and Actual node are reversed then results will be incorrect/Failed
+     * Validates that the XML elements extracted via XPath expressions are exactly equal to the expected values.
+     * @param - Condition - Actual - A semicolon-separated list of XPath expressions to extract multiple XML element values.
+     *          Input/Data - Expected - A semicolon-separated list of expected values to be checked for equality.
+     * @throws Exception if an error occurs during XML parsing or XPath evaluation or Validation
      */
     @Action(object = ObjectType.DATABASE, desc = "Assert DB XML Element List Equal", input = InputType.YES, condition = InputType.YES)
     public void assertDBXMLelementlistEqual() {
@@ -532,13 +550,10 @@ public class Database extends General {
 
 
     /**
-     * Under the assumption that 1. List of  XML Element List is seperated by ; in Data sheet
-     *   Ensures Partial text match , node to node comparison; expected node list size should match actual node list size
-     *   expected node value partial text matches actual node value
-     *   Expected - Data
-     *   XPath Expressions - Condition
-     *   If Expected Node and Actual node are reversed then results will be incorrect/Failed
-     *
+     * Validates that the XML elements extracted via XPath expressions contain( partial text match) the expected values.
+     * @param - Condition - Actual - A semicolon-separated list of XPath expressions to extract multiple XML element values.
+     *          Input/Data - Expected - A semicolon-separated list of expected values to be checked for containment.
+     * @throws Exception if an error occurs during XML parsing or XPath evaluation or Validation
      */
     @Action(object = ObjectType.DATABASE, desc = "Assert DB XML Element List Contains", input = InputType.YES, condition = InputType.YES)
     public void assertDBXMLelementlistContains() {
@@ -598,11 +613,10 @@ public class Database extends General {
     }
 
     /**
-     * Under the assumption that
-     * 1. Store the XMLTag Element Value into VariableName - Condition
-     * 2. Variable Can be used later to save in Datasheet or validate
-     * 3. Condition holds the XPath Expression to fetch the particular XML Element Value
-     *
+     * Stores XML reply from the database query result into runtime variables.
+     * @param - Condition - The name of the variable to store the XML reply.
+     *          Input/Data - Query to be executed to fetch the XML reply.
+     * @throws Exception if an error occurs during storing the XML reply in variable or executing the SQL query
      */
     @Action(object = ObjectType.DATABASE, desc = "Store DB XML Element", input = InputType.YES, condition = InputType.YES)
     public void storeDBXMLelementInVariable() {
@@ -636,10 +650,10 @@ public class Database extends General {
 
 
     /**
-     * Under the assumption that 1. User executed only SELECT Query
-     * 2. Result has  only XML Reply cell value
-     * 3. Store the XML REply into VariableName - Condition
-     * 4. Variable Can be used later to save in Datasheet or validate
+     * Stores XML reply from the database query result into runtime variables.
+     * @param - Condition - The name of the variable to store the XML reply.
+     *          Input/Data - Query to be executed to fetch the XML reply.
+     * @throws Exception if an error occurs during storing the XML reply in variable or executing the SQL query
      */
     @Action(object = ObjectType.DATABASE, desc = "Query and save the XMLReply in Datasheet ", input = InputType.YES, condition = InputType.YES)
     public void storeResultDBXMLReplyInVariable() {
@@ -681,14 +695,12 @@ public class Database extends General {
 
     }
 
-
-    /*  Under the assumption that 1. XML Reply/Text Message is stored in Variable in previous step - storeDBXMLelementInVariable and
-     *                           2. XML Reply/text- replybodies is input to Datasheet
-     *                          3. Stores particular XMLTagElement Values List separated by ; in Datasheet
-     *                          4. Condition - List of XPath Expressions separated by ; to extract multiple element values
-     *                         5. INput - sheetName:ColumnName format to store value in Datasheet
-     *                          6. Works for Single and multiple element values
-     * */
+    /**
+     * Stores XML element single or list of values from the stored XML reply into the specified Datasheet.
+     * @param - Input - The Datasheet and column to store the extracted values.Data should be in the format sheetName:ColumnName to store the extracted values.
+     *         - Condition - A semicolon-separated list of XPath expressions to extract multiple XML element values.
+     * @throws Exception if an error occurs during storing XML element values in Datasheet
+     */
     @Action(object = ObjectType.DATABASE, desc = "Store DB XML ElementList In DataSheet", input = InputType.YES, condition = InputType.YES)
     public void storeDBXMLelementListInDataSheet() {
         try {
@@ -755,16 +767,11 @@ public class Database extends General {
     }
 
 
-
     /**
-     * Asserts the presence or absence of an XML tag or element in the stored XML reply.
-     * Supports both XMLTag (by tag name) and XMLElement (by full element or attribute via XPath).
-     * <p>
-     * - XMLTag: Provide the tag name or XPath to the tag (e.g., //xmltag or /xmltag/subtag)
-     * - XMLElement: Provide a full XPath to the element, attribute, or value (e.g., //xmltag[text()=''])
-     * <p>
-     * Data: Set to 'true' if the tag/element is expected to be present, 'false' if it should be absent.
-     * Condition: The XPath expression or variable key for the tag/element to check.
+     * Validates the presence or absence of an XML tag or element in the stored XML reply.
+     * @param - Condition -The XML tag name or XPath expression to check for presence.Can be a variable key (e.g., %varName%) or direct XPath.
+     *          Data should be 'true' or 'false' (case-insensitive) indicating expected presence or absence.
+     * @throws Exception if an error occurs during XML parsing or XPath evaluation
      */
     @Action(object = ObjectType.DATABASE, desc = "Assert DB XML Tag or Element Presence", input = InputType.YES, condition = InputType.YES)
     public void assertDBXMLTagorElementPresence() {
@@ -787,8 +794,11 @@ public class Database extends General {
                 expression = Condition;
             }
             NodeList nodeList = (NodeList) xPath.compile(expression).evaluate(doc, XPathConstants.NODESET);
-
-            boolean expectTagOrElementPresent = Boolean.parseBoolean(Data.trim());
+            String trimmedData = Data.trim();
+            if (!trimmedData.equalsIgnoreCase("true") && !trimmedData.equalsIgnoreCase("false")) {
+                throw new IllegalArgumentException("Data must be 'true' or 'false' (case-insensitive), but was: " + Data);
+            }
+            boolean expectTagOrElementPresent = Boolean.parseBoolean(trimmedData);
             String checkType = (expression.matches("^(/\\w+)+$") && !expression.contains("[")) ? "XML Tag" : "XML Element";
             if (expectTagOrElementPresent) {
                 if (nodeList.getLength() > 0) {
@@ -808,4 +818,8 @@ public class Database extends General {
             Report.updateTestLog(Action, "Error validating DB XML tag/element presence: " + ex.getMessage(), Status.DEBUG);
         }
     }
+
+
+
+
 }
