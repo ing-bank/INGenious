@@ -25,7 +25,7 @@ public class IbanOperations extends General {
     public void setCountryCode() throws JSchException {
             try {
                 CountryCode countryCode = CountryCode.valueOf(Data);
-                ibanCountryCode.put(Thread.currentThread().toString(), countryCode);
+                ibanCountryCode.put(iterationContext, countryCode);
                 Report.updateTestLog(Action, "Country Code " + countryCode + " " + countryCode.getName() +" has been set successfully", Status.DONE);
             } catch (Exception ex) {
                 Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during setting iban country code", ex);
@@ -36,7 +36,7 @@ public class IbanOperations extends General {
     @com.ing.engine.support.methodInf.Action(object = ObjectType.IBAN, desc = "Set Account Number", input = InputType.YES, condition = InputType.NO)
     public void setAccountNumber() throws JSchException {
         try {
-            ibanAccountNumber.put(Thread.currentThread().toString(), Data);
+            ibanAccountNumber.put(iterationContext, Data);
             Report.updateTestLog(Action, "Country Code " + Data +"has been set successfully", Status.DONE);
         } catch (Exception ex) {
             Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during setting iban account number", ex);
@@ -55,7 +55,7 @@ public class IbanOperations extends General {
             }
 
             String accountNumber = sb.toString();
-            ibanAccountNumber.put(Thread.currentThread().toString(), accountNumber);
+            ibanAccountNumber.put(iterationContext, accountNumber);
 
             Report.updateTestLog(Action, "Account Number " + accountNumber + " generated successfully by Length", Status.DONE);
         } catch (Exception ex) {
@@ -67,7 +67,7 @@ public class IbanOperations extends General {
     @com.ing.engine.support.methodInf.Action(object = ObjectType.IBAN, desc = "Set Branch Code", input = InputType.YES, condition = InputType.NO)
     public void setBranchCode() throws JSchException {
         try {
-            ibanBranchCode.put(Thread.currentThread().toString(), Data);
+            ibanBranchCode.put(iterationContext, Data);
             Report.updateTestLog(Action, "Branch Code " + Data + " has been set successfully", Status.DONE);
         } catch (Exception ex) {
             Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during setting iban branch code", ex);
@@ -78,7 +78,7 @@ public class IbanOperations extends General {
     @com.ing.engine.support.methodInf.Action(object = ObjectType.IBAN, desc = "Set Bank Code", input = InputType.YES, condition = InputType.NO)
     public void setBankCode() throws JSchException {
         try {
-            ibanBankCode.put(Thread.currentThread().toString(), Data);
+            ibanBankCode.put(iterationContext, Data);
             Report.updateTestLog(Action, "Bank Code " + Data + " has been set successfully", Status.DONE);
         } catch (Exception ex) {
             Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during setting iban bank code", ex);
@@ -89,7 +89,7 @@ public class IbanOperations extends General {
     @com.ing.engine.support.methodInf.Action(object = ObjectType.IBAN, desc = "Set Bank Code Ext", input = InputType.YES, condition = InputType.NO)
     public void setBankCodeExt() throws JSchException {
         try {
-            ibanBankCodeExt.put(Thread.currentThread().toString(), Data);
+            ibanBankCodeExt.put(iterationContext, Data);
             Report.updateTestLog(Action, "Bank Code Ext " + Data + " has been set successfully", Status.DONE);
         } catch (Exception ex) {
             Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during setting iban bank code ext", ex);
@@ -100,7 +100,7 @@ public class IbanOperations extends General {
     @com.ing.engine.support.methodInf.Action(object = ObjectType.IBAN, desc = "Set National Check Digit", input = InputType.YES, condition = InputType.NO)
     public void setNationalCheckDigit() throws JSchException {
         try {
-            ibanNationalCheckDigit.put(Thread.currentThread().toString(), Data);
+            ibanNationalCheckDigit.put(iterationContext, Data);
             Report.updateTestLog(Action, "National Check Digit " + Data + " has been set successfully", Status.DONE);
         } catch (Exception ex) {
             Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during setting iban national check digit", ex);
@@ -111,7 +111,7 @@ public class IbanOperations extends General {
     @com.ing.engine.support.methodInf.Action(object = ObjectType.IBAN, desc = "Set BBAN", input = InputType.YES, condition = InputType.NO)
     public void setBban() throws JSchException {
         try {
-            ibanBban.put(Thread.currentThread().toString(), Data);
+            ibanBban.put(iterationContext, Data);
             Report.updateTestLog(Action, "BBAN " + Data + " has been set successfully", Status.DONE);
         } catch (Exception ex) {
             Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during setting iban BBAN", ex);
@@ -122,7 +122,7 @@ public class IbanOperations extends General {
     @com.ing.engine.support.methodInf.Action(object = ObjectType.IBAN, desc = "Set Identification Number", input = InputType.YES, condition = InputType.NO)
     public void setIdentificationNumber() throws JSchException {
         try {
-            ibanIdentificationNumber.put(Thread.currentThread().toString(), Data);
+            ibanIdentificationNumber.put(iterationContext, Data);
             Report.updateTestLog(Action, "Identification Number " + Data + " has been set successfully", Status.DONE);
         } catch (Exception ex) {
             Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during setting iban Identification Number", ex);
@@ -133,7 +133,7 @@ public class IbanOperations extends General {
     @com.ing.engine.support.methodInf.Action(object = ObjectType.IBAN, desc = "Set Account Type", input = InputType.YES, condition = InputType.NO)
     public void setAccountType() throws JSchException {
         try {
-            ibanAccountType.put(Thread.currentThread().toString(), Data);
+            ibanAccountType.put(iterationContext, Data);
             Report.updateTestLog(Action, "Account Type " + Data + " has been set successfully", Status.DONE);
         } catch (Exception ex) {
             Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during setting iban Account Type", ex);
@@ -144,7 +144,7 @@ public class IbanOperations extends General {
     @com.ing.engine.support.methodInf.Action(object = ObjectType.IBAN, desc = "Set Left Padding", input = InputType.YES, condition = InputType.NO)
     public void setLeftPadding() throws JSchException {
         try {
-            ibanLeftPadding.put(Thread.currentThread().toString(), Boolean.parseBoolean(Data));
+            ibanLeftPadding.put(iterationContext, Boolean.parseBoolean(Data));
             Report.updateTestLog(Action, "Left Padding " + Data + " has been set successfully", Status.DONE);
         } catch (Exception ex) {
             Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during setting iban Left Padding", ex);
@@ -155,7 +155,7 @@ public class IbanOperations extends General {
     @com.ing.engine.support.methodInf.Action(object = ObjectType.IBAN, desc = "Set Owner Account Type", input = InputType.YES, condition = InputType.NO)
     public void setOwnerAccountType() throws JSchException {
         try {
-            ibanOwnerAccountType.put(Thread.currentThread().toString(), Data);
+            ibanOwnerAccountType.put(iterationContext, Data);
             Report.updateTestLog(Action, "Account Owner Type" + Data + " has been set successfully", Status.DONE);
         } catch (Exception ex) {
             Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during setting iban Account Owner Type", ex);
@@ -168,25 +168,25 @@ public class IbanOperations extends General {
     public void generateRandomIban() {
         try {
 
-            Boolean leftPaddingValue = ibanLeftPadding.get(Thread.currentThread().toString());
+            Boolean leftPaddingValue = ibanLeftPadding.get(iterationContext);
             if (leftPaddingValue == null) {
                 leftPaddingValue = false;
             }
 
             Iban iban = new Iban.Builder()
-                    .accountNumber(ibanAccountNumber.get(Thread.currentThread().toString()))
-                    .accountType(ibanAccountType.get(Thread.currentThread().toString()))
-                    .bankCode(ibanBankCode.get(Thread.currentThread().toString()))
-                    .bankCodeExt(ibanBankCodeExt.get(Thread.currentThread().toString()))
-                    .branchCode(ibanBranchCode.get(Thread.currentThread().toString()))
-                    .countryCode(ibanCountryCode.get(Thread.currentThread().toString()))
-                    .identificationNumber(ibanIdentificationNumber.get(Thread.currentThread().toString()))
+                    .accountNumber(ibanAccountNumber.get(iterationContext))
+                    .accountType(ibanAccountType.get(iterationContext))
+                    .bankCode(ibanBankCode.get(iterationContext))
+                    .bankCodeExt(ibanBankCodeExt.get(iterationContext))
+                    .branchCode(ibanBranchCode.get(iterationContext))
+                    .countryCode(ibanCountryCode.get(iterationContext))
+                    .identificationNumber(ibanIdentificationNumber.get(iterationContext))
                     .leftPadding(leftPaddingValue)
-                    .nationalCheckDigit(ibanNationalCheckDigit.get(Thread.currentThread().toString()))
-                    .ownerAccountType(ibanOwnerAccountType.get(Thread.currentThread().toString()))
+                    .nationalCheckDigit(ibanNationalCheckDigit.get(iterationContext))
+                    .ownerAccountType(ibanOwnerAccountType.get(iterationContext))
                     .buildRandom();
 
-            Command.iban.put(Thread.currentThread().toString(), iban);
+            Command.iban.put(iterationContext, iban);
 
             if (!Condition.isEmpty()) {
                 if (Condition.startsWith("%") && Condition.endsWith("%")) {
@@ -208,25 +208,25 @@ public class IbanOperations extends General {
     public void generateIban() {
         try {
 
-            Boolean leftPaddingValue = ibanLeftPadding.get(Thread.currentThread().toString());
+            Boolean leftPaddingValue = ibanLeftPadding.get(iterationContext);
             if (leftPaddingValue == null) {
                 leftPaddingValue = false;
             }
 
             Iban iban = new Iban.Builder()
-                    .accountNumber(ibanAccountNumber.get(Thread.currentThread().toString()))
-                    .accountType(ibanAccountType.get(Thread.currentThread().toString()))
-                    .bankCode(ibanBankCode.get(Thread.currentThread().toString()))
-                    .bankCodeExt(ibanBankCodeExt.get(Thread.currentThread().toString()))
-                    .branchCode(ibanBranchCode.get(Thread.currentThread().toString()))
-                    .countryCode(ibanCountryCode.get(Thread.currentThread().toString()))
-                    .identificationNumber(ibanIdentificationNumber.get(Thread.currentThread().toString()))
+                    .accountNumber(ibanAccountNumber.get(iterationContext))
+                    .accountType(ibanAccountType.get(iterationContext))
+                    .bankCode(ibanBankCode.get(iterationContext))
+                    .bankCodeExt(ibanBankCodeExt.get(iterationContext))
+                    .branchCode(ibanBranchCode.get(iterationContext))
+                    .countryCode(ibanCountryCode.get(iterationContext))
+                    .identificationNumber(ibanIdentificationNumber.get(iterationContext))
                     .leftPadding(leftPaddingValue)
-                    .nationalCheckDigit(ibanNationalCheckDigit.get(Thread.currentThread().toString()))
-                    .ownerAccountType(ibanOwnerAccountType.get(Thread.currentThread().toString()))
+                    .nationalCheckDigit(ibanNationalCheckDigit.get(iterationContext))
+                    .ownerAccountType(ibanOwnerAccountType.get(iterationContext))
                     .build();
 
-            Command.iban.put(Thread.currentThread().toString(), iban);
+            Command.iban.put(iterationContext, iban);
 
             if (!Condition.isEmpty()) {
                 if (Condition.startsWith("%") && Condition.endsWith("%")) {
@@ -247,7 +247,7 @@ public class IbanOperations extends General {
     @com.ing.engine.support.methodInf.Action(object = ObjectType.IBAN, desc = "Validate IBAN", input = InputType.NO, condition = InputType.NO)
     public void validateIban() {
         try {
-            Iban iban = Command.iban.get(Thread.currentThread().toString());
+            Iban iban = Command.iban.get(iterationContext);
             IbanUtil.validate(iban.toString());
             Report.updateTestLog(Action, "IBAN " + iban.toString() + " validated successfully", Status.DONE);
         } catch (Exception ex) {
@@ -259,7 +259,7 @@ public class IbanOperations extends General {
     @com.ing.engine.support.methodInf.Action(object = ObjectType.IBAN, desc = "Get Country Code", input = InputType.NO, condition = InputType.YES)
     public void getCountryCode() throws JSchException {
         try {
-            Iban iban = Command.iban.get(Thread.currentThread().toString());
+            Iban iban = Command.iban.get(iterationContext);
             addVar(Condition, iban.getCountryCode().getAlpha2());
             Report.updateTestLog(Action, "Country Code " + iban.getCountryCode().getAlpha2() + " saved successfully in " + Condition, Status.DONE);
         } catch (Exception ex) {
@@ -271,7 +271,7 @@ public class IbanOperations extends General {
     @com.ing.engine.support.methodInf.Action(object = ObjectType.IBAN, desc = "Get Account Number", input = InputType.NO, condition = InputType.YES)
     public void getAccountNumber() throws JSchException {
         try {
-            Iban iban = Command.iban.get(Thread.currentThread().toString());
+            Iban iban = Command.iban.get(iterationContext);
             addVar(Condition, iban.getAccountNumber());
             Report.updateTestLog(Action, "Account Number " + Data + " saved successfully in " + Condition, Status.DONE);
         } catch (Exception ex) {
@@ -283,7 +283,7 @@ public class IbanOperations extends General {
     @com.ing.engine.support.methodInf.Action(object = ObjectType.IBAN, desc = "Get Branch Code", input = InputType.NO, condition = InputType.YES)
     public void getBranchCode() throws JSchException {
         try {
-            Iban iban = Command.iban.get(Thread.currentThread().toString());
+            Iban iban = Command.iban.get(iterationContext);
             addVar(Condition, iban.getBranchCode());
             Report.updateTestLog(Action, "Branch Code " + Data + " saved successfully in " + Condition, Status.DONE);
         } catch (Exception ex) {
@@ -295,7 +295,7 @@ public class IbanOperations extends General {
     @com.ing.engine.support.methodInf.Action(object = ObjectType.IBAN, desc = "Get Bank Code", input = InputType.NO, condition = InputType.YES)
     public void getBankCode() throws JSchException {
         try {
-            Iban iban = Command.iban.get(Thread.currentThread().toString());
+            Iban iban = Command.iban.get(iterationContext);
             addVar(Condition, iban.getBankCode());
             Report.updateTestLog(Action, "Bank Code " + Data + " saved successfully in " + Condition, Status.DONE);
         } catch (Exception ex) {
@@ -307,7 +307,7 @@ public class IbanOperations extends General {
     @com.ing.engine.support.methodInf.Action(object = ObjectType.IBAN, desc = "Get Bank Code Ext", input = InputType.NO, condition = InputType.YES)
     public void getBankCodeExt() throws JSchException {
         try {
-            String bankCodeExt = ibanBankCodeExt.get(Thread.currentThread().toString());
+            String bankCodeExt = ibanBankCodeExt.get(iterationContext);
             addVar(Condition, bankCodeExt);
             Report.updateTestLog(Action, "Bank Code Ext " + Data + " saved successfully in " + Condition, Status.DONE);
         } catch (Exception ex) {
@@ -319,7 +319,7 @@ public class IbanOperations extends General {
     @com.ing.engine.support.methodInf.Action(object = ObjectType.IBAN, desc = "Get National Check Digit", input = InputType.NO, condition = InputType.YES)
     public void getNationalCheckDigit() throws JSchException {
         try {
-            Iban iban = Command.iban.get(Thread.currentThread().toString());
+            Iban iban = Command.iban.get(iterationContext);
             addVar(Condition, iban.getNationalCheckDigit());
             Report.updateTestLog(Action, "National Check Digit " + Data + " saved successfully in " + Condition, Status.DONE);
         } catch (Exception ex) {
@@ -331,7 +331,7 @@ public class IbanOperations extends General {
     @com.ing.engine.support.methodInf.Action(object = ObjectType.IBAN, desc = "Get BBAN", input = InputType.NO, condition = InputType.YES)
     public void getBban() throws JSchException {
         try {
-            Iban iban = Command.iban.get(Thread.currentThread().toString());
+            Iban iban = Command.iban.get(iterationContext);
             addVar(Condition, iban.getBban());
             Report.updateTestLog(Action, "BBAN " + Data + " saved successfully in " + Condition, Status.DONE);
         } catch (Exception ex) {
@@ -343,7 +343,7 @@ public class IbanOperations extends General {
     @com.ing.engine.support.methodInf.Action(object = ObjectType.IBAN, desc = "Get Identification Number", input = InputType.NO, condition = InputType.YES)
     public void getIdentificationNumber() throws JSchException {
         try {
-            Iban iban = Command.iban.get(Thread.currentThread().toString());
+            Iban iban = Command.iban.get(iterationContext);
             addVar(Condition, iban.getIdentificationNumber());
             Report.updateTestLog(Action, "Identification Number " + Data + " saved successfully in " + Condition, Status.DONE);
         } catch (Exception ex) {
@@ -355,7 +355,7 @@ public class IbanOperations extends General {
     @com.ing.engine.support.methodInf.Action(object = ObjectType.IBAN, desc = "Get Account Type", input = InputType.NO, condition = InputType.YES)
     public void getAccountType() throws JSchException {
         try {
-            Iban iban = Command.iban.get(Thread.currentThread().toString());
+            Iban iban = Command.iban.get(iterationContext);
             addVar(Condition, iban.getAccountType());
             Report.updateTestLog(Action, "Account Type " + Data + " saved successfully in " + Condition, Status.DONE);
         } catch (Exception ex) {
@@ -367,7 +367,7 @@ public class IbanOperations extends General {
     @com.ing.engine.support.methodInf.Action(object = ObjectType.IBAN, desc = "Get Left Padding", input = InputType.NO, condition = InputType.YES)
     public void getLeftPadding() throws JSchException {
         try {
-            Boolean leftPadding = ibanLeftPadding.get(Thread.currentThread().toString());
+            Boolean leftPadding = ibanLeftPadding.get(iterationContext);
             addVar(Condition, Boolean.toString(leftPadding));
             Report.updateTestLog(Action, "Left Padding " + Data + " saved successfully in " + Condition, Status.DONE);
         } catch (Exception ex) {
@@ -379,7 +379,7 @@ public class IbanOperations extends General {
     @com.ing.engine.support.methodInf.Action(object = ObjectType.IBAN, desc = "Get Owner Account Type", input = InputType.NO, condition = InputType.YES)
     public void getOwnerAccountType() throws JSchException {
         try {
-            Iban iban = Command.iban.get(Thread.currentThread().toString());
+            Iban iban = Command.iban.get(iterationContext);
             addVar(Condition, iban.getOwnerAccountType());
             Report.updateTestLog(Action, "Owner Account Type" + Data + " saved successfully in " + Condition, Status.DONE);
         } catch (Exception ex) {

@@ -57,7 +57,7 @@ public class JsonOperations extends General {
         try {
             String[] parts = Data.split(",");
 
-            boolean areEqual = compareJsonFiles(parts[0], parts[1], ignoreJSONPaths.get(Thread.currentThread().toString()));
+            boolean areEqual = compareJsonFiles(parts[0], parts[1], ignoreJSONPaths.get(iterationContext));
 
             System.out.println("Comparison result: " + areEqual);
             if (areEqual) {
@@ -74,7 +74,7 @@ public class JsonOperations extends General {
     @Action(object = ObjectType.JSON, desc = "Ignore JSON Path(s)", input = InputType.YES, condition = InputType.NO)
     public void ignoreJSONPath() throws Exception {
         try {
-            ignoreJSONPaths.computeIfAbsent(Thread.currentThread().toString(), k -> new ArrayList<>()).add(Data);
+            ignoreJSONPaths.computeIfAbsent(iterationContext, k -> new ArrayList<>()).add(Data);
             Report.updateTestLog(Action, "JSON Path to ignore for comparison has been set successfully", Status.DONE);
         } catch (Exception ex) {
             Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during setting JSON Path to ignore for comparison", ex);

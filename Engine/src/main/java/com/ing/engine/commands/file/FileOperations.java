@@ -142,7 +142,7 @@ public class FileOperations extends General {
     public void setFile() {
         if (shouldExecute(Condition)) {
             try {
-                setFile.put(Thread.currentThread().toString(), Data);
+                setFile.put(iterationContext, Data);
                 Report.updateTestLog(Action, "File has been set successfully", Status.DONE);
             } catch (NumberFormatException ex) {
                 Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during setting File", ex);
@@ -159,7 +159,7 @@ public class FileOperations extends General {
 
             Pattern pattern = Pattern.compile(Data);
 
-            String filePath = setFile.get(Thread.currentThread().toString());
+            String filePath = setFile.get(iterationContext);
 
             List<String> matches = new ArrayList<>();
 
@@ -170,7 +170,7 @@ public class FileOperations extends General {
                     Matcher matcher = pattern.matcher(line);
                     while (matcher.find()) {
                         matches.add(matcher.group(1));
-                        regexMatches.put(Thread.currentThread().toString(), matches);
+                        regexMatches.put(iterationContext, matches);
                     }
                 }
 
@@ -178,9 +178,9 @@ public class FileOperations extends General {
                 System.err.println("Error reading file: " + e.getMessage());
             }
 
-            if (!regexMatches.get(Thread.currentThread().toString()).isEmpty()) {
+            if (!regexMatches.get(iterationContext).isEmpty()) {
                 Report.updateTestLog(Action, "Values retrieved successfully from file", Status.DONE);
-                for (String value : regexMatches.get(Thread.currentThread().toString())) {
+                for (String value : regexMatches.get(iterationContext)) {
                     System.out.println("Value saved: " + value);
                 }
             } else {
@@ -197,8 +197,8 @@ public class FileOperations extends General {
     public void getValueFromListByIndex() {
         try {
 
-            if (!regexMatches.get(Thread.currentThread().toString()).isEmpty()) {
-                String value = regexMatches.get(Thread.currentThread().toString()).get(Integer.valueOf(Data));
+            if (!regexMatches.get(iterationContext).isEmpty()) {
+                String value = regexMatches.get(iterationContext).get(Integer.valueOf(Data));
                 addVar(Condition, value);
                 Report.updateTestLog(Action, "Value: " + value + " taken successfully from List", Status.DONE);
 
@@ -217,10 +217,10 @@ public class FileOperations extends General {
     public void emptyRetrievedValuesFromFile() {
         try {
 
-            String filePath = setFile.get(Thread.currentThread().toString());
+            String filePath = setFile.get(iterationContext);
 
-            if (!regexMatches.get(Thread.currentThread().toString()).isEmpty()) {
-                regexMatches.get(Thread.currentThread().toString()).clear();
+            if (!regexMatches.get(iterationContext).isEmpty()) {
+                regexMatches.get(iterationContext).clear();
                 Report.updateTestLog(Action, "List of values emptied", Status.DONE);
             } else {
                 Report.updateTestLog(Action, "List of values was already empty", Status.DEBUG);

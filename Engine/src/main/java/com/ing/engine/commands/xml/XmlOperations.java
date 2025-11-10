@@ -275,7 +275,7 @@ public class XmlOperations extends General {
                 isNumeric = Boolean.parseBoolean(sortFields[2]);
             }
 
-            Diff diff = compareXML(content.toString(), content2.toString(), ignoreXMLNodes.get(Thread.currentThread().toString()), ignoreXMLTextNodes.get(Thread.currentThread().toString()),parentElementName,sortByChildElement,isNumeric);
+            Diff diff = compareXML(content.toString(), content2.toString(), ignoreXMLNodes.get(iterationContext), ignoreXMLTextNodes.get(iterationContext),parentElementName,sortByChildElement,isNumeric);
             boolean areEqual = !diff.hasDifferences();
             System.out.println("XML files are equal: " + areEqual);
 
@@ -300,7 +300,7 @@ public class XmlOperations extends General {
     @Action(object = ObjectType.XML, desc = "Ignore XML Node", input = InputType.YES, condition = InputType.NO)
     public void ignoreXMLNode() throws Exception {
         try {
-            ignoreXMLNodes.computeIfAbsent(Thread.currentThread().toString(), k -> new ArrayList<>()).add(Data);
+            ignoreXMLNodes.computeIfAbsent(iterationContext, k -> new ArrayList<>()).add(Data);
             Report.updateTestLog(Action, "XML Node to ignore for comparison has been set successfully", Status.DONE);
         } catch (Exception ex) {
             Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during setting XML Node to ignore for comparison", ex);
@@ -312,7 +312,7 @@ public class XmlOperations extends General {
     @Action(object = ObjectType.XML, desc = "Ignore XML Text Node", input = InputType.YES, condition = InputType.NO)
     public void ignoreXMLTextNode() throws Exception {
         try {
-            ignoreXMLTextNodes.computeIfAbsent(Thread.currentThread().toString(), k -> new ArrayList<>()).add(Data);
+            ignoreXMLTextNodes.computeIfAbsent(iterationContext, k -> new ArrayList<>()).add(Data);
             Report.updateTestLog(Action, "XML Text Node(s) to ignore for comparison has been set successfully", Status.DONE);
         } catch (Exception ex) {
             Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during setting XML Text Node(s) to ignore for comparison", ex);

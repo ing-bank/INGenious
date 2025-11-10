@@ -24,7 +24,7 @@ public class GenericJsonBuilder<T> extends General {
     @Action(object = ObjectType.JSON, desc = "Builder Create JSON", input = InputType.NO, condition = InputType.NO)
     public void builderCreateJsonBuilder() {
         try {
-            factory.computeIfAbsent(Thread.currentThread().toString(), k -> JsonNodeFactory.instance);
+            factory.computeIfAbsent(iterationContext, k -> JsonNodeFactory.instance);
             Report.updateTestLog(Action, "JSON Builder Created", Status.DONE);
         } catch (Exception e) {
             Report.updateTestLog(Action, "Error initializing JSON Builder", Status.FAIL);
@@ -35,8 +35,8 @@ public class GenericJsonBuilder<T> extends General {
     @Action(object = ObjectType.JSON, desc = "Builder Create Object", input = InputType.YES, condition = InputType.NO)
     public void builderCreateObject() {
         try {
-            pendingKeys.computeIfAbsent(Thread.currentThread().toString(), k -> new ArrayList<>()).add(Data);
-            isArrayPending.computeIfAbsent(Thread.currentThread().toString(), k -> new ArrayList<>()).add(false);
+            pendingKeys.computeIfAbsent(iterationContext, k -> new ArrayList<>()).add(Data);
+            isArrayPending.computeIfAbsent(iterationContext, k -> new ArrayList<>()).add(false);
             Report.updateTestLog(Action, "JSON Object Created", Status.DONE);
         } catch (Exception e) {
             Report.updateTestLog(Action, "Error Creating Object", Status.FAIL);
@@ -47,8 +47,8 @@ public class GenericJsonBuilder<T> extends General {
     @Action(object = ObjectType.JSON, desc = "Builder Create Child Object", input = InputType.YES, condition = InputType.NO)
     public void builderCreateChildObject() {
         try {
-            pendingKeys.get(Thread.currentThread().toString()).add(Data);
-            isArrayPending.get(Thread.currentThread().toString()).add(false);
+            pendingKeys.get(iterationContext).add(Data);
+            isArrayPending.get(iterationContext).add(false);
             Report.updateTestLog(Action, "JSON Child Object Created", Status.DONE);
         } catch (Exception e) {
             Report.updateTestLog(Action, "Error Creating Child Object", Status.FAIL);
@@ -60,8 +60,8 @@ public class GenericJsonBuilder<T> extends General {
     public void builderCreateSibling() {
         try {
             builderJSONEndElement(); // close previous sibling
-            pendingKeys.get(Thread.currentThread().toString()).add(Data);
-            isArrayPending.get(Thread.currentThread().toString()).add(false);
+            pendingKeys.get(iterationContext).add(Data);
+            isArrayPending.get(iterationContext).add(false);
             Report.updateTestLog(Action, "JSON Sibling Object Created", Status.DONE);
         } catch (Exception e) {
             Report.updateTestLog(Action, "Error Creating Sibling Object", Status.FAIL);
@@ -72,9 +72,9 @@ public class GenericJsonBuilder<T> extends General {
     @Action(object = ObjectType.JSON, desc = "Builder Create Array Object", input = InputType.YES, condition = InputType.NO)
     public void builderCreateArray() {
         try {
-            pendingKeys.get(Thread.currentThread().toString()).add(Data);
-            isArrayPending.get(Thread.currentThread().toString()).add(true);
-            currentArrayKey.computeIfAbsent(Thread.currentThread().toString(), k -> Data);
+            pendingKeys.get(iterationContext).add(Data);
+            isArrayPending.get(iterationContext).add(true);
+            currentArrayKey.computeIfAbsent(iterationContext, k -> Data);
 //            currentArrayKey = Data;
             Report.updateTestLog(Action, "JSON Array Object Created", Status.DONE);
         } catch (Exception e) {
@@ -86,7 +86,7 @@ public class GenericJsonBuilder<T> extends General {
     @Action(object = ObjectType.JSON, desc = "Builder Start Property", input = InputType.YES, condition = InputType.NO)
     public void builderSetProperty() {
         try {
-            currentPropertyKey.put(Thread.currentThread().toString(), Data);
+            currentPropertyKey.put(iterationContext, Data);
             Report.updateTestLog(Action, "JSON Property Set", Status.DONE);
         } catch (Exception e) {
             Report.updateTestLog(Action, "Error Setting Property", Status.FAIL);
@@ -99,7 +99,7 @@ public class GenericJsonBuilder<T> extends General {
         try {
             ensurePendingAttached();
             ObjectNode current = getCurrentObject();
-            current.putPOJO(currentPropertyKey.get(Thread.currentThread().toString()), parseValue(Data));
+            current.putPOJO(currentPropertyKey.get(iterationContext), parseValue(Data));
             markUsed();
             Report.updateTestLog(Action, "JSON Property Value Set", Status.DONE);
         } catch (Exception e) {
@@ -125,8 +125,8 @@ public class GenericJsonBuilder<T> extends General {
     }
 
     private void markUsed() {
-        if (!jsonUsedStack.get(Thread.currentThread().toString()).isEmpty()) {
-            jsonUsedStack.get(Thread.currentThread().toString()).set(jsonUsedStack.get(Thread.currentThread().toString()).size() - 1, true);
+        if (!jsonUsedStack.get(iterationContext).isEmpty()) {
+            jsonUsedStack.get(iterationContext).set(jsonUsedStack.get(iterationContext).size() - 1, true);
         }
     }
 
@@ -135,19 +135,19 @@ public class GenericJsonBuilder<T> extends General {
         try {
             ensurePendingAttached();
             ObjectNode current = getCurrentObject();
-            ArrayNode array = (ArrayNode) current.get(currentArrayKey.get(Thread.currentThread().toString()));
+            ArrayNode array = (ArrayNode) current.get(currentArrayKey.get(iterationContext));
             if (array == null) {
-                array = factory.get(Thread.currentThread().toString()).arrayNode();
-                current.set(currentArrayKey.get(Thread.currentThread().toString()), array);
+                array = factory.get(iterationContext).arrayNode();
+                current.set(currentArrayKey.get(iterationContext), array);
             }
 
             // Create a new object for this array element
-            ObjectNode newElement = factory.get(Thread.currentThread().toString()).objectNode();
+            ObjectNode newElement = factory.get(iterationContext).objectNode();
             array.add(newElement);
 
             // Push this element onto the stack so properties can be added to it
-            objectStack.get(Thread.currentThread().toString()).add(newElement);
-            jsonUsedStack.get(Thread.currentThread().toString()).add(false); // Track usage for cleanup
+            objectStack.get(iterationContext).add(newElement);
+            jsonUsedStack.get(iterationContext).add(false); // Track usage for cleanup
             Report.updateTestLog(Action, "JSON Property Started", Status.DONE);
         } catch (Exception e) {
             Report.updateTestLog(Action, "Error Starting Property", Status.FAIL);
@@ -156,27 +156,27 @@ public class GenericJsonBuilder<T> extends General {
     }
 
     private void ensurePendingAttached() {
-        if (pendingKeys.get(Thread.currentThread().toString()).isEmpty()) return;
+        if (pendingKeys.get(iterationContext).isEmpty()) return;
 
-        rootNode.computeIfAbsent(Thread.currentThread().toString(), k -> factory.get(Thread.currentThread().toString()).objectNode());
-        objectStack.computeIfAbsent(Thread.currentThread().toString(), k -> new ArrayList<>());
-        ObjectNode parent = objectStack.get(Thread.currentThread().toString()).isEmpty() ? rootNode.get(Thread.currentThread().toString()) : objectStack.get(Thread.currentThread().toString()).get(objectStack.get(Thread.currentThread().toString()).size() - 1);
+        rootNode.computeIfAbsent(iterationContext, k -> factory.get(iterationContext).objectNode());
+        objectStack.computeIfAbsent(iterationContext, k -> new ArrayList<>());
+        ObjectNode parent = objectStack.get(iterationContext).isEmpty() ? rootNode.get(iterationContext) : objectStack.get(iterationContext).get(objectStack.get(iterationContext).size() - 1);
 
-        for (int i = 0; i < pendingKeys.get(Thread.currentThread().toString()).size(); i++) {
-            String key = pendingKeys.get(Thread.currentThread().toString()).get(i);
-            boolean isArray = isArrayPending.get(Thread.currentThread().toString()).get(i);
+        for (int i = 0; i < pendingKeys.get(iterationContext).size(); i++) {
+            String key = pendingKeys.get(iterationContext).get(i);
+            boolean isArray = isArrayPending.get(iterationContext).get(i);
 
             if (!parent.has(key)) {
                 if (isArray) {
-                    ArrayNode array = factory.get(Thread.currentThread().toString()).arrayNode();
+                    ArrayNode array = factory.get(iterationContext).arrayNode();
                     parent.set(key, array);
-                    currentArrayKey.computeIfAbsent(Thread.currentThread().toString(), k -> key);
+                    currentArrayKey.computeIfAbsent(iterationContext, k -> key);
                 } else {
-                    ObjectNode newObj = factory.get(Thread.currentThread().toString()).objectNode();
+                    ObjectNode newObj = factory.get(iterationContext).objectNode();
                     parent.set(key, newObj);
 
-                    objectStack.computeIfAbsent(Thread.currentThread().toString(), k -> new ArrayList<>()).add(newObj);
-                    jsonUsedStack.computeIfAbsent(Thread.currentThread().toString(), k -> new ArrayList<>()).add(false);
+                    objectStack.computeIfAbsent(iterationContext, k -> new ArrayList<>()).add(newObj);
+                    jsonUsedStack.computeIfAbsent(iterationContext, k -> new ArrayList<>()).add(false);
 
                     parent = newObj; // move down for next child
                 }
@@ -187,8 +187,8 @@ public class GenericJsonBuilder<T> extends General {
             }
         }
 
-        pendingKeys.get(Thread.currentThread().toString()).clear();
-        isArrayPending.get(Thread.currentThread().toString()).clear();
+        pendingKeys.get(iterationContext).clear();
+        isArrayPending.get(iterationContext).clear();
     }
 
     // -------------------------
@@ -197,17 +197,17 @@ public class GenericJsonBuilder<T> extends General {
     @Action(object = ObjectType.JSON, desc = "Builder End Element", input = InputType.NO, condition = InputType.NO)
     public void builderJSONEndElement() {
         try {
-            if (!objectStack.get(Thread.currentThread().toString()).isEmpty()) {
-                int idx = objectStack.get(Thread.currentThread().toString()).size() - 1;
-                ObjectNode last = objectStack.get(Thread.currentThread().toString()).get(idx);
+            if (!objectStack.get(iterationContext).isEmpty()) {
+                int idx = objectStack.get(iterationContext).size() - 1;
+                ObjectNode last = objectStack.get(iterationContext).get(idx);
 
                 // Remove empty nodes recursively
-                if (!jsonUsedStack.get(Thread.currentThread().toString()).get(idx)) {
+                if (!jsonUsedStack.get(iterationContext).get(idx)) {
                     removeIfEmpty(last);
                 }
 
-                objectStack.get(Thread.currentThread().toString()).remove(idx);
-                jsonUsedStack.get(Thread.currentThread().toString()).remove(idx);
+                objectStack.get(iterationContext).remove(idx);
+                jsonUsedStack.get(iterationContext).remove(idx);
                 Report.updateTestLog(Action, "JSON Element Ended", Status.DONE);
             }
         } catch (Exception e) {
@@ -222,7 +222,7 @@ public class GenericJsonBuilder<T> extends General {
         if (!isCompletelyEmpty(node)) return;
 
         // Find parent and remove node if empty
-        for (ObjectNode parent : objectStack.get(Thread.currentThread().toString())) {
+        for (ObjectNode parent : objectStack.get(iterationContext)) {
             for (Iterator<String> it = parent.fieldNames(); it.hasNext(); ) {
                 String fieldName = it.next();
                 if (parent.get(fieldName).isArray()) {
@@ -262,10 +262,10 @@ public class GenericJsonBuilder<T> extends General {
     }
 
     private ObjectNode getCurrentObject() {
-        if (objectStack.get(Thread.currentThread().toString()).isEmpty()) {
+        if (objectStack.get(iterationContext).isEmpty()) {
             throw new IllegalStateException("No current object. Did you create root/child first?");
         }
-        return objectStack.get(Thread.currentThread().toString()).get(objectStack.get(Thread.currentThread().toString()).size() - 1);
+        return objectStack.get(iterationContext).get(objectStack.get(iterationContext).size() - 1);
     }
 
     // -------------------------
@@ -274,7 +274,7 @@ public class GenericJsonBuilder<T> extends General {
     @Action(object = ObjectType.JSON, desc = "Write To File", input = InputType.YES, condition = InputType.NO)
     public void builderJSONWriteToFile() {
         try {
-            mapper.computeIfAbsent(Thread.currentThread().toString(), k -> new ObjectMapper()).writerWithDefaultPrettyPrinter().writeValue(new File(Data), rootNode.get(Thread.currentThread().toString()));
+            mapper.computeIfAbsent(iterationContext, k -> new ObjectMapper()).writerWithDefaultPrettyPrinter().writeValue(new File(Data), rootNode.get(iterationContext));
             Report.updateTestLog(Action, "JSON File Saved", Status.DONE);
         } catch (Exception e) {
             Report.updateTestLog(Action, "Error writing JSON file", Status.DONE);
@@ -283,7 +283,7 @@ public class GenericJsonBuilder<T> extends General {
     }
 
     public ObjectNode getDocument() {
-        return rootNode.get(Thread.currentThread().toString());
+        return rootNode.get(iterationContext);
     }
 
 }

@@ -116,7 +116,7 @@ public class GeneralOperations extends General {
         System.out.println("Scenario Context: " + scenarioContext);
         System.out.println("Test case Context: " + testCaseContext);
         System.out.println("Sub Iteration Context:" + subIterationContext);
-        System.out.println("Current Thread Context:" + Thread.currentThread().toString());
+        System.out.println("Current Thread Context:" + iterationContext);
     }
 
     @Action(object = ObjectType.GENERAL, desc = "Add a Global variable to access across test set", input = InputType.YES, condition = InputType.YES)

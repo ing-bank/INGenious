@@ -40,7 +40,7 @@ public class SSHManager extends General {
         if (shouldExecute(Condition)) {
             try {
                 System.out.println(Data);
-                sshIntermediaryHost.put(Thread.currentThread().toString(), Data);
+                sshIntermediaryHost.put(iterationContext, Data);
                 Report.updateTestLog(Action, "SSH Intermediary Host has been set successfully", Status.DONE);
             } catch (Exception ex) {
                 Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during SSH Intermediary host connection setup", ex);
@@ -55,7 +55,7 @@ public class SSHManager extends General {
     public void setSSHIntermediaryHostPort() {
         if (shouldExecute(Condition)) {
             try {
-                sshIntermediaryHostPort.put(Thread.currentThread().toString(), Integer.valueOf(Data));
+                sshIntermediaryHostPort.put(iterationContext, Integer.valueOf(Data));
                 Report.updateTestLog(Action, "SSH Port has been set successfully", Status.DONE);
             } catch (NumberFormatException ex) {
                 Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during SSH connection setup", ex);
@@ -70,7 +70,7 @@ public class SSHManager extends General {
     public void setSSHIntermediaryHostUserName() {
         if (shouldExecute(Condition)) {
             try {
-                sshIntermediaryHostUsername.put(Thread.currentThread().toString(), Data);
+                sshIntermediaryHostUsername.put(iterationContext, Data);
                 Report.updateTestLog(Action, "Intermediary Host Username has been set successfully", Status.DONE);
             } catch (Exception ex) {
                 Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during Intermediary Host Username SSH connection setup", ex);
@@ -85,7 +85,7 @@ public class SSHManager extends General {
     public void setSSHIntermediaryHostPassword() {
         if (shouldExecute(Condition)) {
             try {
-                sshIntermediaryHostPassword.put(Thread.currentThread().toString(), Data);
+                sshIntermediaryHostPassword.put(iterationContext, Data);
                 Report.updateTestLog(Action, "SSH Intermediary Host Password has been set successfully", Status.DONE);
             } catch (Exception ex) {
                 Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during setting SSH Intermediary Host Password", ex);
@@ -100,7 +100,7 @@ public class SSHManager extends General {
     public void setSSHIntermediateHostTunnelPort() {
         if (shouldExecute(Condition)) {
             try {
-                sshIntermediaryHostTunnelPort.put(Thread.currentThread().toString(), Integer.valueOf(Data));
+                sshIntermediaryHostTunnelPort.put(iterationContext, Integer.valueOf(Data));
                 Report.updateTestLog(Action, "SSH Intermediate Host Tunnel Port has been set successfully", Status.DONE);
             } catch (NumberFormatException ex) {
                 Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during SSH Intermediate Host Tunnel Port setup", ex);
@@ -124,7 +124,7 @@ public class SSHManager extends General {
         if (shouldExecute(Condition)) {
             try {
                 System.out.println(Data);
-                sshHost.put(Thread.currentThread().toString(), Data);
+                sshHost.put(iterationContext, Data);
                 Report.updateTestLog(Action, "SSH Host has been set successfully", Status.DONE);
             } catch (Exception ex) {
                 Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during SSH connection setup", ex);
@@ -137,7 +137,7 @@ public class SSHManager extends General {
     public void setSSHHostPort() {
         if (shouldExecute(Condition)) {
             try {
-                sshHostPort.put(Thread.currentThread().toString(), Integer.valueOf(Data));
+                sshHostPort.put(iterationContext, Integer.valueOf(Data));
                 Report.updateTestLog(Action, "SSH Port has been set successfully", Status.DONE);
             } catch (NumberFormatException ex) {
                 Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during SSH connection setup", ex);
@@ -150,7 +150,7 @@ public class SSHManager extends General {
     public void setSSHHostUserName() {
         if (shouldExecute(Condition)) {
             try {
-                sshHostUsername.put(Thread.currentThread().toString(), Data);
+                sshHostUsername.put(iterationContext, Data);
                 Report.updateTestLog(Action, "Username has been set successfully", Status.DONE);
             } catch (Exception ex) {
                 Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during SSH connection setup", ex);
@@ -163,7 +163,7 @@ public class SSHManager extends General {
     public void setSSHHostPassword() {
         if (shouldExecute(Condition)) {
             try {
-                sshHostPassword.put(Thread.currentThread().toString(), Data);
+                sshHostPassword.put(iterationContext, Data);
                 Report.updateTestLog(Action, "Password has been set successfully", Status.DONE);
             } catch (Exception ex) {
                 Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during SSH connection setup", ex);
@@ -184,7 +184,7 @@ public class SSHManager extends General {
         Exception caughtException = null;
         for (int i = 0; i < 3; i++) {
             try {
-                if (sshIntermediaryHost.get(Thread.currentThread().toString()) != null) {
+                if (sshIntermediaryHost.get(iterationContext) != null) {
                     createSessionViaIntermediary();
                 } else {
                     createDirectSession();
@@ -201,14 +201,14 @@ public class SSHManager extends General {
     }
 
     private void createDirectSession() throws JSchException {
-        if (sshHostSession.get(Thread.currentThread().toString()) == null || !sshHostSession.get(Thread.currentThread().toString()).isConnected()) {
+        if (sshHostSession.get(iterationContext) == null || !sshHostSession.get(iterationContext).isConnected()) {
             JSch jsch = new JSch();
-            Session sessionDirect = jsch.getSession(sshHostUsername.get(Thread.currentThread().toString()), sshHost.get(Thread.currentThread().toString()), sshHostPort.get(Thread.currentThread().toString()));
-            sessionDirect.setPassword(sshHostPassword.get(Thread.currentThread().toString()));
+            Session sessionDirect = jsch.getSession(sshHostUsername.get(iterationContext), sshHost.get(iterationContext), sshHostPort.get(iterationContext));
+            sessionDirect.setPassword(sshHostPassword.get(iterationContext));
             sessionDirect.setConfig("StrictHostKeyChecking", "no");
             sessionDirect.setTimeout(15000); // Set timeout for connection
             sessionDirect.connect();
-            sshHostSession.put(Thread.currentThread().toString(), sessionDirect);
+            sshHostSession.put(iterationContext, sessionDirect);
             Report.updateTestLog(Action, "SSH session created successfully", Status.DONE);
         } else {
             Report.updateTestLog(Action, "SSH session reused successfully", Status.DONE);
@@ -216,7 +216,7 @@ public class SSHManager extends General {
     }
 
     private void createSessionViaIntermediary() throws JSchException, InterruptedException {
-        if (sshIntermediaryHostSession.get(Thread.currentThread().toString()) == null || !sshIntermediaryHostSession.get(Thread.currentThread().toString()).isConnected() || sshHostSession.get(Thread.currentThread().toString()) == null || !sshHostSession.get(Thread.currentThread().toString()).isConnected()) {
+        if (sshIntermediaryHostSession.get(iterationContext) == null || !sshIntermediaryHostSession.get(iterationContext).isConnected() || sshHostSession.get(iterationContext) == null || !sshHostSession.get(iterationContext).isConnected()) {
             JSch jsch = new JSch();
 
             // Enable if debugging is required
@@ -224,12 +224,12 @@ public class SSHManager extends General {
             waitForMFASession();
 
             Session sessionIntermediary = createIntermediarySession(jsch);
-            sshIntermediaryHostSession.put(Thread.currentThread().toString(), sessionIntermediary);
+            sshIntermediaryHostSession.put(iterationContext, sessionIntermediary);
 
             int availablePort = setupPortForwarding(sessionIntermediary);
 
             Session sessionViaTunnel = createTunnelSession(jsch, availablePort);
-            sshHostSession.put(Thread.currentThread().toString(), sessionViaTunnel);
+            sshHostSession.put(iterationContext, sessionViaTunnel);
             Report.updateTestLog(Action, "SSH session created successfully via intermediary host", Status.DONE);
         } else {
             Report.updateTestLog(Action, "SSH Intermediary Host Session session reused successfully", Status.DONE);
@@ -246,12 +246,12 @@ public class SSHManager extends General {
     }
 
     private Session createIntermediarySession(JSch jsch) throws JSchException {
-        Session sessionIntermediary = jsch.getSession(sshIntermediaryHostUsername.get(Thread.currentThread().toString()), sshIntermediaryHost.get(Thread.currentThread().toString()), sshIntermediaryHostPort.get(Thread.currentThread().toString()));
-        System.out.println(sshIntermediaryHostUsername.get(Thread.currentThread().toString()));
-        System.out.println(sshIntermediaryHost.get(Thread.currentThread().toString()));
-        System.out.println(sshIntermediaryHostPort.get(Thread.currentThread().toString()));
-        System.out.println(sshIntermediaryHostPassword.get(Thread.currentThread().toString()));
-        sessionIntermediary.setPassword(sshIntermediaryHostPassword.get(Thread.currentThread().toString()));
+        Session sessionIntermediary = jsch.getSession(sshIntermediaryHostUsername.get(iterationContext), sshIntermediaryHost.get(iterationContext), sshIntermediaryHostPort.get(iterationContext));
+        System.out.println(sshIntermediaryHostUsername.get(iterationContext));
+        System.out.println(sshIntermediaryHost.get(iterationContext));
+        System.out.println(sshIntermediaryHostPort.get(iterationContext));
+        System.out.println(sshIntermediaryHostPassword.get(iterationContext));
+        sessionIntermediary.setPassword(sshIntermediaryHostPassword.get(iterationContext));
         sessionIntermediary.setConfig("StrictHostKeyChecking", "no");
 
         // Enable if debugging is required.
@@ -265,20 +265,20 @@ public class SSHManager extends General {
 
     private int setupPortForwarding(Session sessionIntermediary) throws JSchException {
         int availablePort;
-        if (sshIntermediaryHostTunnelPort.get(Thread.currentThread().toString()) == null) {
+        if (sshIntermediaryHostTunnelPort.get(iterationContext) == null) {
             availablePort = getAvailablePort();
             System.out.println("Available port taken: " + availablePort);
         } else {
-            availablePort = sshIntermediaryHostTunnelPort.get(Thread.currentThread().toString());
+            availablePort = sshIntermediaryHostTunnelPort.get(iterationContext);
             System.out.println("Provided port taken: " + availablePort);
         }
-        sessionIntermediary.setPortForwardingL(availablePort, sshHost.get(Thread.currentThread().toString()), sshHostPort.get(Thread.currentThread().toString()));
+        sessionIntermediary.setPortForwardingL(availablePort, sshHost.get(iterationContext), sshHostPort.get(iterationContext));
         return availablePort;
     }
 
     private Session createTunnelSession(JSch jsch, int availablePort) throws JSchException {
-        Session sessionViaTunnel = jsch.getSession(sshHostUsername.get(Thread.currentThread().toString()), "localhost", availablePort);
-        sessionViaTunnel.setPassword(sshHostPassword.get(Thread.currentThread().toString()));
+        Session sessionViaTunnel = jsch.getSession(sshHostUsername.get(iterationContext), "localhost", availablePort);
+        sessionViaTunnel.setPassword(sshHostPassword.get(iterationContext));
         sessionViaTunnel.setConfig("StrictHostKeyChecking", "no");
         sessionViaTunnel.connect();
         return sessionViaTunnel;
@@ -293,16 +293,16 @@ public class SSHManager extends General {
                 disconnectChannels();
                 createSSHSession();
 
-                if (sshHostChannelExec.get(Thread.currentThread().toString()) == null) {
-                    ChannelExec channelExec = (ChannelExec) sshHostSession.get(Thread.currentThread().toString()).openChannel("exec");
-                    sshHostChannelExec.put(Thread.currentThread().toString(), channelExec);
-                    sshHostChannelExec.get(Thread.currentThread().toString()).setCommand(Data);
+                if (sshHostChannelExec.get(iterationContext) == null) {
+                    ChannelExec channelExec = (ChannelExec) sshHostSession.get(iterationContext).openChannel("exec");
+                    sshHostChannelExec.put(iterationContext, channelExec);
+                    sshHostChannelExec.get(iterationContext).setCommand(Data);
 
                     // Capture command output (stdout)
-                    InputStream inputStream = sshHostChannelExec.get(Thread.currentThread().toString()).getInputStream();
-                    InputStream errorStream = sshHostChannelExec.get(Thread.currentThread().toString()).getErrStream();
+                    InputStream inputStream = sshHostChannelExec.get(iterationContext).getInputStream();
+                    InputStream errorStream = sshHostChannelExec.get(iterationContext).getErrStream();
 
-                    sshHostChannelExec.get(Thread.currentThread().toString()).connect(60000);
+                    sshHostChannelExec.get(iterationContext).connect(60000);
                     System.out.println("Executing command: " + Data);
 
                     StringBuilder output = new StringBuilder();
@@ -331,19 +331,19 @@ public class SSHManager extends General {
                     File commandOutput = new File(FilePath.getCurrentTestCaseLogsLocation() + File.separator + sdf3.format(timestamp) + ".txt");
 
 //                    System.out.println(output.toString());
-                    sshCommandOutput.put(Thread.currentThread().toString(), output.toString());
+                    sshCommandOutput.put(iterationContext, output.toString());
                     FileUtils.writeStringToFile(commandOutput, output.toString(), (Charset) null);
 
                     // Wait for command completion
-                    int exitStatus = sshHostChannelExec.get(Thread.currentThread().toString()).getExitStatus();
+                    int exitStatus = sshHostChannelExec.get(iterationContext).getExitStatus();
                     System.out.println("Exit Status: " + exitStatus);
                     String logPrefixEncoded = UrlEscapers.urlFragmentEscaper().escape(logPrefix);
                     Report.updateTestLog(Action, "Command: " + Data + "\nwas executed with result logged at" + "\n<a href=logs\\" + sdf3.format(timestamp) + ".txt" + ">" + commandOutput.getName() + "</a>", Status.PASS);
 
-                } else if (sshHostChannelExec.get(Thread.currentThread().toString()).isConnected()) {
+                } else if (sshHostChannelExec.get(iterationContext).isConnected()) {
                     // Capture command output (stdout)
-                    InputStream inputStream = sshHostChannelExec.get(Thread.currentThread().toString()).getInputStream();
-                    InputStream errorStream = sshHostChannelExec.get(Thread.currentThread().toString()).getErrStream();
+                    InputStream inputStream = sshHostChannelExec.get(iterationContext).getInputStream();
+                    InputStream errorStream = sshHostChannelExec.get(iterationContext).getErrStream();
 
                     System.out.println("Executing command: " + Data);
 
@@ -373,24 +373,24 @@ public class SSHManager extends General {
                     File commandOutput = new File(FilePath.getCurrentTestCaseLogsLocation() + File.separator + sdf3.format(timestamp) + ".txt");
 
 //                    System.out.println(output.toString());
-                    sshCommandOutput.put(Thread.currentThread().toString(), output.toString());
+                    sshCommandOutput.put(iterationContext, output.toString());
                     FileUtils.writeStringToFile(commandOutput, output.toString(), (Charset) null);
 
                     // Wait for command completion
-                    int exitStatus = sshHostChannelExec.get(Thread.currentThread().toString()).getExitStatus();
+                    int exitStatus = sshHostChannelExec.get(iterationContext).getExitStatus();
                     System.out.println("Exit Status: " + exitStatus);
                     Report.updateTestLog(Action, "Command: " + Data + "\nwas executed with result logged at" + "\n<a href=logs\\" + sdf3.format(timestamp) + ".txt" + ">" + commandOutput.getName() + "</a>", Status.PASS);
 
                 } else {
-                    ChannelExec channelExec = (ChannelExec) sshHostSession.get(Thread.currentThread().toString()).openChannel("exec");
-                    sshHostChannelExec.put(Thread.currentThread().toString(), channelExec);
-                    sshHostChannelExec.get(Thread.currentThread().toString()).setCommand(Data);
+                    ChannelExec channelExec = (ChannelExec) sshHostSession.get(iterationContext).openChannel("exec");
+                    sshHostChannelExec.put(iterationContext, channelExec);
+                    sshHostChannelExec.get(iterationContext).setCommand(Data);
 
                     // Capture command output (stdout)
-                    InputStream inputStream = sshHostChannelExec.get(Thread.currentThread().toString()).getInputStream();
-                    InputStream errorStream = sshHostChannelExec.get(Thread.currentThread().toString()).getErrStream();
+                    InputStream inputStream = sshHostChannelExec.get(iterationContext).getInputStream();
+                    InputStream errorStream = sshHostChannelExec.get(iterationContext).getErrStream();
 
-                    sshHostChannelExec.get(Thread.currentThread().toString()).connect(60000);
+                    sshHostChannelExec.get(iterationContext).connect(60000);
                     System.out.println("Executing command: " + Data);
 
                     StringBuilder output = new StringBuilder();
@@ -419,11 +419,11 @@ public class SSHManager extends General {
                     File commandOutput = new File(FilePath.getCurrentTestCaseLogsLocation() + File.separator + sdf3.format(timestamp) + ".txt");
 
 //                    System.out.println(output.toString());
-                    sshCommandOutput.put(Thread.currentThread().toString(), output.toString());
+                    sshCommandOutput.put(iterationContext, output.toString());
                     FileUtils.writeStringToFile(commandOutput, output.toString(), (Charset) null);
 
                     // Wait for command completion
-                    int exitStatus = sshHostChannelExec.get(Thread.currentThread().toString()).getExitStatus();
+                    int exitStatus = sshHostChannelExec.get(iterationContext).getExitStatus();
                     System.out.println("Exit Status: " + exitStatus);
                     Report.updateTestLog(Action, "Command: " + Data + "\nwas executed with result logged at" + "\n<a href=logs\\" + sdf3.format(timestamp) + ".txt" + ">" + commandOutput.getName() + "</a>", Status.PASS);
                 }
@@ -439,7 +439,7 @@ public class SSHManager extends General {
     public void assertCommandOutput() {
         if (shouldExecute(Condition)) {
             try {
-                Assert.assertTrue(sshCommandOutput.get(Thread.currentThread().toString()).contains(Data));
+                Assert.assertTrue(sshCommandOutput.get(iterationContext).contains(Data));
                 Report.updateTestLog(Action, "Substring assertion executed successfully", Status.DONE);
             } catch (AssertionFailedError ex) {
                 Logger.getLogger(this.getClass().getName()).log(Level.WARNING, "Exception during assertion substring SSH command output", ex);
@@ -456,13 +456,13 @@ public class SSHManager extends General {
                 Pattern pattern = Pattern.compile(Data);
 
                 // Create a matcher for the console output
-                Matcher matcher = pattern.matcher(sshCommandOutput.get(Thread.currentThread().toString()));
+                Matcher matcher = pattern.matcher(sshCommandOutput.get(iterationContext));
 
                 // Find and retrieve the value
                 if (matcher.find()) {
                     String value = matcher.group(1);
                     System.out.println("Retrieved value: " + value);
-                    regExCommandOutputResult.put(Thread.currentThread().toString(), value);
+                    regExCommandOutputResult.put(iterationContext, value);
                     addVar(Condition, value);
 
 
@@ -482,7 +482,7 @@ public class SSHManager extends General {
 //    @com.ing.engine.support.methodInf.Action(object = ObjectType.IBAN, desc = "Get Branch Code", input = InputType.NO, condition = InputType.YES)
 //    public void getCommandOutputResult() throws JSchException {
 //        try {
-//            addVar(Condition, regExCommandOutputResult.get(Thread.currentThread().toString()));
+//            addVar(Condition, regExCommandOutputResult.get(iterationContext));
 //            Report.updateTestLog(Action, "Command Output Result " + Data + " saved successfully in " + Condition, Status.DONE);
 //        } catch (Exception ex) {
 //            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during saving iban branch code", ex);
@@ -494,7 +494,7 @@ public class SSHManager extends General {
     public void setDestinationFolder() {
         if (shouldExecute(Condition)) {
             try {
-                sshDestinationFolder.put(Thread.currentThread().toString(), Data);
+                sshDestinationFolder.put(iterationContext, Data);
                 Report.updateTestLog(Action, "Destination Folder set successfully", Status.DONE);
             } catch (NumberFormatException ex) {
                 Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during setting Destination Folder", ex);
@@ -511,48 +511,48 @@ public class SSHManager extends General {
                 disconnectChannels();
                 createSSHSession();
 
-                if (sshHostChannelSftp.get(Thread.currentThread().toString()) == null) {
-                    ChannelSftp channelSftp = (ChannelSftp) sshHostSession.get(Thread.currentThread().toString()).openChannel("sftp");
-                    sshHostChannelSftp.put(Thread.currentThread().toString(), channelSftp);
+                if (sshHostChannelSftp.get(iterationContext) == null) {
+                    ChannelSftp channelSftp = (ChannelSftp) sshHostSession.get(iterationContext).openChannel("sftp");
+                    sshHostChannelSftp.put(iterationContext, channelSftp);
 
-                    sshHostChannelSftp.get(Thread.currentThread().toString()).connect(60000);
-                    sshHostChannelSftp.get(Thread.currentThread().toString()).cd(sshDestinationFolder.get(Thread.currentThread().toString()));
+                    sshHostChannelSftp.get(iterationContext).connect(60000);
+                    sshHostChannelSftp.get(iterationContext).cd(sshDestinationFolder.get(iterationContext));
 
                     String fileName = getVar("%fileName%");
                     String fileLocation = getVar("%fileLocation%");
 
-                    sshHostChannelSftp.get(Thread.currentThread().toString()).put(new FileInputStream(fileLocation + File.separator + fileName), fileName);
+                    sshHostChannelSftp.get(iterationContext).put(new FileInputStream(fileLocation + File.separator + fileName), fileName);
 
                     // Wait for command completion
-                    int exitStatus = sshHostChannelSftp.get(Thread.currentThread().toString()).getExitStatus();
+                    int exitStatus = sshHostChannelSftp.get(iterationContext).getExitStatus();
                     System.out.println("Exit Status: " + exitStatus);
                     Report.updateTestLog(Action, "File Copied successfully", Status.DONE);
-                } else if (sshHostChannelSftp.get(Thread.currentThread().toString()).isConnected()) {
-                    sshHostChannelSftp.get(Thread.currentThread().toString()).cd(sshDestinationFolder.get(Thread.currentThread().toString()));
+                } else if (sshHostChannelSftp.get(iterationContext).isConnected()) {
+                    sshHostChannelSftp.get(iterationContext).cd(sshDestinationFolder.get(iterationContext));
 
                     String fileName = getVar("%fileName%");
                     String fileLocation = getVar("%fileLocation%");
 
-                    sshHostChannelSftp.get(Thread.currentThread().toString()).put(new FileInputStream(fileLocation + File.separator + fileName), fileName);
+                    sshHostChannelSftp.get(iterationContext).put(new FileInputStream(fileLocation + File.separator + fileName), fileName);
 
                     // Wait for command completion
-                    int exitStatus = sshHostChannelSftp.get(Thread.currentThread().toString()).getExitStatus();
+                    int exitStatus = sshHostChannelSftp.get(iterationContext).getExitStatus();
                     System.out.println("Exit Status: " + exitStatus);
                     Report.updateTestLog(Action, "File " + fileName + " Copied successfully", Status.DONE);
                 } else {
-                    ChannelSftp channelSftp = (ChannelSftp) sshHostSession.get(Thread.currentThread().toString()).openChannel("sftp");
-                    sshHostChannelSftp.put(Thread.currentThread().toString(), channelSftp);
+                    ChannelSftp channelSftp = (ChannelSftp) sshHostSession.get(iterationContext).openChannel("sftp");
+                    sshHostChannelSftp.put(iterationContext, channelSftp);
 
-                    sshHostChannelSftp.get(Thread.currentThread().toString()).connect(60000);
-                    sshHostChannelSftp.get(Thread.currentThread().toString()).cd(sshDestinationFolder.get(Thread.currentThread().toString()));
+                    sshHostChannelSftp.get(iterationContext).connect(60000);
+                    sshHostChannelSftp.get(iterationContext).cd(sshDestinationFolder.get(iterationContext));
 
                     String fileName = getVar("%fileName%");
                     String fileLocation = getVar("%fileLocation%");
 
-                    sshHostChannelSftp.get(Thread.currentThread().toString()).put(new FileInputStream(fileLocation + File.separator + fileName), fileName);
+                    sshHostChannelSftp.get(iterationContext).put(new FileInputStream(fileLocation + File.separator + fileName), fileName);
 
                     // Wait for command completion
-                    int exitStatus = sshHostChannelSftp.get(Thread.currentThread().toString()).getExitStatus();
+                    int exitStatus = sshHostChannelSftp.get(iterationContext).getExitStatus();
                     System.out.println("Exit Status: " + exitStatus);
                     Report.updateTestLog(Action, "File " + fileName + " Copied successfully", Status.DONE);
                 }
@@ -567,16 +567,16 @@ public class SSHManager extends General {
     public void disconnectChannels() {
         if (shouldExecute(Condition)) {
             try {
-                if (sshHostChannelExec.get(Thread.currentThread().toString()) != null) {
+                if (sshHostChannelExec.get(iterationContext) != null) {
                     System.out.println("Closing Exec channel...");
-                    sshHostChannelExec.get(Thread.currentThread().toString()).disconnect();
-                    sshHostChannelExec.remove(Thread.currentThread().toString());
+                    sshHostChannelExec.get(iterationContext).disconnect();
+                    sshHostChannelExec.remove(iterationContext);
                     Report.updateTestLog(Action, "Exec Channel Closed", Status.DONE);
                 }
-                if (sshHostChannelSftp.get(Thread.currentThread().toString()) != null) {
+                if (sshHostChannelSftp.get(iterationContext) != null) {
                     System.out.println("Closing Sftp channel...");
-                    sshHostChannelSftp.get(Thread.currentThread().toString()).disconnect();
-                    sshHostChannelSftp.remove(Thread.currentThread().toString());
+                    sshHostChannelSftp.get(iterationContext).disconnect();
+                    sshHostChannelSftp.remove(iterationContext);
                     Report.updateTestLog(Action, "Sftp Channel Closed", Status.DONE);
                 }
             } catch (Exception e) {
@@ -590,10 +590,10 @@ public class SSHManager extends General {
     public void disconnectSession() {
         if (shouldExecute(Condition)) {
             try {
-                if (sshHostSession.get(Thread.currentThread().toString()) != null && sshHostSession.get(Thread.currentThread().toString()).isConnected()) {
+                if (sshHostSession.get(iterationContext) != null && sshHostSession.get(iterationContext).isConnected()) {
                     System.out.println("Disconnecting session(s)...");
-                    sshHostSession.get(Thread.currentThread().toString()).disconnect();
-                    sshHostSession.remove(Thread.currentThread().toString());
+                    sshHostSession.get(iterationContext).disconnect();
+                    sshHostSession.remove(iterationContext);
                     System.out.println("Closed SSH Host Session...");
                     Report.updateTestLog(Action, "SSH Host Session(s) Closed", Status.DONE);
                 }
@@ -608,10 +608,10 @@ public class SSHManager extends General {
     public void disconnectIntermediarySession() {
         if (shouldExecute(Condition)) {
             try {
-                if (sshIntermediaryHostSession.get(Thread.currentThread().toString()) != null && sshIntermediaryHostSession.get(Thread.currentThread().toString()).isConnected()) {
+                if (sshIntermediaryHostSession.get(iterationContext) != null && sshIntermediaryHostSession.get(iterationContext).isConnected()) {
                     System.out.println("Disconnecting Intermediary Host session(s)...");
-                    sshIntermediaryHostSession.get(Thread.currentThread().toString()).disconnect();
-                    sshIntermediaryHostSession.remove(Thread.currentThread().toString());
+                    sshIntermediaryHostSession.get(iterationContext).disconnect();
+                    sshIntermediaryHostSession.remove(iterationContext);
                     System.out.println("Closed Intermediary SSH Host Session...");
                     Report.updateTestLog(Action, "Intermediary Session(s) Closed", Status.DONE);
                 }

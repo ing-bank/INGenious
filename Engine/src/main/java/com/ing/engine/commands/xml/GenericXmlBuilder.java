@@ -35,7 +35,7 @@ public class GenericXmlBuilder<T> extends General {
         try {
             DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
             DocumentBuilder builder = factory.newDocumentBuilder();
-            document.put(Thread.currentThread().toString(), builder.newDocument());
+            document.put(iterationContext, builder.newDocument());
             Report.updateTestLog(Action, "XML Builder Created", Status.DONE);
         } catch (Exception e) {
             Report.updateTestLog(Action, "Error initializing XML document", Status.FAIL);
@@ -50,17 +50,17 @@ public class GenericXmlBuilder<T> extends General {
     @Action(object = ObjectType.XML, desc = "Builder Create Element", input = InputType.YES, condition = InputType.NO)
     public void builderCreateElement() {
         try {
-            Element element = document.get(Thread.currentThread().toString()).createElement(Data);
-            if (document.get(Thread.currentThread().toString()).getDocumentElement() == null) {
+            Element element = document.get(iterationContext).createElement(Data);
+            if (document.get(iterationContext).getDocumentElement() == null) {
                 // No root yet — this becomes the root
-                document.get(Thread.currentThread().toString()).appendChild(element);
-                elementStack.computeIfAbsent(Thread.currentThread().toString(), k -> new ArrayList<>()).add(element);
-                usedStack.computeIfAbsent(Thread.currentThread().toString(), k -> new ArrayList<>()).add(true);
+                document.get(iterationContext).appendChild(element);
+                elementStack.computeIfAbsent(iterationContext, k -> new ArrayList<>()).add(element);
+                usedStack.computeIfAbsent(iterationContext, k -> new ArrayList<>()).add(true);
                 Report.updateTestLog(Action, "XML Builder Root Created", Status.DONE);
             } else {
                 // Defer until we know it will actually be used
-                pendingStack.computeIfAbsent(Thread.currentThread().toString(), k -> new ArrayList<>()).add(element);
-                pendingUsedStack.computeIfAbsent(Thread.currentThread().toString(), k -> new ArrayList<>()).add(false);
+                pendingStack.computeIfAbsent(iterationContext, k -> new ArrayList<>()).add(element);
+                pendingUsedStack.computeIfAbsent(iterationContext, k -> new ArrayList<>()).add(false);
                 System.out.println("Element added to pendingStack and pendingUsedSTack: " + element);
             }
         }
@@ -75,9 +75,9 @@ public class GenericXmlBuilder<T> extends General {
     public void builderCreateChildElement() {
         try {
             ensurePendingAttached();
-            Element child = document.get(Thread.currentThread().toString()).createElement(Data);
-            pendingStack.computeIfAbsent(Thread.currentThread().toString(), k -> new ArrayList<>()).add(child);
-            pendingUsedStack.computeIfAbsent(Thread.currentThread().toString(), k -> new ArrayList<>()).add(false);
+            Element child = document.get(iterationContext).createElement(Data);
+            pendingStack.computeIfAbsent(iterationContext, k -> new ArrayList<>()).add(child);
+            pendingUsedStack.computeIfAbsent(iterationContext, k -> new ArrayList<>()).add(false);
             Report.updateTestLog(Action, "Child Element Created", Status.DONE);
         } catch (Exception ex) {
             Report.updateTestLog(Action, "Error Creating Child Element", Status.FAIL);
@@ -89,20 +89,20 @@ public class GenericXmlBuilder<T> extends General {
     @Action(object = ObjectType.XML, desc = "Builder Create Sibling Element", input = InputType.YES, condition = InputType.NO)
     public void builderCreateSiblingElement() {
         try {
-            if (!pendingStack.computeIfAbsent(Thread.currentThread().toString(), k -> new ArrayList<>()).isEmpty() && !pendingUsedStack.computeIfAbsent(Thread.currentThread().toString(), k -> new ArrayList<>()).get(pendingUsedStack.get(Thread.currentThread().toString()).size() - 1)) {
-                pendingStack.get(Thread.currentThread().toString()).remove(pendingStack.get(Thread.currentThread().toString()).size() - 1);
-                pendingUsedStack.get(Thread.currentThread().toString()).remove(pendingUsedStack.get(Thread.currentThread().toString()).size() - 1);
+            if (!pendingStack.computeIfAbsent(iterationContext, k -> new ArrayList<>()).isEmpty() && !pendingUsedStack.computeIfAbsent(iterationContext, k -> new ArrayList<>()).get(pendingUsedStack.get(iterationContext).size() - 1)) {
+                pendingStack.get(iterationContext).remove(pendingStack.get(iterationContext).size() - 1);
+                pendingUsedStack.get(iterationContext).remove(pendingUsedStack.get(iterationContext).size() - 1);
             } else {
                 ensurePendingAttached();
                 builderEndElement();
             }
 
             // Create the new sibling and attach it under the same parent
-            Element sibling = document.get(Thread.currentThread().toString()).createElement(Data);
+            Element sibling = document.get(iterationContext).createElement(Data);
 
             // Push sibling onto the stack
-            pendingStack.computeIfAbsent(Thread.currentThread().toString(), k -> new ArrayList<>()).add(sibling);
-            pendingUsedStack.computeIfAbsent(Thread.currentThread().toString(), k -> new ArrayList<>()).add(false);
+            pendingStack.computeIfAbsent(iterationContext, k -> new ArrayList<>()).add(sibling);
+            pendingUsedStack.computeIfAbsent(iterationContext, k -> new ArrayList<>()).add(false);
         } catch (Exception ex) {
             Report.updateTestLog(Action, "Error Creating Sibling Element", Status.FAIL);
             throw new RuntimeException("Error Creating Sibling Element", ex);
@@ -131,7 +131,7 @@ public class GenericXmlBuilder<T> extends General {
     @Action(object = ObjectType.XML, desc = "Builder Add Empty Attribute", input = InputType.YES, condition = InputType.NO)
     public void builderAddEmptyAttribute() {
         try {
-            lastAttributeName.put(Thread.currentThread().toString(), Data);
+            lastAttributeName.put(iterationContext, Data);
 
             Element pendingElement = getPendingElement();
             pendingElement.setAttribute(Data, "");
@@ -145,7 +145,7 @@ public class GenericXmlBuilder<T> extends General {
 
     @Action(object = ObjectType.XML, desc = "Builder Add Attribute Content", input = InputType.YES, condition = InputType.NO)
     public void builderAddAttributeContent() {
-        String attributeName = lastAttributeName.getOrDefault(Thread.currentThread().toString(), null);
+        String attributeName = lastAttributeName.getOrDefault(iterationContext, null);
 
         if (attributeName == null) {
             Report.updateTestLog(Action, "No attribute name was stored.", Status.FAIL);
@@ -156,7 +156,7 @@ public class GenericXmlBuilder<T> extends General {
             Element pendingElement = getPendingElement();
             pendingElement.setAttribute(attributeName, Data);
 
-            lastAttributeName.put(Thread.currentThread().toString(), null);
+            lastAttributeName.put(iterationContext, null);
 
             Report.updateTestLog(Action, "XML Attribute Content added", Status.DONE);
         } catch (Exception ex) {
@@ -184,8 +184,8 @@ public class GenericXmlBuilder<T> extends General {
     }
 
     private void markLastPendingUsed() {
-        if (!pendingStack.computeIfAbsent(Thread.currentThread().toString(), k -> new ArrayList<>()).isEmpty()) {
-            pendingUsedStack.computeIfAbsent(Thread.currentThread().toString(), k -> new ArrayList<>()).set(pendingUsedStack.get(Thread.currentThread().toString()).size() - 1, true);
+        if (!pendingStack.computeIfAbsent(iterationContext, k -> new ArrayList<>()).isEmpty()) {
+            pendingUsedStack.computeIfAbsent(iterationContext, k -> new ArrayList<>()).set(pendingUsedStack.get(iterationContext).size() - 1, true);
         }
     }
 
@@ -194,25 +194,25 @@ public class GenericXmlBuilder<T> extends General {
     public void builderEndElement() {
 
         try {
-            if (!pendingStack.get(Thread.currentThread().toString()).isEmpty()) {
+            if (!pendingStack.get(iterationContext).isEmpty()) {
                 // If last pending never got attached, just discard it
-                pendingStack.get(Thread.currentThread().toString()).remove(pendingStack.get(Thread.currentThread().toString()).size() - 1);
-                pendingUsedStack.get(Thread.currentThread().toString()).remove(pendingUsedStack.get(Thread.currentThread().toString()).size() - 1);
+                pendingStack.get(iterationContext).remove(pendingStack.get(iterationContext).size() - 1);
+                pendingUsedStack.get(iterationContext).remove(pendingUsedStack.get(iterationContext).size() - 1);
                 return;
             }
-            if (!elementStack.get(Thread.currentThread().toString()).isEmpty()) {
-                int lastIndex = elementStack.get(Thread.currentThread().toString()).size() - 1;
-                Element current = elementStack.get(Thread.currentThread().toString()).get(lastIndex);
-                boolean used = usedStack.get(Thread.currentThread().toString()).get(lastIndex);
-                elementStack.get(Thread.currentThread().toString()).remove(lastIndex);
-                usedStack.get(Thread.currentThread().toString()).remove(lastIndex);
+            if (!elementStack.get(iterationContext).isEmpty()) {
+                int lastIndex = elementStack.get(iterationContext).size() - 1;
+                Element current = elementStack.get(iterationContext).get(lastIndex);
+                boolean used = usedStack.get(iterationContext).get(lastIndex);
+                elementStack.get(iterationContext).remove(lastIndex);
+                usedStack.get(iterationContext).remove(lastIndex);
                 if (!used) {
                     // Remove from parent
-                    Element parent = elementStack.get(Thread.currentThread().toString()).isEmpty() ? null : elementStack.get(Thread.currentThread().toString()).get(elementStack.get(Thread.currentThread().toString()).size() - 1);
+                    Element parent = elementStack.get(iterationContext).isEmpty() ? null : elementStack.get(iterationContext).get(elementStack.get(iterationContext).size() - 1);
                     if (parent != null) {
                         parent.removeChild(current);
-                    } else if (document.get(Thread.currentThread().toString()).getDocumentElement() == current) {
-                        document.get(Thread.currentThread().toString()).removeChild(current);
+                    } else if (document.get(iterationContext).getDocumentElement() == current) {
+                        document.get(iterationContext).removeChild(current);
                     }
                 }
             }
@@ -226,64 +226,64 @@ public class GenericXmlBuilder<T> extends General {
 
     /** Attach any pending elements that haven’t been attached yet. */
     private void ensurePendingAttached() {
-        if (pendingStack.get(Thread.currentThread().toString()).isEmpty()) return;
+        if (pendingStack.get(iterationContext).isEmpty()) return;
 
-        boolean anyUsed = pendingUsedStack.get(Thread.currentThread().toString()).stream().anyMatch(Boolean::booleanValue);
-        if (!anyUsed && document.get(Thread.currentThread().toString()).getDocumentElement() != null) return;
+        boolean anyUsed = pendingUsedStack.get(iterationContext).stream().anyMatch(Boolean::booleanValue);
+        if (!anyUsed && document.get(iterationContext).getDocumentElement() != null) return;
 
-        Element parent = elementStack.get(Thread.currentThread().toString()).isEmpty() ? null : elementStack.get(Thread.currentThread().toString()).get(elementStack.get(Thread.currentThread().toString()).size() - 1);
+        Element parent = elementStack.get(iterationContext).isEmpty() ? null : elementStack.get(iterationContext).get(elementStack.get(iterationContext).size() - 1);
 
-        for (int i = 0; i < pendingUsedStack.get(Thread.currentThread().toString()).size(); i++) {
-            Element next = pendingStack.get(Thread.currentThread().toString()).get(i);
-//            Element parent = elementStack.get(Thread.currentThread().toString()).isEmpty() ? null : elementStack.get(Thread.currentThread().toString()).get(elementStack.get(Thread.currentThread().toString()).size() - 1);
+        for (int i = 0; i < pendingUsedStack.get(iterationContext).size(); i++) {
+            Element next = pendingStack.get(iterationContext).get(i);
+//            Element parent = elementStack.get(iterationContext).isEmpty() ? null : elementStack.get(iterationContext).get(elementStack.get(iterationContext).size() - 1);
 
-            if (parent == null && document.get(Thread.currentThread().toString()).getDocumentElement() == null) {
-                    document.get(Thread.currentThread().toString()).appendChild(next);
+            if (parent == null && document.get(iterationContext).getDocumentElement() == null) {
+                    document.get(iterationContext).appendChild(next);
             } else if (parent != null) {
                 parent.appendChild(next);
                 markUsed(parent);
                 parent = next;
             }
 
-            elementStack.get(Thread.currentThread().toString()).add(next);
-            usedStack.get(Thread.currentThread().toString()).add(false);
+            elementStack.get(iterationContext).add(next);
+            usedStack.get(iterationContext).add(false);
         }
 
-        pendingStack.get(Thread.currentThread().toString()).clear();
-        pendingUsedStack.get(Thread.currentThread().toString()).clear();
+        pendingStack.get(iterationContext).clear();
+        pendingUsedStack.get(iterationContext).clear();
     }
 
     /** Mark the given element as used in the parallel usedStack. */
     private void markUsed(Element element) {
-        int idx = elementStack.get(Thread.currentThread().toString()).lastIndexOf(element);
-        if (idx >= 0 && idx < usedStack.get(Thread.currentThread().toString()).size()) {
-            usedStack.computeIfAbsent(Thread.currentThread().toString(), k -> new ArrayList<>()).set(idx, true);
+        int idx = elementStack.get(iterationContext).lastIndexOf(element);
+        if (idx >= 0 && idx < usedStack.get(iterationContext).size()) {
+            usedStack.computeIfAbsent(iterationContext, k -> new ArrayList<>()).set(idx, true);
         }
     }
 
     /** Get the current element (the top of the stack). */
     private Element getCurrentElement() {
 
-       if (elementStack.get(Thread.currentThread().toString()).isEmpty()) {
+       if (elementStack.get(iterationContext).isEmpty()) {
            throw new IllegalStateException("Cannot get current element.");
        }
 
-        return elementStack.get(Thread.currentThread().toString()).get(elementStack.get(Thread.currentThread().toString()).size() - 1);
+        return elementStack.get(iterationContext).get(elementStack.get(iterationContext).size() - 1);
     }
 
     private Element getPendingElement() {
-        if (pendingStack.get(Thread.currentThread().toString()).isEmpty()) {
+        if (pendingStack.get(iterationContext).isEmpty()) {
             throw new IllegalStateException("Cannot get pending element.");
         }
 
-        return pendingStack.get(Thread.currentThread().toString()).get(pendingStack.get(Thread.currentThread().toString()).size() - 1);
+        return pendingStack.get(iterationContext).get(pendingStack.get(iterationContext).size() - 1);
     }
 
     /** Writes the XML to file, removing standalone="no". */
     @Action(object = ObjectType.XML, desc = "Builder Write To File", input = InputType.YES, condition = InputType.NO)
     public void builderWriteToFile() {
         try {
-            while (!pendingStack.get(Thread.currentThread().toString()).isEmpty()) {
+            while (!pendingStack.get(iterationContext).isEmpty()) {
                 builderEndElement();
             }
         } catch (Exception ignored) {}
@@ -291,10 +291,10 @@ public class GenericXmlBuilder<T> extends General {
         try {
             TransformerFactory transformerFactory = TransformerFactory.newInstance();
             Transformer transformer = transformerFactory.newTransformer();
-            document.get(Thread.currentThread().toString()).setXmlStandalone(true);
+            document.get(iterationContext).setXmlStandalone(true);
             transformer.setOutputProperty(OutputKeys.INDENT, "yes");
             transformer.setOutputProperty("{http://xml.apache.org/xslt}indent-amount", "2");
-            DOMSource source = new DOMSource(document.get(Thread.currentThread().toString()));
+            DOMSource source = new DOMSource(document.get(iterationContext));
             StreamResult result = new StreamResult(new File(Data));
             transformer.transform(source, result);
             Report.updateTestLog(Action, "XML File Written", Status.DONE);
