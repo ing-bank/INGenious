@@ -156,7 +156,7 @@ public class AzureClient {
                     .map(td -> getTestPointId(td.project, td.testPlanId, td.suite, td.testcase))
                     .map(String::valueOf)
                     .collect(joining(","));
-            LOGGER.log(Level.INFO, "Conneting Azure DevOps to update results");
+            LOGGER.log(Level.INFO, "Connecting Azure DevOps to update results");
             JSONObject res = httpClient.post(getUrl(buildUrl(listOTest.get(0).project + "/_apis/test/runs?api-version=5.0")),
                     "{\"name\": \"" + FilePath.getCurrentReportFolderName()
                     + "\", \"plan\": { \"id\": " + listOTest.get(0).testPlanId

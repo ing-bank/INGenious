@@ -21,6 +21,7 @@ import java.util.logging.Logger;
  */
 public class ConsoleReport {
 
+    private static PrintStream originalOut, originalErr;
     private static FileOutputStream fout, ferr;
 
     public static File consoleFile;
@@ -34,6 +35,9 @@ public class ConsoleReport {
 
             fout = new FileOutputStream(consoleFile, true);
             ferr = new FileOutputStream(consoleFile, true);
+
+            originalOut = System.out;
+            originalErr = System.err;
 
             MultiOutputStream multiOut = new MultiOutputStream(fout, System.out);
             MultiOutputStream multiErr = new MultiOutputStream(ferr, System.err);
@@ -50,8 +54,11 @@ public class ConsoleReport {
     }
 
     public static void reset() {
-        System.setOut(System.out);
-        System.setErr(System.err);
+        Logger.getLogger(ConsoleReport.class.getName()).log(Level.INFO, "Resetting.");
+
+        System.setOut(originalOut);
+        System.setErr(originalErr);
+
         try {
             fout.close();
             ferr.close();

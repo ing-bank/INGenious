@@ -7,6 +7,7 @@ import com.ing.engine.support.methodInf.Action;
 import com.ing.engine.support.methodInf.InputType;
 import com.ing.engine.support.methodInf.ObjectType;
 import com.microsoft.playwright.Locator.WaitForOptions;
+import com.microsoft.playwright.Page;
 import com.microsoft.playwright.options.WaitForSelectorState;
 
 import java.util.logging.Level;
@@ -21,6 +22,11 @@ public class WaitFor extends Command {
     @Action(object = ObjectType.PLAYWRIGHT, desc = "Wait for [<Object>] to be visible ", condition = InputType.OPTIONAL)
     public void waitForElementToBeVisible() {
         waitForElement("VISIBLE", "Successfully waited for [" + ObjectName + "] to be visible");
+    }
+
+    @Action(object = ObjectType.PLAYWRIGHT, desc = "Wait for [<Object>] to be visible with refresh", condition = InputType.OPTIONAL)
+    public void waitForElementToBeVisibleWithRefresh() {
+        waitForElementWithRefresh("VISIBLE", "Successfully waited for [" + ObjectName + "] to be visible");
     }
 
     @Action(object = ObjectType.PLAYWRIGHT, desc = "Wait for [<Object>] to be hidden ", condition = InputType.OPTIONAL)
@@ -65,6 +71,47 @@ public class WaitFor extends Command {
         } catch (Exception ex) {
             Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, null, ex);
             Report.updateTestLog(Action, "Wait Action Failed", Status.DEBUG);
+            throw new ActionException(ex);
+        }
+    }
+
+    private void waitForElementWithRefresh(String command, String message) {
+        try {
+            WaitForOptions waitOptions = new WaitForOptions();
+            waitOptions.setState(WaitForSelectorState.valueOf(command.toUpperCase()));
+
+            double timeout = 5000; // default timeout
+             if (Condition != null && Condition.matches("[0-9]+")) {
+                timeout = Double.parseDouble(Condition);
+                System.out.println("\nTimeout set to :[" + timeout + "] milliseconds\n");
+            }
+            waitOptions.setTimeout(timeout);
+
+            int maxRetries = 3;
+            int attempts = 0;
+
+            while (attempts < maxRetries) {
+                try {
+                    Locator.waitFor(waitOptions);
+                        if (Locator.isVisible()) {
+                            Report.updateTestLog(Action, message, Status.DONE);
+                        return;
+                        }
+                } catch (Exception e) {
+
+                }
+
+             System.out.println("Element not visible. Refreshing page... Attempt " + (attempts + 1));
+             Page.reload();
+
+             attempts++;
+             }
+
+            Locator.waitFor(waitOptions);
+            Report.updateTestLog(Action, message, Status.DONE);
+        } catch (Exception ex) {
+            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, null, ex);
+            Report.updateTestLog(Action, "Wait Action with Refresh Failed", Status.DEBUG);
             throw new ActionException(ex);
         }
     }

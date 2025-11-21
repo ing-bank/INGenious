@@ -10,6 +10,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
+import com.ing.engine.commands.browser.Command;
 import com.ing.engine.constants.FilePath;
 import com.ing.engine.core.RunContext;
 import com.ing.engine.core.TMIntegration;
@@ -192,7 +193,16 @@ public final class SummaryReport implements OverviewReport {
     
 
     public void afterReportComplete() throws Exception {
-    	  
+        if (Command.sshHostSession != null) {
+            Command.sshHostSession.clear();
+        }
+        if (Command.sshHostSession != null) {
+            Command.sshIntermediaryHostSession.clear();
+        }
+
+
+
+
     }
     
     public Boolean isPassed() {

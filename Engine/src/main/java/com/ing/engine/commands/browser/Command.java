@@ -1,5 +1,8 @@
 package com.ing.engine.commands.browser;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.JsonNodeFactory;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.github.javafaker.Faker;
 import com.ibm.msg.client.jms.JmsConnectionFactory;
 import com.ibm.msg.client.jms.JmsFactoryFactory;
@@ -10,23 +13,27 @@ import com.ing.engine.drivers.AutomationObject;
 import com.ing.engine.drivers.PlaywrightDriverCreation;
 import com.ing.engine.execution.data.UserDataAccess;
 import com.ing.engine.reporting.TestCaseReport;
+import com.jcraft.jsch.ChannelExec;
+import com.jcraft.jsch.ChannelSftp;
+import com.jcraft.jsch.Session;
 import com.microsoft.playwright.APIRequestContext;
 import com.microsoft.playwright.APIResponse;
 import com.microsoft.playwright.BrowserContext;
 import com.microsoft.playwright.Locator;
 import com.microsoft.playwright.Page;
 import com.microsoft.playwright.Playwright;
+
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 import java.util.Stack;
 
 import com.ing.engine.drivers.WebDriverCreation;
 import com.ing.engine.drivers.MobileObject;
 import java.io.File;
-import java.util.List;
-import java.util.Properties;
 import javax.jms.Destination;
 import javax.jms.JMSConsumer;
 import javax.jms.JMSContext;
@@ -42,6 +49,11 @@ import org.apache.kafka.clients.consumer.ConsumerRecord;
 import org.apache.kafka.clients.consumer.KafkaConsumer;
 import org.apache.kafka.clients.producer.KafkaProducer;
 import org.apache.kafka.clients.producer.ProducerRecord;
+import org.iban4j.CountryCode;
+import org.iban4j.Iban;
+import org.w3c.dom.Document;
+import org.w3c.dom.Element;
+
 
 public class Command {
 
@@ -88,6 +100,10 @@ public class Command {
     static public Map<String, Instant> after = new HashMap<>();
     static public Map<String, Long> duration = new HashMap<>();
     public String key;
+    public String scenarioContext;
+    public String testCaseContext;
+    public String iterationContext;
+    public String subIterationContext;
     static public String basicAuthorization;
     /**
      * ************************
@@ -132,16 +148,13 @@ public class Command {
     static public Map<String, TextMessage> jmsMessage = new HashMap<>();
     static public Map<String, String> jmsCorrelationID = new HashMap<>();
     static public Map<String, String> receivedMessage = new HashMap<>();
-
     /**
      * **********
      */
-    
-    
+
     /**
      * *** Kafka Parameters ****
      */
-    
     static public Map<String, List<Header>> kafkaHeaders = new HashMap<>();
     static public Map<String, String> kafkaProducerTopic = new HashMap<>();
     static public Map<String, String> kafkaConsumerTopic = new HashMap<>();
@@ -178,7 +191,104 @@ public class Command {
     static public Map<String, ProducerRecord> kafkaProducerRecord = new HashMap<>();
     static public Map<String, ConsumerRecord> kafkaConsumerRecord = new HashMap<>();
     static public Map<String, KafkaProducer> kafkaProducer = new HashMap<>();
-    static public Map<String, KafkaConsumer> kafkaConsumer = new HashMap<>();       
+    static public Map<String, KafkaConsumer> kafkaConsumer = new HashMap<>();
+    /**
+     * **********
+     */
+
+
+    /**
+     * ******SSH*******
+     */
+    // Regular SSH Session
+    static public Map<String, String> sshHost = new HashMap<>();
+    static public Map<String, Integer> sshHostPort = new HashMap<>();
+    static public Map<String, String> sshHostUsername = new HashMap<>();
+    static public Map<String, String> sshHostPassword = new HashMap<>();
+    static public Map<String, Session> sshHostSession = new HashMap<>();
+    static public Map<String, ChannelExec> sshHostChannelExec = new HashMap<>();
+    static public Map<String, ChannelSftp> sshHostChannelSftp = new HashMap<>();
+    static public Map<String, String> sshDestinationFolder = new HashMap<>();
+    static public Map<String, String> sshCommandOutput = new HashMap<>();
+    static public Map<String, String> regExCommandOutputResult = new HashMap<>();
+
+    // SSH Session via Intermediary Session
+    static public Map<String, String> sshIntermediaryHost = new HashMap<>();
+    static public Map<String, Integer> sshIntermediaryHostPort = new HashMap<>();
+    static public Map<String, String> sshIntermediaryHostUsername = new HashMap<>();
+    static public Map<String, String> sshIntermediaryHostPassword = new HashMap<>();
+    static public Map<String, Integer> sshIntermediaryHostTunnelPort = new HashMap<>();
+    static public Map<String, Session> sshIntermediaryHostSession = new HashMap<>();
+    /**
+     * ************************
+     */
+
+    /**
+     * ******Iban4j*******
+     */
+    static public Map<String, Iban> iban = new HashMap<>();
+
+    static public Map<String, String> ibanAccountNumber = new HashMap<>();
+    static public Map<String, String> ibanAccountType = new HashMap<>();
+    static public Map<String, String> ibanBranchCode = new HashMap<>();
+    static public Map<String, String> ibanBankCode = new HashMap<>();
+    static public Map<String, String> ibanBankCodeExt = new HashMap<>();
+    static public Map<String, String> ibanBban = new HashMap<>();
+    static public Map<String, CountryCode> ibanCountryCode = new HashMap<>();
+    static public Map<String, String> ibanIdentificationNumber = new HashMap<>();
+    static public Map<String, Boolean> ibanLeftPadding = new HashMap<>();
+    static public Map<String, String> ibanNationalCheckDigit = new HashMap<>();
+    static public Map<String, String> ibanOwnerAccountType = new HashMap<>();
+    /**
+     * ************************
+     */
+
+    /**
+     * ******File*******
+     */
+    static public Map<String, String> setFile = new HashMap<>();
+    static public Map<String, List<String>> regexMatches = new HashMap<>();
+    /**
+     * ************************
+     */
+
+    /**
+     * ******XML*******
+     */
+    // XML Operations
+    static public Map<String, List<String>> ignoreXMLNodes = new HashMap<>();
+    static public Map<String, List<String>> ignoreXMLTextNodes = new HashMap<>();
+
+    // XML Builder
+    static public Map<String, Document> document = new HashMap<>();
+    static public Map<String, List<Element>> elementStack = new HashMap<>();
+    static public Map<String, List<Boolean>> usedStack = new HashMap<>();
+    static public Map<String, List<Element>> pendingStack = new HashMap<>();
+    static public Map<String, List<Boolean>> pendingUsedStack = new HashMap<>();
+    static public Map<String, String> lastAttributeName = new HashMap<>();
+    /**
+     * ************************
+     */
+
+    /**
+     * ******JSON*******
+     */
+    // Json Operations
+    static public Map<String, List<String>> ignoreJSONPaths = new HashMap<>();
+
+    // Json Builder
+    static public Map<String, JsonNodeFactory> factory = new HashMap<>();
+    static public Map<String, ObjectMapper> mapper = new HashMap<>();
+    static public Map<String, ObjectNode> rootNode = new HashMap<>();
+    static public Map<String, List<ObjectNode>> objectStack = new HashMap<>();
+    static public Map<String, List<Boolean>> jsonUsedStack = new HashMap<>();
+    static public Map<String, List<String>> pendingKeys = new HashMap<>();
+    static public Map<String, List<Boolean>> isArrayPending = new HashMap<>();
+    static public Map<String, String> currentPropertyKey = new HashMap<>();
+    static public Map<String, String> currentArrayKey = new HashMap<>();;
+    /**
+     * ************************
+     */
 
     public Command(CommandControl cc) {
         Commander = cc;
@@ -214,10 +324,24 @@ public class Command {
             Action = Commander.Action;
             userData = Commander.userData;
         }
+
+
         /**
          * ******Webservice*******
          */
-        key = userData.getScenario() + userData.getTestCase();
+        key = userData.getScenario() + userData.getTestCase() + userData.getIteration();
+        /**
+         * ***********************
+         */
+
+        /**
+         * ****** Print Context *******
+         */
+        scenarioContext = userData.getScenario();
+        testCaseContext = userData.getScenario() + userData.getTestCase();
+        iterationContext = userData.getScenario() + userData.getTestCase() + userData.getIteration();
+        subIterationContext = userData.getScenario() + userData.getTestCase() + userData.getIteration() + userData.getSubIteration();
+
         /**
          * ***********************
          */
@@ -226,13 +350,17 @@ public class Command {
     public void addVar(String key, String val) {
         Commander.addVar(key, val);
     }
-    
+
     public String getRuntimeVar(String key) {
         return Commander.getRuntimeVar(key);
     }
 
     public String getVar(String key) {
         return Commander.getVar(key);
+    }
+
+    public String getVarWithoutWarning(String key) {
+        return Commander.getVarWithoutWarning(key);
     }
 
     public void addGlobalVar(String key, String val) {
@@ -260,6 +388,41 @@ public class Command {
 
     public Stack<Locator> getRunTimeElement() {
         return Commander.getRunTimeElement();
+    }
+
+    public boolean shouldExecute(String condition) {
+        // Run by default if condition is null or empty
+        if (condition == null || condition.isEmpty()) {
+            return true;
+        }
+
+        if (condition.contains("=")) {
+            String[] parts = condition.split("=");
+            if (parts.length != 2) {
+                System.out.println("Invalid condition format: " + condition);
+                return false;
+            }
+            String key = parts[0].trim(); // e.g., %execution_origin%
+            String[] settings = parts[1].split(",");
+            if (settings.length == 0) {
+                System.out.println("No settings provided in: " + condition);
+                return false;
+            }
+            String userDefinedSetting = getVar(key);
+            if (userDefinedSetting == null) {
+                System.out.println("No value found for key: " + key);
+                return false;
+            }
+            for (String setting : settings) {
+                if (userDefinedSetting.contains(setting.trim())) {
+                    return true;
+                }
+            }
+            System.out.println("Splitting parts [" + key + "] provided 0 matches");
+            return false;
+        } else {
+            return true;
+        }
     }
 
     public void executeMethod(String Action) {

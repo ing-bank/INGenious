@@ -119,11 +119,27 @@ public class ActionRenderer extends AbstractRenderer {
             case "General":
                 valid = MethodInfoManager.getMethodListFor(ObjectType.GENERAL)
                         .contains(action);
-                break;   
+                break;
+            case "SSH":
+                valid = MethodInfoManager.getMethodListFor(ObjectType.SSH)
+                        .contains(action);
+                break;
             case "String Operations":
                 valid = MethodInfoManager.getMethodListFor(ObjectType.STRINGOPERATIONS)
                         .contains(action);
-                break;   
+                break;
+            case "IBAN":
+                valid = MethodInfoManager.getMethodListFor(ObjectType.IBAN)
+                        .contains(action);
+                break;
+            case "JSON":
+                valid = MethodInfoManager.getMethodListFor(ObjectType.JSON)
+                        .contains(action);
+                break;
+            case "XML":
+                valid = MethodInfoManager.getMethodListFor(ObjectType.XML)
+                        .contains(action);
+                break;
             default:
                 if (isWebObject(step)) {
                     valid = MethodInfoManager.getMethodListFor(ObjectType.PLAYWRIGHT, ObjectType.WEB).contains(action);

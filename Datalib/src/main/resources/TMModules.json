@@ -4,11 +4,11 @@
         "module": "AzureDevOps TestPlan",
         "options": [
             {
-                "name": "AzureDevOps URL",
+                "name": "AzureDevOpsURL",
                 "value": "https://dev.azure.com/YOUR_AZURE_ORGANIZATION/"
             },
             {
-                "name": "AzureDevOps Project",
+                "name": "AzureDevOpsProject",
                 "value": ""
             },
             {
@@ -16,7 +16,7 @@
                 "value": ""
             },
             {
-                "name": "AzureDevOps TestPlanId",
+                "name": "AzureDevOpsTestPlanId",
                 "value": ""
             },
 	    {

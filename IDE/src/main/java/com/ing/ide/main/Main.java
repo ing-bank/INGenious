@@ -48,6 +48,7 @@ public class Main {
     public static void main(String[] args) {
         if (args != null && args.length > 0) {
             commandLineExecution(args);
+            System.exit(0);
         } else {
             UILogger.get();
             Logger.getLogger(Main.class.getName()).info("Launching INGenious Playwright Studio");

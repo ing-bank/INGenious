@@ -1,17 +1,17 @@
 <?xml version="1.0" encoding="UTF-8" standalone="no"?><project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
-    <modelVersion>4.0.0</modelVersion>
-    <groupId>ingenious-playwright</groupId>
-    <artifactId>ingenious-engine</artifactId>
-    <version>2.3</version>
-    <properties>
+	<modelVersion>4.0.0</modelVersion>
+	<groupId>ingenious-playwright</groupId>
+	<artifactId>ingenious-engine</artifactId>
+	<version>2.3</version>
+	<properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <playwright.version>LATEST</playwright.version>
         <commons-cli.version>1.4</commons-cli.version>
         <javamail.version>1.4.7</javamail.version>
         <json-simple.version>1.1.1</json-simple.version>
-        <jcsv.version>1.4.0</jcsv.version>
+        <jcsv.version>1.4.0</jcsv.version>         
         <javafx.version>17.0.2</javafx.version>
-        <jackson.version>2.15.2</jackson.version>
+        <jackson.version>2.20.0</jackson.version>
         <commonscsv.version>1.10.0</commonscsv.version>
         <commons-codec.version>1.16.0</commons-codec.version>
         <commons-io.version>2.15.0</commons-io.version>
@@ -44,6 +44,12 @@
         <appium.version>LATEST</appium.version>
         <javafaker.version>LATEST</javafaker.version>
         <kafka-clients.version>LATEST</kafka-clients.version>
+        <jsch.version>0.2.23</jsch.version>
+        <zjsonpatch.version>0.4.14</zjsonpatch.version>
+        <json-unit-assertj.version>4.1.0</json-unit-assertj.version>
+        <xmlunit-legacy.version>2.10.0</xmlunit-legacy.version>
+        <iban4j.version>3.2.11-RELEASE</iban4j.version>
+        <exec-maven-plugin.version>1.6.0</exec-maven-plugin.version>
         <avro.version>LATEST</avro.version>
         <kafka-avro-serializer.version>LATEST</kafka-avro-serializer.version>
         <ibmmq.version>LATEST</ibmmq.version>
@@ -367,6 +373,24 @@
         
         
         <dependency>
+            <groupId>org.apache.httpcomponents</groupId>
+            <artifactId>httpclient</artifactId>
+            <version>${httpclient.version}</version>
+            <type>jar</type>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-lang3</artifactId>
+            <version>${commons-lang3.version}</version>
+            <type>jar</type>
+        </dependency>
+        <dependency>
+            <groupId>io.appium</groupId>
+            <artifactId>java-client</artifactId>
+            <version>${appium.version}</version>
+            <type>jar</type>
+        </dependency>
+        <dependency>
             <groupId>com.galenframework</groupId>
             <artifactId>galen-core</artifactId>
             <version>2.4.4</version>
@@ -384,10 +408,14 @@
             <version>${javafaker.version}</version>
         </dependency>       
         <!-- add your respective jms dependency here -->
+        </dependency>
         <dependency>
             <groupId>com.ibm.mq</groupId>
             <artifactId>com.ibm.mq.allclient</artifactId>
             <version>${ibmmq.version}</version>
+            <groupId>org.apache.kafka</groupId>
+            <artifactId>kafka-clients</artifactId>
+            <version>${kafka-clients.version}</version>
         </dependency>
 
         <dependency>
@@ -395,6 +423,19 @@
             <artifactId>java-client</artifactId>
             <version>${appium.version}</version>
             <type>jar</type>
+            <groupId>org.apache.avro</groupId>
+            <artifactId>avro</artifactId>
+            <version>${avro.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.confluent</groupId>
+            <artifactId>kafka-avro-serializer</artifactId>
+            <version>${kafka-avro-serializer.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.github.mwiede</groupId>
+            <artifactId>jsch</artifactId>
+            <version>${jsch.version}</version>
         </dependency>
         <dependency>
             <groupId>com.mysql</groupId>
@@ -405,6 +446,38 @@
           <groupId>com.oracle.database.jdbc</groupId>
           <artifactId>ojdbc11</artifactId>
           <version>LATEST</version>
+            <groupId>com.flipkart.zjsonpatch</groupId>
+            <artifactId>zjsonpatch</artifactId>
+            <version>${zjsonpatch.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>net.javacrumbs.json-unit</groupId>
+            <artifactId>json-unit-assertj</artifactId>
+            <version>${json-unit-assertj.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.xmlunit</groupId>
+            <artifactId>xmlunit-legacy</artifactId>
+            <version>${xmlunit-legacy.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.iban4j</groupId>
+            <artifactId>iban4j</artifactId>
+            <version>${iban4j.version}</version>
+        </dependency>
+        <!-- Do not enable, it comes with very old Jsch version -->
+<!--        <dependency>-->
+<!--            <groupId>org.codehaus.mojo</groupId>-->
+<!--            <artifactId>exec-maven-plugin</artifactId>-->
+<!--            <version>${exec-maven-plugin.version}</version>-->
+<!--        </dependency>-->
+
+
+        <!-- add your respective jms dependency here -->
+        <dependency>
+            <groupId>com.ibm.mq</groupId>
+            <artifactId>com.ibm.mq.allclient</artifactId>
+            <version>${ibmmq.version}</version>
         </dependency>
     
 		

@@ -218,9 +218,14 @@ public class AutoSuggest extends JComboBox<String> {
                         if (shouldHide) {
                             hidePopup();
                         } else {
-                            setSuggestionModel(getSuggestedModel(), text);
-                            if (isShowing()) {
-                                showPopup();
+                            // When updating Input where a function is used, don't show the suggestion box, as it changes the cursor position while editing a function.
+                            if (textField.getText().contains("=") && textField.getText().contains("(") && textField.getText().contains(")")) {
+                                hidePopup();
+                            } else {
+                                setSuggestionModel(getSuggestedModel(), text);
+                                if (isShowing()) {
+                                    showPopup();
+                                }
                             }
                         }
                     } else {

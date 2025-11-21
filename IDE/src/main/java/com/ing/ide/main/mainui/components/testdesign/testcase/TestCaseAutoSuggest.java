@@ -131,6 +131,11 @@ public class TestCaseAutoSuggest {
         objectList.add("General");
         objectList.add("Execute");
         objectList.add("String Operations");
+        objectList.add("SSH");
+        objectList.add("IBAN");
+        objectList.add("JSON");
+        objectList.add("XML");
+
         return objectList;
     }
 
@@ -161,14 +166,13 @@ public class TestCaseAutoSuggest {
         return newList;
     }
 
-
     private void startEditing(final AutoSuggest suggest) {
         SwingUtilities.invokeLater(new Runnable() {
             @Override
             public void run() {
                 if (!table.isEditing()) {
                     table.editCellAt(table.getSelectedRow(), table.getSelectedColumn());
-                    
+
                     boolean isStringOpsEditor = isStringOpsEditor();
                     if(!isStringOpsEditor){
                         suggest.getTextField().setText(suggest.getText() + ":");
@@ -179,14 +183,14 @@ public class TestCaseAutoSuggest {
             }
         });
     }
-    
+
     private void startEditing(final InputMainAutoSuggest suggest) {
         SwingUtilities.invokeLater(new Runnable() {
             @Override
             public void run() {
                 if (!table.isEditing()) {
                     table.editCellAt(table.getSelectedRow(), table.getSelectedColumn());
-                    
+
                     boolean isStringOpsEditor = isStringOpsEditor();
                     if(!isStringOpsEditor){
                         suggest.getTextField().setText(suggest.getText() + ":");
@@ -321,13 +325,21 @@ public class TestCaseAutoSuggest {
                 case "Queue":
                      return MethodInfoManager.getMethodListFor(ObjectType.QUEUE, ObjectType.QUEUE);
                 case "Kafka":
-                     return MethodInfoManager.getMethodListFor(ObjectType.KAFKA, ObjectType.KAFKA);    
+                     return MethodInfoManager.getMethodListFor(ObjectType.KAFKA, ObjectType.KAFKA);
                 case "File":
                     return MethodInfoManager.getMethodListFor(ObjectType.FILE, ObjectType.FILE);
                 case "General":
                     return MethodInfoManager.getMethodListFor(ObjectType.GENERAL, ObjectType.GENERAL);    
                 case "String Operations":
                     return MethodInfoManager.getMethodListFor(ObjectType.STRINGOPERATIONS, ObjectType.STRINGOPERATIONS);  
+                case "SSH":
+                    return MethodInfoManager.getMethodListFor(ObjectType.SSH, ObjectType.SSH);
+                case "IBAN":
+                    return MethodInfoManager.getMethodListFor(ObjectType.IBAN, ObjectType.IBAN);
+                case "JSON":
+                    return MethodInfoManager.getMethodListFor(ObjectType.JSON, ObjectType.JSON);
+                case "XML":
+                    return MethodInfoManager.getMethodListFor(ObjectType.XML, ObjectType.XML);
                 default:
                      if (isWebObject(objectName, pageName)) {
                         return MethodInfoManager.getMethodListFor(ObjectType.PLAYWRIGHT, ObjectType.WEB, ObjectType.ANY);

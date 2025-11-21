@@ -3,8 +3,6 @@ package com.ing.engine.core;
 
 import com.ing.datalib.or.common.ObjectGroup;
 import com.ing.datalib.or.image.ImageORObject;
-import com.ing.datalib.settings.DriverSettings;
-import com.ing.datalib.util.data.LinkedProperties;
 import com.ing.datalib.settings.DriverProperties;
 import com.ing.engine.drivers.AutomationObject;
 import com.ing.engine.drivers.AutomationObject.FindType;
@@ -26,7 +24,6 @@ import com.ing.engine.drivers.WebDriverCreation;
 import com.ing.engine.drivers.MobileObject;
 import com.ing.engine.drivers.MobileObject.FindmType;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Properties;
@@ -53,7 +50,9 @@ public abstract class CommandControl {
     public String Input;
     public TestCaseReport Report;
     public UserDataAccess userData;
-    private HashMap<String, String> runTimeVars = new HashMap<>();
+
+    private static final ThreadLocal<HashMap<String, String>> runTimeVars =
+        ThreadLocal.withInitial(HashMap::new);
     private Stack<Locator> runTimeElement = new Stack<>();
     
     public MobileObject MObject;
@@ -197,28 +196,27 @@ public abstract class CommandControl {
     abstract public Object context();
 
     public void addVar(String key, String val) {
-
-        if (runTimeVars.containsKey(key)) {
-            System.err.println("runTimeVars already contains " + key + ".Forcing change to " + val);
+        HashMap<String, String> vars = runTimeVars.get();
+        if (vars.containsKey(key)) {
+            System.err.println("runTimeVars already contains " + key + ". Forcing change to " + val);
             System.out.println("Already contains " + key);
-
         }
         System.out.println("Adding to runTimeVars " + key + ":" + val);
-        runTimeVars.put(key, val);
-
+        vars.put(key, val);
     }
-    
+
     public String getRuntimeVar(String key) {
 
-        if (runTimeVars.containsKey(key)) {
-             return getDynamicValue(key);
+        HashMap<String, String> vars = runTimeVars.get();
+
+        if (vars.containsKey(key)) {
+            return getDynamicValue(key);
         }
-        
+
         return null;
     }
-    
-    public String getVar(String key) {
 
+    public String getVar(String key) {
         System.out.println("Getting runTimeVar " + key);
         String val = getDynamicValue(key);
         if (val == null) {
@@ -228,17 +226,30 @@ public abstract class CommandControl {
         } else {
             return val;
         }
+    }
 
+    public String getVarWithoutWarning(String key) {
+
+        System.out.println("Getting runTimeVar " + key);
+        String val = getDynamicValue(key);
+        if (val == null) {
+            System.err.println("runTimeVars does not contain " + key + ". Returning Empty");
+            Report.updateTestLog("Get Var", "Getting From runTimeVars " + key + " Failed", Status.DONE);
+            return "";
+        } else {
+            return val;
+        }
     }
 
     public String getDynamicValue(String key) {
-        if (!runTimeVars.containsKey(key)) {
+        HashMap<String, String> vars = runTimeVars.get();
+        if (!vars.containsKey(key)) {
             key = key.matches("\\%(\\S)+\\%") ? key.substring(1, key.length() - 1) : key;
             return getUserDefinedData(key);
         }
-        return runTimeVars.get(key);
+        return vars.get(key);
     }
-    
+
     public String getDatasheet(String key) {
 
         System.out.println("Getting Datasheet " + key);
@@ -290,7 +301,11 @@ public abstract class CommandControl {
     }
 
     public Map<String, String> getRunTimeVars() {
-        return runTimeVars;
+        return runTimeVars.get();
+    }
+
+    public void clearRunTimeVars() {
+        runTimeVars.get().clear();
     }
 
     public String getDBFile(String value){

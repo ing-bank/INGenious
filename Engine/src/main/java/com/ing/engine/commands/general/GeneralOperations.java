@@ -110,6 +110,15 @@ public class GeneralOperations extends General {
         }
     }
 
+    @Action(object = ObjectType.GENERAL, desc = "Print Context", input = InputType.NO, condition = InputType.NO)
+    public void printContext() {
+        System.out.println("Iteration context: " + iterationContext);
+        System.out.println("Scenario Context: " + scenarioContext);
+        System.out.println("Test case Context: " + testCaseContext);
+        System.out.println("Sub Iteration Context:" + subIterationContext);
+        System.out.println("Current Thread Context:" + iterationContext);
+    }
+
     @Action(object = ObjectType.GENERAL, desc = "Add a Global variable to access across test set", input = InputType.YES, condition = InputType.YES)
     public void AddGlobalVar() {
         addGlobalVar(Condition, Data);
@@ -119,6 +128,23 @@ public class GeneralOperations extends General {
         } else {
             Report.updateTestLog(Action, "Variable " + Condition
                     + " not added ", Status.DEBUG);
+        }
+    }
+
+    @Action(object = ObjectType.GENERAL, desc = "Read a Global Data variable and save as Variable", input = InputType.YES)
+    public void GetGlobalData() {
+        try {
+            if (Input != null && Condition != null) {
+                if (Input.startsWith("#")) {
+                    String globalDataValue = this.userData.getGlobalData(Input, "GlobalDataValue");
+                    addVar(Condition, globalDataValue);
+                    Report.updateTestLog(Action, "Global Data ID " + Input + " retrieved and value " + globalDataValue + " saved in Variable '" + Condition, Status.DONE);
+                 }
+            } else {
+                Report.updateTestLog(Action, "Input or Condition is null, cannot get Global Data Value and save in Variable", Status.DEBUG);
+            }
+        } catch (Exception e) {
+            Report.updateTestLog(Action, "Get Global Var Failed", Status.DEBUG);
         }
     }
 
