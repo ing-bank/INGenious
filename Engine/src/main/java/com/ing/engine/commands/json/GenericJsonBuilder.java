@@ -274,6 +274,12 @@ public class GenericJsonBuilder<T> extends General {
     @Action(object = ObjectType.JSON, desc = "Write To File", input = InputType.YES, condition = InputType.NO)
     public void builderJSONWriteToFile() {
         try {
+            while (!pendingKeys.get(iterationContext).isEmpty()) {
+                builderJSONEndElement();
+            }
+        } catch (Exception ignored) {}
+
+        try {
             mapper.computeIfAbsent(iterationContext, k -> new ObjectMapper()).writerWithDefaultPrettyPrinter().writeValue(new File(Data), rootNode.get(iterationContext));
             Report.updateTestLog(Action, "JSON File Saved", Status.DONE);
         } catch (Exception e) {
