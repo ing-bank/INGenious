@@ -23,6 +23,8 @@ import com.ing.ide.main.mainui.components.testexecution.TestExecution;
 import com.ing.ide.main.shr.SHR;
 import com.ing.ide.main.ui.About;
 import com.ing.ide.main.ui.StartUp;
+import com.ing.ide.main.ui.search.GlobalSearchDialog;
+import com.ing.ide.main.ui.search.RecentFilesManager;
 import com.ing.ide.main.utils.LoaderScreen;
 import com.ing.ide.main.utils.StepMap;
 import com.ing.ide.main.utils.recentItem.RecentItems;
@@ -31,8 +33,8 @@ import com.ing.ide.util.Notification;
 import com.ing.ide.util.SystemInfo;
 import com.ing.ide.util.Utility;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import java.awt.BorderLayout;
-import java.awt.Desktop;
+
+import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.WindowAdapter;
@@ -90,6 +92,8 @@ public class AppMainFrame extends JFrame {
 
     private QUIT_TYPE quitType = QUIT_TYPE.NORMAL;
 
+    private final RecentFilesManager recentFilesManager;
+
     private enum QUIT_TYPE {
         NORMAL,
         FORCE,
@@ -128,6 +132,7 @@ public class AppMainFrame extends JFrame {
        // toolBar = new AppToolBar(sActionListener);
         stepMap = new StepMap();
         loader = new LoaderScreen();
+        recentFilesManager = new RecentFilesManager();
         progressed(75);
         init();
     }
@@ -161,7 +166,13 @@ public class AppMainFrame extends JFrame {
                 }
             }
         });
+        setupGlobalSearchShortcut();
         progressed(90);
+    }
+
+    private void setupGlobalSearchShortcut() {
+        KeyboardFocusManager.getCurrentKeyboardFocusManager()
+                .addKeyEventDispatcher(new DoubleShiftKeyListener(this));
     }
 
     private void progressed(int val) {
@@ -565,6 +576,18 @@ public class AppMainFrame extends JFrame {
     public Project getProject() {
         return sProject;
 
+    }
+
+    public void showGlobalSearch() {
+        if (sProject != null) {
+            GlobalSearchDialog searchDialog =
+                    new GlobalSearchDialog(this, sProject);
+            searchDialog.showDialog();
+        }
+    }
+
+    public RecentFilesManager getRecentFilesManager() {
+        return recentFilesManager;
     }
 
     public Boolean renameProject(String newProjName) {

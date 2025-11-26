@@ -53,6 +53,7 @@ import javax.swing.event.CellEditorListener;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.PopupMenuEvent;
 import javax.swing.event.PopupMenuListener;
+import javax.swing.tree.TreeNode;
 import javax.swing.tree.TreePath;
 import java.awt.Toolkit;
 import java.awt.event.KeyEvent;
@@ -736,6 +737,47 @@ public class ProjectTree implements ActionListener {
         treeModel.reload();
         getTree().setSelectionPath(new TreePath(treeModel.getFirstNode().getPath()));
         loadTableModelForSelection();
+    }
+
+    public void navigateToTestCase(String scenarioName, String testCaseName) {
+        Project project = testDesign.getProject();
+        if (project == null) {
+            return;
+        }
+
+        SwingUtilities.invokeLater(() -> {
+            TestCaseNode testCaseNode = findTestCaseNode(scenarioName, testCaseName);
+            if (testCaseNode != null) {
+                TreePath path = new TreePath(testCaseNode.getPath());
+                tree.expandPath(path.getParentPath());
+                tree.setSelectionPath(path);
+                tree.scrollPathToVisible(path);
+                loadTableModelForSelection();
+            }
+        });
+    }
+
+    private TestCaseNode findTestCaseNode(String scenarioName, String testCaseName) {
+        TreeNode root = (TreeNode) treeModel.getRoot();
+
+        for (int i = 0; i < root.getChildCount(); i++) {
+            TreeNode scenarioNode = root.getChildAt(i);
+            if (scenarioNode instanceof ScenarioNode) {
+                ScenarioNode sNode = (ScenarioNode) scenarioNode;
+                if (sNode.getScenario().getName().equals(scenarioName)) {
+                    for (int j = 0; j < scenarioNode.getChildCount(); j++) {
+                        TreeNode testCaseNode = scenarioNode.getChildAt(j);
+                        if (testCaseNode instanceof TestCaseNode) {
+                            TestCaseNode tcNode = (TestCaseNode) testCaseNode;
+                            if (tcNode.getTestCase().getName().equals(testCaseName)) {
+                                return tcNode;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        return null;
     }
 
     class ProjectPopupMenu extends JPopupMenu {

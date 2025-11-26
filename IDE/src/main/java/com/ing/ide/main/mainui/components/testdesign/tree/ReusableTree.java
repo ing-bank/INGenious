@@ -1,11 +1,13 @@
 
 package com.ing.ide.main.mainui.components.testdesign.tree;
 
+import com.ing.datalib.component.Project;
 import com.ing.datalib.component.Scenario;
 import com.ing.datalib.component.TestCase;
 import com.ing.ide.main.mainui.components.testdesign.TestDesign;
 import com.ing.ide.main.mainui.components.testdesign.tree.model.GroupNode;
 import com.ing.ide.main.mainui.components.testdesign.tree.model.ReusableTreeModel;
+import com.ing.ide.main.mainui.components.testdesign.tree.model.TestCaseNode;
 import com.ing.ide.main.utils.keys.Keystroke;
 import com.ing.ide.util.Notification;
 import com.ing.ide.util.Validator;
@@ -13,9 +15,8 @@ import java.awt.event.ActionEvent;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.swing.JCheckBox;
-import javax.swing.JMenuItem;
-import javax.swing.JOptionPane;
+import javax.swing.*;
+import javax.swing.tree.TreeNode;
 import javax.swing.tree.TreePath;
 
 /**
@@ -179,6 +180,48 @@ public class ReusableTree extends ProjectTree {
 
     public void save() {
         getTreeModel().save();
+    }
+
+    public void navigateToReusable(String reusableName) {
+        Project project = getTestDesign().getProject();
+        if (project == null) {
+            return;
+        }
+
+        SwingUtilities.invokeLater(() -> {
+            TestCaseNode reusableNode = findReusableNode(reusableName);
+            if (reusableNode != null) {
+                TreePath path = new TreePath(reusableNode.getPath());
+                getTree().expandPath(path.getParentPath());
+                getTree().setSelectionPath(path);
+                getTree().scrollPathToVisible(path);
+
+                loadTableModelForSelection();
+            }
+        });
+    }
+
+    private TestCaseNode findReusableNode(String reusableName) {
+
+        TreeNode root = (TreeNode) getTreeModel().getRoot();
+
+        for (int i = 0; i < root.getChildCount(); i++) {
+            TreeNode groupNode = root.getChildAt(i);
+            for (int j = 0; j < groupNode.getChildCount(); j++) {
+                TreeNode scenarioNode = groupNode.getChildAt(j);
+                for (int k = 0; k < scenarioNode.getChildCount(); k++) {
+                    TreeNode testCaseNode = scenarioNode.getChildAt(k);
+                    if (testCaseNode instanceof TestCaseNode) {
+                        TestCaseNode tcNode =
+                                (TestCaseNode) testCaseNode;
+                        if (tcNode.getTestCase().getName().equals(reusableName)) {
+                            return tcNode;
+                        }
+                    }
+                }
+            }
+        }
+        return null;
     }
 
     class ReusablePopupMenu extends ProjectPopupMenu {

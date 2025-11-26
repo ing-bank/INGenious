@@ -17,8 +17,8 @@ import com.ing.ide.util.Canvas;
 import com.ing.ide.util.Notification;
 import com.ing.ide.util.Utility;
 import com.ing.ide.util.Validator;
-import java.awt.BorderLayout;
-import java.awt.Rectangle;
+
+import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
@@ -1337,6 +1337,32 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
                     break;
             }
 
+        }
+    }
+
+    public void showPanel() {
+        // The test data component is always visible in the test design view
+    }
+
+    public void navigateToTestDataFile(String environment, String fileName) {
+
+        for (int i = 0; i < envTab.getTabCount(); i++) {
+            if (envTab.getTitleAt(i).equals(environment)) {
+                envTab.setSelectedIndex(i);
+
+                Component comp = envTab.getComponentAt(i);
+                if (comp instanceof JTabbedPane) {
+                    JTabbedPane testDataTab = (JTabbedPane) comp;
+
+                    for (int j = 0; j < testDataTab.getTabCount(); j++) {
+                        if (testDataTab.getTitleAt(j).equals(fileName)) {
+                            testDataTab.setSelectedIndex(j);
+                            return;
+                        }
+                    }
+                }
+                break;
+            }
         }
     }
 

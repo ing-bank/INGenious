@@ -162,4 +162,24 @@ public class TestDesign {
         return testcaseComp.getDefaultBrowser();
     }
 
+    public void navigateToTestCase(String scenarioName, String testCaseName) {
+        projectTree.navigateToTestCase(scenarioName, testCaseName);
+    }
+
+    public void navigateToReusable(String reusableName) {
+        reusableTree.navigateToReusable(reusableName);
+    }
+
+    public void navigateToObjectRepository(String orType) {
+        objectRepo.navigateToObjectRepository(orType);
+    }
+
+    public void showTestDataPanel() {
+        testDataComp.showPanel();
+    }
+
+    public void navigateToTestData(String environment, String fileName) {
+        testDataComp.navigateToTestDataFile(environment, fileName);
+    }
+
 }

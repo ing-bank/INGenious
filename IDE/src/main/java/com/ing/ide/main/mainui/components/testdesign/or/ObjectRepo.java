@@ -99,6 +99,14 @@ public class ObjectRepo extends JPanel implements ItemListener {
         return false;
     }
 
+    public void navigateToObjectRepository(String orType) {
+        if (orType.equalsIgnoreCase("OR")) {
+            switchToolBar.webButton.setSelected(true);
+        } else if (orType.equalsIgnoreCase("MOR")) {
+            switchToolBar.mobileButton.setSelected(true);
+        }
+    }
+
     class SwitchToolBar extends JToolBar {
 
         private ButtonGroup bgroup;
