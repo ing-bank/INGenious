@@ -35,7 +35,6 @@ public class ObjectRepo extends JPanel implements ItemListener {
 
     private final WebORPanel webOR;
 
-
     private final MobileORPanel mobileOR;
 
     public ObjectRepo(TestDesign testDesign) {

@@ -154,7 +154,10 @@ public class AutomationObject {
 
     public ObjectGroup<?> getORObject(String page, String object) {
         ObjectRepository objRep = Control.getCurrentProject().getObjectRepository();
-        if (objRep.getWebOR().getPageByName(page) != null) {
+        if (objRep.getWebSharedOR().getPageByName(page) != null) {
+            return objRep.getWebSharedOR().getPageByName(page).getObjectGroupByName(object);
+        }
+        else if (objRep.getWebOR().getPageByName(page) != null) {
             return objRep.getWebOR().getPageByName(page).getObjectGroupByName(object);
         } else if (objRep.getMobileOR().getPageByName(page) != null) {
             return objRep.getMobileOR().getPageByName(page).getObjectGroupByName(object);
@@ -168,7 +171,10 @@ public class AutomationObject {
 
     public ObjectGroup<WebORObject> getWebObjects(String page, String object) {
         ObjectRepository objRep = Control.getCurrentProject().getObjectRepository();
-        if (objRep.getWebOR().getPageByName(page) != null) {
+        if (objRep.getWebSharedOR().getPageByName(page) != null) {
+            return objRep.getWebSharedOR().getPageByName(page).getObjectGroupByName(object);
+        }
+        else if (objRep.getWebOR().getPageByName(page) != null) {
             return objRep.getWebOR().getPageByName(page).getObjectGroupByName(object);
         }
         return null;
@@ -176,7 +182,10 @@ public class AutomationObject {
 
     public WebORObject getWebObject(String page, String object) {
         ObjectRepository objRep = Control.getCurrentProject().getObjectRepository();
-        if (objRep.getWebOR().getPageByName(page) != null) {
+        if (objRep.getWebSharedOR().getPageByName(page) != null) {
+            return objRep.getWebSharedOR().getPageByName(page).getObjectGroupByName(object).getObjects().get(0);
+        }
+        else if (objRep.getWebOR().getPageByName(page) != null) {
             return objRep.getWebOR().getPageByName(page).getObjectGroupByName(object).getObjects().get(0);
         }
         return null;
@@ -841,7 +850,9 @@ public class AutomationObject {
         ObjectRepository objRep = Control.getCurrentProject().getObjectRepository();
         WebORPage wPage = null;
         MobileORPage mPage = null;
-        if (objRep.getWebOR().getPageByName(page) != null) {
+        if (objRep.getWebSharedOR().getPageByName(page) != null) {
+            wPage = objRep.getWebSharedOR().getPageByName(page);
+        } else if (objRep.getWebOR().getPageByName(page) != null) {
             wPage = objRep.getWebOR().getPageByName(page);
         } else if (objRep.getMobileOR().getPageByName(page) != null) {
             mPage = objRep.getMobileOR().getPageByName(page);

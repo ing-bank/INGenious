@@ -3,6 +3,7 @@ package com.ing.ide.main.mainui.components.testdesign.or.web;
 
 import com.ing.datalib.component.Project;
 import com.ing.datalib.component.TestCase;
+import com.ing.datalib.or.ObjectRepository;
 import com.ing.datalib.or.common.ORObjectInf;
 import com.ing.datalib.or.common.ORRootInf;
 import com.ing.datalib.or.web.WebORObject;
@@ -17,9 +18,11 @@ import javax.swing.tree.TreePath;
 public class WebObjectTree extends ObjectTree {
 
     private final WebORPanel oRPanel;
+    private final ORSource source; // PROJECT or SHARED
 
-    public WebObjectTree(WebORPanel sProxy) {
-        this.oRPanel = sProxy;
+    public WebObjectTree(WebORPanel panel, ORSource source) {
+        this.oRPanel = panel;
+        this.source = source;
     }
 
     @Override
@@ -49,13 +52,16 @@ public class WebObjectTree extends ObjectTree {
 
     @Override
     public ORRootInf getOR() {
-        return oRPanel.getProject().getObjectRepository().getWebOR();
+        ObjectRepository repo = oRPanel.getProject().getObjectRepository();
+        return (source == ORSource.SHARED)
+                ? repo.getWebSharedOR()
+                : repo.getWebOR();
     }
 
     @Override
     protected void objectRemoved(ORObjectInf object) {
-        if (getLoadedObject() != null
-                && getLoadedObject().equals(object)) {
+        ORObjectInf loaded = getAnyLoadedObject();
+        if (loaded != null && loaded.equals(object)) {
             oRPanel.getObjectTable().reset();
         }
         super.objectRemoved(object);
@@ -63,6 +69,16 @@ public class WebObjectTree extends ObjectTree {
 
     public WebORObject getLoadedObject() {
         return oRPanel.getObjectTable().getObject();
+    }
+
+    private ORObjectInf getAnyLoadedObject() {
+        ORObjectInf obj = getLoadedObject();
+        return (obj != null) ? obj : getLoadedObject();
+    }
+        
+    public enum ORSource {
+        PROJECT,
+        SHARED
     }
 
 }

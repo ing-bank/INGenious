@@ -6,6 +6,7 @@ import com.ing.datalib.or.common.ORObjectInf;
 import com.ing.datalib.or.common.ObjectGroup;
 import com.ing.datalib.or.web.WebORObject;
 import com.ing.datalib.or.web.WebORPage;
+import com.ing.ide.main.mainui.components.testdesign.or.web.WebObjectTree.ORSource;
 import com.ing.ide.main.utils.Utils;
 import com.ing.ide.main.utils.table.XTable;
 import java.awt.BorderLayout;
@@ -115,7 +116,7 @@ public class WebORTable extends JPanel implements ActionListener, ItemListener {
                     clearFromAll();
                     break;
                 case "Clear from Selected":
-                    clearFromSelected();
+                    //clearFromSelected();
                     break;
                 case "Remove from Page":
                     removeFromPage();
@@ -124,7 +125,7 @@ public class WebORTable extends JPanel implements ActionListener, ItemListener {
                     removeFromAll();
                     break;
                 case "Remove from Selected":
-                    removeFromSelected();
+                    //removeFromSelected();
                     break;
                 case "Add to Page":
                     addToPage();
@@ -133,7 +134,7 @@ public class WebORTable extends JPanel implements ActionListener, ItemListener {
                     addToAll();
                     break;
                 case "Add to Selected":
-                    addToSelected();
+                    //addToSelected();
                     break;
                 case "Set Priority to Page":
                     setPriorityToPage();
@@ -142,7 +143,7 @@ public class WebORTable extends JPanel implements ActionListener, ItemListener {
                     setPriorityToAll();
                     break;
                 case "Set Priority to Selected":
-                    setPriorityToSelected();
+                    //setPriorityToSelected();
                     break;
                 case "From Page":
                     clearFrameFromPage();
@@ -151,7 +152,7 @@ public class WebORTable extends JPanel implements ActionListener, ItemListener {
                     clearFrameFromAll();
                     break;
                 case "From Selected":
-                    clearFrameFromSelected();
+                    //clearFrameFromSelected();
             }
         }
     }
@@ -201,16 +202,16 @@ public class WebORTable extends JPanel implements ActionListener, ItemListener {
         }
     }
 
-    private List<ORObjectInf> getSelectedObjects() {
-        return webOR.getObjectTree().getSelectedObjects();
-    }
+//    private List<ORObjectInf> getSelectedObjects() {
+//        return webORPanel.getSelectedObjectsFromActiveTab();
+//    }
 
-    private void clearFrameFromSelected() {
-        frameToolbar.frameText.setText("");
-        getSelectedObjects().stream().forEach((object) -> {
-            ((WebORObject) object).setFrame("");
-        });
-    }
+//    private void clearFrameFromSelected() {
+//        frameToolbar.frameText.setText("");
+//        getSelectedObjects().stream().forEach((object) -> {
+//            ((WebORObject) object).setFrame("");
+//        });
+//    }
 
     private void clearFrameFromAll() {
         frameToolbar.frameText.setText("");
@@ -232,13 +233,15 @@ public class WebORTable extends JPanel implements ActionListener, ItemListener {
         }
     }
 
-    private void clearFromSelected() {
+    private void clearFromSelected(WebORPanel webORPanel) {
         if (table.getSelectedRowCount() > 0) {
             String[] attrs = getSelectedAttrs();
-            for (String attr : attrs) {
-                getSelectedObjects().stream().forEach((object) -> {
-                    ((WebORObject) object).setAttributeByName(attr, "");
-                });
+            for (ORObjectInf object : webORPanel.getSelectedObjectsFromActiveTab()) {
+                for (String attr : attrs) {
+                    if (object instanceof WebORObject) {
+                        ((WebORObject) object).setAttributeByName(attr, "");
+                    }
+                }
             }
         }
     }
@@ -268,14 +271,20 @@ public class WebORTable extends JPanel implements ActionListener, ItemListener {
         }
     }
 
-    private void removeFromSelected() {
+    private void removeFromSelected(WebORPanel webORPanel) {
         if (table.getSelectedRowCount() > 0) {
             String[] attrs = getSelectedAttrs();
-            for (String attr : attrs) {
-                getSelectedObjects().stream().forEach((object) -> {
-                    ((WebORObject) object).removeAttribute(attr);
-                });
+            List<ORObjectInf> selected = webORPanel.getSelectedObjectsFromActiveTab();
+
+            for (ORObjectInf object : selected) {
+                for (String attr : attrs) {
+                    if (object instanceof WebORObject) {
+                        ((WebORObject) object).removeAttribute(attr);
+                    }
+                }
             }
+            webORPanel.getObjectTable().revalidate();
+            webORPanel.getObjectTable().repaint();
         }
     }
 
@@ -304,14 +313,20 @@ public class WebORTable extends JPanel implements ActionListener, ItemListener {
         }
     }
 
-    private void addToSelected() {
+    private void addToSelected(WebORPanel webORPanel) {
         if (table.getSelectedRowCount() > 0) {
             String[] attrs = getSelectedAttrs();
-            for (String attr : attrs) {
-                getSelectedObjects().stream().forEach((object) -> {
-                    ((WebORObject) object).addNewAttribute(attr);
-                });
+            List<ORObjectInf> selected = webORPanel.getSelectedObjectsFromActiveTab();
+
+            for (ORObjectInf object : selected) {
+                for (String attr : attrs) {
+                    if (object instanceof WebORObject) {
+                        ((WebORObject) object).addNewAttribute(attr);
+                    }
+                }
             }
+            webORPanel.getObjectTable().revalidate();
+            webORPanel.getObjectTable().repaint();
         }
     }
 
@@ -340,12 +355,21 @@ public class WebORTable extends JPanel implements ActionListener, ItemListener {
         }
     }
 
-    private void setPriorityToSelected() {
+    private void setPriorityToSelected(WebORPanel webORPanel) {
         stopCellEditing();
         WebORObject currObj = getObject();
-        getSelectedObjects().stream().forEach((object) -> {
-            reorderAttributes(currObj.getAttributes(), ((WebORObject) object).getAttributes());
-        });
+        List<ORObjectInf> selected = webORPanel.getSelectedObjectsFromActiveTab();
+
+        for (ORObjectInf object : selected) {
+            if (object instanceof WebORObject) {
+                if (currObj != null) {
+                    reorderAttributes(currObj.getAttributes(),
+                                      ((WebORObject) object).getAttributes());
+                }
+            }
+        }
+        webORPanel.getObjectTable().revalidate();
+        webORPanel.getObjectTable().repaint();
     }
 
     private void setPriorityToAll() {
