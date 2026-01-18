@@ -13,12 +13,11 @@ import javax.swing.tree.TreePath;
 
 /**
  *
- * 
+ *
  */
 public class WebObjectTree extends ObjectTree {
-
     private final WebORPanel oRPanel;
-    private final ORSource source; // PROJECT or SHARED
+    private final ORSource source;
 
     public WebObjectTree(WebORPanel panel, ORSource source) {
         this.oRPanel = panel;
@@ -72,13 +71,11 @@ public class WebObjectTree extends ObjectTree {
     }
 
     private ORObjectInf getAnyLoadedObject() {
-        ORObjectInf obj = getLoadedObject();
-        return (obj != null) ? obj : getLoadedObject();
+        return getLoadedObject();
     }
-        
+
     public enum ORSource {
         PROJECT,
         SHARED
     }
-
 }

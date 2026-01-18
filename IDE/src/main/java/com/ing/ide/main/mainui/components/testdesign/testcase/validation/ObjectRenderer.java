@@ -2,6 +2,7 @@
 package com.ing.ide.main.mainui.components.testdesign.testcase.validation;
 
 import com.ing.datalib.component.TestStep;
+import com.ing.datalib.or.web.ResolvedWebObject;
 import java.awt.Color;
 import java.awt.Font;
 import java.util.Objects;
@@ -57,8 +58,16 @@ public class ObjectRenderer extends AbstractRenderer {
     }
 
     private Boolean isObjectPresent(TestStep step) {
-        return step.getProject().getObjectRepository()
-                .isObjectPresent(step.getReference(), step.getObject());
+        var repo = step.getProject().getObjectRepository();
+        String pageToken = step.getReference();
+        String objectName = step.getObject();
+
+        ResolvedWebObject.PageRef ref = ResolvedWebObject.PageRef.parse(pageToken);
+        if (ref != null && ref.name != null && pageToken != null && pageToken.contains("@")) {
+            return repo.resolveWebObject(ref, objectName) != null;
+        }
+
+        return repo.resolveWebObjectWithScope(pageToken, objectName) != null;
     }
 
     private Boolean isValidObject(Object value) {

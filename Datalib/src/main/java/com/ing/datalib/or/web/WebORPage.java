@@ -34,6 +34,9 @@ public class WebORPage implements ORPageInf<WebORObject, WebOR> {
 
     @JsonIgnore
     private WebOR root;
+    
+    @JacksonXmlProperty(isAttribute = true)
+    private String source;
 
     public WebORPage() {
         this.objectGroups = new ArrayList<>();
@@ -260,4 +263,7 @@ public class WebORPage implements ORPageInf<WebORObject, WebOR> {
     public void sort() {
         ORUtils.sort(this);
     }
+    
+    public String getSource() { return source; }
+    public void setSource(String source) { this.source = source; }
 }

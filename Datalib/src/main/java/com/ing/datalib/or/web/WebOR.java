@@ -49,6 +49,9 @@ public class WebOR implements ORRootInf<WebORPage> {
 
     @JsonIgnore
     private Boolean saved = true;
+    
+    @JsonIgnore
+    private String repLocationOverride;
 
     public WebOR() {
         this.pages = new ArrayList<>();
@@ -75,11 +78,15 @@ public class WebOR implements ORRootInf<WebORPage> {
         return pages;
     }
 
+
     @Override
     public void setPages(List<WebORPage> pages) {
         this.pages = pages;
         for (WebORPage page : pages) {
             page.setRoot(this);
+            if (page.getSource() == null || page.getSource().isBlank()) {
+                page.setSource(isShared() ? "SHARED" : "PROJECT");
+            }
         }
     }
 
@@ -131,6 +138,7 @@ public class WebOR implements ORRootInf<WebORPage> {
         if (getPageByName(pageName) == null) {
             WebORPage page = new WebORPage(pageName, this);
             pages.add(page);
+            page.setSource(isShared() ? "SHARED" : "PROJECT");
             new File(page.getRepLocation()).mkdirs();
             setSaved(false);
             return page;
@@ -227,9 +235,16 @@ public class WebOR implements ORRootInf<WebORPage> {
     }
 
     @JsonIgnore
+    public void setRepLocationOverride(String path) {
+        this.repLocationOverride = path;
+    }
+
+    @JsonIgnore
     @Override
     public String getRepLocation() {
-        return getObjectRepository().getORRepLocation();
+        return repLocationOverride != null
+            ? repLocationOverride
+            : getObjectRepository().getORRepLocation();
     }
 
     @JsonIgnore
@@ -237,4 +252,16 @@ public class WebOR implements ORRootInf<WebORPage> {
     public void sort() {
         ORUtils.sort(this);
     }
+    
+    public enum ORScope { PROJECT, SHARED }
+      
+    @JacksonXmlProperty(isAttribute = true)
+    private ORScope scope = ORScope.PROJECT;
+
+    @JsonIgnore
+    public ORScope getScope() { return scope; }
+    public void setScope(ORScope scope) { this.scope = scope; }
+
+    @JsonIgnore
+    public boolean isShared() { return scope == ORScope.SHARED; }
 }

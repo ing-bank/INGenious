@@ -35,18 +35,13 @@ import javax.swing.table.DefaultTableModel;
 
 /**
  *
- * 
+ *
  */
 public class WebORTable extends JPanel implements ActionListener, ItemListener {
-
     private final XTable table;
-
     private final FrameToolBar frameToolbar;
-
     private final ToolBar toolBar;
-
     private final PopupMenu popupMenu;
-
     private final WebORPanel webOR;
 
     private Boolean monitorFrameChange = true;
@@ -81,6 +76,8 @@ public class WebORTable extends JPanel implements ActionListener, ItemListener {
         frameToolbar.frameText.setText(object.getFrame());
         toolBar.frameToggle.setSelected(!frameToolbar.frameText.getText().isEmpty());
         monitorFrameChange = true;
+        String source = object.getPage().getRoot().isShared() ? "Shared" : "Project";
+        toolBar.setTitleSuffix("[" + source + "]");
     }
 
     private void changeFrameText() {
@@ -116,7 +113,7 @@ public class WebORTable extends JPanel implements ActionListener, ItemListener {
                     clearFromAll();
                     break;
                 case "Clear from Selected":
-                    //clearFromSelected();
+                    clearFromSelected();
                     break;
                 case "Remove from Page":
                     removeFromPage();
@@ -125,7 +122,7 @@ public class WebORTable extends JPanel implements ActionListener, ItemListener {
                     removeFromAll();
                     break;
                 case "Remove from Selected":
-                    //removeFromSelected();
+                    removeFromSelected();
                     break;
                 case "Add to Page":
                     addToPage();
@@ -134,7 +131,7 @@ public class WebORTable extends JPanel implements ActionListener, ItemListener {
                     addToAll();
                     break;
                 case "Add to Selected":
-                    //addToSelected();
+                    addToSelected();
                     break;
                 case "Set Priority to Page":
                     setPriorityToPage();
@@ -143,7 +140,7 @@ public class WebORTable extends JPanel implements ActionListener, ItemListener {
                     setPriorityToAll();
                     break;
                 case "Set Priority to Selected":
-                    //setPriorityToSelected();
+                    setPriorityToSelected();
                     break;
                 case "From Page":
                     clearFrameFromPage();
@@ -152,7 +149,8 @@ public class WebORTable extends JPanel implements ActionListener, ItemListener {
                     clearFrameFromAll();
                     break;
                 case "From Selected":
-                    //clearFrameFromSelected();
+                    clearFrameFromSelected();
+                    break;
             }
         }
     }
@@ -202,16 +200,12 @@ public class WebORTable extends JPanel implements ActionListener, ItemListener {
         }
     }
 
-//    private List<ORObjectInf> getSelectedObjects() {
-//        return webORPanel.getSelectedObjectsFromActiveTab();
-//    }
-
-//    private void clearFrameFromSelected() {
-//        frameToolbar.frameText.setText("");
-//        getSelectedObjects().stream().forEach((object) -> {
-//            ((WebORObject) object).setFrame("");
-//        });
-//    }
+    private void clearFrameFromSelected() {
+        frameToolbar.frameText.setText("");
+        webOR.getSelectedObjectsFromActiveTab().stream().forEach((object) -> {
+            ((WebORObject) object).setFrame("");
+        });
+    }
 
     private void clearFrameFromAll() {
         frameToolbar.frameText.setText("");
@@ -233,10 +227,10 @@ public class WebORTable extends JPanel implements ActionListener, ItemListener {
         }
     }
 
-    private void clearFromSelected(WebORPanel webORPanel) {
+    private void clearFromSelected() {
         if (table.getSelectedRowCount() > 0) {
             String[] attrs = getSelectedAttrs();
-            for (ORObjectInf object : webORPanel.getSelectedObjectsFromActiveTab()) {
+            for (ORObjectInf object : webOR.getSelectedObjectsFromActiveTab()) {
                 for (String attr : attrs) {
                     if (object instanceof WebORObject) {
                         ((WebORObject) object).setAttributeByName(attr, "");
@@ -271,11 +265,10 @@ public class WebORTable extends JPanel implements ActionListener, ItemListener {
         }
     }
 
-    private void removeFromSelected(WebORPanel webORPanel) {
+    private void removeFromSelected() {
         if (table.getSelectedRowCount() > 0) {
             String[] attrs = getSelectedAttrs();
-            List<ORObjectInf> selected = webORPanel.getSelectedObjectsFromActiveTab();
-
+            List<ORObjectInf> selected = webOR.getSelectedObjectsFromActiveTab();
             for (ORObjectInf object : selected) {
                 for (String attr : attrs) {
                     if (object instanceof WebORObject) {
@@ -283,8 +276,8 @@ public class WebORTable extends JPanel implements ActionListener, ItemListener {
                     }
                 }
             }
-            webORPanel.getObjectTable().revalidate();
-            webORPanel.getObjectTable().repaint();
+            webOR.getObjectTable().revalidate();
+            webOR.getObjectTable().repaint();
         }
     }
 
@@ -313,11 +306,10 @@ public class WebORTable extends JPanel implements ActionListener, ItemListener {
         }
     }
 
-    private void addToSelected(WebORPanel webORPanel) {
+    private void addToSelected() {
         if (table.getSelectedRowCount() > 0) {
             String[] attrs = getSelectedAttrs();
-            List<ORObjectInf> selected = webORPanel.getSelectedObjectsFromActiveTab();
-
+            List<ORObjectInf> selected = webOR.getSelectedObjectsFromActiveTab();
             for (ORObjectInf object : selected) {
                 for (String attr : attrs) {
                     if (object instanceof WebORObject) {
@@ -325,8 +317,8 @@ public class WebORTable extends JPanel implements ActionListener, ItemListener {
                     }
                 }
             }
-            webORPanel.getObjectTable().revalidate();
-            webORPanel.getObjectTable().repaint();
+            webOR.getObjectTable().revalidate();
+            webOR.getObjectTable().repaint();
         }
     }
 
@@ -355,21 +347,20 @@ public class WebORTable extends JPanel implements ActionListener, ItemListener {
         }
     }
 
-    private void setPriorityToSelected(WebORPanel webORPanel) {
+    private void setPriorityToSelected() {
         stopCellEditing();
         WebORObject currObj = getObject();
-        List<ORObjectInf> selected = webORPanel.getSelectedObjectsFromActiveTab();
-
+        List<ORObjectInf> selected = webOR.getSelectedObjectsFromActiveTab();
         for (ORObjectInf object : selected) {
             if (object instanceof WebORObject) {
                 if (currObj != null) {
                     reorderAttributes(currObj.getAttributes(),
-                                      ((WebORObject) object).getAttributes());
+                            ((WebORObject) object).getAttributes());
                 }
             }
         }
-        webORPanel.getObjectTable().revalidate();
-        webORPanel.getObjectTable().repaint();
+        webOR.getObjectTable().revalidate();
+        webOR.getObjectTable().repaint();
     }
 
     private void setPriorityToAll() {
@@ -425,7 +416,6 @@ public class WebORTable extends JPanel implements ActionListener, ItemListener {
     }
 
     class FrameToolBar extends JToolBar implements DocumentListener {
-
         private JTextField frameText;
 
         public FrameToolBar() {
@@ -440,29 +430,22 @@ public class WebORTable extends JPanel implements ActionListener, ItemListener {
             add(new JLabel("Frame"));
             add(new javax.swing.Box.Filler(new java.awt.Dimension(10, 0), new java.awt.Dimension(10, 0), new java.awt.Dimension(10, 32767)));
             add(frameText);
-
             frameText.getDocument().addDocumentListener(this);
         }
 
         @Override
-        public void insertUpdate(DocumentEvent de) {
-            changeFrameText();
-        }
+        public void insertUpdate(DocumentEvent de) { changeFrameText(); }
 
         @Override
-        public void removeUpdate(DocumentEvent de) {
-            changeFrameText();
-        }
+        public void removeUpdate(DocumentEvent de) { changeFrameText(); }
 
         @Override
-        public void changedUpdate(DocumentEvent de) {
-            changeFrameText();
-        }
+        public void changedUpdate(DocumentEvent de) { changeFrameText(); }
     }
 
     class ToolBar extends JToolBar {
-
         JToggleButton frameToggle;
+        private JLabel titleLabel;
 
         public ToolBar() {
             init();
@@ -472,21 +455,24 @@ public class WebORTable extends JPanel implements ActionListener, ItemListener {
         private void init() {
             setLayout(new javax.swing.BoxLayout(this, javax.swing.BoxLayout.X_AXIS));
             setFloatable(false);
-
-            add(new javax.swing.Box.Filler(new java.awt.Dimension(10, 0),
-                    new java.awt.Dimension(10, 0),
-                    new java.awt.Dimension(10, 32767)));
-            JLabel label = new JLabel("Properties");
-            label.setFont(new Font("Default", Font.BOLD, 12));
-            add(label);
-
+            add(new javax.swing.Box.Filler(new java.awt.Dimension(10, 0), new java.awt.Dimension(10, 0), new java.awt.Dimension(10, 32767)));
+            titleLabel = new JLabel("Properties");
+            titleLabel.setFont(new Font("Default", Font.BOLD, 12));
+            add(titleLabel);
+//            setLayout(new javax.swing.BoxLayout(this, javax.swing.BoxLayout.X_AXIS));
+//            setFloatable(false);
+//            add(new javax.swing.Box.Filler(new java.awt.Dimension(10, 0),
+//                    new java.awt.Dimension(10, 0),
+//                    new java.awt.Dimension(10, 32767)));
+//            JLabel label = new JLabel("Properties");
+//            label.setFont(new Font("Default", Font.BOLD, 12));
+//            add(label);
             add(new javax.swing.Box.Filler(new java.awt.Dimension(0, 0), new java.awt.Dimension(0, 0), new java.awt.Dimension(32767, 32767)));
-
-            add(Utils.createLRButton("Add Row", "add",  WebORTable.this));
-            add(Utils.createLRButton("Delete Rows", "remove",  WebORTable.this));
+            add(Utils.createLRButton("Add Row", "add", WebORTable.this));
+            add(Utils.createLRButton("Delete Rows", "remove", WebORTable.this));
             addSeparator();
-            add(Utils.createLRButton("Move Rows Up", "up",  WebORTable.this));
-            add(Utils.createLRButton("Move Rows Down", "down",  WebORTable.this));
+            add(Utils.createLRButton("Move Rows Up", "up", WebORTable.this));
+            add(Utils.createLRButton("Move Rows Down", "down", WebORTable.this));
             addSeparator();
             frameToggle = new JToggleButton(Utils.getIconByResourceName("/ui/resources/or/web/propViewer"));
             frameToggle.addItemListener(WebORTable.this);
@@ -494,11 +480,13 @@ public class WebORTable extends JPanel implements ActionListener, ItemListener {
             frameToggle.setActionCommand("Toggle Frame");
             add(frameToggle);
         }
-
+        
+        public void setTitleSuffix(String suffix) {
+            titleLabel.setText("Properties " + suffix);
+        }
     }
 
     class PopupMenu extends JPopupMenu {
-
         public PopupMenu() {
             init();
         }
@@ -514,25 +502,28 @@ public class WebORTable extends JPanel implements ActionListener, ItemListener {
             setPriority.add(Utils.createMenuItem("Set Priority to All", WebORTable.this));
             setPriority.add(Utils.createMenuItem("Set Priority to Selected", WebORTable.this));
             add(setPriority);
+
             clearProp.add(Utils.createMenuItem("Clear from Page", WebORTable.this));
             clearProp.add(Utils.createMenuItem("Clear from All", WebORTable.this));
             clearProp.add(Utils.createMenuItem("Clear from Selected", WebORTable.this));
             add(clearProp);
+
             deleteProp.add(Utils.createMenuItem("Remove from Page", WebORTable.this));
             deleteProp.add(Utils.createMenuItem("Remove from All", WebORTable.this));
             deleteProp.add(Utils.createMenuItem("Remove from Selected", WebORTable.this));
             add(deleteProp);
+
             addProp.add(Utils.createMenuItem("Add to Page", WebORTable.this));
             addProp.add(Utils.createMenuItem("Add to All", WebORTable.this));
             addProp.add(Utils.createMenuItem("Add to Selected", WebORTable.this));
             add(addProp);
+
             addSeparator();
+
             clearFrame.add(Utils.createMenuItem("From Page", WebORTable.this));
             clearFrame.add(Utils.createMenuItem("From All", WebORTable.this));
             clearFrame.add(Utils.createMenuItem("From Selected", WebORTable.this));
             add(clearFrame);
         }
-
     }
-
 }

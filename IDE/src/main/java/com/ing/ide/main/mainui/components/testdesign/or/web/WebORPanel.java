@@ -23,10 +23,9 @@ import javax.swing.tree.TreePath;
 
 /**
  *
- * 
+ *
  */
 public class WebORPanel extends JPanel {
-
     private final WebObjectTree projectTree;
     private final WebObjectTree sharedTree;
     private final WebORTable objectTable;
@@ -65,14 +64,13 @@ public class WebORPanel extends JPanel {
         splitPane.setBottomComponent(objectTable);
         splitPane.setResizeWeight(0.5);
         splitPane.setDividerLocation(0.5);
-
         add(splitPane, BorderLayout.CENTER);
 
         hookSelectionToTable(projectTree);
         hookSelectionToTable(sharedTree);
     }
-    
-     private void hookSelectionToTable(WebObjectTree tree) {
+
+    private void hookSelectionToTable(WebObjectTree tree) {
         tree.getTree().addTreeSelectionListener(e -> {
             if (isTreeOnCurrentTab(tree)) {
                 loadTableModelForSelection(getSelectedNodeUserObject(tree));
@@ -106,11 +104,11 @@ public class WebORPanel extends JPanel {
     public WebObjectTree getActiveTree() {
         int idx = tabs.getSelectedIndex();
         if (idx == 0) {
-            return projectTree; // "Project" tab
+            return projectTree;
         } else if (idx == 1) {
-            return sharedTree;  // "Shared" tab
+            return sharedTree;
         }
-        return null; // No tab selected yet
+        return null;
     }
 
     void loadTableModelForSelection(Object object) {
@@ -169,20 +167,10 @@ public class WebORPanel extends JPanel {
     public WebORTable getObjectTable() {
         return objectTable;
     }
-    
-    public List<ORObjectInf> getSelectedObjectsFromActiveTab() {
+
+    public List<com.ing.datalib.or.common.ORObjectInf> getSelectedObjectsFromActiveTab() {
         WebObjectTree active = getActiveTree();
         return (active != null) ? active.getSelectedObjects()
                                 : java.util.Collections.emptyList();
     }
-
-    public void clearFrameFromSelectedInActiveTab() {
-        for (ORObjectInf object : getSelectedObjectsFromActiveTab()) {
-            if (object instanceof WebORObject) {
-                ((WebORObject) object).setFrame("");
-            }
-        }
-        updateTableForCurrentSelection();
-    }    
-
 }

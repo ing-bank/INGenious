@@ -7,35 +7,22 @@ import com.ing.datalib.or.common.ObjectGroup;
 import com.ing.datalib.or.mobile.MobileOR;
 import com.ing.datalib.or.web.WebOR;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
-import java.beans.BeanInfo;
-import java.beans.Introspector;
-import java.beans.PropertyDescriptor;
+import com.ing.datalib.or.web.ResolvedWebObject;
+import com.ing.datalib.or.web.WebOR.ORScope;
+import com.ing.datalib.or.web.WebORObject;
+
 import java.io.File;
 import java.io.IOException;
-import java.lang.reflect.Array;
-import java.lang.reflect.Method;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
-import java.util.List;
-import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-/**
- *
- * 
- */
 public class ObjectRepository {
-
     private static final XmlMapper XML_MAPPER = new XmlMapper();
+    private static final Logger LOG = Logger.getLogger(ObjectRepository.class.getName());
 
     private final Project sProject;
-
     private WebOR webSharedOR;
     private WebOR webProjectOR;
-    private WebOR webOR;
     private MobileOR mobileOR;
 
     public ObjectRepository(Project sProject) {
@@ -45,14 +32,14 @@ public class ObjectRepository {
 
     private void init() {
         try {
-            // --- Shared OR ---
-            File sharedFile = new File(geSharedORLocation());
+            File sharedFile = new File(getSharedORLocation());
             if (sharedFile.exists()) {
                 webSharedOR = XML_MAPPER.readValue(sharedFile, WebOR.class);
                 webSharedOR.setName("Shared Web Objects");
+            } else {
+                webSharedOR = new WebOR("Shared Web Objects");
             }
 
-            // --- Project OR ---
             File projFile = new File(getORLocation());
             if (projFile.exists()) {
                 webProjectOR = XML_MAPPER.readValue(projFile, WebOR.class);
@@ -60,7 +47,6 @@ public class ObjectRepository {
             } else {
                 webProjectOR = new WebOR(sProject.getName());
             }
-            //webOR = mergeWebOR(webSharedOR, webProjectOR);
 
             File morFile = new File(getMORLocation());
             if (morFile.exists()) {
@@ -70,16 +56,23 @@ public class ObjectRepository {
                 mobileOR = new MobileOR(sProject.getName());
             }
 
-            webSharedOR.setObjectRepository(this);
-            webSharedOR.setSaved(true);
-            webProjectOR.setObjectRepository(this);
-            webProjectOR.setSaved(true);
-            mobileOR.setObjectRepository(this);
+            if (webSharedOR != null) {
+                webSharedOR.setObjectRepository(this);
+                webSharedOR.setSaved(true);
+                webSharedOR.setRepLocationOverride(getSharedORRepLocation());
+                webSharedOR.setScope(ORScope.SHARED);
+            }
+            if (webProjectOR != null) {
+                webProjectOR.setObjectRepository(this);
+                webProjectOR.setSaved(true);
+                webProjectOR.setScope(ORScope.PROJECT);
+            }
+            if (mobileOR != null) {
+                mobileOR.setObjectRepository(this);
+            }
 
-            System.out.println("[OR] Shared loaded: " + (webSharedOR != null));
-            System.out.println("[OR] Project loaded: " + (webProjectOR != null));
-            System.out.println("[OR] Effective name: " + webOR.getName());
-
+            LOG.log(Level.INFO, "Shared WebOR loaded: {0}", (webSharedOR != null));
+            LOG.log(Level.INFO, "Project WebOR loaded: {0}", (webProjectOR != null));
         } catch (IOException ex) {
             Logger.getLogger(ObjectRepository.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -88,27 +81,24 @@ public class ObjectRepository {
     public String getORLocation() {
         return sProject.getLocation() + File.separator + "OR.object";
     }
-    
-    public String geSharedORLocation() {
-        return "Projects" + File.separator + "SharedOR.object";
+    public String getSharedORLocation() {
+        return "Projects" + File.separator + "Shared" + File.separator + "SharedOR.object";
     }
-
     public String getIORLocation() {
         return sProject.getLocation() + File.separator + "IOR.object";
     }
-
     public String getMORLocation() {
         return sProject.getLocation() + File.separator + "MOR.object";
     }
-
     public String getORRepLocation() {
         return sProject.getLocation() + File.separator + "ObjectRepository";
     }
-
+    public String getSharedORRepLocation() {
+        return "Projects" + File.separator + "Shared" + File.separator + "SharedObjectRepository";
+    }
     public String getIORRepLocation() {
         return sProject.getLocation() + File.separator + "ImageObjectRepository";
     }
-
     public String getMORRepLocation() {
         return sProject.getLocation() + File.separator + "MobileObjectRepository";
     }
@@ -116,111 +106,39 @@ public class ObjectRepository {
     public Project getsProject() {
         return sProject;
     }
-
     public WebOR getWebOR() {
-        //return webOR;
         return webProjectOR;
     }
-
     public WebOR getWebSharedOR() {
         return webSharedOR;
     }
-
     public MobileOR getMobileOR() {
         return mobileOR;
     }
-//
-//    private WebOR mergeWebOR(WebOR shared, WebOR project) {
-//        if (shared == null) return project;
-//        if (project == null) return shared;
-//
-//        WebOR merged = new WebOR(
-//            project.getName() != null ? project.getName() : shared.getName()
-//        );
-//
-//        try {
-//            BeanInfo info = Introspector.getBeanInfo(WebOR.class, Object.class);
-//            for (PropertyDescriptor pd : info.getPropertyDescriptors()) {
-//                Method getter = pd.getReadMethod();
-//                Method setter = pd.getWriteMethod();
-//                if (getter == null || setter == null) continue;
-//
-//                Object sharedVal  = getter.invoke(shared);
-//                Object projectVal = getter.invoke(project);
-//
-//                Object mergedVal = mergeValue(sharedVal, projectVal);
-//                setter.invoke(merged, mergedVal);
-//            }
-//        } catch (Exception e) {
-//            return project;
-//        }
-//
-//        return merged;
-//    }
-    
-    @SuppressWarnings({"rawtypes","unchecked"})
-    private Object mergeValue(Object sharedVal, Object projectVal) {
-        if (projectVal == null) return sharedVal;
-        if (sharedVal  == null) return projectVal;
-
-        if (sharedVal instanceof Map && projectVal instanceof Map) {
-            Map merged = new LinkedHashMap<>();
-            merged.putAll((Map) sharedVal);
-            merged.putAll((Map) projectVal);
-            return merged;
-        }
-
-        if (sharedVal instanceof Collection && projectVal instanceof Collection) {
-            Collection<?> a = (Collection<?>) sharedVal;
-            Collection<?> b = (Collection<?>) projectVal;
-            Collection merged = (a instanceof List || b instanceof List) ? new ArrayList<>() : new LinkedHashSet<>();
-            merged.addAll(a);
-            merged.addAll(b);
-            return merged;
-        }
-
-        if (sharedVal.getClass().isArray() && projectVal.getClass().isArray()) {
-            int lenA = Array.getLength(sharedVal);
-            int lenB = Array.getLength(projectVal);
-            Object merged = Array.newInstance(sharedVal.getClass().getComponentType(), lenA + lenB);
-            System.arraycopy(sharedVal, 0, merged, 0, lenA);
-            System.arraycopy(projectVal, 0, merged, lenA, lenB);
-            return merged;
-        }
-
-        try {
-            Object merged = XML_MAPPER.updateValue(sharedVal, projectVal);
-            return merged;
-        } catch (com.fasterxml.jackson.databind.JsonMappingException e) {
-            Logger.getLogger(getClass().getName()).log(Level.SEVERE,
-                "WebOR merge failed: " + e.getMessage(), e);
-            throw new IllegalStateException("Failed to merge WebOR with updateValue", e);
-        }
-    }
-
 
     public void save() {
         try {
-            if (!webOR.isSaved()) {
-                XML_MAPPER.writerWithDefaultPrettyPrinter().writeValue(new File(getORLocation()), webOR);
+            if (webSharedOR != null && !webSharedOR.isSaved()) {
+                XML_MAPPER.writerWithDefaultPrettyPrinter()
+                          .writeValue(new File(getSharedORLocation()), webSharedOR);
+                webSharedOR.setSaved(true);
             }
-            XML_MAPPER.writerWithDefaultPrettyPrinter().writeValue(new File(getMORLocation()), mobileOR);
+            if (webProjectOR != null && !webProjectOR.isSaved()) {
+                XML_MAPPER.writerWithDefaultPrettyPrinter()
+                          .writeValue(new File(getORLocation()), webProjectOR);
+                webProjectOR.setSaved(true);
+            }
+            if (mobileOR != null) {
+                XML_MAPPER.writerWithDefaultPrettyPrinter()
+                          .writeValue(new File(getMORLocation()), mobileOR);
+            }
         } catch (IOException ex) {
             Logger.getLogger(ObjectRepository.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
 
     public Boolean isObjectPresent(String pageName, String objectName) {
-        Boolean present = false;
-        if (webOR.getPageByName(pageName) != null) {
-            present = webOR.getPageByName(pageName).getObjectGroupByName(objectName) != null;
-        }
-        if (!present) {
-            if (mobileOR.getPageByName(pageName) != null) {
-                present = mobileOR.getPageByName(pageName).getObjectGroupByName(objectName) != null;
-            }
-        }
-        return present;
+        return resolveWebObjectWithScope(pageName, objectName) != null;
     }
 
     public void renameObject(ObjectGroup group, String newName) {
@@ -231,4 +149,29 @@ public class ObjectRepository {
         sProject.refactorPageName(page.getName(), newName);
     }
 
+    public ResolvedWebObject resolveWebObject(ResolvedWebObject.PageRef pageRef, String objectName) {
+        if (pageRef == null || objectName == null) return null;
+        if (pageRef.scope == ORScope.PROJECT) {
+            var g = getFrom(webProjectOR, pageRef.name, objectName);
+            return (g != null) ? new ResolvedWebObject(ORScope.PROJECT, pageRef.name, objectName, g) : null;
+        } else { // SHARED
+            var g = getFrom(webSharedOR, pageRef.name, objectName);
+            return (g != null) ? new ResolvedWebObject(ORScope.SHARED, pageRef.name, objectName, g) : null;
+        }
+    }
+
+    public ResolvedWebObject resolveWebObjectWithScope(String pageName, String objectName) {
+        var proj = getFrom(webProjectOR, pageName, objectName);
+        if (proj != null) return new ResolvedWebObject(ORScope.PROJECT, pageName, objectName, proj);
+        var shared = getFrom(webSharedOR, pageName, objectName);
+        if (shared != null) return new ResolvedWebObject(ORScope.SHARED, pageName, objectName, shared);
+        return null;
+    }
+
+    private ObjectGroup<WebORObject> getFrom(WebOR or, String page, String obj) {
+        if (or == null) return null;
+        var p = or.getPageByName(page);
+        return (p == null) ? null : p.getObjectGroupByName(obj);
+    }
+    
 }

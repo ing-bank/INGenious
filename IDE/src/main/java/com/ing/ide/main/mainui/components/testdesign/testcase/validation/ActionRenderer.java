@@ -3,6 +3,7 @@ package com.ing.ide.main.mainui.components.testdesign.testcase.validation;
 import com.ing.datalib.component.Scenario;
 import com.ing.datalib.component.TestStep;
 import com.ing.datalib.or.common.ORPageInf;
+import com.ing.datalib.or.web.ResolvedWebObject;
 import com.ing.engine.support.methodInf.MethodInfoManager;
 import com.ing.engine.support.methodInf.ObjectType;
 import java.awt.Color;
@@ -141,9 +142,17 @@ public class ActionRenderer extends AbstractRenderer {
     }
 
     private boolean isWebObject(TestStep step) {
-        ORPageInf page = step.getProject().
-                getObjectRepository().getWebOR().getPageByName(step.getReference());
-        return page != null && page.getObjectGroupByName(step.getObject()) != null;
+        var repo = step.getProject().getObjectRepository();
+        String pageToken = step.getReference();
+        String objectName = step.getObject();
+
+        ResolvedWebObject.PageRef ref = ResolvedWebObject.PageRef.parse(pageToken);
+        ResolvedWebObject r =
+            (ref != null && ref.name != null && pageToken != null && pageToken.contains("@"))
+                ? repo.resolveWebObject(ref, objectName)                      // honor explicit scope
+                : repo.resolveWebObjectWithScope(pageToken, objectName);      // try project then shared
+
+        return r != null && r.isPresent();
     }
 
     private boolean isMobileObject(TestStep step) {
