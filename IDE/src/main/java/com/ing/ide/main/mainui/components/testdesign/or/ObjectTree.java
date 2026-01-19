@@ -3,10 +3,13 @@ package com.ing.ide.main.mainui.components.testdesign.or;
 
 import com.ing.datalib.component.Project;
 import com.ing.datalib.component.TestCase;
+import com.ing.datalib.or.ObjectRepository;
 import com.ing.datalib.or.common.ORObjectInf;
 import com.ing.datalib.or.common.ORPageInf;
 import com.ing.datalib.or.common.ORRootInf;
 import com.ing.datalib.or.common.ObjectGroup;
+import com.ing.datalib.or.web.ResolvedWebObject;
+import com.ing.datalib.or.web.WebOR;
 import com.ing.ide.main.help.Help;
 
 import com.ing.ide.main.utils.keys.Keystroke;
@@ -28,6 +31,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 import com.ing.ide.main.mainui.AppMainFrame;
+import com.ing.ide.main.mainui.components.testdesign.or.web.WebObjectTree;
 import java.awt.Toolkit;
 import java.awt.event.KeyEvent;
 import java.util.List;
@@ -249,6 +253,9 @@ public abstract class ObjectTree implements ActionListener {
                 break;
             case "Open Page Dump":
                 openPageDump();
+                break;
+            case "Copy to Shared":
+                copyToShared();
                 break;
             default:
                 throw new UnsupportedOperationException();
@@ -738,6 +745,51 @@ public abstract class ObjectTree implements ActionListener {
             Help.openInBrowser("Couldn't Open", file.toURI());
         } else {
             Notification.show("PageDump not created/available in the Project");
+        }
+    }
+
+    private void copyToShared() {
+        ORObjectInf obj = getSelectedObject();
+        ObjectGroup group = getSelectedObjectGroup();
+        if (obj == null && group == null) {
+            com.ing.ide.util.Notification.show("Select an Object.");
+            return;
+        }
+        ORPageInf page = (obj != null) ? obj.getPage() : group.getParent();
+        com.ing.datalib.or.web.WebOR root = (com.ing.datalib.or.web.WebOR) page.getRoot();
+
+        if (root.isShared()) {
+            com.ing.ide.util.Notification.show("Only Project Web Object to Shared Web Object copy is allowed.");
+            return;
+        }
+
+        com.ing.datalib.or.ObjectRepository repo = getProject().getObjectRepository();
+        com.ing.datalib.or.web.ResolvedWebObject resolved =
+            repo.resolveWebObject(
+                new com.ing.datalib.or.web.ResolvedWebObject.PageRef(
+                    page.getName(),
+                    com.ing.datalib.or.web.WebOR.ORScope.PROJECT),
+                (obj != null) ? obj.getName() : group.getName()
+            );
+
+        if (resolved == null) {
+            com.ing.ide.util.Notification.show("Object not found in Project OR.");
+            return;
+        }
+
+        boolean ok = repo.copyWebObject(resolved, page.getName());
+
+        if (ok) {
+            com.ing.ide.util.Notification.show("Copied to Shared Web Object successfully.");
+            if (this instanceof com.ing.ide.main.mainui.components.testdesign.or.web.WebObjectTree) {
+                com.ing.ide.main.mainui.components.testdesign.or.web.WebORPanel panel =
+                    ((com.ing.ide.main.mainui.components.testdesign.or.web.WebObjectTree) this).getORPanel();
+                panel.getSharedTree().load();
+            } else {
+                reload();
+            }
+        } else {
+            com.ing.ide.util.Notification.show("Copy failed. Object already exists in Shared Web Object.");
         }
     }
 

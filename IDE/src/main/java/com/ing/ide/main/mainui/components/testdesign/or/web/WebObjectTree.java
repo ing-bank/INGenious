@@ -78,4 +78,8 @@ public class WebObjectTree extends ObjectTree {
         PROJECT,
         SHARED
     }
+    
+    public WebORPanel getORPanel() {
+        return oRPanel;
+    }
 }

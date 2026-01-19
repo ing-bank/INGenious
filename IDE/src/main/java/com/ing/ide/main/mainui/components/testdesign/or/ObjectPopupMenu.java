@@ -31,6 +31,7 @@ public class ObjectPopupMenu extends JPopupMenu {
     private JMenuItem renameObject;
     private JMenuItem deleteObject;
     private JMenuItem removeUnusedObject;
+    private JMenuItem copyToShared;
 
     private JMenuItem openPageDump;
 
@@ -61,8 +62,10 @@ public class ObjectPopupMenu extends JPopupMenu {
         add(deleteObject = create("Delete Object", Keystroke.DELETE));
         add(removeUnusedObject = create("Remove Unused Object",Keystroke.REMOVE_OBJECT));
         addSeparator();
+        copyToShared = create("Copy to Shared", null);
+        add(copyToShared);
 
-        
+
         add(openPageDump = create("Open Page Dump", null));
         add(impactAnalysis = create("Get Impacted TestCases", null));
 
@@ -83,6 +86,10 @@ public class ObjectPopupMenu extends JPopupMenu {
             forObjectGroup();
         } else if (selected instanceof ORObjectInf) {
             forObject();
+        }
+        
+        if (selected instanceof ORObjectInf || selected instanceof ObjectGroup) {
+            copyToShared.setEnabled(true);
         }
     }
 
