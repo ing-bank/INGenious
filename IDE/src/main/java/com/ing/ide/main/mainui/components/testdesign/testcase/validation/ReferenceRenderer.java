@@ -21,20 +21,38 @@ public class ReferenceRenderer extends AbstractRenderer {
     }
 
     @Override
+
     public void render(JComponent comp, TestStep step, Object value) {
+        String ref = step.getReference();
+        String decorated = ref;
+
+        var repo = step.getProject().getObjectRepository();
+        var pageRef = com.ing.datalib.or.web.ResolvedWebObject.PageRef.parse(ref);
+
+        var resolved = repo.resolveWebObject(pageRef, step.getObject());
+
+        if (resolved != null) {
+            if (resolved.isFromShared()) {
+                decorated = "[Shared] " + resolved.getPageName();
+            } else if (resolved.isFromProject()) {
+                decorated = "[Project] " + resolved.getPageName();
+            }
+        } else {
+            decorated = ref;
+        }
+
+        if (comp instanceof javax.swing.JLabel) {
+            javax.swing.JLabel lbl = (javax.swing.JLabel) comp;
+            lbl.setText(decorated);
+        }
+
         if (!step.isCommented()) {
             if (isEmpty(value)) {
-                if (isOptional(step)) {
-                    setDefault(comp);
-                } else {
-                    setEmpty(comp);
-                }
+                if (isOptional(step)) setDefault(comp);
+                else setEmpty(comp);
             } else if (step.isPageObjectStep()) {
-                if (isObjectPresent(step)) {
-                    setDefault(comp);
-                } else {
-                    setNotPresent(comp, objNotPresent);
-                }
+                if (isObjectPresent(step)) setDefault(comp);
+                else setNotPresent(comp, objNotPresent);
             } else {
                 setDefault(comp);
             }
@@ -44,6 +62,7 @@ public class ReferenceRenderer extends AbstractRenderer {
             comp.setFont(new Font("Default", Font.ITALIC, 11));
         }
     }
+
 	
 	private Color getColor(Object value) {
         String val = Objects.toString(value, "").trim();

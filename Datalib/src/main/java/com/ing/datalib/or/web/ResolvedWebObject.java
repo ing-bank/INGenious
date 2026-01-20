@@ -35,7 +35,8 @@ public class ResolvedWebObject {
             String s = token == null ? "" : token.trim();
             int at = s.lastIndexOf('@');
             if (at <= 0 || at == s.length() - 1) {
-                return new PageRef(s, ORScope.PROJECT);
+                //return new PageRef(s, ORScope.PROJECT);
+                return new PageRef(s, null);
             }
             String base = s.substring(0, at).trim();
             String suf  = s.substring(at + 1).trim().toUpperCase();

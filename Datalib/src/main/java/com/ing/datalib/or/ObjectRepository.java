@@ -152,13 +152,25 @@ public class ObjectRepository {
 
     public ResolvedWebObject resolveWebObject(ResolvedWebObject.PageRef pageRef, String objectName) {
         if (pageRef == null || objectName == null) return null;
-        if (pageRef.scope == ORScope.PROJECT) {
+
+        if (pageRef.scope == WebOR.ORScope.PROJECT) {
             var g = getFrom(webProjectOR, pageRef.name, objectName);
-            return (g != null) ? new ResolvedWebObject(ORScope.PROJECT, pageRef.name, objectName, g) : null;
-        } else { // SHARED
-            var g = getFrom(webSharedOR, pageRef.name, objectName);
-            return (g != null) ? new ResolvedWebObject(ORScope.SHARED, pageRef.name, objectName, g) : null;
+            return (g != null) ? new ResolvedWebObject(WebOR.ORScope.PROJECT, pageRef.name, objectName, g) : null;
         }
+
+        if (pageRef.scope == WebOR.ORScope.SHARED) {
+            var g = getFrom(webSharedOR, pageRef.name, objectName);
+            return (g != null) ? new ResolvedWebObject(WebOR.ORScope.SHARED, pageRef.name, objectName, g) : null;
+        }
+
+        // null (unscoped): try PROJECT first, then SHARED
+        var proj = getFrom(webProjectOR, pageRef.name, objectName);
+        if (proj != null) return new ResolvedWebObject(WebOR.ORScope.PROJECT, pageRef.name, objectName, proj);
+
+        var shared = getFrom(webSharedOR, pageRef.name, objectName);
+        if (shared != null) return new ResolvedWebObject(WebOR.ORScope.SHARED, pageRef.name, objectName, shared);
+
+        return null;
     }
 
     public ResolvedWebObject resolveWebObjectWithScope(String pageName, String objectName) {
