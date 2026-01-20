@@ -83,7 +83,7 @@ public class ObjectRepository {
         return sProject.getLocation() + File.separator + "OR.object";
     }
     public String getSharedORLocation() {
-        return "Projects" + File.separator + "Shared Web Object" + File.separator + "SharedOR.object";
+        return "Projects" + File.separator + "SharedWebObjects" + File.separator + "SharedOR.object";
     }
     public String getIORLocation() {
         return sProject.getLocation() + File.separator + "IOR.object";
@@ -95,7 +95,7 @@ public class ObjectRepository {
         return sProject.getLocation() + File.separator + "ObjectRepository";
     }
     public String getSharedORRepLocation() {
-        return "Projects" + File.separator + "Shared" + File.separator + "SharedObjectRepository";
+        return "Projects" + File.separator + "SharedWebObjects" + File.separator + "SharedObjectRepository";
     }
     public String getIORRepLocation() {
         return sProject.getLocation() + File.separator + "ImageObjectRepository";
