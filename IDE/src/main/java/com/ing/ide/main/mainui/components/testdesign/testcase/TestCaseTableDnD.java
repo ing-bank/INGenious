@@ -129,8 +129,14 @@ public class TestCaseTableDnD extends TransferHandler {
         }
     }
 
+    private String basePage(String pageToken) {
+        int at = pageToken.lastIndexOf('@');
+        return (at > 0) ? pageToken.substring(0, at) : pageToken;
+    }
+
     private void putInput(JTable table, int row) {
-        table.setValueAt("@" + ((ObjectRepDnD) dropObject).getPageName(((ObjectRepDnD) dropObject).getValues().get(0)), row, inputColumn);
+        String token = ((ObjectRepDnD) dropObject).getPageName(((ObjectRepDnD) dropObject).getValues().get(0));
+        table.setValueAt("@" + basePage(token), row, inputColumn);
     }
 
     private void putReusables(JTable table, int row) {

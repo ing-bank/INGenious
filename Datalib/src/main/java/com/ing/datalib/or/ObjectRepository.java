@@ -190,7 +190,7 @@ public class ObjectRepository {
     public boolean copyWebObject(ResolvedWebObject source, String targetPageName) {
 
         if (source.isFromShared()) {
-            LOG.warning("Copying from SHARED WEB OBJECT to PROJECT WEB OBJECT is not allowed.");
+            LOG.warning("Copying from SHARED to PROJECT Web Object is not allowed.");
             return false;
         }
 

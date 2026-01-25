@@ -18,6 +18,7 @@ public class ObjectRepDnD {
     Boolean isObject = false;
     List<String> values = new ArrayList<>();
     List<Object> components = new ArrayList<>();
+    private static final String SEP = "###";
 
     public Boolean isPage() {
         return isPage;
@@ -42,7 +43,7 @@ public class ObjectRepDnD {
     public ObjectRepDnD withPages(List<ORPageInf> pages) {
         isPage = true;
         for (ORPageInf page : pages) {
-            values.add(page.getName());
+            values.add(pageToken(page));
             components.add(page);
         }
         return this;
@@ -51,10 +52,8 @@ public class ObjectRepDnD {
     public ObjectRepDnD withObjectGroups(List<ObjectGroup> groups) {
         isGroup = true;
         for (ObjectGroup group : groups) {
-            values.add(
-                    group.getName()
-                    + "###"
-                    + group.getParent().getName());
+            ORPageInf parent = (ORPageInf) group.getParent();
+            values.add(group.getName() + SEP + pageToken(parent));
             components.add(group);
         }
         return this;
@@ -63,12 +62,11 @@ public class ObjectRepDnD {
     public ObjectRepDnD withObjects(List<ORObjectInf> objects) {
         isObject = true;
         for (ORObjectInf object : objects) {
+            ORPageInf page = object.getPage();
             values.add(
-                    object.getName()
-                    + "###"
-                    + object.getParent().toString()
-                    + "###"
-                    + object.getPage().getName()
+                object.getName()
+                + SEP + object.getParent().toString()
+                + SEP + pageToken(page)      // was page.getName()
             );
             components.add(object);
         }
@@ -80,10 +78,10 @@ public class ObjectRepDnD {
             return value;
         }
         if (isGroup()) {
-            return value.split("###")[1];
+            return value.split(SEP)[1];
         }
         if (isObject()) {
-            return value.split("###")[2];
+            return value.split(SEP)[2];
         }
         return null;
     }
@@ -97,4 +95,19 @@ public class ObjectRepDnD {
         }
         return null;
     }
+    
+    
+    private String scopeOf(ORPageInf page) {
+        try {
+            var m = page.getClass().getMethod("getSource");
+            Object src = m.invoke(page);
+            if (src != null && src.toString().equalsIgnoreCase("SHARED")) return "SHARED";
+        } catch (Exception ignore) { }
+        return "PROJECT";
+    }
+
+    private String pageToken(ORPageInf page) {
+        return page.getName() + "@" + scopeOf(page);
+    }
+
 }
