@@ -752,72 +752,68 @@ public abstract class ObjectTree implements ActionListener {
         ORObjectInf obj = getSelectedObject();
         ObjectGroup group = getSelectedObjectGroup();
         ORPageInf selectedPage = getSelectedPage();
-
         if (obj == null && group == null && selectedPage == null) {
             com.ing.ide.util.Notification.show("Select an Object, Object Group, or Page.");
             return;
         }
-
         ORPageInf page = (obj != null) ? obj.getPage()
-                : (group != null) ? group.getParent()
-                : selectedPage;
-
+                      : (group != null) ? group.getParent()
+                      : selectedPage;
         com.ing.datalib.or.web.WebOR root =
-                (com.ing.datalib.or.web.WebOR) page.getRoot();
+            (com.ing.datalib.or.web.WebOR) page.getRoot();
 
         if (root.isShared()) {
             com.ing.ide.util.Notification.show(
-                    "Only Project Web Object to Shared Web Object copy is allowed.");
+                "Only Project to Shared Web Object copy is allowed.");
             return;
         }
-
         com.ing.datalib.or.ObjectRepository repo = getProject().getObjectRepository();
-        boolean ok;
 
         if (obj == null && group == null && selectedPage != null) {
-            ok = repo.copyWebPage(page.getName(), page.getName());
-
-            if (ok) {
-                com.ing.ide.util.Notification.show(
-                        "Copied Page '" + page.getName() + "' to Shared Web Object successfully.");
+            String newName = repo.copyWebPage(page.getName(), page.getName());
+            if (newName != null) {
+                com.ing.ide.util.Notification.show("Copied Page '" + page.getName() + "' to Shared Web Object successfully as '" + newName + "'.");
             } else {
-                com.ing.ide.util.Notification.show(
-                        "Copy failed. Page '" + page.getName() + "' already exists in Shared Web Objects.");
+                com.ing.ide.util.Notification.show("Copy failed. Could not copy Page '" + page.getName() + "' to Shared Web Objects.");
             }
+
+            if (newName != null) {
+                if (this instanceof com.ing.ide.main.mainui.components.testdesign.or.web.WebObjectTree) {
+                    com.ing.ide.main.mainui.components.testdesign.or.web.WebORPanel panel =
+                        ((com.ing.ide.main.mainui.components.testdesign.or.web.WebObjectTree) this).getORPanel();
+                    panel.getSharedTree().load();
+                } else {
+                    reload();
+                }
+            }
+            return;
         }
+        String objectName = (obj != null) ? obj.getName() : group.getName();
+        com.ing.datalib.or.web.ResolvedWebObject resolved =
+            repo.resolveWebObject(
+                new com.ing.datalib.or.web.ResolvedWebObject.PageRef(
+                    page.getName(),
+                    com.ing.datalib.or.web.WebOR.ORScope.PROJECT
+                ),
+                objectName
+            );
 
-        else {
-            String objectName = (obj != null) ? obj.getName() : group.getName();
-
-            com.ing.datalib.or.web.ResolvedWebObject resolved =
-                    repo.resolveWebObject(
-                            new com.ing.datalib.or.web.ResolvedWebObject.PageRef(
-                                    page.getName(),
-                                    com.ing.datalib.or.web.WebOR.ORScope.PROJECT),
-                            objectName
-                    );
-
-            if (resolved == null) {
-                com.ing.ide.util.Notification.show(
-                        "Object '" + objectName + "' not found in Project OR (Page '" + page.getName() + "').");
-                return;
-            }
-
-            ok = repo.copyWebObject(resolved, page.getName());
-
-            if (ok) {
-                com.ing.ide.util.Notification.show(
-                        "Copied Object '" + objectName + "' from Page '" + page.getName() + "' to Shared Web Object successfully.");
-            } else {
-                com.ing.ide.util.Notification.show(
-                        "Copy failed. Object '" + objectName + "' already exists in Shared Web Object (Page '" + page.getName() + "').");
-            }
+        if (resolved == null) {
+            com.ing.ide.util.Notification.show("Object '" + objectName + "' not found in Project OR (Page '" + page.getName() + "').");
+            return;
+        }
+        
+        boolean ok = repo.copyWebObject(resolved, page.getName());
+        if (ok) {
+            com.ing.ide.util.Notification.show("Copied Object '" + objectName + "' from Page '" + page.getName() + "' to Shared Web Object successfully.");
+        } else {
+            com.ing.ide.util.Notification.show("Copy failed. Object '" + objectName + "' already exists in Shared Web Object (Page '" + page.getName() + "').");
         }
 
         if (ok) {
             if (this instanceof com.ing.ide.main.mainui.components.testdesign.or.web.WebObjectTree) {
                 com.ing.ide.main.mainui.components.testdesign.or.web.WebORPanel panel =
-                        ((com.ing.ide.main.mainui.components.testdesign.or.web.WebObjectTree) this).getORPanel();
+                    ((com.ing.ide.main.mainui.components.testdesign.or.web.WebObjectTree) this).getORPanel();
                 panel.getSharedTree().load();
             } else {
                 reload();
