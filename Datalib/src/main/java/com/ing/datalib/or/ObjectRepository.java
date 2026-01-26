@@ -186,11 +186,76 @@ public class ObjectRepository {
         var p = or.getPageByName(page);
         return (p == null) ? null : p.getObjectGroupByName(obj);
     }
+    
+
+    private ObjectGroup<WebORObject> cloneGroupIntoPage(ObjectGroup<WebORObject> originalGroup, WebORPage targetPage) {
+        ObjectGroup<WebORObject> newGroup = new ObjectGroup<>(originalGroup.getName(), targetPage);
+
+        for (WebORObject obj : originalGroup.getObjects()) {
+            WebORObject cloned = new WebORObject();
+            cloned.setName(obj.getName());
+            cloned.setParent(newGroup);
+
+            // Use your existing cloning behavior
+            obj.clone(cloned);
+
+            newGroup.getObjects().add(cloned);
+        }
+
+        return newGroup;
+    }
+
+    public boolean copyWebPage(String sourcePageName, String targetPageName) {
+        WebOR projectOR = getWebOR();
+        WebOR sharedOR  = getWebSharedOR();
+
+        if (projectOR == null || sharedOR == null) return false;
+
+        WebORPage sourcePage = projectOR.getPageByName(sourcePageName);
+        if (sourcePage == null) {
+            LOG.warning("Cannot copy page: source page '" + sourcePageName + "' not found in PROJECT OR.");
+            return false;
+        }
+
+        WebORPage targetPage = sharedOR.getPageByName(targetPageName);
+        if (targetPage == null) {
+            targetPage = sharedOR.addPage(targetPageName);
+        }
+
+        for (ObjectGroup<WebORObject> g : sourcePage.getObjectGroups()) {
+            if (g == null) continue;
+            if (targetPage.getObjectGroupByName(g.getName()) != null) {
+                LOG.warning("Cannot copy page '" + sourcePageName + "' to SHARED page '" + targetPageName + "': ObjectGroup '" + g.getName() + "' already exists.");
+                return false;
+            }
+        }
+
+        for (ObjectGroup<WebORObject> originalGroup : sourcePage.getObjectGroups()) {
+            if (originalGroup == null) continue;
+
+            ObjectGroup<WebORObject> newGroup = new ObjectGroup<>(originalGroup.getName(), targetPage);
+
+            for (WebORObject obj : originalGroup.getObjects()) {
+                WebORObject cloned = new WebORObject();
+                cloned.setName(obj.getName());
+                cloned.setParent(newGroup);
+
+                obj.clone(cloned);
+                newGroup.getObjects().add(cloned);
+            }
+
+            targetPage.getObjectGroups().add(newGroup);
+        }
+
+        sharedOR.setSaved(false); 
+        LOG.info("Copied page '" + sourcePageName + "' -> SHARED page '" + targetPageName + "' successfully.");
+        return true;
+    }
+
 
     public boolean copyWebObject(ResolvedWebObject source, String targetPageName) {
-
         if (source.isFromShared()) {
-            LOG.warning("Copying from SHARED to PROJECT Web Object is not allowed.");
+            LOG.warning("Copying from SHARED is not allowed.");
             return false;
         }
 
@@ -206,30 +271,17 @@ public class ObjectRepository {
         if (originalGroup == null) return false;
 
         if (targetPage.getObjectGroupByName(originalGroup.getName()) != null) {
-            LOG.warning("Cannot copy: Object '" 
-                        + originalGroup.getName() 
-                        + "' already exists in SHARED OR page '" + targetPageName + "'.");
+            LOG.warning("Cannot copy: Object '" + originalGroup.getName() + "' already exists in SHARED OR page '" + targetPageName + "'.");
             return false;
         }
 
-        ObjectGroup<WebORObject> newGroup = new ObjectGroup<>(originalGroup.getName(), targetPage);
-
-        for (WebORObject obj : originalGroup.getObjects()) {
-            WebORObject cloned = new WebORObject();
-            cloned.setName(obj.getName());
-            cloned.setParent(newGroup);
-            obj.clone(cloned);
-            newGroup.getObjects().add(cloned);
-        }
-
+        ObjectGroup<WebORObject> newGroup = cloneGroupIntoPage(originalGroup, targetPage);
         targetPage.getObjectGroups().add(newGroup);
+
         sharedOR.setSaved(false);
-
-        LOG.info("Copied WebOR object '" 
-                 + source.getObjectName() 
-                 + "' from PROJECT to SHARED");
-
+        LOG.info("Copied WebOR object '" + source.getObjectName() + "' from PROJECT to SHARED");
         return true;
     }
+
 
 }

@@ -78,17 +78,18 @@ public class ObjectPopupMenu extends JPopupMenu {
     }
 
     public void togglePopupMenu(Object selected) {
+        copyToShared.setEnabled(false);
+
         if (selected instanceof ORRootInf) {
             forRoot();
         } else if (selected instanceof ORPageInf) {
             forPage();
+            copyToShared.setEnabled(true);
         } else if (selected instanceof ObjectGroup) {
             forObjectGroup();
+            copyToShared.setEnabled(true);
         } else if (selected instanceof ORObjectInf) {
             forObject();
-        }
-        
-        if (selected instanceof ORObjectInf || selected instanceof ObjectGroup) {
             copyToShared.setEnabled(true);
         }
     }
