@@ -759,13 +759,6 @@ public abstract class ObjectTree implements ActionListener {
         ORPageInf page = (obj != null) ? obj.getPage()
                 : (group != null) ? group.getParent()
                 : selectedPage;
-        com.ing.datalib.or.web.WebOR root =
-                (com.ing.datalib.or.web.WebOR) page.getRoot();
-        if (root.isShared()) {
-            com.ing.ide.util.Notification.show(
-                    "Only Project to Shared Web Object copy is allowed.");
-            return;
-        }
         com.ing.datalib.or.ObjectRepository repo = getProject().getObjectRepository();
         if (obj == null && group == null && selectedPage != null) {
             String newName = repo.copyWebPage(page.getName(), page.getName());

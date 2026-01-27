@@ -82,16 +82,16 @@ public class ObjectPopupMenu extends JPopupMenu {
 
         if (selected instanceof ORRootInf) {
             forRoot();
+            return;
         } else if (selected instanceof ORPageInf) {
             forPage();
-            copyToShared.setEnabled(true);
         } else if (selected instanceof ObjectGroup) {
             forObjectGroup();
-            copyToShared.setEnabled(true);
         } else if (selected instanceof ORObjectInf) {
             forObject();
-            copyToShared.setEnabled(true);
         }
+
+        copyToShared.setEnabled(!isSharedSelection(selected));
     }
 
     private void forPage() {
@@ -213,4 +213,20 @@ public class ObjectPopupMenu extends JPopupMenu {
         add(paste);
     }
 
+    private boolean isSharedSelection(Object selected) {
+        ORPageInf page = null;
+        if (selected instanceof ORPageInf) {
+            page = (ORPageInf) selected;
+        } else if (selected instanceof ORObjectInf) {
+            page = ((ORObjectInf) selected).getPage();
+        } else if (selected instanceof ObjectGroup) {
+            page = ((ObjectGroup) selected).getParent();
+        }
+
+        if (page != null && page.getRoot() instanceof com.ing.datalib.or.web.WebOR) {
+            com.ing.datalib.or.web.WebOR root = (com.ing.datalib.or.web.WebOR) page.getRoot();
+            return root.isShared();
+        }
+        return false;
+    }
 }

@@ -239,22 +239,19 @@ public class ObjectRepository {
         }
     }
 
-    private ObjectGroup<WebORObject> cloneGroupIntoPage(
-            ObjectGroup<WebORObject> originalGroup,
-            WebORPage targetPage,
-            String newGroupName
-    ) {
+    private ObjectGroup<WebORObject> cloneGroupIntoPage(ObjectGroup<WebORObject> originalGroup, WebORPage targetPage, String newGroupName) {
         ObjectGroup<WebORObject> newGroup = new ObjectGroup<>(newGroupName, targetPage);
-        for (WebORObject obj : originalGroup.getObjects()) {
+        if (originalGroup.getObjects() != null && !originalGroup.getObjects().isEmpty()) {
+            WebORObject sourceObj = originalGroup.getObjects().get(0);
             WebORObject cloned = new WebORObject();
-            cloned.setName(obj.getName());
+            cloned.setName(newGroupName);
             cloned.setParent(newGroup);
-            obj.clone(cloned);
+            sourceObj.clone(cloned);
             newGroup.getObjects().add(cloned);
         }
         return newGroup;
     }
-
+    
     public String copyWebPage(String sourcePageName, String targetPageName) {
         WebOR projectOR = getWebOR();
         WebOR sharedOR  = getWebSharedOR();
@@ -269,16 +266,12 @@ public class ObjectRepository {
         WebORPage targetPage = getOrCreatePage(sharedOR, uniqueTargetName);
         copyAllGroups(sourcePage, targetPage);
         sharedOR.setSaved(false);
-        LOG.info("Copied Web Page '" + sourcePageName + "' to SHARED page '" + uniqueTargetName + "' successfully.");
+        LOG.info(() -> "Copied Web Page '" + sourcePageName + "' to SHARED page '" + uniqueTargetName + "' successfully.");
         return uniqueTargetName;
     }
 
     public String copyWebObject(ResolvedWebObject source, String targetPageName) {
         if (source == null) return null;
-        if (source.isFromShared()) {
-            LOG.warning("Copying from SHARED is not allowed.");
-            return null;
-        }
         WebOR sharedOR = getWebSharedOR();
         if (sharedOR == null) return null;
         WebORPage targetPage = getOrCreatePage(sharedOR, targetPageName);
@@ -290,7 +283,7 @@ public class ObjectRepository {
         ObjectGroup<WebORObject> newGroup = cloneGroupIntoPage(originalGroup, targetPage, uniqueName);
         targetPage.getObjectGroups().add(newGroup);
         sharedOR.setSaved(false);
-        LOG.info("Copied Web Object '" + baseName + "' to SHARED as '" + uniqueName + "'");
+        LOG.info(() -> "Copied Web Object '" + baseName + "' to SHARED as '" + uniqueName + "'");
         return uniqueName;
     }
 }
