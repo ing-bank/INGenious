@@ -103,7 +103,6 @@ public class ObjectRepository {
     public String getMORRepLocation() {
         return sProject.getLocation() + File.separator + "MobileObjectRepository";
     }
-
     public Project getsProject() {
         return sProject;
     }
@@ -152,24 +151,18 @@ public class ObjectRepository {
 
     public ResolvedWebObject resolveWebObject(ResolvedWebObject.PageRef pageRef, String objectName) {
         if (pageRef == null || objectName == null) return null;
-
         if (pageRef.scope == WebOR.ORScope.PROJECT) {
             var g = getFrom(webProjectOR, pageRef.name, objectName);
             return (g != null) ? new ResolvedWebObject(WebOR.ORScope.PROJECT, pageRef.name, objectName, g) : null;
         }
-
         if (pageRef.scope == WebOR.ORScope.SHARED) {
             var g = getFrom(webSharedOR, pageRef.name, objectName);
             return (g != null) ? new ResolvedWebObject(WebOR.ORScope.SHARED, pageRef.name, objectName, g) : null;
         }
-
-        // null (unscoped): try PROJECT first, then SHARED
         var proj = getFrom(webProjectOR, pageRef.name, objectName);
         if (proj != null) return new ResolvedWebObject(WebOR.ORScope.PROJECT, pageRef.name, objectName, proj);
-
         var shared = getFrom(webSharedOR, pageRef.name, objectName);
         if (shared != null) return new ResolvedWebObject(WebOR.ORScope.SHARED, pageRef.name, objectName, shared);
-
         return null;
     }
 
@@ -187,10 +180,8 @@ public class ObjectRepository {
         return (p == null) ? null : p.getObjectGroupByName(obj);
     }
     
-
     private ObjectGroup<WebORObject> cloneGroupIntoPage(ObjectGroup<WebORObject> originalGroup, WebORPage targetPage) {
         ObjectGroup<WebORObject> newGroup = new ObjectGroup<>(originalGroup.getName(), targetPage);
-
         for (WebORObject obj : originalGroup.getObjects()) {
             WebORObject cloned = new WebORObject();
             cloned.setName(obj.getName());
@@ -199,13 +190,11 @@ public class ObjectRepository {
 
             newGroup.getObjects().add(cloned);
         }
-
         return newGroup;
     }
 
     private String generateUniqueName(String baseName, java.util.function.Predicate<String> exists) {
         if (baseName == null || baseName.isBlank()) return baseName;
-
         String candidate = baseName;
         int counter = 1;
         while (exists.test(candidate)) {

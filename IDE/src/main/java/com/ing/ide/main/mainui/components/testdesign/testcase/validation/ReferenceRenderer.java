@@ -86,12 +86,10 @@ public class ReferenceRenderer extends AbstractRenderer {
         var repo = step.getProject().getObjectRepository();
         String pageToken = step.getReference();
         String objectName = step.getObject();
-
         ResolvedWebObject.PageRef ref = ResolvedWebObject.PageRef.parse(pageToken);
-        if (ref != null && ref.name != null && pageToken != null && pageToken.contains("@")) {
+        if (ref != null && ref.name != null && ref.scope != null) {
             return repo.resolveWebObject(ref, objectName) != null;
         }
-
         return repo.resolveWebObjectWithScope(pageToken, objectName) != null;
     }
 }

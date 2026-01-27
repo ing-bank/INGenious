@@ -63,11 +63,7 @@ public class ObjectRepDnD {
         isObject = true;
         for (ORObjectInf object : objects) {
             ORPageInf page = object.getPage();
-            values.add(
-                object.getName()
-                + SEP + object.getParent().toString()
-                + SEP + pageToken(page)      // was page.getName()
-            );
+            values.add(object.getName() + SEP + object.getParent().toString() + SEP + pageToken(page));
             components.add(object);
         }
         return this;
@@ -96,7 +92,6 @@ public class ObjectRepDnD {
         return null;
     }
     
-    
     private String scopeOf(ORPageInf page) {
         try {
             var m = page.getClass().getMethod("getSource");
@@ -107,7 +102,11 @@ public class ObjectRepDnD {
     }
 
     private String pageToken(ORPageInf page) {
-        return page.getName() + "@" + scopeOf(page);
+        String scope = scopeOf(page);
+        if ("SHARED".equalsIgnoreCase(scope)) {
+            return "[Shared] " + page.getName();
+        } else {
+            return "[Project] " + page.getName();
+        }
     }
-
 }

@@ -139,7 +139,6 @@ public class TestCaseComponent extends JPanel implements ActionListener {
             TestCase tc = (TestCase) obj;
             tc.setSaveListener(saveListener);
             getTestCaseTable().setModel(testDesign.getProject().getTableModelFor(tc));
-            installReferenceRenderer();
             tcAutoSuggest.installForTestCase();
             validator.initValidations();
             changeSave(tc.isSaved());
@@ -295,7 +294,6 @@ public class TestCaseComponent extends JPanel implements ActionListener {
         };
 
         testCaseTable.setTransferHandler(new TestCaseTableDnD());
-        installReferenceRenderer();
         testCaseTable.addMouseListener(new MouseAdapter() {
 
             @Override
@@ -1135,59 +1133,4 @@ public class TestCaseComponent extends JPanel implements ActionListener {
             loadTableModelForSelection(visit());
         }
     }
-
-    private static String toDisplayReference(Object raw) {
-        if (raw == null) return "";
-
-        String token = raw.toString().trim();
-        if (token.isEmpty()) return "";
-
-        if (token.startsWith("[Shared]") || token.startsWith("[Project]")) {
-            return token;
-        }
-
-        int at = token.lastIndexOf('@');
-        if (at > 0 && at < token.length() - 1) {
-            String page = token.substring(0, at).trim();
-            String scope = token.substring(at + 1).trim().toUpperCase();
-
-            if ("SHARED".equals(scope)) return "[Shared] " + page;
-            if ("PROJECT".equals(scope)) return "[Project] " + page;
-
-            return "[Project] " + page;
-        }
-
-        return "[Project] " + token;
-    }
-    
-    private void installReferenceRenderer() {
-        try {
-            int refCol = HEADERS.Reference.getIndex();
-
-            TableCellRenderer base = testCaseTable.getDefaultRenderer(Object.class);
-
-            DefaultTableCellRenderer renderer = new DefaultTableCellRenderer() {
-                @Override
-                public Component getTableCellRendererComponent(
-                        JTable table, Object value, boolean isSelected,
-                        boolean hasFocus, int row, int column) {
-
-                    Component c = super.getTableCellRendererComponent(
-                            table, value, isSelected, hasFocus, row, column);
-
-                    if (c instanceof JLabel) {
-                        ((JLabel) c).setText(toDisplayReference(value));
-                    }
-                    return c;
-                }
-            };
-
-            if (testCaseTable.getColumnModel().getColumnCount() > refCol) {
-                testCaseTable.getColumnModel().getColumn(refCol).setCellRenderer(renderer);
-            }
-        } catch (Exception ignore) {
-        }
-    }
-
-
 }

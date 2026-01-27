@@ -145,13 +145,11 @@ public class ActionRenderer extends AbstractRenderer {
         var repo = step.getProject().getObjectRepository();
         String pageToken = step.getReference();
         String objectName = step.getObject();
-
         ResolvedWebObject.PageRef ref = ResolvedWebObject.PageRef.parse(pageToken);
         ResolvedWebObject r =
-            (ref != null && ref.name != null && pageToken != null && pageToken.contains("@"))
-                ? repo.resolveWebObject(ref, objectName)                      // honor explicit scope
-                : repo.resolveWebObjectWithScope(pageToken, objectName);      // try project then shared
-
+            (ref != null && ref.name != null && ref.scope != null)
+            ? repo.resolveWebObject(ref, objectName)
+            : repo.resolveWebObjectWithScope(pageToken, objectName);  
         return r != null && r.isPresent();
     }
 

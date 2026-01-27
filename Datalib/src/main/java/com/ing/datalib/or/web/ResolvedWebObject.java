@@ -26,22 +26,45 @@ public class ResolvedWebObject {
             this.name = name;
             this.scope = scope;
         }
-
+        
         public String qualified() {
-            return name + "@" + scope.name();
+            if (null == scope) {
+                return name;
+            } 
+            else switch (scope) {
+                case PROJECT:
+                    return "[Project] " + name;
+                case SHARED:
+                    return "[Shared] " + name;
+                default:
+                    return name;
+            }
         }
 
         public static PageRef parse(String token) {
             String s = token == null ? "" : token.trim();
-            int at = s.lastIndexOf('@');
-            if (at <= 0 || at == s.length() - 1) {
-                //return new PageRef(s, ORScope.PROJECT);
-                return new PageRef(s, null);
+            if (s.isEmpty()) {
+                return new PageRef("", ORScope.PROJECT);
             }
-            String base = s.substring(0, at).trim();
-            String suf  = s.substring(at + 1).trim().toUpperCase();
-            ORScope sc = "SHARED".equals(suf) ? ORScope.SHARED : ORScope.PROJECT;
-            return new PageRef(base, sc);
+            if (s.startsWith("[") && s.contains("]")) {
+                int end = s.indexOf(']');
+                String scopeText = s.substring(1, end).trim().toUpperCase();
+                String base = s.substring(end + 1).trim();
+                ORScope sc;
+                switch (scopeText) {
+                    case "PROJECT":
+                        sc = ORScope.PROJECT;
+                        break;
+                    case "SHARED":
+                        sc = ORScope.SHARED;
+                        break;
+                    default:
+                        sc = ORScope.PROJECT;
+                }
+
+                return new PageRef(base, sc);
+            }
+            return new PageRef(s, ORScope.PROJECT);
         }
     }
 
