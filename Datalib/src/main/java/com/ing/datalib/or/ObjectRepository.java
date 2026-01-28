@@ -14,6 +14,8 @@ import com.ing.datalib.or.web.WebORPage;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.HashSet;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -25,6 +27,8 @@ public class ObjectRepository {
     private WebOR webSharedOR;
     private WebOR webProjectOR;
     private MobileOR mobileOR;
+    
+    private final Set<String> sharedUsageProjects = new HashSet<>();
 
     public ObjectRepository(Project sProject) {
         this.sProject = sProject;
@@ -118,19 +122,32 @@ public class ObjectRepository {
 
     public void save() {
         try {
-            if (webSharedOR != null && !webSharedOR.isSaved()) {
+            java.util.List<String> existingProjects = (webSharedOR != null) ? webSharedOR.getProjects() : java.util.List.of();
+            java.util.LinkedHashSet<String> mergedProjects = new java.util.LinkedHashSet<>();
+            if (existingProjects != null) mergedProjects.addAll(existingProjects);
+            mergedProjects.addAll(sharedUsageProjects);
+            boolean projectsChanged = false;
+            if (webSharedOR != null) {
+                java.util.ArrayList<String> mergedList = new java.util.ArrayList<>(mergedProjects);
+                java.util.List<String> current = webSharedOR.getProjects();
+                projectsChanged = (current == null) || !new java.util.LinkedHashSet<>(current).equals(mergedProjects);
+                if (projectsChanged) {
+                    webSharedOR.setProjects(mergedList);
+                }
+            }
+            if (webSharedOR != null && (!webSharedOR.isSaved() || projectsChanged)) {
                 XML_MAPPER.writerWithDefaultPrettyPrinter()
-                          .writeValue(new File(getSharedORLocation()), webSharedOR);
+                    .writeValue(new File(getSharedORLocation()), webSharedOR);
                 webSharedOR.setSaved(true);
             }
             if (webProjectOR != null && !webProjectOR.isSaved()) {
                 XML_MAPPER.writerWithDefaultPrettyPrinter()
-                          .writeValue(new File(getORLocation()), webProjectOR);
+                    .writeValue(new File(getORLocation()), webProjectOR);
                 webProjectOR.setSaved(true);
             }
             if (mobileOR != null) {
                 XML_MAPPER.writerWithDefaultPrettyPrinter()
-                          .writeValue(new File(getMORLocation()), mobileOR);
+                    .writeValue(new File(getMORLocation()), mobileOR);
             }
         } catch (IOException ex) {
             Logger.getLogger(ObjectRepository.class.getName()).log(Level.SEVERE, null, ex);
@@ -148,7 +165,7 @@ public class ObjectRepository {
     public void renamePage(ORPageInf page, String newName) {
         sProject.refactorPageName(page.getName(), newName);
     }
-
+  
     public ResolvedWebObject resolveWebObject(ResolvedWebObject.PageRef pageRef, String objectName) {
         if (pageRef == null || objectName == null) return null;
         if (pageRef.scope == WebOR.ORScope.PROJECT) {
@@ -157,12 +174,19 @@ public class ObjectRepository {
         }
         if (pageRef.scope == WebOR.ORScope.SHARED) {
             var g = getFrom(webSharedOR, pageRef.name, objectName);
-            return (g != null) ? new ResolvedWebObject(WebOR.ORScope.SHARED, pageRef.name, objectName, g) : null;
+            if (g != null) {
+                markSharedUsage();
+                return new ResolvedWebObject(WebOR.ORScope.SHARED, pageRef.name, objectName, g);
+            }
+            return null;
         }
         var proj = getFrom(webProjectOR, pageRef.name, objectName);
         if (proj != null) return new ResolvedWebObject(WebOR.ORScope.PROJECT, pageRef.name, objectName, proj);
         var shared = getFrom(webSharedOR, pageRef.name, objectName);
-        if (shared != null) return new ResolvedWebObject(WebOR.ORScope.SHARED, pageRef.name, objectName, shared);
+        if (shared != null) {
+            markSharedUsage();
+            return new ResolvedWebObject(WebOR.ORScope.SHARED, pageRef.name, objectName, shared);
+        }
         return null;
     }
 
@@ -170,7 +194,10 @@ public class ObjectRepository {
         var proj = getFrom(webProjectOR, pageName, objectName);
         if (proj != null) return new ResolvedWebObject(ORScope.PROJECT, pageName, objectName, proj);
         var shared = getFrom(webSharedOR, pageName, objectName);
-        if (shared != null) return new ResolvedWebObject(ORScope.SHARED, pageName, objectName, shared);
+        if (shared != null) {
+            markSharedUsage();
+            return new ResolvedWebObject(ORScope.SHARED, pageName, objectName, shared);
+        }
         return null;
     }
 
@@ -274,5 +301,11 @@ public class ObjectRepository {
         sharedOR.setSaved(false);
         LOG.info(() -> "Copied Web Object '" + baseName + "' to SHARED as '" + uniqueName + "'");
         return uniqueName;
+    }
+    
+    private void markSharedUsage() {
+        if (sProject != null && sProject.getName() != null && !sProject.getName().isBlank()) {
+            sharedUsageProjects.add(sProject.getName());
+        }
     }
 }

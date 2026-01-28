@@ -90,8 +90,8 @@ public class ObjectPopupMenu extends JPopupMenu {
         } else if (selected instanceof ORObjectInf) {
             forObject();
         }
-
         copyToShared.setEnabled(!isSharedSelection(selected));
+        removeUnusedObject.setEnabled(!isSharedSelection(selected));
     }
 
     private void forPage() {

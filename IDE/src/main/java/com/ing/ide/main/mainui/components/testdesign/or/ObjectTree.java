@@ -395,13 +395,17 @@ public abstract class ObjectTree implements ActionListener {
     private void deleteObjects() {
         List<ORObjectInf> objects = getSelectedObjects();
         if (!objects.isEmpty()) {
-            int option = JOptionPane.showConfirmDialog(null,
-                    "<html><body><p style='width: 200px;'>"
-                    + "Are you sure want to delete the following Objects?<br>"
-                    + objects
-                    + "</p></body></html>",
-                    "Delete Object",
-                    JOptionPane.YES_NO_OPTION);
+            String extra = isSharedScope() ? sharedProjectsInfo() : "";
+            int option = JOptionPane.showConfirmDialog(
+                null,
+                "<html><body><p style='width: 300px;'>"
+                + "Are you sure you want to delete the following Objects?<br/>"
+                + objects
+                + extra
+                + "</p></body></html>",
+                isSharedScope() ? "Delete SHARED Object" : "Delete Object",
+                JOptionPane.YES_NO_OPTION
+            );
             if (option == JOptionPane.YES_OPTION) {
                 for (ORObjectInf object : objects) {
                     objectRemoved(object);
@@ -639,17 +643,21 @@ public abstract class ObjectTree implements ActionListener {
             e.printStackTrace();
         }
     }
-    
+
     private void deleteObjectGroups() {
         List<ObjectGroup> objects = getSelectedObjectGroups();
         if (!objects.isEmpty()) {
-            int option = JOptionPane.showConfirmDialog(null,
-                    "<html><body><p style='width: 200px;'>"
-                    + "Are you sure want to delete the following ObjectGroups?<br>"
-                    + objects
-                    + "</p></body></html>",
-                    "Delete ObjectGroup",
-                    JOptionPane.YES_NO_OPTION);
+            String extra = isSharedScope() ? sharedProjectsInfo() : "";
+            int option = JOptionPane.showConfirmDialog(
+                null,
+                "<html><body><p style='width: 300px;'>"
+                + "Are you sure you want to delete the following ObjectGroups?<br/>"
+                + objects
+                + extra
+                + "</p></body></html>",
+                isSharedScope() ? "Delete SHARED ObjectGroup" : "Delete ObjectGroup",
+                JOptionPane.YES_NO_OPTION
+            );
             if (option == JOptionPane.YES_OPTION) {
                 for (ObjectGroup object : objects) {
                     objectGroupRemoved(object);
@@ -662,13 +670,17 @@ public abstract class ObjectTree implements ActionListener {
     private void deletePages() {
         List<ORPageInf> pages = getSelectedPages();
         if (!pages.isEmpty()) {
-            int option = JOptionPane.showConfirmDialog(null,
-                    "<html><body><p style='width: 200px;'>"
-                    + "Are you sure want to delete the following Pages?<br>"
-                    + pages
-                    + "</p></body></html>",
-                    "Delete Page",
-                    JOptionPane.YES_NO_OPTION);
+            String extra = isSharedScope() ? sharedProjectsInfo() : "";
+            int option = JOptionPane.showConfirmDialog(
+                null,
+                "<html><body><p style='width: 300px;'>"
+                + "Are you sure you want to delete the following Pages?<br/>"
+                + pages
+                + extra
+                + "</p></body></html>",
+                isSharedScope() ? "Delete SHARED Page" : "Delete Page",
+                JOptionPane.YES_NO_OPTION
+            );
             if (option == JOptionPane.YES_OPTION) {
                 for (ORPageInf page : pages) {
                     pageRemoved(page);
@@ -910,7 +922,6 @@ public abstract class ObjectTree implements ActionListener {
     }
     
     private void alterDefaultKeyBindings() {
-        
          int menuShortcutKeyMask = Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx();
          tree.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_X, menuShortcutKeyMask), "none");
          tree.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_C, menuShortcutKeyMask), "none");
@@ -918,9 +929,26 @@ public abstract class ObjectTree implements ActionListener {
 
          tree.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_X, menuShortcutKeyMask), "cut");
          tree.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_C, menuShortcutKeyMask), "copy");
-         tree.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_V, menuShortcutKeyMask), "paste");
-        
-        
+         tree.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_V, menuShortcutKeyMask), "paste");   
+    }
+
+    private boolean isSharedScope() {
+        ORRootInf root = getOR();
+        if (root instanceof WebOR) {
+            return ((WebOR) root).isShared();
+        }
+        return false;
+    }
+
+    private String sharedProjectsInfo() {
+        ORRootInf root = getOR();
+        if (root instanceof WebOR) {
+            List<String> projects = ((WebOR) root).getProjects();
+            if (projects != null && !projects.isEmpty()) {
+                return "<br/><br/><b>Before deleting, please verify whether this page/object is being used by the following project(s):</b><br/>" + String.join(", ", projects);
+            }
+        }
+        return "";
     }
 
 }

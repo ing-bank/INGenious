@@ -43,6 +43,13 @@ public class WebOR implements ORRootInf<WebORPage> {
 
     @JacksonXmlProperty(isAttribute = true)
     private String type;
+    
+    @JacksonXmlProperty(isAttribute = true)
+    private ORScope scope = ORScope.PROJECT;
+    
+    @JacksonXmlElementWrapper(localName = "projects")
+    @JacksonXmlProperty(localName = "project")
+    private List<String> projects = new ArrayList<>();
 
     @JsonIgnore
     private ObjectRepository objectRepository;
@@ -77,7 +84,6 @@ public class WebOR implements ORRootInf<WebORPage> {
     public List<WebORPage> getPages() {
         return pages;
     }
-
 
     @Override
     public void setPages(List<WebORPage> pages) {
@@ -253,15 +259,30 @@ public class WebOR implements ORRootInf<WebORPage> {
         ORUtils.sort(this);
     }
     
-    public enum ORScope { PROJECT, SHARED }
-      
-    @JacksonXmlProperty(isAttribute = true)
-    private ORScope scope = ORScope.PROJECT;
+    public enum ORScope { 
+        PROJECT, SHARED 
+    }
 
     @JsonIgnore
-    public ORScope getScope() { return scope; }
-    public void setScope(ORScope scope) { this.scope = scope; }
+    public ORScope getScope() { 
+        return scope; 
+    }
+    
+    public void setScope(ORScope scope) { 
+        this.scope = scope; 
+    }
 
     @JsonIgnore
-    public boolean isShared() { return scope == ORScope.SHARED; }
+    public boolean isShared() { 
+        return scope == ORScope.SHARED; 
+    }
+    
+    public List<String> getProjects() {
+        return projects;
+    }
+    
+    public void setProjects(List<String> projects) {
+        this.projects = (projects == null) ? new ArrayList<>() : projects;
+    }
+
 }
