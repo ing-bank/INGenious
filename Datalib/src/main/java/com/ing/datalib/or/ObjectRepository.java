@@ -163,40 +163,83 @@ public class ObjectRepository {
     }
 
     public void renamePage(ORPageInf page, String newName) {
-        sProject.refactorPageName(page.getName(), newName);
+        if (page == null || newName == null || newName.isBlank()) return;
+
+        String oldName = page.getName();
+        boolean renamed = false;
+        ORScope scopeRenamed = null;
+
+        if (webProjectOR != null) {
+            var p = webProjectOR.getPageByName(oldName);
+            if (p == page) {
+                p.setName(newName);
+                webProjectOR.setSaved(false);
+                renamed = true;
+                scopeRenamed = ORScope.PROJECT;
+            }
+        }
+        if (!renamed && webSharedOR != null) {
+            var s = webSharedOR.getPageByName(oldName);
+            if (s == page) {
+                s.setName(newName);
+                webSharedOR.setSaved(false);
+                renamed = true;
+                scopeRenamed = ORScope.SHARED;
+            }
+        }
+        if (scopeRenamed != null) {
+            sProject.refactorPageName(scopeRenamed, oldName, newName);
+        } else {
+            sProject.refactorPageName(oldName, newName);
+        }
     }
-  
+
     public ResolvedWebObject resolveWebObject(ResolvedWebObject.PageRef pageRef, String objectName) {
         if (pageRef == null || objectName == null) return null;
+
         if (pageRef.scope == WebOR.ORScope.PROJECT) {
             var g = getFrom(webProjectOR, pageRef.name, objectName);
-            return (g != null) ? new ResolvedWebObject(WebOR.ORScope.PROJECT, pageRef.name, objectName, g) : null;
+            if (g != null) {
+                String actualPageName = g.getParent() != null ? g.getParent().getName() : pageRef.name;
+                return new ResolvedWebObject(WebOR.ORScope.PROJECT, actualPageName, objectName, g);
+            }
+            return null;
         }
         if (pageRef.scope == WebOR.ORScope.SHARED) {
             var g = getFrom(webSharedOR, pageRef.name, objectName);
             if (g != null) {
                 markSharedUsage();
-                return new ResolvedWebObject(WebOR.ORScope.SHARED, pageRef.name, objectName, g);
+                String actualPageName = g.getParent() != null ? g.getParent().getName() : pageRef.name;
+                return new ResolvedWebObject(WebOR.ORScope.SHARED, actualPageName, objectName, g);
             }
             return null;
         }
+
         var proj = getFrom(webProjectOR, pageRef.name, objectName);
-        if (proj != null) return new ResolvedWebObject(WebOR.ORScope.PROJECT, pageRef.name, objectName, proj);
+        if (proj != null) {
+            String actualPageName = proj.getParent() != null ? proj.getParent().getName() : pageRef.name;
+            return new ResolvedWebObject(WebOR.ORScope.PROJECT, actualPageName, objectName, proj);
+        }
         var shared = getFrom(webSharedOR, pageRef.name, objectName);
         if (shared != null) {
             markSharedUsage();
-            return new ResolvedWebObject(WebOR.ORScope.SHARED, pageRef.name, objectName, shared);
+            String actualPageName = shared.getParent() != null ? shared.getParent().getName() : pageRef.name;
+            return new ResolvedWebObject(WebOR.ORScope.SHARED, actualPageName, objectName, shared);
         }
         return null;
     }
 
     public ResolvedWebObject resolveWebObjectWithScope(String pageName, String objectName) {
         var proj = getFrom(webProjectOR, pageName, objectName);
-        if (proj != null) return new ResolvedWebObject(ORScope.PROJECT, pageName, objectName, proj);
+        if (proj != null) {
+            String actualPageName = proj.getParent() != null ? proj.getParent().getName() : pageName;
+            return new ResolvedWebObject(ORScope.PROJECT, actualPageName, objectName, proj);
+        }
         var shared = getFrom(webSharedOR, pageName, objectName);
         if (shared != null) {
             markSharedUsage();
-            return new ResolvedWebObject(ORScope.SHARED, pageName, objectName, shared);
+            String actualPageName = shared.getParent() != null ? shared.getParent().getName() : pageName;
+            return new ResolvedWebObject(ORScope.SHARED, actualPageName, objectName, shared);
         }
         return null;
     }

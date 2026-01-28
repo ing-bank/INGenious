@@ -11,6 +11,7 @@ import com.ing.datalib.settings.ProjectSettings;
 import com.ing.datalib.util.data.FileScanner;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.ing.datalib.or.web.WebOR.ORScope;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
@@ -412,6 +413,15 @@ public class Project {
     public void refactorPageName(String oldPageName, String newPageName) {
         for (Scenario scenario : scenarios) {
             scenario.refactorPageName(oldPageName, newPageName);
+        }
+    }
+
+    public void refactorPageName(ORScope scope, String oldPageName, String newPageName) {
+        String oldScoped = scope == ORScope.SHARED ? "[Shared] " + oldPageName : "[Project] " + oldPageName;
+        String newScoped = scope == ORScope.SHARED ? "[Shared] " + newPageName : "[Project] " + newPageName;
+        for (Scenario scenario : scenarios) {
+            scenario.refactorPageName(oldPageName, newPageName);
+            scenario.refactorPageName(oldScoped, newScoped);
         }
     }
 
