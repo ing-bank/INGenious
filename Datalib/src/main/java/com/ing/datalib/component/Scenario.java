@@ -2,6 +2,7 @@
 package com.ing.datalib.component;
 
 import com.ing.datalib.component.utils.FileUtils;
+import com.ing.datalib.or.web.WebOR.ORScope;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
@@ -276,6 +277,12 @@ public class Scenario extends DataModel {
     public void refactorObjectName(String oldpageName, String oldObjName, String newPageName, String newObjName) {
         for (TestCase testCase : testCases) {
             testCase.refactorObjectName(oldpageName, oldObjName, newPageName, newObjName);
+        }
+    }
+    
+    public void refactorObjectName(ORScope scope, String pageName, String oldName, String newName) {
+        for (TestCase testCase : testCases) {
+            testCase.refactorObjectName(scope, pageName, oldName, newName);
         }
     }
 

@@ -4,6 +4,7 @@ package com.ing.datalib.component;
 import com.ing.datalib.component.TestStep.HEADERS;
 import com.ing.datalib.component.utils.FileUtils;
 import com.ing.datalib.component.utils.SaveListener;
+import com.ing.datalib.or.web.WebOR.ORScope;
 import java.io.File;
 import java.io.FileWriter;
 import java.util.ArrayList;
@@ -557,7 +558,47 @@ public class TestCase extends DataModel {
         Boolean clearOnExit = getTestSteps().isEmpty();
         loadTableModel();
         for (TestStep testStep : testSteps) {
-            if (testStep.getReference().equals(pageName) && testStep.getObject().equals(oldName)) {
+            String ref = Objects.toString(testStep.getReference(), "");
+            String obj = Objects.toString(testStep.getObject(), "");
+            String normalizedRef = normalizePageRef(ref);
+
+            if (normalizedRef.equals(pageName) && obj.equals(oldName)) {
+                testStep.setObject(newName);
+            }
+        }
+        if (clearOnExit) {
+            save();
+            getTestSteps().clear();
+        }
+    }
+    
+    public void refactorObjectName(String oldpageName, String oldObjName, String newPageName, String newObjName) {
+        Boolean clearOnExit = getTestSteps().isEmpty();
+        loadTableModel();
+
+        for (TestStep testStep : testSteps) {
+            String ref = normalizePageRef(Objects.toString(testStep.getReference(), ""));
+            String obj = Objects.toString(testStep.getObject(), "");
+            if (ref.equals(oldpageName) && obj.equals(oldObjName)) {
+                testStep.setObject(newObjName);
+                testStep.setReference(newPageName); // newPageName can be scoped or plain as you prefer
+            }
+        }
+
+        if (clearOnExit) {
+            save();
+            getTestSteps().clear();
+        }
+    }
+
+    public void refactorObjectName(ORScope scope, String pageName, String oldName, String newName) {
+        Boolean clearOnExit = getTestSteps().isEmpty();
+        loadTableModel();
+        for (TestStep testStep : testSteps) {
+            String refRaw = Objects.toString(testStep.getReference(), "");
+            String obj    = Objects.toString(testStep.getObject(), "");
+            boolean scopedMatch = matchesScope(refRaw, scope) && normalizePageRef(refRaw).equals(pageName);
+            if (scopedMatch && obj.equals(oldName)) {
                 testStep.setObject(newName);
             }
         }
@@ -567,19 +608,20 @@ public class TestCase extends DataModel {
         }
     }
 
-    public void refactorObjectName(String oldpageName, String oldObjName, String newPageName, String newObjName) {
-        Boolean clearOnExit = getTestSteps().isEmpty();
-        loadTableModel();
-        for (TestStep testStep : testSteps) {
-            if (testStep.getReference().equals(oldpageName) && testStep.getObject().equals(oldObjName)) {
-                testStep.setObject(newObjName);
-                testStep.setReference(newPageName);
-            }
-        }
-        if (clearOnExit) {
-            save();
-            getTestSteps().clear();
-        }
+    private boolean matchesScope(String ref, ORScope scope) {
+        if (ref == null) return false;
+        ref = ref.trim();
+        if (scope == ORScope.PROJECT) return ref.startsWith("[Project] ");
+        if (scope == ORScope.SHARED)  return ref.startsWith("[Shared] ");
+        return false;
+    }
+
+    private String normalizePageRef(String ref) {
+        if (ref == null) return "";
+        ref = ref.trim();
+        if (ref.startsWith("[Project] ")) return ref.substring("[Project] ".length()).trim();
+        if (ref.startsWith("[Shared] "))  return ref.substring("[Shared] ".length()).trim();
+        return ref;
     }
 
     public void refactorPageName(String oldPageName, String newPageName) {

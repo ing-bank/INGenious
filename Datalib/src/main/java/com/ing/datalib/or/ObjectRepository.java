@@ -158,8 +158,30 @@ public class ObjectRepository {
         return resolveWebObjectWithScope(pageName, objectName) != null;
     }
 
-    public void renameObject(ObjectGroup group, String newName) {
-        sProject.refactorObjectName(group.getParent().getName(), group.getName(), newName);
+    public void renameObject(ObjectGroup<WebORObject> group, String newName) {
+        if (group == null || newName == null || newName.isBlank()) return;
+
+        var parentPage = group.getParent();
+        if (parentPage == null) return;
+
+        String oldName = group.getName();
+        if (oldName.equals(newName)) return;
+        boolean inProject = (webProjectOR != null) &&
+            (webProjectOR.getPageByName(parentPage.getName()) == parentPage);
+
+        boolean inShared  = !inProject && (webSharedOR != null) &&
+            (webSharedOR.getPageByName(parentPage.getName()) == parentPage);
+
+        if (inProject && webProjectOR != null) {
+            webProjectOR.setSaved(false);
+            sProject.refactorObjectName(WebOR.ORScope.PROJECT, parentPage.getName(), oldName, newName);
+        } else if (inShared && webSharedOR != null) {
+            webSharedOR.setSaved(false);
+            markSharedUsage();
+            sProject.refactorObjectName(WebOR.ORScope.SHARED, parentPage.getName(), oldName, newName);
+        } else {
+            sProject.refactorObjectName(parentPage.getName(), oldName, newName);
+        }
     }
 
     public void renamePage(ORPageInf page, String newName) {

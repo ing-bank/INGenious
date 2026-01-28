@@ -267,19 +267,26 @@ public abstract class ObjectTree implements ActionListener {
         if (Validator.isValidName(name)) {
             ORPageInf page = getSelectedPage();
             if (page != null && !page.getName().equals(name)) {
+                if (!confirmSharedRename("Page", page.getName(), name)) {
+                    return false;
+                }
                 if (page.rename(name)) {
                     nodeRenamed(page);
+                    getProject().save();
                     return true;
                 } else {
                     Notification.show("Page " + name + " Already present");
                     return false;
                 }
             }
-
             ObjectGroup<ORObjectInf> group = getSelectedObjectGroup();
             if (group != null && !group.getName().equals(name)) {
+                if (!confirmSharedRename("Object Group", group.getName(), name)) {
+                    return false;
+                }
                 if (group.rename(name)) {
                     nodeRenamed(group);
+                    getProject().save();
                     return true;
                 } else {
                     Notification.show("Object " + name + " Already present");
@@ -289,8 +296,12 @@ public abstract class ObjectTree implements ActionListener {
 
             ORObjectInf obj = getSelectedObject();
             if (obj != null && !obj.getName().equals(name)) {
+                if (!confirmSharedRename("Object", obj.getName(), name)) {
+                    return false;
+                }
                 if (obj.rename(name)) {
                     nodeRenamed(obj);
+                    getProject().save();
                     return true;
                 } else {
                     Notification.show("Object " + name + " Already present");
@@ -863,11 +874,14 @@ public abstract class ObjectTree implements ActionListener {
     }
 
     private void nodeRenamed(final TreeNode node) {
-        SwingUtilities.invokeLater(new Runnable() {
-            @Override
-            public void run() {
-                ((DefaultTreeModel) tree.getModel()).nodeChanged(node);
+        SwingUtilities.invokeLater(() -> {
+            DefaultTreeModel model = (DefaultTreeModel) tree.getModel();
+            model.nodeChanged(node);
+            TreeNode parent = node.getParent();
+            if (parent != null) {
+                model.nodeStructureChanged(parent);
             }
+            tree.repaint();
         });
     }
 
@@ -940,15 +954,33 @@ public abstract class ObjectTree implements ActionListener {
         return false;
     }
 
+    private boolean confirmSharedRename(String entityLabel, String currentName, String newName) {
+        if (!isSharedScope()) return true;
+        String extra = sharedProjectsInfo();
+        if (extra == null) extra = "";
+        String message =
+            "<html><body><p style='width: 360px;'>"
+          + "You are about to rename the SHARED " + entityLabel + " "
+          + "<b>" + currentName + "</b> to <b>" + newName + "</b>.<br/><br/>"
+          + "Other projects that use Shared Web Objects still reference the old name in their test steps."
+          + "</p></body></html>";
+        int option = javax.swing.JOptionPane.showConfirmDialog(
+            null,
+            message,
+            "Confirm Shared Rename",
+            javax.swing.JOptionPane.YES_NO_OPTION
+        );
+        return option == javax.swing.JOptionPane.YES_OPTION;
+    }
+    
     private String sharedProjectsInfo() {
         ORRootInf root = getOR();
         if (root instanceof WebOR) {
             List<String> projects = ((WebOR) root).getProjects();
             if (projects != null && !projects.isEmpty()) {
-                return "<br/><br/><b>Before deleting, please verify whether this page/object is being used by the following project(s):</b><br/>" + String.join(", ", projects);
+                return "<br/><br/><b>Before proceeding, please verify whether this page/object is being used by the following project(s):</b><br/>" + String.join(", ", projects);
             }
         }
         return "";
     }
-
 }

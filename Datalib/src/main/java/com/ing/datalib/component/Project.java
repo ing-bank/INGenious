@@ -410,6 +410,12 @@ public class Project {
         }
     }
 
+    public void refactorObjectName(ORScope scope, String pageName, String oldName, String newName) {
+        for (Scenario scenario : scenarios) {
+            scenario.refactorObjectName(scope, pageName, oldName, newName);
+        }
+    }
+
     public void refactorPageName(String oldPageName, String newPageName) {
         for (Scenario scenario : scenarios) {
             scenario.refactorPageName(oldPageName, newPageName);
