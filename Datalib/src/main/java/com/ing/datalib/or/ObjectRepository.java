@@ -160,10 +160,8 @@ public class ObjectRepository {
 
     public void renameObject(ObjectGroup<WebORObject> group, String newName) {
         if (group == null || newName == null || newName.isBlank()) return;
-
         var parentPage = group.getParent();
         if (parentPage == null) return;
-
         String oldName = group.getName();
         if (oldName.equals(newName)) return;
         boolean inProject = (webProjectOR != null) &&
@@ -171,7 +169,6 @@ public class ObjectRepository {
 
         boolean inShared  = !inProject && (webSharedOR != null) &&
             (webSharedOR.getPageByName(parentPage.getName()) == parentPage);
-
         if (inProject && webProjectOR != null) {
             webProjectOR.setSaved(false);
             sProject.refactorObjectName(WebOR.ORScope.PROJECT, parentPage.getName(), oldName, newName);
@@ -183,17 +180,20 @@ public class ObjectRepository {
             sProject.refactorObjectName(parentPage.getName(), oldName, newName);
         }
     }
-
+    
     public void renamePage(ORPageInf page, String newName) {
         if (page == null || newName == null || newName.isBlank()) return;
-
         String oldName = page.getName();
+        if (oldName.equals(newName)) return;
         boolean renamed = false;
         ORScope scopeRenamed = null;
-
         if (webProjectOR != null) {
             var p = webProjectOR.getPageByName(oldName);
             if (p == page) {
+                var existsSameScope = webProjectOR.getPageByName(newName);
+                if (existsSameScope != null && existsSameScope != page) {
+                    return;
+                }
                 p.setName(newName);
                 webProjectOR.setSaved(false);
                 renamed = true;
@@ -203,13 +203,17 @@ public class ObjectRepository {
         if (!renamed && webSharedOR != null) {
             var s = webSharedOR.getPageByName(oldName);
             if (s == page) {
+                var existsSameScope = webSharedOR.getPageByName(newName);
+                if (existsSameScope != null && existsSameScope != page) {
+                    return;
+                }
                 s.setName(newName);
                 webSharedOR.setSaved(false);
                 renamed = true;
                 scopeRenamed = ORScope.SHARED;
             }
         }
-        if (scopeRenamed != null) {
+        if (renamed) {
             sProject.refactorPageName(scopeRenamed, oldName, newName);
         } else {
             sProject.refactorPageName(oldName, newName);

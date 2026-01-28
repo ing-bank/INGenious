@@ -960,10 +960,11 @@ public abstract class ObjectTree implements ActionListener {
         if (extra == null) extra = "";
         String message =
             "<html><body><p style='width: 360px;'>"
-          + "You are about to rename the SHARED " + entityLabel + " "
-          + "<b>" + currentName + "</b> to <b>" + newName + "</b>.<br/><br/>"
-          + "Other projects that use Shared Web Objects still reference the old name in their test steps."
-          + "</p></body></html>";
+            + "You are about to rename the SHARED " + entityLabel + " "
+            + "<b>" + currentName + "</b> to <b>" + newName + "</b>.<br/><br/>"
+            + "Other projects that use Shared Web Objects still reference the old name in their test steps."
+            + extra
+            + "</body></html>";
         int option = javax.swing.JOptionPane.showConfirmDialog(
             null,
             message,
