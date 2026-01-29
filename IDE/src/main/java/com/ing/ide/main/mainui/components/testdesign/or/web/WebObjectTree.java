@@ -12,9 +12,23 @@ import java.util.List;
 import javax.swing.tree.TreePath;
 
 /**
+ * Swing tree component for browsing and editing Web Object Repository (OR) entries in the Test Design UI.
+ * <p>
+ * {@code WebObjectTree} extends {@link ObjectTree} and delegates most UI actions to the owning
+ * {@link WebORPanel}. It loads the object details table based on the current tree selection,
+ * routes "impacted test cases" requests to the Impact UI, and resolves the correct Web OR root
+ * (project OR vs shared OR) based on {@link ORSource}.
+ * </p>
  *
- *
+ * <h2>Key Behaviors</h2>
+ * <ul>
+ *   <li><b>Selection → Table:</b> On selection change, loads the object attributes into the OR table model.</li>
+ *   <li><b>Repository Source:</b> Returns either the project Web OR or shared Web OR depending on {@link ORSource}.</li>
+ *   <li><b>Frame Editing:</b> Updates the selected {@link WebORObject}'s frame metadata.</li>
+ *   <li><b>Removal Handling:</b> If the removed object is currently loaded in the table, resets the table before removal completes.</li>
+ * </ul>
  */
+
 public class WebObjectTree extends ObjectTree {
     private final WebORPanel oRPanel;
     private final ORSource source;

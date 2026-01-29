@@ -34,9 +34,25 @@ import javax.swing.event.DocumentListener;
 import javax.swing.table.DefaultTableModel;
 
 /**
+ * UI component for viewing and editing Web Object Repository (WebOR) object properties.
+ * <p>
+ * The {@code WebORTable} displays a {@link WebORObject}'s attributes in a table and provides
+ * tools for adding, removing, reordering, and bulk-modifying properties across pages or selected items.
+ * It integrates with {@link WebORPanel} and responds to tree selections, context menu actions,
+ * and toolbar commands. Frame values can also be viewed and edited using a dedicated frame toolbar.
+ * </p>
  *
- *
+ * <p>
+ * Core features include:
+ * <ul>
+ *   <li>Loading and displaying OR attributes for the selected {@code WebORObject}.</li>
+ *   <li>Editing operations such as add/delete property, reorder rows, and bulk updates across pages.</li>
+ *   <li>Frame metadata editing with automatic propagation to selected or related objects.</li>
+ *   <li>Context menu and toolbar integration for fast OR maintenance actions.</li>
+ * </ul>
+ * </p>
  */
+
 public class WebORTable extends JPanel implements ActionListener, ItemListener {
     private final XTable table;
     private final FrameToolBar frameToolbar;

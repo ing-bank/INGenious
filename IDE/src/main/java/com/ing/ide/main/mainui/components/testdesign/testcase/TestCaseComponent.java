@@ -70,9 +70,25 @@ import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableCellRenderer;
 
 /**
+ * Main UI component for creating, editing, validating, and executing
+ * test cases within the Test Design module.
+ * <p>
+ * {@code TestCaseComponent} manages the test case table, toolbars,
+ * popup menus, auto‑suggest systems, validations, breakpoints, comment
+ * toggling, and history tracking. It also integrates execution and debug
+ * workflows, invokes Playwright recording, handles table actions such as
+ * insert/delete/move/replicate steps, supports reusable creation, and
+ * synchronizes navigation to objects and test data.
+ * </p>
  *
- *
+ * <p>
+ * The component orchestrates multiple sub‑dialogs (console, debugger,
+ * recorder), manages runner threads, ensures save lifecycle handling,
+ * and provides a unified environment for building and running automated
+ * test cases.
+ * </p>
  */
+
 public class TestCaseComponent extends JPanel implements ActionListener {
 
     private final TestDesign testDesign;

@@ -19,9 +19,23 @@ import org.apache.commons.csv.CSVPrinter;
 import org.apache.commons.csv.CSVRecord;
 
 /**
+ * Represents a test case composed of ordered {@link TestStep} entries and implements a table model
+ * suitable for direct editing in UI components.
+ * <p>
+ * A {@code TestCase} belongs to a {@link Scenario}, loads and persists its steps from/to a CSV file,
+ * and supports common editing operations such as inserting, removing, moving, replicating steps,
+ * clearing values, toggling comments/breakpoints, and bulk removal. Save state is tracked and propagated
+ * via a {@link SaveListener}.
+ * </p>
  *
- * 
+ * <p>
+ * The class also supports creating and managing reusable test cases (represented as “Execute” steps),
+ * provides utilities for refactoring references (scenario/test case reuse links, object/page names,
+ * test data and columns—including scope-aware OR references), and can report impact when a given object,
+ * reusable, or test data reference is used.
+ * </p>
  */
+
 public class TestCase extends DataModel {
 
     private Scenario scenario;
@@ -581,7 +595,7 @@ public class TestCase extends DataModel {
             String obj = Objects.toString(testStep.getObject(), "");
             if (ref.equals(oldpageName) && obj.equals(oldObjName)) {
                 testStep.setObject(newObjName);
-                testStep.setReference(newPageName); // newPageName can be scoped or plain as you prefer
+                testStep.setReference(newPageName);
             }
         }
 
@@ -590,6 +604,17 @@ public class TestCase extends DataModel {
             getTestSteps().clear();
         }
     }
+
+    
+    /**
+     * Renames an object reference on the given page within this test case, restricted to the specified OR scope.
+     * A step matches when its reference has the expected scope prefix and its normalized page name equals {@code pageName}.
+     *
+     * @param scope    OR scope to match (e.g., {@code PROJECT} or {@code SHARED})
+     * @param pageName page (screen) name (without scope prefix) to match
+     * @param oldName  existing object name to replace
+     * @param newName  new object name to apply
+     */
 
     public void refactorObjectName(ORScope scope, String pageName, String oldName, String newName) {
         Boolean clearOnExit = getTestSteps().isEmpty();
@@ -607,6 +632,16 @@ public class TestCase extends DataModel {
             getTestSteps().clear();
         }
     }
+    
+    /**
+     * Checks whether a reference string is explicitly scoped for the given OR scope.
+     * Returns {@code true} only when {@code ref} starts with the expected scope prefix
+     * (e.g., {@code "[Project] "} or {@code "[Shared] "}); otherwise returns {@code false}.
+     *
+     * @param ref   raw reference value (may be {@code null})
+     * @param scope scope to match against
+     * @return {@code true} if {@code ref} begins with the prefix for {@code scope}; {@code false} otherwise
+     */
 
     private boolean matchesScope(String ref, ORScope scope) {
         if (ref == null) return false;
@@ -615,6 +650,15 @@ public class TestCase extends DataModel {
         if (scope == ORScope.SHARED)  return ref.startsWith("[Shared] ");
         return false;
     }
+
+    /**
+     * Normalizes a page reference by removing known scope prefixes.
+     * Trims the input and strips {@code "[Project] "} or {@code "[Shared] "} when present;
+     * otherwise returns the trimmed reference. Returns an empty string when {@code ref} is {@code null}.
+     *
+     * @param ref raw reference value (may be {@code null})
+     * @return normalized page name without scope prefix (never {@code null})
+     */
 
     private String normalizePageRef(String ref) {
         if (ref == null) return "";

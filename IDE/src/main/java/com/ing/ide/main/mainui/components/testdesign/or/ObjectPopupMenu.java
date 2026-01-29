@@ -17,9 +17,21 @@ import javax.swing.KeyStroke;
 import javax.swing.TransferHandler;
 
 /**
+ * Context (right-click) popup menu for Object Repository (OR) tree nodes in the Test Design UI.
+ * <p>
+ * This menu provides OR maintenance actions such as adding/renaming/deleting pages, object groups,
+ * and objects, plus utilities like removing unused objects, copying items to Shared OR, opening page dumps,
+ * and running impact analysis. It also includes standard clipboard operations (cut/copy/paste) using
+ * Swing transfer actions.
+ * </p>
  *
- * 
+ * <p>
+ * The available actions are dynamically enabled/disabled based on the type of the current selection
+ * (root, page, group, or object) and whether the selected item belongs to a Shared repository
+ * (e.g., disabling actions that should not modify shared content).
+ * </p>
  */
+
 public class ObjectPopupMenu extends JPopupMenu {
 
     private JMenuItem addPage;

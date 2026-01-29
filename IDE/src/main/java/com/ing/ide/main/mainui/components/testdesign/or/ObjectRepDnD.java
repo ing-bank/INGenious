@@ -8,9 +8,19 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
+ * Helper model for Object Repository drag-and-drop (DnD) operations in the Test Design UI.
+ * <p>
+ * {@code ObjectRepDnD} captures the type of items being dragged (pages, object groups, or objects),
+ * stores both the original components and their encoded string representations, and provides
+ * convenience methods to extract page/object identifiers from the encoded values.
+ * </p>
  *
- * 
+ * <p>
+ * Drag payload values are encoded using a fixed separator and include page scope information
+ * (e.g., Project vs Shared) to preserve context across DnD operations.
+ * </p>
  */
+
 public class ObjectRepDnD {
 
     Boolean isPage = false;

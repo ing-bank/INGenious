@@ -22,9 +22,22 @@ import javax.swing.JToolBar;
 import javax.swing.UIManager;
 
 /**
+ * Main UI container for managing the Object Repository within Test Design.
+ * <p>
+ * The {@code ObjectRepo} panel provides a unified interface for switching between
+ * Web and Mobile Object Repository views. It embeds both {@link WebORPanel} and
+ * {@link MobileORPanel} inside a card-based layout and exposes high-level actions
+ * such as loading repository data, adjusting UI layout, and navigating directly to
+ * specific OR objects.
+ * </p>
  *
- * 
+ * <p>
+ * A toggle-based toolbar allows the user to switch between repository types, and
+ * the component ensures the correct panel is shown and updated when selections occur.
+ * This class acts as the entry point for OR maintenance within the Test Design module.
+ * </p>
  */
+
 public class ObjectRepo extends JPanel implements ItemListener {
 
     private final TestDesign testDesign;

@@ -20,6 +20,13 @@ import javax.swing.tree.TreePath;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties({"root"})
+
+/**
+ * Represents a page in the Web Object Repository (WebOR), containing object groups
+ * and metadata such as title, source, and its parent WebOR root. Supports object
+ * group management, tree navigation, renaming, and persistence utilities.
+ */
+
 public class WebORPage implements ORPageInf<WebORObject, WebOR> {
 
     @JacksonXmlProperty(isAttribute = true, localName = "ref")

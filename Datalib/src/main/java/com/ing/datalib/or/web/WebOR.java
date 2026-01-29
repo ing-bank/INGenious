@@ -19,6 +19,13 @@ import javax.swing.tree.TreeNode;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JacksonXmlRootElement(localName = "Root")
+
+/**
+ * Represents the Web Object Repository (WebOR), containing pages and their objects,
+ * along with metadata such as scope, type, associated projects, and save state.
+ * Provides page management, tree navigation, sorting, and repository integration.
+ */
+
 public class WebOR implements ORRootInf<WebORPage> {
 
     public final static List<String> OBJECT_PROPS

@@ -49,9 +49,18 @@ import javax.swing.SwingUtilities;
 import javax.swing.Timer;
 
 /**
- *
- *
+ * Auto‑suggest controller for the Test Case table, providing intelligent
+ * suggestions for Object, Action, Condition, and Input columns.
+ * <p>
+ * This component installs custom AutoSuggest editors on the Test Case table
+ * and dynamically generates context‑aware suggestion lists based on the
+ * selected object type, project settings, Object Repository metadata, test
+ * data definitions, and reusable actions. It also integrates specialized
+ * payload editors for SQL, Webservice, File, Message, Browser routing, and
+ * String Operations steps.
+ * </p>
  */
+
 public class TestCaseAutoSuggest {
 
     private final Project sProject;

@@ -19,6 +19,13 @@ import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+
+/**
+ * Manages all Object Repository types (Web Project OR, Web Shared OR, Mobile OR)
+ * for a project. Handles loading, saving, renaming, lookup, copying of pages and
+ * objects, and resolving objects across project/shared scopes.
+ */
+
 public class ObjectRepository {
     private static final XmlMapper XML_MAPPER = new XmlMapper();
     private static final Logger LOG = Logger.getLogger(ObjectRepository.class.getName());
@@ -30,10 +37,22 @@ public class ObjectRepository {
     
     private final Set<String> sharedUsageProjects = new HashSet<>();
 
+    /**
+     * Creates an ObjectRepository for the given project and loads all OR files
+     * (project WebOR, shared WebOR, and MobileOR), initializing defaults when missing.
+     *
+     * @param sProject the project owning this repository
+     */
+
     public ObjectRepository(Project sProject) {
         this.sProject = sProject;
         init();
     }
+
+    /**
+     * Loads OR files from disk (shared, project, mobile), updates names, sets scopes,
+     * and links them to this repository.
+     */
 
     private void init() {
         try {
@@ -120,6 +139,11 @@ public class ObjectRepository {
         return mobileOR;
     }
 
+    /**
+     * Saves updated shared, project, and mobile ORs to disk.
+     * Also updates shared project usage metadata when required.
+     */
+
     public void save() {
         try {
             java.util.List<String> existingProjects = (webSharedOR != null) ? webSharedOR.getProjects() : java.util.List.of();
@@ -154,9 +178,25 @@ public class ObjectRepository {
         }
     }
 
+    /**
+     * Checks whether the given object exists in either PROJECT or SHARED scope.
+     *
+     * @param pageName   page containing the object
+     * @param objectName object name
+     * @return true if present in project or shared OR
+     */
+
     public Boolean isObjectPresent(String pageName, String objectName) {
         return resolveWebObjectWithScope(pageName, objectName) != null;
     }
+
+    /**
+     * Renames an object (object group) within its parent page. Determines whether the object
+     * is in project or shared scope and triggers corresponding scenario refactor in Project.
+     *
+     * @param group   object group containing the object
+     * @param newName new object name
+     */
 
     public void renameObject(ObjectGroup<WebORObject> group, String newName) {
         if (group == null || newName == null || newName.isBlank()) return;
@@ -181,6 +221,14 @@ public class ObjectRepository {
         }
     }
     
+    /**
+     * Renames a page in project or shared OR, respecting scope rules and preventing collisions,
+     * then propagates refactor changes into Project.
+     *
+     * @param page    page object reference
+     * @param newName new page name
+     */
+
     public void renamePage(ORPageInf page, String newName) {
         if (page == null || newName == null || newName.isBlank()) return;
         String oldName = page.getName();
@@ -220,6 +268,11 @@ public class ObjectRepository {
         }
     }
 
+    /**
+     * Resolves a WebOR object from a scoped PageRef and object name, returning a
+     * ResolvedWebObject containing scope, page, object name, and object group.
+     */
+
     public ResolvedWebObject resolveWebObject(ResolvedWebObject.PageRef pageRef, String objectName) {
         if (pageRef == null || objectName == null) return null;
 
@@ -255,6 +308,14 @@ public class ObjectRepository {
         return null;
     }
 
+    /**
+     * Resolves a WebOR object by searching project scope first, then shared scope.
+     *
+     * @param pageName   page to search
+     * @param objectName object group name
+     * @return resolved WebOR object with scope metadata
+     */
+
     public ResolvedWebObject resolveWebObjectWithScope(String pageName, String objectName) {
         var proj = getFrom(webProjectOR, pageName, objectName);
         if (proj != null) {
@@ -276,6 +337,10 @@ public class ObjectRepository {
         return (p == null) ? null : p.getObjectGroupByName(obj);
     }
     
+    /**
+     * Deep-clones an object group and its objects into another page.
+     */
+
     private ObjectGroup<WebORObject> cloneGroupIntoPage(ObjectGroup<WebORObject> originalGroup, WebORPage targetPage) {
         ObjectGroup<WebORObject> newGroup = new ObjectGroup<>(originalGroup.getName(), targetPage);
         for (WebORObject obj : originalGroup.getObjects()) {
@@ -288,6 +353,10 @@ public class ObjectRepository {
         }
         return newGroup;
     }
+
+    /**
+     * Generates a unique name by appending "(n)" when duplicates exist.
+     */
 
     private String generateUniqueName(String baseName, java.util.function.Predicate<String> exists) {
         if (baseName == null || baseName.isBlank()) return baseName;
@@ -310,11 +379,19 @@ public class ObjectRepository {
         return generateUniqueName(baseName, name -> page.getObjectGroupByName(name) != null);
     }
 
+    /**
+     * Ensures a page exists in the given OR; creates one if missing.
+     */
+
     private WebORPage getOrCreatePage(WebOR or, String pageName) {
         if (or == null || pageName == null) return null;
         WebORPage page = or.getPageByName(pageName);
         return (page != null) ? page : or.addPage(pageName);
     }
+
+    /**
+     * Copies all object groups from a source page to a target page.
+     */
 
     private void copyAllGroups(WebORPage sourcePage, WebORPage targetPage) {
         if (sourcePage == null || targetPage == null) return;
@@ -337,6 +414,14 @@ public class ObjectRepository {
         return newGroup;
     }
     
+    /**
+     * Copies a project WebOR page into the shared OR using a unique name.
+     *
+     * @param sourcePageName project page
+     * @param targetPageName desired shared page name
+     * @return actual created page name
+     */
+
     public String copyWebPage(String sourcePageName, String targetPageName) {
         WebOR projectOR = getWebOR();
         WebOR sharedOR  = getWebSharedOR();
@@ -355,6 +440,15 @@ public class ObjectRepository {
         return uniqueTargetName;
     }
 
+    /**
+     * Copies a WebOR object into a shared page (creating the page if needed)
+     * using a unique object group name.
+     *
+     * @param source          resolved web object
+     * @param targetPageName  target page in shared OR
+     * @return new object name
+     */
+
     public String copyWebObject(ResolvedWebObject source, String targetPageName) {
         if (source == null) return null;
         WebOR sharedOR = getWebSharedOR();
@@ -372,6 +466,11 @@ public class ObjectRepository {
         return uniqueName;
     }
     
+    /**
+     * Marks that the current project has used a shared object,
+     * updating shared OR metadata.
+     */
+
     private void markSharedUsage() {
         if (sProject != null && sProject.getName() != null && !sProject.getName().isBlank()) {
             sharedUsageProjects.add(sProject.getName());

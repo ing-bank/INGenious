@@ -9,9 +9,22 @@ import java.util.Objects;
 import javax.swing.JComponent;
 
 /**
+ * Renderer for the “Reference” column of a test step, responsible for validating
+ * and decorating page references used in object-based steps.
+ * <p>
+ * {@code ReferenceRenderer} evaluates whether a reference is empty, optional,
+ * or points to a valid page/object combination in the Object Repository. It
+ * decorates recognized references with a “[Shared]” or “[Project]” prefix and
+ * applies error or default styles depending on the validation outcome.
+ * </p>
  *
- * 
+ * <p>
+ * The renderer also handles commented steps, optional references for certain
+ * object types, and uses {@link ResolvedWebObject} to verify OR presence before
+ * applying highlighting rules.
+ * </p>
  */
+
 public class ReferenceRenderer extends AbstractRenderer {
 
     String objNotPresent = "Object is not present in the Object Repository";

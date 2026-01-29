@@ -68,10 +68,36 @@ import org.w3c.dom.NodeList;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+
 /**
+ * Base abstract class representing a fully interactive Object Repository (OR) tree.
+ * <p>
+ * {@code ObjectTree} provides a complete UI framework for browsing, editing, and
+ * maintaining Object Repository structures including pages, object groups, and
+ * objects. It manages a {@link JTree} with support for inline editing, drag‑and‑drop,
+ * contextual popup menus, keyboard shortcuts, custom icons, and dynamic selection
+ * handling.
+ * </p>
  *
- * 
+ * <p>
+ * The class defines core behaviors such as:
+ * <ul>
+ *   <li>Loading repository structures into the tree.</li>
+ *   <li>Renaming, adding, sorting, and deleting OR nodes.</li>
+ *   <li>Project‑synchronized updates (save, refresh, rename validations).</li>
+ *   <li>Shared vs. project‑scoped OR safeguards (shared rename checks, shared copy restrictions).</li>
+ *   <li>Finding and selecting OR objects and scrolling them into view.</li>
+ *   <li>Right‑click context menu actions through {@link ObjectPopupMenu}.</li>
+ *   <li>Coordination with table panels via {@code loadTableModelForSelection()}.</li>
+ * </ul>
+ * </p>
+ *
+ * <p>
+ * Subclasses must implement methods for loading table models, accessing the active
+ * project instance, retrieving the OR root, and showing impacted test cases.
+ * </p>
  */
+
 public abstract class ObjectTree implements ActionListener {
 
     public final JTree tree;
@@ -962,7 +988,7 @@ public abstract class ObjectTree implements ActionListener {
             projects = ((com.ing.datalib.or.web.WebOR) root).getProjects();
         }
         if (projects == null || projects.isEmpty()) {
-            return true; // proceed without showing any notification/dialog
+            return true;
         }
         String extra = sharedProjectsInfo();
         if (extra == null) extra = "";

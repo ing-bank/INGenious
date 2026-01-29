@@ -22,9 +22,24 @@ import javax.swing.event.ChangeListener;
 import javax.swing.tree.TreePath;
 
 /**
+ * Main UI panel for managing Web Object Repository (OR) entries in Test Design.
+ * <p>
+ * This panel provides two tabbed OR trees (Project and Shared) and a details table below.
+ * It synchronizes tree selection with the {@link WebORTable} so that selecting an OR node
+ * loads the corresponding {@link WebORObject} into the table, and switching tabs refreshes
+ * the table based on the active tree selection.
+ * </p>
  *
- *
+ * <h2>Key Features</h2>
+ * <ul>
+ *   <li><b>Tabbed OR Trees:</b> Displays {@link WebObjectTree} instances for project and shared repositories.</li>
+ *   <li><b>Search Integration:</b> Installs tree search UI on each OR tree.</li>
+ *   <li><b>Selection → Details:</b> Loads/reset the {@link WebORTable} depending on what is selected.</li>
+ *   <li><b>Navigation:</b> Can navigate to an object/page in the active tree, falling back to the other tree.</li>
+ *   <li><b>Delegation:</b> Exposes access to {@link TestDesign} and {@link Project} for child components.</li>
+ * </ul>
  */
+
 public class WebORPanel extends JPanel {
     private final WebObjectTree projectTree;
     private final WebObjectTree sharedTree;
