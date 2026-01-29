@@ -956,6 +956,14 @@ public abstract class ObjectTree implements ActionListener {
 
     private boolean confirmSharedRename(String entityLabel, String currentName, String newName) {
         if (!isSharedScope()) return true;
+        ORRootInf root = getOR();
+        java.util.List<String> projects = null;
+        if (root instanceof com.ing.datalib.or.web.WebOR) {
+            projects = ((com.ing.datalib.or.web.WebOR) root).getProjects();
+        }
+        if (projects == null || projects.isEmpty()) {
+            return true; // proceed without showing any notification/dialog
+        }
         String extra = sharedProjectsInfo();
         if (extra == null) extra = "";
         String message =
@@ -973,7 +981,7 @@ public abstract class ObjectTree implements ActionListener {
         );
         return option == javax.swing.JOptionPane.YES_OPTION;
     }
-    
+
     private String sharedProjectsInfo() {
         ORRootInf root = getOR();
         if (root instanceof WebOR) {
