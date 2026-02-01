@@ -726,7 +726,7 @@ public abstract class ObjectTree implements ActionListener {
             }
         }
     }
-
+    
     private void getImpactedTestCases() {
         ObjectGroup group = getSelectedObjectGroup();
         if (group == null) {
@@ -739,10 +739,18 @@ public abstract class ObjectTree implements ActionListener {
         }
         String pageName = group.getParent().getName();
         String objectName = group.getName();
-        showImpactedTestCases(
-                getProject().getImpactedObjectTestCases(pageName, objectName),
-                pageName,
-                objectName);
+        WebOR.ORScope scope = WebOR.ORScope.PROJECT;
+        ORRootInf root = getOR();
+        if (root instanceof WebOR && ((WebOR) root).isShared()) {
+            scope = WebOR.ORScope.SHARED;
+        }
+        List<TestCase> impacted;
+        try {
+            impacted = getProject().getImpactedObjectTestCases(scope, pageName, objectName);
+        } catch (Throwable t) {
+            impacted = getProject().getImpactedObjectTestCases(pageName, objectName);
+        }
+        showImpactedTestCases(impacted, pageName, objectName);
     }
 
     public abstract void showImpactedTestCases(

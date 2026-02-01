@@ -15,6 +15,8 @@ import com.ing.datalib.or.web.WebOR.ORScope;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.LinkedHashSet;
+import java.util.Set;
 import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -495,6 +497,23 @@ public class Project {
             impactedTestCases.addAll(scenario.getImpactedObjectTestCases(pageName, objectName));
         }
         return impactedTestCases;
+    }
+
+    public List getImpactedObjectTestCases(ORScope scope, String pageName, String objectName) {
+        Set impacted = new LinkedHashSet<>();
+        String scopedPageName = null;
+        if (scope != null) {
+            scopedPageName = (scope == ORScope.SHARED)
+                    ? "[Shared] " + pageName
+                    : "[Project] " + pageName;
+        }
+        for (Scenario scenario : scenarios) {
+            impacted.addAll(scenario.getImpactedObjectTestCases(pageName, objectName));
+            if (scopedPageName != null) {
+                impacted.addAll(scenario.getImpactedObjectTestCases(scopedPageName, objectName));
+            }
+        }
+        return new ArrayList<>(impacted);
     }
 
     public List<TestCase> getImpactedTestCaseTestCases(String scenarioName, String testCaseName) {
