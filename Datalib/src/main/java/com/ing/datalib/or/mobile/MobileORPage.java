@@ -9,6 +9,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.ing.datalib.or.web.WebOR.ORScope;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -32,6 +33,9 @@ public class MobileORPage implements ORPageInf<MobileORObject, MobileOR> {
 
     @JsonIgnore
     private MobileOR root;
+    
+    @JacksonXmlProperty(isAttribute = true, localName = "source")
+    private ORScope source = ORScope.PROJECT;
 
     public MobileORPage() {
         this.objectGroups = new ArrayList<>();
@@ -258,5 +262,13 @@ public class MobileORPage implements ORPageInf<MobileORObject, MobileOR> {
     @Override
     public void sort() {
         ORUtils.sort(this);
+    }
+    
+    public ORScope getSource() {
+        return source;
+    }
+
+    public void setSource(ORScope source) {
+        this.source = source;
     }
 }

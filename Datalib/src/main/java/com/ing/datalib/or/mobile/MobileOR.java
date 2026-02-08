@@ -127,6 +127,8 @@ public class MobileOR implements ORRootInf<MobileORPage> {
     public MobileORPage addPage(String pageName) {
         if (getPageByName(pageName) == null) {
             MobileORPage page = new MobileORPage(pageName, this);
+            page.setSource(this.isShared() ? com.ing.datalib.or.web.WebOR.ORScope.SHARED
+                                           : com.ing.datalib.or.web.WebOR.ORScope.PROJECT);
             pages.add(page);
             new File(page.getRepLocation()).mkdirs();
             setSaved(false);
