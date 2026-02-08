@@ -1,4 +1,3 @@
-
 package com.ing.ide.main.mainui.components.testdesign.or.mobile;
 
 import com.ing.datalib.component.Project;
@@ -7,39 +6,101 @@ import com.ing.datalib.or.mobile.MobileORObject;
 import com.ing.ide.main.mainui.components.testdesign.TestDesign;
 import com.ing.ide.main.utils.tree.TreeSearch;
 import java.awt.BorderLayout;
+import java.util.List;
+import javax.swing.JComponent;
 import javax.swing.JPanel;
 import javax.swing.JSplitPane;
+import javax.swing.JTabbedPane;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
+import javax.swing.tree.TreePath;
 
-/**
- *
- * 
- */
 public class MobileORPanel extends JPanel {
 
-    private final MobileObjectTree objectTree;
+    private final MobileObjectTree projectTree;
+    private final MobileObjectTree sharedTree;
     private final MobileORTable objectTable;
-
     private final TestDesign testDesign;
 
     private JSplitPane splitPane;
+    private JTabbedPane tabs;
 
     public MobileORPanel(TestDesign testDesign) {
         this.testDesign = testDesign;
-        this.objectTree = new MobileObjectTree(this);
+        this.projectTree = new MobileObjectTree(this, MobileObjectTree.ORSource.PROJECT);
+        this.sharedTree  = new MobileObjectTree(this, MobileObjectTree.ORSource.SHARED);
         this.objectTable = new MobileORTable(this);
         init();
     }
 
     private void init() {
         setLayout(new BorderLayout());
+
+        tabs = new JTabbedPane();
+
+        JComponent projectTreeWithSearch = TreeSearch.installForOR(projectTree.getTree());
+        tabs.addTab("Project", projectTreeWithSearch);
+
+        JComponent sharedTreeWithSearch = TreeSearch.installForOR(sharedTree.getTree());
+        tabs.addTab("Shared", sharedTreeWithSearch);
+
+        tabs.addChangeListener(new ChangeListener() {
+            @Override
+            public void stateChanged(ChangeEvent e) {
+                updateTableForCurrentSelection();
+            }
+        });
+
         splitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT);
         splitPane.setOneTouchExpandable(true);
+        splitPane.setTopComponent(tabs);
         splitPane.setBottomComponent(objectTable);
-        TreeSearch tSearch = TreeSearch.installForOR(objectTree.getTree());
-        splitPane.setTopComponent(tSearch);
-        splitPane.setResizeWeight(.5);
-        splitPane.setDividerLocation(.5);
-        add(splitPane);
+        splitPane.setResizeWeight(0.5);
+        splitPane.setDividerLocation(0.5);
+
+        add(splitPane, BorderLayout.CENTER);
+
+        hookSelectionToTable(projectTree);
+        hookSelectionToTable(sharedTree);
+    }
+
+    private void hookSelectionToTable(MobileObjectTree tree) {
+        tree.getTree().addTreeSelectionListener(e -> {
+            if (isTreeOnCurrentTab(tree)) {
+                loadTableModelForSelection(getSelectedNodeUserObject(tree));
+            }
+        });
+    }
+
+    private boolean isTreeOnCurrentTab(MobileObjectTree tree) {
+        int idx = tabs.getSelectedIndex();
+        String title = (idx >= 0) ? tabs.getTitleAt(idx) : "";
+        return (tree == projectTree && "Project".equals(title))
+            || (tree == sharedTree  && "Shared".equals(title));
+    }
+
+    private Object getSelectedNodeUserObject(MobileObjectTree tree) {
+        TreePath path = tree.getTree().getSelectionPath();
+        if (path == null) return null;
+
+        Object node = path.getLastPathComponent();
+        if (node instanceof javax.swing.tree.DefaultMutableTreeNode) {
+            return ((javax.swing.tree.DefaultMutableTreeNode) node).getUserObject();
+        }
+        return node;
+    }
+
+    private void updateTableForCurrentSelection() {
+        MobileObjectTree activeTree = getActiveTree();
+        Object selected = (activeTree != null) ? getSelectedNodeUserObject(activeTree) : null;
+        loadTableModelForSelection(selected);
+    }
+
+    public MobileObjectTree getActiveTree() {
+        int idx = tabs.getSelectedIndex();
+        if (idx == 0) return projectTree;
+        if (idx == 1) return sharedTree;
+        return null;
     }
 
     void loadTableModelForSelection(Object object) {
@@ -52,22 +113,14 @@ public class MobileORPanel extends JPanel {
         }
     }
 
-    public MobileObjectTree getObjectTree() {
-        return objectTree;
-    }
-
-    public TestDesign getTestDesign() {
-        return testDesign;
-    }
-
-    public Project getProject() {
-        return testDesign.getProject();
-    }
+    public TestDesign getTestDesign() { return testDesign; }
+    public Project getProject() { return testDesign.getProject(); }
 
     public void load() {
         objectTable.reset();
-        objectTree.load();
-        splitPane.setDividerLocation(.5);
+        sharedTree.load();
+        projectTree.load();
+        splitPane.setDividerLocation(0.5);
     }
 
     public void adjustUI() {
@@ -75,11 +128,28 @@ public class MobileORPanel extends JPanel {
     }
 
     public Boolean navigateToObject(String objectName, String pageName) {
-        return objectTree.navigateToObject(objectName, pageName);
+        MobileObjectTree active = getActiveTree();
+        if (active != null && Boolean.TRUE.equals(active.navigateToObject(objectName, pageName))) return true;
+
+        MobileObjectTree other = (active == projectTree) ? sharedTree : projectTree;
+        return (other != null) ? other.navigateToObject(objectName, pageName) : false;
     }
 
-    public MobileORTable getObjectTable() {
-        return objectTable;
+    public MobileORTable getObjectTable() { 
+        return objectTable; 
     }
 
+    public MobileObjectTree getProjectTree() { 
+        return projectTree; 
+    }
+    
+    public MobileObjectTree getSharedTree() { 
+        return sharedTree; 
+    }
+    
+    public List<com.ing.datalib.or.common.ORObjectInf> getSelectedObjectsFromActiveTab() {
+        MobileObjectTree active = getActiveTree();
+        return (active != null) ? active.getSelectedObjects()
+                                : java.util.Collections.emptyList();
+    }
 }

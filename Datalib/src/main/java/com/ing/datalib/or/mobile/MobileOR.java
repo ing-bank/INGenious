@@ -9,6 +9,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import com.ing.datalib.or.web.WebOR.ORScope;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -43,12 +44,18 @@ public class MobileOR implements ORRootInf<MobileORPage> {
 
     @JacksonXmlProperty(isAttribute = true)
     private String type;
+    
+    @JacksonXmlProperty(isAttribute = true)
+    private ORScope scope = ORScope.PROJECT;
 
     @JsonIgnore
     private ObjectRepository objectRepository;
 
     @JsonIgnore
     private Boolean saved = true;
+    
+    @JsonIgnore
+    private String repLocationOverride;
 
     public MobileOR() {
         this.pages = new ArrayList<>();
@@ -217,14 +224,39 @@ public class MobileOR implements ORRootInf<MobileORPage> {
     }
 
     @JsonIgnore
+    public void setRepLocationOverride(String path) {
+        this.repLocationOverride = path;
+    }
+
+    @JsonIgnore
     @Override
     public String getRepLocation() {
-        return getObjectRepository().getMORRepLocation();
+        return repLocationOverride != null
+                ? repLocationOverride
+                : getObjectRepository().getMORRepLocation();
     }
 
     @JsonIgnore
     @Override
     public void sort() {
         ORUtils.sort(this);
+    }
+    
+    public enum ORScope {
+    PROJECT, SHARED
+    }
+
+    @JsonIgnore
+    public ORScope getScope() {
+        return scope;
+    }
+
+    public void setScope(ORScope scope) {
+        this.scope = scope;
+    }
+
+    @JsonIgnore
+    public boolean isShared() {
+        return scope == ORScope.SHARED;
     }
 }

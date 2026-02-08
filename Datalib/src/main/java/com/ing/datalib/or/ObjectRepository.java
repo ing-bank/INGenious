@@ -11,6 +11,10 @@ import com.ing.datalib.or.web.ResolvedWebObject;
 import com.ing.datalib.or.web.WebOR.ORScope;
 import com.ing.datalib.or.web.WebORObject;
 import com.ing.datalib.or.web.WebORPage;
+import com.ing.datalib.or.mobile.ResolvedMobileObject;
+import com.ing.datalib.or.mobile.MobileORObject;
+import com.ing.datalib.or.mobile.MobileORPage;
+
 
 import java.io.File;
 import java.io.IOException;
@@ -33,7 +37,8 @@ public class ObjectRepository {
     private final Project sProject;
     private WebOR webSharedOR;
     private WebOR webProjectOR;
-    private MobileOR mobileOR;
+    private MobileOR mobileProjectOR;
+    private MobileOR mobileSharedOR;
     
     private final Set<String> sharedUsageProjects = new HashSet<>();
 
@@ -71,13 +76,21 @@ public class ObjectRepository {
             } else {
                 webProjectOR = new WebOR(sProject.getName());
             }
+            
+            File sharedmorFile = new File(getSharedMORLocation());
+            if (sharedmorFile.exists()) {
+                mobileSharedOR = XML_MAPPER.readValue(sharedmorFile, MobileOR.class);
+                mobileSharedOR.setName("Shared Mobile Objects");
+            } else {
+                mobileSharedOR = new MobileOR("Shared Mobile Objects");
+            }
 
             File morFile = new File(getMORLocation());
             if (morFile.exists()) {
-                mobileOR = XML_MAPPER.readValue(morFile, MobileOR.class);
-                mobileOR.setName(sProject.getName());
+                mobileProjectOR = XML_MAPPER.readValue(morFile, MobileOR.class);
+                mobileProjectOR.setName(sProject.getName());
             } else {
-                mobileOR = new MobileOR(sProject.getName());
+                mobileProjectOR = new MobileOR(sProject.getName());
             }
 
             if (webSharedOR != null) {
@@ -91,12 +104,24 @@ public class ObjectRepository {
                 webProjectOR.setSaved(true);
                 webProjectOR.setScope(ORScope.PROJECT);
             }
-            if (mobileOR != null) {
-                mobileOR.setObjectRepository(this);
+            if (mobileSharedOR != null) {
+                mobileSharedOR.setObjectRepository(this);
+                mobileSharedOR.setSaved(true);
+                mobileSharedOR.setRepLocationOverride(getSharedMORRepLocation());
+                mobileSharedOR.setScope(MobileOR.ORScope.SHARED);
+                
             }
+            if (mobileProjectOR != null) {
+                mobileProjectOR.setObjectRepository(this);
+                mobileProjectOR.setSaved(true);
+                mobileProjectOR.setScope(MobileOR.ORScope.PROJECT);
+            }
+
 
             LOG.log(Level.INFO, "Shared WebOR loaded: {0}", (webSharedOR != null));
             LOG.log(Level.INFO, "Project WebOR loaded: {0}", (webProjectOR != null));
+            LOG.log(Level.INFO, "Shared MobileOR loaded: {0}", (mobileSharedOR != null));
+            LOG.log(Level.INFO, "Project MobileOR loaded: {0}", (mobileProjectOR != null));
         } catch (IOException ex) {
             Logger.getLogger(ObjectRepository.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -114,6 +139,9 @@ public class ObjectRepository {
     public String getMORLocation() {
         return sProject.getLocation() + File.separator + "MOR.object";
     }
+    public String getSharedMORLocation() {
+        return "Shared" + File.separator + "SharedMobileObjects" + File.separator + "SharedMOR.object";
+    }
     public String getORRepLocation() {
         return sProject.getLocation() + File.separator + "ObjectRepository";
     }
@@ -126,6 +154,9 @@ public class ObjectRepository {
     public String getMORRepLocation() {
         return sProject.getLocation() + File.separator + "MobileObjectRepository";
     }
+    public String getSharedMORRepLocation() {
+        return "Shared" + File.separator + "SharedMobileObjects" + File.separator + "MobileObjectRepository";
+    }
     public Project getsProject() {
         return sProject;
     }
@@ -136,7 +167,10 @@ public class ObjectRepository {
         return webSharedOR;
     }
     public MobileOR getMobileOR() {
-        return mobileOR;
+        return mobileProjectOR;
+    }
+    public MobileOR getMobileSharedOR() {
+        return mobileSharedOR;
     }
 
     /**
@@ -169,9 +203,16 @@ public class ObjectRepository {
                     .writeValue(new File(getORLocation()), webProjectOR);
                 webProjectOR.setSaved(true);
             }
-            if (mobileOR != null) {
+            if (mobileSharedOR != null && !mobileSharedOR.isSaved()) {
                 XML_MAPPER.writerWithDefaultPrettyPrinter()
-                    .writeValue(new File(getMORLocation()), mobileOR);
+                        .writeValue(new File(getSharedMORLocation()), mobileSharedOR);
+                mobileSharedOR.setSaved(true);
+            }
+
+            if (mobileProjectOR != null && !mobileProjectOR.isSaved()) {
+                XML_MAPPER.writerWithDefaultPrettyPrinter()
+                        .writeValue(new File(getMORLocation()), mobileProjectOR);
+                mobileProjectOR.setSaved(true);
             }
         } catch (IOException ex) {
             Logger.getLogger(ObjectRepository.class.getName()).log(Level.SEVERE, null, ex);
@@ -188,6 +229,10 @@ public class ObjectRepository {
 
     public Boolean isObjectPresent(String pageName, String objectName) {
         return resolveWebObjectWithScope(pageName, objectName) != null;
+    }
+
+    public Boolean isMobileObjectPresent(String pageName, String objectName) {
+    return resolveMobileObjectWithScope(pageName, objectName) != null;
     }
 
     /**
@@ -308,6 +353,28 @@ public class ObjectRepository {
         return null;
     }
 
+    public ResolvedMobileObject resolveMobileObject(ResolvedMobileObject.PageRef pageRef, String objectName) {
+        if (pageRef == null || objectName == null) return null;
+        if (pageRef.scope == ORScope.PROJECT) {
+            var g = getFrom(mobileProjectOR, pageRef.name, objectName);
+            if (g != null) {
+                String actualPageName = g.getParent() != null ? g.getParent().getName() : pageRef.name;
+                return new ResolvedMobileObject(ORScope.PROJECT, actualPageName, objectName, g);
+            }
+            return null;
+        }
+        if (pageRef.scope == ORScope.SHARED) {
+            var g = getFrom(mobileSharedOR, pageRef.name, objectName);
+            if (g != null) {
+                markSharedUsage();
+                String actualPageName = g.getParent() != null ? g.getParent().getName() : pageRef.name;
+                return new ResolvedMobileObject(ORScope.SHARED, actualPageName, objectName, g);
+            }
+            return null;
+        }
+        return resolveMobileObjectWithScope(pageRef.name, objectName);
+    }
+
     /**
      * Resolves a WebOR object by searching project scope first, then shared scope.
      *
@@ -331,10 +398,38 @@ public class ObjectRepository {
         return null;
     }
 
+    /**
+    * Resolves a MobileOR object by searching project scope first, then shared scope.
+    *
+    * @param pageName page to search
+    * @param objectName object group name
+    * @return resolved MobileOR object with scope metadata
+    */
+   public ResolvedMobileObject resolveMobileObjectWithScope(String pageName, String objectName) {
+       var proj = getFrom(mobileProjectOR, pageName, objectName);
+       if (proj != null) {
+           String actualPageName = proj.getParent() != null ? proj.getParent().getName() : pageName;
+           return new ResolvedMobileObject(ORScope.PROJECT, actualPageName, objectName, proj);
+       }
+       var shared = getFrom(mobileSharedOR, pageName, objectName);
+       if (shared != null) {
+           markSharedUsage();
+           String actualPageName = shared.getParent() != null ? shared.getParent().getName() : pageName;
+           return new ResolvedMobileObject(ORScope.SHARED, actualPageName, objectName, shared);
+       }
+       return null;
+   }
+
     private ObjectGroup<WebORObject> getFrom(WebOR or, String page, String obj) {
         if (or == null) return null;
         var p = or.getPageByName(page);
         return (p == null) ? null : p.getObjectGroupByName(obj);
+    }
+    
+    private ObjectGroup<MobileORObject> getFrom(MobileOR or, String page, String obj) {
+    if (or == null) return null;
+    MobileORPage p = or.getPageByName(page);
+    return (p == null) ? null : p.getObjectGroupByName(obj);
     }
     
     /**
