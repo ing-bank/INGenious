@@ -136,9 +136,9 @@ Follow these steps to build and deploy a custom plugin for the INGenious Playwri
     - Launch INGenious Playwright Studio. Your plugin actions will appear in the suggested actions list under the relevant Object type.
 
 ## INGenious Object types and Actions
-Object types in NGenious categorize automation actions, helping organize and group related functionalities within the platform. Actions are the operations or commands you define for each object type. By creating plugins, you can introduce new object types and their associated actions, making them available in the NGenious UI alongside built-in types. This extensibility allows you to tailor the automation framework to your specific testing needs.
+Object types in INGenious categorize automation actions, helping organize and group related functionalities within the platform. Actions are the operations or commands you define for each object type. By creating plugins, you can introduce new object types and their associated actions, making them available in the INGenious UI alongside built-in types. This extensibility allows you to tailor the automation framework to your specific testing needs.
 
-Multiple new objects types can also be added in a single entry class. Ensure object types and actions are defined inside your entry class-otherwise they will not be detected by INGenious. Note that object type names are case sensitive (e.g., xml and XML are treated as different types).
+Multiple new object types can also be added in a single entry class. Ensure object types and actions are defined inside your entry class-otherwise they will not be detected by INGenious. Note that object type names are case sensitive (e.g., xml and XML are treated as different types).
 
 To add new Object Type, declare it inside the @Action annotation as the object. See example below. 
 
@@ -158,18 +158,16 @@ To add new Object Type, declare it inside the @Action annotation as the object. 
 ```
 
 ### Best Practice
-Here are some best practices.
-
 **Object Naming**
 - Use descriptive nouns that clearly represent the testing domain concept (e.g., `Webservice`, `Database`).
 - Objects can also represent items that have associated actions, such as `XMLDocument` for XML-related operations (e.g., create XML document, add child nodes).
 - Avoid abbreviations unless they are widely recognized (e.g., Api, Id).
 
 **Storage Action Naming**
-- Use `store<Data>In<TargetDestination>` format (e.g., `storeDBValueInDataSheet`, `storeResultInVariable`, `storeValueInGlobalVariable`).
+- Use format `store<Data>In<TargetDestination>` (e.g., `storeDBValueInDataSheet`, `storeResultInVariable`, `storeValueInGlobalVariable`).
 
 **Assert Action Naming**
-- Use formats like `assert<ObjectOfAssertion><Condition>` (e.g., `assertResponseBodyContains`, `assertXMLElementEquals`).
+- Use formats `assert<ObjectOfAssertion><Condition>` (e.g., `assertResponseBodyContains`, `assertXMLElementEquals`).
 
 ### Troubleshooting
 ***Duplicate Action*** 
@@ -200,7 +198,7 @@ Plugins can include their own dependencies and use different versions of librari
 **Best Practices:**
 - Use the Maven Dependency Plugin to package your plugin’s dependencies separately from the core engine (see step 2 for configuration).
 - Avoid including `ingenious-engine` in your plugin’s `lib` folder to prevent conflicts with the main application.
-- Ensure that all dependencies of the plugin is included in the plugin’s `lib` folder. INGenious does not rebuild your plugin.
+- Ensure that all plugin dependencies are included in the plugin’s lib folder, as INGenious does not rebuild your plugin.
 
 **Example:**
 ```xml
