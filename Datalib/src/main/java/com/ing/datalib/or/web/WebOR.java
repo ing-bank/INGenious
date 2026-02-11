@@ -19,6 +19,13 @@ import javax.swing.tree.TreeNode;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JacksonXmlRootElement(localName = "Root")
+
+/**
+ * Represents the Web Object Repository (WebOR), containing pages and their objects,
+ * along with metadata such as scope, type, associated projects, and save state.
+ * Provides page management, tree navigation, sorting, and repository integration.
+ */
+
 public class WebOR implements ORRootInf<WebORPage> {
 
     public final static List<String> OBJECT_PROPS
@@ -43,12 +50,22 @@ public class WebOR implements ORRootInf<WebORPage> {
 
     @JacksonXmlProperty(isAttribute = true)
     private String type;
+    
+    @JacksonXmlProperty(isAttribute = true)
+    private ORScope scope = ORScope.PROJECT;
+    
+    @JacksonXmlElementWrapper(localName = "projects")
+    @JacksonXmlProperty(localName = "project")
+    private List<String> projects = new ArrayList<>();
 
     @JsonIgnore
     private ObjectRepository objectRepository;
 
     @JsonIgnore
     private Boolean saved = true;
+    
+    @JsonIgnore
+    private String repLocationOverride;
 
     public WebOR() {
         this.pages = new ArrayList<>();
@@ -80,6 +97,9 @@ public class WebOR implements ORRootInf<WebORPage> {
         this.pages = pages;
         for (WebORPage page : pages) {
             page.setRoot(this);
+            if (page.getSource() == null || page.getSource().isBlank()) {
+                page.setSource(isShared() ? "SHARED" : "PROJECT");
+            }
         }
     }
 
@@ -131,6 +151,7 @@ public class WebOR implements ORRootInf<WebORPage> {
         if (getPageByName(pageName) == null) {
             WebORPage page = new WebORPage(pageName, this);
             pages.add(page);
+            page.setSource(isShared() ? "SHARED" : "PROJECT");
             new File(page.getRepLocation()).mkdirs();
             setSaved(false);
             return page;
@@ -227,9 +248,16 @@ public class WebOR implements ORRootInf<WebORPage> {
     }
 
     @JsonIgnore
+    public void setRepLocationOverride(String path) {
+        this.repLocationOverride = path;
+    }
+
+    @JsonIgnore
     @Override
     public String getRepLocation() {
-        return getObjectRepository().getORRepLocation();
+        return repLocationOverride != null
+            ? repLocationOverride
+            : getObjectRepository().getORRepLocation();
     }
 
     @JsonIgnore
@@ -237,4 +265,31 @@ public class WebOR implements ORRootInf<WebORPage> {
     public void sort() {
         ORUtils.sort(this);
     }
+    
+    public enum ORScope { 
+        PROJECT, SHARED 
+    }
+
+    @JsonIgnore
+    public ORScope getScope() { 
+        return scope; 
+    }
+    
+    public void setScope(ORScope scope) { 
+        this.scope = scope; 
+    }
+
+    @JsonIgnore
+    public boolean isShared() { 
+        return scope == ORScope.SHARED; 
+    }
+    
+    public List<String> getProjects() {
+        return projects;
+    }
+    
+    public void setProjects(List<String> projects) {
+        this.projects = (projects == null) ? new ArrayList<>() : projects;
+    }
+
 }

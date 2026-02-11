@@ -3,6 +3,7 @@ package com.ing.ide.main.mainui.components.testdesign.testcase.validation;
 import com.ing.datalib.component.Scenario;
 import com.ing.datalib.component.TestStep;
 import com.ing.datalib.or.common.ORPageInf;
+import com.ing.datalib.or.web.ResolvedWebObject;
 import com.ing.engine.support.methodInf.MethodInfoManager;
 import com.ing.engine.support.methodInf.ObjectType;
 import java.awt.Color;
@@ -11,9 +12,24 @@ import java.util.Objects;
 import javax.swing.JComponent;
 
 /**
+ * Renderer for the “Action” column of a test step, validating actions and
+ * reusable-step references while applying appropriate visual feedback in the UI.
+ * <p>
+ * {@code ActionRenderer} evaluates whether an action is empty, belongs to a
+ * valid action set for the object type (browser, mobile, file, webservice,
+ * etc.), or refers to a valid reusable test step. It highlights invalid actions,
+ * marks valid ones with default styling, and applies special formatting to
+ * webservice start/stop/request and text-entry operations.
+ * </p>
  *
- *
+ * <p>
+ * The renderer uses {@link MethodInfoManager} to resolve valid action lists,
+ * checks reusable existence via the project’s scenario/testcase structure, and
+ * detects whether the referenced object is web, mobile, or general-purpose
+ * through Object Repository lookups.
+ * </p>
  */
+
 public class ActionRenderer extends AbstractRenderer {
 
     final String actionNotPresent = "Action not available/Not a valid action";
@@ -141,9 +157,15 @@ public class ActionRenderer extends AbstractRenderer {
     }
 
     private boolean isWebObject(TestStep step) {
-        ORPageInf page = step.getProject().
-                getObjectRepository().getWebOR().getPageByName(step.getReference());
-        return page != null && page.getObjectGroupByName(step.getObject()) != null;
+        var repo = step.getProject().getObjectRepository();
+        String pageToken = step.getReference();
+        String objectName = step.getObject();
+        ResolvedWebObject.PageRef ref = ResolvedWebObject.PageRef.parse(pageToken);
+        ResolvedWebObject r =
+            (ref != null && ref.name != null && ref.scope != null)
+            ? repo.resolveWebObject(ref, objectName)
+            : repo.resolveWebObjectWithScope(pageToken, objectName);  
+        return r != null && r.isPresent();
     }
 
     private boolean isMobileObject(TestStep step) {

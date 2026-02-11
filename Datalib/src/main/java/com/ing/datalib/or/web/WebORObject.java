@@ -24,6 +24,14 @@ import javax.swing.tree.TreeNode;
 import javax.swing.tree.TreePath;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
+
+/**
+ * Represents a single web object inside a WebOR page, containing a collection of
+ * OR attributes, frame information, and references to its parent object group.
+ * Supports attribute editing, table model operations, cloning, renaming,
+ * and object repository persistence updates.
+ */
+
 public class WebORObject extends UndoRedoModel implements ORObjectInf {
 
     @JacksonXmlProperty(isAttribute = true, localName = "ref")

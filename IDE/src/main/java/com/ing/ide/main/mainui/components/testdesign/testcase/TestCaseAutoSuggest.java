@@ -12,6 +12,7 @@ import static com.ing.datalib.component.TestStep.HEADERS.Input;
 import static com.ing.datalib.component.TestStep.HEADERS.ObjectName;
 import static com.ing.datalib.component.TestStep.HEADERS.Reference;
 import com.ing.datalib.or.common.ORPageInf;
+import com.ing.datalib.or.web.ResolvedWebObject;
 import com.ing.datalib.testdata.model.Record;
 import com.ing.datalib.testdata.model.TestDataModel;
 import com.ing.engine.support.methodInf.MethodInfoManager;
@@ -48,9 +49,18 @@ import javax.swing.SwingUtilities;
 import javax.swing.Timer;
 
 /**
- *
- *
+ * Auto‑suggest controller for the Test Case table, providing intelligent
+ * suggestions for Object, Action, Condition, and Input columns.
+ * <p>
+ * This component installs custom AutoSuggest editors on the Test Case table
+ * and dynamically generates context‑aware suggestion lists based on the
+ * selected object type, project settings, Object Repository metadata, test
+ * data definitions, and reusable actions. It also integrates specialized
+ * payload editors for SQL, Webservice, File, Message, Browser routing, and
+ * String Operations steps.
+ * </p>
  */
+
 public class TestCaseAutoSuggest {
 
     private final Project sProject;
@@ -349,10 +359,16 @@ public class TestCaseAutoSuggest {
             return reusableList;
         }
 
-
-        private boolean isWebObject(String objectName, String pageName) {
-            ORPageInf page = sProject.getObjectRepository().getWebOR().getPageByName(pageName);
-            return page != null && page.getObjectGroupByName(objectName) != null;
+        private boolean isWebObject(String objectName, String pageToken) {
+            if (pageToken == null || pageToken.isBlank() || objectName == null || objectName.isBlank()) {
+                return false;
+            }
+            var repo = sProject.getObjectRepository();
+            ResolvedWebObject.PageRef ref = ResolvedWebObject.PageRef.parse(pageToken);
+            ResolvedWebObject r = (ref != null && ref.name != null && ref.scope != null)
+                    ? repo.resolveWebObject(ref, objectName)
+                    : repo.resolveWebObjectWithScope(pageToken, objectName);
+            return r != null && r.isPresent();
         }
 
         private boolean isMobileObject(String objectName, String pageName) {
