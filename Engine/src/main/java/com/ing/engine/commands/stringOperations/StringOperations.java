@@ -131,7 +131,7 @@ public class StringOperations extends General {
             if(subStringList.size() == 2 || subStringList.size() == 3){
                 s = getVarValue(subStringList.get(0));
                 String s2 = getVarValue(subStringList.get(1).trim()) ;
-                String s3 = subStringList.size() == 3 ? getVarValue(subStringList.get(2).trim()) : String.valueOf(s.length() -1);
+                String s3 = subStringList.size() == 3 ? getVarValue(subStringList.get(2).trim()) : String.valueOf(s.length());
                 if (isNumeric(s2) && isNumeric(s3)){
                     int firstIndex = Integer.parseInt(s2);
                     int secondIndex = Integer.parseInt(s3);
