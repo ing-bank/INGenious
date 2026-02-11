@@ -4,6 +4,7 @@ import com.ing.datalib.component.TestStep;
 import com.ing.datalib.or.web.ResolvedWebObject;
 import com.ing.datalib.or.mobile.ResolvedMobileObject;
 
+import com.ing.engine.support.ObjectTypeUtil;
 import java.awt.Color;
 import java.awt.Font;
 import java.util.Objects;
@@ -67,8 +68,17 @@ public class ObjectRenderer extends AbstractRenderer {
         return repo.resolveMobileObjectWithScope(pageToken, objectName) != null;
     }
 
+    /**
+     * Validates if the given value represents a known object type.
+     * <p>
+     * Checks if the value is a recognized system object type (e.g., Execute, Browser,
+     * Mobile, Database, Webservice, etc.) that the framework supports.
+     * </p>
+     *
+     * @param value the object type value to validate
+     * @return true if the value is a known object type, false otherwise
+     */
     private Boolean isValidObject(Object value) {
-        String v = java.util.Objects.toString(value, "").trim();
-        return v.matches("^(Execute|App|Browser|Database|Webservice|Kafka|Synthetic Data|Queue|File|General|String Operations|Mobile)$");
+        return ObjectTypeUtil.isKnownType(Objects.toString(value, "").trim());
     }
 }

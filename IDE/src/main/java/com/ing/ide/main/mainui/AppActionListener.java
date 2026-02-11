@@ -2,6 +2,7 @@
 package com.ing.ide.main.mainui;
 
 import com.ing.engine.support.methodInf.MethodInfoManager;
+import com.ing.exceptions.DuplicateMethodException;
 import com.ing.ide.main.bdd.BddParser;
 import com.ing.ide.main.explorer.ExplorerBar;
 import com.ing.ide.main.Main;
@@ -322,8 +323,24 @@ public class AppActionListener implements ActionListener {
         tmSettings.load();
     }
 
+    /**
+     * Refreshes the method information by reloading it from the MethodInfoManager.
+     * <p>
+     * This method attempts to reload all method information. If a duplicate method
+     * is detected during the loading process, an error is logged and the application
+     * terminates with exit code 1.
+     * </p>
+     *
+     * @throws DuplicateMethodException if duplicate methods are found during reload
+     *                                   (caught and handled internally by logging and exiting)
+     */
     private void doRefresh() {
-        MethodInfoManager.load();
+        try {
+            MethodInfoManager.load();
+        } catch (DuplicateMethodException ex) {
+            System.getLogger(AppActionListener.class.getName()).log(System.Logger.Level.ERROR, (String) null, ex);
+            System.exit(1);
+        }
     }      
       
     /**

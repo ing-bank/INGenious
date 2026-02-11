@@ -4,6 +4,7 @@ import com.ing.datalib.component.Scenario;
 import com.ing.datalib.component.TestStep;
 import com.ing.datalib.or.web.ResolvedWebObject;
 import com.ing.datalib.or.mobile.ResolvedMobileObject;
+import com.ing.engine.support.ObjectTypeUtil;
 import com.ing.engine.support.methodInf.MethodInfoManager;
 import com.ing.engine.support.methodInf.ObjectType;
 
@@ -75,61 +76,42 @@ public class ActionRenderer extends AbstractRenderer {
         return val.isEmpty() ? null : val;
     }
 
+    /**
+     * Validates if the given action is valid for the test step's object type.
+     * <p>
+     * Execute objects always accept any action. For other objects, checks if the action
+     * is available in the method list for known object types (Browser, Database, etc.),
+     * web/mobile page objects from the repository, or falls back to generic actions.
+     * </p>
+     *
+     * @param step the test step containing the object type
+     * @param value the action to validate
+     * @return true if the action is valid for the object type, false otherwise
+     */
     private Boolean isActionValid(TestStep step, Object value) {
         String action = Objects.toString(value, "").trim();
         String objectName = step.getObject();
-        Boolean valid = false;
 
-        switch (objectName) {
-            case "Execute":
-                valid = true;
-                break;
-            case "Browser":
-                valid = MethodInfoManager.getMethodListFor(ObjectType.BROWSER).contains(action);
-                break;
-            case "Mobile":
-                valid = MethodInfoManager.getMethodListFor(ObjectType.MOBILE).contains(action);
-                break;
-            case "Database":
-                valid = MethodInfoManager.getMethodListFor(ObjectType.DATABASE).contains(action);
-                break;
-            case "ProtractorJS":
-                valid = MethodInfoManager.getMethodListFor(ObjectType.PROTRACTORJS).contains(action);
-                break;
-            case "Webservice":
-                valid = MethodInfoManager.getMethodListFor(ObjectType.WEBSERVICE).contains(action);
-                break;
-            case "File":
-                valid = MethodInfoManager.getMethodListFor(ObjectType.FILE).contains(action);
-                break;
-            case "Synthetic Data":
-                valid = MethodInfoManager.getMethodListFor(ObjectType.DATA).contains(action);
-                break;
-            case "Queue":
-                valid = MethodInfoManager.getMethodListFor(ObjectType.QUEUE).contains(action);
-                break;
-            case "Kafka":
-                valid = MethodInfoManager.getMethodListFor(ObjectType.KAFKA).contains(action);
-                break;
-            case "General":
-                valid = MethodInfoManager.getMethodListFor(ObjectType.GENERAL).contains(action);
-                break;
-            case "String Operations":
-                valid = MethodInfoManager.getMethodListFor(ObjectType.STRINGOPERATIONS).contains(action);
-                break;
-            default:
-                if (isWebObject(step)) {
-                    valid = MethodInfoManager.getMethodListFor(ObjectType.PLAYWRIGHT, ObjectType.WEB).contains(action);
-                } else if (isMobileObject(step)) {
-                    valid = MethodInfoManager.getMethodListFor(ObjectType.APP).contains(action);
-                }
-                break;
+        // Execute always accepts any action (reusable)
+        if ("Execute".equals(objectName)) {
+            return true;
         }
 
-        if (!valid) {
-            valid = MethodInfoManager.getMethodListFor(ObjectType.ANY).contains(action);
+        // Check if it's a known object type (Browser, Mobile, Database, etc.)
+        if (ObjectTypeUtil.isKnownType(objectName)) {
+            return MethodInfoManager.getMethodListFor(objectName).contains(action);
         }
-        return valid;
+
+        // Check if it's a web or mobile page object
+        if (isWebObject(step)) {
+            return MethodInfoManager.getMethodListFor(ObjectType.PLAYWRIGHT, ObjectType.WEB).contains(action);
+        }
+        if (isMobileObject(step)) {
+            return MethodInfoManager.getMethodListFor(ObjectType.APP).contains(action);
+        }
+
+        // Fallback to generic actions available for any object
+        return MethodInfoManager.getMethodListFor(ObjectType.ANY).contains(action);
     }
 
     private boolean isWebObject(TestStep step) {

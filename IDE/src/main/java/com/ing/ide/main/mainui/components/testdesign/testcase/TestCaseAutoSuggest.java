@@ -16,6 +16,7 @@ import com.ing.datalib.or.mobile.ResolvedMobileObject;
 import com.ing.datalib.or.web.ResolvedWebObject;
 import com.ing.datalib.testdata.model.Record;
 import com.ing.datalib.testdata.model.TestDataModel;
+import com.ing.engine.support.ObjectTypeUtil;
 import com.ing.engine.support.methodInf.MethodInfoManager;
 import com.ing.engine.support.methodInf.ObjectType;
 import com.ing.engine.util.data.fx.FParser;
@@ -124,19 +125,18 @@ public class TestCaseAutoSuggest {
         table.getColumnModel().getColumn(Input.getIndex()).setCellEditor(new InputAutoSuggestCellEditor(inputAutoSuggest));
     }
 
-    private List getObjectList() {
-        List objectList = new ArrayList<>();
-        objectList.add("Browser");
-        objectList.add("Mobile");
-        objectList.add("Webservice");
-        objectList.add("Database");
-        objectList.add("Kafka");
-        objectList.add("Queue");
-        objectList.add("Synthetic Data");
-        objectList.add("File");
-        objectList.add("General");
-        objectList.add("Execute");
-        objectList.add("String Operations");
+    /**
+     * Retrieves a list of all object types available in the IDE.
+     * <p>
+     * The object types are sourced from {@link ObjectTypeUtil#getAllTypesForIDE()}
+     * and are used to populate the ObjectName dropdown in test case design.
+     * </p>
+     *
+     * @return a List of String containing all object type names available in the IDE
+     * @see ObjectTypeUtil#getAllTypesForIDE()
+     */
+    private List<String> getObjectList() {
+        List<String> objectList = new ArrayList<>(ObjectTypeUtil.getAllTypesForIDE()); // arraylist to allow ordered list
         return objectList;
     }
 
@@ -297,44 +297,44 @@ public class TestCaseAutoSuggest {
 
     class ActionAutoSuggest extends AutoSuggest {
 
-        private List getActionBasedOnObject() {
+        /**
+         * Retrieves available actions for the currently selected object in the test design table.
+         * <p>
+         * Returns action methods appropriate for the object type (Browser, Database, Webservice, etc.)
+         * or reusable components for Execute objects. For unrecognized object names, attempts to
+         * resolve them as custom types, web objects, or mobile objects from the object repository.
+         * </p>
+         *
+         * @return list of action method names for the selected object, or an empty list if unrecognized
+         * @see MethodInfoManager#getMethodListFor(String...)
+         * @see ObjectTypeUtil#isKnownType(String)
+         */
+        private List<String> getActionBasedOnObject() {
             String objectName = Objects.toString(table.getValueAt(
                     table.getSelectedRow(), ObjectName.getIndex()), "");
             String pageToken = Objects.toString(table.getValueAt(
                     table.getSelectedRow(), Reference.getIndex()), "");
 
-            switch (objectName) {
-                case "Execute":
-                    return getReusables();
-                case "Browser":
-                    return MethodInfoManager.getMethodListFor(ObjectType.BROWSER, ObjectType.ANY);
-                case "Mobile":
-                    return MethodInfoManager.getMethodListFor(ObjectType.MOBILE, ObjectType.MOBILE);
-                case "Database":
-                    return MethodInfoManager.getMethodListFor(ObjectType.DATABASE, ObjectType.DATABASE);
-                case "ProtractorJS":
-                    return MethodInfoManager.getMethodListFor(ObjectType.PROTRACTORJS, ObjectType.PROTRACTORJS);
-                case "Webservice":
-                    return MethodInfoManager.getMethodListFor(ObjectType.WEBSERVICE, ObjectType.WEBSERVICE);
-                case "Synthetic Data":
-                    return MethodInfoManager.getMethodListFor(ObjectType.DATA, ObjectType.DATA);
-                case "Queue":
-                    return MethodInfoManager.getMethodListFor(ObjectType.QUEUE, ObjectType.QUEUE);
-                case "Kafka":
-                    return MethodInfoManager.getMethodListFor(ObjectType.KAFKA, ObjectType.KAFKA);
-                case "File":
-                    return MethodInfoManager.getMethodListFor(ObjectType.FILE, ObjectType.FILE);
-                case "General":
-                    return MethodInfoManager.getMethodListFor(ObjectType.GENERAL, ObjectType.GENERAL);
-                case "String Operations":
-                    return MethodInfoManager.getMethodListFor(ObjectType.STRINGOPERATIONS, ObjectType.STRINGOPERATIONS);
-                default:
-                    if (isWebObject(objectName, pageToken)) {
-                        return MethodInfoManager.getMethodListFor(ObjectType.PLAYWRIGHT, ObjectType.WEB, ObjectType.ANY);
-                    } else if (isMobileObject(objectName, pageToken)) {
-                        return MethodInfoManager.getMethodListFor(ObjectType.APP);
-                    }
+            if ("Execute".equals(objectName)) {
+                return getReusables();
             }
+
+            if ("Browser".equals(objectName)) {
+                return MethodInfoManager.getMethodListFor(ObjectType.BROWSER, ObjectType.ANY);
+            }
+
+            if (ObjectTypeUtil.isKnownType(objectName)) {
+                return MethodInfoManager.getMethodListFor(objectName);
+            }
+
+            if (isWebObject(objectName, pageName)) {
+                return MethodInfoManager.getMethodListFor(ObjectType.PLAYWRIGHT, ObjectType.WEB, ObjectType.ANY);
+            }
+
+            if (isMobileObject(objectName, pageName)) {
+                return MethodInfoManager.getMethodListFor(ObjectType.APP);
+            }
+
             return new ArrayList<>();
         }
 

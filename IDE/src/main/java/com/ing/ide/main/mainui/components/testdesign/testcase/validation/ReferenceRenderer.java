@@ -3,7 +3,7 @@ package com.ing.ide.main.mainui.components.testdesign.testcase.validation;
 import com.ing.datalib.component.TestStep;
 import com.ing.datalib.or.web.ResolvedWebObject;
 import com.ing.datalib.or.mobile.ResolvedMobileObject;
-
+import com.ing.engine.support.ObjectTypeUtil;
 import java.awt.Color;
 import java.awt.Font;
 import java.util.Set;
@@ -96,9 +96,20 @@ public class ReferenceRenderer extends AbstractRenderer {
         }
     }
 
+
+    /**
+     * Checks if the Reference field is optional for the given test step.
+     * <p>
+     * The Reference field is optional when the object type is a known system type
+     * (e.g., Execute, Browser, Mobile, Database, Webservice) that doesn't require
+     * an object repository reference.
+     * </p>
+     *
+     * @param step the test step to check
+     * @return true if the Reference field is optional, false otherwise
+     */
     private Boolean isOptional(TestStep step) {
-        String obj = String.valueOf(step.getObject()).trim();
-        return CATEGORY_OBJECTS.contains(obj);
+        return ObjectTypeUtil.isKnownType(step.getObject());
     }
 
     private Boolean isObjectPresent(TestStep step) {

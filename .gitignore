@@ -22,6 +22,9 @@ npm-debug.log
 /Dist/release
 /Dist/release/**
 
+#Plugins
+/Resources/Plugins/**
+
 # IDE Generated Files
 nbproject
 nbactions*.xml

@@ -31,8 +31,8 @@ public class ConditionRenderer extends AbstractRenderer {
     }
 
     private Boolean isOptional(TestStep step) {
-        if (MethodInfoManager.methodInfoMap.containsKey(step.getAction())) {
-            return !MethodInfoManager.methodInfoMap.get(step.getAction()).condition().isMandatory();
+        if (MethodInfoManager.containsAction(step.getAction())) {
+            return !MethodInfoManager.getActionFor(step.getAction()).condition().isMandatory();
         }
         return true;
     }
