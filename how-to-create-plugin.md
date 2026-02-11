@@ -167,7 +167,7 @@ To add new Object Type, declare it inside the @Action annotation as the object. 
 - Use format `store<Data>In<TargetDestination>` (e.g., `storeDBValueInDataSheet`, `storeResultInVariable`, `storeValueInGlobalVariable`).
 
 **Assert Action Naming**
-- Use formats `assert<ObjectOfAssertion><Condition>` (e.g., `assertResponseBodyContains`, `assertXMLElementEquals`).
+- Use format `assert<ObjectOfAssertion><Condition>` (e.g., `assertResponseBodyContains`, `assertXMLElementEquals`).
 
 ### Troubleshooting
 ***Duplicate Action*** 
