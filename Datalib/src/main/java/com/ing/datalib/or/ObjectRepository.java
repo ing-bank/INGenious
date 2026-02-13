@@ -560,6 +560,88 @@ public class ObjectRepository {
         LOG.info(() -> "Copied Web Object '" + baseName + "' to SHARED as '" + uniqueName + "'");
         return uniqueName;
     }
+
+    /**
+     * Copies a project MobileOR page into the shared Mobile OR using a unique name.
+     * @param sourcePageName project page to copy from
+     * @param targetPageName desired shared page name (will uniquify if needed)
+     * @return actual created page name in shared OR, or null on failure
+     */
+    public String copyMobilePage(String sourcePageName, String targetPageName) {
+        MobileOR projectMOR = getMobileOR();
+        MobileOR sharedMOR  = getMobileSharedOR();
+        if (projectMOR == null || sharedMOR == null) return null;
+        MobileORPage sourcePage = projectMOR.getPageByName(sourcePageName);
+        if (sourcePage == null) return null;
+        String uniqueTargetName = generateUniquePageName(sharedMOR, targetPageName);
+        MobileORPage targetPage = getOrCreateMobilePage(sharedMOR, uniqueTargetName);
+        copyAllMobileGroups(sourcePage, targetPage);
+        sharedMOR.setSaved(false);
+        LOG.info(() -> "Copied Mobile Page '" + sourcePageName
+                + "' to SHARED page '" + uniqueTargetName + "' successfully.");
+        return uniqueTargetName;
+    }
+
+    /**
+     * Copies a MobileOR object into a target shared Mobile page (creates page if needed)
+     * using a unique object group name.
+     * @param source resolved mobile object (from project OR)
+     * @param targetPageName target page name in shared Mobile OR
+     * @return new object name created in shared OR, or null on failure
+     */
+    public String copyMobileObject(ResolvedMobileObject source, String targetPageName) {
+        if (source == null) return null;
+        MobileOR sharedMOR = getMobileSharedOR();
+        if (sharedMOR == null) return null;
+        MobileORPage targetPage = getOrCreateMobilePage(sharedMOR, targetPageName);
+        if (targetPage == null) return null;
+        ObjectGroup<MobileORObject> originalGroup = source.getGroup();
+        if (originalGroup == null) return null;
+        String baseName   = originalGroup.getName();
+        String uniqueName = generateUniqueMobileGroupName(targetPage, baseName);
+        ObjectGroup<MobileORObject> newGroup = cloneMobileGroupIntoPage(originalGroup, targetPage, uniqueName);
+        targetPage.getObjectGroups().add(newGroup);
+        sharedMOR.setSaved(false);
+        LOG.info(() -> "Copied Mobile Object '" + baseName + "' to SHARED as '" + uniqueName + "'");
+        return uniqueName;
+    }
+
+    private String generateUniquePageName(MobileOR mor, String baseName) {
+        if (mor == null) return baseName;
+        return generateUniqueName(baseName, name -> mor.getPageByName(name) != null);
+    }
+
+    private String generateUniqueMobileGroupName(MobileORPage page, String baseName) {
+        if (page == null) return baseName;
+        return generateUniqueName(baseName, name -> page.getObjectGroupByName(name) != null);
+    }
+
+    private MobileORPage getOrCreateMobilePage(MobileOR mor, String pageName) {
+        if (mor == null || pageName == null) return null;
+        MobileORPage page = mor.getPageByName(pageName);
+        return (page != null) ? page : mor.addPage(pageName);
+    }
+
+    private void copyAllMobileGroups(MobileORPage sourcePage, MobileORPage targetPage) {
+        if (sourcePage == null || targetPage == null) return;
+        for (ObjectGroup<MobileORObject> originalGroup : sourcePage.getObjectGroups()) {
+            if (originalGroup == null) continue;
+            targetPage.getObjectGroups().add(cloneMobileGroupIntoPage(originalGroup, targetPage, originalGroup.getName()));
+        }
+    }
+
+    private ObjectGroup<MobileORObject> cloneMobileGroupIntoPage(ObjectGroup<MobileORObject> originalGroup, MobileORPage targetPage, String newGroupName) {
+        ObjectGroup<MobileORObject> newGroup = new ObjectGroup<>(newGroupName, targetPage);
+        if (originalGroup.getObjects() != null && !originalGroup.getObjects().isEmpty()) {
+            MobileORObject sourceObj = originalGroup.getObjects().get(0);
+            MobileORObject cloned = new MobileORObject();
+            cloned.setName(newGroupName);
+            cloned.setParent(newGroup);
+            sourceObj.clone(cloned);
+            newGroup.getObjects().add(cloned);
+        }
+        return newGroup;
+    }
     
     /**
      * Marks that the current project has used a shared object,

@@ -809,58 +809,116 @@ public abstract class ObjectTree implements ActionListener {
         ORObjectInf obj = getSelectedObject();
         ObjectGroup group = getSelectedObjectGroup();
         ORPageInf selectedPage = getSelectedPage();
+
         if (obj == null && group == null && selectedPage == null) {
             com.ing.ide.util.Notification.show("Select an Object, Object Group, or Page.");
             return;
         }
+
         ORPageInf page = (obj != null) ? obj.getPage()
                 : (group != null) ? group.getParent()
                 : selectedPage;
-        com.ing.datalib.or.ObjectRepository repo = getProject().getObjectRepository();
+
+        ObjectRepository repo = getProject().getObjectRepository();
+
+        ORRootInf root = getOR();
+        boolean isWeb = (root instanceof com.ing.datalib.or.web.WebOR);
+        boolean isMobile = (root instanceof com.ing.datalib.or.mobile.MobileOR);
+
         if (obj == null && group == null && selectedPage != null) {
-            String newName = repo.copyWebPage(page.getName(), page.getName());
-            if (newName != null) {
-                com.ing.ide.util.Notification.show("Copied Page '" + page.getName() + "' to Shared Web Object successfully as '" + newName + "'.");
-            } else {
-                com.ing.ide.util.Notification.show("Copy failed. Could not copy Page '" + page.getName() + "' to Shared Web Objects.");
+            if (isWeb) {
+                String newName = repo.copyWebPage(page.getName(), page.getName());
+                if (newName != null) {
+                    com.ing.ide.util.Notification.show("Copied Page '" + page.getName() + "' to Shared Web Object successfully as '" + newName + "'.");
+                } else {
+                    com.ing.ide.util.Notification.show("Copy failed. Could not copy Page '" + page.getName() + "' to Shared Web Objects.");
+                }
+                if (newName != null) {
+                    if (this instanceof com.ing.ide.main.mainui.components.testdesign.or.web.WebObjectTree) {
+                        com.ing.ide.main.mainui.components.testdesign.or.web.WebORPanel panel =
+                            ((com.ing.ide.main.mainui.components.testdesign.or.web.WebObjectTree) this).getORPanel();
+                        panel.getSharedTree().load();
+                    } else {
+                        reload();
+                    }
+                }
+                return;
+            } else if (isMobile) {
+                String newName = repo.copyMobilePage(page.getName(), page.getName());
+                if (newName != null) {
+                    com.ing.ide.util.Notification.show("Copied Page '" + page.getName() + "' to Shared Mobile Object successfully as '" + newName + "'.");
+                } else {
+                    com.ing.ide.util.Notification.show("Copy failed. Could not copy Page '" + page.getName() + "' to Shared Mobile Objects.");
+                }
+                if (newName != null) {
+                    if (this instanceof com.ing.ide.main.mainui.components.testdesign.or.mobile.MobileObjectTree) {
+                        com.ing.ide.main.mainui.components.testdesign.or.mobile.MobileORPanel panel =
+                            ((com.ing.ide.main.mainui.components.testdesign.or.mobile.MobileObjectTree) this).getORPanel();
+                        panel.getSharedTree().load();
+                    } else {
+                        reload();
+                    }
+                }
+                return;
             }
-            if (newName != null) {
+        }
+
+        String objectName = (obj != null) ? obj.getName() : group.getName();
+
+        if (isWeb) {
+            ResolvedWebObject resolved =
+                repo.resolveWebObject(
+                    new ResolvedWebObject.PageRef(page.getName(), com.ing.datalib.or.web.WebOR.ORScope.PROJECT),
+                    objectName
+                );
+            if (resolved == null) {
+                com.ing.ide.util.Notification.show("Object '" + objectName + "' not found in Project OR (Page '" + page.getName() + "').");
+                return;
+            }
+
+            String copiedName = repo.copyWebObject(resolved, page.getName());
+            if (copiedName != null) {
+                com.ing.ide.util.Notification.show("Copied Object '" + copiedName + "' from Page '" + page.getName() + "' to Shared Web Object successfully.");
+            } else {
+                com.ing.ide.util.Notification.show("Copy failed. Could not copy Object '" + objectName + "' to Shared Web Object (Page '" + page.getName() + "').");
+            }
+            if (copiedName != null) {
                 if (this instanceof com.ing.ide.main.mainui.components.testdesign.or.web.WebObjectTree) {
                     com.ing.ide.main.mainui.components.testdesign.or.web.WebORPanel panel =
-                            ((com.ing.ide.main.mainui.components.testdesign.or.web.WebObjectTree) this).getORPanel();
+                        ((com.ing.ide.main.mainui.components.testdesign.or.web.WebObjectTree) this).getORPanel();
                     panel.getSharedTree().load();
                 } else {
                     reload();
                 }
             }
-            return;
-        }
-        String objectName = (obj != null) ? obj.getName() : group.getName();
-        com.ing.datalib.or.web.ResolvedWebObject resolved =
-                repo.resolveWebObject(
-                        new com.ing.datalib.or.web.ResolvedWebObject.PageRef(
-                                page.getName(),
-                                com.ing.datalib.or.web.WebOR.ORScope.PROJECT
-                        ),
-                        objectName
+        } else if (isMobile) {
+            com.ing.datalib.or.mobile.ResolvedMobileObject mresolved =
+                repo.resolveMobileObject(
+                    new com.ing.datalib.or.mobile.ResolvedMobileObject.PageRef(
+                        page.getName(),
+                        com.ing.datalib.or.web.WebOR.ORScope.PROJECT
+                    ),
+                    objectName
                 );
-        if (resolved == null) {
-            com.ing.ide.util.Notification.show("Object '" + objectName + "' not found in Project OR (Page '" + page.getName() + "').");
-            return;
-        }
-        String copiedName = repo.copyWebObject(resolved, page.getName());
-        if (copiedName != null) {
-            com.ing.ide.util.Notification.show("Copied Object '" + copiedName + "' from Page '" + page.getName() + "' to Shared Web Object successfully.");
-        } else {
-            com.ing.ide.util.Notification.show("Copy failed. Could not copy Object '" + objectName + "' to Shared Web Object (Page '" + page.getName() + "').");
-        }
-        if (copiedName != null) {
-            if (this instanceof com.ing.ide.main.mainui.components.testdesign.or.web.WebObjectTree) {
-                com.ing.ide.main.mainui.components.testdesign.or.web.WebORPanel panel =
-                        ((com.ing.ide.main.mainui.components.testdesign.or.web.WebObjectTree) this).getORPanel();
-                panel.getSharedTree().load();
+            if (mresolved == null) {
+                com.ing.ide.util.Notification.show("Object '" + objectName + "' not found in Project Mobile OR (Page '" + page.getName() + "').");
+                return;
+            }
+
+            String copiedName = repo.copyMobileObject(mresolved, page.getName());
+            if (copiedName != null) {
+                com.ing.ide.util.Notification.show("Copied Object '" + copiedName + "' from Page '" + page.getName() + "' to Shared Mobile Object successfully.");
             } else {
-                reload();
+                com.ing.ide.util.Notification.show("Copy failed. Could not copy Object '" + objectName + "' to Shared Mobile Object (Page '" + page.getName() + "').");
+            }
+            if (copiedName != null) {
+                if (this instanceof com.ing.ide.main.mainui.components.testdesign.or.mobile.MobileObjectTree) {
+                    com.ing.ide.main.mainui.components.testdesign.or.mobile.MobileORPanel panel =
+                        ((com.ing.ide.main.mainui.components.testdesign.or.mobile.MobileObjectTree) this).getORPanel();
+                    panel.getSharedTree().load();
+                } else {
+                    reload();
+                }
             }
         }
     }

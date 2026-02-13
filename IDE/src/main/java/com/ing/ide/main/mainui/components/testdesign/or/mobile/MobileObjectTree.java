@@ -64,4 +64,8 @@ public class MobileObjectTree extends ObjectTree {
     public ORSource getSource() { 
         return source; 
     }
+    
+    public MobileORPanel getORPanel() {
+        return oRPanel;
+    }
 }
