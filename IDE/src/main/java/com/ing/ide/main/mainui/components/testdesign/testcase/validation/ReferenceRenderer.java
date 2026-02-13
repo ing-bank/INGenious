@@ -1,8 +1,9 @@
-
 package com.ing.ide.main.mainui.components.testdesign.testcase.validation;
 
 import com.ing.datalib.component.TestStep;
 import com.ing.datalib.or.web.ResolvedWebObject;
+import com.ing.datalib.or.mobile.ResolvedMobileObject;
+
 import java.awt.Color;
 import java.awt.Font;
 import java.util.Objects;
@@ -11,20 +12,8 @@ import javax.swing.JComponent;
 /**
  * Renderer for the “Reference” column of a test step, responsible for validating
  * and decorating page references used in object-based steps.
- * <p>
- * {@code ReferenceRenderer} evaluates whether a reference is empty, optional,
- * or points to a valid page/object combination in the Object Repository. It
- * decorates recognized references with a “[Shared]” or “[Project]” prefix and
- * applies error or default styles depending on the validation outcome.
- * </p>
  *
- * <p>
- * The renderer also handles commented steps, optional references for certain
- * object types, and uses {@link ResolvedWebObject} to verify OR presence before
- * applying highlighting rules.
- * </p>
  */
-
 public class ReferenceRenderer extends AbstractRenderer {
 
     String objNotPresent = "Object is not present in the Object Repository";
@@ -34,24 +23,32 @@ public class ReferenceRenderer extends AbstractRenderer {
     }
 
     @Override
-
     public void render(JComponent comp, TestStep step, Object value) {
         String ref = step.getReference();
         String decorated = ref;
 
         var repo = step.getProject().getObjectRepository();
-        var pageRef = com.ing.datalib.or.web.ResolvedWebObject.PageRef.parse(ref);
 
-        var resolved = repo.resolveWebObject(pageRef, step.getObject());
-
-        if (resolved != null) {
-            if (resolved.isFromShared()) {
-                decorated = "[Shared] " + resolved.getPageName();
-            } else if (resolved.isFromProject()) {
-                decorated = "[Project] " + resolved.getPageName();
+        var wref = ResolvedWebObject.PageRef.parse(ref);
+        var wres = repo.resolveWebObject(wref, step.getObject());
+        if (wres == null) {
+            var mref = ResolvedMobileObject.PageRef.parse(ref);
+            var mres = repo.resolveMobileObject(mref, step.getObject());
+            if (mres != null) {
+                if (mres.isFromShared()) {
+                    decorated = "[Shared] " + mres.getPageName();
+                } else if (mres.isFromProject()) {
+                    decorated = "[Project] " + mres.getPageName();
+                }
+            } else {
+                decorated = ref;
             }
         } else {
-            decorated = ref;
+            if (wres.isFromShared()) {
+                decorated = "[Shared] " + wres.getPageName();
+            } else if (wres.isFromProject()) {
+                decorated = "[Project] " + wres.getPageName();
+            }
         }
 
         if (comp instanceof javax.swing.JLabel) {
@@ -76,33 +73,38 @@ public class ReferenceRenderer extends AbstractRenderer {
         }
     }
 
-	
-	private Color getColor(Object value) {
+    private Color getColor(Object value) {
         String val = Objects.toString(value, "").trim();
         switch (val) {
-            case "Execute":
-                return Color.BLUE;//.darker();
-            case "Mobile":
-                return Color.CYAN;//.darker();
-            case "Browser":
-                return Color.RED;//.darker();
-            default:
-                return new Color(204, 0, 255);
+            case "Execute": return Color.BLUE;   // .darker();
+            case "Mobile":  return Color.CYAN;   // .darker();
+            case "Browser": return Color.RED;    // .darker();
+            default:        return new Color(204, 0, 255);
         }
     }
 
     private Boolean isOptional(TestStep step) {
-        return step.getObject().matches("Execute|Mobile|Browser|Database|Webservice|Kafka|Synthetic Data|Queue|File|General|String Operations");
+        return step.getObject().matches("Execute\\nMobile\\nBrowser\\nDatabase\\nWebservice\\nKafka\\nSynthetic Data\\nQueue\\nFile\\nGeneral\\nString Operations");
     }
 
     private Boolean isObjectPresent(TestStep step) {
         var repo = step.getProject().getObjectRepository();
         String pageToken = step.getReference();
         String objectName = step.getObject();
-        ResolvedWebObject.PageRef ref = ResolvedWebObject.PageRef.parse(pageToken);
-        if (ref != null && ref.name != null && ref.scope != null) {
-            return repo.resolveWebObject(ref, objectName) != null;
+
+        ResolvedWebObject.PageRef wref = ResolvedWebObject.PageRef.parse(pageToken);
+        if (wref != null && wref.name != null && wref.scope != null) {
+            if (repo.resolveWebObject(wref, objectName) != null) {
+                return true;
+            }
+        } else if (repo.resolveWebObjectWithScope(pageToken, objectName) != null) {
+            return true;
         }
-        return repo.resolveWebObjectWithScope(pageToken, objectName) != null;
+
+        ResolvedMobileObject.PageRef mref = ResolvedMobileObject.PageRef.parse(pageToken);
+        if (mref != null && mref.name != null && mref.scope != null) {
+            return repo.resolveMobileObject(mref, objectName) != null;
+        }
+        return repo.resolveMobileObjectWithScope(pageToken, objectName) != null;
     }
 }
