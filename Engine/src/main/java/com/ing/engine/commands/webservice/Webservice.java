@@ -36,6 +36,7 @@ import org.xml.sax.InputSource;
 import java.io.StringReader;
 import java.net.URLEncoder;
 import java.net.http.HttpClient;
+import java.net.http.HttpClient.Redirect;
 import java.net.http.HttpRequest;
 import java.net.http.HttpRequest.BodyPublisher;
 import java.net.http.HttpResponse;
@@ -462,7 +463,7 @@ public class Webservice extends General {
         /**
          * *** need to add timeout,version******
          */
-        httpClient.put(key, httpClientBuilder.get(key).build());
+        httpClient.put(key, httpClientBuilder.get(key).followRedirects(Redirect.ALWAYS).build());
         httpRequest.put(key, httpRequestBuilder.get(key).build());
         response.put(key, httpClient.get(key).send(httpRequest.get(key), HttpResponse.BodyHandlers.ofString()));
 
