@@ -117,7 +117,6 @@ public class ObjectRepository {
                 mobileProjectOR.setScope(MobileOR.ORScope.PROJECT);
             }
 
-
             LOG.log(Level.INFO, "Shared WebOR loaded: {0}", (webSharedOR != null));
             LOG.log(Level.INFO, "Project WebOR loaded: {0}", (webProjectOR != null));
             LOG.log(Level.INFO, "Shared MobileOR loaded: {0}", (mobileSharedOR != null));
@@ -321,6 +320,44 @@ public class ObjectRepository {
         }
         if (renamed) {
             sProject.refactorPageName(scopeRenamed, oldName, newName);
+        } else {
+            sProject.refactorPageName(oldName, newName);
+        }
+    }
+
+    public void renamePage(com.ing.datalib.or.mobile.MobileORPage page, String newName) {
+        if (page == null || newName == null || newName.isBlank()) return;
+        String oldName = page.getName();
+        if (oldName.equals(newName)) return;
+        boolean renamed = false;
+        com.ing.datalib.or.mobile.MobileOR.ORScope mScope = null;
+        if (mobileProjectOR != null) {
+            var p = mobileProjectOR.getPageByName(oldName);
+            if (p == page) {
+                var existsSameScope = mobileProjectOR.getPageByName(newName);
+                if (existsSameScope != null && existsSameScope != page) return;
+                p.setName(newName);
+                mobileProjectOR.setSaved(false);
+                renamed = true;
+                mScope = com.ing.datalib.or.mobile.MobileOR.ORScope.PROJECT;
+            }
+        }
+        if (!renamed && mobileSharedOR != null) {
+            var s = mobileSharedOR.getPageByName(oldName);
+            if (s == page) {
+                var existsSameScope = mobileSharedOR.getPageByName(newName);
+                if (existsSameScope != null && existsSameScope != page) return;
+                s.setName(newName);
+                mobileSharedOR.setSaved(false);
+                renamed = true;
+                mScope = com.ing.datalib.or.mobile.MobileOR.ORScope.SHARED;
+            }
+        }
+        if (renamed) {
+            var webLikeScope = (mScope == com.ing.datalib.or.mobile.MobileOR.ORScope.PROJECT)
+                    ? com.ing.datalib.or.web.WebOR.ORScope.PROJECT
+                    : com.ing.datalib.or.web.WebOR.ORScope.SHARED;
+            sProject.refactorPageName(webLikeScope, oldName, newName);
         } else {
             sProject.refactorPageName(oldName, newName);
         }

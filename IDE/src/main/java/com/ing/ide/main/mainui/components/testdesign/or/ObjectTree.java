@@ -739,17 +739,13 @@ public abstract class ObjectTree implements ActionListener {
         }
         String pageName = group.getParent().getName();
         String objectName = group.getName();
-        WebOR.ORScope scope = WebOR.ORScope.PROJECT;
-        ORRootInf root = getOR();
-        if (root instanceof WebOR && ((WebOR) root).isShared()) {
-            scope = WebOR.ORScope.SHARED;
-        }
-        List<TestCase> impacted;
-        try {
-            impacted = getProject().getImpactedObjectTestCases(scope, pageName, objectName);
-        } catch (Throwable t) {
-            impacted = getProject().getImpactedObjectTestCases(pageName, objectName);
-        }
+        WebOR.ORScope scope = isSharedScope()
+                ? WebOR.ORScope.SHARED
+                : WebOR.ORScope.PROJECT;
+
+        List<TestCase> impacted = getProject()
+                .getImpactedObjectTestCases(scope, pageName, objectName);
+
         showImpactedTestCases(impacted, pageName, objectName);
     }
 
