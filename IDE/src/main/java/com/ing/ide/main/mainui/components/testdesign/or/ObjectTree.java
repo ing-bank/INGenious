@@ -1040,8 +1040,11 @@ public abstract class ObjectTree implements ActionListener {
 
     private boolean isSharedScope() {
         ORRootInf root = getOR();
-        if (root instanceof WebOR) {
-            return ((WebOR) root).isShared();
+        if (root instanceof com.ing.datalib.or.web.WebOR) {
+            return ((com.ing.datalib.or.web.WebOR) root).isShared();
+        }
+        if (root instanceof com.ing.datalib.or.mobile.MobileOR) {
+            return ((com.ing.datalib.or.mobile.MobileOR) root).isShared();
         }
         return false;
     }
@@ -1050,21 +1053,29 @@ public abstract class ObjectTree implements ActionListener {
         if (!isSharedScope()) return true;
         ORRootInf root = getOR();
         java.util.List<String> projects = null;
+
         if (root instanceof com.ing.datalib.or.web.WebOR) {
             projects = ((com.ing.datalib.or.web.WebOR) root).getProjects();
+        } else if (root instanceof com.ing.datalib.or.mobile.MobileOR) {
+            projects = ((com.ing.datalib.or.mobile.MobileOR) root).getProjects();
         }
+
         if (projects == null || projects.isEmpty()) {
             return true;
         }
+
         String extra = sharedProjectsInfo();
         if (extra == null) extra = "";
+
         String message =
             "<html><body><p style='width: 360px;'>"
             + "You are about to rename the SHARED " + entityLabel + " "
             + "<b>" + currentName + "</b> to <b>" + newName + "</b>.<br/><br/>"
-            + "Other projects that use Shared Web Objects still reference the old name in their test steps."
+            + "Other projects that use Shared " + (root instanceof com.ing.datalib.or.mobile.MobileOR ? "Mobile" : "Web")
+            + " Objects still reference the old name in their test steps."
             + extra
             + "</body></html>";
+
         int option = javax.swing.JOptionPane.showConfirmDialog(
             null,
             message,
@@ -1076,11 +1087,17 @@ public abstract class ObjectTree implements ActionListener {
 
     private String sharedProjectsInfo() {
         ORRootInf root = getOR();
-        if (root instanceof WebOR) {
-            List<String> projects = ((WebOR) root).getProjects();
-            if (projects != null && !projects.isEmpty()) {
-                return "<br/><br/><b>Before proceeding, please verify whether this page/object is being used by the following project(s):</b><br/>" + String.join(", ", projects);
-            }
+        java.util.List<String> projects = null;
+
+        if (root instanceof com.ing.datalib.or.web.WebOR) {
+            projects = ((com.ing.datalib.or.web.WebOR) root).getProjects();
+        } else if (root instanceof com.ing.datalib.or.mobile.MobileOR) {
+            projects = ((com.ing.datalib.or.mobile.MobileOR) root).getProjects();
+        }
+
+        if (projects != null && !projects.isEmpty()) {
+            return "<br/><br/><b>Before proceeding, please verify whether this page/object is being used by the following project(s):</b><br/>"
+                    + String.join(", ", projects);
         }
         return "";
     }

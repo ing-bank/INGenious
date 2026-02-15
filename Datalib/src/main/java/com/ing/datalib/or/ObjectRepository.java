@@ -193,6 +193,19 @@ public class ObjectRepository {
                     webSharedOR.setProjects(mergedList);
                 }
             }
+            java.util.List<String> mExisting = (mobileSharedOR != null) ? mobileSharedOR.getProjects() : java.util.List.of();
+            java.util.LinkedHashSet<String> mMerged = new java.util.LinkedHashSet<>();
+            if (mExisting != null) mMerged.addAll(mExisting);
+            mMerged.addAll(sharedUsageProjects);
+            boolean mProjectsChanged = false;
+            if (mobileSharedOR != null) {
+                java.util.ArrayList<String> mList = new java.util.ArrayList<>(mMerged);
+                java.util.List<String> mCurrent = mobileSharedOR.getProjects();
+                mProjectsChanged = (mCurrent == null) || !new java.util.LinkedHashSet<>(mCurrent).equals(mMerged);
+                if (mProjectsChanged) {
+                    mobileSharedOR.setProjects(mList);
+                }
+            }
             if (webSharedOR != null && (!webSharedOR.isSaved() || projectsChanged)) {
                 XML_MAPPER.writerWithDefaultPrettyPrinter()
                     .writeValue(new File(getSharedORLocation()), webSharedOR);

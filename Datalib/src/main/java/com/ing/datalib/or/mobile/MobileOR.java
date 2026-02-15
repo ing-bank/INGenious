@@ -47,6 +47,10 @@ public class MobileOR implements ORRootInf<MobileORPage> {
     
     @JacksonXmlProperty(isAttribute = true)
     private ORScope scope = ORScope.PROJECT;
+    
+    @JacksonXmlElementWrapper(localName = "projects")
+    @JacksonXmlProperty(localName = "project")
+    private List<String> projects = new ArrayList<>();
 
     @JsonIgnore
     private ObjectRepository objectRepository;
@@ -260,5 +264,13 @@ public class MobileOR implements ORRootInf<MobileORPage> {
     @JsonIgnore
     public boolean isShared() {
         return scope == ORScope.SHARED;
+    }
+    
+    public List<String> getProjects() {
+        return projects;
+    }
+    
+    public void setProjects(List<String> projects) {
+        this.projects = (projects == null) ? new ArrayList<>() : projects;
     }
 }
