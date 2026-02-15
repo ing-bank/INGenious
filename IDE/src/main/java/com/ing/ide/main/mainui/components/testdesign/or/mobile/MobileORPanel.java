@@ -15,6 +15,19 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.tree.TreePath;
 
+/**
+ * Main panel for the Mobile Object Repository (OR) UI, containing:
+ * <ul>
+ *   <li>Project and Shared OR trees (with search support)</li>
+ *   <li>A properties table for displaying and modifying object attributes</li>
+ * </ul>
+ * <p>
+ * This panel manages tree–table interaction, updates the table based on the
+ * active tab, and provides navigation utilities for locating specific OR objects.
+ * It serves as the central coordinator for loading, displaying, and interacting
+ * with mobile OR data in Test Design.
+ */
+
 public class MobileORPanel extends JPanel {
 
     private final MobileObjectTree projectTree;

@@ -10,6 +10,19 @@ import com.ing.ide.main.mainui.components.testdesign.or.ObjectTree;
 import java.util.List;
 import javax.swing.tree.TreePath;
 
+/**
+ * Represents the tree UI component for displaying Mobile Object Repository (OR) items.
+ * <p>
+ * This class links the object tree with the {@link MobileORPanel}, enabling:
+ * <ul>
+ *   <li>loading object details into the properties table</li>
+ *   <li>retrieving the appropriate OR source (Project or Shared)</li>
+ *   <li>handling impacted test case display</li>
+ *   <li>resetting the table when selected objects are removed</li>
+ * </ul>
+ * It acts as the controller between tree selections and OR object presentation.
+ */
+
 public class MobileObjectTree extends ObjectTree {
 
     private final MobileORPanel oRPanel;

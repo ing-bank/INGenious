@@ -19,6 +19,14 @@ import javax.swing.tree.TreeNode;
 import javax.swing.tree.TreePath;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
+
+/**
+ * Represents a single mobile object inside a MobileOR page, containing a collection of
+ * OR attributes, frame information, and references to its parent object group.
+ * Supports attribute editing, table model operations, cloning, renaming,
+ * and object repository persistence updates.
+ */
+
 public class MobileORPage implements ORPageInf<MobileORObject, MobileOR> {
 
     @JacksonXmlProperty(isAttribute = true, localName = "ref")

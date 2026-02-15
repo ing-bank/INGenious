@@ -23,6 +23,20 @@ import javax.swing.JScrollPane;
 import javax.swing.JToolBar;
 import javax.swing.table.DefaultTableModel;
 
+/**
+ * Displays and edits properties of a selected {@link MobileORObject} in table form.
+ * <p>
+ * Supports a wide range of attribute operations, including:
+ * <ul>
+ *   <li>adding, removing, and clearing attributes</li>
+ *   <li>bulk operations across pages or selected objects</li>
+ *   <li>reordering attributes and setting priority</li>
+ *   <li>context menu and toolbar actions</li>
+ * </ul>
+ * This component acts as the editable detail view within the Mobile OR panel.
+ */
+
+
 public class MobileORTable extends JPanel implements ActionListener {
 
     private final XTable table;

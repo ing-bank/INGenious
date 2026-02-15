@@ -7,8 +7,6 @@ import com.ing.datalib.or.web.WebOR.ORScope;
  * Represents a resolved mobile object within the Object Repository, including its scope,
  * page name, object name, and resolved object group.
  *
- * NOTE: Uses WebOR.ORScope for now to stay consistent with existing repo scope usage.
- * If later you introduce a mobile-specific scope enum, you can swap it.
  */
 public class ResolvedMobileObject {
 
