@@ -78,8 +78,12 @@ public class WebORPanel extends JPanel {
         splitPane.setTopComponent(tabs);
         splitPane.setBottomComponent(objectTable);
         splitPane.setResizeWeight(0.5);
-        splitPane.setDividerLocation(0.5);
+        //splitPane.setDividerLocation(0.5);
         add(splitPane, BorderLayout.CENTER);
+        
+        javax.swing.SwingUtilities.invokeLater(() -> {
+            splitPane.setDividerLocation(0.5);
+        });
 
         hookSelectionToTable(projectTree);
         hookSelectionToTable(sharedTree);
@@ -155,11 +159,11 @@ public class WebORPanel extends JPanel {
         objectTable.reset();
         sharedTree.load();
         projectTree.load();
-        splitPane.setDividerLocation(0.5);
+        //splitPane.setDividerLocation(0.5);
     }
 
     public void adjustUI() {
-        splitPane.setDividerLocation(0.5);
+        //splitPane.setDividerLocation(0.5);
     }
 
     public Boolean navigateToObject(String objectName, String pageName) {
