@@ -6,6 +6,7 @@ import com.ing.datalib.or.common.ObjectGroup;
 import com.ing.datalib.or.image.ImageORObject;
 import com.ing.datalib.or.mobile.MobileORObject;
 import com.ing.datalib.or.mobile.MobileORPage;
+import com.ing.datalib.or.mobile.ResolvedMobileObject;
 import com.ing.datalib.or.web.WebORObject;
 import com.ing.datalib.or.web.WebORPage;
 import com.ing.engine.constants.SystemDefaults;
@@ -174,12 +175,22 @@ public class MobileObject {
 
     public ObjectGroup<?> getORObject(String page, String object) {
         ObjectRepository objRep = Control.getCurrentProject().getObjectRepository();
+        try {
+            com.ing.datalib.or.mobile.ResolvedMobileObject.PageRef mref = com.ing.datalib.or.mobile.ResolvedMobileObject.PageRef.parse(page);
+            com.ing.datalib.or.mobile.ResolvedMobileObject mresolved = objRep.resolveMobileObject(mref, object);
+            if (mresolved != null && mresolved.getGroup() != null) {
+                return mresolved.getGroup();
+            }
+        } catch (Exception ignore) {
+        }
         if (objRep.getWebSharedOR().getPageByName(page) != null) {
             return objRep.getWebSharedOR().getPageByName(page).getObjectGroupByName(object);
         } else if (objRep.getWebOR().getPageByName(page) != null) {
             return objRep.getWebOR().getPageByName(page).getObjectGroupByName(object);
         } else if (objRep.getMobileOR().getPageByName(page) != null) {
             return objRep.getMobileOR().getPageByName(page).getObjectGroupByName(object);
+        } else if (objRep.getMobileSharedOR() != null && objRep.getMobileSharedOR().getPageByName(page) != null) {
+            return objRep.getMobileSharedOR().getPageByName(page).getObjectGroupByName(object);
         }
         return null;
     }
@@ -212,6 +223,8 @@ public class MobileObject {
         ObjectRepository objRep = Control.getCurrentProject().getObjectRepository();
         if (objRep.getMobileOR().getPageByName(page) != null) {
             return objRep.getMobileOR().getPageByName(page).getObjectGroupByName(object);
+        } else if (objRep.getMobileSharedOR() != null && objRep.getMobileSharedOR().getPageByName(page) != null) {
+            return objRep.getMobileSharedOR().getPageByName(page).getObjectGroupByName(object);
         }
         return null;
     }
@@ -220,6 +233,8 @@ public class MobileObject {
         ObjectRepository objRep = Control.getCurrentProject().getObjectRepository();
         if (objRep.getMobileOR().getPageByName(page) != null) {
             return objRep.getMobileOR().getPageByName(page).getObjectGroupByName(object).getObjects().get(0);
+        } else if (objRep.getMobileSharedOR() != null && objRep.getMobileSharedOR().getPageByName(page) != null) {
+            return objRep.getMobileSharedOR().getPageByName(page).getObjectGroupByName(object).getObjects().get(0);
         }
         return null;
     }

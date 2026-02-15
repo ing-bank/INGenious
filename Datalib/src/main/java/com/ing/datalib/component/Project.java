@@ -230,6 +230,7 @@ public class Project {
             getObjectRepository().getWebOR().setName(newName);
             getObjectRepository().getWebSharedOR().setName(newName);
             getObjectRepository().getMobileOR().setName(newName);
+            getObjectRepository().getMobileSharedOR().setName(newName);
             return true;
         }
         return false;
