@@ -10,6 +10,7 @@ import com.ing.ide.main.utils.Utils;
 import com.ing.ide.main.utils.table.XTable;
 import com.ing.ide.util.Notification;
 import com.ing.ide.util.Utility;
+import java.awt.Color;
 import java.awt.Toolkit;
 
 import java.awt.event.ActionEvent;
@@ -24,13 +25,18 @@ import java.util.Properties;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import javax.swing.AbstractButton;
+import javax.swing.BorderFactory;
 import javax.swing.ButtonGroup;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.ImageIcon;
+import javax.swing.JComponent;
 import javax.swing.JTextField;
 import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
+import com.ing.ide.main.fx.INGIcons;
+import javax.swing.border.EmptyBorder;
+import javax.swing.border.MatteBorder;
 
 import javax.swing.table.DefaultTableModel;
 
@@ -39,6 +45,20 @@ import javax.swing.table.DefaultTableModel;
  *
  */
 public class DriverSettings extends javax.swing.JFrame {
+
+    // Theme-aware color constants
+    private static final Color DARK_BG = new Color(30, 26, 36);
+    private static final Color DARK_PANEL_BG = new Color(37, 32, 48);
+    private static final Color DARK_BORDER = new Color(60, 50, 80);
+    private static final Color DARK_INPUT_BG = new Color(45, 40, 55);
+    private static final Color DARK_TEXT = new Color(232, 226, 229);
+    private static final Color DARK_LABEL = new Color(200, 195, 210);
+    private static final Color ING_ORANGE_DARK = new Color(255, 102, 0);
+    private static final Color ING_PURPLE = new Color(119, 36, 255);
+    private static final Color ING_BURGUNDY = Color.decode("#4D0020");
+    private static final Color WARM_BG = Color.decode("#FAFAF8");
+    private static final Color PURPLE_VERY_LIGHT = Color.decode("#F5F0FF");
+    private static final Color PURPLE_LIGHT = Color.decode("#E5D6FF");
 
     private final AppMainFrame sMainFrame;
     Project sProject;
@@ -55,7 +75,7 @@ public class DriverSettings extends javax.swing.JFrame {
         this.sMainFrame = sMainFrame;
         initComponents();
 
-        setIconImage(((ImageIcon) Utils.getIconByResourceName("/ui/resources/main/BrowserConfiguration")).getImage());
+        setIconImage(com.ing.ide.main.fx.INGIcons.toImage(Utils.getIconByResourceName("/ui/resources/main/BrowserConfiguration")));
 
         //loadChromeEmulators();
         initAddEmulatorListener();
@@ -84,6 +104,168 @@ public class DriverSettings extends javax.swing.JFrame {
                 });
             }
         });
+        
+        applyThemeStyles();
+    }
+    
+    // Theme-aware color getters
+    private boolean isDarkMode() {
+        return com.ing.ide.main.Main.isDarkMode();
+    }
+    
+    private Color getBgColor() {
+        return isDarkMode() ? DARK_BG : WARM_BG;
+    }
+    
+    private Color getPanelBgColor() {
+        return isDarkMode() ? DARK_PANEL_BG : PURPLE_VERY_LIGHT;
+    }
+    
+    private Color getBorderColor() {
+        return isDarkMode() ? DARK_BORDER : PURPLE_LIGHT;
+    }
+    
+    private Color getInputBgColor() {
+        return isDarkMode() ? DARK_INPUT_BG : Color.WHITE;
+    }
+    
+    private Color getTextColor() {
+        return isDarkMode() ? DARK_TEXT : ING_BURGUNDY;
+    }
+    
+    private Color getLabelColor() {
+        return isDarkMode() ? DARK_LABEL : ING_BURGUNDY;
+    }
+    
+    private Color getAccentColor() {
+        return isDarkMode() ? ING_ORANGE_DARK : ING_PURPLE;
+    }
+    
+    /**
+     * Apply theme-aware styling to the window.
+     */
+    private void applyThemeStyles() {
+        Color bgColor = getBgColor();
+        Color panelBgColor = getPanelBgColor();
+        Color borderColor = getBorderColor();
+        Color textColor = getTextColor();
+        Color inputBgColor = getInputBgColor();
+        
+        // Style main frame
+        this.setBackground(bgColor);
+        getContentPane().setBackground(bgColor);
+        if (getContentPane() instanceof JComponent) {
+            ((JComponent) getContentPane()).setOpaque(true);
+        }
+        
+        // Style the tabbed pane
+        if (mainTab != null) {
+            mainTab.setBackground(bgColor);
+            mainTab.setForeground(textColor);
+            mainTab.setOpaque(true);
+            mainTab.putClientProperty("JTabbedPane.tabAreaAlignment", "leading");
+            mainTab.putClientProperty("JTabbedPane.showTabSeparators", false);
+            mainTab.putClientProperty("JTabbedPane.tabsOpaque", true);
+            mainTab.putClientProperty("JTabbedPane.contentOpaque", true);
+            mainTab.putClientProperty("JTabbedPane.tabAreaBackground", panelBgColor);
+        }
+        
+        // Style save panel (jPanel1)
+        if (jPanel1 != null) {
+            jPanel1.setBackground(panelBgColor);
+            jPanel1.setOpaque(true);
+            jPanel1.setBorder(BorderFactory.createCompoundBorder(
+                new MatteBorder(1, 0, 0, 0, borderColor),
+                new EmptyBorder(8, 16, 8, 16)));
+        }
+        
+        // Style buttons
+        styleButton(saveSettings, true);
+        styleButton(resetSettings, false);
+        
+        // Recursively style all components
+        styleComponentsRecursively(getContentPane());
+        
+        revalidate();
+        repaint();
+    }
+    
+    private void styleButton(javax.swing.JButton button, boolean primary) {
+        if (button == null) return;
+        Color buttonBg = primary ? getAccentColor() : getInputBgColor();
+        Color buttonFg = primary ? Color.WHITE : getAccentColor();
+        button.setBackground(buttonBg);
+        button.setForeground(buttonFg);
+        button.setFocusPainted(false);
+        button.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(getAccentColor(), 1),
+            new EmptyBorder(8, 20, 8, 20)));
+    }
+    
+    private void styleComponentsRecursively(java.awt.Container container) {
+        if (container == null) return;
+        
+        Color bgColor = getBgColor();
+        Color textColor = getTextColor();
+        Color inputBgColor = getInputBgColor();
+        Color borderColor = getBorderColor();
+        
+        for (java.awt.Component comp : container.getComponents()) {
+            if (comp instanceof javax.swing.JPanel) {
+                ((javax.swing.JPanel) comp).setBackground(bgColor);
+                ((javax.swing.JPanel) comp).setOpaque(true);
+            }
+            if (comp instanceof javax.swing.JScrollPane) {
+                javax.swing.JScrollPane sp = (javax.swing.JScrollPane) comp;
+                sp.setBackground(bgColor);
+                sp.setOpaque(true);
+                sp.getViewport().setBackground(inputBgColor);
+                sp.getViewport().setOpaque(true);
+                sp.setBorder(BorderFactory.createLineBorder(borderColor, 1));
+            }
+            if (comp instanceof javax.swing.JLabel) {
+                ((javax.swing.JLabel) comp).setForeground(textColor);
+            }
+            if (comp instanceof javax.swing.JToolBar) {
+                ((javax.swing.JToolBar) comp).setBackground(getPanelBgColor());
+                ((javax.swing.JToolBar) comp).setOpaque(true);
+            }
+            if (comp instanceof javax.swing.JTable) {
+                javax.swing.JTable table = (javax.swing.JTable) comp;
+                table.setBackground(inputBgColor);
+                table.setForeground(textColor);
+                table.setGridColor(borderColor);
+                table.setSelectionBackground(getAccentColor());
+                table.setSelectionForeground(Color.WHITE);
+                if (table.getTableHeader() != null) {
+                    table.getTableHeader().setBackground(getPanelBgColor());
+                    table.getTableHeader().setForeground(textColor);
+                }
+            }
+            if (comp instanceof javax.swing.JComboBox) {
+                ((javax.swing.JComboBox<?>) comp).setBackground(inputBgColor);
+                ((javax.swing.JComboBox<?>) comp).setForeground(textColor);
+            }
+            if (comp instanceof javax.swing.JTextField) {
+                javax.swing.JTextField tf = (javax.swing.JTextField) comp;
+                tf.setBackground(inputBgColor);
+                tf.setForeground(textColor);
+                tf.setCaretColor(getAccentColor());
+            }
+            if (comp instanceof javax.swing.JCheckBox) {
+                javax.swing.JCheckBox cb = (javax.swing.JCheckBox) comp;
+                cb.setForeground(textColor);
+                cb.setOpaque(false);
+            }
+            if (comp instanceof javax.swing.JRadioButton) {
+                javax.swing.JRadioButton rb = (javax.swing.JRadioButton) comp;
+                rb.setForeground(textColor);
+                rb.setOpaque(false);
+            }
+            if (comp instanceof java.awt.Container) {
+                styleComponentsRecursively((java.awt.Container) comp);
+            }
+        }
     }
 
     private void initAddEmulatorListener() {
@@ -706,7 +888,7 @@ public class DriverSettings extends javax.swing.JFrame {
             }
         });
         
-        addNewAPIConfig.setIcon(new javax.swing.ImageIcon(getClass().getResource("/ui/resources/toolbar/addIcon.png")));
+        addNewAPIConfig.setIcon(INGIcons.swingColored("icon.addIcon", 16));
         addNewAPIConfig.setToolTipText("Add New Context");
         addNewAPIConfig.setFocusable(false);
         addNewAPIConfig.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
@@ -718,7 +900,7 @@ public class DriverSettings extends javax.swing.JFrame {
         });
         jToolBar1.add(addNewAPIConfig);
 
-        deleteAPIConfig.setIcon(new javax.swing.ImageIcon(getClass().getResource("/ui/resources/toolbar/deleteIcon.png")));
+        deleteAPIConfig.setIcon(INGIcons.swingColored("icon.deleteIcon", 16));
         deleteAPIConfig.setToolTipText("Delete Context");
         deleteAPIConfig.setFocusable(false);
         deleteAPIConfig.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
@@ -730,7 +912,7 @@ public class DriverSettings extends javax.swing.JFrame {
         });
         jToolBar1.add(deleteAPIConfig);
 
-        addPropButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/ui/resources/toolbar/add.png"))); // NOI18N
+        addPropButton.setIcon(INGIcons.swingColored("icon.add", 16));
         addPropButton.setToolTipText("Add Property");
         addPropButton.setFocusable(false);
         addPropButton.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
@@ -742,7 +924,7 @@ public class DriverSettings extends javax.swing.JFrame {
         });
         jToolBar1.add(addPropButton);
 
-        removePropButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/ui/resources/toolbar/remove.png"))); // NOI18N
+        removePropButton.setIcon(INGIcons.swingColored("icon.remove", 16));
         removePropButton.setToolTipText("Remove Property");
         removePropButton.setFocusable(false);
         removePropButton.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
@@ -867,7 +1049,7 @@ public class DriverSettings extends javax.swing.JFrame {
         jToolBar2.add(filler2);
         jToolBar2.add(jSeparator1);
 
-        addCap.setIcon(new javax.swing.ImageIcon(getClass().getResource("/ui/resources/toolbar/add.png"))); // NOI18N
+        addCap.setIcon(INGIcons.swingColored("icon.add", 16));
         addCap.setToolTipText("Add Capability");
         addCap.setFocusable(false);
         addCap.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
@@ -879,7 +1061,7 @@ public class DriverSettings extends javax.swing.JFrame {
         });
         jToolBar2.add(addCap);
 
-        removeCap.setIcon(new javax.swing.ImageIcon(getClass().getResource("/ui/resources/toolbar/remove.png"))); // NOI18N
+        removeCap.setIcon(INGIcons.swingColored("icon.remove", 16));
         removeCap.setToolTipText("Remove Capability");
         removeCap.setFocusable(false);
         removeCap.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
@@ -940,7 +1122,7 @@ public class DriverSettings extends javax.swing.JFrame {
         jToolBar5.add(testConn);*/
 
 
-        addNewDB.setIcon(new javax.swing.ImageIcon(getClass().getResource("/ui/resources/toolbar/addIcon.png")));
+        addNewDB.setIcon(INGIcons.swingColored("icon.addIcon", 16));
         addNewDB.setToolTipText("Add New Database");
         addNewDB.setFocusable(false);
         addNewDB.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
@@ -952,7 +1134,7 @@ public class DriverSettings extends javax.swing.JFrame {
         });
         jToolBar5.add(addNewDB);
 
-        deleteDB.setIcon(new javax.swing.ImageIcon(getClass().getResource("/ui/resources/toolbar/deleteIcon.png")));
+        deleteDB.setIcon(INGIcons.swingColored("icon.deleteIcon", 16));
         deleteDB.setToolTipText("Delete Database");
         deleteDB.setFocusable(false);
         deleteDB.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
@@ -965,7 +1147,7 @@ public class DriverSettings extends javax.swing.JFrame {
         jToolBar5.add(deleteDB);
 
         // For adding Database Property
-        addDBPropbutton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/ui/resources/toolbar/add.png")));
+        addDBPropbutton.setIcon(INGIcons.swingColored("icon.add", 16));
         addDBPropbutton.setToolTipText("Add Property");
         addDBPropbutton.setFocusable(false);
         addDBPropbutton.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
@@ -978,7 +1160,7 @@ public class DriverSettings extends javax.swing.JFrame {
         jToolBar5.add(addDBPropbutton);
 
         //For deleting database property
-        deleteDBPropbutton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/ui/resources/toolbar/remove.png")));
+        deleteDBPropbutton.setIcon(INGIcons.swingColored("icon.remove", 16));
         deleteDBPropbutton.setToolTipText("Remove Property");
         deleteDBPropbutton.setFocusable(false);
         deleteDBPropbutton.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
@@ -1062,7 +1244,7 @@ public class DriverSettings extends javax.swing.JFrame {
         });
 
 
-        addNewContext.setIcon(new javax.swing.ImageIcon(getClass().getResource("/ui/resources/toolbar/addIcon.png")));
+        addNewContext.setIcon(INGIcons.swingColored("icon.addIcon", 16));
         addNewContext.setToolTipText("Add New Context");
         addNewContext.setFocusable(false);
         addNewContext.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
@@ -1074,7 +1256,7 @@ public class DriverSettings extends javax.swing.JFrame {
         });
         contextJToolBar.add(addNewContext);
 
-        deleteContext.setIcon(new javax.swing.ImageIcon(getClass().getResource("/ui/resources/toolbar/deleteIcon.png")));
+        deleteContext.setIcon(INGIcons.swingColored("icon.deleteIcon", 16));
         deleteContext.setToolTipText("Delete Context");
         deleteContext.setFocusable(false);
         deleteContext.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
@@ -1086,7 +1268,7 @@ public class DriverSettings extends javax.swing.JFrame {
         });
         contextJToolBar.add(deleteContext);
 
-        addContextPropButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/ui/resources/toolbar/add.png")));
+        addContextPropButton.setIcon(INGIcons.swingColored("icon.add", 16));
         addContextPropButton.setToolTipText("Add Property");
         addContextPropButton.setFocusable(false);
         addContextPropButton.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
@@ -1098,7 +1280,7 @@ public class DriverSettings extends javax.swing.JFrame {
         });
         contextJToolBar.add(addContextPropButton);
 
-        removeContextPropButton.setIcon(new javax.swing.ImageIcon(getClass().getResource("/ui/resources/toolbar/remove.png")));
+        removeContextPropButton.setIcon(INGIcons.swingColored("icon.remove", 16));
         removeContextPropButton.setToolTipText("Remove Property");
         removeContextPropButton.setFocusable(false);
         removeContextPropButton.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);

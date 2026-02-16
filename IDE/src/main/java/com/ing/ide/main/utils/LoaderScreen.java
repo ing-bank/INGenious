@@ -2,7 +2,6 @@
 package com.ing.ide.main.utils;
 
 import java.awt.BorderLayout;
-import java.awt.Color;
 import java.awt.Component;
 import java.awt.event.ActionEvent;
 import javax.swing.ImageIcon;
@@ -34,12 +33,9 @@ public class LoaderScreen extends JPanel {
 
     private void init() {
         setLayout(new BorderLayout());
-        setBackground(Color.WHITE);
         loadLabel.setHorizontalAlignment(SwingConstants.CENTER);
         loadLabel.setHorizontalTextPosition(SwingConstants.CENTER);
         loadLabel.setVerticalTextPosition(SwingConstants.BOTTOM);
-
-        loadLabel.setBackground(Color.WHITE);
         add(loadLabel, BorderLayout.CENTER);
 
         tick = new Timer(500, (ActionEvent ae) -> {

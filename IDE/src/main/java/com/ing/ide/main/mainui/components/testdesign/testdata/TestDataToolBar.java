@@ -10,6 +10,7 @@ import javax.swing.JButton;
 import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
 import javax.swing.JToolBar;
+import javax.swing.UIManager;
 
 /**
  *
@@ -29,7 +30,8 @@ public class TestDataToolBar extends JToolBar {
     public TestDataToolBar(ActionListener tdProxy) {
         this.actionListener = tdProxy;
         setFloatable(false);
-        setBorder(javax.swing.BorderFactory.createEtchedBorder());
+        setOpaque(false);
+        setBorder(javax.swing.BorderFactory.createMatteBorder(0, 0, 1, 0, UIManager.getColor("Separator.foreground")));
         setLayout(new javax.swing.BoxLayout(this, javax.swing.BoxLayout.X_AXIS));
         init();
     }
@@ -107,8 +109,6 @@ public class TestDataToolBar extends JToolBar {
         add(makeAsGlobalData);
         add(Utils.createButton("Move Rows Up", "up", "Ctrl+Up", actionListener));
         add(Utils.createButton("Move Rows Down", "down", "Ctrl+Down", actionListener));
-        add(Utils.createLRButton("Move Column Left", "moveleft", actionListener));
-        add(Utils.createLRButton("Move Column Right", "moveright",  actionListener));
         addSeparator();
         add(saveButton = Utils.createButton("Save", "save", "Ctrl+S", actionListener));
         add(Utils.createButton("Reload", "reload", "F5", actionListener));

@@ -19,6 +19,7 @@ import javax.swing.JScrollPane;
 import javax.swing.JTextField;
 import javax.swing.JToolBar;
 import javax.swing.JTree;
+import javax.swing.UIManager;
 import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
 import javax.swing.event.DocumentEvent;
@@ -73,8 +74,9 @@ public class TreeSearch extends JPanel implements ActionListener {
     private void createToolBar() {
         searchBar = new JToolBar();
         searchBar.setFloatable(false);
+        searchBar.setOpaque(false);
         searchBar.setLayout(new BoxLayout(searchBar, BoxLayout.X_AXIS));
-        searchBar.setBorder(BorderFactory.createEtchedBorder());
+        searchBar.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, UIManager.getColor("Separator.foreground")));
 
         JLabel searchLabel = new JLabel(Utils.getIconByResourceName("/ui/resources/search"));
 

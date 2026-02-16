@@ -2,18 +2,32 @@
 package com.ing.ide.main.utils.table;
 
 import com.ing.datalib.component.TestStep;
+import com.ing.ide.main.Main;
+import com.ing.ide.main.utils.CodeFormatter;
+import com.ing.ide.main.fx.INGIcons;
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Cursor;
+import java.awt.Dimension;
+import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 import java.util.List;
 import java.util.Optional;
 import javax.swing.AbstractAction;
+import javax.swing.BorderFactory;
+import javax.swing.JButton;
 import javax.swing.JComponent;
+import javax.swing.JPanel;
+import javax.swing.JToolBar;
 import javax.swing.KeyStroke;
+import javax.swing.border.EmptyBorder;
 import org.fife.ui.autocomplete.AutoCompletion;
 import org.fife.ui.autocomplete.DefaultCompletionProvider;
 import org.fife.ui.autocomplete.ShorthandCompletion;
 import org.fife.ui.rsyntaxtextarea.RSyntaxTextArea;
 import org.fife.ui.rsyntaxtextarea.SyntaxConstants;
+import org.fife.ui.rtextarea.RTextScrollPane;
 
 /**
  *
@@ -21,14 +35,40 @@ import org.fife.ui.rsyntaxtextarea.SyntaxConstants;
  */
 public class SQLTextArea extends javax.swing.JDialog {
 
+    // ===== Dracula Theme (Dark Mode) =====
+    private static final Color DARK_BG = new Color(40, 42, 54);           // #282A36
+    private static final Color DARK_FG = new Color(248, 248, 242);        // #F8F8F2
+    private static final Color DARK_CURRENT_LINE = new Color(68, 71, 90); // #44475A
+    private static final Color DARK_SELECTION = new Color(68, 71, 90);    // #44475A
+    private static final Color DARK_TOOLBAR_BG = new Color(33, 34, 44);   // #21222C
+    private static final Color DARK_LINE_NUM_BG = new Color(33, 34, 44);  // #21222C
+    private static final Color DARK_LINE_NUM_FG = new Color(98, 114, 164);// #6272A4 (purple-gray)
+    
+    // ===== Light Theme =====
+    private static final Color LIGHT_BG = new Color(255, 255, 255);       // #FFFFFF
+    private static final Color LIGHT_FG = new Color(30, 30, 30);          // #1E1E1E
+    private static final Color LIGHT_CURRENT_LINE = new Color(245, 245, 245); // #F5F5F5
+    private static final Color LIGHT_SELECTION = new Color(173, 214, 255);// #ADD6FF
+    private static final Color LIGHT_TOOLBAR_BG = new Color(243, 243, 243); // #F3F3F3
+    private static final Color LIGHT_LINE_NUM_BG = new Color(243, 243, 243); // #F3F3F3
+    private static final Color LIGHT_LINE_NUM_FG = new Color(133, 133, 133); // #858585
+    
+    // Accent colors (same for both themes)
+    private static final Color ACCENT_BLUE = new Color(33, 136, 255);     // #2188FF
+    private static final Color CLOSE_RED = new Color(220, 53, 69);        // #DC3545
+    
     TestStep currentStep;
     DefaultCompletionProvider provider;
+    private boolean isProtractor = false;
+    private RTextScrollPane scrollPane;
 
     public SQLTextArea(java.awt.Frame parent, TestStep step, List<String> searchStr) {
         super(parent);
         this.currentStep = step;
+        this.isProtractor = step.getAction().contains("protractor");
         initComponents();
         installAutoComplete(searchStr);
+        addToolbar();
         setTitle("SQL Query Editor");
          if (currentStep.getAction().contains("protractor_customSpec")) {
             if (!step.getInput().isEmpty()) {
@@ -47,6 +87,109 @@ public class SQLTextArea extends javax.swing.JDialog {
         initCloseListener();
         setVisible(true);
     }
+    
+    private void addToolbar() {
+        boolean dark = Main.isDarkMode();
+        Color toolbarBg = dark ? DARK_TOOLBAR_BG : LIGHT_TOOLBAR_BG;
+        Color panelBg = dark ? DARK_BG : LIGHT_BG;
+        
+        JToolBar toolbar = new JToolBar();
+        toolbar.setFloatable(false);
+        toolbar.setBorder(new EmptyBorder(6, 10, 6, 10));
+        toolbar.setBackground(toolbarBg);
+        toolbar.setOpaque(true);
+        
+        JButton beautifyBtn = createToolbarButton("Beautify", "format", ACCENT_BLUE, this::beautifyCode);
+        toolbar.add(beautifyBtn);
+        
+        toolbar.add(javax.swing.Box.createHorizontalGlue()); // Push close to right
+        
+        JButton closeBtn = createToolbarButton("Close", "close", CLOSE_RED, this::closeAndSave);
+        toolbar.add(closeBtn);
+        
+        // Add toolbar at the top
+        JPanel contentPanel = new JPanel(new BorderLayout());
+        contentPanel.setBackground(panelBg);
+        contentPanel.setBorder(new EmptyBorder(0, 0, 0, 0));
+        contentPanel.add(toolbar, BorderLayout.NORTH);
+        contentPanel.add(scrollPane, BorderLayout.CENTER);
+        
+        getContentPane().removeAll();
+        getContentPane().setBackground(panelBg);
+        getContentPane().setLayout(new BorderLayout());
+        getContentPane().add(contentPanel, BorderLayout.CENTER);
+        pack();
+        setSize(700, 450);
+    }
+    
+    private JButton createToolbarButton(String text, String iconKey, Color bgColor, Runnable action) {
+        JButton button = new JButton(text);
+        button.setIcon(INGIcons.swing(iconKey, 16, Color.WHITE));
+        button.setForeground(Color.WHITE);
+        button.setBackground(bgColor);
+        button.setOpaque(true);
+        button.setBorderPainted(false);
+        button.setFocusPainted(false);
+        button.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        button.setToolTipText("format".equals(iconKey) ? text + " (Ctrl+Shift+F)" : text);
+        button.setFont(button.getFont().deriveFont(Font.BOLD, 12f));
+        button.setBorder(BorderFactory.createEmptyBorder(6, 14, 6, 14));
+        button.addActionListener(e -> action.run());
+        
+        // Hover effect
+        final Color originalBg = bgColor;
+        button.addMouseListener(new java.awt.event.MouseAdapter() {
+            @Override
+            public void mouseEntered(java.awt.event.MouseEvent evt) {
+                button.setBackground(originalBg.brighter());
+            }
+            @Override
+            public void mouseExited(java.awt.event.MouseEvent evt) {
+                button.setBackground(originalBg);
+            }
+        });
+        
+        // Add keyboard shortcut for beautify only
+        if ("format".equals(iconKey)) {
+            getRootPane().getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(
+                    KeyStroke.getKeyStroke(KeyEvent.VK_F, KeyEvent.CTRL_DOWN_MASK | KeyEvent.SHIFT_DOWN_MASK), 
+                    "beautify");
+            getRootPane().getActionMap().put("beautify", new AbstractAction() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    action.run();
+                }
+            });
+        }
+        
+        return button;
+    }
+    
+    private void closeAndSave() {
+        Optional.ofNullable(jTextArea1.getText())
+                .filter((val) -> !val.trim().isEmpty())
+                .map((val) -> val.startsWith("@") ? val : "@" + val)
+                .ifPresent(currentStep::setInput);
+        dispose();
+    }
+    
+    private void beautifyCode() {
+        String text = jTextArea1.getText();
+        if (text == null || text.trim().isEmpty()) {
+            return;
+        }
+        
+        String formatted;
+        if (isProtractor) {
+            // For JavaScript/Protractor, just indent properly (basic)
+            formatted = text; // Could add JS formatter later
+        } else {
+            // SQL formatting
+            formatted = CodeFormatter.beautifySql(text);
+        }
+        
+        jTextArea1.setText(formatted);
+    }
 
     private void initCloseListener() {
         getRootPane().getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(
@@ -64,13 +207,45 @@ public class SQLTextArea extends javax.swing.JDialog {
     }
 
     private void installAutoComplete(List<String> searchStr) {
-        ((RSyntaxTextArea) jTextArea1).setCodeFoldingEnabled(true);
-
+        RSyntaxTextArea textArea = (RSyntaxTextArea) jTextArea1;
+        boolean dark = Main.isDarkMode();
+        
+        // Apply theme-aware colors
+        Color editorBg = dark ? DARK_BG : LIGHT_BG;
+        Color editorFg = dark ? DARK_FG : LIGHT_FG;
+        Color currentLine = dark ? DARK_CURRENT_LINE : LIGHT_CURRENT_LINE;
+        Color selection = dark ? DARK_SELECTION : LIGHT_SELECTION;
+        Color gutterBg = dark ? DARK_LINE_NUM_BG : LIGHT_LINE_NUM_BG;
+        Color gutterFg = dark ? DARK_LINE_NUM_FG : LIGHT_LINE_NUM_FG;
+        
+        textArea.setBackground(editorBg);
+        textArea.setForeground(editorFg);
+        textArea.setCaretColor(editorFg);
+        textArea.setCurrentLineHighlightColor(currentLine);
+        textArea.setSelectionColor(selection);
+        textArea.setFont(new Font("Consolas", Font.PLAIN, 14));
+        textArea.setAntiAliasingEnabled(true);
+        textArea.setCodeFoldingEnabled(true);
+        textArea.setTabSize(4);
+        textArea.setMarginLineEnabled(false);
+        textArea.setFadeCurrentLineHighlight(true);
+        textArea.setHighlightCurrentLine(true);
+        textArea.setRoundedSelectionEdges(true);
+        
         if (currentStep.getAction().contains("protractor")) {
-            ((RSyntaxTextArea) jTextArea1).setSyntaxEditingStyle(SyntaxConstants.SYNTAX_STYLE_JAVASCRIPT);
+            textArea.setSyntaxEditingStyle(SyntaxConstants.SYNTAX_STYLE_JAVASCRIPT);
         } else {
-            ((RSyntaxTextArea) jTextArea1).setSyntaxEditingStyle(SyntaxConstants.SYNTAX_STYLE_SQL);
+            textArea.setSyntaxEditingStyle(SyntaxConstants.SYNTAX_STYLE_SQL);
         }
+        
+        // Create scroll pane with line numbers
+        scrollPane = new RTextScrollPane(textArea);
+        scrollPane.setLineNumbersEnabled(true);
+        scrollPane.getGutter().setBackground(gutterBg);
+        scrollPane.getGutter().setLineNumberColor(gutterFg);
+        scrollPane.getGutter().setLineNumberFont(new Font("Consolas", Font.PLAIN, 12));
+        scrollPane.getGutter().setBorderColor(dark ? DARK_CURRENT_LINE : LIGHT_CURRENT_LINE);
+        scrollPane.setBorder(BorderFactory.createEmptyBorder());
 
         provider = new DefaultCompletionProvider();
         setSearchString(searchStr);

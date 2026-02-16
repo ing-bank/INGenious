@@ -7,6 +7,7 @@ import com.ing.datalib.or.common.ObjectGroup;
 import com.ing.datalib.or.mobile.MobileORObject;
 import com.ing.datalib.or.mobile.MobileORPage;
 import com.ing.ide.main.utils.Utils;
+import com.ing.ide.main.utils.table.PropertyAttributeRenderer;
 import com.ing.ide.main.utils.table.XTable;
 import java.awt.BorderLayout;
 import java.awt.Font;
@@ -21,6 +22,7 @@ import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
 import javax.swing.JToolBar;
+import javax.swing.UIManager;
 import javax.swing.table.DefaultTableModel;
 
 public class MobileORTable extends JPanel implements ActionListener {
@@ -54,6 +56,10 @@ public class MobileORTable extends JPanel implements ActionListener {
 
     public void loadObject(MobileORObject object) {
         table.setModel(object);
+        // Apply custom renderer to Attribute column (column 0)
+        if (table.getColumnCount() > 0) {
+            table.getColumnModel().getColumn(0).setCellRenderer(new PropertyAttributeRenderer());
+        }
     }
 
     public void reset() {
@@ -332,12 +338,13 @@ public class MobileORTable extends JPanel implements ActionListener {
 
         public ToolBar() {
             init();
-            setBorder(BorderFactory.createEtchedBorder());
+            setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, UIManager.getColor("Separator.foreground")));
         }
 
         private void init() {
             setLayout(new javax.swing.BoxLayout(this, javax.swing.BoxLayout.X_AXIS));
             setFloatable(false);
+            setOpaque(false);
 
             add(new javax.swing.Box.Filler(new java.awt.Dimension(10, 0),
                     new java.awt.Dimension(10, 0),

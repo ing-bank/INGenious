@@ -7,6 +7,7 @@ import com.ing.engine.support.methodInf.MethodInfoManager;
 import java.awt.Font;
 import java.util.Objects;
 import javax.swing.JComponent;
+import javax.swing.UIManager;
 
 public class ConditionRenderer extends AbstractRenderer {
 
@@ -20,7 +21,8 @@ public class ConditionRenderer extends AbstractRenderer {
             setEmpty(comp);
         } else if(step.isCommented())
         {
-            comp.setForeground(Color.lightGray);
+            Color c = UIManager.getColor("ing.commentedForeground");
+            comp.setForeground(c != null ? c : Color.lightGray);
             comp.setFont(new Font("Default", Font.ITALIC, 11));
         }
         else {
@@ -39,13 +41,17 @@ public class ConditionRenderer extends AbstractRenderer {
         String val = Objects.toString(value, "").trim();
         switch (val) {
             case "Execute":
-                return Color.BLUE;//.darker();
+                Color bpColor = UIManager.getColor("ing.breakpointForeground");
+                return bpColor != null ? bpColor : Color.BLUE;
             case "Mobile":
-                return Color.CYAN;//.darker();
+                return UIManager.getColor("ing.focusedSelectionBackground") != null
+                        ? UIManager.getColor("ing.focusedSelectionBackground") : Color.CYAN;
             case "Browser":
-                return Color.RED;//.darker();
+                Color errColor = UIManager.getColor("ing.errorForeground");
+                return errColor != null ? errColor : Color.RED;
             default:
-                return new Color(204, 0, 255);
+                Color wsColor = UIManager.getColor("ing.webserviceRequestForeground");
+                return wsColor != null ? wsColor : new Color(204, 0, 255);
         }
     }
 

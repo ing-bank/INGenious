@@ -10,7 +10,7 @@
         <javamail.version>1.4.7</javamail.version>
         <json-simple.version>1.1.1</json-simple.version>
         <jcsv.version>1.4.0</jcsv.version>
-        <javafx.version>17.0.2</javafx.version>
+        <javafx.version>17.0.14</javafx.version>
         <jackson.version>2.15.2</jackson.version>
         <commonscsv.version>1.10.0</commonscsv.version>
         <commons-codec.version>1.16.0</commons-codec.version>
@@ -50,6 +50,9 @@
         <mac.version>mac-aarch64</mac.version>
         <setupDir>../Dist/release</setupDir>
         <resourceDir>../Resources</resourceDir>
+
+        <flatlaf.version>3.5.4</flatlaf.version>
+        <ikonli.version>12.3.1</ikonli.version>
 
         <mockito.version>5.14.2</mockito.version>
         <assertj.version>3.26.3</assertj.version>
@@ -427,6 +430,32 @@
           <version>23.26.1.0.0</version>
         </dependency>
     
+		<dependency>
+			<groupId>com.formdev</groupId>
+			<artifactId>flatlaf</artifactId>
+			<version>${flatlaf.version}</version>
+		</dependency>
+		<!-- Ikonli icon fonts (web icons) -->
+		<dependency>
+			<groupId>org.kordamp.ikonli</groupId>
+			<artifactId>ikonli-javafx</artifactId>
+			<version>${ikonli.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.kordamp.ikonli</groupId>
+			<artifactId>ikonli-swing</artifactId>
+			<version>${ikonli.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.kordamp.ikonli</groupId>
+			<artifactId>ikonli-materialdesign2-pack</artifactId>
+			<version>${ikonli.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.kordamp.ikonli</groupId>
+			<artifactId>ikonli-fontawesome5-pack</artifactId>
+			<version>${ikonli.version}</version>
+		</dependency>
 		
 		<dependency>
 			<groupId>com.ing</groupId>

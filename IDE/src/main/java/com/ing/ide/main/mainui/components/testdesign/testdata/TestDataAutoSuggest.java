@@ -76,8 +76,10 @@ public class TestDataAutoSuggest {
     private void updateTestCases() {
         testCaseSugg.clearSearchList();
         if (table.getSelectedRow() != -1) {
+            // Use model directly to get scenario value (column 0 in model)
+            // This works regardless of whether we're in the fixed table or main table
             String scenario = Objects.toString(
-                    table.getValueAt(table.getSelectedRow(), 0), "");
+                    table.getModel().getValueAt(table.getSelectedRow(), 0), "");
             if (!scenario.trim().isEmpty()
                     && sProject.getScenarioByName(scenario) != null) {
                 testCaseSugg.setSearchList(

@@ -17,12 +17,17 @@ import com.ing.datalib.util.data.FileScanner;
 import com.ing.engine.core.TMIntegration;
 import com.ing.ide.main.Main;
 import com.ing.ide.main.dashboard.server.DashBoardManager;
-import com.ing.ide.main.mainui.components.DashBoard;
+import com.ing.ide.main.fx.FXDashBoard;
+import com.ing.ide.main.fx.FXMenuBar;
+import com.ing.ide.main.fx.FXStatusBar;
+import com.ing.ide.main.fx.FXToolBar;
 import com.ing.ide.main.mainui.components.testdesign.TestDesign;
 import com.ing.ide.main.mainui.components.testexecution.TestExecution;
+import com.ing.ide.main.mainui.components.apitester.APITester;
 import com.ing.ide.main.shr.SHR;
 import com.ing.ide.main.ui.About;
-import com.ing.ide.main.ui.StartUp;
+import com.ing.ide.main.ui.FXStartUp;
+import com.ing.ide.main.utils.AppIcon;
 import com.ing.ide.main.utils.LoaderScreen;
 import com.ing.ide.main.utils.StepMap;
 import com.ing.ide.main.utils.recentItem.RecentItems;
@@ -48,9 +53,11 @@ import java.util.function.Consumer;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.Box;
+import javax.swing.BoxLayout;
 import javax.swing.ImageIcon;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
+import javax.swing.JPanel;
 import javax.swing.JToolBar;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
@@ -66,11 +73,19 @@ public class AppMainFrame extends JFrame {
 
     private final AppToolBar toolBar;
 
+    private FXMenuBar fxMenuBar;
+
+    private FXToolBar fxToolBar;
+
+    private FXStatusBar fxStatusBar;
+
     private final TestDesign testDesign;
 
     private final TestExecution testExecution;
 
-    private final DashBoard dashBoard;
+    private final APITester apiTester;
+
+    private final FXDashBoard dashBoard;
 
     private final DashBoardManager dashBoardManager;
 
@@ -80,7 +95,7 @@ public class AppMainFrame extends JFrame {
 
     private final RecentItems recentItems;
 
-    private final StartUp startUp;
+    private final FXStartUp startUp;
 
     private final StepMap stepMap;
 
@@ -105,7 +120,7 @@ public class AppMainFrame extends JFrame {
     public AppMainFrame(Consumer<Integer> onProgress) throws IOException {
         this.onProgress = onProgress;
         recentItems = new RecentItems(this);
-        startUp = new StartUp(this);
+        startUp = new FXStartUp(this);
         progressed(25);
         
         toolBar = new AppToolBar(null);
@@ -119,7 +134,9 @@ public class AppMainFrame extends JFrame {
         progressed(45);
         testExecution = new TestExecution(this);
         progressed(50);
-        dashBoard = new DashBoard(testExecution);
+        apiTester = new APITester(this);
+        progressed(52);
+        dashBoard = new FXDashBoard(testExecution);
         progressed(60);
         dashBoardManager = new DashBoardManager(this);
         spyHealReco = new SHR(this);
@@ -133,16 +150,22 @@ public class AppMainFrame extends JFrame {
     }
 
     private void init() {
-        setIconImage(new ImageIcon(getClass().getResource("/ui/resources/favicon.png")).getImage());
+        // Use multi-resolution icons for elegant dock/taskbar display
+        AppIcon.applyTo(this);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setTitle(getAppTitle());
         setLayout(new BorderLayout());
+        // Ensure content pane uses theme background for dark mode
+        ((JPanel) getContentPane()).setOpaque(true);
+        getContentPane().setBackground(UIManager.getColor("Panel.background"));
         setGlassPane(docker);
+        // Start with Swing chrome (FX chrome added later via initFXChrome)
         setJMenuBar(menuBar);
         progressed(80);
         slideShow.addSlide("TestDesign", testDesign.getTestDesignUI());
         slideShow.addSlide("TestExecution", testExecution.getTestExecutionUI());
         slideShow.addSlide("DashBoard", dashBoard);
+        slideShow.addSlide("APITester", apiTester.getAPITesterUI());
         progressed(85);
         add(slideShow, BorderLayout.CENTER);
         add(toolBar, BorderLayout.NORTH);
@@ -176,11 +199,16 @@ public class AppMainFrame extends JFrame {
 
     }
 
-    private Box.Filler simpleFiller() {
-        Box.Filler filler = new Box.Filler(
-                new java.awt.Dimension(10, 0),
-                new java.awt.Dimension(10, 0),
-                new java.awt.Dimension(10, 32767));
+    private JPanel simpleFiller() {
+        JPanel filler = new JPanel();
+        filler.setPreferredSize(new java.awt.Dimension(4, 0));
+        filler.setOpaque(true);
+        // Use subtle grey for dark theme, default panel background for light theme
+        if (com.ing.ide.main.Main.isDarkMode()) {
+            filler.setBackground(new java.awt.Color(50, 52, 55)); // Subtle dark grey
+        } else {
+            filler.setBackground(UIManager.getColor("Panel.background"));
+        }
 
         filler.addMouseListener(new MouseAdapter() {
 
@@ -196,20 +224,66 @@ public class AppMainFrame extends JFrame {
         return filler;
     }
 
+    /**
+     * Swaps Swing menu bar and toolbar for JavaFX CSS-styled versions.
+     * Must be called on the EDT AFTER the frame is visible and maximized.
+     * This deferred approach prevents the macOS Glass native crash (NSTrackingRectTag)
+     * that occurs when JFXPanel is resized before its native peer is ready.
+     */
+    public void initFXChrome() {
+        fxMenuBar = new FXMenuBar(sActionListener);
+        fxToolBar = new FXToolBar(sActionListener);
+        fxStatusBar = new FXStatusBar();
+
+        // Remove Swing chrome
+        setJMenuBar(null);
+        remove(toolBar);
+
+        // Add FX chrome at top
+        JPanel chromePanel = new JPanel();
+        chromePanel.setLayout(new BoxLayout(chromePanel, BoxLayout.Y_AXIS));
+        chromePanel.add(fxMenuBar);
+        chromePanel.add(fxToolBar);
+        add(chromePanel, BorderLayout.NORTH);
+
+        // Add FX status bar at bottom
+        add(fxStatusBar, BorderLayout.SOUTH);
+
+        // Sync multi-env state if project is loaded
+        if (sProject != null) {
+            Boolean isMulti = sProject.getTestData().getNoOfEnvironments() > 1;
+            fxMenuBar.setMultiEnvironment(isMulti);
+            fxStatusBar.setProjectName(sProject.getName());
+        }
+        fxStatusBar.setCurrentView("Test Design");
+
+        revalidate();
+        repaint();
+    }
+
     public void showTestDesign() {
         getGlassPane().setVisible(false);
         slideShow.showSlide("TestDesign");
+        if (fxStatusBar != null) fxStatusBar.setCurrentView("Test Design");
     }
 
     public void showTestExecution() {
         getGlassPane().setVisible(false);
         slideShow.showSlide("TestExecution");
         testExecution.getTestExecutionUI().adjustUI();
+        if (fxStatusBar != null) fxStatusBar.setCurrentView("Test Execution");
     }
 
     public void showDashBoard() {
         getGlassPane().setVisible(false);
         slideShow.showSlide("DashBoard");
+        if (fxStatusBar != null) fxStatusBar.setCurrentView("DashBoard");
+    }
+
+    public void showAPITester() {
+        getGlassPane().setVisible(false);
+        slideShow.showSlide("APITester");
+        if (fxStatusBar != null) fxStatusBar.setCurrentView("API Tester");
     }
 
     private String getAppTitle() {
@@ -236,6 +310,10 @@ public class AppMainFrame extends JFrame {
         return getCurrentSlide().equals("DashBoard");
     }
 
+    public Boolean isAPITester() {
+        return getCurrentSlide().equals("APITester");
+    }
+
     public TestDesign getTestDesign() {
         return testDesign;
     }
@@ -244,8 +322,12 @@ public class AppMainFrame extends JFrame {
         return testExecution;
     }
 
-    public DashBoard getDashBoard() {
+    public FXDashBoard getDashBoard() {
         return dashBoard;
+    }
+
+    public APITester getAPITester() {
+        return apiTester;
     }
 
     public DashBoardManager getDashBoardManager() {
@@ -597,7 +679,16 @@ public class AppMainFrame extends JFrame {
         dashBoardManager.onProjectChanged();
         sActionListener.afterProjectChange();
         setTitle(sProject.getName() + " - " + getAppTitle());
+        // Sync multi-environment state to both Swing and FX menus
         menuBar.setMultiEnvironment();
+        if (fxMenuBar != null) {
+            Boolean isMulti = sProject.getTestData().getNoOfEnvironments() > 1;
+            fxMenuBar.setMultiEnvironment(isMulti);
+        }
+        // Update status bar project name
+        if (fxStatusBar != null) {
+            fxStatusBar.setProjectName(sProject.getName());
+        }
     }
 
     public void adjustUI() {
@@ -625,12 +716,9 @@ public class AppMainFrame extends JFrame {
 
     private Boolean iCanQuit(int optionType) {
         int option = JOptionPane.YES_OPTION;
-        UIManager.put("OptionPane.messageFont", UIManager.getFont("Table.font"));
         if (sProject != null) {
-            option = JOptionPane.showConfirmDialog(this,
-                    "Do you want to save the Project before Quitting?",
-                    "Quit",
-                    optionType);
+            // Use styled quit confirmation dialog
+            option = QuitConfirmationDialog.showConfirmation(this, optionType);
             
             if (option == JOptionPane.YES_OPTION) {
                 saveLoadedProject();

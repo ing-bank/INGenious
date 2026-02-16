@@ -9,6 +9,7 @@ import java.awt.Color;
 import java.awt.Font;
 import java.util.Objects;
 import javax.swing.JComponent;
+import javax.swing.UIManager;
 
 /**
  *
@@ -51,7 +52,8 @@ public class ActionRenderer extends AbstractRenderer {
             }
         } else {
             setDefault(comp);
-            comp.setForeground(Color.lightGray);
+            Color c = UIManager.getColor("ing.commentedForeground");
+            comp.setForeground(c != null ? c : Color.lightGray);
             comp.setFont(new Font("Default", Font.ITALIC, 11));
         }
     }

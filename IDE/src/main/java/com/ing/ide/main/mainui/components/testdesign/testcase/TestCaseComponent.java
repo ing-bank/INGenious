@@ -14,6 +14,7 @@ import com.ing.ide.main.mainui.EngineConfig;
 import com.ing.ide.main.mainui.components.testdesign.TestDesign;
 import com.ing.ide.main.playwrightrecording.PlaywrightSpinner;
 import com.ing.ide.main.playwrightrecording.ClipboardMonitor;
+import com.ing.ide.main.utils.AppIcon;
 import com.ing.ide.main.utils.ConsolePanel;
 import com.ing.ide.main.utils.MenuScroller;
 import com.ing.ide.main.utils.Utils;
@@ -933,7 +934,7 @@ public class TestCaseComponent extends JPanel implements ActionListener {
             cPanel = new ConsolePanel();
             add(cPanel, BorderLayout.CENTER);
             setTitle("Console");
-            setIconImage(new ImageIcon(getClass().getResource("/ui/resources/favicon.png")).getImage());
+            AppIcon.applyTo(this);
             setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
             setModalExclusionType(ModalExclusionType.APPLICATION_EXCLUDE);
         }

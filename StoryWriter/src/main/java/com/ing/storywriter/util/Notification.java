@@ -5,6 +5,7 @@ import java.awt.Component;
 import javax.swing.JOptionPane;
 import com.ing.storywriter.bdd.ui.UIControl;
 import com.ing.storywriter.util.toaster.Toaster;
+import com.ing.storywriter.util.toaster.ToasterDialog;
 
 /**
  *
@@ -13,6 +14,12 @@ public class Notification {
 
     public static Boolean deleteConfirmation = true;
     private static final Toaster t = new Toaster();
+    
+    // Keywords that indicate success messages
+    private static final String[] SUCCESS_KEYWORDS = {
+        "saved", "created", "success", "added", "done", "copied", 
+        "renamed", "complete", "export complete", "loaded"
+    };
 
     public class Msg {
 
@@ -38,7 +45,34 @@ public class Notification {
     }
 
     public static void show(Component parent, String message) {
-        t.showToaster(parent, message);
+        // Auto-detect success messages based on keywords
+        if (isSuccessMessage(message)) {
+            t.showSuccessToaster(parent, message);
+        } else {
+            t.showInfoToaster(parent, message);
+        }
+    }
+    
+    /**
+     * Check if the message is a success message based on keywords.
+     */
+    private static boolean isSuccessMessage(String message) {
+        if (message == null) return false;
+        String lowerMessage = message.toLowerCase();
+        for (String keyword : SUCCESS_KEYWORDS) {
+            if (lowerMessage.contains(keyword)) {
+                // Make sure it's not a negative/failure context
+                if (!lowerMessage.contains("couldn't") && 
+                    !lowerMessage.contains("could not") &&
+                    !lowerMessage.contains("failed") &&
+                    !lowerMessage.contains("not ") &&
+                    !lowerMessage.contains("error") &&
+                    !lowerMessage.contains("already")) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     public static Boolean showDeleteConfirmation() {

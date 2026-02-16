@@ -39,6 +39,13 @@ import javax.swing.JTextField;
 import javax.swing.KeyStroke;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.UIManager;
+import java.awt.Color;
+import java.awt.Font;
+import javax.swing.BorderFactory;
+import javax.swing.JComponent;
+import javax.swing.border.EmptyBorder;
+import javax.swing.border.MatteBorder;
+import com.ing.ide.main.fx.INGIcons;
 
 /**
  *
@@ -46,12 +53,9 @@ import javax.swing.UIManager;
  */
 public class INGeniousSettings extends javax.swing.JFrame {
 
-    private static final ImageIcon DEFAULT_ICON
-            = new ImageIcon(TMSettings.class.getResource("/ui/resources/toolbar/bulb_yellow.png"));
-    private static final ImageIcon PASS_ICON
-            = new ImageIcon(TMSettings.class.getResource("/ui/resources/toolbar/bulb_green.png"));
-    private static final ImageIcon FAIL_ICON
-            = new ImageIcon(TMSettings.class.getResource("/ui/resources/toolbar/bulb_red.png"));
+    private static final javax.swing.Icon DEFAULT_ICON = INGIcons.swingColored("icon.bulb_yellow", 16);
+    private static final javax.swing.Icon PASS_ICON = INGIcons.swingColored("icon.bulb_green", 16);
+    private static final javax.swing.Icon FAIL_ICON = INGIcons.swingColored("icon.bulb_red", 16);
 
     private final AppMainFrame sMainFrame;
 
@@ -77,11 +81,362 @@ public class INGeniousSettings extends javax.swing.JFrame {
 
     private ConnectButton dbConnect;
     
+    // Modern web-style colors (theme-independent - looks great in both light and dark)
+    private static final Color MODERN_BG = new Color(255, 255, 255);           // Clean white background
+    private static final Color MODERN_PANEL_BG = new Color(248, 250, 252);     // Slightly off-white panels (Slate-50)
+    private static final Color MODERN_SURFACE = new Color(241, 245, 249);      // Card surface (Slate-100)
+    private static final Color MODERN_BORDER = new Color(226, 232, 240);       // Subtle borders (Slate-200)
+    private static final Color MODERN_TEXT = new Color(30, 41, 59);            // Dark slate text (Slate-800)
+    private static final Color MODERN_TEXT_SECONDARY = new Color(100, 116, 139); // Secondary text (Slate-500)
+    private static final Color MODERN_ACCENT = new Color(59, 130, 246);        // Modern blue accent (Blue-500)
+    private static final Color MODERN_ACCENT_HOVER = new Color(37, 99, 235);   // Darker blue for hover (Blue-600)
+    private static final Color MODERN_ACCENT_LIGHT = new Color(219, 234, 254); // Light blue for hover bg (Blue-100)
+    private static final Color MODERN_INPUT_BG = Color.WHITE;                   // White inputs
+    private static final Color MODERN_SUCCESS = new Color(34, 197, 94);        // Green for success (Green-500)
+    
     public INGeniousSettings(AppMainFrame sMainFrame) {
         this.sMainFrame = sMainFrame;
         initComponents();
-        setIconImage(IconSettings.getIconSettings().getSettingsGear().getImage());
+        setIconImage(com.ing.ide.main.fx.INGIcons.toImage(IconSettings.getIconSettings().getSettingsGear()));
         initTabs();
+        applyModernStyles();
+        // Ensure window is tall enough to show all checkboxes
+        setMinimumSize(new java.awt.Dimension(580, 750));
+        setSize(580, 750);
+    }
+    
+    /**
+     * Apply modern web-style design to the Run Settings window.
+     * Uses a clean, neutral color palette that looks great in both light and dark system themes.
+     */
+    private void applyModernStyles() {
+        // Style root pane and frame
+        getRootPane().setBackground(MODERN_BG);
+        getRootPane().setOpaque(true);
+        this.setBackground(MODERN_BG);
+        
+        // Style content pane
+        java.awt.Container contentPane = getContentPane();
+        contentPane.setBackground(MODERN_BG);
+        if (contentPane instanceof JComponent) {
+            JComponent jContentPane = (JComponent) contentPane;
+            jContentPane.setOpaque(true);
+            jContentPane.setBackground(MODERN_BG);
+        }
+        
+        // Style tabbed pane with modern underlined tabs
+        runSettingsTab.setBackground(MODERN_BG);
+        runSettingsTab.setForeground(MODERN_TEXT);
+        runSettingsTab.setOpaque(true);
+        runSettingsTab.putClientProperty("JTabbedPane.tabType", "underlined");
+        runSettingsTab.putClientProperty("JTabbedPane.tabUnderlineColor", MODERN_ACCENT);
+        runSettingsTab.putClientProperty("JTabbedPane.tabAreaAlignment", "leading");
+        runSettingsTab.putClientProperty("JTabbedPane.showTabSeparators", false);
+        runSettingsTab.putClientProperty("JTabbedPane.tabsOpaque", false);
+        runSettingsTab.putClientProperty("JTabbedPane.contentOpaque", true);
+        runSettingsTab.putClientProperty("JTabbedPane.tabAreaBackground", MODERN_PANEL_BG);
+        runSettingsTab.putClientProperty("JTabbedPane.tabHeight", 40);
+        runSettingsTab.putClientProperty("JTabbedPane.tabInsets", new java.awt.Insets(10, 20, 10, 20));
+        runSettingsTab.putClientProperty("JTabbedPane.hoverForeground", MODERN_ACCENT);
+        runSettingsTab.putClientProperty("JTabbedPane.selectedForeground", MODERN_ACCENT);
+        runSettingsTab.putClientProperty("JTabbedPane.hoverColor", MODERN_ACCENT_LIGHT);
+        
+        // Style panels
+        if (globalSettings != null) {
+            globalSettings.setBackground(MODERN_BG);
+            globalSettings.setOpaque(true);
+        }
+        if (qcrunSettings != null) {
+            qcrunSettings.setBackground(MODERN_BG);
+            qcrunSettings.setOpaque(true);
+        }
+        
+        // Style save panel with modern card-like appearance
+        if (savePanel != null) {
+            savePanel.setBackground(MODERN_PANEL_BG);
+            savePanel.setOpaque(true);
+            savePanel.setBorder(BorderFactory.createCompoundBorder(
+                new MatteBorder(1, 0, 0, 0, MODERN_BORDER),
+                new EmptyBorder(12, 20, 12, 20)
+            ));
+        }
+        
+        // Style buttons
+        styleModernButton(saveSettings, true);
+        styleModernButton(resetSettings, false);
+        
+        // Style section labels with modern typography
+        Font labelFont = UIManager.getFont("Label.font");
+        Font sectionFont = labelFont != null ? 
+            labelFont.deriveFont(Font.BOLD, labelFont.getSize() + 1f) : 
+            new Font("Inter", Font.BOLD, 13);
+        
+        styleModernLabel(jLabel1, sectionFont);
+        styleModernLabel(jLabel2, sectionFont);
+        styleModernLabel(jLabel3, sectionFont);
+        styleModernLabel(jLabel4, sectionFont);
+        styleModernLabel(jLabel5, sectionFont);
+        styleModernLabel(jLabel9, sectionFont);
+        styleModernLabel(jLabel29, sectionFont);
+        styleModernLabel(envLabel, sectionFont);
+        
+        // Style toolbar
+        if (jToolBar1 != null) {
+            jToolBar1.setBackground(MODERN_SURFACE);
+            jToolBar1.setOpaque(true);
+            jToolBar1.setBorder(BorderFactory.createCompoundBorder(
+                new MatteBorder(0, 0, 1, 0, MODERN_BORDER),
+                new EmptyBorder(8, 12, 8, 12)
+            ));
+        }
+        
+        if (testConn != null) styleModernButton(testConn, true);
+        if (reset != null) styleModernButton(reset, false);
+        
+        // Style inputs
+        styleModernComboBox(testEnv);
+        styleModernComboBox(testMgmtModuleCombo);
+        styleModernSpinner(threadCount);
+        styleModernSpinner(reRunNo);
+        styleModernTextField(executionTimeOut);
+        styleModernTextField(remoteGridURL);
+        
+        // Style checkboxes
+        styleModernCheckBox(passCheckBox);
+        styleModernCheckBox(failCheckBox);
+        styleModernCheckBox(fullpagescreenshot);
+        styleModernCheckBox(reportPerformanceLog);
+        styleModernCheckBox(bddReport);
+        styleModernCheckBox(slackNotify);
+        styleModernCheckBox(rpUpdate);
+        styleModernCheckBox(extent);
+        styleModernCheckBox(azure);
+        styleModernCheckBox(recordVideo);
+        styleModernCheckBox(enableTracing);
+        styleModernCheckBox(enableHAR);
+        styleModernCheckBox(updateresultscheckbox);
+        
+        // Style radio buttons
+        styleModernRadioButton(jRadioButton1);
+        styleModernRadioButton(jRadioButton2);
+        styleModernRadioButton(jRadioButton3);
+        styleModernRadioButton(jRadioButton4);
+        
+        // Style XTablePanels
+        styleModernXTablePanel(uDPanel);
+        styleModernXTablePanel(extentSettingsPanel);
+        styleModernXTablePanel(KafkaSSLConfigsPanel);
+        styleModernXTablePanel(lambdatestCapsPanel);
+        
+        // Style filler
+        if (filler5 != null) {
+            filler5.setOpaque(true);
+            filler5.setBackground(MODERN_BG);
+        }
+        
+        // Recursively style all components
+        styleModernComponentsRecursively(getContentPane());
+        
+        revalidate();
+        repaint();
+    }
+    
+    private void styleModernXTablePanel(XTablePanel panel) {
+        if (panel == null) return;
+        
+        panel.setBackground(MODERN_BG);
+        panel.setOpaque(true);
+        panel.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(MODERN_BORDER, 1),
+            new EmptyBorder(0, 0, 0, 0)
+        ));
+        
+        if (panel.toolBar != null) {
+            panel.toolBar.setBackground(MODERN_SURFACE);
+            panel.toolBar.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, MODERN_BORDER));
+        }
+        
+        if (panel.table != null) {
+            panel.table.setBackground(MODERN_INPUT_BG);
+            panel.table.setForeground(MODERN_TEXT);
+            panel.table.setGridColor(MODERN_BORDER);
+            panel.table.setSelectionBackground(MODERN_ACCENT);
+            panel.table.setSelectionForeground(Color.WHITE);
+            panel.table.setRowHeight(32);
+            if (panel.table.getTableHeader() != null) {
+                panel.table.getTableHeader().setBackground(MODERN_SURFACE);
+                panel.table.getTableHeader().setForeground(MODERN_TEXT);
+            }
+        }
+        
+        styleModernComponentsRecursively(panel);
+    }
+    
+    private void styleModernComponentsRecursively(java.awt.Container container) {
+        if (container == null) return;
+        
+        for (java.awt.Component comp : container.getComponents()) {
+            if (comp instanceof javax.swing.JPanel) {
+                javax.swing.JPanel panel = (javax.swing.JPanel) comp;
+                panel.setBackground(MODERN_BG);
+                panel.setOpaque(true);
+            }
+            
+            if (comp instanceof javax.swing.JTabbedPane) {
+                javax.swing.JTabbedPane tp = (javax.swing.JTabbedPane) comp;
+                tp.setBackground(MODERN_BG);
+                tp.setForeground(MODERN_TEXT);
+                tp.setOpaque(true);
+                tp.putClientProperty("JTabbedPane.tabType", "underlined");
+                tp.putClientProperty("JTabbedPane.tabUnderlineColor", MODERN_ACCENT);
+                tp.putClientProperty("JTabbedPane.hoverForeground", MODERN_ACCENT);
+                tp.putClientProperty("JTabbedPane.selectedForeground", MODERN_ACCENT);
+                tp.putClientProperty("JTabbedPane.hoverColor", MODERN_ACCENT_LIGHT);
+            }
+            
+            if (comp instanceof javax.swing.Box.Filler) {
+                comp.setBackground(MODERN_BG);
+                if (comp instanceof JComponent) ((JComponent) comp).setOpaque(true);
+            }
+            
+            if (comp instanceof javax.swing.JScrollPane) {
+                javax.swing.JScrollPane sp = (javax.swing.JScrollPane) comp;
+                sp.setBackground(MODERN_BG);
+                sp.setOpaque(true);
+                sp.getViewport().setBackground(MODERN_INPUT_BG);
+                sp.setBorder(BorderFactory.createLineBorder(MODERN_BORDER, 1));
+            }
+            
+            if (comp instanceof javax.swing.JLabel) {
+                ((javax.swing.JLabel) comp).setForeground(MODERN_TEXT);
+            }
+            
+            if (comp instanceof javax.swing.JTextField) {
+                javax.swing.JTextField tf = (javax.swing.JTextField) comp;
+                tf.setBackground(MODERN_INPUT_BG);
+                tf.setForeground(MODERN_TEXT);
+                tf.setCaretColor(MODERN_ACCENT);
+            }
+            
+            if (comp instanceof javax.swing.JTextArea) {
+                javax.swing.JTextArea ta = (javax.swing.JTextArea) comp;
+                ta.setBackground(MODERN_INPUT_BG);
+                ta.setForeground(MODERN_TEXT);
+                ta.setCaretColor(MODERN_ACCENT);
+            }
+            
+            if (comp instanceof javax.swing.JTable) {
+                javax.swing.JTable table = (javax.swing.JTable) comp;
+                table.setBackground(MODERN_INPUT_BG);
+                table.setForeground(MODERN_TEXT);
+                table.setGridColor(MODERN_BORDER);
+                table.setSelectionBackground(MODERN_ACCENT);
+                table.setSelectionForeground(Color.WHITE);
+                if (table.getTableHeader() != null) {
+                    table.getTableHeader().setBackground(MODERN_SURFACE);
+                    table.getTableHeader().setForeground(MODERN_TEXT);
+                }
+            }
+            
+            if (comp instanceof javax.swing.JToolBar) {
+                javax.swing.JToolBar tb = (javax.swing.JToolBar) comp;
+                tb.setBackground(MODERN_SURFACE);
+                tb.setOpaque(true);
+            }
+            
+            if (comp instanceof java.awt.Container) {
+                styleModernComponentsRecursively((java.awt.Container) comp);
+            }
+        }
+    }
+    
+    private void styleModernButton(javax.swing.JButton button, boolean primary) {
+        if (button == null) return;
+        
+        button.setFocusPainted(false);
+        button.setBorderPainted(true);
+        button.setContentAreaFilled(true);
+        button.putClientProperty("JButton.buttonType", "roundRect");
+        button.putClientProperty("JButton.arc", 8);
+        
+        if (primary) {
+            button.setBackground(MODERN_ACCENT);
+            button.setForeground(Color.WHITE);
+            button.setBorder(new EmptyBorder(10, 28, 10, 28));
+            button.putClientProperty("JButton.hoverBackground", MODERN_ACCENT_HOVER);
+            button.putClientProperty("JButton.pressedBackground", MODERN_ACCENT_HOVER.darker());
+        } else {
+            button.setBackground(MODERN_INPUT_BG);
+            button.setForeground(MODERN_TEXT);
+            button.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(MODERN_BORDER, 1),
+                new EmptyBorder(9, 27, 9, 27)
+            ));
+            button.putClientProperty("JButton.hoverBackground", MODERN_SURFACE);
+        }
+    }
+    
+    private void styleModernLabel(javax.swing.JLabel label, Font font) {
+        if (label == null) return;
+        label.setForeground(MODERN_TEXT);
+        label.setFont(font);
+    }
+    
+    private void styleModernComboBox(javax.swing.JComboBox<?> comboBox) {
+        if (comboBox == null) return;
+        comboBox.setBackground(MODERN_INPUT_BG);
+        comboBox.setForeground(MODERN_TEXT);
+        comboBox.putClientProperty("JComboBox.squareButton", false);
+        comboBox.putClientProperty("JComponent.roundRect", true);
+        ((JComponent) comboBox).setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(MODERN_BORDER, 1),
+            new EmptyBorder(4, 8, 4, 8)
+        ));
+    }
+    
+    private void styleModernSpinner(javax.swing.JSpinner spinner) {
+        if (spinner == null) return;
+        spinner.setBackground(MODERN_INPUT_BG);
+        spinner.setBorder(BorderFactory.createLineBorder(MODERN_BORDER, 1));
+        JComponent editor = spinner.getEditor();
+        if (editor instanceof javax.swing.JSpinner.DefaultEditor) {
+            JTextField tf = ((javax.swing.JSpinner.DefaultEditor) editor).getTextField();
+            tf.setBackground(MODERN_INPUT_BG);
+            tf.setForeground(MODERN_TEXT);
+            tf.setCaretColor(MODERN_ACCENT);
+        }
+    }
+    
+    private void styleModernTextField(javax.swing.JTextField textField) {
+        if (textField == null) return;
+        textField.setBackground(MODERN_INPUT_BG);
+        textField.setForeground(MODERN_TEXT);
+        textField.setCaretColor(MODERN_ACCENT);
+        textField.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(MODERN_BORDER, 1),
+            new EmptyBorder(8, 12, 8, 12)
+        ));
+        textField.putClientProperty("JComponent.roundRect", true);
+        textField.putClientProperty("JTextField.placeholderForeground", MODERN_TEXT_SECONDARY);
+    }
+    
+    private void styleModernCheckBox(javax.swing.JCheckBox checkBox) {
+        if (checkBox == null) return;
+        checkBox.setForeground(MODERN_TEXT);
+        checkBox.setBackground(MODERN_BG);
+        checkBox.setOpaque(false);
+        checkBox.setFocusPainted(false);
+        checkBox.putClientProperty("JCheckBox.icon.style", "filled");
+        checkBox.putClientProperty("JCheckBox.arc", 4);
+    }
+    
+    private void styleModernRadioButton(javax.swing.JRadioButton radioButton) {
+        if (radioButton == null) return;
+        radioButton.setForeground(MODERN_TEXT);
+        radioButton.setBackground(MODERN_BG);
+        radioButton.setOpaque(false);
+        radioButton.setFocusPainted(false);
+        radioButton.putClientProperty("JRadioButton.icon.style", "filled");
     }
 
     private void initTabs() {
@@ -929,7 +1284,7 @@ public class INGeniousSettings extends javax.swing.JFrame {
         jToolBar1.add(testMgmtModuleCombo);
         jToolBar1.add(filler3);
 
-        testConn.setIcon(new javax.swing.ImageIcon(getClass().getResource("/ui/resources/toolbar/bulb_yellow.png"))); // NOI18N
+        testConn.setIcon(INGIcons.swingColored("icon.bulb_yellow", 16));
         testConn.setText("Test Connection");
         testConn.setFocusable(false);
         testConn.setHorizontalTextPosition(javax.swing.SwingConstants.RIGHT);

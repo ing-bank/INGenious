@@ -1,14 +1,55 @@
 
 package com.ing.ide.main.utils.toasterNotification;
 
+import java.awt.Color;
+import javax.swing.BorderFactory;
+import javax.swing.UIManager;
+
 /**
  *
  * 
  */
 public class ToasterDialog extends javax.swing.JDialog {
 
+    // Notification type constants
+    public static final int TYPE_INFO = 0;
+    public static final int TYPE_SUCCESS = 1;
+    
+    // Translucent colors for notifications
+    private static final Color SUCCESS_BG = new Color(76, 175, 80, 220);  // Translucent green
+    private static final Color INFO_BG = new Color(33, 150, 243, 220);     // Translucent blue
+    private static final Color TEXT_COLOR = Color.WHITE;
+    
     ToasterDialog() {
+        this(TYPE_INFO);
+    }
+    
+    ToasterDialog(int notificationType) {
         initComponents();
+        applyStyle(notificationType);
+    }
+    
+    private void applyStyle(int notificationType) {
+        Color bgColor = (notificationType == TYPE_SUCCESS) ? SUCCESS_BG : INFO_BG;
+        
+        // Style the dialog
+        getContentPane().setBackground(bgColor);
+        jScrollPane1.setBackground(bgColor);
+        jScrollPane1.getViewport().setBackground(bgColor);
+        jScrollPane1.setBorder(BorderFactory.createEmptyBorder(8, 12, 8, 12));
+        jScrollPane1.setOpaque(true);
+        
+        // Style the message text area
+        message.setBackground(bgColor);
+        message.setForeground(TEXT_COLOR);
+        message.setOpaque(true);
+        message.setBorder(BorderFactory.createEmptyBorder());
+        
+        // Add a subtle border around the dialog
+        getRootPane().setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(bgColor.darker(), 1),
+            BorderFactory.createEmptyBorder(4, 4, 4, 4)
+        ));
     }
 
     /**

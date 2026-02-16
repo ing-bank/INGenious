@@ -1,10 +1,10 @@
 
 package com.ing.ide.main.mainui.components.testdesign.testdata;
 
+import com.formdev.flatlaf.ui.FlatTabbedPaneUI;
 import java.awt.Graphics;
 import java.awt.Rectangle;
 import javax.swing.JTabbedPane;
-import javax.swing.plaf.synth.SynthTabbedPaneUI;
 
 public class XJTabbedPane extends JTabbedPane {
 
@@ -16,13 +16,20 @@ public class XJTabbedPane extends JTabbedPane {
 
     public void setShowTabsHeader(boolean showTabsHeader) {
         this.showTabsHeader = showTabsHeader;
+        // Refresh the UI when visibility changes
+        revalidate();
+        repaint();
     }
 
     public boolean isShowTabsHeader() {
         return showTabsHeader;
     }
 
-    private class MyTabbedPaneUI extends SynthTabbedPaneUI {
+    /**
+     * Custom FlatLaf-based UI that supports hiding the tab area.
+     * Extends FlatTabbedPaneUI to maintain proper theme support.
+     */
+    private class MyTabbedPaneUI extends FlatTabbedPaneUI {
 
         @Override
         protected int calculateTabAreaHeight(

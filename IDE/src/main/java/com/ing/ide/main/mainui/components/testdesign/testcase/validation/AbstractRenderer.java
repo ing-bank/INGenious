@@ -36,7 +36,8 @@ public abstract class AbstractRenderer extends DefaultTableCellRenderer {
                     render(comp, step, value);
                 }
             } else {
-                comp.setForeground(Color.WHITE);
+                Color selFg = UIManager.getColor("ing.selectedCellForeground");
+                comp.setForeground(selFg != null ? selFg : Color.WHITE);
             }
         }
         return comp;
@@ -50,28 +51,34 @@ public abstract class AbstractRenderer extends DefaultTableCellRenderer {
     }
 
     protected void setNotPresent(JComponent comp, String notPresent) {
-        comp.setForeground(Color.RED);
+        Color c = UIManager.getColor("ing.errorForeground");
+        comp.setForeground(c != null ? c : Color.RED);
         comp.setToolTipText(notPresent);
     }
 	
     protected void setWebserviceRequest(JComponent comp) {
-        comp.setForeground(new Color(0,204,0));
+        Color c = UIManager.getColor("ing.webserviceRequestForeground");
+        comp.setForeground(c != null ? c : new Color(0,204,0));
     }
     
     protected void setText(JComponent comp) {
-        comp.setForeground(new Color(0,204,0));
+        Color c = UIManager.getColor("ing.webserviceRequestForeground");
+        comp.setForeground(c != null ? c : new Color(0,204,0));
     }
     
     protected void setWebserviceStart(JComponent comp) {
-        comp.setForeground(Color.BLUE);
+        Color c = UIManager.getColor("ing.webserviceStartForeground");
+        comp.setForeground(c != null ? c : Color.BLUE);
     }
     
     protected void setWebserviceStop(JComponent comp) {
-        comp.setForeground(new Color(153,102,0));
+        Color c = UIManager.getColor("ing.webserviceStopForeground");
+        comp.setForeground(c != null ? c : new Color(153,102,0));
     }
     
     protected void setReusable(JComponent comp) {
-        comp.setForeground(Color.green);
+        Color c = UIManager.getColor("ing.reusableForeground");
+        comp.setForeground(c != null ? c : Color.green);
         comp.setToolTipText(null);
     }
 	

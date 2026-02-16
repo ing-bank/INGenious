@@ -6,6 +6,7 @@ import com.ing.ide.main.utils.Utils;
 import java.awt.event.ActionListener;
 import javax.swing.JButton;
 import javax.swing.JToolBar;
+import javax.swing.UIManager;
 
 /**
  *
@@ -21,7 +22,8 @@ public class ScenarioToolBar extends JToolBar {
     public ScenarioToolBar(ActionListener scProxy) {
         this.actionListener = scProxy;
         setFloatable(false);
-        setBorder(javax.swing.BorderFactory.createEtchedBorder());
+        setOpaque(false);
+        setBorder(javax.swing.BorderFactory.createMatteBorder(0, 0, 1, 0, UIManager.getColor("Separator.foreground")));
         setLayout(new javax.swing.BoxLayout(this, javax.swing.BoxLayout.X_AXIS));
         init();
     }

@@ -5,6 +5,7 @@ import com.ing.engine.support.DesktopApi;
 import com.ing.ide.main.mainui.components.testexecution.TestExecution;
 import com.ing.ide.main.mainui.components.testexecution.tree.model.TestSetNode;
 import com.ing.ide.main.utils.tree.TreeSelectionRenderer;
+import com.ing.ide.main.fx.INGIcons;
 import com.ing.ide.util.browser.Browser;
 import com.ing.ide.util.browser.PlatformBrowser;
 import java.awt.BorderLayout;
@@ -121,8 +122,8 @@ public class DashBoard extends javax.swing.JPanel {
         webPanel.setLayout(new java.awt.BorderLayout());
         browserPanel.add(webPanel, java.awt.BorderLayout.CENTER);
 
-        jToolBar1.setBackground(new java.awt.Color(255, 255, 255));
-        jToolBar1.setForeground(new java.awt.Color(255, 255, 255));
+        // Use UIManager colors for theme support
+        jToolBar1.setForeground(javax.swing.UIManager.getColor("ToolBar.foreground"));
         jToolBar1.setRollover(true);
         jToolBar1.setMaximumSize(new java.awt.Dimension(753, 73));
         jToolBar1.setMinimumSize(new java.awt.Dimension(723, 73));
@@ -130,7 +131,7 @@ public class DashBoard extends javax.swing.JPanel {
         jToolBar1.setPreferredSize(new java.awt.Dimension(723, 73));
         jToolBar1.add(filler6);
 
-        back.setIcon(new javax.swing.ImageIcon(getClass().getResource("/ui/resources/dashboard/backButton.png"))); // NOI18N
+        back.setIcon(INGIcons.swingColored("icon.arrow.left", 16));
         back.setToolTipText("Navigate Back");
         back.setFocusable(false);
         back.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
@@ -144,12 +145,11 @@ public class DashBoard extends javax.swing.JPanel {
         jToolBar1.add(filler1);
 
         latestSummary.setForeground(new java.awt.Color(255, 255, 255));
-        latestSummary.setIcon(new javax.swing.ImageIcon(getClass().getResource("/ui/resources/dashboard/latest.png"))); // NOI18N
+        latestSummary.setIcon(INGIcons.swingColored("icon.doc", 16));
         latestSummary.setBorder(null);
         latestSummary.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
         latestSummary.setFocusable(false);
         latestSummary.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
-        latestSummary.setRolloverIcon(new javax.swing.ImageIcon(getClass().getResource("/ui/resources/dashboard/latestbub.png"))); // NOI18N
         latestSummary.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
         latestSummary.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -162,12 +162,11 @@ public class DashBoard extends javax.swing.JPanel {
         detailedSummary.setBackground(Color.decode("#153E7E")
         );
         detailedSummary.setForeground(new java.awt.Color(255, 255, 255));
-        detailedSummary.setIcon(new javax.swing.ImageIcon(getClass().getResource("/ui/resources/dashboard/detailed.png"))); // NOI18N
+        detailedSummary.setIcon(INGIcons.swingColored("icon.chart", 16));
         detailedSummary.setBorder(null);
         detailedSummary.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
         detailedSummary.setFocusable(false);
         detailedSummary.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
-        detailedSummary.setRolloverIcon(new javax.swing.ImageIcon(getClass().getResource("/ui/resources/dashboard/detailedbub.png"))); // NOI18N
         detailedSummary.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
         detailedSummary.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -177,7 +176,7 @@ public class DashBoard extends javax.swing.JPanel {
         jToolBar1.add(detailedSummary);
         jToolBar1.add(filler3);
 
-        forward.setIcon(new javax.swing.ImageIcon(getClass().getResource("/ui/resources/dashboard/forwardButton.png"))); // NOI18N
+        forward.setIcon(INGIcons.swingColored("icon.arrow.right", 16));
         forward.setToolTipText("Navigate Forward");
         forward.setFocusable(false);
         forward.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
@@ -190,7 +189,7 @@ public class DashBoard extends javax.swing.JPanel {
         jToolBar1.add(forward);
         jToolBar1.add(filler4);
 
-        openInbrowser.setIcon(new javax.swing.ImageIcon(getClass().getResource("/ui/resources/dashboard/browser.png"))); // NOI18N
+        openInbrowser.setIcon(INGIcons.swingColored("icon.web", 16));
         openInbrowser.setToolTipText("Open in Browser");
         openInbrowser.setFocusable(false);
         openInbrowser.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);

@@ -15,7 +15,7 @@ import javax.swing.JComponent;
 import javax.swing.JTextField;
 import javax.swing.JTree;
 import javax.swing.KeyStroke;
-import javax.swing.UIDefaults;
+import javax.swing.UIManager;
 import javax.swing.tree.DefaultTreeCellEditor;
 import javax.swing.tree.DefaultTreeCellRenderer;
 
@@ -26,21 +26,69 @@ import javax.swing.tree.DefaultTreeCellRenderer;
 public class TreeSelectionRenderer extends DefaultTreeCellRenderer {
 
     public Boolean cellFocused = false;
-    final Color DEF_SELECTION_COLOR = Color.decode("#ffcfb2");
-    final Color NOFOCUS_SELECTION_COLOR = Color.decode("#ffcfb2");
 
     public TreeSelectionRenderer(JTree tree) {
         editLaF(tree);
         install(tree);
         tree.setCellRenderer(this);
+        // Set the renderer's internal selection colors from UIManager
+        updateSelectionColors();
+    }
+    
+    /**
+     * Update the renderer's internal selection colors from UIManager.
+     * Call this after theme changes.
+     */
+    public void updateSelectionColors() {
+        Color selBg = UIManager.getColor("ing.selectionBackground");
+        if (selBg == null) {
+            selBg = UIManager.getColor("Tree.selectionBackground");
+        }
+        if (selBg != null) {
+            setBackgroundSelectionColor(selBg);
+        }
+        
+        Color selFg = UIManager.getColor("ing.selectionForeground");
+        if (selFg == null) {
+            selFg = UIManager.getColor("Tree.selectionForeground");
+        }
+        if (selFg != null) {
+            setTextSelectionColor(selFg);
+        }
+        
+        Color bg = UIManager.getColor("Tree.background");
+        if (bg != null) {
+            setBackgroundNonSelectionColor(bg);
+        }
+        
+        Color fg = UIManager.getColor("Tree.foreground");
+        if (fg != null) {
+            setTextNonSelectionColor(fg);
+        }
+    }
+    
+    @Override
+    public void updateUI() {
+        super.updateUI();
+        // Refresh selection colors when L&F changes
+        updateSelectionColors();
     }
 
     public final void editLaF(JTree tree) {
-        UIDefaults paneDefaults = new UIDefaults();
-        paneDefaults.put("Tree.selectionBackground", null);
-        tree.putClientProperty("Nimbus.Overrides", paneDefaults);
-        tree.putClientProperty("Nimbus.Overrides.InheritDefaults", true);
-        tree.setBackground(Color.WHITE);
+        tree.setOpaque(true);
+        // Propagate tree background to viewport/scrollpane for consistent panel color
+        tree.addHierarchyListener(e -> {
+            if ((e.getChangeFlags() & java.awt.event.HierarchyEvent.PARENT_CHANGED) != 0) {
+                Container parent = tree.getParent();
+                if (parent instanceof javax.swing.JViewport) {
+                    parent.setBackground(tree.getBackground());
+                    Container sp = parent.getParent();
+                    if (sp instanceof javax.swing.JScrollPane) {
+                        sp.setBackground(tree.getBackground());
+                    }
+                }
+            }
+        });
     }
 
     public final void install(JTree tree) {
@@ -85,14 +133,22 @@ public class TreeSelectionRenderer extends DefaultTreeCellRenderer {
         JComponent comp = (JComponent) super.getTreeCellRendererComponent(jtree, o, bln, bln1, bln2, i, bln3);
         comp.setOpaque(true);
         if (selected) {
+            Color selBg;
             if (cellFocused) {
-                comp.setBackground(DEF_SELECTION_COLOR);
+                selBg = UIManager.getColor("ing.selectionBackground");
             } else {
-                comp.setBackground(NOFOCUS_SELECTION_COLOR);
+                selBg = UIManager.getColor("ing.selectionInactiveBackground");
             }
-            comp.setForeground(Color.decode("#0000ff"));
+            comp.setBackground(selBg != null ? selBg : Color.decode("#D4EDFD"));
+            Color selFg = UIManager.getColor("ing.selectionForeground");
+            comp.setForeground(selFg != null ? selFg : Color.decode("#4D0020"));
         } else {
-            comp.setBackground(jtree.getBackground());
+            Color bg = UIManager.getColor("Tree.background");
+            comp.setBackground(bg != null ? bg : jtree.getBackground());
+            Color fg = UIManager.getColor("Tree.foreground");
+            if (fg != null) {
+                comp.setForeground(fg);
+            }
         }
         return comp;
     }

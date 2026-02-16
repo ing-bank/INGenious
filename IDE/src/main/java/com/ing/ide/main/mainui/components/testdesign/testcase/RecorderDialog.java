@@ -22,7 +22,7 @@ public class RecorderDialog extends JFrame {
         this.testDesign = testDesign;
         setAlwaysOnTop(true);
         setPreferredSize(new Dimension(500, 300));
-        setIconImage(IconSettings.getIconSettings().getRecorderLarge().getImage());
+        setIconImage(com.ing.ide.main.fx.INGIcons.toImage(IconSettings.getIconSettings().getRecorderLarge()));
         setLayout(new BorderLayout());
         setTitle("Recorder");
         addWindowListener(new WindowAdapter() {

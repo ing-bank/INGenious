@@ -80,6 +80,8 @@ public class AppMenuBar extends JMenuBar {
                 KeyEvent.VK_E, KeyEvent.SHIFT_DOWN_MASK | KeyEvent.ALT_DOWN_MASK));
         shortcuts.put("Dashboard", KeyStroke.getKeyStroke(
                 KeyEvent.VK_D, KeyEvent.SHIFT_DOWN_MASK | KeyEvent.ALT_DOWN_MASK));
+        shortcuts.put("API Tester", KeyStroke.getKeyStroke(
+                KeyEvent.VK_T, KeyEvent.SHIFT_DOWN_MASK | KeyEvent.ALT_DOWN_MASK));
         shortcuts.put("AdjustUI", KeyStroke.getKeyStroke(
                 KeyEvent.VK_A, KeyEvent.SHIFT_DOWN_MASK | KeyEvent.ALT_DOWN_MASK));
 
@@ -103,8 +105,6 @@ public class AppMenuBar extends JMenuBar {
       
        // menu.setFont(new Font("Courier", Font.BOLD, 12));
        menu.setFont(new Font("ING Me", Font.BOLD, 12));
-//        setting color of menu text
-        menu.setForeground(UIManager.getColor("text"));
         menu.setMargin(new Insets(5,3,5,3));
        return menu;
     }
@@ -218,10 +218,10 @@ public class AppMenuBar extends JMenuBar {
                         Utils.createMenuItem("Options", sActionListener), 'O'));
         
         
-        configure.add(
-                withMnemonics(
-                        withIcon(
-                                Utils.createMenuItem("ToggleMode", sActionListener)), 'M'));
+        JCheckBoxMenuItem darkModeItem = new JCheckBoxMenuItem("Dark Mode");
+        darkModeItem.setFont(UIManager.getFont("TableMenu.font"));
+        darkModeItem.addActionListener(sActionListener);
+        configure.add(withMnemonics(darkModeItem, 'D'));
     
      return configure;
     }
@@ -299,6 +299,11 @@ public class AppMenuBar extends JMenuBar {
                 withMnemonics(
                         withShortCut(
                                 Utils.createMenuItem("Dashboard", sActionListener)), 'D'));
+
+        window.add(
+                withMnemonics(
+                        withShortCut(
+                                Utils.createMenuItem("API Tester", sActionListener)), 'P'));
 
         window.add(
                 withMnemonics(

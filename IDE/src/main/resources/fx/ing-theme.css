@@ -1,0 +1,1040 @@
+/*
+ * INGenious Playwright Studio — JavaFX Theme
+ * ING Brand Colors + Modern Desktop Styling
+ *
+ * Light/Dark mode via .dark-theme style class on root.
+ * Uses JavaFX looked-up colors for theme variables.
+ */
+
+/* ═══════════════════════════════════════════════════
+   1. THEME VARIABLES (Looked-Up Colors)
+   ═══════════════════════════════════════════════════ */
+
+.root {
+    /* Brand */
+    -ing-accent:          #7724FF;
+    -ing-accent-hover:    #6318E0;
+    -ing-accent-pressed:  #5212C0;
+    -ing-accent-light:    #F0EAFF;
+    -ing-purple:          #7724FF;
+    -ing-purple-light:    #F0EAFF;
+    -ing-blue:            #E5D6FF;
+    -ing-blue-light:      #F0EAFF;
+    -ing-burgundy:        #4D0020;
+    -ing-orange:          #FF6200;
+
+    /* Surfaces */
+    -ing-bg:              #FFFFFF;
+    -ing-surface:         #F6F8FA;
+    -ing-control:         #EBEDF0;
+    -ing-elevated:        #FFFFFF;
+
+    /* Text */
+    -ing-text:            #1E293B;
+    -ing-text-secondary:  #64748B;
+    -ing-text-muted:      #94A3B8;
+    -ing-text-on-accent:  #FFFFFF;
+
+    /* Borders & Lines */
+    -ing-border:          #E5E7EB;
+    -ing-border-subtle:   #F3F4F6;
+    -ing-divider:         #E5E7EB;
+
+    /* Shadows */
+    -ing-shadow:          rgba(0, 0, 0, 0.04);
+    -ing-shadow-elevated: rgba(0, 0, 0, 0.08);
+
+    /* State */
+    -ing-hover:           #F1F5F9;
+    -ing-pressed:         #E2E8F0;
+    -ing-focus-ring:      rgba(119, 36, 255, 0.35);
+
+    /* Typography */
+    -fx-font-family:      "SF Pro Text", "Segoe UI", "ING Me", system;
+    -fx-font-size:        12px;
+}
+
+
+/* ── Dark Theme Overrides ── */
+
+.root.dark-theme {
+    -ing-bg:              #1A1A2E;
+    -ing-surface:         #16162A;
+    -ing-control:         #222240;
+    -ing-elevated:        #1E1E36;
+
+    -ing-text:            #E2E8F0;
+    -ing-text-secondary:  #94A3B8;
+    -ing-text-muted:      #64748B;
+    -ing-text-on-accent:  #FFFFFF;
+
+    -ing-border:          #2D2D4A;
+    -ing-border-subtle:   #222240;
+    -ing-divider:         #2D2D4A;
+
+    -ing-shadow:          rgba(0, 0, 0, 0.25);
+    -ing-shadow-elevated: rgba(0, 0, 0, 0.40);
+
+    -ing-hover:           #262644;
+    -ing-pressed:         #2D2D4A;
+    -ing-focus-ring:      rgba(119, 36, 255, 0.45);
+
+    -ing-accent-light:    #2A1A4A;
+    -ing-purple-light:    #2A1A4A;
+    -ing-blue-light:      #1A2A3D;
+}
+
+
+/* ═══════════════════════════════════════════════════
+   2. MENU BAR
+   ═══════════════════════════════════════════════════ */
+
+.menu-bar {
+    -fx-background-color: -ing-bg;
+    -fx-padding: 0 12 0 12;
+    -fx-border-width: 0 0 1 0;
+    -fx-border-color: -ing-border;
+}
+
+.menu-bar > .container > .menu-button {
+    -fx-padding: 8 14 8 14;
+    -fx-background-color: transparent;
+    -fx-background-radius: 8;
+    -fx-background-insets: 3;
+    -fx-graphic-text-gap: 6;
+}
+
+.menu-bar > .container > .menu-button > .label {
+    -fx-text-fill: -ing-text;
+    -fx-font-weight: 600;
+    -fx-font-size: 12px;
+}
+
+.menu-bar > .container > .menu-button:hover {
+    -fx-background-color: -ing-hover;
+}
+
+.menu-bar > .container > .menu-button:showing {
+    -fx-background-color: -ing-accent-light;
+}
+
+.menu-bar > .container > .menu-button:showing > .label {
+    -fx-text-fill: -ing-accent;
+}
+
+.menu-bar > .container > .menu-button:focused {
+    -fx-background-color: -ing-hover;
+}
+
+
+/* ═══════════════════════════════════════════════════
+   3. CONTEXT MENUS (Drop-down Menus)
+   ═══════════════════════════════════════════════════ */
+
+.context-menu {
+    -fx-background-color: -ing-elevated;
+    -fx-border-color: -ing-border;
+    -fx-border-width: 1;
+    -fx-border-radius: 12;
+    -fx-background-radius: 12;
+    -fx-padding: 6;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.10), 16, 0, 0, 4);
+}
+
+.menu-item {
+    -fx-padding: 8 28 8 14;
+    -fx-background-color: transparent;
+    -fx-background-radius: 8;
+    -fx-background-insets: 1 4 1 4;
+    -fx-graphic-text-gap: 8;
+}
+
+.menu-item > .label {
+    -fx-text-fill: -ing-text;
+    -fx-font-size: 12px;
+}
+
+.menu-item:focused {
+    -fx-background-color: -ing-hover;
+}
+
+.menu-item:focused > .label {
+    -fx-text-fill: -ing-text;
+}
+
+.menu-item:disabled {
+    -fx-opacity: 0.45;
+}
+
+.menu-item > .right-container > .arrow {
+    -fx-background-color: -ing-text-secondary;
+}
+
+.menu-item:focused > .right-container > .arrow {
+    -fx-background-color: -ing-text;
+}
+
+/* Accelerator text */
+.menu-item > .right-container > .label {
+    -fx-text-fill: -ing-text-secondary;
+    -fx-font-size: 11px;
+}
+
+.menu-item:focused > .right-container > .label {
+    -fx-text-fill: -ing-text-secondary;
+}
+
+
+/* ═══════════════════════════════════════════════════
+   4. CHECK MENU ITEMS
+   ═══════════════════════════════════════════════════ */
+
+.check-menu-item {
+    -fx-padding: 7 28 7 14;
+    -fx-background-color: transparent;
+    -fx-background-radius: 6;
+    -fx-background-insets: 1 2 1 2;
+}
+
+.check-menu-item > .label {
+    -fx-text-fill: -ing-text;
+}
+
+.check-menu-item:focused {
+    -fx-background-color: -ing-hover;
+}
+
+.check-menu-item:focused > .label {
+    -fx-text-fill: -ing-text;
+}
+
+.check-menu-item > .left-container > .check {
+    -fx-background-color: -ing-accent;
+    -fx-shape: "M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z";
+    -fx-scale-x: 0.7;
+    -fx-scale-y: 0.7;
+}
+
+
+/* ═══════════════════════════════════════════════════
+   5. SEPARATORS
+   ═══════════════════════════════════════════════════ */
+
+.separator-menu-item {
+    -fx-padding: 4 8 4 8;
+}
+
+.separator-menu-item > .line {
+    -fx-border-color: -ing-divider;
+    -fx-border-width: 1 0 0 0;
+    -fx-background-color: transparent;
+}
+
+.separator {
+    -fx-padding: 0 4;
+}
+
+.separator > .line {
+    -fx-border-color: -ing-divider;
+    -fx-border-width: 0 1 0 0;
+    -fx-background-color: transparent;
+}
+
+
+/* ═══════════════════════════════════════════════════
+   6. TOOLBAR
+   ═══════════════════════════════════════════════════ */
+
+.tool-bar {
+    -fx-background-color: -ing-bg;
+    -fx-spacing: 2;
+    -fx-padding: 4 14 4 14;
+    -fx-border-width: 0 0 1 0;
+    -fx-border-color: -ing-border;
+}
+
+.tool-bar .button {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-border-radius: 8;
+    -fx-background-radius: 8;
+    -fx-padding: 7 10 7 10;
+    -fx-cursor: hand;
+    -fx-graphic-text-gap: 6;
+}
+
+.tool-bar .button:hover {
+    -fx-background-color: -ing-hover;
+}
+
+.tool-bar .button:pressed {
+    -fx-background-color: -ing-pressed;
+}
+
+.tool-bar .button > .text {
+    -fx-fill: -ing-text;
+    -fx-font-size: 11px;
+}
+
+.tool-bar .button .ikonli-font-icon {
+    -fx-icon-size: 18;
+}
+
+.tool-bar .button:hover .ikonli-font-icon {
+    -fx-effect: dropshadow(gaussian, rgba(119, 36, 255, 0.25), 4, 0, 0, 0);
+}
+
+
+/* ═══════════════════════════════════════════════════
+   7. TOGGLE BUTTON (Auto Save)
+   ═══════════════════════════════════════════════════ */
+
+.tool-bar .toggle-button {
+    -fx-background-color: -ing-control;
+    -fx-background-radius: 16;
+    -fx-border-radius: 16;
+    -fx-border-color: -ing-border;
+    -fx-border-width: 1;
+    -fx-padding: 5 16 5 16;
+    -fx-font-size: 11px;
+    -fx-text-fill: -ing-text-secondary;
+    -fx-font-weight: 600;
+    -fx-cursor: hand;
+}
+
+.tool-bar .toggle-button:hover {
+    -fx-background-color: -ing-hover;
+    -fx-border-color: derive(-ing-border, -8%);
+}
+
+.tool-bar .toggle-button:selected {
+    -fx-background-color: -ing-accent;
+    -fx-border-color: -ing-accent;
+    -fx-text-fill: white;
+}
+
+/* Dark Mode Toggle Pill */
+.dark-mode-pill {
+    -fx-background-color: linear-gradient(to right, #FF6200, #FFAA00);
+    -fx-background-radius: 20;
+    -fx-border-radius: 20;
+    -fx-border-color: transparent;
+    -fx-border-width: 0;
+    -fx-padding: 6 14 6 10;
+    -fx-font-size: 11px;
+    -fx-text-fill: white;
+    -fx-font-weight: 700;
+    -fx-cursor: hand;
+    -fx-graphic-text-gap: 6;
+    -fx-effect: dropshadow(gaussian, rgba(255, 98, 0, 0.3), 8, 0, 0, 2);
+}
+
+.dark-mode-pill:hover {
+    -fx-background-color: linear-gradient(to right, #FF7722, #FFBB22);
+    -fx-effect: dropshadow(gaussian, rgba(255, 98, 0, 0.5), 12, 0, 0, 3);
+}
+
+.dark-mode-pill:selected {
+    -fx-background-color: linear-gradient(to right, #5212C0, #7724FF);
+    -fx-text-fill: white;
+    -fx-effect: dropshadow(gaussian, rgba(119, 36, 255, 0.4), 10, 0, 0, 2);
+}
+
+.dark-mode-pill:selected:hover {
+    -fx-background-color: linear-gradient(to right, #6318E0, #8833FF);
+    -fx-effect: dropshadow(gaussian, rgba(119, 36, 255, 0.6), 14, 0, 0, 3);
+}
+
+/* API Tester Button - Vibrant Teal/Cyan Gradient */
+.api-tester-btn {
+    -fx-background-color: linear-gradient(to right, #0077B6, #00B4D8);
+    -fx-background-radius: 20;
+    -fx-border-radius: 20;
+    -fx-border-color: transparent;
+    -fx-border-width: 0;
+    -fx-padding: 6 16 6 12;
+    -fx-font-size: 11px;
+    -fx-text-fill: white;
+    -fx-font-weight: 700;
+    -fx-cursor: hand;
+    -fx-graphic-text-gap: 6;
+    -fx-effect: dropshadow(gaussian, rgba(0, 180, 216, 0.4), 10, 0, 0, 2);
+}
+
+.api-tester-btn:hover {
+    -fx-background-color: linear-gradient(to right, #0096C7, #48CAE4);
+    -fx-effect: dropshadow(gaussian, rgba(0, 180, 216, 0.6), 14, 0, 0, 3);
+}
+
+.api-tester-btn:pressed {
+    -fx-background-color: linear-gradient(to right, #005F8C, #0096C7);
+    -fx-effect: dropshadow(gaussian, rgba(0, 119, 182, 0.5), 8, 0, 0, 1);
+}
+
+.api-tester-btn .ikonli-font-icon {
+    -fx-icon-color: white;
+}
+
+
+/* ═══════════════════════════════════════════════════
+   8. LABELS IN TOOLBAR
+   ═══════════════════════════════════════════════════ */
+
+.tool-bar .label {
+    -fx-text-fill: -ing-text;
+    -fx-font-weight: bold;
+    -fx-font-size: 12px;
+    -fx-padding: 0 2 0 4;
+}
+
+
+/* ═══════════════════════════════════════════════════
+   9. NAVIGATION BADGE (View Indicator)
+   ═══════════════════════════════════════════════════ */
+
+.nav-indicator {
+    -fx-background-color: -ing-accent;
+    -fx-background-radius: 12;
+    -fx-padding: 3 10;
+    -fx-font-size: 10px;
+    -fx-text-fill: -ing-text-on-accent;
+    -fx-font-weight: 600;
+}
+
+
+/* ═══════════════════════════════════════════════════
+   10. SUB-MENUS
+   ═══════════════════════════════════════════════════ */
+
+.menu {
+    -fx-padding: 7 28 7 14;
+    -fx-background-color: transparent;
+    -fx-background-radius: 6;
+    -fx-background-insets: 1 2 1 2;
+}
+
+.menu > .label {
+    -fx-text-fill: -ing-text;
+}
+
+.menu:focused {
+    -fx-background-color: -ing-hover;
+}
+
+.menu:focused > .label {
+    -fx-text-fill: -ing-text;
+}
+
+.menu > .right-container > .arrow {
+    -fx-background-color: -ing-text-secondary;
+    -fx-shape: "M10 6L8.59 7.41 13.17 12l-4.58 4.59L10 18l6-6z";
+    -fx-scale-x: 0.65;
+    -fx-scale-y: 0.65;
+}
+
+.menu:focused > .right-container > .arrow {
+    -fx-background-color: -ing-text;
+}
+
+
+/* ═══════════════════════════════════════════════════
+   11. SCROLL BARS (for any JavaFX scroll panes)
+   ═══════════════════════════════════════════════════ */
+
+.scroll-bar {
+    -fx-background-color: transparent;
+}
+
+.scroll-bar .thumb {
+    -fx-background-color: derive(-ing-border, -10%);
+    -fx-background-radius: 4;
+    -fx-background-insets: 2;
+}
+
+.scroll-bar .thumb:hover {
+    -fx-background-color: derive(-ing-border, -25%);
+}
+
+.scroll-bar .increment-button,
+.scroll-bar .decrement-button {
+    -fx-background-color: transparent;
+    -fx-padding: 0;
+}
+
+.scroll-bar .increment-arrow,
+.scroll-bar .decrement-arrow {
+    -fx-background-color: transparent;
+    -fx-shape: "";
+    -fx-padding: 0;
+}
+
+
+/* ═══════════════════════════════════════════════════
+   12. TOOLTIPS
+   ═══════════════════════════════════════════════════ */
+
+.tooltip {
+    -fx-background-color: -ing-elevated;
+    -fx-text-fill: -ing-text;
+    -fx-border-color: -ing-border;
+    -fx-border-radius: 8;
+    -fx-background-radius: 8;
+    -fx-padding: 8 14;
+    -fx-font-size: 11px;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.08), 10, 0, 0, 3);
+}
+
+
+/* ═══════════════════════════════════════════════════
+   13. SPLIT PANE
+   ═══════════════════════════════════════════════════ */
+
+.split-pane {
+    -fx-background-color: -ing-bg;
+    -fx-padding: 0;
+}
+
+.split-pane > .split-pane-divider {
+    -fx-background-color: -ing-border;
+    -fx-padding: 0 1.5 0 1.5;
+}
+
+.split-pane:horizontal > .split-pane-divider {
+    -fx-background-color: -ing-border;
+    -fx-padding: 0 1.5 0 1.5;
+}
+
+.split-pane:vertical > .split-pane-divider {
+    -fx-background-color: -ing-border;
+    -fx-padding: 1.5 0 1.5 0;
+}
+
+
+/* ═══════════════════════════════════════════════════
+   14. TREE VIEW
+   ═══════════════════════════════════════════════════ */
+
+.tree-view {
+    -fx-background-color: -ing-surface;
+    -fx-border-color: transparent;
+    -fx-focus-color: transparent;
+    -fx-faint-focus-color: transparent;
+}
+
+.tree-view .tree-cell {
+    -fx-background-color: transparent;
+    -fx-text-fill: -ing-text;
+    -fx-padding: 6 10 6 8;
+    -fx-font-size: 12px;
+    -fx-graphic-text-gap: 8;
+}
+
+.tree-view .tree-cell:hover {
+    -fx-background-color: -ing-hover;
+    -fx-background-radius: 8;
+}
+
+.tree-view .tree-cell:selected {
+    -fx-background-color: -ing-blue-light;
+    -fx-background-radius: 8;
+}
+
+.tree-view .tree-cell:selected:focused {
+    -fx-background-color: -ing-blue;
+    -fx-background-radius: 8;
+}
+
+.tree-view .tree-cell:selected > .text {
+    -fx-fill: #5212C0;
+}
+
+.tree-view .tree-cell:selected:focused > .text {
+    -fx-fill: #3D0E90;
+}
+
+.tree-view .tree-cell .ikonli-font-icon {
+}
+
+.tree-view .tree-disclosure-node {
+    -fx-padding: 2 6 2 2;
+}
+
+.tree-view .tree-disclosure-node > .arrow {
+    -fx-background-color: -ing-text-muted;
+    -fx-shape: "M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6z";
+    -fx-scale-x: 0.50;
+    -fx-scale-y: 0.50;
+    -fx-padding: 3;
+}
+
+.tree-view .tree-cell:hover .tree-disclosure-node > .arrow {
+    -fx-background-color: -ing-accent;
+}
+
+.tree-view .tree-cell:selected .tree-disclosure-node > .arrow {
+    -fx-background-color: -ing-accent;
+}
+
+
+/* ═══════════════════════════════════════════════════
+   15. PANEL HEADERS
+   ═══════════════════════════════════════════════════ */
+
+.panel-container {
+    -fx-background-color: -ing-surface;
+}
+
+.panel-header-label {
+    -fx-text-fill: -ing-text;
+    -fx-font-weight: 600;
+    -fx-font-size: 13px;
+    -fx-padding: 10 14 10 16;
+    -fx-background-color: -ing-surface;
+    -fx-border-width: 0 0 1 0;
+    -fx-border-color: -ing-border;
+    -fx-max-width: 10000;
+    -fx-graphic-text-gap: 8;
+}
+
+
+/* ═══════════════════════════════════════════════════
+   16. DASHBOARD NAV TOOLBAR
+   ═══════════════════════════════════════════════════ */
+
+.dashboard-nav-toolbar {
+    -fx-background-color: -ing-bg;
+    -fx-spacing: 8;
+    -fx-padding: 8 16 8 16;
+    -fx-border-width: 0 0 1 0;
+    -fx-border-color: -ing-border;
+    -fx-min-height: 48;
+    -fx-pref-height: 52;
+}
+
+.dashboard-nav-toolbar .button {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-background-radius: 8;
+    -fx-padding: 6 10 6 10;
+    -fx-cursor: hand;
+    -fx-graphic-text-gap: 6;
+}
+
+.dashboard-nav-toolbar .button:hover {
+    -fx-background-color: -ing-hover;
+    -fx-background-radius: 8;
+}
+
+.dashboard-nav-toolbar .button:pressed {
+    -fx-background-color: -ing-pressed;
+}
+
+.dashboard-nav-toolbar .button .ikonli-font-icon {
+    -fx-icon-size: 18;
+}
+
+.dashboard-nav-toolbar .button:hover .ikonli-font-icon {
+    -fx-effect: dropshadow(gaussian, rgba(119, 36, 255, 0.2), 4, 0, 0, 0);
+}
+
+.dashboard-nav-toolbar .nav-summary-btn {
+    -fx-background-color: -ing-control;
+    -fx-background-radius: 12;
+    -fx-padding: 6 14 6 14;
+    -fx-border-color: -ing-border;
+    -fx-border-radius: 12;
+    -fx-border-width: 1;
+}
+
+.dashboard-nav-toolbar .nav-summary-btn:hover {
+    -fx-background-color: -ing-accent-light;
+    -fx-border-color: -ing-accent;
+}
+
+.dashboard-nav-toolbar .nav-summary-btn:pressed {
+    -fx-background-color: -ing-accent;
+    -fx-text-fill: white;
+}
+
+
+/* ═══════════════════════════════════════════════════
+   17. WEB VIEW CONTAINER
+   ═══════════════════════════════════════════════════ */
+
+.dashboard-webview {
+    /* ensures no white flash on dark theme */
+}
+
+
+/* ═══════════════════════════════════════════════════
+   18. STATUS BAR
+   ═══════════════════════════════════════════════════ */
+
+.status-bar {
+    -fx-background-color: -ing-bg;
+    -fx-padding: 4 16 4 16;
+    -fx-border-width: 1 0 0 0;
+    -fx-border-color: -ing-border;
+    -fx-min-height: 28;
+}
+
+.status-bar .label {
+    -fx-text-fill: -ing-text-secondary;
+    -fx-font-size: 11px;
+}
+
+.status-bar .separator {
+    -fx-padding: 0 8;
+}
+
+.status-bar .separator > .line {
+    -fx-border-color: -ing-border;
+    -fx-border-width: 0 1 0 0;
+}
+
+.status-view-label {
+    -fx-text-fill: white !important;
+    -fx-background-radius: 12;
+    -fx-padding: 3 12 3 12;
+    -fx-font-size: 10px;
+    -fx-font-weight: 600;
+    -fx-graphic-text-gap: 5;
+}
+
+.status-design {
+    -fx-background-color: #FFE100; /* Yellow - matches Test Design dock icon */
+    -fx-text-fill: #818589 !important;
+}
+
+.status-execution {
+    -fx-background-color: #349651; /* Green - matches Execution dock icon */
+    -fx-text-fill: white !important;
+}
+
+.status-dashboard {
+    -fx-background-color: #FF6200; /* Orange - matches Dashboard dock icon */
+    -fx-text-fill: white !important;
+}
+
+.status-project-label {
+    -fx-text-fill: -ing-text;
+    -fx-font-size: 11px;
+    -fx-font-weight: 600;
+    -fx-padding: 0 0 0 8;
+    -fx-graphic-text-gap: 5;
+}
+
+.status-info-label {
+    -fx-text-fill: -ing-text-muted;
+    -fx-font-size: 10px;
+    -fx-graphic-text-gap: 4;
+}
+
+
+/* ═══════════════════════════════════════════════════
+   19. TAB PANE (for panel switching)
+   ═══════════════════════════════════════════════════ */
+
+.tab-pane {
+    -fx-tab-min-height: 32;
+    -fx-tab-max-height: 32;
+}
+
+.tab-pane > .tab-header-area {
+    -fx-padding: 0;
+}
+
+.tab-pane > .tab-header-area > .headers-region > .tab {
+    -fx-background-color: transparent;
+    -fx-background-radius: 0;
+    -fx-padding: 6 20 6 20;
+    -fx-border-color: transparent transparent transparent transparent;
+    -fx-border-radius: 0;
+    -fx-border-width: 0 0 2 0;
+}
+
+.tab-pane > .tab-header-area > .headers-region > .tab:hover {
+    -fx-background-color: -ing-hover;
+}
+
+.tab-pane > .tab-header-area > .headers-region > .tab:selected {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent transparent -ing-accent transparent;
+    -fx-border-width: 0 0 2 0;
+}
+
+.tab-pane > .tab-header-area > .headers-region > .tab > .tab-container > .tab-label {
+    -fx-text-fill: -ing-text-muted;
+    -fx-font-size: 12px;
+    -fx-font-weight: 600;
+}
+
+.tab-pane > .tab-header-area > .headers-region > .tab:selected > .tab-container > .tab-label {
+    -fx-text-fill: -ing-accent;
+}
+
+.tab-pane > .tab-header-area > .tab-header-background {
+    -fx-background-color: -ing-bg;
+    -fx-border-width: 0 0 1 0;
+    -fx-border-color: -ing-border;
+}
+
+.tab-pane > .tab-content-area {
+    -fx-background-color: -ing-bg;
+    -fx-padding: 0;
+}
+
+
+/* ═══════════════════════════════════════════════════
+   20. FX PANEL HEADER (Reusable Component)
+   ═══════════════════════════════════════════════════ */
+
+.fx-panel-header {
+    -fx-background-color: -ing-surface;
+    -fx-padding: 8 12 8 14;
+    -fx-border-width: 0 0 1 0;
+    -fx-border-color: -ing-border;
+    -fx-min-height: 34;
+    -fx-pref-height: 36;
+}
+
+.fx-panel-header-title {
+    -fx-text-fill: -ing-text;
+    -fx-font-weight: 600;
+    -fx-font-size: 13px;
+    -fx-graphic-text-gap: 8;
+}
+
+.fx-panel-header-btn {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-background-radius: 6;
+    -fx-padding: 4 8 4 8;
+    -fx-cursor: hand;
+}
+
+.fx-panel-header-btn:hover {
+    -fx-background-color: -ing-hover;
+    -fx-background-radius: 6;
+}
+
+.fx-panel-header-btn:pressed {
+    -fx-background-color: -ing-pressed;
+}
+
+.fx-panel-header-btn .ikonli-font-icon {
+    -fx-icon-size: 14;
+}
+
+.fx-panel-header-btn:hover .ikonli-font-icon {
+    -fx-effect: dropshadow(gaussian, rgba(119, 36, 255, 0.2), 4, 0, 0, 0);
+}
+
+/* ═══════════════════════════════════════════════════
+   21. STARTUP DIALOG
+   ═══════════════════════════════════════════════════ */
+
+.startup-root {
+    -fx-background-color: -ing-bg;
+}
+
+/* ── Sidebar ── */
+
+.startup-sidebar {
+    -fx-background-color: linear-gradient(to bottom, #4D0020, #2E0012);
+    -fx-padding: 20 12 20 12;
+}
+
+.startup-brand {
+    -fx-text-fill: #FF6200;
+    -fx-font-size: 20px;
+    -fx-font-weight: bold;
+}
+
+.startup-subtitle {
+    -fx-text-fill: rgba(255, 255, 255, 0.75);
+    -fx-font-size: 12px;
+}
+
+.startup-nav-btn {
+    -fx-background-color: transparent;
+    -fx-text-fill: rgba(255, 255, 255, 0.85);
+    -fx-font-size: 13px;
+    -fx-font-weight: bold;
+    -fx-padding: 10 14 10 14;
+    -fx-background-radius: 8;
+    -fx-cursor: hand;
+    -fx-alignment: CENTER_LEFT;
+}
+
+.startup-nav-btn .ikonli-font-icon {
+    -fx-icon-color: rgba(255, 255, 255, 0.7);
+}
+
+.startup-nav-btn:hover {
+    -fx-background-color: rgba(255, 255, 255, 0.1);
+}
+
+.startup-nav-btn:selected {
+    -fx-background-color: rgba(255, 98, 0, 0.25);
+    -fx-text-fill: #FF6200;
+}
+
+.startup-nav-btn:selected .ikonli-font-icon {
+    -fx-icon-color: #FF6200;
+}
+
+.startup-auto-open {
+    -fx-text-fill: rgba(255, 255, 255, 0.65);
+    -fx-font-size: 11px;
+}
+.startup-auto-open .box {
+    -fx-background-color: rgba(255, 255, 255, 0.15);
+    -fx-border-color: rgba(255, 255, 255, 0.35);
+    -fx-border-radius: 3;
+    -fx-background-radius: 3;
+}
+.startup-auto-open:selected .box {
+    -fx-background-color: #FF6200;
+    -fx-border-color: #FF6200;
+}
+.startup-auto-open:selected .mark {
+    -fx-background-color: white;
+}
+
+/* ── Content panels ── */
+
+.startup-content {
+    -fx-background-color: -ing-bg;
+}
+
+.startup-panel {
+    -fx-background-color: -ing-bg;
+}
+
+.startup-panel-title {
+    -fx-text-fill: -ing-burgundy;
+    -fx-font-size: 18px;
+    -fx-font-weight: bold;
+}
+
+.startup-hint {
+    -fx-text-fill: -ing-text-muted;
+    -fx-font-size: 12px;
+}
+
+.startup-error {
+    -fx-text-fill: #CC0000;
+    -fx-font-size: 12px;
+    -fx-font-weight: bold;
+}
+
+/* ── List view ── */
+
+.startup-list {
+    -fx-background-color: -ing-bg;
+    -fx-border-color: -ing-border;
+    -fx-border-radius: 8;
+    -fx-background-radius: 8;
+    -fx-padding: 4;
+}
+
+.startup-list .list-cell {
+    -fx-background-color: transparent;
+    -fx-padding: 4 0 4 0;
+    -fx-background-radius: 6;
+}
+
+.startup-list .list-cell:filled:hover {
+    -fx-background-color: -ing-hover;
+    -fx-background-radius: 6;
+}
+
+.startup-list .list-cell:filled:selected {
+    -fx-background-color: -ing-blue-light;
+    -fx-background-radius: 6;
+}
+
+.startup-list-icon .ikonli-font-icon,
+.startup-list-icon {
+    -fx-icon-color: -ing-orange;
+    -fx-fill: -ing-orange;
+}
+
+.startup-list-name {
+    -fx-text-fill: -ing-text;
+    -fx-font-size: 13px;
+    -fx-font-weight: bold;
+}
+
+.startup-list-path {
+    -fx-text-fill: -ing-text-muted;
+    -fx-font-size: 11px;
+}
+
+/* ── New Project Form ── */
+
+.startup-field-label {
+    -fx-text-fill: -ing-text;
+    -fx-font-size: 12px;
+    -fx-font-weight: bold;
+}
+
+.startup-field {
+    -fx-background-color: -ing-bg;
+    -fx-border-color: -ing-border;
+    -fx-border-radius: 6;
+    -fx-background-radius: 6;
+    -fx-padding: 8 10 8 10;
+    -fx-font-size: 13px;
+}
+
+.startup-field:focused {
+    -fx-border-color: -ing-orange;
+    -fx-effect: dropshadow(gaussian, rgba(255, 98, 0, 0.25), 6, 0, 0, 0);
+}
+
+.startup-field-readonly {
+    -fx-background-color: -ing-control;
+    -fx-text-fill: -ing-text-muted;
+}
+
+.startup-create-btn {
+    -fx-background-color: -ing-orange;
+    -fx-text-fill: white;
+    -fx-font-size: 14px;
+    -fx-font-weight: bold;
+    -fx-padding: 10 28 10 28;
+    -fx-background-radius: 10;
+    -fx-cursor: hand;
+    -fx-effect: dropshadow(gaussian, rgba(255, 98, 0, 0.25), 8, 0, 0, 2);
+}
+
+.startup-create-btn:hover {
+    -fx-background-color: #E55800;
+    -fx-effect: dropshadow(gaussian, rgba(255, 98, 0, 0.35), 12, 0, 0, 3);
+}
+
+.startup-create-btn:pressed {
+    -fx-background-color: #CC4E00;
+    -fx-effect: dropshadow(gaussian, rgba(255, 98, 0, 0.15), 4, 0, 0, 1);
+}
+
+/* ── Dark theme overrides for StartUp ── */
+
+.dark-theme .startup-sidebar {
+    -fx-background-color: linear-gradient(to bottom, #1E1A24, #0E0A14);
+}
+
+.dark-theme .startup-nav-btn:selected {
+    -fx-background-color: rgba(255, 98, 0, 0.2);
+}
+
+.dark-theme .startup-list .list-cell:filled:selected {
+    -fx-background-color: #3A2845;
+}
+
+.dark-theme .startup-auto-open .box {
+    -fx-background-color: rgba(255, 255, 255, 0.08);
+    -fx-border-color: rgba(255, 255, 255, 0.2);
+}

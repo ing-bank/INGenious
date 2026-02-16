@@ -11,6 +11,7 @@ import com.ing.datalib.testdata.model.TestDataModel;
 import com.ing.ide.main.mainui.components.testdesign.TestDesign;
 import com.ing.ide.main.utils.TabTitleEditListener;
 import com.ing.ide.main.utils.Utils;
+import com.ing.ide.main.utils.table.FrozenColumnScrollPane;
 import com.ing.ide.main.utils.table.JtableUtils;
 import com.ing.ide.main.utils.table.XTable;
 import com.ing.ide.util.Canvas;
@@ -43,14 +44,17 @@ import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
 import javax.swing.JTabbedPane;
+import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
+import javax.swing.UIManager;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.table.AbstractTableModel;
 import javax.swing.table.TableCellEditor;
 import javax.swing.table.TableColumnModel;
 import javax.swing.table.TableModel;
+import com.ing.ide.main.fx.INGIcons;
 
 /**
  *
@@ -58,7 +62,7 @@ import javax.swing.table.TableModel;
  */
 public class TestDataComponent extends JPanel implements ChangeListener, ActionListener {
 
-    private static final ImageIcon ADD_NEW_TAB_ICON = new ImageIcon(TestDataComponent.class.getResource("/ui/resources/testdesign/testdata/add.png"));
+    private static final javax.swing.Icon ADD_NEW_TAB_ICON = INGIcons.swingColored("icon.add", 16);
 
     private final TestDesign testDesign;
 
@@ -74,14 +78,14 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
 
     private SaveListener saveListener;
 
-    private final Environment environmentPanel;
+    private final StylizedEnvironment environmentPanel;
 
     public TestDataComponent(TestDesign sProxy) {
         this.testDesign = sProxy;
         envTab = new XJTabbedPane();
         toolBar = new TestDataToolBar(this);
         popupMenu = new TestDataPopupMenu(this);
-        environmentPanel = new Environment(this);
+        environmentPanel = new StylizedEnvironment(this);
         testDataTabPopup = new TestDataTabPopup();
         testDataEnvPopup = new TestDataEnvPopup();
         init();
@@ -90,12 +94,14 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
     private void init() {
         envTab.setTabLayoutPolicy(JTabbedPane.SCROLL_TAB_LAYOUT);
         envTab.setComponentPopupMenu(testDataEnvPopup);
+        envTab.setBackground(UIManager.getColor("Panel.background"));
 
         TabTitleEditListener l = new TabTitleEditListener(envTab, onTestDataEnvRenameAction());
         envTab.addChangeListener(l);
         envTab.addMouseListener(l);
 
         setLayout(new BorderLayout());
+        setBackground(UIManager.getColor("Panel.background"));
         add(toolBar, BorderLayout.NORTH);
         add(envTab, BorderLayout.CENTER);
 
@@ -170,12 +176,15 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
         JTabbedPane testdataTab = new JTabbedPane();
         testdataTab.setTabLayoutPolicy(JTabbedPane.SCROLL_TAB_LAYOUT);
         testdataTab.setTabPlacement(JTabbedPane.BOTTOM);
+        testdataTab.setBackground(UIManager.getColor("Panel.background"));
         addToTab(testdataTab, sTestData.getGlobalData(), true);
         for (AbstractDataModel std : sTestData.getTestDataList()) {
             addToTab(testdataTab, std, false);
         }
 
         JLabel label = new JLabel("Click + to Add New TestData");
+        label.setBackground(UIManager.getColor("Panel.background"));
+        label.setOpaque(true);
         testdataTab.addTab("", ADD_NEW_TAB_ICON, label);
         label.setHorizontalAlignment(JLabel.CENTER);
         TabTitleEditListener l = new TabTitleEditListener(testdataTab, onTestDataRenameAction(), 0);
@@ -206,7 +215,11 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
     }
 
     private void addAddNewTab() {
-        envTab.addTab("", ADD_NEW_TAB_ICON, new JScrollPane(environmentPanel));
+        JScrollPane scrollPane = new JScrollPane(environmentPanel);
+        scrollPane.setBorder(null);
+        scrollPane.setBackground(UIManager.getColor("Panel.background"));
+        scrollPane.getViewport().setBackground(UIManager.getColor("Panel.background"));
+        envTab.addTab("", ADD_NEW_TAB_ICON, scrollPane);
     }
 
     private TestDataTablePanel addToTab(JTabbedPane testdataTab, AbstractDataModel std, Boolean isGlobalData) {
@@ -396,12 +409,6 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
                     break;
                 case "Move Rows Down":
                     tdPanel.moveRowDown();
-                    break;
-                case "Move Column Left":
-                    tdPanel.moveColumnLeft();
-                    break;
-                case "Move Column Right":
-                    tdPanel.moveColumnRight();
                     break;
                 case "Add New TestData":
                     addNewTestData(envTab.getSelectedComponent());
@@ -670,6 +677,7 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
 
         AbstractDataModel std;
         XTable table;
+        FrozenColumnScrollPane frozenScrollPane;
 
         private final Boolean isGlobalData;
 
@@ -693,7 +701,10 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
                 @Override
                 public TableCellEditor getCellEditor(int row, int column) {
                     if (!isGlobalData) {
-                        return tDAutoSuggest.getCellEditorFor(column, super.getCellEditor(row, column));
+                        // When using FrozenColumnScrollPane, columns 0-3 are removed from view
+                        // So view column 0 is model column 4 - need to offset by fixedColumnCount
+                        int modelColumn = column + 4;
+                        return tDAutoSuggest.getCellEditorFor(modelColumn, super.getCellEditor(row, column));
                     }
                     return super.getCellEditor(row, column);
                 }
@@ -703,7 +714,10 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
                 table.setColumnRename(onRenameAction(), 0);
                 load();
             } else {
-                table.setColumnRename(onRenameAction(), 0, 1, 2, 3);
+                // For non-global data, enable column renaming for all scrollable columns
+                // (fixed columns 0-3 are in a separate table managed by FrozenColumnScrollPane)
+                // Note: After FrozenColumnScrollPane setup, view column 0 = model column 4
+                table.setColumnRename(onRenameAction());
             }
             tDAutoSuggest = new TestDataAutoSuggest(testDesign.getProject(), table);
             table.setDragEnabled(true);
@@ -721,7 +735,26 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
                 }
             });
             setLayout(new BorderLayout());
-            add(new JScrollPane(table));
+            setBackground(UIManager.getColor("Panel.background"));
+            
+            if (!isGlobalData) {
+                // Use frozen column scroll pane for test data (but not global data)
+                frozenScrollPane = new FrozenColumnScrollPane(table, 4);
+                frozenScrollPane.setBackground(UIManager.getColor("Panel.background"));
+                frozenScrollPane.getViewport().setBackground(UIManager.getColor("Panel.background"));
+                // Apply popup menu to fixed table as well
+                frozenScrollPane.getFixedTable().setComponentPopupMenu(popupMenu);
+                // Set cell editor provider for fixed columns (columns 0-3: Scenario, Flow, Iteration, SubIteration)
+                frozenScrollPane.setCellEditorProvider((row, column, defaultEditor) -> 
+                    tDAutoSuggest.getCellEditorFor(column, defaultEditor)
+                );
+                add(frozenScrollPane);
+            } else {
+                JScrollPane scrollPane = new JScrollPane(table);
+                scrollPane.setBackground(UIManager.getColor("Panel.background"));
+                scrollPane.getViewport().setBackground(UIManager.getColor("Panel.background"));
+                add(scrollPane);
+            }
             addTableProps();
             std.setSaveListener(saveListener);
         }
@@ -730,6 +763,10 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
             std.loadTableModel();
             table.setModel(std);
             changeSave(std.isSaved());
+            // Update frozen scroll pane after model change
+            if (!isGlobalData && frozenScrollPane != null) {
+                frozenScrollPane.updateModel();
+            }
         }
 
         private Action onRenameAction() {
@@ -781,42 +818,6 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
                         }
                     }
                 }
-            }
-
-        }
-
-        private void moveColumnLeft() {
-            try {
-
-                int sCol = table.getSelectedColumn();
-                if (sCol>=5){
-                    TableModel model = table.getModel();
-                    table.moveColumn(sCol, sCol - 1);
-                    TableModel customModel = createCustomTableModel(model, table.getColumnModel());
-                    saveChanges(customModel);
-                    std.setSaved(true);
-                    }
-                
-            } catch (Exception e) {
-                Logger.getLogger(JtableUtils.class.getName()).log(Level.SEVERE, null, e);
-            }
-
-        }
-
-        private void moveColumnRight() {
-            try {
-
-                int sCol = table.getSelectedColumn();
-                if (sCol>=4){
-                    TableModel model = table.getModel();
-                    TableModel customModel = createCustomTableModel(model, table.getColumnModel());
-                    table.moveColumn(sCol, sCol + 1);
-                    saveChanges(customModel);
-                    std.setSaved(true);
-                }
-
-            } catch (Exception e) {
-                Logger.getLogger(JtableUtils.class.getName()).log(Level.SEVERE, null, e);
             }
 
         }
@@ -919,7 +920,38 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
         private void addColumn() {
             assignThePreviouslySelected();
             stopCellEditing();
-            std.addColumn();
+            
+            if (!isGlobalData && frozenScrollPane != null) {
+                // Check if focus is on fixed table - don't allow adding column there
+                JTable fixedTable = frozenScrollPane.getFixedTable();
+                int fixedSelectedCol = fixedTable.getSelectedColumn();
+                if (fixedSelectedCol >= 0) {
+                    // Fixed column selected - do nothing, user cannot add column here
+                    Notification.show("Cannot add columns in the fixed area. Select a column in the scrollable area or add at the end.");
+                    return;
+                }
+                
+                // Check if a column is selected in the main (scrollable) table
+                int mainSelectedCol = table.getSelectedColumn();
+                if (mainSelectedCol >= 0) {
+                    // Main table view column needs offset: model = view + 4 (fixed columns)
+                    int insertIndex = mainSelectedCol + 4 + 1;
+                    std.addColumnAt(insertIndex);
+                } else {
+                    // No column selected - add at the end
+                    std.addColumn();
+                }
+            } else {
+                // Global data or no frozen pane
+                int selectedCol = table.getSelectedColumn();
+                if (selectedCol >= 0 && !isGlobalData) {
+                    // For global data, column 0 is protected, so insert after selection
+                    std.addColumnAt(selectedCol + 1);
+                } else {
+                    std.addColumn();
+                }
+            }
+            
             selectThePreviouslySelected();
         }
 
@@ -944,18 +976,47 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
 
         private void deleteSelectedColumns() {
             stopCellEditing();
-            List<Integer> colList = Utils.getReverseSorted(table.getSelectedColumns());
-            if (!colList.isEmpty()) {
-                if (isGlobalData) {
-                    colList.remove(Integer.valueOf(0));
-                } else {
-                    colList.remove(Integer.valueOf(0));
-                    colList.remove(Integer.valueOf(1));
-                    colList.remove(Integer.valueOf(2));
-                    colList.remove(Integer.valueOf(3));
-
+            
+            if (!isGlobalData && frozenScrollPane != null) {
+                // Check if focus is on fixed table - don't allow deleting those columns
+                JTable fixedTable = frozenScrollPane.getFixedTable();
+                int fixedSelectedCol = fixedTable.getSelectedColumn();
+                if (fixedSelectedCol >= 0) {
+                    // Fixed column selected - do nothing
+                    Notification.show("Cannot delete the fixed columns (Scenario, Flow, Iteration, SubIteration).");
+                    return;
                 }
-                std.removeColumn(colList);
+                
+                // Get selected columns from the scrollable table
+                // View column indices need to be converted to model indices (add 4)
+                int[] viewCols = table.getSelectedColumns();
+                if (viewCols.length == 0) {
+                    return;
+                }
+                
+                List<Integer> modelColList = new ArrayList<>();
+                for (int viewCol : viewCols) {
+                    int modelCol = viewCol + 4; // offset by fixed column count
+                    modelColList.add(modelCol);
+                }
+                
+                // Sort in reverse order for safe removal
+                modelColList.sort((a, b) -> b - a);
+                std.removeColumn(modelColList);
+            } else {
+                // Global data or no frozen pane - original logic
+                List<Integer> colList = Utils.getReverseSorted(table.getSelectedColumns());
+                if (!colList.isEmpty()) {
+                    if (isGlobalData) {
+                        colList.remove(Integer.valueOf(0));
+                    } else {
+                        colList.remove(Integer.valueOf(0));
+                        colList.remove(Integer.valueOf(1));
+                        colList.remove(Integer.valueOf(2));
+                        colList.remove(Integer.valueOf(3));
+                    }
+                    std.removeColumn(colList);
+                }
             }
         }
 
@@ -1015,18 +1076,6 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
                 @Override
                 public void actionPerformed(ActionEvent e) {
                     moveRowDown();
-                }
-            });
-            table.setActionFor("MoveRight", new AbstractAction() {
-                @Override
-                public void actionPerformed(ActionEvent e) {
-                    moveColumnRight();
-                }
-            });
-            table.setActionFor("MoveLeft", new AbstractAction() {
-                @Override
-                public void actionPerformed(ActionEvent e) {
-                    moveColumnLeft();
                 }
             });
             table.setActionFor("Insert", new AbstractAction() {

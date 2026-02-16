@@ -22,6 +22,7 @@ import javax.swing.JOptionPane;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
 import com.ing.util.encryption.Encryption;
+import com.ing.ide.main.fx.INGIcons;
 
 public class Utility {
 
@@ -32,7 +33,7 @@ public class Utility {
 	public static FileNameExtensionFilter csvFIlter = new FileNameExtensionFilter("CSV File", "csv"),
 			exeFilter = new FileNameExtensionFilter("Executable Files", "exe"),
 			dbFilter = new FileNameExtensionFilter("SqLite Database", "db");
-	private static final Icon C_SAVE = new ImageIcon(Utility.class.getResource("/ui/resources/csave.png"));
+	private static final Icon C_SAVE = INGIcons.swingColored("icon.csave", 16);
 
 	private Utility() {
 

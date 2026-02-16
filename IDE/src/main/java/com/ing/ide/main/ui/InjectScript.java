@@ -58,7 +58,7 @@ public class InjectScript extends javax.swing.JFrame {
     public InjectScript() {
         initComponents();
 
-        setIconImage(((ImageIcon) Utils.getIconByResourceName("/ui/resources/main/InjectScript")).getImage());
+        setIconImage(com.ing.ide.main.fx.INGIcons.toImage(Utils.getIconByResourceName("/ui/resources/main/InjectScript")));
 
         loadSampleScript();
 

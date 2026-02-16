@@ -22,6 +22,7 @@ import javax.swing.tree.TreeCellRenderer;
 import javax.swing.tree.TreeModel;
 import javax.swing.tree.TreeNode;
 import javax.swing.tree.TreePath;
+import com.ing.ide.main.fx.INGIcons;
 
 public abstract class JCheckBoxTree extends JTree {
 
@@ -144,7 +145,7 @@ public abstract class JCheckBoxTree extends JTree {
     private class CheckBoxCellRenderer extends JPanel implements TreeCellRenderer {
 
         private static final long serialVersionUID = -7341833835878991719L;
-        private final Icon selectedIcon = new ImageIcon(getClass().getResource("/ui/resources/checked.png"));
+        private final Icon selectedIcon = INGIcons.swingColored("icon.checked", 16);
         JCheckBox checkBox;
 
         public CheckBoxCellRenderer() {

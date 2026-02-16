@@ -11,10 +11,10 @@
 
 | Category | Count |
 |----------|-------|
-| Modified files | 14 |
-| New files (untracked) | 75 |
+| Modified files | 16 |
+| New files (untracked) | 76 |
 | Deleted files | 1 |
-| **Total** | **90** |
+| **Total** | **93** |
 
 ---
 
@@ -24,12 +24,12 @@
 
 | File | Change |
 |------|--------|
-| `pom.xml` | Pinned `LATEST` versions to fixed values (`playwright` → 1.58.0, `extentreport` → 5.1.2, `playwright.axe` → 4.11.1, `appium` → 10.0.0, `javafaker` → 1.0.2, `kafka-clients` → 3.9.0, `avro` → 1.12.0, `kafka-avro-serializer` → 7.8.0, `ibmmq` → 9.4.5.0). Added `mockito-core` 5.14.2 and `assertj-core` 3.26.3 to `<dependencyManagement>`. Added JaCoCo 0.8.12 plugin. Added OWASP dependency-check-maven 11.1.1 plugin. Centralized `maven-compiler-plugin` in `<pluginManagement>`. |
+| `pom.xml` | Pinned `LATEST` versions to fixed values (`playwright` → 1.58.0, `extentreport` → 5.1.2, `playwright.axe` → 4.11.1, `appium` → 10.0.0, `javafaker` → 1.0.2, `kafka-clients` → 3.9.0, `avro` → 1.12.0, `kafka-avro-serializer` → 7.8.0, `ibmmq` → 9.4.5.0). Added `mockito-core` 5.14.2 and `assertj-core` 3.26.3 to `<dependencyManagement>`. Added JaCoCo 0.8.12 plugin. Added OWASP dependency-check-maven 11.1.1 plugin. Centralized `maven-compiler-plugin` in `<pluginManagement>`. Added `<flatlaf.version>3.5.4</flatlaf.version>` property. |
 | `Datalib/pom.xml` | Added `mockito-core` and `assertj-core` test dependencies. Removed duplicate compiler plugin config (now inherited). |
 | `Engine/pom.xml` | Added `mockito-core` and `assertj-core` test dependencies. Removed Appium `java-client` dependency. Pinned `ojdbc11` to 23.26.1.0.0 (was `LATEST`). |
 | `StoryWriter/pom.xml` | Added `testng`, `mockito-core`, and `assertj-core` test dependencies. |
 | `TestData - Csv/pom.xml` | Added `testng`, `mockito-core`, and `assertj-core` test dependencies. Removed duplicate compiler plugin config. |
-| `IDE/pom.xml` | Removed duplicate compiler plugin config (now inherited from parent). |
+| `IDE/pom.xml` | Removed duplicate compiler plugin config (now inherited from parent). Added `com.formdev:flatlaf:${flatlaf.version}` (3.5.4) dependency for modern flat Look & Feel. |
 | `Common/pom.xml` | Removed duplicate compiler plugin config (now inherited from parent). |
 | `Resources/Engine/pom.xml` | Pinned `LATEST` versions to fixed values (same as parent pom.xml). |
 | `Dist/pom.xml` | Added `unix-permissions` Maven profile with `maven-antrun-plugin` 3.1.0 — runs `chmod 755` on `Run.command` during `install` phase. Activated only on non-Windows OS (`<os><family>!windows</family></os>`). Ensures `Dist/release/Run.command` is executable after build without manual `chmod`. |
@@ -47,6 +47,7 @@
 |------|--------|
 | `Engine/src/main/java/com/ing/engine/core/Task.java` | Added `isLocalExecution()` check to `closePlaywrightInstance()` call in iteration loop (line 79) and in `closePlaywrightDriver()` (line 190). Prevents closing browser on grid/cloud executions. |
 | `Engine/src/main/java/com/ing/engine/drivers/PlaywrightDriverCreation.java` | Reordered `closeBrowser()`: now calls `page.close()` before `closeBrowserContext()` (was the reverse). |
+| `IDE/src/main/java/com/ing/ide/main/Main.java` | **UI Modernization**: Replaced Nimbus L&F with FlatLaf 3.5.4. Removed `setUpUI()`, `tweakNimbusUI()`, `tweakNimbusDarkUI()`, and `FillPainter1` inner class (~320 lines of Nimbus-specific painters). Added `setUpFlatLafUI()`, `applyCustomColors()`, and `registerCustomFont()`. Preserves all app-specific UIManager keys (`control`, `execTableColor`, `text`, `Table.font`, `TableMenu.font`). ING Orange (#FF6200) accent theming via native FlatLaf properties. |
 
 ### 1.4 Deleted Files
 
@@ -203,13 +204,14 @@
 
 ---
 
-## 3. New Files — Documentation (3 files)
+## 3. New Files — Documentation (4 files)
 
 | File | Description |
 |------|-------------|
 | `improvementplans/CODE_CHANGES_SUMMARY.md` | Summary of all code changes (moved from root) |
 | `improvementplans/MODERNIZATION_PLAN.md` | Modernization plan |
 | `improvementplans/TEST_IMPROVEMENT_PLAN.md` | Test improvement plan (4 sprints, all completed) |
+| `improvementplans/UI_MODERNIZATION_PLAN.md` | UI modernization recommendation — FlatLaf migration plan |
 
 ---
 

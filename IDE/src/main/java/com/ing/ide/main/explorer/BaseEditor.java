@@ -10,6 +10,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.ImageIcon;
 import javax.swing.JPanel;
+import com.ing.ide.main.fx.INGIcons;
 
 /**
  *
@@ -27,7 +28,7 @@ public class BaseEditor extends javax.swing.JFrame {
 
         this.setUndecorated(this.isUndecorated());
         initComponents();
-        this.setIconImage(new ImageIcon(getClass().getResource("/explorer/explorer.png")).getImage());
+        this.setIconImage(INGIcons.toImage("icon.explorer", 16));
         this.setBackground(new Color(255, 255, 255, 0));
         this.setAlwaysOnTop(true);
         add(slider);

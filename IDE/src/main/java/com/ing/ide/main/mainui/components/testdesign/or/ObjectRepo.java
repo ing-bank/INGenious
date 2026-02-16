@@ -1,25 +1,19 @@
 
 package com.ing.ide.main.mainui.components.testdesign.or;
 
+import com.ing.ide.main.fx.FXPanelHeader;
+import com.ing.ide.main.fx.INGIcons;
 import com.ing.ide.main.mainui.components.testdesign.TestDesign;
 import com.ing.ide.main.mainui.components.testdesign.or.mobile.MobileORPanel;
 import com.ing.ide.main.mainui.components.testdesign.or.web.WebORPanel;
-import com.ing.ide.main.utils.Utils;
 import java.awt.BorderLayout;
 import java.awt.CardLayout;
-import java.awt.Font;
-import java.awt.FontFormatException;
-import java.awt.GraphicsEnvironment;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
-import java.io.File;
-import java.io.IOException;
 import javax.swing.ButtonGroup;
-import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JToggleButton;
 import javax.swing.JToolBar;
-import javax.swing.UIManager;
 
 /**
  *
@@ -49,13 +43,23 @@ public class ObjectRepo extends JPanel implements ItemListener {
 
     private void init() {
         setLayout(new BorderLayout());
-        add(switchToolBar, BorderLayout.NORTH);
+        setOpaque(false);
+        
+        // Create header panel with FXPanelHeader + SwitchToolBar
+        JPanel headerPanel = new JPanel(new BorderLayout());
+        headerPanel.setOpaque(false);
+        FXPanelHeader header = new FXPanelHeader("Object Repository");
+        headerPanel.add(header, BorderLayout.NORTH);
+        headerPanel.add(switchToolBar, BorderLayout.CENTER);
+        
+        add(headerPanel, BorderLayout.NORTH);
         add(repos, BorderLayout.CENTER);
         initRepos();
     }
 
     private void initRepos() {
         repos.setLayout(new CardLayout());
+        repos.setOpaque(false);
         repos.add(webOR, "Web");
         repos.add(mobileOR, "Mobile");
         switchToolBar.bgroup.getElements().nextElement().setSelected(true);
@@ -113,37 +117,28 @@ public class ObjectRepo extends JPanel implements ItemListener {
 
         private void init() {
             setFloatable(false);
+            setOpaque(false);
             bgroup = new ButtonGroup();
-            JLabel label = new JLabel("Object Repository");
             
-            try {
-            //create the font to use. Specify the size!
-            Font customFont = Font.createFont(Font.TRUETYPE_FONT, new File("resources/ui/resources/fonts/ingme_regular.ttf"));//.deriveFont(12f);
-            GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
-                //register the font
-                ge.registerFont(customFont);
-            } catch (IOException | FontFormatException e) {
-               // e.printStackTrace();
-            }
-            
-            label.setFont(new Font("ING Me", Font.BOLD, 12));
-            label.setForeground(UIManager.getColor("text"));
             add(new javax.swing.Box.Filler(new java.awt.Dimension(10, 0),
                     new java.awt.Dimension(10, 0),
                     new java.awt.Dimension(10, 32767)));
-            add(label);
             add(new javax.swing.Box.Filler(new java.awt.Dimension(0, 0), new java.awt.Dimension(0, 0), new java.awt.Dimension(32767, 32767)));
-            add(webButton = create("Web"));
+            add(webButton = create("Web", "or.Web"));
             //add(imageButton = create("Image"));
-            add(mobileButton = create("Mobile"));
+            add(mobileButton = create("Mobile", "or.Mobile"));
         }
 
-        private JToggleButton create(String text) {
+        private JToggleButton create(String text, String iconKey) {
             JToggleButton togg = new JToggleButton();
-            togg.setIcon(Utils.getIconByResourceName("/ui/resources/or/" + text.toLowerCase()));
-            togg.setToolTipText(text);
+            togg.setIcon(INGIcons.swingColored(iconKey, 18));
+            togg.setToolTipText(text + " Object Repository");
             togg.setActionCommand(text);
             togg.addItemListener(ObjectRepo.this);
+            // Remove hover/focus background effect
+            togg.setContentAreaFilled(false);
+            togg.setFocusPainted(false);
+            togg.setBorderPainted(false);
             bgroup.add(togg);
             return togg;
         }

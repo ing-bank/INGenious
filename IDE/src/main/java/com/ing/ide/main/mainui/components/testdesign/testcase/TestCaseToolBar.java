@@ -42,7 +42,8 @@ public class TestCaseToolBar extends JToolBar {
     public TestCaseToolBar(TestCaseComponent testCaseComp) {
         this.testCaseComp = testCaseComp;
         setFloatable(false);
-        setBorder(javax.swing.BorderFactory.createEtchedBorder());
+        setOpaque(false);
+        setBorder(javax.swing.BorderFactory.createMatteBorder(0, 0, 1, 0, UIManager.getColor("Separator.foreground")));
         setLayout(new javax.swing.BoxLayout(this, javax.swing.BoxLayout.X_AXIS));
         init();
     }

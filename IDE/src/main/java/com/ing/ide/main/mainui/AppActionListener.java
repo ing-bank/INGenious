@@ -4,6 +4,7 @@ package com.ing.ide.main.mainui;
 import com.ing.engine.support.methodInf.MethodInfoManager;
 import com.ing.ide.main.bdd.BddParser;
 import com.ing.ide.main.explorer.ExplorerBar;
+import com.ing.ide.main.Main;
 import com.ing.ide.main.help.Help;
 import com.ing.ide.main.mainui.components.testdesign.testdata.ImportTestData;
 import com.ing.ide.main.settings.INGeniousSettings;
@@ -20,17 +21,14 @@ import com.ing.ide.main.utils.CMProjectCreator;
 import com.ing.ide.main.utils.Utils;
 import com.ing.ide.util.Notification;
 import com.ing.ide.util.logging.UILogger;
-import java.awt.Color;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
 import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.swing.JToggleButton;
 import java.util.Timer;
 import java.util.TimerTask;
-import javax.swing.UIManager;
 
 public class AppActionListener implements ActionListener {
 
@@ -59,6 +57,8 @@ public class AppActionListener implements ActionListener {
     private final AppToolBar appToolBar;
     
     private Timer autoSaveTimer;
+    
+    private boolean autoSaveEnabled = false;
     
     //private static AppActionListener instance;
     
@@ -96,14 +96,10 @@ public class AppActionListener implements ActionListener {
                 sMainFrame.quit();
                 break;
             case "Auto Save":
-                JToggleButton toggleSwitch = appToolBar.getToggleSwitch();
-                if (toggleSwitch.isSelected()) {
-                    toggleSwitch.setText("ON");
-                    toggleSwitch.setBackground(Color.decode("#349651"));
+                autoSaveEnabled = !autoSaveEnabled;
+                if (autoSaveEnabled) {
                     startAutoSave();
                 } else {
-                    toggleSwitch.setText("OFF");
-                    toggleSwitch.setBackground(UIManager.getColor("text"));
                     stopAutoSave();
                 }
                 break;    
@@ -192,10 +188,17 @@ public class AppActionListener implements ActionListener {
             case "Dashboard":
                 sMainFrame.showDashBoard();
                 break;
+            case "API Tester":
+                sMainFrame.showAPITester();
+                break;
             case "Refresh":
                 doRefresh();
                 break;
             case "AdjustUI":
+                sMainFrame.adjustUI();
+                break;
+            case "Dark Mode":
+                Main.toggleTheme();
                 sMainFrame.adjustUI();
                 break;
             case "Create CM Project":

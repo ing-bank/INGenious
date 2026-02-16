@@ -65,11 +65,23 @@ public class Toaster {
     private static final long serialVersionUID = 1L;
 
     public void showToaster(Component parent, String msg) {
-        ToasterDialog singleToaster = new ToasterDialog();
+        showToaster(parent, msg, ToasterDialog.TYPE_INFO);
+    }
+    
+    public void showToaster(Component parent, String msg, int notificationType) {
+        ToasterDialog singleToaster = new ToasterDialog(notificationType);
         singleToaster.pack();
         singleToaster.setLocationRelativeTo(parent);
         singleToaster.message.setText(msg);
         (new Animation(singleToaster)).start();
+    }
+    
+    public void showSuccessToaster(Component parent, String msg) {
+        showToaster(parent, msg, ToasterDialog.TYPE_SUCCESS);
+    }
+    
+    public void showInfoToaster(Component parent, String msg) {
+        showToaster(parent, msg, ToasterDialog.TYPE_INFO);
     }
 
     /**

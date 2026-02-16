@@ -5,6 +5,7 @@ import com.ing.datalib.component.Project;
 import com.ing.datalib.component.Scenario;
 import com.ing.datalib.component.TestCase;
 import com.ing.datalib.model.Tag;
+import com.ing.ide.main.fx.FXPanelHeader;
 import com.ing.ide.main.mainui.components.testdesign.tree.TagEditorDialog;
 import com.ing.ide.main.mainui.components.testdesign.tree.model.ScenarioNode;
 import com.ing.ide.main.mainui.components.testdesign.tree.model.TestCaseNode;
@@ -24,11 +25,9 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import static java.util.stream.Collectors.toList;
-import javax.swing.BorderFactory;
 import javax.swing.Icon;
 import javax.swing.JButton;
 import javax.swing.JComponent;
-import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSplitPane;
@@ -137,18 +136,8 @@ public class TestExecutionUI extends JPanel implements ActionListener {
         JPanel panel = new JPanel();
         panel.setLayout(new BorderLayout());
 
-        JToolBar toolBar = new JToolBar();
-        toolBar.setFloatable(false);
-        toolBar.setBorder(BorderFactory.createEtchedBorder());
-        JLabel label = new JLabel(labelText);
-        label.setFont(UIManager.getFont("Table.font"));
-        toolBar.add(new javax.swing.Box.Filler(new java.awt.Dimension(10, 0),
-                new java.awt.Dimension(10, 0),
-                new java.awt.Dimension(10, 32767)));
-        toolBar.add(label);
-        toolBar.setPreferredSize(new java.awt.Dimension(toolBar.getPreferredSize().width, 25));
-
-        panel.add(toolBar, BorderLayout.NORTH);
+        FXPanelHeader header = new FXPanelHeader(labelText);
+        panel.add(header, BorderLayout.NORTH);
         comp.setFont(UIManager.getFont("Table.font"));
         panel.add(comp, BorderLayout.CENTER);
         return panel;
@@ -262,7 +251,8 @@ public class TestExecutionUI extends JPanel implements ActionListener {
         private JToolBar createToolbar() {
             JToolBar toolBar = new JToolBar();
             toolBar.setFloatable(false);
-            toolBar.setBorder(javax.swing.BorderFactory.createEtchedBorder());
+            toolBar.setOpaque(false);
+            toolBar.setBorder(javax.swing.BorderFactory.createMatteBorder(0, 0, 1, 0, UIManager.getColor("Separator.foreground")));
             toolBar.setLayout(new javax.swing.BoxLayout(toolBar, javax.swing.BoxLayout.X_AXIS));
 
             JButton pull = Utils.createButton("Pull", TestExecutionUI.this);

@@ -3,6 +3,7 @@ package com.ing.ide.main.ui;
 
 import com.ing.datalib.testdata.TestDataFactory;
 import com.ing.ide.main.mainui.AppMainFrame;
+import com.ing.ide.main.utils.AppIcon;
 import com.ing.ide.main.utils.INGeniousFileChooser;
 import com.ing.ide.main.utils.recentItem.RecentItem;
 import com.ing.ide.settings.AppSettings;
@@ -41,7 +42,7 @@ public class StartUp extends javax.swing.JDialog {
         super(new JFrame());
         this.sMainFrame = sMainFrame;
         initComponents();
-        setIconImage(new ImageIcon(getClass().getResource("/ui/resources/favicon.png")).getImage());
+        AppIcon.applyTo(this);
         initFileChooser();
         load();
     }

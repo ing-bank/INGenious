@@ -1,7 +1,6 @@
 package com.ing.ide.main.utils.table.autosuggest;
 
 import java.awt.Color;
-import java.awt.Graphics2D;
 import java.awt.Insets;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
@@ -22,9 +21,8 @@ import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JTextField;
 import javax.swing.KeyStroke;
-import javax.swing.Painter;
 import javax.swing.SwingUtilities;
-import javax.swing.UIDefaults;
+import javax.swing.plaf.basic.BasicComboBoxUI;
 
 /**
  *
@@ -77,8 +75,7 @@ public class AutoSuggest extends JComboBox<String> {
      */
     @Override
     public void updateUI() {
-        //super.updateUI();
-        setUI(new javax.swing.plaf.synth.SynthComboBoxUI() {
+        setUI(new BasicComboBoxUI() {
             @Override
             protected JButton createArrowButton() {
                 JButton button = new JButton() {
@@ -96,23 +93,8 @@ public class AutoSuggest extends JComboBox<String> {
             public void configureArrowButton() {
             }
         });
-        UIDefaults d = new UIDefaults();
-
-        Painter<JComponent> emptyPainter = new Painter<JComponent>() {
-            @Override
-            public void paint(Graphics2D g, JComponent c, int w, int h) {
-                /* Empty painter */
-            }
-        };
-        d.put("TextField.borderPainter", emptyPainter);
-        d.put("TextField[Enabled].borderPainter", emptyPainter);
-        d.put("TextField[Focused].borderPainter", emptyPainter);
-        d.put("ComboBox:\"ComboBox.textField\"[Enabled].backgroundPainter", emptyPainter);
-        d.put("ComboBox:\"ComboBox.textField\"[Selected].backgroundPainter", emptyPainter);
-        d.put("ComboBox[Editable+Focused].backgroundPainter", emptyPainter);
-        putClientProperty("Nimbus.Overrides", d);
+        setBorder(BorderFactory.createEmptyBorder());
         JComponent c = (JComponent) getEditor().getEditorComponent();
-        c.putClientProperty("Nimbus.Overrides", d);
         c.setBorder(BorderFactory.createLineBorder(Color.BLACK));
     }
 

@@ -6,7 +6,9 @@ import com.ing.datalib.or.common.ORObjectInf;
 import com.ing.datalib.or.common.ObjectGroup;
 import com.ing.datalib.or.web.WebORObject;
 import com.ing.datalib.or.web.WebORPage;
+import com.ing.ide.main.fx.INGIcons;
 import com.ing.ide.main.utils.Utils;
+import com.ing.ide.main.utils.table.PropertyAttributeRenderer;
 import com.ing.ide.main.utils.table.XTable;
 import java.awt.BorderLayout;
 import java.awt.Font;
@@ -28,6 +30,7 @@ import javax.swing.JTextField;
 import javax.swing.JToggleButton;
 import javax.swing.JToolBar;
 import javax.swing.KeyStroke;
+import javax.swing.UIManager;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.table.DefaultTableModel;
@@ -76,6 +79,10 @@ public class WebORTable extends JPanel implements ActionListener, ItemListener {
 
     public void loadObject(WebORObject object) {
         table.setModel(object);
+        // Apply custom renderer to Attribute column (column 0)
+        if (table.getColumnCount() > 0) {
+            table.getColumnModel().getColumn(0).setCellRenderer(new PropertyAttributeRenderer());
+        }
         monitorFrameChange = false;
         frameToolbar.frameText.setText(object.getFrame());
         toolBar.frameToggle.setSelected(!frameToolbar.frameText.getText().isEmpty());
@@ -411,6 +418,7 @@ public class WebORTable extends JPanel implements ActionListener, ItemListener {
         private void init() {
             setLayout(new javax.swing.BoxLayout(this, javax.swing.BoxLayout.X_AXIS));
             setFloatable(false);
+            setOpaque(false);
             frameText = new JTextField();
             add(new javax.swing.Box.Filler(new java.awt.Dimension(10, 0), new java.awt.Dimension(10, 0), new java.awt.Dimension(10, 32767)));
             add(new JLabel("Frame"));
@@ -442,7 +450,8 @@ public class WebORTable extends JPanel implements ActionListener, ItemListener {
 
         public ToolBar() {
             init();
-            setBorder(BorderFactory.createEtchedBorder());
+            setOpaque(false);
+            setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, UIManager.getColor("Separator.foreground")));
         }
 
         private void init() {
@@ -464,7 +473,7 @@ public class WebORTable extends JPanel implements ActionListener, ItemListener {
             add(Utils.createLRButton("Move Rows Up", "up",  WebORTable.this));
             add(Utils.createLRButton("Move Rows Down", "down",  WebORTable.this));
             addSeparator();
-            frameToggle = new JToggleButton(Utils.getIconByResourceName("/ui/resources/or/web/propViewer"));
+            frameToggle = new JToggleButton(INGIcons.swingColored("or.propViewer", 16));
             frameToggle.addItemListener(WebORTable.this);
             frameToggle.setToolTipText("Show/Hide Frame Property");
             frameToggle.setActionCommand("Toggle Frame");
