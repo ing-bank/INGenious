@@ -239,6 +239,12 @@ public class ObjectPopupMenu extends JPopupMenu {
             com.ing.datalib.or.web.WebOR root = (com.ing.datalib.or.web.WebOR) page.getRoot();
             return root.isShared();
         }
+        
+        if (page != null && page.getRoot() instanceof com.ing.datalib.or.mobile.MobileOR) {
+            com.ing.datalib.or.mobile.MobileOR root = (com.ing.datalib.or.mobile.MobileOR) page.getRoot();
+            return root.isShared();
+        }
+        
         return false;
     }
 }
