@@ -6,7 +6,8 @@ import com.ing.datalib.or.mobile.ResolvedMobileObject;
 
 import java.awt.Color;
 import java.awt.Font;
-import java.util.Objects;
+import java.util.Set;
+import java.util.stream.Collectors;
 import javax.swing.JComponent;
 
 /**
@@ -16,21 +17,41 @@ import javax.swing.JComponent;
  */
 public class ReferenceRenderer extends AbstractRenderer {
 
+    private static final Set<String> CATEGORY_OBJECTS = Set.of(
+        "Execute",
+        "App",
+        "Browser",
+        "Mobile",
+        "Database",
+        "Webservice",
+        "Kafka",
+        "Synthetic Data",
+        "Queue",
+        "File",
+        "General",
+        "String Operations"
+    );
+
     String objNotPresent = "Object is not present in the Object Repository";
 
     public ReferenceRenderer() {
-        super("Reference Shouldn't be empty, except if Object is one of [Execute,App,Browser]");
+        super(buildEmptyRefMessage());
+    }
+
+    private static String buildEmptyRefMessage() {
+        String allowed = CATEGORY_OBJECTS.stream().collect(Collectors.joining(","));
+        return "Reference Shouldn't be empty, except if Object is one of [" + allowed + "]";
     }
 
     @Override
     public void render(JComponent comp, TestStep step, Object value) {
         String ref = step.getReference();
         String decorated = ref;
-
         var repo = step.getProject().getObjectRepository();
 
         var wref = ResolvedWebObject.PageRef.parse(ref);
         var wres = repo.resolveWebObject(wref, step.getObject());
+
         if (wres == null) {
             var mref = ResolvedMobileObject.PageRef.parse(ref);
             var mres = repo.resolveMobileObject(mref, step.getObject());
@@ -73,18 +94,9 @@ public class ReferenceRenderer extends AbstractRenderer {
         }
     }
 
-    private Color getColor(Object value) {
-        String val = Objects.toString(value, "").trim();
-        switch (val) {
-            case "Execute": return Color.BLUE;   // .darker();
-            case "Mobile":  return Color.CYAN;   // .darker();
-            case "Browser": return Color.RED;    // .darker();
-            default:        return new Color(204, 0, 255);
-        }
-    }
-
     private Boolean isOptional(TestStep step) {
-        return step.getObject().matches("Execute\\nMobile\\nBrowser\\nDatabase\\nWebservice\\nKafka\\nSynthetic Data\\nQueue\\nFile\\nGeneral\\nString Operations");
+        String obj = String.valueOf(step.getObject()).trim();
+        return CATEGORY_OBJECTS.contains(obj);
     }
 
     private Boolean isObjectPresent(TestStep step) {

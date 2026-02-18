@@ -6,7 +6,6 @@ import com.ing.datalib.or.mobile.ResolvedMobileObject;
 
 import java.awt.Color;
 import java.awt.Font;
-import java.util.Objects;
 import javax.swing.JComponent;
 
 /**
@@ -15,7 +14,6 @@ import javax.swing.JComponent;
  *
  */
 public class ObjectRenderer extends AbstractRenderer {
-
     String objNotPresent = "Object is not present in the Object Repository";
 
     public ObjectRenderer() {
@@ -45,21 +43,10 @@ public class ObjectRenderer extends AbstractRenderer {
         }
     }
 
-    private Color getColor(Object value) {
-        String val = Objects.toString(value, "").trim();
-        switch (val) {
-            case "Execute": return Color.BLUE;   // .darker();
-            case "Mobile":  return Color.CYAN;   // .darker();
-            case "Browser": return Color.RED;    // .darker();
-            default:        return new Color(204, 0, 255);
-        }
-    }
-
     private Boolean isObjectPresent(TestStep step) {
         var repo = step.getProject().getObjectRepository();
         String pageToken = step.getReference();
         String objectName = step.getObject();
-
         ResolvedWebObject.PageRef wref = ResolvedWebObject.PageRef.parse(pageToken);
         if (wref != null && wref.name != null && wref.scope != null) {
             if (repo.resolveWebObject(wref, objectName) != null) {
@@ -68,7 +55,6 @@ public class ObjectRenderer extends AbstractRenderer {
         } else if (repo.resolveWebObjectWithScope(pageToken, objectName) != null) {
             return true;
         }
-
         ResolvedMobileObject.PageRef mref = ResolvedMobileObject.PageRef.parse(pageToken);
         if (mref != null && mref.name != null && mref.scope != null) {
             return repo.resolveMobileObject(mref, objectName) != null;
@@ -77,7 +63,7 @@ public class ObjectRenderer extends AbstractRenderer {
     }
 
     private Boolean isValidObject(Object value) {
-        String v = Objects.toString(value, "").trim();
-        return v.matches("^(Execute|Mobile|Browser|Database|Webservice|Kafka|Synthetic Data|Queue|File|General|String Operations)$");
+        String v = java.util.Objects.toString(value, "").trim();
+        return v.matches("^(Execute|App|Browser|Database|Webservice|Kafka|Synthetic Data|Queue|File|General|String Operations|Mobile)$");
     }
 }
