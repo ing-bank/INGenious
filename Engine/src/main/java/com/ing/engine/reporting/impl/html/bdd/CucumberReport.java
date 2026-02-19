@@ -116,12 +116,22 @@ public class CucumberReport {
     private static class To {
 
         private static FeatureReport FeatureReport(Entry<String, List<Report.Execution>> story) {
-            return new FeatureReport(story.getKey(), story.getKey(),
-                    project().findScenario(story.getKey()).get().getDesc(),
-                    String.format("//TestPlan/%s.feature", story.getKey()),
-                    getLine(project().findScenario(story.getKey()).get().getAttributes(), "feature.line"),
-                    story.getValue().stream().map(To::Element).collect(toList()),
-                    getTags(story.getKey()));
+            // Safely handle missing scenario
+            Optional<Meta> scenarioOpt = project().findScenario(story.getKey());
+            String desc = scenarioOpt.map(Meta::getDesc).orElse("No description available");
+            int featureLine = -1;
+            if (scenarioOpt.isPresent()) {
+                featureLine = getLine(scenarioOpt.get().getAttributes(), "feature.line");
+            }
+            return new FeatureReport(
+                story.getKey(),
+                story.getKey(),
+                desc,
+                String.format("//TestPlan/%s.feature", story.getKey()),
+                featureLine,
+                story.getValue().stream().map(To::Element).collect(toList()),
+                getTags(story.getKey())
+            );
         }
 
         private static FeatureReport.Element Element(Report.Execution exe) {
