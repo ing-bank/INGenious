@@ -1116,7 +1116,6 @@ public class Webservice extends General {
         }
     }
 
-    @Action(object = ObjectType.WEBSERVICE, desc = "Store Cookies In Variable ", input = InputType.YES, condition = InputType.YES)
     /**
      * Extracts a cookie value from the HTTP response headers and stores it in a variable.
      * <p>
@@ -1132,6 +1131,7 @@ public class Webservice extends General {
      *
      * @see #addVar(String, String)
      */
+    @Action(object = ObjectType.WEBSERVICE, desc = "Store Cookies In Variable ", input = InputType.YES, condition = InputType.YES)
     public void storeResponseCookiesInVariable() {
         try {
             String cookieKey = Data;
