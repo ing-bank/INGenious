@@ -9,7 +9,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
-import com.ing.datalib.or.web.WebOR.ORScope;
+import com.ing.datalib.or.mobile.MobileOR.ORScope;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
