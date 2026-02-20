@@ -49,6 +49,7 @@ import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 import javax.swing.AbstractAction;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
@@ -520,7 +521,19 @@ public class TestCaseComponent extends JPanel implements ActionListener {
 //         //playwrightSpinnerGUI.appendLog(ex.getMessage());
 //       }
 //    }
-         
+    
+    /**
+     * Launches the Playwright codegen process and handles the recording workflow.
+     * <p>
+     * Displays an informational dialog, starts clipboard monitoring, and executes
+     * the Playwright codegen process. If required, triggers Playwright installation.
+     * After recording, attempts to import the latest recorded steps and notifies the user
+     * if no recording is available.
+     * </p>
+     *
+     * @param playwrightSpinnerGUI the spinner GUI component for Playwright status updates
+     * @throws IOException if an I/O error occurs during process execution
+     */
     public void launchPlaywright(PlaywrightSpinner playwrightSpinnerGUI) throws IOException {
         System.out.println("============================== Playwright Log Started ==============================");
         //playwrightSpinnerGUI.appendLog("============================== Playwright Log Started ==============================");
@@ -588,7 +601,7 @@ public class TestCaseComponent extends JPanel implements ActionListener {
                     List<File> filteredFiles = Arrays.stream(recordingFiles)
                             .filter(file -> file.lastModified() >= INSTANCE_START_TIME)
                             .sorted(Comparator.comparingLong(File::lastModified).reversed())
-                            .toList();
+                            .collect(Collectors.toList());
 
                     if (!filteredFiles.isEmpty()) {
                         latestFile = filteredFiles.get(0);

@@ -36,6 +36,7 @@ import org.xml.sax.InputSource;
 import java.io.StringReader;
 import java.net.URLEncoder;
 import java.net.http.HttpClient;
+import java.net.http.HttpClient.Redirect;
 import java.net.http.HttpRequest;
 import java.net.http.HttpRequest.BodyPublisher;
 import java.net.http.HttpResponse;
@@ -462,7 +463,7 @@ public class Webservice extends General {
         /**
          * *** need to add timeout,version******
          */
-        httpClient.put(key, httpClientBuilder.get(key).build());
+        httpClient.put(key, httpClientBuilder.get(key).followRedirects(getRedirectPolicy()).build());
         httpRequest.put(key, httpRequestBuilder.get(key).build());
         response.put(key, httpClient.get(key).send(httpRequest.get(key), HttpResponse.BodyHandlers.ofString()));
 
@@ -1081,6 +1082,38 @@ public class Webservice extends General {
 
     private Boolean isSelfSigned() {
         return Control.getCurrentProject().getProjectSettings().getDriverSettings().selfSigned();
+    }
+
+
+    /**
+     * Retrieves the HTTP redirect policy configured for the current API driver settings.
+     * <p>
+     * The logic follows three strict rules:
+     * <ul>
+     *   <li>If no value is configured (i.e., the property is {@code null} or blank), the method defaults to
+     *       {@link Redirect#NEVER}.</li>
+     *   <li>If a valid redirect policy is provided (one of {@code NEVER}, {@code NORMAL}, or {@code ALWAYS},
+     *       case-insensitive), the corresponding {@link Redirect} enum is returned.</li>
+     *   <li>If a value is provided but does not match any {@link Redirect} enum constant, the method throws an
+     *       {@link IllegalArgumentException} to indicate a configuration error.</li>
+     * </ul>
+     * </p>
+     *
+     * @return the resolved {@link Redirect} policy to be applied when building the {@link java.net.http.HttpClient}
+     * @throws IllegalArgumentException if a non-blank but invalid redirect value is configured
+     */
+    private Redirect getRedirectPolicy() {
+        String httpClientRedirect = Control.getCurrentProject().getProjectSettings().getDriverSettings().getHttpClientRedirect();
+
+        if (httpClientRedirect == null || httpClientRedirect.trim().isEmpty()) {
+            return Redirect.NEVER;
+        }
+
+        try {
+            return Redirect.valueOf(httpClientRedirect.trim().toUpperCase());
+        } catch (IllegalArgumentException ex) {
+            throw new IllegalArgumentException("Invalid httpClientRedirect value: '" + httpClientRedirect + "'. Allowed values: NEVER, NORMAL, ALWAYS.");
+        }
     }
 
 }

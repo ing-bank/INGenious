@@ -583,7 +583,7 @@ public class AutomationObject {
 
         }
 
-        if (selector.matches("first()")) {
+        if (selector.matches("first\\(\\)")) {
             locator = locator.first();
         }
         if (selector.matches("nth\\((\\d+)\\)")) {
@@ -705,7 +705,7 @@ public class AutomationObject {
 
         }
 
-        if (selector.matches("first()")) {
+        if (selector.matches("first\\(\\)")) {
             locator = locator.first();
         }
         if (selector.matches("nth\\((\\d+)\\)")) {
