@@ -2,6 +2,10 @@
 package com.ing.engine.support.reflect;
 
 import com.ing.engine.core.CommandControl;
+import com.ing.ingenious.api.contract.GeneralDbApi;
+import com.ing.engine.commands.database.General;
+import com.ing.ingenious.api.contract.GeneralBrApi;
+
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
@@ -19,12 +23,48 @@ public class MethodExecutor {
         Discovery.discoverCommands();
     }
     
+    /**
+     * Dynamically executes a method by name on a discovered command class, injecting the appropriate constructor argument.
+     * <p>
+     * <b>Dynamic Invocation Logic:</b>
+     * <ul>
+     *   <li>Looks up a MethodHandle for the given method name using the command discovery cache.</li>
+     *   <li>Attempts to instantiate the target class using one of the following constructors (in order):</li>
+     *   <ol>
+     *     <li>{@code (GeneralBrApi)}: If present, injects a new {@link com.ing.engine.commands.browser.General} instance.</li>
+     *     <li>{@code (GeneralDbApi)}: If present, injects a new {@link com.ing.engine.commands.database.General} instance.</li>
+     *     <li>{@code (CommandControl)}: Fallback, injects the provided {@code inst} argument.</li>
+     *   </ol>
+     *   <li>Invokes the discovered method on the constructed instance.</li>
+     * </ul>
+     *
+     * @param mName the name of the method to execute
+     * @param inst the {@link CommandControl} instance to inject if required
+     * @return true if the method was found and executed, false otherwise
+     * @throws Throwable if method invocation or instantiation fails
+     */
     public static boolean executeMethod(String mName, CommandControl inst) throws Throwable {
         MethodHandle handle = getHandle(mName);
+        System.out.println("Executing method: " + mName);
         if (handle != null) {
-            handle.invoke(CACHE_CLASS.get(handle).getConstructor(
-                    CommandControl.class).newInstance(inst));
-            
+            Class<?> clazz = CACHE_CLASS.get(handle);
+            Object arg;
+            java.lang.reflect.Constructor<?> ctor;
+            try {
+                ctor = clazz.getConstructor(com.ing.ingenious.api.contract.GeneralBrApi.class);
+                com.ing.ingenious.api.contract.GeneralBrApi GenDb = new com.ing.engine.commands.browser.General(inst);
+                arg = (com.ing.ingenious.api.contract.GeneralBrApi) GenDb;
+            } catch (NoSuchMethodException e) {
+               try {
+                    ctor = clazz.getConstructor(com.ing.ingenious.api.contract.GeneralDbApi.class);
+                    com.ing.ingenious.api.contract.GeneralDbApi GenDb = new General(inst);
+                    arg = (com.ing.ingenious.api.contract.GeneralDbApi) GenDb;
+                } catch (NoSuchMethodException e2) {
+                    ctor = clazz.getConstructor(CommandControl.class);
+                    arg = inst;
+                }
+            }
+            handle.invoke(ctor.newInstance(arg));
             return true;
         }
         return false;

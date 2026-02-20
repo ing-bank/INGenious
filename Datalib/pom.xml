@@ -20,6 +20,12 @@
     
     <dependencies>
         <dependency>
+            <groupId>com.ing</groupId>
+            <artifactId>ingenious-api</artifactId>
+            <version>${ingenious-api.version}</version>
+            <type>jar</type>
+        </dependency>
+        <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-csv</artifactId>
             <version>${commonscsv.version}</version>

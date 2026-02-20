@@ -24,7 +24,7 @@ import com.ing.engine.execution.exception.data.GlobalDataNotFoundException;
 import com.ing.engine.execution.exception.data.TestDataNotFoundException;
 import com.ing.engine.execution.exception.element.ElementException;
 import com.ing.engine.reporting.TestCaseReport;
-import com.ing.engine.support.Status;
+import com.ing.ingenious.api.status.Status;
 import com.ing.engine.support.Step;
 import java.util.Arrays;
 import java.util.HashMap;

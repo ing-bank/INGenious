@@ -35,7 +35,7 @@ import com.ing.engine.reporting.util.DateTimeUtils;
 import com.ing.engine.reporting.util.RDS;
 import com.ing.engine.reporting.util.RDS.TestCase;
 import com.ing.engine.reporting.util.ReportUtils;
-import com.ing.engine.support.Status;
+import com.ing.ingenious.api.status.Status;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 

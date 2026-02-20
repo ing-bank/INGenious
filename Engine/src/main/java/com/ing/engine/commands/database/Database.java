@@ -2,10 +2,10 @@ package com.ing.engine.commands.database;
 
 import com.ing.datalib.testdata.view.TestDataView;
 import com.ing.engine.core.CommandControl;
-import com.ing.engine.support.Status;
-import com.ing.engine.support.methodInf.Action;
-import com.ing.engine.support.methodInf.InputType;
-import com.ing.engine.support.methodInf.ObjectType;
+import com.ing.ingenious.api.status.Status;
+import com.ing.ingenious.api.annotation.Action;
+import com.ing.ingenious.api.types.InputType;
+import com.ing.ingenious.api.types.ObjectType;
 
 import java.sql.DatabaseMetaData;
 import java.sql.SQLException;

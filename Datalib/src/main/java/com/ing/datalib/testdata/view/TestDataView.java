@@ -2,6 +2,7 @@
 package com.ing.datalib.testdata.view;
 
 import com.ing.datalib.testdata.model.Record;
+import com.ing.ingenious.api.contract.data.TestDataViewApi;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
@@ -23,7 +24,7 @@ import java.util.Set;
  *
  *
  */
-public abstract class TestDataView {
+public abstract class TestDataView implements TestDataViewApi {
 
     public final static String ALL = ".*";
     public final Map<String, List<List<String>>> VIEWS = new HashMap<>();

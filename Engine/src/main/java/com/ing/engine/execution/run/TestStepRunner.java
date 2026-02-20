@@ -13,7 +13,7 @@ import com.ing.engine.execution.exception.ForcedException;
 import com.ing.engine.execution.exception.UnKnownError;
 import com.ing.engine.execution.exception.data.DataNotFoundException;
 import com.ing.engine.execution.exception.element.ElementException;
-import com.ing.engine.support.Status;
+import com.ing.ingenious.api.status.Status;
 import com.ing.engine.support.Step;
 import com.ing.engine.support.reflect.MethodExecutor;
 import java.util.logging.Level;

@@ -4,7 +4,7 @@ import com.ing.engine.core.RunContext;
 import com.ing.engine.drivers.PlaywrightDriverCreation;
 import com.ing.engine.reporting.TestCaseReport;
 import com.ing.engine.reporting.intf.Report;
-import com.ing.engine.support.Status;
+import com.ing.ingenious.api.status.Status;
 import com.ing.engine.support.Step;
 import java.io.File;
 import java.util.List;

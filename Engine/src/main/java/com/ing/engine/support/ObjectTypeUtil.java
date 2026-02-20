@@ -6,7 +6,7 @@ import java.util.Set;
 import java.util.List;
 import java.util.ArrayList;
 
-import com.ing.engine.support.methodInf.ObjectType;
+import com.ing.ingenious.api.types.ObjectType;
 
 /**
  * Utility class for managing and querying object types at runtime.

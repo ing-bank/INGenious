@@ -27,7 +27,7 @@ import com.ing.engine.reporting.performance.har.Har;
 import com.ing.engine.reporting.sync.Sync;
 import com.ing.engine.reporting.util.DateTimeUtils;
 import com.ing.engine.reporting.util.TestInfo;
-import com.ing.engine.support.Status;
+import com.ing.ingenious.api.status.Status;
 
 public final class SummaryReport implements OverviewReport {
 

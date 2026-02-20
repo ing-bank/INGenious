@@ -13,7 +13,7 @@ import com.ing.engine.execution.run.ProjectRunner;
 import com.ing.engine.reporting.SummaryReport;
 import com.ing.engine.reporting.impl.ConsoleReport;
 import com.ing.engine.reporting.util.DateTimeUtils;
-import com.ing.engine.support.Status;
+import com.ing.ingenious.api.status.Status;
 import com.ing.engine.support.methodInf.MethodInfoManager;
 import com.ing.engine.support.reflect.MethodExecutor;
 import com.ing.util.encryption.Encryption;

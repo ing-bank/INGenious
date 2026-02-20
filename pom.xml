@@ -63,6 +63,7 @@
         <mac.version>mac-aarch64</mac.version>
         <setupDir>../Dist/release</setupDir>
         <resourceDir>../Resources</resourceDir>
+        <ingenious-api.version>3.0</ingenious-api.version>
 
         <flatlaf.version>3.5.4</flatlaf.version>
         <ikonli.version>12.3.1</ikonli.version>

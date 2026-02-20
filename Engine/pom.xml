@@ -36,6 +36,12 @@
             <version>${project.version}</version>
             <type>jar</type>
         </dependency>
+        <dependency>
+            <groupId>com.ing</groupId>
+            <artifactId>ingenious-api</artifactId>
+            <version>${ingenious-api.version}</version>
+            <type>jar</type>
+        </dependency>
         
         <dependency>
             <groupId>com.fasterxml.jackson.dataformat</groupId>

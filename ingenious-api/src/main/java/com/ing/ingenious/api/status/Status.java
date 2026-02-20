@@ -1,11 +1,5 @@
+package com.ing.ingenious.api.status;
 
-package com.ing.engine.support;
-
-/**
- * Enumeration to represent the status of the current test step
- *
- * 
- */
 public enum Status {
 
     /**

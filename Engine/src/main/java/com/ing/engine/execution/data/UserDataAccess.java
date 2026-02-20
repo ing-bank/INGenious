@@ -3,12 +3,13 @@ package com.ing.engine.execution.data;
 
 import com.ing.datalib.testdata.view.TestDataView;
 import com.ing.engine.execution.run.TestCaseRunner;
+import com.ing.ingenious.api.contract.data.UserDataAccessApi;
 
 /**
  *
  *
  */
-public abstract class UserDataAccess {
+public abstract class UserDataAccess implements UserDataAccessApi {
 
     abstract public TestCaseRunner context();
 

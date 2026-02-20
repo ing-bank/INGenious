@@ -17,7 +17,7 @@ import com.ing.engine.reporting.util.DateTimeUtils;
 import com.ing.engine.reporting.util.RDS;
 import com.ing.engine.reporting.util.ReportUtils;
 import com.ing.engine.support.DesktopApi;
-import com.ing.engine.support.Status;
+import com.ing.ingenious.api.status.Status;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.File;
 import java.io.IOException;

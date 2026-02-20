@@ -2,7 +2,7 @@ package com.ing.ide.main.mainui.components.testdesign.testcase.validation;
 
 import com.ing.datalib.component.TestStep;
 import com.ing.datalib.testdata.model.TestDataModel;
-import com.ing.engine.support.methodInf.Action;
+import com.ing.ingenious.api.annotation.Action;
 import com.ing.engine.support.methodInf.MethodInfoManager;
 import java.awt.Color;
 import java.awt.Font;

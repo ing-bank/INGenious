@@ -6,8 +6,7 @@ import com.ing.datalib.or.web.ResolvedWebObject;
 import com.ing.datalib.or.mobile.ResolvedMobileObject;
 import com.ing.engine.support.ObjectTypeUtil;
 import com.ing.engine.support.methodInf.MethodInfoManager;
-import com.ing.engine.support.methodInf.ObjectType;
-
+import com.ing.ingenious.api.types.ObjectType;
 import java.awt.Color;
 import java.awt.Font;
 import java.util.Objects;

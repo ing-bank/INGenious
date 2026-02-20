@@ -1,9 +1,11 @@
+package com.ing.ingenious.api.annotation;
 
-package com.ing.engine.support.methodInf;
-
+import com.ing.ingenious.api.types.InputType;
+import com.ing.ingenious.api.types.ObjectType;
 import java.lang.annotation.Inherited;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
+
 
 @Inherited
 @Retention(RetentionPolicy.RUNTIME)

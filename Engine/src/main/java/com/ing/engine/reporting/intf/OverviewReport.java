@@ -3,7 +3,7 @@ package com.ing.engine.reporting.intf;
 
 import com.ing.engine.core.RunContext;
 import com.ing.engine.reporting.TestCaseReport;
-import com.ing.engine.support.Status;
+import com.ing.ingenious.api.status.Status;
 
 public interface OverviewReport {
 

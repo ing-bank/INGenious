@@ -24,6 +24,11 @@ import java.util.Stack;
 
 import com.ing.engine.drivers.WebDriverCreation;
 import com.ing.engine.drivers.MobileObject;
+import com.ing.ingenious.api.contract.CommandApi;
+import com.ing.ingenious.api.contract.data.UserDataAccessApi;
+import com.ing.ingenious.api.contract.drivers.AutomationObjectApi;
+import com.ing.ingenious.api.contract.drivers.PlaywrightDriverCreationApi;
+import com.ing.ingenious.api.contract.reports.TestCaseReportApi;
 import java.io.File;
 import java.util.List;
 import java.util.Properties;
@@ -44,7 +49,7 @@ import org.openqa.selenium.WebElement;
 // import org.apache.kafka.clients.producer.KafkaProducer;
 // import org.apache.kafka.clients.producer.ProducerRecord;
 
-public class Command {
+public class Command implements CommandApi {
 
     public Page Page;
     public Playwright Playwright;
@@ -377,4 +382,141 @@ public class Command {
     /**
      * ******************************
      */
+    
+    /**
+     * Implementation of {@link CommandApi#getReport()} for the API-plugin contract.
+     * @return the TestCaseReportApi instance for logging test results
+     */
+    @Override
+    public TestCaseReportApi getReport() {
+        return (TestCaseReportApi) Report;
+    }
+
+    /**
+     * Implementation of {@link CommandApi#getData()} for the API-plugin contract.
+     * @return the data input parameter
+     */
+    @Override
+    public String getData() {
+        return Data;
+    }
+
+    /**
+     * Implementation of {@link CommandApi#getObjectName()} for the API-plugin contract.
+     * @return the object name
+     */
+    @Override
+    public String getObjectName() {
+        return ObjectName;
+    }
+
+    /**
+     * Implementation of {@link CommandApi#getDescription()} for the API-plugin contract.
+     * @return the action description
+     */
+    @Override
+    public String getDescription() {
+        return Description;
+    }
+
+    /**
+     * Implementation of {@link CommandApi#getCondition()} for the API-plugin contract.
+     * @return the condition parameter
+     */
+    @Override
+    public String getCondition() {
+        return Condition;
+    }
+
+    /**
+     * Implementation of {@link CommandApi#getInput()} for the API-plugin contract.
+     * @return the input parameter
+     */
+    @Override
+    public String getInput() {
+        return Input;
+    }
+
+    /**
+     * Implementation of {@link CommandApi#getAction()} for the API-plugin contract.
+     * @return the action name
+     */
+    @Override
+    public String getAction() {
+        return Action;
+    }
+
+    /**
+     * Implementation of {@link CommandApi#getReference()} for the API-plugin contract.
+     * @return the reference parameter
+     */
+    @Override
+    public String getReference() {
+        return Reference;
+    }
+
+    /**
+     * Implementation of {@link CommandApi#getUserData()} for the API-plugin contract.
+     * @return the UserDataAccessApi instance for test data access
+     */
+    @Override
+    public UserDataAccessApi getUserData() {
+        return userData;
+    }
+
+    /**
+     * Implementation of {@link CommandApi#getPage()} for the API-plugin contract.
+     * @return the Page object that should be cast to {@link com.microsoft.playwright.Page}
+     */
+    @Override
+    public Object getPage() {
+        return Page;
+    }
+
+    /**
+     * Implementation of {@link CommandApi#getPlaywright()} for the API-plugin contract.
+     * @return the Playwright object that should be cast to {@link com.microsoft.playwright.Playwright}
+     */
+    @Override
+    public Object getPlaywright() {
+        return Playwright;
+    }
+
+    /**
+     * Implementation of {@link CommandApi#getBrowserContext()} for the API-plugin contract.
+     * @return the BrowserContext object that should be cast to {@link com.microsoft.playwright.BrowserContext}
+     */
+    @Override
+    public Object getBrowserContext() {
+        return BrowserContext;
+    }
+
+    /**
+     * Implementation of {@link CommandApi#getLocator()} for the API-plugin contract.
+     * @return the Locator object that should be cast to {@link com.microsoft.playwright.Locator}
+     */
+    @Override
+    public Object getLocator() {
+        return Locator;
+    }
+
+    /**
+     * Implementation of {@link CommandApi#getAObject()} for the API-plugin contract.
+     * @return the AutomationObjectApi instance for web element interactions
+     */
+    @Override
+    public AutomationObjectApi getAObject() {
+        return AObject;
+    }
+
+    /**
+     * Implementation of {@link CommandApi#getDriver()} for the API-plugin contract.
+     * @return the PlaywrightDriverCreationApi instance for driver management
+     */
+    @Override
+    public PlaywrightDriverCreationApi getDriver() {
+        return Driver;
+    }
+
+    
 }

@@ -1,20 +1,20 @@
 
 package com.ing.engine.core;
 
+import com.ing.ingenious.api.contract.drivers.AutomationObjectApi.FindType;
 import com.ing.datalib.or.common.ObjectGroup;
 import com.ing.datalib.or.image.ImageORObject;
 import com.ing.datalib.settings.DriverSettings;
 import com.ing.datalib.util.data.LinkedProperties;
 import com.ing.datalib.settings.DriverProperties;
 import com.ing.engine.drivers.AutomationObject;
-import com.ing.engine.drivers.AutomationObject.FindType;
 import com.ing.engine.drivers.PlaywrightDriverCreation;
 import com.ing.engine.execution.data.DataProcessor;
 import com.ing.engine.execution.data.UserDataAccess;
 import com.ing.engine.execution.exception.UnCaughtException;
 import com.ing.engine.execution.run.TestCaseRunner;
 import com.ing.engine.reporting.TestCaseReport;
-import com.ing.engine.support.Status;
+import com.ing.ingenious.api.status.Status;
 import com.ing.engine.support.Step;
 import com.microsoft.playwright.Locator;
 import java.util.HashMap;

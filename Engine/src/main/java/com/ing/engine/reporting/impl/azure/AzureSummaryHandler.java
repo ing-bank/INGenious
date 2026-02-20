@@ -19,7 +19,7 @@ import com.ing.engine.reporting.SummaryReport;
 import com.ing.engine.reporting.impl.azureNunit.AzureReport;
 import com.ing.engine.reporting.impl.handlers.PrimaryHandler;
 import com.ing.engine.reporting.impl.handlers.SummaryHandler;
-import com.ing.engine.support.Status;
+import com.ing.ingenious.api.status.Status;
 
 import java.util.Date;
 import java.util.UUID;

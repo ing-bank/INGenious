@@ -12,6 +12,9 @@ import com.ing.datalib.or.web.ResolvedWebObject;
 import com.ing.engine.constants.SystemDefaults;
 import com.ing.engine.core.Control;
 import com.ing.engine.core.CommandControl;
+import com.ing.engine.reporting.intf.Report;
+import com.ing.ingenious.api.contract.drivers.AutomationObjectApi;
+import com.ing.ingenious.api.status.Status;
 import com.microsoft.playwright.BrowserContext;
 import com.microsoft.playwright.FrameLocator;
 import com.microsoft.playwright.Locator;
@@ -26,7 +29,7 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class AutomationObject {
+public class AutomationObject implements AutomationObjectApi {
 
     public AutomationObject(CommandControl cc) {
         super();
@@ -52,20 +55,6 @@ public class AutomationObject {
     public static HashMap<String, String> globalDynamicValue = new HashMap<>();
     public static String Action = "";
     static HashMap<String, String> chainLocatorMaping = new HashMap<String, String>();
-    public static final Map<String, List<String>> locatorFiltersMap = new HashMap<>();
-
-    public enum FindType {
-        GLOBAL_OBJECT, DEFAULT;
-
-        public static FindType fromString(String val) {
-            switch (val.toLowerCase()) {
-                case "globalobject":
-                    return GLOBAL_OBJECT;
-                default:
-                    return DEFAULT;
-            }
-        }
-    }
 
     public AutomationObject() {
     }
@@ -1009,6 +998,149 @@ public class AutomationObject {
         }
 
         return locator;
+    }
+
+    // ===== API Interface Implementations (Object type wrappers) =====
+    
+
+    /**
+     * Sets the Playwright Page instance for this automation object.
+     * <p>
+     * <b>API-Plugin Contract:</b> Required by {@link AutomationObjectApi}. The argument is provided as Object for type erasure; cast to {@link Page} when calling framework methods.
+     * </p>
+     * @param page the Playwright Page instance (as Object, must be cast to {@link Page})
+     */
+    @Override
+    public void setPage(Object page) {
+        setPage((Page) page);
+    }
+
+
+    /**
+     * Sets the Playwright Page instance as the driver for this automation object.
+     * <p>
+     * <b>API-Plugin Contract:</b> Required by {@link AutomationObjectApi}. The argument is provided as Object for type erasure; cast to {@link Page} when calling framework methods.
+     * </p>
+     * @param page the Playwright Page instance (as Object, must be cast to {@link Page})
+     */
+    @Override
+    public void setDriver(Object page) {
+        setDriver((Page) page);
+    }
+
+
+    /**
+     * Finds a single element on the page using the provided keys and condition.
+     * <p>
+     * <b>API-Plugin Contract:</b> Required by {@link AutomationObjectApi}. The returned Object should be cast to {@link Locator} for Playwright operations.
+     * </p>
+     * @param page the Playwright Page instance (as Object, must be cast to {@link Page})
+     * @param objectKey the object key in the object repository
+     * @param pageKey the page key in the object repository
+     * @param condition the find condition
+     * @return the found element as Object (cast to {@link Locator})
+     */
+    @Override
+    public Object findElement(Object page, String objectKey, String pageKey, FindType condition) {
+        return findElement((Page) page, objectKey, pageKey, condition);
+    }
+    
+
+    /**
+     * Finds all elements matching the given keys and returns them as a list of Objects.
+     * <p>
+     * <b>API-Plugin Contract:</b> Required by {@link AutomationObjectApi}. Each Object in the returned list should be cast to {@link Locator} for Playwright operations.
+     * </p>
+     * @param objectKey the object key in the object repository
+     * @param pageKey the page key in the object repository
+     * @return a list of Objects (cast each to {@link Locator}), or null if none found
+     */
+    @Override
+    public List<Object> findElementsList(String objectKey, String pageKey) {
+        List<Locator> locators = findElements(objectKey, pageKey);
+        return locators != null ? new ArrayList<>(locators) : null;
+    }
+    
+
+    /**
+     * Finds all elements matching the given keys and attribute, returning them as a list of Objects.
+     * <p>
+     * <b>API-Plugin Contract:</b> Required by {@link AutomationObjectApi}. Each Object in the returned list should be cast to {@link Locator} for Playwright operations.
+     * </p>
+     * @param objectKey the object key in the object repository
+     * @param pageKey the page key in the object repository
+     * @param attribute the attribute to match
+     * @return a list of Objects (cast each to {@link Locator}), or null if none found
+     */
+    @Override
+    public List<Object> findElementsList(String objectKey, String pageKey, String attribute) {
+        List<Locator> locators = findElements(objectKey, pageKey, attribute);
+        return locators != null ? new ArrayList<>(locators) : null;
+    }
+    
+
+    /**
+     * Finds all elements matching the given keys and condition, returning them as a list of Objects.
+     * <p>
+     * <b>API-Plugin Contract:</b> Required by {@link AutomationObjectApi}. Each Object in the returned list should be cast to {@link Locator} for Playwright operations.
+     * </p>
+     * @param objectKey the object key in the object repository
+     * @param pageKey the page key in the object repository
+     * @param condition the find condition
+     * @return a list of Objects (cast each to {@link Locator}), or null if none found
+     */
+    @Override
+    public List<Object> findElementsList(String objectKey, String pageKey, FindType condition) {
+        List<Locator> locators = findElements(objectKey, pageKey, condition);
+        return locators != null ? new ArrayList<>(locators) : null;
+    }
+    
+
+    /**
+     * Finds all elements matching the given keys, attribute, and condition, returning them as a list of Objects.
+     * <p>
+     * <b>API-Plugin Contract:</b> Required by {@link AutomationObjectApi}. Each Object in the returned list should be cast to {@link Locator} for Playwright operations.
+     * </p>
+     * @param objectKey the object key in the object repository
+     * @param pageKey the page key in the object repository
+     * @param attribute the attribute to match
+     * @param condition the find condition
+     * @return a list of Objects (cast each to {@link Locator}), or null if none found
+     */
+    @Override
+    public List<Object> findElementsList(String objectKey, String pageKey, String attribute, FindType condition) {
+        List<Locator> locators = findElements(objectKey, pageKey, attribute, condition);
+        return locators != null ? new ArrayList<>(locators) : null;
+    }
+
+
+    /**
+     * Stores the given attribute value in the object repository for the specified element.
+     * <p>
+     * <b>API-Plugin Contract:</b> Required by {@link AutomationObjectApi}. The attributes argument is provided as Object for type erasure; cast to {@code List<ORAttribute>} when calling framework methods.
+     * </p>
+     * @param attributes the attributes list (as Object, must be cast to {@code List<ORAttribute>})
+     * @param attribute the attribute name
+     * @param value the value to store
+     */
+    @Override
+    public void storeElementDetailsinOR(Object attributes, String attribute, String value) {
+        storeElementDetailsinOR((List<ORAttribute>) attributes, attribute, value);
+    }
+
+
+    /**
+     * Retrieves the value of the specified attribute from the given attributes list.
+     * <p>
+     * <b>API-Plugin Contract:</b> Required by {@link AutomationObjectApi}. The attributes argument is provided as Object for type erasure; cast to {@code List<ORAttribute>} when calling framework methods.
+     * </p>
+     * @param attributes the attributes list (as Object, must be cast to {@code List<ORAttribute>})
+     * @param attribute the attribute name
+     * @return the value of the attribute, or null if not found
+     */
+    @Override
+    public String getAttributeValue(Object attributes, String attribute) {
+        return getAttributeValue((List<ORAttribute>) attributes, attribute);
     }
 
 }

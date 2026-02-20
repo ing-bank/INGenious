@@ -8,6 +8,7 @@ import com.ing.engine.execution.exception.DriverClosedException;
 import com.ing.engine.execution.exception.UnCaughtException;
 import com.ing.engine.constants.FilePath;
 import com.ing.engine.reporting.util.DateTimeUtils;
+import com.ing.ingenious.api.contract.drivers.PlaywrightDriverCreationApi;
 import java.io.File;
 import java.io.IOException;
 import java.util.logging.Level;
@@ -20,7 +21,7 @@ import java.nio.file.Paths;
  * Class to handle driver related operation
  *
  */
-public class PlaywrightDriverCreation {
+public class PlaywrightDriverCreation implements PlaywrightDriverCreationApi {
 
     public Playwright playwright;
     public Page page;
@@ -168,6 +169,45 @@ public class PlaywrightDriverCreation {
 
     public RunContext getRunContext() {
         return runContext;
+    }
+
+
+     /**
+      * Sets the Playwright Page instance for this driver.
+      * <p>
+      * <b>API-Plugin Contract:</b> Required by {@link PlaywrightDriverCreationApi}. The argument is provided as Object for type erasure; cast to {@link Page} when calling framework methods.
+      * </p>
+      * @param page the Playwright Page instance (as Object, must be cast to {@link Page})
+      */
+     @Override
+     public void setPage(Object page) {
+         setPage((Page) page);
+     }
+
+
+    /**
+     * Returns the current Playwright BrowserContext instance.
+     * <p>
+     * <b>API-Plugin Contract:</b> Required by {@link PlaywrightDriverCreationApi}. The returned Object should be cast to {@link BrowserContext} for Playwright operations.
+     * </p>
+     * @return the current BrowserContext as Object (cast to {@link BrowserContext})
+     */
+    @Override
+    public Object getBrowserContext() {
+        return browserContext;
+    }
+
+
+    /**
+     * Returns the current Playwright instance.
+     * <p>
+     * <b>API-Plugin Contract:</b> Required by {@link PlaywrightDriverCreationApi}. The returned Object should be cast to {@link Playwright} for Playwright operations.
+     * </p>
+     * @return the current Playwright instance as Object (cast to {@link Playwright})
+     */
+    @Override
+    public Object getPlaywright() {
+        return playwright;
     }
 
 }

@@ -18,7 +18,7 @@ import com.ing.datalib.testdata.model.Record;
 import com.ing.datalib.testdata.model.TestDataModel;
 import com.ing.engine.support.ObjectTypeUtil;
 import com.ing.engine.support.methodInf.MethodInfoManager;
-import com.ing.engine.support.methodInf.ObjectType;
+import com.ing.ingenious.api.types.ObjectType;
 import com.ing.engine.util.data.fx.FParser;
 import com.ing.ide.main.utils.table.SQLTextArea;
 import com.ing.ide.main.utils.table.WebservicePayloadArea;

@@ -1,5 +1,5 @@
 
-package com.ing.engine.support.methodInf;
+package com.ing.ingenious.api.types;
 
 import java.util.Set;
 import java.util.HashSet;

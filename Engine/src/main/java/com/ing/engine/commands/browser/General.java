@@ -4,12 +4,14 @@ package com.ing.engine.commands.browser;
 import com.ing.engine.core.CommandControl;
 import com.ing.engine.execution.exception.element.ElementException;
 import com.ing.engine.execution.exception.element.ElementException.ExceptionType;
+import com.ing.ingenious.api.contract.GeneralBrApi;
+import com.ing.ingenious.api.contract.data.UserDataAccessApi;
 
 /**
  *
  * 
  */
-public class General extends Command {
+public class General extends Command implements GeneralBrApi {
 
     public General(CommandControl cc) {
         super(cc);
@@ -57,7 +59,5 @@ public class General extends Command {
         return (boolean) (Page
                 .evaluate("document.documentElement.scrollHeight>document.documentElement.clientHeight;"));
     }
-
-    
 
 }

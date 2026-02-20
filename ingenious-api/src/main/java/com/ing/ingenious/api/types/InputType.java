@@ -1,5 +1,4 @@
-
-package com.ing.engine.support.methodInf;
+package com.ing.ingenious.api.types;
 
 public enum InputType {
     YES,
@@ -18,3 +17,4 @@ public enum InputType {
         return this.equals(NO);
     }
 }
+

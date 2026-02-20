@@ -12,7 +12,7 @@ import com.ing.engine.reporting.impl.handlers.TestCaseHandler;
 import com.ing.engine.reporting.impl.html.HtmlTestCaseHandler;
 import com.ing.engine.reporting.intf.Report;
 import com.ing.engine.reporting.util.DateTimeUtils;
-import com.ing.engine.support.Status;
+import com.ing.ingenious.api.status.Status;
 import com.ing.engine.support.Step;
 import com.ing.engine.support.methodInf.MethodInfoManager;
 import com.ing.engine.reporting.impl.azure.AzureTestCaseHandler;
@@ -25,8 +25,9 @@ import java.util.List;
 import java.io.FileWriter;
 import org.json.simple.JSONObject;
 import com.ing.engine.drivers.WebDriverCreation;
+import com.ing.ingenious.api.contract.reports.TestCaseReportApi;
 
-public final class TestCaseReport implements Report {
+public final class TestCaseReport implements Report, TestCaseReportApi {
 
     public static volatile int tcCount;
 
