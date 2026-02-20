@@ -35,8 +35,6 @@ import javax.swing.table.DefaultTableModel;
  * </ul>
  * This component acts as the editable detail view within the Mobile OR panel.
  */
-
-
 public class MobileORTable extends JPanel implements ActionListener {
 
     private final XTable table;
@@ -65,10 +63,9 @@ public class MobileORTable extends JPanel implements ActionListener {
     public XTable getTable() {
         return table;
     }
-    
+
     public void loadObject(MobileORObject object) {
         table.setModel(object);
-
         String source = object.getPage().getRoot().isShared() ? "Shared" : "Project";
         toolBar.setTitleSuffix("[" + source + "]");
     }

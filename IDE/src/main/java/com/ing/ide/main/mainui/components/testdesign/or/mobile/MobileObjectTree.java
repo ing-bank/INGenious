@@ -22,7 +22,6 @@ import javax.swing.tree.TreePath;
  * </ul>
  * It acts as the controller between tree selections and OR object presentation.
  */
-
 public class MobileObjectTree extends ObjectTree {
 
     private final MobileORPanel oRPanel;

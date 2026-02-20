@@ -5,17 +5,15 @@ import com.ing.datalib.component.Project;
 import com.ing.datalib.or.common.ORPageInf;
 import com.ing.datalib.or.common.ObjectGroup;
 import com.ing.datalib.or.mobile.MobileOR;
+import com.ing.datalib.or.mobile.MobileORObject;
+import com.ing.datalib.or.mobile.MobileORPage;
 import com.ing.datalib.or.web.WebOR;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
+import com.ing.datalib.or.mobile.ResolvedMobileObject;
 import com.ing.datalib.or.web.ResolvedWebObject;
 import com.ing.datalib.or.web.WebOR.ORScope;
 import com.ing.datalib.or.web.WebORObject;
 import com.ing.datalib.or.web.WebORPage;
-import com.ing.datalib.or.mobile.ResolvedMobileObject;
-import com.ing.datalib.or.mobile.MobileORObject;
-import com.ing.datalib.or.mobile.MobileORPage;
-
-
 import java.io.File;
 import java.io.IOException;
 import java.util.HashSet;
@@ -23,13 +21,11 @@ import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-
 /**
  * Manages all Object Repository types (Web Project OR, Web Shared OR, Mobile OR)
  * for a project. Handles loading, saving, renaming, lookup, copying of pages and
  * objects, and resolving objects across project/shared scopes.
  */
-
 public class ObjectRepository {
     private static final XmlMapper XML_MAPPER = new XmlMapper();
     private static final Logger LOG = Logger.getLogger(ObjectRepository.class.getName());
@@ -48,7 +44,6 @@ public class ObjectRepository {
      *
      * @param sProject the project owning this repository
      */
-
     public ObjectRepository(Project sProject) {
         this.sProject = sProject;
         init();
@@ -58,7 +53,6 @@ public class ObjectRepository {
      * Loads OR files from disk (shared, project, mobile), updates names, sets scopes,
      * and links them to this repository.
      */
-
     private void init() {
         try {
             File sharedFile = new File(getSharedORLocation());
@@ -176,7 +170,6 @@ public class ObjectRepository {
      * Saves updated shared, project, and mobile ORs to disk.
      * Also updates shared project usage metadata when required.
      */
-
     public void save() {
         try {
             java.util.List<String> existingProjects = (webSharedOR != null) ? webSharedOR.getProjects() : java.util.List.of();
@@ -220,7 +213,6 @@ public class ObjectRepository {
                         .writeValue(new File(getSharedMORLocation()), mobileSharedOR);
                 mobileSharedOR.setSaved(true);
             }
-
             if (mobileProjectOR != null && !mobileProjectOR.isSaved()) {
                 XML_MAPPER.writerWithDefaultPrettyPrinter()
                         .writeValue(new File(getMORLocation()), mobileProjectOR);
@@ -238,13 +230,12 @@ public class ObjectRepository {
      * @param objectName object name
      * @return true if present in project or shared OR
      */
-
     public Boolean isObjectPresent(String pageName, String objectName) {
         return resolveWebObjectWithScope(pageName, objectName) != null;
     }
 
     public Boolean isMobileObjectPresent(String pageName, String objectName) {
-    return resolveMobileObjectWithScope(pageName, objectName) != null;
+        return resolveMobileObjectWithScope(pageName, objectName) != null;
     }
 
     /**
@@ -254,7 +245,6 @@ public class ObjectRepository {
      * @param group   object group containing the object
      * @param newName new object name
      */
-
     public void renameObject(ObjectGroup<WebORObject> group, String newName) {
         if (group == null || newName == null || newName.isBlank()) return;
         var parentPage = group.getParent();
@@ -263,7 +253,6 @@ public class ObjectRepository {
         if (oldName.equals(newName)) return;
         boolean inProject = (webProjectOR != null) &&
             (webProjectOR.getPageByName(parentPage.getName()) == parentPage);
-
         boolean inShared  = !inProject && (webSharedOR != null) &&
             (webSharedOR.getPageByName(parentPage.getName()) == parentPage);
         if (inProject && webProjectOR != null) {
@@ -285,7 +274,6 @@ public class ObjectRepository {
      * @param page    page object reference
      * @param newName new page name
      */
-
     public void renamePage(ORPageInf page, String newName) {
         if (page == null || newName == null || newName.isBlank()) return;
         String oldName = page.getName();
@@ -367,10 +355,8 @@ public class ObjectRepository {
      * Resolves a WebOR object from a scoped PageRef and object name, returning a
      * ResolvedWebObject containing scope, page, object name, and object group.
      */
-
     public ResolvedWebObject resolveWebObject(ResolvedWebObject.PageRef pageRef, String objectName) {
         if (pageRef == null || objectName == null) return null;
-
         if (pageRef.scope == WebOR.ORScope.PROJECT) {
             var g = getFrom(webProjectOR, pageRef.name, objectName);
             if (g != null) {
@@ -388,7 +374,6 @@ public class ObjectRepository {
             }
             return null;
         }
-
         var proj = getFrom(webProjectOR, pageRef.name, objectName);
         if (proj != null) {
             String actualPageName = proj.getParent() != null ? proj.getParent().getName() : pageRef.name;
@@ -432,7 +417,6 @@ public class ObjectRepository {
      * @param objectName object group name
      * @return resolved WebOR object with scope metadata
      */
-
     public ResolvedWebObject resolveWebObjectWithScope(String pageName, String objectName) {
         var proj = getFrom(webProjectOR, pageName, objectName);
         if (proj != null) {
@@ -477,15 +461,14 @@ public class ObjectRepository {
     }
     
     private ObjectGroup<MobileORObject> getFrom(MobileOR or, String page, String obj) {
-    if (or == null) return null;
-    MobileORPage p = or.getPageByName(page);
-    return (p == null) ? null : p.getObjectGroupByName(obj);
+        if (or == null) return null;
+        MobileORPage p = or.getPageByName(page);
+        return (p == null) ? null : p.getObjectGroupByName(obj);
     }
     
     /**
      * Deep-clones an object group and its objects into another page.
      */
-
     private ObjectGroup<WebORObject> cloneGroupIntoPage(ObjectGroup<WebORObject> originalGroup, WebORPage targetPage) {
         ObjectGroup<WebORObject> newGroup = new ObjectGroup<>(originalGroup.getName(), targetPage);
         for (WebORObject obj : originalGroup.getObjects()) {
@@ -493,7 +476,6 @@ public class ObjectRepository {
             cloned.setName(obj.getName());
             cloned.setParent(newGroup);
             obj.clone(cloned);
-
             newGroup.getObjects().add(cloned);
         }
         return newGroup;
@@ -502,7 +484,6 @@ public class ObjectRepository {
     /**
      * Generates a unique name by appending "(n)" when duplicates exist.
      */
-
     private String generateUniqueName(String baseName, java.util.function.Predicate<String> exists) {
         if (baseName == null || baseName.isBlank()) return baseName;
         String candidate = baseName;
@@ -527,7 +508,6 @@ public class ObjectRepository {
     /**
      * Ensures a page exists in the given OR; creates one if missing.
      */
-
     private WebORPage getOrCreatePage(WebOR or, String pageName) {
         if (or == null || pageName == null) return null;
         WebORPage page = or.getPageByName(pageName);
@@ -537,7 +517,6 @@ public class ObjectRepository {
     /**
      * Copies all object groups from a source page to a target page.
      */
-
     private void copyAllGroups(WebORPage sourcePage, WebORPage targetPage) {
         if (sourcePage == null || targetPage == null) return;
         for (ObjectGroup<WebORObject> originalGroup : sourcePage.getObjectGroups()) {
@@ -566,7 +545,6 @@ public class ObjectRepository {
      * @param targetPageName desired shared page name
      * @return actual created page name
      */
-
     public String copyWebPage(String sourcePageName, String targetPageName) {
         WebOR projectOR = getWebOR();
         WebOR sharedOR  = getWebSharedOR();
@@ -593,7 +571,6 @@ public class ObjectRepository {
      * @param targetPageName  target page in shared OR
      * @return new object name
      */
-
     public String copyWebObject(ResolvedWebObject source, String targetPageName) {
         if (source == null) return null;
         WebOR sharedOR = getWebSharedOR();
@@ -697,7 +674,6 @@ public class ObjectRepository {
      * Marks that the current project has used a shared object,
      * updating shared OR metadata.
      */
-
     private void markSharedUsage() {
         if (sProject != null && sProject.getName() != null && !sProject.getName().isBlank()) {
             sharedUsageProjects.add(sProject.getName());

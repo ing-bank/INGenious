@@ -39,7 +39,6 @@ import javax.swing.tree.TreePath;
  *   <li><b>Delegation:</b> Exposes access to {@link TestDesign} and {@link Project} for child components.</li>
  * </ul>
  */
-
 public class WebORPanel extends JPanel {
     private final WebObjectTree projectTree;
     private final WebObjectTree sharedTree;
@@ -78,7 +77,6 @@ public class WebORPanel extends JPanel {
         splitPane.setTopComponent(tabs);
         splitPane.setBottomComponent(objectTable);
         splitPane.setResizeWeight(0.5);
-        //splitPane.setDividerLocation(0.5);
         add(splitPane, BorderLayout.CENTER);
         
         javax.swing.SwingUtilities.invokeLater(() -> {
@@ -159,11 +157,9 @@ public class WebORPanel extends JPanel {
         objectTable.reset();
         sharedTree.load();
         projectTree.load();
-        //splitPane.setDividerLocation(0.5);
     }
 
     public void adjustUI() {
-        //splitPane.setDividerLocation(0.5);
     }
 
     public Boolean navigateToObject(String objectName, String pageName) {

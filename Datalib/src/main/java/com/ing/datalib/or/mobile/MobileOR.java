@@ -17,15 +17,13 @@ import java.util.Enumeration;
 import java.util.List;
 import javax.swing.tree.TreeNode;
 
-@JsonInclude(JsonInclude.Include.NON_NULL)
-@JacksonXmlRootElement(localName = "Root")
-
 /**
  * Represents the Mobile Object Repository (MobileOR), containing pages and their objects,
  * along with metadata such as scope, type, associated projects, and save state.
  * Provides page management, tree navigation, sorting, and repository integration.
  */
-
+@JsonInclude(JsonInclude.Include.NON_NULL)
+@JacksonXmlRootElement(localName = "Root")
 public class MobileOR implements ORRootInf<MobileORPage> {
 
     public final static List<String> OBJECT_PROPS

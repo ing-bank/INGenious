@@ -27,7 +27,6 @@ import javax.swing.tree.TreePath;
  * It serves as the central coordinator for loading, displaying, and interacting
  * with mobile OR data in Test Design.
  */
-
 public class MobileORPanel extends JPanel {
 
     private final MobileObjectTree projectTree;
@@ -69,14 +68,12 @@ public class MobileORPanel extends JPanel {
         splitPane.setTopComponent(tabs);
         splitPane.setBottomComponent(objectTable);
         splitPane.setResizeWeight(0.5);
-        //splitPane.setDividerLocation(0.5);
 
         add(splitPane, BorderLayout.CENTER);
         
         javax.swing.SwingUtilities.invokeLater(() -> {
             splitPane.setDividerLocation(0.5);
         });
-
 
         hookSelectionToTable(projectTree);
         hookSelectionToTable(sharedTree);
@@ -138,11 +135,9 @@ public class MobileORPanel extends JPanel {
         objectTable.reset();
         sharedTree.load();
         projectTree.load();
-        //splitPane.setDividerLocation(0.5);
     }
 
     public void adjustUI() {
-        //splitPane.setDividerLocation(0.5);
     }
 
     public Boolean navigateToObject(String objectName, String pageName) {

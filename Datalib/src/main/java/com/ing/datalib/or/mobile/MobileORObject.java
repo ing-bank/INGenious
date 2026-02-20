@@ -28,7 +28,6 @@ import javax.swing.tree.TreePath;
  * Supports attribute editing, table model operations, cloning, renaming,
  * and object repository persistence updates.
  */
-
 public class MobileORObject extends UndoRedoModel implements ORObjectInf {
 
     @JacksonXmlProperty(isAttribute = true, localName = "ref")
