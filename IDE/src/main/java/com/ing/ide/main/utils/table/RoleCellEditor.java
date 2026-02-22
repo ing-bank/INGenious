@@ -1,6 +1,7 @@
 package com.ing.ide.main.utils.table;
 
 import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.event.ActionEvent;
@@ -14,6 +15,7 @@ import javax.swing.JComboBox;
 import javax.swing.JPanel;
 import javax.swing.JTable;
 import javax.swing.JTextField;
+import javax.swing.UIManager;
 import javax.swing.table.TableCellEditor;
 
 /**
@@ -123,6 +125,32 @@ public class RoleCellEditor extends AbstractCellEditor implements TableCellEdito
             } else {
                 nameField.setText("");
             }
+        }
+        
+        // Apply theme colors for dark mode compatibility
+        Color fgColor = UIManager.getColor("TextField.foreground");
+        Color bgColor = UIManager.getColor("TextField.background");
+        Color caretColor = UIManager.getColor("TextField.caretForeground");
+        
+        // Apply colors to nameField (JTextField)
+        if (fgColor != null) {
+            nameField.setForeground(fgColor);
+        }
+        if (bgColor != null) {
+            nameField.setBackground(bgColor);
+        }
+        if (caretColor != null) {
+            nameField.setCaretColor(caretColor);
+        }
+        
+        // Apply colors to roleComboBox 
+        Color comboFg = UIManager.getColor("ComboBox.foreground");
+        Color comboBg = UIManager.getColor("ComboBox.background");
+        if (comboFg != null) {
+            roleComboBox.setForeground(comboFg);
+        }
+        if (comboBg != null) {
+            roleComboBox.setBackground(comboBg);
         }
         
         return editorPanel;

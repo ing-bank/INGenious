@@ -51,16 +51,27 @@ public class Main {
     private static final Color ING_BURGUNDY   = Color.decode("#4D0020");
 
     static {
+        // Suppress JavaFX warnings about unnamed modules
         System.setProperty("java.util.logging.SimpleFormatter.format",
                 "%1$tY-%1$tm-%1$td %1$tH:%1$tM:%1$tS:%1$tmS %1$tz [%4$-4s] %2$s:%5$s%6$s%n");
+        
+        // Configure SLF4J simple logger to be quiet during startup
+        System.setProperty("org.slf4j.simpleLogger.defaultLogLevel", "warn");
+        System.setProperty("org.slf4j.simpleLogger.log.com.ing", "info");
+        
+        // Suppress JavaFX warnings
+        System.setProperty("javafx.verbose", "false");
+        System.setProperty("prism.verbose", "false");
     }
 
     public static void main(String[] args) {
         if (args != null && args.length > 0) {
             commandLineExecution(args);
         } else {
+            // Print beautiful banner first
+            printBanner();
+            
             UILogger.get();
-            Logger.getLogger(Main.class.getName()).info("Launching INGenious Playwright Studio");
             STOP_WATCH.start();
             launchUI();
         }
@@ -80,25 +91,68 @@ public class Main {
         SystemDefaults.getClassesFromJar.set(true);
     }
 
-    private static void launchUI() {
-        // Initialize elegant dock/taskbar icon for macOS and Windows
-        AppIcon.initialize();
+    /**
+     * Print the INGenious ASCII art banner with branded colors.
+     */
+    private static void printBanner() {
+        // Color #7724FF (Purple/Violet) using 24-bit ANSI escape
+        String p = "\u001b[38;2;119;36;255m";    // purple #7724FF
+        String b = "\u001b[38;2;147;92;255m";    // bright purple
+        String l = "\u001b[38;2;180;140;255m";   // light purple
+        String w = "\u001b[38;2;255;255;255m";   // white
+        String r = "\u001b[0m";                   // reset
+        String bo = "\u001b[1m";                  // bold
         
-        ModernSplash splash = new ModernSplash();
-        splash.setVisible(true);
-        // Initialize JavaFX toolkit early so JFXPanels can be created safely
-        new JFXPanel();
-        Platform.setImplicitExit(false);
+        System.out.println();
+        System.out.println(p + "    ██╗" + b + "███╗   ██╗" + p + " ██████╗ " + b + "███████╗" + p + "███╗   ██╗" + b + "██╗" + p + " ██████╗ " + b + "██╗   ██╗" + p + "███████╗" + r);
+        System.out.println(p + "    ██║" + b + "████╗  ██║" + p + "██╔════╝ " + b + "██╔════╝" + p + "████╗  ██║" + b + "██║" + p + "██╔═══██╗" + b + "██║   ██║" + p + "██╔════╝" + r);
+        System.out.println(b + "    ██║" + l + "██╔██╗ ██║" + b + "██║  ███╗" + l + "█████╗  " + b + "██╔██╗ ██║" + l + "██║" + b + "██║   ██║" + l + "██║   ██║" + b + "███████╗" + r);
+        System.out.println(b + "    ██║" + p + "██║╚██╗██║" + b + "██║   ██║" + p + "██╔══╝  " + b + "██║╚██╗██║" + p + "██║" + b + "██║   ██║" + p + "██║   ██║" + b + "╚════██║" + r);
+        System.out.println(l + "    ██║" + b + "██║ ╚████║" + l + "╚██████╔╝" + b + "███████╗" + l + "██║ ╚████║" + b + "██║" + l + "╚██████╔╝" + b + "╚██████╔╝" + l + "███████║" + r);
+        System.out.println(p + "    ╚═╝" + l + "╚═╝  ╚═══╝" + p + " ╚═════╝ " + l + "╚══════╝" + p + "╚═╝  ╚═══╝" + l + "╚═╝" + p + " ╚═════╝ " + l + " ╚═════╝ " + p + "╚══════╝" + r);
+        System.out.println();
+        System.out.println(bo + l + "              ═══════════════════════════════════════════════════════════" + r);
+        System.out.println(bo + w + "               ✦  P L A Y W R I G H T   S T U D I O  ✦" + r);
+        System.out.println(bo + b + "                              Version 2.3.1" + r);
+        System.out.println(bo + l + "              ═══════════════════════════════════════════════════════════" + r);
+        System.out.println();
+    }
+    
+    private static void launchUI() {
+        // Temporarily suppress system warnings during initialization
+        java.io.PrintStream originalErr = System.err;
+        ModernSplash splash = null;
+        try {
+            // Redirect stderr to suppress JavaFX and OpenGL warnings
+            System.setErr(new java.io.PrintStream(new java.io.ByteArrayOutputStream()));
+            
+            // Initialize elegant dock/taskbar icon for macOS and Windows
+            AppIcon.initialize();
+            
+            splash = new ModernSplash();
+            splash.setVisible(true);
+            // Initialize JavaFX toolkit early so JFXPanels can be created safely
+            new JFXPanel();
+            Platform.setImplicitExit(false);
+            
+            // Restore stderr after initialization
+            System.setErr(originalErr);
+        } catch (Exception e) {
+            // Restore stderr in case of error
+            System.setErr(originalErr);
+            throw e;
+        }
+        final ModernSplash finalSplash = splash;
         new Thread(() -> {
             setUpFlatLafUI();
-            splash.progressed(10);
+            finalSplash.progressed(10);
             initDependencies();
-            splash.progressed(20);
+            finalSplash.progressed(20);
             // Build & show UI on the EDT (required for safe Swing + JFXPanel interop)
             SwingUtilities.invokeLater(() -> {
                 AppMainFrame mainFrame = null;
                 try {
-                    mainFrame = new AppMainFrame(splash::progressed);
+                    mainFrame = new AppMainFrame(finalSplash::progressed);
                 } catch (IOException ex) {
                     Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
                 }
@@ -106,19 +160,19 @@ public class Main {
                 mainFrame.setMinimumSize(new Dimension(800, 400));
                 mainFrame.setPreferredSize(new Dimension(800, 400));
                 mainFrame.setLocationRelativeTo(null);
-                splash.progressed(100);
+                finalSplash.progressed(100);
                 
                 // Wait for splash animation to reach 100% before hiding
                 final AppMainFrame frame = mainFrame;
                 Timer delayTimer = new Timer(600, e -> {
-                    splash.setVisible(false);
+                    finalSplash.setVisible(false);
                     frame.checkAndLoadRecent();
                     frame.setDefaultCloseOperation(AppMainFrame.DO_NOTHING_ON_CLOSE);
                     Boolean IS_MAXI_SUPPORTED = Toolkit.getDefaultToolkit().isFrameStateSupported(JFrame.MAXIMIZED_BOTH);
                     if (IS_MAXI_SUPPORTED) {
                         frame.setExtendedState(JFrame.MAXIMIZED_BOTH);
                     }
-                    splash.dispose();
+                    finalSplash.dispose();
                     frame.setVisible(true);
                     // Swap Swing chrome for JavaFX CSS-styled chrome
                     frame.initFXChrome();
@@ -447,12 +501,16 @@ public class Main {
         UIManager.put("shadow", new Color(0, 0, 0, 80));
         UIManager.put("exec", ING_ORANGE);
         UIManager.put("text", warmText);
+        UIManager.put("foreground", warmText);  // Generic foreground for components
         UIManager.put("gridColor", blueMuted);
         UIManager.put("designTableHeader", blueDark);
         UIManager.put("execTableHeader", orangeDark);
         UIManager.put("execColor", blueDark);
         UIManager.put("designColor", blueDark);
         UIManager.put("execTableColor", orangeMuted);
+        
+        // Set generic foreground in L&F defaults as well
+        UIManager.getLookAndFeelDefaults().put("foreground", warmText);
 
         // ── Toolbar / Panel ──
         UIManager.put("ToolBar.background", darkPanel);
@@ -564,10 +622,19 @@ public class Main {
         // ── Buttons ──
         UIManager.put("Button.background", darkSurface);
         UIManager.put("Button.foreground", warmText);
+        UIManager.put("Button.disabledForeground", Color.decode("#6E6878"));  // Muted text for disabled buttons
+        UIManager.put("Button.selectedForeground", warmText);
+        UIManager.put("Button.unfocusedForeground", warmText);  // Ensure unfocused buttons also have light text
         UIManager.put("Button.default.background", ING_ORANGE);
         UIManager.put("Button.default.foreground", Color.WHITE);
+        UIManager.put("Button.default.disabledForeground", Color.decode("#6E6878"));
         UIManager.put("Button.default.hoverBackground", Color.decode("#E55800"));
         UIManager.put("Button.default.pressedBackground", Color.decode("#CC4E00"));
+        
+        // Set button colors in L&F defaults to ensure FlatLaf picks them up
+        UIManager.getLookAndFeelDefaults().put("Button.foreground", warmText);
+        UIManager.getLookAndFeelDefaults().put("Button.disabledForeground", Color.decode("#6E6878"));
+        UIManager.getLookAndFeelDefaults().put("Button.default.foreground", Color.WHITE);
 
         // ── Scrollbar ──
         UIManager.put("ScrollBar.thumbColor", Color.decode("#3A3545"));
@@ -584,6 +651,13 @@ public class Main {
         UIManager.put("TitledBorder.titleColor", warmText);
         UIManager.put("CheckBox.foreground", warmText);
         UIManager.put("RadioButton.foreground", warmText);
+        
+        // Set in L&F defaults to ensure FlatLaf components use these colors
+        UIManager.getLookAndFeelDefaults().put("Label.foreground", warmText);
+        UIManager.getLookAndFeelDefaults().put("CheckBox.foreground", warmText);
+        UIManager.getLookAndFeelDefaults().put("RadioButton.foreground", warmText);
+        UIManager.getLookAndFeelDefaults().put("List.foreground", warmText);
+        UIManager.getLookAndFeelDefaults().put("TextField.foreground", warmText);
 
         // ── Links & toggles ──
         UIManager.put("ToggleButton.selectedBackground", purpleDark);

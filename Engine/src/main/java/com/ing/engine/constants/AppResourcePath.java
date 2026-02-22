@@ -337,6 +337,6 @@ public class AppResourcePath {
     }
     
     public static String getReportMediaPath() {
-        return getReportTemplatePath() + File.separator + "media";
+        return getConfigurationPath() + File.separator + REPORT_TEMPLATE_FOLDER + File.separator + "media";
     }
 }

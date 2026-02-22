@@ -25,6 +25,8 @@ public class ObjectRenderer extends AbstractRenderer {
         if (!step.isCommented()) {
             if (isEmpty(value)) {
                 setEmpty(comp);
+            } else if ("Execute".equals(Objects.toString(value, "").trim())) {
+                setExecute(comp);
             } else if (step.isPageObjectStep()) {
                 if (isObjectPresent(step)) {
                     setDefault(comp);
@@ -41,24 +43,6 @@ public class ObjectRenderer extends AbstractRenderer {
             Color c = UIManager.getColor("ing.commentedForeground");
             comp.setForeground(c != null ? c : Color.lightGray);
             comp.setFont(new Font("Default", Font.ITALIC, 11));
-        }
-    }
-
-	private Color getColor(Object value) {
-        String val = Objects.toString(value, "").trim();
-        switch (val) {
-            case "Execute":
-                Color bpColor = UIManager.getColor("ing.breakpointForeground");
-                return bpColor != null ? bpColor : Color.BLUE;
-            case "Mobile":
-                return UIManager.getColor("ing.focusedSelectionBackground") != null
-                        ? UIManager.getColor("ing.focusedSelectionBackground") : Color.CYAN;
-            case "Browser":
-                Color errColor = UIManager.getColor("ing.errorForeground");
-                return errColor != null ? errColor : Color.RED;
-            default:
-                Color wsColor = UIManager.getColor("ing.webserviceRequestForeground");
-                return wsColor != null ? wsColor : new Color(204, 0, 255);
         }
     }
 

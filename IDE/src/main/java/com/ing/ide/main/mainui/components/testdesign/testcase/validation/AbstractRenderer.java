@@ -78,7 +78,12 @@ public abstract class AbstractRenderer extends DefaultTableCellRenderer {
     
     protected void setReusable(JComponent comp) {
         Color c = UIManager.getColor("ing.reusableForeground");
-        comp.setForeground(c != null ? c : Color.green);
+        comp.setForeground(c != null ? c : new Color(119, 36, 255));
+        comp.setToolTipText(null);
+    }
+
+    protected void setExecute(JComponent comp) {
+        comp.setForeground(new Color(119, 36, 255));
         comp.setToolTipText(null);
     }
 	

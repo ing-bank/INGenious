@@ -6,6 +6,8 @@ import com.ing.datalib.component.TestCase;
 import com.ing.ide.main.mainui.components.testdesign.TestDesign;
 import com.ing.ide.main.mainui.components.testdesign.tree.model.GroupNode;
 import com.ing.ide.main.mainui.components.testdesign.tree.model.ReusableTreeModel;
+import com.ing.ide.main.mainui.components.testdesign.tree.model.ScenarioNode;
+import com.ing.ide.main.mainui.components.testdesign.tree.model.TestCaseNode;
 import com.ing.ide.main.utils.keys.Keystroke;
 import com.ing.ide.util.Notification;
 import com.ing.ide.util.Validator;
@@ -66,6 +68,10 @@ public class ReusableTree extends ProjectTree {
     protected void onNewAction() {
         if (isRootSelected()) {
             addGroup();
+        } else if (getSelectedScenarioNodeSafe() != null) {
+            addReusableTestCase();
+        } else if (getSelectedGroupNode() != null) {
+            addReusableScenario();
         } else {
             super.onNewAction();
         }
@@ -82,6 +88,12 @@ public class ReusableTree extends ProjectTree {
         switch (ae.getActionCommand()) {
             case "Add Group":
                 addGroup();
+                break;
+            case "Add Scenario":
+                addReusableScenario();
+                break;
+            case "Add TestCase":
+                addReusableTestCase();
                 break;
             case "Rename Group":
                 getTree().startEditingAtPath(new TreePath(getSelectedGroupNode().getPath()));
@@ -119,11 +131,47 @@ public class ReusableTree extends ProjectTree {
 
     @Override
     void makeAsReusableRTestCase(TestCase testCase) {
-        getTestDesign().getProjectTree().getTreeModel().addTestCase(testCase);
+        if (getProject().moveTestCaseToTestPlan(testCase)) {
+            getProject().reload();
+            getTestDesign().getProjectTree().load();
+            load();
+        } else {
+            Notification.show("Unable to move test case to TestPlan");
+        }
     }
 
     private void addGroup() {
         selectAndScrollTo(new TreePath(getTreeModel().addGroup(fetchNewGroupName()).getPath()));
+    }
+
+    private void addReusableScenario() {
+        ScenarioNode scNode = getTreeModel().addScenario(getSelectedGroupNode(),
+                getProject().addReusableScenario(fetchNewReusableScenarioName()));
+        if (scNode != null) {
+            selectAndScrollTo(new TreePath(scNode.getPath()));
+        }
+    }
+
+    private void addReusableTestCase() {
+        ScenarioNode scenarioNode = getSelectedScenarioNodeSafe();
+        if (scenarioNode != null) {
+            String testCaseName = fetchNewReusableTestCaseName(scenarioNode.getScenario());
+            TestCase testcase = scenarioNode.getScenario().addTestCase(testCaseName);
+            if (testcase != null) {
+                getTestDesign().loadTableModelForSelection(testcase);
+                selectAndScrollTo(new TreePath(getTreeModel().addTestCase(scenarioNode, testcase).getPath()));
+            } else {
+                Notification.show("Reusable test case already exists");
+            }
+        }
+    }
+
+    private ScenarioNode getSelectedScenarioNodeSafe() {
+        List<ScenarioNode> nodes = getSelectedScenarioNodes();
+        if (nodes.isEmpty()) {
+            return null;
+        }
+        return nodes.get(0);
     }
 
     private void deleteGroups() {
@@ -147,13 +195,19 @@ public class ReusableTree extends ProjectTree {
                 for (GroupNode groupNode : groupNodes) {
                     if (confirmBox.isSelected()) {
                         getTreeModel().toggleAllTestCasesFrom(groupNode);
+                    } else {
+                        for (ScenarioNode scenarioNode : ScenarioNode.toList(groupNode.children())) {
+                            for (TestCaseNode testCaseNode : TestCaseNode.toList(scenarioNode.children())) {
+                                testCaseNode.getTestCase().delete();
+                            }
+                        }
                     }
                     getTreeModel().removeNodeFromParent(groupNode);
                 }
 
-                if (confirmBox.isSelected()) {
-                    getTestDesign().getProjectTree().load();
-                }
+                getProject().reload();
+                getTestDesign().getProjectTree().load();
+                load();
             }
         }
     }
@@ -167,6 +221,29 @@ public class ReusableTree extends ProjectTree {
             newGroupName = "NewGroup" + i;
         }
         return newGroupName;
+    }
+
+    private String fetchNewReusableScenarioName() {
+        String newScenarioName = "NewScenario";
+        for (int i = 0;; i++) {
+            if (getProject().getReusableScenarioByName(newScenarioName) == null) {
+                break;
+            }
+            newScenarioName = "NewScenario" + i;
+        }
+        return newScenarioName;
+    }
+
+    private String fetchNewReusableTestCaseName(Scenario scenario) {
+        String newTestCaseName = "NewTestCase";
+        for (int i = 0;; i++) {
+            if (scenario.getTestCaseByName(newTestCaseName) == null
+                    && !getProject().hasTestCaseInAnyScenario(scenario.getName(), newTestCaseName)) {
+                break;
+            }
+            newTestCaseName = "NewTestCase" + i;
+        }
+        return newTestCaseName;
     }
 
     private Boolean isRootSelected() {

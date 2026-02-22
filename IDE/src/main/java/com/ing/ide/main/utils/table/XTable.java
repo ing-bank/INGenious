@@ -1,6 +1,7 @@
 package com.ing.ide.main.utils.table;
 
 import com.ing.datalib.undoredo.UndoRedoModel;
+import com.ing.ide.main.Main;
 import com.ing.ide.main.utils.keys.ClipboardKeyAdapter;
 import com.ing.ide.main.utils.keys.Keystroke;
 import java.awt.Color;
@@ -514,6 +515,29 @@ public class XTable extends JTable {
             }
         });
     }
+    
+    @Override
+    public Component getTableCellEditorComponent(JTable table, Object value,
+            boolean isSelected, int row, int column) {
+        JTextField editor = (JTextField) super.getTableCellEditorComponent(table, value, isSelected, row, column);
+        
+        // Apply theme colors to ensure visibility in dark mode
+        Color fgColor = UIManager.getColor("TextField.foreground");
+        Color bgColor = UIManager.getColor("TextField.background");
+        Color caretColor = UIManager.getColor("TextField.caretForeground");
+        
+        if (fgColor != null) {
+            editor.setForeground(fgColor);
+        }
+        if (bgColor != null) {
+            editor.setBackground(bgColor);
+        }
+        if (caretColor != null) {
+            editor.setCaretColor(caretColor);
+        }
+        
+        return editor;
+    }
 }    
 
 }
@@ -576,7 +600,9 @@ class SearchRenderer extends DefaultTableCellRenderer {
                 Color inactiveBg = UIManager.getColor("ing.selectionInactiveBackground");
                 comp.setBackground(inactiveBg != null ? inactiveBg : Color.decode("#D4EDFD"));
                 Color selFg = UIManager.getColor("ing.selectionForeground");
-                comp.setForeground(selFg != null ? selFg : Color.decode("#4D0020"));
+                // Use theme-aware fallback: white text in dark mode, burgundy in light mode
+                Color fallbackFg = Main.isDarkMode() ? Color.WHITE : Color.decode("#4D0020");
+                comp.setForeground(selFg != null ? selFg : fallbackFg);
             }
         }
     }

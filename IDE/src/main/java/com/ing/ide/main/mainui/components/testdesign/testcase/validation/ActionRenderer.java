@@ -44,7 +44,7 @@ public class ActionRenderer extends AbstractRenderer {
             } else if ((step.isSetTextStep())) {
                 setText(comp);
             } else if ((step.getObject().equals("Execute"))) {
-                setReusable(comp);
+                setExecute(comp);
             } else if (isActionValid(step, value)) {
                 setDefault(comp);
             } else {
@@ -60,7 +60,7 @@ public class ActionRenderer extends AbstractRenderer {
 
     private Boolean isReusablePresent(TestStep step) {
         String[] data = step.getReusableData();
-        Scenario scenario = step.getProject().getScenarioByName(data[0]);
+        Scenario scenario = step.getProject().getReusableScenarioByName(data[0]);
         if (scenario != null) {
             return scenario.getTestCaseByName(data[1]) != null;
         }

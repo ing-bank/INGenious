@@ -91,7 +91,7 @@ public final class INGIcons {
         // ── Tree: Test Plan ──
         register("testplan.Root",       MaterialDesignF.FLASK,                         CLR_DATA);
         register("testplan.Scenario",   MaterialDesignF.FOLDER,                        CLR_OPEN);
-        register("testplan.TestCase",   MaterialDesignF.FILE_DOCUMENT_OUTLINE,         CLR_DATA);
+        register("testplan.TestCase",   MaterialDesignF.FLASK,                        CLR_SAVE);
 
         // ── Tree: Test Lab ──
         register("testlab.Root",        MaterialDesignB.BEAKER,                        CLR_DATA);
@@ -117,7 +117,7 @@ public final class INGIcons {
         // ── Tree: Reusable ──
         register("reusable.Root",       MaterialDesignR.RECYCLE,                       CLR_SAVE);
         register("reusable.Folder",     MaterialDesignF.FOLDER,                        CLR_OPEN);
-        register("reusable.TestCase",   MaterialDesignF.FILE_REFRESH,                  CLR_TOOL);
+        register("reusable.TestCase",   MaterialDesignF.FILE_REFRESH,                  CLR_DATA);
 
         // ── Toolbar / Main Actions ──
         register("NewProject",          MaterialDesignP.PLUS_BOX,                      CLR_CREATE);
@@ -197,7 +197,7 @@ public final class INGIcons {
         register("console",             MaterialDesignC.CONSOLE,                       CLR_NAV);
         register("filter",              MaterialDesignF.FILTER,                        CLR_CONFIG);
         register("export",              MaterialDesignE.EXPORT,                        CLR_TOOL);
-        register("pull",                MaterialDesignD.DOWNLOAD,                      CLR_TOOL);
+        register("pull",                MaterialDesignA.ARROW_LEFT,                    CLR_SAVE);
         register("Inject",              MaterialDesignI.IMPORT,                        CLR_DATA);
         
         // ── Code Editors ──
@@ -226,7 +226,7 @@ public final class INGIcons {
 
         // ── Test Execution ──
         register("testExecution.export", MaterialDesignE.EXPORT,                       CLR_TOOL);
-        register("testExecution.pull",   MaterialDesignD.DOWNLOAD,                     CLR_TOOL);
+        register("testExecution.pull",   MaterialDesignA.ARROW_LEFT,                   CLR_SAVE);
 
         // ── Debug ──
         register("debug.stepover",       MaterialDesignD.DEBUG_STEP_OVER,              CLR_DEBUG);

@@ -44,7 +44,7 @@ public class Step {
     public Step printStep() {
         System.out.println("\n══════════════════════════════════════════════════════════════════════════════\n");
         System.out.println(
-                String.format("⚡ Step:%-4s| Object: %s | Action: %s | Input: %s | Condition: %s | @%s",
+                String.format("🔵 Step:%-4s| Object: %s | Action: %s | Input: %s | Condition: %s | @%s",
                         new Object[]{StepNum, ObjectName, Action, Input, Condition, DateTimeUtils.DateTimeNow()}));
         return this;
     }

@@ -79,6 +79,7 @@ public class TestSetTree implements ActionListener {
         tree.setToggleClickCount(0);
         tree.getInputMap(JComponent.WHEN_FOCUSED).put(Keystroke.NEW, "New");
         tree.getInputMap(JComponent.WHEN_FOCUSED).put(Keystroke.DELETE, "Delete");
+        tree.getInputMap(JComponent.WHEN_FOCUSED).put(Keystroke.RENAME, "Rename");
         tree.getInputMap(JComponent.WHEN_FOCUSED).put(KeyStroke.getKeyStroke("ESCAPE"), "Escape");
 
         tree.getActionMap().put("New", new AbstractAction() {
@@ -98,6 +99,22 @@ public class TestSetTree implements ActionListener {
             public void actionPerformed(ActionEvent ae) {
                 deleteTestSets();
                 deleteReleases();
+            }
+        });
+
+        tree.getActionMap().put("Rename", new AbstractAction() {
+
+            @Override
+            public void actionPerformed(ActionEvent ae) {
+                ReleaseNode releaseNode = getSelectedReleaseNode();
+                if (releaseNode != null) {
+                    tree.startEditingAtPath(new TreePath(releaseNode.getPath()));
+                    return;
+                }
+                TestSetNode testSetNode = getSelectedTestSetNode();
+                if (testSetNode != null) {
+                    tree.startEditingAtPath(new TreePath(testSetNode.getPath()));
+                }
             }
         });
 

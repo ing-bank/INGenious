@@ -241,6 +241,36 @@ public class InputMainAutoSuggest extends JComboBox<String> {
         public void keyPressed(KeyEvent e) {
             shouldHide = false;
             switch (e.getKeyCode()) {
+                case KeyEvent.VK_DOWN:
+                    if (!isPopupVisible() && !searchList.isEmpty() && !isStringOpsEditor()) {
+                        setSuggestionModel(getSuggestedModel(), getSearchString());
+                        showPopup();
+                        e.consume();
+                    } else if (isPopupVisible()) {
+                        // Allow the combo box to handle navigation when popup is visible
+                        int currentIndex = getSelectedIndex();
+                        if (currentIndex < getItemCount() - 1) {
+                            setSelectedIndex(currentIndex + 1);
+                        }
+                        e.consume();
+                    }
+                    break;
+                case KeyEvent.VK_UP:
+                    if (!isPopupVisible() && !searchList.isEmpty() && !isStringOpsEditor()) {
+                        setSuggestionModel(getSuggestedModel(), getSearchString());
+                        showPopup();
+                        e.consume();
+                    } else if (isPopupVisible()) {
+                        // Allow the combo box to handle navigation when popup is visible
+                        int currentIndex = getSelectedIndex();
+                        if (currentIndex > 0) {
+                            setSelectedIndex(currentIndex - 1);
+                        } else if (currentIndex == -1 && getItemCount() > 0) {
+                            setSelectedIndex(0);
+                        }
+                        e.consume();
+                    }
+                    break;
                 case KeyEvent.VK_ENTER:
                     shouldHide = true;
                     break;

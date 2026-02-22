@@ -35,6 +35,7 @@ import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
+import javax.swing.UIManager;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableCellEditor;
 import javax.swing.table.TableColumnModel;
@@ -90,8 +91,10 @@ public class TestsetComponent extends JPanel implements ActionListener {
     private void init() {
         new StatusSorter();
         setLayout(new BorderLayout());
+        
         add(toolBar, BorderLayout.NORTH);
-        add(new JScrollPane(testSetTable), BorderLayout.CENTER);
+        JScrollPane scrollPane = new JScrollPane(testSetTable);
+        add(scrollPane, BorderLayout.CENTER);
         testSetTable.setComponentPopupMenu(popupMenu);
         initTableListeners();
         initRunner();

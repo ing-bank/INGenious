@@ -444,7 +444,7 @@ public class TestCase extends DataModel {
     }
 
     public boolean isReusable() {
-        return getReusable() != null;
+        return getReusable() != null || (scenario != null && scenario.isReusableScenario());
     }
 
     public Reusable getReusable() {

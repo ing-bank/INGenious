@@ -12,20 +12,54 @@ import java.util.List;
  */
 public class Scenario extends DataModel {
 
+    public enum Source {
+        TEST_PLAN,
+        REUSABLE_COMPONENTS
+    }
+
     private final Project project;
 
     private final List<TestCase> testCases = new ArrayList<>();
 
     private String name;
 
+    private final Source source;
+
     public Scenario(Project project, String name) {
+        this(project, name, Source.TEST_PLAN);
+    }
+
+    public Scenario(Project project, String name, Source source) {
         this.project = project;
         this.name = name;
+        this.source = source;
         loadTestcases();
     }
 
     public String getLocation() {
-        return project.getLocation() + File.separator + "TestPlan" + File.separator + name;
+        if (project == null) {
+            return "";
+        }
+        String scenarioPath = project.getScenarioPath(source, name);
+        if (scenarioPath != null && !scenarioPath.isEmpty()) {
+            return scenarioPath;
+        }
+        String base = project.getLocation();
+        if (base == null) {
+            return "";
+        }
+        String dir = source == Source.REUSABLE_COMPONENTS
+                ? Project.REUSABLE_COMPONENTS_DIR
+                : Project.TEST_PLAN_DIR;
+        return base + File.separator + dir + File.separator + name;
+    }
+
+    public boolean isReusableScenario() {
+        return source == Source.REUSABLE_COMPONENTS;
+    }
+
+    public Source getSource() {
+        return source;
     }
 
     public Project getProject() {
@@ -76,6 +110,9 @@ public class Scenario extends DataModel {
 
     public TestCase addTestCase(String testCaseName) {
         if (getTestCaseByName(testCaseName) == null) {
+            if (project.hasTestCaseInAnyScenario(getName(), testCaseName)) {
+                return null;
+            }
             TestCase tc = new TestCase(this, testCaseName);
             testCases.add(tc);
             tc.setSaved(false);
@@ -194,6 +231,9 @@ public class Scenario extends DataModel {
      * @return all the TestCases without Reusable
      */
     public List<TestCase> getTestcasesAlone() {
+        if (isReusableScenario()) {
+            return new ArrayList<>();
+        }
         List<TestCase> testCasesAl = new ArrayList<>();
         for (TestCase testCase : testCases) {
             if (!testCase.isReusable()) {
@@ -232,6 +272,9 @@ public class Scenario extends DataModel {
      * @return all the Reusables
      */
     public List<TestCase> getReusables() {
+        if (isReusableScenario()) {
+            return new ArrayList<>(testCases);
+        }
         List<TestCase> testCasesR = new ArrayList<>();
         for (TestCase testCase : testCases) {
             if (testCase.isReusable()) {

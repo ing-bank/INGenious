@@ -23,6 +23,7 @@ import javax.swing.filechooser.FileNameExtensionFilter;
 
 import com.ing.util.encryption.Encryption;
 import com.ing.ide.main.fx.INGIcons;
+import com.ing.ide.main.utils.StyledConfirmDialog;
 
 public class Utility {
 
@@ -40,9 +41,8 @@ public class Utility {
 	}
 
 	public static boolean confirmSave(JComponent parent, String val) {
-		int op = JOptionPane.showConfirmDialog(parent, "Do you want to save the " + val + " ?", "Save",
-				JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE, C_SAVE);
-		return op == JOptionPane.YES_OPTION;
+		return StyledConfirmDialog.showYesNo(parent, "Do you want to save the " + val + " ?", "Save",
+				StyledConfirmDialog.CONFIRM) == StyledConfirmDialog.YES_OPTION;
 	}
 
 	public static boolean isEmpty(Object val) {

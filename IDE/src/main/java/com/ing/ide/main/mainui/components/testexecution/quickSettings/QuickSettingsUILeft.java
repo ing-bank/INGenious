@@ -2,6 +2,7 @@
 package com.ing.ide.main.mainui.components.testexecution.quickSettings;
 
 import com.ing.datalib.settings.RunSettings;
+import java.awt.Color;
 import javax.swing.UIManager;
 
 /**
@@ -239,6 +240,70 @@ public class QuickSettingsUILeft extends QuickSettingsUI {
         fullpagescreenshot.setSelected(x.getTakeFullPageScreenShot());
         useExistingDriver.setSelected(x.useExistingDriver());
         reportPerformanceLog.setSelected(x.isPerformanceLogEnabled());
+    }
+    
+    /**
+     * Apply dark mode colors to all components
+     */
+    private void applyDarkModeColors() {
+        Color panelBg = UIManager.getColor("Panel.background");
+        Color panelFg = UIManager.getColor("Panel.foreground");
+        Color separatorColor = UIManager.getColor("Separator.foreground");
+        
+        // Ensure colors are set (use defaults if UIManager doesn't have them yet)
+        if (panelBg == null) panelBg = new Color(37, 32, 48); // darkPanel
+        if (panelFg == null) panelFg = new Color(232, 226, 229); // warmText
+        if (separatorColor == null) separatorColor = new Color(58, 53, 69); // dividerGray
+        
+        setBackground(panelBg);
+        setOpaque(true);
+        setForeground(panelFg);
+        
+        // Apply foreground to labels
+        iterMode.setForeground(panelFg);
+        iterMode.setBackground(panelBg);
+        iterMode.setOpaque(true);
+        
+        screenShotFor.setForeground(panelFg);
+        screenShotFor.setBackground(panelBg);
+        screenShotFor.setOpaque(true);
+        
+        jLabel1.setForeground(panelFg);
+        jLabel1.setBackground(panelBg);
+        jLabel1.setOpaque(true);
+        
+        // Apply foreground and background to checkboxes and radio buttons
+        ContinueOnError.setForeground(panelFg);
+        ContinueOnError.setBackground(panelBg);
+        ContinueOnError.setOpaque(true);
+        
+        BreakOnError.setForeground(panelFg);
+        BreakOnError.setBackground(panelBg);
+        BreakOnError.setOpaque(true);
+        
+        passCheckBox.setForeground(panelFg);
+        passCheckBox.setBackground(panelBg);
+        passCheckBox.setOpaque(true);
+        
+        failCheckBox.setForeground(panelFg);
+        failCheckBox.setBackground(panelBg);
+        failCheckBox.setOpaque(true);
+        
+        useExistingDriver.setForeground(panelFg);
+        useExistingDriver.setBackground(panelBg);
+        useExistingDriver.setOpaque(true);
+        
+        reportPerformanceLog.setForeground(panelFg);
+        reportPerformanceLog.setBackground(panelBg);
+        reportPerformanceLog.setOpaque(true);
+        
+        fullpagescreenshot.setForeground(panelFg);
+        fullpagescreenshot.setBackground(panelBg);
+        fullpagescreenshot.setOpaque(true);
+        
+        // Set separator colors
+        jSeparator1.setForeground(separatorColor);
+        jSeparator2.setForeground(separatorColor);
     }
 
 

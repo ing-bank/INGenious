@@ -117,6 +117,7 @@ public class ProjectTree implements ActionListener {
         tree.setFont(new Font("ING Me", Font.PLAIN, 11));
         tree.getInputMap(JComponent.WHEN_FOCUSED).put(Keystroke.NEW, "New");
         tree.getInputMap(JComponent.WHEN_FOCUSED).put(Keystroke.DELETE, "Delete");
+        tree.getInputMap(JComponent.WHEN_FOCUSED).put(Keystroke.RENAME, "Rename");
         tree.getInputMap(JComponent.WHEN_FOCUSED).put(Keystroke.ALTENTER, "AltEnter");
         tree.getInputMap(JComponent.WHEN_FOCUSED).put(KeyStroke.getKeyStroke("ESCAPE"), "Escape");
 
@@ -143,6 +144,23 @@ public class ProjectTree implements ActionListener {
                 onDeleteAction();
             }
         });
+
+        tree.getActionMap().put("Rename", new AbstractAction() {
+
+            @Override
+            public void actionPerformed(ActionEvent ae) {
+                ScenarioNode scenarioNode = getSelectedScenarioNode();
+                if (scenarioNode != null) {
+                    tree.startEditingAtPath(new TreePath(scenarioNode.getPath()));
+                    return;
+                }
+                TestCaseNode testCaseNode = getSelectedTestCaseNode();
+                if (testCaseNode != null) {
+                    tree.startEditingAtPath(new TreePath(testCaseNode.getPath()));
+                }
+            }
+        });
+
         tree.getActionMap().put("Escape", new AbstractAction() {
 
             @Override
@@ -215,7 +233,11 @@ public class ProjectTree implements ActionListener {
                 } else if (value instanceof ScenarioNode) {
                     setIcons(IconSettings.getIconSettings().getTestPlanScenario());
                 } else if (value instanceof TestCaseNode) {
-                    setIcons(IconSettings.getIconSettings().getTestPlanTestCase());
+                    if (ProjectTree.this instanceof ReusableTree) {
+                        setIcons(IconSettings.getIconSettings().getReusableTestCase());
+                    } else {
+                        setIcons(IconSettings.getIconSettings().getTestPlanTestCase());
+                    }
                 } else {
                     setIcons(IconSettings.getIconSettings().getTestPlanRoot());
                 }
@@ -580,10 +602,11 @@ public class ProjectTree implements ActionListener {
     private void makeAsReusableRTestCase() {
         if (!getSelectedTestCaseNodes().isEmpty()) {
             for (TestCaseNode testCaseNode : getSelectedTestCaseNodes()) {
-                testCaseNode.getTestCase().toggleAsReusable();
-                getTreeModel().removeNodeFromParent(testCaseNode);
-                makeAsReusableRTestCase(testCaseNode.getTestCase());
+                getProject().moveTestCaseToReusable(testCaseNode.getTestCase());
             }
+            getProject().reload();
+            load();
+            getTestDesign().getReusableTree().load();
         }
     }
 

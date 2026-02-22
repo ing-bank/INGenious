@@ -100,7 +100,7 @@ public class TestStepRunner {
             String[] rData = getStep().getReusableData();
             String scenario = rData[0];
             String testcase = rData[1];
-            Scenario scn = context.project().getScenarioByName(scenario);
+            Scenario scn = context.project().getReusableScenarioByName(scenario);
             if (scn != null) {
                 TestCase stc = scn.getTestCaseByName(testcase);
                 if (stc != null) {
@@ -111,7 +111,7 @@ public class TestStepRunner {
                             scenario, testcase));
                 }
             } else {
-                throw new ForcedException(format("scenario [%s] not found", scenario));
+                throw new ForcedException(format("reusable scenario [%s] not found", scenario));
             }
         }
         throw new ForcedException(

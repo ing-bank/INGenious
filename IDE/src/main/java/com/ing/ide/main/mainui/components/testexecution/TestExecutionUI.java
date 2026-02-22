@@ -5,6 +5,7 @@ import com.ing.datalib.component.Project;
 import com.ing.datalib.component.Scenario;
 import com.ing.datalib.component.TestCase;
 import com.ing.datalib.model.Tag;
+import com.ing.ide.main.Main;
 import com.ing.ide.main.fx.FXPanelHeader;
 import com.ing.ide.main.mainui.components.testdesign.tree.TagEditorDialog;
 import com.ing.ide.main.mainui.components.testdesign.tree.model.ScenarioNode;
@@ -17,6 +18,7 @@ import com.ing.ide.main.utils.tree.TreeSearch;
 import com.ing.ide.settings.IconSettings;
 import com.ing.ide.util.Notification;
 import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.IOException;
@@ -125,6 +127,127 @@ public class TestExecutionUI extends JPanel implements ActionListener {
         testSetCompNtestPlan.setResizeWeight(0.8);
 
         add(testSetCompNtestPlan, BorderLayout.CENTER);
+        
+        // Apply initial pane backgrounds
+        applyPaneBackgrounds();
+    }
+    
+    /**
+     * Applies themed backgrounds to the test execution panes.
+     * Called at init and when theme changes via adjustUI().
+     * Only applies custom backgrounds in dark mode - light mode uses default FlatLaf colors.
+     */
+    public void applyPaneBackgrounds() {
+        // Only apply custom backgrounds in dark mode
+        // Light mode should use default FlatLaf styling
+        if (!Main.isDarkMode()) {
+            return;
+        }
+        
+        Color sidebarColor = UIManager.getColor("ing.sidebarPane");
+        Color editorColor = UIManager.getColor("ing.editorPane");
+        Color dividerColor = UIManager.getColor("ing.dividerColor");
+        
+        if (sidebarColor == null) {
+            sidebarColor = UIManager.getColor("Panel.background");
+        }
+        if (editorColor == null) {
+            editorColor = UIManager.getColor("Panel.background");
+        }
+        if (dividerColor == null) {
+            dividerColor = UIManager.getColor("SplitPane.dividerColor");
+        }
+        
+        // Apply colors to all split panes
+        applyBackgroundRecursively(testSetCompNtestPlan, sidebarColor, dividerColor);
+        applyBackgroundRecursively(treeSNTableSplitPane, sidebarColor, dividerColor);
+        applyBackgroundRecursively(testSettreeNSettingsSplitPane, sidebarColor, dividerColor);
+        applyBackgroundRecursively(testplanTreeNSettingsSplitPane, sidebarColor, dividerColor);
+        applyBackgroundRecursively(executionAndConsoleSplitPane, sidebarColor, dividerColor);
+    }
+    
+    /**
+     * Recursively applies background color to a component and all its children.
+     * Handles special cases for JScrollPane, JSplitPane, JTable, JTree, JList.
+     */
+    private void applyBackgroundRecursively(java.awt.Component comp, Color bgColor, Color dividerColor) {
+        if (comp == null) return;
+        
+        // Skip FXPanelHeader (has its own styling)
+        if (comp instanceof FXPanelHeader) {
+            return;
+        }
+        
+        // Handle JSplitPane specially - set divider color
+        if (comp instanceof JSplitPane) {
+            JSplitPane split = (JSplitPane) comp;
+            split.setBackground(dividerColor);
+            split.setOpaque(true);
+            // Recurse into children
+            applyBackgroundRecursively(split.getLeftComponent(), bgColor, dividerColor);
+            applyBackgroundRecursively(split.getRightComponent(), bgColor, dividerColor);
+            applyBackgroundRecursively(split.getTopComponent(), bgColor, dividerColor);
+            applyBackgroundRecursively(split.getBottomComponent(), bgColor, dividerColor);
+            return;
+        }
+        
+        // Handle JScrollPane - set background on pane and viewport
+        if (comp instanceof JScrollPane) {
+            JScrollPane scroll = (JScrollPane) comp;
+            scroll.setBackground(bgColor);
+            scroll.setOpaque(true);
+            scroll.getViewport().setBackground(bgColor);
+            scroll.getViewport().setOpaque(true);
+            // Also set background on the view component
+            java.awt.Component view = scroll.getViewport().getView();
+            if (view != null) {
+                applyBackgroundRecursively(view, bgColor, dividerColor);
+            }
+            return;
+        }
+        
+        // Handle JTable
+        if (comp instanceof javax.swing.JTable) {
+            javax.swing.JTable table = (javax.swing.JTable) comp;
+            table.setBackground(bgColor);
+            if (table.getTableHeader() != null) {
+                table.getTableHeader().setBackground(UIManager.getColor("TableHeader.background"));
+            }
+            return;
+        }
+        
+        // Handle JTree
+        if (comp instanceof javax.swing.JTree) {
+            javax.swing.JTree tree = (javax.swing.JTree) comp;
+            tree.setBackground(bgColor);
+            // Force tree to pick up new L&F colors including selection colors
+            SwingUtilities.updateComponentTreeUI(tree);
+            return;
+        }
+        
+        // Handle JList
+        if (comp instanceof javax.swing.JList) {
+            comp.setBackground(bgColor);
+            return;
+        }
+        
+        // Handle JToolBar - keep its styled background
+        if (comp instanceof JToolBar) {
+            return;
+        }
+        
+        // Handle general JPanel and Container
+        if (comp instanceof java.awt.Container) {
+            if (comp instanceof JPanel) {
+                ((JPanel) comp).setOpaque(true);
+            }
+            comp.setBackground(bgColor);
+            // Recurse into children
+            java.awt.Container container = (java.awt.Container) comp;
+            for (java.awt.Component child : container.getComponents()) {
+                applyBackgroundRecursively(child, bgColor, dividerColor);
+            }
+        }
     }
 
     public void loadTestPlanModel() {
@@ -139,6 +262,7 @@ public class TestExecutionUI extends JPanel implements ActionListener {
         FXPanelHeader header = new FXPanelHeader(labelText);
         panel.add(header, BorderLayout.NORTH);
         comp.setFont(UIManager.getFont("Table.font"));
+        
         panel.add(comp, BorderLayout.CENTER);
         return panel;
     }
@@ -176,6 +300,9 @@ public class TestExecutionUI extends JPanel implements ActionListener {
         treeSNTableSplitPane.setDividerLocation(0.25);
         testSettreeNSettingsSplitPane.setDividerLocation(0.5);
         testplanTreeNSettingsSplitPane.setDividerLocation(0.5);
+        
+        // Reapply pane backgrounds for theme changes
+        applyPaneBackgrounds();
     }
 
     class TestPlanPullPanel extends JPanel {
@@ -196,9 +323,11 @@ public class TestExecutionUI extends JPanel implements ActionListener {
         private void init() {
             setFont(UIManager.getFont("TableMenu.font"));
             setLayout(new BorderLayout());
+
             testPlanTree = new TestPlanCheckBoxTree();
             testPlanTree.setFont(UIManager.getFont("TableMenu.font"));
-            add(new JScrollPane(testPlanTree), BorderLayout.CENTER);
+            JScrollPane scrollPane = new JScrollPane(testPlanTree);
+            add(scrollPane, BorderLayout.CENTER);
             add(createToolbar(), BorderLayout.NORTH);
             modelListener = getModelListener();
         }

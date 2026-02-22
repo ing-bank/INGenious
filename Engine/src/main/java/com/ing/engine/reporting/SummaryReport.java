@@ -212,16 +212,87 @@ public final class SummaryReport implements OverviewReport {
         
         System.out.println();
         System.out.println("╔═════════════════════════════════════════════════════════════════════════════╗");
-        System.out.println("║                     🏁 EXECUTION SUMMARY 🏁                                 ║");
+        System.out.println(formatBoxLine("🏁 EXECUTION SUMMARY 🏁", true));
         System.out.println("╠═════════════════════════════════════════════════════════════════════════════╣");
-        System.out.println("║  📊 Total Tests:  " + String.format("%-10d", totalTestCases) + "                                         ║");
-        System.out.println("║  ✅ Passed:       " + String.format("%-10d", passedTestCases) + "                                         ║");
-        System.out.println("║  ❌ Failed:       " + String.format("%-10d", failedTestCases) + "                                         ║");
-        System.out.println("║  ⏱️  Duration:     " + String.format("%dm %ds", minutes, seconds) + "                                              ║");
+        System.out.println(formatBoxLine("📊 Total Tests:  " + totalTestCases, false));
+        System.out.println(formatBoxLine("✅ Passed:       " + passedTestCases, false));
+        System.out.println(formatBoxLine("❌ Failed:       " + failedTestCases, false));
+        System.out.println(formatBoxLine("⏱️  Duration:     " + String.format("%dm %ds", minutes, seconds), false));
         System.out.println("╠═════════════════════════════════════════════════════════════════════════════╣");
-        System.out.println("║  Overall Status: " + overallStatus + "                                             ║");
+        System.out.println(formatBoxLine("Overall Status: " + overallStatus, false));
         System.out.println("╚═════════════════════════════════════════════════════════════════════════════╝");
         System.out.println();
+    }
+    
+    /**
+     * Format a line to fit in the box with proper padding and alignment
+     * @param content The content to display
+     * @param centered Whether to center the content
+     * @return Formatted line with box borders
+     */
+    private String formatBoxLine(String content, boolean centered) {
+        final int BOX_WIDTH = 77; // Total width between ║ and ║
+        
+        // Calculate visual width (emojis count as 2 chars in most terminals)
+        int visualWidth = getVisualWidth(content);
+        
+        if (centered) {
+            int totalPadding = BOX_WIDTH - visualWidth;
+            int leftPadding = totalPadding / 2;
+            int rightPadding = totalPadding - leftPadding;
+            return "║" + " ".repeat(Math.max(0, leftPadding)) + content + " ".repeat(Math.max(0, rightPadding)) + "║";
+        } else {
+            // Left-aligned with 2 spaces prefix
+            int remainingSpace = BOX_WIDTH - visualWidth - 2;
+            return "║  " + content + " ".repeat(Math.max(0, remainingSpace)) + "║";
+        }
+    }
+    
+    /**
+     * Calculate visual width of string accounting for emojis (which display as 2 chars wide)
+     * @param str The string to measure
+     * @return Visual width in terminal
+     */
+    private int getVisualWidth(String str) {
+        int width = 0;
+        int i = 0;
+        while (i < str.length()) {
+            int codePoint = str.codePointAt(i);
+            int charCount = Character.charCount(codePoint);
+            
+            // Check if this is a variation selector (U+FE00-U+FE0F) - should not add width
+            if (codePoint >= 0xFE00 && codePoint <= 0xFE0F) {
+                i += charCount;
+                continue;
+            }
+            
+            // Detect emoji characters (display as 2 chars wide in terminal)
+            if (isEmoji(codePoint)) {
+                width += 2;
+            } else {
+                width += 1;
+            }
+            
+            i += charCount;
+        }
+        return width;
+    }
+    
+    /**
+     * Check if a Unicode code point is an emoji
+     * @param codePoint The Unicode code point
+     * @return true if emoji, false otherwise
+     */
+    private boolean isEmoji(int codePoint) {
+        return (codePoint >= 0x1F300 && codePoint <= 0x1F9FF) || // Misc Symbols and Pictographs + Supplemental
+               (codePoint >= 0x2600 && codePoint <= 0x27BF) ||   // Misc Symbols + Dingbats
+               (codePoint >= 0x1F000 && codePoint <= 0x1F2FF) ||  // Mahjong, Domino, Playing Cards
+               (codePoint >= 0x231A && codePoint <= 0x23FF) ||    // Misc Technical (includes ⏱️)
+               (codePoint >= 0x2B50 && codePoint <= 0x2B55) ||    // Stars
+               (codePoint == 0x2705) ||  // ✅ White Heavy Check Mark
+               (codePoint == 0x274C) ||  // ❌ Cross Mark
+               (codePoint == 0x203C) ||  // ‼️ Double Exclamation Mark
+               (codePoint == 0x2049);    // ⁉️ Exclamation Question Mark
     }
 
     /**

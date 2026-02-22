@@ -477,7 +477,7 @@ public class APITester {
             setEndpointStep.setObject("Webservice");
             setEndpointStep.setDescription("Set API Endpoint");
             setEndpointStep.setAction("setEndPoint");
-            setEndpointStep.setInput(resolveUrl(request));
+            setEndpointStep.setInput("@" + resolveUrl(request));
             
             // Step 2: Add headers if present
             if (request.getHeaders() != null && !request.getHeaders().isEmpty()) {
@@ -487,8 +487,8 @@ public class APITester {
                         headerStep.setObject("Webservice");
                         headerStep.setDescription("Add Header: " + header.getKey());
                         headerStep.setAction("addHeader");
-                        headerStep.setInput(header.getKey());
-                        headerStep.setCondition(header.getValue());
+                        headerStep.setInput("@" + header.getKey() + "=" + header.getValue());
+                        headerStep.setCondition("");
                     }
                 }
             }

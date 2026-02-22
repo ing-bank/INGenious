@@ -1,5 +1,6 @@
 package com.ing.ide.main.utils.tree;
 
+import com.ing.ide.main.Main;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Container;
@@ -141,7 +142,9 @@ public class TreeSelectionRenderer extends DefaultTreeCellRenderer {
             }
             comp.setBackground(selBg != null ? selBg : Color.decode("#D4EDFD"));
             Color selFg = UIManager.getColor("ing.selectionForeground");
-            comp.setForeground(selFg != null ? selFg : Color.decode("#4D0020"));
+            // Use theme-aware fallback: white text in dark mode, burgundy in light mode
+            Color fallbackFg = Main.isDarkMode() ? Color.WHITE : Color.decode("#4D0020");
+            comp.setForeground(selFg != null ? selFg : fallbackFg);
         } else {
             Color bg = UIManager.getColor("Tree.background");
             comp.setBackground(bg != null ? bg : jtree.getBackground());

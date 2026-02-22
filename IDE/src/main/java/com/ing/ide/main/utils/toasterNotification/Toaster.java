@@ -83,6 +83,14 @@ public class Toaster {
     public void showInfoToaster(Component parent, String msg) {
         showToaster(parent, msg, ToasterDialog.TYPE_INFO);
     }
+    
+    public void showWarningToaster(Component parent, String msg) {
+        showToaster(parent, msg, ToasterDialog.TYPE_WARNING);
+    }
+    
+    public void showErrorToaster(Component parent, String msg) {
+        showToaster(parent, msg, ToasterDialog.TYPE_ERROR);
+    }
 
     /**
      * @return Returns the font

@@ -78,6 +78,13 @@ public class BddParser {
         return sMainFrame.getProject().getScenarioByName(name);
     }
 
+    private Scenario createReusableScenario(String name) {
+        if (sMainFrame.getProject().getReusableScenarioByName(name) == null) {
+            return sMainFrame.getProject().addReusableScenario(name);
+        }
+        return sMainFrame.getProject().getReusableScenarioByName(name);
+    }
+
     private Scenario updateInfo(Scenario scn, Feature feature) {
         String desc = feature.getDescription();
         List<Tag> tags = toTag(feature.getTags());
@@ -108,7 +115,7 @@ public class BddParser {
             testCase.clearSteps();
             for (Step step : scenarioDef.getSteps()) {
                 String reusableName = convert(step.getText());
-                TestCase reusable = updateInfo(createReusable(create("StepDefinitions"), reusableName), step);
+                TestCase reusable = updateInfo(createReusable(createReusableScenario("StepDefinitions"), reusableName), step);
                 if (reusable != null) {
                     reusable.addNewStep()
                             .setInput(getInputField(testCase.getName(), step.getText()))

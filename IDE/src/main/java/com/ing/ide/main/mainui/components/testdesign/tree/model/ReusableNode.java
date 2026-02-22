@@ -17,6 +17,8 @@ import javax.swing.tree.TreeNode;
  */
 public class ReusableNode extends CommonNode {
 
+    private static final String DEFAULT_GROUP = "Reusable Components";
+
     Project project;
 
     public void setProject(Project project) {
@@ -26,10 +28,11 @@ public class ReusableNode extends CommonNode {
     }
 
     private void filterGroups() {
-        for (Scenario scenario : project.getScenarios()) {
-            for (TestCase reusable : scenario.getReusables()) {
-                String groupName = reusable.getReusable().getGroup();
-                addGroupIfNotPresent(groupName).addScenarioIfNotPresent(reusable.getScenario()).addTestCaseIfNotPresent(reusable);
+        GroupNode groupNode = addGroupIfNotPresent(DEFAULT_GROUP);
+        for (Scenario scenario : project.getReusableScenarios()) {
+            for (TestCase testCase : scenario.getTestCases()) {
+                groupNode.addScenarioIfNotPresent(testCase.getScenario())
+                        .addTestCaseIfNotPresent(testCase);
             }
         }
     }

@@ -5,6 +5,7 @@ import com.ing.datalib.component.TestStep;
 import com.ing.ide.main.Main;
 import com.ing.ide.main.utils.CodeFormatter;
 import com.ing.ide.main.fx.INGIcons;
+import com.ing.ide.util.WindowMover;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Cursor;
@@ -98,6 +99,9 @@ public class SQLTextArea extends javax.swing.JDialog {
         toolbar.setBorder(new EmptyBorder(6, 10, 6, 10));
         toolbar.setBackground(toolbarBg);
         toolbar.setOpaque(true);
+        
+        // Make the dialog draggable by the toolbar
+        WindowMover.register(this, toolbar, WindowMover.MOVE_BOTH);
         
         JButton beautifyBtn = createToolbarButton("Beautify", "format", ACCENT_BLUE, this::beautifyCode);
         toolbar.add(beautifyBtn);
