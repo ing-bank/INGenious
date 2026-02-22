@@ -1,0 +1,147 @@
+/**
+ * INGenious Modern Report - Light Theme
+ * Default light color scheme
+ * Version: 1.0.0
+ */
+
+:root,
+[data-theme="light"] {
+  /* Primary Palette - Indigo */
+  --color-primary: 99 102 241;
+  --color-primary-50: 238 242 255;
+  --color-primary-100: 224 231 255;
+  --color-primary-200: 199 210 254;
+  --color-primary-300: 165 180 252;
+  --color-primary-400: 129 140 248;
+  --color-primary-500: 99 102 241;
+  --color-primary-600: 79 70 229;
+  --color-primary-700: 67 56 202;
+  --color-primary-800: 55 48 163;
+  --color-primary-900: 49 46 129;
+  --color-primary-dark: 79 70 229;
+  --color-primary-light: 165 180 252;
+
+  /* Background & Surface */
+  --color-background: 249 250 251; /* Gray-50 */
+  --color-background-alt: 243 244 246; /* Gray-100 */
+  --color-surface: 255 255 255;
+  --color-surface-raised: 255 255 255;
+
+  /* Text Colors */
+  --color-text-primary: 17 24 39; /* Gray-900 */
+  --color-text-secondary: 107 114 128; /* Gray-500 */
+  --color-text-muted: 156 163 175; /* Gray-400 */
+  --color-text-inverted: 255 255 255;
+
+  /* Border Colors */
+  --color-border: 229 231 235; /* Gray-200 */
+  --color-border-light: 243 244 246; /* Gray-100 */
+  --color-border-dark: 209 213 219; /* Gray-300 */
+
+  /* Status Colors */
+  --color-success: 16 185 129; /* Emerald-500 */
+  --color-success-light: 209 250 229; /* Emerald-100 */
+  --color-success-dark: 5 150 105; /* Emerald-600 */
+  --color-success-text: 6 95 70; /* Emerald-800 */
+
+  --color-fail: 239 68 68; /* Red-500 */
+  --color-fail-light: 254 226 226; /* Red-100 */
+  --color-fail-dark: 220 38 38; /* Red-600 */
+  --color-fail-text: 153 27 27; /* Red-800 */
+
+  --color-warning: 245 158 11; /* Amber-500 */
+  --color-warning-light: 254 243 199; /* Amber-100 */
+  --color-warning-dark: 217 119 6; /* Amber-600 */
+  --color-warning-text: 146 64 14; /* Amber-800 */
+
+  --color-info: 59 130 246; /* Blue-500 */
+  --color-info-light: 219 234 254; /* Blue-100 */
+  --color-info-dark: 37 99 235; /* Blue-600 */
+  --color-info-text: 30 64 175; /* Blue-800 */
+
+  /* Chart Colors */
+  --chart-success: 16 185 129;
+  --chart-fail: 239 68 68;
+  --chart-warning: 245 158 11;
+  --chart-info: 59 130 246;
+  --chart-neutral: 156 163 175;
+
+  /* Shadows */
+  --shadow-color: 0 0 0;
+  --shadow-ambient-opacity: 0.05;
+  --shadow-direct-opacity: 0.1;
+
+  /* Overlays */
+  --overlay-backdrop: 0 0 0 / 0.5;
+  
+  /* Gradients */
+  --gradient-primary: linear-gradient(135deg, rgb(99 102 241) 0%, rgb(129 140 248) 100%);
+  --gradient-success: linear-gradient(135deg, rgb(16 185 129) 0%, rgb(52 211 153) 100%);
+  --gradient-surface: linear-gradient(180deg, rgb(255 255 255) 0%, rgb(249 250 251) 100%);
+
+  /* Header */
+  --header-bg: 255 255 255;
+  --header-border: 229 231 235;
+
+  /* Sidebar */
+  --sidebar-bg: 255 255 255;
+  --sidebar-border: 229 231 235;
+  --sidebar-item-hover: 249 250 251;
+  --sidebar-item-active: 238 242 255;
+
+  /* Cards */
+  --card-bg: 255 255 255;
+  --card-border: 229 231 235;
+  --card-hover-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+
+  /* Tables */
+  --table-header-bg: 249 250 251;
+  --table-row-hover: 249 250 251;
+  --table-row-stripe: 249 250 251;
+
+  /* Inputs */
+  --input-bg: 255 255 255;
+  --input-border: 209 213 219;
+  --input-border-focus: 99 102 241;
+  --input-placeholder: 156 163 175;
+
+  /* Code Blocks */
+  --code-bg: 249 250 251;
+  --code-text: 17 24 39;
+  --code-border: 229 231 235;
+}
+
+/* Light theme specific component overrides */
+[data-theme="light"] .card {
+  background: linear-gradient(180deg, rgb(var(--color-surface)) 0%, rgb(var(--color-background)) 100%);
+}
+
+[data-theme="light"] .stat-card {
+  background: linear-gradient(135deg, rgb(var(--color-surface)) 0%, rgb(var(--color-background-alt)) 100%);
+}
+
+[data-theme="light"] .data-table thead {
+  background-color: rgb(var(--table-header-bg));
+}
+
+[data-theme="light"] .data-table tbody tr:nth-child(even) {
+  background-color: rgba(var(--table-row-stripe), 0.5);
+}
+
+/* Focus ring color */
+[data-theme="light"] *:focus {
+  --tw-ring-color: rgb(var(--color-primary) / 0.3);
+}
+
+/* Scrollbar styling */
+[data-theme="light"] {
+  scrollbar-color: rgb(var(--color-border-dark)) rgb(var(--color-background));
+}
+
+[data-theme="light"]::-webkit-scrollbar-thumb {
+  background-color: rgb(var(--color-border-dark));
+}
+
+[data-theme="light"]::-webkit-scrollbar-track {
+  background-color: rgb(var(--color-background));
+}

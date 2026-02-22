@@ -46,6 +46,12 @@ public final class SummaryReport implements OverviewReport {
     private static final List<SummaryHandler> REPORT_HANDLERS = new ArrayList<>();
    
     public PrimaryHandler pHandler;
+    
+    // Execution tracking
+    private int totalTestCases = 0;
+    private int passedTestCases = 0;
+    private int failedTestCases = 0;
+    private long executionStartTime = 0;
 
     public SummaryReport() {        
 
@@ -73,6 +79,11 @@ public final class SummaryReport implements OverviewReport {
      */
     @Override
     public synchronized void createReport(String runTime, int size) {
+        executionStartTime = System.currentTimeMillis();
+        totalTestCases = 0;
+        passedTestCases = 0;
+        failedTestCases = 0;
+        
         for (SummaryHandler handler : REPORT_HANDLERS) {
             handler.createReport(runTime, size);
         }
@@ -89,6 +100,24 @@ public final class SummaryReport implements OverviewReport {
     @Override
     public synchronized void updateTestCaseResults(RunContext runContext, TestCaseReport report, Status state,
             String executionTime) {
+        // Track results
+        totalTestCases++;
+        String statusEmoji;
+        if (state != null && (state.toString().contains("PASS") || state.toString().contains("DONE"))) {
+            passedTestCases++;
+            statusEmoji = "✅";
+        } else {
+            failedTestCases++;
+            statusEmoji = "❌";
+        }
+        
+        // Print test case result with emoji
+        System.out.println("══════════════════════════════════════════════════════════════════════════════");
+        System.out.println(statusEmoji + " Test Case: " + runContext.Scenario + ":" + runContext.TestCase + 
+                           " | Status: " + state + " | Time: " + executionTime);
+        System.out.println("══════════════════════════════════════════════════════════════════════════════");
+        System.out.println();
+        
         for (SummaryHandler handler : REPORT_HANDLERS) {
             handler.updateTestCaseResults(runContext, report, state, executionTime);
         }
@@ -164,7 +193,35 @@ public final class SummaryReport implements OverviewReport {
         for (SummaryHandler handler : REPORT_HANDLERS) {
             handler.finalizeReport();
         }
+        
+        // Print execution summary
+        printExecutionSummary();
+        
         afterReportComplete();
+    }
+    
+    /**
+     * Print execution summary with emojis
+     */
+    private void printExecutionSummary() {
+        long totalDuration = System.currentTimeMillis() - executionStartTime;
+        long minutes = (totalDuration / 1000) / 60;
+        long seconds = (totalDuration / 1000) % 60;
+        
+        String overallStatus = (failedTestCases == 0) ? "✅ PASSED" : "❌ FAILED";
+        
+        System.out.println();
+        System.out.println("╔═════════════════════════════════════════════════════════════════════════════╗");
+        System.out.println("║                     🏁 EXECUTION SUMMARY 🏁                                 ║");
+        System.out.println("╠═════════════════════════════════════════════════════════════════════════════╣");
+        System.out.println("║  📊 Total Tests:  " + String.format("%-10d", totalTestCases) + "                                         ║");
+        System.out.println("║  ✅ Passed:       " + String.format("%-10d", passedTestCases) + "                                         ║");
+        System.out.println("║  ❌ Failed:       " + String.format("%-10d", failedTestCases) + "                                         ║");
+        System.out.println("║  ⏱️  Duration:     " + String.format("%dm %ds", minutes, seconds) + "                                              ║");
+        System.out.println("╠═════════════════════════════════════════════════════════════════════════════╣");
+        System.out.println("║  Overall Status: " + overallStatus + "                                             ║");
+        System.out.println("╚═════════════════════════════════════════════════════════════════════════════╝");
+        System.out.println();
     }
 
     /**
@@ -182,7 +239,6 @@ public final class SummaryReport implements OverviewReport {
     @Override
     public void updateTestCaseResults(String testScenario, String testCase, String Iteration, String testDescription,
             String executionTime, String fileName, Status state, String Browser) {
-        System.out.println("\n======================== [UPDATING SUMMARY] ========================\n");
         for (SummaryHandler handler : REPORT_HANDLERS) {
             handler.updateTestCaseResults(testScenario, testCase, Iteration, testDescription, executionTime, fileName,
                     state, Browser);

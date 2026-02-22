@@ -1,0 +1,517 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Performance Report</title>
+    
+    <!-- Modern CSS -->
+    <link rel="stylesheet" href="../../../../media/css/modern/tailwind.min.css">
+    <link rel="stylesheet" href="../../../../media/css/modern/components.css">
+    <link rel="stylesheet" href="../../../../media/css/modern/themes/light.css" id="theme-light">
+    <link rel="stylesheet" href="../../../../media/css/modern/themes/dark.css" id="theme-dark" disabled>
+    
+    <style>
+        /* Performance Report specific styles */
+        .waterfall-container {
+            overflow-x: auto;
+            max-width: 100%;
+        }
+        
+        .waterfall-row {
+            display: grid;
+            grid-template-columns: minmax(200px, 25%) 1fr;
+            gap: 1rem;
+            padding: 0.5rem 1rem;
+            align-items: center;
+            border-bottom: 1px solid var(--color-border);
+            transition: background-color 0.15s ease;
+        }
+        
+        .waterfall-row:hover {
+            background: var(--color-bg-hover);
+        }
+        
+        .waterfall-url {
+            font-size: 0.75rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            color: var(--color-text-secondary);
+        }
+        
+        .waterfall-bar-container {
+            position: relative;
+            height: 20px;
+            min-width: 600px;
+        }
+        
+        .waterfall-bar {
+            position: absolute;
+            height: 16px;
+            top: 2px;
+            border-radius: 2px;
+            min-width: 2px;
+        }
+        
+        .waterfall-bar.blocked { background: #9CA3AF; }
+        .waterfall-bar.dns { background: #F59E0B; }
+        .waterfall-bar.connect { background: #EF4444; }
+        .waterfall-bar.ssl { background: #8B5CF6; }
+        .waterfall-bar.send { background: #3B82F6; }
+        .waterfall-bar.wait { background: #10B981; }
+        .waterfall-bar.receive { background: #06B6D4; }
+        
+        .waterfall-time {
+            position: absolute;
+            right: -60px;
+            top: 2px;
+            font-size: 0.7rem;
+            color: var(--color-text-secondary);
+            white-space: nowrap;
+        }
+        
+        .waterfall-marker {
+            position: absolute;
+            top: 0;
+            height: 100%;
+            width: 2px;
+            z-index: 10;
+        }
+        
+        .waterfall-marker.content-load { background: #3B82F6; }
+        .waterfall-marker.page-load { background: #EF4444; }
+        
+        .timing-legend {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 1rem;
+            padding: 1rem;
+            background: var(--color-bg-secondary);
+            border-radius: var(--radius-md);
+            margin-bottom: 1rem;
+        }
+        
+        .timing-legend-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-size: 0.75rem;
+        }
+        
+        .timing-legend-color {
+            width: 16px;
+            height: 12px;
+            border-radius: 2px;
+        }
+        
+        .metrics-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 1rem;
+        }
+        
+        .metric-card {
+            background: var(--color-bg-secondary);
+            padding: 1rem;
+            border-radius: var(--radius-md);
+            text-align: center;
+        }
+        
+        .metric-card .value {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--color-primary);
+        }
+        
+        .metric-card .label {
+            font-size: 0.75rem;
+            color: var(--color-text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        
+        /* Donut chart */
+        .donut-chart {
+            width: 120px;
+            height: 120px;
+        }
+        
+        .page-accordion {
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius-md);
+            overflow: hidden;
+            margin-bottom: 1rem;
+        }
+        
+        .page-accordion-header {
+            padding: 1rem;
+            background: var(--color-bg-secondary);
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: background-color 0.15s ease;
+        }
+        
+        .page-accordion-header:hover {
+            background: var(--color-bg-tertiary);
+        }
+        
+        .page-accordion-content {
+            padding: 1rem;
+            border-top: 1px solid var(--color-border);
+        }
+        
+        @media print {
+            .waterfall-bar-container {
+                min-width: 400px;
+            }
+        }
+    </style>
+    
+    <script src="perfLog.js" type="text/javascript"></script>
+</head>
+<body class="bg-gray-50 dark:bg-gray-900 min-h-screen" x-data="perfReportApp()" x-init="init()">
+    
+    <!-- Header -->
+    <header class="app-header">
+        <div class="flex items-center gap-4">
+            <a href="../../summary-v2.html" class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200" title="Back to Summary">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+                </svg>
+            </a>
+            <div class="text-center flex-1">
+                <h1 class="text-3xl font-black text-orange-600 dark:text-orange-400">⚡ Performance Report</h1>
+                <p class="text-sm text-gray-500 dark:text-gray-400 mt-1" x-text="pages.length + ' page(s) captured'"></p>
+            </div>
+        </div>
+        <div class="flex items-center gap-3">
+            <!-- View Toggle -->
+            <div class="flex rounded-lg bg-gray-100 dark:bg-gray-700 p-1">
+                <button @click="viewMode = 'waterfall'" 
+                        :class="viewMode === 'waterfall' ? 'bg-white dark:bg-gray-600 shadow-sm' : ''"
+                        class="px-3 py-1 text-sm font-medium rounded-md transition-colors">
+                    📊 Waterfall
+                </button>
+                <button @click="viewMode = 'table'"
+                        :class="viewMode === 'table' ? 'bg-white dark:bg-gray-600 shadow-sm' : ''"
+                        class="px-3 py-1 text-sm font-medium rounded-md transition-colors">
+                    📋 Table
+                </button>
+            </div>
+            <!-- Theme toggle -->
+            <button @click="toggleTheme()" class="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700" title="Toggle theme">
+                <svg x-show="!darkMode" class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/>
+                </svg>
+                <svg x-show="darkMode" class="w-5 h-5 text-yellow-400" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M12 2.25a.75.75 0 01.75.75v2.25a.75.75 0 01-1.5 0V3a.75.75 0 01.75-.75zM7.5 12a4.5 4.5 0 119 0 4.5 4.5 0 01-9 0z"/>
+                </svg>
+            </button>
+            <!-- Print -->
+            <button @click="window.print()" class="btn btn-secondary btn-sm" title="Print Report">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/>
+                </svg>
+            </button>
+        </div>
+    </header>
+    
+    <main class="max-w-7xl mx-auto px-4 py-6 sm:px-6 lg:px-8">
+        
+        <!-- No Data Message -->
+        <template x-if="pages.length === 0">
+            <div class="card text-center py-12">
+                <svg class="w-16 h-16 mx-auto text-gray-400 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.172 16.172a4 4 0 015.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+                <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-2">Performance log not found</h3>
+                <p class="text-gray-500 dark:text-gray-400">Make sure "capturePageTimings" action is included in your testcase.</p>
+            </div>
+        </template>
+        
+        <!-- Timing Legend -->
+        <template x-if="pages.length > 0">
+            <div class="timing-legend">
+                <template x-for="timing in timings" :key="timing.key">
+                    <div class="timing-legend-item">
+                        <div class="timing-legend-color" :class="'waterfall-bar ' + timing.key"></div>
+                        <span x-text="timing.name"></span>
+                    </div>
+                </template>
+                <div class="timing-legend-item">
+                    <div class="timing-legend-color waterfall-marker content-load"></div>
+                    <span>Content Load</span>
+                </div>
+                <div class="timing-legend-item">
+                    <div class="timing-legend-color waterfall-marker page-load"></div>
+                    <span>Page Load</span>
+                </div>
+            </div>
+        </template>
+        
+        <!-- Page Accordions -->
+        <template x-for="(pageData, pageIdx) in pages" :key="pageIdx">
+            <div class="page-accordion">
+                <!-- Page Header -->
+                <div class="page-accordion-header" @click="togglePage(pageIdx)">
+                    <div class="flex items-center gap-3">
+                        <svg class="w-5 h-5 text-gray-500 transition-transform" :class="{ 'rotate-90': expandedPages[pageIdx] }" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                        </svg>
+                        <div>
+                            <span class="font-medium text-gray-900 dark:text-white" x-text="shortenUrl(pageData.page.title)"></span>
+                            <span class="text-sm text-gray-500 dark:text-gray-400 ml-2" x-text="pageData.name || ''"></span>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-4">
+                        <span class="text-sm font-semibold text-green-600" x-text="pageData.page.pageTimings.onLoad + 'ms'"></span>
+                        <span class="text-xs text-gray-500" x-text="pageData.entries.length + ' requests'"></span>
+                    </div>
+                </div>
+                
+                <!-- Page Content -->
+                <div class="page-accordion-content" x-show="expandedPages[pageIdx]" x-collapse>
+                    
+                    <!-- Page Metrics -->
+                    <div class="metrics-grid mb-6">
+                        <div class="metric-card">
+                            <div class="value" x-text="getPageTiming(pageData, 'TTFB') + 'ms'"></div>
+                            <div class="label">Time to First Byte</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="value" x-text="getPageTiming(pageData, 'domInteractive') + 'ms'"></div>
+                            <div class="label">DOM Interactive</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="value" x-text="getPageTiming(pageData, 'domComplete') + 'ms'"></div>
+                            <div class="label">DOM Complete</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="value" x-text="pageData.page.pageTimings.onContentLoad + 'ms'"></div>
+                            <div class="label">Content Load</div>
+                        </div>
+                        <div class="metric-card">
+                            <div class="value" x-text="pageData.page.pageTimings.onLoad + 'ms'"></div>
+                            <div class="label">Page Load</div>
+                        </div>
+                    </div>
+                    
+                    <!-- Waterfall View -->
+                    <template x-if="viewMode === 'waterfall'">
+                        <div class="waterfall-container">
+                            <template x-for="(entry, entryIdx) in pageData.entries" :key="entryIdx">
+                                <div class="waterfall-row">
+                                    <div class="waterfall-url" :title="entry.request.url" x-text="resolveUrl(entry.request.url)"></div>
+                                    <div class="waterfall-bar-container" :style="'min-width:' + getWaterfallWidth(pageData) + 'px'">
+                                        <template x-for="timing in timings" :key="timing.key">
+                                            <div class="waterfall-bar"
+                                                 :class="timing.key"
+                                                 x-show="entry.timings[timing.key] > 0"
+                                                 :style="getBarStyle(pageData, entry, timing.key)"
+                                                 :title="timing.name + ': ' + entry.timings[timing.key] + 'ms'">
+                                            </div>
+                                        </template>
+                                        <span class="waterfall-time" x-text="entry.time + 'ms'"></span>
+                                        <!-- Content Load marker -->
+                                        <div class="waterfall-marker content-load" 
+                                             :style="'left:' + getMarkerPosition(pageData, pageData.page.pageTimings.onContentLoad) + '%'"
+                                             title="Content Load"></div>
+                                        <!-- Page Load marker -->
+                                        <div class="waterfall-marker page-load"
+                                             :style="'left:' + getMarkerPosition(pageData, pageData.page.pageTimings.onLoad) + '%'"
+                                             title="Page Load"></div>
+                                    </div>
+                                </div>
+                            </template>
+                        </div>
+                    </template>
+                    
+                    <!-- Table View -->
+                    <template x-if="viewMode === 'table'">
+                        <div class="overflow-x-auto">
+                            <table class="data-table w-full">
+                                <thead>
+                                    <tr>
+                                        <th class="text-left">URL</th>
+                                        <template x-for="timing in timings" :key="timing.key">
+                                            <th class="text-right" x-text="timing.name"></th>
+                                        </template>
+                                        <th class="text-right">Total</th>
+                                        <th class="text-left">Timestamp</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <template x-for="(entry, entryIdx) in pageData.entries" :key="entryIdx">
+                                        <tr>
+                                            <td class="text-sm max-w-xs truncate" :title="entry.request.url" x-text="resolveUrl(entry.request.url)"></td>
+                                            <template x-for="timing in timings" :key="timing.key">
+                                                <td class="text-right text-sm" x-text="entry.timings[timing.key] || '-'"></td>
+                                            </template>
+                                            <td class="text-right text-sm font-medium" x-text="entry.time + 'ms'"></td>
+                                            <td class="text-sm text-gray-500" x-text="formatTimestamp(entry.startedDateTime)"></td>
+                                        </tr>
+                                    </template>
+                                </tbody>
+                            </table>
+                        </div>
+                    </template>
+                    
+                </div>
+            </div>
+        </template>
+        
+    </main>
+    
+    <!-- Alpine.js -->
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    <script defer src="https://cdn.jsdelivr.net/npm/@alpinejs/collapse@3.x.x/dist/cdn.min.js"></script>
+    
+    <script>
+        // Timing definitions
+        const TIMINGS = [
+            { key: 'blocked', name: 'Blocked' },
+            { key: 'dns', name: 'DNS' },
+            { key: 'connect', name: 'Connect' },
+            { key: 'ssl', name: 'SSL' },
+            { key: 'send', name: 'Send' },
+            { key: 'wait', name: 'Wait' },
+            { key: 'receive', name: 'Receive' }
+        ];
+        
+        function perfReportApp() {
+            return {
+                pages: [],
+                timings: TIMINGS,
+                viewMode: 'waterfall',
+                darkMode: false,
+                expandedPages: {},
+                
+                init() {
+                    // Parse perfLog data
+                    if (typeof perfLog !== 'undefined' && perfLog.length > 0) {
+                        this.parseHarData(perfLog);
+                    }
+                    
+                    // Initialize theme
+                    this.darkMode = localStorage.getItem('theme') === 'dark' || 
+                        (!localStorage.getItem('theme') && window.matchMedia('(prefers-color-scheme: dark)').matches);
+                    this.applyTheme();
+                    
+                    // Expand first page by default
+                    if (this.pages.length > 0) {
+                        this.expandedPages[0] = true;
+                    }
+                },
+                
+                parseHarData(logs) {
+                    logs.forEach((entry, idx) => {
+                        if (entry.har && entry.har.log && entry.har.log.pages) {
+                            entry.har.log.pages.forEach((page, pageIdx) => {
+                                // Get entries for this page
+                                const entries = entry.har.log.entries.filter(e => e.pageref === page.id);
+                                
+                                // Calculate timing positions
+                                const maxTime = page.pageTimings.onLoad || Math.max(...entries.map(e => e.time));
+                                let currentX = 0;
+                                entries.forEach(e => {
+                                    e.timings._x = {};
+                                    TIMINGS.forEach(t => {
+                                        e.timings._x[t.key] = currentX;
+                                        currentX += e.timings[t.key] || 0;
+                                    });
+                                });
+                                
+                                this.pages.push({
+                                    name: entry.name,
+                                    page: page,
+                                    entries: entries,
+                                    maxTime: maxTime,
+                                    raw: page.raw || {}
+                                });
+                            });
+                        }
+                    });
+                },
+                
+                toggleTheme() {
+                    this.darkMode = !this.darkMode;
+                    localStorage.setItem('theme', this.darkMode ? 'dark' : 'light');
+                    this.applyTheme();
+                },
+                
+                applyTheme() {
+                    document.documentElement.classList.toggle('dark', this.darkMode);
+                    document.getElementById('theme-light').disabled = this.darkMode;
+                    document.getElementById('theme-dark').disabled = !this.darkMode;
+                },
+                
+                togglePage(idx) {
+                    this.expandedPages[idx] = !this.expandedPages[idx];
+                },
+                
+                shortenUrl(url) {
+                    if (!url) return '';
+                    try {
+                        const parsed = new URL(url);
+                        return parsed.hostname + parsed.pathname.substring(0, 50) + (parsed.pathname.length > 50 ? '...' : '');
+                    } catch (e) {
+                        return url.substring(0, 60) + (url.length > 60 ? '...' : '');
+                    }
+                },
+                
+                resolveUrl(url) {
+                    if (!url) return '';
+                    try {
+                        const parsed = new URL(url);
+                        const path = parsed.pathname.split('/').pop() || parsed.hostname;
+                        return path.substring(0, 40) + (path.length > 40 ? '...' : '');
+                    } catch (e) {
+                        return url.substring(0, 40);
+                    }
+                },
+                
+                getPageTiming(pageData, type) {
+                    const raw = pageData.raw || {};
+                    switch (type) {
+                        case 'TTFB':
+                            return (raw.responseStart || 0) - (raw.connectEnd || 0);
+                        case 'domInteractive':
+                            return (raw.domInteractive || 0) - (raw.domLoading || 0);
+                        case 'domComplete':
+                            return (raw.domComplete || 0) - (raw.domLoading || 0);
+                        default:
+                            return 0;
+                    }
+                },
+                
+                getWaterfallWidth(pageData) {
+                    return Math.max(600, pageData.maxTime * 0.8);
+                },
+                
+                getBarStyle(pageData, entry, timingKey) {
+                    const scale = 600 / pageData.maxTime;
+                    const x = (entry.timings._x?.[timingKey] || 0) * scale;
+                    const width = Math.max(2, (entry.timings[timingKey] || 0) * scale);
+                    return `left: ${x}px; width: ${width}px;`;
+                },
+                
+                getMarkerPosition(pageData, time) {
+                    return ((time || 0) / pageData.maxTime * 100).toFixed(2);
+                },
+                
+                formatTimestamp(ts) {
+                    if (!ts) return '';
+                    try {
+                        return new Date(ts).toLocaleTimeString();
+                    } catch (e) {
+                        return ts;
+                    }
+                }
+            };
+        }
+    </script>
+</body>
+</html>

@@ -20,6 +20,7 @@ import com.ing.ide.main.shr.mobile.ios.IOSTree;
 import com.ing.ide.main.shr.mobile.ios.IOSUtil;
 //import com.ing.ide.main.shr.mobile.ios.IOSpy;
 import com.ing.ide.main.utils.table.JtableUtils;
+import com.ing.ide.main.utils.table.PropertyAttributeRenderer;
 import com.ing.ide.settings.IconSettings;
 import com.ing.ide.util.Notification;
 import java.awt.BasicStroke;
@@ -47,6 +48,7 @@ import javax.swing.SwingUtilities;
 import javax.swing.filechooser.FileFilter;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.table.DefaultTableModel;
+import javax.swing.table.TableColumn;
 import javax.swing.tree.DefaultTreeModel;
 import com.ing.ide.main.fx.INGIcons;
 
@@ -100,6 +102,7 @@ public class MobileObjectSpy extends javax.swing.JFrame {
                 Object obj = objectTree.getSelectedObject();
                 if (obj != null && obj instanceof MobileORObject) {
                     mobilePropTable.setModel((MobileORObject) obj);
+                    configureMobilePropTableColumns();
                 }
             }
 
@@ -130,6 +133,21 @@ public class MobileObjectSpy extends javax.swing.JFrame {
         andEmulatorCombo.setModel(new DefaultComboBoxModel(sMainFrame.getProject().getProjectSettings()
                 .getEmulators().getAppiumEmulatorNames().toArray()));
         iosEmulatorCombo.setModel(andEmulatorCombo.getModel());
+    }
+
+    private void configureMobilePropTableColumns() {
+        if (mobilePropTable.getColumnCount() >= 2) {
+            // Column 0: Attribute - narrow width
+            TableColumn attrCol = mobilePropTable.getColumnModel().getColumn(0);
+            attrCol.setCellRenderer(new PropertyAttributeRenderer());
+            attrCol.setPreferredWidth(100);
+            attrCol.setMinWidth(80);
+            attrCol.setMaxWidth(150);
+            
+            // Column 1: Value - takes remaining space
+            TableColumn valueCol = mobilePropTable.getColumnModel().getColumn(1);
+            valueCol.setPreferredWidth(300);
+        }
     }
 
     /**

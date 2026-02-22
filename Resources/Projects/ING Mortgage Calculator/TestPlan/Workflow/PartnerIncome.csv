@@ -1,0 +1,7 @@
+Step,ObjectName,Description,Action,Input,Condition,Reference
+1,Employment,Check the [<Object>] element,ClickIfDataExists,Mortage Calculator:PartnerIncome,,Calculator
+2,Permanent contract,Check the [<Object>] element,ClickIfDataExists,Mortage Calculator:PartnerIncome,,Calculator
+3,Next,"Click the [<Object>] ",ClickIfDataExists,Mortage Calculator:PartnerIncome,,Calculator
+4,PartnerIncome,"Click the [<Object>] ",ClickIfDataExists,Mortage Calculator:PartnerIncome,,Calculator
+5,PartnerIncome,Enter the value [<Data>] in the Field [<Object>],FillIfDataExists,Mortage Calculator:PartnerIncome,,Calculator
+6,Next,"Click the [<Object>] ",ClickIfVisible,,,Calculator

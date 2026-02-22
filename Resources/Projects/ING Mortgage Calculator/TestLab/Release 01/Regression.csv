@@ -1,0 +1,3 @@
+Execute,TestScenario,TestCase,Iteration,Status,Browser,BrowserVersion,Platform
+true,Mortgage Calculator,Calculate Mortgage with Partner,Single,Failed,Chromium,Default,Any
+true,Mortgage Calculator,Calculate Mortgage with Single Owner,Single,Failed,Chromium,Default,Any

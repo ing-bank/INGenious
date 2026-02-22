@@ -93,6 +93,7 @@ public abstract class ObjectTree implements ActionListener {
 
         tree.getInputMap(JComponent.WHEN_FOCUSED).put(Keystroke.NEW, "New");
         tree.getInputMap(JComponent.WHEN_FOCUSED).put(Keystroke.DELETE, "Delete");
+        tree.getInputMap(JComponent.WHEN_FOCUSED).put(Keystroke.RENAME, "Rename");
         tree.getInputMap(JComponent.WHEN_FOCUSED).put(KeyStroke.getKeyStroke("ESCAPE"), "Escape");
 
         tree.getActionMap().put("New", new AbstractAction() {
@@ -113,6 +114,26 @@ public abstract class ObjectTree implements ActionListener {
                 deleteObjects();
                 deleteObjectGroups();
                 deletePages();
+            }
+        });
+        tree.getActionMap().put("Rename", new AbstractAction() {
+
+            @Override
+            public void actionPerformed(ActionEvent ae) {
+                ORPageInf page = getSelectedPage();
+                if (page != null) {
+                    tree.startEditingAtPath(page.getTreePath());
+                    return;
+                }
+                ObjectGroup group = getSelectedObjectGroup();
+                if (group != null) {
+                    tree.startEditingAtPath(group.getTreePath());
+                    return;
+                }
+                ORObjectInf obj = getSelectedObject();
+                if (obj != null) {
+                    tree.startEditingAtPath(obj.getTreePath());
+                }
             }
         });
         tree.getActionMap().put("Escape", new AbstractAction() {

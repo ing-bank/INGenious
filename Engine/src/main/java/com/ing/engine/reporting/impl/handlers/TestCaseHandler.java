@@ -63,6 +63,11 @@ public class TestCaseHandler implements Report {
     }
 
     @Override
+    public String getVideoLinkName() {
+        return report.getVideoLinkName();
+    }
+
+    @Override
     public File getReportLoc() {
         return report.getReportLoc();
     }

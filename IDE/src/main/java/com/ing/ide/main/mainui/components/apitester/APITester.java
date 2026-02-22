@@ -80,6 +80,9 @@ public class APITester {
         // Update HTTP client environment
         httpClient.setEnvironment(activeEnvironment);
         
+        // Set SSL verification based on per-request setting
+        httpClient.setTrustAllCertificates(!request.isSslVerificationEnabled());
+        
         // Execute in background thread
         new Thread(() -> {
             try {

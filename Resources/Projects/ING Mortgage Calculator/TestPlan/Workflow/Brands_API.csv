@@ -1,0 +1,11 @@
+Step,ObjectName,Description,Action,Input,Condition,Reference
+1,Webservice,"Set End Point ",setEndPoint,@https://api.practicesoftwaretesting.com/brands,,
+2,Webservice,"GET Rest Request ",getRestRequest,,,
+3,Webservice,"Assert Response Code ",assertResponseCode,@200,,
+4,Webservice,"Set End Point ",setEndPoint,@https://api.practicesoftwaretesting.com/brands,,
+5,Webservice,"Add Header ",addHeader,@Content-Type=application/json,,
+6,Webservice,"POST Rest Request ",postRestRequest,"{
+    ""name"": ""new brand1"",
+    ""slug"": ""new-brand1""
+}",,
+7,Webservice,"Assert Response Code ",assertResponseCode,@201,,

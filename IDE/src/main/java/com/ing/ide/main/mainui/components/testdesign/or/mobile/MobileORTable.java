@@ -24,6 +24,7 @@ import javax.swing.JScrollPane;
 import javax.swing.JToolBar;
 import javax.swing.UIManager;
 import javax.swing.table.DefaultTableModel;
+import javax.swing.table.TableColumn;
 
 public class MobileORTable extends JPanel implements ActionListener {
 
@@ -56,9 +57,21 @@ public class MobileORTable extends JPanel implements ActionListener {
 
     public void loadObject(MobileORObject object) {
         table.setModel(object);
-        // Apply custom renderer to Attribute column (column 0)
-        if (table.getColumnCount() > 0) {
-            table.getColumnModel().getColumn(0).setCellRenderer(new PropertyAttributeRenderer());
+        configureColumns();
+    }
+
+    private void configureColumns() {
+        if (table.getColumnCount() >= 2) {
+            // Column 0: Attribute - narrow width
+            TableColumn attrCol = table.getColumnModel().getColumn(0);
+            attrCol.setCellRenderer(new PropertyAttributeRenderer());
+            attrCol.setPreferredWidth(100);
+            attrCol.setMinWidth(80);
+            attrCol.setMaxWidth(150);
+            
+            // Column 1: Value - takes remaining space
+            TableColumn valueCol = table.getColumnModel().getColumn(1);
+            valueCol.setPreferredWidth(300);
         }
     }
 

@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#ffffff">
+  <title>aXe Accessibility Report</title>
+  
+  <!-- Modern CSS Framework -->
+  <link rel="stylesheet" href="../../../../media/css/modern/tailwind.min.css">
+  <link rel="stylesheet" href="../../../../media/css/modern/components.css">
+  <link rel="stylesheet" href="../../../../media/css/modern/themes/light.css" id="theme-light">
+  <link rel="stylesheet" href="../../../../media/css/modern/themes/dark.css" id="theme-dark" disabled>
+  <link rel="stylesheet" href="../../../../media/css/modern/themes/indigo.css" id="theme-accent">
+  
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+    
+    [x-cloak] { display: none !important; }
+    
+    .violation-item {
+      border-left: 4px solid #dc2626;
+      background: linear-gradient(to right, rgba(220, 38, 38, 0.05), transparent);
+    }
+    
+    .pass-item {
+      border-left: 4px solid #16a34a;
+      background: linear-gradient(to right, rgba(22, 163, 74, 0.05), transparent);
+    }
+    
+    .incomplete-item {
+      border-left: 4px solid #f59e0b;
+      background: linear-gradient(to right, rgba(245, 158, 11, 0.05), transparent);
+    }
+    
+    .inapplicable-item {
+      border-left: 4px solid #6b7280;
+      background: linear-gradient(to right, rgba(107, 114, 128, 0.05), transparent);
+    }
+    
+    .issue-badge {
+      display: inline-block;
+      padding: 0.25rem 0.75rem;
+      border-radius: 9999px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+    }
+    
+    .impact-critical { background: #fee2e2; color: #991b1b; }
+    .impact-serious { background: #fef3c7; color: #78350f; }
+    .impact-moderate { background: #fce7f3; color: #831843; }
+    .impact-minor { background: #e0e7ff; color: #312e81; }
+    
+    .dark .impact-critical { background: #7f1d1d; color: #fecaca; }
+    .dark .impact-serious { background: #78350f; color: #fcd34d; }
+    .dark .impact-moderate { background: #500724; color: #f472b6; }
+    .dark .impact-minor { background: #312e81; color: #a5b4fc; }
+    
+    .code-block {
+      background: #f3f4f6;
+      border: 1px solid #e5e7eb;
+      border-radius: 0.5rem;
+      padding: 1rem;
+      overflow-x: auto;
+      font-family: 'Courier New', monospace;
+      font-size: 0.875rem;
+      line-height: 1.5;
+    }
+    
+    .dark .code-block {
+      background: #1f2937;
+      border-color: #374151;
+      color: #e5e7eb;
+    }
+    
+    .stat-card {
+      padding: 1.5rem;
+      border-radius: 0.75rem;
+      text-align: center;
+      background: linear-gradient(135deg, var(--stat-bg) 0%, var(--stat-bg-light) 100%);
+      border: 1px solid var(--stat-border);
+    }
+    
+    .stat-violations { --stat-bg: #fee2e2; --stat-border: #fecaca; --stat-color: #991b1b; }
+    .stat-passes { --stat-bg: #ecfdf5; --stat-border: #a7f3d0; --stat-color: #065f46; }
+    .stat-incomplete { --stat-bg: #fffbeb; --stat-border: #fed7aa; --stat-color: #92400e; }
+    .stat-inapplicable { --stat-bg: #f3f4f6; --stat-border: #d1d5db; --stat-color: #374151; }
+    
+    .dark .stat-violations { --stat-bg: #7f1d1d; --stat-border: #991b1b; }
+    .dark .stat-passes { --stat-bg: #064e3b; --stat-border: #047857; }
+    .dark .stat-incomplete { --stat-bg: #78350f; --stat-border: #b45309; }
+    .dark .stat-inapplicable { --stat-bg: #374151; --stat-border: #4b5563; }
+    
+    .stat-number {
+      font-size: 2.5rem;
+      font-weight: 700;
+      color: var(--stat-color);
+      line-height: 1;
+    }
+    
+    .stat-label {
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      margin-top: 0.5rem;
+      color: var(--stat-color);
+      opacity: 0.9;
+    }
+  </style>
+</head>
+<body class="bg-white dark:bg-gray-900 text-gray-900 dark:text-gray-100" x-data="axeApp()" x-cloak>
+  
+  <!-- Header -->
+  <header class="header sticky top-0 z-50">
+    <div class="container mx-auto px-4 py-4 max-w-7xl flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <svg class="w-6 h-6 text-accent-600" fill="currentColor" viewBox="0 0 20 20">
+          <path fill-rule="evenodd" d="M6.707 6.707a1 1 0 010 1.414L5.414 9l1.293 1.293a1 1 0 01-1.414 1.414l-2-2a1 1 0 010-1.414l2-2a1 1 0 011.414 0zm7.414 0a1 1 0 011.414 0l2 2a1 1 0 010 1.414l-2 2a1 1 0 01-1.414-1.414L14.586 9l-1.293-1.293a1 1 0 010-1.414zM9 11a1 1 0 100-2 1 1 0 000 2z" clip-rule="evenodd"/>
+        </svg>
+        <h1 class="text-2xl font-bold">aXe Accessibility Report</h1>
+      </div>
+      <button @click="goBack()" class="btn btn--secondary" title="Go back">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"/>
+        </svg>
+      </button>
+    </div>
+  </header>
+
+  <main class="app-main">
+    <div class="container mx-auto px-4 py-8 max-w-7xl">
+      
+      <!-- Report Metadata -->
+      <section class="card mb-8">
+        <div class="card__body">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-6">
+            <div>
+              <h3 class="text-sm font-semibold text-muted mb-2">Test Environment</h3>
+              <p class="text-sm" x-text="userAgent"></p>
+            </div>
+            <div>
+              <h3 class="text-sm font-semibold text-muted mb-2">Test Engine</h3>
+              <p class="text-sm"><span x-text="engineName"></span> v<span x-text="engineVersion"></span></p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Summary Stats -->
+      <section class="grid grid-cols-2 sm:grid-cols-4 gap-4 mb-8">
+        <div class="stat-card stat-violations">
+          <div class="stat-number" x-text="stats.violations"></div>
+          <div class="stat-label">Violations</div>
+        </div>
+        <div class="stat-card stat-passes">
+          <div class="stat-number" x-text="stats.passes"></div>
+          <div class="stat-label">Passed</div>
+        </div>
+        <div class="stat-card stat-incomplete">
+          <div class="stat-number" x-text="stats.incomplete"></div>
+          <div class="stat-label">Incomplete</div>
+        </div>
+        <div class="stat-card stat-inapplicable">
+          <div class="stat-number" x-text="stats.inapplicable"></div>
+          <div class="stat-label">Inapplicable</div>
+        </div>
+      </section>
+
+      <!-- Tabs Navigation -->
+      <div class="mb-6 border-b border-gray-200 dark:border-gray-700 flex flex-wrap gap-4">
+        <button 
+          @click="activeTab = 'violations'"
+          :class="activeTab === 'violations' ? 'border-b-2 border-accent-600 text-accent-600' : 'text-gray-600 dark:text-gray-400'"
+          class="pb-3 font-semibold text-sm transition-colors px-2">
+          Violations (<span x-text="stats.violations"></span>)
+        </button>
+        <button 
+          @click="activeTab = 'passes'"
+          :class="activeTab === 'passes' ? 'border-b-2 border-accent-600 text-accent-600' : 'text-gray-600 dark:text-gray-400'"
+          class="pb-3 font-semibold text-sm transition-colors px-2">
+          Passed (<span x-text="stats.passes"></span>)
+        </button>
+        <button 
+          @click="activeTab = 'incomplete'"
+          :class="activeTab === 'incomplete' ? 'border-b-2 border-accent-600 text-accent-600' : 'text-gray-600 dark:text-gray-400'"
+          class="pb-3 font-semibold text-sm transition-colors px-2">
+          Incomplete (<span x-text="stats.incomplete"></span>)
+        </button>
+        <button 
+          @click="activeTab = 'inapplicable'"
+          :class="activeTab === 'inapplicable' ? 'border-b-2 border-accent-600 text-accent-600' : 'text-gray-600 dark:text-gray-400'"
+          class="pb-3 font-semibold text-sm transition-colors px-2">
+          Inapplicable (<span x-text="stats.inapplicable"></span>)
+        </button>
+      </div>
+
+      <!-- Violations Tab -->
+      <div x-show="activeTab === 'violations'">
+        <div x-show="stats.violations === 0" class="card">
+          <div class="card__body text-center py-12">
+            <svg class="w-16 h-16 mx-auto text-green-500 mb-4 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+            <h3 class="text-lg font-semibold mb-2">No Accessibility Violations Found</h3>
+            <p class="text-muted">Great! The page has no accessibility issues detected by aXe.</p>
+          </div>
+        </div>
+        
+        <div class="space-y-4" x-show="stats.violations > 0">
+          <template x-for="(violation, idx) in results.violations" :key="'v-' + idx">
+            <div class="card violation-item">
+              <div class="card__body">
+                <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-4">
+                  <div class="flex-1">
+                    <h3 class="font-semibold text-lg mb-2" x-text="violation.id"></h3>
+                    <p class="text-sm text-muted mb-3" x-text="violation.description"></p>
+                    <a :href="violation.helpUrl" target="_blank" class="text-accent-600 hover:text-accent-700 text-sm font-medium">
+                      Learn more →
+                    </a>
+                  </div>
+                  <span class="issue-badge" :class="'impact-' + violation.impact" x-text="violation.impact"></span>
+                </div>
+                
+                <!-- Affected Nodes -->
+                <div x-show="violation.nodes && violation.nodes.length > 0" class="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+                  <h4 class="font-semibold text-sm mb-3">Affected Elements (<span x-text="violation.nodes.length"></span>)</h4>
+                  <div class="space-y-3">
+                    <template x-for="(node, nIdx) in violation.nodes" :key="'n-' + idx + '-' + nIdx">
+                      <div class="bg-gray-50 dark:bg-gray-800 rounded p-3">
+                        <p class="text-xs font-mono text-muted mb-2">Target:</p>
+                        <div class="code-block" x-text="node.target.join(' > ')"></div>
+                        <template x-if="node.html">
+                          <div>
+                            <p class="text-xs font-mono text-muted mt-2 mb-2">HTML:</p>
+                            <div class="code-block" x-text="node.html"></div>
+                          </div>
+                        </template>
+                        <template x-if="node.failureSummary">
+                          <div class="mt-2 p-2 bg-red-50 dark:bg-red-900/30 border border-red-200 dark:border-red-800 rounded text-sm text-red-700 dark:text-red-300" x-text="node.failureSummary"></div>
+                        </template>
+                      </div>
+                    </template>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </template>
+        </div>
+      </div>
+
+      <!-- Passes Tab -->
+      <div x-show="activeTab === 'passes'">
+        <div x-show="stats.passes === 0" class="card">
+          <div class="card__body text-center py-12">
+            <p class="text-muted">No passed checks.</p>
+          </div>
+        </div>
+        
+        <div class="space-y-3" x-show="stats.passes > 0">
+          <template x-for="(pass, idx) in results.passes" :key="'p-' + idx">
+            <div class="card pass-item">
+              <div class="card__body">
+                <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+                  <div>
+                    <h3 class="font-semibold" x-text="pass.id"></h3>
+                    <p class="text-sm text-muted" x-text="pass.description"></p>
+                  </div>
+                  <span class="text-xs bg-green-100 dark:bg-green-900/30 text-green-700 dark:text-green-300 px-3 py-1 rounded-full font-semibold whitespace-nowrap">
+                    <span x-text="pass.nodes.length"></span> elements
+                  </span>
+                </div>
+              </div>
+            </div>
+          </template>
+        </div>
+      </div>
+
+      <!-- Incomplete Tab -->
+      <div x-show="activeTab === 'incomplete'">
+        <div x-show="stats.incomplete === 0" class="card">
+          <div class="card__body text-center py-12">
+            <p class="text-muted">No incomplete checks.</p>
+          </div>
+        </div>
+        
+        <div class="space-y-4" x-show="stats.incomplete > 0">
+          <template x-for="(item, idx) in results.incomplete" :key="'i-' + idx">
+            <div class="card incomplete-item">
+              <div class="card__body">
+                <h3 class="font-semibold mb-2" x-text="item.id"></h3>
+                <p class="text-sm text-muted mb-3" x-text="item.description"></p>
+                <p class="text-xs text-amber-600 dark:text-amber-400 font-medium">
+                  Requires manual review for <span x-text="item.nodes.length"></span> element(s)
+                </p>
+              </div>
+            </div>
+          </template>
+        </div>
+      </div>
+
+      <!-- Inapplicable Tab -->
+      <div x-show="activeTab === 'inapplicable'">
+        <div x-show="stats.inapplicable === 0" class="card">
+          <div class="card__body text-center py-12">
+            <p class="text-muted">No inapplicable checks.</p>
+          </div>
+        </div>
+        
+        <div class="space-y-3" x-show="stats.inapplicable > 0">
+          <template x-for="(item, idx) in results.inapplicable" :key="'ia-' + idx">
+            <div class="card inapplicable-item">
+              <div class="card__body text-sm">
+                <h3 class="font-semibold" x-text="item.id"></h3>
+                <p class="text-muted" x-text="item.description"></p>
+              </div>
+            </div>
+          </template>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <!-- Alpine.js -->
+  <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+  
+  <script>
+    function axeApp() {
+      return {
+        results: {},
+        stats: { violations: 0, passes: 0, incomplete: 0, inapplicable: 0 },
+        activeTab: 'violations',
+        userAgent: '',
+        engineName: '',
+        engineVersion: '',
+        
+        init() {
+          this.loadAxeResults();
+        },
+        
+        loadAxeResults() {
+          // Get axe results from URL parameter or by loading JSON file
+          const params = new URLSearchParams(window.location.search);
+          const axePath = params.get('axePath');
+          const axeData = params.get('axeData');
+          
+          console.log('[AXE Viewer] Loading with axePath:', axePath, 'axeData:', !!axeData);
+          console.log('[AXE Viewer] Current URL:', window.location.href);
+          console.log('[AXE Viewer] Current pathname:', window.location.pathname);
+          
+          if (axeData) {
+            // If data is passed directly
+            try {
+              this.results = JSON.parse(decodeURIComponent(axeData));
+              this.processResults();
+            } catch (e) {
+              console.error('Failed to parse axe data:', e);
+              this.showError('Failed to parse report data: ' + e.message);
+            }
+          } else if (axePath) {
+            // Load from file path - try both fetch and XMLHttpRequest for better compatibility
+            console.log('[AXE Viewer] Fetching from path:', axePath);
+            
+            // Try fetch first (works for http/https)
+            fetch(axePath)
+              .then(response => {
+                console.log('[AXE Viewer] Fetch response status:', response.status);
+                if (!response.ok) throw new Error('HTTP ' + response.status);
+                return response.json();
+              })
+              .then(data => {
+                console.log('[AXE Viewer] Successfully loaded data via fetch, violations:', data.violations?.length || 0);
+                this.results = data;
+                this.processResults();
+              })
+              .catch(error => {
+                console.error('[AXE Viewer] Fetch failed:', error.message);
+                console.log('[AXE Viewer] Trying XMLHttpRequest as fallback...');
+                
+                // Fallback: try XMLHttpRequest (better for file:// protocol)
+                const xhr = new XMLHttpRequest();
+                xhr.onload = () => {
+                  try {
+                    const data = JSON.parse(xhr.responseText);
+                    console.log('[AXE Viewer] Successfully loaded data via XHR, violations:', data.violations?.length || 0);
+                    this.results = data;
+                    this.processResults();
+                  } catch (e) {
+                    console.error('[AXE Viewer] Failed to parse XHR response:', e);
+                    this.showError('Failed to parse accessibility report: ' + e.message);
+                  }
+                };
+                xhr.onerror = () => {
+                  console.error('[AXE Viewer] XHR failed: ' + xhr.status + ' ' + xhr.statusText);
+                  this.showError('Unable to load accessibility report: File not found or access denied');
+                };
+                try {
+                  xhr.open('GET', axePath, true);
+                  xhr.send();
+                } catch (e) {
+                  console.error('[AXE Viewer] XHR error:', e);
+                  this.showError('Unable to load accessibility report: ' + e.message);
+                }
+              });
+          } else {
+            console.warn('No axe data or path provided');
+            this.showError('No accessibility report data provided');
+          }
+        },
+        
+        showError(message) {
+          // Display error message
+          this.results = {
+            violations: [],
+            passes: [],
+            incomplete: [],
+            inapplicable: []
+          };
+          this.stats = { violations: 0, passes: 0, incomplete: 0, inapplicable: 0 };
+          console.error(message);
+        },
+        
+        processResults() {
+          this.stats = {
+            violations: (this.results.violations || []).length,
+            passes: (this.results.passes || []).length,
+            incomplete: (this.results.incomplete || []).length,
+            inapplicable: (this.results.inapplicable || []).length
+          };
+          
+          // Extract metadata
+          if (this.results.testEnvironment) {
+            this.userAgent = this.results.testEnvironment.userAgent || 'Unknown';
+          }
+          
+          if (this.results.testEngine) {
+            this.engineName = this.results.testEngine.name || 'aXe';
+            this.engineVersion = this.results.testEngine.version || 'Unknown';
+          }
+          
+          // Set active tab based on violations
+          if (this.stats.violations > 0) {
+            this.activeTab = 'violations';
+          } else if (this.stats.passes > 0) {
+            this.activeTab = 'passes';
+          } else if (this.stats.incomplete > 0) {
+            this.activeTab = 'incomplete';
+          } else {
+            this.activeTab = 'inapplicable';
+          }
+        },
+        
+        goBack() {
+          window.history.back();
+        }
+      };
+    }
+  </script>
+</body>
+</html>

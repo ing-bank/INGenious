@@ -1,0 +1,7 @@
+Step,ObjectName,Description,Action,Input,Condition,Reference
+1,Execute,,Workflow:Launch Calculator,,,
+2,Execute,,Workflow:Applicant,,,
+3,Execute,,Workflow:Your Plans,,,
+4,Execute,,Workflow:Income Details,,,
+5,Execute,,Workflow:Mandatory expenses,,,
+6,Execute,,Workflow:Your Calculation,,,

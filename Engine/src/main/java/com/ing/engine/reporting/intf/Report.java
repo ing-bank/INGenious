@@ -33,6 +33,8 @@ public interface Report {
     
     public String getNewScreenShotName();
 
+    public String getVideoLinkName();
+
     public File getReportLoc();
 
     public Step getStep();

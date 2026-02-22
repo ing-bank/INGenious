@@ -1,0 +1,909 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#ffffff">
+  <title>Test Summary Report - INGenious</title>
+  
+  <!-- Modern CSS Framework -->
+  <link rel="stylesheet" href="../../../../media/css/modern/tailwind.min.css">
+  <link rel="stylesheet" href="../../../../media/css/modern/components.css">
+  <link rel="stylesheet" href="../../../../media/css/modern/themes/light.css" id="theme-light">
+  <link rel="stylesheet" href="../../../../media/css/modern/themes/dark.css" id="theme-dark" disabled>
+  <link rel="stylesheet" href="../../../../media/css/modern/themes/indigo.css" id="theme-accent">
+  
+  <!-- Tabulator CSS -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tabulator-tables@6.2.1/dist/css/tabulator_simple.min.css">
+  
+  <!-- Report Data -->
+  <script src="data.js"></script>
+  
+  <!-- Inter Font (optional, falls back to system fonts) -->
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+    /* Global font family override */
+    body {
+      font-family: 'ing-me', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif !important;
+    }
+
+    .report-title,
+    .card__title {
+      color: #7724FF;
+    }
+
+    .dark .report-title,
+    .dark .card__title {
+      color: #C6A6FF;
+    }
+    
+    /* Custom overrides */
+    .tabulator {
+      font-family: var(--font-family);
+      background: var(--bg-primary);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-lg);
+    }
+    /* Light Mode - Table Header */
+    .tabulator .tabulator-header {
+      background: #f3f4f6;
+      border-bottom: 2px solid var(--border-color);
+      color: #374151;
+    }
+    .tabulator .tabulator-header .tabulator-col {
+      background: transparent;
+      border-right: 1px solid var(--border-color);
+      color: #374151;
+    }
+    
+    /* Light Mode - Table Rows */
+    .tabulator-row {
+      border-bottom: 1px solid var(--border-subtle);
+      background: #ffffff !important;
+      color: #1f2937 !important;
+    }
+    .tabulator-row .tabulator-cell {
+      background: transparent;
+      color: inherit;
+      border-right: 1px solid var(--border-subtle);
+    }
+    .tabulator-row:hover {
+      background: #F1E9FF !important;
+    }
+    .tabulator-row:hover .tabulator-cell {
+      color: inherit;
+    }
+    
+    /* Dark Mode - Table Header */
+    .dark .tabulator .tabulator-header {
+      background: rgba(17, 24, 39, 0.8);
+      border-bottom: 2px solid rgba(75, 85, 99, 0.3);
+      color: #e5e7eb;
+    }
+    .dark .tabulator .tabulator-header .tabulator-col {
+      background: transparent;
+      border-right: 1px solid rgba(75, 85, 99, 0.3);
+      color: #d1d5db;
+    }
+    
+    /* Dark Mode - Table Rows */
+    .dark .tabulator-row {
+      border-bottom: 1px solid rgba(75, 85, 99, 0.3);
+      background: #1f2937 !important;
+      color: #e5e7eb !important;
+    }
+    .dark .tabulator-row .tabulator-cell {
+      background: transparent;
+      color: inherit;
+      border-right: 1px solid rgba(75, 85, 99, 0.3);
+    }
+    .dark .tabulator-row:hover {
+      background: #B487FF !important;
+    }
+    .dark .tabulator-row:hover .tabulator-cell {
+      color: inherit;
+    }
+    
+    /* Tabulator Footer */
+    .tabulator .tabulator-cell {
+      color: inherit;
+    }
+    .tabulator .tabulator-footer {
+      background: #f9fafb;
+      border-top: 2px solid var(--border-color);
+      margin-top: 1rem;
+      padding-top: 1rem;
+      color: #374151;
+    }
+    .dark .tabulator .tabulator-footer {
+      background: rgba(17, 24, 39, 0.6);
+      border-top: 2px solid rgba(75, 85, 99, 0.3);
+      color: #d1d5db;
+    }
+
+    /* Execution Details Table Hover */
+    .table-styled tbody tr:hover {
+      background: #F1E9FF !important;
+    }
+    .table-styled tbody tr:hover td {
+      color: inherit;
+    }
+    .dark .table-styled tbody tr:hover {
+      background: #B487FF !important;
+    }
+    .dark .table-styled tbody tr:hover td {
+      color: inherit;
+    }
+
+    /* Pagination Styling */
+    .tabulator .tabulator-paginator {
+      color: #374151;
+    }
+    .tabulator .tabulator-page {
+      background: #ffffff;
+      border: 1px solid var(--border-color);
+      color: #374151;
+    }
+    .tabulator .tabulator-page.active {
+      background: #F1E9FF;
+      border-color: #B487FF;
+      color: #5b21b6;
+    }
+    .tabulator .tabulator-page:hover {
+      background: #F1E9FF;
+      color: #5b21b6;
+    }
+    .tabulator .tabulator-page-size {
+      background: #ffffff;
+      border: 1px solid var(--border-color);
+      color: #374151;
+    }
+    .dark .tabulator .tabulator-paginator {
+      color: #d1d5db;
+    }
+    .dark .tabulator .tabulator-page {
+      background: #1f2937;
+      border: 1px solid rgba(75, 85, 99, 0.4);
+      color: #e5e7eb;
+    }
+    .dark .tabulator .tabulator-page.active {
+      background: #B487FF;
+      border-color: #B487FF;
+      color: #1f2937;
+    }
+    .dark .tabulator .tabulator-page:hover {
+      background: #B487FF;
+      color: #1f2937;
+    }
+    .dark .tabulator .tabulator-page-size {
+      background: #1f2937;
+      border: 1px solid rgba(75, 85, 99, 0.4);
+      color: #e5e7eb;
+    }
+  </style>
+</head>
+<body x-data="reportApp()" x-init="init()" :class="{ 'dark': isDark }">
+  
+  <!-- App Shell -->
+  <div class="app-shell">
+    
+    <!-- Header -->
+    <header class="app-header">
+      <div class="app-header__content flex items-start justify-between gap-6">
+        <div class="flex items-center gap-4 flex-1">
+          <!-- Report Icon & Title -->
+          <div class="p-3 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
+            <svg class="w-7 h-7 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 3v5a2 2 0 002 2h5"/>
+            </svg>
+          </div>
+          <h1 class="report-title text-2xl font-black m-0">Execution Report</h1>
+        </div>
+        
+        <!-- Header Actions -->
+        <div class="flex items-start gap-4">
+          <!-- Print Button -->
+          <button class="btn btn--icon btn--secondary print:hidden" @click="window.print()" title="Print Report">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/>
+            </svg>
+          </button>
+
+          <!-- Theme Toggle -->
+          <button 
+            class="btn btn--icon btn--secondary self-start" 
+            @click="toggleTheme()"
+            :title="isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode'"
+          >
+            <svg x-show="!isDark" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/>
+            </svg>
+            <svg x-show="isDark" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+    </header>
+    
+    <!-- Main Content -->
+    <main class="app-main">
+      <div class="container mx-auto px-4 py-6 max-w-7xl">
+        
+        <!-- Summary Stats Cards -->
+        <section class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4 mb-8">
+          <!-- Total Tests -->
+          <div class="stat-card">
+            <div class="stat-card__header">
+              <span class="stat-card__label">Total Tests</span>
+              <svg class="stat-card__icon text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+              </svg>
+            </div>
+            <div class="stat-card__value" x-text="totalTests"></div>
+          </div>
+          
+          <!-- Passed Tests -->
+          <div class="stat-card stat-card--passed">
+            <div class="stat-card__header">
+              <span class="stat-card__label">Passed</span>
+              <svg class="stat-card__icon text-emerald-500" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
+              </svg>
+            </div>
+            <div class="stat-card__value" x-text="details.nopassTests || 0"></div>
+          </div>
+          
+          <!-- Failed Tests -->
+          <div class="stat-card stat-card--failed">
+            <div class="stat-card__header">
+              <span class="stat-card__label">Failed</span>
+              <svg class="stat-card__icon text-red-500" fill="currentColor" viewBox="0 0 20 20">
+                <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
+              </svg>
+            </div>
+            <div class="stat-card__value" x-text="details.nofailTests || 0"></div>
+          </div>
+          
+          <!-- Pass Rate -->
+          <div class="stat-card">
+            <div class="stat-card__header">
+              <span class="stat-card__label">Pass Rate</span>
+              <svg class="stat-card__icon text-blue-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+              </svg>
+            </div>
+            <div class="stat-card__value">
+              <span x-text="passRate"></span>%
+            </div>
+            <div class="mt-2">
+              <div class="progress-bar">
+                <div 
+                  class="progress-bar__fill" 
+                  :class="passRate >= 80 ? 'progress-bar__fill--success' : passRate >= 50 ? 'progress-bar__fill--warning' : 'progress-bar__fill--fail'"
+                  :style="{ width: passRate + '%' }"
+                ></div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Duration -->
+          <div class="stat-card">
+            <div class="stat-card__header">
+              <span class="stat-card__label">Duration</span>
+              <svg class="stat-card__icon text-purple-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/>
+              </svg>
+            </div>
+            <div class="stat-card__value text-base" x-text="details.exeTime || '-'"></div>
+          </div>
+          
+          <!-- Threads -->
+          <div class="stat-card">
+            <div class="stat-card__header">
+              <span class="stat-card__label">Threads</span>
+              <svg class="stat-card__icon text-amber-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 7v10c0 2.21 3.582 4 8 4s8-1.79 8-4V7M4 7c0 2.21 3.582 4 8 4s8-1.79 8-4M4 7c0-2.21 3.582-4 8-4s8 1.79 8 4"/>
+              </svg>
+            </div>
+            <div class="stat-card__value" x-text="details.maxThreads || 1"></div>
+          </div>
+        </section>
+        
+        <!-- Pass/Fail Chart & Execution Details -->
+        <section class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+          <!-- Doughnut Chart -->
+          <div class="card">
+            <div class="card__header">
+              <h3 class="card__title">Test Results Distribution</h3>
+            </div>
+            <div class="card__body">
+              <div class="relative flex items-center justify-center" style="height: 200px;">
+                <canvas id="passFailChart"></canvas>
+                <!-- Center text -->
+                <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
+                  <div class="text-center">
+                    <div class="text-3xl font-bold" x-text="passRate + '%'"></div>
+                    <div class="text-sm text-muted">Pass Rate</div>
+                  </div>
+                </div>
+              </div>
+              <!-- Legend -->
+              <div class="flex justify-center gap-6 mt-4">
+                <div class="flex items-center gap-2">
+                  <span class="w-3 h-3 rounded-full bg-emerald-500"></span>
+                  <span class="text-sm">Passed (<span x-text="details.nopassTests || 0"></span>)</span>
+                </div>
+                <div class="flex items-center gap-2">
+                  <span class="w-3 h-3 rounded-full bg-red-500"></span>
+                  <span class="text-sm">Failed (<span x-text="details.nofailTests || 0"></span>)</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <!-- Execution Details -->
+          <div class="card lg:col-span-2">
+            <div class="card__header">
+              <h3 class="card__title">Execution Details</h3>
+            </div>
+            <div class="card__body p-0">
+              <div class="overflow-x-auto">
+                <table class="w-full table-styled">
+                  <tbody>
+                    <tr class="border-b border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
+                      <td class="px-4 py-3 bg-gradient-to-r from-blue-50 to-transparent dark:from-blue-900/20 dark:to-transparent border-r border-gray-200 dark:border-gray-700 w-1/3">
+                        <div class="flex items-center gap-2">
+                          <svg class="w-4 h-4 text-blue-600 dark:text-blue-400" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M11.3 1.046A1 1 0 0112 2v5h4a1 1 0 01.82 1.573l-7 10.666A1 1 0 018 18.57V13H4a1 1 0 01-.82-1.573l7-10.666a1 1 0 011.12-.361z" clip-rule="evenodd"/>
+                          </svg>
+                          <span class="font-semibold text-gray-700 dark:text-gray-300">Run Configuration</span>
+                        </div>
+                      </td>
+                      <td class="px-4 py-3 font-medium text-gray-900 dark:text-gray-100" x-text="details.runConfiguration || '-'"></td>
+                    </tr>
+                    <tr class="border-b border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
+                      <td class="px-4 py-3 bg-gradient-to-r from-indigo-50 to-transparent dark:from-indigo-900/20 dark:to-transparent border-r border-gray-200 dark:border-gray-700 w-1/3">
+                        <div class="flex items-center gap-2">
+                          <svg class="w-4 h-4 text-indigo-600 dark:text-indigo-400" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M9 2a1 1 0 000 2h2a1 1 0 100-2H9z"/><path fill-rule="evenodd" d="M4 5a2 2 0 012-2 1 1 0 000 2H3a1 1 0 00-1 1v10a1 1 0 001 1h14a1 1 0 001-1V6a1 1 0 00-1-1h3a1 1 0 000-2 2 2 0 01-2-2V2a1 1 0 10-2 0v1a1 1 0 11-2 0V2a1 1 0 10-2 0v1a1 1 0 11-2 0V2a1 1 0 10-2 0v1a1 1 0 11-2 0V2a2 2 0 00-2 2zm0 5a1 1 0 000 2h10a1 1 0 100-2H4zm0 4a1 1 0 000 2h4a1 1 0 100-2H4z" clip-rule="evenodd"/>
+                          </svg>
+                          <span class="font-semibold text-gray-700 dark:text-gray-300" x-text="primaryExecutionLabel"></span>
+                        </div>
+                      </td>
+                      <td class="px-4 py-3 font-medium text-gray-900 dark:text-gray-100" x-text="primaryExecutionValue || '-'"></td>
+                    </tr>
+                    <tr class="border-b border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
+                      <td class="px-4 py-3 bg-gradient-to-r from-cyan-50 to-transparent dark:from-cyan-900/20 dark:to-transparent border-r border-gray-200 dark:border-gray-700 w-1/3">
+                        <div class="flex items-center gap-2">
+                          <svg class="w-4 h-4 text-cyan-600 dark:text-cyan-400" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M7 3a1 1 0 000 2h6a1 1 0 000-2H7zM4 7a1 1 0 011-1h10a1 1 0 011 1v6a1 1 0 01-1 1H5a1 1 0 01-1-1V7zM2 11a2 2 0 114 0 2 2 0 01-4 0zm12 0a2 2 0 114 0 2 2 0 01-4 0z"/>
+                          </svg>
+                          <span class="font-semibold text-gray-700 dark:text-gray-300" x-text="secondaryExecutionLabel"></span>
+                        </div>
+                      </td>
+                      <td class="px-4 py-3 font-medium text-gray-900 dark:text-gray-100" x-text="secondaryExecutionValue || '-'"></td>
+                    </tr>
+                    <tr class="border-b border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
+                      <td class="px-4 py-3 bg-gradient-to-r from-purple-50 to-transparent dark:from-purple-900/20 dark:to-transparent border-r border-gray-200 dark:border-gray-700 w-1/3">
+                        <div class="flex items-center gap-2">
+                          <svg class="w-4 h-4 text-purple-600 dark:text-purple-400" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M4 4a2 2 0 00-2 2v4a2 2 0 002 2V6h10a2 2 0 00-2-2H4zm2 6a2 2 0 012-2h8a2 2 0 012 2v4a2 2 0 01-2 2H8a2 2 0 01-2-2v-4zm6 4a2 2 0 100-4 2 2 0 000 4z" clip-rule="evenodd"/>
+                          </svg>
+                          <span class="font-semibold text-gray-700 dark:text-gray-300">Parallel Threads</span>
+                        </div>
+                      </td>
+                      <td class="px-4 py-3 font-medium text-gray-900 dark:text-gray-100" x-text="details.maxThreads || 1"></td>
+                    </tr>
+                    <tr class="border-b border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
+                      <td class="px-4 py-3 bg-gradient-to-r from-green-50 to-transparent dark:from-green-900/20 dark:to-transparent border-r border-gray-200 dark:border-gray-700 w-1/3">
+                        <div class="flex items-center gap-2">
+                          <svg class="w-4 h-4 text-green-600 dark:text-green-400" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M10.707 2.293a1 1 0 00-1.414 0l-7 7a1 1 0 001.414 1.414L4 10.414V17a1 1 0 001 1h2a1 1 0 001-1v-2a1 1 0 011-1h2a1 1 0 011 1v2a1 1 0 001 1h2a1 1 0 001-1v-6.586l.293.293a1 1 0 001.414-1.414l-7-7z"/>
+                          </svg>
+                          <span class="font-semibold text-gray-700 dark:text-gray-300">Start Time</span>
+                        </div>
+                      </td>
+                      <td class="px-4 py-3 font-medium text-gray-900 dark:text-gray-100" x-text="details.startTime || '-'" ></td>
+                    </tr>
+                    <tr class="border-b border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
+                      <td class="px-4 py-3 bg-gradient-to-r from-orange-50 to-transparent dark:from-orange-900/20 dark:to-transparent border-r border-gray-200 dark:border-gray-700 w-1/3">
+                        <div class="flex items-center gap-2">
+                          <svg class="w-4 h-4 text-orange-600 dark:text-orange-400" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0A4 4 0 1014.414 5.5a1 1 0 11-1.414-1.414A6 6 0 1015.707 13.707a1 1 0 11-1.414 1.414A4 4 0 115.293 7.293zM15 12a1 1 0 100-2 1 1 0 000 2z" clip-rule="evenodd"/>
+                          </svg>
+                          <span class="font-semibold text-gray-700 dark:text-gray-300">End Time</span>
+                        </div>
+                      </td>
+                      <td class="px-4 py-3 font-medium text-gray-900 dark:text-gray-100" x-text="details.endTime || '-'" ></td>
+                    </tr>
+                    <tr class="border-b border-gray-200 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors">
+                      <td class="px-4 py-3 bg-gradient-to-r from-red-50 to-transparent dark:from-red-900/20 dark:to-transparent border-r border-gray-200 dark:border-gray-700 w-1/3">
+                        <div class="flex items-center gap-2">
+                          <svg class="w-4 h-4 text-red-600 dark:text-red-400" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16m1-11a1 1 0 10-2 0 1 1 0 002 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
+                          </svg>
+                          <span class="font-semibold text-gray-700 dark:text-gray-300">Total Duration</span>
+                        </div>
+                      </td>
+                      <td class="px-4 py-3 font-medium text-gray-900 dark:text-gray-100" x-text="details.exeTime || '-'" ></td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        </section>
+        
+        <!-- Test Results Table Section -->
+        <section class="card">
+          <div class="card__header flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <h3 class="card__title">Test Executions</h3>
+            
+            <!-- Search & Filters -->
+            <div class="flex flex-col sm:flex-row gap-3">
+              <!-- Search -->
+              <div class="relative">
+                <input 
+                  type="text" 
+                  x-model="searchQuery"
+                  @input.debounce.300="filterTable()"
+                  placeholder="Search tests..." 
+                  class="w-full sm:w-64 px-4 py-2.5 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-accent-500 focus:border-accent-500 transition-colors shadow-sm"
+                >
+              </div>
+              
+              <!-- Status Filter -->
+              <select 
+                x-model="statusFilter"
+                @change="filterTable()"
+                class="px-3 py-2 text-sm border border-gray-200 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 focus:ring-2 focus:ring-accent-500"
+              >
+                <option value="all">All Status</option>
+                <option value="PASS">Passed Only</option>
+                <option value="FAIL">Failed Only</option>
+              </select>
+            </div>
+          </div>
+          
+          <div class="card__body p-0">
+            <!-- Executions Table -->
+            <div id="executionsTable"></div>
+          </div>
+        </section>
+        
+      </div>
+    </main>
+    
+    <!-- Footer Links -->
+    <footer class="fixed bottom-4 right-4 flex gap-2 print:hidden">
+      <template x-if="details.bddReport">
+        <a :href="details.bddLink || 'cucumber-html-reports/overview-features.html'" target="_blank" class="btn btn--secondary btn--sm" title="BDD Report">
+          <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+          </svg>
+          BDD
+        </a>
+      </template>
+      
+      <template x-if="details.axeReport">
+        <a href="aXe/aXe.html" target="_blank" class="btn btn--secondary btn--sm" title="Accessibility Report">
+          <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/>
+          </svg>
+          A11y
+        </a>
+      </template>
+      
+      <a href="console.txt" target="_blank" class="btn btn--secondary btn--sm" title="Console Log">
+        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+        </svg>
+        Log
+      </a>
+      
+      <button @click="window.scrollTo({top: 0, behavior: 'smooth'})" class="btn btn--icon btn--secondary btn--sm" title="Scroll to Top">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18"/>
+        </svg>
+      </button>
+    </footer>
+    
+  </div>
+  
+  <!-- Alpine.js -->
+  <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+  
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  
+  <!-- Tabulator -->
+  <script src="https://cdn.jsdelivr.net/npm/tabulator-tables@6.2.1/dist/js/tabulator.min.js"></script>
+  
+  <!-- Report Application -->
+  <script>
+    function reportApp() {
+      return {
+        // State
+        details: {},
+        executions: [],
+        viewMode: 'single',
+        isDark: false,
+        searchQuery: '',
+        statusFilter: 'all',
+        passFailChart: null,
+        executionsTable: null,
+        groupTable: null,
+        
+        // Computed
+        get isSingleRun() {
+          return Boolean(this.details.testRun) || this.executions.length === 1;
+        },
+
+        get primaryExecutionLabel() {
+          return this.isSingleRun ? 'Scenario Name' : 'Release Name';
+        },
+
+        get secondaryExecutionLabel() {
+          return this.isSingleRun ? 'Test Case Name' : 'Test Set Name';
+        },
+
+        get primaryExecutionValue() {
+          if (this.isSingleRun) {
+            const exe = this.executions[0] || {};
+            return exe.scenarioName || '-';
+          }
+          return this.details.releaseName || '-';
+        },
+
+        get secondaryExecutionValue() {
+          if (this.isSingleRun) {
+            const exe = this.executions[0] || {};
+            return exe.testcaseName || '-';
+          }
+          return this.details.testsetName || '-';
+        },
+        
+        get totalTests() {
+          return parseInt(this.details.nopassTests || 0) + parseInt(this.details.nofailTests || 0);
+        },
+        
+        get passRate() {
+          const total = this.totalTests;
+          if (total === 0) return 0;
+          return Math.round((parseInt(this.details.nopassTests || 0) / total) * 100);
+        },
+        
+        // Methods
+        init() {
+          // Load data from global DATA object (provided by data.js)
+          if (typeof DATA !== 'undefined') {
+            this.details = DATA;
+            this.executions = DATA.EXECUTIONS || [];
+          }
+          
+          // Load theme preference
+          const savedTheme = localStorage.getItem('ingenious-report-theme');
+          this.isDark = savedTheme === 'dark' || 
+            (!savedTheme && window.matchMedia('(prefers-color-scheme: dark)').matches);
+          this.applyTheme();
+          
+          // Initialize charts and tables after Alpine renders
+          this.$nextTick(() => {
+            this.initChart();
+            this.initTable();
+          });
+        },
+        
+        toggleTheme() {
+          this.isDark = !this.isDark;
+          localStorage.setItem('ingenious-report-theme', this.isDark ? 'dark' : 'light');
+          this.applyTheme();
+          this.updateChartTheme();
+        },
+        
+        applyTheme() {
+          const lightTheme = document.getElementById('theme-light');
+          const darkTheme = document.getElementById('theme-dark');
+          
+          if (this.isDark) {
+            document.documentElement.classList.add('dark');
+            lightTheme.disabled = true;
+            darkTheme.disabled = false;
+          } else {
+            document.documentElement.classList.remove('dark');
+            lightTheme.disabled = false;
+            darkTheme.disabled = true;
+          }
+        },
+        
+        initChart() {
+          const canvas = document.getElementById('passFailChart');
+          if (!canvas || typeof Chart === 'undefined') return;
+          
+          const passed = parseInt(this.details.nopassTests || 0);
+          const failed = parseInt(this.details.nofailTests || 0);
+          
+          this.passFailChart = new Chart(canvas, {
+            type: 'doughnut',
+            data: {
+              labels: ['Passed', 'Failed'],
+              datasets: [{
+                data: [passed, failed],
+                backgroundColor: [
+                  'rgb(16, 185, 129)',
+                  'rgb(239, 68, 68)'
+                ],
+                borderWidth: 0,
+                hoverOffset: 4
+              }]
+            },
+            options: {
+              responsive: true,
+              maintainAspectRatio: false,
+              cutout: '75%',
+              plugins: {
+                legend: { display: false },
+                tooltip: {
+                  backgroundColor: 'rgba(17, 24, 39, 0.95)',
+                  padding: 12,
+                  cornerRadius: 8,
+                  titleFont: { size: 13, weight: '600' },
+                  bodyFont: { size: 12 }
+                }
+              }
+            }
+          });
+        },
+        
+        updateChartTheme() {
+          // Chart colors don't need to change, but could update if needed
+        },
+        
+        initTable() {
+          // Initialize Single View Table
+          if (document.getElementById('executionsTable') && typeof Tabulator !== 'undefined') {
+            this.executionsTable = new Tabulator('#executionsTable', {
+              data: this.executions,
+              layout: 'fitColumns',
+              responsiveLayout: 'collapse',
+              pagination: true,
+              paginationSize: 20,
+              paginationSizeSelector: [10, 20, 50, 100],
+              placeholder: 'No test executions found',
+              columns: [
+                { 
+                  title: 'Scenario', 
+                  field: 'scenarioName',
+                  widthGrow: 2,
+                  minWidth: 200,
+                  headerFilter: false,
+                  formatter: (cell) => {
+                    return `<div class="text-sm font-medium text-gray-900 dark:text-gray-100">${this.escapeHtml(cell.getValue() || '-')}</div>`;
+                  }
+                },
+                { 
+                  title: 'Test Case', 
+                  field: 'testcaseName',
+                  widthGrow: 2,
+                  minWidth: 220,
+                  formatter: (cell) => {
+                    const data = cell.getRow().getData();
+                    const link = this.getDetailedLink(data);
+                    return `<a href="${link}" class="text-accent-600 dark:text-accent-400 hover:text-accent-700 dark:hover:text-accent-300 hover:underline font-medium text-sm">${this.escapeHtml(cell.getValue())}</a>`;
+                  }
+                },
+                { 
+                  title: 'Browser', 
+                  field: 'browser',
+                  width: 140,
+                  formatter: (cell) => {
+                    const browser = cell.getValue() || '-';
+                    let badgeClass = 'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300';
+                    
+                    if (browser.toLowerCase().includes('chromium') || browser.toLowerCase().includes('chrome')) {
+                      badgeClass = 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400';
+                    } else if (browser.toLowerCase().includes('webkit') || browser.toLowerCase().includes('safari')) {
+                      badgeClass = 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400';
+                    } else if (browser.toLowerCase().includes('firefox')) {
+                      badgeClass = 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400';
+                    } else if (browser.toLowerCase().includes('no browser') || browser === 'NoBrowser') {
+                      badgeClass = 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400';
+                    }
+                    
+                    return `<span class="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-semibold ${badgeClass}">${this.escapeHtml(browser)}</span>`;
+                  }
+                },
+                { 
+                  title: 'Execution Time', 
+                  field: 'exeTime',
+                  width: 130,
+                  formatter: (cell) => {
+                    return `<div class="text-sm font-mono text-gray-700 dark:text-gray-300">${this.escapeHtml(cell.getValue() || '-')}</div>`;
+                  }
+                },
+                { 
+                  title: 'Status', 
+                  field: 'status',
+                  width: 100,
+                  formatter: (cell) => {
+                    const status = cell.getValue();
+                    const cssClass = status === 'PASS' ? 'badge--passed' : status === 'FAIL' ? 'badge--failed' : 'badge--warning';
+                    return `<span class="badge ${cssClass} text-xs font-semibold">${this.escapeHtml(status)}</span>`;
+                  }
+                },
+                { 
+                  title: 'Browser Version', 
+                  field: 'bversion',
+                  minWidth: 130,
+                  visible: false,
+                  formatter: (cell) => {
+                    return `<div class="text-sm text-gray-700 dark:text-gray-300">${this.escapeHtml(cell.getValue() || '-')}</div>`;
+                  }
+                },
+                { 
+                  title: 'Platform', 
+                  field: 'platform',
+                  minWidth: 120,
+                  visible: false,
+                  formatter: (cell) => {
+                    return `<div class="text-sm text-gray-700 dark:text-gray-300">${this.escapeHtml(cell.getValue() || '-')}</div>`;
+                  }
+                },
+                { 
+                  title: 'Iterations', 
+                  field: 'iterations',
+                  minWidth: 100,
+                  visible: false,
+                  formatter: (cell) => {
+                    return `<div class="text-sm text-gray-700 dark:text-gray-300">${this.escapeHtml(cell.getValue() || '-')}</div>`;
+                  }
+                }
+              ],
+              initialSort: [
+                { column: 'status', dir: 'desc' }
+              ]
+            });
+          }
+          
+          // Initialize Group View Table (if needed)
+          this.initGroupTable();
+        },
+        
+        initGroupTable() {
+          // Group view aggregates by scenario/testcase across browsers
+          if (!document.getElementById('groupTable') || typeof Tabulator === 'undefined') return;
+          
+          // Group data by scenario + testcase
+          const grouped = {};
+          const browsers = new Set();
+          
+          this.executions.forEach(exe => {
+            const key = `${exe.scenarioName}|||${exe.testcaseName}`;
+            if (!grouped[key]) {
+              grouped[key] = {
+                scenarioName: exe.scenarioName,
+                testcaseName: exe.testcaseName,
+                browsers: {}
+              };
+            }
+            const browserKey = `${exe.browser}-${exe.bversion}`;
+            browsers.add(browserKey);
+            grouped[key].browsers[browserKey] = {
+              status: exe.status,
+              exeTime: exe.exeTime
+            };
+          });
+          
+          const groupedData = Object.values(grouped);
+          const browserColumns = [...browsers].map(browser => ({
+            title: browser,
+            field: `browsers.${browser}.status`,
+            minWidth: 140,
+            formatter: (cell) => {
+              const rowData = cell.getRow().getData();
+              const browserData = rowData.browsers[browser];
+              if (!browserData) return '<span class="text-gray-400 text-sm">N/A</span>';
+              
+              const browserLower = browser.toLowerCase();
+              let badgeClass = 'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300';
+              
+              if (browserLower.includes('chromium') || browserLower.includes('chrome')) {
+                badgeClass = 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400';
+              } else if (browserLower.includes('webkit') || browserLower.includes('safari')) {
+                badgeClass = 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400';
+              } else if (browserLower.includes('firefox')) {
+                badgeClass = 'bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400';
+              } else if (browserLower.includes('no browser') || browser === 'NoBrowser') {
+                badgeClass = 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400';
+              }
+              
+              const statusClass = browserData.status === 'PASS' ? 'badge--passed' : browserData.status === 'FAIL' ? 'badge--failed' : 'badge--warning';
+              return `<div class="flex flex-col items-center gap-1"><span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-semibold ${badgeClass}">${browser.split('-')[0]}</span><span class="badge ${statusClass} text-xs font-semibold">${browserData.status}</span><span class="text-xs text-muted">${browserData.exeTime}</span></div>`;
+            },
+            hozAlign: 'center'
+          }));
+          
+          this.groupTable = new Tabulator('#groupTable', {
+            data: groupedData,
+            layout: 'fitColumns',
+            responsiveLayout: 'collapse',
+            pagination: true,
+            paginationSize: 20,
+            paginationSizeSelector: [10, 20, 50, 100],
+            placeholder: 'No test executions found',
+            columns: [
+              { 
+                title: 'Scenario', 
+                field: 'scenarioName',
+                widthGrow: 2,
+                minWidth: 200,
+                formatter: (cell) => {
+                  return `<div class="text-sm font-medium text-gray-900 dark:text-gray-100">${this.escapeHtml(cell.getValue() || '-')}</div>`;
+                }
+              },
+              { 
+                title: 'Test Case', 
+                field: 'testcaseName',
+                widthGrow: 2,
+                minWidth: 220,
+                formatter: (cell) => {
+                  const data = cell.getRow().getData();
+                  const link = `detailed.html?SC=${encodeURIComponent(data.scenarioName)}&TC=${encodeURIComponent(data.testcaseName)}&BRO=ALL`;
+                  return `<a href="${link}" class="text-accent-600 dark:text-accent-400 hover:text-accent-700 dark:hover:text-accent-300 hover:underline font-medium text-sm">${this.escapeHtml(cell.getValue())}</a>`;
+                }
+              },
+              ...browserColumns
+            ]
+          });
+        },
+        
+        filterTable() {
+          if (!this.executionsTable) return;
+          
+          const filters = [];
+          
+          if (this.searchQuery) {
+            filters.push([
+              { field: 'scenarioName', type: 'like', value: this.searchQuery },
+              { field: 'testcaseName', type: 'like', value: this.searchQuery }
+            ]);
+          }
+          
+          if (this.statusFilter !== 'all') {
+            filters.push({ field: 'status', type: '=', value: this.statusFilter });
+          }
+          
+          if (filters.length > 0) {
+            this.executionsTable.setFilter(filters);
+          } else {
+            this.executionsTable.clearFilter();
+          }
+        },
+        
+        getDetailedLink(data) {
+          const params = new URLSearchParams({
+            SC: data.scenarioName || '',
+            TC: data.testcaseName || '',
+            BRO: data.browser || '',
+            BROV: data.bversion || '',
+            PLATF: data.platform || '',
+            ITYPE: data.iterationType || ''
+          });
+          return `detailed-v2.html?${params.toString()}`;
+        },
+        
+        escapeHtml(str) {
+          if (!str) return '';
+          const div = document.createElement('div');
+          div.textContent = str;
+          return div.innerHTML;
+        }
+      };
+    }
+  </script>
+  
+</body>
+</html>

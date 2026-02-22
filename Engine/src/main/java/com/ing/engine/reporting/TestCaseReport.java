@@ -174,19 +174,7 @@ public final class TestCaseReport implements Report {
         currentStatus = state;
         stepNo++;
         setScreenShotName();
-        String emoji = "";
-        if(state.toString().contains("PASS"))
-          emoji = "✅";
-        if(state.toString().contains("FAIL"))
-          emoji = "❌";
-        if(state.toString().contains("DONE"))
-          emoji = "🟢"; 
-        if(state.toString().contains("WARNING"))
-          emoji = "🟡"; 
-        if(state.toString().contains("DEBUG"))
-          emoji = "🔴"; 
-        System.out.println(String.format("[%s]   | %s " + emoji, state, stepDescription));
-        System.out.println(String.format("\n%99s\n", "=").replace(" ", "="));
+        
         String stepInfo = stepLevelLog(String.valueOf(getStep().StepNum), getStep().ObjectName, getStep().Action, getStep().Input, getStep().Condition, state, stepDescription);
         this.sb.append(stepInfo).append("\n");
         for (TestCaseHandler handler : handlers) {
@@ -214,10 +202,10 @@ public final class TestCaseReport implements Report {
         String fSteps = testcasedata.get("nofailTests").toString();
         String exeTime = testcasedata.get("exeTime").toString();
 
+        Status finalStatus = primaryHandler.getCurrentStatus();
         this.sb.append(closingLog(scenario + ":" + testcase, eSteps, pSteps, fSteps, exeTime));
         log(this.sb.toString());
-        //   log(System.getProperty("line.separator")+"Status:"+primaryHandler.getCurrentStatus());
-        return (currentStatus = primaryHandler.getCurrentStatus());
+        return (currentStatus = finalStatus);
     }
 
     private void setScreenShotName() {
@@ -315,6 +303,16 @@ public final class TestCaseReport implements Report {
                 + stepNo + "_"
                 + DateTimeUtils.TimeNowForFolder()
                 + ".png";
+    }
+
+    public String getVideoLinkName() {
+        return File.separator
+                + "video"
+                + File.separator
+                + Scenario
+                + "_"
+                + TestCase
+                + ".webm";
     }
 
     public String getWebserviceResponseFileName() {

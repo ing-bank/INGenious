@@ -1,0 +1,3 @@
+Scenario,Flow,Iteration,SubIteration,Url,Applicant,Age,PartnerAge,Income,PartnerIncome
+Mortgage Calculator,Calculate Mortgage with Single Owner,1,1,https://www.ing.nl/en/personal/mortgage/calculate-mortgage/based-on-income?flow-step=1-my-situation-step,Alone,30,,60000,
+Mortgage Calculator,Calculate Mortgage with Partner,1,1,https://www.ing.nl/en/personal/mortgage/calculate-mortgage/based-on-income?flow-step=1-my-situation-step,Together,30,30,60000,70000

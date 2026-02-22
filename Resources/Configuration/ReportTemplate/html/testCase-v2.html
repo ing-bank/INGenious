@@ -1,0 +1,1064 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Case Report</title>
+    
+    <!-- Modern CSS -->
+    <link rel="stylesheet" href="../../../../media/css/modern/tailwind.min.css">
+    <link rel="stylesheet" href="../../../../media/css/modern/components.css">
+    <link rel="stylesheet" href="../../../../media/css/modern/themes/light.css" id="theme-light">
+    <link rel="stylesheet" href="../../../../media/css/modern/themes/dark.css" id="theme-dark" disabled>
+    
+    <style>
+        /* Test Case specific styles */
+        .tree-view {
+            --tree-indent: 1.5rem;
+        }
+        
+        .tree-node {
+            position: relative;
+        }
+        
+        .tree-node::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background: var(--color-border);
+        }
+        
+        .tree-node[data-status="PASS"]::before {
+            background: var(--color-success);
+        }
+        
+        .tree-node[data-status="FAIL"]::before {
+            background: var(--color-danger);
+        }
+        
+        .tree-toggle {
+            cursor: pointer;
+            user-select: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .tree-toggle .icon {
+            transition: transform 0.2s ease;
+        }
+        
+        .tree-toggle.collapsed .icon {
+            transform: rotate(-90deg);
+        }
+        
+        .tree-children {
+            padding-left: var(--tree-indent);
+            overflow: visible;
+            transition: max-height 0.3s ease, opacity 0.2s ease;
+        }
+        
+        .tree-children.hidden {
+            max-height: 0 !important;
+            opacity: 0;
+        }
+        
+        .step-row {
+            display: grid;
+            grid-template-columns: 70px 180px 1fr 100px 140px;
+            gap: 1.25rem;
+            padding: 1rem 1.25rem;
+            align-items: start;
+            border-bottom: 1px solid var(--color-border);
+            transition: background-color 0.15s ease;
+        }
+        
+        /* Nested steps inside tree-children - simpler block layout without grid */
+        .tree-children .step-row {
+            display: block;
+            padding: 0.25rem 0;
+            font-size: 0.875rem;
+            border-bottom: 1px solid var(--color-border);
+        }
+        
+        .tree-children .step-row > div {
+            display: inline;
+            margin-right: 0.5rem;
+        }
+        
+        .tree-children .step-row > div:nth-child(3) {
+            /* description - word break to prevent overflow */
+            word-break: break-word;
+            max-width: calc(100% - 8rem);
+            display: inline-block;
+        }
+        
+        .tree-children .step-row > div:nth-child(5) {
+            /* timestamp - full width on new line if needed */
+            margin-left: 0;
+            margin-top: 0.25rem;
+            float: right;
+            display: block;
+            clear: both;
+        }
+        
+        .step-row.iteration-row,
+        .step-row.reusable-row {
+            background: var(--color-bg-secondary);
+            font-weight: 500;
+            padding: 1rem 1.25rem;
+        }
+        
+        .step-row.iteration-row {
+            grid-template-columns: 1fr auto;
+            padding: 1rem;
+            border-radius: var(--radius-md);
+            margin-bottom: 0.5rem;
+        }
+        
+        .step-row.reusable-row {
+            grid-template-columns: 1fr auto;
+            padding: 0.75rem 1rem;
+            border-radius: var(--radius-sm);
+            margin: 0.25rem 0;
+            background: var(--color-bg-tertiary);
+        }
+        
+        .step-description {
+            word-break: break-word;
+            line-height: 1.5;
+        }
+        
+        .step-description code {
+            background: var(--color-bg-tertiary);
+            padding: 0.125rem 0.375rem;
+            border-radius: var(--radius-sm);
+            font-size: 0.875em;
+        }
+        
+        .screenshot-link {
+            cursor: pointer;
+            color: var(--color-primary);
+            text-decoration: underline;
+            text-decoration-style: dotted;
+        }
+        
+        .screenshot-link:hover {
+            text-decoration-style: solid;
+        }
+        
+        /* Image comparison modal */
+        .comparison-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1rem;
+        }
+        
+        .comparison-item h5 {
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: var(--color-text-secondary);
+        }
+        
+        .comparison-item img {
+            max-width: 100%;
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius-md);
+        }
+        
+        /* Object highlighting on screenshots */
+        .screenshot-overlay {
+            position: relative;
+            display: inline-block;
+        }
+        
+        .object-rect {
+            position: absolute;
+            border: 3px solid;
+            border-radius: 4px;
+            opacity: 0.7;
+            pointer-events: auto;
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
+        
+        .object-rect:hover {
+            opacity: 1;
+        }
+        
+        .object-rect .object-label {
+            position: absolute;
+            top: -20px;
+            left: 0;
+            font-size: 0.75rem;
+            font-weight: 600;
+            padding: 2px 6px;
+            white-space: nowrap;
+            color: white;
+        }
+        
+        /* Responsive layout for tablets */
+        @media (max-width: 1200px) {
+            .step-row {
+                grid-template-columns: 60px 150px 1fr 90px 130px;
+                gap: 1rem;
+                padding: 0.875rem 1rem;
+            }
+            
+            .step-row.iteration-row,
+            .step-row.reusable-row {
+                padding: 0.875rem 1rem;
+            }
+        }
+        
+        /* Responsive layout for mobile */
+        @media (max-width: 768px) {
+            .step-row {
+                grid-template-columns: 50px 120px 1fr 80px;
+                gap: 0.75rem;
+                padding: 0.75rem 0.875rem;
+                font-size: 0.875rem;
+            }
+            
+            .step-row > div:nth-child(5) {
+                display: none;
+            }
+            
+            .step-row.iteration-row,
+            .step-row.reusable-row {
+                padding: 0.75rem 0.875rem;
+            }
+        }
+        
+        @media print {
+            .tree-children.hidden {
+                max-height: none !important;
+                opacity: 1;
+            }
+            .tree-toggle .icon {
+                display: none;
+            }
+            
+            .step-row {
+                page-break-inside: avoid;
+                gap: 0.75rem;
+                padding: 0.75rem 0.875rem;
+            }
+        }
+    </style>
+    <!-- Individual test case reports use embedded DATA, not external data.js -->
+</head>
+<body class="bg-gray-50 dark:bg-gray-900 min-h-screen" x-data="testCaseApp()" x-init="init()">
+    
+    <!-- Header -->
+    <header class="app-header">
+        <div class="flex items-start gap-5 flex-1">
+            <a href="summary-v2.html" class="text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300 mt-1.5" title="Back to Summary">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+                </svg>
+            </a>
+            
+            <!-- Report Icon & Header -->
+            <div class="flex items-start gap-4 flex-1">
+                <div class="p-2.5 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
+                    <svg class="w-6 h-6 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 3v5a2 2 0 002 2h5"/>
+                    </svg>
+                </div>
+                
+                <div class="flex-1 pt-0.5 text-center">
+                    <div class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2">Test Scenario</div>
+                    <h1 class="text-3xl font-black text-blue-600 dark:text-blue-400 mb-3" x-text="testInfo.scenarioName"></h1>
+                    
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <div class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">Test Case</div>
+                            <p class="text-sm font-semibold text-gray-700 dark:text-gray-200" x-text="testInfo.testcaseName"></p>
+                        </div>
+                        <div>
+                            <div class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">Environment</div>
+                            <p class="text-sm text-gray-700 dark:text-gray-200">
+                                <span x-text="testInfo.browser"></span> <span x-text="testInfo.bversion" class="font-medium"></span>
+                            </p>
+                            <p class="text-xs text-gray-500 dark:text-gray-400 mt-0.5" x-text="testInfo.platform"></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="flex items-center gap-3">
+            <!-- Expand/Collapse All -->
+            <button @click="expandAll()" class="btn btn-secondary btn-sm" title="Expand All">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 8V4m0 0h4M4 4l5 5m11-5h-4m4 0v4m0-4l-5 5M4 16v4m0-4l5-5m11 5l-5-5m5 5v-4m0 4h-4"/>
+                </svg>
+                Expand
+            </button>
+            <button @click="collapseAll()" class="btn btn-secondary btn-sm" title="Collapse All">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 16v4m0 0h-4m4 0l-5-5M4 8V4m0 0h4M4 4l5 5m7 11h4m-4 0v-4m-9-9H4m3 0V4"/>
+                </svg>
+                Collapse
+            </button>
+            <!-- Filter failed only -->
+            <label class="flex items-center gap-2 text-sm cursor-pointer">
+                <input type="checkbox" x-model="showFailedOnly" class="rounded border-gray-300 text-red-600 focus:ring-red-500">
+                <span class="text-gray-600 dark:text-gray-400">Failed only</span>
+            </label>
+            <!-- Theme toggle -->
+            <button @click="toggleTheme()" class="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700" title="Toggle theme">
+                <svg x-show="!darkMode" class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/>
+                </svg>
+                <svg x-show="darkMode" class="w-5 h-5 text-yellow-400" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M12 2.25a.75.75 0 01.75.75v2.25a.75.75 0 01-1.5 0V3a.75.75 0 01.75-.75zM7.5 12a4.5 4.5 0 119 0 4.5 4.5 0 01-9 0zm9.97-6.53a.75.75 0 111.06 1.06l-1.59 1.59a.75.75 0 01-1.06-1.06l1.59-1.59zm-12.5 1.06a.75.75 0 011.06-1.06l1.59 1.59a.75.75 0 01-1.06 1.06l-1.59-1.59zM12 18a.75.75 0 01.75.75v2.25a.75.75 0 01-1.5 0v-2.25A.75.75 0 0112 18zm6.47-2.03a.75.75 0 011.06 0l1.59 1.59a.75.75 0 11-1.06 1.06l-1.59-1.59a.75.75 0 010-1.06zm-12.5 0a.75.75 0 010 1.06l-1.59 1.59a.75.75 0 01-1.06-1.06l1.59-1.59a.75.75 0 011.06 0z"/>
+                </svg>
+            </button>
+            <!-- Print -->
+            <button @click="window.print()" class="btn btn-secondary btn-sm" title="Print Report">
+                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/>
+                </svg>
+            </button>
+        </div>
+    </header>
+    
+    <main class="max-w-7xl mx-auto px-4 py-6 sm:px-6 lg:px-8">
+        
+        <!-- Test Details Summary -->
+        <section class="card mb-6">
+            <div class="card-header">
+                <h2 class="card-title">Test Details</h2>
+                <span class="badge" :class="testInfo.status === 'PASS' ? 'badge-success' : 'badge-danger'" x-text="testInfo.status"></span>
+            </div>
+            <div class="card-body">
+                <div class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-4">
+                    <div>
+                        <dt class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Browser</dt>
+                        <dd class="mt-1 text-sm font-semibold text-gray-900 dark:text-white" x-text="testInfo.browser"></dd>
+                    </div>
+                    <div>
+                        <dt class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Version</dt>
+                        <dd class="mt-1 text-sm font-semibold text-gray-900 dark:text-white" x-text="testInfo.bversion"></dd>
+                    </div>
+                    <div>
+                        <dt class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Platform</dt>
+                        <dd class="mt-1 text-sm font-semibold text-gray-900 dark:text-white" x-text="testInfo.platform"></dd>
+                    </div>
+                    <div>
+                        <dt class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Start Time</dt>
+                        <dd class="mt-1 text-sm text-gray-900 dark:text-white" x-text="testInfo.startTime"></dd>
+                    </div>
+                    <div>
+                        <dt class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">End Time</dt>
+                        <dd class="mt-1 text-sm text-gray-900 dark:text-white" x-text="testInfo.endTime"></dd>
+                    </div>
+                    <div>
+                        <dt class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Duration</dt>
+                        <dd class="mt-1 text-sm font-semibold text-gray-900 dark:text-white" x-text="testInfo.exeTime"></dd>
+                    </div>
+                    <div>
+                        <dt class="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Pass/Fail</dt>
+                        <dd class="mt-1 text-sm font-semibold">
+                            <span class="text-green-600" x-text="testInfo.nopassTests"></span> /
+                            <span class="text-red-600" x-text="testInfo.nofailTests"></span>
+                        </dd>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Step Report -->
+        <section class="card">
+            <div class="card-header">
+                <h2 class="card-title">Execution Steps</h2>
+                <span class="text-sm text-gray-500 dark:text-gray-400" x-text="getStepCount() + ' steps'"></span>
+            </div>
+            <div class="card-body p-0">
+                <!-- Table Header -->
+                <div class="step-row bg-gray-100 dark:bg-gray-800 font-semibold text-xs uppercase tracking-wider text-gray-600 dark:text-gray-400 sticky top-0 z-10">
+                    <div>Step #</div>
+                    <div>Step Name</div>
+                    <div>Description</div>
+                    <div>Status</div>
+                    <div>Timestamp</div>
+                </div>
+                
+                <!-- Steps Tree -->
+                <div class="tree-view">
+                    <template x-for="(iteration, iIdx) in stepTree" :key="'iter-' + iIdx">
+                        <div class="tree-node" :data-status="iteration.status" 
+                             x-show="!showFailedOnly || iteration.status === 'FAIL'">
+                            <!-- Iteration Header -->
+                            <div class="step-row iteration-row">
+                                <div class="tree-toggle" :class="{ 'collapsed': !expandedNodes['iter-' + iIdx] }"
+                                     @click="toggleNode('iter-' + iIdx)">
+                                    <svg class="icon w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                                    </svg>
+                                    <span class="text-gray-900 dark:text-white" x-text="iteration.name || ('Iteration ' + (iIdx + 1))"></span>
+                                </div>
+                                <span class="badge" :class="iteration.status === 'PASS' ? 'badge-success' : 'badge-danger'" x-text="iteration.status"></span>
+                            </div>
+                            
+                            <!-- Iteration Children -->
+                            <div class="tree-children" :class="{ 'hidden': !expandedNodes['iter-' + iIdx] }">
+                                <template x-for="(item, itemIdx) in iteration.data" :key="'item-' + iIdx + '-' + itemIdx">
+                                    <div x-html="renderTreeItem(item, 'iter-' + iIdx + '-' + itemIdx, 0)"></div>
+                                </template>
+                            </div>
+                        </div>
+                    </template>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Test Case Video & Traces Buttons -->
+        <div class="flex items-center gap-3 mt-8 mb-6">
+            <!-- View Video Button -->
+            <button 
+                :disabled="!DATA.videoPath"
+                @click="DATA.videoPath && openTestCaseVideo(DATA.videoPath)"
+                class="inline-flex items-center px-5 py-2.5 text-sm font-medium rounded-lg transition-all duration-200 shadow-sm"
+                :class="DATA.videoPath 
+                    ? 'bg-[#7724FF] hover:bg-[#6518e6] text-white shadow-[#7724FF]/25 hover:shadow-[#7724FF]/40' 
+                    : 'bg-gray-300 text-gray-500 cursor-not-allowed dark:bg-gray-700 dark:text-gray-500'"
+                title="View the recorded video of this test case execution">
+                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/>
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+                View Video
+            </button>
+            
+            <!-- View Traces Button -->
+            <button
+                :disabled="!DATA.traceData"
+                @click="DATA.traceData && openTraceViewer(DATA.traceData)"
+                class="inline-flex items-center px-5 py-2.5 text-sm font-medium rounded-lg transition-all duration-200 shadow-sm"
+                :class="DATA.traceData 
+                    ? 'bg-[#9855ff] hover:bg-[#8844e6] text-white shadow-[#9855ff]/25 hover:shadow-[#9855ff]/40' 
+                    : 'bg-gray-300 text-gray-500 cursor-not-allowed dark:bg-gray-700 dark:text-gray-500'"
+                title="View the execution trace and action timeline">
+                <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                </svg>
+                View Traces
+            </button>
+        </div>
+        
+    </main>
+    
+    <!-- DEBUG: Data Inspector (remove in production) -->
+    <div style="display: none;" x-data="dataInspector()" @load="inspectData()">
+        <script>
+            function dataInspector() {
+                return {
+                    inspectData() {
+                        console.log('========================');
+                        console.log('DATA object:', DATA);
+                        console.log('DATA.videoPath:', DATA.videoPath || 'NOT SET');
+                        console.log('DATA.tracePath:', DATA.tracePath || 'NOT SET');
+                        console.log('DATA keys:', Object.keys(DATA || {}));
+                        console.log('========================');
+                    }
+                };
+            }
+            setTimeout(() => {
+                if (typeof DATA !== 'undefined') {
+                    console.log('========================');
+                    console.log('DATA object:', DATA);
+                    console.log('DATA.videoPath:', DATA.videoPath || 'NOT SET');
+                    console.log('DATA.tracePath:', DATA.tracePath || 'NOT SET');
+                    console.log('DATA keys:', Object.keys(DATA));
+                    console.log('========================');
+                }
+            }, 100);
+        </script>
+    </div>
+    
+    <!-- Screenshot/Image Comparison Modal -->
+    <div x-show="lightboxOpen" 
+         x-transition:enter="transition ease-out duration-200"
+         x-transition:enter-start="opacity-0"
+         x-transition:enter-end="opacity-100"
+         x-transition:leave="transition ease-in duration-150"
+         x-transition:leave-start="opacity-100"
+         x-transition:leave-end="opacity-0"
+         class="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4"
+         @click.self="closeLightbox()"
+         @keydown.escape.window="closeLightbox()">
+        
+        <div class="bg-white dark:bg-gray-800 rounded-lg shadow-2xl max-w-6xl w-full max-h-[90vh] overflow-auto" @click.stop>
+            <!-- Modal Header -->
+            <div class="flex items-center justify-between p-4 border-b dark:border-gray-700">
+                <h3 class="font-semibold text-gray-900 dark:text-white" x-text="lightboxTitle"></h3>
+                <button @click="closeLightbox()" class="p-1 rounded hover:bg-gray-100 dark:hover:bg-gray-700">
+                    <svg class="w-5 h-5 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                    </svg>
+                </button>
+            </div>
+            
+            <!-- Modal Content -->
+            <div class="p-4">
+                <!-- Screenshot View -->
+                <template x-if="lightboxMode === 'screenshot'">
+                    <div class="screenshot-overlay">
+                        <img :src="lightboxImage" class="max-w-full rounded" alt="Screenshot">
+                        <template x-for="(obj, idx) in lightboxObjects" :key="idx">
+                            <div class="object-rect" 
+                                 :style="getObjectStyle(obj, idx)"
+                                 :title="obj.name">
+                                <span class="object-label" :style="'background:' + getObjectColor(idx)" x-text="obj.name"></span>
+                            </div>
+                        </template>
+                    </div>
+                </template>
+                
+                <!-- Image Comparison View -->
+                <template x-if="lightboxMode === 'comparison'">
+                    <div class="comparison-grid">
+                        <div class="comparison-item">
+                            <h5>Actual</h5>
+                            <img :src="lightboxComparison.actual" alt="Actual" class="cursor-zoom-in" @click="zoomImage(lightboxComparison.actual)">
+                        </div>
+                        <div class="comparison-item">
+                            <h5>Expected</h5>
+                            <img :src="lightboxComparison.expected" alt="Expected" class="cursor-zoom-in" @click="zoomImage(lightboxComparison.expected)">
+                        </div>
+                        <div class="comparison-item">
+                            <h5>Comparison Map</h5>
+                            <img :src="lightboxComparison.map" alt="Comparison" class="cursor-zoom-in" @click="zoomImage(lightboxComparison.map)">
+                        </div>
+                    </div>
+                </template>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Scroll to Top Button -->
+    <button x-show="showScrollTop" 
+            @click="scrollToTop()"
+            x-transition
+            class="fixed bottom-6 right-6 p-3 bg-primary-600 text-white rounded-full shadow-lg hover:bg-primary-700 focus:outline-none focus:ring-2 focus:ring-primary-500 focus:ring-offset-2">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18"/>
+        </svg>
+    </button>
+    
+    <!-- Report Data -->
+    <script>var DATA = [<DATA>];</script>
+    
+    <!-- Alpine.js -->
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    
+    <script>
+        // Object highlight colors
+        const OBJECT_COLORS = [
+            "#B55CFF", "#FF5C98", "#5C9AFF", "#5CE9FF", 
+            "#5CFFA3", "#98FF5C", "#FFE95C", "#FFA05C"
+        ];
+        
+        function testCaseApp() {
+            return {
+                testInfo: {},
+                stepTree: [],
+                darkMode: false,
+                showFailedOnly: false,
+                expandedNodes: {},
+                showScrollTop: false,
+                
+                // Lightbox state
+                lightboxOpen: false,
+                lightboxMode: 'screenshot', // 'screenshot' or 'comparison'
+                lightboxTitle: '',
+                lightboxImage: '',
+                lightboxObjects: [],
+                lightboxComparison: { actual: '', expected: '', map: '' },
+                
+                init() {
+                    // Load test data
+                    if (typeof DATA !== 'undefined') {
+                        this.testInfo = DATA;
+                        this.stepTree = this.normalizeSteps(this.testInfo.STEPS);
+                        document.title = DATA.scenarioName + ' : ' + DATA.testcaseName;
+                    }
+                    
+                    // Initialize theme
+                    this.darkMode = localStorage.getItem('theme') === 'dark' || 
+                        (!localStorage.getItem('theme') && window.matchMedia('(prefers-color-scheme: dark)').matches);
+                    this.applyTheme();
+                    
+                    // Expand all iterations by default
+                    this.expandAll();
+                    
+                    // Scroll listener
+                    window.addEventListener('scroll', () => {
+                        this.showScrollTop = window.scrollY > 200;
+                    });
+                },
+                
+                toggleTheme() {
+                    this.darkMode = !this.darkMode;
+                    localStorage.setItem('theme', this.darkMode ? 'dark' : 'light');
+                    this.applyTheme();
+                },
+                
+                applyTheme() {
+                    document.documentElement.classList.toggle('dark', this.darkMode);
+                    document.getElementById('theme-light').disabled = this.darkMode;
+                    document.getElementById('theme-dark').disabled = !this.darkMode;
+                },
+                
+                toggleNode(nodeId) {
+                    this.expandedNodes[nodeId] = !this.expandedNodes[nodeId];
+                },
+                
+                expandAll() {
+                    if (!this.stepTree.length) return;
+                    this.stepTree.forEach((iter, iIdx) => {
+                        this.expandedNodes['iter-' + iIdx] = true;
+                        this.expandIterationItems(iter.data, 'iter-' + iIdx);
+                    });
+                },
+                
+                expandIterationItems(items, prefix) {
+                    if (!items) return;
+                    items.forEach((item, idx) => {
+                        const key = prefix + '-' + idx;
+                        if (item.type === 'reusable') {
+                            this.expandedNodes[key] = true;
+                            this.expandIterationItems(item.data, key);
+                        }
+                    });
+                },
+                
+                collapseAll() {
+                    this.expandedNodes = {};
+                },
+                
+                getStepCount() {
+                    if (!this.stepTree.length) return 0;
+                    let count = 0;
+                    const countSteps = (items) => {
+                        items.forEach(item => {
+                            if (item.type === 'step') count++;
+                            else if (item.data) countSteps(item.data);
+                        });
+                    };
+                    this.stepTree.forEach(iter => countSteps(iter.data || []));
+                    return count;
+                },
+
+                normalizeSteps(steps) {
+                    if (!Array.isArray(steps) || steps.length === 0) return [];
+                    const first = steps[0];
+                    if (this.isIterationNode(first)) {
+                        return steps.map((iter, idx) => this.normalizeIteration(iter, idx));
+                    }
+
+                    const data = this.normalizeItems(steps);
+                    return [
+                        {
+                            name: 'Steps',
+                            status: this.aggregateStatusFromItems(data),
+                            data
+                        }
+                    ];
+                },
+
+                isIterationNode(item) {
+                    return !!item && Array.isArray(item.data) && (item.name || item.status || item.type === 'iteration');
+                },
+
+                normalizeIteration(iteration, idx) {
+                    const data = this.normalizeItems(iteration.data || []);
+                    return {
+                        ...iteration,
+                        name: iteration.name || `Iteration ${idx + 1}`,
+                        status: iteration.status || this.aggregateStatusFromItems(data),
+                        data
+                    };
+                },
+
+                normalizeItems(items) {
+                    return (items || []).map((item) => {
+                        if (!item) return null;
+
+                        if (item.type === 'reusable') {
+                            const data = this.normalizeItems(item.data || []);
+                            return {
+                                ...item,
+                                status: item.status || this.aggregateStatusFromItems(data),
+                                data
+                            };
+                        }
+
+                        if (item.type === 'step') {
+                            if (item.data) return item;
+                            return { type: 'step', data: item };
+                        }
+
+                        if (Array.isArray(item.data)) {
+                            const data = this.normalizeItems(item.data || []);
+                            return {
+                                ...item,
+                                type: 'reusable',
+                                status: item.status || this.aggregateStatusFromItems(data),
+                                data
+                            };
+                        }
+
+                        if (item.status || item.stepno || item.stepName || item.description) {
+                            return { type: 'step', data: item };
+                        }
+
+                        return { type: 'step', data: item };
+                    }).filter(Boolean);
+                },
+
+                aggregateStatusFromItems(items) {
+                    let hasFail = false;
+                    let hasAny = false;
+                    (items || []).forEach((item) => {
+                        let status = '';
+                        if (item.type === 'step') {
+                            status = (item.data?.status || '').toUpperCase();
+                        } else if (item.type === 'reusable') {
+                            status = (item.status || '').toUpperCase();
+                        }
+                        if (status) hasAny = true;
+                        if (status === 'FAIL') hasFail = true;
+                    });
+                    if (hasFail) return 'FAIL';
+                    if (hasAny) return 'PASS';
+                    return 'PASS';
+                },
+                
+                renderTreeItem(item, key, depth) {
+                    if (item.type === 'reusable') {
+                        return this.renderReusable(item, key, depth);
+                    } else if (item.type === 'step') {
+                        return this.renderStep(item.data, key, depth);
+                    }
+                    return '';
+                },
+                
+                renderReusable(item, key, depth) {
+                    const expanded = this.expandedNodes[key] !== false;
+                    const statusClass = item.status === 'PASS' ? 'badge-success' : 'badge-danger';
+                    const hidden = this.showFailedOnly && item.status !== 'FAIL' ? 'display:none;' : '';
+                    
+                    let html = `<div class="tree-node" data-status="${item.status}" style="padding-left: ${depth * 1.5}rem; ${hidden}">`;
+                    html += `<div class="step-row reusable-row">`;
+                    html += `<div class="tree-toggle ${expanded ? '' : 'collapsed'}" onclick="document.querySelector('[x-data]').__x.$data.toggleNode('${key}')">`;
+                    html += `<svg class="icon w-4 h-4 text-gray-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                    </svg>`;
+                    html += `<span class="text-gray-700 dark:text-gray-300">📦 ${this.escapeHtml(item.name)}</span>`;
+                    html += `</div>`;
+                    html += `<span class="badge ${statusClass}">${item.status}</span>`;
+                    html += `</div>`;
+                    
+                    html += `<div class="tree-children ${expanded ? '' : 'hidden'}">`;
+                    if (item.data) {
+                        item.data.forEach((child, idx) => {
+                            html += this.renderTreeItem(child, key + '-' + idx, depth + 1);
+                        });
+                    }
+                    html += `</div></div>`;
+                    
+                    return html;
+                },
+                
+                renderStep(step, key, depth) {
+                    const statusClass = step.status === 'PASS' ? 'badge-success' : (step.status === 'FAIL' ? 'badge-danger' : 'badge-secondary');
+                    const hidden = this.showFailedOnly && step.status !== 'FAIL' ? 'display:none;' : '';
+                    const hasScreenshot = step.link && step.link !== '';
+                    const hasComparison = step.actual && step.actual !== '';
+                    
+                    // Only apply padding-left to top-level steps (depth 0). Nested steps are already indented by parent tree-node.
+                    const paddingStyle = depth === 0 ? `padding-left: ${depth * 1.5 + 1}rem;` : '';
+                    let html = `<div class="step-row" style="${paddingStyle} ${hidden}">`;
+                    html += `<div class="text-sm font-medium text-gray-600 dark:text-gray-400">${step.stepno}</div>`;
+                    html += `<div class="text-sm font-medium text-gray-900 dark:text-white">${this.escapeHtml(step.stepName || '')}</div>`;
+                    html += `<div class="step-description text-sm text-gray-700 dark:text-gray-300">${this.escapeHtml(step.description || '')}</div>`;
+                    html += `<div>`;
+                    
+                    if (hasScreenshot || hasComparison) {
+                        const clickHandler = hasComparison 
+                            ? `document.querySelector('[x-data]').__x.$data.showComparison('${this.escapeJs(step.actual)}', '${this.escapeJs(step.expected)}', '${this.escapeJs(step.comparison)}')`
+                            : `document.querySelector('[x-data]').__x.$data.showScreenshot('${this.escapeJs(step.link)}', '${this.escapeJs(step.objects || '')}')`;
+                        html += `<span class="screenshot-link badge ${statusClass}" onclick="${clickHandler}">${step.status} 📸</span>`;
+                    } else {
+                        html += `<span class="badge ${statusClass}">${step.status}</span>`;
+                    }
+                    
+                    html += `</div>`;
+                    html += `<div class="text-xs text-gray-500 dark:text-gray-400">${step.tStamp || ''}</div>`;
+                    html += `</div>`;
+                    
+                    return html;
+                },
+                
+                escapeHtml(str) {
+                    if (!str) return '';
+                    const div = document.createElement('div');
+                    div.textContent = str;
+                    return div.innerHTML;
+                },
+                
+                escapeJs(str) {
+                    if (!str) return '';
+                    return str.replace(/'/g, "\\'").replace(/"/g, '\\"');
+                },
+                
+                showScreenshot(link, objectsJson) {
+                    this.lightboxMode = 'screenshot';
+                    this.lightboxTitle = 'Screenshot';
+                    this.lightboxImage = link.startsWith('./') ? link.substring(1) : link;
+                    
+                    try {
+                        this.lightboxObjects = objectsJson ? JSON.parse(objectsJson) : [];
+                    } catch (e) {
+                        this.lightboxObjects = [];
+                    }
+                    
+                    this.lightboxOpen = true;
+                },
+                
+                showComparison(actual, expected, map) {
+                    this.lightboxMode = 'comparison';
+                    this.lightboxTitle = 'Image Comparison';
+                    this.lightboxComparison = { actual, expected, map };
+                    this.lightboxOpen = true;
+                },
+                
+                closeLightbox() {
+                    this.lightboxOpen = false;
+                },
+                
+                getObjectStyle(obj, idx) {
+                    try {
+                        const area = JSON.parse(obj.area);
+                        return `left: ${area[0]}px; top: ${area[1]}px; width: ${area[2]}px; height: ${area[3]}px; border-color: ${OBJECT_COLORS[idx % OBJECT_COLORS.length]};`;
+                    } catch (e) {
+                        return '';
+                    }
+                },
+                
+                getObjectColor(idx) {
+                    return OBJECT_COLORS[idx % OBJECT_COLORS.length];
+                },
+                
+                zoomImage(src) {
+                    this.lightboxMode = 'screenshot';
+                    this.lightboxImage = src;
+                    this.lightboxObjects = [];
+                    this.lightboxTitle = 'Zoomed Image';
+                },
+                
+                scrollToTop() {
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                },
+                
+                openTestCaseVideo(videoPath) {
+                    if (!videoPath) return;
+                    const normalizedPath = this.normalizePath(videoPath);
+                    
+                    // Create dedicated video modal
+                    const modal = document.createElement('div');
+                    modal.className = 'video-modal-overlay';
+                    modal.style.cssText = `
+                        position: fixed;
+                        inset: 0;
+                        z-index: 9999;
+                        display: flex;
+                        align-items: center;
+                        justify-content: center;
+                        background: rgba(0, 0, 0, 0.95);
+                        backdrop-filter: blur(10px);
+                        padding: 1rem;
+                        animation: fadeIn 0.2s ease-out;
+                    `;
+                    
+                    modal.innerHTML = `
+                        <style>
+                            @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+                            .video-modal-overlay * { box-sizing: border-box; }
+                        </style>
+                        
+                        <!-- Top Control Bar -->
+                        <div style="position: absolute; top: 1rem; left: 1rem; right: 1rem; display: flex; align-items: center; justify-content: space-between; z-index: 10;">
+                            <div style="color: white; font-size: 0.875rem; font-weight: 500; padding: 0.5rem 1rem; background: rgba(0, 0, 0, 0.6); border-radius: 0.5rem; backdrop-filter: blur(8px);">
+                                📹 Test Case Recording
+                            </div>
+                            <div style="display: flex; align-items: center; gap: 0.75rem;">
+                                <a href="${normalizedPath}" target="_blank" 
+                                   style="display: inline-flex; align-items: center; padding: 0.5rem 1rem; font-size: 0.875rem; 
+                                          background: rgba(255, 255, 255, 0.1); color: white; border: 1px solid rgba(255, 255, 255, 0.3); 
+                                          border-radius: 0.5rem; backdrop-filter: blur(8px); text-decoration: none; transition: background 0.2s;"
+                                   onmouseover="this.style.background='rgba(255, 255, 255, 0.2)'"
+                                   onmouseout="this.style.background='rgba(255, 255, 255, 0.1)'"
+                                   title="Open video in a new browser tab">
+                                    <svg style="width: 1rem; height: 1rem; margin-right: 0.5rem;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
+                                    </svg>
+                                    Open in New Tab
+                                </a>
+                                <button onclick="this.closest('.video-modal-overlay').remove()" 
+                                        style="color: white; background: rgba(0, 0, 0, 0.6); border: none; border-radius: 0.5rem; 
+                                               padding: 0.5rem; cursor: pointer; backdrop-filter: blur(8px); transition: background 0.2s;"
+                                        onmouseover="this.style.background='rgba(0, 0, 0, 0.8)'"
+                                        onmouseout="this.style.background='rgba(0, 0, 0, 0.6)'"
+                                        title="Close (Esc)">
+                                    <svg style="width: 1.5rem; height: 1.5rem;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                                    </svg>
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <!-- Video Container with Enhanced Border -->
+                        <div style="position: relative; max-width: 95vw; max-height: 85vh;">
+                            <div style="position: absolute; inset: 0; background: linear-gradient(135deg, rgba(99, 102, 241, 0.2), rgba(168, 85, 247, 0.2), rgba(236, 72, 153, 0.2)); border-radius: 1rem; filter: blur(40px);"></div>
+                            <div style="position: relative; background: black; border-radius: 0.75rem; overflow: hidden; border: 2px solid rgba(255, 255, 255, 0.2); box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.8);">
+                                <video controls autoplay style="display: block; max-width: 95vw; max-height: 85vh; width: auto; height: auto;">
+                                    <source src="${normalizedPath}" type="video/webm">
+                                    Your browser does not support the video tag.
+                                </video>
+                            </div>
+                        </div>
+                    `;
+                    
+                    // Close on background click
+                    modal.addEventListener('click', (e) => {
+                        if (e.target === modal) modal.remove();
+                    });
+                    
+                    // Close on Escape key
+                    const escHandler = (e) => {
+                        if (e.key === 'Escape') {
+                            modal.remove();
+                            document.removeEventListener('keydown', escHandler);
+                        }
+                    };
+                    document.addEventListener('keydown', escHandler);
+                    
+                    document.body.appendChild(modal);
+                },
+                
+                normalizePath(path) {
+                    if (!path) return '';
+                    // Remove leading/trailing slashes
+                    path = path.replace(/^\/+|\/+$/g, '');
+                    // Ensure proper relative path
+                    if (path.startsWith('videos/')) {
+                        return '../' + path;
+                    }
+                    return path;
+                },
+                
+                openTraceViewer(traceData) {
+                    if (!traceData) return;
+                    
+                    const modal = document.createElement('div');
+                    modal.className = 'trace-modal-overlay';
+                    
+                    // Build action list HTML
+                    let actionsHtml = '';
+                    if (traceData.actions && traceData.actions.length > 0) {
+                        actionsHtml = '<div style="border-top: 1px solid rgba(255, 255, 255, 0.1); margin-top: 1rem; padding-top: 1rem;"><h3 style="color: white; margin: 0.5rem 0; font-weight: 600;">Test Actions</h3>';
+                        traceData.actions.slice(0, 20).forEach((action, idx) => {
+                            const method = action.method || 'unknown';
+                            const time = action.endTime ? `${((action.endTime - action.startTime) / 1000).toFixed(2)}s` : '-';
+                            actionsHtml += `<div style="padding: 0.5rem 0; color: rgba(255, 255, 255, 0.8); font-size: 0.875rem; border-bottom: 1px solid rgba(255, 255, 255, 0.05);">
+                                <span style="color: #9855ff; font-weight: 500;">${idx + 1}.</span> ${method} <span style="color: rgba(255, 255, 255, 0.6);">(${time})</span>
+                            </div>`;
+                        });
+                        actionsHtml += '</div>';
+                    }
+                    
+                    // Build screenshots preview
+                    let screenshotsHtml = '';
+                    if (traceData.screenshots && traceData.screenshots.length > 0) {
+                        screenshotsHtml = '<div style="margin-top: 1rem; border-top: 1px solid rgba(255, 255, 255, 0.1); padding-top: 1rem;"><h3 style="color: white; margin: 0.5rem 0 1rem 0; font-weight: 600;">Screenshots Captured</h3><div style="display: flex; gap: 0.5rem; overflow-x: auto; padding-bottom: 0.5rem;">';
+                        traceData.screenshots.slice(0, 8).forEach(ss => {
+                            screenshotsHtml += `<div style="flex-shrink: 0; width: 80px; height: 60px; border: 1px solid rgba(255, 255, 255, 0.2); border-radius: 0.4rem; background: rgba(0, 0, 0, 0.5); display: flex; align-items: center; justify-content: center; color: rgba(255, 255, 255, 0.6); font-size: 0.75rem; text-align: center; padding: 0.25rem;">📸 ${ss.timestamp ? ss.timestamp.slice(-6) : 'cap'}</div>`;
+                        });
+                        screenshotsHtml += '</div></div>';
+                    }
+                    
+                    modal.innerHTML = `
+                        <div style="position: fixed; inset: 0; background: rgba(0, 0, 0, 0.95); backdrop-filter: blur(10px); z-index: 9999; display: flex; align-items: center; justify-content: center; padding: 2rem;">
+                            <!-- Modal background click handler -->
+                            <div style="position: absolute; inset: 0;" onclick="this.closest('.trace-modal-overlay').remove()"></div>
+                            
+                            <!-- Content -->
+                            <div style="position: relative; z-index: 10000; background: rgba(20, 20, 40, 0.95); border: 1px solid rgba(152, 85, 255, 0.3); border-radius: 1rem; max-width: 90vw; max-height: 85vh; overflow-y: auto; padding: 2rem; box-shadow: 0 0 60px rgba(152, 85, 255, 0.3), inset 0 0 60px rgba(152, 85, 255, 0.1); backdrop-filter: blur(20px);">
+                                
+                                <!-- Close button -->
+                                <button onclick="this.closest('.trace-modal-overlay').remove()" 
+                                        style="position: absolute; top: 1rem; right: 1rem; background: rgba(152, 85, 255, 0.2); border: 1px solid rgba(152, 85, 255, 0.4); color: white; border-radius: 0.5rem; padding: 0.5rem; cursor: pointer; transition: all 0.2s;"
+                                        onmouseover="this.style.background='rgba(152, 85, 255, 0.4)'; this.style.borderColor='rgba(152, 85, 255, 0.6)'"
+                                        onmouseout="this.style.background='rgba(152, 85, 255, 0.2)'; this.style.borderColor='rgba(152, 85, 255, 0.4)'"
+                                        title="Close">
+                                    <svg style="width: 1.25rem; height: 1.25rem;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                                    </svg>
+                                </button>
+                                
+                                <!-- Header -->
+                                <div style="margin-bottom: 1.5rem;">
+                                    <h2 style="color: #9855ff; margin: 0 0 0.5rem 0; font-size: 1.5rem; font-weight: 700;">📊 Execution Traces</h2>
+                                    <p style="color: rgba(255, 255, 255, 0.7); margin: 0; font-size: 0.875rem;">
+                                        ${traceData.actionCount || 0} actions • ${traceData.screenshotCount || 0} screenshots 
+                                        ${traceData.duration ? '• ' + traceData.duration : ''}
+                                    </p>
+                                </div>
+                                
+                                <!-- Stats -->
+                                <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 1rem; margin-bottom: 1.5rem;">
+                                    <div style="background: rgba(152, 85, 255, 0.1); border: 1px solid rgba(152, 85, 255, 0.2); border-radius: 0.5rem; padding: 1rem; text-align: center;">
+                                        <div style="color: #9855ff; font-size: 2rem; font-weight: 700;">${traceData.actionCount || 0}</div>
+                                        <div style="color: rgba(255, 255, 255, 0.7); font-size: 0.875rem;">Actions</div>
+                                    </div>
+                                    <div style="background: rgba(152, 85, 255, 0.1); border: 1px solid rgba(152, 85, 255, 0.2); border-radius: 0.5rem; padding: 1rem; text-align: center;">
+                                        <div style="color: #9855ff; font-size: 2rem; font-weight: 700;">${traceData.screenshotCount || 0}</div>
+                                        <div style="color: rgba(255, 255, 255, 0.7); font-size: 0.875rem;">Screenshots</div>
+                                    </div>
+                                    <div style="background: rgba(152, 85, 255, 0.1); border: 1px solid rgba(152, 85, 255, 0.2); border-radius: 0.5rem; padding: 1rem; text-align: center;">
+                                        <div style="color: #9855ff; font-size: 1.5rem; font-weight: 700;">${traceData.duration || '—'}</div>
+                                        <div style="color: rgba(255, 255, 255, 0.7); font-size: 0.875rem;">Duration</div>
+                                    </div>
+                                </div>
+                                
+                                ${actionsHtml}
+                                ${screenshotsHtml}
+                            </div>
+                        </div>
+                    `;
+                    
+                    // Close on Escape key
+                    const escHandler = (e) => {
+                        if (e.key === 'Escape') {
+                            modal.remove();
+                            document.removeEventListener('keydown', escHandler);
+                        }
+                    };
+                    document.addEventListener('keydown', escHandler);
+                    
+                    document.body.appendChild(modal);
+                }
+            };
+        }
+    </script>
+</body>
+</html>
+

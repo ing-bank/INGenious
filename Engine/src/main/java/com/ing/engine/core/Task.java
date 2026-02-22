@@ -63,6 +63,7 @@ public class Task implements Runnable {
                     runContext.TestCase);
         }
         report.createReport(runContext, DateTimeUtils.DateTimeNow());
+        
         int iter = 1;
         Date startexecDate = new Date();
         if (RunManager.getGlobalSettings().isTestRun()) {
@@ -74,7 +75,6 @@ public class Task implements Runnable {
 
         while (!SystemDefaults.stopExecution.get() && iter <= runner.getMaxIter()) {
             try {
-                System.out.println("👉 Running Iteration " + iter);
                 runIteration(iter++);
                 if (isPlaywrightExecution() && isLocalExecution()) {
                     closePlaywrightInstance(iter - 1);
@@ -88,10 +88,12 @@ public class Task implements Runnable {
         if (report != null) {
             Status s = report.finalizeReport();
             //setLambdaTags();
-            if (s.toString().equals("PASS"))
-                setLambdaStatus("passed", "");
-            else
-                setLambdaStatus("failed", "");
+            if(!isLocalExecution()){
+                if (s.toString().equals("PASS"))
+                    setLambdaStatus("passed", "");
+                else
+                    setLambdaStatus("failed", "");
+           }
             Control.ReportManager.startDate = startexecDate;
             Control.ReportManager.endDate = endEexcDate;
             Control.ReportManager.updateTestCaseResults(runContext, report, s, runTime.timeRun());
@@ -106,17 +108,7 @@ public class Task implements Runnable {
             playwrightDriver.closeBrowser();
             playwrightDriver.playwright.close();
         }
-        String closureConfirmationText = "Playwright instance with [" + browserName + "] has been closed for Iteration : " + iter;
-        System.out.println("\n");
-        for (int i = 0; i < closureConfirmationText.length() + 7; i++) {
-            System.out.print("-");
-        }
-        System.out.println();
-        System.out.println("| " + closureConfirmationText + " |");
-        for (int i = 0; i < closureConfirmationText.length() + 7; i++) {
-            System.out.print("-");
-        }
-        System.out.println("\n");
+        System.out.println("Playwright [" + browserName + "] closed for Iteration " + iter);
     }
 
     private TestCase getTestCase() {

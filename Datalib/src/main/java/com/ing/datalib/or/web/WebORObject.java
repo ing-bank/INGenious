@@ -168,7 +168,7 @@ public class WebORObject extends UndoRedoModel implements ORObjectInf {
     @JsonIgnore
     @Override
     public int getColumnCount() {
-        return 2;
+        return 3;
     }
 
     @JsonIgnore
@@ -178,6 +178,8 @@ public class WebORObject extends UndoRedoModel implements ORObjectInf {
             return attributes.get(row).getName();
         } else if (column == 1) {
             return attributes.get(row).getValue();
+        } else if (column == 2) {
+            return attributes.get(row).isExact();
         }
         return null;
     }
@@ -198,6 +200,13 @@ public class WebORObject extends UndoRedoModel implements ORObjectInf {
                 attr.setValue(value.toString());
                 fireTableCellUpdated(rowIndex, columnIndex);
             }
+        } else if (columnIndex == 2) {
+            boolean exactValue = (value instanceof Boolean) ? (Boolean) value : Boolean.parseBoolean(value.toString());
+            if (attr.isExact() != exactValue) {
+                super.setValueAt(value, rowIndex, columnIndex);
+                attr.setExact(exactValue);
+                fireTableCellUpdated(rowIndex, columnIndex);
+            }
         }
     }
 
@@ -209,7 +218,14 @@ public class WebORObject extends UndoRedoModel implements ORObjectInf {
 
     @JsonIgnore
     @Override
-    public boolean isCellEditable(int i, int i1) {
+    public boolean isCellEditable(int row, int column) {
+        // Exact column (2) is not editable for xpath, css, TestId
+        if (column == 2 && row < attributes.size()) {
+            String attrName = attributes.get(row).getName();
+            if ("xpath".equals(attrName) || "css".equals(attrName) || "TestId".equals(attrName)) {
+                return false;
+            }
+        }
         return true;
     }
 
@@ -220,6 +236,8 @@ public class WebORObject extends UndoRedoModel implements ORObjectInf {
             return "Attribute";
         } else if (column == 1) {
             return "Value";
+        } else if (column == 2) {
+            return "Exact";
         }
         return null;
     }
@@ -227,7 +245,14 @@ public class WebORObject extends UndoRedoModel implements ORObjectInf {
     @JsonIgnore
     private void changeSave() {
         if (group != null) {
-            ((WebORPage) group.getParent()).getRoot().setSaved(false);
+            WebORPage page = (WebORPage) group.getParent();
+            page.getRoot().setSaved(false);
+            
+            // Auto-save for YAML format
+            if (page.getRoot().getObjectRepository() != null 
+                && page.getRoot().getObjectRepository().isUsingYamlFormat()) {
+                page.getRoot().getObjectRepository().saveWebPageNow(page);
+            }
         }
     }
 
@@ -311,8 +336,11 @@ public class WebORObject extends UndoRedoModel implements ORObjectInf {
 
     @JsonIgnore
     @Override
-    public Class<?> getColumnClass(int i) {
-        return super.getColumnClass(i);
+    public Class<?> getColumnClass(int column) {
+        if (column == 2) {
+            return Boolean.class;
+        }
+        return String.class;
     }
 
     @JsonIgnore
@@ -323,10 +351,20 @@ public class WebORObject extends UndoRedoModel implements ORObjectInf {
             flag = getParent().rename(newName);
         }
         if (flag && getParent().getObjectByName(newName) == null) {
-            if (FileUtils.renameFile(getRepLocation(), newName)) {
+            // Check if using YAML format
+            if (getParent().getParent().getRoot().getObjectRepository().isUsingYamlFormat()) {
+                // For YAML format, objects are stored within the page YAML file
+                // Just update the name and mark as needing save
                 setName(newName);
                 changeSave();
                 return true;
+            } else {
+                // Use original XML folder-based rename
+                if (FileUtils.renameFile(getRepLocation(), newName)) {
+                    setName(newName);
+                    changeSave();
+                    return true;
+                }
             }
         }
         return false;

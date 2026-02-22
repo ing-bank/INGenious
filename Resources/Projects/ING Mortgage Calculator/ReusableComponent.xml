@@ -1,0 +1,13 @@
+<Root ref="ING Mortgage Calculator" type="RC">
+    <Folder ref="New Group">
+        <Scenario ref="Workflow">
+            <TestCase exeType="Executable" ref="Launch Calculator"/>
+            <TestCase exeType="Executable" ref="Income Details"/>
+            <TestCase exeType="Executable" ref="Applicant"/>
+            <TestCase exeType="Executable" ref="Your Calculation"/>
+            <TestCase exeType="Executable" ref="Mandatory expenses"/>
+            <TestCase exeType="Executable" ref="Your Plans"/>
+            <TestCase exeType="Executable" ref="PartnerIncome"/>
+        </Scenario>
+    </Folder>
+</Root>

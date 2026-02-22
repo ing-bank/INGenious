@@ -40,6 +40,10 @@ public class PropertyAttributeRenderer extends DefaultTableCellRenderer {
     private static final Color CLR_MOBILE_LINK = new Color(6, 182, 212);    // Cyan - link_text
     private static final Color CLR_MOBILE_CLASS = new Color(234, 88, 12);   // Orange - class
     
+    // API-specific colors
+    private static final Color CLR_API_JSONPATH = new Color(34, 139, 34);   // Forest Green - JsonPath
+    private static final Color CLR_API_XPATH = new Color(220, 53, 69);      // Red - Xpath
+    
     // Icon and color mapping for known attributes
     private static final Map<String, AttributeStyle> ATTRIBUTE_STYLES = new HashMap<>();
     
@@ -65,6 +69,10 @@ public class PropertyAttributeRenderer extends DefaultTableCellRenderer {
         ATTRIBUTE_STYLES.put("tagName", new AttributeStyle(MaterialDesignC.CODE_BRACKETS, CLR_MOBILE_TAG));
         ATTRIBUTE_STYLES.put("link_text", new AttributeStyle(MaterialDesignL.LINK, CLR_MOBILE_LINK));
         ATTRIBUTE_STYLES.put("class", new AttributeStyle(MaterialDesignC.CODE_BRACES, CLR_MOBILE_CLASS));
+        
+        // ===== API Attributes =====
+        ATTRIBUTE_STYLES.put("JsonPath", new AttributeStyle(MaterialDesignC.CODE_JSON, CLR_API_JSONPATH));
+        ATTRIBUTE_STYLES.put("Xpath", new AttributeStyle(MaterialDesignC.CODE_TAGS, CLR_API_XPATH));
     }
     
     @Override

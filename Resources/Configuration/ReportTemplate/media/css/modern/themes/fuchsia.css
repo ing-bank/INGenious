@@ -1,0 +1,108 @@
+/**
+ * INGenious Modern Report - Fuchsia Theme
+ * Vibrant fuchsia/magenta accent color scheme
+ * Version: 1.0.0
+ */
+
+[data-theme="fuchsia"],
+[data-accent="fuchsia"] {
+  /* Primary Palette - Fuchsia */
+  --color-primary: 217 70 239; /* Fuchsia-500 */
+  --color-primary-50: 253 244 255;
+  --color-primary-100: 250 232 255;
+  --color-primary-200: 245 208 254;
+  --color-primary-300: 240 171 252;
+  --color-primary-400: 232 121 249;
+  --color-primary-500: 217 70 239;
+  --color-primary-600: 192 38 211;
+  --color-primary-700: 162 28 175;
+  --color-primary-800: 134 25 143;
+  --color-primary-900: 112 26 117;
+  --color-primary-dark: 192 38 211;
+  --color-primary-light: 240 171 252;
+
+  /* Gradient adjustments */
+  --gradient-primary: linear-gradient(135deg, rgb(217 70 239) 0%, rgb(232 121 249) 100%);
+
+  /* Focus ring */
+  --tw-ring-color: rgb(217 70 239 / 0.3);
+}
+
+/* Fuchsia theme header accent */
+[data-theme="fuchsia"] .app-header,
+[data-accent="fuchsia"] .app-header {
+  border-bottom-color: rgb(var(--color-primary));
+  border-bottom-width: 2px;
+}
+
+/* Fuchsia theme stat card accents */
+[data-theme="fuchsia"] .stat-card--info::before,
+[data-accent="fuchsia"] .stat-card--info::before {
+  background: linear-gradient(to right, rgb(217 70 239), rgb(240 171 252));
+}
+
+/* Button primary color */
+[data-theme="fuchsia"] .btn--primary,
+[data-accent="fuchsia"] .btn--primary {
+  background-color: rgb(217 70 239);
+}
+
+[data-theme="fuchsia"] .btn--primary:hover,
+[data-accent="fuchsia"] .btn--primary:hover {
+  background-color: rgb(192 38 211);
+}
+
+/* Active tab indicator */
+[data-theme="fuchsia"] .tabs--underline .tabs__tab[aria-selected="true"]::after,
+[data-accent="fuchsia"] .tabs--underline .tabs__tab[aria-selected="true"]::after {
+  background-color: rgb(217 70 239);
+}
+
+[data-theme="fuchsia"] .tabs--underline .tabs__tab[aria-selected="true"],
+[data-accent="fuchsia"] .tabs--underline .tabs__tab[aria-selected="true"] {
+  color: rgb(217 70 239);
+}
+
+/* Links */
+[data-theme="fuchsia"] a:hover,
+[data-accent="fuchsia"] a:hover {
+  color: rgb(217 70 239);
+}
+
+/* Focus states */
+[data-theme="fuchsia"] .search-input__field:focus,
+[data-accent="fuchsia"] .search-input__field:focus {
+  border-color: rgb(217 70 239);
+  box-shadow: 0 0 0 3px rgba(217, 70, 239, 0.1);
+}
+
+/* Filter pill active */
+[data-theme="fuchsia"] .filter-pill[aria-pressed="true"],
+[data-theme="fuchsia"] .filter-pill--active,
+[data-accent="fuchsia"] .filter-pill[aria-pressed="true"],
+[data-accent="fuchsia"] .filter-pill--active {
+  background-color: rgb(217 70 239);
+  border-color: rgb(217 70 239);
+}
+
+/* Progress bar info variant */
+[data-theme="fuchsia"] .progress-bar__fill--info,
+[data-accent="fuchsia"] .progress-bar__fill--info {
+  background: linear-gradient(90deg, rgb(217 70 239) 0%, rgb(232 121 249) 100%);
+}
+
+/* Sidebar active state */
+[data-theme="fuchsia"] .sidebar-item--active,
+[data-accent="fuchsia"] .sidebar-item--active {
+  background-color: rgb(253 244 255);
+  border-left-color: rgb(217 70 239);
+}
+
+/* Text gradient effect */
+[data-theme="fuchsia"] .text-gradient,
+[data-accent="fuchsia"] .text-gradient {
+  background: linear-gradient(135deg, rgb(217 70 239) 0%, rgb(240 171 252) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}

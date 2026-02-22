@@ -45,6 +45,8 @@ public class APIRequest implements Serializable {
     private long updatedAt;
     private int timeout; // in milliseconds
     private boolean followRedirects;
+    private boolean sslVerificationEnabled;
+    private CertificateConfig certificateConfig;
 
     public APIRequest() {
         this.id = UUID.randomUUID().toString();
@@ -59,6 +61,8 @@ public class APIRequest implements Serializable {
         this.updatedAt = this.createdAt;
         this.timeout = 30000; // 30 seconds default
         this.followRedirects = true;
+        this.sslVerificationEnabled = true;
+        this.certificateConfig = new CertificateConfig();
     }
 
     public APIRequest(String name, HttpMethod method, String url) {
@@ -271,6 +275,24 @@ public class APIRequest implements Serializable {
         this.updatedAt = Instant.now().toEpochMilli();
     }
 
+    public boolean isSslVerificationEnabled() {
+        return sslVerificationEnabled;
+    }
+
+    public void setSslVerificationEnabled(boolean sslVerificationEnabled) {
+        this.sslVerificationEnabled = sslVerificationEnabled;
+        this.updatedAt = Instant.now().toEpochMilli();
+    }
+
+    public CertificateConfig getCertificateConfig() {
+        return certificateConfig;
+    }
+
+    public void setCertificateConfig(CertificateConfig certificateConfig) {
+        this.certificateConfig = certificateConfig;
+        this.updatedAt = Instant.now().toEpochMilli();
+    }
+
     /**
      * Returns enabled headers only.
      */
@@ -313,6 +335,7 @@ public class APIRequest implements Serializable {
         copy.setUrl(this.url);
         copy.setTimeout(this.timeout);
         copy.setFollowRedirects(this.followRedirects);
+        copy.setSslVerificationEnabled(this.sslVerificationEnabled);
         copy.setPreRequestScript(this.preRequestScript);
         copy.setTestScript(this.testScript);
         
@@ -340,6 +363,9 @@ public class APIRequest implements Serializable {
         }
         if (this.auth != null) {
             copy.setAuth(this.auth.copy());
+        }
+        if (this.certificateConfig != null) {
+            copy.setCertificateConfig(this.certificateConfig.copy());
         }
         if (this.assertions != null) {
             copy.setAssertions(new ArrayList<>());

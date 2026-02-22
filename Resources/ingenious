@@ -1,0 +1,8 @@
+#!/bin/bash
+# INGenious CLI - Command Line Interface
+# Usage: ./ingenious <command> [options]
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+# Run CLI with all arguments
+java -cp "$SCRIPT_DIR/lib/*" com.ing.engine.core.Control "$@"

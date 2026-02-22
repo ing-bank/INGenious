@@ -121,8 +121,16 @@ public class MobileOR implements ORRootInf<MobileORPage> {
         if (getPageByName(pageName) == null) {
             MobileORPage page = new MobileORPage(pageName, this);
             pages.add(page);
-            new File(page.getRepLocation()).mkdirs();
+            // Only create folder for non-YAML formats
+            if (objectRepository == null || !objectRepository.isUsingYamlFormat()) {
+                new File(page.getRepLocation()).mkdirs();
+            }
             setSaved(false);
+            
+            // Auto-save for YAML format
+            if (objectRepository != null && objectRepository.isUsingYamlFormat()) {
+                objectRepository.saveMobilePageNow(page);
+            }
             return page;
         }
         return null;

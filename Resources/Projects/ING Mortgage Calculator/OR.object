@@ -1,0 +1,242 @@
+<Root type="OR" ref="ING Mortgage Calculator">
+  <Page title="" ref="Calculator">
+    <ObjectGroup ref="Complete">
+      <Object frame="" ref="Complete">
+        <Property value="RADIO;Complete" ref="Role" pref="1"/>
+        <Property value="" ref="xpath" pref="2"/>
+        <Property value="" ref="Text" pref="3"/>
+        <Property value="" ref="css" pref="4"/>
+        <Property value="" ref="Placeholder" pref="5"/>
+        <Property value="" ref="Label" pref="6"/>
+        <Property value="" ref="AltText" pref="7"/>
+        <Property value="" ref="Title" pref="8"/>
+        <Property value="" ref="TestId" pref="9"/>
+        <Property value="" ref="ChainedLocator" pref="10"/>
+      </Object>
+    </ObjectGroup>
+    <ObjectGroup ref="Refactor_Object">
+      <Object frame="" ref="Refactor_Object">
+        <Property value="" ref="Role" pref="1"/>
+        <Property value="" ref="xpath" pref="2"/>
+        <Property value="" ref="Text" pref="3"/>
+        <Property value="" ref="css" pref="4"/>
+        <Property value="" ref="Placeholder" pref="5"/>
+        <Property value="" ref="Label" pref="6"/>
+        <Property value="" ref="AltText" pref="7"/>
+        <Property value="" ref="Title" pref="8"/>
+        <Property value="" ref="TestId" pref="9"/>
+        <Property value="locator(&quot;#cookieDialog dialog div&quot;);first()" ref="ChainedLocator" pref="10"/>
+      </Object>
+    </ObjectGroup>
+    <ObjectGroup ref="What is your age?">
+      <Object frame="" ref="What is your age?">
+        <Property value="TEXTBOX;Your age" ref="Role" pref="1"/>
+        <Property value="" ref="xpath" pref="2"/>
+        <Property value="" ref="Text" pref="3"/>
+        <Property value="" ref="css" pref="4"/>
+        <Property value="" ref="Placeholder" pref="5"/>
+        <Property value="" ref="Label" pref="6"/>
+        <Property value="" ref="AltText" pref="7"/>
+        <Property value="" ref="Title" pref="8"/>
+        <Property value="" ref="TestId" pref="9"/>
+        <Property value="" ref="ChainedLocator" pref="10"/>
+      </Object>
+    </ObjectGroup>
+    <ObjectGroup ref="Next">
+      <Object frame="" ref="Next">
+        <Property value="BUTTON;Next" ref="Role" pref="1"/>
+        <Property value="" ref="xpath" pref="2"/>
+        <Property value="" ref="Text" pref="3"/>
+        <Property value="" ref="css" pref="4"/>
+        <Property value="" ref="Placeholder" pref="5"/>
+        <Property value="" ref="Label" pref="6"/>
+        <Property value="" ref="AltText" pref="7"/>
+        <Property value="" ref="Title" pref="8"/>
+        <Property value="" ref="TestId" pref="9"/>
+        <Property value="" ref="ChainedLocator" pref="10"/>
+      </Object>
+    </ObjectGroup>
+    <ObjectGroup ref="Within 3 to 6 months">
+      <Object frame="" ref="Within 3 to 6 months">
+        <Property value="RADIO;Within 3 to 6 months" ref="Role" pref="1"/>
+        <Property value="" ref="xpath" pref="2"/>
+        <Property value="" ref="Text" pref="3"/>
+        <Property value="" ref="css" pref="4"/>
+        <Property value="" ref="Placeholder" pref="5"/>
+        <Property value="" ref="Label" pref="6"/>
+        <Property value="" ref="AltText" pref="7"/>
+        <Property value="" ref="Title" pref="8"/>
+        <Property value="" ref="TestId" pref="9"/>
+        <Property value="" ref="ChainedLocator" pref="10"/>
+      </Object>
+    </ObjectGroup>
+    <ObjectGroup ref="Which energy label do you">
+      <Object frame="" ref="Which energy label do you">
+        <Property value="" ref="Role" pref="1"/>
+        <Property value="" ref="xpath" pref="2"/>
+        <Property value="" ref="Text" pref="3"/>
+        <Property value="" ref="css" pref="4"/>
+        <Property value="" ref="Placeholder" pref="5"/>
+        <Property value="Which energy label do you" ref="Label" pref="6"/>
+        <Property value="" ref="AltText" pref="7"/>
+        <Property value="" ref="Title" pref="8"/>
+        <Property value="" ref="TestId" pref="9"/>
+        <Property value="" ref="ChainedLocator" pref="10"/>
+      </Object>
+    </ObjectGroup>
+    <ObjectGroup ref="Employment">
+      <Object frame="" ref="Employment">
+        <Property value="RADIO;Employment" ref="Role" pref="1"/>
+        <Property value="" ref="xpath" pref="2"/>
+        <Property value="" ref="Text" pref="3"/>
+        <Property value="" ref="css" pref="4"/>
+        <Property value="" ref="Placeholder" pref="5"/>
+        <Property value="" ref="Label" pref="6"/>
+        <Property value="" ref="AltText" pref="7"/>
+        <Property value="" ref="Title" pref="8"/>
+        <Property value="" ref="TestId" pref="9"/>
+        <Property value="" ref="ChainedLocator" pref="10"/>
+      </Object>
+    </ObjectGroup>
+    <ObjectGroup ref="Permanent contract">
+      <Object frame="" ref="Permanent contract">
+        <Property value="RADIO;Permanent contract" ref="Role" pref="1"/>
+        <Property value="" ref="xpath" pref="2"/>
+        <Property value="" ref="Text" pref="3"/>
+        <Property value="" ref="css" pref="4"/>
+        <Property value="" ref="Placeholder" pref="5"/>
+        <Property value="" ref="Label" pref="6"/>
+        <Property value="" ref="AltText" pref="7"/>
+        <Property value="" ref="Title" pref="8"/>
+        <Property value="" ref="TestId" pref="9"/>
+        <Property value="" ref="ChainedLocator" pref="10"/>
+      </Object>
+    </ObjectGroup>
+    <ObjectGroup ref="Refactor_Object_1">
+      <Object frame="" ref="Refactor_Object_1">
+        <Property value="" ref="Role" pref="1"/>
+        <Property value="" ref="xpath" pref="2"/>
+        <Property value="" ref="Text" pref="3"/>
+        <Property value="ing-feat-sc-house-income-type" ref="css" pref="4"/>
+        <Property value="" ref="Placeholder" pref="5"/>
+        <Property value="" ref="Label" pref="6"/>
+        <Property value="" ref="AltText" pref="7"/>
+        <Property value="" ref="Title" pref="8"/>
+        <Property value="" ref="TestId" pref="9"/>
+        <Property value="locator(&quot;ing-feat-sc-house-income-type&quot;)" ref="ChainedLocator" pref="10"/>
+      </Object>
+    </ObjectGroup>
+    <ObjectGroup ref="What is your gross yearly">
+      <Object frame="" ref="What is your gross yearly">
+        <Property value="TEXTBOX;What is your gross yearly" ref="Role" pref="1"/>
+        <Property value="" ref="xpath" pref="2"/>
+        <Property value="" ref="Text" pref="3"/>
+        <Property value="" ref="css" pref="4"/>
+        <Property value="" ref="Placeholder" pref="5"/>
+        <Property value="" ref="Label" pref="6"/>
+        <Property value="" ref="AltText" pref="7"/>
+        <Property value="" ref="Title" pref="8"/>
+        <Property value="" ref="TestId" pref="9"/>
+        <Property value="" ref="ChainedLocator" pref="10"/>
+      </Object>
+    </ObjectGroup>
+    <ObjectGroup ref="No">
+      <Object frame="" ref="No">
+        <Property value="RADIO;No" ref="Role" pref="1"/>
+        <Property value="" ref="xpath" pref="2"/>
+        <Property value="" ref="Text" pref="3"/>
+        <Property value="" ref="css" pref="4"/>
+        <Property value="" ref="Placeholder" pref="5"/>
+        <Property value="" ref="Label" pref="6"/>
+        <Property value="" ref="AltText" pref="7"/>
+        <Property value="" ref="Title" pref="8"/>
+        <Property value="" ref="TestId" pref="9"/>
+        <Property value="" ref="ChainedLocator" pref="10"/>
+      </Object>
+    </ObjectGroup>
+    <ObjectGroup ref="Calculated Mortgage">
+      <Object frame="" ref="Calculated Mortgage">
+        <Property value="" ref="Role" pref="1"/>
+        <Property value="" ref="xpath" pref="2"/>
+        <Property value="" ref="Text" pref="3"/>
+        <Property value="" ref="css" pref="4"/>
+        <Property value="" ref="Placeholder" pref="5"/>
+        <Property value="" ref="Label" pref="6"/>
+        <Property value="" ref="AltText" pref="7"/>
+        <Property value="" ref="Title" pref="8"/>
+        <Property value="" ref="TestId" pref="9"/>
+        <Property value="getByRole(AriaRole.DEFINITION);filter(new Locator.FilterOptions().setHasText(&quot;€1,253&quot;))" ref="ChainedLocator" pref="10"/>
+      </Object>
+    </ObjectGroup>
+    <ObjectGroup ref="Agree &amp; save">
+      <Object frame="" ref="Agree &amp; save">
+        <Property value="BUTTON;Accept" ref="Role" pref="1"/>
+        <Property value="" ref="Text" pref="2"/>
+        <Property value="" ref="Label" pref="3"/>
+        <Property value="" ref="Placeholder" pref="4"/>
+        <Property value="" ref="xpath" pref="5"/>
+        <Property value="" ref="css" pref="6"/>
+        <Property value="" ref="AltText" pref="7"/>
+        <Property value="" ref="Title" pref="8"/>
+        <Property value="" ref="TestId" pref="9"/>
+        <Property value="" ref="ChainedLocator" pref="10"/>
+      </Object>
+    </ObjectGroup>
+    <ObjectGroup ref="Applicant">
+      <Object frame="" ref="Applicant">
+        <Property value="RADIO;#applicant" ref="Role" pref="1"/>
+        <Property value="" ref="Text" pref="2"/>
+        <Property value="" ref="Label" pref="3"/>
+        <Property value="" ref="Placeholder" pref="4"/>
+        <Property value="" ref="xpath" pref="5"/>
+        <Property value="" ref="css" pref="6"/>
+        <Property value="" ref="AltText" pref="7"/>
+        <Property value="" ref="Title" pref="8"/>
+        <Property value="" ref="TestId" pref="9"/>
+        <Property value="" ref="ChainedLocator" pref="10"/>
+      </Object>
+    </ObjectGroup>
+    <ObjectGroup ref="Make An appointment">
+      <Object frame="" ref="Make An appointment">
+        <Property value="BUTTON; Make an appointment" ref="Role" pref="1"/>
+        <Property value="" ref="Text" pref="2"/>
+        <Property value="" ref="Label" pref="3"/>
+        <Property value="" ref="Placeholder" pref="4"/>
+        <Property value="" ref="xpath" pref="5"/>
+        <Property value="" ref="css" pref="6"/>
+        <Property value="" ref="AltText" pref="7"/>
+        <Property value="" ref="Title" pref="8"/>
+        <Property value="" ref="TestId" pref="9"/>
+        <Property value="" ref="ChainedLocator" pref="10"/>
+      </Object>
+    </ObjectGroup>
+    <ObjectGroup ref="partner age">
+      <Object frame="" ref="partner age">
+        <Property value="TEXTBOX;Partner’s age" ref="Role" pref="1"/>
+        <Property value="" ref="Text" pref="2"/>
+        <Property value="" ref="Label" pref="3"/>
+        <Property value="" ref="Placeholder" pref="4"/>
+        <Property value="" ref="xpath" pref="5"/>
+        <Property value="" ref="css" pref="6"/>
+        <Property value="" ref="AltText" pref="7"/>
+        <Property value="" ref="Title" pref="8"/>
+        <Property value="" ref="TestId" pref="9"/>
+        <Property value="" ref="ChainedLocator" pref="10"/>
+      </Object>
+    </ObjectGroup>
+    <ObjectGroup ref="PartnerIncome">
+      <Object frame="" ref="PartnerIncome">
+        <Property value="TEXTBOX;What is your partner's gross yearly income?" ref="Role" pref="1"/>
+        <Property value="" ref="xpath" pref="2"/>
+        <Property value="" ref="Text" pref="3"/>
+        <Property value="" ref="css" pref="4"/>
+        <Property value="" ref="Placeholder" pref="5"/>
+        <Property value="" ref="Label" pref="6"/>
+        <Property value="" ref="AltText" pref="7"/>
+        <Property value="" ref="Title" pref="8"/>
+        <Property value="" ref="TestId" pref="9"/>
+        <Property value="" ref="ChainedLocator" pref="10"/>
+      </Object>
+    </ObjectGroup>
+  </Page>
+</Root>

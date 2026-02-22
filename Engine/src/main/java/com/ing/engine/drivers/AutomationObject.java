@@ -267,45 +267,40 @@ public class AutomationObject {
                         case "Text":
                             System.out.println(foundElementBy("Text", value));
                             GetByTextOptions textOptions = new Page.GetByTextOptions();
-                            if (value.toLowerCase().contains(";exact")) {
+                            if (attr.isExact()) {
                                 textOptions.setExact(true);
-                                value = value.replace(";exact", "").trim();
                             }
                             elements.add(this.getPage().getByText(value, textOptions));
                             break;
                         case "Label":
                             System.out.println(foundElementBy("Label", value));
                             GetByLabelOptions labelOptions = new Page.GetByLabelOptions();
-                            if (value.toLowerCase().contains(";exact")) {
+                            if (attr.isExact()) {
                                 labelOptions.setExact(true);
-                                value = value.replace(";exact", "").trim();
                             }
                             elements.add(this.getPage().getByLabel(value, labelOptions));
                             break;
                         case "Placeholder":
                             System.out.println(foundElementBy("Placeholder", value));
                             GetByPlaceholderOptions placeholderOptions = new Page.GetByPlaceholderOptions();
-                            if (value.toLowerCase().contains(";exact")) {
+                            if (attr.isExact()) {
                                 placeholderOptions.setExact(true);
-                                value = value.replace(";exact", "").trim();
                             }
                             elements.add(this.getPage().getByPlaceholder(value, placeholderOptions));
                             break;
                         case "AltText":
                             System.out.println(foundElementBy("AltText", value));
                             GetByAltTextOptions altTextOptions = new Page.GetByAltTextOptions();
-                            if (value.toLowerCase().contains(";exact")) {
+                            if (attr.isExact()) {
                                 altTextOptions.setExact(true);
-                                value = value.replace(";exact", "").trim();
                             }
                             elements.add(this.getPage().getByAltText(value, altTextOptions));
                             break;
                         case "Title":
                             System.out.println(foundElementBy("Title", value));
                             GetByTitleOptions titleOptions = new Page.GetByTitleOptions();
-                            if (value.toLowerCase().contains(";exact")) {
+                            if (attr.isExact()) {
                                 titleOptions.setExact(true);
-                                value = value.replace(";exact", "").trim();
                             }
                             elements.add(this.getPage().getByTitle(value, titleOptions));
                             break;
@@ -328,9 +323,8 @@ public class AutomationObject {
                             if (value.contains(";")) {
                                 roleType = value.split(";")[0].toUpperCase();
                                 GetByRoleOptions roleOptions = new Page.GetByRoleOptions();
-                                if (value.toLowerCase().contains(";exact")) {
+                                if (attr.isExact()) {
                                     roleOptions.setExact(true);
-                                    value = value.replace(";exact", "").trim();
                                 }
                                 name = value.split(";")[1];
                                 roleOptions.setName(name);
@@ -380,45 +374,40 @@ public class AutomationObject {
                         case "Text":
                             System.out.println(foundElementBy("Text", value));
                             FrameLocator.GetByTextOptions textOptions = new FrameLocator.GetByTextOptions();
-                            if (value.toLowerCase().contains(";exact")) {
+                            if (attr.isExact()) {
                                 textOptions.setExact(true);
-                                value = value.replace(";exact", "").trim();
                             }
                             elements.add(framelocator.getByText(value, textOptions));
                             break;
                         case "Label":
                             System.out.println(foundElementBy("Label", value));
                             FrameLocator.GetByLabelOptions labelOptions = new FrameLocator.GetByLabelOptions();
-                            if (value.toLowerCase().contains(";exact")) {
+                            if (attr.isExact()) {
                                 labelOptions.setExact(true);
-                                value = value.replace(";exact", "").trim();
                             }
                             elements.add(framelocator.getByLabel(value, labelOptions));
                             break;
                         case "Placeholder":
                             System.out.println(foundElementBy("Placeholder", value));
                             FrameLocator.GetByPlaceholderOptions placeholderOptions = new FrameLocator.GetByPlaceholderOptions();
-                            if (value.toLowerCase().contains(";exact")) {
+                            if (attr.isExact()) {
                                 placeholderOptions.setExact(true);
-                                value = value.replace(";exact", "").trim();
                             }
                             elements.add(framelocator.getByPlaceholder(value, placeholderOptions));
                             break;
                         case "AltText":
                             System.out.println(foundElementBy("AltText", value));
                             FrameLocator.GetByAltTextOptions altTextOptions = new FrameLocator.GetByAltTextOptions();
-                            if (value.toLowerCase().contains(";exact")) {
+                            if (attr.isExact()) {
                                 altTextOptions.setExact(true);
-                                value = value.replace(";exact", "").trim();
                             }
                             elements.add(framelocator.getByAltText(value, altTextOptions));
                             break;
                         case "Title":
                             System.out.println(foundElementBy("Title", value));
                             FrameLocator.GetByTitleOptions titleOptions = new FrameLocator.GetByTitleOptions();
-                            if (value.toLowerCase().contains(";exact")) {
+                            if (attr.isExact()) {
                                 titleOptions.setExact(true);
-                                value = value.replace(";exact", "").trim();
                             }
                             elements.add(framelocator.getByTitle(value, titleOptions));
                             break;
@@ -441,9 +430,8 @@ public class AutomationObject {
                             if (value.contains(";")) {
                                 roleType = value.split(";")[0].toUpperCase();
                                 FrameLocator.GetByRoleOptions roleOptions = new FrameLocator.GetByRoleOptions();
-                                if (value.toLowerCase().contains(";exact")) {
+                                if (attr.isExact()) {
                                     roleOptions.setExact(true);
-                                    value = value.replace(";exact", "").trim();
                                 }
                                 name = value.split(";")[1];
                                 roleOptions.setName(name);

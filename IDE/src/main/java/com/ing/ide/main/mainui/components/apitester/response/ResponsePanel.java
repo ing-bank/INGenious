@@ -4,6 +4,10 @@ import com.ing.datalib.api.APIResponse;
 import com.ing.ide.main.mainui.components.apitester.APITesterUI;
 import com.ing.ide.main.mainui.components.apitester.util.APITesterColors;
 
+import org.fife.ui.rsyntaxtextarea.RSyntaxTextArea;
+import org.fife.ui.rsyntaxtextarea.SyntaxConstants;
+import org.fife.ui.rtextarea.RTextScrollPane;
+
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import javax.swing.table.DefaultTableModel;
@@ -25,7 +29,7 @@ public class ResponsePanel extends JPanel {
     
     // Content tabs
     private JTabbedPane tabPane;
-    private JTextArea bodyTextArea;
+    private RSyntaxTextArea bodyTextArea;
     private JTable headersTable;
     private DefaultTableModel headersModel;
     private JPanel testResultsPanel;
@@ -136,11 +140,17 @@ public class ResponsePanel extends JPanel {
         tabPane.setFont(tabPane.getFont().deriveFont(11f));
         
         // Body tab
-        bodyTextArea = new JTextArea();
+        bodyTextArea = new RSyntaxTextArea();
         bodyTextArea.setEditable(false);
         bodyTextArea.setFont(new Font(Font.MONOSPACED, Font.PLAIN, 12));
         bodyTextArea.setTabSize(2);
-        JScrollPane bodyScroll = new JScrollPane(bodyTextArea);
+        bodyTextArea.setCodeFoldingEnabled(true);
+        bodyTextArea.setAntiAliasingEnabled(true);
+        bodyTextArea.setBracketMatchingEnabled(true);
+        bodyTextArea.setMarkOccurrences(true);
+        bodyTextArea.setSyntaxEditingStyle(SyntaxConstants.SYNTAX_STYLE_JSON);
+        RTextScrollPane bodyScroll = new RTextScrollPane(bodyTextArea);
+        bodyScroll.setLineNumbersEnabled(true);
         bodyScroll.setBorder(BorderFactory.createEmptyBorder());
         
         // Body tab with format options
@@ -216,7 +226,16 @@ public class ResponsePanel extends JPanel {
         if (rawBody == null) return;
         
         if (pretty) {
-            bodyTextArea.setText(formatJson(rawBody));
+            String trimmed = rawBody.trim();
+            if (trimmed.startsWith("{") || trimmed.startsWith("[")) {
+                bodyTextArea.setSyntaxEditingStyle(SyntaxConstants.SYNTAX_STYLE_JSON);
+                bodyTextArea.setText(formatJson(rawBody));
+            } else if (trimmed.startsWith("<")) {
+                bodyTextArea.setSyntaxEditingStyle(SyntaxConstants.SYNTAX_STYLE_XML);
+                bodyTextArea.setText(formatXml(rawBody));
+            } else {
+                bodyTextArea.setText(rawBody);
+            }
         } else {
             bodyTextArea.setText(rawBody);
         }
@@ -288,6 +307,86 @@ public class ResponsePanel extends JPanel {
             sb.append("  ");
         }
     }
+
+    /**
+     * Simple XML formatter with indentation.
+     */
+    private String formatXml(String xml) {
+        if (xml == null || xml.isEmpty()) return xml;
+        try {
+            StringBuilder formatted = new StringBuilder();
+            int indent = 0;
+            boolean inTag = false;
+            boolean inContent = false;
+            StringBuilder currentToken = new StringBuilder();
+            
+            // Remove existing whitespace between tags
+            String cleaned = xml.replaceAll(">\\s+<", "><").trim();
+            
+            for (int i = 0; i < cleaned.length(); i++) {
+                char c = cleaned.charAt(i);
+                
+                if (c == '<') {
+                    // Flush content before tag
+                    if (currentToken.length() > 0) {
+                        formatted.append(currentToken);
+                        currentToken.setLength(0);
+                    }
+                    
+                    // Determine tag type by looking ahead
+                    int closeIdx = cleaned.indexOf('>', i);
+                    if (closeIdx < 0) {
+                        currentToken.append(c);
+                        continue;
+                    }
+                    String tag = cleaned.substring(i, closeIdx + 1);
+                    
+                    if (tag.startsWith("</")) {
+                        // Closing tag
+                        indent--;
+                        appendIndent(formatted, indent);
+                        formatted.append(tag).append('\n');
+                    } else if (tag.endsWith("/>") || tag.startsWith("<?") || tag.startsWith("<!")) {
+                        // Self-closing, processing instruction, or comment
+                        appendIndent(formatted, indent);
+                        formatted.append(tag).append('\n');
+                    } else {
+                        // Opening tag - check if next char is content or another tag
+                        appendIndent(formatted, indent);
+                        formatted.append(tag);
+                        
+                        // Peek: if next is '</', it's a simple value element
+                        if (closeIdx + 1 < cleaned.length() && cleaned.charAt(closeIdx + 1) != '<') {
+                            // Content follows — append content and closing tag on same line
+                            int nextTagStart = cleaned.indexOf('<', closeIdx + 1);
+                            if (nextTagStart > 0) {
+                                String content = cleaned.substring(closeIdx + 1, nextTagStart);
+                                int nextClose = cleaned.indexOf('>', nextTagStart);
+                                String closingTag = cleaned.substring(nextTagStart, nextClose + 1);
+                                if (closingTag.startsWith("</")) {
+                                    formatted.append(content).append(closingTag).append('\n');
+                                    i = nextClose;
+                                    continue;
+                                }
+                            }
+                            formatted.append('\n');
+                            indent++;
+                        } else {
+                            formatted.append('\n');
+                            indent++;
+                        }
+                    }
+                    i = closeIdx;
+                } else {
+                    currentToken.append(c);
+                }
+            }
+            
+            return formatted.toString().trim();
+        } catch (Exception e) {
+            return xml;
+        }
+    }
     
     // ═══════════════════════════════════════════════════════════════════
     // Public API
@@ -333,8 +432,16 @@ public class ResponsePanel extends JPanel {
         // Update body
         rawBody = response.getBody();
         if (response.isJsonBody()) {
+            bodyTextArea.setSyntaxEditingStyle(SyntaxConstants.SYNTAX_STYLE_JSON);
             bodyTextArea.setText(formatJson(rawBody));
+        } else if (response.isXmlBody()) {
+            bodyTextArea.setSyntaxEditingStyle(SyntaxConstants.SYNTAX_STYLE_XML);
+            bodyTextArea.setText(formatXml(rawBody));
+        } else if (response.isHtmlBody()) {
+            bodyTextArea.setSyntaxEditingStyle(SyntaxConstants.SYNTAX_STYLE_HTML);
+            bodyTextArea.setText(rawBody != null ? rawBody : "");
         } else {
+            bodyTextArea.setSyntaxEditingStyle(SyntaxConstants.SYNTAX_STYLE_NONE);
             bodyTextArea.setText(rawBody != null ? rawBody : "");
         }
         bodyTextArea.setCaretPosition(0);

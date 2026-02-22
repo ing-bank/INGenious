@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Video Report</title>
+    
+    <!-- Modern CSS -->
+    <link rel="stylesheet" href="../../../../media/css/modern/tailwind.min.css">
+    <link rel="stylesheet" href="../../../../media/css/modern/components.css">
+    <link rel="stylesheet" href="../../../../media/css/modern/themes/light.css" id="theme-light">
+    <link rel="stylesheet" href="../../../../media/css/modern/themes/dark.css" id="theme-dark" disabled>
+    
+    <style>
+        /* Video Report specific styles */
+        .video-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            gap: 1.5rem;
+        }
+        
+        .video-card {
+            background: var(--color-bg-primary);
+            border: 1px solid var(--color-border);
+            border-radius: var(--radius-lg);
+            overflow: hidden;
+            transition: box-shadow 0.2s ease, transform 0.2s ease;
+        }
+        
+        .video-card:hover {
+            box-shadow: var(--shadow-md);
+            transform: translateY(-2px);
+        }
+        
+        .video-thumbnail {
+            position: relative;
+            aspect-ratio: 16/9;
+            background: var(--color-bg-tertiary);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .video-thumbnail .play-icon {
+            width: 64px;
+            height: 64px;
+            background: rgba(0, 0, 0, 0.7);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            transition: background-color 0.2s ease, transform 0.2s ease;
+        }
+        
+        .video-card:hover .play-icon {
+            background: var(--color-primary);
+            transform: scale(1.1);
+        }
+        
+        .video-info {
+            padding: 1rem;
+        }
+        
+        .video-title {
+            font-weight: 600;
+            color: var(--color-text-primary);
+            margin-bottom: 0.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .video-meta {
+            font-size: 0.875rem;
+            color: var(--color-text-secondary);
+        }
+        
+        .video-actions {
+            display: flex;
+            gap: 0.5rem;
+            margin-top: 1rem;
+        }
+        
+        .empty-state {
+            text-align: center;
+            padding: 4rem 2rem;
+        }
+        
+        .empty-state svg {
+            width: 80px;
+            height: 80px;
+            margin: 0 auto 1.5rem;
+            color: var(--color-text-muted);
+        }
+        
+        .video-player-modal {
+            position: fixed;
+            inset: 0;
+            z-index: 50;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(0, 0, 0, 0.9);
+            padding: 2rem;
+        }
+        
+        .video-player-container {
+            max-width: 90vw;
+            max-height: 90vh;
+            position: relative;
+        }
+        
+        .video-player-container video {
+            max-width: 100%;
+            max-height: 80vh;
+            border-radius: var(--radius-lg);
+        }
+        
+        .video-player-close {
+            position: absolute;
+            top: -3rem;
+            right: 0;
+            color: white;
+            cursor: pointer;
+            padding: 0.5rem;
+        }
+    </style>
+    
+    <script src="data.js" type="text/javascript"></script>
+</head>
+<body class="bg-gray-50 dark:bg-gray-900 min-h-screen" x-data="videoReportApp()" x-init="init()">
+    
+    <!-- Header -->
+    <header class="app-header">
+        <div class="flex items-center gap-4">
+            <a href="../../summary-v2.html" class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200" title="Back to Summary">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+                </svg>
+            </a>
+            <div class="text-center flex-1">
+                <h1 class="text-3xl font-black text-purple-600 dark:text-purple-400">🎬 Video Report</h1>
+                <p class="text-sm text-gray-500 dark:text-gray-400 mt-1" x-text="videos.length + ' video(s) recorded'"></p>
+            </div>
+        </div>
+        <div class="flex items-center gap-3">
+            <!-- Theme toggle -->
+            <button @click="toggleTheme()" class="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700" title="Toggle theme">
+                <svg x-show="!darkMode" class="w-5 h-5 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/>
+                </svg>
+                <svg x-show="darkMode" class="w-5 h-5 text-yellow-400" fill="currentColor" viewBox="0 0 24 24">
+                    <path d="M12 2.25a.75.75 0 01.75.75v2.25a.75.75 0 01-1.5 0V3a.75.75 0 01.75-.75zM7.5 12a4.5 4.5 0 119 0 4.5 4.5 0 01-9 0z"/>
+                </svg>
+            </button>
+        </div>
+    </header>
+    
+    <main class="max-w-7xl mx-auto px-4 py-6 sm:px-6 lg:px-8">
+        
+        <!-- Empty State -->
+        <template x-if="videos.length === 0">
+            <div class="card empty-state">
+                <svg fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+                </svg>
+                <h3 class="text-xl font-semibold text-gray-900 dark:text-white mb-2">No Video Recordings Found</h3>
+                <p class="text-gray-500 dark:text-gray-400 max-w-md mx-auto">
+                    Video recordings were not captured for this test execution. 
+                    Enable video recording in your test configuration to capture execution videos.
+                </p>
+            </div>
+        </template>
+        
+        <!-- Video Grid -->
+        <template x-if="videos.length > 0">
+            <div class="video-grid">
+                <template x-for="(video, idx) in videos" :key="idx">
+                    <div class="video-card">
+                        <!-- Thumbnail -->
+                        <div class="video-thumbnail" @click="openVideo(video)">
+                            <div class="play-icon">
+                                <svg class="w-8 h-8" fill="currentColor" viewBox="0 0 24 24">
+                                    <path d="M8 5v14l11-7z"/>
+                                </svg>
+                            </div>
+                        </div>
+                        
+                        <!-- Info -->
+                        <div class="video-info">
+                            <h3 class="video-title">
+                                <svg class="w-5 h-5 text-green-500" fill="currentColor" viewBox="0 0 24 24">
+                                    <path d="M15 10l4.553-2.276A1 1 0 0121 8.618v6.764a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+                                </svg>
+                                <span x-text="video.name"></span>
+                            </h3>
+                            <p class="video-meta" x-text="'Step Recording'"></p>
+                            
+                            <div class="video-actions">
+                                <a :href="video.videoReportDir" 
+                                   class="btn btn-primary btn-sm flex-1 text-center"
+                                   target="_blank">
+                                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/>
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                    </svg>
+                                    Watch Video
+                                </a>
+                                <a :href="video.videoReportDir" 
+                                   class="btn btn-secondary btn-sm"
+                                   download
+                                   title="Download Video">
+                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/>
+                                    </svg>
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </template>
+            </div>
+        </template>
+        
+    </main>
+    
+    <!-- Video Player Modal -->
+    <div x-show="playerOpen" 
+         x-transition:enter="transition ease-out duration-200"
+         x-transition:enter-start="opacity-0"
+         x-transition:enter-end="opacity-100"
+         x-transition:leave="transition ease-in duration-150"
+         x-transition:leave-start="opacity-100"
+         x-transition:leave-end="opacity-0"
+         class="video-player-modal"
+         @click.self="closePlayer()"
+         @keydown.escape.window="closePlayer()">
+        
+        <div class="video-player-container">
+            <button class="video-player-close" @click="closePlayer()">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                </svg>
+            </button>
+            <video x-ref="videoPlayer" controls autoplay>
+                <source :src="currentVideoSrc" type="video/webm">
+                <source :src="currentVideoSrc" type="video/mp4">
+                Your browser does not support the video tag.
+            </video>
+        </div>
+    </div>
+    
+    <!-- Alpine.js -->
+    <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+    
+    <script>
+        function videoReportApp() {
+            return {
+                videos: [],
+                darkMode: false,
+                playerOpen: false,
+                currentVideoSrc: '',
+                
+                init() {
+                    // Parse video data
+                    if (typeof DATA !== 'undefined' && DATA.steps) {
+                        this.videos = DATA.steps.filter(s => s.videoReportDir);
+                    } else if (typeof steps !== 'undefined') {
+                        this.videos = steps.filter(s => s.videoReportDir);
+                    }
+                    
+                    // Initialize theme
+                    this.darkMode = localStorage.getItem('theme') === 'dark' || 
+                        (!localStorage.getItem('theme') && window.matchMedia('(prefers-color-scheme: dark)').matches);
+                    this.applyTheme();
+                },
+                
+                toggleTheme() {
+                    this.darkMode = !this.darkMode;
+                    localStorage.setItem('theme', this.darkMode ? 'dark' : 'light');
+                    this.applyTheme();
+                },
+                
+                applyTheme() {
+                    document.documentElement.classList.toggle('dark', this.darkMode);
+                    document.getElementById('theme-light').disabled = this.darkMode;
+                    document.getElementById('theme-dark').disabled = !this.darkMode;
+                },
+                
+                openVideo(video) {
+                    this.currentVideoSrc = video.videoReportDir;
+                    this.playerOpen = true;
+                },
+                
+                closePlayer() {
+                    this.playerOpen = false;
+                    if (this.$refs.videoPlayer) {
+                        this.$refs.videoPlayer.pause();
+                    }
+                }
+            };
+        }
+    </script>
+</body>
+</html>

@@ -105,11 +105,13 @@ public final class INGIcons {
         register("or.Group",            MaterialDesignF.FOLDER_MULTIPLE,               CLR_OPEN);
         register("or.Web",              MaterialDesignW.WEB,                           CLR_DATA);  // violet
         register("or.Mobile",           MaterialDesignC.CELLPHONE,                     CLR_DATA);  // violet
+        register("or.API",              MaterialDesignA.API,                           CLR_DATA);  // violet
         register("or.propViewer",       MaterialDesignT.TABLE_EYE,                     CLR_SEARCH);
         
         // ── Dark Mode Colors for OR Icons (brighter violet for visibility) ──
         COLOR_MAP_DARK.put("or.Web",    CLR_DATA_DARK);
         COLOR_MAP_DARK.put("or.Mobile", CLR_DATA_DARK);
+        COLOR_MAP_DARK.put("or.API",    CLR_DATA_DARK);
         COLOR_MAP_DARK.put("or.Root",   CLR_DATA_DARK);
 
         // ── Tree: Reusable ──

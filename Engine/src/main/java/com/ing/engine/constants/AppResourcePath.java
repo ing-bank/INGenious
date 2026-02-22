@@ -35,6 +35,13 @@ public class AppResourcePath {
     private final static String REPORT_DATA = "data.js";
     private final static String REPORT_HISTORY_DATA = "reportHistory.js";
 
+    // Modern v2 report templates (Alpine.js, Tailwind CSS, Chart.js)
+    private final static String SUMMARY_HTML_V2 = "summary-v2.html";
+    private final static String DETAILED_HTML_V2 = "detailed-v2.html";
+    private final static String TC_REPORT_HTML_V2 = "testCase-v2.html";
+    private final static String PERF_HTML_V2 = "perfReport-v2.html";
+    private final static String VIDEO_HTML_V2 = "videoReport-v2.html";
+
     private final static String EXPLORER_CONFIG = "ExplorerConfig.properties";
 
     private final static String ENC = ".enc";
@@ -289,5 +296,47 @@ public class AppResourcePath {
 
     public static String getCurrentVideoReportHTMLPath() {
         return getCurrentResultsPath() + File.separator + VIDEO_HTML;
+    }
+    
+    // ========== Modern v2 Report Paths ==========
+    
+    public static String getSummaryHTMLPathV2() {
+        return getReportTemplatePath() + File.separator + SUMMARY_HTML_V2;
+    }
+    
+    public static String getDetailedHTMLPathV2() {
+        return getReportTemplatePath() + File.separator + DETAILED_HTML_V2;
+    }
+    
+    public static String getTCReportTemplateV2() {
+        return getReportTemplatePath() + File.separator + TC_REPORT_HTML_V2;
+    }
+    
+    public static String getPerfReportHTMLPathV2() {
+        return getReportTemplatePath() + File.separator + PERF_HTML_V2;
+    }
+    
+    public static String getVideoReportHTMLPathV2() {
+        return getReportTemplatePath() + File.separator + VIDEO_HTML_V2;
+    }
+    
+    public static String getCurrentSummaryHTMLPathV2() {
+        return getCurrentResultsPath() + File.separator + SUMMARY_HTML_V2;
+    }
+    
+    public static String getCurrentDetailedHTMLPathV2() {
+        return getCurrentResultsPath() + File.separator + DETAILED_HTML_V2;
+    }
+    
+    public static String getCurrentPerfReportHTMLPathV2() {
+        return getCurrentResultsPath() + File.separator + PERF_HTML_V2;
+    }
+    
+    public static String getCurrentVideoReportHTMLPathV2() {
+        return getCurrentResultsPath() + File.separator + VIDEO_HTML_V2;
+    }
+    
+    public static String getReportMediaPath() {
+        return getReportTemplatePath() + File.separator + "media";
     }
 }

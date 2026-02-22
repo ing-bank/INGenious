@@ -55,6 +55,14 @@
                                     <overWrite>true</overWrite>
                                     <outputDirectory>${setupDir}/Engine/lib</outputDirectory>
                                 </artifactItem>
+                                <artifactItem>
+                                    <groupId>${project.parent.groupId}</groupId>
+                                    <artifactId>ingenious-engine</artifactId>
+                                    <version>${project.parent.version}</version>
+                                    <type>jar</type>
+                                    <overWrite>true</overWrite>
+                                    <outputDirectory>${setupDir}/lib</outputDirectory>
+                                </artifactItem>
                             </artifactItems>
                         </configuration>
                     </execution>                    
@@ -146,6 +154,7 @@
                                 <configuration>
                                     <target>
                                         <chmod file="${setupDir}/Run.command" perm="755"/>
+                                        <chmod file="${setupDir}/ingenious" perm="755"/>
                                     </target>
                                 </configuration>
                             </execution>

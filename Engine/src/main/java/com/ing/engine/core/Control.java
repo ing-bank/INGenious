@@ -106,7 +106,10 @@ public class Control {
         MethodExecutor.init();
         ConsoleReport.init();
         SystemDefaults.printSystemInfo();
-        System.out.println("👉 Run Started on " + new Date().toString()+"\n");
+        
+        // Print INGenious ASCII Banner
+        printExecutionBanner();
+        
         WebDriverFactory.initDriverLocation(exe.getProject().getProjectSettings());
         RunManager.loadRunManager();
         ReportManager = new SummaryReport();
@@ -123,8 +126,7 @@ public class Control {
                     exe.getExecSettings().getRunSettings().getThreadCount(),
                     exe.getExecSettings().getRunSettings().getExecutionTimeOut(),
                     exe.getExecSettings().getRunSettings().isGridExecution());
-            System.out.println("\n👉 Run Manager : " + !RunManager.queue().isEmpty()+"\n");
-            System.out.println("👉 Continue Execution : " + !SystemDefaults.stopExecution.get()+"\n");
+            
             while (!RunManager.queue().isEmpty() && !SystemDefaults.stopExecution.get()) {
                 Task t = null;
                 try {
@@ -218,13 +220,85 @@ public class Control {
         Encryption.getInstance();
     }
 
+    /**
+     * Determines if arguments are for the new CLI (picocli-based).
+     * New CLI commands: project, scenario, testcase, action, run, report, config, server, shell
+     * Legacy CLI uses: -run, -project_location, -scenario, etc.
+     */
+    private static boolean isNewCLICommand(String[] args) {
+        if (args == null || args.length == 0) return false;
+        
+        String firstArg = args[0].toLowerCase();
+        
+        // New CLI subcommands
+        String[] newCommands = {
+            "project", "scenario", "testcase", "action", "actions", 
+            "run", "report", "config", "server", "shell", 
+            "interactive", "repl", "help", "--help", "-h", "--version"
+        };
+        
+        for (String cmd : newCommands) {
+            if (firstArg.equals(cmd)) {
+                return true;
+            }
+        }
+        
+        return false;
+    }
+
     public static void main(String[] args) throws UnCaughtException {
         initDeps();
+        
         if (args != null && args.length > 0) {
-            LookUp.exe(args);
+            // Check if new CLI command
+            if (isNewCLICommand(args)) {
+                // Use new Picocli-based CLI
+                int exitCode = com.ing.engine.cli.INGeniousCLI.run(args);
+                if (exitCode != 0) {
+                    System.exit(exitCode);
+                }
+            } else {
+                // Legacy CLI handling
+                LookUp.exe(args);
+            }
         } else {
-            call();
+            // No args - show CLI help with banner
+            int exitCode = com.ing.engine.cli.INGeniousCLI.run(new String[0]);
+            System.exit(exitCode);
         }
+    }
+
+    /**
+     * Print INGenious ASCII banner at execution start
+     */
+    private void printExecutionBanner() {
+        String projectName = exe.getProject() != null ? exe.getProject().getName() : "Unknown";
+        String browser = RunManager.getGlobalSettings().getBrowser();
+        if (browser == null || browser.isEmpty()) {
+            browser = "Default";
+        }
+        String platform = System.getProperty("os.name", "Unknown");
+        
+        System.out.println();
+        System.out.println("╔══════════════════════════════════════════════════════════════════════════════╗");
+        System.out.println("║                                                                              ║");
+        System.out.println("║   ██╗███╗   ██╗ ██████╗ ███████╗███╗   ██╗██╗ ██████╗ ██╗   ██╗███████╗      ║");
+        System.out.println("║   ██║████╗  ██║██╔════╝ ██╔════╝████╗  ██║██║██╔═══██╗██║   ██║██╔════╝      ║");
+        System.out.println("║   ██║██╔██╗ ██║██║  ███╗█████╗  ██╔██╗ ██║██║██║   ██║██║   ██║███████╗      ║");
+        System.out.println("║   ██║██║╚██╗██║██║   ██║██╔══╝  ██║╚██╗██║██║██║   ██║██║   ██║╚════██║      ║");
+        System.out.println("║   ██║██║ ╚████║╚██████╔╝███████╗██║ ╚████║██║╚██████╔╝╚██████╔╝███████║      ║");
+        System.out.println("║   ╚═╝╚═╝  ╚═══╝ ╚═════╝ ╚══════╝╚═╝  ╚═══╝╚═╝ ╚═════╝  ╚═════╝ ╚══════╝      ║");
+        System.out.println("║                                                                              ║");
+        System.out.println("║                    🚀 Test Automation Framework v2.3.1                       ║");
+        System.out.println("║                                                                              ║");
+        System.out.println("╚══════════════════════════════════════════════════════════════════════════════╝");
+        System.out.println();
+        System.out.println("══════════════════════════════════════════════════════════════════════════════");
+        System.out.println("  📁 Project:  " + projectName);
+        System.out.println("  🌐 Browser:  " + browser);
+        System.out.println("  💻 Platform: " + platform);
+        System.out.println("══════════════════════════════════════════════════════════════════════════════");
+        System.out.println();
     }
 
 }

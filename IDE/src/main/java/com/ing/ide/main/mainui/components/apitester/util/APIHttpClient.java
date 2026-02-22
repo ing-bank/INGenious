@@ -4,20 +4,20 @@ import com.ing.datalib.api.*;
 import com.jayway.jsonpath.JsonPath;
 import com.jayway.jsonpath.PathNotFoundException;
 
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.TrustManager;
-import javax.net.ssl.X509TrustManager;
-import java.io.IOException;
+import javax.net.ssl.*;
+import java.io.*;
 import java.net.URI;
 import java.net.URLEncoder;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
 import java.nio.charset.StandardCharsets;
-import java.security.KeyManagementException;
-import java.security.NoSuchAlgorithmException;
-import java.security.SecureRandom;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.security.*;
+import java.security.cert.CertificateFactory;
 import java.security.cert.X509Certificate;
+import java.security.spec.PKCS8EncodedKeySpec;
 import java.time.Duration;
 import java.time.Instant;
 import java.util.*;
@@ -121,9 +121,9 @@ public class APIHttpClient {
             
             HttpRequest httpRequest = builder.build();
             
-            // Execute the request
+            // Execute the request with appropriate SSL configuration
             Instant start = Instant.now();
-            HttpClient client = trustAllCertificates ? insecureHttpClient : httpClient;
+            HttpClient client = getHttpClient(request);
             HttpResponse<String> httpResponse = client.send(httpRequest, HttpResponse.BodyHandlers.ofString());
             long responseTimeMs = Duration.between(start, Instant.now()).toMillis();
             
@@ -432,6 +432,178 @@ public class APIHttpClient {
         } catch (NumberFormatException ex) {
             return actual.compareTo(expected);
         }
+    }
+
+    /**
+     * Gets the appropriate HTTP client for the request based on SSL and certificate configuration.
+     */
+    private HttpClient getHttpClient(APIRequest request) {
+        CertificateConfig certConfig = request.getCertificateConfig();
+        
+        // If certificates are configured, create a custom client
+        if (certConfig != null && certConfig.isEnabled() && certConfig.hasValidConfig()) {
+            try {
+                SSLContext sslContext = createCertificateSSLContext(certConfig, !request.isSslVerificationEnabled());
+                return HttpClient.newBuilder()
+                        .version(HttpClient.Version.HTTP_1_1)
+                        .connectTimeout(Duration.ofMillis(request.getTimeout() > 0 ? request.getTimeout() : defaultTimeout))
+                        .followRedirects(HttpClient.Redirect.NORMAL)
+                        .sslContext(sslContext)
+                        .build();
+            } catch (Exception e) {
+                LOG.log(Level.WARNING, "Failed to create SSL context with certificates, using default", e);
+            }
+        }
+        
+        // Fall back to standard clients  
+        return trustAllCertificates ? insecureHttpClient : httpClient;
+    }
+
+    /**
+     * Creates an SSL context with client certificates and optionally trusts all server certificates.
+     */
+    private SSLContext createCertificateSSLContext(CertificateConfig certConfig, boolean trustAll) throws Exception {
+        SSLContext sslContext = SSLContext.getInstance("TLS");
+        
+        // Setup KeyManager for client certificates
+        KeyManager[] keyManagers = null;
+        if (certConfig.getCertificateType() == CertificateConfig.CertificateType.PFX) {
+            keyManagers = createPfxKeyManagers(certConfig);
+        } else {
+            keyManagers = createPemKeyManagers(certConfig);
+        }
+        
+        // Setup TrustManager
+        TrustManager[] trustManagers;
+        if (trustAll) {
+            // Trust all certificates
+            trustManagers = new TrustManager[]{
+                new X509TrustManager() {
+                    public X509Certificate[] getAcceptedIssuers() { return new X509Certificate[0]; }
+                    public void checkClientTrusted(X509Certificate[] certs, String authType) {}
+                    public void checkServerTrusted(X509Certificate[] certs, String authType) {}
+                }
+            };
+        } else {
+            // Use custom CA if provided, otherwise use default
+            trustManagers = createTrustManagers(certConfig);
+        }
+        
+        sslContext.init(keyManagers, trustManagers, new SecureRandom());
+        return sslContext;
+    }
+
+    private KeyManager[] createPfxKeyManagers(CertificateConfig certConfig) throws Exception {
+        String pfxPath = certConfig.getPfxPath();
+        String passphrase = certConfig.getPassphrase();
+        
+        if (pfxPath == null || pfxPath.trim().isEmpty()) {
+            return null;
+        }
+        
+        KeyStore keyStore = KeyStore.getInstance("PKCS12");
+        char[] password = passphrase != null ? passphrase.toCharArray() : new char[0];
+        
+        try (FileInputStream fis = new FileInputStream(pfxPath)) {
+            keyStore.load(fis, password);
+        }
+        
+        KeyManagerFactory kmf = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
+        kmf.init(keyStore, password);
+        return kmf.getKeyManagers();
+    }
+
+    private KeyManager[] createPemKeyManagers(CertificateConfig certConfig) throws Exception {
+        String clientCertPath = certConfig.getClientCertPath();
+        String clientKeyPath = certConfig.getClientKeyPath();
+        String passphrase = certConfig.getPassphrase();
+        
+        if (clientCertPath == null || clientCertPath.trim().isEmpty() ||
+            clientKeyPath == null || clientKeyPath.trim().isEmpty()) {
+            return null;
+        }
+        
+        // Load client certificate
+        X509Certificate clientCert = loadPemCertificate(clientCertPath);
+        
+        // Load private key
+        PrivateKey privateKey = loadPemPrivateKey(clientKeyPath, passphrase);
+        
+        // Create keystore with client certificate
+        KeyStore keyStore = KeyStore.getInstance("JKS");
+        keyStore.load(null, null);
+        keyStore.setKeyEntry("client", privateKey, new char[0], new java.security.cert.Certificate[]{clientCert});
+        
+        KeyManagerFactory kmf = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
+        kmf.init(keyStore, new char[0]);
+        return kmf.getKeyManagers();
+    }
+
+    private TrustManager[] createTrustManagers(CertificateConfig certConfig) throws Exception {
+        String caCertPath = certConfig.getCaCertPath();
+        
+        if (caCertPath == null || caCertPath.trim().isEmpty()) {
+            // Use system default trust managers
+            TrustManagerFactory tmf = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
+            tmf.init((KeyStore) null);
+            return tmf.getTrustManagers();
+        }
+        
+        // Load CA certificate
+        X509Certificate caCert = loadPemCertificate(caCertPath);
+        
+        // Create trust store with CA certificate
+        KeyStore trustStore = KeyStore.getInstance("JKS");
+        trustStore.load(null, null);
+        trustStore.setCertificateEntry("ca", caCert);
+        
+        TrustManagerFactory tmf = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
+        tmf.init(trustStore);
+        return tmf.getTrustManagers();
+    }
+
+    private X509Certificate loadPemCertificate(String certPath) throws Exception {
+        String pemContent = new String(Files.readAllBytes(Paths.get(certPath)));
+        
+        // Extract certificate content between BEGIN/END markers
+        String certContent = pemContent
+                .replaceAll("-----BEGIN CERTIFICATE-----", "")
+                .replaceAll("-----END CERTIFICATE-----", "")
+                .replaceAll("\\s", "");
+        
+        byte[] certBytes = Base64.getDecoder().decode(certContent);
+        CertificateFactory cf = CertificateFactory.getInstance("X.509");
+        return (X509Certificate) cf.generateCertificate(new ByteArrayInputStream(certBytes));
+    }
+
+    private PrivateKey loadPemPrivateKey(String keyPath, String passphrase) throws Exception {
+        String pemContent = new String(Files.readAllBytes(Paths.get(keyPath)));
+        
+        // Handle encrypted private keys (basic support)
+        if (pemContent.contains("ENCRYPTED")) {
+            throw new UnsupportedOperationException("Encrypted PEM private keys are not yet supported. Use PFX format or unencrypted PEM keys.");
+        }
+        
+        // Extract private key content between BEGIN/END markers
+        String keyContent = pemContent
+                .replaceAll("-----BEGIN (RSA |EC |)PRIVATE KEY-----", "")
+                .replaceAll("-----END (RSA |EC |)PRIVATE KEY-----", "")
+                .replaceAll("\\s", "");
+        
+        byte[] keyBytes = Base64.getDecoder().decode(keyContent);
+        PKCS8EncodedKeySpec keySpec = new PKCS8EncodedKeySpec(keyBytes);
+        
+        // Try different key algorithms
+        for (String algorithm : new String[]{"RSA", "EC", "DSA"}) {
+            try {
+                KeyFactory kf = KeyFactory.getInstance(algorithm);
+                return kf.generatePrivate(keySpec);
+            } catch (Exception e) {
+                // Try next algorithm
+            }
+        }
+        
+        throw new GeneralSecurityException("Unable to load private key - unsupported format or algorithm");
     }
 
     // Getters and Setters

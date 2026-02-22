@@ -131,8 +131,16 @@ public class WebOR implements ORRootInf<WebORPage> {
         if (getPageByName(pageName) == null) {
             WebORPage page = new WebORPage(pageName, this);
             pages.add(page);
-            new File(page.getRepLocation()).mkdirs();
+            // Only create folder for non-YAML formats
+            if (objectRepository == null || !objectRepository.isUsingYamlFormat()) {
+                new File(page.getRepLocation()).mkdirs();
+            }
             setSaved(false);
+            
+            // Auto-save for YAML format
+            if (objectRepository != null && objectRepository.isUsingYamlFormat()) {
+                objectRepository.saveWebPageNow(page);
+            }
             return page;
         }
         return null;

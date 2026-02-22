@@ -1,0 +1,9 @@
+Step,ObjectName,Description,Action,Input,Condition,Reference
+1,Applicant,"Click the [<Object>] ",setObjectProperty,Mortage Calculator:Applicant,"#applicant",Calculator
+2,Applicant,"Click the [<Object>] ",Click,,,Calculator
+3,What is your age?,"Click the [<Object>] ",Click,,,Calculator
+4,What is your age?,Enter the value [<Data>] in the Field [<Object>],Fill,Mortage Calculator:Age,,Calculator
+5,partner age,Click the [<Object>] if Data Exists,ClickIfDataExists,Mortage Calculator:PartnerAge,,Calculator
+6,partner age,Enter the value [<Data>] in the Field [<Object>],FillIfDataExists,Mortage Calculator:PartnerAge,,Calculator
+7,Next,"Click the [<Object>] ",Click,,,Calculator
+8,Browser,To Test the Accessibility of the Page,testAccessibility,,,

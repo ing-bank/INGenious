@@ -75,7 +75,12 @@ public class WebORPanel extends JPanel {
     }
 
     public void adjustUI() {
-        splitPane.setDividerLocation(0.5);
+        int height = splitPane.getHeight();
+        if (height > 0) {
+            splitPane.setDividerLocation(height / 2);
+        } else {
+            splitPane.setDividerLocation(0.5);
+        }
     }
 
     public Boolean navigateToObject(String objectName, String pageName) {

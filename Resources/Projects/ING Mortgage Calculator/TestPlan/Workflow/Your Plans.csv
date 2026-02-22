@@ -1,0 +1,6 @@
+Step,ObjectName,Description,Action,Input,Condition,Reference
+1,Within 3 to 6 months,Check the [<Object>] element,Check,,,Calculator
+2,Next,"Click the [<Object>] ",Click,,,Calculator
+3,Which energy label do you,Select item in [<Object>] which has text: [<Data>],SelectSingleByText,@ENERGY_LABEL_A,,Calculator
+4,Next,"Click the [<Object>] ",Click,,,Calculator
+5,Browser,To Test the Accessibility of the Page,testAccessibility,,,

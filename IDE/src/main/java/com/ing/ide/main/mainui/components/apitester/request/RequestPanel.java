@@ -4,6 +4,10 @@ import com.ing.datalib.api.*;
 import com.ing.ide.main.mainui.components.apitester.APITesterUI;
 import com.ing.ide.main.mainui.components.apitester.util.APITesterColors;
 
+import org.fife.ui.rsyntaxtextarea.RSyntaxTextArea;
+import org.fife.ui.rsyntaxtextarea.SyntaxConstants;
+import org.fife.ui.rtextarea.RTextScrollPane;
+
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import javax.swing.table.DefaultTableModel;
@@ -31,6 +35,7 @@ public class RequestPanel extends JPanel {
     private KeyValueTablePanel headersPanel;
     private BodyPanel bodyPanel;
     private AuthPanel authPanel;
+    private SettingsPanel settingsPanel;
     
     public RequestPanel(APITesterUI parent) {
         this.parent = parent;
@@ -65,6 +70,10 @@ public class RequestPanel extends JPanel {
         // Auth tab
         authPanel = new AuthPanel();
         tabPane.addTab("Auth", authPanel);
+        
+        // Settings tab
+        settingsPanel = new SettingsPanel();
+        tabPane.addTab("Settings", settingsPanel);
         
         add(tabPane, BorderLayout.CENTER);
     }
@@ -167,6 +176,9 @@ public class RequestPanel extends JPanel {
         
         // Auth
         authPanel.loadAuth(request.getAuth());
+        
+        // Settings
+        settingsPanel.loadSettings(request);
     }
     
     /**
@@ -188,6 +200,9 @@ public class RequestPanel extends JPanel {
         
         // Auth
         request.setAuth(authPanel.getAuth());
+        
+        // Settings
+        settingsPanel.updateRequest(request);
     }
     
     /**
@@ -344,6 +359,11 @@ public class RequestPanel extends JPanel {
         // Refresh auth panel colors
         if (authPanel != null) {
             authPanel.refreshThemeColors();
+        }
+        
+        // Refresh settings panel colors
+        if (settingsPanel != null) {
+            settingsPanel.refreshThemeColors();
         }
         
         // Refresh params and headers panels
@@ -520,7 +540,7 @@ class BodyPanel extends JPanel {
     
     private JComboBox<RequestBody.BodyType> typeSelector;
     private JComboBox<RequestBody.RawFormat> formatSelector;
-    private JTextArea bodyTextArea;
+    private RSyntaxTextArea bodyTextArea;
     private CardLayout cardLayout;
     private JPanel contentPanel;
     
@@ -538,6 +558,7 @@ class BodyPanel extends JPanel {
         
         formatSelector = new JComboBox<>(RequestBody.RawFormat.values());
         formatSelector.setFont(formatSelector.getFont().deriveFont(11f));
+        formatSelector.addActionListener(e -> updateSyntaxStyle());
         
         topPanel.add(new JLabel("Type:"));
         topPanel.add(typeSelector);
@@ -548,11 +569,18 @@ class BodyPanel extends JPanel {
         cardLayout = new CardLayout();
         contentPanel = new JPanel(cardLayout);
         
-        // Raw body editor
-        bodyTextArea = new JTextArea();
+        // Raw body editor with syntax highlighting
+        bodyTextArea = new RSyntaxTextArea();
         bodyTextArea.setFont(new Font(Font.MONOSPACED, Font.PLAIN, 12));
         bodyTextArea.setTabSize(2);
-        JScrollPane textScroll = new JScrollPane(bodyTextArea);
+        bodyTextArea.setCodeFoldingEnabled(true);
+        bodyTextArea.setAntiAliasingEnabled(true);
+        bodyTextArea.setBracketMatchingEnabled(true);
+        bodyTextArea.setAutoIndentEnabled(true);
+        bodyTextArea.setMarkOccurrences(true);
+        updateSyntaxStyle();
+        RTextScrollPane textScroll = new RTextScrollPane(bodyTextArea);
+        textScroll.setLineNumbersEnabled(true);
         textScroll.setBorder(BorderFactory.createLineBorder(UIManager.getColor("Component.borderColor")));
         contentPanel.add(textScroll, "RAW");
         
@@ -576,6 +604,30 @@ class BodyPanel extends JPanel {
         } else {
             cardLayout.show(contentPanel, "RAW");
             formatSelector.setEnabled(type == RequestBody.BodyType.RAW);
+        }
+        updateSyntaxStyle();
+    }
+    
+    private void updateSyntaxStyle() {
+        if (bodyTextArea == null) return;
+        RequestBody.RawFormat format = (RequestBody.RawFormat) formatSelector.getSelectedItem();
+        if (format == null) format = RequestBody.RawFormat.JSON;
+        switch (format) {
+            case JSON:
+                bodyTextArea.setSyntaxEditingStyle(SyntaxConstants.SYNTAX_STYLE_JSON);
+                break;
+            case XML:
+                bodyTextArea.setSyntaxEditingStyle(SyntaxConstants.SYNTAX_STYLE_XML);
+                break;
+            case HTML:
+                bodyTextArea.setSyntaxEditingStyle(SyntaxConstants.SYNTAX_STYLE_HTML);
+                break;
+            case JAVASCRIPT:
+                bodyTextArea.setSyntaxEditingStyle(SyntaxConstants.SYNTAX_STYLE_JAVASCRIPT);
+                break;
+            default:
+                bodyTextArea.setSyntaxEditingStyle(SyntaxConstants.SYNTAX_STYLE_NONE);
+                break;
         }
     }
     
@@ -859,5 +911,375 @@ class AuthPanel extends JPanel {
             }
         }
         repaint();
+    }
+}
+
+/**
+ * Panel for per-request settings (SSL, timeout, redirects).
+ * Similar to Postman's request Settings tab.
+ */
+class SettingsPanel extends JPanel {
+
+    private JCheckBox sslVerificationCheckbox;
+    private JCheckBox followRedirectsCheckbox;
+    private JSpinner timeoutSpinner;
+
+    // Certificate fields
+    private JCheckBox certEnabledCheckbox;
+    private JComboBox<CertificateConfig.CertificateType> certTypeSelector;
+    private JTextField caCertField;
+    private JTextField clientCertField;
+    private JTextField clientKeyField;
+    private JTextField pfxField;
+    private JPasswordField passphraseField;
+    private JPanel pemPanel;
+    private JPanel pfxPanel;
+    private CardLayout certCardLayout;
+
+    public SettingsPanel() {
+        setLayout(new BorderLayout());
+        setBorder(new EmptyBorder(12, 12, 12, 12));
+        initComponents();
+    }
+
+    private void initComponents() {
+        JPanel settingsGrid = new JPanel(new GridBagLayout());
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.anchor = GridBagConstraints.WEST;
+        gbc.insets = new Insets(8, 8, 8, 8);
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        gbc.gridwidth = 2;
+
+        // Section header: SSL
+        JLabel sslHeader = new JLabel("SSL Certificate Verification");
+        sslHeader.setFont(sslHeader.getFont().deriveFont(Font.BOLD, 13f));
+        settingsGrid.add(sslHeader, gbc);
+
+        gbc.gridy = 1;
+        gbc.gridwidth = 1;
+        sslVerificationCheckbox = new JCheckBox("Enable SSL certificate verification");
+        sslVerificationCheckbox.setSelected(true);
+        sslVerificationCheckbox.setFont(sslVerificationCheckbox.getFont().deriveFont(12f));
+        settingsGrid.add(sslVerificationCheckbox, gbc);
+
+        gbc.gridx = 0;
+        gbc.gridy = 2;
+        gbc.gridwidth = 2;
+        JLabel sslNote = new JLabel(
+                "When disabled, requests will skip SSL certificate validation. Use this for self-signed certificates or test environments.");
+        sslNote.setFont(sslNote.getFont().deriveFont(Font.ITALIC, 11f));
+        sslNote.setForeground(UIManager.getColor("Label.disabledForeground"));
+        sslNote.setName("sslNoteLabel");
+        settingsGrid.add(sslNote, gbc);
+
+        // Separator
+        gbc.gridy = 3;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.weightx = 1;
+        settingsGrid.add(new JSeparator(), gbc);
+        gbc.fill = GridBagConstraints.NONE;
+        gbc.weightx = 0;
+
+        // Section header: Request Behavior
+        gbc.gridy = 4;
+        JLabel behaviorHeader = new JLabel("Request Behavior");
+        behaviorHeader.setFont(behaviorHeader.getFont().deriveFont(Font.BOLD, 13f));
+        settingsGrid.add(behaviorHeader, gbc);
+
+        gbc.gridy = 5;
+        gbc.gridwidth = 1;
+        followRedirectsCheckbox = new JCheckBox("Automatically follow redirects");
+        followRedirectsCheckbox.setSelected(true);
+        followRedirectsCheckbox.setFont(followRedirectsCheckbox.getFont().deriveFont(12f));
+        settingsGrid.add(followRedirectsCheckbox, gbc);
+
+        gbc.gridy = 6;
+        gbc.gridwidth = 1;
+        JLabel timeoutLabel = new JLabel("Request timeout (ms):");
+        timeoutLabel.setFont(timeoutLabel.getFont().deriveFont(12f));
+        settingsGrid.add(timeoutLabel, gbc);
+
+        gbc.gridx = 1;
+        timeoutSpinner = new JSpinner(new SpinnerNumberModel(30000, 0, 300000, 1000));
+        timeoutSpinner.setPreferredSize(new Dimension(100, 28));
+        timeoutSpinner.setFont(timeoutSpinner.getFont().deriveFont(12f));
+        settingsGrid.add(timeoutSpinner, gbc);
+
+        // Separator
+        gbc.gridx = 0;
+        gbc.gridy = 7;
+        gbc.gridwidth = 2;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.weightx = 1;
+        settingsGrid.add(new JSeparator(), gbc);
+        gbc.fill = GridBagConstraints.NONE;
+        gbc.weightx = 0;
+
+        // Section header: Client Certificates
+        gbc.gridy = 8;
+        JLabel certHeader = new JLabel("Client Certificates");
+        certHeader.setFont(certHeader.getFont().deriveFont(Font.BOLD, 13f));
+        settingsGrid.add(certHeader, gbc);
+
+        gbc.gridy = 9;
+        gbc.gridwidth = 1;
+        certEnabledCheckbox = new JCheckBox("Use client certificates");
+        certEnabledCheckbox.setSelected(false);
+        certEnabledCheckbox.setFont(certEnabledCheckbox.getFont().deriveFont(12f));
+        certEnabledCheckbox.addActionListener(e -> updateCertificatePanel());
+        settingsGrid.add(certEnabledCheckbox, gbc);
+
+        // Certificate type selector
+        gbc.gridx = 0;
+        gbc.gridy = 10;
+        gbc.gridwidth = 1;
+        JLabel certTypeLabel = new JLabel("Certificate type:");
+        certTypeLabel.setFont(certTypeLabel.getFont().deriveFont(12f));
+        settingsGrid.add(certTypeLabel, gbc);
+
+        gbc.gridx = 1;
+        certTypeSelector = new JComboBox<>(CertificateConfig.CertificateType.values());
+        certTypeSelector.setFont(certTypeSelector.getFont().deriveFont(11f));
+        certTypeSelector.addActionListener(e -> updateCertificatePanel());
+        settingsGrid.add(certTypeSelector, gbc);
+
+        // Certificate details panel with CardLayout
+        gbc.gridx = 0;
+        gbc.gridy = 11;
+        gbc.gridwidth = 2;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.weightx = 1;
+        JPanel certDetailsContainer = new JPanel();
+        certCardLayout = new CardLayout();
+        certDetailsContainer.setLayout(certCardLayout);
+        
+        // Create PEM and PFX panels
+        pemPanel = createPemPanel();
+        pfxPanel = createPfxPanel();
+        
+        certDetailsContainer.add(pemPanel, "PEM");
+        certDetailsContainer.add(pfxPanel, "PFX");
+        settingsGrid.add(certDetailsContainer, gbc);
+        gbc.fill = GridBagConstraints.NONE;
+        gbc.weightx = 0;
+
+        // Push everything to the top
+        gbc.gridx = 0;
+        gbc.gridy = 12;
+        gbc.weighty = 1;
+        gbc.fill = GridBagConstraints.VERTICAL;
+        settingsGrid.add(Box.createVerticalGlue(), gbc);
+
+        add(settingsGrid, BorderLayout.CENTER);
+        
+        updateCertificatePanel();
+    }
+    
+    private JPanel createPemPanel() {
+        JPanel panel = new JPanel(new GridBagLayout());
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(5, 5, 5, 5);
+        gbc.anchor = GridBagConstraints.WEST;
+        
+        // CA Certificate
+        gbc.gridx = 0; gbc.gridy = 0;
+        panel.add(new JLabel("CA Certificate:"), gbc);
+        gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1;
+        caCertField = new JTextField(30);
+        caCertField.setToolTipText("Path to CA certificate file (.pem/.crt)");
+        panel.add(caCertField, gbc);
+        gbc.gridx = 2; gbc.fill = GridBagConstraints.NONE; gbc.weightx = 0;
+        JButton caCertBrowse = new JButton("Browse...");
+        caCertBrowse.addActionListener(e -> browseCertificateFile(caCertField, "Select CA Certificate"));
+        panel.add(caCertBrowse, gbc);
+        
+        // Client Certificate
+        gbc.gridx = 0; gbc.gridy = 1;
+        panel.add(new JLabel("Client Certificate:"), gbc);
+        gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1;
+        clientCertField = new JTextField(30);
+        clientCertField.setToolTipText("Path to client certificate file (.pem/.crt)");
+        panel.add(clientCertField, gbc);
+        gbc.gridx = 2; gbc.fill = GridBagConstraints.NONE; gbc.weightx = 0;
+        JButton clientCertBrowse = new JButton("Browse...");
+        clientCertBrowse.addActionListener(e -> browseCertificateFile(clientCertField, "Select Client Certificate"));
+        panel.add(clientCertBrowse, gbc);
+        
+        // Client Private Key
+        gbc.gridx = 0; gbc.gridy = 2;
+        panel.add(new JLabel("Client Private Key:"), gbc);
+        gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1;
+        clientKeyField = new JTextField(30);
+        clientKeyField.setToolTipText("Path to client private key file (.key/.pem)");
+        panel.add(clientKeyField, gbc);
+        gbc.gridx = 2; gbc.fill = GridBagConstraints.NONE; gbc.weightx = 0;
+        JButton clientKeyBrowse = new JButton("Browse...");
+        clientKeyBrowse.addActionListener(e -> browseCertificateFile(clientKeyField, "Select Client Private Key"));
+        panel.add(clientKeyBrowse, gbc);
+        
+        // Passphrase
+        gbc.gridx = 0; gbc.gridy = 3;
+        panel.add(new JLabel("Passphrase:"), gbc);
+        gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1;
+        passphraseField = new JPasswordField(30);
+        passphraseField.setToolTipText("Private key passphrase (optional)");
+        panel.add(passphraseField, gbc);
+        
+        return panel;
+    }
+    
+    private JPanel createPfxPanel() {
+        JPanel panel = new JPanel(new GridBagLayout());
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(5, 5, 5, 5);
+        gbc.anchor = GridBagConstraints.WEST;
+        
+        // PFX File
+        gbc.gridx = 0; gbc.gridy = 0;
+        panel.add(new JLabel("PFX/PKCS12 File:"), gbc);
+        gbc.gridx = 1; gbc.fill = GridBagConstraints.HORIZONTAL; gbc.weightx = 1;
+        pfxField = new JTextField(30);
+        pfxField.setToolTipText("Path to PFX/PKCS12 keystore file (.pfx/.p12)");
+        panel.add(pfxField, gbc);
+        gbc.gridx = 2; gbc.fill = GridBagConstraints.NONE; gbc.weightx = 0;
+        JButton pfxBrowse = new JButton("Browse...");
+        pfxBrowse.addActionListener(e -> browseCertificateFile(pfxField, "Select PFX/PKCS12 File"));
+        panel.add(pfxBrowse, gbc);
+        
+        return panel;
+    }
+    
+    private void browseCertificateFile(JTextField targetField, String title) {
+        JFileChooser fileChooser = new JFileChooser();
+        fileChooser.setDialogTitle(title);
+        fileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
+        
+        String currentPath = targetField.getText().trim();
+        if (!currentPath.isEmpty()) {
+            fileChooser.setSelectedFile(new java.io.File(currentPath));
+        }
+        
+        int result = fileChooser.showOpenDialog(this);
+        if (result == JFileChooser.APPROVE_OPTION) {
+            targetField.setText(fileChooser.getSelectedFile().getAbsolutePath());
+        }
+    }
+    
+    private void updateCertificatePanel() {
+        boolean enabled = certEnabledCheckbox.isSelected();
+        certTypeSelector.setEnabled(enabled);
+        
+        if (enabled) {
+            CertificateConfig.CertificateType type = (CertificateConfig.CertificateType) certTypeSelector.getSelectedItem();
+            certCardLayout.show(pemPanel.getParent(), type.name());
+        }
+        
+        // Enable/disable all certificate fields
+        enableCertificateFields(enabled);
+    }
+    
+    private void enableCertificateFields(boolean enabled) {
+        if (caCertField != null) caCertField.setEnabled(enabled);
+        if (clientCertField != null) clientCertField.setEnabled(enabled);
+        if (clientKeyField != null) clientKeyField.setEnabled(enabled);
+        if (pfxField != null) pfxField.setEnabled(enabled);
+        if (passphraseField != null) passphraseField.setEnabled(enabled);
+    }
+
+    /**
+     * Loads settings from an APIRequest into this panel.
+     */
+    public void loadSettings(APIRequest request) {
+        sslVerificationCheckbox.setSelected(request.isSslVerificationEnabled());
+        followRedirectsCheckbox.setSelected(request.isFollowRedirects());
+        timeoutSpinner.setValue(request.getTimeout() > 0 ? request.getTimeout() : 30000);
+        
+        // Load certificate config
+        CertificateConfig certConfig = request.getCertificateConfig();
+        if (certConfig != null) {
+            certEnabledCheckbox.setSelected(certConfig.isEnabled());
+            certTypeSelector.setSelectedItem(certConfig.getCertificateType());
+            caCertField.setText(certConfig.getCaCertPath() != null ? certConfig.getCaCertPath() : "");
+            clientCertField.setText(certConfig.getClientCertPath() != null ? certConfig.getClientCertPath() : "");
+            clientKeyField.setText(certConfig.getClientKeyPath() != null ? certConfig.getClientKeyPath() : "");
+            pfxField.setText(certConfig.getPfxPath() != null ? certConfig.getPfxPath() : "");
+            passphraseField.setText(certConfig.getPassphrase() != null ? certConfig.getPassphrase() : "");
+        } else {
+            certEnabledCheckbox.setSelected(false);
+            certTypeSelector.setSelectedItem(CertificateConfig.CertificateType.PEM);
+            caCertField.setText("");
+            clientCertField.setText("");
+            clientKeyField.setText("");
+            pfxField.setText("");
+            passphraseField.setText("");
+        }
+        updateCertificatePanel();
+    }
+
+    /**
+     * Updates an APIRequest with the values from this panel.
+     */
+    public void updateRequest(APIRequest request) {
+        request.setSslVerificationEnabled(sslVerificationCheckbox.isSelected());
+        request.setFollowRedirects(followRedirectsCheckbox.isSelected());
+        request.setTimeout((int) timeoutSpinner.getValue());
+        
+        // Update certificate config
+        CertificateConfig certConfig = request.getCertificateConfig();
+        if (certConfig == null) {
+            certConfig = new CertificateConfig();
+            request.setCertificateConfig(certConfig);
+        }
+        
+        certConfig.setEnabled(certEnabledCheckbox.isSelected());
+        certConfig.setCertificateType((CertificateConfig.CertificateType) certTypeSelector.getSelectedItem());
+        certConfig.setCaCertPath(caCertField.getText().trim());
+        certConfig.setClientCertPath(clientCertField.getText().trim());
+        certConfig.setClientKeyPath(clientKeyField.getText().trim());
+        certConfig.setPfxPath(pfxField.getText().trim());
+        certConfig.setPassphrase(new String(passphraseField.getPassword()));
+    }
+
+    /**
+     * Refresh theme colors.
+     */
+    public void refreshThemeColors() {
+        setBackground(UIManager.getColor("Panel.background"));
+        for (Component c : getComponents()) {
+            if (c instanceof JPanel) {
+                c.setBackground(UIManager.getColor("Panel.background"));
+                refreshChildColors((Container) c);
+            }
+        }
+        repaint();
+    }
+
+    private void refreshChildColors(Container container) {
+        for (Component c : container.getComponents()) {
+            if (c instanceof JPanel) {
+                c.setBackground(UIManager.getColor("Panel.background"));
+            }
+            if (c instanceof JCheckBox) {
+                c.setBackground(UIManager.getColor("Panel.background"));
+            }
+            if (c instanceof JLabel && "sslNoteLabel".equals(c.getName())) {
+                c.setForeground(UIManager.getColor("Label.disabledForeground"));
+            }
+            if (c instanceof JTextField) {
+                c.setBackground(UIManager.getColor("TextField.background"));
+                c.setForeground(UIManager.getColor("TextField.foreground"));
+            }
+            if (c instanceof JPasswordField) {
+                c.setBackground(UIManager.getColor("TextField.background"));
+                c.setForeground(UIManager.getColor("TextField.foreground"));
+            }
+            if (c instanceof JComboBox) {
+                c.setBackground(UIManager.getColor("ComboBox.background"));
+            }
+            if (c instanceof Container) {
+                refreshChildColors((Container) c);
+            }
+        }
     }
 }

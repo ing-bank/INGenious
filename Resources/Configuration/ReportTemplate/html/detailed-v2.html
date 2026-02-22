@@ -1,0 +1,2487 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="theme-color" content="#ffffff">
+  <title>Test Case Details - INGenious</title>
+  
+  <!-- Modern CSS Framework -->
+  <link rel="stylesheet" href="../../../../media/css/modern/tailwind.min.css">
+  <link rel="stylesheet" href="../../../../media/css/modern/components.css">
+  <link rel="stylesheet" href="../../../../media/css/modern/themes/light.css" id="theme-light">
+  <link rel="stylesheet" href="../../../../media/css/modern/themes/dark.css" id="theme-dark" disabled>
+  <link rel="stylesheet" href="../../../../media/css/modern/themes/indigo.css" id="theme-accent">
+  
+  <!-- Report Data -->
+  <script>var DATA = {};</script>
+  <script src="data.js"></script>
+  
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+    
+    /* Alpine.js cloak */
+    [x-cloak] { display: none !important; }
+    
+    /* Step Timeline Styles */
+    .step-timeline {
+      position: relative;
+    }
+    .step-timeline::before {
+      content: '';
+      position: absolute;
+      left: 1.25rem;
+      top: 0;
+      bottom: 0;
+      width: 2px;
+      background: var(--border-color);
+    }
+    .step-item {
+      position: relative;
+      padding-left: 3.5rem;
+      padding-bottom: 1.5rem;
+    }
+    .step-item:last-child {
+      padding-bottom: 0;
+    }
+    .step-item__marker {
+      position: absolute;
+      left: 0.5rem;
+      top: 1.25rem;
+      width: auto;
+      height: auto;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 1;
+    }
+    .step-item__marker--passed svg { 
+      color: #10b981;
+      width: 1.5rem;
+      height: 1.5rem;
+    }
+    .step-item__marker--failed svg { 
+      color: #ef4444;
+      width: 1.5rem;
+      height: 1.5rem;
+    }
+    .step-item__marker--warning svg {
+      color: #f59e0b;
+      width: 1.5rem;
+      height: 1.5rem;
+    }
+    .step-item__marker--done svg { 
+      color: #7724ff;
+      width: 1.5rem;
+      height: 1.5rem;
+    }
+    .step-item__content {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-color);
+      border-radius: var(--radius-lg);
+      overflow: visible;
+    }
+    .step-item__header {
+      padding: 1rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    .step-item__header:hover {
+      background: var(--bg-hover);
+    }
+    .step-item__body {
+      padding: 1rem;
+      border-top: 1px solid var(--border-color);
+      background: var(--bg-primary);
+    }
+    
+    /* Override step-item layout for nested steps inside reusable components */
+    .reusable-component .step-item {
+      position: static;
+      padding-left: 0;
+      padding-bottom: 0.75rem;
+      margin-bottom: 0;
+      display: flex;
+      align-items: flex-start;
+      gap: 0.75rem;
+    }
+    
+    .reusable-component .step-item > .step-item__marker:first-child {
+      position: static;
+      left: auto;
+      top: auto;
+      width: auto;
+      height: auto;
+      display: flex;
+      flex-shrink: 0;
+      align-items: center;
+      justify-content: center;
+      padding-top: 0.25rem;
+    }
+    
+    .reusable-component .step-item__content {
+      background: transparent;
+      border: none;
+      border-radius: 0;
+      padding: 0;
+      overflow: visible;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+      flex: 1;
+      min-width: 0;
+    }
+    
+    .reusable-component .step-item__content > .step-item__marker {
+      position: static;
+      width: auto;
+      height: auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      padding: 0;
+      margin: 0;
+      left: auto;
+      top: auto;
+      flex-wrap: wrap;
+    }
+    
+    .reusable-component .step-item__content > .step-item__marker > div:first-child {
+      flex: 1;
+      min-width: 0;
+    }
+    
+    .reusable-component .step-item__content > .step-item__marker > div:last-child {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      flex-shrink: 0;
+    }
+    
+    .reusable-component .step-item__header {
+      padding: 0;
+      display: flex;
+      align-items: stretch;
+      justify-content: space-between;
+      cursor: default;
+      background: transparent;
+    }
+    
+    .reusable-component .step-item__header:hover {
+      background: transparent;
+    }
+    
+    .reusable-component .step-item__body {
+      padding: 0.75rem 0 0 0;
+      border-top: none;
+      background: transparent;
+      display: block;
+      margin-left: 1.5rem;
+    }
+    
+    /* Reusable Component Styles */
+    .reusable-component {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-color);
+      border-left: 4px solid #9b59b6;
+    }
+    .dark .reusable-component {
+      background: var(--bg-secondary);
+      border: 1px solid var(--border-color);
+      border-left: 4px solid #9b59b6;
+    }
+    .reusable-component > div:first-child {
+      background: var(--bg-primary);
+      color: var(--text-primary);
+    }
+    .reusable-component > div:first-child:hover {
+      background: rgba(180, 135, 255, 0.1);
+    }
+    .dark .reusable-component > div:first-child:hover {
+      background: rgba(180, 135, 255, 0.15);
+    }
+    .reusable-header--passed {
+      border-left-color: #10b981;
+    }
+    .reusable-header--failed {
+      border-left-color: #ef4444;
+    }
+
+    .badge--warning {
+      background: #fef3c7;
+      color: #b45309;
+    }
+    .dark .badge--warning {
+      background: rgba(245, 158, 11, 0.2);
+      color: #fbbf24;
+    }
+
+    .axe-modal-overlay {
+      background: radial-gradient(circle at 20% 20%, rgba(99, 102, 241, 0.18), transparent 35%),
+                  radial-gradient(circle at 80% 30%, rgba(236, 72, 153, 0.16), transparent 40%),
+                  rgba(0, 0, 0, 0.78);
+      backdrop-filter: blur(6px);
+    }
+    .axe-modal-panel {
+      position: relative;
+      max-height: 90vh;
+      width: 100%;
+      max-width: 64rem;
+      overflow: hidden;
+      border-radius: 1rem;
+      border: 1px solid rgba(99, 102, 241, 0.25);
+      box-shadow: 0 30px 80px rgba(15, 23, 42, 0.35);
+    }
+    .axe-modal-glow {
+      position: absolute;
+      inset: -40px;
+      background: radial-gradient(circle at top, rgba(99, 102, 241, 0.25), transparent 45%);
+      pointer-events: none;
+    }
+    .axe-modal-body {
+      max-height: calc(90vh - 96px);
+      overflow-y: auto;
+      scrollbar-width: thin;
+      scrollbar-color: rgba(99, 102, 241, 0.6) transparent;
+    }
+    .axe-modal-body::-webkit-scrollbar {
+      width: 10px;
+    }
+    .axe-modal-body::-webkit-scrollbar-thumb {
+      background: rgba(99, 102, 241, 0.5);
+      border-radius: 999px;
+    }
+    
+    /* Syntax Highlighting for JSON and XML Payloads */
+    .json-key {
+      color: #9cdcfe;
+      font-weight: 500;
+    }
+    .json-string {
+      color: #ce9178;
+    }
+    .json-number {
+      color: #b5cea8;
+    }
+    .json-boolean {
+      color: #569cd6;
+      font-weight: 600;
+    }
+    .json-null {
+      color: #569cd6;
+      font-style: italic;
+    }
+    .xml-tag {
+      color: #4ec9b0;
+      font-weight: 500;
+    }
+    .xml-bracket {
+      color: #808080;
+    }
+    .xml-attr-name {
+      color: #9cdcfe;
+    }
+    .xml-attr-value {
+      color: #ce9178;
+    }
+    .xml-comment {
+      color: #6a9955;
+      font-style: italic;
+    }
+  </style>
+</head>
+<body x-data="detailedReportApp()" x-init="init()" :class="{ 'dark': isDark }">
+  
+  <!-- App Shell -->
+  <div class="app-shell">
+    
+    <!-- Header -->
+    <header class="app-header">
+      <div class="app-header__content">
+        <div class="flex items-start gap-5 flex-1">
+          <!-- Back Button -->
+          <a href="summary-v2.html" class="text-gray-400 hover:text-gray-600 dark:text-gray-500 dark:hover:text-gray-300 mt-1.5" title="Back to Summary">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"/>
+            </svg>
+          </a>
+          
+          <!-- Report Icon & Title -->
+          <div class="flex items-start gap-4 flex-1">
+            <div class="p-2.5 bg-blue-100 dark:bg-blue-900/30 rounded-lg">
+              <svg class="w-6 h-6 text-blue-600 dark:text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 3v5a2 2 0 002 2h5"/>
+              </svg>
+            </div>
+            
+            <div class="flex-1 pt-0.5 text-center">
+              <h1 class="text-3xl font-black text-blue-600 dark:text-blue-400" x-text="title"></h1>
+              <p class="text-sm text-gray-600 dark:text-gray-400 mt-1" x-text="currentBrowserInfo"></p>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Header Actions -->
+        <div class="flex items-center gap-3">
+          <!-- Browser/View Selector -->
+          <select 
+            x-model="currentView"
+            @change="updateView()"
+            class="px-3 py-2 text-sm border border-gray-200 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 focus:ring-2 focus:ring-accent-500 print:hidden"
+          >
+            <template x-for="browser in browsers" :key="browser">
+              <option :value="browser" x-text="browser"></option>
+            </template>
+            <option value="ALL" x-show="browsers.length > 1">All Browsers</option>
+          </select>
+          
+          <!-- Theme Toggle -->
+          <button 
+            class="btn btn--icon btn--secondary print:hidden" 
+            @click="toggleTheme()"
+            :title="isDark ? 'Switch to Light Mode' : 'Switch to Dark Mode'"
+          >
+            <svg x-show="!isDark" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z"/>
+            </svg>
+            <svg x-show="isDark" class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z"/>
+            </svg>
+          </button>
+          
+          <!-- Print Button -->
+          <button class="btn btn--icon btn--secondary print:hidden" @click="window.print()" title="Print Report">
+            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+    </header>
+    
+    <!-- Main Content -->
+    <main class="app-main">
+      <div class="container mx-auto px-4 py-6 max-w-6xl">
+        
+        <!-- Test Case Summary -->
+        <section class="card mb-6">
+          <div class="card__header">
+            <h2 class="card__title">Test Case Summary</h2>
+          </div>
+          <div class="card__body">
+            <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
+              <!-- Status -->
+              <div class="text-center p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                <div class="text-sm text-muted mb-1">Status</div>
+                <span 
+                  class="badge text-base" 
+                  :class="currentDetails.status === 'PASS'
+                    ? 'badge--passed'
+                    : (currentDetails.status === 'FAIL'
+                      ? 'badge--failed'
+                      : (currentDetails.status === 'WARNING'
+                        ? 'badge--warning'
+                        : 'badge--done'))"
+                  x-text="currentDetails.status"
+                ></span>
+              </div>
+              
+              <!-- Browser -->
+              <div class="text-center p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                <div class="text-sm text-muted mb-1">Browser</div>
+                <div class="font-semibold" x-text="currentDetails.browser || '-'"></div>
+                <div class="text-xs text-muted" x-text="currentDetails.bversion || ''"></div>
+              </div>
+              
+              <!-- Platform -->
+              <div class="text-center p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                <div class="text-sm text-muted mb-1">Platform</div>
+                <div class="font-semibold" x-text="currentDetails.platform || '-'"></div>
+              </div>
+              
+              <!-- Duration -->
+              <div class="text-center p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                <div class="text-sm text-muted mb-1">Duration</div>
+                <div class="font-semibold" x-text="currentDetails.exeTime || '-'"></div>
+              </div>
+              
+              <!-- Steps -->
+              <div class="text-center p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                <div class="text-sm text-muted mb-1">Steps</div>
+                <div class="flex justify-center gap-3">
+                  <span class="text-emerald-600 font-semibold">
+                    <span x-text="currentDetails.nopassTests || 0"></span> ✓
+                  </span>
+                  <span class="text-red-600 font-semibold">
+                    <span x-text="currentDetails.nofailTests || 0"></span> ✗
+                  </span>
+                </div>
+              </div>
+            </div>
+            
+            <!-- Execution Times -->
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-6 mt-4 pt-4 border-t border-gray-100 dark:border-gray-700">
+              <div class="grid grid-cols-[120px_1fr] gap-4 items-center">
+                <span class="text-muted">Start Time:</span>
+                <span class="font-medium" x-text="currentDetails.startTime || '-'"></span>
+              </div>
+              <div class="grid grid-cols-[120px_1fr] gap-4 items-center">
+                <span class="text-muted">End Time:</span>
+                <span class="font-medium" x-text="currentDetails.endTime || '-'"></span>
+              </div>
+            </div>
+          </div>
+        </section>
+        
+        <!-- Steps Section -->
+        <section class="card">
+          <div class="card__header flex flex-col gap-4">
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+              <h2 class="card__title">Execution Steps</h2>
+              
+              <!-- Search Input -->
+              <div class="flex-1 sm:flex-initial sm:max-w-xs">
+                <input
+                  type="text"
+                  x-model="stepFilter"
+                  placeholder="Search steps..."
+                  class="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-accent-500 dark:focus:ring-accent-400"
+                  title="Filter steps by name or description"
+                >
+              </div>
+            </div>
+            
+            <!-- Step Controls -->
+            <div class="flex flex-col sm:flex-row sm:items-center gap-3">
+              <!-- Show Failed Only -->
+              <label class="flex items-center gap-2 text-sm cursor-pointer">
+                <input 
+                  type="checkbox" 
+                  x-model="showFailedOnly"
+                  class="rounded border-gray-300 text-accent-600 focus:ring-accent-500"
+                >
+                <span>Show failed only</span>
+              </label>
+              
+              <!-- Expand/Collapse All -->
+              <div class="btn-group">
+                <button 
+                  class="btn btn--secondary btn--sm" 
+                  @click="expandAll()"
+                  title="Expand All"
+                >
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                  </svg>
+                </button>
+                <button 
+                  class="btn btn--secondary btn--sm" 
+                  @click="collapseAll()"
+                  title="Collapse All"
+                >
+                  <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"/>
+                  </svg>
+                </button>
+              </div>
+            </div>
+          </div>
+          
+          <div class="card__body">
+            <!-- Steps Timeline - Hierarchical View -->
+            <div class="step-timeline">
+              <!-- Iterate through each iteration -->
+              <template x-for="(iteration, iterIdx) in getAllIterations()" :key="'iter-' + iterIdx">
+                <!-- Iteration Container -->
+                <div class="mb-6 pb-6 border-b border-gray-200 dark:border-gray-700 last:border-b-0">
+                  <!-- Iteration Header -->
+                  <div class="flex items-center gap-3 mb-4">
+                    <div class="px-3 py-1 rounded-full text-sm font-semibold" 
+                         :class="iteration.status === 'PASS' ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' : 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'"
+                         x-text="iteration.name">
+                    </div>
+                    <span class="text-sm text-muted" x-text="iteration.status"></span>
+                  </div>
+                  
+                  <!-- Iteration Items (Reusables and Direct Steps) -->
+                  <div class="space-y-4 pl-4 border-l-2 border-gray-200 dark:border-gray-600">
+                    <template x-for="(item, itemIdx) in (iteration.data || [])" :key="'item-' + iterIdx + '-' + itemIdx">
+                      <div class="contents">
+                        <!-- Reusable Component -->
+                        <template x-if="item && item.type === 'reusable'">
+                          <div class="reusable-component rounded-lg overflow-visible" :class="item.status === 'PASS' ? 'reusable-header--passed' : 'reusable-header--failed'" x-show="hasMatchingSteps(item.data)">
+                          <!-- Reusable Header (Clickable) -->
+                          <div class="flex items-center gap-3 p-4 cursor-pointer bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                               @click="toggleReusable(iterIdx, itemIdx)">
+                            <!-- Status Indicator Icon -->
+                            <div class="flex items-center justify-center flex-shrink-0">
+                              <svg x-show="item.status === 'PASS'" class="w-5 h-5 text-green-600 dark:text-green-400" fill="currentColor" viewBox="0 0 20 20" title="Passed">
+                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                              </svg>
+                              <svg x-show="item.status === 'FAIL'" class="w-5 h-5 text-red-600 dark:text-red-400" fill="currentColor" viewBox="0 0 20 20" title="Failed">
+                                <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/>
+                              </svg>
+                            </div>
+                            
+                            <!-- Reusable Info -->
+                            <div class="flex-1">
+                              <div class="font-semibold text-gray-800 dark:text-gray-200" x-text="item.name"></div>
+                              <div class="text-sm text-gray-600 dark:text-gray-400" x-text="item.description || ''"></div>
+                            </div>
+                            
+                            <!-- Status Badge & Expand Arrow -->
+                            <div class="flex items-center gap-2">
+                              <span class="badge text-xs" 
+                                    :class="item.status === 'PASS'
+                                      ? 'badge--passed'
+                                      : (item.status === 'FAIL'
+                                        ? 'badge--failed'
+                                        : (item.status === 'WARNING'
+                                          ? 'badge--warning'
+                                          : 'badge--done'))"
+                                    x-text="item.status">
+                              </span>
+                              <svg class="w-5 h-5 text-gray-400 transition-transform duration-200"
+                                   :class="{ 'rotate-180': isReusableExpanded(iterIdx, itemIdx, item.data) }"
+                                   fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                              </svg>
+                            </div>
+                          </div>
+                          
+                          <!-- Reusable Steps (Nested) -->
+                          <div x-show="isReusableExpanded(iterIdx, itemIdx, item.data)" x-transition class="border-t border-gray-200 dark:border-gray-700 p-4 space-y-3 bg-gray-50 dark:bg-gray-900">
+                            <template x-for="(step, stepIdx) in item.data" :key="'step-' + iterIdx + '-' + itemIdx + '-' + stepIdx">
+                              <div class="step-item" x-show="(!showFailedOnly || step.data?.status === 'FAIL') && matchesSearchFilter(step.name, step.data?.description)">
+                                <!-- Step Marker -->
+                                <div class="step-item__marker"
+                                     :class="item.data?.status === 'PASS'
+                                       ? 'step-item__marker--passed'
+                                       : (item.data?.status === 'FAIL'
+                                         ? 'step-item__marker--failed'
+                                         : (item.data?.status === 'WARNING'
+                                           ? 'step-item__marker--warning'
+                                           : 'step-item__marker--done'))">
+                                  <svg x-show="step.data?.status === 'PASS'" fill="currentColor" viewBox="0 0 20 20" title="Passed">
+                                    <path d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z"/>
+                                  </svg>
+                                  <svg x-show="step.data?.status === 'FAIL'" fill="currentColor" viewBox="0 0 20 20" title="Failed">
+                                    <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/>
+                                  </svg>
+                                  <svg x-show="item.data?.status === 'WARNING'" fill="currentColor" viewBox="0 0 20 20" title="Warning">
+                                    <path fill-rule="evenodd" d="M18 10A8 8 0 112 10a8 8 0 0116 0zm-8-4a1 1 0 00-1 1v4a1 1 0 102 0V7a1 1 0 00-1-1zm0 8a1.25 1.25 0 100-2.5 1.25 1.25 0 000 2.5z" clip-rule="evenodd"/>
+                                  </svg>
+                                  <svg x-show="step.data?.status === 'DONE'" fill="currentColor" viewBox="0 0 20 20" title="Done">
+                                    <circle cx="10" cy="10" r="3"/>
+                                  </svg>
+                                </div>
+                                
+                                <!-- Step Content -->
+                                <div class="step-item__content">
+                                  <div class="step-item__marker cursor-pointer"
+                                       @click="toggleStep(iterIdx + '-' + itemIdx + '-' + stepIdx)"
+                                       :class="step.data?.status === 'PASS'
+                                         ? 'step-item__marker--passed'
+                                         : (step.data?.status === 'FAIL'
+                                           ? 'step-item__marker--failed'
+                                           : (step.data?.status === 'WARNING'
+                                             ? 'step-item__marker--warning'
+                                             : 'step-item__marker--done'))">
+                                    <div class="flex-1">
+                                      <div class="flex items-center gap-3">
+                                        <span class="text-sm font-mono text-muted" x-text="'#' + (step.data?.stepno || (stepIdx + 1))"></span>
+                                        <span class="p-3 rounded-lg text-sm font-mono whitespace-pre-wrap bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700" x-text="step.data?.stepName || step.data?.action || step.name || 'Step'"></span>
+                                      </div>
+                                      <p class="text-sm text-muted mt-1" x-text="step.data?.description || ''"></p>
+                                    <svg x-show="step.data?.status === 'WARNING'" fill="currentColor" viewBox="0 0 20 20" title="Warning">
+                                      <path fill-rule="evenodd" d="M18 10A8 8 0 112 10a8 8 0 0116 0zm-8-4a1 1 0 00-1 1v4a1 1 0 102 0V7a1 1 0 00-1-1zm0 8a1.25 1.25 0 100-2.5 1.25 1.25 0 000 2.5z" clip-rule="evenodd"/>
+                                    </svg>
+                                    </div>
+                                    
+                                    <div class="flex items-center gap-3">
+                                      <span class="text-xs text-muted" x-text="step.data?.tStamp || ''"></span>
+                                      <span class="badge" 
+                                            :class="step.data?.status === 'PASS'
+                                              ? 'badge--passed'
+                                              : (step.data?.status === 'FAIL'
+                                                ? 'badge--failed'
+                                                : (step.data?.status === 'WARNING'
+                                                  ? 'badge--warning'
+                                                  : 'badge--done'))"
+                                            x-text="step.data?.status">
+                                      </span>
+                                      <svg class="w-5 h-5 text-gray-400 transition-transform duration-200 cursor-pointer"
+                                           :class="{ 'rotate-180': isExpanded(iterIdx + '-' + itemIdx + '-' + stepIdx) }"
+                                           @click.stop="toggleStep(iterIdx + '-' + itemIdx + '-' + stepIdx)"
+                                           fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                                      </svg>
+                                    </div>
+                                  </div>
+                                  
+                                  <!-- Expanded Step Details -->
+                                  <div class="step-item__body"
+                                       x-show="isExpanded(iterIdx + '-' + itemIdx + '-' + stepIdx)"
+                                       x-transition>
+                                    <!-- Action/Result -->
+                                    <div x-show="step.data?.action" class="mb-4">
+                                      <div class="text-sm font-semibold mb-1">Action</div>
+                                      <div class="p-3 rounded-lg text-sm font-mono whitespace-pre-wrap bg-gray-50 dark:bg-gray-800" x-text="step.data?.action"></div>
+                                    </div>
+                                    
+                                    <!-- Expected vs Actual -->
+                                    <div x-show="step.data?.expected || step.data?.actual" class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                                      <div x-show="step.data?.expected">
+                                        <div class="text-sm font-semibold mb-1">Expected</div>
+                                        <div class="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg text-sm font-mono whitespace-pre-wrap" x-text="step.data?.expected"></div>
+                                      </div>
+                                      <div x-show="step.data?.actual">
+                                        <div class="text-sm font-semibold mb-1">Actual</div>
+                                        <div class="p-3 bg-amber-50 dark:bg-amber-900/20 rounded-lg text-sm font-mono whitespace-pre-wrap" x-text="step.data?.actual"></div>
+                                      </div>
+                                    </div>
+                                    
+                                    <!-- Comparison -->
+                                    <div x-show="step.data?.comparison" class="mb-4">
+                                      <div class="text-sm font-semibold mb-1">Comparison Result</div>
+                                      <div class="p-3 bg-gray-50 dark:bg-gray-800 rounded-lg text-sm font-mono whitespace-pre-wrap" x-text="step.data?.comparison"></div>
+                                    </div>
+                                    
+                                    <!-- Objects -->
+                                    <div x-show="step.data?.objects" class="mb-4">
+                                      <div class="text-sm font-semibold mb-1">Objects</div>
+                                      <div class="p-3 bg-gray-50 dark:bg-gray-800 rounded-lg text-sm font-mono" x-text="step.data?.objects"></div>
+                                    </div>
+                                    
+                                    <!-- Screenshot/Video Link -->
+                                    <div x-show="step.data?.link" class="flex gap-3 flex-wrap">
+                                      <template x-if="isImageLink(step.data?.link)">
+                                        <button @click="openScreenshot(step.data?.link)" class="btn btn--secondary btn--sm">
+                                          <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                                          </svg>
+                                          View Screenshot
+                                        </button>
+                                      </template>
+                                      <template x-if="isVideoLink(step.data?.link)">
+                                        <button @click="openVideo(step.data?.link)" class="btn btn--secondary btn--sm">
+                                          <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/>
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                          </svg>
+                                          View Video
+                                        </button>
+                                      </template>
+                                      <template x-if="isPayloadLink(step.data?.link, step)">
+                                        <button @click="openPayloadModal(step.data?.link, step)" class="btn btn--secondary btn--sm">
+                                          <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+                                          </svg>
+                                          View API Payload
+                                        </button>
+                                      </template>
+                                      <template x-if="!isImageLink(step.data?.link) && !isVideoLink(step.data?.link) && !isPayloadLink(step.data?.link, step)">
+                                        <a :href="normalizePath(step.data?.link)" target="_blank" class="btn btn--secondary btn--sm">
+                                          <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
+                                          </svg>
+                                          View Attachment
+                                        </a>
+                                      </template>
+                                    </div>
+                                    
+                                    <!-- aXe Accessibility Report Button (for testAccessibility steps) -->
+                                    <div x-show="isTestAccessibilityStep(step)" class="flex gap-3 flex-wrap mt-4">
+                                      <button 
+                                        @click="openAxeReportModal(item.name, getReusableAxeReportPath(item.name))"
+                                        :disabled="!getReusableAxeReportPath(item.name)"
+                                        class="btn btn--secondary btn--sm"
+                                        :style="getReusableAxeReportPath(item.name) ? {
+                                          'background-color': '#7724FF',
+                                          'color': '#FFFFFF',
+                                          'border-color': 'rgba(119, 36, 255, 0.5)',
+                                          'cursor': 'pointer'
+                                        } : {
+                                          'opacity': '0.6',
+                                          'cursor': 'not-allowed'
+                                        }"
+                                        title="View accessibility report for this step">
+                                        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m7 0a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                        </svg>
+                                        View aXe Report
+                                      </button>
+                                    </div>
+                                  </div>
+                                </div>
+                              </div>
+                            </template>
+                          </div>
+                        </div>
+                        </template>
+                        
+                        <!-- Direct Step (not in reusable) -->
+                        <template x-if="item && item.type === 'step'">
+                          <div class="step-item" x-show="(!showFailedOnly || item.data?.status === 'FAIL') && matchesSearchFilter(item.name, item.data?.description)">
+                          <!-- Step Marker -->
+                          <div class="step-item__marker"
+                               :class="item.data?.status === 'PASS' ? 'step-item__marker--passed' : (item.data?.status === 'FAIL' ? 'step-item__marker--failed' : 'step-item__marker--done')">
+                            <svg x-show="item.data?.status === 'PASS'" fill="currentColor" viewBox="0 0 20 20" title="Passed">
+                              <path d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z"/>
+                            </svg>
+                            <svg x-show="item.data?.status === 'FAIL'" fill="currentColor" viewBox="0 0 20 20" title="Failed">
+                              <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/>
+                            </svg>
+                            <svg x-show="item.data?.status === 'DONE'" fill="currentColor" viewBox="0 0 20 20" title="Done">
+                              <circle cx="10" cy="10" r="3"/>
+                            </svg>
+                          </div>
+                          
+                          <!-- Step Content -->
+                          <div class="step-item__content">
+                            <div class="step-item__header" @click="toggleStep(iterIdx + '-' + itemIdx)">
+                              <div class="flex-1">
+                                <div class="flex items-center gap-3">
+                                  <span class="text-sm font-mono text-muted" x-text="'#' + (item.data?.stepno || (itemIdx + 1))"></span>
+                                  <span class="font-semibold" x-text="item.data?.stepName || item.data?.action || item.name || 'Step'"></span>
+                                </div>
+                                <p class="text-sm text-muted mt-1" x-text="item.data?.description || ''"></p>
+                              </div>
+                              
+                              <div class="flex items-center gap-3">
+                                <span class="text-xs text-muted" x-text="item.data?.tStamp || ''"></span>
+                                <span class="badge" 
+                                      :class="item.data?.status === 'PASS'
+                                        ? 'badge--passed'
+                                        : (item.data?.status === 'FAIL'
+                                          ? 'badge--failed'
+                                          : (item.data?.status === 'WARNING'
+                                            ? 'badge--warning'
+                                            : 'badge--done'))"
+                                      x-text="item.data?.status">
+                                </span>
+                                <svg class="w-5 h-5 text-gray-400 transition-transform duration-200"
+                                     :class="{ 'rotate-180': isExpanded(iterIdx + '-' + itemIdx) }"
+                                     fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                                </svg>
+                              </div>
+                            </div>
+                            
+                            <!-- Expanded Step Details -->
+                            <div class="step-item__body" x-show="isExpanded(iterIdx + '-' + itemIdx)" x-transition>
+                              <!-- Action -->
+                              <div x-show="item.data?.action" class="mb-4">
+                                <div class="text-sm font-semibold mb-1">Action</div>
+                                <div class="p-3 rounded-lg text-sm font-mono whitespace-pre-wrap bg-gray-50 dark:bg-gray-800" x-text="item.data?.action"></div>
+                              </div>
+                              
+                              <!-- Expected vs Actual -->
+                              <div x-show="item.data?.expected || item.data?.actual" class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                                <div x-show="item.data?.expected">
+                                  <div class="text-sm font-semibold mb-1">Expected</div>
+                                  <div class="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg text-sm font-mono whitespace-pre-wrap" x-text="item.data?.expected"></div>
+                                </div>
+                                <div x-show="item.data?.actual">
+                                  <div class="text-sm font-semibold mb-1">Actual</div>
+                                  <div class="p-3 bg-amber-50 dark:bg-amber-900/20 rounded-lg text-sm font-mono whitespace-pre-wrap" x-text="item.data?.actual"></div>
+                                </div>
+                              </div>
+                              
+                              <!-- Comparison -->
+                              <div x-show="item.data?.comparison" class="mb-4">
+                                <div class="text-sm font-semibold mb-1">Comparison Result</div>
+                                <div class="p-3 bg-gray-50 dark:bg-gray-800 rounded-lg text-sm font-mono whitespace-pre-wrap" x-text="item.data?.comparison"></div>
+                              </div>
+                              
+                              <!-- Objects -->
+                              <div x-show="item.data?.objects" class="mb-4">
+                                <div class="text-sm font-semibold mb-1">Objects</div>
+                                <div class="p-3 bg-gray-50 dark:bg-gray-800 rounded-lg text-sm font-mono" x-text="item.data?.objects"></div>
+                              </div>
+                              
+                              <!-- Screenshot/Video Link -->
+                                    <div x-show="item.data?.link" class="flex gap-3 flex-wrap">
+                                <template x-if="isImageLink(item.data?.link)">
+                                  <button @click="openScreenshot(item.data?.link)" class="btn btn--secondary btn--sm">
+                                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                                    </svg>
+                                    View Screenshot
+                                  </button>
+                                </template>
+                                <template x-if="isVideoLink(item.data?.link)">
+                                  <button @click="openVideo(item.data?.link)" class="btn btn--secondary btn--sm">
+                                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/>
+                                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                                    </svg>
+                                    View Video
+                                  </button>
+                                </template>
+                                      <template x-if="isPayloadLink(item.data?.link, item)">
+                                        <button @click="openPayloadModal(item.data?.link, item)" class="btn btn--secondary btn--sm">
+                                          <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
+                                          </svg>
+                                          View API Payload
+                                        </button>
+                                      </template>
+                                      <template x-if="!isImageLink(item.data?.link) && !isVideoLink(item.data?.link) && !isPayloadLink(item.data?.link, item)">
+                                  <a :href="normalizePath(item.data?.link)" target="_blank" class="btn btn--secondary btn--sm">
+                                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
+                                    </svg>
+                                    View Attachment
+                                  </a>
+                                </template>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </template>
+                    </template>
+                  </div>
+                </div>
+              </template>
+              
+              <!-- Empty State -->
+              <div x-show="getAllIterations().length === 0" class="text-center py-12">
+                <svg class="w-12 h-12 text-gray-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
+                </svg>
+                <p class="text-muted">No steps to display</p>
+              </div>
+            </div>
+          </div>
+        </section>
+        
+        <!-- Test Case Video & Traces Buttons -->
+        <section class="section mt-12">
+          <div class="container">
+            <div class="flex flex-wrap items-center gap-6 mb-8">
+              <!-- View Video Button -->
+              <button
+                :disabled="!currentDetails.videoPath"
+                @click="currentDetails.videoPath && openTestCaseVideo(currentDetails.videoPath)"
+                style="display: flex; align-items: center; justify-content: center; padding: 1rem 2rem; font-size: 1rem; font-weight: 600; border-radius: 0.375rem; transition: all 0.2s; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); min-width: 180px; border: none; cursor: pointer;"
+                :style="currentDetails.videoPath ? {
+                  'background-color': '#7724FF',
+                  'color': '#FFFFFF',
+                  'box-shadow': '0 10px 15px -3px rgba(119, 36, 255, 0.4)'
+                } : {
+                  'background-color': '#e5e7eb',
+                  'color': '#9ca3af',
+                  'cursor': 'not-allowed',
+                  'opacity': '0.6'
+                }"
+                @mouseover="currentDetails.videoPath && ($event.target.style.backgroundColor = '#6518e6', $event.target.style.boxShadow = '0 10px 15px -3px rgba(119, 36, 255, 0.6)')"
+                @mouseout="currentDetails.videoPath && ($event.target.style.backgroundColor = '#7724FF', $event.target.style.boxShadow = '0 10px 15px -3px rgba(119, 36, 255, 0.4)')"
+                title="View the recorded video of this test case execution"
+              >
+                <svg class="w-5 h-5" style="margin-right: 0.75rem;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/>
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+                <span>View Video</span>
+              </button>
+              
+              <!-- Download Traces Button -->
+              <a
+                :href="currentDetails.tracePath ? getAbsoluteTracePath() : '#'"
+                :download="currentDetails.tracePath ? 'traces.zip' : null"
+                :style="currentDetails.tracePath ? {
+                  'display': 'flex',
+                  'align-items': 'center',
+                  'justify-content': 'center',
+                  'padding': '1rem 2rem',
+                  'font-size': '1rem',
+                  'font-weight': '600',
+                  'border-radius': '0.375rem',
+                  'transition': 'all 0.2s',
+                  'box-shadow': '0 10px 15px -3px rgba(0, 0, 0, 0.1)',
+                  'min-width': '180px',
+                  'border': 'none',
+                  'cursor': 'pointer',
+                  'text-decoration': 'none',
+                  'background-color': '#7724FF',
+                  'color': '#FFFFFF',
+                  'box-shadow': '0 10px 15px -3px rgba(119, 36, 255, 0.4)'
+                } : {
+                  'display': 'flex',
+                  'align-items': 'center',
+                  'justify-content': 'center',
+                  'padding': '1rem 2rem',
+                  'font-size': '1rem',
+                  'font-weight': '600',
+                  'border-radius': '0.375rem',
+                  'background-color': '#e5e7eb',
+                  'color': '#9ca3af',
+                  'cursor': 'not-allowed',
+                  'opacity': '0.6',
+                  'text-decoration': 'none',
+                  'pointer-events': 'none'
+                }"
+                @mouseover="currentDetails.tracePath && ($event.target.style.backgroundColor = '#6518e6', $event.target.style.boxShadow = '0 10px 15px -3px rgba(119, 36, 255, 0.6)')"
+                @mouseout="currentDetails.tracePath && ($event.target.style.backgroundColor = '#7724FF', $event.target.style.boxShadow = '0 10px 15px -3px rgba(119, 36, 255, 0.4)')"
+                title="Download trace file"
+              >
+                <svg class="w-5 h-5" style="margin-right: 0.75rem;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                </svg>
+                <span>Download Traces</span>
+              </a>
+              
+            </div>
+          </div>
+        </section>
+        
+      </div>
+    </main>
+    
+    <!-- Screenshot Lightbox -->
+    <div 
+      id="screenshotLightbox"
+      x-show="lightboxOpen"
+      x-cloak
+      x-transition:enter="transition ease-out duration-200"
+      x-transition:enter-start="opacity-0"
+      x-transition:enter-end="opacity-100"
+      x-transition:leave="transition ease-in duration-150"
+      x-transition:leave-start="opacity-100"
+      x-transition:leave-end="opacity-0"
+      class="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4"
+      @click.self="lightboxOpen = false"
+      @keydown.escape.window="lightboxOpen = false"
+    >
+      <button 
+        @click="lightboxOpen = false"
+        class="absolute top-4 right-4 text-white hover:text-gray-300"
+      >
+        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+        </svg>
+      </button>
+      <img 
+        :src="lightboxSrc"
+        class="max-w-full max-h-full object-contain rounded-lg shadow-xl"
+        alt="Screenshot"
+      >
+      <a 
+        :href="lightboxSrc" 
+        target="_blank" 
+        class="absolute bottom-4 right-4 btn btn--primary btn--sm"
+      >
+        Open in New Tab
+      </a>
+    </div>
+    
+    <!-- Video Lightbox -->
+    <div 
+      id="videoLightbox"
+      x-show="videoOpen"
+      x-cloak
+      x-transition:enter="transition ease-out duration-200"
+      x-transition:enter-start="opacity-0"
+      x-transition:enter-end="opacity-100"
+      x-transition:leave="transition ease-in duration-150"
+      x-transition:leave-start="opacity-100"
+      x-transition:leave-end="opacity-0"
+      class="fixed inset-0 z-50 flex items-center justify-center p-4"
+      style="background: rgba(0, 0, 0, 0.95); backdrop-filter: blur(10px);"
+      @click.self="videoOpen = false"
+      @keydown.escape.window="videoOpen = false"
+    >
+      <!-- Top Control Bar -->
+      <div class="absolute top-4 left-4 right-4 flex items-center justify-between z-10">
+        <div class="text-white text-sm font-medium px-4 py-2 bg-black/60 rounded-lg backdrop-blur-sm">
+          📹 Test Case Recording
+        </div>
+        <div class="flex items-center gap-3">
+          <a 
+            :href="videoSrc" 
+            target="_blank" 
+            class="btn btn-secondary text-sm px-4 py-2 bg-white/10 hover:bg-white/20 text-white border-white/30 backdrop-blur-sm"
+            title="Open video in a new browser tab"
+          >
+            <svg class="w-4 h-4 mr-2 inline-block" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
+            </svg>
+            Open in New Tab
+          </a>
+          <button 
+            @click="videoOpen = false"
+            class="text-white hover:text-gray-300 bg-black/60 hover:bg-black/80 rounded-lg p-2 backdrop-blur-sm transition-colors"
+            title="Close (Esc)"
+          >
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+            </svg>
+          </button>
+        </div>
+      </div>
+      
+      <!-- Video Container with Enhanced Border -->
+      <div class="relative" style="max-width: 95vw; max-height: 85vh;">
+        <div class="absolute inset-0 bg-gradient-to-br from-indigo-500/20 via-purple-500/20 to-pink-500/20 rounded-2xl blur-xl"></div>
+        <div class="relative bg-black rounded-xl shadow-2xl overflow-hidden border-2 border-white/20">
+          <video 
+            :src="videoSrc"
+            controls
+            autoplay
+            class="block"
+            style="max-width: 95vw; max-height: 85vh; width: auto; height: auto;"
+          >
+            Your browser does not support the video tag.
+          </video>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Footer Links -->
+    <footer class="fixed bottom-4 right-4 flex gap-2 print:hidden">
+      <template x-if="perfReport">
+        <a href="perfReport.html" target="_blank" class="btn btn--secondary btn--sm" title="Performance Report">
+          <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+          </svg>
+          Perf
+        </a>
+      </template>
+      
+      <a href="summary-v2.html" class="btn btn--secondary btn--sm" title="Back to Summary">
+        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
+        </svg>
+        Summary
+      </a>
+      
+      <button @click="window.scrollTo({top: 0, behavior: 'smooth'})" class="btn btn--icon btn--secondary btn--sm" title="Scroll to Top">
+        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18"/>
+        </svg>
+      </button>
+    </footer>
+    
+  </div>
+  
+  <!-- Alpine.js -->
+  <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+  
+  <!-- Report Application -->
+  <script>
+    function detailedReportApp() {
+      return {
+        // State
+        data: {},
+        params: {},
+        currentView: '',
+        browsers: [],
+        currentDetails: {},
+        steps: [],
+        expandedSteps: new Set(),
+        expandedReusables: new Set(), // Track reusable expansion: "iterIdx-itemIdx"
+        showFailedOnly: false,
+        stepFilter: '',
+        isDark: false,
+        lightboxOpen: false,
+        lightboxSrc: '',
+        videoOpen: false,
+        videoSrc: '',
+        perfReport: false,
+        
+        // Computed
+        get title() {
+          return `${this.params.SC || 'Scenario'}: ${this.params.TC || 'Test Case'}`;
+        },
+        
+        get currentBrowserInfo() {
+          if (this.currentView === 'ALL') return 'All Browsers';
+          return this.currentView;
+        },
+        
+        get visibleSteps() {
+          if (this.showFailedOnly) {
+            return this.steps.filter(step => step.data?.status === 'FAIL');
+          }
+          return this.steps;
+        },
+        
+        // Methods
+        init() {
+          // Parse URL parameters
+          this.parseParams();
+          
+          // Ensure DATA is fully loaded (data.js loads asynchronously)
+          // If DATA is not yet populated, queue init to run again
+          if (typeof DATA === 'undefined' || !DATA.EXECUTIONS) {
+            console.log('[INIT] DATA not ready, retrying in 100ms...');
+            setTimeout(() => this.init(), 100);
+            return;
+          }
+          
+          // Load data from global DATA object
+          this.data = DATA;
+          this.perfReport = DATA.perfReport || false;
+          
+          
+          // Process browser data
+          this.processBrowserData();
+          
+          // Set initial view
+          if (this.params.BRO === 'ALL') {
+            this.currentView = 'ALL';
+          } else {
+            this.currentView = `${this.params.BRO || ''} ${this.params.BROV || ''} ${this.params.PLATF || ''} ${this.params.ITYPE || ''}`.trim();
+          }
+          
+          // Update view
+          this.updateView();
+          
+          // Load theme preference
+          const savedTheme = localStorage.getItem('ingenious-report-theme');
+          this.isDark = savedTheme === 'dark' || 
+            (!savedTheme && window.matchMedia('(prefers-color-scheme: dark)').matches);
+          this.applyTheme();
+        },
+        
+        parseParams() {
+          const params = new URLSearchParams(window.location.search);
+          this.params = {
+            SC: params.get('SC') || '',
+            TC: params.get('TC') || '',
+            BRO: params.get('BRO') || '',
+            BROV: params.get('BROV') || '',
+            PLATF: params.get('PLATF') || '',
+            ITYPE: params.get('ITYPE') || ''
+          };
+        },
+        
+        processBrowserData() {
+          if (!this.data.EXECUTIONS) return;
+          
+          // Filter executions for this test case
+          const executions = this.data.EXECUTIONS.filter(exe => 
+            exe.scenarioName === this.params.SC && exe.testcaseName === this.params.TC
+          );
+          
+          // Extract unique browsers
+          const browserSet = new Set();
+          executions.forEach(exe => {
+            const browserKey = `${exe.browser || ''} ${exe.bversion || ''} ${exe.platform || ''} ${exe.iterationType || ''}`.trim();
+            if (browserKey) browserSet.add(browserKey);
+          });
+          
+          this.browsers = [...browserSet];
+          
+        },
+        
+        updateView() {
+          if (!this.data.EXECUTIONS) {
+            console.warn('No EXECUTIONS data found');
+            return;
+          }
+          
+          // Find the matching execution
+          const executions = this.data.EXECUTIONS.filter(exe => 
+            exe.scenarioName === this.params.SC && exe.testcaseName === this.params.TC
+          );
+          
+          if (executions.length === 0) {
+            return;
+          }
+          
+          if (this.currentView === 'ALL') {
+            // Aggregate view - show first execution details
+            this.currentDetails = executions[0] || {};
+            // Aggregate all steps
+            this.steps = [];
+            executions.forEach(exe => {
+              if (exe.STEPS) {
+                this.steps = this.steps.concat(exe.STEPS);
+              }
+            });
+          } else {
+            // Try to find exact browser match first
+            let exe = executions.find(e => {
+              const browserKey = `${e.browser || ''} ${e.bversion || ''} ${e.platform || ''} ${e.iterationType || ''}`.trim();
+              return browserKey === this.currentView;
+            });
+            
+            // If no exact match, try matching just by browser name
+            if (!exe && this.params.BRO) {
+              exe = executions.find(e => e.browser === this.params.BRO);
+            }
+            
+            // If still no match, use first execution
+            if (!exe) {
+              exe = executions[0];
+            }
+            
+            this.currentDetails = exe || {};
+            this.steps = exe?.STEPS || [];
+            
+          }
+          
+          // Reset expanded state
+          this.expandedSteps = new Set();
+          this.expandedReusables = new Set();
+          
+        },
+        
+        getAllIterations() {
+          // Extract iterations from currentDetails.STEPS
+          if (!this.currentDetails.STEPS) {
+            return [];
+          }
+          
+          // Filter iterations based on showFailedOnly if needed
+          let iterations = this.currentDetails.STEPS.filter(item => item && item.type === 'iteration');
+          if (this.showFailedOnly) {
+            // Filter iterations that have at least one failed step anywhere in their hierarchy
+            iterations = iterations.filter(iteration => 
+              this.hasFailedSteps(iteration.data || [])
+            );
+          }
+          
+          return iterations;
+        },
+        
+        hasFailedSteps(items) {
+          // Recursively check if any step in items/nested items has failed status
+          if (!items || !Array.isArray(items)) return false;
+          
+          for (let item of items) {
+            if (item.type === 'step' && item.data?.status === 'FAIL') {
+              return true;
+            }
+            if (item.type === 'reusable' && item.data) {
+              if (this.hasFailedSteps(item.data)) {
+                return true;
+              }
+            }
+          }
+          return false;
+        },
+        
+        matchesSearchFilter(name, description) {
+          // Check if step/item name or description matches the search filter
+          if (!this.stepFilter || this.stepFilter.trim() === '') {
+            return true;
+          }
+          
+          const filter = this.stepFilter.toLowerCase().trim();
+          const nameMatch = (name || '').toLowerCase().includes(filter);
+          const descMatch = (description || '').toLowerCase().includes(filter);
+          
+          return nameMatch || descMatch;
+        },
+        
+        hasMatchingSteps(items) {
+          // Recursively check if any steps in items/nested items match the search filter
+          if (!items || !Array.isArray(items)) return true; // Show if no items
+          if (!this.stepFilter || this.stepFilter.trim() === '') return true; // Show if no filter
+          
+          for (let item of items) {
+            if (item && item.type === 'step') {
+              if (this.matchesSearchFilter(item.name, item.data?.description)) {
+                return true;
+              }
+            }
+            if (item && item.type === 'reusable' && item.data) {
+              if (this.hasMatchingSteps(item.data)) {
+                return true;
+              }
+            }
+          }
+          return false;
+        },
+        
+        toggleReusable(iterIdx, itemIdx) {
+          const key = `${iterIdx}-${itemIdx}`;
+          if (this.expandedReusables.has(key)) {
+            this.expandedReusables.delete(key);
+          } else {
+            this.expandedReusables.add(key);
+          }
+          // Trigger reactivity
+          this.expandedReusables = new Set(this.expandedReusables);
+        },
+        
+        isReusableExpanded(iterIdx, itemIdx, itemData) {
+          const key = `${iterIdx}-${itemIdx}`;
+          // Auto-expand if there's an active search filter and this reusable has matching steps
+          if ((this.stepFilter || '').trim() !== '') {
+            return this.expandedReusables.has(key) || this.hasMatchingSteps(itemData);
+          }
+          return this.expandedReusables.has(key);
+        },
+        
+        toggleTheme() {
+          this.isDark = !this.isDark;
+          localStorage.setItem('ingenious-report-theme', this.isDark ? 'dark' : 'light');
+          this.applyTheme();
+        },
+        
+        applyTheme() {
+          const lightTheme = document.getElementById('theme-light');
+          const darkTheme = document.getElementById('theme-dark');
+          
+          if (this.isDark) {
+            document.documentElement.classList.add('dark');
+            lightTheme.disabled = true;
+            darkTheme.disabled = false;
+          } else {
+            document.documentElement.classList.remove('dark');
+            lightTheme.disabled = false;
+            darkTheme.disabled = true;
+          }
+        },
+        
+        toggleStep(index) {
+          if (this.expandedSteps.has(index)) {
+            this.expandedSteps.delete(index);
+          } else {
+            this.expandedSteps.add(index);
+          }
+          // Trigger reactivity
+          this.expandedSteps = new Set(this.expandedSteps);
+        },
+        
+        isExpanded(index) {
+          return this.expandedSteps.has(index);
+        },
+        
+        expandAll() {
+          // Expand all reusables in current iterations
+          const iterations = this.getAllIterations();
+          iterations.forEach((iteration, iterIdx) => {
+            if (iteration.data) {
+              iteration.data.forEach((item, itemIdx) => {
+                if (item.type === 'reusable') {
+                  this.expandedReusables.add(`${iterIdx}-${itemIdx}`);
+                }
+              });
+            }
+          });
+          this.expandedReusables = new Set(this.expandedReusables);
+          
+          // Expand all steps
+          this.expandedSteps = new Set(this.visibleSteps.map((_, i) => i));
+        },
+        
+        collapseAll() {
+          this.expandedSteps = new Set();
+          this.expandedReusables = new Set();
+        },
+        
+        isImageLink(link) {
+          if (!link) return false;
+          const lower = link.toLowerCase();
+          return lower.endsWith('.png') || lower.endsWith('.jpg') || lower.endsWith('.jpeg') || lower.endsWith('.gif') || lower.endsWith('.webp');
+        },
+        
+        isVideoLink(link) {
+          if (!link) return false;
+          const lower = link.toLowerCase();
+          return lower.endsWith('.mp4') || lower.endsWith('.webm') || lower.endsWith('.avi') || lower.endsWith('.mov');
+        },
+
+        getHttpMethod(step) {
+          if (!step) return null;
+          const text = [
+            step.data?.stepName,
+            step.data?.action,
+            step.data?.description,
+            step.name
+          ].filter(Boolean).join(' ');
+          const match = text.match(/\b(GET|POST|PUT|PATCH|DELETE)\b/i);
+          return match ? match[1].toUpperCase() : null;
+        },
+
+        isPayloadLink(link, step) {
+          if (!link) return false;
+          if (this.isImageLink(link) || this.isVideoLink(link)) return false;
+          const method = this.getHttpMethod(step);
+          if (method) return true;
+          const normalized = this.normalizeFilePath(link);
+          const lastSegment = normalized.split('/').pop() || '';
+          if (lastSegment.endsWith('Request.txt') || lastSegment.endsWith('Response.txt')) {
+            return true;
+          }
+          if (normalized.includes('/webservice/')) return true;
+          return !lastSegment.includes('.');
+        },
+
+        normalizeFilePath(path) {
+          if (!path) return '';
+          return path.replace(/\\/g, '/');
+        },
+
+        toRelativePath(fromDir, toPath) {
+          if (!fromDir || !toPath) return toPath;
+          const fromParts = fromDir.split('/').filter(Boolean);
+          const toParts = toPath.split('/').filter(Boolean);
+          while (fromParts.length && toParts.length && fromParts[0] === toParts[0]) {
+            fromParts.shift();
+            toParts.shift();
+          }
+          const up = '../'.repeat(fromParts.length);
+          return `${up}${toParts.join('/')}` || './';
+        },
+
+        resolvePayloadBase(link) {
+          if (!link) return '';
+          const normalized = this.normalizeFilePath(link);
+          if (normalized.startsWith('http://') || normalized.startsWith('https://')) {
+            return normalized;
+          }
+
+          let base = normalized;
+          if (base.endsWith('Request.txt')) {
+            base = base.slice(0, -'Request.txt'.length);
+          } else if (base.endsWith('Response.txt')) {
+            base = base.slice(0, -'Response.txt'.length);
+          }
+          if (base.startsWith('/')) {
+            const windowPath = window.location.pathname || '';
+            if (windowPath.includes('/Results/') && base.includes('/Results/')) {
+              const reportDir = windowPath.substring(0, windowPath.lastIndexOf('/') + 1);
+              const relativePath = this.toRelativePath(reportDir, base);
+              return relativePath;
+            }
+          }
+          return base;
+        },
+
+        encodePayloadUrl(url) {
+          if (!url) return '';
+          return encodeURI(url);
+        },
+
+        async fetchPayloadFile(url) {
+          try {
+            const response = await fetch(url, { cache: 'no-store' });
+            if (!response.ok) return '';
+            const text = await response.text();
+            return text;
+          } catch (error) {
+            return '';
+          }
+        },
+
+        formatPayload(text, isHtml = true) {
+          if (!text) return '';
+          const trimmed = text.trim();
+          if (!trimmed) return '';
+          if (trimmed.startsWith('{') || trimmed.startsWith('[')) {
+            try {
+              const formatted = JSON.stringify(JSON.parse(trimmed), null, 2);
+              return isHtml ? this.colorizeJson(formatted) : formatted;
+            } catch (error) {
+              return this.escapeHtml(text);
+            }
+          }
+          if (trimmed.startsWith('<')) {
+            const formatted = this.prettyPrintXml(trimmed);
+            return isHtml ? this.colorizeXml(formatted) : formatted;
+          }
+          return this.escapeHtml(text);
+        },
+
+        colorizeJson(json) {
+          return json
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?/g, (match) => {
+              let cls = 'json-number';
+              if (/^"/.test(match)) {
+                if (/:$/.test(match)) {
+                  cls = 'json-key';
+                } else {
+                  cls = 'json-string';
+                }
+              } else if (/true|false/.test(match)) {
+                cls = 'json-boolean';
+              } else if (/null/.test(match)) {
+                cls = 'json-null';
+              }
+              return `<span class="${cls}">${match}</span>`;
+            });
+        },
+
+        colorizeXml(xml) {
+          return xml
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/(&lt;\/?)([:\w-]+)((?:\s+[:\w-]+(?:=(?:"[^"]*"|'[^']*'))?)*)(\s*\/?&gt;)/g, (match, open, tag, attrs, close) => {
+              let result = `<span class="xml-bracket">${open}</span><span class="xml-tag">${tag}</span>`;
+              if (attrs) {
+                result += attrs.replace(/([:\w-]+)(=)(("[^"]*"|'[^']*'))/g, 
+                  (m, name, eq, value) => `<span class="xml-attr-name">${name}</span><span class="xml-bracket">${eq}</span><span class="xml-attr-value">${value}</span>`);
+              }
+              result += `<span class="xml-bracket">${close}</span>`;
+              return result;
+            })
+            .replace(/(&lt;!--)(.*?)(--&gt;)/g, '<span class="xml-comment">$1$2$3</span>');
+        },
+
+        prettyPrintXml(xml) {
+          try {
+            const parsed = new DOMParser().parseFromString(xml, 'application/xml');
+            if (parsed.getElementsByTagName('parsererror').length) {
+              return xml;
+            }
+            const serialized = new XMLSerializer().serializeToString(parsed);
+            const formatted = serialized
+              .replace(/></g, '>$\n<')
+              .split('$\n')
+              .reduce((acc, line) => {
+                let indent = acc.indent;
+                if (line.match(/^<\//)) indent = Math.max(indent - 2, 0);
+                acc.output.push(' '.repeat(indent) + line);
+                if (line.match(/^<[^!?][^>]*[^/]>/) && !line.includes('</')) {
+                  indent += 2;
+                }
+                acc.indent = indent;
+                return acc;
+              }, { output: [], indent: 0 }).output
+              .join('\n');
+            return formatted;
+          } catch (error) {
+            return xml;
+          }
+        },
+
+        escapeHtml(text) {
+          if (!text) return '';
+          return text
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#39;');
+        },
+
+        async openPayloadModal(link, step) {
+          if (!link) return;
+          const method = this.getHttpMethod(step);
+          // Check if payloads are embedded in the step data (new method to avoid CORS issues)
+          let rawRequest = '';
+          let rawResponse = '';
+          if (step.data && step.data.requestPayload) {
+            rawRequest = step.data.requestPayload;
+          }
+
+          if (step.data && step.data.responsePayload) {
+            rawResponse = step.data.responsePayload;
+          }
+
+          // Fallback to file fetching (legacy, will fail with file:// protocol due to CORS)
+          if (!rawRequest && !rawResponse) {
+            const basePath = this.resolvePayloadBase(link);
+
+            const requestUrl = this.encodePayloadUrl(`${basePath}Request.txt`);
+            const responseUrl = this.encodePayloadUrl(`${basePath}Response.txt`);
+
+            const results = await Promise.all([
+              this.fetchPayloadFile(requestUrl),
+              this.fetchPayloadFile(responseUrl)
+            ]);
+
+            rawRequest = results[0];
+            rawResponse = results[1];
+          }
+
+          const requestText = this.formatPayload(rawRequest);
+          const responseText = this.formatPayload(rawResponse);
+          const showRequest = !!requestText && (!method || ['POST', 'PUT', 'PATCH'].includes(method));
+          const showResponse = !!responseText;
+
+          const modal = document.createElement('div');
+          modal.className = 'payload-modal-overlay';
+
+          const requestHtml = showRequest
+            ? `
+              <div style="margin-bottom: 1.5rem;">
+                <h3 style="color: #ffffff; margin: 0 0 0.5rem 0; font-size: 1rem; font-weight: 600;">Request Payload</h3>
+                <pre style="white-space: pre-wrap; word-wrap: break-word; background: rgba(255, 255, 255, 0.06); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 0.75rem; padding: 1rem; color: #e5e7eb; font-size: 0.875rem; line-height: 1.4;">${requestText}</pre>
+              </div>
+            `
+            : '';
+
+          const responseHtml = showResponse
+            ? `
+              <div style="margin-bottom: 1.5rem;">
+                <h3 style="color: #ffffff; margin: 0 0 0.5rem 0; font-size: 1rem; font-weight: 600;">Response Payload</h3>
+                <pre style="white-space: pre-wrap; word-wrap: break-word; background: rgba(255, 255, 255, 0.06); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 0.75rem; padding: 1rem; color: #e5e7eb; font-size: 0.875rem; line-height: 1.4;">${responseText}</pre>
+              </div>
+            `
+            : `
+              <div style="color: rgba(255, 255, 255, 0.7); font-size: 0.9rem;">No response payload found.</div>
+            `;
+
+          modal.innerHTML = `
+            <div style="position: fixed; inset: 0; background: rgba(0, 0, 0, 0.92); backdrop-filter: blur(8px); z-index: 9999; display: flex; align-items: center; justify-content: center; padding: 2rem;">
+              <div style="position: absolute; inset: 0;" onclick="this.closest('.payload-modal-overlay').remove()"></div>
+              <div style="position: relative; z-index: 10000; background: rgba(17, 24, 39, 0.95); border: 1px solid rgba(180, 135, 255, 0.35); border-radius: 1rem; max-width: 90vw; width: 900px; max-height: 85vh; overflow-y: auto; padding: 1.75rem; box-shadow: 0 0 60px rgba(180, 135, 255, 0.25);">
+                <button onclick="this.closest('.payload-modal-overlay').remove()" style="position: absolute; top: 1rem; right: 1rem; background: rgba(180, 135, 255, 0.2); border: 1px solid rgba(180, 135, 255, 0.5); color: white; border-radius: 0.5rem; padding: 0.5rem; cursor: pointer;" title="Close">
+                  <svg style="width: 1.25rem; height: 1.25rem;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                  </svg>
+                </button>
+                <div style="margin-bottom: 1rem;">
+                  <h2 style="color: #C6A6FF; margin: 0 0 0.5rem 0; font-size: 1.25rem; font-weight: 700;">API Payload</h2>
+                  <p style="color: rgba(255, 255, 255, 0.7); margin: 0; font-size: 0.875rem;">${method ? method + ' request' : 'Request/Response details'}</p>
+                </div>
+                ${requestHtml}
+                ${responseHtml}
+              </div>
+            </div>
+          `;
+
+          const escHandler = (event) => {
+            if (event.key === 'Escape') {
+              modal.remove();
+              document.removeEventListener('keydown', escHandler);
+            }
+          };
+          document.addEventListener('keydown', escHandler);
+          document.body.appendChild(modal);
+        },
+        
+        normalizePath(path) {
+          if (!path) return '';
+          // Convert backslashes to forward slashes
+          let normalized = path.replace(/\\/g, '/');
+          // Remove leading slash (since HTML and img are at same directory level)
+          if (normalized.startsWith('/')) {
+            normalized = normalized.substring(1);
+          }
+          return normalized;
+        },
+        
+        openScreenshot(src) {
+          const normalizedSrc = this.normalizePath(src);
+          this.lightboxSrc = normalizedSrc;
+          this.lightboxOpen = true;
+        },
+        
+        openVideo(src) {
+          const normalizedSrc = this.normalizePath(src);
+          this.videoSrc = normalizedSrc;
+          this.videoOpen = true;
+        },
+        
+        openTestCaseVideo(src) {
+          const normalizedSrc = this.normalizePath(src);
+          this.videoSrc = normalizedSrc;
+          this.videoOpen = true;
+        },
+        
+        getAbsoluteTracePath() {
+          // Get trace path from data (already populated by Java backend)
+          if (!this.currentDetails.tracePath) return '';
+          
+          // Get the base directory from the report's location
+          const path = decodeURIComponent(window.location.pathname || '');
+          const lastSlash = path.lastIndexOf('/');
+          if (lastSlash === -1) return '';
+          
+          const reportDir = path.substring(0, lastSlash + 1);
+          // Combine report directory with the relative trace path and return as proper file URL
+          return reportDir + this.currentDetails.tracePath;
+        },
+        
+        hasAxeReport() {
+          // Check if axe report file exists for this test case
+          const scenario = (this.params.SC || this.currentDetails.scenarioName || '').trim();
+          const testcase = (this.params.TC || this.currentDetails.testcaseName || '').trim();
+          return scenario && testcase;
+        },
+        
+        getAxeReportPath() {
+          // Build path to axe report JSON
+          if (!this.hasAxeReport()) return '';
+          
+          const scenario = this.params.SC || this.currentDetails.scenarioName || '';
+          const testcase = this.params.TC || this.currentDetails.testcaseName || '';
+          
+          // Use RELATIVE path from viewer's perspective
+          // Path format: aXe/ScenarioName_TestCaseName_axe-results.json
+          return `aXe/${scenario}_${testcase}_axe-results.json`;
+        },
+        
+        getAxeReportUrl() {
+          // Generate URL to open axe viewer with the report data
+          if (!this.hasAxeReport()) return '#';
+          
+          // Get the full path to the aXe JSON file (includes reportDir)
+          const fullPath = this.getAxeReportPath();
+          
+          // Open viewer with full path to JSON file
+          // This allows the viewer's fetch() to correctly locate the file
+          return `axe-viewer.html?axePath=${encodeURIComponent(fullPath)}`;
+        },
+        
+        isTestAccessibilityStep(step) {
+          // Check if a step is executing testAccessibility action
+          if (!step || !step.data) return false;
+          const action = (step.data?.action || step.data?.stepName || '').toLowerCase();
+          return action.includes('accessibility') || action.includes('testaccessibility');
+        },
+        
+        getReusableAxeReportPath(reusableName) {
+          // Build path to axe report for a specific reusable
+          if (!reusableName) return '';
+          
+          // Extract just the reusable name after the colon (e.g., "Workflow:Applicant" → "Applicant")
+          const cleanName = reusableName.includes(':') 
+            ? reusableName.split(':')[1].trim() 
+            : reusableName.trim();
+          
+          const scenario = this.params.SC || this.currentDetails.scenarioName || '';
+          
+          if (!scenario) return '';
+          
+          // Use RELATIVE path from viewer's perspective (both HTML files are in same directory)
+          // Path format: aXe/ScenarioName_ReusableName_axe-results.json
+          return `aXe/${scenario}_${cleanName}_axe-results.json`;
+        },
+        
+        getReusableAxeReportUrl(reusableName) {
+          // Generate URL to open axe viewer for a specific reusable
+          if (!reusableName) return '#';
+          
+          const fullPath = this.getReusableAxeReportPath(reusableName);
+          if (!fullPath) return '#';
+          
+          return `axe-viewer.html?axePath=${encodeURIComponent(fullPath)}`;
+        },
+        
+        // aXe Modal Methods
+        axeModal: {
+          isOpen: false,
+          title: '',
+          data: { violations: [], passes: [], incomplete: [], inapplicable: [] },
+          activeTab: 'violations',
+          stats: { violations: 0, passes: 0, incomplete: 0, inapplicable: 0 },
+          error: ''
+        },
+        
+        openAxeReportModal(reusableName, jsonPath) {
+          this.axeModal.isOpen = true;
+          this.axeModal.title = reusableName;
+          this.axeModal.error = '';
+          this.axeModal.data = { violations: [], passes: [], incomplete: [], inapplicable: [] };
+          
+          console.log('[aXe Modal] openAxeReportModal called with reusableName:', reusableName);
+          
+          // Extract clean reusable name (remove "Workflow:" prefix if present)
+          const cleanReusableName = reusableName.includes(':') 
+            ? reusableName.split(':')[1].trim() 
+            : reusableName;
+          
+          console.log('[aXe Modal] Clean reusable name:', cleanReusableName);
+          
+          // First, try to check if data is embedded in the page
+          const embeddedDataId = 'axe-data-' + cleanReusableName.replace(/[^a-zA-Z0-9]/g, '-');
+          console.log('[aXe Modal] Looking for embedded data ID:', embeddedDataId);
+          
+          // Log all script IDs with axe-data-
+          const allAxeScripts = document.querySelectorAll('script[id^="axe-data-"]');
+          console.log('[aXe Modal] Found', allAxeScripts.length, 'embedded aXe data scripts via querySelectorAll');
+          
+          // Try alternative method: geElementsByTagName
+          const allScripts = document.getElementsByTagName('script');
+          console.log('[aXe Modal] Total <script> tags in document:', allScripts.length);
+          for (let i = 0; i < allScripts.length; i++) {
+            if (allScripts[i].id && allScripts[i].id.startsWith('axe-data-')) {
+              console.log('[aXe Modal]   Found via getElementsByTagName:', allScripts[i].id);
+            }
+          }
+          
+          allAxeScripts.forEach((script, idx) => {
+            console.log('[aXe Modal] Available script', idx + 1, ':', script.id);
+          });
+          
+          const embeddedElement = document.getElementById(embeddedDataId);
+          console.log('[aXe Modal] Direct getElementById result:', embeddedElement ? 'FOUND' : 'NOT FOUND');
+          
+          if (embeddedElement) {
+            console.log('[aXe Modal] Element type:', embeddedElement.tagName);
+            console.log('[aXe Modal] Element id:', embeddedElement.id);
+            console.log('[aXe Modal] Content length:', embeddedElement.textContent?.length || 0);
+          }
+          
+          if (embeddedElement && embeddedElement.textContent) {
+            console.log('[aXe Modal] Found embedded data for:', cleanReusableName, '(ID:', embeddedDataId + ')');
+            console.log('[aXe Modal] Embedded data size:', embeddedElement.textContent.length, 'bytes');
+            try {
+              this.axeModal.data = JSON.parse(embeddedElement.textContent);
+              console.log('[aXe Modal] Successfully parsed embedded data, violations:', this.axeModal.data.violations?.length || 0);
+              this.processAxeResults();
+              return;
+            } catch (e) {
+              console.error('[aXe Modal] Failed to parse embedded data:', e);
+            }
+          }
+          
+          // Otherwise, try to load from file
+          this.loadAxeReportData(jsonPath);
+        },
+        
+        closeAxeModal() {
+          this.axeModal.isOpen = false;
+          this.axeModal.data = { violations: [], passes: [], incomplete: [], inapplicable: [] };
+        },
+        
+        loadAxeReportData(jsonPath) {
+          if (!jsonPath) {
+            this.axeModal.error = 'No accessibility report path provided';
+            return;
+          }
+          
+          // Convert relative path to absolute file:// URL
+          const currentUrl = window.location.href;
+          const currentDir = currentUrl.substring(0, currentUrl.lastIndexOf('/') + 1);
+          const absolutePath = currentDir + jsonPath;
+          
+          // Decode URL-encoded characters (%20 -> space, %2001 -> 01, etc.)
+          const decodedPath = decodeURIComponent(absolutePath);
+          
+          console.log('[aXe Modal] Attempting to load from:', jsonPath);
+          console.log('[aXe Modal] Full decoded URL:', decodedPath);
+          console.log('[aXe Modal] Current window.location:', window.location.href);
+          
+          // Create a test to verify file accessibility
+          const testXhr = new XMLHttpRequest();
+          testXhr.onload = () => {
+            console.log('[aXe Modal] Test XHR succeeded, status:', testXhr.status, 'statusText:', testXhr.statusText);
+            this.loadWithXhr(decodedPath);
+          };
+          testXhr.onerror = () => {
+            console.error('[aXe Modal] Test XHR failed - browser may be blocking file:// access');
+            console.log('[aXe Modal] Trying alternative approach...');
+            this.loadWithAltMethod(decodedPath);
+          };
+          testXhr.ontimeout = () => {
+            console.error('[aXe Modal] Test XHR timed out');
+            this.loadWithAltMethod(decodedPath);
+          };
+          
+          try {
+            testXhr.open('GET', decodedPath, true);
+            testXhr.timeout = 5000;
+            testXhr.responseType = 'text';
+            testXhr.send();
+          } catch (e) {
+            console.error('[aXe Modal] XHR creation error:', e.message);
+            this.axeModal.error = 'Browser security restrictions prevent loading local files. Please check the browser console for details.';
+          }
+        },
+        
+        loadWithXhr(decodedPath) {
+          const xhr = new XMLHttpRequest();
+          
+          xhr.onload = () => {
+            try {
+              console.log('[aXe Modal] XHR load successful, response length:', xhr.responseText.length);
+              const data = JSON.parse(xhr.responseText);
+              console.log('[aXe Modal] JSON parsed successfully, violations:', data.violations?.length || 0);
+              this.axeModal.data = data;
+              this.processAxeResults();
+            } catch (e) {
+              console.error('[aXe Modal] JSON parse error:', e.message);
+              this.axeModal.error = 'Failed to parse accessibility report JSON: ' + e.message;
+            }
+          };
+          
+          xhr.onerror = () => {
+            console.error('[aXe Modal] XHR load error, status:', xhr.status);
+            this.axeModal.error = 'Browser blocked file access (security restriction). Consider opening the aXe report from a web server instead of file:// protocol.';
+          };
+          
+          try {
+            xhr.open('GET', decodedPath, true);
+            xhr.responseType = 'text';
+            xhr.send();
+          } catch (e) {
+            console.error('[aXe Modal] XHR send error:', e.message);
+            this.axeModal.error = 'Error loading file: ' + e.message;
+          }
+        },
+        
+        loadWithAltMethod(decodedPath) {
+          // Try using fetch as alternative
+          console.log('[aXe Modal] Attempting fetch API...');
+          fetch(decodedPath, { mode: 'no-cors' })
+            .then(response => {
+              console.log('[aXe Modal] Fetch response status:', response.status);
+              // For file:// URLs with no-cors, status is always 0 on success
+              return response.text();
+            })
+            .then(text => {
+              console.log('[aXe Modal] Fetch succeeded, text length:', text.length);
+              if (!text || text.trim().length === 0) {
+                throw new Error('Empty response from fetch');
+              }
+              const data = JSON.parse(text);
+              this.axeModal.data = data;
+              this.processAxeResults();
+            })
+            .catch(err => {
+              console.error('[aXe Modal] All loading methods failed:', err.message);
+              console.log('[aXe Modal] Data is now:', this.axeModal.data);
+              this.axeModal.error = 'Could not load accessibility report. The most reliable solution is to:<br/>1. Backend embedding: Embedded data not found in HTML<br/>2. Use a web server instead of file:// protocol<br/>3. Check browser console for detailed error logs';
+            });
+        },
+        
+        processAxeResults() {
+          if (!this.axeModal.data || !this.axeModal.data.violations) return;
+          
+          this.axeModal.stats = {
+            violations: Array.isArray(this.axeModal.data.violations) ? this.axeModal.data.violations.length : 0,
+            passes: Array.isArray(this.axeModal.data.passes) ? this.axeModal.data.passes.length : 0,
+            incomplete: Array.isArray(this.axeModal.data.incomplete) ? this.axeModal.data.incomplete.length : 0,
+            inapplicable: Array.isArray(this.axeModal.data.inapplicable) ? this.axeModal.data.inapplicable.length : 0
+          };
+          
+          // Set active tab based on violations
+          if (this.axeModal.stats.violations > 0) {
+            this.axeModal.activeTab = 'violations';
+          } else if (this.axeModal.stats.passes > 0) {
+            this.axeModal.activeTab = 'passes';
+          } else if (this.axeModal.stats.incomplete > 0) {
+            this.axeModal.activeTab = 'incomplete';
+          } else {
+            this.axeModal.activeTab = 'inapplicable';
+          }
+        },
+        
+        getImpactClass(impact) {
+          const impactClasses = {
+            'critical': 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400',
+            'serious': 'bg-orange-100 text-orange-800 dark:bg-orange-900/30 dark:text-orange-400',
+            'moderate': 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400',
+            'minor': 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400'
+          };
+          return impactClasses[impact] || impactClasses['minor'];
+        },
+
+        // Track expanded states for violations and nodes
+        expandedViolations: {},
+        expandedNodes: {},
+        
+        toggleViolation(violationId) {
+          this.expandedViolations[violationId] = !this.expandedViolations[violationId];
+        },
+        
+        isViolationExpanded(violationId) {
+          return this.expandedViolations[violationId] || false;
+        },
+        
+        toggleNode(violationId, nodeIdx) {
+          const key = `${violationId}-${nodeIdx}`;
+          this.expandedNodes[key] = !this.expandedNodes[key];
+        },
+        
+        isNodeExpanded(violationId, nodeIdx) {
+          const key = `${violationId}-${nodeIdx}`;
+          return this.expandedNodes[key] || false;
+        },
+        
+        formatSelector(target) {
+          if (!target || !Array.isArray(target) || target.length === 0) return 'N/A';
+          return target.flat().join(', ');
+        },
+        
+        getWcagTags(tags) {
+          if (!tags || !Array.isArray(tags)) return [];
+          return tags.filter(tag => tag.startsWith('wcag') || tag.startsWith('section508') || tag.startsWith('EN-'));
+        },
+        
+        colorCodeHtml(html) {
+          if (!html) return '';
+          // Escape HTML entities first
+          let escaped = html
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;');
+          
+          // Color comments - gray
+          escaped = escaped.replace(/&lt;!--[\s\S]*?--&gt;/g, 
+            match => `<span class="text-gray-500">${match}</span>`);
+          
+          // Color tags and attributes
+          escaped = escaped.replace(/&lt;(\/?)?(\w[\w:-]*?)([\s\S]*?)&gt;/g, 
+            (match, slash, tagName, attrs) => {
+              // Color tag
+              let result = `<span class="text-blue-600">&lt;${slash || ''}${tagName}</span>`;
+              
+              // Color attributes inside tags
+              if (attrs && attrs.length > 0) {
+                attrs = attrs
+                  // Color attribute names
+                  .replace(/\s+([\w:-]+)=/g, ' <span class="text-red-600">$1</span>=')
+                  // Color attribute values
+                  .replace(/=(["'])([^"']*?)\1/g, '=<span class="text-green-600">$1$2$1</span>');
+                result += attrs;
+              }
+              
+              // Color closing bracket
+              result += `<span class="text-blue-600">&gt;</span>`;
+              return result;
+            });
+          
+          return escaped;
+        }
+      };
+    }
+  </script>
+  
+  <!-- aXe Accessibility Report Modal -->
+  <div x-show="axeModal.isOpen" x-transition class="fixed inset-0 z-50 axe-modal-overlay flex items-center justify-center p-4" @click.self="closeAxeModal()">
+    <div class="axe-modal-panel bg-white dark:bg-gray-900">
+      <div class="axe-modal-glow"></div>
+      <!-- Modal Header -->
+      <div class="relative sticky top-0 bg-white/95 dark:bg-gray-900/95 border-b border-gray-200 dark:border-gray-700 p-6 flex items-center justify-between backdrop-blur z-10">
+        <div>
+          <h2 class="text-2xl font-bold text-gray-900 dark:text-white">Accessibility Report</h2>
+          <p class="text-sm text-gray-600 dark:text-gray-400 mt-1" x-text="'Reusable: ' + axeModal.title"></p>
+        </div>
+        <button @click="closeAxeModal()" class="text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200">
+          <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+          </svg>
+        </button>
+      </div>
+
+      <div class="axe-modal-body relative">
+        <!-- Error Message -->
+        <div x-show="axeModal.error" class="bg-red-50 dark:bg-red-900/20 border-l-4 border-red-500 p-4 m-6">
+          <p class="text-red-800 dark:text-red-200" x-html="axeModal.error"></p>
+        </div>
+        
+        <!-- Modal Content -->
+        <div x-show="!axeModal.error && (axeModal.data.violations.length > 0 || axeModal.data.passes.length > 0 || axeModal.data.incomplete.length > 0 || axeModal.data.inapplicable.length > 0)" class="p-6">
+        <!-- Summary Stats -->
+        <div class="grid grid-cols-4 gap-4 mb-8">
+          <div class="bg-red-50 dark:bg-red-900/20 rounded-lg p-4 text-center border border-red-200 dark:border-red-800 shadow-sm">
+            <div class="text-3xl font-bold text-red-600" x-text="axeModal.stats.violations"></div>
+            <div class="text-sm text-gray-600 font-medium">Violations</div>
+          </div>
+          <div class="bg-green-50 dark:bg-green-900/20 rounded-lg p-4 text-center border border-green-200 dark:border-green-800 shadow-sm">
+            <div class="text-3xl font-bold text-green-600" x-text="axeModal.stats.passes"></div>
+            <div class="text-sm text-gray-600 font-medium">Passes</div>
+          </div>
+          <div class="bg-yellow-50 dark:bg-yellow-900/20 rounded-lg p-4 text-center border border-yellow-200 dark:border-yellow-800 shadow-sm">
+            <div class="text-3xl font-bold text-yellow-600" x-text="axeModal.stats.incomplete"></div>
+            <div class="text-sm text-gray-600 font-medium">Incomplete</div>
+          </div>
+          <div class="bg-gray-50 dark:bg-gray-700 rounded-lg p-4 text-center border border-gray-300 dark:border-gray-600 shadow-sm">
+            <div class="text-3xl font-bold text-gray-600" x-text="axeModal.stats.inapplicable"></div>
+            <div class="text-sm text-gray-600 font-medium">Inapplicable</div>
+          </div>
+        </div>
+        
+        <!-- Tabs -->
+        <div class="border-b border-gray-200 dark:border-gray-700 mb-6 flex gap-2">
+          <button @click="axeModal.activeTab = 'violations'" :class="axeModal.activeTab === 'violations' ? 'bg-red-100 dark:bg-red-900/30 text-red-700 border-b-2 border-red-500' : 'text-gray-600 hover:bg-gray-100 dark:hover:bg-gray-800'" class="px-4 py-2 rounded-t-lg transition-colors font-medium">
+            Violations (<span x-text="axeModal.stats.violations"></span>)
+          </button>
+          <button @click="axeModal.activeTab = 'passes'" :class="axeModal.activeTab === 'passes' ? 'bg-green-100 dark:bg-green-900/30 text-green-700 border-b-2 border-green-500' : 'text-gray-600 hover:bg-gray-100 dark:hover:bg-gray-800'" class="px-4 py-2 rounded-t-lg transition-colors font-medium">
+            Passes (<span x-text="axeModal.stats.passes"></span>)
+          </button>
+          <button @click="axeModal.activeTab = 'incomplete'" :class="axeModal.activeTab === 'incomplete' ? 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-700 border-b-2 border-yellow-500' : 'text-gray-600 hover:bg-gray-100 dark:hover:bg-gray-800'" class="px-4 py-2 rounded-t-lg transition-colors font-medium">
+            Incomplete (<span x-text="axeModal.stats.incomplete"></span>)
+          </button>
+          <button @click="axeModal.activeTab = 'inapplicable'" :class="axeModal.activeTab === 'inapplicable' ? 'bg-gray-200 dark:bg-gray-700 text-gray-700 border-b-2 border-gray-500' : 'text-gray-600 hover:bg-gray-100 dark:hover:bg-gray-800'" class="px-4 py-2 rounded-t-lg transition-colors font-medium">
+            Inapplicable (<span x-text="axeModal.stats.inapplicable"></span>)
+          </button>
+        </div>
+        
+        <!-- Violations Tab -->
+        <div x-show="axeModal.activeTab === 'violations'" class="space-y-4">
+          <template x-if="axeModal.stats.violations === 0">
+            <div class="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-6 text-center">
+              <svg class="w-12 h-12 mx-auto mb-3 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+              </svg>
+              <p class="text-green-800 font-semibold">No accessibility violations found!</p>
+            </div>
+          </template>
+          <template x-if="axeModal.stats.violations > 0" x-for="(violation, vIdx) in axeModal.data.violations" :key="violation.id">
+            <div class="border border-red-300 dark:border-red-800 rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow">
+              <div @click="toggleViolation(violation.id)" class="cursor-pointer bg-red-50 dark:bg-red-900/20 p-4 hover:bg-red-100 dark:hover:bg-red-900/30 transition-colors">
+                <div class="flex items-start justify-between mb-2">
+                  <div class="flex items-center gap-3 flex-1">
+                    <svg class="w-5 h-5 text-red-600 transform transition-transform" :class="{ 'rotate-90': isViolationExpanded(violation.id) }" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                    </svg>
+                    <h4 class="font-bold text-gray-900 text-lg" x-text="violation.id"></h4>
+                  </div>
+                  <span class="px-3 py-1 rounded-full text-xs font-bold" :class="getImpactClass(violation.impact)" x-text="violation.impact?.toUpperCase()"></span>
+                </div>
+                <p class="text-gray-700 mb-2 ml-8" x-text="violation.description"></p>
+                <div class="flex items-center gap-4 ml-8 text-sm">
+                  <span class="text-gray-600">
+                    <strong x-text="violation.nodes?.length || 0"></strong> affected element<span x-show="(violation.nodes?.length || 0) !== 1">s</span>
+                  </span>
+                  <template x-if="violation.helpUrl">
+                    <a :href="violation.helpUrl" target="_blank" class="text-blue-600 hover:underline flex items-center gap-1" @click.stop>
+                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                      </svg>
+                      Learn More
+                    </a>
+                  </template>
+                </div>
+                <!-- WCAG Tags -->
+                <template x-if="getWcagTags(violation.tags).length > 0">
+                  <div class="flex flex-wrap gap-2 mt-3 ml-8">
+                    <template x-for="tag in getWcagTags(violation.tags)" :key="tag">
+                      <span class="px-2 py-1 bg-indigo-100 dark:bg-indigo-900/30 text-indigo-800 text-xs rounded-md font-medium" x-text="tag.toUpperCase()"></span>
+                    </template>
+                  </div>
+                </template>
+              </div>
+              
+              <!-- Violation Details (Expandable) -->
+              <div x-show="isViolationExpanded(violation.id)" x-collapse class="bg-white dark:bg-gray-800 border-t border-red-200 dark:border-red-800">
+                <div class="p-4 space-y-4">
+                  <div class="bg-blue-50 dark:bg-blue-900/20 border-l-4 border-blue-500 p-3 rounded-r">
+                    <p class="text-sm font-semibold text-blue-900 mb-1">What to Check:</p>
+                    <p class="text-sm text-blue-800" x-text="violation.help"></p>
+                  </div>
+                  <div>
+                    <h5 class="font-bold text-gray-900 mb-3 flex items-center gap-2">
+                      <svg class="w-5 h-5 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/>
+                      </svg>
+                      Affected Elements (<span x-text="violation.nodes?.length || 0"></span>)
+                    </h5>
+                    <div class="space-y-3">
+                      <template x-for="(node, nIdx) in violation.nodes" :key="nIdx">
+                        <div class="border border-gray-300 dark:border-gray-700 rounded-lg overflow-hidden">
+                          <div @click="toggleNode(violation.id, nIdx)" class="cursor-pointer bg-gray-50 dark:bg-gray-800/50 p-3 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors flex items-center gap-2">
+                            <svg class="w-4 h-4 text-gray-600 transform transition-transform" :class="{ 'rotate-90': isNodeExpanded(violation.id, nIdx) }" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                            </svg>
+                            <span class="text-sm font-semibold text-gray-900">Element <span x-text="nIdx + 1"></span></span>
+                            <template x-if="node.impact">
+                              <span class="ml-auto px-2 py-1 rounded text-xs font-semibold" :class="getImpactClass(node.impact)" x-text="node.impact"></span>
+                            </template>
+                          </div>
+                          
+                          <div x-show="isNodeExpanded(violation.id, nIdx)" x-collapse class="p-3 bg-white dark:bg-gray-900 space-y-3">
+                            <div>
+                              <p class="text-xs font-semibold text-gray-500 mb-1">CSS Selector:</p>
+                              <code class="block text-xs bg-gray-100 dark:bg-gray-800 p-2 rounded border border-gray-200 dark:border-gray-700 font-mono text-purple-700 overflow-x-auto" x-text="formatSelector(node.target)"></code>
+                            </div>
+                            
+                            <!-- HTML Source -->
+                            <div>
+                              <p class="text-xs font-semibold text-gray-500 mb-1">HTML Source:</p>
+                              <pre class="text-xs bg-gray-100 dark:bg-gray-800 p-3 rounded border border-gray-200 dark:border-gray-700 overflow-x-auto"><code class="font-mono" x-html="colorCodeHtml(node.html)"></code></pre>
+                            </div>
+                            <template x-if="node.failureSummary">
+                              <div class="bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded p-3">
+                                <p class="text-xs font-semibold text-red-900 mb-1">Failure Summary:</p>
+                                <p class="text-xs text-red-800 whitespace-pre-wrap" x-text="node.failureSummary"></p>
+                              </div>
+                            </template>
+                            <template x-if="node.any?.length > 0 || node.all?.length > 0 || node.none?.length > 0">
+                              <div class="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded p-3">
+                                <p class="text-xs font-semibold text-green-900 mb-2">Fix Suggestions:</p>
+                                <div class="space-y-2 text-xs">
+                                  <template x-for="check in node.any" :key="check.id">
+                                    <div class="flex items-start gap-2">
+                                      <span class="text-green-600 mt-0.5">•</span>
+                                      <span class="text-green-800" x-text="check.message"></span>
+                                    </div>
+                                  </template>
+                                  <template x-for="check in node.all" :key="check.id">
+                                    <div class="flex items-start gap-2">
+                                      <span class="text-green-600 mt-0.5">•</span>
+                                      <span class="text-green-800" x-text="check.message"></span>
+                                    </div>
+                                  </template>
+                                  <template x-for="check in node.none" :key="check.id">
+                                    <div class="flex items-start gap-2">
+                                      <span class="text-green-600 mt-0.5">•</span>
+                                      <span class="text-green-800" x-text="check.message"></span>
+                                    </div>
+                                  </template>
+                                </div>
+                              </div>
+                            </template>
+                          </div>
+                        </div>
+                      </template>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </template>
+        </div>
+        
+        <!-- Passes Tab -->
+        <div x-show="axeModal.activeTab === 'passes'" class="space-y-4">
+          <template x-if="axeModal.stats.passes === 0">
+            <div class="bg-gray-50 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg p-6 text-center">
+              <p class="text-gray-600">No accessibility passes recorded.</p>
+            </div>
+          </template>
+          <template x-if="axeModal.stats.passes > 0" x-for="(pass, pIdx) in axeModal.data.passes" :key="pass.id">
+            <div class="border border-green-300 dark:border-green-800 rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow">
+              <div @click="toggleViolation('pass-' + pass.id)" class="cursor-pointer bg-green-50 dark:bg-green-900/20 p-4 hover:bg-green-100 dark:hover:bg-green-900/30 transition-colors">
+                <div class="flex items-start justify-between mb-2">
+                  <div class="flex items-center gap-3 flex-1">
+                    <svg class="w-5 h-5 text-green-600 transform transition-transform" :class="{ 'rotate-90': isViolationExpanded('pass-' + pass.id) }" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                    </svg>
+                    <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                    </svg>
+                    <h4 class="font-bold text-gray-900 text-lg" x-text="pass.id"></h4>
+                  </div>
+                </div>
+                <p class="text-gray-700 mb-2 ml-8" x-text="pass.description"></p>
+                <div class="flex items-center gap-4 ml-8 text-sm">
+                  <span class="text-gray-600">
+                    <strong x-text="pass.nodes?.length || 0"></strong> passing element<span x-show="(pass.nodes?.length || 0) !== 1">s</span>
+                  </span>
+                  <template x-if="pass.helpUrl">
+                    <a :href="pass.helpUrl" target="_blank" class="text-blue-600 hover:underline flex items-center gap-1" @click.stop>
+                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                      </svg>
+                      Learn More
+                    </a>
+                  </template>
+                </div>
+                <!-- WCAG Tags -->
+                <template x-if="getWcagTags(pass.tags).length > 0">
+                  <div class="flex flex-wrap gap-2 mt-3 ml-8">
+                    <template x-for="tag in getWcagTags(pass.tags)" :key="tag">
+                      <span class="px-2 py-1 bg-indigo-100 dark:bg-indigo-900/30 text-indigo-800 text-xs rounded-md font-medium" x-text="tag.toUpperCase()"></span>
+                    </template>
+                  </div>
+                </template>
+              </div>
+              
+              <!-- Pass Details (Expandable) -->
+              <div x-show="isViolationExpanded('pass-' + pass.id)" x-collapse class="bg-white dark:bg-gray-800 border-t border-green-200 dark:border-green-800">
+                <div class="p-4 space-y-4">
+                  <div class="bg-blue-50 dark:bg-blue-900/20 border-l-4 border-blue-500 p-3 rounded-r">
+                    <p class="text-sm font-semibold text-blue-900 mb-1">What Passed:</p>
+                    <p class="text-sm text-blue-800" x-text="pass.help"></p>
+                  </div>
+                  <div>
+                    <h5 class="font-bold text-gray-900 mb-3 flex items-center gap-2">
+                      <svg class="w-5 h-5 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/>
+                      </svg>
+                      Passing Elements (<span x-text="pass.nodes?.length || 0"></span>)
+                    </h5>
+                    <div class="space-y-3">
+                      <template x-for="(node, nIdx) in pass.nodes" :key="nIdx">
+                        <div class="border border-green-300 dark:border-green-700 rounded-lg overflow-hidden">
+                          <div @click="toggleNode('pass-' + pass.id, nIdx)" class="cursor-pointer bg-green-50 dark:bg-green-800/50 p-3 hover:bg-green-100 dark:hover:bg-green-800 transition-colors flex items-center gap-2">
+                            <svg class="w-4 h-4 text-green-600 transform transition-transform" :class="{ 'rotate-90': isNodeExpanded('pass-' + pass.id, nIdx) }" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                            </svg>
+                            <span class="text-sm font-semibold text-gray-900">Element <span x-text="nIdx + 1"></span></span>
+                          </div>
+                          
+                          <div x-show="isNodeExpanded('pass-' + pass.id, nIdx)" x-collapse class="p-3 bg-white dark:bg-gray-900 space-y-3">
+                            <div>
+                              <p class="text-xs font-semibold text-gray-500 mb-1">CSS Selector:</p>
+                              <code class="block text-xs bg-gray-100 dark:bg-gray-800 p-2 rounded border border-gray-200 dark:border-gray-700 font-mono text-purple-700 overflow-x-auto" x-text="formatSelector(node.target)"></code>
+                            </div>
+                            
+                            <!-- HTML Source -->
+                            <div>
+                              <p class="text-xs font-semibold text-gray-500 mb-1">HTML Source:</p>
+                              <pre class="text-xs bg-gray-100 dark:bg-gray-800 p-3 rounded border border-gray-200 dark:border-gray-700 overflow-x-auto"><code class="font-mono" x-html="colorCodeHtml(node.html)"></code></pre>
+                            </div>
+                            <template x-if="node.all?.length > 0">
+                              <div class="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded p-3">
+                                <p class="text-xs font-semibold text-green-900 mb-2">Success Criteria Met:</p>
+                                <div class="space-y-2 text-xs">
+                                  <template x-for="check in node.all" :key="check.id">
+                                    <div class="flex items-start gap-2">
+                                      <span class="text-green-600 mt-0.5">✓</span>
+                                      <span class="text-green-800" x-text="check.message"></span>
+                                    </div>
+                                  </template>
+                                </div>
+                              </div>
+                            </template>
+                          </div>
+                        </div>
+                      </template>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </template>
+        </div>
+        
+        <!-- Incomplete Tab -->
+        <div x-show="axeModal.activeTab === 'incomplete'" class="space-y-4">
+          <template x-if="axeModal.stats.incomplete === 0">
+            <div class="bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg p-6 text-center">
+              <p class="text-green-800 font-semibold">No incomplete checks - all rules could be verified!</p>
+            </div>
+          </template>
+          <template x-if="axeModal.stats.incomplete > 0" x-for="(incomplete, iIdx) in axeModal.data.incomplete" :key="incomplete.id">
+            <div class="border border-yellow-300 dark:border-yellow-800 rounded-lg overflow-hidden shadow-sm hover:shadow-md transition-shadow">
+              <div @click="toggleViolation('incomplete-' + incomplete.id)" class="cursor-pointer bg-yellow-50 dark:bg-yellow-900/20 p-4 hover:bg-yellow-100 dark:hover:bg-yellow-900/30 transition-colors">
+                <div class="flex items-start justify-between mb-2">
+                  <div class="flex items-center gap-3 flex-1">
+                    <svg class="w-5 h-5 text-yellow-600 transform transition-transform" :class="{ 'rotate-90': isViolationExpanded('incomplete-' + incomplete.id) }" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                    </svg>
+                    <svg class="w-5 h-5 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
+                    </svg>
+                    <h4 class="font-bold text-gray-900 text-lg" x-text="incomplete.id"></h4>
+                  </div>
+                  <template x-if="incomplete.impact">
+                    <span class="px-3 py-1 rounded-full text-xs font-bold bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800" x-text="incomplete.impact?.toUpperCase()"></span>
+                  </template>
+                </div>
+                <p class="text-gray-700 mb-2 ml-8" x-text="incomplete.description"></p>
+                <div class="flex items-center gap-4 ml-8 text-sm">
+                  <span class="text-gray-600">
+                    <strong x-text="incomplete.nodes?.length || 0"></strong> element<span x-show="(incomplete.nodes?.length || 0) !== 1">s</span> to review
+                  </span>
+                  <template x-if="incomplete.helpUrl">
+                    <a :href="incomplete.helpUrl" target="_blank" class="text-blue-600 hover:underline flex items-center gap-1" @click.stop>
+                      <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                      </svg>
+                      Learn More
+                    </a>
+                  </template>
+                </div>
+                <!-- WCAG Tags -->
+                <template x-if="getWcagTags(incomplete.tags).length > 0">
+                  <div class="flex flex-wrap gap-2 mt-3 ml-8">
+                    <template x-for="tag in getWcagTags(incomplete.tags)" :key="tag">
+                      <span class="px-2 py-1 bg-indigo-100 dark:bg-indigo-900/30 text-indigo-800 text-xs rounded-md font-medium" x-text="tag.toUpperCase()"></span>
+                    </template>
+                  </div>
+                </template>
+              </div>
+              
+              <!-- Incomplete Details (Expandable) -->
+              <div x-show="isViolationExpanded('incomplete-' + incomplete.id)" x-collapse class="bg-white dark:bg-gray-800 border-t border-yellow-200 dark:border-yellow-800">
+                <div class="p-4 space-y-4">
+                  <div class="bg-blue-50 dark:bg-blue-900/20 border-l-4 border-blue-500 p-3 rounded-r">
+                    <p class="text-sm font-semibold text-blue-900 mb-1">What to Review:</p>
+                    <p class="text-sm text-blue-800" x-text="incomplete.help"></p>
+                  </div>
+                  <div>
+                    <h5 class="font-bold text-gray-900 mb-3 flex items-center gap-2">
+                      <svg class="w-5 h-5 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"/>
+                      </svg>
+                      Elements to Review (<span x-text="incomplete.nodes?.length || 0"></span>)
+                    </h5>
+                    <div class="space-y-3">
+                      <template x-for="(node, nIdx) in incomplete.nodes" :key="nIdx">
+                        <div class="border border-yellow-300 dark:border-yellow-700 rounded-lg overflow-hidden">
+                          <div @click="toggleNode('incomplete-' + incomplete.id, nIdx)" class="cursor-pointer bg-yellow-50 dark:bg-yellow-800/50 p-3 hover:bg-yellow-100 dark:hover:bg-yellow-800 transition-colors flex items-center gap-2">
+                            <svg class="w-4 h-4 text-yellow-600 transform transition-transform" :class="{ 'rotate-90': isNodeExpanded('incomplete-' + incomplete.id, nIdx) }" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/>
+                            </svg>
+                            <span class="text-sm font-semibold text-gray-900">Element <span x-text="nIdx + 1"></span></span>
+                            <template x-if="node.impact">
+                              <span class="ml-auto px-2 py-1 rounded text-xs font-semibold bg-yellow-100 dark:bg-yellow-900/30 text-yellow-800" x-text="node.impact"></span>
+                            </template>
+                          </div>
+                          
+                          <div x-show="isNodeExpanded('incomplete-' + incomplete.id, nIdx)" x-collapse class="p-3 bg-white dark:bg-gray-900 space-y-3">
+                            <div>
+                              <p class="text-xs font-semibold text-gray-500 mb-1">CSS Selector:</p>
+                              <code class="block text-xs bg-gray-100 dark:bg-gray-800 p-2 rounded border border-gray-200 dark:border-gray-700 font-mono text-purple-700 overflow-x-auto" x-text="formatSelector(node.target)"></code>
+                            </div>
+                            
+                            <!-- HTML Source -->
+                            <div>
+                              <p class="text-xs font-semibold text-gray-500 mb-1">HTML Source:</p>
+                              <pre class="text-xs bg-gray-100 dark:bg-gray-800 p-3 rounded border border-gray-200 dark:border-gray-700 overflow-x-auto"><code class="font-mono" x-html="colorCodeHtml(node.html)"></code></pre>
+                            </div>
+                            <div class="bg-yellow-50 dark:bg-yellow-900/20 border border-yellow-200 dark:border-yellow-800 rounded p-3">
+                              <p class="text-xs font-semibold text-yellow-900 mb-2">Manual Review Required:</p>
+                              <p class="text-xs text-yellow-800">Automated tools cannot determine if this element passes or fails. Manual inspection is required to verify accessibility compliance.</p>
+                            </div>
+                            <template x-if="node.any?.length > 0 || node.all?.length > 0">
+                              <div class="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded p-3">
+                                <p class="text-xs font-semibold text-blue-900 mb-2">Review Criteria:</p>
+                                <div class="space-y-2 text-xs">
+                                  <template x-for="check in node.any" :key="check.id">
+                                    <div class="flex items-start gap-2">
+                                      <span class="text-blue-600 mt-0.5">→</span>
+                                      <span class="text-blue-800" x-text="check.message"></span>
+                                    </div>
+                                  </template>
+                                  <template x-for="check in node.all" :key="check.id">
+                                    <div class="flex items-start gap-2">
+                                      <span class="text-blue-600 mt-0.5">→</span>
+                                      <span class="text-blue-800" x-text="check.message"></span>
+                                    </div>
+                                  </template>
+                                </div>
+                              </div>
+                            </template>
+                          </div>
+                        </div>
+                      </template>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </template>
+        </div>
+        
+        <!-- Inapplicable Tab -->
+        <div x-show="axeModal.activeTab === 'inapplicable'" class="space-y-4">
+          <template x-if="axeModal.stats.inapplicable === 0">
+            <div class="bg-gray-50 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg p-6 text-center">
+              <p class="text-gray-600">No inapplicable rules.</p>
+            </div>
+          </template>
+          <template x-if="axeModal.stats.inapplicable > 0" x-for="(inapplicable, iaIdx) in axeModal.data.inapplicable" :key="inapplicable.id">
+            <div class="border border-gray-300 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 rounded-lg p-4 shadow-sm">
+              <h4 class="font-semibold text-gray-900 mb-1" x-text="inapplicable.id"></h4>
+              <p class="text-gray-700 text-sm" x-text="inapplicable.description"></p>
+            </div>
+          </template>
+        </div>
+      </div>
+        
+        <!-- Loading State -->
+        <div x-show="!axeModal.error && (axeModal.data.violations.length === 0 && axeModal.data.passes.length === 0 && axeModal.data.incomplete.length === 0 && axeModal.data.inapplicable.length === 0)" class="p-6 text-center">
+          <div class="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-purple-600"></div>
+          <p class="text-gray-600 mt-4">Loading accessibility report...</p>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+</body>
+</html>

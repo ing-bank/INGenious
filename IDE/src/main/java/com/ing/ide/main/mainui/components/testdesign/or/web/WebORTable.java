@@ -9,8 +9,10 @@ import com.ing.datalib.or.web.WebORPage;
 import com.ing.ide.main.fx.INGIcons;
 import com.ing.ide.main.utils.Utils;
 import com.ing.ide.main.utils.table.PropertyAttributeRenderer;
+import com.ing.ide.main.utils.table.RoleCellEditor;
 import com.ing.ide.main.utils.table.XTable;
 import java.awt.BorderLayout;
+import java.awt.Component;
 import java.awt.Font;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
@@ -21,19 +23,25 @@ import java.awt.event.KeyEvent;
 import java.util.Collections;
 import java.util.List;
 import javax.swing.BorderFactory;
+import javax.swing.JCheckBox;
 import javax.swing.JLabel;
 import javax.swing.JMenu;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
+import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.JToggleButton;
 import javax.swing.JToolBar;
 import javax.swing.KeyStroke;
+import javax.swing.SwingConstants;
 import javax.swing.UIManager;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
+import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
+import javax.swing.table.TableCellEditor;
+import javax.swing.table.TableColumn;
 
 /**
  *
@@ -52,10 +60,29 @@ public class WebORTable extends JPanel implements ActionListener, ItemListener {
     private final WebORPanel webOR;
 
     private Boolean monitorFrameChange = true;
+    
+    private final RoleCellEditor roleCellEditor;
 
     public WebORTable(WebORPanel webOR) {
         this.webOR = webOR;
-        table = new XTable();
+        
+        // Create the role cell editor with dropdown + name field
+        roleCellEditor = new RoleCellEditor();
+        
+        // Create custom XTable that returns role editor for Role attribute
+        table = new XTable() {
+            @Override
+            public TableCellEditor getCellEditor(int row, int column) {
+                // Column 1 is the Value column, Column 0 is the Attribute name
+                if (column == 1 && row >= 0 && row < getRowCount()) {
+                    Object attrName = getValueAt(row, 0);
+                    if ("Role".equalsIgnoreCase(String.valueOf(attrName))) {
+                        return roleCellEditor;
+                    }
+                }
+                return super.getCellEditor(row, column);
+            }
+        };
         frameToolbar = new FrameToolBar();
         toolBar = new ToolBar();
         popupMenu = new PopupMenu();
@@ -79,14 +106,67 @@ public class WebORTable extends JPanel implements ActionListener, ItemListener {
 
     public void loadObject(WebORObject object) {
         table.setModel(object);
-        // Apply custom renderer to Attribute column (column 0)
-        if (table.getColumnCount() > 0) {
-            table.getColumnModel().getColumn(0).setCellRenderer(new PropertyAttributeRenderer());
-        }
+        configureColumns();
         monitorFrameChange = false;
         frameToolbar.frameText.setText(object.getFrame());
         toolBar.frameToggle.setSelected(!frameToolbar.frameText.getText().isEmpty());
         monitorFrameChange = true;
+    }
+
+    private void configureColumns() {
+        if (table.getColumnCount() >= 3) {
+            // Set resize mode: only resize Value column, keep others fixed
+            table.setAutoResizeMode(JTable.AUTO_RESIZE_SUBSEQUENT_COLUMNS);
+            
+            // Column 0: Attribute - narrow width
+            TableColumn attrCol = table.getColumnModel().getColumn(0);
+            attrCol.setCellRenderer(new PropertyAttributeRenderer());
+            attrCol.setPreferredWidth(100);
+            attrCol.setMinWidth(80);
+            attrCol.setMaxWidth(150);
+            
+            // Column 1: Value - takes remaining space (flexible)
+            TableColumn valueCol = table.getColumnModel().getColumn(1);
+            valueCol.setPreferredWidth(300);
+            valueCol.setMinWidth(50);
+            
+            // Column 2: Exact - fixed width, centered
+            TableColumn exactCol = table.getColumnModel().getColumn(2);
+            exactCol.setPreferredWidth(45);
+            exactCol.setMinWidth(45);
+            exactCol.setMaxWidth(45);
+            exactCol.setResizable(false);
+            
+            // Center-aligned header for Exact column
+            DefaultTableCellRenderer headerRenderer = new DefaultTableCellRenderer();
+            headerRenderer.setHorizontalAlignment(SwingConstants.CENTER);
+            exactCol.setHeaderRenderer(headerRenderer);
+            
+            // Center-aligned checkbox renderer for Exact column
+            exactCol.setCellRenderer(new DefaultTableCellRenderer() {
+                private final JCheckBox checkBox = new JCheckBox();
+                {
+                    checkBox.setHorizontalAlignment(SwingConstants.CENTER);
+                    checkBox.setOpaque(true);
+                }
+                
+                @Override
+                public Component getTableCellRendererComponent(JTable table, Object value,
+                        boolean isSelected, boolean hasFocus, int row, int column) {
+                    // Check if cell is editable (not xpath, css, TestId)
+                    boolean editable = table.getModel().isCellEditable(row, column);
+                    checkBox.setSelected(value != null && (Boolean) value);
+                    checkBox.setEnabled(editable);
+                    
+                    if (isSelected) {
+                        checkBox.setBackground(table.getSelectionBackground());
+                    } else {
+                        checkBox.setBackground(table.getBackground());
+                    }
+                    return checkBox;
+                }
+            });
+        }
     }
 
     private void changeFrameText() {
