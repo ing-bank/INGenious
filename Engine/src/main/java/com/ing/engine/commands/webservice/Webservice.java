@@ -683,6 +683,192 @@ public class Webservice extends General {
 
     }
 
+    @Action(object = ObjectType.WEBSERVICE, desc = "Store Header Element in Variable", input = InputType.YES, condition = InputType.YES)
+    public void storeHeaderByNameInVariable() {
+        try {
+            String variableName = Condition; // e.g., %Variable Name%
+            String headerName = Data;        // e.g., "Content-Type"
+
+            // storeAllHeadersInMap() will populate headerKeyValueMap with headers for the current scenario/test case (key)
+            storeAllHeadersInMap();
+
+            // Check if headers exist for this key
+            if (!headerKeyValueMap.containsKey(key) || headerKeyValueMap.get(key).isEmpty()) {
+                Report.updateTestLog(Action, "No headers found for scenario: [" + userData.getScenario() + "] and test case: [" + userData.getTestCase() + "]", Status.DEBUG);
+                return;
+            }
+
+            // Get headers for this scenario
+            Map<String, String> currentHeaders = headerKeyValueMap.get(key);
+
+            // Check if requested header exists
+            if (!currentHeaders.containsKey(headerName)) {
+                Report.updateTestLog(Action, "Header '" + headerName + "' does not exist in available headers for scenario: [" + userData.getScenario() + "] and test case: [" + userData.getTestCase() + "]", Status.DEBUG);
+                return;
+            }
+
+            // Validate variable format
+            if (variableName.matches("%.*%")) {
+                String headerValue = currentHeaders.get(headerName);
+                addVar(variableName, headerValue);
+                Report.updateTestLog(Action, "Header '" + headerName + "' stored in variable '" + variableName + "' with value: " + headerValue, Status.DONE);
+            } else {
+                Report.updateTestLog(Action, "Variable format is not correct", Status.DEBUG);
+            }
+
+        } catch (Exception ex) {
+            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, null, ex);
+            Report.updateTestLog(Action, "Error storing header value: " + ex.getMessage(), Status.DEBUG);
+        }
+    }
+
+    @Action(object = ObjectType.WEBSERVICE, desc = "Store Header value in Datasheet", input = InputType.YES, condition = InputType.YES)
+    public void storeHeaderByNameInDatasheet() {
+        try {
+            String headerName = Condition; // e.g., "Content-Type"
+
+            // First, populate maps for this scenario/test case
+            storeAllHeadersInMap();
+
+            // Check if headers exist for this key
+            if (!headerKeyValueMap.containsKey(key) || headerKeyValueMap.get(key).isEmpty()) {
+                Report.updateTestLog(Action, "No headers found for scenario: [" + userData.getScenario() + "] and test case: [" + userData.getTestCase() + "]", Status.DEBUG);
+                return;
+            }
+
+            // Get headers for this scenario
+            Map<String, String> currentHeaders = headerKeyValueMap.get(key);
+
+            // Check if requested header exists
+            if (!currentHeaders.containsKey(headerName)) {
+                Report.updateTestLog(Action, "Header '" + headerName + "' does not exist in available headers for scenario: [" + userData.getScenario() + "] and test case: [" + userData.getTestCase() + "]", Status.DEBUG);
+                return;
+            }
+
+            // Early return if input format is invalid
+            if (!Input.matches(".*:.*")) {
+                Report.updateTestLog(Action, "Invalid input format [" + Input + "]. Expected format: sheetName:ColumnName", Status.DEBUG);
+                return;
+            }
+
+            try {
+                String sheetName = Input.split(":", 2)[0];
+                String columnName = Input.split(":", 2)[1];
+                String headerValue = currentHeaders.get(headerName);
+
+                // Store header value in datasheet
+                userData.putData(sheetName, columnName, headerValue);
+
+                Report.updateTestLog(Action, "Header value [" + headerValue + "] stored in datasheet [" + sheetName + ":" + columnName + "]", Status.DONE);
+            } catch (Exception ex) {
+                Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, ex.getMessage(), ex);
+                Report.updateTestLog(Action, "Error storing header value in datasheet: " + ex.getMessage(), Status.DEBUG);
+            }
+
+        } catch (Exception ex) {
+            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, null, ex);
+            Report.updateTestLog(Action, "Error storing header value in datasheet: " + ex.getMessage(), Status.DEBUG);
+        }
+    }
+
+    @Action(object = ObjectType.WEBSERVICE, desc = "Assert header", input = InputType.YES, condition = InputType.YES)
+    public void assertHeaderValueContains() {
+        try {
+            String headerName = Condition; // e.g., "Content-Type"
+
+            // First, populate maps for this scenario/test case
+            storeAllHeadersInMap();
+
+            // Check if headers exist for this key
+            if (!headerKeyValueMap.containsKey(key) || headerKeyValueMap.get(key).isEmpty()) {
+                Report.updateTestLog(Action, "No headers found for scenario: [" + userData.getScenario() + "] and test case: [" + userData.getTestCase() + "]", Status.FAILNS);
+                return;
+            }
+
+            // Get headers for this scenario
+            Map<String, String> currentHeaders = headerKeyValueMap.get(key);
+
+            // Check if requested header exists
+            if (!currentHeaders.containsKey(headerName)) {
+                Report.updateTestLog(Action, "Header '" + headerName + "' does not exist in available headers.", Status.FAILNS);
+                return;
+            } 
+                
+            String headerValue = headerKeyValueMap.get(key).get(headerName);
+            if (headerValue.contains(Data)) {
+                Report.updateTestLog(Action, "Header value [" + headerValue + "] contains expected text [" + Data + "]", Status.PASSNS);
+            } else {
+                Report.updateTestLog(Action, "Header value [" + headerValue + "] does not contain expected text [" + Data + "]", Status.FAILNS);
+            }
+            
+        } catch (Exception ex) {
+            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, null, ex);
+            Report.updateTestLog(Action, "Error to assert header value : " + ex.getMessage(), Status.FAILNS);
+        }
+    }
+
+    @Action(object = ObjectType.WEBSERVICE, desc = "Assert header", input = InputType.YES, condition = InputType.YES)
+    public void assertHeaderValueEquals() {
+        try {
+            String headerName = Condition; // e.g., "Content-Type"
+
+            // First, populate maps for this scenario/test case
+            storeAllHeadersInMap();
+
+            // Check if headers exist for this key
+            if (!headerKeyValueMap.containsKey(key) || headerKeyValueMap.get(key).isEmpty()) {
+                Report.updateTestLog(Action, "No headers found for scenario: [" + userData.getScenario() + "] and test case: [" + userData.getTestCase() + "]", Status.FAILNS);
+                return;
+            }
+
+            // Get headers for this scenario
+            Map<String, String> currentHeaders = headerKeyValueMap.get(key);
+
+            // Check if requested header exists
+            if (!currentHeaders.containsKey(headerName)) {
+                Report.updateTestLog(Action, "Header '" + headerName + "' does not exist in available headers.", Status.FAILNS);
+                return;
+            } 
+                
+            String headerValue = headerKeyValueMap.get(key).get(headerName);
+            if (headerValue.equals(Data)) {
+                Report.updateTestLog(Action, "Header value [" + headerValue + "] equals expected text [" + Data + "]", Status.PASSNS);
+            } else {
+                Report.updateTestLog(Action, "Header value [" + headerValue + "] does not equal expected text [" + Data + "]", Status.FAILNS);
+            }
+            
+        } catch (Exception ex) {
+            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, null, ex);
+            Report.updateTestLog(Action, "Error to assert header value : " + ex.getMessage(), Status.FAILNS);
+        }
+    }
+
+    private void storeAllHeadersInMap() {
+        try {
+            Map<String, List<String>> headersMap = response.get(key).headers().map();
+
+            // If headers are missing, just return
+            if (headersMap == null || headersMap.isEmpty()) {
+                return;
+            }
+
+            // Clear previous headerMap for this run
+            headerMap.clear();
+
+            // Populate headerMap with combined values
+            headersMap.forEach((headerName, values) -> {
+                String combinedValues = String.join(", ", values); // Append all values
+                headerMap.put(headerName, combinedValues);
+            });
+
+            // Tag this headerMap with scenario/test case key
+            headerKeyValueMap.put(key, new HashMap<>(headerMap));
+
+        } catch (Exception ex) {
+            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+
     private boolean isformUrlencoded() {
         if (headers.containsKey(key)) {
             ArrayList<String> headerlist = headers.get(key);

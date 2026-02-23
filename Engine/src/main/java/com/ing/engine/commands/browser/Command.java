@@ -87,6 +87,9 @@ public class Command {
     static public Map<String, Instant> before = new HashMap<>();
     static public Map<String, Instant> after = new HashMap<>();
     static public Map<String, Long> duration = new HashMap<>();
+    static public HashMap<String, String> headerMap = new HashMap<>();
+    static public Map<String, HashMap<String,String>> headerKeyValueMap = new HashMap<>();
+    
     public String key;
     static public String basicAuthorization;
     /**
