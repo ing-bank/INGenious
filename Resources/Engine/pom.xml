@@ -658,5 +658,5 @@
 			<version>${javafx.version}</version>
 			<classifier>${mac.version}</classifier>
 		</dependency>
-        </dependencies>
+    </dependencies>
 </project>
