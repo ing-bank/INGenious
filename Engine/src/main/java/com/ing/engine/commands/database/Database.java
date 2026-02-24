@@ -12,15 +12,24 @@ import java.sql.SQLException;
 import java.util.List;
 
 /**
- *
- *
+ * Provides database-specific command implementations for executing queries, asserting results,
+ * storing values, and managing database connections. Extends General for common database utilities.
  */
 public class Database extends General {
 
+    /**
+     * Constructs a Database command handler with the given command control.
+     *
+     * @param cc the command control context
+     */
     public Database(CommandControl cc) {
         super(cc);
     }
 
+    /**
+     * Initiates the database connection using the input database name.
+     * Updates the test log with connection status and metadata.
+     */
     @Action(object = ObjectType.DATABASE, desc = "Initiate the DB transaction", input = InputType.YES)
     public void initDBConnection() {
         try {
@@ -45,6 +54,9 @@ public class Database extends General {
         }
     }
 
+    /**
+     * Executes a SELECT query and updates the test log with the result.
+     */
     @Action(object = ObjectType.DATABASE, desc = "Execute the Query in [<Input>]", input = InputType.YES)
     public void executeSelectQuery() {
         try {
@@ -56,6 +68,9 @@ public class Database extends General {
         }
     }
 
+    /**
+     * Executes a DML query (INSERT, UPDATE, DELETE) and updates the test log with the result and query used.
+     */
     @Action(object = ObjectType.DATABASE, desc = "Execute the Query in [<Input>]", input = InputType.YES)
     public void executeDMLQuery() {
         try {
@@ -71,6 +86,10 @@ public class Database extends General {
         }
     }
 
+    /**
+     * Asserts that the value in Data exists in the specified column (Condition) of the database.
+     * Updates the test log with the assertion result.
+     */
     @Action(object = ObjectType.DATABASE, desc = "Assert the value [<Input>] exist in the column [<Condition>] ", input = InputType.YES, condition = InputType.YES)
     public void assertDBResult() {
         if (assertDB(Condition, Data)) {
@@ -80,6 +99,10 @@ public class Database extends General {
         }
     }
 
+    /**
+     * Stores the value from the specified DB column (Condition) in a global variable (Input).
+     * Updates the test log with the storage result.
+     */
     @Action(object = ObjectType.DATABASE, desc = "Store it in Global variable from the DB column [<Condition>] ", input = InputType.YES, condition = InputType.YES)
     public void storeValueInGlobalVariable() {
         storeValue(Input, Condition, true);
@@ -90,6 +113,10 @@ public class Database extends General {
         }
     }
 
+    /**
+     * Stores the value from the specified DB column (Condition) in a local variable (Input).
+     * Updates the test log with the storage result.
+     */
     @Action(object = ObjectType.DATABASE, desc = "Store it in the variable from the DB column [<Condition>] ", input = InputType.YES, condition = InputType.YES)
     public void storeValueInVariable() {
         storeValue(Input, Condition, false);
@@ -100,6 +127,10 @@ public class Database extends General {
         }
     }
 
+    /**
+     * Stores the value from the specified DB column (Condition) in the test data sheet (Input).
+     * Updates the test log with the storage result.
+     */
     @Action(object = ObjectType.DATABASE, desc = "Save DB value in Test Data Sheet", input = InputType.YES, condition = InputType.YES)
     public void storeDBValueinDataSheet() {
         try {
@@ -135,6 +166,9 @@ public class Database extends General {
         }
     }
 
+    /**
+     * Closes the database connection and updates the test log with the result.
+     */
     @Action(object = ObjectType.DATABASE, desc = "Close the DB Connection")
     public void closeDBConnection() {
         try {
@@ -149,6 +183,9 @@ public class Database extends General {
         }
     }
 
+    /**
+     * Verifies table values against the test data sheet and updates the test log with the result.
+     */
     @Action(object = ObjectType.DATABASE, desc = "Verify Table values with the Test Data sheet ", input = InputType.YES)
     public void verifyWithDataSheet() {
         String sheetName = Data;
@@ -172,8 +209,8 @@ public class Database extends General {
     }
 
     /**
-     * Under the assumption that 1. User executed only SELECT Query 2. Returns a
-     * column with one or more rows
+     * Stores the result of a SELECT query in runtime variable(s) based on the specified condition.
+     * Assumes the query returns one or more rows in a column.
      */
     @Action(object = ObjectType.DATABASE, desc = "Query and save the result in variable(s) ", input = InputType.YES, condition = InputType.YES)
     public void storeResultInVariable() {
@@ -206,7 +243,8 @@ public class Database extends General {
     }
 
     /**
-     * Under the assumption that 1. User executed only SELECT Query
+     * Stores the result of a SELECT query in the datasheet based on the specified condition.
+     * Assumes the query returns one or more rows.
      */
     @Action(object = ObjectType.DATABASE, desc = "Query and save the result in Datasheet ", input = InputType.YES, condition = InputType.YES)
     public void storeResultInDataSheet() {
