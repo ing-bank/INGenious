@@ -61,11 +61,6 @@ public class CucumberReport {
      * @param cucumberJson cucumber-json report
      * @param project project name
      */
-    /**
-     * Generates a Cucumber HTML report from the given Cucumber JSON file.
-     * @param cucumberJson The Cucumber JSON report file
-     * @param project The project name
-     */
     private void toCucumberHtmlReport(File cucumberJson, String project) {
         //TO-DO: add your html implementation
     }
@@ -76,12 +71,6 @@ public class CucumberReport {
      * @param report - report (json string)
      * @param bddReport - destination file
      * @throws Exception
-     */
-    /**
-     * Converts a JSON string report to a Cucumber JSON report file.
-     * @param report JSON string representing the report
-     * @param bddReport Destination file for the Cucumber JSON report
-     * @throws Exception if parsing or writing fails
      */
     public void toCucumberReport(String report, File bddReport) throws Exception {
         this.bddReport = bddReport;
@@ -95,12 +84,6 @@ public class CucumberReport {
      * @param bddReport - destination file
      * @throws Exception
      */
-    /**
-     * Converts parsed report data to a Cucumber JSON report file and triggers HTML report generation.
-     * @param reportData Parsed report data
-     * @param bddReport Destination file for the Cucumber JSON report
-     * @throws Exception if conversion or writing fails
-     */
     private void toCucumberReport(Report reportData, File bddReport) throws Exception {
         saveAs(bddReport, convert(reportData));
         CucumberReport.get().ifPresent(reporter -> reporter.toCucumberHtmlReport(bddReport, reportData.projectName));
@@ -112,12 +95,6 @@ public class CucumberReport {
      * @param report - report file
      * @param bddReport - destination file
      * @throws Exception
-     */
-    /**
-     * Converts a report file to a Cucumber JSON report file.
-     * @param report Source report file
-     * @param bddReport Destination file for the Cucumber JSON report
-     * @throws Exception if parsing or writing fails
      */
     public void toCucumberReport(File report, File bddReport) throws Exception {
         toCucumberReport(parseReport(report), bddReport);
