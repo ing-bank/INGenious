@@ -59,10 +59,11 @@ public class Database extends General {
     @Action(object = ObjectType.DATABASE, desc = "Execute the Query in [<Input>]", input = InputType.YES)
     public void executeDMLQuery() {
         try {
-            if (executeDML()) {
-                Report.updateTestLog(Action, " Table updated by using " + Data, Status.PASSNS);
+            DMLResult result = executeDML();
+            if (result.success) {
+                Report.updateTestLog(Action, "Table updated by using query: " + result.query, Status.PASSNS);
             } else {
-                Report.updateTestLog(Action, " Table not updated by using " + Data, Status.FAILNS);
+                Report.updateTestLog(Action, "Table not updated by using query: " + result.query, Status.FAILNS);
             }
         } catch (SQLException ex) {
             Report.updateTestLog(Action, "Error executing the SQL Query: " + ex.getMessage(),

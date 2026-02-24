@@ -105,12 +105,22 @@ public class General extends Command {
         populateColumnNames();
     }
 
-    public boolean executeDML() throws SQLException {
+    public static class DMLResult {
+        public final boolean success;
+        public final String query;
+        public DMLResult(boolean success, String query) {
+            this.success = success;
+            this.query = query;
+        }
+    }
+
+    public DMLResult executeDML() throws SQLException {
         String query = Data;
-    	query = handleDataSheetVariables(query);
-    	query = handleuserDefinedVariables(query);
+        query = handleDataSheetVariables(query);
+        query = handleuserDefinedVariables(query);
         System.out.println("Query :" + query);
-        return (statement.executeUpdate(query) >= 0);
+        boolean result = (statement.executeUpdate(query) >= 0);
+        return new DMLResult(result, query);
     }
 
     private void initialize(Boolean commit,int timeout) throws SQLException {
