@@ -683,6 +683,15 @@ public class Webservice extends General {
 
     }
 
+    /**
+     * Stores the value of a header by name in a variable.
+     * <p>
+     * The header value is retrieved for the current scenario/test case and stored in a variable if the variable format is correct.
+     * <ul>
+     *   <li>Condition: Variable name (e.g., %Variable Name%)</li>
+     *   <li>Data: Header name (e.g., "Content-Type")</li>
+     * </ul>
+     */
     @Action(object = ObjectType.WEBSERVICE, desc = "Store Header Element in Variable", input = InputType.YES, condition = InputType.YES)
     public void storeHeaderByNameInVariable() {
         try {
@@ -722,6 +731,15 @@ public class Webservice extends General {
         }
     }
 
+    /**
+     * Stores the value of a header by name in a datasheet column.
+     * <p>
+     * The header value is retrieved for the current scenario/test case and stored in the specified datasheet column.
+     * <ul>
+     *   <li>Condition: Header name (e.g., "Content-Type")</li>
+     *   <li>Input: sheetName:ColumnName</li>
+     * </ul>
+     */
     @Action(object = ObjectType.WEBSERVICE, desc = "Store Header value in Datasheet", input = InputType.YES, condition = InputType.YES)
     public void storeHeaderByNameInDatasheet() {
         try {
@@ -771,6 +789,15 @@ public class Webservice extends General {
         }
     }
 
+    /**
+     * Asserts that the value of a header contains the expected text.
+     * <p>
+     * The header value is checked for the current scenario/test case.
+     * <ul>
+     *   <li>Condition: Header name (e.g., "Content-Type")</li>
+     *   <li>Data: Expected substring</li>
+     * </ul>
+     */
     @Action(object = ObjectType.WEBSERVICE, desc = "Assert header", input = InputType.YES, condition = InputType.YES)
     public void assertHeaderValueContains() {
         try {
@@ -807,6 +834,15 @@ public class Webservice extends General {
         }
     }
 
+    /**
+     * Asserts that the value of a header equals the expected text.
+     * <p>
+     * The header value is checked for the current scenario/test case.
+     * <ul>
+     *   <li>Condition: Header name (e.g., "Content-Type")</li>
+     *   <li>Data: Expected value</li>
+     * </ul>
+     */
     @Action(object = ObjectType.WEBSERVICE, desc = "Assert header", input = InputType.YES, condition = InputType.YES)
     public void assertHeaderValueEquals() {
         try {
@@ -843,6 +879,11 @@ public class Webservice extends General {
         }
     }
 
+    /**
+     * Populates the headerKeyValueMap with all headers for the current scenario/test case.
+     * <p>
+     * Combines header values and tags them with the scenario/test case key.
+     */
     private void storeAllHeadersInMap() {
         try {
             Map<String, List<String>> headersMap = response.get(key).headers().map();
