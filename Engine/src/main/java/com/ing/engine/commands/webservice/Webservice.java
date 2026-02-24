@@ -37,6 +37,7 @@ import java.io.StringReader;
 import java.net.URLEncoder;
 import java.net.http.HttpClient;
 import java.net.http.HttpClient.Redirect;
+import java.net.http.HttpHeaders;
 import java.net.http.HttpRequest;
 import java.net.http.HttpRequest.BodyPublisher;
 import java.net.http.HttpResponse;
@@ -1142,32 +1143,46 @@ public class Webservice extends General {
                 return;
             }
             
-            String cookieValue = null;
             variableName = variableName.substring(1, variableName.length() - 1);
 
-            if (response.containsKey(key) && response.get(key) != null) {
-                java.net.http.HttpResponse<?> httpResponse = response.get(key);
-                java.net.http.HttpHeaders responseHeaders = httpResponse.headers();
-
-                List<String> cookieHeaders = !responseHeaders.allValues("set-cookie").isEmpty() ? responseHeaders.allValues("set-cookie") : responseHeaders.allValues("Set-Cookie");
-                
-                if (!cookieHeaders.isEmpty()) {
-                    for (String cookieHeader : cookieHeaders) {
-                        String[] cookieParts = cookieHeader.split(";");
-                        if (cookieParts.length > 0) {
-                            String[] keyValue = cookieParts[0].trim().split("=", 2);
-                            if (keyValue.length == 2 && keyValue[0].trim().equals(cookieKey)) {
-                                cookieValue = keyValue[1].trim();
-                                addVar(variableName, cookieValue);
-                                Report.updateTestLog(Action, "Cookies with name ["+cookieKey+"] has been added in variable ["+variableName+"] with value ["+cookieValue+"] ", Status.DONE);
-                                break;
-                            }
-                        }
-                    }
-                } else Report.updateTestLog(Action, "No cookies were retrieved from the endpoint", Status.FAIL);
-                    
+            if (!response.containsKey(key) && response.get(key) == null) {
+                Report.updateTestLog(Action, "Response did not contain a valid HttpResponse for key [" + key + "]", Status.FAIL);
+                return;
             }
 
+            HttpResponse<?> httpResponse = response.get(key);
+            HttpHeaders responseHeaders = httpResponse.headers();
+
+            List<String> cookieHeaders = !responseHeaders.allValues("set-cookie").isEmpty() ? responseHeaders.allValues("set-cookie") : responseHeaders.allValues("Set-Cookie");
+            
+            if (cookieHeaders.isEmpty()) {
+                Report.updateTestLog(Action, "No cookies were retrieved from the endpoint", Status.FAIL);
+                return;
+            }
+
+            for (String cookieHeader : cookieHeaders) {
+                if (cookieHeader == null || cookieHeader.isEmpty()) continue;
+
+                String[] cookieParts = cookieHeader.split(";");
+                if (cookieParts.length == 0) continue;
+
+                String[] keyValue = cookieParts[0].trim().split("=", 2);
+                if (keyValue.length != 2) continue;
+
+                String cookieName  = keyValue[0].trim();
+                String cookieValue = keyValue[1].trim();
+
+                if (cookieName.equals(cookieKey)) {
+                    addVar(variableName, cookieValue);
+                    Report.updateTestLog(
+                        Action,
+                        "Cookies with name [" + cookieKey + "] has been added in variable [" 
+                            + variableName + "] with value [" + cookieValue + "] ",
+                        Status.DONE
+                    );
+                    return; // early exit on success
+                }
+            }
         } catch (Exception ex) {
             Report.updateTestLog(Action, "Error in storing cookies with name in variable :"+ex.getMessage(), Status.FAIL);
             ex.printStackTrace();
