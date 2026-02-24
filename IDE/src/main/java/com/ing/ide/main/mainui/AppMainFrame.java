@@ -213,7 +213,7 @@ public class AppMainFrame extends JFrame {
     }
 
     private String getAppTitle() {
-        return "INGenious Playwright Studio " + About.getBuildVersion() + " (Open Source)";
+        return "INGenious Playwright Studio " + About.getBuildVersion() + " (ING)";
     }
 
     public String getCurrentSlide() {
