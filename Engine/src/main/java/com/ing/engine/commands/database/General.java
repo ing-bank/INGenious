@@ -117,7 +117,7 @@ public class General extends Command {
     public void executeSelect() throws SQLException {
         String query = Data;
     	query = handleDataSheetVariables(query);
-    	query = handleuserDefinedVariables(query);
+    	query = handleUserDefinedVariables(query);
         System.out.println("Query :" + query);
         result = statement.executeQuery(query);
         resultData = result.getMetaData();
@@ -145,8 +145,8 @@ public class General extends Command {
     public DMLResult executeDML() throws SQLException {
         String query = Data;
         query = handleDataSheetVariables(query);
-        query = handleuserDefinedVariables(query);
-        System.out.println("Query :" + query);
+        query = handleUserDefinedVariables(query);
+        System.out.println("Executing DML query: :" + query);
         boolean result = (statement.executeUpdate(query) >= 0);
         return new DMLResult(result, query);
     }
@@ -334,7 +334,7 @@ public class General extends Command {
      * @param query the SQL query string
      * @return the query with user-defined variables replaced
      */
-    private String handleuserDefinedVariables(String query) {
+    private String handleUserDefinedVariables(String query) {
         Collection<Object> valuelist = Control.getCurrentProject().getProjectSettings().getUserDefinedSettings()
                 .values();
         for (Object prop : valuelist) {
