@@ -15,7 +15,7 @@
         <app.root>../</app.root>
     </properties>
     <dependencies> 
-        <dependency>
+        <!-- <dependency>
             <groupId>org.apache.kafka</groupId>
             <artifactId>kafka-clients</artifactId>
             <version>${kafka-clients.version}</version>
@@ -24,7 +24,7 @@
             <groupId>io.confluent</groupId>
             <artifactId>kafka-avro-serializer</artifactId>
             <version>${kafka-avro-serializer.version}</version>
-        </dependency>
+        </dependency> -->
         <dependency>
             <groupId>com.ing</groupId>
             <artifactId>ingenious-testdata-csv</artifactId>
@@ -337,10 +337,10 @@
         </dependency>
     </dependencies>
     <repositories>
-      <repository>
+      <!-- <repository>
             <id>confluent</id>
             <url>https://packages.confluent.io/maven/</url>
-        </repository>
+        </repository> -->
     </repositories>
     <build>
         <resources>

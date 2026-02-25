@@ -1,3 +1,5 @@
+/**  Kafka Operations related commands
+
 package com.ing.engine.commands.kafka;
 
 import com.fasterxml.jackson.core.JsonParser;
@@ -1251,3 +1253,5 @@ private final static ObjectMapper mapper = new ObjectMapper();
         }
     }
 }
+
+*/
