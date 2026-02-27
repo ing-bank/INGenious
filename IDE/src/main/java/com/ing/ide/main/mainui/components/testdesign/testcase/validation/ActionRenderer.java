@@ -2,16 +2,19 @@ package com.ing.ide.main.mainui.components.testdesign.testcase.validation;
 
 import com.ing.datalib.component.Scenario;
 import com.ing.datalib.component.TestStep;
-import com.ing.datalib.or.common.ORPageInf;
+import com.ing.datalib.or.web.ResolvedWebObject;
+import com.ing.datalib.or.mobile.ResolvedMobileObject;
 import com.ing.engine.support.methodInf.MethodInfoManager;
 import com.ing.engine.support.methodInf.ObjectType;
+
 import java.awt.Color;
 import java.awt.Font;
 import java.util.Objects;
 import javax.swing.JComponent;
 
 /**
- *
+ * Renderer for the “Action” column of a test step, validating actions and
+ * reusable-step references while applying appropriate visual feedback in the UI.
  *
  */
 public class ActionRenderer extends AbstractRenderer {
@@ -66,8 +69,7 @@ public class ActionRenderer extends AbstractRenderer {
     }
 
     private String getDesc(Object value) {
-        String val = MethodInfoManager.getDescriptionFor(
-                value.toString());
+        String val = MethodInfoManager.getDescriptionFor(value.toString());
         return val.isEmpty() ? null : val;
     }
 
@@ -81,49 +83,38 @@ public class ActionRenderer extends AbstractRenderer {
                 valid = true;
                 break;
             case "Browser":
-                valid = MethodInfoManager.getMethodListFor(ObjectType.BROWSER)
-                        .contains(action);
+                valid = MethodInfoManager.getMethodListFor(ObjectType.BROWSER).contains(action);
                 break;
             case "Mobile":
-                valid = MethodInfoManager.getMethodListFor(ObjectType.MOBILE)
-                        .contains(action);
+                valid = MethodInfoManager.getMethodListFor(ObjectType.MOBILE).contains(action);
                 break;
             case "Database":
-                valid = MethodInfoManager.getMethodListFor(ObjectType.DATABASE)
-                        .contains(action);
+                valid = MethodInfoManager.getMethodListFor(ObjectType.DATABASE).contains(action);
                 break;
             case "ProtractorJS":
-                valid = MethodInfoManager.getMethodListFor(ObjectType.PROTRACTORJS)
-                        .contains(action);
+                valid = MethodInfoManager.getMethodListFor(ObjectType.PROTRACTORJS).contains(action);
                 break;
             case "Webservice":
-                valid = MethodInfoManager.getMethodListFor(ObjectType.WEBSERVICE)
-                        .contains(action);
+                valid = MethodInfoManager.getMethodListFor(ObjectType.WEBSERVICE).contains(action);
                 break;
             case "File":
-                valid = MethodInfoManager.getMethodListFor(ObjectType.FILE)
-                        .contains(action);
+                valid = MethodInfoManager.getMethodListFor(ObjectType.FILE).contains(action);
                 break;
             case "Synthetic Data":
-                valid = MethodInfoManager.getMethodListFor(ObjectType.DATA)
-                        .contains(action);
+                valid = MethodInfoManager.getMethodListFor(ObjectType.DATA).contains(action);
                 break;
             case "Queue":
-                valid = MethodInfoManager.getMethodListFor(ObjectType.QUEUE)
-                        .contains(action);
+                valid = MethodInfoManager.getMethodListFor(ObjectType.QUEUE).contains(action);
                 break;
             case "Kafka":
-                valid = MethodInfoManager.getMethodListFor(ObjectType.KAFKA)
-                        .contains(action);
+                valid = MethodInfoManager.getMethodListFor(ObjectType.KAFKA).contains(action);
                 break;
             case "General":
-                valid = MethodInfoManager.getMethodListFor(ObjectType.GENERAL)
-                        .contains(action);
-                break;   
+                valid = MethodInfoManager.getMethodListFor(ObjectType.GENERAL).contains(action);
+                break;
             case "String Operations":
-                valid = MethodInfoManager.getMethodListFor(ObjectType.STRINGOPERATIONS)
-                        .contains(action);
-                break;   
+                valid = MethodInfoManager.getMethodListFor(ObjectType.STRINGOPERATIONS).contains(action);
+                break;
             default:
                 if (isWebObject(step)) {
                     valid = MethodInfoManager.getMethodListFor(ObjectType.PLAYWRIGHT, ObjectType.WEB).contains(action);
@@ -134,21 +125,33 @@ public class ActionRenderer extends AbstractRenderer {
         }
 
         if (!valid) {
-            valid = MethodInfoManager.getMethodListFor(ObjectType.ANY)
-                    .contains(action);
+            valid = MethodInfoManager.getMethodListFor(ObjectType.ANY).contains(action);
         }
         return valid;
     }
 
     private boolean isWebObject(TestStep step) {
-        ORPageInf page = step.getProject().
-                getObjectRepository().getWebOR().getPageByName(step.getReference());
-        return page != null && page.getObjectGroupByName(step.getObject()) != null;
+        var repo = step.getProject().getObjectRepository();
+        String pageToken = step.getReference();
+        String objectName = step.getObject();
+
+        ResolvedWebObject.PageRef ref = ResolvedWebObject.PageRef.parse(pageToken);
+        ResolvedWebObject r = (ref != null && ref.name != null && ref.scope != null)
+            ? repo.resolveWebObject(ref, objectName)
+            : repo.resolveWebObjectWithScope(pageToken, objectName);
+        return r != null && r.isPresent();
     }
 
     private boolean isMobileObject(TestStep step) {
-        ORPageInf page = step.getProject().
-                getObjectRepository().getMobileOR().getPageByName(step.getReference());
-        return page != null && page.getObjectGroupByName(step.getObject()) != null;
+        var repo = step.getProject().getObjectRepository();
+        String pageToken = step.getReference();
+        String objectName = step.getObject();
+
+        ResolvedMobileObject.PageRef ref = ResolvedMobileObject.PageRef.parse(pageToken);
+        ResolvedMobileObject r = (ref != null && ref.name != null && ref.scope != null)
+            ? repo.resolveMobileObject(ref, objectName)
+            : repo.resolveMobileObjectWithScope(pageToken, objectName);
+
+        return r != null && r.isPresent();
     }
 }

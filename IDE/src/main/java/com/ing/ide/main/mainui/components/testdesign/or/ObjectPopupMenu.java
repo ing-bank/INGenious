@@ -17,8 +17,19 @@ import javax.swing.KeyStroke;
 import javax.swing.TransferHandler;
 
 /**
+ * Context (right-click) popup menu for Object Repository (OR) tree nodes in the Test Design UI.
+ * <p>
+ * This menu provides OR maintenance actions such as adding/renaming/deleting pages, object groups,
+ * and objects, plus utilities like removing unused objects, copying items to Shared OR, opening page dumps,
+ * and running impact analysis. It also includes standard clipboard operations (cut/copy/paste) using
+ * Swing transfer actions.
+ * </p>
  *
- * 
+ * <p>
+ * The available actions are dynamically enabled/disabled based on the type of the current selection
+ * (root, page, group, or object) and whether the selected item belongs to a Shared repository
+ * (e.g., disabling actions that should not modify shared content).
+ * </p>
  */
 public class ObjectPopupMenu extends JPopupMenu {
 
@@ -31,6 +42,7 @@ public class ObjectPopupMenu extends JPopupMenu {
     private JMenuItem renameObject;
     private JMenuItem deleteObject;
     private JMenuItem removeUnusedObject;
+    private JMenuItem copyToShared;
 
     private JMenuItem openPageDump;
 
@@ -61,8 +73,10 @@ public class ObjectPopupMenu extends JPopupMenu {
         add(deleteObject = create("Delete Object", Keystroke.DELETE));
         add(removeUnusedObject = create("Remove Unused Object",Keystroke.REMOVE_OBJECT));
         addSeparator();
+        copyToShared = create("Copy to Shared", null);
+        add(copyToShared);
 
-        
+
         add(openPageDump = create("Open Page Dump", null));
         add(impactAnalysis = create("Get Impacted TestCases", null));
 
@@ -75,8 +89,11 @@ public class ObjectPopupMenu extends JPopupMenu {
     }
 
     public void togglePopupMenu(Object selected) {
+        copyToShared.setEnabled(false);
+
         if (selected instanceof ORRootInf) {
             forRoot();
+            return;
         } else if (selected instanceof ORPageInf) {
             forPage();
         } else if (selected instanceof ObjectGroup) {
@@ -84,6 +101,8 @@ public class ObjectPopupMenu extends JPopupMenu {
         } else if (selected instanceof ORObjectInf) {
             forObject();
         }
+        copyToShared.setEnabled(!isSharedSelection(selected));
+        removeUnusedObject.setEnabled(!isSharedSelection(selected));
     }
 
     private void forPage() {
@@ -205,4 +224,23 @@ public class ObjectPopupMenu extends JPopupMenu {
         add(paste);
     }
 
+    private boolean isSharedSelection(Object selected) {
+        ORPageInf page = null;
+        if (selected instanceof ORPageInf) {
+            page = (ORPageInf) selected;
+        } else if (selected instanceof ORObjectInf) {
+            page = ((ORObjectInf) selected).getPage();
+        } else if (selected instanceof ObjectGroup) {
+            page = ((ObjectGroup) selected).getParent();
+        }
+        if (page != null && page.getRoot() instanceof com.ing.datalib.or.web.WebOR) {
+            com.ing.datalib.or.web.WebOR root = (com.ing.datalib.or.web.WebOR) page.getRoot();
+            return root.isShared();
+        }
+        if (page != null && page.getRoot() instanceof com.ing.datalib.or.mobile.MobileOR) {
+            com.ing.datalib.or.mobile.MobileOR root = (com.ing.datalib.or.mobile.MobileOR) page.getRoot();
+            return root.isShared();
+        }
+        return false;
+    }
 }

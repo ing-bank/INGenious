@@ -7,6 +7,7 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.ing.datalib.or.web.WebORObject;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -179,7 +180,7 @@ public class ObjectGroup<T extends ORObjectInf> implements TreeNode {
     public Boolean rename(String newName) {
         if (getParent().getObjectGroupByName(newName) == null) {
             if (FileUtils.renameFile(getRepLocation(), newName)) {
-                getParent().getRoot().getObjectRepository().renameObject(this, newName);
+                getParent().getRoot().getObjectRepository().renameObject((ObjectGroup<WebORObject>) this, newName);
                 setName(newName);
                 getParent().getRoot().setSaved(false);
                 return true;

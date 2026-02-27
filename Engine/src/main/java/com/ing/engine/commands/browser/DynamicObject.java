@@ -3,16 +3,21 @@ package com.ing.engine.commands.browser;
 
 import com.ing.engine.core.CommandControl;
 import com.ing.engine.drivers.AutomationObject;
+import com.ing.engine.reporting.impl.html.bdd.Report;
+import com.ing.engine.reporting.util.RDS;
 import com.ing.engine.support.Status;
+import com.ing.engine.support.Step;
 import com.ing.engine.support.methodInf.Action;
 import com.ing.engine.support.methodInf.InputType;
 import com.ing.engine.support.methodInf.ObjectType;
+
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
 /**
  *
- * 
+ *
  */
 public class DynamicObject extends Command {
 
@@ -74,4 +79,55 @@ public class DynamicObject extends Command {
             AutomationObject.dynamicValue.get(Reference).get(ObjectName).put(key, value);
         }
     }
+
+    @Action(object = ObjectType.PLAYWRIGHT, desc = "Set filter `Has Text` for the locator", input = InputType.YES, condition = InputType.NO)
+    public void setFilterHasText() {
+        if (!Data.isEmpty()) {
+            AutomationObject.locatorFiltersMap.computeIfAbsent(Reference+ObjectName, k -> new ArrayList<>()).add("setHasText: "+ Data);
+            String text = String.format("Setting Filter 'Has Text' with '%s' for Object [%s - %s]",
+                    Data, Reference, ObjectName);
+            Report.updateTestLog(Action, text, Status.DONE);
+        } else {
+            Report.updateTestLog(Action, "Input should not be empty", Status.FAILNS);
+        }
+    }
+
+    @Action(object = ObjectType.PLAYWRIGHT, desc = "Set filter `Has Not Text` for the locator", input = InputType.YES, condition = InputType.NO)
+    public void setFilterHasNotText() {
+        if (!Data.isEmpty()) {
+            AutomationObject.locatorFiltersMap.computeIfAbsent(Reference+ObjectName, k -> new ArrayList<>()).add("setHasNotText: "+ Data);
+            String text = String.format("Setting Filter 'Has Not Text' with '%s' for Object [%s - %s]",
+                    Data, Reference, ObjectName);
+            Report.updateTestLog(Action, text, Status.DONE);
+        } else {
+            Report.updateTestLog(Action, "Input should not be empty", Status.FAILNS);
+        }
+    }
+
+    @Action(object = ObjectType.PLAYWRIGHT, desc = "Set filter `Visible` for the locator", input = InputType.YES, condition = InputType.NO)
+    public void setFilterIsVisible() {
+        if (!Data.isEmpty()) {
+            AutomationObject.locatorFiltersMap.computeIfAbsent(Reference+ObjectName, k -> new ArrayList<>()).add("setVisible: "+ Data);
+            String text = String.format("Setting Filter 'Visible' with '%s' for Object [%s - %s]",
+                    Data, Reference, ObjectName);
+            Report.updateTestLog(Action, text, Status.DONE);
+        } else {
+            Report.updateTestLog(Action, "Input should not be empty", Status.FAILNS);
+        }
+    }
+
+    @Action(object = ObjectType.PLAYWRIGHT, desc = "Set filter `Index` for the locator", input = InputType.YES, condition = InputType.NO)
+    public void setFilterIndex() {
+        if (!Data.isEmpty()) {
+            AutomationObject.locatorFiltersMap.computeIfAbsent(Reference+ObjectName, k -> new ArrayList<>()).add("setIndex: "+ Data);
+            String text = String.format("Setting Filter 'Index' with '%s' for Object [%s - %s]",
+                    Data, Reference, ObjectName);
+            Report.updateTestLog(Action, text, Status.DONE);
+        } else {
+            Report.updateTestLog(Action, "Input should not be empty", Status.FAILNS);
+        }
+    }
+
+
+
 }

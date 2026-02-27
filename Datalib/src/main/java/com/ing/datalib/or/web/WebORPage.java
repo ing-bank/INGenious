@@ -18,6 +18,11 @@ import java.util.List;
 import javax.swing.tree.TreeNode;
 import javax.swing.tree.TreePath;
 
+/**
+ * Represents a page in the Web Object Repository (WebOR), containing object groups
+ * and metadata such as title, source, and its parent WebOR root. Supports object
+ * group management, tree navigation, renaming, and persistence utilities.
+ */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties({"root"})
 public class WebORPage implements ORPageInf<WebORObject, WebOR> {
@@ -34,6 +39,9 @@ public class WebORPage implements ORPageInf<WebORObject, WebOR> {
 
     @JsonIgnore
     private WebOR root;
+    
+    @JacksonXmlProperty(isAttribute = true)
+    private String source;
 
     public WebORPage() {
         this.objectGroups = new ArrayList<>();
@@ -260,4 +268,7 @@ public class WebORPage implements ORPageInf<WebORObject, WebOR> {
     public void sort() {
         ORUtils.sort(this);
     }
+    
+    public String getSource() { return source; }
+    public void setSource(String source) { this.source = source; }
 }

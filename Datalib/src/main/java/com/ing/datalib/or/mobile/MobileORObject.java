@@ -22,6 +22,12 @@ import javax.swing.event.TableModelListener;
 import javax.swing.tree.TreeNode;
 import javax.swing.tree.TreePath;
 
+/**
+ * Represents a single mobile object inside a MobileOR page, containing a collection of
+ * OR attributes, frame information, and references to its parent object group.
+ * Supports attribute editing, table model operations, cloning, renaming,
+ * and object repository persistence updates.
+ */
 public class MobileORObject extends UndoRedoModel implements ORObjectInf {
 
     @JacksonXmlProperty(isAttribute = true, localName = "ref")

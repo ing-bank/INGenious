@@ -180,11 +180,7 @@
             <artifactId>annotation-detector</artifactId>
             <version>${annon.detect}</version>
         </dependency>
-        <!-- https://mvnrepository.com/artifact/org.testng/testng -->
-        
-    
-           
-           
+        <!-- https://mvnrepository.com/artifact/org.testng/testng -->           
         <dependency>
             <groupId>com.ing</groupId>
             <artifactId>ingenious-testdata-csv</artifactId>
@@ -445,6 +441,11 @@
             <type>jar</type>
         </dependency>
         <dependency>
+            <groupId>com.microsoft.sqlserver</groupId>
+            <artifactId>mssql-jdbc</artifactId>
+            <version>13.2.1.jre11</version>
+        </dependency>
+        <dependency>
             <groupId>com.mysql</groupId>
             <artifactId>mysql-connector-j</artifactId>
             <version>9.4.0</version>
@@ -644,5 +645,5 @@
 			<version>${javafx.version}</version>
 			<classifier>${mac.version}</classifier>
 		</dependency>
-	</dependencies>
+    </dependencies>
 </project>

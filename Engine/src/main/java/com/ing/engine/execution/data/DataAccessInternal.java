@@ -3,6 +3,7 @@ package com.ing.engine.execution.data;
 
 import com.ing.datalib.testdata.model.GlobalDataModel;
 import com.ing.datalib.testdata.model.TestDataModel;
+import com.ing.engine.execution.exception.data.DataNotFoundException;
 import com.ing.engine.execution.exception.data.DataNotFoundException.Cause;
 import com.ing.engine.execution.exception.data.TestDataNotFoundException;
 import com.ing.engine.execution.run.TestCaseRunner;
@@ -267,15 +268,17 @@ public class DataAccessInternal {
      * @throws TestDataNotFoundException detailed exception with cause
      */
     protected static void throwErrorWithCause(TestCaseRunner context,
-            String sheet, String field, String subIter) throws TestDataNotFoundException {
+            String sheet, String field, String subIter) throws TestDataNotFoundException, DataNotFoundException {
         Set<String> iterSet = getIterations(context, sheet);
         if (isNull(iterSet) || !iterSet.contains(context.iteration())) {
             throw new TestDataNotFoundException(context, sheet, field, Cause.Iteration, context.iteration());
         } else {
             Set<String> subIterSet = getSubIterations(context, sheet);
             if (isNull(subIterSet) || !subIterSet.contains(subIter)) {
-                throw new TestDataNotFoundException(context, sheet, field, Cause.SubIteration,
-                        String.format("%s:%s", context.iteration(), subIter));
+                DataNotFoundException dnfe = new DataNotFoundException("Reached the end of data sheet.");
+                DataNotFoundException.CauseInfo causeInfo = dnfe.new CauseInfo(Cause.EndOfDataSheet, "Reached the end of data sheet.");
+                dnfe.cause = causeInfo;
+                throw dnfe;
             } else {
                 throw new TestDataNotFoundException(context, sheet, field, Cause.Data, field);
             }

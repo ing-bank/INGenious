@@ -195,7 +195,7 @@ public class DriverProperties extends LinkedProperties {
      * This method initializes the following keys with default values:
      * <ul>
      *     <li>{@code proxyPort} – empty string</li>
-     *     <li>{@code setSSLCertVerification} – {@code false}</li>
+     *     <li>{@code sslCertificateVerification} – {@code false}</li>
      *     <li>{@code useProxy} – {@code false}</li>
      *     <li>{@code proxyHost} – empty string</li>
      * </ul>
@@ -204,7 +204,7 @@ public class DriverProperties extends LinkedProperties {
      */
     private void setDefaultProperties(Properties prop) {
         prop.setProperty("proxyPort", "");
-        prop.setProperty("setSSLCertVerification", "false");
+        prop.setProperty("sslCertificateVerification", "false");
         prop.setProperty("useProxy", "false");
         prop.setProperty("proxyHost", "");
         prop.setProperty("httpClientRedirect", "NEVER");

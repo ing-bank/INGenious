@@ -11,9 +11,12 @@ import com.ing.datalib.settings.ProjectSettings;
 import com.ing.datalib.util.data.FileScanner;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.ing.datalib.or.web.WebOR.ORScope;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.LinkedHashSet;
+import java.util.Set;
 import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -23,8 +26,21 @@ import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableModel;
 
 /**
+ * Represents an automation project and acts as the central entry point for loading, managing,
+ * and persisting project data from disk.
+ * <p>
+ * A {@code Project} encapsulates the project’s filesystem location and name, and maintains the
+ * in-memory model of core assets such as scenarios (TestPlan), releases/test sets (TestLab),
+ * environment test data, project settings, and the {@link ObjectRepository}. It supports loading
+ * and reloading from disk, saving all managed components, and producing table models for UI
+ * components via {@code getTableModelFor(...)}.
+ * </p>
  *
- *
+ * <p>
+ * The class also provides refactoring utilities that propagate renames across scenarios, releases,
+ * and test data (e.g., scenario/test case renames, page/object reference updates, and test data
+ * renames), including scope-aware refactoring for Object Repository references where applicable.
+ * </p>
  */
 public class Project {
 
@@ -211,7 +227,9 @@ public class Project {
                 }
             }
             getObjectRepository().getWebOR().setName(newName);
+            getObjectRepository().getWebSharedOR().setName(newName);
             getObjectRepository().getMobileOR().setName(newName);
+            getObjectRepository().getMobileSharedOR().setName(newName);
             return true;
         }
         return false;
@@ -395,7 +413,7 @@ public class Project {
                             .ifPresent(scn -> scn.setName(newScenarioName));
                 });
     }
-
+    
     public void refactorObjectName(String pageName, String oldName, String newName) {
         for (Scenario scenario : scenarios) {
             scenario.refactorObjectName(pageName, oldName, newName);
@@ -408,9 +426,54 @@ public class Project {
         }
     }
 
+    /**
+     * Renames an object reference on the given page for the specified OR scope across the project,
+     * by delegating to all scenarios.
+     *
+     * @param scope    OR scope to match (e.g., shared vs project)
+     * @param pageName page (screen) name containing the object reference
+     * @param oldName  existing object name to replace
+     * @param newName  new object name to apply
+     */
+    public void refactorObjectName(ORScope scope, String pageName, String oldName, String newName) {
+        for (Scenario scenario : scenarios) {
+            scenario.refactorObjectName(scope, pageName, oldName, newName);
+        }
+    }
+
     public void refactorPageName(String oldPageName, String newPageName) {
         for (Scenario scenario : scenarios) {
             scenario.refactorPageName(oldPageName, newPageName);
+        }
+    }
+
+    /**
+     * Refactors (renames) a page reference across the project for a given Object Repository scope.
+     * <p>
+     * In addition to delegating the rename for the raw page names, this method also renames
+     * scope-qualified page names using the convention:
+     * <ul>
+     *   <li>{@code "[Shared] " + pageName} when scope is {@code ORScope.SHARED}</li>
+     *   <li>{@code "[Project] " + pageName} otherwise</li>
+     * </ul>
+     * For each {@link Scenario}, it applies both:
+     * {@code scenario.refactorPageName(oldPageName, newPageName)} and
+     * {@code scenario.refactorPageName(oldScoped, newScoped)}.
+     * </p>
+     *
+     * @param scope       the Object Repository scope used to derive the scoped page name prefix
+     * @param oldPageName the original page name to be replaced
+     * @param newPageName the new page name to apply
+     *
+     * @implNote This method performs two refactors per scenario: one for the plain page name and one
+     *           for the derived scoped form (e.g., {@code "[Shared] Login"}).
+     */
+    public void refactorPageName(ORScope scope, String oldPageName, String newPageName) {
+        String oldScoped = scope == ORScope.SHARED ? "[Shared] " + oldPageName : "[Project] " + oldPageName;
+        String newScoped = scope == ORScope.SHARED ? "[Shared] " + newPageName : "[Project] " + newPageName;
+        for (Scenario scenario : scenarios) {
+            scenario.refactorPageName(oldPageName, newPageName);
+            scenario.refactorPageName(oldScoped, newScoped);
         }
     }
 
@@ -432,6 +495,23 @@ public class Project {
             impactedTestCases.addAll(scenario.getImpactedObjectTestCases(pageName, objectName));
         }
         return impactedTestCases;
+    }
+
+    public List getImpactedObjectTestCases(ORScope scope, String pageName, String objectName) {
+        Set impacted = new LinkedHashSet<>();
+        String scopedPageName = null;
+        if (scope != null) {
+            scopedPageName = (scope == ORScope.SHARED)
+                    ? "[Shared] " + pageName
+                    : "[Project] " + pageName;
+        }
+        for (Scenario scenario : scenarios) {
+            impacted.addAll(scenario.getImpactedObjectTestCases(pageName, objectName));
+            if (scopedPageName != null) {
+                impacted.addAll(scenario.getImpactedObjectTestCases(scopedPageName, objectName));
+            }
+        }
+        return new ArrayList<>(impacted);
     }
 
     public List<TestCase> getImpactedTestCaseTestCases(String scenarioName, String testCaseName) {
@@ -520,5 +600,4 @@ public class Project {
             }
         }
     }
-
 }

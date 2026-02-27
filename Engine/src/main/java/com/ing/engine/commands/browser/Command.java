@@ -35,16 +35,14 @@ import javax.jms.TextMessage;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 
-/*
-import org.apache.kafka.common.header.Header;
-import org.apache.avro.Schema;
-import org.apache.avro.generic.GenericRecord;
-import org.apache.kafka.clients.consumer.ConsumerRecord;
-import org.apache.kafka.clients.consumer.KafkaConsumer;
-import org.apache.kafka.clients.producer.KafkaProducer;
-import org.apache.kafka.clients.producer.ProducerRecord;
-
-*/
+/** Kafka Imports */
+// import org.apache.kafka.common.header.Header;
+// import org.apache.avro.Schema;
+// import org.apache.avro.generic.GenericRecord;
+// import org.apache.kafka.clients.consumer.ConsumerRecord;
+// import org.apache.kafka.clients.consumer.KafkaConsumer;
+// import org.apache.kafka.clients.producer.KafkaProducer;
+// import org.apache.kafka.clients.producer.ProducerRecord;
 
 public class Command {
 
@@ -90,6 +88,9 @@ public class Command {
     static public Map<String, Instant> before = new HashMap<>();
     static public Map<String, Instant> after = new HashMap<>();
     static public Map<String, Long> duration = new HashMap<>();
+    static public HashMap<String, String> headerMap = new HashMap<>();
+    static public Map<String, HashMap<String,String>> headerKeyValueMap = new HashMap<>();
+    
     public String key;
     static public String basicAuthorization;
     /**
@@ -144,49 +145,45 @@ public class Command {
     /**
      * *** Kafka Parameters ****
      */
-    
-    /*
-    static public Map<String, List<Header>> kafkaHeaders = new HashMap<>();
-    static public Map<String, String> kafkaProducerTopic = new HashMap<>();
-    static public Map<String, String> kafkaConsumerTopic = new HashMap<>();
-    static public Map<String, String> kafkaConsumerGroupId = new HashMap<>();
-    static public Map<String, String> kafkaServers = new HashMap<>();
-    static public Map<String, String> kafkaSchemaRegistryURL = new HashMap<>();
-    static public Map<String, Integer> kafkaPartition = new HashMap<>();
-    static public Map<String, Long> kafkaTimeStamp = new HashMap<>();
-    static public Map<String, String> kafkaKey = new HashMap<>();
-    static public Map<String, String> kafkaKeySerializer = new HashMap<>();
-    static public Map<String, String> kafkaKeyDeserializer = new HashMap<>();
-    static public Map<String, Object> kafkaValue = new HashMap<>();
-    static public Map<String, String> kafkaValueSerializer = new HashMap<>();
-    static public Map<String, String> kafkaValueDeserializer = new HashMap<>();
-    static public Map<String, Integer> kafkaConsumerPollRetries = new HashMap<>();
-    static public Map<String, Long> kafkaConsumerPollDuration = new HashMap<>();   
-    static public Map<String, Schema> kafkaAvroSchema =new HashMap<>();
-    static public Map<String, ProducerRecord<String, GenericRecord>> kafkaGenericRecord =new HashMap<>();
-    static public Map<String, GenericRecord> kafkaGenericRecordValue =new HashMap<>();
-    static public Map<String, KafkaProducer<String, GenericRecord>> kafkaAvroProducer =new HashMap<>();
-    static public Map<String, ArrayList<String>> kafkaConfigs = new HashMap<>();
-    static public Map<String, Properties> kafkaProducersslConfigs = new HashMap<>();
-    static public Map<String, Properties> kafkaConsumersslConfigs = new HashMap<>();
-    static public Map<String, String> kafkaAvroCompatibleMessage = new HashMap<>();
-    static public Map<String, String> kafkaConsumeRecordCount = new HashMap<>();
-    static public Map<String, String> kafkaConsumeRecordValue = new HashMap<>();
-    static public Map<String, String> kafkaSharedSecret = new HashMap<>();
-    static public Map<String, List<ConsumerRecord<String, Object>>> kafkaConsumerRecords = new HashMap<>();
-    static public Map<String, ConsumerRecord<String, Object>> kafkaConsumerPollRecord = new HashMap<>();
-    static public Map<String, String> kafkaRecordIdentifierValue = new HashMap<>();
-    static public Map<String, String> kafkaRecordIdentifierPath = new HashMap<>();
-    static public Map<String, Integer> kafkaConsumerMaxPollRecords = new HashMap<>();
-    static public Map<String, Boolean> kafkaAutoRegisterSchemas = new HashMap<>();
-    static public Map<String, ProducerRecord> kafkaProducerRecord = new HashMap<>();
-    static public Map<String, ConsumerRecord> kafkaConsumerRecord = new HashMap<>();
-    static public Map<String, KafkaProducer> kafkaProducer = new HashMap<>();
-    static public Map<String, KafkaConsumer> kafkaConsumer = new HashMap<>();       
+    // static public Map<String, List<Header>> kafkaHeaders = new HashMap<>();
+    // static public Map<String, String> kafkaProducerTopic = new HashMap<>();
+    // static public Map<String, String> kafkaConsumerTopic = new HashMap<>();
+    // static public Map<String, String> kafkaConsumerGroupId = new HashMap<>();
+    // static public Map<String, String> kafkaServers = new HashMap<>();
+    // static public Map<String, String> kafkaSchemaRegistryURL = new HashMap<>();
+    // static public Map<String, Integer> kafkaPartition = new HashMap<>();
+    // static public Map<String, Long> kafkaTimeStamp = new HashMap<>();
+    // static public Map<String, String> kafkaKey = new HashMap<>();
+    // static public Map<String, String> kafkaKeySerializer = new HashMap<>();
+    // static public Map<String, String> kafkaKeyDeserializer = new HashMap<>();
+    // static public Map<String, Object> kafkaValue = new HashMap<>();
+    // static public Map<String, String> kafkaValueSerializer = new HashMap<>();
+    // static public Map<String, String> kafkaValueDeserializer = new HashMap<>();
+    // static public Map<String, Integer> kafkaConsumerPollRetries = new HashMap<>();
+    // static public Map<String, Long> kafkaConsumerPollDuration = new HashMap<>();   
+    // static public Map<String, Schema> kafkaAvroSchema =new HashMap<>();
+    // static public Map<String, ProducerRecord<String, GenericRecord>> kafkaGenericRecord =new HashMap<>();
+    // static public Map<String, GenericRecord> kafkaGenericRecordValue =new HashMap<>();
+    // static public Map<String, KafkaProducer<String, GenericRecord>> kafkaAvroProducer =new HashMap<>();
+    // static public Map<String, ArrayList<String>> kafkaConfigs = new HashMap<>();
+    // static public Map<String, Properties> kafkaProducersslConfigs = new HashMap<>();
+    // static public Map<String, Properties> kafkaConsumersslConfigs = new HashMap<>();
+    // static public Map<String, String> kafkaAvroCompatibleMessage = new HashMap<>();
+    // static public Map<String, String> kafkaConsumeRecordCount = new HashMap<>();
+    // static public Map<String, String> kafkaConsumeRecordValue = new HashMap<>();
+    // static public Map<String, String> kafkaSharedSecret = new HashMap<>();
+    // static public Map<String, List<ConsumerRecord<String, Object>>> kafkaConsumerRecords = new HashMap<>();
+    // static public Map<String, ConsumerRecord<String, Object>> kafkaConsumerPollRecord = new HashMap<>();
+    // static public Map<String, String> kafkaRecordIdentifierValue = new HashMap<>();
+    // static public Map<String, String> kafkaRecordIdentifierPath = new HashMap<>();
+    // static public Map<String, Integer> kafkaConsumerMaxPollRecords = new HashMap<>();
+    // static public Map<String, Boolean> kafkaAutoRegisterSchemas = new HashMap<>();
+    // static public Map<String, ProducerRecord> kafkaProducerRecord = new HashMap<>();
+    // static public Map<String, ConsumerRecord> kafkaConsumerRecord = new HashMap<>();
+    // static public Map<String, KafkaProducer> kafkaProducer = new HashMap<>();
+    // static public Map<String, KafkaConsumer> kafkaConsumer = new HashMap<>();
+    // static public Map<String, List<HashMap<String, String>>> kafkaRecordIdentifier = new HashMap<>();
 
-     */
-    
-    
     public Command(CommandControl cc) {
         Commander = cc;
         if (Commander.webDriver != null) {
