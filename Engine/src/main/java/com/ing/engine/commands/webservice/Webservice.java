@@ -5,6 +5,7 @@ import com.ing.engine.commands.browser.General;
 import com.ing.engine.constants.FilePath;
 import com.ing.engine.core.CommandControl;
 import com.ing.engine.core.Control;
+import com.ing.engine.execution.exception.ActionException;
 import com.ing.engine.support.Status;
 import com.ing.engine.support.methodInf.Action;
 import com.ing.engine.support.methodInf.InputType;
@@ -35,6 +36,8 @@ import org.xml.sax.InputSource;
 import java.io.StringReader;
 import java.net.URLEncoder;
 import java.net.http.HttpClient;
+import java.net.http.HttpClient.Redirect;
+import java.net.http.HttpHeaders;
 import java.net.http.HttpRequest;
 import java.net.http.HttpRequest.BodyPublisher;
 import java.net.http.HttpResponse;
@@ -84,9 +87,10 @@ public class Webservice extends General {
     public void putRestRequest() {
         try {
             createhttpRequest(RequestMethod.PUT);
-        } catch (InterruptedException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
+        } catch (Exception e) {
+            Report.updateTestLog(Action,
+                    "An unexpected error occurred while executing the request : " + "\n" + e.getMessage(),
+                    Status.FAIL);
         }
     }
 
@@ -94,8 +98,10 @@ public class Webservice extends General {
     public void postRestRequest() {
         try {
             createhttpRequest(RequestMethod.POST);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
+        } catch (Exception e) {
+            Report.updateTestLog(Action,
+                    "An unexpected error occurred while executing the request : " + "\n" + e.getMessage(),
+                    Status.FAIL);
         }
     }
 
@@ -103,9 +109,10 @@ public class Webservice extends General {
     public void postSoapRequest() {
         try {
             createhttpRequest(RequestMethod.POST);
-        } catch (InterruptedException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
+        } catch (Exception e) {
+            Report.updateTestLog(Action,
+                    "An unexpected error occurred while executing the request : " + "\n" + e.getMessage(),
+                    Status.FAIL);
         }
     }
 
@@ -113,9 +120,10 @@ public class Webservice extends General {
     public void patchRestRequest() {
         try {
             createhttpRequest(RequestMethod.PATCH);
-        } catch (InterruptedException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
+        } catch (Exception e) {
+            Report.updateTestLog(Action,
+                    "An unexpected error occurred while executing the request : " + "\n" + e.getMessage(),
+                    Status.FAIL);
         }
     }
 
@@ -123,9 +131,10 @@ public class Webservice extends General {
     public void getRestRequest() {
         try {
             createhttpRequest(RequestMethod.GET);
-        } catch (InterruptedException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
+        } catch (Exception e) {
+            Report.updateTestLog(Action,
+                    "An unexpected error occurred while executing the request : " + "\n" + e.getMessage(),
+                    Status.FAIL);
         }
     }
 
@@ -133,9 +142,10 @@ public class Webservice extends General {
     public void deleteRestRequest() {
         try {
             createhttpRequest(RequestMethod.DELETE);
-        } catch (InterruptedException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
+        } catch (Exception e) {
+            Report.updateTestLog(Action,
+                    "An unexpected error occurred while executing the request : " + "\n" + e.getMessage(),
+                    Status.FAIL);
         }
     }
 
@@ -143,9 +153,10 @@ public class Webservice extends General {
     public void deleteWithPayload() {
         try {
             createhttpRequest(RequestMethod.DELETEWITHPAYLOAD);
-        } catch (InterruptedException e) {
-            // TODO Auto-generated catch block
-            e.printStackTrace();
+        } catch (Exception e) {
+            Report.updateTestLog(Action,
+                    "An unexpected error occurred while executing the request : " + "\n" + e.getMessage(),
+                    Status.FAIL);
         }
     }
 
@@ -453,7 +464,7 @@ public class Webservice extends General {
         /**
          * *** need to add timeout,version******
          */
-        httpClient.put(key, httpClientBuilder.get(key).build());
+        httpClient.put(key, httpClientBuilder.get(key).followRedirects(getRedirectPolicy()).build());
         httpRequest.put(key, httpRequestBuilder.get(key).build());
         response.put(key, httpClient.get(key).send(httpRequest.get(key), HttpResponse.BodyHandlers.ofString()));
 
@@ -671,6 +682,233 @@ public class Webservice extends General {
             Report.updateTestLog(Action, "Error adding Header :" + "\n" + ex.getMessage(), Status.DEBUG);
         }
 
+    }
+
+    /**
+     * Stores the value of a header by name in a variable.
+     * <p>
+     * The header value is retrieved for the current scenario/test case and stored in a variable if the variable format is correct.
+     * <ul>
+     *   <li>Condition: Variable name (e.g., %Variable Name%)</li>
+     *   <li>Data: Header name (e.g., "Content-Type")</li>
+     * </ul>
+     */
+    @Action(object = ObjectType.WEBSERVICE, desc = "Store Header Element in Variable", input = InputType.YES, condition = InputType.YES)
+    public void storeHeaderByNameInVariable() {
+        try {
+            String variableName = Condition; // e.g., %Variable Name%
+            String headerName = Data;        // e.g., "Content-Type"
+
+            // storeAllHeadersInMap() will populate headerKeyValueMap with headers for the current scenario/test case (key)
+            storeAllHeadersInMap();
+
+            // Check if headers exist for this key
+            if (!headerKeyValueMap.containsKey(key) || headerKeyValueMap.get(key).isEmpty()) {
+                Report.updateTestLog(Action, "No headers found for scenario: [" + userData.getScenario() + "] and test case: [" + userData.getTestCase() + "]", Status.DEBUG);
+                return;
+            }
+
+            // Get headers for this scenario
+            Map<String, String> currentHeaders = headerKeyValueMap.get(key);
+
+            // Check if requested header exists
+            if (!currentHeaders.containsKey(headerName)) {
+                Report.updateTestLog(Action, "Header '" + headerName + "' does not exist in available headers for scenario: [" + userData.getScenario() + "] and test case: [" + userData.getTestCase() + "]", Status.DEBUG);
+                return;
+            }
+
+            // Validate variable format
+            if (variableName.matches("%.*%")) {
+                String headerValue = currentHeaders.get(headerName);
+                addVar(variableName, headerValue);
+                Report.updateTestLog(Action, "Header '" + headerName + "' stored in variable '" + variableName + "' with value: " + headerValue, Status.DONE);
+            } else {
+                Report.updateTestLog(Action, "Variable format is not correct", Status.DEBUG);
+            }
+
+        } catch (Exception ex) {
+            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, null, ex);
+            Report.updateTestLog(Action, "Error storing header value: " + ex.getMessage(), Status.DEBUG);
+        }
+    }
+
+    /**
+     * Stores the value of a header by name in a datasheet column.
+     * <p>
+     * The header value is retrieved for the current scenario/test case and stored in the specified datasheet column.
+     * <ul>
+     *   <li>Condition: Header name (e.g., "Content-Type")</li>
+     *   <li>Input: sheetName:ColumnName</li>
+     * </ul>
+     */
+    @Action(object = ObjectType.WEBSERVICE, desc = "Store Header value in Datasheet", input = InputType.YES, condition = InputType.YES)
+    public void storeHeaderByNameInDatasheet() {
+        try {
+            String headerName = Condition; // e.g., "Content-Type"
+
+            // First, populate maps for this scenario/test case
+            storeAllHeadersInMap();
+
+            // Check if headers exist for this key
+            if (!headerKeyValueMap.containsKey(key) || headerKeyValueMap.get(key).isEmpty()) {
+                Report.updateTestLog(Action, "No headers found for scenario: [" + userData.getScenario() + "] and test case: [" + userData.getTestCase() + "]", Status.DEBUG);
+                return;
+            }
+
+            // Get headers for this scenario
+            Map<String, String> currentHeaders = headerKeyValueMap.get(key);
+
+            // Check if requested header exists
+            if (!currentHeaders.containsKey(headerName)) {
+                Report.updateTestLog(Action, "Header '" + headerName + "' does not exist in available headers for scenario: [" + userData.getScenario() + "] and test case: [" + userData.getTestCase() + "]", Status.DEBUG);
+                return;
+            }
+
+            // Early return if input format is invalid
+            if (!Input.matches(".*:.*")) {
+                Report.updateTestLog(Action, "Invalid input format [" + Input + "]. Expected format: sheetName:ColumnName", Status.DEBUG);
+                return;
+            }
+
+            try {
+                String sheetName = Input.split(":", 2)[0];
+                String columnName = Input.split(":", 2)[1];
+                String headerValue = currentHeaders.get(headerName);
+
+                // Store header value in datasheet
+                userData.putData(sheetName, columnName, headerValue);
+
+                Report.updateTestLog(Action, "Header value [" + headerValue + "] stored in datasheet [" + sheetName + ":" + columnName + "]", Status.DONE);
+            } catch (Exception ex) {
+                Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, ex.getMessage(), ex);
+                Report.updateTestLog(Action, "Error storing header value in datasheet: " + ex.getMessage(), Status.DEBUG);
+            }
+
+        } catch (Exception ex) {
+            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, null, ex);
+            Report.updateTestLog(Action, "Error storing header value in datasheet: " + ex.getMessage(), Status.DEBUG);
+        }
+    }
+
+    /**
+     * Asserts that the value of a header contains the expected text.
+     * <p>
+     * The header value is checked for the current scenario/test case.
+     * <ul>
+     *   <li>Condition: Header name (e.g., "Content-Type")</li>
+     *   <li>Data: Expected substring</li>
+     * </ul>
+     */
+    @Action(object = ObjectType.WEBSERVICE, desc = "Assert header", input = InputType.YES, condition = InputType.YES)
+    public void assertHeaderValueContains() {
+        try {
+            String headerName = Condition; // e.g., "Content-Type"
+
+            // First, populate maps for this scenario/test case
+            storeAllHeadersInMap();
+
+            // Check if headers exist for this key
+            if (!headerKeyValueMap.containsKey(key) || headerKeyValueMap.get(key).isEmpty()) {
+                Report.updateTestLog(Action, "No headers found for scenario: [" + userData.getScenario() + "] and test case: [" + userData.getTestCase() + "]", Status.FAILNS);
+                return;
+            }
+
+            // Get headers for this scenario
+            Map<String, String> currentHeaders = headerKeyValueMap.get(key);
+
+            // Check if requested header exists
+            if (!currentHeaders.containsKey(headerName)) {
+                Report.updateTestLog(Action, "Header '" + headerName + "' does not exist in available headers.", Status.FAILNS);
+                return;
+            } 
+                
+            String headerValue = headerKeyValueMap.get(key).get(headerName);
+            if (headerValue.contains(Data)) {
+                Report.updateTestLog(Action, "Header value [" + headerValue + "] contains expected text [" + Data + "]", Status.PASSNS);
+            } else {
+                Report.updateTestLog(Action, "Header value [" + headerValue + "] does not contain expected text [" + Data + "]", Status.FAILNS);
+            }
+            
+        } catch (Exception ex) {
+            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, null, ex);
+            Report.updateTestLog(Action, "Error to assert header value : " + ex.getMessage(), Status.FAILNS);
+        }
+    }
+
+    /**
+     * Asserts that the value of a header equals the expected text.
+     * <p>
+     * The header value is checked for the current scenario/test case.
+     * <ul>
+     *   <li>Condition: Header name (e.g., "Content-Type")</li>
+     *   <li>Data: Expected value</li>
+     * </ul>
+     */
+    @Action(object = ObjectType.WEBSERVICE, desc = "Assert header", input = InputType.YES, condition = InputType.YES)
+    public void assertHeaderValueEquals() {
+        try {
+            String headerName = Condition; // e.g., "Content-Type"
+
+            // First, populate maps for this scenario/test case
+            storeAllHeadersInMap();
+
+            // Check if headers exist for this key
+            if (!headerKeyValueMap.containsKey(key) || headerKeyValueMap.get(key).isEmpty()) {
+                Report.updateTestLog(Action, "No headers found for scenario: [" + userData.getScenario() + "] and test case: [" + userData.getTestCase() + "]", Status.FAILNS);
+                return;
+            }
+
+            // Get headers for this scenario
+            Map<String, String> currentHeaders = headerKeyValueMap.get(key);
+
+            // Check if requested header exists
+            if (!currentHeaders.containsKey(headerName)) {
+                Report.updateTestLog(Action, "Header '" + headerName + "' does not exist in available headers.", Status.FAILNS);
+                return;
+            } 
+                
+            String headerValue = headerKeyValueMap.get(key).get(headerName);
+            if (headerValue.equals(Data)) {
+                Report.updateTestLog(Action, "Header value [" + headerValue + "] equals expected text [" + Data + "]", Status.PASSNS);
+            } else {
+                Report.updateTestLog(Action, "Header value [" + headerValue + "] does not equal expected text [" + Data + "]", Status.FAILNS);
+            }
+            
+        } catch (Exception ex) {
+            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, null, ex);
+            Report.updateTestLog(Action, "Error to assert header value : " + ex.getMessage(), Status.FAILNS);
+        }
+    }
+
+    /**
+     * Populates the headerKeyValueMap with all headers for the current scenario/test case.
+     * <p>
+     * Combines header values and tags them with the scenario/test case key.
+     */
+    private void storeAllHeadersInMap() {
+        try {
+            Map<String, List<String>> headersMap = response.get(key).headers().map();
+
+            // If headers are missing, just return
+            if (headersMap == null || headersMap.isEmpty()) {
+                return;
+            }
+
+            // Clear previous headerMap for this run
+            headerMap.clear();
+
+            // Populate headerMap with combined values
+            headersMap.forEach((headerName, values) -> {
+                String combinedValues = String.join(", ", values); // Append all values
+                headerMap.put(headerName, combinedValues);
+            });
+
+            // Tag this headerMap with scenario/test case key
+            headerKeyValueMap.put(key, new HashMap<>(headerMap));
+
+        } catch (Exception ex) {
+            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, null, ex);
+        }
     }
 
     private boolean isformUrlencoded() {
@@ -917,7 +1155,7 @@ public class Webservice extends General {
         }
     }
 
-    private void createhttpRequest(RequestMethod requestmethod) throws InterruptedException {
+    private void createhttpRequest(RequestMethod requestmethod) throws InterruptedException, Exception {
         try {
             setheaders();
             setRequestMethod(requestmethod);
@@ -965,6 +1203,9 @@ public class Webservice extends General {
                         "Error in executing " + requestmethod.toString() + " request : " + "\n" + ex.getMessage(),
                         Status.DEBUG);
             }
+        } catch (InterruptedException e) {
+            e.printStackTrace();
+            throw new ActionException(e);
         }
     }
 
@@ -1030,8 +1271,8 @@ public class Webservice extends General {
     }};
 
     private KeyManager[] loadKeyStore() {
-        String keystorePath = Control.getCurrentProject().getProjectSettings().getDriverSettings().getProperty("keyStorePath");
-        String keystorePassword = Control.getCurrentProject().getProjectSettings().getDriverSettings().getProperty("keyStorePassword");
+        String keystorePath = Control.getCurrentProject().getProjectSettings().getDriverSettings().getKeyStorePath();
+        String keystorePassword = Control.getCurrentProject().getProjectSettings().getDriverSettings().getKeyStorePassword();
         KeyStore keyStore;
         KeyManagerFactory kmf = null;
         try {
@@ -1069,6 +1310,110 @@ public class Webservice extends General {
 
     private Boolean isSelfSigned() {
         return Control.getCurrentProject().getProjectSettings().getDriverSettings().selfSigned();
+    }
+
+
+    /**
+     * Retrieves the HTTP redirect policy configured for the current API driver settings.
+     * <p>
+     * The logic follows three strict rules:
+     * <ul>
+     *   <li>If no value is configured (i.e., the property is {@code null} or blank), the method defaults to
+     *       {@link Redirect#NEVER}.</li>
+     *   <li>If a valid redirect policy is provided (one of {@code NEVER}, {@code NORMAL}, or {@code ALWAYS},
+     *       case-insensitive), the corresponding {@link Redirect} enum is returned.</li>
+     *   <li>If a value is provided but does not match any {@link Redirect} enum constant, the method throws an
+     *       {@link IllegalArgumentException} to indicate a configuration error.</li>
+     * </ul>
+     * </p>
+     *
+     * @return the resolved {@link Redirect} policy to be applied when building the {@link java.net.http.HttpClient}
+     * @throws IllegalArgumentException if a non-blank but invalid redirect value is configured
+     */
+    private Redirect getRedirectPolicy() {
+        String httpClientRedirect = Control.getCurrentProject().getProjectSettings().getDriverSettings().getHttpClientRedirect();
+
+        if (httpClientRedirect == null || httpClientRedirect.trim().isEmpty()) {
+            return Redirect.NEVER;
+        }
+
+        try {
+            return Redirect.valueOf(httpClientRedirect.trim().toUpperCase());
+        } catch (IllegalArgumentException ex) {
+            throw new IllegalArgumentException("Invalid httpClientRedirect value: '" + httpClientRedirect + "'. Allowed values: NEVER, NORMAL, ALWAYS.");
+        }
+    }
+
+    /**
+     * Extracts a cookie value from the HTTP response headers and stores it in a variable.
+     * <p>
+     * This method searches for the cookie with the name specified by {@code Data} in the response headers.
+     * The cookie value is then stored in a variable whose name is specified by {@code Condition} (must be in the format %variableName%).
+     * The header name search for "Set-Cookie" is case-insensitive and will match any casing.
+     * <ul>
+     *   <li>If the variable name format is invalid, a debug message is logged and the method returns.</li>
+     *   <li>If the cookie is found, its value is stored in the variable and a DONE status is logged.</li>
+     *   <li>If no cookies are found, a FAIL status is logged.</li>
+     *   <li>If an error occurs, a FAIL status is logged and the stack trace is printed.</li>
+     * </ul>
+     *
+     * @see #addVar(String, String)
+     */
+    @Action(object = ObjectType.WEBSERVICE, desc = "Store Cookies In Variable ", input = InputType.YES, condition = InputType.YES)
+    public void storeResponseCookiesInVariable() {
+        try {
+            String cookieKey = Data;
+            String variableName = Condition;
+            
+            if (!variableName.matches("%.*%")) {
+                Report.updateTestLog(Action, "Variable format is not correct. Should be %variableName%", Status.DEBUG);
+                return;
+            }
+            
+            variableName = variableName.substring(1, variableName.length() - 1);
+
+            if (!response.containsKey(key) && response.get(key) == null) {
+                Report.updateTestLog(Action, "Response did not contain a valid HttpResponse for key [" + key + "]", Status.FAIL);
+                return;
+            }
+
+            HttpResponse<?> httpResponse = response.get(key);
+            HttpHeaders responseHeaders = httpResponse.headers();
+
+            List<String> cookieHeaders = !responseHeaders.allValues("set-cookie").isEmpty() ? responseHeaders.allValues("set-cookie") : responseHeaders.allValues("Set-Cookie");
+            
+            if (cookieHeaders.isEmpty()) {
+                Report.updateTestLog(Action, "No cookies were retrieved from the endpoint", Status.FAIL);
+                return;
+            }
+
+            for (String cookieHeader : cookieHeaders) {
+                if (cookieHeader == null || cookieHeader.isEmpty()) continue;
+
+                String[] cookieParts = cookieHeader.split(";");
+                if (cookieParts.length == 0) continue;
+
+                String[] keyValue = cookieParts[0].trim().split("=", 2);
+                if (keyValue.length != 2) continue;
+
+                String cookieName  = keyValue[0].trim();
+                String cookieValue = keyValue[1].trim();
+
+                if (cookieName.equals(cookieKey)) {
+                    addVar(variableName, cookieValue);
+                    Report.updateTestLog(
+                        Action,
+                        "Cookies with name [" + cookieKey + "] has been added in variable [" 
+                            + variableName + "] with value [" + cookieValue + "] ",
+                        Status.DONE
+                    );
+                    return; // early exit on success
+                }
+            }
+        } catch (Exception ex) {
+            Report.updateTestLog(Action, "Error in storing cookies with name in variable :"+ex.getMessage(), Status.FAIL);
+            ex.printStackTrace();
+        }
     }
 
 }

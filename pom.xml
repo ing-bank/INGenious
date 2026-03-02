@@ -4,7 +4,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.ing</groupId>
     <artifactId>ingenious-playwright</artifactId>
-    <version>2.3</version>
+    <version>2.4</version>
     <packaging>pom</packaging>
     <modules>
         <module>StoryWriter</module>
@@ -31,7 +31,7 @@
         <commons-io.version>2.15.0</commons-io.version>
         <commons-lang3.version>3.12.0</commons-lang3.version>
         <annon.detect>3.0.5</annon.detect>
-        <jetty.version>9.4.43.v20210629</jetty.version>
+        <jetty.version>9.4.57.v20241219</jetty.version>
         <gherkin.version>5.0.0</gherkin.version>
         <autocomplete.version>3.0.0</autocomplete.version>
         <apache.poi.version>5.2.5</apache.poi.version>
@@ -43,10 +43,9 @@
         <freemarker.version>2.3.32</freemarker.version>
         <stax-api.version>1.0.1</stax-api.version>
         <xmlbeans.version>3.0.2</xmlbeans.version>
-        <json-path.version>2.4.0</json-path.version>
+        <json-path.version>2.9.0</json-path.version>
         <checker-compat-qual.version>2.0.0</checker-compat-qual.version>
         <java-string-similarity.version>2.0.0</java-string-similarity.version>
-        <log4j.version>2.17.2</log4j.version>
         <checker-qual.version>3.33.0</checker-qual.version>
         <error_prone_annotations.version>2.18.0</error_prone_annotations.version>
         <gson.version>2.10.1</gson.version>

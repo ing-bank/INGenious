@@ -1,0 +1,17 @@
+Step,ObjectName,Description,Action,Input,Condition,Reference
+1,Webservice,"Set End Point ",setEndPoint,@https://accp.pt.ing.net/savings/accounts/bycurrentaccountagreement/get-at,"#MING_Default",
+2,Webservice,"Add Header ",addHeader,@Content-Type=application/json,,
+3,Webservice,"Add Header ",addHeader,@Authorization=Bearer %token%,,
+4,Webservice,"Add Header ",addHeader,@Cookie=%ming_cookie%,,
+5,Webservice,"POST Rest Request ",postRestRequest,"{
+      ""agreementsCurrentAccount"": [
+        { ""identifier"": 
+          { 
+            ""type"": ""IBAN"", 
+            ""id"": ""{GetAgreements:IBAN}"" 
+          } 
+        }
+      ]
+    } ",,
+6,Webservice,"Store Response Message In DataSheet ",assertJSONelementCount,@1,$.linkedSavingsAgreementsAT,
+7,Webservice,Add a variable to access within testcase,closeConnection,,,

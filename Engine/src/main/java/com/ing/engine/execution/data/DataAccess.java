@@ -58,6 +58,37 @@ public class DataAccess extends DataAccessInternal {
         }
         return DataProcessor.resolve(val, context, field);
     }
+    
+    /**
+     * Get the test data for the next iteration from the test data sheet
+     * as specified sheet data that mathces the provided field, iteration and subiteration.
+     * 
+     * @param context the context(environment,testcase,reusable and iteration)
+     * which the data
+     * @param sheet data sheet name
+     * @param field the field name
+     * @param iter the iteration
+     * @param subIter the sub iteration for the data
+     * @return - the test data
+     * @throws DataNotFoundException if the data not present
+     */
+    public static String getNextData(TestCaseRunner context, String sheet, String field, String iter, String subIter)
+            throws DataNotFoundException {
+        String subIteration = (Integer.parseInt(subIter) + 1) + "";
+        Object val;
+        TestDataModel env;
+        TestDataModel def = getDefModel(context, sheet);
+        if (validEnv(context)) {
+            env = getModel(context, sheet);
+            val = getData(context, env, def, field, iter, subIteration);
+        } else {
+            val = getData(context, def, field, iter, subIteration);
+        }
+        if (val == null) {
+            return null;
+        }
+        return DataProcessor.resolve(val, context, field);
+    }
 
     /**
      * if the environment in the context is valid, then update data to
@@ -218,6 +249,7 @@ public class DataAccess extends DataAccessInternal {
         } else if (isNull(env)) {
             throw new GlobalDataNotFoundException(context, gid, field);
         }
+        env.load();
         env.setValueAt(value, env.getRecordIndexByKey(gid), env.findColumn(field));
         env.saveChanges();
     }

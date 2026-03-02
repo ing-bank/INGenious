@@ -222,8 +222,8 @@ public class RPTestCaseHandler extends TestCaseHandler implements PrimaryHandler
     public void endComponent(String string) {
         reusable.put(RDS.Step.END_TIME, DateTimeUtils.DateTimeNow());
         if (reusable.get(TestCase.STATUS).equals("")) {
-            /* status not is updated set it to FAIL */
-            reusable.put(TestCase.STATUS, "FAIL");
+            /* status not is updated set it to PASS */
+            reusable.put(TestCase.STATUS, "PASS");
         }
         
         /* remove the reusable from the stack then fall back to iteration

@@ -3,15 +3,15 @@ package com.ing.datalib.settings;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
 
 import com.ing.datalib.util.data.LinkedProperties;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 
 
 /**
@@ -195,7 +195,7 @@ public class DriverProperties extends LinkedProperties {
      * This method initializes the following keys with default values:
      * <ul>
      *     <li>{@code proxyPort} – empty string</li>
-     *     <li>{@code setSSLCertVerification} – {@code false}</li>
+     *     <li>{@code sslCertificateVerification} – {@code false}</li>
      *     <li>{@code useProxy} – {@code false}</li>
      *     <li>{@code proxyHost} – empty string</li>
      * </ul>
@@ -204,9 +204,10 @@ public class DriverProperties extends LinkedProperties {
      */
     private void setDefaultProperties(Properties prop) {
         prop.setProperty("proxyPort", "");
-        prop.setProperty("setSSLCertVerification", "false");
+        prop.setProperty("sslCertificateVerification", "false");
         prop.setProperty("useProxy", "false");
         prop.setProperty("proxyHost", "");
+        prop.setProperty("httpClientRedirect", "NEVER");
     }
     
     
@@ -469,6 +470,21 @@ public class DriverProperties extends LinkedProperties {
 
     public String getKeyStorePassword() {
         return apiConfigFilePropMap.get(currLoadedAPIConfig).getProperty("keyStorePassword", "");
+    }
+
+    /**
+     * Retrieves the configured HTTP redirect policy for the currently loaded API configuration.
+     * <p>
+     * This method looks up the property <code>httpClientRedirect</code> inside the API configuration
+     * identified by {@code currLoadedAPIConfig}. If the property is not defined, the method returns the
+     * default value <code>"NEVER"</code>.
+     * </p>
+     *
+     * @return the redirect policy defined for the current API configuration, or <code>"NEVER"</code>
+     *         if the property is missing
+     */
+    public String getHttpClientRedirect() {
+        return apiConfigFilePropMap.get(currLoadedAPIConfig).getProperty("httpClientRedirect", "NEVER");
     }
 
       //Setters for some specific properties.

@@ -17,6 +17,11 @@ import java.util.Enumeration;
 import java.util.List;
 import javax.swing.tree.TreeNode;
 
+/**
+ * Represents the Mobile Object Repository (MobileOR), containing pages and their objects,
+ * along with metadata such as scope, type, associated projects, and save state.
+ * Provides page management, tree navigation, sorting, and repository integration.
+ */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JacksonXmlRootElement(localName = "Root")
 public class MobileOR implements ORRootInf<MobileORPage> {
@@ -43,12 +48,22 @@ public class MobileOR implements ORRootInf<MobileORPage> {
 
     @JacksonXmlProperty(isAttribute = true)
     private String type;
+    
+    @JacksonXmlProperty(isAttribute = true)
+    private ORScope scope = ORScope.PROJECT;
+    
+    @JacksonXmlElementWrapper(localName = "projects")
+    @JacksonXmlProperty(localName = "project")
+    private List<String> projects = new ArrayList<>();
 
     @JsonIgnore
     private ObjectRepository objectRepository;
 
     @JsonIgnore
     private Boolean saved = true;
+    
+    @JsonIgnore
+    private String repLocationOverride;
 
     public MobileOR() {
         this.pages = new ArrayList<>();
@@ -120,6 +135,7 @@ public class MobileOR implements ORRootInf<MobileORPage> {
     public MobileORPage addPage(String pageName) {
         if (getPageByName(pageName) == null) {
             MobileORPage page = new MobileORPage(pageName, this);
+            page.setSource(this.isShared() ? ORScope.SHARED : ORScope.PROJECT);
             pages.add(page);
             new File(page.getRepLocation()).mkdirs();
             setSaved(false);
@@ -217,14 +233,47 @@ public class MobileOR implements ORRootInf<MobileORPage> {
     }
 
     @JsonIgnore
+    public void setRepLocationOverride(String path) {
+        this.repLocationOverride = path;
+    }
+
+    @JsonIgnore
     @Override
     public String getRepLocation() {
-        return getObjectRepository().getMORRepLocation();
+        return repLocationOverride != null
+                ? repLocationOverride
+                : getObjectRepository().getMORRepLocation();
     }
 
     @JsonIgnore
     @Override
     public void sort() {
         ORUtils.sort(this);
+    }
+    
+    public enum ORScope {
+    PROJECT, SHARED
+    }
+
+    @JsonIgnore
+    public ORScope getScope() {
+        return scope;
+    }
+
+    public void setScope(ORScope scope) {
+        this.scope = scope;
+    }
+
+    @JsonIgnore
+    public boolean isShared() {
+        return scope == ORScope.SHARED;
+    }
+    
+    public List<String> getProjects() {
+        return projects;
+    }
+    
+    public void setProjects(List<String> projects) {
+        this.projects = (projects == null) ? new ArrayList<>() : projects;
     }
 }

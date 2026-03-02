@@ -1,0 +1,9 @@
+Step,ObjectName,Description,Action,Input,Condition,Reference
+1,Browser,Open the Url [<Data>] in the Browser,Open,MingGUILogin:URL,,
+2,Login Stub,"Click the [<Object>] ",Click,,,MING_Login
+3,Profile Id (access-profile-id),Enter the value [<Data>] in the Field [<Object>],Fill,MingGUILogin:Profile Id,,MING_Login
+4,Person Id (party UUID),Enter the value [<Data>] in the Field [<Object>],Fill,MingGUILogin:Person Id,,MING_Login
+5,Level of assurance,Enter the value [<Data>] in the Field [<Object>],Fill,MingGUILogin:Level of assurance,,MING_Login
+6,Redirect Url,Enter the value [<Data>] in the Field [<Object>],Fill,MingGUILogin:Redirect Url,,MING_Login
+7,Submit,"Click the [<Object>] ",Click,,,MING_Login
+8,Log out,Assert if [<Object>] is visible,assertElementIsVisible,,,MING_Login

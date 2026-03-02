@@ -53,7 +53,7 @@ public class TestCasePopupMenu extends JPopupMenu {
         goToMenu.add(Utils.createMenuItem("Go To Object", actionListener));
         goToMenu.add(Utils.createMenuItem("Go To TestData", actionListener));
         add(goToMenu);
-        add(Utils.createMenuItem("Paramterize", actionListener));
+        add(Utils.createMenuItem("Parameterize", actionListener));
         addSeparator();
 
         JRadioButtonMenuItem toggleValidation = new JRadioButtonMenuItem("Toggle Validation", true);

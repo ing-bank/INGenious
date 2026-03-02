@@ -19,8 +19,9 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
- *
- *
+ * Provides database command utilities for executing SQL queries, managing connections,
+ * handling variable resolution, and storing results. This class is intended to be extended
+ * for specific database operations and supports both DML and SELECT queries.
  */
 public class General extends Command {
 
@@ -39,10 +40,23 @@ public class General extends Command {
     static final Pattern INPUTS = Pattern.compile("([^{]+?)(?=\\})");
     static List<String> colNames = new ArrayList<>();
 
+    /**
+     * Constructs a General database command handler with the given command control.
+     *
+     * @param cc the command control context
+     */
     public General(CommandControl cc) {
         super(cc);
     }
 
+    /**
+     * Verifies and establishes a database connection using the specified database name.
+     *
+     * @param dbName the name or alias of the database
+     * @return true if the connection is established successfully, false otherwise
+     * @throws ClassNotFoundException if the database driver class is not found
+     * @throws SQLException if a database access error occurs
+     */
     public boolean verifyDbConnection(String dbName) throws ClassNotFoundException, SQLException {
         if (getDBFile(dbName).exists()) {
             Properties dbDetails = getDBDetails(dbName);
@@ -95,32 +109,69 @@ public class General extends Command {
         return str;
     }
 
+    /**
+     * Executes a SELECT SQL query after resolving variables and stores the result set.
+     *
+     * @throws SQLException if a database access error occurs
+     */
     public void executeSelect() throws SQLException {
         String query = Data;
     	query = handleDataSheetVariables(query);
-    	query = handleuserDefinedVariables(query);
+    	query = handleUserDefinedVariables(query);
         System.out.println("Query :" + query);
         result = statement.executeQuery(query);
         resultData = result.getMetaData();
         populateColumnNames();
     }
 
-    public boolean executeDML() throws SQLException {
-        String query = Data;
-    	query = handleDataSheetVariables(query);
-    	query = handleuserDefinedVariables(query);
-        System.out.println("Query :" + query);
-        return (statement.executeUpdate(query) >= 0);
+    /**
+     * Represents the result of a DML operation, including success status and the executed query.
+     */
+    public static class DMLResult {
+        public final boolean success;
+        public final String query;
+        public DMLResult(boolean success, String query) {
+            this.success = success;
+            this.query = query;
+        }
     }
 
+    /**
+     * Executes a DML SQL query (INSERT, UPDATE, DELETE) after resolving variables.
+     *
+     * @return a DMLResult containing the success status and the executed query
+     * @throws SQLException if a database access error occurs
+     */
+    public DMLResult executeDML() throws SQLException {
+        String query = Data;
+        query = handleDataSheetVariables(query);
+        query = handleUserDefinedVariables(query);
+        System.out.println("Executing DML query: :" + query);
+        boolean result = (statement.executeUpdate(query) >= 0);
+        return new DMLResult(result, query);
+    }
+
+    /**
+     * Initializes the database connection, statement, and variable resolution.
+     *
+     * @param commit whether to use auto-commit mode
+     * @param timeout the query timeout in seconds
+     * @throws SQLException if a database access error occurs
+     */
     private void initialize(Boolean commit,int timeout) throws SQLException {
         colNames.clear();
         dbconnection.setAutoCommit(commit);
-        statement = dbconnection.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE,ResultSet.CONCUR_UPDATABLE);
+        statement = dbconnection.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE,ResultSet.CONCUR_READ_ONLY);
         statement.setQueryTimeout(timeout);
         resolveVars();
     }
 
+    /**
+     * Closes the database connection, statement, and result set.
+     *
+     * @return true if all resources are closed successfully, false otherwise
+     * @throws SQLException if a database access error occurs
+     */
     public boolean closeConnection() throws SQLException {
         if (dbconnection != null && statement != null && result != null) {
             dbconnection.close();
@@ -131,6 +182,13 @@ public class General extends Command {
         return true;
     }
 
+    /**
+     * Asserts that a value exists in the specified column of the result set.
+     *
+     * @param columnName the column to check
+     * @param condition the value to assert
+     * @return true if the value exists, false otherwise
+     */
     public boolean assertDB(String columnName, String condition) {
         boolean isExist = false;
         try {
@@ -152,6 +210,13 @@ public class General extends Command {
         return isExist;
     }
 
+    /**
+     * Stores a value from the result set in a variable or global variable.
+     *
+     * @param input the variable name
+     * @param condition the column and row specification
+     * @param isGlobal true to store as a global variable, false for local
+     */
     public void storeValue(String input, String condition, boolean isGlobal) {
         String value;
         int rowIndex = 1;
@@ -182,6 +247,9 @@ public class General extends Command {
         }
     }
 
+    /**
+     * Resolves variables in the Data string and replaces them with their values.
+     */
     private void resolveVars() {
         Matcher matcher = INPUTS.matcher(Data);
         Set<String> listMatches = new HashSet<>();
@@ -203,10 +271,21 @@ public class General extends Command {
     }
 
 
+    /**
+     * Retrieves database properties for the specified database name.
+     *
+     * @param dbName the database name or alias
+     * @return the database properties
+     */
     public Properties getDBDetails(String dbName) {
         return getDataBaseData(dbName);
     }
 
+    /**
+     * Populates the column names from the result set metadata.
+     *
+     * @throws SQLException if a database access error occurs
+     */
     private void populateColumnNames() throws SQLException {
         int count = resultData.getColumnCount();
         for (int index = 1; index <= count; index++) {
@@ -214,10 +293,22 @@ public class General extends Command {
         }
     }
 
+    /**
+     * Gets the index of the specified column name in the column list.
+     *
+     * @param columnName the column name to search for
+     * @return the index of the column, or -1 if not found
+     */
     public int getColumnIndex(String columnName) {
         return colNames.indexOf(columnName);
     }
 
+    /**
+     * Resolves datasheet variables in the query string.
+     *
+     * @param query the SQL query string
+     * @return the query with datasheet variables replaced
+     */
     private String handleDataSheetVariables(String query) {
         List<String> sheetlist = Control.getCurrentProject().getTestData().getTestDataFor(Control.exe.runEnv())
                 .getTestDataNames();
@@ -237,7 +328,13 @@ public class General extends Command {
         return query;
     }
 
-    private String handleuserDefinedVariables(String query) {
+    /**
+     * Resolves user-defined variables in the query string.
+     *
+     * @param query the SQL query string
+     * @return the query with user-defined variables replaced
+     */
+    private String handleUserDefinedVariables(String query) {
         Collection<Object> valuelist = Control.getCurrentProject().getProjectSettings().getUserDefinedSettings()
                 .values();
         for (Object prop : valuelist) {

@@ -2,6 +2,7 @@ package com.ing.engine.commands.mobile;
 
 import java.time.Duration;
 import java.util.Arrays;
+import java.util.Map;
 import org.openqa.selenium.Dimension;
 import org.openqa.selenium.Point;
 import org.openqa.selenium.Rectangle;
@@ -341,6 +342,21 @@ public class AppiumDeviceCommands extends MobileGeneral {
         } catch (Exception e) {
             Logger.getLogger(this.getClass().getName()).log(Level.OFF, null, e);
             Report.updateTestLog(Action, "Unable to hide keyboard, Error: " + e.getMessage(), Status.FAIL);
+        }
+    }
+
+    @Action(object = ObjectType.MOBILE, desc = "Go to homescreen", input = InputType.NO, condition = InputType.NO)
+    public void goToHomescreen() {
+        try {
+            if (mDriver instanceof AndroidDriver) {
+                ((AndroidDriver) mDriver).executeScript("mobile: pressKey", Map.of("keycode", 3));
+            } else if (mDriver instanceof IOSDriver) {
+                ((IOSDriver) mDriver).executeScript("mobile: pressButton", Map.of("name", "home"));
+            }
+            Report.updateTestLog(Action, "Performed go to Homescreen operation", Status.DONE);
+        } catch (Exception e) {
+            Logger.getLogger(this.getClass().getName()).log(Level.OFF, null, e);
+            Report.updateTestLog(Action, "Unable to perform homescreen operation, Error: " + e.getMessage(), Status.FAIL);
         }
     }
 

@@ -1,0 +1,99 @@
+{
+  "id" : "Global Logins",
+  "name" : "Global Logins",
+  "version" : "2.2",
+  "attributes" : [ ],
+  "tags" : [ ],
+  "_meta" : [ {
+    "type" : "attribute",
+    "name" : "scenario",
+    "desc" : "High level classification of test requirement/cases grouped together",
+    "ref" : "com.ing.datalib.model.Attribute",
+    "attributes" : [ ],
+    "tags" : [ ]
+  }, {
+    "type" : "tag",
+    "name" : "@smoke",
+    "desc" : "Non-exhaustive set of tests that aim at ensuring that the most important functions work",
+    "ref" : "com.ing.datalib.model.Tag",
+    "attributes" : [ ],
+    "tags" : [ ]
+  }, {
+    "type" : "tag",
+    "name" : "@uat",
+    "ref" : "com.ing.datalib.model.Tag",
+    "attributes" : [ ],
+    "tags" : [ ]
+  }, {
+    "type" : "tag",
+    "name" : "@load",
+    "ref" : "com.ing.datalib.model.Tag",
+    "attributes" : [ ],
+    "tags" : [ ]
+  }, {
+    "type" : "scenario",
+    "name" : "IRIS Operations",
+    "ref" : "com.ing.datalib.model.Attribute",
+    "attributes" : [ ],
+    "tags" : [ ]
+  }, {
+    "type" : "scenario",
+    "name" : "IRIS",
+    "ref" : "com.ing.datalib.model.Attribute",
+    "attributes" : [ ],
+    "tags" : [ ]
+  }, {
+    "type" : "scenario",
+    "name" : "GUI Login",
+    "ref" : "com.ing.datalib.model.Attribute",
+    "attributes" : [ ],
+    "tags" : [ ]
+  } ],
+  "data" : [ {
+    "id" : "IRIS Operations#Validate User is able to filter list of work",
+    "name" : "Validate User is able to filter list of work",
+    "tags" : [ ],
+    "attributes" : [ {
+      "name" : "type",
+      "value" : "testcase"
+    }, {
+      "name" : "scenario",
+      "value" : "IRIS Operations"
+    } ]
+  }, {
+    "id" : "IRIS#Validate Filter",
+    "name" : "Validate Filter",
+    "tags" : [ ],
+    "attributes" : [ {
+      "name" : "type",
+      "value" : "reusable"
+    }, {
+      "name" : "scenario",
+      "value" : "IRIS"
+    } ]
+  }, {
+    "id" : "API_Should Retrieve Current Account Agreements",
+    "name" : "API_Should Retrieve Current Account Agreements",
+    "tags" : [ ],
+    "attributes" : [ {
+      "name" : "scenario",
+      "value" : "MING Operations"
+    } ]
+  }, {
+    "id" : "GUI_DirectURL_Validate User is able to Request Payment",
+    "name" : "GUI_DirectURL_Validate User is able to Request Payment",
+    "tags" : [ ],
+    "attributes" : [ {
+      "name" : "scenario",
+      "value" : "MING Operations"
+    } ]
+  }, {
+    "id" : "GUI_Validate User is able to create a New Transfer",
+    "name" : "GUI_Validate User is able to create a New Transfer",
+    "tags" : [ ],
+    "attributes" : [ {
+      "name" : "scenario",
+      "value" : "MING Operations"
+    } ]
+  } ]
+}

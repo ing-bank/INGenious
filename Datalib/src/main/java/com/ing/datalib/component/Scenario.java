@@ -2,13 +2,25 @@
 package com.ing.datalib.component;
 
 import com.ing.datalib.component.utils.FileUtils;
+import com.ing.datalib.or.web.WebOR.ORScope;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
 /**
+ * Represents a scenario within a project’s TestPlan and serves as a container for related test cases.
+ * <p>
+ * A {@code Scenario} is backed by a filesystem folder under {@code <project>/TestPlan/<scenario>},
+ * automatically loads its {@link TestCase} CSV files on construction, and exposes methods for adding,
+ * removing, loading, and saving test cases.
+ * </p>
  *
- * 
+ * <p>
+ * The class also implements {@code DataModel} table-model behavior for UI consumption by presenting
+ * a scenario-level view of non-reusable test cases, and provides refactoring and impact-analysis helpers
+ * that delegate to contained test cases (e.g., object/page/test data reference updates and impacted test
+ * case discovery).
+ * </p>
  */
 public class Scenario extends DataModel {
 
@@ -279,6 +291,21 @@ public class Scenario extends DataModel {
         }
     }
 
+    /**
+     * Renames an object reference on the given page for the specified OR scope within this scenario,
+     * by delegating to all test cases.
+     *
+     * @param scope    OR scope to match (e.g., shared vs project)
+     * @param pageName page (screen) name containing the object reference
+     * @param oldName  existing object name to replace
+     * @param newName  new object name to apply
+     */
+    public void refactorObjectName(ORScope scope, String pageName, String oldName, String newName) {
+        for (TestCase testCase : testCases) {
+            testCase.refactorObjectName(scope, pageName, oldName, newName);
+        }
+    }
+
     public void refactorPageName(String oldPageName, String newPageName) {
         for (TestCase testCase : testCases) {
             testCase.refactorPageName(oldPageName, newPageName);
@@ -350,5 +377,4 @@ public class Scenario extends DataModel {
         }
         return false;
     }
-
 }

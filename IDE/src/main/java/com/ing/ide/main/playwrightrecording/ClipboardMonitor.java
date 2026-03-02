@@ -2,10 +2,18 @@ package com.ing.ide.main.playwrightrecording;
 
 import com.ing.ide.main.mainui.AppMainFrame;
 import com.ing.ide.util.Notification;
-import java.awt.*;
-import java.awt.datatransfer.*;
-import java.io.*;
-import java.nio.file.*;
+import java.awt.Toolkit;
+import java.awt.datatransfer.Clipboard;
+import java.awt.datatransfer.DataFlavor;
+import java.awt.datatransfer.Transferable;
+import java.awt.datatransfer.UnsupportedFlavorException;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -52,11 +60,14 @@ public class ClipboardMonitor {
                         Transferable contents = clipboard.getContents(null);
                         if (contents != null && contents.isDataFlavorSupported(DataFlavor.stringFlavor)) {
                             String currentContent = (String) contents.getTransferData(DataFlavor.stringFlavor);
+                            String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss"));
                             if (!currentContent.equals(lastContent) && !currentContent.trim().isEmpty()) {
-                                lastContent = currentContent;
-                                Path filePath = recordingsDir.resolve("recording.txt");
-                                Files.writeString(filePath, currentContent, StandardOpenOption.CREATE);
-                                Notification.show("Saved recorded steps to temporary file: " + filePath);
+                                if (currentContent.contains("import com.microsoft.playwright.*;")) {
+                                    lastContent = currentContent;
+                                    Path filePath = recordingsDir.resolve("recording_" + timestamp + ".txt");
+                                    Files.writeString(filePath, currentContent, StandardOpenOption.CREATE);
+                                    Notification.show("Saved recorded steps to temporary file: " + filePath);
+                                }
                             }
                         }
                         Thread.sleep(250);

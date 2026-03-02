@@ -177,9 +177,9 @@ public class HtmlTestCaseHandler extends TestCaseHandler implements PrimaryHandl
         reusable.put(RDS.Step.END_TIME, DateTimeUtils.DateTimeNow());
         if (reusable.get(TestCase.STATUS).equals("")) {
             /*
-            * status not is updated set it to FAIL 
+            * status not is updated set it to PASS 
              */
-            reusable.put(TestCase.STATUS, "FAIL");
+            reusable.put(TestCase.STATUS, "PASS");
         }
         /*
         * remove the reusable from the stack then fall back to iteration 

@@ -32,8 +32,8 @@ import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 
 /**
- *
- *
+ * Handles the creation and management of HTML summary reports for test executions.
+ * Supports BDD, performance, and history reporting, and integrates with CucumberReport.
  */
 @SuppressWarnings("rawtypes")
 public class HtmlSummaryHandler extends SummaryHandler implements PrimaryHandler {
@@ -49,15 +49,25 @@ public class HtmlSummaryHandler extends SummaryHandler implements PrimaryHandler
     DateTimeUtils RunTime;
     public PerformanceReport perf;
 
+    /**
+     * Constructs a new HtmlSummaryHandler for the given SummaryReport.
+     * Initializes performance reporting if enabled.
+     * @param report The summary report instance
+     */
     public HtmlSummaryHandler(SummaryReport report) {
         super(report);
         if (Control.exe.getExecSettings().getRunSettings().isPerformanceLogEnabled()) {
             perf = new PerformanceReport();
         }
         createReportIfNotExists(FilePath.getResultsPath());
-
     }
 
+    /**
+     * Adds HAR (HTTP Archive) data to the performance report.
+     * @param h HAR log
+     * @param report Test case report
+     * @param pageName Name of the page
+     */
     @Override
     public void addHar(Har<String, Har.Log> h, TestCaseReport report, String pageName) {
         if (perf != null) {
@@ -65,6 +75,10 @@ public class HtmlSummaryHandler extends SummaryHandler implements PrimaryHandler
         }
     }
 
+    /**
+     * Creates the report directory and copies media resources if not already present.
+     * @param path Path to the results directory
+     */
     private void createReportIfNotExists(String path) {
         File file = new File(path + File.separator + "media");
         if (!file.exists()) {
@@ -119,7 +133,14 @@ public class HtmlSummaryHandler extends SummaryHandler implements PrimaryHandler
      */
     @SuppressWarnings("unchecked")
     @Override
-    public synchronized void updateTestCaseResults(RunContext runContext, TestCaseReport report, Status state,
+        /**
+         * Updates the result of each test case execution.
+         * @param runContext Run context
+         * @param report Test case report
+         * @param state Test case status
+         * @param executionTime Execution time
+         */
+        public synchronized void updateTestCaseResults(RunContext runContext, TestCaseReport report, Status state,
             String executionTime) {
 
         executions.add(report.getData());
@@ -166,7 +187,7 @@ public class HtmlSummaryHandler extends SummaryHandler implements PrimaryHandler
     }
 
     /**
-     * finalize the summary report creation
+     * Finalizes the summary report creation.
      */
     @Override
     public synchronized void finalizeReport() {
@@ -191,6 +212,10 @@ public class HtmlSummaryHandler extends SummaryHandler implements PrimaryHandler
         launchResultSummary();
     }
 
+    /**
+     * Copies summary, detailed, and performance HTML files to the results directory.
+     * @throws IOException if file operations fail
+     */
     private void createHtmls() throws IOException {
         FileUtils.copyFileToDirectory(new File(FilePath.getSummaryHTMLPath()),
                 new File(FilePath.getCurrentResultsPath()));
@@ -207,6 +232,10 @@ public class HtmlSummaryHandler extends SummaryHandler implements PrimaryHandler
         }
     }
 
+    /**
+     * Creates standalone HTML reports and replaces media paths.
+     * @throws IOException if file operations fail
+     */
     private void createStandaloneHtmls() throws IOException {
 
         createReportIfNotExists(FilePath.getCurrentResultsPath());
@@ -228,12 +257,20 @@ public class HtmlSummaryHandler extends SummaryHandler implements PrimaryHandler
         }
     }
 
+    /**
+     * Generates the BDD report if enabled in run settings.
+     * @throws Exception if report generation fails
+     */
     private void createBddReport() throws Exception {
         if (Control.exe.getExecSettings().getRunSettings().isBddReportEnabled()) {
             CucumberReport.get().ifPresent(this::createCucumberBddReport);
         }
     }
 
+    /**
+     * Generates the Cucumber BDD report using the provided reporter.
+     * @param reporter CucumberReport instance
+     */
     private void createCucumberBddReport(CucumberReport reporter) {
         try {
             System.out.print("Generating BDD-Report...");
@@ -245,6 +282,9 @@ public class HtmlSummaryHandler extends SummaryHandler implements PrimaryHandler
         }
     }
 
+    /**
+     * Copies the current results to the latest results location.
+     */
     private synchronized void createLatest() {
         try {
             File latestResult = new File(FilePath.getLatestResultsLocation());
@@ -258,6 +298,10 @@ public class HtmlSummaryHandler extends SummaryHandler implements PrimaryHandler
         }
     }
 
+    /**
+     * Checks if Extent reporting is enabled for the current project and test run.
+     * @return true if enabled, false otherwise
+     */
     public boolean isExtentEnabled() {
         if (!RunManager.getGlobalSettings().isTestRun()) {
             return Control.getCurrentProject().getProjectSettings()
@@ -268,7 +312,7 @@ public class HtmlSummaryHandler extends SummaryHandler implements PrimaryHandler
     }
 
     /**
-     * open the summary report when execution is finished
+     * Opens the summary report in the desktop browser if allowed and Extent is not enabled.
      */
     public synchronized void launchResultSummary() {
         if (!isExtentEnabled()) {
@@ -279,7 +323,7 @@ public class HtmlSummaryHandler extends SummaryHandler implements PrimaryHandler
     }
 
     /**
-     * updates the history of execution report
+     * Updates the history of execution reports by appending the current run data.
      */
     @SuppressWarnings("unchecked")
     private void updateReportHistoryData() {
@@ -308,8 +352,8 @@ public class HtmlSummaryHandler extends SummaryHandler implements PrimaryHandler
     }
 
     /**
-     *
-     * @return the test set result details
+     * Returns the test set result details as a map.
+     * @return Map of report data
      */
     private Map<String, String> getReportData() {
         Map<String, String> reportMap = new HashMap<>();
@@ -322,6 +366,9 @@ public class HtmlSummaryHandler extends SummaryHandler implements PrimaryHandler
         return reportMap;
     }
 
+    /**
+     * Prints the summary of the test execution to the console.
+     */
     private void printReport() {
         System.out.println("-----------------------------------------------------");
         print("ExecutionDate", FilePath.getDate() + " " + FilePath.getTime());
@@ -333,21 +380,25 @@ public class HtmlSummaryHandler extends SummaryHandler implements PrimaryHandler
         System.out.println("-----------------------------------------------------");
     }
 
+    /**
+     * Prints a key-value pair to the console in formatted style.
+     * @param key Key string
+     * @param val Value object
+     */
     private void print(String key, Object val) {
         System.out.println(String.format("%-20s : %s", key, val));
     }
 
     /**
-     * update the result when any error in execution
-     *
-     * @param testScenario
-     * @param testCase
-     * @param Iteration
-     * @param testDescription
-     * @param executionTime
-     * @param fileName
-     * @param state
-     * @param Browser
+     * Updates the result when any error occurs in execution.
+     * @param testScenario Scenario name
+     * @param testCase Test case name
+     * @param Iteration Iteration info
+     * @param testDescription Description
+     * @param executionTime Execution time
+     * @param fileName File name
+     * @param state Test case status
+     * @param Browser Browser info
      */
     @Override
     public void updateTestCaseResults(String testScenario, String testCase, String Iteration, String testDescription,
@@ -361,16 +412,28 @@ public class HtmlSummaryHandler extends SummaryHandler implements PrimaryHandler
         }
     }
 
+    /**
+     * Returns the test set data JSON object.
+     * @return testSetData JSON object
+     */
     @Override
     public Object getData() {
         return testSetData;
     }
 
+    /**
+     * Returns the summary HTML file.
+     * @return File object for summary HTML
+     */
     @Override
     public File getFile() {
         return new File(FilePath.getCurrentSummaryHTMLPath());
     }
 
+    /**
+     * Returns the current status of the test run.
+     * @return Status enum (PASS or FAIL)
+     */
     @Override
     public Status getCurrentStatus() {
         if (FailedTestCases > 0 || PassedTestCases == 0) {

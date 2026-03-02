@@ -1,0 +1,52 @@
+Step,ObjectName,Description,Action,Input,Condition,Reference
+1,General,Add a variable to access within testcase,AddVar,IrisLogin:corporateKey,%ck%,
+2,General,Add a variable to access within testcase,AddVar,IrisLogin:issuer,%issuer%,
+3,General,Add a variable to access within testcase,AddVar,IrisLogin:type,%type%,
+4,General,Add a variable to access within testcase,AddVar,IrisLogin:level_of_assurance,%loa%,
+5,General,System Time/1000,storeCurrentTimeinMillisby1000,,%not_before%,
+//6,*************,,,,,
+7,Webservice,"Set End Point ",setEndPoint,@https://{IrisLogin:issuer}/security-tokens/access-tokens,"#IRIS_LOGIN",
+8,Webservice,"Add Header ",addHeader,@Content-Type=application/json,,
+9,Webservice,"POST Rest Request ",postRestRequest,"[
+  {
+    ""access_token"": {
+      ""client_id"": ""cdbb-f296-4d37-972c-71c9b4755019"",
+      ""executor"": {
+        ""level_of_assurance"": %loa%,
+        ""means"": [
+          {
+            ""id"": ""ing-externalid-means"",
+            ""type"": ""ing-externalid-means""
+          }
+        ],
+        ""person"": ""%ck%"",
+        ""profile"": ""%ck%"",
+        ""type"": ""%type%""
+      },
+      ""issuer"": ""%issuer%"",
+      ""not_before"": %not_before%,
+      ""time_to_live"": 86400,
+      ""pinning_type"": ""cookie"",
+      ""pinning_value"": ""dummydummydummydummy"",
+      ""scopes"": [
+        ""personal_data""
+      ],
+      ""trace_enabled"": true
+    },
+    ""refresh_token"": {
+      ""time_to_live"": 16070400
+    },
+    ""token_identifier"": ""string"",
+    ""unencrypted"": true
+  }
+]",,
+//10,***********,,,,,
+11,Browser,Iris Login,irisTokenizedLogin,,,
+12,Browser,Open the Url [<Data>] in the Browser,Open,IrisLogin:Url,,
+13,Welcome to Iris,Assert if [<Object>] is visible,assertElementIsVisible,,,IRIS
+//14,Where do you work today,Enter the value [<Data>] in the Field [<Object>],Fill,IrisLogin:Branch,,IRIS
+//15,Where do you work today,"Press the [<Object>] ",KeyPressOnElement,@Enter,,IRIS
+//16,Branch,"Click the [<Object>] ",setObjectProperty,IrisLogin:Branch,"#branch",IRIS
+//17,Branch,"Click the [<Object>] ",Click,,,IRIS
+//18,Confirm,"Click the [<Object>] ",Click,,,IRIS
+//19,Dashboard,Assert if [<Object>] is visible,assertElementContainsText,@Dashboard,,IRIS

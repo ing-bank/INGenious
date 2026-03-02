@@ -25,6 +25,9 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.util.Arrays;
+import java.util.Comparator;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JToggleButton;
@@ -220,22 +223,23 @@ public class AppActionListener implements ActionListener {
                         PlaywrightRecordingParser playwrightRecordingParser = new PlaywrightRecordingParser(sMainFrame);
                         String ProjectLocation = sMainFrame.getProject().getLocation();
                         sMainFrame.loadProject(ProjectLocation);
-                        File originalFile = new File(ProjectLocation + File.separator + "Recording" + File.separator + "recording.txt");
-                        File renamedFile = new File(ProjectLocation + File.separator + "Recording" + File.separator + ScenarioName + ".txt");
-
-                        if (originalFile.exists()) {
-                            boolean success = originalFile.renameTo(renamedFile);
-                            if (success) {
-                                Notification.show("Recorded steps saved as " + renamedFile.getAbsolutePath());
-                            } else {
-                                Notification.show("Failed to save recorded steps.");
+                        File recordingDir = new File(ProjectLocation + File.separator + "Recording");
+                        File[] recordingFiles = recordingDir.listFiles((dir, name) -> name.startsWith("recording_") && name.endsWith(".txt"));
+                        if (recordingFiles != null && recordingFiles.length > 0) {
+                            Arrays.sort(recordingFiles, Comparator.comparingLong(File::lastModified).reversed());
+                            File latestFile = recordingFiles[0];
+                            File duplicateFile = new File(recordingDir, ScenarioName + ".txt");
+                            try {
+                                Files.copy(latestFile.toPath(), duplicateFile.toPath());
+                            } catch (IOException e) {
+                                e.printStackTrace();
                             }
+
+                            playwrightRecordingParser.playwrightParser(duplicateFile);
+                            sMainFrame.loadProject(ProjectLocation);  
                         } else {
-                            Notification.show("Original file does not exist.");
-                        }
-                        
-                        playwrightRecordingParser.playwrightParser(renamedFile);
-                        sMainFrame.loadProject(ProjectLocation);                                     
+                            System.out.println("No recording file found.");
+                        }    
                     } catch (Exception ex) {
                         Logger.getLogger(AppActionListener.class.getName()).log(Level.SEVERE, null, ex);
                     }

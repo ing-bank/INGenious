@@ -44,27 +44,31 @@ public class TestStep {
 
     }
 
-    private final TestCase testcase;
+    private final TestCase testCase;
 
     List<String> stepDetails = Collections.synchronizedList(new ArrayList<String>(HEADERS.values().length) {
         @Override
         public String set(int index, String element) {
             String val = super.set(index, element);
-            if (testcase != null && testcase.getTestSteps().contains(TestStep.this)) {
-                testcase.fireTableCellUpdated(testcase.getTestSteps().indexOf(TestStep.this),
+            if (testCase != null && testCase.getTestSteps().contains(TestStep.this)) {
+                testCase.fireTableCellUpdated(testCase.getTestSteps().indexOf(TestStep.this),
                         index);
             }
             return val;
         }
     });
+    
+    public List<String> getStepDetails(){
+        return this.stepDetails;
+    }
 
     public TestStep(TestCase testcase, CSVRecord record) {
-        this.testcase = testcase;
+        this.testCase = testcase;
         loadStep(record);
     }
 
     public TestStep(TestCase testcase) {
-        this.testcase = testcase;
+        this.testCase = testcase;
         loadEmptyStep();
     }
 
@@ -131,11 +135,11 @@ public class TestStep {
     }
 
     public Project getProject() {
-        return testcase.getProject();
+        return testCase.getProject();
     }
 
-    public TestCase getTestcase() {
-        return testcase;
+    public TestCase getTestCase() {
+        return testCase;
     }
 
     private void loadStep(CSVRecord record) {

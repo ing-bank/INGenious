@@ -89,7 +89,7 @@ public class AppMainFrame extends JFrame {
     private final LoaderScreen loader;
 
     private QUIT_TYPE quitType = QUIT_TYPE.NORMAL;
-
+    
     private enum QUIT_TYPE {
         NORMAL,
         FORCE,
@@ -213,7 +213,7 @@ public class AppMainFrame extends JFrame {
     }
 
     private String getAppTitle() {
-        return "INGenious Playwright Studio " + About.getBuildVersion() + " (Open Source)";
+        return "INGenious Playwright Studio " + About.getBuildVersion() + " (ING)";
     }
 
     public String getCurrentSlide() {

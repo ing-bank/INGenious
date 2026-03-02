@@ -1,0 +1,15 @@
+Step,ObjectName,Description,Action,Input,Condition,Reference
+1,Payments,"Click the [<Object>] ",Click,,,MING_Request Payment
+2,Payment request,"Click the [<Object>] ",Click,,,MING_Request Payment
+3,What amount would you like to request,Enter the value [<Data>] in the Field [<Object>],Fill,PaymentRequest:Amount,,MING_Request Payment
+4,Can Payer Change the Amount,Set object [<Object>] property  as [<Data>] at runtime,setObjectProperty,PaymentRequest:CanChangeAmount,"#canChange",MING_Request Payment
+5,Can Payer Change the Amount,"Click the [<Object>] ",Click,,,MING_Request Payment
+6,Amount For,Set object [<Object>] property  as [<Data>] at runtime,setObjectProperty,PaymentRequest:AmountFor,"#amountFor",MING_Request Payment
+7,Amount For,"Click the [<Object>] ",Click,,,MING_Request Payment
+8,How Many People,Set object [<Object>] property  as [<Data>] at runtime,setObjectProperty,PaymentRequest:HowManyPeople,"#howManyPeople",MING_Request Payment
+9,How Many People,"Click the [<Object>] ",Click,,,MING_Request Payment
+10,Create request,"Click the [<Object>] ",Click,,,MING_Request Payment
+11,Your payment request is ready,"Click the [<Object>] ",waitForElementToBeVisible,,,MING_Request Payment
+12,Your payment request is ready,Assert if [<Object>] is visible,assertElementIsVisible,,,MING_Request Payment
+13,Amount For,"Click the [<Object>] ",assertElementIsVisible,,,MING_Request Payment
+14,How Many People,"Click the [<Object>] ",assertElementIsVisible,,,MING_Request Payment

@@ -18,7 +18,7 @@ public class DataNotFoundException extends RuntimeException {
     public String field;
     public CauseInfo cause;
 
-    protected DataNotFoundException(String name) {
+    public DataNotFoundException(String name) {
         super(name);
     }
     
@@ -32,7 +32,7 @@ public class DataNotFoundException extends RuntimeException {
     }
 
     public enum Cause {
-        Data, Iteration, SubIteration
+        Data, Iteration, SubIteration, EndOfDataSheet
     }
 
     public class CauseInfo {
@@ -51,6 +51,10 @@ public class DataNotFoundException extends RuntimeException {
 
         public boolean isSubIter() {
             return type == Cause.SubIteration;
+        }
+        
+        public boolean isEndData() {
+            return type == Cause.EndOfDataSheet;
         }
 
     }

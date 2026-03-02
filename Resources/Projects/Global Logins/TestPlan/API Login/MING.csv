@@ -1,0 +1,40 @@
+Step,ObjectName,Description,Action,Input,Condition,Reference
+1,General,System Time/1000,storeCurrentTimeinMillisby1000,,%not_before%,
+2,Webservice,"Set End Point ",setEndPoint,@https://{MingAPILogin:issuer}/security-tokens/access-tokens,"#MING_APILOGIN",
+3,Webservice,"Add Header ",addHeader,@Content-Type=application/json,,
+4,Webservice,"POST Rest Request ",postRestRequest,"[
+      {
+        ""access_token"": {
+          ""client_id"": ""{MingAPILogin:personID}"",
+          ""executor"": {
+            ""grant"": ""grantId"",
+            ""level_of_assurance"": 3,
+            ""means"": [
+              {
+                ""id"": ""meansId"",
+                ""type"": ""meansType""
+              }
+            ],
+            ""person"": ""{MingAPILogin:personID}"",
+            ""profile"": ""{MingAPILogin:profileID}"",
+            ""type"": ""customer""
+          },
+          ""not_before"": %not_before%,
+          ""time_to_live"": 604800,
+          ""pinning_type"": ""cookie"",
+          ""pinning_value"": ""secure_random_value"",
+          ""scopes"": [
+            ""personal_data""
+          ],
+          ""trace_enabled"": true
+        },
+        ""refresh_token"": {
+          ""time_to_live"": 604800
+        },
+        ""token_identifier"": ""string"",
+        ""unencrypted"": true
+      }
+    ]",,
+5,Webservice,"Store JSON Element In DataSheet ",storeJSONelement,@$[0].access_token,%token%,
+6,Webservice,System Time/1000,storeMINGcookies,,%ming_cookie%,
+7,Webservice,Add a variable to access within testcase,closeConnection,,,

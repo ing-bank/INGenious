@@ -1,0 +1,4 @@
+Execute,TestScenario,TestCase,Iteration,Status,Browser,BrowserVersion,Platform
+true,MING Operations,API_Should Retrieve Current Account Agreements,Single,Passed,No Browser,Default,Any
+true,MING Operations,GUI_DirectURL_Validate User is able to Request Payment,Single,Passed,Chromium,Default,Any
+true,MING Operations,GUI_Validate User is able to create a New Transfer,Single,Passed,Chromium,Default,Any

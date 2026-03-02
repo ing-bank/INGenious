@@ -1,0 +1,22 @@
+<Root ref="Global Logins" type="RC">
+    <Folder ref="Logins">
+        <Scenario ref="GUI Login">
+            <TestCase exeType="Executable" ref="MING"/>
+            <TestCase exeType="Executable" ref="IRIS"/>
+            <TestCase exeType="Executable" ref="MING_DirectURL"/>
+        </Scenario>
+        <Scenario ref="API Login">
+            <TestCase exeType="Executable" ref="MING"/>
+        </Scenario>
+    </Folder>
+    <Folder ref="Operations">
+        <Scenario ref="MING">
+            <TestCase exeType="Executable" ref="NewTransfer"/>
+            <TestCase exeType="Executable" ref="RequestPayment"/>
+            <TestCase exeType="Executable" ref="API-GetAgreements"/>
+        </Scenario>
+        <Scenario ref="IRIS">
+            <TestCase exeType="Executable" ref="Validate Filter"/>
+        </Scenario>
+    </Folder>
+</Root>

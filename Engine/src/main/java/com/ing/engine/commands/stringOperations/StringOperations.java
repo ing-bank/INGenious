@@ -14,7 +14,11 @@ import java.util.ArrayList;
 import java.util.List;
 
 /**
- *
+ * Provides string manipulation operations for test automation.
+ * This class extends General and offers various string operations such as concatenation,
+ * trimming, substring extraction, replacement, case conversion, splitting, and more.
+ * All operations store their results in variables that can be referenced in test cases.
+ * 
  * @author Julie Ann Ayap
  */
 public class StringOperations extends General {
@@ -26,10 +30,25 @@ public class StringOperations extends General {
     private List<String> getSplitList = new ArrayList();
     private List<String> getOccurenceList = new ArrayList();
 
+    /**
+     * Constructs a new StringOperations instance with the specified CommandControl.
+     * 
+     * @param cc the CommandControl instance for managing test execution commands
+     */
     public StringOperations(CommandControl cc) {
         super(cc);
     }
    
+    /**
+     * Retrieves the value of a string argument based on its format.
+     * Supports three formats:
+     * - Variables: %variableName%
+     * - Datasheet references: {sheet:column}
+     * - String literals: "text"
+     * 
+     * @param strArg the string argument to process
+     * @return the resolved value of the argument, or empty string if format is invalid
+     */
     private String getVarValue(String strArg){
         if (strArg.matches("%.*%")) 
             return getVar(strArg);
@@ -41,6 +60,12 @@ public class StringOperations extends General {
             return "";
     }
     
+    /**
+     * Checks if a string represents a valid numeric value.
+     * 
+     * @param str the string to check
+     * @return true if the string is a valid number, false otherwise
+     */
     private static boolean isNumeric(String str) {
         if (str == null || str.isEmpty()) {
             return false;
@@ -53,6 +78,13 @@ public class StringOperations extends General {
         }
     }
     
+    /**
+     * Counts the number of occurrences of a specific character in a text string.
+     * 
+     * @param text the text to search in
+     * @param targetChar the character to count
+     * @return the number of times the target character appears in the text
+     */
     public static int countCharOccurrences(String text, char targetChar) {
         int count = 0;
         for (int i = 0; i < text.length(); i++) {
@@ -63,6 +95,20 @@ public class StringOperations extends General {
         return count;
     }
     
+    /**
+     * Concatenates multiple string inputs and stores the result in a variable.
+     * Accepts up to 5 string inputs separated by commas.
+     * Supports variables (%var%), datasheet references ({sheet:column}), and string literals ("text").
+     * The concatenated result is stored in the variable specified in the Condition field.
+     * 
+     * <p>Example usage:
+     * <ul>
+     *   <li>Input: "Hello",%text%,{data:greeting}</li>
+     *   <li>Condition: %result%</li>
+     * </ul>
+     * 
+     * @throws ForcedException if input exceeds the limit of 5 strings or contains invalid format
+     */
     @Action(object = ObjectType.STRINGOPERATIONS, desc = "Concats String inputs within testcase [<Data>]", input = InputType.YES, condition = InputType.YES)
     public void Concat() {
         if(!Condition.isBlank()){
@@ -98,6 +144,20 @@ public class StringOperations extends General {
         }
     } 
     
+    /**
+     * Removes leading and trailing whitespace from a string input.
+     * Supports variables (%var%), datasheet references ({sheet:column}), and string literals ("text").
+     * The trimmed result is stored in the variable specified in the Condition field.
+     * 
+     * <p>Example usage:
+     * <ul>
+     *   <li>Input: "  Hello World  " or %text% or {data:greeting}</li>
+     *   <li>Condition: %trimmedText%</li>
+     *   <li>Result: "Hello World"</li>
+     * </ul>
+     * 
+     * @throws ForcedException if input format is invalid or no variable name is assigned
+     */
     @Action(object = ObjectType.STRINGOPERATIONS, desc = "Trim white spaces of String input within testcase", input = InputType.YES, condition = InputType.YES)
     public void Trim() {
         if(!Condition.isBlank()){
@@ -121,6 +181,23 @@ public class StringOperations extends General {
         }
     } 
         
+    /**
+     * Extracts a substring from a string based on start and end indices.
+     * Accepts 2 or 3 parameters: string, startIndex, and optionally endIndex.
+     * If endIndex is not provided, extracts until the end of the string.
+     * Supports variables (%var%), datasheet references ({sheet:column}), and string literals ("text").
+     * The substring result is stored in the variable specified in the Condition field.
+     * 
+     * <p>Example usage:
+     * <ul>
+     *   <li>Input: "Hello World", 0, 5 (extracts "Hello")</li>
+     *   <li>Input: %text%, 6 (extracts from index 6 to end from ther )</li>
+     *   <li>Input: {data:greeting}, 6 (extracts from index 6 to end)</li>
+     *   <li>Condition: %result%</li>
+     * </ul>
+     * 
+     * @throws ForcedException if indices are not numeric, out of bounds, or input format is invalid
+     */
     @Action(object = ObjectType.STRINGOPERATIONS, desc = "Substring String input within testcase", input = InputType.YES, condition = InputType.YES)
     public void Substring() {
         if(!Condition.isBlank()){
@@ -131,7 +208,7 @@ public class StringOperations extends General {
             if(subStringList.size() == 2 || subStringList.size() == 3){
                 s = getVarValue(subStringList.get(0));
                 String s2 = getVarValue(subStringList.get(1).trim()) ;
-                String s3 = subStringList.size() == 3 ? getVarValue(subStringList.get(2).trim()) : String.valueOf(s.length() -1);
+                String s3 = subStringList.size() == 3 ? getVarValue(subStringList.get(2).trim()) : String.valueOf(s.length());
                 if (isNumeric(s2) && isNumeric(s3)){
                     int firstIndex = Integer.parseInt(s2);
                     int secondIndex = Integer.parseInt(s3);
@@ -160,6 +237,24 @@ public class StringOperations extends General {
         }
     } 
         
+    /**
+     * Replaces occurrences of a substring within a string.
+     * Accepts 3 or 4 parameters: string, searchText, replacementText, and optionally replaceType.
+     * ReplaceType can be "first" (replace first occurrence) or "all" (replace all occurrences).
+     * If replaceType is not provided, it must be explicitly specified.
+     * Supports variables (%var%), datasheet references ({sheet:column}), and string literals ("text").
+     * The result is stored in the variable specified in the Condition field.
+     * 
+     * <p>Example usage:
+     * <ul>
+     *   <li>Input: "Hello World", "World", "Universe", "first"</li>
+     *   <li>Input: %text%, "old", "new", "all"</li>
+     *   <li>Input: {data:greeting}, "old", "new", "all"</li>
+     *   <li>Condition: %result%</li>
+     * </ul>
+     * 
+     * @throws ForcedException if replaceType is not "first" or "all", or input format is invalid
+     */
     @Action(object = ObjectType.STRINGOPERATIONS, desc = "Replace String input within testcase", input = InputType.YES, condition = InputType.YES)
     public void Replace() {
         if(!Condition.isBlank()){
@@ -207,6 +302,20 @@ public class StringOperations extends General {
         }
     } 
         
+    /**
+     * Converts a string input to lowercase.
+     * Supports variables (%var%), datasheet references ({sheet:column}), and string literals ("text").
+     * The lowercase result is stored in the variable specified in the Condition field.
+     * 
+     * <p>Example usage:
+     * <ul>
+     *   <li>Input: "HELLO WORLD" or %text% or {data:greeting}</li>
+     *   <li>Condition: %lowerText%</li>
+     *   <li>Result: "hello world"</li>
+     * </ul>
+     * 
+     * @throws ForcedException if input format is invalid or no variable name is assigned
+     */
     @Action(object = ObjectType.STRINGOPERATIONS, desc = "Converts String input to lower case within testcase", input = InputType.YES, condition = InputType.YES)
     public void ToLower() {
         if(!Condition.isBlank()){
@@ -230,6 +339,20 @@ public class StringOperations extends General {
         }
     } 
         
+    /**
+     * Converts a string input to uppercase.
+     * Supports variables (%var%), datasheet references ({sheet:column}), and string literals ("text").
+     * The uppercase result is stored in the variable specified in the Condition field.
+     * 
+     * <p>Example usage:
+     * <ul>
+     *   <li>Input: "hello world" or %text% or {data:greeting}</li>
+     *   <li>Condition: %upperText%</li>
+     *   <li>Result: "HELLO WORLD"</li>
+     * </ul>
+     * 
+     * @throws ForcedException if input format is invalid or no variable name is assigned
+     */
     @Action(object = ObjectType.STRINGOPERATIONS, desc = "Converts String input to upper case within testcase", input = InputType.YES, condition = InputType.YES)
     public void ToUpper() {
         if(!Condition.isBlank()){
@@ -253,6 +376,23 @@ public class StringOperations extends General {
         }
     } 
         
+    /**
+     * Splits a string by a delimiter and retrieves a specific element from the result.
+     * Supports variables (%var%), datasheet references ({sheet:column}), and string literals ("text").
+     * Accepts 3 or 4 parameters: string, delimiter, index, and optionally limit.
+     * The limit parameter controls the maximum number of splits (-1 for unlimited).
+     * The element at the specified index is stored in the variable specified in the Condition field.
+     * 
+     * <p>Example usage:
+     * <ul>
+     *   <li>Input: "one,two,three", ",", 1 (returns "two")</li>
+     *   <li>Input: %text%, ",", 1 (returns "two")</li>
+     *   <li>Input: {data:string_value}, ",", 1 (returns "two")</li>
+     *   <li>Condition: %result%</li>
+     * </ul>
+     * 
+     * @throws ForcedException if index/limit are not numeric, index is out of bounds, or input format is invalid
+     */
     @Action(object = ObjectType.STRINGOPERATIONS, desc = "Split String input within testcase", input = InputType.YES, condition = InputType.YES)
     public void Split() {
         if(!Condition.isBlank()){
@@ -299,6 +439,22 @@ public class StringOperations extends General {
         }
     } 
         
+    /**
+     * Counts the number of occurrences of a specific character in a string.
+     * Accepts 2 parameters: string and character (must be a single character).
+     * Supports variables (%var%), datasheet references ({sheet:column}), and string literals ("text").
+     * The count is stored in the variable specified in the Condition field.
+     * 
+     * <p>Example usage:
+     * <ul>
+     *   <li>Input: "Hello World", "l" (returns 3)</li>
+     *   <li>Input: %text%, "a"</li>
+     *   <li>Input: {data:greeting}, "a"</li>
+     *   <li>Condition: %count%</li>
+     * </ul>
+     * 
+     * @throws ForcedException if second parameter is not a single character or input format is invalid
+     */
     @Action(object = ObjectType.STRINGOPERATIONS, desc = "Get occurence of String input within testcase", input = InputType.YES, condition = InputType.YES)
     public void GetOccurence() {
         if(!Condition.isBlank()){
@@ -337,6 +493,18 @@ public class StringOperations extends General {
         }
     } 
         
+    /**
+     * Calculates the length of a string input.
+     * The length is stored in the variable specified in the Condition field.
+     * 
+     * <p>Example usage:
+     * <ul>
+     *   <li>Input: "Hello World" or %text% or {data:greeting}</li>
+     *   <li>Condition: %length%</li>
+     * </ul>
+     * 
+     * @throws ForcedException if input format is invalid or no variable name is assigned
+     */
     @Action(object = ObjectType.STRINGOPERATIONS, desc = "Get length of String input within testcase", input = InputType.YES, condition = InputType.YES)
     public void GetLength() {
         if(!Condition.isBlank()){

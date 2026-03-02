@@ -38,6 +38,8 @@ public class TestCaseToolBar extends JToolBar {
     private JPopupMenu browsersMenu;
 
     private ButtonGroup browserSelectButtonGroup;
+    
+    private boolean isRecording = false;
 
     public TestCaseToolBar(TestCaseComponent testCaseComp) {
         this.testCaseComp = testCaseComp;
@@ -65,10 +67,14 @@ public class TestCaseToolBar extends JToolBar {
         addSeparator();
 
         add(consoleButton = Utils.createButton("Console", "console", null, testCaseComp));
-        add(record = Utils.createButton("Record", testCaseComp));
+
+        record = Utils.createButton("Record", testCaseComp);
         record.setText(null);
-        record.setToolTipText("Start/Stop Recording");
+        record.setToolTipText("Start Recording");
         record.setIcon(IconSettings.getIconSettings().getRecordStartIcon());
+
+        record.addActionListener(e -> toggleRecording());
+        add(record);
 
         add(runButton = Utils.createButton("Run", "run", "F6", testCaseComp));
         add(debugButton = Utils.createButton("Debug", "debug", "Ctrl+F6", testCaseComp));
@@ -186,4 +192,14 @@ public class TestCaseToolBar extends JToolBar {
         runButton.setActionCommand("StopRun");
         runButton.setIcon(Utils.getIconByResourceName("/ui/resources/stop"));
     }
+    
+    void toggleRecording() {
+        record.setEnabled(false);
+    }
+    
+    public void enableRecordButton() {
+        record.setEnabled(true);
+        record.setToolTipText("Start Recording");
+    }
+
 }

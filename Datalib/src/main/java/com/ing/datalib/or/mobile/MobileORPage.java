@@ -9,6 +9,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.ing.datalib.or.mobile.MobileOR.ORScope;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -17,6 +18,12 @@ import java.util.List;
 import javax.swing.tree.TreeNode;
 import javax.swing.tree.TreePath;
 
+/**
+ * Represents a single mobile object inside a MobileOR page, containing a collection of
+ * OR attributes, frame information, and references to its parent object group.
+ * Supports attribute editing, table model operations, cloning, renaming,
+ * and object repository persistence updates.
+ */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class MobileORPage implements ORPageInf<MobileORObject, MobileOR> {
 
@@ -32,6 +39,9 @@ public class MobileORPage implements ORPageInf<MobileORObject, MobileOR> {
 
     @JsonIgnore
     private MobileOR root;
+    
+    @JacksonXmlProperty(isAttribute = true, localName = "source")
+    private ORScope source = ORScope.PROJECT;
 
     public MobileORPage() {
         this.objectGroups = new ArrayList<>();
@@ -258,5 +268,13 @@ public class MobileORPage implements ORPageInf<MobileORObject, MobileOR> {
     @Override
     public void sort() {
         ORUtils.sort(this);
+    }
+    
+    public ORScope getSource() {
+        return source;
+    }
+
+    public void setSource(ORScope source) {
+        this.source = source;
     }
 }

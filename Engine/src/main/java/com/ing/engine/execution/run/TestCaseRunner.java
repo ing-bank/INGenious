@@ -3,9 +3,12 @@ package com.ing.engine.execution.run;
 import com.ing.datalib.component.Project;
 import com.ing.datalib.component.TestCase;
 import com.ing.datalib.component.TestStep;
+import com.ing.datalib.testdata.model.TestDataModel;
 import com.ing.engine.constants.SystemDefaults;
 import com.ing.engine.core.CommandControl;
+import com.ing.engine.execution.data.DataAccess;
 import com.ing.engine.execution.data.DataIterator;
+import com.ing.engine.execution.data.DataProcessor;
 import com.ing.engine.execution.data.Parameter;
 import com.ing.engine.execution.data.StepSet;
 import com.ing.engine.execution.exception.DriverClosedException;
@@ -15,12 +18,15 @@ import com.ing.engine.execution.exception.ActionException;
 import com.ing.engine.execution.exception.AppiumDriverException;
 import com.ing.engine.execution.exception.UnCaughtException;
 import com.ing.engine.execution.exception.data.DataNotFoundException;
+import com.ing.engine.execution.exception.data.DataNotFoundException.Cause;
+import com.ing.engine.execution.exception.data.DataNotFoundException.CauseInfo;
 import com.ing.engine.execution.exception.data.GlobalDataNotFoundException;
 import com.ing.engine.execution.exception.data.TestDataNotFoundException;
 import com.ing.engine.execution.exception.element.ElementException;
 import com.ing.engine.reporting.TestCaseReport;
 import com.ing.engine.support.Status;
 import com.ing.engine.support.Step;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
@@ -38,8 +44,8 @@ public class TestCaseRunner {
 
     private static final Logger LOG = Logger.getLogger(TestCaseRunner.class.getName());
 
-    private TestCase testcase;
-    private String scenario, testCase;
+    private TestCase testCase;
+    private String scenario, testCaseName;
 
     private final Stack<StepSet> stepStack = new Stack<>();
 
@@ -53,34 +59,35 @@ public class TestCaseRunner {
     private CommandControl control;
 
     private int currentSubIteration = -1;
+    private boolean breakSubIterationFlag = false;
 
     //<editor-fold defaultstate="collapsed" desc="_init_">
     public TestCaseRunner(ProjectRunner exe, String scenario, String testCase) {
         this(exe, null, null, new Parameter());
         iterater = exe.getIterater(scenario, testCase);
         this.scenario = scenario;
-        this.testCase = testCase;
+        this.testCaseName = testCase;
     }
 
-    public TestCaseRunner(ProjectRunner exe, TestCase testcase) {
-        this(exe, null, testcase, new Parameter());
-        iterater = exe.getIterater(testcase);
+    public TestCaseRunner(ProjectRunner exe, TestCase testCase) {
+        this(exe, null, testCase, new Parameter());
+        iterater = exe.getIterater(testCase);
     }
 
-    public TestCaseRunner(TestCaseRunner parent, TestCase testcase) {
-        this(parent.exe, parent, testcase, new Parameter());
+    public TestCaseRunner(TestCaseRunner parent, TestCase testCase) {
+        this(parent.exe, parent, testCase, new Parameter());
     }
 
-    public TestCaseRunner(TestCaseRunner parent, TestCase testcase,
+    public TestCaseRunner(TestCaseRunner parent, TestCase testCase,
             Parameter parameter) {
-        this(parent.exe, parent, testcase, parameter);
+        this(parent.exe, parent, testCase, parameter);
     }
 
-    private TestCaseRunner(TestRunner exe, TestCaseRunner parent, TestCase testcase,
+    private TestCaseRunner(TestRunner exe, TestCaseRunner parent, TestCase testCase,
             Parameter parameter) {
         this.exe = exe;
         this.context = parent;
-        this.testcase = testcase;
+        this.testCase = testCase;
         this.parameter = parameter;
     }
 //</editor-fold>
@@ -109,18 +116,18 @@ public class TestCaseRunner {
     }
 
     public String scenario() {
-        if (testcase != null) {
-            return testcase.getScenario().getName();
+        if (testCase != null) {
+            return testCase.getScenario().getName();
         } else {
             return scenario;
         }
     }
 
     public String testcase() {
-        if (testcase != null) {
-            return testcase.getName();
+        if (testCase != null) {
+            return testCase.getName();
         } else {
-            return testCase;
+            return testCaseName;
         }
     }
 
@@ -185,13 +192,13 @@ public class TestCaseRunner {
     }
 
     public TestCase getTestCase() {
-        return testcase;
+        return testCase;
     }
 //</editor-fold>
 
     //<editor-fold defaultstate="collapsed" desc="internal apis">
     private boolean canRunStep(int currStep) {
-        return currStep < testcase.getTestSteps().size() && canRun();
+        return currStep < testCase.getTestSteps().size() && canRun();
     }
 
     private boolean canRun() {
@@ -210,6 +217,54 @@ public class TestCaseRunner {
             }
         }
     }
+    
+    /***
+     * Check for end of loops to set breakSubIterationFlag to true.
+     * Applies to dynamic Start Param - End Param blocks.
+     * Execution is based on the occurence of the next data in the test sheet.
+     * This method flags that the last data in the data sheet has been reached.
+     * 
+     * @param testStep
+     * @param currStep
+     * @return
+     *      true  - Reached the last subiteration within a Start Param - End Param pair
+     *      false - Allows the loop to iterate one more time
+     */
+    private boolean checkIfLastData(TestStep testStep, int currStep){
+        //check the next step if it is the end of a loop
+        try {
+            // Read next data if step with data access
+            String data = "";
+            String testInput = testStep.getInput();
+            if(!testInput.startsWith("@") && DataProcessor.isInputPatternDataSheet(testInput)) {
+                String sheet = testStep.getInput().split(":")[0];
+                String dataCol = testStep.getInput().split(":")[1];
+                
+                data = DataAccess.getNextData(this, sheet, dataCol, parameter.getIteration()+"", (this.currentSubIteration)+"");
+            } else {
+                // Step does not access data sheet
+                return false;
+            }
+            if (data==null) {
+                // Execution has reached end of the test data sheet
+                this.breakSubIterationFlag = true;
+            }
+            
+            if (this.breakSubIterationFlag) {
+                // Delay breaking until last step of component
+                if (testCase.getTestSteps().size() <= currStep+1) {
+                    return true;
+                }
+            }
+        } catch (Exception ex){
+            // Exceptions are not applicable since this is a checker method.
+            System.out.println(ex.getMessage());
+        } catch (Throwable ex) {
+            System.out.println(ex.getMessage());
+        }
+        
+        return false;
+    }
 
     private int checkForEndLoop(TestStep testStep, int currStep) {
         if (Parameter.endParamRLoop(testStep.getCondition())) {
@@ -225,7 +280,7 @@ public class TestCaseRunner {
                     stepStack.peek().next();
                 }
             }
-        }
+        } 
         return currStep;
     }
 
@@ -264,15 +319,19 @@ public class TestCaseRunner {
 
     //<editor-fold defaultstate="collapsed" desc="error handling">
     private void onError(Throwable ex) {
-        if (!ex.getMessage().contains("ActionException"))
-          reportOnError(getStepName(), ex.getMessage(), Status.DEBUG);
-        if (exe.isContinueOnError()) {
-            LOG.log(Level.SEVERE, ex.getMessage(), Optional.ofNullable(ex.getCause()).orElse(ex));
+        if (ex.getMessage().contains("Reached the end of data sheet.")){
+            // Do nothing
         } else {
-            if (ex instanceof RuntimeException) {
-                throw new TestFailedException(scenario(), testcase(), ex);
-            }
-            throw new UnCaughtException(ex);
+            if (!ex.getMessage().contains("ActionException"))
+                reportOnError(getStepName(), ex.getMessage(), Status.DEBUG);
+              if (exe.isContinueOnError()) {
+                  LOG.log(Level.SEVERE, ex.getMessage(), Optional.ofNullable(ex.getCause()).orElse(ex));
+              } else {
+                  if (ex instanceof RuntimeException) {
+                      throw new TestFailedException(scenario(), testcase(), ex);
+                  }
+                  throw new UnCaughtException(ex);
+              }
         }
     }
 
@@ -305,6 +364,12 @@ public class TestCaseRunner {
                 System.out.println(ex.toString() + ", Breaking subIteration!!");
                 reportOnError("DataNotFound", ex.toString(), Status.DEBUG);
                 LOG.log(Level.SEVERE, ex.getMessage(), ex);
+            } else if (ex.cause.isEndData()) {
+                /**
+                 * its a dynamic sub-iteration(number of sub-iterations is not
+                 * known in script) and at the end of data so break from it
+                 */
+                System.out.println("Breaking subIteration, End Of Input!!");
             } else {
                 /**
                  * its a dynamic sub-iteration(number of sub-iterations is not
@@ -330,17 +395,23 @@ public class TestCaseRunner {
             throws DriverClosedException, TestFailedException {
         parameter.setIteration(iter);
         setControl(cc);
-        if (testcase != null) {
-            testcase.loadTableModel();
+        if (testCase != null) {
+            testCase.loadTableModel();
             /*
             * caution: breaking the loop will stop the iteration
              */
+            boolean isLastData = false;
             for (int currStep = 0; canRunStep(currStep); currStep++) {
-                TestStep testStep = testcase.getTestSteps().get(currStep);
+                TestStep testStep = testCase.getTestSteps().get(currStep);
+                
+                int testCaseSize = testStep.getTestCase().getTestSteps().size();
+                boolean isLastStep = (testCaseSize <= currStep+1);
+                
                 if (!testStep.isCommented()) {
                     checkForStartLoop(testStep, currStep);
                     try {
                         runStep(testStep);
+                        isLastData = checkIfLastData(testStep, currStep);
                     } catch (DriverClosedException | TestFailedException | UnCaughtException ex) {
                         throw ex;
                     } catch (DataNotFoundException ex) {
@@ -356,7 +427,11 @@ public class TestCaseRunner {
                             /**
                              * error while breaking the execution
                              */
-                            throw new TestFailedException(scenario(), testcase(), ex);
+                            if (ex.cause.isEndData()){
+                                throw new DataNotFoundException("End SubIteration");
+                            } else {
+                                throw new TestFailedException(scenario(), testcase(), ex);
+                            }
                         }
                     } catch (ForcedException | ElementException ex) {
                         onRuntimeException(ex);
@@ -365,7 +440,21 @@ public class TestCaseRunner {
                     } catch (Throwable ex) {
                         onError(ex);
                     }
-                    currStep = checkForEndLoop(testStep, currStep);
+                    
+                    if (isLastStep && this.breakSubIterationFlag){
+                        DataNotFoundException dnfe = new DataNotFoundException("Reached the end of data sheet.");
+                        CauseInfo causeInfo = dnfe.new CauseInfo(Cause.EndOfDataSheet, "Reached the end of data sheet.");
+                        dnfe.cause = causeInfo;
+                        this.breakSubIterationFlag = false;
+                        if (this.stepStack.empty()){
+                            // Normal flow
+                            currStep = checkForEndLoop(testStep, currStep);
+                            continue;
+                        }
+                        throw dnfe;
+                    } else {
+                        currStep = checkForEndLoop(testStep, currStep);
+                    }
                 }
             }
         }
@@ -382,19 +471,19 @@ public class TestCaseRunner {
         return -1;
     }
 
-    public void run() throws DataNotFoundException, DriverClosedException {
+    public void run() throws DriverClosedException {
         run(createControl(this), parameter.getIteration());
     }
 
-    public void run(CommandControl cc) throws DataNotFoundException, DriverClosedException {
+    public void run(CommandControl cc) throws DriverClosedException {
         run(cc, parameter.getIteration());
     }
 
-    private void runStep(TestStep testStep) throws DataNotFoundException, DriverClosedException, Throwable {
-        new TestStepRunner(testStep, resolveParam()).run(this);
-    }
+    private void runStep(TestStep testStep) throws DriverClosedException, Throwable {
+            new TestStepRunner(testStep, resolveParam()).run(this);
+        }
 
-    public void runStep(Step step, int subIter) throws DataNotFoundException, DriverClosedException {
+    public void runStep(Step step, int subIter) throws DriverClosedException {
         Parameter param = new Parameter();
         param.setIteration(this.parameter.getIteration());
         param.setSubIteration(subIter);
@@ -452,7 +541,7 @@ public class TestCaseRunner {
 //</editor-fold>
     @Override
     public String toString() {
-        return String.format("[%s:%s] [%s] [%s]", testcase.getScenario(), testcase,
+        return String.format("[%s:%s] [%s] [%s]", testCase.getScenario(), testCase,
                 parameter, getRoot().iterater);
     }
 

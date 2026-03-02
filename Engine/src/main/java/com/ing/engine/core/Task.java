@@ -23,6 +23,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import com.ing.engine.drivers.WebDriverCreation;
+import com.ing.engine.execution.exception.data.DataNotFoundException;
 import java.util.Locale;
 import org.openqa.selenium.JavascriptExecutor;
 
@@ -146,6 +147,11 @@ public class Task implements Runnable {
             SystemDefaults.stopCurrentIteration.set(false);
             runner.run(createControl(), iter);
             success = true;
+        } catch (DataNotFoundException ex) {
+            if (!ex.cause.isEndData()){
+                LOG.log(Level.SEVERE, ex.getMessage(), ex);
+                report.updateTestLog("DataNotFoundException", ex.getMessage(), Status.DEBUG);
+            }
         } catch (DriverClosedException ex) {
             LOG.log(Level.SEVERE, ex.getMessage(), ex);
             report.updateTestLog("DriverClosedException", ex.getMessage(), Status.FAILNS);

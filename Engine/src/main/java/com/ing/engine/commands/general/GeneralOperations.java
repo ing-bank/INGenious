@@ -376,7 +376,7 @@ public class GeneralOperations extends General {
      *     <li>{@code %PreviousSubIteration%}</li>
      * </ul>
      */
-    @Action(object = ObjectType.GENERAL, desc = "Rest Required Variables for storeDataFromPreviousTestCaseData action", input = InputType.OPTIONAL)
+    @Action(object = ObjectType.GENERAL, desc = "Reset Required Variables for storeDataFromPreviousTestCaseData action", input = InputType.OPTIONAL)
     public void resetPreviousTestCaseDataVariables() {
         // Reset Variables
         addVar("%PreviousScenario%", null);

@@ -1,0 +1,9 @@
+Step,ObjectName,Description,Action,Input,Condition,Reference
+1,General,Open the Url [<Data>] in the Browser,AddVar,MingGUILogin:URL,%baseURL%,
+2,General,Open the Url [<Data>] in the Browser,AddVar,MingGUILogin:Profile Id,%profileID%,
+3,General,Open the Url [<Data>] in the Browser,AddVar,MingGUILogin:Person Id,%personID%,
+4,General,Open the Url [<Data>] in the Browser,AddVar,MingGUILogin:Level of assurance,%loa%,
+5,General,Open the Url [<Data>] in the Browser,AddVar,MingGUILogin:Redirect Url,%redirectURL%,
+6,General,"Click the [<Object>] ",AddVar,"=Concat(%baseURL%,?profileId=,%profileID%,&personId=,%personID%,&loa=,%loa%,&redirectUrl=,%redirectURL%,&autoSubmit=true):",%finalURL%,
+7,Browser,Open the Url [<Data>] in the Browser,Open,%finalURL%,,
+8,Log out,Assert if [<Object>] is visible,assertElementIsVisible,,,MING_Login
