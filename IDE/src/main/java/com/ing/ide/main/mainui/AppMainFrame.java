@@ -175,7 +175,11 @@ public class AppMainFrame extends JFrame {
         addWindowListener(new WindowAdapter() {
             @Override
             public void windowClosing(WindowEvent we) {
-                if (iCanQuit()) {
+                if (iCanQuit()) {                    
+                    // Close StoryWriter editor if open
+                    if (sActionListener != null) {
+                        sActionListener.closeBddEditorIfOpen();
+                    }
                     setDefaultCloseOperation(AppMainFrame.EXIT_ON_CLOSE);
                     dispose();
                     if (quitType == QUIT_TYPE.RESTART) {

@@ -319,6 +319,15 @@ public class AppActionListener implements ActionListener {
 
     private void doRefresh() {
         MethodInfoManager.load();
+    }      
+      
+    /**
+     * Closes the BDD editor (StoryWriter) if it is open.
+     */
+    public void closeBddEditorIfOpen() {
+        if (bddParser != null) {
+            bddParser.closeEditor();
+        }
     }
 
 }

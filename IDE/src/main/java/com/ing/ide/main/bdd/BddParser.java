@@ -43,6 +43,9 @@ import java.util.stream.Stream;
  */
 public class BddParser {
 
+    // Track the StoryWriter process
+    private Process storyWriterProcess = null;
+
     private final static Parser<GherkinDocument> GHERKIN_PARSER = new Parser<>(new AstBuilder());
 
     private final AppMainFrame sMainFrame;
@@ -280,14 +283,33 @@ public class BddParser {
     }
 
     public void openEditor() {
-        Stream.of(new File("Tools").listFiles()).filter((File f) -> f.getName().toLowerCase().contains("storywriter"))
-                .findFirst().ifPresent((File sw) -> {
-                    try {
-                        Runtime.getRuntime().exec("java -jar  Tools/" + sw.getName());
-                    } catch (Exception ex) {
-                        Logger.getLogger(BddParser.class.getName()).log(Level.SEVERE, null, ex);
+        Stream.of(new File("Tools").listFiles())
+            .filter((File f) -> f.getName().toLowerCase().contains("storywriter"))
+            .findFirst().ifPresent((File sw) -> {
+                try {
+                    // If already running, do not launch again
+                    if (storyWriterProcess == null || !storyWriterProcess.isAlive()) {
+                        storyWriterProcess = Runtime.getRuntime().exec("java -jar  Tools/" + sw.getName());
                     }
-                });
+                } catch (Exception ex) {
+                    Logger.getLogger(BddParser.class.getName()).log(Level.SEVERE, null, ex);
+                }
+            });
+    }
+    
+    /**
+     * Terminates the StoryWriter process if running.
+     */
+    public void closeEditor() {
+        if (storyWriterProcess != null && storyWriterProcess.isAlive()) {
+            storyWriterProcess.destroy();
+            try {
+                storyWriterProcess.waitFor();
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
+        }
+        storyWriterProcess = null;
     }
 
 }
