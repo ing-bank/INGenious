@@ -2,9 +2,9 @@ package com.ing.engine.commands.mobile;
 
 import com.ing.engine.constants.SystemDefaults;
 import com.ing.engine.core.CommandControl;
-import com.ing.engine.execution.exception.ForcedException;
-import com.ing.engine.execution.exception.element.ElementException;
-import com.ing.engine.execution.exception.element.ElementException.ExceptionType;
+import com.ing.ingenious.api.exception.ForcedException;
+import com.ing.ingenious.api.exception.mobile.ElementException;
+import com.ing.ingenious.api.exception.mobile.ElementException.ExceptionType;
 import com.ing.ingenious.api.status.Status;
 import com.ing.ingenious.api.annotation.Action;
 import com.ing.ingenious.api.types.InputType;

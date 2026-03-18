@@ -33,8 +33,10 @@ public class PluginClassLoader extends URLClassLoader {
      */
     private static final String[] PARENT_FIRST_PACKAGES = {
         "com.microsoft.playwright.",     // Playwright
-        "com.ing.ingenious.api.",        // Your API
+        "com.ing.ingenious.api.",        // INGenious API
         "com.ing.engine.",               // Engine
+        "io.appium.java_client.",        // Appium - used by mobile
+        "org.openqa.selenium.",          // Selenium - used by mobile
         "java.",                         // Java standard
         "javax."
     };

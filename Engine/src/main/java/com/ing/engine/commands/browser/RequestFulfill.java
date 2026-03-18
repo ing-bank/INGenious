@@ -15,7 +15,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import com.ing.engine.core.CommandControl;
 import com.ing.engine.core.Control;
-import com.ing.engine.execution.exception.ActionException;
+import com.ing.ingenious.api.exception.ActionException;
 import java.io.FileNotFoundException;
 import java.util.Collection;
 

@@ -11,7 +11,7 @@ import java.util.Properties;
  * Interface for general database operations in INGenious.
  * Provides methods for database connection, query execution, result handling, and assertions.
  */
-public interface GeneralDbApi extends CommandApi {
+public interface DatabasePluginApi extends CommandPluginApi {
 
     /**
      * Gets the current database connection.

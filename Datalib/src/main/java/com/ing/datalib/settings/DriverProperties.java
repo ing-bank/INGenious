@@ -471,6 +471,30 @@ public class DriverProperties extends LinkedProperties {
     public String getKeyStorePassword() {
         return apiConfigFilePropMap.get(currLoadedAPIConfig).getProperty("keyStorePassword", "");
     }
+    
+    /**
+     * Retrieves a property value from the currently loaded API configuration.
+     * <p>
+     * This method dynamically retrieves properties based on the current API config context
+     * that was set by calling {@code setCurrLoadedAPIConfig()}. This is typically set when
+     * {@code setEndPoint} is called with an API config alias.
+     * <p>
+     * If no API configuration is currently loaded (e.g., during browser testing),
+     * this method falls back to standard property access from the parent class.
+     * <p>
+     * If the property is not found, an empty string is returned.
+     *
+     * @param propertyKey the key of the property to retrieve (e.g., "keyStorePath", "customProperty")
+     * @return the property value from the current API config, or from standard properties if no API config is loaded
+     */
+    public String getAPIConfigProperty(String propertyKey) {
+        // If API config context is set, use it (for webservice testing)
+        if (currLoadedAPIConfig != null && apiConfigFilePropMap.containsKey(currLoadedAPIConfig)) {
+            return apiConfigFilePropMap.get(currLoadedAPIConfig).getProperty(propertyKey, "");
+        }
+        // Otherwise fall back to standard property access (for browser testing, etc.)
+        return super.getProperty(propertyKey, "");
+    }
 
     /**
      * Retrieves the configured HTTP redirect policy for the currently loaded API configuration.

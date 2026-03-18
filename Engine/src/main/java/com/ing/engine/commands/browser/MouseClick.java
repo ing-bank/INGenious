@@ -6,7 +6,7 @@ import com.ing.ingenious.api.annotation.Action;
 import com.ing.ingenious.api.types.InputType;
 import com.ing.ingenious.api.types.ObjectType;
 import com.microsoft.playwright.Locator;
-import com.ing.engine.execution.exception.ActionException;
+import com.ing.ingenious.api.exception.ActionException;
 import com.microsoft.playwright.PlaywrightException;
 import com.microsoft.playwright.options.KeyboardModifier;
 import com.microsoft.playwright.options.MouseButton;

@@ -13,6 +13,7 @@ import com.ing.engine.constants.SystemDefaults;
 import com.ing.engine.core.Control;
 import com.ing.engine.drivers.findObjectBy.support.ByObjectProp;
 import com.ing.engine.core.CommandControl;
+import com.ing.ingenious.api.contract.drivers.MobileObjectApi;
 import io.appium.java_client.android.AndroidDriver;
 import java.time.Duration;
 
@@ -21,6 +22,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import org.openqa.selenium.By;
 import org.openqa.selenium.SearchContext;
@@ -36,7 +38,7 @@ import org.openqa.selenium.support.ui.ExpectedConditions;
 import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
-public class MobileObject {
+public class MobileObject implements MobileObjectApi {
 
     public MobileObject(CommandControl cc) {
         super();
@@ -46,25 +48,12 @@ public class MobileObject {
 
     String pageName;
     String objectName;
-    FindmType findType;
+    MobileObjectApi.FindmType findType;
     private Duration waitTime;
 
     public static HashMap<String, Map<String, Map<String, String>>> dynamicValue = new HashMap<>();
     public static HashMap<String, String> globalDynamicValue = new HashMap<>();
     public static String Action = "";
-
-    public enum FindmType {
-        GLOBAL_OBJECT, DEFAULT;
-
-        public static FindmType fromString(String val) {
-            switch (val.toLowerCase()) {
-                case "globalobject":
-                    return GLOBAL_OBJECT;
-                default:
-                    return DEFAULT;
-            }
-        }
-    }
 
     public MobileObject() {
     }
@@ -80,7 +69,7 @@ public class MobileObject {
      * @return
      */
     public WebElement findElement(String objectKey, String pageKey) {
-        WebElement e = findElement(objectKey, pageKey, FindmType.DEFAULT);
+        WebElement e = findElement(objectKey, pageKey, MobileObjectApi.FindmType.DEFAULT);
         return e;
     }
 
@@ -96,34 +85,34 @@ public class MobileObject {
     }
 
     public WebElement findElement(SearchContext element, String objectKey, String pageKey) {
-        return findElement(element, objectKey, pageKey, FindmType.DEFAULT);
+        return findElement(element, objectKey, pageKey, MobileObjectApi.FindmType.DEFAULT);
     }
 
     public WebElement findElement(String objectKey, String pageKey, String Attribute) {
-        return findElement(objectKey, pageKey, Attribute, FindmType.DEFAULT);
+        return findElement(objectKey, pageKey, Attribute, MobileObjectApi.FindmType.DEFAULT);
     }
 
     public WebElement findElement(SearchContext element, String objectKey, String pageKey, String Attribute) {
-        return findElement(element, objectKey, pageKey, Attribute, FindmType.DEFAULT);
+        return findElement(element, objectKey, pageKey, Attribute, MobileObjectApi.FindmType.DEFAULT);
     }
 
-    public WebElement findElement(String objectKey, String pageKey, FindmType condition) {
+    public WebElement findElement(String objectKey, String pageKey, MobileObjectApi.FindmType condition) {
         return findElement(driver, objectKey, pageKey, condition);
     }
 
-    public WebElement findElement(SearchContext element, String objectKey, String pageKey, FindmType condition) {
+    public WebElement findElement(SearchContext element, String objectKey, String pageKey, MobileObjectApi.FindmType condition) {
         pageName = pageKey;
         objectName = objectKey;
         findType = condition;
         return getElementFromList(findElements(element, getORObject(pageKey, objectKey), null));
     }
 
-    public WebElement findElement(String objectKey, String pageKey, String Attribute, FindmType condition) {
+    public WebElement findElement(String objectKey, String pageKey, String Attribute, MobileObjectApi.FindmType condition) {
         return findElement(driver, objectKey, pageKey, Attribute, condition);
     }
 
     public WebElement findElement(SearchContext element, String objectKey, String pageKey, String Attribute,
-            FindmType condition) {
+            MobileObjectApi.FindmType condition) {
         pageName = pageKey;
         objectName = objectKey;
         findType = condition;
@@ -131,30 +120,30 @@ public class MobileObject {
     }
 
     public List<WebElement> findElements(String objectKey, String pageKey) {
-        return findElements(objectKey, pageKey, FindmType.DEFAULT);
+        return findElements(objectKey, pageKey, MobileObjectApi.FindmType.DEFAULT);
     }
 
     public List<WebElement> findElements(String objectKey, String pageKey, String Attribute) {
-        return findElements(objectKey, pageKey, Attribute, FindmType.DEFAULT);
+        return findElements(objectKey, pageKey, Attribute, MobileObjectApi.FindmType.DEFAULT);
     }
 
-    public List<WebElement> findElements(String objectKey, String pageKey, FindmType condition) {
+    public List<WebElement> findElements(String objectKey, String pageKey, MobileObjectApi.FindmType condition) {
         return findElements(driver, objectKey, pageKey, condition);
     }
 
-    public List<WebElement> findElements(String objectKey, String pageKey, String Attribute, FindmType condition) {
+    public List<WebElement> findElements(String objectKey, String pageKey, String Attribute, MobileObjectApi.FindmType condition) {
         return findElements(driver, objectKey, pageKey, Attribute, condition);
     }
 
     public List<WebElement> findElements(SearchContext element, String objectKey, String pageKey) {
-        return findElements(element, objectKey, pageKey, FindmType.DEFAULT);
+        return findElements(element, objectKey, pageKey, MobileObjectApi.FindmType.DEFAULT);
     }
 
     public List<WebElement> findElements(SearchContext element, String objectKey, String pageKey, String Attribute) {
-        return findElements(element, objectKey, pageKey, Attribute, FindmType.DEFAULT);
+        return findElements(element, objectKey, pageKey, Attribute, MobileObjectApi.FindmType.DEFAULT);
     }
 
-    public List<WebElement> findElements(SearchContext element, String objectKey, String pageKey, FindmType condition) {
+    public List<WebElement> findElements(SearchContext element, String objectKey, String pageKey, MobileObjectApi.FindmType condition) {
         pageName = pageKey;
         objectName = objectKey;
         findType = condition;
@@ -162,7 +151,7 @@ public class MobileObject {
     }
 
     public List<WebElement> findElements(SearchContext element, String objectKey, String pageKey, String Attribute,
-            FindmType condition) {
+            MobileObjectApi.FindmType condition) {
         pageName = pageKey;
         objectName = objectKey;
         findType = condition;
@@ -398,7 +387,7 @@ public class MobileObject {
     }
 
     private String getRuntimeValue(String value) {
-        if (findType != null && findType.equals(FindmType.GLOBAL_OBJECT)) {
+        if (findType != null && findType.equals(MobileObjectApi.FindmType.GLOBAL_OBJECT)) {
             for (String Key : globalDynamicValue.keySet()) {
                 value = value.replace(Key, globalDynamicValue.get(Key));
             }
@@ -737,4 +726,237 @@ public class MobileObject {
         }
         return minKey;
     }
+
+    // ===== API Interface Implementations (Object type wrappers) =====
+    
+    /**
+     * Sets the WebDriver instance for this mobile object.
+     * <p>
+     * <b>API-Plugin Contract:</b> Required by {@link MobileObjectApi}. The argument is provided as Object for type erasure; cast to {@link WebDriver} or {@link AndroidDriver} when calling framework methods.
+     * </p>
+     * @param driver the WebDriver/AndroidDriver instance (as Object, must be cast to appropriate type)
+     */
+    @Override
+    public void setDriver(Object driver) {
+        if (driver instanceof AndroidDriver) {
+            setDriver((AndroidDriver) driver);
+        } else if (driver instanceof WebDriver) {
+            this.driver = (WebDriver) driver;
+        }
+    }
+    
+    /**
+     * Find element - API wrapper returning Object
+     * @param element SearchContext as Object
+     * @param objectKey Object name in OR
+     * @param pageKey Page name in OR
+     * @return WebElement as Object
+     */
+    @Override
+    public Object findElement(Object element, String objectKey, String pageKey) {
+        return findElement((SearchContext) element, objectKey, pageKey);
+    }
+    
+    /**
+     * Find element with attribute - API wrapper returning Object
+     * @param element SearchContext as Object
+     * @param objectKey Object name in OR
+     * @param pageKey Page name in OR
+     * @param attribute Specific attribute
+     * @return WebElement as Object
+     */
+    @Override
+    public Object findElement(Object element, String objectKey, String pageKey, String attribute) {
+        return findElement((SearchContext) element, objectKey, pageKey, attribute);
+    }
+    
+    /**
+     * Find element with condition - API wrapper returning Object
+     * @param element SearchContext as Object
+     * @param objectKey Object name in OR
+     * @param pageKey Page name in OR
+     * @param condition FindmType condition
+     * @return WebElement as Object
+     */
+    @Override
+    public Object findElement(Object element, String objectKey, String pageKey, MobileObjectApi.FindmType condition) {
+        return findElement((SearchContext) element, objectKey, pageKey, condition);
+    }
+    
+    /**
+     * Find element with attribute and condition - API wrapper returning Object
+     * @param element SearchContext as Object
+     * @param objectKey Object name in OR
+     * @param pageKey Page name in OR
+     * @param attribute Specific attribute
+     * @param condition FindmType condition
+     * @return WebElement as Object
+     */
+    @Override
+    public Object findElement(Object element, String objectKey, String pageKey, String attribute, MobileObjectApi.FindmType condition) {
+        return findElement((SearchContext) element, objectKey, pageKey, attribute, condition);
+    }
+    
+    /**
+     * Find elements list - API wrapper returning List<Object>
+     * <p>
+     * <b>Note:</b> Different method name from internal findElements() to comply with Java generics invariance.
+     * </p>
+     * @param objectKey Object name in OR
+     * @param pageKey Page name in OR
+     * @return List of WebElements as List<Object>
+     */
+    @Override
+    public List<Object> findElementsList(String objectKey, String pageKey) {
+        return new ArrayList<>(findElements(objectKey, pageKey));
+    }
+    
+    /**
+     * Find elements list with attribute - API wrapper returning List<Object>
+     * @param objectKey Object name in OR
+     * @param pageKey Page name in OR
+     * @param attribute Specific attribute
+     * @return List of WebElements as List<Object>
+     */
+    @Override
+    public List<Object> findElementsList(String objectKey, String pageKey, String attribute) {
+        return new ArrayList<>(findElements(objectKey, pageKey, attribute));
+    }
+    
+    /**
+     * Find elements list with condition - API wrapper returning List<Object>
+     * @param objectKey Object name in OR
+     * @param pageKey Page name in OR
+     * @param condition FindmType condition
+     * @return List of WebElements as List<Object>
+     */
+    @Override
+    public List<Object> findElementsList(String objectKey, String pageKey, MobileObjectApi.FindmType condition) {
+        return new ArrayList<>(findElements(objectKey, pageKey, condition));
+    }
+    
+    /**
+     * Find elements list with attribute and condition - API wrapper returning List<Object>
+     * @param objectKey Object name in OR
+     * @param pageKey Page name in OR
+     * @param attribute Specific attribute
+     * @param condition FindmType condition
+     * @return List of WebElements as List<Object>
+     */
+    @Override
+    public List<Object> findElementsList(String objectKey, String pageKey, String attribute, MobileObjectApi.FindmType condition) {
+        return new ArrayList<>(findElements(objectKey, pageKey, attribute, condition));
+    }
+    
+    /**
+     * Find elements list with SearchContext - API wrapper returning List<Object>
+     * @param element SearchContext as Object
+     * @param objectKey Object name in OR
+     * @param pageKey Page name in OR
+     * @return List of WebElements as List<Object>
+     */
+    @Override
+    public List<Object> findElementsList(Object element, String objectKey, String pageKey) {
+        return new ArrayList<>(findElements((SearchContext) element, objectKey, pageKey));
+    }
+    
+    /**
+     * Find elements list with SearchContext and attribute - API wrapper returning List<Object>
+     * @param element SearchContext as Object
+     * @param objectKey Object name in OR
+     * @param pageKey Page name in OR
+     * @param attribute Specific attribute
+     * @return List of WebElements as List<Object>
+     */
+    @Override
+    public List<Object> findElementsList(Object element, String objectKey, String pageKey, String attribute) {
+        return new ArrayList<>(findElements((SearchContext) element, objectKey, pageKey, attribute));
+    }
+    
+    /**
+     * Find elements list with SearchContext and condition - API wrapper returning List<Object>
+     * @param element SearchContext as Object
+     * @param objectKey Object name in OR
+     * @param pageKey Page name in OR
+     * @param condition FindmType condition
+     * @return List of WebElements as List<Object>
+     */
+    @Override
+    public List<Object> findElementsList(Object element, String objectKey, String pageKey, MobileObjectApi.FindmType condition) {
+        return new ArrayList<>(findElements((SearchContext) element, objectKey, pageKey, condition));
+    }
+    
+    /**
+     * Find elements list with SearchContext, attribute and condition - API wrapper returning List<Object>
+     * @param element SearchContext as Object
+     * @param objectKey Object name in OR
+     * @param pageKey Page name in OR
+     * @param attribute Specific attribute
+     * @param condition FindmType condition
+     * @return List of WebElements as List<Object>
+     */
+    @Override
+    public List<Object> findElementsList(Object element, String objectKey, String pageKey, String attribute, MobileObjectApi.FindmType condition) {
+        return new ArrayList<>(findElements((SearchContext) element, objectKey, pageKey, attribute, condition));
+    }
+    
+    /**
+     * Find all elements from page - API wrapper returning Map<String, Object>
+     * @param page Page name in OR
+     * @return Map of object names to WebElements as Objects
+     */
+    @Override
+    public Map<String, Object> findAllElementsFromPageMap(String page) {
+        return new HashMap<>(findAllElementsFromPage(page));
+    }
+    
+    /**
+     * Find elements by regex - API wrapper returning Map<String, Object>
+     * @param regexObject Regex pattern for object names
+     * @param page Page name in OR
+     * @return Map of object names to WebElements as Objects
+     */
+    @Override
+    public Map<String, Object> findElementsByRegexMap(String regexObject, String page) {
+        return new HashMap<>(findElementsByRegex(regexObject, page));
+    }
+    
+    /**
+     * Store element details in OR - API wrapper accepting Object for attributes list
+     * @param attributes List of ORAttribute as Object
+     * @param attribute Attribute name
+     * @param value New value
+     */
+    @Override
+    @SuppressWarnings("unchecked")
+    public void storeElementDetailsinOR(Object attributes, String attribute, String value) {
+        storeElementDetailsinOR((List<ORAttribute>) attributes, attribute, value);
+    }
+    
+    /**
+     * Get attribute value - API wrapper accepting Object for attributes list
+     * @param attributes List of ORAttribute as Object
+     * @param attribute Attribute name to retrieve
+     * @return Attribute value
+     */
+    @Override
+    @SuppressWarnings("unchecked")
+    public String getAttributeValue(Object attributes, String attribute) {
+        return getAttributeValue((List<ORAttribute>) attributes, attribute);
+    }
+    
+    /**
+     * NLP located element list - API wrapper returning List<Object>
+     * @param attributes List of ORAttribute as Object
+     * @param action Action type
+     * @param text NLP text description
+     * @return List of WebElements as List<Object>
+     */
+    @Override
+    @SuppressWarnings("unchecked")
+    public List<Object> NLP_located_elementList(Object attributes, String action, String text) {
+        List<WebElement> elements = NLP_located_element((List<ORAttribute>) attributes, action, text);
+        return elements != null ? new ArrayList<>(elements) : null;
+    }
+
 }

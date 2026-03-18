@@ -3,7 +3,7 @@ package com.ing.engine.commands.browser;
 
 import com.ing.engine.core.CommandControl;
 import com.ing.engine.core.Control;
-import com.ing.engine.execution.exception.ActionException;
+import com.ing.ingenious.api.exception.ActionException;
 import com.ing.engine.reporting.TestCaseReport;
 import com.ing.engine.reporting.performance.PerformanceTimings;
 import com.ing.engine.reporting.performance.ResourceTimings;

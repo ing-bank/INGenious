@@ -1,14 +1,19 @@
-
-package com.ing.engine.execution.exception.element;
+package com.ing.ingenious.api.exception.mobile;
 
 /**
- *
+ * Exception thrown when element operations fail in mobile or web automation.
+ * This is a framework exception with zero vendor dependencies, making it safe
+ * for use in the API module and by plugin developers.
  * 
+ * @since 3.0
  */
 public class ElementException extends RuntimeException {
 
     private static final long serialVersionUID = 1L;
 
+    /**
+     * Types of element exceptions that can occur during automation.
+     */
     public enum ExceptionType {
 
         Element_Not_Found,
@@ -36,10 +41,15 @@ public class ElementException extends RuntimeException {
             }
             return "";
         }
-    };
+    }
 
-    public ElementException(ExceptionType type,
-            String objectName) {
+    /**
+     * Creates a new ElementException with the specified type and object name.
+     * 
+     * @param type the exception type
+     * @param objectName the name of the element that caused the exception
+     */
+    public ElementException(ExceptionType type, String objectName) {
         super(type.toString().replace("{{Name}}", objectName));
     }
 }

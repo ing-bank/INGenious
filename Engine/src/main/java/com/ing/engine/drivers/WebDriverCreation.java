@@ -11,6 +11,7 @@ import com.ing.engine.execution.exception.DriverClosedException;
 import com.ing.engine.execution.exception.UnCaughtException;
 import com.ing.engine.drivers.customWebDriver.EmptyDriver;
 import com.ing.engine.execution.exception.AppiumDriverException;
+import com.ing.ingenious.api.contract.drivers.MobileDriverControlApi;
 import java.io.File;
 import java.io.IOException;
 import java.util.logging.Level;
@@ -27,7 +28,7 @@ import ru.yandex.qatools.ashot.Screenshot;
 import ru.yandex.qatools.ashot.shooting.ShootingStrategies;
 import ru.yandex.qatools.ashot.shooting.ShootingStrategy;
 
-public class WebDriverCreation {
+public class WebDriverCreation implements MobileDriverControlApi {
 
     protected RunContext runContext;
     public WebDriver driver;
@@ -219,5 +220,34 @@ public class WebDriverCreation {
     
     public RunContext getRunContext() {
         return runContext;
+    }
+    
+    // ===== API Interface Implementations (Object type wrappers) =====
+    
+    /**
+     * Gets the WebDriver instance exposed as Object.
+     * <p>
+     * <b>API-Plugin Contract:</b> Required by {@link MobileDriverControlApi}. 
+     * The returned Object should be cast to {@link WebDriver}, {@link AndroidDriver}, or {@link IOSDriver}.
+     * </p>
+     * @return the current WebDriver instance as Object
+     */
+    @Override
+    public Object getDriver() {
+        return driver;
+    }
+    
+    /**
+     * Launches the driver with the specified context (API wrapper).
+     * <p>
+     * <b>API-Plugin Contract:</b> Required by {@link MobileDriverControlApi}. 
+     * The argument is provided as Object for type erasure; cast to {@link RunContext} when calling framework methods.
+     * </p>
+     * @param context RunContext instance as Object, must be cast to {@link RunContext}
+     * @throws Exception if driver initialization fails
+     */
+    @Override
+    public void launchDriver(Object context) throws Exception {
+        launchDriver((RunContext) context);
     }
 }

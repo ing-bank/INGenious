@@ -1,7 +1,7 @@
 
 package com.ing.engine.core;
 
-import com.ing.ingenious.api.contract.drivers.AutomationObjectApi.FindType;
+import com.ing.ingenious.api.contract.drivers.AutomationObjectApi;
 import com.ing.datalib.or.common.ObjectGroup;
 import com.ing.datalib.or.image.ImageORObject;
 import com.ing.datalib.settings.DriverSettings;
@@ -24,7 +24,7 @@ import java.util.Stack;
 //Added For Mobile
 import com.ing.engine.drivers.WebDriverCreation;
 import com.ing.engine.drivers.MobileObject;
-import com.ing.engine.drivers.MobileObject.FindmType;
+import com.ing.ingenious.api.contract.drivers.MobileObjectApi;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -115,7 +115,7 @@ public abstract class CommandControl {
                 if (!curr.Action.startsWith("img")) {
                     if (canIFindElement()) {
                         
-                        Locator = AObject.findElement(ObjectName, Reference, FindType.fromString(Condition));
+                        Locator = AObject.findElement(ObjectName, Reference, AutomationObjectApi.FindType.fromString(Condition));
                         
                     }
                 }
@@ -146,7 +146,7 @@ public abstract class CommandControl {
                 this.Reference = curr.Reference;
                 if (!curr.Action.startsWith("img")) {
                     if (canIFindElement()) {
-                        Element = MObject.findElement(ObjectName, Reference, FindmType.fromString(Condition));
+                        Element = MObject.findElement(ObjectName, Reference, MobileObjectApi.FindmType.fromString(Condition));
 
 
                     }

@@ -1,21 +1,15 @@
 package com.ing.engine.commands.webservice;
 
 import com.ing.datalib.settings.DriverProperties;
-import com.ing.engine.commands.browser.General;
-import com.ing.engine.constants.FilePath;
 import com.ing.engine.core.CommandControl;
 import com.ing.engine.core.Control;
-import com.ing.engine.execution.exception.ActionException;
 import com.ing.ingenious.api.status.Status;
 import com.ing.ingenious.api.annotation.Action;
 import com.ing.ingenious.api.types.InputType;
 import com.ing.ingenious.api.types.ObjectType;
+import com.ing.ingenious.api.types.RequestMethod;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.net.InetSocketAddress;
-import java.net.ProxySelector;
-import java.net.URI;
-import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.Collection;
@@ -25,8 +19,6 @@ import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathFactory;
 import com.jayway.jsonpath.*;
-import java.io.FileInputStream;
-import java.io.FileWriter;
 import java.util.ArrayList;
 import java.util.List;
 import org.w3c.dom.Document;
@@ -53,13 +45,11 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import java.util.stream.Collectors;
-import javax.net.ssl.KeyManager;
-import javax.net.ssl.KeyManagerFactory;
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.TrustManager;
-import javax.net.ssl.TrustManagerFactory;
-import javax.net.ssl.X509TrustManager;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.xpath.XPath;
+import javax.xml.xpath.XPathConstants;
+import javax.xml.xpath.XPathFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import javax.xml.xpath.XPathExpressionException;
 import org.json.simple.JSONArray;
@@ -88,15 +78,6 @@ public class Webservice extends General {
         super(cc);
     }
 
-    public enum RequestMethod {
-        POST,
-        PUT,
-        PATCH,
-        GET,
-        DELETE,
-        DELETEWITHPAYLOAD
-    }
-
     /**
      * Sends a PUT HTTP request to the configured endpoint with the specified payload.
      * <p>
@@ -112,7 +93,7 @@ public class Webservice extends General {
     @Action(object = ObjectType.WEBSERVICE, desc = "PUT Rest Request ", input = InputType.YES, condition = InputType.OPTIONAL)
     public void putRestRequest() {
         try {
-            createhttpRequest(RequestMethod.PUT);
+            createHttpRequest(RequestMethod.PUT);
         } catch (Exception e) {
             Report.updateTestLog(Action,
                     "An unexpected error occurred while executing the request : " + "\n" + e.getMessage(),
@@ -135,7 +116,7 @@ public class Webservice extends General {
     @Action(object = ObjectType.WEBSERVICE, desc = "POST Rest Request ", input = InputType.YES, condition = InputType.OPTIONAL)
     public void postRestRequest() {
         try {
-            createhttpRequest(RequestMethod.POST);
+            createHttpRequest(RequestMethod.POST);
         } catch (Exception e) {
             Report.updateTestLog(Action,
                     "An unexpected error occurred while executing the request : " + "\n" + e.getMessage(),
@@ -158,7 +139,7 @@ public class Webservice extends General {
     @Action(object = ObjectType.WEBSERVICE, desc = "POST SOAP Request ", input = InputType.YES, condition = InputType.OPTIONAL)
     public void postSoapRequest() {
         try {
-            createhttpRequest(RequestMethod.POST);
+            createHttpRequest(RequestMethod.POST);
         } catch (Exception e) {
             Report.updateTestLog(Action,
                     "An unexpected error occurred while executing the request : " + "\n" + e.getMessage(),
@@ -181,7 +162,7 @@ public class Webservice extends General {
     @Action(object = ObjectType.WEBSERVICE, desc = "PATCH Rest Request ", input = InputType.YES, condition = InputType.OPTIONAL)
     public void patchRestRequest() {
         try {
-            createhttpRequest(RequestMethod.PATCH);
+            createHttpRequest(RequestMethod.PATCH);
         } catch (Exception e) {
             Report.updateTestLog(Action,
                     "An unexpected error occurred while executing the request : " + "\n" + e.getMessage(),
@@ -204,7 +185,7 @@ public class Webservice extends General {
     @Action(object = ObjectType.WEBSERVICE, desc = "GET Rest Request ", input = InputType.NO, condition = InputType.OPTIONAL)
     public void getRestRequest() {
         try {
-            createhttpRequest(RequestMethod.GET);
+            createHttpRequest(RequestMethod.GET);
         } catch (Exception e) {
             Report.updateTestLog(Action,
                     "An unexpected error occurred while executing the request : " + "\n" + e.getMessage(),
@@ -225,7 +206,7 @@ public class Webservice extends General {
     @Action(object = ObjectType.WEBSERVICE, desc = "DELETE Rest Request ", input = InputType.NO)
     public void deleteRestRequest() {
         try {
-            createhttpRequest(RequestMethod.DELETE);
+            createHttpRequest(RequestMethod.DELETE);
         } catch (Exception e) {
             Report.updateTestLog(Action,
                     "An unexpected error occurred while executing the request : " + "\n" + e.getMessage(),
@@ -247,7 +228,7 @@ public class Webservice extends General {
     @Action(object = ObjectType.WEBSERVICE, desc = "DELETE with Payload ", input = InputType.YES)
     public void deleteWithPayload() {
         try {
-            createhttpRequest(RequestMethod.DELETEWITHPAYLOAD);
+            createHttpRequest(RequestMethod.DELETEWITHPAYLOAD);
         } catch (Exception e) {
             Report.updateTestLog(Action,
                     "An unexpected error occurred while executing the request : " + "\n" + e.getMessage(),
@@ -663,37 +644,6 @@ public class Webservice extends General {
             Logger.getLogger(this.getClass().getName()).log(Level.OFF, null, ex);
             Report.updateTestLog(Action, "Error setting the end point :" + "\n" + ex.getMessage(), Status.DEBUG);
         }
-    }
-
-    /**
-     * Executes the HTTP request and captures the response details.
-     * <p>
-     * Builds the HTTP client with configured settings (SSL, proxy, redirects),
-     * sends the request, and stores the response body, status code, and timing information.
-     *
-     * @throws IOException if an I/O error occurs during the request
-     * @throws InterruptedException if the request is interrupted
-     */
-    private void returnResponseDetails() throws IOException, InterruptedException {
-
-        initiateClientBuilder();
-        sslCertificateVerification();
-        handleProxy();
-
-        /**
-         * *** need to add timeout,version******
-         */
-        httpClient.put(key, httpClientBuilder.get(key).followRedirects(getRedirectPolicy()).build());
-        httpRequest.put(key, httpRequestBuilder.get(key).build());
-        response.put(key, httpClient.get(key).send(httpRequest.get(key), HttpResponse.BodyHandlers.ofString()));
-
-        responsebodies.put(key, (String) response.get(key).body());
-
-        after.put(key, Instant.now());
-        savePayload("response", (String) response.get(key).body());
-
-        responsecodes.put(key, Integer.toString(response.get(key).statusCode()));
-
     }
 
     /**
@@ -1260,526 +1210,6 @@ public class Webservice extends General {
             Logger.getLogger(this.getClass().getName()).log(Level.OFF, null, ex);
             Report.updateTestLog(Action, "Error closing connection :" + "\n" + ex.getMessage(), Status.DEBUG);
         }
-    }
-    
-    /**
-     * Retrieves proxy configuration if proxy usage is enabled.
-     * <p>
-     * Reads proxy settings from the driver configuration and creates a ProxySelector
-     * if proxy is enabled.
-     *
-     * @return ProxySelector configured with host and port, or null if proxy is disabled
-     */
-    private ProxySelector getProxyDetails() {
-        if (Control.getCurrentProject().getProjectSettings().getDriverSettings().useProxy()) {
-            String proxyhost = Control.getCurrentProject().getProjectSettings().getDriverSettings()
-                    .getProxyHost().replaceFirst("^(http://|https://)", "");
-            String proxyport = Control.getCurrentProject().getProjectSettings().getDriverSettings()
-                    .getProxyPort();
-            ProxySelector proxySelector = ProxySelector.of(new InetSocketAddress(proxyhost, Integer.parseInt(proxyport)));
-            return proxySelector;
-        } else {
-            return null;
-        }
-    }
-
-    /**
-     * Retrieves the HTTP user agent string from user-defined settings.
-     * <p>
-     * Checks for a custom http.agent property in user-defined settings and returns
-     * it if configured.
-     *
-     * @return the custom HTTP user agent string, or null if not configured
-     */
-    private String getHttpAgentDetails() {
-        if (Control.getCurrentProject().getProjectSettings().getUserDefinedSettings().stringPropertyNames()
-                .contains("http.agent")) {
-            if (!getUserDefinedData("http.agent").isEmpty()) {
-                httpagents.put(key, getUserDefinedData("http.agent"));
-                return httpagents.get(key);
-            } else {
-                return null;
-            }
-        } else {
-            return null;
-        }
-    }
-
-    /**
-     * Processes payload or endpoint strings by substituting variables.
-     * <p>
-     * Replaces datasheet variables and user-defined variables with their actual values.
-     *
-     * @param data the raw payload or endpoint string containing placeholders
-     * @return the processed string with variables replaced
-     * @throws FileNotFoundException if a referenced file is not found
-     */
-    private String handlePayloadorEndpoint(String data) throws FileNotFoundException {
-        String payloadstring = data;
-        payloadstring = handleDataSheetVariables(payloadstring);
-        payloadstring = handleuserDefinedVariables(payloadstring);
-        System.out.println("Payload :" + payloadstring);
-        return payloadstring;
-    }
-
-    /**
-     * Replaces datasheet variable placeholders with actual values.
-     * <p>
-     * Scans for {sheetName:columnName} patterns and replaces them with values
-     * from the corresponding datasheet.
-     *
-     * @param payloadstring the string containing datasheet variable placeholders
-     * @return the string with datasheet variables replaced
-     */
-    private String handleDataSheetVariables(String payloadstring) {
-        List<String> sheetlist = Control.getCurrentProject().getTestData().getTestDataFor(Control.exe.runEnv())
-                .getTestDataNames();
-        for (int sheet = 0; sheet < sheetlist.size(); sheet++) {
-            if (payloadstring.contains("{" + sheetlist.get(sheet) + ":")) {
-                com.ing.datalib.testdata.model.TestDataModel tdModel = Control.getCurrentProject()
-                        .getTestData().getTestDataByName(sheetlist.get(sheet));
-                List<String> columns = tdModel.getColumns();
-                for (int col = 0; col < columns.size(); col++) {
-                    if (payloadstring.contains("{" + sheetlist.get(sheet) + ":" + columns.get(col) + "}")) {
-                        payloadstring = payloadstring.replace("{" + sheetlist.get(sheet) + ":" + columns.get(col) + "}",
-                                userData.getData(sheetlist.get(sheet), columns.get(col)));
-                    }
-                }
-            }
-        }
-        return payloadstring;
-    }
-
-    /**
-     * Replaces user-defined variable placeholders with actual values.
-     * <p>
-     * Scans for {variableName} patterns and replaces them with values from
-     * user-defined settings.
-     *
-     * @param payloadstring the string containing user-defined variable placeholders
-     * @return the string with user-defined variables replaced
-     */
-    private String handleuserDefinedVariables(String payloadstring) {
-        Collection<Object> valuelist = Control.getCurrentProject().getProjectSettings().getUserDefinedSettings()
-                .values();
-        for (Object prop : valuelist) {
-            if (payloadstring.contains("{" + prop + "}")) {
-                payloadstring = payloadstring.replace("{" + prop + "}", prop.toString());
-            }
-        }
-        return payloadstring;
-    }
-
-    /**
-     * Initializes the HTTP request builder with the configured endpoint URI.
-     * <p>
-     * Creates a new HttpRequest.Builder and sets the URI from the stored endpoint.
-     */
-    private void OpenURLconnection() {
-        try {
-            httpRequestBuilder.put(key, HttpRequest.newBuilder());
-            URI uri = URI.create(endPoints.get(key));
-            httpRequestBuilder.put(key, httpRequestBuilder.get(key).uri(uri));
-        } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.OFF, ex.getMessage(), ex);
-        }
-    }
-
-    /**
-     * Applies stored headers to the HTTP request.
-     * <p>
-     * Iterates through the headers stored for the current scenario/test case
-     * and adds them to the HTTP request builder.
-     */
-    private void setheaders() {
-        try {
-            if (headers.containsKey(key)) {
-                ArrayList<String> headerlist = headers.get(key);
-                System.out.println(headerlist);
-                if (headerlist.size() > 0) {
-                    headerlist.forEach((header) -> {
-                        httpRequestBuilder.put(key, httpRequestBuilder.get(key).setHeader(header.substring(0, header.indexOf("=")), header.substring(header.indexOf("=") + 1, header.length())));
-                    });
-                }
-            }
-
-        } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.OFF, ex.getMessage(), ex);
-        }
-    }
-
-    /**
-     * Configures the HTTP user agent if specified in settings.
-     * <p>
-     * Sets the http.agent system property if a custom user agent is configured.
-     */
-    private void httpAgentCheck() {
-        try {
-            if (getHttpAgentDetails() != null) {
-                System.setProperty("http.agent", getHttpAgentDetails());
-            }
-        } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.OFF, ex.getMessage(), ex);
-        }
-    }
-
-    /**
-     * Checks if the request is configured for multipart form data.
-     * <p>
-     * Examines the headers to determine if the content type contains "multipart".
-     *
-     * @return true if multipart form data is configured, false otherwise
-     */
-    private boolean isMultiPart() {
-        if (headers.containsKey(key)) {
-            ArrayList<String> headerlist = headers.get(key);
-            if (headerlist.size() > 0) {
-                for (String header : headerlist) {
-                    if (header.split("=")[1].contains("multipart")) {
-                        return true;
-                    }
-                };
-            }
-        }
-        return false;
-    }
-
-    /**
-     * Configures the HTTP request method and payload.
-     * <p>
-     * Sets up the request with the specified HTTP method (POST, PUT, etc.) and payload.
-     * Handles special cases like form URL encoding and multipart form data.
-     *
-     * @param method the HTTP method (POST, PUT, PATCH, GET, DELETE, DELETEWITHPAYLOAD)
-     * @param payload the request payload/body
-     * @throws IOException if an I/O error occurs while reading files for multipart requests
-     */
-    private void setRequestMethod(String method, String payload) throws IOException {
-        BodyPublisher payloadBody = null;
-
-        if (isformUrlencoded()) {
-            payload = urlencodedParams();
-        }
-
-        if (isMultiPart()) {
-            String boundary = "Boundary-" + System.currentTimeMillis();
-            var byteArrays = new ArrayList<byte[]>();
-
-            if (urlParams.containsKey(key) && urlParams.get(key) != null) {
-                ArrayList<String> params = urlParams.get(key);
-                for (String param : params) {
-                    if (param.contains("=")) {
-                        String[] keyValue = param.split("=", 2);
-                        String fieldName = keyValue[0];
-                        String fieldValue = keyValue.length > 1 ? keyValue[1] : "";
-
-                        byteArrays.add(("--" + boundary + "\r\n").getBytes(StandardCharsets.UTF_8));
-                        byteArrays.add(("Content-Disposition: form-data; name=\"" + fieldName + "\"\r\n\r\n").getBytes(StandardCharsets.UTF_8));
-                        byteArrays.add((fieldValue + "\r\n").getBytes(StandardCharsets.UTF_8));
-                    }
-                }
-            }
-
-            if (isVarExist("%filePath%")) {
-                String filePathVar = getVar("%filePath%");
-                if (filePathVar != null && !filePathVar.isEmpty()) {
-                    addFilePartToMultipart(byteArrays, boundary, filePathVar, "file");
-
-                    int fileIndex = 1;
-                    boolean continueChecking = true;
-
-                    while (continueChecking) {
-                        if (isVarExist("%filePath" + fileIndex + "%")) {
-                            String filePathVarIndexed = getVar("%filePath" + fileIndex + "%");
-                            addFilePartToMultipart(byteArrays, boundary, filePathVarIndexed, "file" + fileIndex);
-                            fileIndex++;
-                        } else {
-                            // Stop checking if current filePathN is not available
-                            continueChecking = false;
-                        }
-                    }
-                }
-            } else {
-                Report.updateTestLog(Action, "filePath variable is not defined for multipart request", Status.FAIL);
-                throw new IOException("filePath variable is required for multipart/form-data requests but is not defined");
-            }
-
-            byteArrays.add(("--" + boundary + "--\r\n").getBytes(StandardCharsets.UTF_8));
-
-            payloadBody = HttpRequest.BodyPublishers.ofByteArrays(byteArrays);
-            httpRequestBuilder.put(key, httpRequestBuilder.get(key).setHeader("Content-Type", "multipart/form-data; boundary=" + boundary));
-        } else {
-            payloadBody = HttpRequest.BodyPublishers.ofString(payload);
-        }
-
-        try {
-            switch (method) {
-                case "POST": {
-                    httpRequestBuilder.put(key, httpRequestBuilder.get(key).POST(payloadBody));
-                    savePayload("request", payload);
-                    break;
-                }
-                case "PUT": {
-                    httpRequestBuilder.put(key, httpRequestBuilder.get(key).PUT(payloadBody));
-                    savePayload("request", payload);
-                    break;
-                }
-                case "PATCH": {
-                    httpRequestBuilder.put(key, httpRequestBuilder.get(key).method("PATCH", payloadBody));
-                    savePayload("request", payload);
-                    break;
-                }
-                case "GET": {
-                    httpRequestBuilder.put(key, httpRequestBuilder.get(key).GET());
-                    break;
-                }
-                case "DELETE": {
-                    httpRequestBuilder.put(key, httpRequestBuilder.get(key).DELETE());
-                    break;
-                }
-                case "DELETEWITHPAYLOAD": {
-                    httpRequestBuilder.put(key, httpRequestBuilder.get(key).method("DELETE", payloadBody));
-                    savePayload("request", payload);
-                    break;
-                }
-
-            }
-            headers.remove(key);
-            urlParams.remove(key);
-        } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.OFF, ex.getMessage(), ex);
-        }
-    }
-
-    /**
-     * Configures the HTTP request method using the RequestMethod enum.
-     * <p>
-     * Determines whether a payload is required based on the HTTP method and
-     * delegates to the string-based setRequestMethod.
-     *
-     * @param requestmethod the HTTP method as a RequestMethod enum value
-     * @throws FileNotFoundException if a referenced file is not found
-     * @throws IOException if an I/O error occurs
-     */
-    private void setRequestMethod(RequestMethod requestmethod) throws FileNotFoundException, IOException {
-        if (requestmethod.toString().equals("PUT") || requestmethod.toString().equals("POST") || requestmethod.toString().equals("PATCH") || requestmethod.toString().equals("DELETEWITHPAYLOAD")) {
-
-            setRequestMethod(requestmethod.toString(), handlePayloadorEndpoint(Data));
-        } else {
-
-            setRequestMethod(requestmethod.toString(), "");
-        }
-    }
-
-    /**
-     * Creates and executes an HTTP request with the specified method.
-     * <p>
-     * Orchestrates the entire request lifecycle: setting headers, configuring the method,
-     * executing the request, capturing response details, and handling errors.
-     *
-     * @param requestmethod the HTTP method to use for the request
-     * @throws InterruptedException if the request is interrupted
-     * @throws Exception if any error occurs during request execution
-     */
-    private void createhttpRequest(RequestMethod requestmethod) throws InterruptedException, Exception {
-        try {
-            setheaders();
-            setRequestMethod(requestmethod);
-            before.put(key, Instant.now());
-
-            returnResponseDetails();
-            duration.put(key, Duration.between(before.get(key), after.get(key)).toMillis());
-            Report.updateTestLog(Action, "Response received in : [" + duration.get(key) + "ms] with Status code  : " + responsecodes.get(key), Status.COMPLETE);
-
-            if (headers.containsKey(key)) {
-                if (!headers.get(key).isEmpty()) {
-                    headers.get(key).clear();
-                }
-            }
-
-        } catch (IOException ex) {
-            int responseCode = 0;
-            Matcher exMsgStatusCodeMatcher = Pattern.compile("^Server returned HTTP response code: (\\d+)")
-                    .matcher(ex.getMessage());
-
-            if (exMsgStatusCodeMatcher.find()) {
-                responseCode = Integer.parseInt(exMsgStatusCodeMatcher.group(1));
-            } else if (ex.getClass().getSimpleName().equals("FileNotFoundException")) {
-                System.out.println("\n =====================================\n" + " Returned [FileNotFoundException]" + "\n =====================================\n");
-                responseCode = 404;
-
-            } else {
-                System.out.println(
-                        "Exception (" + ex.getClass().getSimpleName() + ") doesn't contain status code: " + ex);
-            }
-            if (responseCode == 0) {
-                System.out.println("\n =====================================\n" + "Response Code does not exist in Exception" + "\n =====================================\n");
-            } else {
-                responsecodes.put(key, Integer.toString(responseCode));
-            }
-
-            if (responseCode == 400 || responseCode == 401 || responseCode == 402 || responseCode == 403
-                    || responseCode == 404) {
-                Report.updateTestLog(Action,
-                        "Error in executing [" + requestmethod.toString() + "] request : " + "\n" + ex.getMessage(),
-                        Status.DONE);
-
-            } else {
-                Report.updateTestLog(Action,
-                        "Error in executing " + requestmethod.toString() + " request : " + "\n" + ex.getMessage(),
-                        Status.DEBUG);
-            }
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-            throw new ActionException(e);
-        }
-    }
-
-    /**
-     * Saves request or response payload to a file.
-     * <p>
-     * Creates files in the webservice folder under the current results path to store
-     * request or response payloads for debugging and reporting purposes.
-     *
-     * @param reqOrRes "request" or "response" to indicate which type of payload to save
-     * @param data the payload data to save
-     */
-    private void savePayload(String reqOrRes, String data) {
-        String payloadFileName = "";
-        String path = "";
-        if (reqOrRes.equals("request")) {
-            payloadFileName = Report.getWebserviceRequestFileName();
-        } else if (reqOrRes.equals("response")) {
-            payloadFileName = Report.getWebserviceResponseFileName();
-
-        }
-        try {
-            if (!payloadFileName.isBlank()) {
-                path = FilePath.getCurrentResultsPath() + File.separator + "webservice";
-                File file = new File(path);
-                file.mkdirs();
-                //FileManager.mkdir(path);
-                File location = new File(FilePath.getCurrentResultsPath() + payloadFileName);
-                if (location.createNewFile()) {
-                    FileWriter writer = new FileWriter(location);
-                    writer.write(data);
-                    writer.close();
-                }
-            }
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
-    }
-
-    /**
-     * Configures proxy settings for the HTTP client if enabled.
-     * <p>
-     * Applies proxy configuration to the HTTP client builder if proxy usage
-     * is enabled in the driver settings.
-     */
-    private void handleProxy() {
-        try {
-            if (getProxyDetails() != null) {
-                System.out.println("\nRequest opened with following proxy details :\n" + getProxyDetails().toString() + "\n");
-                httpClientBuilder.put(key, httpClientBuilder.get(key).proxy(getProxyDetails()));
-            }
-        } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.OFF, ex.getMessage(), ex);
-        }
-    }
-
-    /**
-     * Initializes the HTTP client builder with default settings.
-     * <p>
-     * Creates a new HttpClient.Builder configured to use HTTP/1.1.
-     */
-    private void initiateClientBuilder() {
-        try {
-            httpClientBuilder.put(key, HttpClient.newBuilder().version(HttpClient.Version.HTTP_1_1));
-        } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.OFF, ex.getMessage(), ex);
-        }
-    }
-
-    TrustManager[] trustAllCerts = new TrustManager[]{new X509TrustManager() {
-        @Override
-        public X509Certificate[] getAcceptedIssuers() {
-            return null;
-        }
-
-        @Override
-        public void checkClientTrusted(X509Certificate[] certs, String authType) {
-        }
-
-        @Override
-        public void checkServerTrusted(X509Certificate[] certs, String authType) {
-        }
-    }};
-
-    /**
-     * Loads the keystore for client certificate authentication.
-     * <p>
-     * Reads the JKS keystore from the configured path and initializes key managers
-     * for SSL/TLS connections.
-     *
-     * @return array of KeyManagers configured with the keystore, or null if loading fails
-     */
-    private KeyManager[] loadKeyStore() {
-        String keystorePath = Control.getCurrentProject().getProjectSettings().getDriverSettings().getKeyStorePath();
-        String keystorePassword = Control.getCurrentProject().getProjectSettings().getDriverSettings().getKeyStorePassword();
-        KeyStore keyStore;
-        KeyManagerFactory kmf = null;
-        try {
-            keyStore = KeyStore.getInstance("JKS");
-            keyStore.load(new FileInputStream(keystorePath), keystorePassword.toCharArray());
-            kmf = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
-            kmf.init(keyStore, keystorePassword.toCharArray());
-            TrustManagerFactory tmf = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
-            tmf.init(keyStore);
-        } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.OFF, ex.getMessage(), ex);
-        }
-        return kmf.getKeyManagers();
-    }
-
-    /**
-     * Configures SSL/TLS certificate verification for the HTTP client.
-     * <p>
-     * If SSL verification is disabled, creates an SSL context that trusts all certificates.
-     * For self-signed certificates, loads the keystore with client certificates.
-     */
-    private void sslCertificateVerification() {
-        try {
-            if (!isSSLCertificateVerification()) {
-                SSLContext sc = SSLContext.getInstance("TLS");
-                if (isSelfSigned()) {
-                    sc.init(loadKeyStore(), trustAllCerts, new SecureRandom());
-                } else {
-                    sc.init(null, trustAllCerts, new SecureRandom());
-                }
-                httpClientBuilder.put(key, httpClientBuilder.get(key)).sslContext(sc);
-            }
-        } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.OFF, ex.getMessage(), ex);
-        }
-    }
-
-    /**
-     * Checks if SSL certificate verification is enabled in settings.
-     *
-     * @return true if SSL certificate verification is enabled, false otherwise
-     */
-    private Boolean isSSLCertificateVerification() {
-        return Control.getCurrentProject().getProjectSettings().getDriverSettings().sslCertificateVerification();
-    }
-
-    /**
-     * Checks if self-signed certificate support is enabled in settings.
-     *
-     * @return true if self-signed certificate support is enabled, false otherwise
-     */
-    private Boolean isSelfSigned() {
-        return Control.getCurrentProject().getProjectSettings().getDriverSettings().selfSigned();
     }
 
 

@@ -10,7 +10,7 @@ import java.util.regex.Pattern;
 import com.ing.engine.commands.browser.CommonMethods;
 import com.ing.engine.commands.browser.General;
 import com.ing.engine.core.CommandControl;
-import com.ing.engine.execution.exception.ForcedException;
+import com.ing.ingenious.api.exception.ForcedException;
 import com.ing.ingenious.api.status.Status;
 import com.ing.ingenious.api.annotation.Action;
 import com.ing.ingenious.api.types.InputType;
