@@ -195,6 +195,9 @@ public class AppActionListener implements ActionListener {
             case "Dashboard":
                 sMainFrame.showDashBoard();
                 break;
+            case "API Tester":
+                sMainFrame.showAPITester();
+                break;
             case "Refresh":
                 doRefresh();
                 break;

@@ -50,10 +50,15 @@ public class LoaderScreen extends JPanel {
     }
 
     private void setIcon(String iconLoc) {
-        ImageIcon icon = new ImageIcon(
-                LoaderScreen.class.getResource(iconLoc));
-        loadLabel.setIcon(icon);
-        icon.setImageObserver(loadLabel);
+        java.net.URL iconUrl = LoaderScreen.class.getResource(iconLoc);
+        if (iconUrl != null) {
+            ImageIcon icon = new ImageIcon(iconUrl);
+            loadLabel.setIcon(icon);
+            icon.setImageObserver(loadLabel);
+        } else {
+            // Resource not found - clear icon to avoid NullPointerException
+            loadLabel.setIcon(null);
+        }
     }
 
     public void showFor(final Runnable runnable, final String text) {
