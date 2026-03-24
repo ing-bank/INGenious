@@ -221,7 +221,7 @@ public class TestCaseRunner {
     /***
      * Check for end of loops to set breakSubIterationFlag to true.
      * Applies to dynamic Start Param - End Param blocks.
-     * Execution is based on the occurence of the next data in the test sheet.
+     * Execution is based on the occurrence of the next data in the test sheet.
      * This method flags that the last data in the data sheet has been reached.
      * 
      * @param testStep
@@ -241,18 +241,18 @@ public class TestCaseRunner {
                 String dataCol = testStep.getInput().split(":")[1];
                 
                 data = DataAccess.getNextData(this, sheet, dataCol, parameter.getIteration()+"", (this.currentSubIteration)+"");
-            } else {
-                // Step does not access data sheet
-                return false;
-            }
+            } 
             if (data==null) {
                 // Execution has reached end of the test data sheet
                 this.breakSubIterationFlag = true;
             }
             
+            String condition = testStep.getCondition();
             if (this.breakSubIterationFlag) {
                 // Delay breaking until last step of component
-                if (testCase.getTestSteps().size() <= currStep+1) {
+                if (testCase.getTestSteps().size() <= currStep+1
+                        || Parameter.endParamRLoop(condition)
+                        ) {
                     return true;
                 }
             }
@@ -394,6 +394,9 @@ public class TestCaseRunner {
     public void run(CommandControl cc, int iter)
             throws DriverClosedException, TestFailedException {
         parameter.setIteration(iter);
+        while (!stepStack.empty()){
+            stepStack.pop();
+        }
         setControl(cc);
         if (testCase != null) {
             testCase.loadTableModel();
@@ -401,15 +404,32 @@ public class TestCaseRunner {
             * caution: breaking the loop will stop the iteration
              */
             boolean isLastData = false;
+            this.breakSubIterationFlag = false;
+            testCase.setExitParamLoop(false);
+            
             for (int currStep = 0; canRunStep(currStep); currStep++) {
                 TestStep testStep = testCase.getTestSteps().get(currStep);
-                
-                int testCaseSize = testStep.getTestCase().getTestSteps().size();
-                boolean isLastStep = (testCaseSize <= currStep+1);
+                TestCase parentTestCase = testCase.getParentTestCase();
                 
                 if (!testStep.isCommented()) {
                     checkForStartLoop(testStep, currStep);
                     try {
+                        
+                        // For reusable components, exit after End Param
+                        // once exitParamLoop flag is detected
+                        if (testCase.exitParamLoop()){
+                            if (Parameter.endParamRLoop(testStep.getCondition())){
+                                if (canRunStep(currStep+1)){
+                                    currStep++;
+                                    testStep = testCase.getTestSteps().get(currStep);
+                                } else {
+                                    continue;
+                                }
+                                checkForEndLoop(testStep, currStep);
+                                testCase.setExitParamLoop(false);
+                            }
+                        }
+                        
                         runStep(testStep);
                         isLastData = checkIfLastData(testStep, currStep);
                     } catch (DriverClosedException | TestFailedException | UnCaughtException ex) {
@@ -441,20 +461,17 @@ public class TestCaseRunner {
                         onError(ex);
                     }
                     
-                    if (isLastStep && this.breakSubIterationFlag){
-                        DataNotFoundException dnfe = new DataNotFoundException("Reached the end of data sheet.");
-                        CauseInfo causeInfo = dnfe.new CauseInfo(Cause.EndOfDataSheet, "Reached the end of data sheet.");
-                        dnfe.cause = causeInfo;
+                    if (isLastData){
                         this.breakSubIterationFlag = false;
-                        if (this.stepStack.empty()){
-                            // Normal flow
-                            currStep = checkForEndLoop(testStep, currStep);
+                        if (parentTestCase!=null){
+                            parentTestCase.setExitParamLoop(true);
+                        } else {
+                            // Normal flow: No reusable component
+                            checkForEndLoop(testStep, currStep);
                             continue;
                         }
-                        throw dnfe;
-                    } else {
-                        currStep = checkForEndLoop(testStep, currStep);
                     }
+                    currStep = checkForEndLoop(testStep, currStep);
                 }
             }
         }

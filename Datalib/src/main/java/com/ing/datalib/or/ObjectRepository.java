@@ -16,8 +16,12 @@ import com.ing.datalib.or.web.WebORObject;
 import com.ing.datalib.or.web.WebORPage;
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Set;
+import java.util.function.Predicate;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -172,30 +176,30 @@ public class ObjectRepository {
      */
     public void save() {
         try {
-            java.util.List<String> existingProjects = (webSharedOR != null) ? webSharedOR.getProjects() : java.util.List.of();
-            java.util.LinkedHashSet<String> mergedProjects = new java.util.LinkedHashSet<>();
+            List<String> existingProjects = (webSharedOR != null) ? webSharedOR.getSharedProjects() : List.of();
+            LinkedHashSet<String> mergedProjects = new LinkedHashSet<>();
             if (existingProjects != null) mergedProjects.addAll(existingProjects);
             mergedProjects.addAll(sharedUsageProjects);
             boolean projectsChanged = false;
             if (webSharedOR != null) {
-                java.util.ArrayList<String> mergedList = new java.util.ArrayList<>(mergedProjects);
-                java.util.List<String> current = webSharedOR.getProjects();
-                projectsChanged = (current == null) || !new java.util.LinkedHashSet<>(current).equals(mergedProjects);
+                ArrayList<String> mergedList = new ArrayList<>(mergedProjects);
+                List<String> current = webSharedOR.getSharedProjects();
+                projectsChanged = (current == null) || !new LinkedHashSet<>(current).equals(mergedProjects);
                 if (projectsChanged) {
-                    webSharedOR.setProjects(mergedList);
+                    webSharedOR.setSharedProjects(mergedList);
                 }
             }
-            java.util.List<String> mExisting = (mobileSharedOR != null) ? mobileSharedOR.getProjects() : java.util.List.of();
-            java.util.LinkedHashSet<String> mMerged = new java.util.LinkedHashSet<>();
+            List<String> mExisting = (mobileSharedOR != null) ? mobileSharedOR.getSharedProjects() : List.of();
+            LinkedHashSet<String> mMerged = new LinkedHashSet<>();
             if (mExisting != null) mMerged.addAll(mExisting);
             mMerged.addAll(sharedUsageProjects);
             boolean mProjectsChanged = false;
             if (mobileSharedOR != null) {
-                java.util.ArrayList<String> mList = new java.util.ArrayList<>(mMerged);
-                java.util.List<String> mCurrent = mobileSharedOR.getProjects();
-                mProjectsChanged = (mCurrent == null) || !new java.util.LinkedHashSet<>(mCurrent).equals(mMerged);
+                ArrayList<String> mList = new ArrayList<>(mMerged);
+                List<String> mCurrent = mobileSharedOR.getSharedProjects();
+                mProjectsChanged = (mCurrent == null) || !new LinkedHashSet<>(mCurrent).equals(mMerged);
                 if (mProjectsChanged) {
-                    mobileSharedOR.setProjects(mList);
+                    mobileSharedOR.setSharedProjects(mList);
                 }
             }
             if (webSharedOR != null && (!webSharedOR.isSaved() || projectsChanged)) {
@@ -208,7 +212,7 @@ public class ObjectRepository {
                     .writeValue(new File(getORLocation()), webProjectOR);
                 webProjectOR.setSaved(true);
             }
-            if (mobileSharedOR != null && !mobileSharedOR.isSaved()) {
+            if (mobileSharedOR != null && (!mobileSharedOR.isSaved() || mProjectsChanged)) {
                 XML_MAPPER.writerWithDefaultPrettyPrinter()
                         .writeValue(new File(getSharedMORLocation()), mobileSharedOR);
                 mobileSharedOR.setSaved(true);
@@ -484,7 +488,7 @@ public class ObjectRepository {
     /**
      * Generates a unique name by appending "(n)" when duplicates exist.
      */
-    private String generateUniqueName(String baseName, java.util.function.Predicate<String> exists) {
+    private String generateUniqueName(String baseName, Predicate<String> exists) {
         if (baseName == null || baseName.isBlank()) return baseName;
         String candidate = baseName;
         int counter = 1;

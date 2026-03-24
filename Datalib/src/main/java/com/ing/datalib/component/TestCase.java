@@ -48,6 +48,10 @@ public class TestCase extends DataModel {
     private SaveListener saveListener;
 
     private Reusable reusable = null;
+    
+    private TestCase parentTestCase = null;
+    
+    private Boolean exitParamLoop = false;
 
     public TestCase(Scenario scenario, String name) {
         this.scenario = scenario;
@@ -467,6 +471,22 @@ public class TestCase extends DataModel {
 
     public void setReusable(Reusable reusable) {
         this.reusable = reusable;
+    }
+    
+    public void setParentTestCase(TestCase parentTestCase){
+        this.parentTestCase = parentTestCase;
+    }
+    
+    public TestCase getParentTestCase(){
+        return parentTestCase;
+    }
+    
+    public void setExitParamLoop(boolean exitParamLoop){
+        this.exitParamLoop = exitParamLoop;
+    }
+    
+    public boolean exitParamLoop(){
+        return exitParamLoop;
     }
 
     public String getKey() {

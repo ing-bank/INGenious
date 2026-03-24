@@ -18,8 +18,10 @@ import org.apache.commons.csv.CSVPrinter;
 import org.apache.commons.csv.CSVRecord;
 
 /**
- *
- *
+ * Represents an execution set containing a list of {@link ExecutionStep} rows,
+ * backed by a CSV file and exposed as a table model for UI editing. Handles
+ * loading, saving, row manipulation, and updating execution entries when
+ * scenarios or test cases are renamed. 
  */
 public class TestSet extends DataModel {
 
@@ -339,55 +341,72 @@ public class TestSet extends DataModel {
     }
 
     public void refactorScenario(String oldScenarioName, String newScenarioName) {
-        Boolean clearOnExit = getTestSteps().isEmpty();
-        Boolean changesDone = false;
+        boolean wasEmpty = getTestSteps().isEmpty();
+        boolean changesDone = false;
+
         loadTableModel();
+
         for (ExecutionStep testStep : testSteps) {
-            if (testStep.getTestScenarioName().equals(oldScenarioName)) {
+            if (oldScenarioName.equals(testStep.getTestScenarioName())) {
                 testStep.setTestScenario(newScenarioName);
                 changesDone = true;
             }
         }
-        if (clearOnExit) {
-            if (changesDone) {
-                save();
-            }
+
+        if (changesDone) {
+            setSaved(false);
+            save();
+        }
+
+        if (wasEmpty) {
             getTestSteps().clear();
         }
     }
 
     public void refactorTestCase(String scenarioName, String oldTestCaseName, String newTestCaseName) {
-        Boolean clearOnExit = getTestSteps().isEmpty();
-        Boolean changesDone = false;
+        boolean wasEmpty = getTestSteps().isEmpty();
+        boolean changesDone = false;
+
         loadTableModel();
+
         for (ExecutionStep testStep : testSteps) {
-            if (testStep.getTestScenarioName().equals(scenarioName) && testStep.getTestCaseName().equals(oldTestCaseName)) {
+            if (scenarioName.equals(testStep.getTestScenarioName())
+                    && oldTestCaseName.equals(testStep.getTestCaseName())) {
                 testStep.setTestCase(newTestCaseName);
                 changesDone = true;
             }
         }
-        if (clearOnExit) {
-            if (changesDone) {
-                save();
-            }
+
+        if (changesDone) {
+            setSaved(false);
+            save();
+        }
+
+        if (wasEmpty) {
             getTestSteps().clear();
         }
     }
 
     public void refactorTestCaseScenario(String testCaseName, String oldScenarioName, String newScenarioName) {
-        Boolean clearOnExit = getTestSteps().isEmpty();
-        Boolean changesDone = false;
+        boolean wasEmpty = getTestSteps().isEmpty();
+        boolean changesDone = false;
+
         loadTableModel();
+
         for (ExecutionStep testStep : testSteps) {
-            if (testStep.getTestScenarioName().equals(oldScenarioName) && testStep.getTestCaseName().equals(testCaseName)) {
+            if (oldScenarioName.equals(testStep.getTestScenarioName())
+                    && testCaseName.equals(testStep.getTestCaseName())) {
                 testStep.setTestScenario(newScenarioName);
                 changesDone = true;
             }
         }
-        if (clearOnExit) {
-            if (changesDone) {
-                save();
-            }
+
+        if (changesDone) {
+            setSaved(false);
+            save();
+        }
+
+        if (wasEmpty) {
             getTestSteps().clear();
         }
     }
