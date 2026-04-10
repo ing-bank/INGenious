@@ -68,6 +68,20 @@ import org.json.simple.parser.JSONParser;
 import org.w3c.dom.DOMException;
 import org.xml.sax.SAXException;
 
+/**
+ * Provides comprehensive webservice testing actions for REST and SOAP API automation.
+ * <p>
+ * This class extends {@link General} and offers a complete suite of HTTP/HTTPS operations
+ * for testing web services, including request execution, response validation, data extraction,
+ * and assertion capabilities for both JSON and XML responses.
+ * </p>
+ *
+ * <h2>Configuration</h2>
+ * <p>
+ * API-specific configurations can be loaded using aliases in the Condition field of {@link #setEndPoint()}.
+ * Settings include SSL verification, proxy configuration, redirect policies, and custom HTTP agents.
+ * </p>
+ */
 public class Webservice extends General {
 
     public Webservice(CommandControl cc) {
@@ -83,6 +97,18 @@ public class Webservice extends General {
         DELETEWITHPAYLOAD
     }
 
+    /**
+     * Sends a PUT HTTP request to the configured endpoint with the specified payload.
+     * <p>
+     * Executes a PUT REST request using the data from the Input field and the endpoint
+     * previously set with {@code setEndPoint}.
+     * <ul>
+     *   <li>Input: Request payload</li>
+     *   <li>Condition: Optional API configuration alias (e.g., #alias)</li>
+     * </ul>
+     *
+     * @see #setEndPoint()
+     */
     @Action(object = ObjectType.WEBSERVICE, desc = "PUT Rest Request ", input = InputType.YES, condition = InputType.OPTIONAL)
     public void putRestRequest() {
         try {
@@ -94,6 +120,18 @@ public class Webservice extends General {
         }
     }
 
+    /**
+     * Sends a POST HTTP request to the configured endpoint with the specified payload.
+     * <p>
+     * Executes a POST REST request using the data from the Input field and the endpoint
+     * previously set with {@code setEndPoint}.
+     * <ul>
+     *   <li>Input: Request payload</li>
+     *   <li>Condition: Optional API configuration alias (e.g., #alias)</li>
+     * </ul>
+     *
+     * @see #setEndPoint()
+     */
     @Action(object = ObjectType.WEBSERVICE, desc = "POST Rest Request ", input = InputType.YES, condition = InputType.OPTIONAL)
     public void postRestRequest() {
         try {
@@ -105,6 +143,18 @@ public class Webservice extends General {
         }
     }
 
+    /**
+     * Sends a POST SOAP request to the configured endpoint with the specified SOAP envelope.
+     * <p>
+     * Executes a POST request with SOAP XML payload. The SOAP envelope should be provided
+     * in the Input field.
+     * <ul>
+     *   <li>Input: SOAP XML payload</li>
+     *   <li>Condition: Optional API configuration alias (e.g., #alias)</li>
+     * </ul>
+     *
+     * @see #setEndPoint()
+     */
     @Action(object = ObjectType.WEBSERVICE, desc = "POST SOAP Request ", input = InputType.YES, condition = InputType.OPTIONAL)
     public void postSoapRequest() {
         try {
@@ -116,6 +166,18 @@ public class Webservice extends General {
         }
     }
 
+    /**
+     * Sends a PATCH HTTP request to the configured endpoint with the specified payload.
+     * <p>
+     * Executes a PATCH REST request to partially update a resource. Uses the data from
+     * the Input field and the endpoint previously set with {@code setEndPoint}.
+     * <ul>
+     *   <li>Input: Request payload</li>
+     *   <li>Condition: Optional API configuration alias (e.g., #alias)</li>
+     * </ul>
+     *
+     * @see #setEndPoint()
+     */
     @Action(object = ObjectType.WEBSERVICE, desc = "PATCH Rest Request ", input = InputType.YES, condition = InputType.OPTIONAL)
     public void patchRestRequest() {
         try {
@@ -127,6 +189,18 @@ public class Webservice extends General {
         }
     }
 
+    /**
+     * Sends a GET HTTP request to the configured endpoint.
+     * <p>
+     * Executes a GET REST request to retrieve data from the endpoint previously set
+     * with {@code setEndPoint}. No payload is required for GET requests.
+     * <ul>
+     *   <li>Input: Not required</li>
+     *   <li>Condition: Optional API configuration alias (e.g., #alias)</li>
+     * </ul>
+     *
+     * @see #setEndPoint()
+     */
     @Action(object = ObjectType.WEBSERVICE, desc = "GET Rest Request ", input = InputType.NO, condition = InputType.OPTIONAL)
     public void getRestRequest() {
         try {
@@ -138,6 +212,16 @@ public class Webservice extends General {
         }
     }
 
+    /**
+     * Sends a DELETE HTTP request to the configured endpoint.
+     * <p>
+     * Executes a DELETE REST request to remove a resource. No payload is required.
+     * <ul>
+     *   <li>Input: Not required</li>
+     * </ul>
+     *
+     * @see #setEndPoint()
+     */
     @Action(object = ObjectType.WEBSERVICE, desc = "DELETE Rest Request ", input = InputType.NO)
     public void deleteRestRequest() {
         try {
@@ -149,6 +233,17 @@ public class Webservice extends General {
         }
     }
 
+    /**
+     * Sends a DELETE HTTP request with a payload to the configured endpoint.
+     * <p>
+     * Executes a DELETE REST request that includes a request body. This is useful for
+     * DELETE operations that require additional data.
+     * <ul>
+     *   <li>Input: Request payload</li>
+     * </ul>
+     *
+     * @see #setEndPoint()
+     */
     @Action(object = ObjectType.WEBSERVICE, desc = "DELETE with Payload ", input = InputType.YES)
     public void deleteWithPayload() {
         try {
@@ -160,6 +255,14 @@ public class Webservice extends General {
         }
     }
 
+    /**
+     * Asserts that the HTTP response status code equals the expected value.
+     * <p>
+     * Verifies the status code from the most recent API request matches the expected value.
+     * <ul>
+     *   <li>Input: Expected HTTP status code (e.g., 200, 404)</li>
+     * </ul>
+     */
     @Action(object = ObjectType.WEBSERVICE, desc = "Assert Response Code ", input = InputType.YES)
     public void assertResponseCode() {
         try {
@@ -175,6 +278,15 @@ public class Webservice extends General {
         }
     }
 
+    /**
+     * Asserts that the HTTP response body contains the expected text.
+     * <p>
+     * Verifies that the response body from the most recent API request contains
+     * the specified substring.
+     * <ul>
+     *   <li>Input: Expected substring to find in response body</li>
+     * </ul>
+     */
     @Action(object = ObjectType.WEBSERVICE, desc = "Assert Response Body contains ", input = InputType.YES)
     public void assertResponsebodycontains() {
         try {
@@ -189,6 +301,16 @@ public class Webservice extends General {
         }
     }
 
+    /**
+     * Asserts that a JSON element value equals the expected value.
+     * <p>
+     * Uses JSONPath to extract a value from the JSON response and verifies it matches
+     * the expected value exactly.
+     * <ul>
+     *   <li>Condition: JSONPath expression (e.g., $.user.name)</li>
+     *   <li>Input: Expected value</li>
+     * </ul>
+     */
     @Action(object = ObjectType.WEBSERVICE, desc = "Assert JSON Element Equals ", input = InputType.YES, condition = InputType.YES)
     public void assertJSONelementEquals() {
         try {
@@ -207,6 +329,16 @@ public class Webservice extends General {
         }
     }
 
+    /**
+     * Asserts that a JSON element value contains the expected substring.
+     * <p>
+     * Uses JSONPath to extract a value from the JSON response and verifies it contains
+     * the specified substring.
+     * <ul>
+     *   <li>Condition: JSONPath expression (e.g., $.user.email)</li>
+     *   <li>Input: Expected substring</li>
+     * </ul>
+     */
     @Action(object = ObjectType.WEBSERVICE, desc = "Assert JSON Element Contains ", input = InputType.YES, condition = InputType.YES)
     public void assertJSONelementContains() {
         try {
@@ -225,6 +357,16 @@ public class Webservice extends General {
         }
     }
 
+    /**
+     * Stores a JSON element value in a datasheet column.
+     * <p>
+     * Extracts a value from the JSON response using JSONPath and stores it in the
+     * specified datasheet column.
+     * <ul>
+     *   <li>Condition: JSONPath expression (e.g., $.user.id)</li>
+     *   <li>Input: sheetName:ColumnName</li>
+     * </ul>
+     */
     @Action(object = ObjectType.WEBSERVICE, desc = "Store JSON Element In DataSheet ", input = InputType.YES, condition = InputType.YES)
     public void storeJSONelementInDataSheet() {
 
@@ -257,6 +399,16 @@ public class Webservice extends General {
         }
     }
 
+    /**
+     * Stores an XML element value in a datasheet column.
+     * <p>
+     * Extracts a value from the XML response using XPath and stores it in the
+     * specified datasheet column.
+     * <ul>
+     *   <li>Condition: XPath expression (e.g., //user/@id)</li>
+     *   <li>Input: sheetName:ColumnName</li>
+     * </ul>
+     */
     @Action(object = ObjectType.WEBSERVICE, desc = "Store XML Element In DataSheet ", input = InputType.YES, condition = InputType.YES)
     public void storeXMLelementInDataSheet() {
 
@@ -300,6 +452,15 @@ public class Webservice extends General {
         }
     }
 
+    /**
+     * Stores a JSON element value in a variable.
+     * <p>
+     * Extracts a value from the JSON response using JSONPath and stores it in a variable.
+     * <ul>
+     *   <li>Condition: Variable name (e.g., %myVar%)</li>
+     *   <li>Input: JSONPath expression (e.g., $.data.token)</li>
+     * </ul>
+     */
     @Action(object = ObjectType.WEBSERVICE, desc = "Store JSON Element", input = InputType.YES, condition = InputType.YES)
     public void storeJSONelement() {
         try {
@@ -317,6 +478,15 @@ public class Webservice extends General {
         }
     }
 
+    /**
+     * Stores an XML element value in a variable.
+     * <p>
+     * Extracts a value from the XML response using XPath and stores it in a variable.
+     * <ul>
+     *   <li>Condition: Variable name (e.g., %myVar%)</li>
+     *   <li>Input: XPath expression (e.g., //response/token)</li>
+     * </ul>
+     */
     @Action(object = ObjectType.WEBSERVICE, desc = "Store XML Element", input = InputType.YES, condition = InputType.YES)
     public void storeXMLelement() {
         try {
@@ -346,6 +516,15 @@ public class Webservice extends General {
         }
     }
 
+    /**
+     * Stores the entire HTTP response body in a datasheet column.
+     * <p>
+     * Saves the complete response body text from the most recent API request
+     * to the specified datasheet column.
+     * <ul>
+     *   <li>Input: sheetName:ColumnName</li>
+     * </ul>
+     */
     @Action(object = ObjectType.WEBSERVICE, desc = "Store Response Message In DataSheet ", input = InputType.YES)
     public void storeResponseBodyInDataSheet() {
         try {
@@ -373,6 +552,16 @@ public class Webservice extends General {
         }
     }
 
+    /**
+     * Asserts that an XML element value equals the expected value.
+     * <p>
+     * Uses XPath to extract a value from the XML response and verifies it matches
+     * the expected value exactly.
+     * <ul>
+     *   <li>Condition: XPath expression (e.g., //user/name)</li>
+     *   <li>Input: Expected value</li>
+     * </ul>
+     */
     @Action(object = ObjectType.WEBSERVICE, desc = "Assert XML Element Equals ", input = InputType.YES, condition = InputType.YES)
     public void assertXMLelementEquals() {
 
@@ -401,6 +590,16 @@ public class Webservice extends General {
         }
     }
 
+    /**
+     * Asserts that an XML element value contains the expected substring.
+     * <p>
+     * Uses XPath to extract a value from the XML response and verifies it contains
+     * the specified substring.
+     * <ul>
+     *   <li>Condition: XPath expression (e.g., //response/message)</li>
+     *   <li>Input: Expected substring</li>
+     * </ul>
+     */
     @Action(object = ObjectType.WEBSERVICE, desc = "Assert XML Element Contains ", input = InputType.YES, condition = InputType.YES)
     public void assertXMLelementContains() {
 
@@ -430,6 +629,17 @@ public class Webservice extends General {
         }
     }
 
+    /**
+     * Sets the API endpoint URL for subsequent HTTP requests.
+     * <p>
+     * Configures the base URL or full endpoint for API calls. Supports variable substitution
+     * from datasheets, user-defined settings, and runtime variables. Optionally loads
+     * API-specific configuration using an alias.
+     * <ul>
+     *   <li>Input: Endpoint URL (supports {sheet:column} and %variable% placeholders)</li>
+     *   <li>Condition: Optional API config alias starting with # (e.g., #production)</li>
+     * </ul>
+     */
     @Action(object = ObjectType.WEBSERVICE, desc = "Set End Point ", input = InputType.YES, condition = InputType.OPTIONAL)
     public void setEndPoint() {
         try {
@@ -455,6 +665,15 @@ public class Webservice extends General {
         }
     }
 
+    /**
+     * Executes the HTTP request and captures the response details.
+     * <p>
+     * Builds the HTTP client with configured settings (SSL, proxy, redirects),
+     * sends the request, and stores the response body, status code, and timing information.
+     *
+     * @throws IOException if an I/O error occurs during the request
+     * @throws InterruptedException if the request is interrupted
+     */
     private void returnResponseDetails() throws IOException, InterruptedException {
 
         initiateClientBuilder();
@@ -477,6 +696,16 @@ public class Webservice extends General {
 
     }
 
+    /**
+     * Asserts that the count of JSON elements matches the expected number.
+     * <p>
+     * Uses JSONPath to select elements and counts them, then verifies the count
+     * matches the expected value. Works with arrays and objects.
+     * <ul>
+     *   <li>Condition: JSONPath expression (e.g., $.users[*])</li>
+     *   <li>Input: Expected count (integer)</li>
+     * </ul>
+     */
     @Action(object = ObjectType.WEBSERVICE, desc = "Assert JSON Element Count ", input = InputType.YES, condition = InputType.YES)
     public void assertJSONelementCount() {
 
@@ -516,6 +745,15 @@ public class Webservice extends General {
         }
     }
 
+    /**
+     * Stores the count of JSON elements in a variable.
+     * <p>
+     * Uses JSONPath to select elements, counts them, and stores the count in a variable.
+     * <ul>
+     *   <li>Condition: Variable name (e.g., %count%)</li>
+     *   <li>Input: JSONPath expression (e.g., $.items[*])</li>
+     * </ul>
+     */
     @Action(object = ObjectType.WEBSERVICE, desc = "Store JSON Element count in variable ", input = InputType.YES, condition = InputType.YES)
     public void storeJsonElementCount() {
 
@@ -549,6 +787,15 @@ public class Webservice extends General {
 
     }
 
+    /**
+     * Calculates the count of JSON elements matched by the JSONPath expression.
+     * <p>
+     * Internal method that handles different JSON types (objects, arrays, primitives)
+     * and returns the appropriate count.
+     *
+     * @return the count of elements matched by the JSONPath expression
+     * @throws org.json.simple.parser.ParseException if JSON parsing fails
+     */
     public int getJsonElementCount() throws org.json.simple.parser.ParseException {
 
         int actualObjectCount = 0;
@@ -577,6 +824,16 @@ public class Webservice extends General {
         return actualObjectCount;
     }
 
+    /**
+     * Stores the count of JSON elements in a datasheet column.
+     * <p>
+     * Uses JSONPath to select elements, counts them, and stores the count in
+     * the specified datasheet column.
+     * <ul>
+     *   <li>Condition: JSONPath expression (e.g., $.products[*])</li>
+     *   <li>Input: sheetName:ColumnName</li>
+     * </ul>
+     */
     @Action(object = ObjectType.WEBSERVICE, desc = "Store JSON Element count in Datasheet ", input = InputType.YES, condition = InputType.YES)
     public void storeJsonElementCountInDataSheet() {
 
@@ -610,6 +867,17 @@ public class Webservice extends General {
 
     }
 
+    /**
+     * Adds an HTTP header to the next API request.
+     * <p>
+     * Headers are added in key=value format. Supports variable substitution from
+     * datasheets, user-defined settings, and runtime variables.
+     * <ul>
+     *   <li>Input: Header in format "Name=Value" (e.g., Content-Type=application/json)</li>
+     * </ul>
+     *
+     * @see #setEndPoint()
+     */
     @Action(object = ObjectType.WEBSERVICE, desc = "Add Header ", input = InputType.YES)
     public void addHeader() {
         try {
@@ -665,6 +933,15 @@ public class Webservice extends General {
         }
     }
 
+    /**
+     * Adds a URL parameter for the next API request.
+     * <p>
+     * URL parameters are added in key=value format and will be appended to the URL
+     * or sent as form data depending on the content type.
+     * <ul>
+     *   <li>Input: Parameter in format "name=value" (e.g., page=1)</li>
+     * </ul>
+     */
     @Action(object = ObjectType.WEBSERVICE, desc = "Add Parameters ", input = InputType.YES)
     public void addURLParam() {
 
@@ -911,6 +1188,14 @@ public class Webservice extends General {
         }
     }
 
+    /**
+     * Checks if the request is configured for form URL encoding.
+     * <p>
+     * Examines the headers to determine if the content type is set to
+     * application/x-www-form-urlencoded.
+     *
+     * @return true if form URL encoding is configured, false otherwise
+     */
     private boolean isformUrlencoded() {
         if (headers.containsKey(key)) {
             ArrayList<String> headerlist = headers.get(key);
@@ -925,6 +1210,14 @@ public class Webservice extends General {
         return false;
     }
 
+    /**
+     * Converts URL parameters to URL-encoded string format.
+     * <p>
+     * Transforms the stored URL parameters into a properly encoded query string
+     * suitable for form URL encoding.
+     *
+     * @return URL-encoded parameter string
+     */
     private String urlencodedParams() {
         Map<String, String> parameters = new HashMap<>();
         String urlParamString = "";
@@ -943,6 +1236,15 @@ public class Webservice extends General {
         return urlParamString;
     }
 
+    /**
+     * Closes the connection and cleans up stored request/response data.
+     * <p>
+     * Removes headers, response bodies, status codes, and endpoint information
+     * for the current test scenario/test case.
+     * <ul>
+     *   <li>Input: Not required</li>
+     * </ul>
+     */
     @Action(object = ObjectType.WEBSERVICE, desc = "Close the connection ", input = InputType.NO)
     public void closeConnection() {
         try {
@@ -960,6 +1262,14 @@ public class Webservice extends General {
         }
     }
     
+    /**
+     * Retrieves proxy configuration if proxy usage is enabled.
+     * <p>
+     * Reads proxy settings from the driver configuration and creates a ProxySelector
+     * if proxy is enabled.
+     *
+     * @return ProxySelector configured with host and port, or null if proxy is disabled
+     */
     private ProxySelector getProxyDetails() {
         if (Control.getCurrentProject().getProjectSettings().getDriverSettings().useProxy()) {
             String proxyhost = Control.getCurrentProject().getProjectSettings().getDriverSettings()
@@ -973,6 +1283,14 @@ public class Webservice extends General {
         }
     }
 
+    /**
+     * Retrieves the HTTP user agent string from user-defined settings.
+     * <p>
+     * Checks for a custom http.agent property in user-defined settings and returns
+     * it if configured.
+     *
+     * @return the custom HTTP user agent string, or null if not configured
+     */
     private String getHttpAgentDetails() {
         if (Control.getCurrentProject().getProjectSettings().getUserDefinedSettings().stringPropertyNames()
                 .contains("http.agent")) {
@@ -987,6 +1305,15 @@ public class Webservice extends General {
         }
     }
 
+    /**
+     * Processes payload or endpoint strings by substituting variables.
+     * <p>
+     * Replaces datasheet variables and user-defined variables with their actual values.
+     *
+     * @param data the raw payload or endpoint string containing placeholders
+     * @return the processed string with variables replaced
+     * @throws FileNotFoundException if a referenced file is not found
+     */
     private String handlePayloadorEndpoint(String data) throws FileNotFoundException {
         String payloadstring = data;
         payloadstring = handleDataSheetVariables(payloadstring);
@@ -995,6 +1322,15 @@ public class Webservice extends General {
         return payloadstring;
     }
 
+    /**
+     * Replaces datasheet variable placeholders with actual values.
+     * <p>
+     * Scans for {sheetName:columnName} patterns and replaces them with values
+     * from the corresponding datasheet.
+     *
+     * @param payloadstring the string containing datasheet variable placeholders
+     * @return the string with datasheet variables replaced
+     */
     private String handleDataSheetVariables(String payloadstring) {
         List<String> sheetlist = Control.getCurrentProject().getTestData().getTestDataFor(Control.exe.runEnv())
                 .getTestDataNames();
@@ -1014,6 +1350,15 @@ public class Webservice extends General {
         return payloadstring;
     }
 
+    /**
+     * Replaces user-defined variable placeholders with actual values.
+     * <p>
+     * Scans for {variableName} patterns and replaces them with values from
+     * user-defined settings.
+     *
+     * @param payloadstring the string containing user-defined variable placeholders
+     * @return the string with user-defined variables replaced
+     */
     private String handleuserDefinedVariables(String payloadstring) {
         Collection<Object> valuelist = Control.getCurrentProject().getProjectSettings().getUserDefinedSettings()
                 .values();
@@ -1025,6 +1370,11 @@ public class Webservice extends General {
         return payloadstring;
     }
 
+    /**
+     * Initializes the HTTP request builder with the configured endpoint URI.
+     * <p>
+     * Creates a new HttpRequest.Builder and sets the URI from the stored endpoint.
+     */
     private void OpenURLconnection() {
         try {
             httpRequestBuilder.put(key, HttpRequest.newBuilder());
@@ -1035,6 +1385,12 @@ public class Webservice extends General {
         }
     }
 
+    /**
+     * Applies stored headers to the HTTP request.
+     * <p>
+     * Iterates through the headers stored for the current scenario/test case
+     * and adds them to the HTTP request builder.
+     */
     private void setheaders() {
         try {
             if (headers.containsKey(key)) {
@@ -1052,6 +1408,11 @@ public class Webservice extends General {
         }
     }
 
+    /**
+     * Configures the HTTP user agent if specified in settings.
+     * <p>
+     * Sets the http.agent system property if a custom user agent is configured.
+     */
     private void httpAgentCheck() {
         try {
             if (getHttpAgentDetails() != null) {
@@ -1062,6 +1423,13 @@ public class Webservice extends General {
         }
     }
 
+    /**
+     * Checks if the request is configured for multipart form data.
+     * <p>
+     * Examines the headers to determine if the content type contains "multipart".
+     *
+     * @return true if multipart form data is configured, false otherwise
+     */
     private boolean isMultiPart() {
         if (headers.containsKey(key)) {
             ArrayList<String> headerlist = headers.get(key);
@@ -1076,6 +1444,16 @@ public class Webservice extends General {
         return false;
     }
 
+    /**
+     * Configures the HTTP request method and payload.
+     * <p>
+     * Sets up the request with the specified HTTP method (POST, PUT, etc.) and payload.
+     * Handles special cases like form URL encoding and multipart form data.
+     *
+     * @param method the HTTP method (POST, PUT, PATCH, GET, DELETE, DELETEWITHPAYLOAD)
+     * @param payload the request payload/body
+     * @throws IOException if an I/O error occurs while reading files for multipart requests
+     */
     private void setRequestMethod(String method, String payload) throws IOException {
         BodyPublisher payloadBody = null;
         if (isformUrlencoded()) {
@@ -1145,6 +1523,16 @@ public class Webservice extends General {
         }
     }
 
+    /**
+     * Configures the HTTP request method using the RequestMethod enum.
+     * <p>
+     * Determines whether a payload is required based on the HTTP method and
+     * delegates to the string-based setRequestMethod.
+     *
+     * @param requestmethod the HTTP method as a RequestMethod enum value
+     * @throws FileNotFoundException if a referenced file is not found
+     * @throws IOException if an I/O error occurs
+     */
     private void setRequestMethod(RequestMethod requestmethod) throws FileNotFoundException, IOException {
         if (requestmethod.toString().equals("PUT") || requestmethod.toString().equals("POST") || requestmethod.toString().equals("PATCH") || requestmethod.toString().equals("DELETEWITHPAYLOAD")) {
 
@@ -1155,6 +1543,16 @@ public class Webservice extends General {
         }
     }
 
+    /**
+     * Creates and executes an HTTP request with the specified method.
+     * <p>
+     * Orchestrates the entire request lifecycle: setting headers, configuring the method,
+     * executing the request, capturing response details, and handling errors.
+     *
+     * @param requestmethod the HTTP method to use for the request
+     * @throws InterruptedException if the request is interrupted
+     * @throws Exception if any error occurs during request execution
+     */
     private void createhttpRequest(RequestMethod requestmethod) throws InterruptedException, Exception {
         try {
             setheaders();
@@ -1209,6 +1607,15 @@ public class Webservice extends General {
         }
     }
 
+    /**
+     * Saves request or response payload to a file.
+     * <p>
+     * Creates files in the webservice folder under the current results path to store
+     * request or response payloads for debugging and reporting purposes.
+     *
+     * @param reqOrRes "request" or "response" to indicate which type of payload to save
+     * @param data the payload data to save
+     */
     private void savePayload(String reqOrRes, String data) {
         String payloadFileName = "";
         String path = "";
@@ -1236,6 +1643,12 @@ public class Webservice extends General {
         }
     }
 
+    /**
+     * Configures proxy settings for the HTTP client if enabled.
+     * <p>
+     * Applies proxy configuration to the HTTP client builder if proxy usage
+     * is enabled in the driver settings.
+     */
     private void handleProxy() {
         try {
             if (getProxyDetails() != null) {
@@ -1247,6 +1660,11 @@ public class Webservice extends General {
         }
     }
 
+    /**
+     * Initializes the HTTP client builder with default settings.
+     * <p>
+     * Creates a new HttpClient.Builder configured to use HTTP/1.1.
+     */
     private void initiateClientBuilder() {
         try {
             httpClientBuilder.put(key, HttpClient.newBuilder().version(HttpClient.Version.HTTP_1_1));
@@ -1270,6 +1688,14 @@ public class Webservice extends General {
         }
     }};
 
+    /**
+     * Loads the keystore for client certificate authentication.
+     * <p>
+     * Reads the JKS keystore from the configured path and initializes key managers
+     * for SSL/TLS connections.
+     *
+     * @return array of KeyManagers configured with the keystore, or null if loading fails
+     */
     private KeyManager[] loadKeyStore() {
         String keystorePath = Control.getCurrentProject().getProjectSettings().getDriverSettings().getKeyStorePath();
         String keystorePassword = Control.getCurrentProject().getProjectSettings().getDriverSettings().getKeyStorePassword();
@@ -1288,6 +1714,12 @@ public class Webservice extends General {
         return kmf.getKeyManagers();
     }
 
+    /**
+     * Configures SSL/TLS certificate verification for the HTTP client.
+     * <p>
+     * If SSL verification is disabled, creates an SSL context that trusts all certificates.
+     * For self-signed certificates, loads the keystore with client certificates.
+     */
     private void sslCertificateVerification() {
         try {
             if (!isSSLCertificateVerification()) {
@@ -1304,10 +1736,20 @@ public class Webservice extends General {
         }
     }
 
+    /**
+     * Checks if SSL certificate verification is enabled in settings.
+     *
+     * @return true if SSL certificate verification is enabled, false otherwise
+     */
     private Boolean isSSLCertificateVerification() {
         return Control.getCurrentProject().getProjectSettings().getDriverSettings().sslCertificateVerification();
     }
 
+    /**
+     * Checks if self-signed certificate support is enabled in settings.
+     *
+     * @return true if self-signed certificate support is enabled, false otherwise
+     */
     private Boolean isSelfSigned() {
         return Control.getCurrentProject().getProjectSettings().getDriverSettings().selfSigned();
     }
@@ -1413,6 +1855,167 @@ public class Webservice extends General {
         } catch (Exception ex) {
             Report.updateTestLog(Action, "Error in storing cookies with name in variable :"+ex.getMessage(), Status.FAIL);
             ex.printStackTrace();
+        }
+    }
+
+    /**
+     * Asserts that a JSON element value does NOT contain the specified text.
+     * <p>
+     * Uses JSONPath to extract a value from the JSON response and verifies it does NOT
+     * contain the specified substring. This is the negative assertion counterpart to
+     * {@link #assertJSONelementContains()}.
+     * <ul>
+     *   <li>Condition: JSONPath expression (e.g., $.user.email)</li>
+     *   <li>Input: Substring that should NOT be present</li>
+     * </ul>
+     */
+    @Action(object = ObjectType.WEBSERVICE, desc = "Assert JSON Element Not Contains ", input = InputType.YES, condition = InputType.YES)
+    public void assertJSONelementNotContains() {
+        try {
+            String response = responsebodies.get(key);
+            String jsonpath = Condition;
+            String value = JsonPath.read(response, jsonpath).toString();
+            if (!value.contains(Data)) {
+                Report.updateTestLog(Action, "Element text [" + value + "] does not contain [" + Data + "] as expected", Status.PASSNS);
+            } else {
+                Report.updateTestLog(Action, "Element text [" + value + "] contains [" + Data + "] but should not",
+                        Status.FAILNS);
+            }
+        } catch (Exception ex) {
+            Logger.getLogger(this.getClass().getName()).log(Level.OFF, null, ex);
+            Report.updateTestLog(Action, "Error in validating JSON element :" + "\n" + ex.getMessage(), Status.DEBUG);
+        }
+    }
+
+    /**
+     * Asserts that a JSON element value does NOT equal the specified value.
+     * <p>
+     * Uses JSONPath to extract a value from the JSON response and verifies it does NOT
+     * match the specified value exactly. This is the negative assertion counterpart to
+     * {@link #assertJSONelementEquals()}.
+     * <ul>
+     *   <li>Condition: JSONPath expression (e.g., $.status)</li>
+     *   <li>Input: Value that should NOT match</li>
+     * </ul>
+     */
+    @Action(object = ObjectType.WEBSERVICE, desc = "Assert JSON Element Not Equals ", input = InputType.YES, condition = InputType.YES)
+    public void assertJSONelementNotEquals() {
+        try {
+            String response = responsebodies.get(key);
+            String jsonpath = Condition;
+            String value = JsonPath.read(response, jsonpath).toString();
+            if (!value.equals(Data)) {
+                Report.updateTestLog(Action, "Element text [" + value + "] is not equal to [" + Data + "] as expected", Status.PASSNS);
+            } else {
+                Report.updateTestLog(Action, "Element text is [" + value + "] but should not be equal to [" + Data + "]",
+                        Status.FAILNS);
+            }
+        } catch (Exception ex) {
+            Logger.getLogger(this.getClass().getName()).log(Level.OFF, null, ex);
+            Report.updateTestLog(Action, "Error in validating JSON element :" + "\n" + ex.getMessage(), Status.DEBUG);
+        }
+    }
+
+    /**
+     * Asserts that an XML element value does NOT equal the specified value.
+     * <p>
+     * Uses XPath to extract a value from the XML response and verifies it does NOT
+     * match the specified value exactly. This is the negative assertion counterpart to
+     * {@link #assertXMLelementEquals()}.
+     * <ul>
+     *   <li>Condition: XPath expression (e.g., //status)</li>
+     *   <li>Input: Value that should NOT match</li>
+     * </ul>
+     */
+    @Action(object = ObjectType.WEBSERVICE, desc = "Assert XML Element Not Equals ", input = InputType.YES, condition = InputType.YES)
+    public void assertXMLelementNotEquals() {
+
+        try {
+            DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
+            DocumentBuilder dBuilder;
+            InputSource inputSource = new InputSource();
+            inputSource.setCharacterStream(new StringReader(responsebodies.get(key)));
+            dBuilder = dbFactory.newDocumentBuilder();
+            Document doc = dBuilder.parse(inputSource);
+            doc.getDocumentElement().normalize();
+            XPath xPath = XPathFactory.newInstance().newXPath();
+            String expression = Condition;
+            NodeList nodeList = (NodeList) xPath.compile(expression).evaluate(doc, XPathConstants.NODESET);
+            Node nNode = nodeList.item(0);
+            String value = nNode.getNodeValue();
+            if (!value.equals(Data)) {
+                Report.updateTestLog(Action, "Element text [" + value + "] is not equal to [" + Data + "] as expected", Status.PASSNS);
+            } else {
+                Report.updateTestLog(Action, "Element text [" + value + "] should not be equal to [" + Data + "]", Status.FAILNS);
+            }
+        } catch (IOException | ParserConfigurationException | XPathExpressionException | DOMException
+                | SAXException ex) {
+            Logger.getLogger(this.getClass().getName()).log(Level.OFF, null, ex);
+            Report.updateTestLog(Action, "Error validating XML element :" + "\n" + ex.getMessage(), Status.DEBUG);
+        }
+    }
+
+    /**
+     * Asserts that an XML element value does NOT contain the specified text.
+     * <p>
+     * Uses XPath to extract a value from the XML response and verifies it does NOT
+     * contain the specified substring. This is the negative assertion counterpart to
+     * {@link #assertXMLelementContains()}.
+     * <ul>
+     *   <li>Condition: XPath expression (e.g., //response/message)</li>
+     *   <li>Input: Substring that should NOT be present</li>
+     * </ul>
+     */
+    @Action(object = ObjectType.WEBSERVICE, desc = "Assert XML Element Not Contains ", input = InputType.YES, condition = InputType.YES)
+    public void assertXMLelementNotContains() {
+
+        try {
+            DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
+            DocumentBuilder dBuilder;
+            InputSource inputSource = new InputSource();
+            inputSource.setCharacterStream(new StringReader(responsebodies.get(key)));
+            dBuilder = dbFactory.newDocumentBuilder();
+            Document doc = dBuilder.parse(inputSource);
+            doc.getDocumentElement().normalize();
+            XPath xPath = XPathFactory.newInstance().newXPath();
+            String expression = Condition;
+            NodeList nodeList = (NodeList) xPath.compile(expression).evaluate(doc, XPathConstants.NODESET);
+            Node nNode = nodeList.item(0);
+            String value = nNode.getNodeValue();
+            if (!value.contains(Data)) {
+                Report.updateTestLog(Action, "Element text [" + value + "] does not contain [" + Data + "] as expected", Status.PASSNS);
+            } else {
+                Report.updateTestLog(Action, "Element text [" + value + "] contains [" + Data + "] but should not",
+                        Status.FAILNS);
+            }
+        } catch (IOException | ParserConfigurationException | XPathExpressionException | DOMException
+                | SAXException ex) {
+            Logger.getLogger(this.getClass().getName()).log(Level.OFF, null, ex);
+            Report.updateTestLog(Action, "Error validating XML element :" + "\n" + ex.getMessage(), Status.DEBUG);
+        }
+    }
+
+    /**
+     * Asserts that the HTTP response body does NOT contain the specified text.
+     * <p>
+     * Verifies that the response body from the most recent API request does NOT contain
+     * the specified substring. This is the negative assertion counterpart to
+     * {@link #assertResponsebodycontains()}.
+     * <ul>
+     *   <li>Input: Substring that should NOT be present in the response body</li>
+     * </ul>
+     */
+    @Action(object = ObjectType.WEBSERVICE, desc = "Assert Response Body Not Contains ", input = InputType.YES)
+    public void assertResponsebodyNotContains() {
+        try {
+            if (!responsebodies.get(key).contains(Data)) {
+                Report.updateTestLog(Action, "Response body does not contain : " + Data + " as expected", Status.PASSNS);
+            } else {
+                Report.updateTestLog(Action, "Response body contains : " + Data + " but should not", Status.FAILNS);
+            }
+        } catch (Exception ex) {
+            Logger.getLogger(this.getClass().getName()).log(Level.OFF, null, ex);
+            Report.updateTestLog(Action, "Error in validating response body :" + "\n" + ex.getMessage(), Status.DEBUG);
         }
     }
 
