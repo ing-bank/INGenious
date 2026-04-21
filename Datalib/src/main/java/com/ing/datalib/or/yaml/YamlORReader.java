@@ -86,6 +86,12 @@ public class YamlORReader {
         WebOR webOR = new WebOR();
         File webPagesDir = new File(orLocation, "Web/pages");
         
+        if (orLocation.getPath().contains(File.separator + "Shared" + File.separator)) {
+            webOR.setScope(WebOR.ORScope.SHARED);
+        } else {
+            webOR.setScope(WebOR.ORScope.PROJECT);
+        }
+        
         if (!webPagesDir.exists()) {
             LOGGER.info("No Web OR YAML directory found at: " + webPagesDir.getAbsolutePath());
             return webOR;
@@ -118,6 +124,12 @@ public class YamlORReader {
         MobileOR mobileOR = new MobileOR();
         File mobilePagesDir = new File(orLocation, "Mobile/pages");
         
+        if (orLocation.getPath().contains(File.separator + "Shared" + File.separator)) {
+            mobileOR.setScope(MobileOR.ORScope.SHARED);
+        } else {
+            mobileOR.setScope(MobileOR.ORScope.PROJECT);
+        }
+
         if (!mobilePagesDir.exists()) {
             LOGGER.info("No Mobile OR YAML directory found at: " + mobilePagesDir.getAbsolutePath());
             return mobileOR;

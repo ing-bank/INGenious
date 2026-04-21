@@ -54,6 +54,9 @@ public class ObjectRepository {
     private YamlORReader yamlReader;
     private YamlORWriter yamlWriter;
     
+    // Migration / conversion
+    private boolean xmlConvertedThisSession = false;
+    
     private static ObjectMapper createYamlMapper() {
         YAMLFactory factory = new YAMLFactory();
         factory.disable(YAMLGenerator.Feature.WRITE_DOC_START_MARKER);
@@ -76,198 +79,234 @@ public class ObjectRepository {
      * Loads OR files from disk (shared, project, mobile), updates names, sets scopes,
      * and links them to this repository.
      */
+//    private void init() {
+//        try {
+//            // Initialize YAML support
+//            yamlReader = new YamlORReader();
+//            yamlWriter = new YamlORWriter();
+//            
+//            File orRepLocation = new File(getORRepLocation());
+//            
+//            // Determine format once for PROJECT ORs only
+//            // Check if YAML or XML files exist for project ORs
+//            boolean hasYamlFiles = yamlReader.webORExists(orRepLocation) 
+//                                || yamlReader.mobileORExists(orRepLocation) 
+//                                || yamlReader.apiORExists(orRepLocation);
+//            boolean hasXmlFiles = new File(getORLocation()).exists() 
+//                               || new File(getMORLocation()).exists() 
+//                               || new File(getAPIORLocation()).exists();
+//            
+//            // Set format once for entire project
+//            if (hasYamlFiles) {
+//                useYamlFormat = true;
+//                LOG.info("Using YAML format for project Object Repositories");
+//            } else if (hasXmlFiles) {
+//                useYamlFormat = false;
+//                LOG.info("Using XML format for project Object Repositories (legacy)");
+//            } else {
+//                // New project - default to YAML
+//                useYamlFormat = true;
+//                LOG.info("New project - using YAML format for Object Repositories");
+//            }
+//            
+//            // === SHARED ORs (always XML) ===
+//            File sharedFile = new File(getSharedORLocation());
+//            if (sharedFile.exists()) {
+//                webSharedOR = XML_MAPPER.readValue(sharedFile, WebOR.class);
+//                webSharedOR.setName("Shared Web Objects");
+//            } else {
+//                webSharedOR = new WebOR("Shared Web Objects");
+//            }
+//            
+//            File sharedmorFile = new File(getSharedMORLocation());
+//            if (sharedmorFile.exists()) {
+//                mobileSharedOR = XML_MAPPER.readValue(sharedmorFile, MobileOR.class);
+//                mobileSharedOR.setName("Shared Mobile Objects");
+//            } else {
+//                mobileSharedOR = new MobileOR("Shared Mobile Objects");
+//            }
+//            
+//            // === PROJECT ORs (YAML or XML based on detection) ===
+//            // Load Web Project OR
+//            if (useYamlFormat && yamlReader.webORExists(orRepLocation)) {
+//                webProjectOR = yamlReader.readWebOR(orRepLocation);
+//                webProjectOR.setName(sProject.getName());
+//            } else if (!useYamlFormat && new File(getORLocation()).exists()) {
+//                webProjectOR = XML_MAPPER.readValue(new File(getORLocation()), WebOR.class);
+//                webProjectOR.setName(sProject.getName());
+//            } else {
+//                webProjectOR = new WebOR(sProject.getName());
+//            }
+//            // Set ObjectRepository reference immediately to prevent directory creation
+//            if (webProjectOR != null) {
+//                webProjectOR.setObjectRepository(this);
+//                webProjectOR.setScope(ORScope.PROJECT);
+//            }
+//            
+//            // Load Mobile Project OR
+//            if (useYamlFormat && yamlReader.mobileORExists(orRepLocation)) {
+//                mobileProjectOR = yamlReader.readMobileOR(orRepLocation);
+//                mobileProjectOR.setName(sProject.getName());
+//            } else if (!useYamlFormat && new File(getMORLocation()).exists()) {
+//                mobileProjectOR = XML_MAPPER.readValue(new File(getMORLocation()), MobileOR.class);
+//                mobileProjectOR.setName(sProject.getName());
+//            } else {
+//                mobileProjectOR = new MobileOR(sProject.getName());
+//            }
+//            // Set ObjectRepository reference immediately
+//            if (mobileProjectOR != null) {
+//                mobileProjectOR.setObjectRepository(this);
+//                mobileProjectOR.setScope(MobileOR.ORScope.PROJECT);
+//            }
+//            
+//            // Load API Project OR
+//            if (useYamlFormat && yamlReader.apiORExists(orRepLocation)) {
+//                apiProjectOR = yamlReader.readAPIOR(orRepLocation);
+//                apiProjectOR.setName(sProject.getName());
+//            } else if (!useYamlFormat && new File(getAPIORLocation()).exists()) {
+//                apiProjectOR = XML_MAPPER.readValue(new File(getAPIORLocation()), APIOR.class);
+//                apiProjectOR.setName(sProject.getName());
+//            } else {
+//                apiProjectOR = new APIOR(sProject.getName());
+//            }
+//
+//            // Set ObjectRepository reference immediately
+//            if (apiProjectOR != null) {
+//                apiProjectOR.setObjectRepository(this);
+//            }
+//
+//            // Set remaining properties for shared and project ORs
+//            if (webSharedOR != null) {
+//                webSharedOR.setObjectRepository(this);
+//                webSharedOR.setSaved(true);
+//                webSharedOR.setRepLocationOverride(getSharedORRepLocation());
+//                webSharedOR.setScope(ORScope.SHARED);
+//            }
+//            if (webProjectOR != null) {
+//                webProjectOR.setSaved(true);
+//            }
+//            if (mobileSharedOR != null) {
+//                mobileSharedOR.setObjectRepository(this);
+//                mobileSharedOR.setSaved(true);
+//                mobileSharedOR.setRepLocationOverride(getSharedMORRepLocation());
+//                mobileSharedOR.setScope(MobileOR.ORScope.SHARED);
+//                
+//            }
+//            if (mobileProjectOR != null) {
+//                mobileProjectOR.setSaved(true);
+//            }
+//            if (apiProjectOR != null) {
+//                apiProjectOR.setObjectRepository(this);
+//                apiProjectOR.setSaved(true);
+//            }
+//
+//            LOG.log(Level.INFO, "Shared WebOR loaded: {0}", (webSharedOR != null));
+//            LOG.log(Level.INFO, "Project WebOR loaded: {0}", (webProjectOR != null));
+//            LOG.log(Level.INFO, "Shared MobileOR loaded: {0}", (mobileSharedOR != null));
+//            LOG.log(Level.INFO, "Project MobileOR loaded: {0}", (mobileProjectOR != null));
+//            
+//            // Try YAML format first (modern format)
+//            if (yamlReader.webORExists(orRepLocation)) {
+//                LOG.info("Loading Web OR from YAML format");
+//                webProjectOR = yamlReader.readWebOR(orRepLocation);
+//                webProjectOR.setName(sProject.getName());
+//                useYamlFormat = true;
+//            } else if (new File(getORLocation()).exists()) {
+//                // Fall back to XML format (legacy)
+//                LOG.info("Loading Web OR from XML format");
+//                webProjectOR = XML_MAPPER.readValue(new File(getORLocation()), WebOR.class);
+//                webProjectOR.setName(sProject.getName());
+//                useYamlFormat = false; // Use XML format for legacy projects
+//            } else {
+//                webProjectOR = new WebOR(sProject.getName());
+//                // useYamlFormat stays true for new projects
+//            }
+//            
+//            // Try YAML format first for Mobile OR
+//            if (yamlReader.mobileORExists(orRepLocation)) {
+//                LOG.info("Loading Mobile OR from YAML format");
+//                mobileProjectOR = yamlReader.readMobileOR(orRepLocation);
+//                mobileProjectOR.setName(sProject.getName());
+//                useYamlFormat = true;
+//            } else if (new File(getMORLocation()).exists()) {
+//                // Fall back to XML format (legacy)
+//                LOG.info("Loading Mobile OR from XML format");
+//                mobileProjectOR = XML_MAPPER.readValue(new File(getMORLocation()), MobileOR.class);
+//                mobileProjectOR.setName(sProject.getName());
+//                useYamlFormat = false; // Use XML format for legacy projects
+//            } else {
+//                mobileProjectOR = new MobileOR(sProject.getName());
+//                // useYamlFormat stays true for new projects
+//            }
+//
+//            // Try YAML format first for API OR
+//            if (yamlReader.apiORExists(orRepLocation)) {
+//                LOG.info("Loading API OR from YAML format");
+//                apiProjectOR = yamlReader.readAPIOR(orRepLocation);
+//                apiProjectOR.setName(sProject.getName());
+//                useYamlFormat = true;
+//            } else if (new File(getAPIORLocation()).exists()) {
+//                // Fall back to XML format (legacy)
+//                LOG.info("Loading API OR from XML format");
+//                apiProjectOR = XML_MAPPER.readValue(new File(getAPIORLocation()), APIOR.class);
+//                apiProjectOR.setName(sProject.getName());
+//                useYamlFormat = false; // Use XML format for legacy projects
+//            } else {
+//                apiProjectOR = new APIOR(sProject.getName());
+//                // useYamlFormat stays true for new projects
+//            }
+//
+//            webProjectOR.setObjectRepository(this);
+//            webProjectOR.setSaved(true);
+//            mobileProjectOR.setObjectRepository(this);
+//            apiProjectOR.setObjectRepository(this);
+//        
+//        } catch (IOException ex) {
+//            Logger.getLogger(ObjectRepository.class.getName()).log(Level.SEVERE, null, ex);
+//        }
+//    }
     private void init() {
         try {
-            // Initialize YAML support
             yamlReader = new YamlORReader();
             yamlWriter = new YamlORWriter();
-            
-            File orRepLocation = new File(getORRepLocation());
-            
-            // Determine format once for PROJECT ORs only
-            // Check if YAML or XML files exist for project ORs
-            boolean hasYamlFiles = yamlReader.webORExists(orRepLocation) 
-                                || yamlReader.mobileORExists(orRepLocation) 
-                                || yamlReader.apiORExists(orRepLocation);
-            boolean hasXmlFiles = new File(getORLocation()).exists() 
-                               || new File(getMORLocation()).exists() 
-                               || new File(getAPIORLocation()).exists();
-            
-            // Set format once for entire project
-            if (hasYamlFiles) {
+
+            boolean xmlExists  = hasAnyXmlOR();
+            boolean yamlExists = hasYamlOR();
+
+            LOG.info("OR init: xmlExists=" + xmlExists + ", yamlExists=" + yamlExists);
+
+            // ======================================================
+            // CASE 1: Legacy project → migrate
+            // ======================================================
+            if (xmlExists && !yamlExists) {
+
+                LOG.info("Legacy XML detected. Loading XML for migration...");
+
+                loadXmlObjectRepositories();
+
+                convertXmlOrsToYamlAndArchive();
+
+                LOG.info("Loading YAML after migration");
+                loadYamlObjectRepositories();
+
                 useYamlFormat = true;
-                LOG.info("Using YAML format for project Object Repositories");
-            } else if (hasXmlFiles) {
-                useYamlFormat = false;
-                LOG.info("Using XML format for project Object Repositories (legacy)");
-            } else {
-                // New project - default to YAML
+            }
+            // ======================================================
+            // CASE 2: YAML-first project
+            // ======================================================
+            else {
+                LOG.info("YAML detected. Loading YAML only...");
+                loadYamlObjectRepositories();
                 useYamlFormat = true;
-                LOG.info("New project - using YAML format for Object Repositories");
-            }
-            
-            // === SHARED ORs (always XML) ===
-            File sharedFile = new File(getSharedORLocation());
-            if (sharedFile.exists()) {
-                webSharedOR = XML_MAPPER.readValue(sharedFile, WebOR.class);
-                webSharedOR.setName("Shared Web Objects");
-            } else {
-                webSharedOR = new WebOR("Shared Web Objects");
-            }
-            
-            File sharedmorFile = new File(getSharedMORLocation());
-            if (sharedmorFile.exists()) {
-                mobileSharedOR = XML_MAPPER.readValue(sharedmorFile, MobileOR.class);
-                mobileSharedOR.setName("Shared Mobile Objects");
-            } else {
-                mobileSharedOR = new MobileOR("Shared Mobile Objects");
-            }
-            
-            // === PROJECT ORs (YAML or XML based on detection) ===
-            // Load Web Project OR
-            if (useYamlFormat && yamlReader.webORExists(orRepLocation)) {
-                webProjectOR = yamlReader.readWebOR(orRepLocation);
-                webProjectOR.setName(sProject.getName());
-            } else if (!useYamlFormat && new File(getORLocation()).exists()) {
-                webProjectOR = XML_MAPPER.readValue(new File(getORLocation()), WebOR.class);
-                webProjectOR.setName(sProject.getName());
-            } else {
-                webProjectOR = new WebOR(sProject.getName());
-            }
-            // Set ObjectRepository reference immediately to prevent directory creation
-            if (webProjectOR != null) {
-                webProjectOR.setObjectRepository(this);
-                webProjectOR.setScope(ORScope.PROJECT);
-            }
-            
-            // Load Mobile Project OR
-            if (useYamlFormat && yamlReader.mobileORExists(orRepLocation)) {
-                mobileProjectOR = yamlReader.readMobileOR(orRepLocation);
-                mobileProjectOR.setName(sProject.getName());
-            } else if (!useYamlFormat && new File(getMORLocation()).exists()) {
-                mobileProjectOR = XML_MAPPER.readValue(new File(getMORLocation()), MobileOR.class);
-                mobileProjectOR.setName(sProject.getName());
-            } else {
-                mobileProjectOR = new MobileOR(sProject.getName());
-            }
-            // Set ObjectRepository reference immediately
-            if (mobileProjectOR != null) {
-                mobileProjectOR.setObjectRepository(this);
-                mobileProjectOR.setScope(MobileOR.ORScope.PROJECT);
-            }
-            
-            // Load API Project OR
-            if (useYamlFormat && yamlReader.apiORExists(orRepLocation)) {
-                apiProjectOR = yamlReader.readAPIOR(orRepLocation);
-                apiProjectOR.setName(sProject.getName());
-            } else if (!useYamlFormat && new File(getAPIORLocation()).exists()) {
-                apiProjectOR = XML_MAPPER.readValue(new File(getAPIORLocation()), APIOR.class);
-                apiProjectOR.setName(sProject.getName());
-            } else {
-                apiProjectOR = new APIOR(sProject.getName());
             }
 
-            // Set ObjectRepository reference immediately
-            if (apiProjectOR != null) {
-                apiProjectOR.setObjectRepository(this);
-            }
-
-            // Set remaining properties for shared and project ORs
-            if (webSharedOR != null) {
-                webSharedOR.setObjectRepository(this);
-                webSharedOR.setSaved(true);
-                webSharedOR.setRepLocationOverride(getSharedORRepLocation());
-                webSharedOR.setScope(ORScope.SHARED);
-            }
-            if (webProjectOR != null) {
-                webProjectOR.setSaved(true);
-            }
-            if (mobileSharedOR != null) {
-                mobileSharedOR.setObjectRepository(this);
-                mobileSharedOR.setSaved(true);
-                mobileSharedOR.setRepLocationOverride(getSharedMORRepLocation());
-                mobileSharedOR.setScope(MobileOR.ORScope.SHARED);
-                
-            }
-            if (mobileProjectOR != null) {
-                mobileProjectOR.setSaved(true);
-            }
-            if (apiProjectOR != null) {
-                apiProjectOR.setObjectRepository(this);
-                apiProjectOR.setSaved(true);
-            }
-
-            LOG.log(Level.INFO, "Shared WebOR loaded: {0}", (webSharedOR != null));
-            LOG.log(Level.INFO, "Project WebOR loaded: {0}", (webProjectOR != null));
-            LOG.log(Level.INFO, "Shared MobileOR loaded: {0}", (mobileSharedOR != null));
-            LOG.log(Level.INFO, "Project MobileOR loaded: {0}", (mobileProjectOR != null));
-            
-            // Try YAML format first (modern format)
-            if (yamlReader.webORExists(orRepLocation)) {
-                LOG.info("Loading Web OR from YAML format");
-                webProjectOR = yamlReader.readWebOR(orRepLocation);
-                webProjectOR.setName(sProject.getName());
-                useYamlFormat = true;
-            } else if (new File(getORLocation()).exists()) {
-                // Fall back to XML format (legacy)
-                LOG.info("Loading Web OR from XML format");
-                webProjectOR = XML_MAPPER.readValue(new File(getORLocation()), WebOR.class);
-                webProjectOR.setName(sProject.getName());
-                useYamlFormat = false; // Use XML format for legacy projects
-            } else {
-                webProjectOR = new WebOR(sProject.getName());
-                // useYamlFormat stays true for new projects
-            }
-            
-            // Try YAML format first for Mobile OR
-            if (yamlReader.mobileORExists(orRepLocation)) {
-                LOG.info("Loading Mobile OR from YAML format");
-                mobileProjectOR = yamlReader.readMobileOR(orRepLocation);
-                mobileProjectOR.setName(sProject.getName());
-                useYamlFormat = true;
-            } else if (new File(getMORLocation()).exists()) {
-                // Fall back to XML format (legacy)
-                LOG.info("Loading Mobile OR from XML format");
-                mobileProjectOR = XML_MAPPER.readValue(new File(getMORLocation()), MobileOR.class);
-                mobileProjectOR.setName(sProject.getName());
-                useYamlFormat = false; // Use XML format for legacy projects
-            } else {
-                mobileProjectOR = new MobileOR(sProject.getName());
-                // useYamlFormat stays true for new projects
-            }
-
-            // Try YAML format first for API OR
-            if (yamlReader.apiORExists(orRepLocation)) {
-                LOG.info("Loading API OR from YAML format");
-                apiProjectOR = yamlReader.readAPIOR(orRepLocation);
-                apiProjectOR.setName(sProject.getName());
-                useYamlFormat = true;
-            } else if (new File(getAPIORLocation()).exists()) {
-                // Fall back to XML format (legacy)
-                LOG.info("Loading API OR from XML format");
-                apiProjectOR = XML_MAPPER.readValue(new File(getAPIORLocation()), APIOR.class);
-                apiProjectOR.setName(sProject.getName());
-                useYamlFormat = false; // Use XML format for legacy projects
-            } else {
-                apiProjectOR = new APIOR(sProject.getName());
-                // useYamlFormat stays true for new projects
-            }
-
-            webProjectOR.setObjectRepository(this);
-            webProjectOR.setSaved(true);
-            mobileProjectOR.setObjectRepository(this);
-            apiProjectOR.setObjectRepository(this);
-        
-        } catch (IOException ex) {
-            Logger.getLogger(ObjectRepository.class.getName()).log(Level.SEVERE, null, ex);
+        } catch (Exception e) {
+            LOG.log(Level.SEVERE, "Failed to initialize ObjectRepository", e);
         }
     }
 
     public String getORLocation() {
         return sProject.getLocation() + File.separator + "OR.object";
-    }
-    public String getSharedORLocation() {
-        return "Shared" + File.separator + "SharedWebObjects" + File.separator + "SharedOR.object";
     }
     public String getIORLocation() {
         return sProject.getLocation() + File.separator + "IOR.object";
@@ -278,14 +317,8 @@ public class ObjectRepository {
     public String getAPIORLocation() {
         return sProject.getLocation() + File.separator + "APIOR.object";
     }
-    public String getSharedMORLocation() {
-        return "Shared" + File.separator + "SharedMobileObjects" + File.separator + "SharedMOR.object";
-    }
     public String getORRepLocation() {
         return sProject.getLocation() + File.separator + "ObjectRepository";
-    }
-    public String getSharedORRepLocation() {
-        return "Shared" + File.separator + "SharedWebObjects" + File.separator + "SharedObjectRepository";
     }
     public String getIORRepLocation() {
         return sProject.getLocation() + File.separator + "ImageObjectRepository";
@@ -296,8 +329,17 @@ public class ObjectRepository {
     public String getAPIORRepLocation() {
         return sProject.getLocation() + File.separator + "APIObjectRepository";
     }
+    public String getSharedORLocation() {
+        return "Shared" + File.separator + "SharedWebObjects" + File.separator + "SharedOR.object";
+    }
+    public String getSharedMORLocation() {
+        return "Shared" + File.separator + "SharedMobileObjects" + File.separator + "SharedMOR.object";
+    }
+    public String getSharedORRepLocation() {
+        return "Shared" + File.separator + "SharedObjectRepository";
+    }
     public String getSharedMORRepLocation() {
-        return "Shared" + File.separator + "SharedMobileObjects" + File.separator + "MobileObjectRepository";
+        return "Shared" + File.separator + "SharedMobileObjectRepository";
     }
     public Project getsProject() {
         return sProject;
@@ -455,6 +497,175 @@ public class ObjectRepository {
     public void setUsingYamlFormat(boolean useYaml) {
         this.useYamlFormat = useYaml;
     }
+
+    private boolean hasProjectXmlOR() {
+        return new File(getORLocation()).exists() || new File(getMORLocation()).exists();
+    }
+
+    private boolean hasSharedXmlOR() {
+        return new File(getSharedORLocation()).exists() || new File(getSharedMORLocation()).exists();
+    }
+
+    private boolean hasAnyXmlOR() {
+        return hasProjectXmlOR() || hasSharedXmlOR();
+    }
+
+    private boolean hasYamlOR() {
+        File webPages = new File(getORRepLocation(), "Web/pages");
+        File mobilePages = new File(getORRepLocation(), "Mobile/pages");
+        return (webPages.exists() && webPages.isDirectory()) || (mobilePages.exists() && mobilePages.isDirectory());
+    }
+    
+    private void convertXmlOrsToYamlAndArchive() throws IOException {
+
+        LOG.info("Legacy XML ORs detected. Converting to YAML...");
+
+        XmlToYamlORConverter converter = new XmlToYamlORConverter(yamlWriter);
+
+        File projectYamlRoot = new File(getORRepLocation());
+        File sharedYamlRoot  = new File(getSharedORRepLocation());
+
+        // Convert Web + Mobile only
+        converter.convertAll(
+            webProjectOR,
+            webSharedOR,
+            mobileProjectOR,
+            mobileSharedOR,
+            projectYamlRoot,
+            sharedYamlRoot
+        );
+
+        // Archive XML files
+        archiveProjectXmlORs();
+        archiveSharedXmlORs();
+        cleanupLegacySharedXmlFolders();
+        useYamlFormat = true;
+
+        LOG.info("XML OR migration complete. YAML is now active.");
+    }
+
+    private void archiveProjectXmlORs() {
+        File archiveDir = new File(sProject.getLocation(), "ProjectXMLOR");
+        archiveDir.mkdirs();
+        moveXmlToBak(getORLocation(), archiveDir);
+        moveXmlToBak(getMORLocation(), archiveDir);
+    }
+    
+    private void archiveSharedXmlORs() {
+        File archiveDir = new File("Shared" + File.separator + "SharedXMLOR");
+        archiveDir.mkdirs();
+        moveXmlToBak(getSharedORLocation(), archiveDir);
+        moveXmlToBak(getSharedMORLocation(), archiveDir);
+    }
+    
+    private void moveXmlToBak(String xmlPath, File targetDir) {
+        if (xmlPath == null) return;
+        File xmlFile = new File(xmlPath);
+        if (!xmlFile.exists()) return;
+        File bakFile = new File(targetDir, xmlFile.getName() + ".bak");
+        if (xmlFile.renameTo(bakFile)) {
+            LOG.info("Archived XML OR: " + bakFile.getAbsolutePath());
+        } else {
+            LOG.warning("Failed to archive XML OR: " + xmlFile.getAbsolutePath());
+        }
+    }
+
+    private void deleteDirectoryRecursively(File dir) {
+        if (dir == null || !dir.exists()) {
+            return;
+        }
+
+        File[] contents = dir.listFiles();
+        if (contents != null) {
+            for (File file : contents) {
+                if (file.isDirectory()) {
+                    deleteDirectoryRecursively(file);
+                } else {
+                    file.delete();
+                }
+            }
+        }
+
+        boolean deleted = dir.delete();
+        if (deleted) {
+            LOG.info("Deleted legacy XML directory: " + dir.getAbsolutePath());
+        } else {
+            LOG.warning("Failed to delete legacy XML directory: " + dir.getAbsolutePath());
+        }
+    }
+
+    private void cleanupLegacySharedXmlFolders() {
+
+        File sharedWebXmlDir = new File("Shared" + File.separator + "SharedWebObjects");
+
+        File sharedMobileXmlDir = new File("Shared" + File.separator + "SharedMobileObjects");
+
+        deleteDirectoryRecursively(sharedWebXmlDir);
+        deleteDirectoryRecursively(sharedMobileXmlDir);
+    }
+
+    private void loadYamlObjectRepositories() throws IOException {
+        File orRepRoot = new File(getORRepLocation());
+
+        webProjectOR = yamlReader.readWebOR(orRepRoot);
+        mobileProjectOR = yamlReader.readMobileOR(orRepRoot);
+        apiProjectOR = yamlReader.readAPIOR(orRepRoot);
+
+        // Shared
+        File sharedRoot = new File(getSharedORRepLocation());
+        webSharedOR = yamlReader.readWebOR(sharedRoot);
+        mobileSharedOR = yamlReader.readMobileOR(sharedRoot);
+    }
+
+    /**
+    * Loads legacy XML-based Object Repositories into memory.
+    *
+    * This method is ONLY used during XML → YAML migration.
+    * It must NOT be called once YAML ORs exist.
+    */
+   private void loadXmlObjectRepositories() throws IOException {
+
+       LOG.info("Loading legacy XML Object Repositories for migration...");
+
+       // ========================
+       // PROJECT XML ORs
+       // ========================
+
+       File projectWebXml = new File(getORLocation());
+       if (projectWebXml.exists()) {
+           webProjectOR = XML_MAPPER.readValue(projectWebXml, WebOR.class);
+           webProjectOR.setObjectRepository(this);
+           LOG.info("Loaded PROJECT Web XML OR");
+       }
+
+       File projectMobileXml = new File(getMORLocation());
+       if (projectMobileXml.exists()) {
+           mobileProjectOR = XML_MAPPER.readValue(projectMobileXml, MobileOR.class);
+           mobileProjectOR.setObjectRepository(this);
+           LOG.info("Loaded PROJECT Mobile XML OR");
+       }
+
+       // ========================
+       // SHARED XML ORs
+       // ========================
+
+       File sharedWebXml = new File(getSharedORLocation());
+       if (sharedWebXml.exists()) {
+           webSharedOR = XML_MAPPER.readValue(sharedWebXml, WebOR.class);
+           webSharedOR.setObjectRepository(this);
+           webSharedOR.setScope(WebOR.ORScope.SHARED);
+           LOG.info("Loaded SHARED Web XML OR");
+       }
+
+       File sharedMobileXml = new File(getSharedMORLocation());
+       if (sharedMobileXml.exists()) {
+           mobileSharedOR = XML_MAPPER.readValue(sharedMobileXml, MobileOR.class);
+           mobileSharedOR.setObjectRepository(this);
+           mobileSharedOR.setScope(MobileOR.ORScope.SHARED);
+           LOG.info("Loaded SHARED Mobile XML OR");
+       }
+   }
+
 
     /**
      * Checks whether the given object exists in either PROJECT or SHARED scope.
