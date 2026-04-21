@@ -1,8 +1,8 @@
-package com.ing.ide.main.mainui.components.testdesign.or.api;
+package com.ing.ide.main.mainui.components.testdesign.or.structureddata;
 
 import com.ing.datalib.component.Project;
 import com.ing.datalib.component.TestCase;
-import com.ing.datalib.or.api.APIORObject;
+import com.ing.datalib.or.structureddata.StructuredDataORObject;
 import com.ing.datalib.or.common.ORObjectInf;
 import com.ing.datalib.or.common.ORRootInf;
 import com.ing.ide.main.mainui.components.testdesign.or.ObjectTree;
@@ -10,13 +10,13 @@ import java.util.List;
 import javax.swing.tree.TreePath;
 
 /**
- * Tree component for API Object Repository.
+ * Tree component for Structured Data Object Repository.
  */
-public class APIObjectTree extends ObjectTree {
+public class StructuredDataObjectTree extends ObjectTree {
 
-    private final APIORPanel oRPanel;
+    private final StructuredDataORPanel oRPanel;
 
-    public APIObjectTree(APIORPanel sProxy) {
+    public StructuredDataObjectTree(StructuredDataORPanel sProxy) {
         this.oRPanel = sProxy;
     }
 
@@ -40,7 +40,7 @@ public class APIObjectTree extends ObjectTree {
 
     @Override
     public ORRootInf getOR() {
-        return oRPanel.getProject().getObjectRepository().getAPIOR();
+        return oRPanel.getProject().getObjectRepository().getStructuredDataOR();
     }
 
     @Override
@@ -52,7 +52,7 @@ public class APIObjectTree extends ObjectTree {
         super.objectRemoved(object);
     }
 
-    public APIORObject getLoadedObject() {
+    public StructuredDataORObject getLoadedObject() {
         return oRPanel.getObjectTable().getObject();
     }
 

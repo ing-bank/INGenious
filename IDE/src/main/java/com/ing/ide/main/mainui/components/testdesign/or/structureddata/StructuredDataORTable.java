@@ -1,9 +1,8 @@
-package com.ing.ide.main.mainui.components.testdesign.or.api;
+package com.ing.ide.main.mainui.components.testdesign.or.structureddata;
 
-import com.ing.datalib.or.api.APIOR;
-import com.ing.datalib.or.api.APIORObject;
-import com.ing.datalib.or.api.APIORPage;
-import com.ing.datalib.or.common.ORAttribute;
+import com.ing.datalib.or.structureddata.StructuredDataAttribute;
+import com.ing.datalib.or.structureddata.StructuredDataORObject;
+import com.ing.datalib.or.structureddata.StructuredDataORPage;
 import com.ing.datalib.or.common.ORObjectInf;
 import com.ing.datalib.or.common.ObjectGroup;
 import com.ing.ide.main.utils.Utils;
@@ -30,16 +29,17 @@ import javax.swing.table.TableColumn;
  * Table component for API Object Repository properties.
  * Shows JsonPath and Xpath attributes (2 columns: Attribute, Value).
  */
-public class APIORTable extends JPanel implements ActionListener {
+public class StructuredDataORTable extends JPanel implements ActionListener {
 
     private final XTable table;
 
-    private final APIORPanel apiOR;
+    private final StructuredDataORPanel structuredDataOR;
     private final ToolBar toolBar;
     private final PopupMenu popupMenu;
 
-    public APIORTable(APIORPanel apiOR) {
-        this.apiOR = apiOR;
+    public StructuredDataORTable(StructuredDataORPanel structuredDataOR) {
+
+        this.structuredDataOR = structuredDataOR;
         table = new XTable();
         toolBar = new ToolBar();
         popupMenu = new PopupMenu();
@@ -59,7 +59,7 @@ public class APIORTable extends JPanel implements ActionListener {
         return table;
     }
 
-    public void loadObject(APIORObject object) {
+    public void loadObject(StructuredDataORObject object) {
         table.setModel(object);
         configureColumns();
     }
@@ -176,7 +176,7 @@ public class APIORTable extends JPanel implements ActionListener {
 
     private boolean moveRowsUp(int from, int to) {
         if (from > 0) {
-            List<ORAttribute> attrs = getObject().getAttributes();
+            List<StructuredDataAttribute> attrs = getObject().getAttributes();
             for (int i = from; i <= to; i++) {
                 Collections.swap(attrs, i, i - 1);
             }
@@ -198,7 +198,7 @@ public class APIORTable extends JPanel implements ActionListener {
     }
 
     private boolean moveRowsDown(int from, int to) {
-        List<ORAttribute> attrs = getObject().getAttributes();
+        List<StructuredDataAttribute> attrs = getObject().getAttributes();
         if (to < attrs.size() - 1) {
             for (int i = to; i >= from; i--) {
                 Collections.swap(attrs, i, i + 1);
@@ -210,7 +210,7 @@ public class APIORTable extends JPanel implements ActionListener {
     }
 
     private List<ORObjectInf> getSelectedObjects() {
-        return apiOR.getObjectTree().getSelectedObjects();
+        return structuredDataOR.getObjectTree().getSelectedObjects();
     }
 
     private void clearFromSelected() {
@@ -218,7 +218,7 @@ public class APIORTable extends JPanel implements ActionListener {
             String[] attrs = getSelectedAttrs();
             for (String attr : attrs) {
                 getSelectedObjects().stream().forEach((object) -> {
-                    ((APIORObject) object).setAttributeByName(attr, "");
+                    ((StructuredDataORObject) object).setAttributeByName(attr, "");
                 });
             }
         }
@@ -227,7 +227,7 @@ public class APIORTable extends JPanel implements ActionListener {
     private void clearFromAll() {
         if (table.getSelectedRowCount() > 0) {
             String[] attrs = getSelectedAttrs();
-            for (APIORPage page : getObject().getPage().getRoot().getPages()) {
+            for (StructuredDataORPage page : getObject().getPage().getRoot().getPages()) {
                 clearFromPage(page, attrs);
             }
         }
@@ -239,9 +239,9 @@ public class APIORTable extends JPanel implements ActionListener {
         }
     }
 
-    private void clearFromPage(APIORPage page, String[] attrs) {
-        for (ObjectGroup<APIORObject> objectGroup : page.getObjectGroups()) {
-            for (APIORObject object : objectGroup.getObjects()) {
+    private void clearFromPage(StructuredDataORPage page, String[] attrs) {
+        for (ObjectGroup<StructuredDataORObject> objectGroup : page.getObjectGroups()) {
+            for (StructuredDataORObject object : objectGroup.getObjects()) {
                 for (String attr : attrs) {
                     object.setAttributeByName(attr, "");
                 }
@@ -252,7 +252,7 @@ public class APIORTable extends JPanel implements ActionListener {
     private void removeFromAll() {
         if (table.getSelectedRowCount() > 0) {
             String[] attrs = getSelectedAttrs();
-            for (APIORPage page : getObject().getPage().getRoot().getPages()) {
+            for (StructuredDataORPage page : getObject().getPage().getRoot().getPages()) {
                 removeFromPage(page, attrs);
             }
         }
@@ -263,8 +263,8 @@ public class APIORTable extends JPanel implements ActionListener {
             String[] attrs = getSelectedAttrs();
             for (String attr : attrs) {
                 getSelectedObjects().stream().forEach((object) -> {
-                    APIORObject apiObj = (APIORObject) object;
-                    ORAttribute orAttr = apiObj.getAttribute(attr);
+                    StructuredDataORObject apiObj = (StructuredDataORObject) object;
+                    StructuredDataAttribute orAttr = apiObj.getAttribute(attr);
                     if (orAttr != null) {
                         apiObj.removeAttribute(apiObj.getAttributes().indexOf(orAttr));
                     }
@@ -279,11 +279,11 @@ public class APIORTable extends JPanel implements ActionListener {
         }
     }
 
-    private void removeFromPage(APIORPage page, String[] attrs) {
-        for (ObjectGroup<APIORObject> objectGroup : page.getObjectGroups()) {
-            for (APIORObject object : objectGroup.getObjects()) {
+    private void removeFromPage(StructuredDataORPage page, String[] attrs) {
+        for (ObjectGroup<StructuredDataORObject> objectGroup : page.getObjectGroups()) {
+            for (StructuredDataORObject object : objectGroup.getObjects()) {
                 for (String attr : attrs) {
-                    ORAttribute orAttr = object.getAttribute(attr);
+                    StructuredDataAttribute orAttr = object.getAttribute(attr);
                     if (orAttr != null) {
                         object.removeAttribute(object.getAttributes().indexOf(orAttr));
                     }
@@ -297,7 +297,7 @@ public class APIORTable extends JPanel implements ActionListener {
             String[] attrs = getSelectedAttrs();
             for (String attr : attrs) {
                 getSelectedObjects().stream().forEach((object) -> {
-                    ((APIORObject) object).addOrUpdateAttribute(attr, "");
+                    ((StructuredDataORObject) object).addOrUpdateAttribute(attr, "");
                 });
             }
         }
@@ -306,7 +306,7 @@ public class APIORTable extends JPanel implements ActionListener {
     private void addToAll() {
         if (table.getSelectedRowCount() > 0) {
             String[] attrs = getSelectedAttrs();
-            for (APIORPage page : getObject().getPage().getRoot().getPages()) {
+            for (StructuredDataORPage page : getObject().getPage().getRoot().getPages()) {
                 addToPage(page, attrs);
             }
         }
@@ -318,9 +318,9 @@ public class APIORTable extends JPanel implements ActionListener {
         }
     }
 
-    private void addToPage(APIORPage page, String[] attrs) {
-        for (ObjectGroup<APIORObject> objectGroup : page.getObjectGroups()) {
-            for (APIORObject object : objectGroup.getObjects()) {
+    private void addToPage(StructuredDataORPage page, String[] attrs) {
+        for (ObjectGroup<StructuredDataORObject> objectGroup : page.getObjectGroups()) {
+            for (StructuredDataORObject object : objectGroup.getObjects()) {
                 for (String attr : attrs) {
                     object.addOrUpdateAttribute(attr, "");
                 }
@@ -330,37 +330,37 @@ public class APIORTable extends JPanel implements ActionListener {
 
     private void setPriorityToAll() {
         stopCellEditing();
-        APIORObject currObj = getObject();
-        for (APIORPage page : getObject().getPage().getRoot().getPages()) {
+        StructuredDataORObject currObj = getObject();
+        for (StructuredDataORPage page : getObject().getPage().getRoot().getPages()) {
             setPriorityToPage(page, currObj);
         }
     }
 
     private void setPriorityToSelected() {
         stopCellEditing();
-        APIORObject currObj = getObject();
+        StructuredDataORObject currObj = getObject();
         getSelectedObjects().stream().forEach((object) -> {
-            reorderAttributes(currObj.getAttributes(), ((APIORObject) object).getAttributes());
+            reorderAttributes(currObj.getAttributes(), ((StructuredDataORObject) object).getAttributes());
         });
     }
 
     private void setPriorityToPage() {
         stopCellEditing();
-        APIORObject currObj = getObject();
+        StructuredDataORObject currObj = getObject();
         setPriorityToPage(getObject().getPage(), currObj);
     }
 
-    private void setPriorityToPage(APIORPage page, APIORObject currObj) {
-        for (ObjectGroup<APIORObject> objectGroup : page.getObjectGroups()) {
-            for (APIORObject object : objectGroup.getObjects()) {
+    private void setPriorityToPage(StructuredDataORPage page, StructuredDataORObject currObj) {
+        for (ObjectGroup<StructuredDataORObject> objectGroup : page.getObjectGroups()) {
+            for (StructuredDataORObject object : objectGroup.getObjects()) {
                 reorderAttributes(currObj.getAttributes(), object.getAttributes());
             }
         }
     }
 
-    private void reorderAttributes(List<ORAttribute> source, List<ORAttribute> dest) {
+    private void reorderAttributes(List<StructuredDataAttribute> source, List<StructuredDataAttribute> dest) {
         for (int i = 0, c = 0; i < source.size(); i++) {
-            ORAttribute val = source.get(i);
+            StructuredDataAttribute val = source.get(i);
             for (int j = c; j < dest.size(); j++) {
                 if (dest.get(j).getName().equals(val.getName())) {
                     Collections.swap(dest, c++, j);
@@ -376,9 +376,9 @@ public class APIORTable extends JPanel implements ActionListener {
         }
     }
 
-    public APIORObject getObject() {
-        if (table.getModel() instanceof APIORObject) {
-            return (APIORObject) table.getModel();
+    public StructuredDataORObject getObject() {
+        if (table.getModel() instanceof StructuredDataORObject) {
+            return (StructuredDataORObject) table.getModel();
         }
         return null;
     }
@@ -404,11 +404,11 @@ public class APIORTable extends JPanel implements ActionListener {
 
             add(new javax.swing.Box.Filler(new java.awt.Dimension(0, 0), new java.awt.Dimension(0, 0), new java.awt.Dimension(32767, 32767)));
 
-            add(Utils.createButton("Add Row", "add", "Ctrl+Plus", APIORTable.this));
-            add(Utils.createButton("Delete Rows", "remove", "Ctrl+Minus", APIORTable.this));
+            add(Utils.createButton("Add Row", "add", "Ctrl+Plus", StructuredDataORTable.this));
+            add(Utils.createButton("Delete Rows", "remove", "Ctrl+Minus", StructuredDataORTable.this));
             addSeparator();
-            add(Utils.createButton("Move Rows Up", "up", "Ctrl+Up", APIORTable.this));
-            add(Utils.createButton("Move Rows Down", "down", "Ctrl+Down", APIORTable.this));
+            add(Utils.createButton("Move Rows Up", "up", "Ctrl+Up", StructuredDataORTable.this));
+            add(Utils.createButton("Move Rows Down", "down", "Ctrl+Down", StructuredDataORTable.this));
         }
 
     }
@@ -425,21 +425,21 @@ public class APIORTable extends JPanel implements ActionListener {
             JMenu clearProp = new JMenu("Clear Property");
             JMenu deleteProp = new JMenu("Remove Property");
 
-            setPriority.add(Utils.createMenuItem("Set Priority to Page", APIORTable.this));
-            setPriority.add(Utils.createMenuItem("Set Priority to All", APIORTable.this));
-            setPriority.add(Utils.createMenuItem("Set Priority to Selected", APIORTable.this));
+            setPriority.add(Utils.createMenuItem("Set Priority to Page", StructuredDataORTable.this));
+            setPriority.add(Utils.createMenuItem("Set Priority to All", StructuredDataORTable.this));
+            setPriority.add(Utils.createMenuItem("Set Priority to Selected", StructuredDataORTable.this));
             add(setPriority);
-            clearProp.add(Utils.createMenuItem("Clear from Page", APIORTable.this));
-            clearProp.add(Utils.createMenuItem("Clear from All", APIORTable.this));
-            clearProp.add(Utils.createMenuItem("Clear from Selected", APIORTable.this));
+            clearProp.add(Utils.createMenuItem("Clear from Page", StructuredDataORTable.this));
+            clearProp.add(Utils.createMenuItem("Clear from All", StructuredDataORTable.this));
+            clearProp.add(Utils.createMenuItem("Clear from Selected", StructuredDataORTable.this));
             add(clearProp);
-            deleteProp.add(Utils.createMenuItem("Remove from Page", APIORTable.this));
-            deleteProp.add(Utils.createMenuItem("Remove from All", APIORTable.this));
-            deleteProp.add(Utils.createMenuItem("Remove from Selected", APIORTable.this));
+            deleteProp.add(Utils.createMenuItem("Remove from Page", StructuredDataORTable.this));
+            deleteProp.add(Utils.createMenuItem("Remove from All", StructuredDataORTable.this));
+            deleteProp.add(Utils.createMenuItem("Remove from Selected", StructuredDataORTable.this));
             add(deleteProp);
-            addProp.add(Utils.createMenuItem("Add to Page", APIORTable.this));
-            addProp.add(Utils.createMenuItem("Add to All", APIORTable.this));
-            addProp.add(Utils.createMenuItem("Add to Selected", APIORTable.this));
+            addProp.add(Utils.createMenuItem("Add to Page", StructuredDataORTable.this));
+            addProp.add(Utils.createMenuItem("Add to All", StructuredDataORTable.this));
+            addProp.add(Utils.createMenuItem("Add to Selected", StructuredDataORTable.this));
             add(addProp);
         }
 

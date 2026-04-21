@@ -1,7 +1,7 @@
 package com.ing.datalib.or.yaml;
 
-import com.ing.datalib.or.api.APIOR;
-import com.ing.datalib.or.api.APIORPage;
+import com.ing.datalib.or.structureddata.StructuredData;
+import com.ing.datalib.or.structureddata.StructuredDataORPage;
 import com.ing.datalib.or.mobile.MobileOR;
 import com.ing.datalib.or.mobile.MobileORPage;
 import com.ing.datalib.or.web.WebOR;
@@ -92,20 +92,20 @@ public class YamlORWriter {
     }
     
     /**
-     * Write entire API OR to YAML files (one per page).
+     * Write entire Structured Data OR to YAML files (one per page).
      * 
-     * @param apiOR The APIOR to write
+     * @param structuredDataOR The StructuredDataOR to write
      * @param orLocation The ObjectRepository directory
      */
-    public void writeAPIOR(APIOR apiOR, File orLocation) throws IOException {
-        File apiPagesDir = new File(orLocation, "API/pages");
-        ensureDirectory(apiPagesDir);
+    public void writeStructuredDataOR(StructuredData structuredDataOR, File orLocation) throws IOException {
+        File structuredDataPagesDir = new File(orLocation, "StructuredData/pages");
+        ensureDirectory(structuredDataPagesDir);
         
-        List<APIORPage> pages = apiOR.getPages();
-        LOGGER.info("Writing " + pages.size() + " API pages to YAML");
+        List<StructuredDataORPage> pages = structuredDataOR.getPages();
+        LOGGER.info("Writing " + pages.size() + " Structured Data pages to YAML");
         
-        for (APIORPage page : pages) {
-            writeAPIPage(page, apiPagesDir);
+        for (StructuredDataORPage page : pages) {
+            writeStructuredDataPage(page, structuredDataPagesDir);
         }
     }
     
@@ -132,14 +132,14 @@ public class YamlORWriter {
     }
     
     /**
-     * Write a single API page to YAML.
+     * Write a single Structured Data page to YAML.
      */
-    public void writeAPIPage(APIORPage page, File pagesDir) throws IOException {
-        YamlAPIPageDefinition pageDef = YamlAPIPageDefinition.fromAPIORPage(page);
+    public void writeStructuredDataPage(StructuredDataORPage page, File pagesDir) throws IOException {
+        YamlStructuredDataPageDefinition pageDef = YamlStructuredDataPageDefinition.fromStructuredDataORPage(page);
         File yamlFile = new File(pagesDir, sanitizeFileName(page.getName()) + ".yaml");
         
         yamlMapper.writeValue(yamlFile, pageDef);
-        LOGGER.fine("Wrote API page: " + yamlFile.getName());
+        LOGGER.fine("Wrote Structured Data page: " + yamlFile.getName());
     }
     
     /**
@@ -177,16 +177,16 @@ public class YamlORWriter {
     }
     
     /**
-     * Delete an API page YAML file.
+     * Delete an Structured Data page YAML file.
      */
-    public boolean deleteAPIPage(String pageName, File orLocation) {
-        File apiPagesDir = new File(orLocation, "API/pages");
-        File yamlFile = new File(apiPagesDir, sanitizeFileName(pageName) + ".yaml");
+    public boolean deleteStructuredDataPage(String pageName, File orLocation) {
+        File structuredDataPagesDir = new File(orLocation, "StructuredData/pages");
+        File yamlFile = new File(structuredDataPagesDir, sanitizeFileName(pageName) + ".yaml");
         
         if (yamlFile.exists()) {
             boolean deleted = yamlFile.delete();
             if (deleted) {
-                LOGGER.info("Deleted API page YAML: " + pageName);
+                LOGGER.info("Deleted Structured Data page YAML: " + pageName);
             }
             return deleted;
         }
@@ -240,22 +240,22 @@ public class YamlORWriter {
     }
     
     /**
-     * Rename an API page YAML file.
+     * Rename an Structured Data page YAML file.
      * 
      * @param oldName The current page name
      * @param newName The new page name
      * @param orLocation The ObjectRepository directory
      * @return true if rename was successful
      */
-    public boolean renameAPIPage(String oldName, String newName, File orLocation) {
-        File apiPagesDir = new File(orLocation, "API/pages");
-        File oldFile = new File(apiPagesDir, sanitizeFileName(oldName) + ".yaml");
-        File newFile = new File(apiPagesDir, sanitizeFileName(newName) + ".yaml");
+    public boolean renameStructuredDataPage(String oldName, String newName, File orLocation) {
+        File structuredDataPagesDir = new File(orLocation, "StructuredData/pages");
+        File oldFile = new File(structuredDataPagesDir, sanitizeFileName(oldName) + ".yaml");
+        File newFile = new File(structuredDataPagesDir, sanitizeFileName(newName) + ".yaml");
         
         if (oldFile.exists() && !newFile.exists()) {
             boolean renamed = oldFile.renameTo(newFile);
             if (renamed) {
-                LOGGER.info("Renamed API page YAML: " + oldName + " -> " + newName);
+                LOGGER.info("Renamed Structured Data page YAML: " + oldName + " -> " + newName);
             }
             return renamed;
         }

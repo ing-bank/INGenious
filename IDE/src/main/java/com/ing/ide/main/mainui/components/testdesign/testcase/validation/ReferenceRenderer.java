@@ -2,6 +2,7 @@ package com.ing.ide.main.mainui.components.testdesign.testcase.validation;
 
 import com.ing.datalib.component.TestStep;
 import com.ing.datalib.or.web.ResolvedWebObject;
+import com.ing.datalib.or.structureddata.ResolvedStructuredDataObject;
 import com.ing.datalib.or.mobile.ResolvedMobileObject;
 import com.ing.engine.support.ObjectTypeUtil;
 import java.awt.Color;
@@ -119,20 +120,21 @@ public class ReferenceRenderer extends AbstractRenderer {
         var repo = step.getProject().getObjectRepository();
         String pageToken = step.getReference();
         String objectName = step.getObject();
-
+        
         ResolvedWebObject.PageRef wref = ResolvedWebObject.PageRef.parse(pageToken);
-        if (wref != null && wref.name != null && wref.scope != null) {
-            if (repo.resolveWebObject(wref, objectName) != null) {
-                return true;
-            }
-        } else if (repo.resolveWebObjectWithScope(pageToken, objectName) != null) {
+        if ((wref != null && wref.name != null && wref.scope != null) && (repo.resolveWebObject(wref, objectName) != null)
+                || (repo.resolveWebObjectWithScope(pageToken, objectName) != null)) {
             return true;
         }
-
+        
         ResolvedMobileObject.PageRef mref = ResolvedMobileObject.PageRef.parse(pageToken);
-        if (mref != null && mref.name != null && mref.scope != null) {
-            return repo.resolveMobileObject(mref, objectName) != null;
+        if ((mref != null && mref.name != null && mref.scope != null) && (repo.resolveMobileObject(mref, objectName) != null)
+                || (repo.resolveMobileObjectWithScope(pageToken, objectName) != null )) {
+            return true;
         }
-        return repo.resolveMobileObjectWithScope(pageToken, objectName) != null;
+        
+        ResolvedStructuredDataObject.PageRef aref = ResolvedStructuredDataObject.PageRef.parse(pageToken);
+        return ((aref != null && aref.name != null && aref.scope != null) && (repo.resolveStructuredDataObject(aref, objectName) != null)
+                || (repo.resolveStructuredDataObjectWithScope(pageToken, objectName) != null ));
     }
 }

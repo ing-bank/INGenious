@@ -30,6 +30,7 @@ import com.ing.ingenious.api.contract.drivers.AutomationObjectApi;
 import com.ing.ingenious.api.contract.drivers.MobileObjectApi;
 import com.ing.ingenious.api.contract.drivers.PlaywrightDriverCreationApi;
 import com.ing.ingenious.api.contract.reports.TestCaseReportApi;
+import com.ing.engine.drivers.StructuredDataObject;
 import java.io.File;
 import java.util.List;
 import java.util.Properties;
@@ -57,6 +58,7 @@ public class Command implements CommandPluginApi {
     public BrowserContext BrowserContext;
     public AutomationObject AObject;
     public MobileObject MObject;
+    public StructuredDataObject SObject;
     public PlaywrightDriverCreation Driver;
     public String Data;
     public String ObjectName;
@@ -211,6 +213,7 @@ public class Command implements CommandPluginApi {
             Playwright = Commander.Playwright.playwright;
             BrowserContext = Commander.BrowserContext.browserContext;
             AObject = Commander.AObject;
+            SObject = Commander.SObject;
             Driver = Commander.Page;
             Data = Commander.Data;
             ObjectName = Commander.ObjectName;

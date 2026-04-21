@@ -1,7 +1,7 @@
 package com.ing.datalib.or.yaml;
 
-import com.ing.datalib.or.api.APIOR;
-import com.ing.datalib.or.api.APIORPage;
+import com.ing.datalib.or.structureddata.StructuredData;
+import com.ing.datalib.or.structureddata.StructuredDataORPage;
 import com.ing.datalib.or.mobile.MobileOR;
 import com.ing.datalib.or.mobile.MobileORPage;
 import com.ing.datalib.or.web.WebOR;
@@ -69,11 +69,11 @@ public class YamlORReader {
     }
     
     /**
-     * Check if a YAML-based API OR exists.
+     * Check if a YAML-based Structured Data OR exists.
      */
-    public boolean apiORExists(File orLocation) {
-        File apiPagesDir = new File(orLocation, "API/pages");
-        return apiPagesDir.exists() && apiPagesDir.isDirectory();
+    public boolean structuredDataORExists(File orLocation) {
+        File structuredDataPagesDir = new File(orLocation, "StructuredData/pages");
+        return structuredDataPagesDir.exists() && structuredDataPagesDir.isDirectory();
     }
     
     /**
@@ -157,43 +157,43 @@ public class YamlORReader {
     }
     
     /**
-     * Read API OR from YAML files.
+     * Read Structured Data OR from YAML files.
      * 
      * @param orLocation The ObjectRepository directory
-     * @return APIOR populated with pages from YAML files
+     * @return StructuredDataOR populated with pages from YAML files
      */
-    public APIOR readAPIOR(File orLocation) throws IOException {
-        APIOR apiOR = new APIOR();
-        File apiPagesDir = new File(orLocation, "API/pages");
+    public StructuredData readStructuredDataOR(File orLocation) throws IOException {
+        StructuredData structuredDataOR = new StructuredData();
+        File StructuredDataPagesDir = new File(orLocation, "StructuredData/pages");
         
-        if (!apiPagesDir.exists()) {
-            LOGGER.info("No API OR YAML directory found at: " + apiPagesDir.getAbsolutePath());
-            return apiOR;
+        if (!StructuredDataPagesDir.exists()) {
+            LOGGER.info("No Structured Data OR YAML directory found at: " + StructuredDataPagesDir.getAbsolutePath());
+            return structuredDataOR;
         }
         
-        List<File> yamlFiles = listYamlFiles(apiPagesDir);
-        LOGGER.info("Found " + yamlFiles.size() + " API OR YAML files");
+        List<File> yamlFiles = listYamlFiles(StructuredDataPagesDir);
+        LOGGER.info("Found " + yamlFiles.size() + " Structured Data OR YAML files");
         
         for (File yamlFile : yamlFiles) {
             try {
-                YamlAPIPageDefinition pageDef = yamlMapper.readValue(yamlFile, YamlAPIPageDefinition.class);
-                APIORPage page = pageDef.toAPIORPage(apiOR);
-                apiOR.getPages().add(page);
-                LOGGER.fine("Loaded API page: " + page.getName() + " with " + pageDef.getElementCount() + " elements");
+                YamlStructuredDataPageDefinition pageDef = yamlMapper.readValue(yamlFile, YamlStructuredDataPageDefinition.class);
+                StructuredDataORPage page = pageDef.toStructuredDataORPage(structuredDataOR);
+                structuredDataOR.getPages().add(page);
+                LOGGER.fine("Loaded Structured Data page: " + page.getName() + " with " + pageDef.getElementCount() + " elements");
             } catch (IOException e) {
                 LOGGER.log(Level.WARNING, "Failed to read YAML file: " + yamlFile.getName(), e);
             }
         }
         
-        return apiOR;
+        return structuredDataOR;
     }
     
     /**
-     * Read a single API page from a YAML file.
+     * Read a single Structured Data page from a YAML file.
      */
-    public APIORPage readAPIPage(File yamlFile, APIOR root) throws IOException {
-        YamlAPIPageDefinition pageDef = yamlMapper.readValue(yamlFile, YamlAPIPageDefinition.class);
-        return pageDef.toAPIORPage(root);
+    public StructuredDataORPage readStructuredDataPage(File yamlFile, StructuredData root) throws IOException {
+        YamlStructuredDataPageDefinition pageDef = yamlMapper.readValue(yamlFile, YamlStructuredDataPageDefinition.class);
+        return pageDef.toStructuredDataORPage(root);
     }
     
     /**

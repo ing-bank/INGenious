@@ -1,4 +1,4 @@
-package com.ing.datalib.or.api;
+package com.ing.datalib.or.structureddata;
 
 import com.ing.datalib.or.ObjectRepository;
 import com.ing.datalib.or.common.ORRootInf;
@@ -8,7 +8,6 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
-import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -22,7 +21,7 @@ import javax.swing.tree.TreeNode;
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JacksonXmlRootElement(localName = "Root")
-public class APIOR implements ORRootInf<APIORPage> {
+public class StructuredData implements ORRootInf<StructuredDataORPage> {
 
     public final static List<String> OBJECT_PROPS
             = new ArrayList<>(Arrays.asList(
@@ -34,7 +33,7 @@ public class APIOR implements ORRootInf<APIORPage> {
 
     @JacksonXmlProperty(localName = "Page")
     @JacksonXmlElementWrapper(useWrapping = false, localName = "Page")
-    private List<APIORPage> pages;
+    private List<StructuredDataORPage> pages;
 
     @JacksonXmlProperty(isAttribute = true)
     private String type;
@@ -45,13 +44,13 @@ public class APIOR implements ORRootInf<APIORPage> {
     @JsonIgnore
     private Boolean saved = true;
 
-    public APIOR() {
+    public StructuredData() {
         this.pages = new ArrayList<>();
     }
 
-    public APIOR(String name) {
+    public StructuredData(String name) {
         this.name = name;
-        this.type = "APIOR";
+        this.type = "StructuredDataOR";
         this.pages = new ArrayList<>();
     }
 
@@ -66,14 +65,14 @@ public class APIOR implements ORRootInf<APIORPage> {
     }
 
     @Override 
-    public List<APIORPage> getPages() {
+    public List<StructuredDataORPage> getPages() {
         return pages;
     }
 
     @Override
-    public void setPages(List<APIORPage> pages) {
+    public void setPages(List<StructuredDataORPage> pages) {
         this.pages = pages;
-        for (APIORPage page : pages) {
+        for (StructuredDataORPage page : pages) {
             page.setRoot(this);
         }
     }
@@ -88,8 +87,8 @@ public class APIOR implements ORRootInf<APIORPage> {
 
     @JsonIgnore
     @Override
-    public APIORPage getPageByName(String pageName) {
-        for (APIORPage page : pages) {
+    public StructuredDataORPage getPageByName(String pageName) {
+        for (StructuredDataORPage page : pages) {
             if (page.getName().equalsIgnoreCase(pageName)) {
                 return page;
             }
@@ -98,8 +97,8 @@ public class APIOR implements ORRootInf<APIORPage> {
     }
 
     @JsonIgnore
-    public APIORPage getPageByTitle(String title) {
-        for (APIORPage page : pages) {
+    public StructuredDataORPage getPageByTitle(String title) {
+        for (StructuredDataORPage page : pages) {
             if (page.getTitle().equals(title)) {
                 return page;
             }
@@ -109,8 +108,8 @@ public class APIOR implements ORRootInf<APIORPage> {
 
     @JsonIgnore
     @Override
-    public APIORPage addPage() {
-        String pName = "APIPage";
+    public StructuredDataORPage addPage() {
+        String pName = "StructuredDataPage";
         int i = 0;
         String pageName;
         do {
@@ -122,16 +121,16 @@ public class APIOR implements ORRootInf<APIORPage> {
 
     @JsonIgnore
     @Override
-    public APIORPage addPage(String pageName) {
+    public StructuredDataORPage addPage(String pageName) {
         if (getPageByName(pageName) == null) {
-            APIORPage page = new APIORPage(pageName, this);
+            StructuredDataORPage page = new StructuredDataORPage(pageName, this);
             pages.add(page);
-            // API OR uses YAML format - no folder creation needed
+            // Structured Data OR uses YAML format - no folder creation needed
             setSaved(false);
             
             // Auto-save for YAML format
             if (objectRepository != null && objectRepository.isUsingYamlFormat()) {
-                objectRepository.saveAPIPageNow(page);
+                objectRepository.saveStructuredDataPageNow(page);
             }
             return page;
         }
@@ -141,7 +140,7 @@ public class APIOR implements ORRootInf<APIORPage> {
     @JsonIgnore
     @Override
     public void deletePage(String pageName) {
-        APIORPage page = getPageByName(pageName);
+        StructuredDataORPage page = getPageByName(pageName);
         if (page != null) {
             pages.remove(page);
             setSaved(false);
