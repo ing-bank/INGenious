@@ -12,6 +12,7 @@ import static com.ing.datalib.component.TestStep.HEADERS.Description;
 import static com.ing.datalib.component.TestStep.HEADERS.Input;
 import static com.ing.datalib.component.TestStep.HEADERS.ObjectName;
 import static com.ing.datalib.component.TestStep.HEADERS.Reference;
+import com.ing.datalib.or.structureddata.ResolvedStructuredDataObject;
 import com.ing.datalib.or.mobile.ResolvedMobileObject;
 import com.ing.datalib.or.web.ResolvedWebObject;
 import com.ing.datalib.testdata.model.Record;
@@ -55,7 +56,7 @@ import javax.swing.Timer;
  * Auto-suggest controller for the Test Case table, providing intelligent
  * suggestions for Object, Action, Condition, and Input columns.
  *
- * Updated to support Mobile OR separation (Project + Shared) and scoped
+ * Updated to support Web, Mobile and Structured Data OR separation (Project + Shared) and scoped
  * reference tokens ("[Project]" / "[Shared]") when detecting object type.
  */
 public class TestCaseAutoSuggest {
@@ -379,6 +380,25 @@ public class TestCaseAutoSuggest {
             ResolvedMobileObject r = (ref != null && ref.name != null && ref.scope != null)
                     ? repo.resolveMobileObject(ref, objectName)
                     : repo.resolveMobileObjectWithScope(pageToken, objectName);
+            return r != null && r.isPresent();
+        }
+        
+        /**
+         * Detect Structured Data objects via Structured Data resolver (supports scoped refs + shared)
+         * instead of directly accessing getStructuredDataOR()/pages.
+         */
+        private boolean isStructuredDataObject(String objectName, String pageToken) {
+            if (pageToken == null
+                    || pageToken.isBlank()
+                    || objectName == null
+                    || objectName.isBlank()) {
+                return false;
+            }
+            var repo = sProject.getObjectRepository();
+            ResolvedStructuredDataObject.PageRef ref = ResolvedStructuredDataObject.PageRef.parse(pageToken);
+            ResolvedStructuredDataObject r = (ref != null && ref.name != null && ref.scope != null)
+                    ? repo.resolveStructuredDataObject(ref, objectName)
+                    : repo.resolveStructuredDataObjectWithScope(pageToken, objectName);
             return r != null && r.isPresent();
         }
 

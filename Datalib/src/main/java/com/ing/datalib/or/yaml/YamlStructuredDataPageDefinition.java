@@ -1,8 +1,8 @@
 package com.ing.datalib.or.yaml;
 
-import com.ing.datalib.or.api.APIOR;
-import com.ing.datalib.or.api.APIORObject;
-import com.ing.datalib.or.api.APIORPage;
+import com.ing.datalib.or.structureddata.StructuredData;
+import com.ing.datalib.or.structureddata.StructuredDataORObject;
+import com.ing.datalib.or.structureddata.StructuredDataORPage;
 import com.ing.datalib.or.common.ObjectGroup;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -13,7 +13,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * YAML representation of an API OR page.
+ * YAML representation of an Structured Data OR page.
  * 
  * Example YAML output:
  * <pre>
@@ -29,17 +29,17 @@ import java.util.Map;
  */
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
 @JsonPropertyOrder({"page", "description", "tags", "elements"})
-public class YamlAPIPageDefinition {
+public class YamlStructuredDataPageDefinition {
     
     private String page;
     private String description;
     private List<String> tags;
-    private Map<String, YamlAPIElementDefinition> elements = new LinkedHashMap<>();
+    private Map<String, YamlStructuredDataElementDefinition> elements = new LinkedHashMap<>();
     
-    public YamlAPIPageDefinition() {
+    public YamlStructuredDataPageDefinition() {
     }
     
-    public YamlAPIPageDefinition(String page) {
+    public YamlStructuredDataPageDefinition(String page) {
         this.page = page;
     }
     
@@ -69,27 +69,27 @@ public class YamlAPIPageDefinition {
         this.tags = tags;
     }
 
-    public Map<String, YamlAPIElementDefinition> getElements() {
+    public Map<String, YamlStructuredDataElementDefinition> getElements() {
         return elements;
     }
 
-    public void setElements(Map<String, YamlAPIElementDefinition> elements) {
+    public void setElements(Map<String, YamlStructuredDataElementDefinition> elements) {
         this.elements = elements;
     }
     
     // ==================== Conversion Methods ====================
     
     /**
-     * Convert an APIORPage to YamlAPIPageDefinition.
+     * Convert an StructuredDataORPage to YamlStructuredDataPageDefinition.
      */
-    public static YamlAPIPageDefinition fromAPIORPage(APIORPage page) {
-        YamlAPIPageDefinition yaml = new YamlAPIPageDefinition();
+    public static YamlStructuredDataPageDefinition fromStructuredDataORPage(StructuredDataORPage page) {
+        YamlStructuredDataPageDefinition yaml = new YamlStructuredDataPageDefinition();
         yaml.setPage(page.getName());
         
         // Iterate through object groups and objects using Lists
-        for (ObjectGroup<APIORObject> group : page.getObjectGroups()) {
-            for (APIORObject obj : group.getObjects()) {
-                YamlAPIElementDefinition element = YamlAPIElementDefinition.fromAPIORObject(obj);
+        for (ObjectGroup<StructuredDataORObject> group : page.getObjectGroups()) {
+            for (StructuredDataORObject obj : group.getObjects()) {
+                YamlStructuredDataElementDefinition element = YamlStructuredDataElementDefinition.fromStructuredDataORObject(obj);
                 // Use object name as key
                 yaml.getElements().put(obj.getName(), element);
             }
@@ -99,22 +99,22 @@ public class YamlAPIPageDefinition {
     }
     
     /**
-     * Convert YamlAPIPageDefinition to an APIORPage.
+     * Convert YamlStructuredDataPageDefinition to an StructuredDataORPage.
      */
-    public APIORPage toAPIORPage(APIOR root) {
-        APIORPage page = new APIORPage(this.page, root);
+    public StructuredDataORPage toStructuredDataORPage(StructuredData root) {
+        StructuredDataORPage page = new StructuredDataORPage(this.page, root);
         
-        // Convert each element to APIORObject using direct list manipulation
+        // Convert each element to StructuredDataORObject using direct list manipulation
         // to avoid calling factory methods that require ObjectRepository
-        for (Map.Entry<String, YamlAPIElementDefinition> entry : elements.entrySet()) {
+        for (Map.Entry<String, YamlStructuredDataElementDefinition> entry : elements.entrySet()) {
             String elementName = entry.getKey();
-            YamlAPIElementDefinition elementDef = entry.getValue();
+            YamlStructuredDataElementDefinition elementDef = entry.getValue();
             
             // Create object group directly
-            ObjectGroup<APIORObject> group = new ObjectGroup<>(elementName, page);
+            ObjectGroup<StructuredDataORObject> group = new ObjectGroup<>(elementName, page);
             
             // Create object and add to group
-            APIORObject obj = elementDef.toAPIORObject(elementName, group);
+            StructuredDataORObject obj = elementDef.toStructuredDataORObject(elementName, group);
             group.getObjects().add(obj);
             
             // Add group to page directly
@@ -135,7 +135,7 @@ public class YamlAPIPageDefinition {
     /**
      * Add an element to this page.
      */
-    public void addElement(String name, YamlAPIElementDefinition element) {
+    public void addElement(String name, YamlStructuredDataElementDefinition element) {
         elements.put(name, element);
     }
     
@@ -149,7 +149,7 @@ public class YamlAPIPageDefinition {
     /**
      * Get an element by name.
      */
-    public YamlAPIElementDefinition getElement(String name) {
+    public YamlStructuredDataElementDefinition getElement(String name) {
         return elements.get(name);
     }
 }

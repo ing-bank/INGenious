@@ -1,7 +1,7 @@
 package com.ing.datalib.or.yaml;
 
-import com.ing.datalib.or.api.APIOR;
-import com.ing.datalib.or.api.APIORObject;
+import com.ing.datalib.or.structureddata.StructuredData;
+import com.ing.datalib.or.structureddata.StructuredDataORObject;
 import com.ing.datalib.or.common.ORAttribute;
 import com.ing.datalib.or.common.ObjectGroup;
 import com.fasterxml.jackson.annotation.JsonAnyGetter;
@@ -9,12 +9,13 @@ import com.fasterxml.jackson.annotation.JsonAnySetter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
+import com.ing.datalib.or.structureddata.StructuredDataAttribute;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
 
 /**
- * YAML representation of an API OR element.
+ * YAML representation of an Structured Data OR element.
  * Only non-empty properties are serialized to YAML.
  * 
  * Example YAML output:
@@ -26,9 +27,9 @@ import java.util.Map;
  */
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
 @JsonPropertyOrder({"jsonPath", "xpath", "description"})
-public class YamlAPIElementDefinition {
+public class YamlStructuredDataElementDefinition {
     
-    // API locator properties
+    // Structured Data locator properties
     private String jsonPath;
     private String xpath;
     
@@ -39,7 +40,7 @@ public class YamlAPIElementDefinition {
     @JsonIgnore
     private Map<String, Object> additionalProperties = new LinkedHashMap<>();
     
-    public YamlAPIElementDefinition() {
+    public YamlStructuredDataElementDefinition() {
     }
     
     // ==================== Getters and Setters ====================
@@ -81,14 +82,14 @@ public class YamlAPIElementDefinition {
     // ==================== Conversion Methods ====================
     
     /**
-     * Convert an APIORObject to YamlAPIElementDefinition.
+     * Convert an StructuredDataORObject to YamlStructuredDataElementDefinition.
      * Only non-empty attributes are captured.
      */
-    public static YamlAPIElementDefinition fromAPIORObject(APIORObject obj) {
-        YamlAPIElementDefinition elem = new YamlAPIElementDefinition();
+    public static YamlStructuredDataElementDefinition fromStructuredDataORObject(StructuredDataORObject obj) {
+        YamlStructuredDataElementDefinition elem = new YamlStructuredDataElementDefinition();
         
         // Map attributes to properties (only non-empty values)
-        for (ORAttribute attr : obj.getAttributes()) {
+        for (StructuredDataAttribute attr : obj.getAttributes()) {
             if (attr.getValue() != null && !attr.getValue().isEmpty()) {
                 String attrName = attr.getName().toLowerCase();
                 switch (attrName) {
@@ -109,10 +110,10 @@ public class YamlAPIElementDefinition {
     }
     
     /**
-     * Convert YamlAPIElementDefinition to an APIORObject.
+     * Convert YamlStructuredDataElementDefinition to an StructuredDataORObject.
      */
-    public APIORObject toAPIORObject(String name, ObjectGroup<APIORObject> group) {
-        APIORObject obj = new APIORObject(name, group);
+    public StructuredDataORObject toStructuredDataORObject(String name, ObjectGroup<StructuredDataORObject> group) {
+        StructuredDataORObject obj = new StructuredDataORObject(name, group);
         
         // Set attribute values
         setAttributeIfPresent(obj, "JsonPath", jsonPath);
@@ -121,9 +122,9 @@ public class YamlAPIElementDefinition {
         return obj;
     }
     
-    private void setAttributeIfPresent(APIORObject obj, String name, String value) {
+    private void setAttributeIfPresent(StructuredDataORObject obj, String name, String value) {
         if (value != null && !value.isEmpty()) {
-            ORAttribute attr = obj.getAttribute(name);
+            StructuredDataAttribute attr = obj.getAttribute(name);
             if (attr != null) {
                 attr.setValue(value);
             }

@@ -1,7 +1,6 @@
-package com.ing.datalib.or.api;
+package com.ing.datalib.or.structureddata;
 
 import com.ing.datalib.component.utils.FileUtils;
-import com.ing.datalib.or.common.ORAttribute;
 import com.ing.datalib.or.common.ORObjectInf;
 import com.ing.datalib.or.common.ORUtils;
 import com.ing.datalib.or.common.ObjectGroup;
@@ -28,36 +27,35 @@ import javax.swing.tree.TreePath;
  * Supports only JsonPath and Xpath as locator attributes.
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class APIORObject extends UndoRedoModel implements ORObjectInf {
+public class StructuredDataORObject extends UndoRedoModel implements ORObjectInf {
 
     @JacksonXmlProperty(isAttribute = true, localName = "ref")
     private String name;
 
     @JacksonXmlProperty(localName = "Property")
     @JacksonXmlElementWrapper(useWrapping = false, localName = "Property")
-    private List<ORAttribute> attributes;
+    private List<StructuredDataAttribute> attributes;
 
     @JsonIgnore
-    private ObjectGroup<APIORObject> group;
+    private ObjectGroup<StructuredDataORObject> group;
 
-    public APIORObject() {
-        setDefaultORAttributes();
+    public StructuredDataORObject() {
+        setDefaultStructuredDataAttributes();
     }
 
-    public APIORObject(String name, ObjectGroup group) {
+    public StructuredDataORObject(String name, ObjectGroup group) {
         this.name = name;
         this.group = group;
-        setDefaultORAttributes();
+        setDefaultStructuredDataAttributes();
     }
 
     @JsonIgnore
-    public final void setDefaultORAttributes() {
+    public final void setDefaultStructuredDataAttributes() {
         attributes = new ArrayList<>();
-        for (int i = 0; i < APIOR.OBJECT_PROPS.size(); i++) {
-            ORAttribute attr = new ORAttribute();
-            attr.setName(APIOR.OBJECT_PROPS.get(i));
+        for (int i = 0; i < StructuredData.OBJECT_PROPS.size(); i++) {
+            StructuredDataAttribute attr = new StructuredDataAttribute();
+            attr.setName(StructuredData.OBJECT_PROPS.get(i));
             attr.setValue("");
-            attr.setPreference("" + (i + 1));
             attributes.add(attr);
         }
     }
@@ -72,11 +70,11 @@ public class APIORObject extends UndoRedoModel implements ORObjectInf {
         this.name = name;
     }
 
-    public List<ORAttribute> getAttributes() {
+    public List<StructuredDataAttribute> getAttributes() {
         return attributes;
     }
 
-    public void setAttributes(List<ORAttribute> attributes) {
+    public void setAttributes(List<StructuredDataAttribute> attributes) {
         this.attributes = attributes;
     }
 
@@ -105,7 +103,7 @@ public class APIORObject extends UndoRedoModel implements ORObjectInf {
 
     @JsonIgnore
     @Override
-    public ObjectGroup<APIORObject> getParent() {
+    public ObjectGroup<StructuredDataORObject> getParent() {
         return group;
     }
 
@@ -170,7 +168,7 @@ public class APIORObject extends UndoRedoModel implements ORObjectInf {
     @JsonIgnore
     @Override
     public void setValueAt(Object value, int rowIndex, int columnIndex) {
-        ORAttribute attr = attributes.get(rowIndex);
+        StructuredDataAttribute attr = attributes.get(rowIndex);
         if (columnIndex == 0) {
             if (isNotDefault(rowIndex) && getAttribute(value.toString()) == null) {
                 super.setValueAt(value, rowIndex, columnIndex);
@@ -189,7 +187,7 @@ public class APIORObject extends UndoRedoModel implements ORObjectInf {
     @JsonIgnore
     private Boolean isNotDefault(int rowIndex) {
         String value = getValueAt(rowIndex, 0).toString();
-        return APIOR.OBJECT_PROPS.indexOf(value) == -1;
+        return StructuredData.OBJECT_PROPS.indexOf(value) == -1;
     }
 
     @JsonIgnore
@@ -212,13 +210,13 @@ public class APIORObject extends UndoRedoModel implements ORObjectInf {
     @JsonIgnore
     private void changeSave() {
         if (group != null) {
-            APIORPage page = (APIORPage) group.getParent();
+            StructuredDataORPage page = (StructuredDataORPage) group.getParent();
             page.getRoot().setSaved(false);
             
             // Auto-save for YAML format
             if (page.getRoot().getObjectRepository() != null 
                 && page.getRoot().getObjectRepository().isUsingYamlFormat()) {
-                page.getRoot().getObjectRepository().saveAPIPageNow(page);
+                page.getRoot().getObjectRepository().saveStructuredDataPageNow(page);
             }
         }
     }
@@ -279,8 +277,8 @@ public class APIORObject extends UndoRedoModel implements ORObjectInf {
 
     @JsonIgnore
     @Override
-    public APIORPage getPage() {
-        return (APIORPage) group.getParent();
+    public StructuredDataORPage getPage() {
+        return (StructuredDataORPage) group.getParent();
     }
 
     @JsonIgnore
@@ -314,6 +312,8 @@ public class APIORObject extends UndoRedoModel implements ORObjectInf {
         if (getParent().getChildCount() == 1) {
             flag = getParent().rename(newName);
         }
+        ObjectGroup<StructuredDataORObject> parent = getParent();
+        String parentName = parent.getName();
         if (flag && getParent().getObjectByName(newName) == null) {
             // Check if using YAML format
             if (getParent().getParent().getRoot().getObjectRepository().isUsingYamlFormat()) {
@@ -342,11 +342,11 @@ public class APIORObject extends UndoRedoModel implements ORObjectInf {
 
     @JsonIgnore
     @Override
-    public APIORObject clone(ORObjectInf obj) {
-        if (obj instanceof APIORObject) {
-            APIORObject apiObj = (APIORObject) obj;
+    public StructuredDataORObject clone(ORObjectInf obj) {
+        if (obj instanceof StructuredDataORObject) {
+            StructuredDataORObject apiObj = (StructuredDataORObject) obj;
             apiObj.getAttributes().clear();
-            for (ORAttribute attribute : attributes) {
+            for (StructuredDataAttribute attribute : attributes) {
                 apiObj.getAttributes().add(attribute.cloneAs());
             }
             apiObj.changeSave();
@@ -356,8 +356,8 @@ public class APIORObject extends UndoRedoModel implements ORObjectInf {
     }
 
     @JsonIgnore
-    public ORAttribute getAttribute(String name) {
-        for (ORAttribute attribute : attributes) {
+    public StructuredDataAttribute getAttribute(String name) {
+        for (StructuredDataAttribute attribute : attributes) {
             if (attribute.getName().equalsIgnoreCase(name)) {
                 return attribute;
             }
@@ -367,7 +367,7 @@ public class APIORObject extends UndoRedoModel implements ORObjectInf {
 
     @JsonIgnore
     public String getAttributeByName(String name) {
-        for (ORAttribute attribute : attributes) {
+        for (StructuredDataAttribute attribute : attributes) {
             if (attribute.getName().equalsIgnoreCase(name)) {
                 return attribute.getValue();
             }
@@ -377,7 +377,7 @@ public class APIORObject extends UndoRedoModel implements ORObjectInf {
 
     @JsonIgnore
     public void setAttributeByName(String name, String value) {
-        for (ORAttribute attribute : attributes) {
+        for (StructuredDataAttribute attribute : attributes) {
             if (attribute.getName().equalsIgnoreCase(name)) {
                 attribute.setValue(value);
             }
@@ -386,16 +386,15 @@ public class APIORObject extends UndoRedoModel implements ORObjectInf {
 
     @JsonIgnore
     public void addOrUpdateAttribute(String name, String value) {
-        for (ORAttribute attribute : attributes) {
+        for (StructuredDataAttribute attribute : attributes) {
             if (attribute.getName().equalsIgnoreCase(name)) {
                 attribute.setValue(value);
                 return;
             }
         }
-        ORAttribute attr = new ORAttribute();
+        StructuredDataAttribute attr = new StructuredDataAttribute();
         attr.setName(name);
         attr.setValue(value);
-        attr.setPreference(String.valueOf(attributes.size() + 1));
         attributes.add(attr);
         changeSave();
     }
@@ -409,10 +408,9 @@ public class APIORObject extends UndoRedoModel implements ORObjectInf {
             name = attrName + i++;
         } while (getAttribute(name) != null);
         
-        ORAttribute attr = new ORAttribute();
+        StructuredDataAttribute attr = new StructuredDataAttribute();
         attr.setName(name);
         attr.setValue("");
-        attr.setPreference(String.valueOf(attributes.size() + 1));
         attributes.add(attr);
         changeSave();
         fireTableRowsInserted(attributes.size() - 1, attributes.size() - 1);
@@ -442,14 +440,13 @@ public class APIORObject extends UndoRedoModel implements ORObjectInf {
             return;
         }
         
-        ORAttribute attr = new ORAttribute();
+        StructuredDataAttribute attr = new StructuredDataAttribute();
         if (values != null && values.length > 0) {
             attr.setName(values[0] != null ? values[0].toString() : "");
             if (values.length > 1) {
                 attr.setValue(values[1] != null ? values[1].toString() : "");
             }
         }
-        attr.setPreference(String.valueOf(row + 1));
         
         attributes.add(row, attr);
         rowAdded(row);
@@ -459,10 +456,10 @@ public class APIORObject extends UndoRedoModel implements ORObjectInf {
     @JsonIgnore
     @Override
     public Boolean isEqualOf(ORObjectInf object) {
-        if (object == null || !(object instanceof APIORObject)) {
+        if (object == null || !(object instanceof StructuredDataORObject)) {
             return false;
         }
-        APIORObject other = (APIORObject) object;
+        StructuredDataORObject other = (StructuredDataORObject) object;
         return Objects.equals(this.name, other.name);
     }
 

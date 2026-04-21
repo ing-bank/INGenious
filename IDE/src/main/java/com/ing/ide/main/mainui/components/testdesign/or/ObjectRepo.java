@@ -4,7 +4,7 @@ package com.ing.ide.main.mainui.components.testdesign.or;
 import com.ing.ide.main.fx.FXPanelHeader;
 import com.ing.ide.main.fx.INGIcons;
 import com.ing.ide.main.mainui.components.testdesign.TestDesign;
-import com.ing.ide.main.mainui.components.testdesign.or.api.APIORPanel;
+import com.ing.ide.main.mainui.components.testdesign.or.structureddata.StructuredDataORPanel;
 import com.ing.ide.main.mainui.components.testdesign.or.mobile.MobileORPanel;
 import com.ing.ide.main.mainui.components.testdesign.or.web.WebORPanel;
 import java.awt.BorderLayout;
@@ -45,7 +45,7 @@ public class ObjectRepo extends JPanel implements ItemListener {
 
     private final MobileORPanel mobileOR;
 
-    private final APIORPanel apiOR;
+    private final StructuredDataORPanel structuredDataOR;
 
     public ObjectRepo(TestDesign testDesign) {
         this.testDesign = testDesign;
@@ -53,7 +53,7 @@ public class ObjectRepo extends JPanel implements ItemListener {
         repos = new JPanel();
         webOR = new WebORPanel(testDesign);
         mobileOR = new MobileORPanel(testDesign);
-        apiOR = new APIORPanel(testDesign);
+        structuredDataOR = new StructuredDataORPanel(testDesign);
         init();
     }
 
@@ -78,7 +78,7 @@ public class ObjectRepo extends JPanel implements ItemListener {
         repos.setOpaque(false);
         repos.add(webOR, "Web");
         repos.add(mobileOR, "Mobile");
-        repos.add(apiOR, "API");
+        repos.add(structuredDataOR, "Structured Data");
         switchToolBar.bgroup.getElements().nextElement().setSelected(true);
     }
 
@@ -97,8 +97,8 @@ public class ObjectRepo extends JPanel implements ItemListener {
                     case "Mobile":
                         mobileOR.adjustUI();
                         break;
-                    case "API":
-                        apiOR.adjustUI();
+                    case "StructuredData":
+                        structuredDataOR.adjustUI();
                         break;
                 }
             });
@@ -108,13 +108,13 @@ public class ObjectRepo extends JPanel implements ItemListener {
     public void load() {
         webOR.load();
         mobileOR.load();
-        apiOR.load();
+        structuredDataOR.load();
     }
 
     public void adjustUI() {
         webOR.adjustUI();
         mobileOR.adjustUI();
-        apiOR.adjustUI();
+        structuredDataOR.adjustUI();
     }
 
     public WebORPanel getWebOR() {
@@ -125,8 +125,8 @@ public class ObjectRepo extends JPanel implements ItemListener {
         return mobileOR;
     }
 
-    public APIORPanel getAPIOR() {
-        return apiOR;
+    public StructuredDataORPanel getStructuredDataOR() {
+        return structuredDataOR;
     }
 
     public Boolean navigateToObject(String objectName, String pageName) {
@@ -136,8 +136,8 @@ public class ObjectRepo extends JPanel implements ItemListener {
         } else if (mobileOR.navigateToObject(objectName, pageName)) {
             switchToolBar.mobileButton.setSelected(true);
             return true;
-        } else if (apiOR.navigateToObject(objectName, pageName)) {
-            switchToolBar.apiButton.setSelected(true);
+        } else if (structuredDataOR.navigateToObject(objectName, pageName)) {
+            switchToolBar.structuredDataButton.setSelected(true);
             return true;
         }
         return false;
@@ -150,7 +150,7 @@ public class ObjectRepo extends JPanel implements ItemListener {
         private JToggleButton webButton;
         //private JToggleButton imageButton;
         private JToggleButton mobileButton;
-        private JToggleButton apiButton;
+        private JToggleButton structuredDataButton;
 
         public SwitchToolBar() {
             init();
@@ -168,7 +168,7 @@ public class ObjectRepo extends JPanel implements ItemListener {
             add(webButton = create("Web", "or.Web"));
             //add(imageButton = create("Image"));
             add(mobileButton = create("Mobile", "or.Mobile"));
-            add(apiButton = create("API", "or.API"));
+            add(structuredDataButton = create("Structured Data", "or.StructuredData"));
         }
 
         private JToggleButton create(String text, String iconKey) {

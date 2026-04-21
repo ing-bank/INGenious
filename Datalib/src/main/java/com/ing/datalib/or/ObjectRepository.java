@@ -2,7 +2,7 @@
 package com.ing.datalib.or;
 
 import com.ing.datalib.component.Project;
-import com.ing.datalib.or.api.APIOR;
+import com.ing.datalib.or.structureddata.StructuredData;
 import com.ing.datalib.or.common.ORPageInf;
 import com.ing.datalib.or.common.ObjectGroup;
 import com.ing.datalib.or.mobile.MobileOR;
@@ -15,6 +15,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.fasterxml.jackson.dataformat.yaml.YAMLGenerator;
+import com.ing.datalib.or.structureddata.StructuredDataORObject;
+import com.ing.datalib.or.structureddata.StructuredDataORPage;
+import com.ing.datalib.or.structureddata.ResolvedStructuredDataObject;
 import com.ing.datalib.or.mobile.ResolvedMobileObject;
 import com.ing.datalib.or.web.ResolvedWebObject;
 import com.ing.datalib.or.web.WebOR.ORScope;
@@ -45,7 +48,8 @@ public class ObjectRepository {
     private WebOR webProjectOR;
     private MobileOR mobileProjectOR;
     private MobileOR mobileSharedOR;
-    private APIOR apiProjectOR;
+    private StructuredData structuredDataProjectOR;
+    private StructuredData structuredDataSharedOR;
     
     private final Set<String> sharedUsageProjects = new HashSet<>();
     
@@ -88,10 +92,10 @@ public class ObjectRepository {
             // Check if YAML or XML files exist for project ORs
             boolean hasYamlFiles = yamlReader.webORExists(orRepLocation) 
                                 || yamlReader.mobileORExists(orRepLocation) 
-                                || yamlReader.apiORExists(orRepLocation);
+                                || yamlReader.structuredDataORExists(orRepLocation);
             boolean hasXmlFiles = new File(getORLocation()).exists() 
                                || new File(getMORLocation()).exists() 
-                               || new File(getAPIORLocation()).exists();
+                               || new File(getStructuredDataORLocation()).exists();
             
             // Set format once for entire project
             if (hasYamlFiles) {
@@ -156,20 +160,20 @@ public class ObjectRepository {
                 mobileProjectOR.setScope(MobileOR.ORScope.PROJECT);
             }
             
-            // Load API Project OR
-            if (useYamlFormat && yamlReader.apiORExists(orRepLocation)) {
-                apiProjectOR = yamlReader.readAPIOR(orRepLocation);
-                apiProjectOR.setName(sProject.getName());
-            } else if (!useYamlFormat && new File(getAPIORLocation()).exists()) {
-                apiProjectOR = XML_MAPPER.readValue(new File(getAPIORLocation()), APIOR.class);
-                apiProjectOR.setName(sProject.getName());
+            // Load Structured Data Project OR
+            if (useYamlFormat && yamlReader.structuredDataORExists(orRepLocation)) {
+                structuredDataProjectOR = yamlReader.readStructuredDataOR(orRepLocation);
+                structuredDataProjectOR.setName(sProject.getName());
+            } else if (!useYamlFormat && new File(getStructuredDataORLocation()).exists()) {
+                structuredDataProjectOR = XML_MAPPER.readValue(new File(getStructuredDataORLocation()), StructuredData.class);
+                structuredDataProjectOR.setName(sProject.getName());
             } else {
-                apiProjectOR = new APIOR(sProject.getName());
+                structuredDataProjectOR = new StructuredData(sProject.getName());
             }
 
             // Set ObjectRepository reference immediately
-            if (apiProjectOR != null) {
-                apiProjectOR.setObjectRepository(this);
+            if (structuredDataProjectOR != null) {
+                structuredDataProjectOR.setObjectRepository(this);
             }
 
             // Set remaining properties for shared and project ORs
@@ -192,9 +196,9 @@ public class ObjectRepository {
             if (mobileProjectOR != null) {
                 mobileProjectOR.setSaved(true);
             }
-            if (apiProjectOR != null) {
-                apiProjectOR.setObjectRepository(this);
-                apiProjectOR.setSaved(true);
+            if (structuredDataProjectOR != null) {
+                structuredDataProjectOR.setObjectRepository(this);
+                structuredDataProjectOR.setSaved(true);
             }
 
             LOG.log(Level.INFO, "Shared WebOR loaded: {0}", (webSharedOR != null));
@@ -236,27 +240,27 @@ public class ObjectRepository {
                 // useYamlFormat stays true for new projects
             }
 
-            // Try YAML format first for API OR
-            if (yamlReader.apiORExists(orRepLocation)) {
-                LOG.info("Loading API OR from YAML format");
-                apiProjectOR = yamlReader.readAPIOR(orRepLocation);
-                apiProjectOR.setName(sProject.getName());
+            // Try YAML format first for Structured Data OR
+            if (yamlReader.structuredDataORExists(orRepLocation)) {
+                LOG.info("Loading Structured Data OR from YAML format");
+                structuredDataProjectOR = yamlReader.readStructuredDataOR(orRepLocation);
+                structuredDataProjectOR.setName(sProject.getName());
                 useYamlFormat = true;
-            } else if (new File(getAPIORLocation()).exists()) {
+            } else if (new File(getStructuredDataORLocation()).exists()) {
                 // Fall back to XML format (legacy)
-                LOG.info("Loading API OR from XML format");
-                apiProjectOR = XML_MAPPER.readValue(new File(getAPIORLocation()), APIOR.class);
-                apiProjectOR.setName(sProject.getName());
+                LOG.info("Loading Structured Data OR from XML format");
+                structuredDataProjectOR = XML_MAPPER.readValue(new File(getStructuredDataORLocation()), StructuredData.class);
+                structuredDataProjectOR.setName(sProject.getName());
                 useYamlFormat = false; // Use XML format for legacy projects
             } else {
-                apiProjectOR = new APIOR(sProject.getName());
+                structuredDataProjectOR = new StructuredData(sProject.getName());
                 // useYamlFormat stays true for new projects
             }
 
             webProjectOR.setObjectRepository(this);
             webProjectOR.setSaved(true);
             mobileProjectOR.setObjectRepository(this);
-            apiProjectOR.setObjectRepository(this);
+            structuredDataProjectOR.setObjectRepository(this);
         
         } catch (IOException ex) {
             Logger.getLogger(ObjectRepository.class.getName()).log(Level.SEVERE, null, ex);
@@ -275,8 +279,8 @@ public class ObjectRepository {
     public String getMORLocation() {
         return sProject.getLocation() + File.separator + "MOR.object";
     }
-    public String getAPIORLocation() {
-        return sProject.getLocation() + File.separator + "APIOR.object";
+    public String getStructuredDataORLocation() {
+        return sProject.getLocation() + File.separator + "StructuredDataOR.object";
     }
     public String getSharedMORLocation() {
         return "Shared" + File.separator + "SharedMobileObjects" + File.separator + "SharedMOR.object";
@@ -293,8 +297,8 @@ public class ObjectRepository {
     public String getMORRepLocation() {
         return sProject.getLocation() + File.separator + "MobileObjectRepository";
     }
-    public String getAPIORRepLocation() {
-        return sProject.getLocation() + File.separator + "APIObjectRepository";
+    public String getStructuredDataORRepLocation() {
+        return sProject.getLocation() + File.separator + "StructuredDataObjectRepository";
     }
     public String getSharedMORRepLocation() {
         return "Shared" + File.separator + "SharedMobileObjects" + File.separator + "MobileObjectRepository";
@@ -314,8 +318,11 @@ public class ObjectRepository {
     public MobileOR getMobileSharedOR() {
         return mobileSharedOR;
     }
-    public APIOR getAPIOR() {
-        return apiProjectOR;
+    public StructuredData getStructuredDataOR() {
+        return structuredDataProjectOR;
+    }
+    public StructuredData getStructuredDataSharedOR() {
+        return structuredDataSharedOR;
     }
 
     /**
@@ -380,10 +387,10 @@ public class ObjectRepository {
                     yamlWriter.writeMobileOR(mobileProjectOR, morRepLocation);
                     mobileProjectOR.setSaved(true);
                 }
-                if (apiProjectOR != null && !apiProjectOR.isSaved()) {
-                    File apiorRepLocation = new File(getAPIORRepLocation());
-                    yamlWriter.writeAPIOR(apiProjectOR, apiorRepLocation);
-                    apiProjectOR.setSaved(true);
+                if (structuredDataProjectOR != null && !structuredDataProjectOR.isSaved()) {
+                    File structuredDataRepLocation = new File(getStructuredDataORRepLocation());
+                    yamlWriter.writeStructuredDataOR(structuredDataProjectOR, structuredDataRepLocation);
+                    structuredDataProjectOR.setSaved(true);
                 }
                 LOG.info("Saved project ORs in YAML format");
             } else {
@@ -402,12 +409,12 @@ public class ObjectRepository {
                             .writeValue(morFile, mobileProjectOR);
                     mobileProjectOR.setSaved(true);
                 }
-                if (apiProjectOR != null && !apiProjectOR.isSaved()) {
-                    File apiorFile = new File(getAPIORLocation());
-                    apiorFile.getParentFile().mkdirs();
+                if (structuredDataProjectOR != null && !structuredDataProjectOR.isSaved()) {
+                    File structuredDataORFile = new File(getStructuredDataORLocation());
+                    structuredDataORFile.getParentFile().mkdirs();
                     XML_MAPPER.writerWithDefaultPrettyPrinter()
-                            .writeValue(apiorFile, apiProjectOR);
-                    apiProjectOR.setSaved(true);
+                            .writeValue(structuredDataORFile, structuredDataProjectOR);
+                    structuredDataProjectOR.setSaved(true);
                 }
                 LOG.info("Saved project ORs in XML format");
             }
@@ -425,7 +432,7 @@ public class ObjectRepository {
             File orRepLocation = new File(getORRepLocation());
             yamlWriter.writeWebOR(webProjectOR, orRepLocation);
             yamlWriter.writeMobileOR(mobileProjectOR, orRepLocation);
-            yamlWriter.writeAPIOR(apiProjectOR, orRepLocation);
+            yamlWriter.writeStructuredDataOR(structuredDataProjectOR, orRepLocation);
             webProjectOR.setSaved(true);
             useYamlFormat = true;
             LOG.info("Saved Object Repository in YAML format");
@@ -642,6 +649,28 @@ public class ObjectRepository {
         }
         return resolveMobileObjectWithScope(pageRef.name, objectName);
     }
+    
+    public ResolvedStructuredDataObject resolveStructuredDataObject(ResolvedStructuredDataObject.PageRef pageRef, String objectName) {
+        if (pageRef == null || objectName == null) return null;
+        if (pageRef.scope == ORScope.PROJECT) {
+            var g = getFrom(structuredDataProjectOR, pageRef.name, objectName);
+            if (g != null) {
+                String actualPageName = g.getParent() != null ? g.getParent().getName() : pageRef.name;
+                return new ResolvedStructuredDataObject(ORScope.PROJECT, actualPageName, objectName, g);
+            }
+            return null;
+        }
+        if (pageRef.scope == ORScope.SHARED) {
+            var g = getFrom(structuredDataSharedOR, pageRef.name, objectName);
+            if (g != null) {
+                markSharedUsage();
+                String actualPageName = g.getParent() != null ? g.getParent().getName() : pageRef.name;
+                return new ResolvedStructuredDataObject(ORScope.SHARED, actualPageName, objectName, g);
+            }
+            return null;
+        }
+        return resolveStructuredDataObjectWithScope(pageRef.name, objectName);
+    }
 
     /**
      * Resolves a WebOR object by searching project scope first, then shared scope.
@@ -686,6 +715,28 @@ public class ObjectRepository {
        }
        return null;
    }
+   
+   /**
+    * Resolves a StructuredDataOR object by searching project scope first, then shared scope.
+    *
+    * @param pageName page to search
+    * @param objectName object group name
+    * @return resolved StructuredDataOR object with scope metadata
+    */
+   public ResolvedStructuredDataObject resolveStructuredDataObjectWithScope(String pageName, String objectName) {
+       var proj = getFrom(structuredDataProjectOR, pageName, objectName);
+       if (proj != null) {
+           String actualPageName = proj.getParent() != null ? proj.getParent().getName() : pageName;
+           return new ResolvedStructuredDataObject(ORScope.PROJECT, actualPageName, objectName, proj);
+       }
+       var shared = getFrom(structuredDataSharedOR, pageName, objectName);
+       if (shared != null) {
+           markSharedUsage();
+           String actualPageName = shared.getParent() != null ? shared.getParent().getName() : pageName;
+           return new ResolvedStructuredDataObject(ORScope.SHARED, actualPageName, objectName, shared);
+       }
+       return null;
+   }
 
     private ObjectGroup<WebORObject> getFrom(WebOR or, String page, String obj) {
         if (or == null) return null;
@@ -696,6 +747,12 @@ public class ObjectRepository {
     private ObjectGroup<MobileORObject> getFrom(MobileOR or, String page, String obj) {
         if (or == null) return null;
         MobileORPage p = or.getPageByName(page);
+        return (p == null) ? null : p.getObjectGroupByName(obj);
+    }
+    
+    private ObjectGroup<StructuredDataORObject> getFrom(StructuredData or, String page, String obj) {
+        if (or == null) return null;
+        StructuredDataORPage p = or.getPageByName(page);
         return (p == null) ? null : p.getObjectGroupByName(obj);
     }
     
@@ -981,22 +1038,22 @@ public class ObjectRepository {
     }
     
     /**
-     * Save an API page immediately.
+     * Save an Structured Data page immediately.
      * For YAML format, writes individual page file.
      * For XML format, this is a no-op as XML saves the entire OR at once.
      * @param page the page to save
      */
-    public void saveAPIPageNow(com.ing.datalib.or.api.APIORPage page) {
+    public void saveStructuredDataPageNow(com.ing.datalib.or.structureddata.StructuredDataORPage page) {
         if (useYamlFormat && yamlWriter != null) {
             try {
-                File apiorRepLocation = new File(getAPIORRepLocation());
-                File apiPagesDir = new File(apiorRepLocation, "API/pages");
-                if (!apiPagesDir.exists()) {
-                    apiPagesDir.mkdirs();
+                File structuredDataOrRepLocation = new File(getStructuredDataORRepLocation());
+                File structuredDataPagesDir = new File(structuredDataOrRepLocation, "StructuredData/pages");
+                if (!structuredDataPagesDir.exists()) {
+                    structuredDataPagesDir.mkdirs();
                 }
-                yamlWriter.writeAPIPage(page, apiPagesDir);
+                yamlWriter.writeStructuredDataPage(page, structuredDataPagesDir);
             } catch (IOException e) {
-                LOG.log(Level.SEVERE, "Failed to save API page: " + page.getName(), e);
+                LOG.log(Level.SEVERE, "Failed to save Structured Data page: " + page.getName(), e);
             }
         }
         // XML format doesn't need per-page saves
@@ -1043,21 +1100,21 @@ public class ObjectRepository {
     }
     
     /**
-     * Rename an API page YAML file.
+     * Rename an Structured Data page YAML file.
      * Only works in YAML format mode.
      * @param oldName old page name
      * @param newName new page name
      * @return true if renamed successfully, false otherwise
      */
-    public boolean renameAPIPageYaml(String oldName, String newName) {
+    public boolean renameStructuredDataPageYaml(String oldName, String newName) {
         if (!useYamlFormat || yamlWriter == null) {
             return true; // XML mode - no-op
         }
         try {
-            File apiorRepLocation = new File(getAPIORRepLocation());
-            return yamlWriter.renameAPIPage(oldName, newName, apiorRepLocation);
+            File structuredDataRepLocation = new File(getStructuredDataORRepLocation());
+            return yamlWriter.renameStructuredDataPage(oldName, newName, structuredDataRepLocation);
         } catch (Exception e) {
-            LOG.log(Level.SEVERE, "Failed to rename API page from " + oldName + " to " + newName, e);
+            LOG.log(Level.SEVERE, "Failed to rename Structured Data page from " + oldName + " to " + newName, e);
             return false;
         }
     }

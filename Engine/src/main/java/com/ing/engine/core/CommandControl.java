@@ -9,6 +9,7 @@ import com.ing.datalib.util.data.LinkedProperties;
 import com.ing.datalib.settings.DriverProperties;
 import com.ing.engine.drivers.AutomationObject;
 import com.ing.engine.drivers.PlaywrightDriverCreation;
+import com.ing.engine.drivers.StructuredDataObject;
 import com.ing.engine.execution.data.DataProcessor;
 import com.ing.engine.execution.data.UserDataAccess;
 import com.ing.engine.execution.exception.UnCaughtException;
@@ -40,6 +41,7 @@ public abstract class CommandControl {
     public PlaywrightDriverCreation Page;
     public PlaywrightDriverCreation BrowserContext;
     public AutomationObject AObject;
+    
     public String Data;
     public String Action;
     public String ObjectName;
@@ -57,10 +59,16 @@ public abstract class CommandControl {
     private Stack<Locator> runTimeElement = new Stack<>();
     
     public MobileObject MObject;
+    public StructuredDataObject SObject;
     public WebDriverCreation webDriver;
     public WebElement Element;
+    public String structuredData;
 
-    public CommandControl(PlaywrightDriverCreation playwright, PlaywrightDriverCreation page, PlaywrightDriverCreation browserContext ,WebDriverCreation driver,TestCaseReport report) {
+    public CommandControl(PlaywrightDriverCreation playwright,
+            PlaywrightDriverCreation page,
+            PlaywrightDriverCreation browserContext,
+            WebDriverCreation driver,
+            TestCaseReport report) {
         Playwright = playwright;
         BrowserContext = browserContext;
         Page = page;
@@ -71,13 +79,11 @@ public abstract class CommandControl {
                 return (TestCaseRunner) CommandControl.this.context();
             }
         };
-        if(webDriver==null)
-        {
+        if(webDriver==null) {
            AObject = new AutomationObject(Page.page); 
-        }
-        else if(webDriver!=null)
-        {
-           MObject=new MobileObject(webDriver.driver); 
+           SObject = new StructuredDataObject(Page.page);
+        } else if(webDriver!=null) {
+           MObject = new MobileObject(webDriver.driver); 
         }
         Report = (TestCaseReport) report;
 
@@ -90,18 +96,12 @@ public abstract class CommandControl {
     }
 
     public void sync(Step curr) throws UnCaughtException {
-        if(webDriver==null)
-        {
+            
         refresh();
-        //AObject.setDriver(seDriver.driver);
         this.Description = curr.Description;
         this.Action = curr.Action;
         this.Input = curr.Input;
         this.Data = curr.Data;
-
-        /********** Updates the Action for NLP_locator****************/
-        AutomationObject.Action = this.Action;
-        /**************************************************************/
         
         if (curr.Condition != null && curr.Condition.length() > 0) {
             this.Condition = curr.Condition;
@@ -114,82 +114,63 @@ public abstract class CommandControl {
                 this.Reference = curr.Reference;
                 if (!curr.Action.startsWith("img")) {
                     if (canIFindElement()) {
-                        
-                        Locator = AObject.findElement(ObjectName, Reference, AutomationObjectApi.FindType.fromString(Condition));
-                        
-                    }
-                }
-            }
-        }
-    }
-         else
-    { 
-       refresh();
-//        mobileObject.setDriver(mobileDriver.driver);
-        this.Description = curr.Description;
-        this.Action = curr.Action;
-        this.Input = curr.Input;
-        this.Data = curr.Data;
 
-        /********** Updates the Action for NLP_locator****************/
-        MobileObject.Action = this.Action;
-        /**************************************************************/
+                            structuredData = SObject.findElement(ObjectName, Reference);
+                        if (structuredData!= null) {
+                            StructuredDataObject.Action = this.Action;
+                            
+                            Data = structuredData;
+                        } else if (webDriver==null) {
+                            /********** Updates the Action for NLP_locator****************/
+                            AutomationObject.Action = this.Action;
+                            /**************************************************************/
 
-        if (curr.Condition != null && curr.Condition.length() > 0) {
-            this.Condition = curr.Condition;
-        }
+                            Locator = AObject.findElement(ObjectName, Reference, FindType.fromString(Condition));
+                        } else {
+                            /********** Updates the Action for NLP_locator****************/
+                            MobileObject.Action = this.Action;
+                            /**************************************************************/
 
-        if (curr.ObjectName != null && curr.ObjectName.length() > 0) {
-            this.ObjectName = curr.ObjectName.trim();
-
-            if (!(ObjectName.matches("(?i:app|browser|execute|executeclass)"))) {
-                this.Reference = curr.Reference;
-                if (!curr.Action.startsWith("img")) {
-                    if (canIFindElement()) {
-                        Element = MObject.findElement(ObjectName, Reference, MobileObjectApi.FindmType.fromString(Condition));
-
+                            Element = MObject.findElement(ObjectName, Reference, FindmType.fromString(Condition));
+                        }
 
                     }
                 }
             }
         } 
-    }
+        
     }
 
     private Boolean canIFindElement() {
-        if(webDriver!=null)
-        {
-        if(webDriver.isAlive())
-        {
-            if (webDriver.getCurrentBrowser().equalsIgnoreCase("ProtractorJS")) {
-                return false;
-            } else {
-                switch (Action) {
-                    case "waitForElementToBePresent":
-                    case "setObjectProperty":
-                    case "setMobileObjectProperty":
-                    case "setMobileGlobalProperty":
-                        return false;
-                    default:
-                        return true;
+        if (webDriver!=null) {
+            if (webDriver.isAlive()) {
+                if (webDriver.getCurrentBrowser().equalsIgnoreCase("ProtractorJS")) {
+                    return false;
+                } else {
+                    switch (Action) {
+                        case "waitForElementToBePresent":
+                        case "setObjectProperty":
+                        case "setMobileObjectProperty":
+                        case "setMobileGlobalProperty":
+                            return false;
+                        default:
+                            return true;
+                    }
                 }
             }
-        }
-        }
-        else
-        {
-        if (Page.isAlive()) {
-                switch (Action) {
-                    case "waitForElementToBePresent":
-                    case "setObjectProperty":
-                    case "setMobileObjectProperty":
-                    case "setMobileGlobalProperty":
-                        return false;
-                    default:
-                        return true;
-                }
-            
-        }
+        } else {
+            if (Page.isAlive()) {
+                    switch (Action) {
+                        case "waitForElementToBePresent":
+                        case "setObjectProperty":
+                        case "setMobileObjectProperty":
+                        case "setMobileGlobalProperty":
+                            return false;
+                        default:
+                            return true;
+                    }
+
+            }
         }
         return false;
     }

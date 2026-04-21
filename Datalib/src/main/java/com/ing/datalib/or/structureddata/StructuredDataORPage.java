@@ -1,4 +1,4 @@
-package com.ing.datalib.or.api;
+package com.ing.datalib.or.structureddata;
 
 import com.ing.datalib.component.utils.FileUtils;
 import com.ing.datalib.or.common.ORPageInf;
@@ -23,7 +23,7 @@ import javax.swing.tree.TreePath;
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties({"root"})
-public class APIORPage implements ORPageInf<APIORObject, APIOR> {
+public class StructuredDataORPage implements ORPageInf<StructuredDataORObject, StructuredData> {
 
     @JacksonXmlProperty(isAttribute = true, localName = "ref")
     private String name;
@@ -33,16 +33,16 @@ public class APIORPage implements ORPageInf<APIORObject, APIOR> {
 
     @JacksonXmlProperty(localName = "ObjectGroup")
     @JacksonXmlElementWrapper(useWrapping = false, localName = "ObjectGroup")
-    private List<ObjectGroup<APIORObject>> objectGroups;
+    private List<ObjectGroup<StructuredDataORObject>> objectGroups;
 
     @JsonIgnore
-    private APIOR root;
+    private StructuredData root;
 
-    public APIORPage() {
+    public StructuredDataORPage() {
         this.objectGroups = new ArrayList<>();
     }
 
-    public APIORPage(String name, APIOR root) {
+    public StructuredDataORPage(String name, StructuredData root) {
         this.name = name;
         this.root = root;
         this.title = "";
@@ -68,14 +68,14 @@ public class APIORPage implements ORPageInf<APIORObject, APIOR> {
     }
 
     @Override
-    public List<ObjectGroup<APIORObject>> getObjectGroups() {
+    public List<ObjectGroup<StructuredDataORObject>> getObjectGroups() {
         return objectGroups;
     }
 
     @Override
-    public void setObjectGroups(List<ObjectGroup<APIORObject>> objectGroups) {
+    public void setObjectGroups(List<ObjectGroup<StructuredDataORObject>> objectGroups) {
         this.objectGroups = objectGroups;
-        for (ObjectGroup<APIORObject> objectGroup : objectGroups) {
+        for (ObjectGroup<StructuredDataORObject> objectGroup : objectGroups) {
             objectGroup.setParent(this);
         }
     }
@@ -90,8 +90,8 @@ public class APIORPage implements ORPageInf<APIORObject, APIOR> {
 
     @JsonIgnore
     @Override
-    public ObjectGroup<APIORObject> getObjectGroupByName(String groupName) {
-        for (ObjectGroup<APIORObject> group : objectGroups) {
+    public ObjectGroup<StructuredDataORObject> getObjectGroupByName(String groupName) {
+        for (ObjectGroup<StructuredDataORObject> group : objectGroups) {
             if (group.getName().equalsIgnoreCase(groupName)) {
                 return group;
             }
@@ -101,8 +101,8 @@ public class APIORPage implements ORPageInf<APIORObject, APIOR> {
 
     @JsonIgnore
     @Override
-    public ObjectGroup<APIORObject> addObjectGroup() {
-        String oName = "APIObjectGroup";
+    public ObjectGroup<StructuredDataORObject> addObjectGroup() {
+        String oName = "StructuredDataObjectGroup";
         int i = 0;
         String objectName;
         do {
@@ -114,18 +114,18 @@ public class APIORPage implements ORPageInf<APIORObject, APIOR> {
 
     @JsonIgnore
     @Override
-    public ObjectGroup<APIORObject> addObjectGroup(String groupName) {
+    public ObjectGroup<StructuredDataORObject> addObjectGroup(String groupName) {
         if (getObjectGroupByName(groupName) == null) {
-            ObjectGroup<APIORObject> group = new ObjectGroup<>(groupName, this);
+            ObjectGroup<StructuredDataORObject> group = new ObjectGroup<>(groupName, this);
             objectGroups.add(group);
-            // API OR uses YAML format - no folder creation needed
+            // Structured Data OR uses YAML format - no folder creation needed
             group.addObject(groupName);
             root.setSaved(false);
             
             // Auto-save for YAML format
             if (root.getObjectRepository() != null 
                 && root.getObjectRepository().isUsingYamlFormat()) {
-                root.getObjectRepository().saveAPIPageNow(this);
+                root.getObjectRepository().saveStructuredDataPageNow(this);
             }
             return group;
         }
@@ -134,14 +134,14 @@ public class APIORPage implements ORPageInf<APIORObject, APIOR> {
 
     @JsonIgnore
     @Override
-    public APIORObject getNewObject(String objectName, ObjectGroup<APIORObject> group) {
-        return new APIORObject(objectName, group);
+    public StructuredDataORObject getNewObject(String objectName, ObjectGroup<StructuredDataORObject> group) {
+        return new StructuredDataORObject(objectName, group);
     }
 
     @JsonIgnore
     @Override
-    public APIORObject addObject() {
-        String oName = "APIObject";
+    public StructuredDataORObject addObject() {
+        String oName = "SObject";
         int i = 0;
         String objectName;
         do {
@@ -152,8 +152,8 @@ public class APIORPage implements ORPageInf<APIORObject, APIOR> {
 
     @JsonIgnore
     @Override
-    public APIORObject addObject(String objectName) {
-        ObjectGroup<APIORObject> group = addObjectGroup(objectName);
+    public StructuredDataORObject addObject(String objectName) {
+        ObjectGroup<StructuredDataORObject> group = addObjectGroup(objectName);
         if (group != null) {
             return group.getObjectByName(objectName);
         }
@@ -162,20 +162,20 @@ public class APIORPage implements ORPageInf<APIORObject, APIOR> {
 
     @JsonIgnore
     @Override
-    public void setRoot(APIOR root) {
+    public void setRoot(StructuredData root) {
         this.root = root;
     }
 
     @JsonIgnore
     @Override
-    public APIOR getRoot() {
+    public StructuredData getRoot() {
         return root;
     }
 
     @JsonIgnore
     @Override
     public void deleteObjectGroup(String groupName) {
-        ObjectGroup<APIORObject> group = getObjectGroupByName(groupName);
+        ObjectGroup<StructuredDataORObject> group = getObjectGroupByName(groupName);
         if (group != null) {
             objectGroups.remove(group);
             root.setSaved(false);
@@ -262,7 +262,7 @@ public class APIORPage implements ORPageInf<APIORObject, APIOR> {
         // Check if using YAML format
         if (root.getObjectRepository().isUsingYamlFormat()) {
             // For YAML format, rename the page YAML file
-            if (root.getObjectRepository().renameAPIPageYaml(name, newName)) {
+            if (root.getObjectRepository().renameStructuredDataPageYaml(name, newName)) {
                 String oldName = name;
                 root.getObjectRepository().renamePage(this, newName);
                 setName(newName);
