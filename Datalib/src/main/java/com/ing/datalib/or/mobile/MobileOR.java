@@ -250,7 +250,7 @@ public class MobileOR implements ORRootInf<MobileORPage> {
     public String getRepLocation() {
         return repLocationOverride != null
                 ? repLocationOverride
-                : getObjectRepository().getMORRepLocation();
+                : getObjectRepository().getORRepLocation();
     }
 
     @JsonIgnore

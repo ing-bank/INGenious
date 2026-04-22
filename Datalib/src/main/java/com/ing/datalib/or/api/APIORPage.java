@@ -85,7 +85,11 @@ public class APIORPage implements ORPageInf<APIORObject, APIOR> {
     public void removeFromParent() {
         root.setSaved(false);
         root.getPages().remove(this);
-        FileUtils.deleteFile(getRepLocation());
+        if (root.getObjectRepository().isUsingYamlFormat()) {
+            root.getObjectRepository().deleteWebPageYaml(getName());
+        } else {
+            FileUtils.deleteFile(getRepLocation());
+        }
     }
 
     @JsonIgnore
@@ -259,27 +263,9 @@ public class APIORPage implements ORPageInf<APIORObject, APIOR> {
     @JsonIgnore
     @Override
     public Boolean rename(String newName) {
-        // Check if using YAML format
-        if (root.getObjectRepository().isUsingYamlFormat()) {
-            // For YAML format, rename the page YAML file
-            if (root.getObjectRepository().renameAPIPageYaml(name, newName)) {
-                String oldName = name;
-                root.getObjectRepository().renamePage(this, newName);
-                setName(newName);
-                root.setSaved(false);
-                return true;
-            }
-            return false;
-        } else {
-            // Use original XML folder-based rename
-            if (FileUtils.renameFile(getRepLocation(), newName)) {
-                String oldName = name;
-                root.getObjectRepository().renamePage(this, newName);
-                setName(newName);
-                root.setSaved(false);
-                return true;
-            }
-        }
-        return false;
+        getRoot()
+            .getObjectRepository()
+            .renamePage(this, newName);
+        return true;
     }
 }

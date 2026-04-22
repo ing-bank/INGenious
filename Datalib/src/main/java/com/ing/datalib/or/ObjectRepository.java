@@ -83,22 +83,32 @@ public class ObjectRepository {
         try {
             yamlReader = new YamlORReader();
             yamlWriter = new YamlORWriter();
-            boolean xmlExists  = hasAnyXmlOR();
+
             boolean yamlExists = hasYamlOR();
-            LOG.info("OR init: xmlExists=" + xmlExists + ", yamlExists=" + yamlExists);
-            
-            if (xmlExists && !yamlExists) {
-                LOG.info("Legacy XML detected. Loading XML for migration...");
+            boolean xmlExists = hasAnyXmlOR();
+
+            LOG.info(() -> "OR init: xmlExists=" + xmlExists + ", yamlExists=" + yamlExists);
+
+            if (yamlExists) {
+                loadYamlObjectRepositories();
+                useYamlFormat = true;
+
+            } else if (xmlExists) {
                 loadXmlObjectRepositories();
                 convertXmlOrsToYamlAndArchive();
-                LOG.info("Loading YAML after migration");
                 loadYamlObjectRepositories();
                 useYamlFormat = true;
-            }
-            else {
-                LOG.info("YAML detected. Loading YAML only...");
-                loadYamlObjectRepositories();
-                useYamlFormat = true;
+
+            } else {
+            webProjectOR = new WebOR();
+            webProjectOR.setScope(WebOR.ORScope.PROJECT);
+            webProjectOR.setObjectRepository(this);
+            mobileProjectOR = new MobileOR();
+            mobileProjectOR.setScope(MobileOR.ORScope.PROJECT);
+            mobileProjectOR.setObjectRepository(this);
+            apiProjectOR = new APIOR();
+            apiProjectOR.setObjectRepository(this);
+            useYamlFormat = true;
             }
 
         } catch (Exception e) {
@@ -175,101 +185,95 @@ public class ObjectRepository {
      */
     public void save() {
         try {
-            List<String> existingProjects = (webSharedOR != null) ? webSharedOR.getSharedProjects() : java.util.List.of();
+            List<String> existingProjects = (webSharedOR != null) ? webSharedOR.getSharedProjects() : List.of();
             LinkedHashSet<String> mergedProjects = new LinkedHashSet<>();
             if (existingProjects != null) mergedProjects.addAll(existingProjects);
             mergedProjects.addAll(sharedUsageProjects);
+
             boolean projectsChanged = false;
             if (webSharedOR != null) {
-                ArrayList<String> mergedList = new ArrayList<>(mergedProjects);
                 List<String> current = webSharedOR.getSharedProjects();
-                projectsChanged = (current == null) || !new LinkedHashSet<>(current).equals(mergedProjects);
+                projectsChanged = current == null
+                        || !new LinkedHashSet<>(current).equals(mergedProjects);
                 if (projectsChanged) {
-                    webSharedOR.setSharedProjects(mergedList);
+                    webSharedOR.setSharedProjects(new ArrayList<>(mergedProjects));
                 }
             }
-            List<String> mExisting = (mobileSharedOR != null) ? mobileSharedOR.getSharedProjects() : java.util.List.of();
+
+            List<String> mExisting = (mobileSharedOR != null) ? mobileSharedOR.getSharedProjects() : List.of();
             LinkedHashSet<String> mMerged = new LinkedHashSet<>();
             if (mExisting != null) mMerged.addAll(mExisting);
             mMerged.addAll(sharedUsageProjects);
+
             boolean mProjectsChanged = false;
             if (mobileSharedOR != null) {
-                ArrayList<String> mList = new ArrayList<>(mMerged);
                 List<String> mCurrent = mobileSharedOR.getSharedProjects();
-                mProjectsChanged = (mCurrent == null) || !new LinkedHashSet<>(mCurrent).equals(mMerged);
+                mProjectsChanged = mCurrent == null
+                        || !new LinkedHashSet<>(mCurrent).equals(mMerged);
                 if (mProjectsChanged) {
-                    mobileSharedOR.setSharedProjects(mList);
+                    mobileSharedOR.setSharedProjects(new ArrayList<>(mMerged));
                 }
             }
             
-            // === SHARED ORs (always XML) ===
+            if (useYamlFormat) {
+                if (webSharedOR != null && (!webSharedOR.isSaved() || projectsChanged)) {
+                    yamlWriter.writeWebOR(webSharedOR,new File(getSharedORRepLocation()) );
+                    webSharedOR.setSaved(true);
+                }
+                if (mobileSharedOR != null && (!mobileSharedOR.isSaved() || mProjectsChanged)) {
+                    yamlWriter.writeMobileOR(mobileSharedOR,new File(getSharedORRepLocation()));
+                    mobileSharedOR.setSaved(true);
+                }
+                saveAsYaml();
+                LOG.info("Saved Shared and Project ORs in YAML format");
+                return;
+
+            }
+
             if (webSharedOR != null && (!webSharedOR.isSaved() || projectsChanged)) {
                 File sharedORFile = new File(getSharedORLocation());
                 sharedORFile.getParentFile().mkdirs();
-                XML_MAPPER.writerWithDefaultPrettyPrinter()
-                    .writeValue(sharedORFile, webSharedOR);
+                XML_MAPPER.writerWithDefaultPrettyPrinter().writeValue(sharedORFile, webSharedOR);
                 webSharedOR.setSaved(true);
             }
             if (mobileSharedOR != null && (!mobileSharedOR.isSaved() || mProjectsChanged)) {
                 File sharedMORFile = new File(getSharedMORLocation());
                 sharedMORFile.getParentFile().mkdirs();
-                XML_MAPPER.writerWithDefaultPrettyPrinter()
-                        .writeValue(sharedMORFile, mobileSharedOR);
+                XML_MAPPER.writerWithDefaultPrettyPrinter().writeValue(sharedMORFile, mobileSharedOR);
                 mobileSharedOR.setSaved(true);
             }
-            
-            // === PROJECT ORs (YAML or XML based on format) ===
-            if (useYamlFormat) {
-                // Save in YAML format
-                if (webProjectOR != null && !webProjectOR.isSaved()) {
-                    File orRepLocation = new File(getORRepLocation());
-                    yamlWriter.writeWebOR(webProjectOR, orRepLocation);
-                    webProjectOR.setSaved(true);
-                }
-                if (mobileProjectOR != null && !mobileProjectOR.isSaved()) {
-                    File morRepLocation = new File(getMORRepLocation());
-                    yamlWriter.writeMobileOR(mobileProjectOR, morRepLocation);
-                    mobileProjectOR.setSaved(true);
-                }
-                if (apiProjectOR != null && !apiProjectOR.isSaved()) {
-                    File apiorRepLocation = new File(getAPIORRepLocation());
-                    yamlWriter.writeAPIOR(apiProjectOR, apiorRepLocation);
-                    apiProjectOR.setSaved(true);
-                }
-                LOG.info("Saved project ORs in YAML format");
-            } else {
-                // Save in XML format (legacy)
-                if (webProjectOR != null && !webProjectOR.isSaved()) {
-                    File orFile = new File(getORLocation());
-                    orFile.getParentFile().mkdirs();
-                    XML_MAPPER.writerWithDefaultPrettyPrinter()
-                        .writeValue(orFile, webProjectOR);
-                    webProjectOR.setSaved(true);
-                }
-                if (mobileProjectOR != null && !mobileProjectOR.isSaved()) {
-                    File morFile = new File(getMORLocation());
-                    morFile.getParentFile().mkdirs();
-                    XML_MAPPER.writerWithDefaultPrettyPrinter()
-                            .writeValue(morFile, mobileProjectOR);
-                    mobileProjectOR.setSaved(true);
-                }
-                if (apiProjectOR != null && !apiProjectOR.isSaved()) {
-                    File apiorFile = new File(getAPIORLocation());
-                    apiorFile.getParentFile().mkdirs();
-                    XML_MAPPER.writerWithDefaultPrettyPrinter()
-                            .writeValue(apiorFile, apiProjectOR);
-                    apiProjectOR.setSaved(true);
-                }
-                LOG.info("Saved project ORs in XML format");
+
+            if (webProjectOR != null && !webProjectOR.isSaved()) {
+                File orFile = new File(getORLocation());
+                orFile.getParentFile().mkdirs();
+                XML_MAPPER.writerWithDefaultPrettyPrinter().writeValue(orFile, webProjectOR);
+                webProjectOR.setSaved(true);
             }
+
+            if (mobileProjectOR != null && !mobileProjectOR.isSaved()) {
+                File morFile = new File(getMORLocation());
+                morFile.getParentFile().mkdirs();
+                XML_MAPPER.writerWithDefaultPrettyPrinter().writeValue(morFile, mobileProjectOR);
+                mobileProjectOR.setSaved(true);
+            }
+
+            if (apiProjectOR != null && !apiProjectOR.isSaved()) {
+                File apiFile = new File(getAPIORLocation());
+                apiFile.getParentFile().mkdirs();
+                XML_MAPPER.writerWithDefaultPrettyPrinter().writeValue(apiFile, apiProjectOR);
+                apiProjectOR.setSaved(true);
+            }
+            LOG.info("Saved ORs in legacy XML format");
+
         } catch (IOException ex) {
-            Logger.getLogger(ObjectRepository.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(ObjectRepository.class.getName())
+                    .log(Level.SEVERE, "Failed to save Object Repository", ex);
         }
     }
     
     /**
      * Save Object Repository in YAML format.
-     * Creates page-per-file structure under ObjectRepository/Web/pages/, ObjectRepository/Mobile/pages/, and ObjectRepository/API/pages/
+     * Creates page-per-file structure under ObjectRepository/Web/, ObjectRepository/Mobile/, and ObjectRepository/API/
      */
     public void saveAsYaml() {
         try {
@@ -298,8 +302,8 @@ public class ObjectRepository {
     }
 
     private boolean hasYamlOR() {
-        File webPages = new File(getORRepLocation(), "Web/pages");
-        File mobilePages = new File(getORRepLocation(), "Mobile/pages");
+        File webPages = new File(getORRepLocation(), "Web");
+        File mobilePages = new File(getORRepLocation(), "Mobile");
         return (webPages.exists() && webPages.isDirectory()) || (mobilePages.exists() && mobilePages.isDirectory());
     }
     
@@ -310,7 +314,6 @@ public class ObjectRepository {
         File projectYamlRoot = new File(getORRepLocation());
         File sharedYamlRoot  = new File(getSharedORRepLocation());
 
-        // Convert Web + Mobile only
         converter.convertAll(
             webProjectOR,
             webSharedOR,
@@ -320,7 +323,6 @@ public class ObjectRepository {
             sharedYamlRoot
         );
 
-        // Archive XML files
         archiveProjectXmlORs();
         archiveSharedXmlORs();
         cleanupLegacySharedXmlFolders();
@@ -349,9 +351,9 @@ public class ObjectRepository {
         if (!xmlFile.exists()) return;
         File bakFile = new File(targetDir, xmlFile.getName() + ".bak");
         if (xmlFile.renameTo(bakFile)) {
-            LOG.info("Archived XML OR: " + bakFile.getAbsolutePath());
+            LOG.info(() -> "Archived XML OR: " + bakFile.getAbsolutePath());
         } else {
-            LOG.warning("Failed to archive XML OR: " + xmlFile.getAbsolutePath());
+            LOG.warning(() -> "Failed to archive XML OR: " + xmlFile.getAbsolutePath());
         }
     }
 
@@ -371,9 +373,9 @@ public class ObjectRepository {
         }
         boolean deleted = dir.delete();
         if (deleted) {
-            LOG.info("Deleted legacy XML directory: " + dir.getAbsolutePath());
+            LOG.info(() -> "Deleted legacy XML directory: " + dir.getAbsolutePath());
         } else {
-            LOG.warning("Failed to delete legacy XML directory: " + dir.getAbsolutePath());
+            LOG.warning(() -> "Failed to delete legacy XML directory: " + dir.getAbsolutePath());
         }
     }
 
@@ -403,10 +405,7 @@ public class ObjectRepository {
     * It must NOT be called once YAML ORs exist.
     */
    private void loadXmlObjectRepositories() throws IOException {
-
        LOG.info("Loading legacy XML Object Repositories for migration...");
-
-       // PROJECT XML ORs
        File projectWebXml = new File(getORLocation());
        if (projectWebXml.exists()) {
            webProjectOR = XML_MAPPER.readValue(projectWebXml, WebOR.class);
@@ -421,7 +420,6 @@ public class ObjectRepository {
            LOG.info("Loaded PROJECT Mobile XML OR");
        }
 
-       // SHARED XML ORs
        File sharedWebXml = new File(getSharedORLocation());
        if (sharedWebXml.exists()) {
            webSharedOR = XML_MAPPER.readValue(sharedWebXml, WebOR.class);
@@ -438,7 +436,6 @@ public class ObjectRepository {
            LOG.info("Loaded SHARED Mobile XML OR");
        }
    }
-
 
     /**
      * Checks whether the given object exists in either PROJECT or SHARED scope.
@@ -468,19 +465,46 @@ public class ObjectRepository {
         if (parentPage == null) return;
         String oldName = group.getName();
         if (oldName.equals(newName)) return;
-        boolean inProject = (webProjectOR != null) &&
-            (webProjectOR.getPageByName(parentPage.getName()) == parentPage);
-        boolean inShared  = !inProject && (webSharedOR != null) &&
-            (webSharedOR.getPageByName(parentPage.getName()) == parentPage);
+        boolean inProject = (webProjectOR != null) && (webProjectOR.getPageByName(parentPage.getName()) == parentPage);
+        boolean inShared = !inProject && (webSharedOR != null) && (webSharedOR.getPageByName(parentPage.getName()) == parentPage);
+
         if (inProject && webProjectOR != null) {
             webProjectOR.setSaved(false);
-            sProject.refactorObjectName(WebOR.ORScope.PROJECT, parentPage.getName(), oldName, newName);
+            sProject.refactorObjectName(
+                WebOR.ORScope.PROJECT,
+                parentPage.getName(),
+                oldName,
+                newName
+            );
+
+            if (useYamlFormat) {
+                saveWebPageNow((WebORPage) parentPage);
+            }
+
         } else if (inShared && webSharedOR != null) {
             webSharedOR.setSaved(false);
             markSharedUsage();
-            sProject.refactorObjectName(WebOR.ORScope.SHARED, parentPage.getName(), oldName, newName);
+            sProject.refactorObjectName(
+                WebOR.ORScope.SHARED,
+                parentPage.getName(),
+                oldName,
+                newName
+            );
+
+            if (useYamlFormat) {
+                saveWebPageNow((WebORPage) parentPage);
+            }
+
         } else {
-            sProject.refactorObjectName(parentPage.getName(), oldName, newName);
+            sProject.refactorObjectName(
+                parentPage.getName(),
+                oldName,
+                newName
+            );
+
+            if (useYamlFormat) {
+                saveWebPageNow((WebORPage) parentPage);
+            }
         }
     }
     
@@ -493,10 +517,13 @@ public class ObjectRepository {
      */
     public void renamePage(ORPageInf page, String newName) {
         if (page == null || newName == null || newName.isBlank()) return;
+
         String oldName = page.getName();
         if (oldName.equals(newName)) return;
+
         boolean renamed = false;
         ORScope scopeRenamed = null;
+
         if (webProjectOR != null) {
             var p = webProjectOR.getPageByName(oldName);
             if (p == page) {
@@ -508,8 +535,13 @@ public class ObjectRepository {
                 webProjectOR.setSaved(false);
                 renamed = true;
                 scopeRenamed = ORScope.PROJECT;
+
+                if (useYamlFormat) {
+                    renameWebPageYaml(oldName, newName, scopeRenamed);
+                }
             }
         }
+
         if (!renamed && webSharedOR != null) {
             var s = webSharedOR.getPageByName(oldName);
             if (s == page) {
@@ -521,8 +553,13 @@ public class ObjectRepository {
                 webSharedOR.setSaved(false);
                 renamed = true;
                 scopeRenamed = ORScope.SHARED;
+
+                if (useYamlFormat) {
+                    renameWebPageYaml(oldName, newName, scopeRenamed);
+                }
             }
         }
+
         if (renamed) {
             sProject.refactorPageName(scopeRenamed, oldName, newName);
         } else {
@@ -530,38 +567,55 @@ public class ObjectRepository {
         }
     }
 
-    public void renamePage(com.ing.datalib.or.mobile.MobileORPage page, String newName) {
+    public void renamePage(MobileORPage page, String newName) {
         if (page == null || newName == null || newName.isBlank()) return;
+
         String oldName = page.getName();
         if (oldName.equals(newName)) return;
+
         boolean renamed = false;
-        com.ing.datalib.or.mobile.MobileOR.ORScope mScope = null;
+        MobileOR.ORScope mScope = null;
+
         if (mobileProjectOR != null) {
             var p = mobileProjectOR.getPageByName(oldName);
             if (p == page) {
                 var existsSameScope = mobileProjectOR.getPageByName(newName);
                 if (existsSameScope != null && existsSameScope != page) return;
+
                 p.setName(newName);
                 mobileProjectOR.setSaved(false);
                 renamed = true;
-                mScope = com.ing.datalib.or.mobile.MobileOR.ORScope.PROJECT;
+                mScope = MobileOR.ORScope.PROJECT;
+
+                if (useYamlFormat) {
+                    renameMobilePageYaml(oldName, newName, mScope);
+                }
             }
         }
+
         if (!renamed && mobileSharedOR != null) {
             var s = mobileSharedOR.getPageByName(oldName);
             if (s == page) {
                 var existsSameScope = mobileSharedOR.getPageByName(newName);
                 if (existsSameScope != null && existsSameScope != page) return;
+
                 s.setName(newName);
                 mobileSharedOR.setSaved(false);
                 renamed = true;
-                mScope = com.ing.datalib.or.mobile.MobileOR.ORScope.SHARED;
+                mScope = MobileOR.ORScope.SHARED;
+
+                if (useYamlFormat) {
+                    renameMobilePageYaml(oldName, newName, mScope);
+                }
             }
         }
+
         if (renamed) {
-            var webLikeScope = (mScope == com.ing.datalib.or.mobile.MobileOR.ORScope.PROJECT)
-                    ? com.ing.datalib.or.web.WebOR.ORScope.PROJECT
-                    : com.ing.datalib.or.web.WebOR.ORScope.SHARED;
+            var webLikeScope =
+                (mScope == MobileOR.ORScope.PROJECT)
+                    ? WebOR.ORScope.PROJECT
+                    : WebOR.ORScope.SHARED;
+
             sProject.refactorPageName(webLikeScope, oldName, newName);
         } else {
             sProject.refactorPageName(oldName, newName);
@@ -776,6 +830,9 @@ public class ObjectRepository {
         WebORPage targetPage = getOrCreatePage(sharedOR, uniqueTargetName);
         copyAllGroups(sourcePage, targetPage);
         sharedOR.setSaved(false);
+        if (useYamlFormat) {
+            saveWebPageNow(targetPage);
+        }
         LOG.info(() -> "Copied Web Page '" + sourcePageName + "' to SHARED page '" + uniqueTargetName + "' successfully.");
         return uniqueTargetName;
     }
@@ -801,6 +858,9 @@ public class ObjectRepository {
         ObjectGroup<WebORObject> newGroup = cloneGroupIntoPage(originalGroup, targetPage, uniqueName);
         targetPage.getObjectGroups().add(newGroup);
         sharedOR.setSaved(false);
+        if (useYamlFormat) {
+            saveWebPageNow(targetPage);
+        }
         LOG.info(() -> "Copied Web Object '" + baseName + "' to SHARED as '" + uniqueName + "'");
         return uniqueName;
     }
@@ -821,8 +881,10 @@ public class ObjectRepository {
         MobileORPage targetPage = getOrCreateMobilePage(sharedMOR, uniqueTargetName);
         copyAllMobileGroups(sourcePage, targetPage);
         sharedMOR.setSaved(false);
-        LOG.info(() -> "Copied Mobile Page '" + sourcePageName
-                + "' to SHARED page '" + uniqueTargetName + "' successfully.");
+        if (useYamlFormat) {
+            saveMobilePageNow(targetPage);
+        }
+        LOG.info(() -> "Copied Mobile Page '" + sourcePageName + "' to SHARED page '" + uniqueTargetName + "' successfully.");
         return uniqueTargetName;
     }
 
@@ -846,6 +908,9 @@ public class ObjectRepository {
         ObjectGroup<MobileORObject> newGroup = cloneMobileGroupIntoPage(originalGroup, targetPage, uniqueName);
         targetPage.getObjectGroups().add(newGroup);
         sharedMOR.setSaved(false);
+        if (useYamlFormat) {
+            saveMobilePageNow(targetPage);
+        }
         LOG.info(() -> "Copied Mobile Object '" + baseName + "' to SHARED as '" + uniqueName + "'");
         return uniqueName;
     }
@@ -896,9 +961,6 @@ public class ObjectRepository {
             sharedUsageProjects.add(sProject.getName());
         }
     }
-    
-    // ============ YAML-related stub methods for backward compatibility ============
-    // These methods are placeholders for future YAML OR support integration
 
     /**
      * Check if using YAML format.
@@ -927,19 +989,22 @@ public class ObjectRepository {
      * @param page the page to save
      */
     public void saveWebPageNow(WebORPage page) {
-        if (useYamlFormat && yamlWriter != null) {
-            try {
-                File orRepLocation = new File(getORRepLocation());
-                File webPagesDir = new File(orRepLocation, "Web/pages");
-                if (!webPagesDir.exists()) {
-                    webPagesDir.mkdirs();
-                }
-                yamlWriter.writeWebPage(page, webPagesDir);
-            } catch (IOException e) {
-                LOG.log(Level.SEVERE, "Failed to save Web page: " + page.getName(), e);
+        if (!useYamlFormat || yamlWriter == null || page == null) return;
+        try {
+            File orRepLocation = new File(getORRepLocation());
+            File webPagesDir = new File(orRepLocation, "Web");
+            webPagesDir.mkdirs();
+            yamlWriter.writeWebPage(page, webPagesDir);
+            if (page.getRoot() != null) {
+                page.getRoot().setSaved(true);
             }
+
+        } catch (IOException e) {
+            LOG.log(Level.SEVERE,
+                "Failed to save Web page: " + page.getName(),
+                e
+            );
         }
-        // XML format doesn't need per-page saves
     }
     
     /**
@@ -949,17 +1014,23 @@ public class ObjectRepository {
      * @param page the page to save
      */
     public void saveMobilePageNow(MobileORPage page) {
-        if (useYamlFormat && yamlWriter != null) {
-            try {
-                File morRepLocation = new File(getMORRepLocation());
-                File mobilePagesDir = new File(morRepLocation, "Mobile/pages");
-                if (!mobilePagesDir.exists()) {
-                    mobilePagesDir.mkdirs();
-                }
-                yamlWriter.writeMobilePage(page, mobilePagesDir);
-            } catch (IOException e) {
-                LOG.log(Level.SEVERE, "Failed to save Mobile page: " + page.getName(), e);
+        if (!useYamlFormat || yamlWriter == null || page == null) return;
+        try {
+            File morRepLocation = new File(getORRepLocation());
+            File mobilePagesDir = new File(morRepLocation, "Mobile");
+            if (!mobilePagesDir.exists()) {
+                mobilePagesDir.mkdirs();
             }
+            yamlWriter.writeMobilePage(page, mobilePagesDir);
+            if (page.getRoot() != null) {
+                page.getRoot().setSaved(true);
+            }
+
+        } catch (IOException e) {
+            LOG.log(Level.SEVERE,
+                "Failed to save Mobile page: " + page.getName(),
+                e
+            );
         }
         // XML format doesn't need per-page saves
     }
@@ -973,12 +1044,15 @@ public class ObjectRepository {
     public void saveAPIPageNow(com.ing.datalib.or.api.APIORPage page) {
         if (useYamlFormat && yamlWriter != null) {
             try {
-                File apiorRepLocation = new File(getAPIORRepLocation());
-                File apiPagesDir = new File(apiorRepLocation, "API/pages");
+                File apiorRepLocation = new File(getORRepLocation());
+                File apiPagesDir = new File(apiorRepLocation, "API");
                 if (!apiPagesDir.exists()) {
                     apiPagesDir.mkdirs();
                 }
                 yamlWriter.writeAPIPage(page, apiPagesDir);
+                if (page.getRoot() != null) {
+                    page.getRoot().setSaved(true);
+                }
             } catch (IOException e) {
                 LOG.log(Level.SEVERE, "Failed to save API page: " + page.getName(), e);
             }
@@ -993,15 +1067,24 @@ public class ObjectRepository {
      * @param newName new page name
      * @return true if renamed successfully, false otherwise
      */
-    public boolean renameWebPageYaml(String oldName, String newName) {
+    public boolean renameWebPageYaml(String oldName, String newName, WebOR.ORScope scope) {
         if (!useYamlFormat || yamlWriter == null) {
-            return true; // XML mode - no-op
+            return true;
+        }
+        if (oldName == null || newName == null || oldName.equals(newName)) {
+            return true;
         }
         try {
-            File orRepLocation = new File(getORRepLocation());
-            return yamlWriter.renameWebPage(oldName, newName, orRepLocation);
+            File repoRoot =
+                (scope == WebOR.ORScope.SHARED)
+                    ? new File(getSharedORRepLocation())
+                    : new File(getORRepLocation());
+            return yamlWriter.renameWebPage(oldName, newName, repoRoot);
+
         } catch (Exception e) {
-            LOG.log(Level.SEVERE, "Failed to rename Web page from " + oldName + " to " + newName, e);
+            LOG.log(Level.SEVERE,
+                "Failed to rename Web page [" + scope + "] from " +
+                oldName + " to " + newName, e);
             return false;
         }
     }
@@ -1013,12 +1096,18 @@ public class ObjectRepository {
      * @param newName new page name
      * @return true if renamed successfully, false otherwise
      */
-    public boolean renameMobilePageYaml(String oldName, String newName) {
+    public boolean renameMobilePageYaml(String oldName, String newName, MobileOR.ORScope scope) {
         if (!useYamlFormat || yamlWriter == null) {
             return true; // XML mode - no-op
         }
+        if (oldName == null || newName == null || oldName.equals(newName)) {
+            return true;
+        }
         try {
-            File morRepLocation = new File(getMORRepLocation());
+            File morRepLocation =
+                (scope == MobileOR.ORScope.SHARED)
+                    ? new File(getSharedORRepLocation())
+                    : new File(getORRepLocation());
             return yamlWriter.renameMobilePage(oldName, newName, morRepLocation);
         } catch (Exception e) {
             LOG.log(Level.SEVERE, "Failed to rename Mobile page from " + oldName + " to " + newName, e);
@@ -1037,11 +1126,62 @@ public class ObjectRepository {
         if (!useYamlFormat || yamlWriter == null) {
             return true; // XML mode - no-op
         }
+        if (oldName == null || newName == null || oldName.equals(newName)) {
+            return true;
+        }
         try {
-            File apiorRepLocation = new File(getAPIORRepLocation());
+            File apiorRepLocation = new File(getORRepLocation());
             return yamlWriter.renameAPIPage(oldName, newName, apiorRepLocation);
         } catch (Exception e) {
             LOG.log(Level.SEVERE, "Failed to rename API page from " + oldName + " to " + newName, e);
+            return false;
+        }
+    }
+    
+    public boolean deleteWebPageYaml(String pageName) {
+        if (!useYamlFormat || yamlWriter == null) {
+            return true; // XML mode - no-op
+        }
+        if (pageName == null || pageName.isBlank()) {
+            return true;
+        }
+        try {
+            File orRepLocation = new File(getORRepLocation());
+            return yamlWriter.deleteWebPage(pageName, orRepLocation);
+        } catch (Exception e) {
+            LOG.log(Level.SEVERE, "Failed to delete Web page YAML: " + pageName, e);
+            return false;
+        }
+    }
+    
+    public boolean deleteMobilePageYaml(String pageName) {
+        if (!useYamlFormat || yamlWriter == null) {
+            return true; // XML mode - no-op
+        }
+        if (pageName == null || pageName.isBlank()) {
+            return true;
+        }
+        try {
+            File morRepLocation = new File(getORRepLocation());
+            return yamlWriter.deleteMobilePage(pageName, morRepLocation);
+        } catch (Exception e) {
+            LOG.log(Level.SEVERE, "Failed to delete Mobile page YAML: " + pageName, e);
+            return false;
+        }
+    }
+    
+    public boolean deleteAPIPageYaml(String pageName) {
+        if (!useYamlFormat || yamlWriter == null) {
+            return true; // XML mode - no-op
+        }
+        if (pageName == null || pageName.isBlank()) {
+            return true;
+        }
+        try {
+            File apiorRepLocation = new File(getORRepLocation());
+            return yamlWriter.deleteAPIPage(pageName, apiorRepLocation);
+        } catch (Exception e) {
+            LOG.log(Level.SEVERE, "Failed to delete API page YAML: " + pageName, e);
             return false;
         }
     }

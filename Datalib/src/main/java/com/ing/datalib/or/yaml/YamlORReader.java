@@ -56,7 +56,7 @@ public class YamlORReader {
      * Check if a YAML-based Web OR exists.
      */
     public boolean webORExists(File orLocation) {
-        File webPagesDir = new File(orLocation, "Web/pages");
+        File webPagesDir = new File(orLocation, "Web");
         return webPagesDir.exists() && webPagesDir.isDirectory();
     }
     
@@ -64,7 +64,7 @@ public class YamlORReader {
      * Check if a YAML-based Mobile OR exists.
      */
     public boolean mobileORExists(File orLocation) {
-        File mobilePagesDir = new File(orLocation, "Mobile/pages");
+        File mobilePagesDir = new File(orLocation, "Mobile");
         return mobilePagesDir.exists() && mobilePagesDir.isDirectory();
     }
     
@@ -72,7 +72,7 @@ public class YamlORReader {
      * Check if a YAML-based API OR exists.
      */
     public boolean apiORExists(File orLocation) {
-        File apiPagesDir = new File(orLocation, "API/pages");
+        File apiPagesDir = new File(orLocation, "API");
         return apiPagesDir.exists() && apiPagesDir.isDirectory();
     }
     
@@ -84,7 +84,7 @@ public class YamlORReader {
      */
     public WebOR readWebOR(File orLocation) throws IOException {
         WebOR webOR = new WebOR();
-        File webPagesDir = new File(orLocation, "Web/pages");
+        File webPagesDir = new File(orLocation, "Web");
         
         if (orLocation.getPath().contains(File.separator + "Shared" + File.separator)) {
             webOR.setScope(WebOR.ORScope.SHARED);
@@ -122,7 +122,7 @@ public class YamlORReader {
      */
     public MobileOR readMobileOR(File orLocation) throws IOException {
         MobileOR mobileOR = new MobileOR();
-        File mobilePagesDir = new File(orLocation, "Mobile/pages");
+        File mobilePagesDir = new File(orLocation, "Mobile");
         
         if (orLocation.getPath().contains(File.separator + "Shared" + File.separator)) {
             mobileOR.setScope(MobileOR.ORScope.SHARED);
@@ -176,7 +176,7 @@ public class YamlORReader {
      */
     public APIOR readAPIOR(File orLocation) throws IOException {
         APIOR apiOR = new APIOR();
-        File apiPagesDir = new File(orLocation, "API/pages");
+        File apiPagesDir = new File(orLocation, "API");
         
         if (!apiPagesDir.exists()) {
             LOGGER.info("No API OR YAML directory found at: " + apiPagesDir.getAbsolutePath());

@@ -62,7 +62,7 @@ public class YamlORWriter {
      * @param orLocation The ObjectRepository directory
      */
     public void writeWebOR(WebOR webOR, File orLocation) throws IOException {
-        File webPagesDir = new File(orLocation, "Web/pages");
+        File webPagesDir = new File(orLocation, "Web");
         ensureDirectory(webPagesDir);
         
         List<WebORPage> pages = webOR.getPages();
@@ -80,7 +80,7 @@ public class YamlORWriter {
      * @param orLocation The ObjectRepository directory
      */
     public void writeMobileOR(MobileOR mobileOR, File orLocation) throws IOException {
-        File mobilePagesDir = new File(orLocation, "Mobile/pages");
+        File mobilePagesDir = new File(orLocation, "Mobile");
         ensureDirectory(mobilePagesDir);
         
         List<MobileORPage> pages = mobileOR.getPages();
@@ -98,7 +98,7 @@ public class YamlORWriter {
      * @param orLocation The ObjectRepository directory
      */
     public void writeAPIOR(APIOR apiOR, File orLocation) throws IOException {
-        File apiPagesDir = new File(orLocation, "API/pages");
+        File apiPagesDir = new File(orLocation, "API");
         ensureDirectory(apiPagesDir);
         
         List<APIORPage> pages = apiOR.getPages();
@@ -146,7 +146,7 @@ public class YamlORWriter {
      * Delete a Web page YAML file.
      */
     public boolean deleteWebPage(String pageName, File orLocation) {
-        File webPagesDir = new File(orLocation, "Web/pages");
+        File webPagesDir = new File(orLocation, "Web");
         File yamlFile = new File(webPagesDir, sanitizeFileName(pageName) + ".yaml");
         
         if (yamlFile.exists()) {
@@ -163,7 +163,7 @@ public class YamlORWriter {
      * Delete a Mobile page YAML file.
      */
     public boolean deleteMobilePage(String pageName, File orLocation) {
-        File mobilePagesDir = new File(orLocation, "Mobile/pages");
+        File mobilePagesDir = new File(orLocation, "Mobile");
         File yamlFile = new File(mobilePagesDir, sanitizeFileName(pageName) + ".yaml");
         
         if (yamlFile.exists()) {
@@ -180,7 +180,7 @@ public class YamlORWriter {
      * Delete an API page YAML file.
      */
     public boolean deleteAPIPage(String pageName, File orLocation) {
-        File apiPagesDir = new File(orLocation, "API/pages");
+        File apiPagesDir = new File(orLocation, "API");
         File yamlFile = new File(apiPagesDir, sanitizeFileName(pageName) + ".yaml");
         
         if (yamlFile.exists()) {
@@ -202,7 +202,7 @@ public class YamlORWriter {
      * @return true if rename was successful
      */
     public boolean renameWebPage(String oldName, String newName, File orLocation) {
-        File webPagesDir = new File(orLocation, "Web/pages");
+        File webPagesDir = new File(orLocation, "Web");
         File oldFile = new File(webPagesDir, sanitizeFileName(oldName) + ".yaml");
         File newFile = new File(webPagesDir, sanitizeFileName(newName) + ".yaml");
         
@@ -225,7 +225,7 @@ public class YamlORWriter {
      * @return true if rename was successful
      */
     public boolean renameMobilePage(String oldName, String newName, File orLocation) {
-        File mobilePagesDir = new File(orLocation, "Mobile/pages");
+        File mobilePagesDir = new File(orLocation, "Mobile");
         File oldFile = new File(mobilePagesDir, sanitizeFileName(oldName) + ".yaml");
         File newFile = new File(mobilePagesDir, sanitizeFileName(newName) + ".yaml");
         
@@ -248,7 +248,7 @@ public class YamlORWriter {
      * @return true if rename was successful
      */
     public boolean renameAPIPage(String oldName, String newName, File orLocation) {
-        File apiPagesDir = new File(orLocation, "API/pages");
+        File apiPagesDir = new File(orLocation, "API");
         File oldFile = new File(apiPagesDir, sanitizeFileName(oldName) + ".yaml");
         File newFile = new File(apiPagesDir, sanitizeFileName(newName) + ".yaml");
         

@@ -203,7 +203,7 @@ public class YamlORTest {
         writer.writeWebOR(webOR, tempDir.toFile());
         
         // Verify file exists
-        File yamlFile = new File(tempDir.toFile(), "Web/pages/HomePage.yaml");
+        File yamlFile = new File(tempDir.toFile(), "Web/HomePage.yaml");
         assertThat(yamlFile).exists();
         
         // Read back
@@ -233,7 +233,7 @@ public class YamlORTest {
         writer.writeMobileOR(mobileOR, tempDir.toFile());
         
         // Verify file exists
-        File yamlFile = new File(tempDir.toFile(), "Mobile/pages/LoginScreen.yaml");
+        File yamlFile = new File(tempDir.toFile(), "Mobile/LoginScreen.yaml");
         assertThat(yamlFile).exists();
         
         // Read back

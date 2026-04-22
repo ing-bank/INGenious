@@ -55,7 +55,7 @@ public class XmlToYamlORConverter {
 
         if (projectOR == null) return;
 
-        File pagesDir = new File(projectRoot, "Web/pages");
+        File pagesDir = new File(projectRoot, "Web");
         pagesDir.mkdirs();
 
         LOG.info("Writing PROJECT Web OR to " + pagesDir.getAbsolutePath());
@@ -70,7 +70,7 @@ public class XmlToYamlORConverter {
 
         if (projectOR == null) return;
 
-        File pagesDir = new File(projectRoot, "Mobile/pages");
+        File pagesDir = new File(projectRoot, "Mobile");
         pagesDir.mkdirs();
 
         LOG.info("Writing PROJECT Mobile OR to " + pagesDir.getAbsolutePath());
@@ -87,7 +87,7 @@ public class XmlToYamlORConverter {
 
         if (sharedOR == null) return;
 
-        File pagesDir = new File(sharedRoot, "Web/pages");
+        File pagesDir = new File(sharedRoot, "Web");
         pagesDir.mkdirs();
 
         LOG.info("Writing SHARED Web OR to " + pagesDir.getAbsolutePath());
@@ -102,7 +102,7 @@ public class XmlToYamlORConverter {
 
         if (sharedOR == null) return;
 
-        File pagesDir = new File(sharedRoot, "Mobile/pages");
+        File pagesDir = new File(sharedRoot, "Mobile");
         pagesDir.mkdirs();
 
         LOG.info("Writing SHARED Mobile OR to " + pagesDir.getAbsolutePath());
