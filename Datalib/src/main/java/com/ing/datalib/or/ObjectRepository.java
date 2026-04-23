@@ -105,14 +105,21 @@ public class ObjectRepository {
             webProjectOR = new WebOR();
             webProjectOR.setScope(WebOR.ORScope.PROJECT);
             webProjectOR.setObjectRepository(this);
+            webProjectOR.setName(sProject.getName());
+            
             mobileProjectOR = new MobileOR();
             mobileProjectOR.setScope(MobileOR.ORScope.PROJECT);
             mobileProjectOR.setObjectRepository(this);
+            mobileProjectOR.setName(sProject.getName());
+            
             apiProjectOR = new APIOR();
             apiProjectOR.setObjectRepository(this);
+            apiProjectOR.setName(sProject.getName());
             useYamlFormat = true;
+            
+            ensureSharedORsExist();
             }
-
+                
         } catch (Exception e) {
             LOG.log(Level.SEVERE, "Failed to initialize ObjectRepository", e);
         }
@@ -127,9 +134,6 @@ public class ObjectRepository {
     public String getMORLocation() {
         return sProject.getLocation() + File.separator + "MOR.object";
     }
-    public String getAPIORLocation() {
-        return sProject.getLocation() + File.separator + "APIOR.object";
-    }
     public String getSharedORLocation() {
         return "Shared" + File.separator + "SharedWebObjects" + File.separator + "SharedOR.object";
     }
@@ -142,24 +146,11 @@ public class ObjectRepository {
     public String getIORRepLocation() {
         return sProject.getLocation() + File.separator + "ImageObjectRepository";
     }
-    public String getMORRepLocation() {
-        return sProject.getLocation() + File.separator + "MobileObjectRepository";
-    }
-    public String getAPIORRepLocation() {
-        return sProject.getLocation() + File.separator + "APIObjectRepository";
-    }
     public String getSharedORRepLocation() {
         File projectDir = new File(sProject.getLocation());   
         File projectsRoot = projectDir.getParentFile();       
         File ingeniousRoot = projectsRoot.getParentFile();    
         File sharedOR = new File(ingeniousRoot,"Shared" + File.separator + "SharedObjectRepository");
-        return sharedOR.getAbsolutePath();
-    }
-    public String getSharedMORRepLocation() {
-        File projectDir = new File(sProject.getLocation());   
-        File projectsRoot = projectDir.getParentFile();       
-        File ingeniousRoot = projectsRoot.getParentFile();    
-        File sharedOR = new File(ingeniousRoot,"Shared" + File.separator + "SharedMobileObjectRepository");
         return sharedOR.getAbsolutePath();
     }
     public Project getsProject() {
@@ -191,7 +182,6 @@ public class ObjectRepository {
             LinkedHashSet<String> mergedProjects = new LinkedHashSet<>();
             if (existingProjects != null) mergedProjects.addAll(existingProjects);
             mergedProjects.addAll(sharedUsageProjects);
-
             boolean projectsChanged = false;
             if (webSharedOR != null) {
                 List<String> current = webSharedOR.getSharedProjects();
@@ -201,12 +191,10 @@ public class ObjectRepository {
                     webSharedOR.setSharedProjects(new ArrayList<>(mergedProjects));
                 }
             }
-
             List<String> mExisting = (mobileSharedOR != null) ? mobileSharedOR.getSharedProjects() : List.of();
             LinkedHashSet<String> mMerged = new LinkedHashSet<>();
             if (mExisting != null) mMerged.addAll(mExisting);
             mMerged.addAll(sharedUsageProjects);
-
             boolean mProjectsChanged = false;
             if (mobileSharedOR != null) {
                 List<String> mCurrent = mobileSharedOR.getSharedProjects();
@@ -216,7 +204,6 @@ public class ObjectRepository {
                     mobileSharedOR.setSharedProjects(new ArrayList<>(mMerged));
                 }
             }
-            
             if (useYamlFormat) {
                 if (webSharedOR != null && (!webSharedOR.isSaved() || projectsChanged)) {
                     yamlWriter.writeWebOR(webSharedOR,new File(getSharedORRepLocation()) );
@@ -229,50 +216,26 @@ public class ObjectRepository {
                 saveAsYaml();
                 LOG.info("Saved Shared and Project ORs in YAML format");
                 return;
-
             }
-
-            if (webSharedOR != null && (!webSharedOR.isSaved() || projectsChanged)) {
-                File sharedORFile = new File(getSharedORLocation());
-                sharedORFile.getParentFile().mkdirs();
-                XML_MAPPER.writerWithDefaultPrettyPrinter().writeValue(sharedORFile, webSharedOR);
-                webSharedOR.setSaved(true);
-            }
-            if (mobileSharedOR != null && (!mobileSharedOR.isSaved() || mProjectsChanged)) {
-                File sharedMORFile = new File(getSharedMORLocation());
-                sharedMORFile.getParentFile().mkdirs();
-                XML_MAPPER.writerWithDefaultPrettyPrinter().writeValue(sharedMORFile, mobileSharedOR);
-                mobileSharedOR.setSaved(true);
-            }
-
-            if (webProjectOR != null && !webProjectOR.isSaved()) {
-                File orFile = new File(getORLocation());
-                orFile.getParentFile().mkdirs();
-                XML_MAPPER.writerWithDefaultPrettyPrinter().writeValue(orFile, webProjectOR);
-                webProjectOR.setSaved(true);
-            }
-
-            if (mobileProjectOR != null && !mobileProjectOR.isSaved()) {
-                File morFile = new File(getMORLocation());
-                morFile.getParentFile().mkdirs();
-                XML_MAPPER.writerWithDefaultPrettyPrinter().writeValue(morFile, mobileProjectOR);
-                mobileProjectOR.setSaved(true);
-            }
-
-            if (apiProjectOR != null && !apiProjectOR.isSaved()) {
-                File apiFile = new File(getAPIORLocation());
-                apiFile.getParentFile().mkdirs();
-                XML_MAPPER.writerWithDefaultPrettyPrinter().writeValue(apiFile, apiProjectOR);
-                apiProjectOR.setSaved(true);
-            }
-            LOG.info("Saved ORs in legacy XML format");
-
         } catch (IOException ex) {
-            Logger.getLogger(ObjectRepository.class.getName())
-                    .log(Level.SEVERE, "Failed to save Object Repository", ex);
+            Logger.getLogger(ObjectRepository.class.getName()).log(Level.SEVERE, "Failed to save Object Repository", ex);
         }
     }
-    
+
+    private void ensureSharedORsExist() {
+        if (webSharedOR == null) {
+            webSharedOR = new WebOR("Shared Web Objects");
+            webSharedOR.setScope(WebOR.ORScope.SHARED);
+            webSharedOR.setObjectRepository(this);
+            webSharedOR.setSaved(true);
+        }
+        if (mobileSharedOR == null) {
+            mobileSharedOR = new MobileOR("Shared Mobile Objects");
+            mobileSharedOR.setScope(MobileOR.ORScope.SHARED);
+            mobileSharedOR.setObjectRepository(this);
+            mobileSharedOR.setSaved(true);
+        }
+    }
     /**
      * Save Object Repository in YAML format.
      * Creates page-per-file structure under ObjectRepository/Web/, ObjectRepository/Mobile/, and ObjectRepository/API/
@@ -284,6 +247,8 @@ public class ObjectRepository {
             yamlWriter.writeMobileOR(mobileProjectOR, orRepLocation);
             yamlWriter.writeAPIOR(apiProjectOR, orRepLocation);
             webProjectOR.setSaved(true);
+            mobileProjectOR.setSaved(true);
+            apiProjectOR.setSaved(true);
             useYamlFormat = true;
             LOG.info("Saved Object Repository in YAML format");
         } catch (IOException ex) {
@@ -392,10 +357,15 @@ public class ObjectRepository {
         File orRepRoot = new File(getORRepLocation());
         webProjectOR = yamlReader.readWebOR(orRepRoot);
         webProjectOR.setObjectRepository(this);
+        webProjectOR.setName(sProject.getName());
+        
         mobileProjectOR = yamlReader.readMobileOR(orRepRoot);
         mobileProjectOR.setObjectRepository(this);
+        mobileProjectOR.setName(sProject.getName());
+        
         apiProjectOR = yamlReader.readAPIOR(orRepRoot);
         apiProjectOR.setObjectRepository(this);
+        apiProjectOR.setName(sProject.getName());
 
         normalizeWebOR(webProjectOR);
         normalizeMobileOR(mobileProjectOR);
@@ -405,8 +375,11 @@ public class ObjectRepository {
         File sharedRoot = new File(getSharedORRepLocation());
         webSharedOR = yamlReader.readWebOR(sharedRoot);
         webSharedOR.setObjectRepository(this);
+        webSharedOR.setName("Shared Web Objects");
+        
         mobileSharedOR = yamlReader.readMobileOR(sharedRoot);
         mobileSharedOR.setObjectRepository(this);
+        mobileSharedOR.setName("Shared Mobile Objects");
         
         normalizeWebOR(webSharedOR);
         normalizeMobileOR(mobileSharedOR);
@@ -1086,8 +1059,8 @@ public class ObjectRepository {
         try {
             File repoRoot =
                 (page.getRoot().getScope() == MobileOR.ORScope.SHARED)
-                    ? new File(getSharedMORRepLocation())
-                    : new File(getMORRepLocation());
+                    ? new File(getSharedORRepLocation())
+                    : new File(getORRepLocation());
             File mobilePagesDir = new File(repoRoot, "Mobile");
             if (!mobilePagesDir.exists()) {
                 mobilePagesDir.mkdirs();
