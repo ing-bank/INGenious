@@ -15,6 +15,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.fasterxml.jackson.dataformat.yaml.YAMLGenerator;
+import com.ing.datalib.or.api.APIORObject;
+import com.ing.datalib.or.api.APIORPage;
 import com.ing.datalib.or.mobile.ResolvedMobileObject;
 import com.ing.datalib.or.web.ResolvedWebObject;
 import com.ing.datalib.or.web.WebOR.ORScope;
@@ -81,7 +83,7 @@ public class ObjectRepository {
      */
     private void init() {
         try {
-            yamlReader = new YamlORReader();
+            yamlReader = new YamlORReader(this);
             yamlWriter = new YamlORWriter();
 
             boolean yamlExists = hasYamlOR();
@@ -389,13 +391,25 @@ public class ObjectRepository {
     private void loadYamlObjectRepositories() throws IOException {
         File orRepRoot = new File(getORRepLocation());
         webProjectOR = yamlReader.readWebOR(orRepRoot);
+        webProjectOR.setObjectRepository(this);
         mobileProjectOR = yamlReader.readMobileOR(orRepRoot);
+        mobileProjectOR.setObjectRepository(this);
         apiProjectOR = yamlReader.readAPIOR(orRepRoot);
+        apiProjectOR.setObjectRepository(this);
+
+        normalizeWebOR(webProjectOR);
+        normalizeMobileOR(mobileProjectOR);
+        normalizeAPIOR(apiProjectOR);
 
         // Shared
         File sharedRoot = new File(getSharedORRepLocation());
         webSharedOR = yamlReader.readWebOR(sharedRoot);
+        webSharedOR.setObjectRepository(this);
         mobileSharedOR = yamlReader.readMobileOR(sharedRoot);
+        mobileSharedOR.setObjectRepository(this);
+        
+        normalizeWebOR(webSharedOR);
+        normalizeMobileOR(mobileSharedOR);
     }
 
     /**
@@ -436,6 +450,57 @@ public class ObjectRepository {
            LOG.info("Loaded SHARED Mobile XML OR");
        }
    }
+
+   private void normalizeWebOR(WebOR webOR) {
+        if (webOR == null) return;
+
+        for (WebORPage page : webOR.getPages()) {
+            page.setRoot(webOR);
+
+            for (ObjectGroup<WebORObject> group : page.getObjectGroups()) {
+                group.setParent(page);
+
+                for (WebORObject obj : group.getObjects()) {
+                    obj.setParent(group);
+                }
+            }
+        }
+        webOR.setSaved(true);
+    }
+   
+   private void normalizeMobileOR(MobileOR mobileOR) {
+        if (mobileOR == null) return;
+
+        for (MobileORPage page : mobileOR.getPages()) {
+            page.setRoot(mobileOR);
+
+            for (ObjectGroup<MobileORObject> group : page.getObjectGroups()) {
+                group.setParent(page);
+
+                for (MobileORObject obj : group.getObjects()) {
+                    obj.setParent(group);
+                }
+            }
+        }
+        mobileOR.setSaved(true);
+    }
+   
+   private void normalizeAPIOR(APIOR apiOR) {
+        if (apiOR == null) return;
+
+        for (APIORPage page : apiOR.getPages()) {
+            page.setRoot(apiOR);
+
+            for (ObjectGroup<APIORObject> group : page.getObjectGroups()) {
+                group.setParent(page);
+
+                for (APIORObject obj : group.getObjects()) {
+                    obj.setParent(group);
+                }
+            }
+        }
+        apiOR.setSaved(true);
+    }
 
     /**
      * Checks whether the given object exists in either PROJECT or SHARED scope.
@@ -977,7 +1042,7 @@ public class ObjectRepository {
     public void setUseYamlFormat(boolean useYaml) {
         this.useYamlFormat = useYaml;
         if (useYaml && yamlReader == null) {
-            yamlReader = new YamlORReader();
+            yamlReader = new YamlORReader(this);
             yamlWriter = new YamlORWriter();
         }
     }

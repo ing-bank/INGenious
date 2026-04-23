@@ -9,6 +9,7 @@ import com.ing.datalib.or.web.WebORPage;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.fasterxml.jackson.dataformat.yaml.YAMLGenerator;
+import com.ing.datalib.or.ObjectRepository;
 
 import java.io.File;
 import java.io.IOException;
@@ -44,11 +45,21 @@ public class YamlORReader {
     
     private final ObjectMapper yamlMapper;
     
+    private ObjectRepository objectRepository;
+    
     public YamlORReader() {
         YAMLFactory factory = new YAMLFactory();
         factory.disable(YAMLGenerator.Feature.WRITE_DOC_START_MARKER);
         this.yamlMapper = new ObjectMapper(factory);
         // Configure for clean YAML
+        this.yamlMapper.findAndRegisterModules();
+    }
+
+    public YamlORReader(ObjectRepository objectRepository) {
+        this.objectRepository = objectRepository;
+        YAMLFactory factory = new YAMLFactory();
+        factory.disable(YAMLGenerator.Feature.WRITE_DOC_START_MARKER);
+        this.yamlMapper = new ObjectMapper(factory);
         this.yamlMapper.findAndRegisterModules();
     }
     
