@@ -1056,16 +1056,19 @@ public class ObjectRepository {
     public void saveWebPageNow(WebORPage page) {
         if (!useYamlFormat || yamlWriter == null || page == null) return;
         try {
-            File orRepLocation = new File(getORRepLocation());
-            File webPagesDir = new File(orRepLocation, "Web");
-            webPagesDir.mkdirs();
-            yamlWriter.writeWebPage(page, webPagesDir);
-            if (page.getRoot() != null) {
-                page.getRoot().setSaved(true);
+            File repoRoot =
+                (page.getRoot().getScope() == WebOR.ORScope.SHARED)
+                    ? new File(getSharedORRepLocation())
+                    : new File(getORRepLocation());
+            File webPagesDir = new File(repoRoot, "Web");
+            if (!webPagesDir.exists()) {
+                webPagesDir.mkdirs();
             }
-
+            yamlWriter.writeWebPage(page, webPagesDir);
+            page.getRoot().setSaved(true);
         } catch (IOException e) {
-            LOG.log(Level.SEVERE,
+            LOG.log(
+                Level.SEVERE,
                 "Failed to save Web page: " + page.getName(),
                 e
             );
@@ -1081,23 +1084,23 @@ public class ObjectRepository {
     public void saveMobilePageNow(MobileORPage page) {
         if (!useYamlFormat || yamlWriter == null || page == null) return;
         try {
-            File morRepLocation = new File(getORRepLocation());
-            File mobilePagesDir = new File(morRepLocation, "Mobile");
+            File repoRoot =
+                (page.getRoot().getScope() == MobileOR.ORScope.SHARED)
+                    ? new File(getSharedMORRepLocation())
+                    : new File(getMORRepLocation());
+            File mobilePagesDir = new File(repoRoot, "Mobile");
             if (!mobilePagesDir.exists()) {
                 mobilePagesDir.mkdirs();
             }
             yamlWriter.writeMobilePage(page, mobilePagesDir);
-            if (page.getRoot() != null) {
-                page.getRoot().setSaved(true);
-            }
-
+            page.getRoot().setSaved(true);
         } catch (IOException e) {
-            LOG.log(Level.SEVERE,
+            LOG.log(
+                Level.SEVERE,
                 "Failed to save Mobile page: " + page.getName(),
                 e
             );
         }
-        // XML format doesn't need per-page saves
     }
     
     /**
