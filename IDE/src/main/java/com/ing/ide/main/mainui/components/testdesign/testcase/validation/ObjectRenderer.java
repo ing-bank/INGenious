@@ -24,29 +24,31 @@ public class ObjectRenderer extends AbstractRenderer {
 
     @Override
     public void render(JComponent comp, TestStep step, Object value) {
-        if (!step.isCommented()) {
-            if (isEmpty(value)) {
-                setEmpty(comp);
-            } else if ("Execute".equals(Objects.toString(value, "").trim())) {
-                setExecute(comp);
-            } else if (step.isPageObjectStep()) {
-                if (isObjectPresent(step)) {
-                    setDefault(comp);
-                } else {
-                    setNotPresent(comp, objNotPresent);
-                }
-            } else if (isValidObject(value)) {
+            String objectName = Objects.toString(step.getObject(), "").trim();
+            String reference  = Objects.toString(step.getReference(), "").trim();
+
+            if (objectName.isEmpty() || reference.isEmpty()) {
                 setDefault(comp);
-            } else {
-                setNotPresent(comp, objNotPresent);
+                return;
             }
-        } else {
-            setDefault(comp);
-            Color c = UIManager.getColor("ing.commentedForeground");
-            comp.setForeground(c != null ? c : Color.lightGray);
-            comp.setFont(new Font("Default", Font.ITALIC, 11));
+            String pageName = reference
+                    .replace("[Project] ", "")
+                    .replace("[Shared] ", "")
+                    .trim();
+
+            ResolvedWebObject rwo =
+                step.getProject()
+                    .getObjectRepository()
+                    .resolveWebObjectWithScope(pageName, objectName, step);
+
+            if (rwo == null) {
+                setNotPresent(comp, objNotPresent);
+            } else {
+                setDefault(comp);
+                comp.setEnabled(true);
+                comp.setFont(comp.getFont().deriveFont(java.awt.Font.BOLD));
+            }
         }
-    }
 
     private Boolean isObjectPresent(TestStep step) {
         var repo = step.getProject().getObjectRepository();

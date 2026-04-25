@@ -15,11 +15,15 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.fasterxml.jackson.dataformat.yaml.YAMLGenerator;
+import com.ing.datalib.component.TestCase;
+import com.ing.datalib.component.TestStep;
 import com.ing.datalib.or.api.APIORObject;
 import com.ing.datalib.or.api.APIORPage;
 import com.ing.datalib.or.mobile.ResolvedMobileObject;
 import com.ing.datalib.or.web.ResolvedWebObject;
 import com.ing.datalib.or.web.WebOR.ORScope;
+import static com.ing.datalib.or.web.WebOR.ORScope.PROJECT;
+import static com.ing.datalib.or.web.WebOR.ORScope.SHARED;
 import com.ing.datalib.or.web.WebORObject;
 import com.ing.datalib.or.web.WebORPage;
 import java.io.File;
@@ -40,7 +44,6 @@ import java.util.logging.Logger;
  */
 public class ObjectRepository {
     private static final XmlMapper XML_MAPPER = new XmlMapper();
-    private static final ObjectMapper YAML_MAPPER = createYamlMapper();
     private static final Logger LOG = Logger.getLogger(ObjectRepository.class.getName());
     private final Project sProject;
     private WebOR webSharedOR;
@@ -57,7 +60,7 @@ public class ObjectRepository {
     private YamlORWriter yamlWriter;
     
     // Migration / conversion
-    private boolean xmlConvertedThisSession = false;
+    private final boolean xmlConvertedThisSession = false;
     
     private static ObjectMapper createYamlMapper() {
         YAMLFactory factory = new YAMLFactory();
@@ -131,7 +134,7 @@ public class ObjectRepository {
             }
             }
                 
-        } catch (Exception e) {
+        } catch (IOException e) {
             LOG.log(Level.SEVERE, "Failed to initialize ObjectRepository", e);
         }
     }
@@ -226,7 +229,6 @@ public class ObjectRepository {
                 }
                 saveAsYaml();
                 LOG.info("Saved Shared and Project ORs in YAML format");
-                return;
             }
         } catch (IOException ex) {
             Logger.getLogger(ObjectRepository.class.getName()).log(Level.SEVERE, "Failed to save Object Repository", ex);
@@ -351,37 +353,51 @@ public class ObjectRepository {
     }
 
     private void loadYamlObjectRepositories() throws IOException {
-        File orRepRoot = new File(getORRepLocation());
-        webProjectOR = yamlReader.readWebOR(orRepRoot);
-        webProjectOR.setObjectRepository(this);
-        webProjectOR.setName(sProject.getName());
+        File projectRoot = new File(getORRepLocation());
         
-        mobileProjectOR = yamlReader.readMobileOR(orRepRoot);
-        mobileProjectOR.setObjectRepository(this);
-        mobileProjectOR.setName(sProject.getName());
-        
-        apiProjectOR = yamlReader.readAPIOR(orRepRoot);
-        apiProjectOR.setObjectRepository(this);
-        apiProjectOR.setName(sProject.getName());
+        webProjectOR = yamlReader.readWebOR(projectRoot);
+        if (webProjectOR != null) {
+            webProjectOR.setObjectRepository(this);
+            webProjectOR.setScope(WebOR.ORScope.PROJECT);
+            webProjectOR.setName(sProject.getName());
+            normalizeWebOR(webProjectOR);
+        }
 
-        normalizeWebOR(webProjectOR);
-        normalizeMobileOR(mobileProjectOR);
-        normalizeAPIOR(apiProjectOR);
+        mobileProjectOR = yamlReader.readMobileOR(projectRoot);
+        if (mobileProjectOR != null) {
+            mobileProjectOR.setObjectRepository(this);
+            mobileProjectOR.setScope(MobileOR.ORScope.PROJECT);
+            mobileProjectOR.setName(sProject.getName());
+            normalizeMobileOR(mobileProjectOR);
+        }
 
-        // Shared
+        apiProjectOR = yamlReader.readAPIOR(projectRoot);
+        if (apiProjectOR != null) {
+            apiProjectOR.setObjectRepository(this);
+            apiProjectOR.setName(sProject.getName());
+            normalizeAPIOR(apiProjectOR);
+        }
+
         File sharedRoot = new File(getSharedORRepLocation());
-        webSharedOR = yamlReader.readWebOR(sharedRoot);
-        webSharedOR.setObjectRepository(this);
-        webSharedOR.setName("Shared Web Objects");
-        webSharedOR.setScope(WebOR.ORScope.SHARED);
         
-        mobileSharedOR = yamlReader.readMobileOR(sharedRoot);
-        mobileSharedOR.setObjectRepository(this);
-        mobileSharedOR.setName("Shared Mobile Objects");
-        mobileSharedOR.setScope(MobileOR.ORScope.SHARED);
-        
-        normalizeWebOR(webSharedOR);
-        normalizeMobileOR(mobileSharedOR);
+        if (sharedRoot.exists() && sharedRoot.isDirectory()) {
+
+            webSharedOR = yamlReader.readWebOR(sharedRoot);
+            if (webSharedOR != null) {
+                webSharedOR.setObjectRepository(this);
+                webSharedOR.setScope(WebOR.ORScope.SHARED);
+                webSharedOR.setName("Shared Web Objects");
+                normalizeWebOR(webSharedOR);
+            }
+
+            mobileSharedOR = yamlReader.readMobileOR(sharedRoot);
+            if (mobileSharedOR != null) {
+                mobileSharedOR.setObjectRepository(this);
+                mobileSharedOR.setScope(MobileOR.ORScope.SHARED);
+                mobileSharedOR.setName("Shared Mobile Objects");
+                normalizeMobileOR(mobileSharedOR);
+            }
+        }
     }
 
     /**
@@ -696,27 +712,27 @@ public class ObjectRepository {
         return null;
     }
 
-    public ResolvedMobileObject resolveMobileObject(ResolvedMobileObject.PageRef pageRef, String objectName) {
-        if (pageRef == null || objectName == null) return null;
-        if (pageRef.scope == ORScope.PROJECT) {
-            var g = getFrom(mobileProjectOR, pageRef.name, objectName);
-            if (g != null) {
-                String actualPageName = g.getParent() != null ? g.getParent().getName() : pageRef.name;
-                return new ResolvedMobileObject(ORScope.PROJECT, actualPageName, objectName, g);
-            }
-            return null;
-        }
-        if (pageRef.scope == ORScope.SHARED) {
-            var g = getFrom(mobileSharedOR, pageRef.name, objectName);
-            if (g != null) {
-                markSharedUsage();
-                String actualPageName = g.getParent() != null ? g.getParent().getName() : pageRef.name;
-                return new ResolvedMobileObject(ORScope.SHARED, actualPageName, objectName, g);
-            }
-            return null;
-        }
-        return resolveMobileObjectWithScope(pageRef.name, objectName);
-    }
+   public ResolvedMobileObject resolveMobileObject(ResolvedMobileObject.PageRef pageRef, String objectName) {
+       if (pageRef == null || objectName == null) return null;
+       if (pageRef.scope == ORScope.PROJECT) {
+           var g = getFrom(mobileProjectOR, pageRef.name, objectName);
+           if (g != null) {
+               String actualPageName = g.getParent() != null ? g.getParent().getName() : pageRef.name;
+               return new ResolvedMobileObject(ORScope.PROJECT, actualPageName, objectName, g);
+           }
+           return null;
+       }
+       if (pageRef.scope == ORScope.SHARED) {
+           var g = getFrom(mobileSharedOR, pageRef.name, objectName);
+           if (g != null) {
+               markSharedUsage();
+               String actualPageName = g.getParent() != null ? g.getParent().getName() : pageRef.name;
+               return new ResolvedMobileObject(ORScope.SHARED, actualPageName, objectName, g);
+           }
+           return null;
+       }
+       return resolveMobileObjectWithScope(pageRef.name, objectName);
+   }
 
     /**
      * Resolves a WebOR object by searching project scope first, then shared scope.
@@ -736,6 +752,27 @@ public class ObjectRepository {
             markSharedUsage();
             String actualPageName = shared.getParent() != null ? shared.getParent().getName() : pageName;
             return new ResolvedWebObject(ORScope.SHARED, actualPageName, objectName, shared);
+        }
+        return null;
+    }
+
+    public ResolvedWebObject resolveWebObjectWithScope(String pageName, String objectName,TestStep step) {
+        var proj = getFrom(webProjectOR, pageName, objectName);
+        if (proj != null) {
+            return new ResolvedWebObject(PROJECT, pageName, objectName, proj);
+        }
+
+        var shared = getFrom(webSharedOR, pageName, objectName);
+        if (shared != null) {
+
+            if (step != null &&
+                step.getReference().startsWith("[Project] ")) {
+
+                step.setReference("[Shared] " + pageName);
+                step.getTestCase().setSaved(false);
+            }
+
+            return new ResolvedWebObject(SHARED, pageName, objectName, shared);
         }
         return null;
     }

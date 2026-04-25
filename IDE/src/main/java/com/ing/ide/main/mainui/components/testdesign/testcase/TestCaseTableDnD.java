@@ -2,6 +2,7 @@
 package com.ing.ide.main.mainui.components.testdesign.testcase;
 
 import com.ing.datalib.component.TestCase;
+import com.ing.datalib.component.TestStep;
 import com.ing.datalib.component.TestStep.HEADERS;
 import com.ing.datalib.or.ObjectRepository;
 import com.ing.datalib.or.common.ORPageInf;
@@ -126,10 +127,12 @@ public class TestCaseTableDnD extends TransferHandler {
                     testCase.fireTableRowsUpdated(row, row);
                 } else {
                     ObjectRepository or = testCase.getProject().getObjectRepository();
+                    TestStep tempStep = new TestStep(testCase);
                     ResolvedWebObject rwo =
                         or.resolveWebObjectWithScope(
                             objs.getPageName(val),
-                            objs.getObjectName(val)
+                            objs.getObjectName(val),
+                            tempStep
                         );
                     if (rwo != null) {
                         testCase.addObjectStep(row, rwo);
