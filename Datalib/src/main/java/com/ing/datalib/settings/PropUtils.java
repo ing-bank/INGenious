@@ -77,6 +77,12 @@ public class PropUtils {
                 case ' ':
                     sb.append("\\ ");
                     break;
+                case ':':
+                    sb.append("\\:");
+                    break;
+                case '=':
+                    sb.append("\\=");
+                    break;
                 default:
                     if (c > 127) {
                         sb.append(String.format("\\u%04x", (int) c));
