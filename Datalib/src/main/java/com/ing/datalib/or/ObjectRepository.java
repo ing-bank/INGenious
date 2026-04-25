@@ -117,7 +117,18 @@ public class ObjectRepository {
             apiProjectOR.setName(sProject.getName());
             useYamlFormat = true;
             
-            ensureSharedORsExist();
+            if (webSharedOR == null) {
+                webSharedOR = new WebOR("Shared Web Objects");
+                webSharedOR.setScope(WebOR.ORScope.SHARED);
+                webSharedOR.setObjectRepository(this);
+                webSharedOR.setSaved(true);
+            }
+            if (mobileSharedOR == null) {
+                mobileSharedOR = new MobileOR("Shared Mobile Objects");
+                mobileSharedOR.setScope(MobileOR.ORScope.SHARED);
+                mobileSharedOR.setObjectRepository(this);
+                mobileSharedOR.setSaved(true);
+            }
             }
                 
         } catch (Exception e) {
@@ -222,20 +233,6 @@ public class ObjectRepository {
         }
     }
 
-    private void ensureSharedORsExist() {
-        if (webSharedOR == null) {
-            webSharedOR = new WebOR("Shared Web Objects");
-            webSharedOR.setScope(WebOR.ORScope.SHARED);
-            webSharedOR.setObjectRepository(this);
-            webSharedOR.setSaved(true);
-        }
-        if (mobileSharedOR == null) {
-            mobileSharedOR = new MobileOR("Shared Mobile Objects");
-            mobileSharedOR.setScope(MobileOR.ORScope.SHARED);
-            mobileSharedOR.setObjectRepository(this);
-            mobileSharedOR.setSaved(true);
-        }
-    }
     /**
      * Save Object Repository in YAML format.
      * Creates page-per-file structure under ObjectRepository/Web/, ObjectRepository/Mobile/, and ObjectRepository/API/
@@ -376,10 +373,12 @@ public class ObjectRepository {
         webSharedOR = yamlReader.readWebOR(sharedRoot);
         webSharedOR.setObjectRepository(this);
         webSharedOR.setName("Shared Web Objects");
+        webSharedOR.setScope(WebOR.ORScope.SHARED);
         
         mobileSharedOR = yamlReader.readMobileOR(sharedRoot);
         mobileSharedOR.setObjectRepository(this);
         mobileSharedOR.setName("Shared Mobile Objects");
+        mobileSharedOR.setScope(MobileOR.ORScope.SHARED);
         
         normalizeWebOR(webSharedOR);
         normalizeMobileOR(mobileSharedOR);
