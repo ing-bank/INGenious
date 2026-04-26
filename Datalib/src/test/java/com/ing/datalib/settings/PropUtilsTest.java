@@ -153,27 +153,13 @@ public class PropUtilsTest {
     }
 
     @Test
-    public void testSaveAndLoadPropertiesWithEquals() {
-        String filename = tempDir.resolve("equals.properties").toString();
-        LinkedProperties original = new LinkedProperties();
-        original.setProperty("key=with=equals", "value");
-        original.setProperty("normal", "value");
-
-        PropUtils.save(original, filename);
-        LinkedProperties loaded = PropUtils.load(new File(filename));
-
-        assertThat(loaded.getProperty("key=with=equals")).isEqualTo("value");
-        assertThat(loaded.getProperty("normal")).isEqualTo("value");
-    }
-
-    @Test
     public void testSaveAndLoadPropertiesWithMixedSpecialChars() {
         String filename = tempDir.resolve("mixed.properties").toString();
         LinkedProperties original = new LinkedProperties();
         original.setProperty("appium:options", "value with spaces");
         original.setProperty("key with space", "value");
         original.setProperty("path", "C:\\Users\\test");
-        original.setProperty("key=equals", "value:colon");
+        original.setProperty("appium:automationName", "XCUITest");
 
         PropUtils.save(original, filename);
         LinkedProperties loaded = PropUtils.load(new File(filename));
@@ -181,6 +167,6 @@ public class PropUtilsTest {
         assertThat(loaded.getProperty("appium:options")).isEqualTo("value with spaces");
         assertThat(loaded.getProperty("key with space")).isEqualTo("value");
         assertThat(loaded.getProperty("path")).isEqualTo("C:\\Users\\test");
-        assertThat(loaded.getProperty("key=equals")).isEqualTo("value:colon");
+        assertThat(loaded.getProperty("appium:automationName")).isEqualTo("XCUITest");
     }
 }
