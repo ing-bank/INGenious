@@ -38,6 +38,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 import com.ing.ide.main.mainui.AppMainFrame;
+import com.ing.ide.main.mainui.components.testdesign.or.clipboard.ORClipboardManager;
+import com.ing.ide.main.mainui.components.testdesign.or.clipboard.ORObjectClipboard;
 import java.awt.Toolkit;
 import java.awt.event.KeyEvent;
 import java.util.List;
@@ -71,6 +73,7 @@ import org.w3c.dom.Node;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.Enumeration;
 import java.util.HashSet;
 import java.util.Iterator;
 
@@ -307,6 +310,9 @@ public abstract class ObjectTree implements ActionListener {
                 break;
             case "Copy to Shared":
                 copyToShared();
+                break;
+            case "Paste Object":
+                pasteObject();
                 break;
             default:
                 throw new UnsupportedOperationException();
@@ -1160,5 +1166,79 @@ public abstract class ObjectTree implements ActionListener {
                     + String.join(", ", projects);
         }
         return "";
+    }
+    
+    private void pasteObject() {
+        if (!ORClipboardManager.hasData()) {
+            return;
+        }
+        ORObjectClipboard clipboard = ORClipboardManager.get();
+        ORObjectInf source = clipboard.getObject();
+        boolean cut = clipboard.isCut();
+        if (cut && isSharedScope()) {
+            Notification.show("Cut is not allowed in Shared Object Repository");
+            return;
+        }
+        ORObjectInf newObject = null;
+        if (getSelectedPage() != null) {
+            ORPageInf page = getSelectedPage();
+            String newName = cut
+                    ? source.getName()
+                    : computeCopyName(page, source);
+            newObject = page.addObject(newName);
+            objectAddedPage(newObject);
+        } else if (getSelectedObjectGroup() != null) {
+            ObjectGroup group = getSelectedObjectGroup();
+            ORPageInf page = group.getParent();
+            String newName = cut
+                    ? source.getName()
+                    : computeCopyName(page, source);
+            newObject = group.addObject(newName);
+            objectAddedGroup(newObject);
+        } else if (getSelectedObject() != null) {
+            ObjectGroup group = (ObjectGroup) getSelectedObject().getParent();
+            ORPageInf page = group.getParent();
+            String newName = cut
+                    ? source.getName()
+                    : computeCopyName(page, source);
+            newObject = group.addObject(newName);
+            objectAdded(newObject);
+        }
+        if (newObject == null) {
+            return;
+        }
+        if (cut) {
+            objectRemoved(source);
+            source.removeFromParent();
+            ORClipboardManager.clear();
+        }
+    }
+
+    private String computeCopyName(ORPageInf page, ORObjectInf source) {
+        String original = source.getName();
+        String base = original.replaceAll("_Copy_\\d+$", "");
+        int index = 1;
+        String candidate;
+        do {
+            candidate = base + "_Copy_" + index++;
+        } while (objectNameExists(page, candidate));
+        return candidate;
+    }
+
+    private boolean objectNameExists(ORPageInf page, String name) {
+        for (Object groupObj : page.getObjectGroups()) {
+            ObjectGroup group = (ObjectGroup) groupObj;
+            Enumeration<?> children = group.children();
+            while (children.hasMoreElements()) {
+                Object child = children.nextElement();
+                if (child instanceof ORObjectInf) {
+                    ORObjectInf obj = (ORObjectInf) child;
+                    if (name.equals(obj.getName())) {
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
     }
 }
