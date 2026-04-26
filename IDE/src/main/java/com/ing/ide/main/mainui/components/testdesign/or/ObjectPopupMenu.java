@@ -38,7 +38,7 @@ public class ObjectPopupMenu extends JPopupMenu {
     private JMenuItem renameObject;
     private JMenuItem deleteObject;
     private JMenuItem removeUnusedObject;
-    private JMenuItem copyToShared;
+    private JMenuItem moveToShared;
 
     private JMenuItem openPageDump;
 
@@ -63,18 +63,24 @@ public class ObjectPopupMenu extends JPopupMenu {
         add(renamePage = create("Rename Page", Keystroke.RENAME));
         add(deletePage = create("Delete Page", Keystroke.DELETE));
         addSeparator();
+        
         add(addObject = create("Add Object", Keystroke.NEW));
         add(renameObject = create("Rename Object", Keystroke.RENAME));
         add(deleteObject = create("Delete Object", Keystroke.DELETE));
         add(removeUnusedObject = create("Remove Unused Object",Keystroke.REMOVE_OBJECT));
         addSeparator();
-        copyToShared = create("Copy to Shared", null);
-        add(copyToShared);
+
+        moveToShared = create("Move to Shared", null);
+        moveToShared.setActionCommand("Move to Shared");
+        moveToShared.addActionListener(listener);
+        add(moveToShared);
         add(openPageDump = create("Open Page Dump", null));
         add(impactAnalysis = create("Get Impacted TestCases", null));
         addSeparator();
+        
         setCCP();
         addSeparator();
+        
         add(sort = create("Sort", null));
         sort.setIcon(Canvas.EmptyIcon);
     }
@@ -93,7 +99,7 @@ public class ObjectPopupMenu extends JPopupMenu {
         } else if (selected instanceof ORObjectInf) {
             forObject();
         }
-        copyToShared.setEnabled(!isSharedSelection(selected));
+        moveToShared.setEnabled(!isSharedSelection(currentSelection));
         removeUnusedObject.setEnabled(!isSharedSelection(selected));
     }
 
