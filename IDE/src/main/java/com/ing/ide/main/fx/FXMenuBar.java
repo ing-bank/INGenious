@@ -2,6 +2,7 @@ package com.ing.ide.main.fx;
 
 import com.ing.ide.main.mainui.AppActionListener;
 import com.ing.ide.main.utils.recentItem.RecentItem;
+import com.ing.ide.util.Notification;
 import javafx.application.Platform;
 import javafx.embed.swing.JFXPanel;
 import javafx.scene.Scene;
@@ -15,6 +16,7 @@ import javafx.scene.input.KeyCodeCombination;
 import javafx.scene.input.KeyCombination;
 import javafx.scene.layout.VBox;
 import javax.swing.SwingUtilities;
+import java.io.File;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.List;
@@ -290,8 +292,19 @@ public class FXMenuBar extends JFXPanel {
             
             MenuItem projectItem = new MenuItem(projectName);
             
-            // Add action to load the project
+            // Add action to load the project with validation
             projectItem.setOnAction(e -> {
+                // Validate that the project path exists
+                if (!new File(location).exists()) {
+                    SwingUtilities.invokeLater(() -> {
+                        Notification.show("Project path no longer exists: " + location);
+                        actionListener.getMainFrame().getRecentItems().removeItemByLocation(location);
+                        actionListener.getMainFrame().getRecentItems().save();
+                        updateRecentProjects(actionListener.getMainFrame().getRecentItems().getRECENT_ITEMS());
+                    });
+                    return;
+                }
+                
                 SwingUtilities.invokeLater(() -> {
                     actionListener.getMainFrame().loadProject(location);
                 });

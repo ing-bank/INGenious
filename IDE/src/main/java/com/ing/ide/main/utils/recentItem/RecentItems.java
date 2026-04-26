@@ -3,6 +3,7 @@ package com.ing.ide.main.utils.recentItem;
 
 import com.ing.datalib.component.Project;
 import com.ing.ide.main.mainui.AppMainFrame;
+import com.ing.ide.util.Notification;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.awt.event.ActionEvent;
@@ -18,6 +19,7 @@ import javax.swing.JMenuItem;
 
 public class RecentItems extends JMenu implements ActionListener {
 
+    private static final Logger LOG = Logger.getLogger(RecentItems.class.getName());
     private static final ObjectMapper MAPPER = new ObjectMapper();
     private static final File RECENT_FILE = new File("recent.items");
 
@@ -39,7 +41,7 @@ public class RecentItems extends JMenu implements ActionListener {
                 });
             }
         } catch (Exception ex) {
-            Logger.getLogger(RecentItems.class.getName()).log(Level.SEVERE, null, ex);
+            LOG.log(Level.SEVERE, "Error loading recent items", ex);
         }
         checkIfExists();
         loadToMenus();
@@ -88,14 +90,24 @@ public class RecentItems extends JMenu implements ActionListener {
     @Override
     public void actionPerformed(ActionEvent ae) {
         JMenuItem menuItem = (JMenuItem) ae.getSource();
-        sMainFrame.loadProject(menuItem.getToolTipText());
+        String location = menuItem.getToolTipText();
+        
+        // Validate that the project path exists
+        if (!new File(location).exists()) {
+            Notification.show("Project path no longer exists: " + location);
+            removeItemByLocation(location);
+            save();
+            return;
+        }
+        
+        sMainFrame.loadProject(location);
     }
 
     public void save() {
         try {
             MAPPER.writeValue(RECENT_FILE, RECENT_ITEMS);
         } catch (IOException ex) {
-            Logger.getLogger(RecentItems.class.getName()).log(Level.SEVERE, null, ex);
+            LOG.log(Level.SEVERE, "Error saving recent items", ex);
         }
     }
 
@@ -109,6 +121,22 @@ public class RecentItems extends JMenu implements ActionListener {
 
     public List<RecentItem> getRECENT_ITEMS() {
         return RECENT_ITEMS;
+    }
+
+    /**
+     * Removes a recent item by its location path.
+     * Used when a project path no longer exists.
+     * 
+     * @param location The project location path to remove
+     */
+    public void removeItemByLocation(String location) {
+        for (int i = RECENT_ITEMS.size() - 1; i >= 0; i--) {
+            if (RECENT_ITEMS.get(i).getLocation().equals(location)) {
+                remove(i);
+                RECENT_ITEMS.remove(i);
+                break;
+            }
+        }
     }
 
 }
