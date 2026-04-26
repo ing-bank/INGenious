@@ -2,14 +2,21 @@
 package com.ing.ide.main.mainui.components.testdesign.or;
 
 import com.ing.datalib.component.Project;
+import com.ing.datalib.component.Scenario;
 import com.ing.datalib.component.TestCase;
+import com.ing.datalib.component.TestStep;
 import com.ing.datalib.or.ObjectRepository;
 import com.ing.datalib.or.common.ORObjectInf;
 import com.ing.datalib.or.common.ORPageInf;
 import com.ing.datalib.or.common.ORRootInf;
 import com.ing.datalib.or.common.ObjectGroup;
+import com.ing.datalib.or.mobile.MobileOR;
+import com.ing.datalib.or.mobile.MobileORObject;
+import com.ing.datalib.or.mobile.MobileORPage;
 import com.ing.datalib.or.web.ResolvedWebObject;
 import com.ing.datalib.or.web.WebOR;
+import com.ing.datalib.or.web.WebORObject;
+import com.ing.datalib.or.web.WebORPage;
 import com.ing.ide.main.help.Help;
 
 import com.ing.ide.main.utils.keys.Keystroke;
@@ -31,7 +38,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 import com.ing.ide.main.mainui.AppMainFrame;
-import com.ing.ide.main.mainui.components.testdesign.or.web.WebObjectTree;
 import java.awt.Toolkit;
 import java.awt.event.KeyEvent;
 import java.util.List;
@@ -52,7 +58,6 @@ import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreeNode;
 import javax.swing.tree.TreePath;
 import java.io.File;
-import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.transform.Transformer;
 import javax.xml.transform.TransformerFactory;
@@ -62,12 +67,12 @@ import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpression;
 import javax.xml.xpath.XPathFactory;
 import org.w3c.dom.Document;
-import org.w3c.dom.Element;
 import org.w3c.dom.Node;
-import org.w3c.dom.NodeList;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.HashSet;
+import java.util.Iterator;
 
 /**
  * Base abstract class representing a fully interactive Object Repository (OR) tree.
@@ -471,116 +476,155 @@ public abstract class ObjectTree implements ActionListener {
             }
         }
     }
-    
+
     private void removeUnusedObject() {
+        boolean webDeletionPerformed = false;
+        boolean mobileDeletionPerformed = false;
         try {
-            Map<String, List> allORObject = new HashMap<String, List>();
-            Map<String, List> unUsedbject = new HashMap<String, List>();
-            List<String> objects = new ArrayList<>();
-            List<ORPageInf> pages = getSelectedPages();
-            if (!pages.isEmpty()) {
-                for (ORPageInf selectedPage : pages) {
-                    String page = selectedPage.toString();
-                    String orFilePath = getProject().getLocation() + "/OR.object";
-                    DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory.newInstance();
-                    DocumentBuilder documentBuilder = documentBuilderFactory.newDocumentBuilder();
-                    Document doc = documentBuilder.parse(orFilePath);
-                    NodeList pageList = doc.getElementsByTagName("Page");
-                    for (int i = 0; i < pageList.getLength(); i++) {
-
-                        Node pageNode = pageList.item(i);
-                        if (pageNode.getNodeType() == Node.ELEMENT_NODE) {
-                            Element pageElement = (Element) pageNode;
-                            String pageName = pageElement.getAttribute("ref");
-                            if (pageName.equals(page)) {
-                                NodeList objectGroupNodeList = pageElement.getChildNodes();
-                                for (int j = 0; j < objectGroupNodeList.getLength(); j++) {
-
-                                    Node objectGroupNode = objectGroupNodeList.item(j);
-                                    if (objectGroupNode.getNodeType() == Node.ELEMENT_NODE) {
-                                        if (pageNode.getNodeType() == Node.ELEMENT_NODE) {
-                                            Element objectGroupElement = (Element) objectGroupNode;
-                                            NodeList objectList = objectGroupElement.getChildNodes();
-
-                                            for (int k = 0; k < objectList.getLength(); k++) {
-                                                Node objectNode = objectList.item(k);
-                                                if (objectNode.getNodeType() == Node.ELEMENT_NODE) {
-
-                                                    Element objectElement = (Element) objectNode;
-                                                    String objectName = objectElement.getAttribute("ref");
-                                                    if (!allORObject.containsKey(page)) {
-                                                        allORObject.put(page, new ArrayList<String>());
-                                                        allORObject.get(page).add(objectName);
-                                                    } else {
-                                                        allORObject.get(page).add(objectName);
-                                                    }
-                                                }
-                                            }
-                                        }
-                                    }
-                                }
+            List<ORPageInf> selectedPages = getSelectedPages();
+            if (selectedPages == null || selectedPages.isEmpty()) {
+                return;
+            }
+            ObjectRepository repo = getProject().getObjectRepository();
+            WebOR projectWebOR = repo.getWebOR();
+            MobileOR projectMobileOR = repo.getMobileOR();
+            Set<String> usedProjectObjects = new HashSet<>();
+            for (Scenario scenario : getProject().getAllScenarios()) {
+                for (TestCase testCase : scenario.getTestCases()) {
+                    testCase.loadTableModel();
+                    for (TestStep step : testCase.getTestSteps()) {
+                        if (!step.isPageObjectStep()) {
+                            continue;
+                        }
+                        String ref = step.getReference();
+                        if (ref == null || ref.isBlank()) {
+                            continue;
+                        }
+                        String pageName = normalizePageRef(ref);
+                        String objectName = step.getObject();
+                        if (!pageName.isBlank() && !objectName.isBlank()) {
+                            usedProjectObjects.add(pageName + "@" + objectName);
+                        }
+                    }
+                }
+            }
+            for (ORPageInf selectedPage : selectedPages) {
+                String pageName = selectedPage.getName();
+                WebORPage webPage = projectWebOR.getPageByName(pageName);
+                if (webPage == null) {
+                    continue;
+                }
+                List<String> unusedWebObjects = new ArrayList<>();
+                for (ObjectGroup group : webPage.getObjectGroups()) {
+                    if (!usedProjectObjects.contains(pageName + "@" + group.getName())) {
+                        unusedWebObjects.add(group.getName());
+                    }
+                }
+                if (!unusedWebObjects.isEmpty()) {
+                    int option = JOptionPane.showConfirmDialog(
+                        null,
+                        "<html><body><p style='width: 260px;'>"
+                        + "Delete the following Web objects from page [ "
+                        + pageName + " ]?<br>"
+                        + unusedWebObjects
+                        + "</p></body></html>",
+                        "Delete Web Objects",
+                        JOptionPane.YES_NO_OPTION
+                    );
+                    if (option == JOptionPane.YES_OPTION) {
+                        Iterator<ObjectGroup<WebORObject>> it = webPage.getObjectGroups().iterator();
+                        while (it.hasNext()) {
+                            ObjectGroup group = it.next();
+                            if (unusedWebObjects.contains(group.getName())) {
+                                it.remove();
+                                projectWebOR.setSaved(false);
+                                webDeletionPerformed = true;
                             }
                         }
-                    }
-                }
-            }
-            unUsedbject = UnusedObject(allORObject, usedObject());
-            int unusedObjectCount = 0;
-            for (String page : unUsedbject.keySet()) {
-
-                List<String> unUsedobjects = unUsedbject.get(page);
-                if (!unUsedobjects.isEmpty()) {
-                    unusedObjectCount = unusedObjectCount + 1;
-                    int option = JOptionPane.showConfirmDialog(null,
-                            "<html><body><p style='width: 200px;'>"
-                            + "Are you sure want to delete the following Objects from page [ "
-                            + page
-                            + " ]"
-                            + " ?<br>"
-                            + unUsedobjects
-                            + "</p></body></html>",
-                            "Delete Objects",
-                            JOptionPane.YES_NO_OPTION);
-                    if (option == JOptionPane.YES_OPTION) {
-                        for (String objectName : unUsedobjects) {
-                            deleteUnusedObject(page, objectName);
-
+                        if (webDeletionPerformed) {
+                            repo.saveWebPageNow(webPage);
                         }
-
                     }
                 }
-
             }
-            if (unusedObjectCount != 0) {
-                int option = JOptionPane.showConfirmDialog(null,
-                        "<html><body><p style='width: 200px;'>"
-                        + "Do you want to restart INGenious to load updated Object Repository ?"
-                        + " <br>"
+            for (ORPageInf selectedPage : selectedPages) {
+                String pageName = selectedPage.getName();
+                MobileORPage mobilePage = projectMobileOR.getPageByName(pageName);
+                if (mobilePage == null) {
+                    continue;
+                }
+                List<String> unusedMobileObjects = new ArrayList<>();
+                for (ObjectGroup group : mobilePage.getObjectGroups()) {
+                    if (!usedProjectObjects.contains(pageName + "@" + group.getName())) {
+                        unusedMobileObjects.add(group.getName());
+                    }
+                }
+                if (!unusedMobileObjects.isEmpty()) {
+                    int option = JOptionPane.showConfirmDialog(
+                        null,
+                        "<html><body><p style='width: 260px;'>"
+                        + "Delete the following Mobile objects from page [ "
+                        + pageName + " ]?<br>"
+                        + unusedMobileObjects
                         + "</p></body></html>",
-                        "Restart INGenious",
-                        JOptionPane.YES_NO_OPTION);
+                        "Delete Mobile Objects",
+                        JOptionPane.YES_NO_OPTION
+                    );
+                    if (option == JOptionPane.YES_OPTION) {
+                        Iterator<ObjectGroup<MobileORObject>> it = mobilePage.getObjectGroups().iterator();
+                        while (it.hasNext()) {
+                            ObjectGroup group = it.next();
+                            if (unusedMobileObjects.contains(group.getName())) {
+                                it.remove();
+                                projectMobileOR.setSaved(false);
+                                mobileDeletionPerformed = true;
+                            }
+                        }
+                        if (mobileDeletionPerformed) {
+                            repo.saveMobilePageNow(mobilePage);
+                        }
+                    }
+                }
+            }
+            if (webDeletionPerformed || mobileDeletionPerformed) {
+                repo.save();
+                int option = JOptionPane.showConfirmDialog(
+                    null,
+                    "<html><body><p style='width: 260px;'>"
+                    + "Do you want to restart INGenious to load the updated Object Repository?"
+                    + "</p></body></html>",
+                    "Restart INGenious",
+                    JOptionPane.YES_NO_OPTION
+                );
                 if (option == JOptionPane.YES_OPTION) {
-                    AppMainFrame s = new AppMainFrame();
-                    s.restart();
+                    new AppMainFrame().restart();
                 }
             } else {
-                 
-                 JOptionPane.showMessageDialog(null,
-                        "<html><body><p style='width: 200px;'>"
-                        + "No unused object found"
-                        + " <br>"
-                        + "</p></body></html>",
-                        "Unused Object",
-                        JOptionPane.OK_OPTION);
+                JOptionPane.showMessageDialog(
+                    null,
+                    "<html><body><p style='width: 240px;'>"
+                    + "No unused object found or removal was cancelled."
+                    + "</p></body></html>",
+                    "Unused Object",
+                    JOptionPane.INFORMATION_MESSAGE
+                );
             }
-
+            ((DefaultTreeModel) tree.getModel()).reload();
+            tree.updateUI();
         } catch (Exception e) {
             e.printStackTrace();
         }
+    }
 
+    private String normalizePageRef(String ref) {
+        if (ref == null) return "";
+        ref = ref.trim();
+        if (ref.startsWith("[Project] ")) return ref.substring(10).trim();
+        if (ref.startsWith("[Shared] "))  return ref.substring(9).trim();
+        return ref;
     }
     
-        public Map usedObject() {   
+    public Map usedObject() {   
         Map<String, ArrayList<String>> attributeMap = new HashMap<>();
         ArrayList<String> records = new ArrayList<>();
         try {
