@@ -4,7 +4,7 @@ package com.ing.ide.main.mainui.components.testdesign.or;
 import com.ing.datalib.or.common.ORObjectInf;
 import com.ing.datalib.or.common.ORPageInf;
 import com.ing.datalib.or.common.ORRootInf;
-import com.ing.datalib.or.common.ObjectGroup;
+//import com.ing.datalib.or.common.ObjectGroup;
 import com.ing.ide.main.utils.dnd.TransferActionListener;
 import com.ing.ide.main.utils.keys.Keystroke;
 import com.ing.ide.util.Canvas;
@@ -64,9 +64,9 @@ public class ObjectPopupMenu extends JPopupMenu {
         add(addPage = create("Add Page", Keystroke.NEW));
         add(renamePage = create("Rename Page", Keystroke.RENAME));
         add(deletePage = create("Delete Page", Keystroke.DELETE));
-        addSeparator();
-        add(renameObjectGroup = create("Rename Object Group", Keystroke.RENAME));
-        add(deleteObjectGroup = create("Delete Object Group", Keystroke.DELETE));
+//        addSeparator();
+//        add(renameObjectGroup = create("Rename Object Group", Keystroke.RENAME));
+//        add(deleteObjectGroup = create("Delete Object Group", Keystroke.DELETE));
         addSeparator();
         add(addObject = create("Add Object", Keystroke.NEW));
         add(renameObject = create("Rename Object", Keystroke.RENAME));
@@ -96,8 +96,8 @@ public class ObjectPopupMenu extends JPopupMenu {
             return;
         } else if (selected instanceof ORPageInf) {
             forPage();
-        } else if (selected instanceof ObjectGroup) {
-            forObjectGroup();
+//        } else if (selected instanceof ObjectGroup) {
+//            forObjectGroup();
         } else if (selected instanceof ORObjectInf) {
             forObject();
         }
@@ -110,8 +110,8 @@ public class ObjectPopupMenu extends JPopupMenu {
         deletePage.setEnabled(true);
 
         addPage.setEnabled(false);
-        renameObjectGroup.setEnabled(false);
-        deleteObjectGroup.setEnabled(false);
+//        renameObjectGroup.setEnabled(false);
+//        deleteObjectGroup.setEnabled(false);
 
         addObject.setEnabled(true);
         renameObject.setEnabled(false);
@@ -120,43 +120,43 @@ public class ObjectPopupMenu extends JPopupMenu {
         
         impactAnalysis.setEnabled(false);
 
-        copy.setEnabled(true);
-        cut.setEnabled(true);
-        paste.setEnabled(true);
+//        copy.setEnabled(true);
+//        cut.setEnabled(true);
+//        paste.setEnabled(true);
 
         sort.setEnabled(true);
     }
 
-    private void forObjectGroup() {
-        addPage.setEnabled(false);
-        renamePage.setEnabled(false);
-        deletePage.setEnabled(false);
-
-        renameObjectGroup.setEnabled(true);
-        deleteObjectGroup.setEnabled(true);
-
-        addObject.setEnabled(true);
-        renameObject.setEnabled(false);
-        deleteObject.setEnabled(false);
-
-        impactAnalysis.setEnabled(true);
-
-        copy.setEnabled(true);
-        cut.setEnabled(true);
-        paste.setEnabled(true);
-
-        sort.setEnabled(false);
-    }
+//    private void forObjectGroup() {
+//        addPage.setEnabled(false);
+//        renamePage.setEnabled(false);
+//        deletePage.setEnabled(false);
+//
+//        renameObjectGroup.setEnabled(true);
+//        deleteObjectGroup.setEnabled(true);
+//
+//        addObject.setEnabled(true);
+//        renameObject.setEnabled(false);
+//        deleteObject.setEnabled(false);
+//
+//        impactAnalysis.setEnabled(true);
+//
+//        copy.setEnabled(true);
+//        cut.setEnabled(true);
+//        paste.setEnabled(true);
+//
+//        sort.setEnabled(false);
+//    }
 
     private void forObject() {
         addPage.setEnabled(false);
         renamePage.setEnabled(false);
         deletePage.setEnabled(false);
 
-        renameObjectGroup.setEnabled(false);
-        deleteObjectGroup.setEnabled(false);
+//        renameObjectGroup.setEnabled(false);
+//        deleteObjectGroup.setEnabled(false);
 
-        addObject.setEnabled(true);
+        addObject.setEnabled(false);
         renameObject.setEnabled(true);
         deleteObject.setEnabled(true);
 
@@ -176,8 +176,8 @@ public class ObjectPopupMenu extends JPopupMenu {
         renamePage.setEnabled(false);
         deletePage.setEnabled(false);
 
-        renameObjectGroup.setEnabled(false);
-        deleteObjectGroup.setEnabled(false);
+//        renameObjectGroup.setEnabled(false);
+//        deleteObjectGroup.setEnabled(false);
 
         addObject.setEnabled(false);
         renameObject.setEnabled(false);
@@ -230,9 +230,10 @@ public class ObjectPopupMenu extends JPopupMenu {
             page = (ORPageInf) selected;
         } else if (selected instanceof ORObjectInf) {
             page = ((ORObjectInf) selected).getPage();
-        } else if (selected instanceof ObjectGroup) {
-            page = ((ObjectGroup) selected).getParent();
-        }
+        } 
+//        else if (selected instanceof ObjectGroup) {
+//            page = ((ObjectGroup) selected).getParent();
+//        }
         if (page != null && page.getRoot() instanceof com.ing.datalib.or.web.WebOR) {
             com.ing.datalib.or.web.WebOR root = (com.ing.datalib.or.web.WebOR) page.getRoot();
             return root.isShared();
