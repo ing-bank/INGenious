@@ -89,16 +89,15 @@ public class ObjectRepository {
             yamlReader = new YamlORReader(this);
             yamlWriter = new YamlORWriter();
 
-            boolean yamlExists = hasYamlOR();
+            boolean projectYamlExists = hasYamlOR();
+            boolean sharedYamlExists  = hasSharedYamlOR();
             boolean xmlExists = hasAnyXmlOR();
 
-            LOG.info(() -> "OR init: xmlExists=" + xmlExists + ", yamlExists=" + yamlExists);
-
-            if (yamlExists) {
+            if (projectYamlExists || sharedYamlExists) {
                 loadYamlObjectRepositories();
                 useYamlFormat = true;
-
-            } else if (xmlExists) {
+            }
+             else if (xmlExists) {
                 loadXmlObjectRepositories();
                 convertXmlOrsToYamlAndArchive();
                 loadYamlObjectRepositories();
@@ -120,13 +119,13 @@ public class ObjectRepository {
             apiProjectOR.setName(sProject.getName());
             useYamlFormat = true;
             
-            if (webSharedOR == null) {
+            if (webSharedOR == null && !sharedYamlExists) {
                 webSharedOR = new WebOR("Shared Web Objects");
                 webSharedOR.setScope(WebOR.ORScope.SHARED);
                 webSharedOR.setObjectRepository(this);
                 webSharedOR.setSaved(true);
             }
-            if (mobileSharedOR == null) {
+            if (mobileSharedOR == null && !sharedYamlExists) {
                 mobileSharedOR = new MobileOR("Shared Mobile Objects");
                 mobileSharedOR.setScope(MobileOR.ORScope.SHARED);
                 mobileSharedOR.setObjectRepository(this);
@@ -271,6 +270,12 @@ public class ObjectRepository {
         File webPages = new File(getORRepLocation(), "Web");
         File mobilePages = new File(getORRepLocation(), "Mobile");
         return (webPages.exists() && webPages.isDirectory()) || (mobilePages.exists() && mobilePages.isDirectory());
+    }
+
+    private boolean hasSharedYamlOR() {
+        File sharedWeb = new File(getSharedORRepLocation(), "Web");
+        File sharedMobile = new File(getSharedORRepLocation(), "Mobile");
+        return (sharedWeb.exists() && sharedWeb.isDirectory()) || (sharedMobile.exists() && sharedMobile.isDirectory());
     }
     
     private void convertXmlOrsToYamlAndArchive() throws IOException {
