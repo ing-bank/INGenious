@@ -5,6 +5,7 @@ import com.ing.datalib.or.common.ORObjectInf;
 import com.ing.datalib.or.common.ORPageInf;
 import com.ing.datalib.or.common.ORRootInf;
 import com.ing.ide.main.mainui.components.testdesign.or.clipboard.ORClipboardManager;
+import com.ing.ide.main.mainui.components.testdesign.or.clipboard.ORObjectClipboard;
 import com.ing.ide.main.utils.keys.Keystroke;
 import com.ing.ide.util.Canvas;
 import java.awt.event.ActionListener;
@@ -108,6 +109,10 @@ public class ObjectPopupMenu extends JPopupMenu {
         removeUnusedObject.setEnabled(true);
         
         impactAnalysis.setEnabled(false);
+        
+        copy.setEnabled(true);
+        cut.setEnabled(!isSharedSelection(currentSelection));
+        paste.setEnabled(true);
 
         sort.setEnabled(true);
     }
@@ -131,6 +136,8 @@ public class ObjectPopupMenu extends JPopupMenu {
     }
 
     private void forRoot() {
+        boolean hasClipboard = ORClipboardManager.hasData();
+        
         addPage.setEnabled(true);
         removeUnusedObject.setEnabled(false);
 
@@ -142,6 +149,8 @@ public class ObjectPopupMenu extends JPopupMenu {
         deleteObject.setEnabled(false);
 
         impactAnalysis.setEnabled(false);
+        
+        paste.setEnabled( hasClipboard && ORClipboardManager.get().getType() == ORObjectClipboard.Type.PAGE);
 
         sort.setEnabled(true);
     }
@@ -153,44 +162,28 @@ public class ObjectPopupMenu extends JPopupMenu {
         menuItem.addActionListener(listener);
         return menuItem;
     }
+
     private void setCCP() {
         cut = new JMenuItem("Cut");
+        cut.setActionCommand("Cut");           // for Pages
         cut.setAccelerator(Keystroke.CUT);
         cut.setMnemonic(KeyEvent.VK_T);
-        cut.addActionListener(e -> handleCut());
+        cut.addActionListener(listener);
         add(cut);
 
         copy = new JMenuItem("Copy");
+        copy.setActionCommand("Copy");         // for Pages
         copy.setAccelerator(Keystroke.COPY);
         copy.setMnemonic(KeyEvent.VK_C);
-        copy.addActionListener(e -> handleCopy());
+        copy.addActionListener(listener);
         add(copy);
 
         paste = new JMenuItem("Paste");
+        paste.setActionCommand("Paste");       // for Pages
         paste.setAccelerator(Keystroke.PASTE);
         paste.setMnemonic(KeyEvent.VK_P);
-        paste.setActionCommand("Paste Object");
         paste.addActionListener(listener);
         add(paste);
-    }
-
-    private void handleCopy() {
-        if (!(currentSelection instanceof ORObjectInf)) {
-            return;
-        }
-        ORObjectInf object = (ORObjectInf) currentSelection;
-        ORClipboardManager.copy(object);
-    }
-
-    private void handleCut() {
-        if (!(currentSelection instanceof ORObjectInf)) {
-            return;
-        }
-        if (isSharedSelection(currentSelection)) {
-            return;
-        }
-        ORObjectInf object = (ORObjectInf) currentSelection;
-        ORClipboardManager.cut(object);
     }
 
     private boolean isSharedSelection(Object selected) {

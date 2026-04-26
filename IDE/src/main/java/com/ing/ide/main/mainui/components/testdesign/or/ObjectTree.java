@@ -311,8 +311,14 @@ public abstract class ObjectTree implements ActionListener {
             case "Copy to Shared":
                 copyToShared();
                 break;
-            case "Paste Object":
-                pasteObject();
+            case "Copy":
+                copySelection();
+                break;
+            case "Cut":
+                cutSelection();
+                break;
+            case "Paste":
+                pasteSelection();
                 break;
             default:
                 throw new UnsupportedOperationException();
@@ -1176,7 +1182,7 @@ public abstract class ObjectTree implements ActionListener {
         ORObjectInf source = clipboard.getObject();
         boolean cut = clipboard.isCut();
         if (cut && isSharedScope()) {
-            Notification.show("Cut is not allowed in Shared Object Repository");
+            Notification.show("Cut is not allowed in Shared Object Repository. Use `Moved to Shared` instead.");
             return;
         }
         ORObjectInf newObject = null;
@@ -1241,4 +1247,86 @@ public abstract class ObjectTree implements ActionListener {
         }
         return false;
     }
+    
+    private void copySelection() {
+        if (getSelectedObject() != null) {
+            ORClipboardManager.copy(getSelectedObject());
+            return;
+        }
+        if (getSelectedPage() != null) {
+            ORClipboardManager.copy(getSelectedPage());
+        }
+    }
+
+    private void cutSelection() {
+        if (isSharedScope()) {
+            Notification.show("Cut is not allowed in Shared Object Repository. Use `Move to Shared` instead");
+            return;
+        }
+        if (getSelectedObject() != null) {
+            ORClipboardManager.cut(getSelectedObject());
+            return;
+        }
+        if (getSelectedPage() != null) {
+            ORClipboardManager.cut(getSelectedPage());
+        }
+    }
+
+    private void pasteSelection() {
+        if (!ORClipboardManager.hasData()) {
+            return;
+        }
+        ORObjectClipboard cb = ORClipboardManager.get();
+        if (cb.getType() == ORObjectClipboard.Type.OBJECT) {
+            pasteObject();
+            return;
+        }
+        if (cb.getType() == ORObjectClipboard.Type.PAGE) {
+            pastePage();
+        }
+    }
+
+    private void pastePage() {
+        ORObjectClipboard cb = ORClipboardManager.get();
+        ORPageInf sourcePage = cb.getPage();
+        boolean cut = cb.isCut();
+        if (cut && isSharedScope()) {
+            Notification.show("Cut is not allowed in Shared Object Repository. Use `Move to Shared` instead");
+            return;
+        }
+        String newPageName = cut
+                ? sourcePage.getName()
+                : computeCopyPageName(sourcePage);
+        ORPageInf newPage = getOR().addPage(newPageName);
+        pageAdded(newPage);
+        for (Object o : sourcePage.getObjectGroups()) {
+            ObjectGroup sourceGroup = (ObjectGroup) o;
+            Enumeration<?> children = sourceGroup.children();
+            while (children.hasMoreElements()) {
+                ORObjectInf sourceObject =
+                        (ORObjectInf) children.nextElement();
+                String objectName = cut
+                        ? sourceObject.getName().toString()
+                        : computeCopyName(newPage, sourceObject);
+                ORObjectInf newObject = newPage.addObject(objectName);
+                objectAddedPage(newObject);
+            }
+        }
+        if (cut) {
+            pageRemoved(sourcePage);
+            sourcePage.removeFromParent();
+            ORClipboardManager.clear();
+        }
+    }
+
+    private String computeCopyPageName(ORPageInf source) {
+        String base = source.getName().replaceAll("_Copy_\\d+$", "");
+        int i = 1;
+        String candidate;
+        do {
+            candidate = base + "_Copy_" + i++;
+        } while (getOR().getPageByName(candidate) != null);
+        return candidate;
+    }
+
 }
