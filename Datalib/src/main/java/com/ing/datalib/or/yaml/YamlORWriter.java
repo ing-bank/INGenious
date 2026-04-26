@@ -13,8 +13,12 @@ import com.fasterxml.jackson.dataformat.yaml.YAMLGenerator;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.logging.Level;
+import java.util.Map;
+import java.util.Set;
 import java.util.logging.Logger;
 
 /**
@@ -66,7 +70,7 @@ public class YamlORWriter {
         ensureDirectory(webPagesDir);
         
         List<WebORPage> pages = webOR.getPages();
-        LOGGER.info("Writing " + pages.size() + " Web pages to YAML");
+        LOGGER.info(() -> "Writing " + pages.size() + " Web pages to YAML");
         
         for (WebORPage page : pages) {
             writeWebPage(page, webPagesDir);
@@ -84,7 +88,7 @@ public class YamlORWriter {
         ensureDirectory(mobilePagesDir);
         
         List<MobileORPage> pages = mobileOR.getPages();
-        LOGGER.info("Writing " + pages.size() + " Mobile pages to YAML");
+        LOGGER.info(() -> "Writing " + pages.size() + " Mobile pages to YAML");
         
         for (MobileORPage page : pages) {
             writeMobilePage(page, mobilePagesDir);
@@ -102,7 +106,7 @@ public class YamlORWriter {
         ensureDirectory(apiPagesDir);
         
         List<APIORPage> pages = apiOR.getPages();
-        LOGGER.info("Writing " + pages.size() + " API pages to YAML");
+        LOGGER.info(() -> "Writing " + pages.size() + " API pages to YAML");
         
         for (APIORPage page : pages) {
             writeAPIPage(page, apiPagesDir);
@@ -117,7 +121,7 @@ public class YamlORWriter {
         File yamlFile = new File(pagesDir, sanitizeFileName(page.getName()) + ".yaml");
         
         yamlMapper.writeValue(yamlFile, pageDef);
-        LOGGER.fine("Wrote Web page: " + yamlFile.getName());
+        LOGGER.fine(() -> "Wrote Web page: " + yamlFile.getName());
     }
     
     /**
@@ -128,7 +132,7 @@ public class YamlORWriter {
         File yamlFile = new File(pagesDir, sanitizeFileName(page.getName()) + ".yaml");
         
         yamlMapper.writeValue(yamlFile, pageDef);
-        LOGGER.fine("Wrote Mobile page: " + yamlFile.getName());
+        LOGGER.fine(() -> "Wrote Mobile page: " + yamlFile.getName());
     }
     
     /**
@@ -139,7 +143,7 @@ public class YamlORWriter {
         File yamlFile = new File(pagesDir, sanitizeFileName(page.getName()) + ".yaml");
         
         yamlMapper.writeValue(yamlFile, pageDef);
-        LOGGER.fine("Wrote API page: " + yamlFile.getName());
+        LOGGER.fine(() -> "Wrote API page: " + yamlFile.getName());
     }
     
     /**
@@ -152,7 +156,7 @@ public class YamlORWriter {
         if (yamlFile.exists()) {
             boolean deleted = yamlFile.delete();
             if (deleted) {
-                LOGGER.info("Deleted Web page YAML: " + pageName);
+                LOGGER.info(() -> "Deleted Web page YAML: " + pageName);
             }
             return deleted;
         }
@@ -169,7 +173,7 @@ public class YamlORWriter {
         if (yamlFile.exists()) {
             boolean deleted = yamlFile.delete();
             if (deleted) {
-                LOGGER.info("Deleted Mobile page YAML: " + pageName);
+                LOGGER.info(() -> "Deleted Mobile page YAML: " + pageName);
             }
             return deleted;
         }
@@ -186,7 +190,7 @@ public class YamlORWriter {
         if (yamlFile.exists()) {
             boolean deleted = yamlFile.delete();
             if (deleted) {
-                LOGGER.info("Deleted API page YAML: " + pageName);
+                LOGGER.info(() -> "Deleted API page YAML: " + pageName);
             }
             return deleted;
         }
@@ -209,7 +213,7 @@ public class YamlORWriter {
         if (oldFile.exists() && !newFile.exists()) {
             boolean renamed = oldFile.renameTo(newFile);
             if (renamed) {
-                LOGGER.info("Renamed Web page YAML: " + oldName + " -> " + newName);
+                LOGGER.info(() -> "Renamed Web page YAML: " + oldName + " -> " + newName);
             }
             return renamed;
         }
@@ -232,7 +236,7 @@ public class YamlORWriter {
         if (oldFile.exists() && !newFile.exists()) {
             boolean renamed = oldFile.renameTo(newFile);
             if (renamed) {
-                LOGGER.info("Renamed Mobile page YAML: " + oldName + " -> " + newName);
+                LOGGER.info(() -> "Renamed Mobile page YAML: " + oldName + " -> " + newName);
             }
             return renamed;
         }
@@ -255,7 +259,7 @@ public class YamlORWriter {
         if (oldFile.exists() && !newFile.exists()) {
             boolean renamed = oldFile.renameTo(newFile);
             if (renamed) {
-                LOGGER.info("Renamed API page YAML: " + oldName + " -> " + newName);
+                LOGGER.info(() -> "Renamed API page YAML: " + oldName + " -> " + newName);
             }
             return renamed;
         }
@@ -274,12 +278,14 @@ public class YamlORWriter {
         
         if (webOR != null && !webOR.getPages().isEmpty()) {
             writeWebOR(webOR, orLocation);
-            LOGGER.info("Converted " + webOR.getPages().size() + " Web pages to YAML");
+            writeSharedMetadata(webOR, orLocation);
+            LOGGER.info(() -> "Converted " + webOR.getPages().size() + " Web pages to YAML");
         }
         
         if (mobileOR != null && !mobileOR.getPages().isEmpty()) {
             writeMobileOR(mobileOR, orLocation);
-            LOGGER.info("Converted " + mobileOR.getPages().size() + " Mobile pages to YAML");
+            writeSharedMetadata(mobileOR, orLocation);
+            LOGGER.info(() -> "Converted " + mobileOR.getPages().size() + " Mobile pages to YAML");
         }
     }
     
@@ -312,5 +318,72 @@ public class YamlORWriter {
      */
     public ObjectMapper getYamlMapper() {
         return yamlMapper;
+    }
+
+    private void writeSharedMetadataInternal(String orType, List<String> newProjects, String fileName, File sharedRoot) throws IOException {
+        if (newProjects == null || newProjects.isEmpty()) {
+            return;
+        }
+        File metadataFile = new File(sharedRoot, fileName);
+
+        Set<String> mergedProjects = new LinkedHashSet<>();
+        mergedProjects.addAll(readExistingProjects(metadataFile));
+        mergedProjects.addAll(newProjects);
+
+        Map<String, Object> metadata = new LinkedHashMap<>();
+        metadata.put("type", orType);
+        metadata.put("scope", "SHARED");
+        metadata.put("projects", new ArrayList<>(mergedProjects));
+
+        yamlMapper.writeValue(metadataFile, metadata);
+    }
+
+    public boolean sharedMetadataExists(String fileName, File sharedRoot) {
+        return new File(sharedRoot, fileName).exists();
+    }
+    
+    @SuppressWarnings("unchecked")
+    public List<String> readExistingProjects(File metadataFile) {
+        if (metadataFile == null || !metadataFile.exists()) {
+            return List.of();
+        }
+        try {
+            Map<String, Object> data = yamlMapper.readValue(metadataFile, Map.class);
+            Object projectsObj = data.get("projects");
+            if (projectsObj instanceof List<?>) {
+                List<String> result = new ArrayList<>();
+                for (Object o : (List<?>) projectsObj) {
+                    if (o != null) {
+                        result.add(o.toString().trim());
+                    }
+                }
+                return result;
+            }
+        } catch (Exception e) {
+        }
+        return List.of();
+    }
+    public void writeSharedMetadata(WebOR webSharedOR, File sharedRoot) throws IOException {
+        if (webSharedOR == null || !webSharedOR.isShared()) {
+            return;
+        }
+        writeSharedMetadataInternal(
+            "WebOR",
+            webSharedOR.getSharedProjects(),
+            "webor-projectsdata.yaml",
+            sharedRoot
+        );
+    }
+
+    public void writeSharedMetadata(MobileOR mobileSharedOR, File sharedRoot) throws IOException {
+        if (mobileSharedOR == null || !mobileSharedOR.isShared()) {
+            return;
+        }
+        writeSharedMetadataInternal(
+            "MobileOR",
+            mobileSharedOR.getSharedProjects(),
+            "mobileor-projectsdata.yaml",
+            sharedRoot
+        );
     }
 }

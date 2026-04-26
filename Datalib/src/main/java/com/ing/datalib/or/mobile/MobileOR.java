@@ -282,6 +282,6 @@ public class MobileOR implements ORRootInf<MobileORPage> {
     }
     
     public void setSharedProjects(List<String> projects) {
-        this.projects = (projects == null) ? new ArrayList<>() : projects;
+        this.projects = projects;
     }
 }

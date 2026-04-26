@@ -296,6 +296,6 @@ public class WebOR implements ORRootInf<WebORPage> {
     }
 
     public void setSharedProjects(List<String> projects) {
-        this.projects = (projects == null) ? new ArrayList<>() : projects;
+        this.projects = projects;
     }
 }

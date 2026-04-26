@@ -15,7 +15,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 import com.fasterxml.jackson.dataformat.yaml.YAMLGenerator;
-import com.ing.datalib.component.TestCase;
 import com.ing.datalib.component.TestStep;
 import com.ing.datalib.or.api.APIORObject;
 import com.ing.datalib.or.api.APIORPage;
@@ -52,23 +51,16 @@ public class ObjectRepository {
     private MobileOR mobileSharedOR;
     private APIOR apiProjectOR;
     
-    private final Set<String> sharedUsageProjects = new HashSet<>();
-    
+    private final Set<String> webSharedUsageProjects = new HashSet<>();
+    private final Set<String> mobileSharedUsageProjects = new HashSet<>();
+    private List<String> webSharedProjectsFromXml = List.of();
+    private List<String> mobileSharedProjectsFromXml = List.of();
+
     // YAML support
     private boolean useYamlFormat = true; // Default to YAML for new projects
     private YamlORReader yamlReader;
     private YamlORWriter yamlWriter;
     
-    // Migration / conversion
-    private final boolean xmlConvertedThisSession = false;
-    
-    private static ObjectMapper createYamlMapper() {
-        YAMLFactory factory = new YAMLFactory();
-        factory.disable(YAMLGenerator.Feature.WRITE_DOC_START_MARKER);
-        factory.enable(YAMLGenerator.Feature.MINIMIZE_QUOTES);
-        return new ObjectMapper(factory);
-    }
-
     /**
      * Creates an ObjectRepository for the given project and loads all OR files
      * (project WebOR, shared WebOR, and MobileOR), initializing defaults when missing.
@@ -191,46 +183,65 @@ public class ObjectRepository {
      */
     public void save() {
         try {
-            List<String> existingProjects = (webSharedOR != null) ? webSharedOR.getSharedProjects() : List.of();
-            LinkedHashSet<String> mergedProjects = new LinkedHashSet<>();
-            if (existingProjects != null) mergedProjects.addAll(existingProjects);
-            mergedProjects.addAll(sharedUsageProjects);
-            boolean projectsChanged = false;
+            boolean webProjectsChanged = false;
             if (webSharedOR != null) {
+                LinkedHashSet<String> webMerged = new LinkedHashSet<>();
+                webMerged.addAll(webSharedProjectsFromXml);
+                webMerged.addAll(webSharedUsageProjects);
+                File sharedRoot = new File(getSharedORRepLocation());
+                File webMetaFile = new File(sharedRoot, "webor-projectsdata.yaml");
+                webMerged.addAll(yamlWriter.readExistingProjects(webMetaFile));
                 List<String> current = webSharedOR.getSharedProjects();
-                projectsChanged = current == null
-                        || !new LinkedHashSet<>(current).equals(mergedProjects);
-                if (projectsChanged) {
-                    webSharedOR.setSharedProjects(new ArrayList<>(mergedProjects));
+                webProjectsChanged = current == null || !new LinkedHashSet<>(current).equals(webMerged);
+                if (webProjectsChanged) {
+                    webSharedOR.setSharedProjects(
+                        new ArrayList<>(webMerged)
+                    );
                 }
             }
-            List<String> mExisting = (mobileSharedOR != null) ? mobileSharedOR.getSharedProjects() : List.of();
-            LinkedHashSet<String> mMerged = new LinkedHashSet<>();
-            if (mExisting != null) mMerged.addAll(mExisting);
-            mMerged.addAll(sharedUsageProjects);
-            boolean mProjectsChanged = false;
+            
+            boolean mobileProjectsChanged = false;
             if (mobileSharedOR != null) {
-                List<String> mCurrent = mobileSharedOR.getSharedProjects();
-                mProjectsChanged = mCurrent == null
-                        || !new LinkedHashSet<>(mCurrent).equals(mMerged);
-                if (mProjectsChanged) {
-                    mobileSharedOR.setSharedProjects(new ArrayList<>(mMerged));
+                LinkedHashSet<String> mobileMerged = new LinkedHashSet<>();
+                mobileMerged.addAll(mobileSharedProjectsFromXml);
+                mobileMerged.addAll(mobileSharedUsageProjects);
+                File sharedRoot = new File(getSharedORRepLocation());
+                File mobileMetaFile = new File(sharedRoot, "mobileor-projectsdata.yaml");
+                mobileMerged.addAll(yamlWriter.readExistingProjects(mobileMetaFile));
+                List<String> current = mobileSharedOR.getSharedProjects();
+                mobileProjectsChanged = current == null || !new LinkedHashSet<>(current).equals(mobileMerged);
+                if (mobileProjectsChanged) {
+                    mobileSharedOR.setSharedProjects(
+                        new ArrayList<>(mobileMerged)
+                    );
                 }
             }
+
             if (useYamlFormat) {
-                if (webSharedOR != null && (!webSharedOR.isSaved() || projectsChanged)) {
-                    yamlWriter.writeWebOR(webSharedOR,new File(getSharedORRepLocation()) );
+                File sharedRoot = new File(getSharedORRepLocation());
+                if (webSharedOR != null && (!webSharedOR.isSaved() || webProjectsChanged)) {
+                    yamlWriter.writeWebOR(webSharedOR, sharedRoot);
+                    if (webSharedOR.getSharedProjects() != null &&
+                        !webSharedOR.getSharedProjects().isEmpty()) {
+                        yamlWriter.writeSharedMetadata(webSharedOR,sharedRoot);
+                    }
                     webSharedOR.setSaved(true);
                 }
-                if (mobileSharedOR != null && (!mobileSharedOR.isSaved() || mProjectsChanged)) {
-                    yamlWriter.writeMobileOR(mobileSharedOR,new File(getSharedORRepLocation()));
+
+                if (mobileSharedOR != null && (!mobileSharedOR.isSaved() || mobileProjectsChanged)) {
+                    yamlWriter.writeMobileOR(mobileSharedOR, sharedRoot);
+                    if (mobileSharedOR.getSharedProjects() != null &&
+                        !mobileSharedOR.getSharedProjects().isEmpty()) {
+                        yamlWriter.writeSharedMetadata(mobileSharedOR,sharedRoot);
+                    }
                     mobileSharedOR.setSaved(true);
                 }
                 saveAsYaml();
                 LOG.info("Saved Shared and Project ORs in YAML format");
             }
         } catch (IOException ex) {
-            Logger.getLogger(ObjectRepository.class.getName()).log(Level.SEVERE, "Failed to save Object Repository", ex);
+            Logger.getLogger(ObjectRepository.class.getName())
+                  .log(Level.SEVERE, "Failed to save Object Repository", ex);
         }
     }
 
@@ -442,6 +453,14 @@ public class ObjectRepository {
            mobileSharedOR.setScope(MobileOR.ORScope.SHARED);
            LOG.info("Loaded SHARED Mobile XML OR");
        }
+
+       if (webSharedOR != null && webSharedOR.getSharedProjects() != null) {
+            webSharedProjectsFromXml = new ArrayList<>(webSharedOR.getSharedProjects());
+        }
+
+        if (mobileSharedOR != null && mobileSharedOR.getSharedProjects() != null) {
+            mobileSharedProjectsFromXml = new ArrayList<>(mobileSharedOR.getSharedProjects());
+        }
    }
 
    private void normalizeWebOR(WebOR webOR) {
@@ -541,7 +560,7 @@ public class ObjectRepository {
 
         } else if (inShared && webSharedOR != null) {
             webSharedOR.setSaved(false);
-            markSharedUsage();
+            markSharedUsage("WebOR");
             sProject.refactorObjectName(
                 WebOR.ORScope.SHARED,
                 parentPage.getName(),
@@ -697,7 +716,7 @@ public class ObjectRepository {
         if (pageRef.scope == WebOR.ORScope.SHARED) {
             var g = getFrom(webSharedOR, pageRef.name, objectName);
             if (g != null) {
-                markSharedUsage();
+                markSharedUsage("WebOR");
                 String actualPageName = g.getParent() != null ? g.getParent().getName() : pageRef.name;
                 return new ResolvedWebObject(WebOR.ORScope.SHARED, actualPageName, objectName, g);
             }
@@ -710,7 +729,7 @@ public class ObjectRepository {
         }
         var shared = getFrom(webSharedOR, pageRef.name, objectName);
         if (shared != null) {
-            markSharedUsage();
+            markSharedUsage("WebOR");
             String actualPageName = shared.getParent() != null ? shared.getParent().getName() : pageRef.name;
             return new ResolvedWebObject(WebOR.ORScope.SHARED, actualPageName, objectName, shared);
         }
@@ -730,7 +749,7 @@ public class ObjectRepository {
        if (pageRef.scope == ORScope.SHARED) {
            var g = getFrom(mobileSharedOR, pageRef.name, objectName);
            if (g != null) {
-               markSharedUsage();
+               markSharedUsage("MobileOR");
                String actualPageName = g.getParent() != null ? g.getParent().getName() : pageRef.name;
                return new ResolvedMobileObject(ORScope.SHARED, actualPageName, objectName, g);
            }
@@ -754,7 +773,7 @@ public class ObjectRepository {
         }
         var shared = getFrom(webSharedOR, pageName, objectName);
         if (shared != null) {
-            markSharedUsage();
+            markSharedUsage("MobileOR");
             String actualPageName = shared.getParent() != null ? shared.getParent().getName() : pageName;
             return new ResolvedWebObject(ORScope.SHARED, actualPageName, objectName, shared);
         }
@@ -797,7 +816,7 @@ public class ObjectRepository {
        }
        var shared = getFrom(mobileSharedOR, pageName, objectName);
        if (shared != null) {
-           markSharedUsage();
+           markSharedUsage("MobileOR");
            String actualPageName = shared.getParent() != null ? shared.getParent().getName() : pageName;
            return new ResolvedMobileObject(ORScope.SHARED, actualPageName, objectName, shared);
        }
@@ -1035,9 +1054,15 @@ public class ObjectRepository {
      * Marks that the current project has used a shared object,
      * updating shared OR metadata.
      */
-    private void markSharedUsage() {
-        if (sProject != null && sProject.getName() != null && !sProject.getName().isBlank()) {
-            sharedUsageProjects.add(sProject.getName());
+    private void markSharedUsage(String orType) {
+        if (sProject == null || sProject.getName() == null) {
+            return;
+        }
+
+        if ("WebOR".equals(orType)) {
+            webSharedUsageProjects.add(sProject.getName());
+        } else if ("MobileOR".equals(orType)) {
+            mobileSharedUsageProjects.add(sProject.getName());
         }
     }
 
