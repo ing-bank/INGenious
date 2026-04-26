@@ -103,6 +103,9 @@ public class MobileOR implements ORRootInf<MobileORPage> {
         this.pages = pages;
         for (MobileORPage page : pages) {
             page.setRoot(this);
+            if (page.getSource() == null) {
+                page.setSource(isShared() ? ORScope.SHARED : ORScope.PROJECT);
+            }
         }
     }
 

@@ -1,6 +1,7 @@
 
 package com.ing.datalib.component;
 
+import com.ing.datalib.or.mobile.ResolvedMobileObject;
 import com.ing.datalib.or.web.ResolvedWebObject;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -213,6 +214,17 @@ public class TestStep {
             new ResolvedWebObject.PageRef(
                 rwo.getPageName(),
                 rwo.getScope()
+            ).qualified()
+        );
+        return this;
+    }
+
+    public TestStep asObjectStep(ResolvedMobileObject rmo) {
+        setObject(rmo.getObjectName());
+        setReference(
+            new ResolvedMobileObject.PageRef(
+                rmo.getPageName(),
+                rmo.getScope()
             ).qualified()
         );
         return this;

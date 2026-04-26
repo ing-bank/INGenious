@@ -11,6 +11,8 @@ import com.ing.datalib.settings.ProjectSettings;
 import com.ing.datalib.util.data.FileScanner;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.ing.datalib.or.mobile.MobileOR;
+import com.ing.datalib.or.web.WebOR;
 import com.ing.datalib.or.web.WebOR.ORScope;
 import java.io.File;
 import java.nio.file.Files;
@@ -567,6 +569,26 @@ public class Project {
     public void refactorObjectName(ORScope scope, String pageName, String oldName, String newName) {
         for (Scenario scenario : scenarios) {
             scenario.refactorObjectName(scope, pageName, oldName, newName);
+        }
+    }
+    
+    /**
+     * Refactors Mobile OR object references in TestSteps.
+     * Mobile scope is mapped to Web scope because Scenarios/TestSteps
+     * are tool-agnostic and only care about PROJECT vs SHARED.
+     */
+    public void refactorMobileObjectName(MobileOR.ORScope scope, String pageName, String oldName, String newName) {
+        for (Scenario scenario : scenarios) {
+            WebOR.ORScope webScope =
+            (scope == MobileOR.ORScope.SHARED)
+                ? WebOR.ORScope.SHARED
+                : WebOR.ORScope.PROJECT;
+            scenario.refactorObjectName(
+                webScope,
+                pageName,
+                oldName,
+                newName
+            );
         }
     }
 

@@ -536,16 +536,24 @@ public class ObjectRepository {
      * @param group   object group containing the object
      * @param newName new object name
      */
-    public void renameObject(ObjectGroup<WebORObject> group, String newName) {
+    public void renameObject(ObjectGroup group, String newName) {
         if (group == null || newName == null || newName.isBlank()) return;
+
         var parentPage = group.getParent();
         if (parentPage == null) return;
+
         String oldName = group.getName();
         if (oldName.equals(newName)) return;
-        boolean inProject = (webProjectOR != null) && (webProjectOR.getPageByName(parentPage.getName()) == parentPage);
-        boolean inShared = !inProject && (webSharedOR != null) && (webSharedOR.getPageByName(parentPage.getName()) == parentPage);
 
-        if (inProject && webProjectOR != null) {
+        boolean webProject =
+            webProjectOR != null &&
+            webProjectOR.getPageByName(parentPage.getName()) == parentPage;
+
+        boolean webShared =
+            webSharedOR != null &&
+            webSharedOR.getPageByName(parentPage.getName()) == parentPage;
+
+        if (webProject) {
             webProjectOR.setSaved(false);
             sProject.refactorObjectName(
                 WebOR.ORScope.PROJECT,
@@ -553,12 +561,10 @@ public class ObjectRepository {
                 oldName,
                 newName
             );
+            return;
+        }
 
-            if (useYamlFormat) {
-                saveWebPageNow((WebORPage) parentPage);
-            }
-
-        } else if (inShared && webSharedOR != null) {
+        if (webShared) {
             webSharedOR.setSaved(false);
             markSharedUsage("WebOR");
             sProject.refactorObjectName(
@@ -567,21 +573,37 @@ public class ObjectRepository {
                 oldName,
                 newName
             );
+            return;
+        }
 
-            if (useYamlFormat) {
-                saveWebPageNow((WebORPage) parentPage);
-            }
+        boolean mobileProject =
+            mobileProjectOR != null &&
+            mobileProjectOR.getPageByName(parentPage.getName()) == parentPage;
 
-        } else {
-            sProject.refactorObjectName(
+        boolean mobileShared =
+            mobileSharedOR != null &&
+            mobileSharedOR.getPageByName(parentPage.getName()) == parentPage;
+
+        if (mobileProject) {
+            mobileProjectOR.setSaved(false);
+            sProject.refactorMobileObjectName(
+                MobileOR.ORScope.PROJECT,
                 parentPage.getName(),
                 oldName,
                 newName
             );
+            return;
+        }
 
-            if (useYamlFormat) {
-                saveWebPageNow((WebORPage) parentPage);
-            }
+        if (mobileShared) {
+            mobileSharedOR.setSaved(false);
+            markSharedUsage("MobileOR");
+            sProject.refactorMobileObjectName(
+                MobileOR.ORScope.SHARED,
+                parentPage.getName(),
+                oldName,
+                newName
+            );
         }
     }
     
@@ -703,60 +725,47 @@ public class ObjectRepository {
      * Resolves a WebOR object from a scoped PageRef and object name, returning a
      * ResolvedWebObject containing scope, page, object name, and object group.
      */
-    public ResolvedWebObject resolveWebObject(ResolvedWebObject.PageRef pageRef, String objectName) {
+    public ResolvedWebObject resolveWebObject(ResolvedWebObject.PageRef pageRef,String objectName) {
         if (pageRef == null || objectName == null) return null;
-        if (pageRef.scope == WebOR.ORScope.PROJECT) {
-            var g = getFrom(webProjectOR, pageRef.name, objectName);
-            if (g != null) {
-                String actualPageName = g.getParent() != null ? g.getParent().getName() : pageRef.name;
-                return new ResolvedWebObject(WebOR.ORScope.PROJECT, actualPageName, objectName, g);
-            }
-            return null;
+        if (pageRef.scope != null) {
+            return resolveWebObjectInScope(pageRef.scope,pageRef.name,objectName);
         }
-        if (pageRef.scope == WebOR.ORScope.SHARED) {
-            var g = getFrom(webSharedOR, pageRef.name, objectName);
-            if (g != null) {
-                markSharedUsage("WebOR");
-                String actualPageName = g.getParent() != null ? g.getParent().getName() : pageRef.name;
-                return new ResolvedWebObject(WebOR.ORScope.SHARED, actualPageName, objectName, g);
-            }
-            return null;
-        }
-        var proj = getFrom(webProjectOR, pageRef.name, objectName);
-        if (proj != null) {
-            String actualPageName = proj.getParent() != null ? proj.getParent().getName() : pageRef.name;
-            return new ResolvedWebObject(WebOR.ORScope.PROJECT, actualPageName, objectName, proj);
-        }
-        var shared = getFrom(webSharedOR, pageRef.name, objectName);
-        if (shared != null) {
+        return resolveWebObjectWithScope(pageRef.name, objectName);
+    }
+    
+    private ResolvedWebObject resolveWebObjectInScope(ORScope scope,String pageName,String objectName) {
+        WebOR or = (scope == ORScope.PROJECT) ? webProjectOR : webSharedOR;
+        ObjectGroup g = getFrom(or, pageName, objectName);
+        if (g == null) return null;
+        if (scope == ORScope.SHARED) {
             markSharedUsage("WebOR");
-            String actualPageName = shared.getParent() != null ? shared.getParent().getName() : pageRef.name;
-            return new ResolvedWebObject(WebOR.ORScope.SHARED, actualPageName, objectName, shared);
         }
-        return null;
+        String actualPage = g.getParent() != null ? g.getParent().getName() : pageName;
+        return new ResolvedWebObject(scope, actualPage, objectName, g);
     }
 
-   public ResolvedMobileObject resolveMobileObject(ResolvedMobileObject.PageRef pageRef, String objectName) {
-       if (pageRef == null || objectName == null) return null;
-       if (pageRef.scope == ORScope.PROJECT) {
-           var g = getFrom(mobileProjectOR, pageRef.name, objectName);
-           if (g != null) {
-               String actualPageName = g.getParent() != null ? g.getParent().getName() : pageRef.name;
-               return new ResolvedMobileObject(ORScope.PROJECT, actualPageName, objectName, g);
-           }
-           return null;
-       }
-       if (pageRef.scope == ORScope.SHARED) {
-           var g = getFrom(mobileSharedOR, pageRef.name, objectName);
-           if (g != null) {
-               markSharedUsage("MobileOR");
-               String actualPageName = g.getParent() != null ? g.getParent().getName() : pageRef.name;
-               return new ResolvedMobileObject(ORScope.SHARED, actualPageName, objectName, g);
-           }
-           return null;
-       }
-       return resolveMobileObjectWithScope(pageRef.name, objectName);
-   }
+    public ResolvedMobileObject resolveMobileObject(ResolvedMobileObject.PageRef pageRef,String objectName) {
+        if (pageRef == null || objectName == null) return null;
+        if (pageRef.scope != null) {
+            return resolveMobileObjectInScope(
+                    pageRef.scope,
+                    pageRef.name,
+                    objectName
+            );
+        }
+        return resolveMobileObjectWithScope(pageRef.name, objectName);
+    }
+
+    private ResolvedMobileObject resolveMobileObjectInScope(ORScope scope,String pageName,String objectName) {
+        MobileOR or = (scope == ORScope.PROJECT) ? mobileProjectOR : mobileSharedOR;
+        ObjectGroup g = getFrom(or, pageName, objectName);
+        if (g == null) return null;
+        if (scope == ORScope.SHARED) {
+            markSharedUsage("MobileOR");
+        }
+        String actualPage = g.getParent() != null ? g.getParent().getName() : pageName;
+        return new ResolvedMobileObject(scope, actualPage, objectName, g);
+    }
 
     /**
      * Resolves a WebOR object by searching project scope first, then shared scope.
@@ -765,19 +774,10 @@ public class ObjectRepository {
      * @param objectName object group name
      * @return resolved WebOR object with scope metadata
      */
-    public ResolvedWebObject resolveWebObjectWithScope(String pageName, String objectName) {
-        var proj = getFrom(webProjectOR, pageName, objectName);
-        if (proj != null) {
-            String actualPageName = proj.getParent() != null ? proj.getParent().getName() : pageName;
-            return new ResolvedWebObject(ORScope.PROJECT, actualPageName, objectName, proj);
-        }
-        var shared = getFrom(webSharedOR, pageName, objectName);
-        if (shared != null) {
-            markSharedUsage("MobileOR");
-            String actualPageName = shared.getParent() != null ? shared.getParent().getName() : pageName;
-            return new ResolvedWebObject(ORScope.SHARED, actualPageName, objectName, shared);
-        }
-        return null;
+    public ResolvedWebObject resolveWebObjectWithScope(String pageName,String objectName) {
+        ResolvedWebObject proj = resolveWebObjectInScope(ORScope.PROJECT, pageName, objectName);
+        if (proj != null) return proj;
+        return resolveWebObjectInScope(ORScope.SHARED, pageName, objectName);
     }
 
     public ResolvedWebObject resolveWebObjectWithScope(String pageName, String objectName,TestStep step) {
@@ -785,17 +785,13 @@ public class ObjectRepository {
         if (proj != null) {
             return new ResolvedWebObject(PROJECT, pageName, objectName, proj);
         }
-
         var shared = getFrom(webSharedOR, pageName, objectName);
         if (shared != null) {
-
             if (step != null &&
                 step.getReference().startsWith("[Project] ")) {
-
                 step.setReference("[Shared] " + pageName);
                 step.getTestCase().setSaved(false);
             }
-
             return new ResolvedWebObject(SHARED, pageName, objectName, shared);
         }
         return null;
@@ -808,20 +804,11 @@ public class ObjectRepository {
     * @param objectName object group name
     * @return resolved MobileOR object with scope metadata
     */
-   public ResolvedMobileObject resolveMobileObjectWithScope(String pageName, String objectName) {
-       var proj = getFrom(mobileProjectOR, pageName, objectName);
-       if (proj != null) {
-           String actualPageName = proj.getParent() != null ? proj.getParent().getName() : pageName;
-           return new ResolvedMobileObject(ORScope.PROJECT, actualPageName, objectName, proj);
-       }
-       var shared = getFrom(mobileSharedOR, pageName, objectName);
-       if (shared != null) {
-           markSharedUsage("MobileOR");
-           String actualPageName = shared.getParent() != null ? shared.getParent().getName() : pageName;
-           return new ResolvedMobileObject(ORScope.SHARED, actualPageName, objectName, shared);
-       }
-       return null;
-   }
+    public ResolvedMobileObject resolveMobileObjectWithScope(String pageName, String objectName) {
+        ResolvedMobileObject proj = resolveMobileObjectInScope(ORScope.PROJECT, pageName, objectName);
+        if (proj != null) return proj;
+        return resolveMobileObjectInScope(ORScope.SHARED, pageName, objectName);
+    }
 
     private ObjectGroup<WebORObject> getFrom(WebOR or, String page, String obj) {
         if (or == null) return null;

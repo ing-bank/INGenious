@@ -1,6 +1,7 @@
 package com.ing.ide.main.mainui.components.testdesign.testcase.validation;
 
 import com.ing.datalib.component.TestStep;
+import com.ing.datalib.or.ObjectRepository;
 import com.ing.datalib.or.web.ResolvedWebObject;
 import com.ing.datalib.or.mobile.ResolvedMobileObject;
 
@@ -24,31 +25,36 @@ public class ObjectRenderer extends AbstractRenderer {
 
     @Override
     public void render(JComponent comp, TestStep step, Object value) {
-            String objectName = Objects.toString(step.getObject(), "").trim();
-            String reference  = Objects.toString(step.getReference(), "").trim();
+        setDefault(comp);
+        comp.setFont(comp.getFont().deriveFont(java.awt.Font.PLAIN));
+        comp.setEnabled(true);
+        comp.setToolTipText(null);
 
-            if (objectName.isEmpty() || reference.isEmpty()) {
-                setDefault(comp);
-                return;
-            }
-            String pageName = reference
-                    .replace("[Project] ", "")
-                    .replace("[Shared] ", "")
-                    .trim();
+        String objectName = Objects.toString(step.getObject(), "").trim();
+        String reference  = Objects.toString(step.getReference(), "").trim();
 
-            ResolvedWebObject rwo =
-                step.getProject()
-                    .getObjectRepository()
-                    .resolveWebObjectWithScope(pageName, objectName, step);
-
-            if (rwo == null) {
-                setNotPresent(comp, objNotPresent);
-            } else {
-                setDefault(comp);
-                comp.setEnabled(true);
-                comp.setFont(comp.getFont().deriveFont(java.awt.Font.BOLD));
-            }
+        if (objectName.isEmpty() && reference.isEmpty()) {
+            return;
         }
+
+        if (isValidObject(objectName)) {
+            comp.setFont(comp.getFont().deriveFont(java.awt.Font.BOLD));
+            return;
+        }
+
+        if (!objectName.isEmpty() && reference.isEmpty()) {
+            setNotPresent(comp, "Reference is missing");
+            comp.setFont(comp.getFont().deriveFont(java.awt.Font.BOLD));
+            return;
+        }
+        if (!isObjectPresent(step)) {
+            setNotPresent(comp, objNotPresent);
+            comp.setFont(comp.getFont().deriveFont(java.awt.Font.BOLD));
+            return;
+        }
+
+        comp.setFont(comp.getFont().deriveFont(java.awt.Font.BOLD));
+    }
 
     private Boolean isObjectPresent(TestStep step) {
         var repo = step.getProject().getObjectRepository();
