@@ -1,6 +1,5 @@
 package com.ing.datalib.settings;
 
-import com.ing.datalib.util.data.LinkedProperties;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
@@ -11,6 +10,8 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import com.ing.datalib.util.data.LinkedProperties;
 
 /**
  *
