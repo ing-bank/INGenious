@@ -259,6 +259,10 @@ public class AppMainFrame extends JFrame {
             fxMenuBar.setMultiEnvironment(isMulti);
             fxStatusBar.setProjectName(sProject.getName());
         }
+        
+        // Initialize Recent Projects menu
+        fxMenuBar.updateRecentProjects(recentItems.getRECENT_ITEMS());
+        
         fxStatusBar.setCurrentView("Test Design");
 
         revalidate();
@@ -690,6 +694,8 @@ public class AppMainFrame extends JFrame {
         if (fxMenuBar != null) {
             Boolean isMulti = sProject.getTestData().getNoOfEnvironments() > 1;
             fxMenuBar.setMultiEnvironment(isMulti);
+            // Update Recent Projects menu
+            fxMenuBar.updateRecentProjects(recentItems.getRECENT_ITEMS());
         }
         // Update status bar project name
         if (fxStatusBar != null) {

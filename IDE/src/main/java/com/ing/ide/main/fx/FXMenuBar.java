@@ -1,6 +1,7 @@
 package com.ing.ide.main.fx;
 
 import com.ing.ide.main.mainui.AppActionListener;
+import com.ing.ide.main.utils.recentItem.RecentItem;
 import javafx.application.Platform;
 import javafx.embed.swing.JFXPanel;
 import javafx.scene.Scene;
@@ -16,6 +17,7 @@ import javafx.scene.layout.VBox;
 import javax.swing.SwingUtilities;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -33,6 +35,7 @@ public class FXMenuBar extends JFXPanel {
     private MenuBar menuBar;
     private CheckMenuItem darkModeItem;
     private CheckMenuItem multiEnvItem;
+    private Menu recentProjectsMenu;
 
     public FXMenuBar(AppActionListener actionListener) {
         this.actionListener = actionListener;
@@ -91,10 +94,17 @@ public class FXMenuBar extends JFXPanel {
 
     private Menu createFileMenu() {
         Menu file = new Menu("File");
+        
+        // Create Recent Projects submenu
+        recentProjectsMenu = new Menu("Recent Projects");
+        updateRecentProjectsMenu(null); // Initialize as empty
+        
         file.getItems().addAll(
                 menuItem("New Project", "NewProject", KeyCode.N, KeyCombination.SHORTCUT_DOWN, KeyCombination.SHIFT_DOWN),
                 menuItem("Open Project", "OpenProject", KeyCode.O, KeyCombination.SHORTCUT_DOWN, KeyCombination.SHIFT_DOWN),
                 menuItem("Save Project", "SaveProject", KeyCode.S, KeyCombination.SHORTCUT_DOWN, KeyCombination.SHIFT_DOWN),
+                new SeparatorMenuItem(),
+                recentProjectsMenu,
                 new SeparatorMenuItem(),
                 menuItem("Restart", "refresh"),
                 menuItem("Quit", "close", KeyCode.X, KeyCombination.ALT_DOWN)
@@ -241,6 +251,55 @@ public class FXMenuBar extends JFXPanel {
     }
 
     // ── Public API ──
+
+    /**
+     * Syncs the Multiple Environment checkbox state.
+     * Called from AppMainFrame.afterProjectChange().
+
+    /**
+     * Updates the Recent Projects menu with the current list of recent items.
+     * Called from AppMainFrame after a project is loaded.
+     */
+    public void updateRecentProjects(List<RecentItem> recentItems) {
+        Platform.runLater(() -> updateRecentProjectsMenu(recentItems));
+    }
+
+    /**
+     * Internal method to populate the Recent Projects menu on the JavaFX thread.
+     */
+    /**
+     * Internal method to populate the Recent Projects menu on the JavaFX thread.
+     */
+    private void updateRecentProjectsMenu(List<RecentItem> recentItems) {
+        if (recentProjectsMenu == null) {
+            return;
+        }
+        
+        recentProjectsMenu.getItems().clear();
+        
+        if (recentItems == null || recentItems.isEmpty()) {
+            MenuItem emptyItem = new MenuItem("(No recent projects)");
+            emptyItem.setDisable(true);
+            recentProjectsMenu.getItems().add(emptyItem);
+            return;
+        }
+        
+        for (RecentItem item : recentItems) {
+            String projectName = item.getProjectName();
+            String location = item.getLocation();
+            
+            MenuItem projectItem = new MenuItem(projectName);
+            
+            // Add action to load the project
+            projectItem.setOnAction(e -> {
+                SwingUtilities.invokeLater(() -> {
+                    actionListener.getMainFrame().loadProject(location);
+                });
+            });
+            
+            recentProjectsMenu.getItems().add(projectItem);
+        }
+    }
 
     /**
      * Syncs the Multiple Environment checkbox state.
