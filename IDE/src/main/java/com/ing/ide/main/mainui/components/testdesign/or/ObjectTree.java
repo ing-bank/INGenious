@@ -13,6 +13,7 @@ import com.ing.datalib.or.common.ObjectGroup;
 import com.ing.datalib.or.mobile.MobileOR;
 import com.ing.datalib.or.mobile.MobileORObject;
 import com.ing.datalib.or.mobile.MobileORPage;
+import com.ing.datalib.or.mobile.ResolvedMobileObject;
 import com.ing.datalib.or.web.ResolvedWebObject;
 import com.ing.datalib.or.web.WebOR;
 import com.ing.datalib.or.web.WebORObject;
@@ -924,7 +925,28 @@ public abstract class ObjectTree implements ActionListener {
                 Notification.show("Moved Object '" + newName + "' to Shared OR");
             }
         }
-        // TODO: mirror same logic for Mobile OR
+        if (isMobile) {
+            ResolvedMobileObject resolved =
+                repo.resolveMobileObject(
+                    new ResolvedMobileObject.PageRef(
+                        page.getName(),
+                        WebOR.ORScope.PROJECT
+                    ),
+                    objectName
+                );
+            if (resolved == null || !resolved.isPresent()) {
+                Notification.show("Mobile Object not found in Project OR");
+                return;
+            }
+            String newName = repo.copyMobileObject(resolved, page.getName());
+            if (newName != null) {
+                objectRemoved(obj);
+                obj.removeFromParent();
+                repo.save();
+                refreshSharedTree();
+                Notification.show("Moved Mobile Object '" + newName + "' to Shared OR");
+            }
+        }
     }
 
     private void movePageToShared(ORPageInf page) {
@@ -933,8 +955,7 @@ public abstract class ObjectTree implements ActionListener {
         boolean isWeb = root instanceof WebOR;
         boolean isMobile = root instanceof MobileOR;
         if (isWeb) {
-            String newPageName =
-                repo.copyWebPage(page.getName(), page.getName());
+            String newPageName = repo.copyWebPage(page.getName(), page.getName());
             if (newPageName != null) {
                 pageRemoved(page);
                 page.removeFromParent();
@@ -943,7 +964,16 @@ public abstract class ObjectTree implements ActionListener {
                 Notification.show( "Moved Page '" + page.getName() + "' to Shared OR");
             }
         }
-        // TODO: mirror same logic for Mobile OR
+        if (isMobile) {
+            String newPageName = repo.copyMobilePage(page.getName(), page.getName());
+            if (newPageName != null) {
+                pageRemoved(page);
+                page.removeFromParent();
+                repo.save();
+                refreshSharedTree();
+                Notification.show("Moved Mobile Page '" + page.getName() + "' to Shared OR");
+            }
+        }
     }
 
     private void refreshSharedTree() {
