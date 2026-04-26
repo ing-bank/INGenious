@@ -1,16 +1,18 @@
 package com.ing.datalib.settings;
 
-import static org.assertj.core.api.Assertions.assertThat;
-import com.ing.datalib.util.data.LinkedProperties;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Comparator;
+
+import static org.assertj.core.api.Assertions.assertThat;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
+
+import com.ing.datalib.util.data.LinkedProperties;
 
 /**
  * Tests for PropUtils — load/save of properties files.
