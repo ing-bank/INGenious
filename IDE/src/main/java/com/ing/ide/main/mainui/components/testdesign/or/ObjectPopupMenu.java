@@ -34,6 +34,8 @@ public class ObjectPopupMenu extends JPopupMenu {
     private JMenuItem addPage;
     private JMenuItem renamePage;
     private JMenuItem deletePage;
+    private JMenuItem renameObjectGroup;
+    private JMenuItem deleteObjectGroup;
     private JMenuItem addObject;
     private JMenuItem renameObject;
     private JMenuItem deleteObject;
@@ -62,6 +64,10 @@ public class ObjectPopupMenu extends JPopupMenu {
         add(addPage = create("Add Page", Keystroke.NEW));
         add(renamePage = create("Rename Page", Keystroke.RENAME));
         add(deletePage = create("Delete Page", Keystroke.DELETE));
+        addSeparator();
+        
+        add(renameObjectGroup = create("Rename Object Group", Keystroke.RENAME));
+        add(deleteObjectGroup = create("Delete Object Group", Keystroke.DELETE));
         addSeparator();
         
         add(addObject = create("Add Object", Keystroke.NEW));
@@ -104,11 +110,13 @@ public class ObjectPopupMenu extends JPopupMenu {
     }
 
     private void forPage() {
+        addPage.setEnabled(false);
         renamePage.setEnabled(true);
         deletePage.setEnabled(true);
-
-        addPage.setEnabled(false);
-
+        
+        renameObjectGroup.setEnabled(false);
+        deleteObjectGroup.setEnabled(false);
+        
         addObject.setEnabled(true);
         renameObject.setEnabled(false);
         deleteObject.setEnabled(false);
@@ -122,15 +130,40 @@ public class ObjectPopupMenu extends JPopupMenu {
 
         sort.setEnabled(true);
     }
+    
+    private void forObjectGroup() {
+        addPage.setEnabled(false);
+        renamePage.setEnabled(false);
+        deletePage.setEnabled(false);
+
+        renameObjectGroup.setEnabled(true);
+        deleteObjectGroup.setEnabled(true);
+
+        addObject.setEnabled(true);
+        renameObject.setEnabled(false);
+        deleteObject.setEnabled(false);
+
+        impactAnalysis.setEnabled(true);
+
+        copy.setEnabled(true);
+        cut.setEnabled(!isSharedSelection(currentSelection));
+        paste.setEnabled(true);
+
+        sort.setEnabled(true);
+    }
 
     private void forObject() {
         addPage.setEnabled(false);
         renamePage.setEnabled(false);
         deletePage.setEnabled(false);
+        
+        renameObjectGroup.setEnabled(false);
+        deleteObjectGroup.setEnabled(false);
 
         addObject.setEnabled(false);
         renameObject.setEnabled(true);
         deleteObject.setEnabled(true);
+        removeUnusedObject.setEnabled(false);
 
         impactAnalysis.setEnabled(true);
 
@@ -145,19 +178,20 @@ public class ObjectPopupMenu extends JPopupMenu {
         boolean hasClipboard = ORClipboardManager.hasData();
         
         addPage.setEnabled(true);
-        removeUnusedObject.setEnabled(false);
-
         renamePage.setEnabled(false);
         deletePage.setEnabled(false);
+        
+        renameObjectGroup.setEnabled(false);
+        deleteObjectGroup.setEnabled(false);
 
         addObject.setEnabled(false);
         renameObject.setEnabled(false);
         deleteObject.setEnabled(false);
+        removeUnusedObject.setEnabled(false);
 
         impactAnalysis.setEnabled(false);
         
         paste.setEnabled( hasClipboard && ORClipboardManager.get().getType() == ORObjectClipboard.Type.PAGE);
-
         sort.setEnabled(true);
     }
 
