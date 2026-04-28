@@ -354,15 +354,18 @@ public class WebORObject extends UndoRedoModel implements ORObjectInf {
     @JsonIgnore
     @Override
     public Boolean rename(String newName) {
-        if (newName == null || newName.isBlank()) {
-            return false;
+        Boolean flag = true;
+        if (getParent().getChildCount() == 1) {
+            flag = getParent().rename(newName);
         }
-        if (getParent().getObjectByName(newName) != null) {
-            return false;
+        if (flag && getParent().getObjectByName(newName) == null) {
+            if (FileUtils.renameFile(getRepLocation(), newName)) {
+                setName(newName);
+                changeSave();
+                return true;
+            }
         }
-        setName(newName);
-        changeSave();
-        return true;
+        return false;
     }
 
     
