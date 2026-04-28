@@ -312,20 +312,21 @@ public class MobileORObject extends UndoRedoModel implements ORObjectInf {
         return String.class;
     }
 
+    @JsonIgnore
     @Override
     public Boolean rename(String newName) {
-        Boolean flag = true;
         if (getParent().getChildCount() == 1) {
-            flag = getParent().rename(newName);
+            getParent().rename(newName);
         }
-        if (flag && getParent().getObjectByName(newName) == null) {
-            if (FileUtils.renameFile(getRepLocation(), newName)) {
-                setName(newName);
-                changeSave();
-                return true;
-            }
+        if (newName == null || newName.isBlank()) {
+            return false;
         }
-        return false;
+        if (getParent().getObjectByName(newName) != null) {
+            return false;
+        }
+        setName(newName);
+        changeSave();
+        return true;
     }
 
     @JsonIgnore
