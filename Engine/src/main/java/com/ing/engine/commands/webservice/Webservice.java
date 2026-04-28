@@ -1456,34 +1456,62 @@ public class Webservice extends General {
      */
     private void setRequestMethod(String method, String payload) throws IOException {
         BodyPublisher payloadBody = null;
+
         if (isformUrlencoded()) {
             payload = urlencodedParams();
         }
-        if (isMultiPart()) {
-            Path filePath = Path.of(getVar("%filePath%"));
-            filePath = Path.of(Control.getCurrentProject().getLocation() + "/" + filePath);
-            String mimeType = Files.probeContentType(filePath);
-            System.out.println("Path of the file === " + filePath);
-            String boundary = "Boundary-" + System.currentTimeMillis();
-            String fileName = filePath.getFileName().toString();
 
-            /* String body = "--" + boundary.getBytes(StandardCharsets.UTF_8)+ "\r\n"
-                    + "Content-Disposition: form-data; name=\"file\"; filename=\"" + fileName + "\"\r\n"
-                    + "Content-Type: " + mimeType // Set Content-Type to text/csv
-                    + Files.readString(filePath, StandardCharsets.UTF_8) + "\r\n"
-                    + ("--" + boundary + "--\r\n").getBytes(StandardCharsets.UTF_8);*/
+        if (isMultiPart()) {
+            String boundary = "Boundary-" + System.currentTimeMillis();
             var byteArrays = new ArrayList<byte[]>();
-            byteArrays.add(("--" + boundary + "\r\n").getBytes(StandardCharsets.UTF_8));
-            byteArrays.add(("Content-Disposition: form-data; name=\"file\"; filename=\"" + fileName + "\"\r\n").getBytes(StandardCharsets.UTF_8));
-            byteArrays.add(("Content-Type: " + mimeType + "\r\n\r\n").getBytes(StandardCharsets.UTF_8));
-            byteArrays.add(Files.readAllBytes(filePath));
-            byteArrays.add(("\r\n--" + boundary + "--\r\n").getBytes(StandardCharsets.UTF_8));
+
+            if (urlParams.containsKey(key) && urlParams.get(key) != null) {
+                ArrayList<String> params = urlParams.get(key);
+                for (String param : params) {
+                    if (param.contains("=")) {
+                        String[] keyValue = param.split("=", 2);
+                        String fieldName = keyValue[0];
+                        String fieldValue = keyValue.length > 1 ? keyValue[1] : "";
+
+                        byteArrays.add(("--" + boundary + "\r\n").getBytes(StandardCharsets.UTF_8));
+                        byteArrays.add(("Content-Disposition: form-data; name=\"" + fieldName + "\"\r\n\r\n").getBytes(StandardCharsets.UTF_8));
+                        byteArrays.add((fieldValue + "\r\n").getBytes(StandardCharsets.UTF_8));
+                    }
+                }
+            }
+
+            if (isVarExist("%filePath%")) {
+                String filePathVar = getVar("%filePath%");
+                if (filePathVar != null && !filePathVar.isEmpty()) {
+                    addFilePartToMultipart(byteArrays, boundary, filePathVar, "file");
+
+                    int fileIndex = 1;
+                    boolean continueChecking = true;
+
+                    while (continueChecking) {
+                        if (isVarExist("%filePath" + fileIndex + "%")) {
+                            String filePathVarIndexed = getVar("%filePath" + fileIndex + "%");
+                            addFilePartToMultipart(byteArrays, boundary, filePathVarIndexed, "file" + fileIndex);
+                            fileIndex++;
+                        } else {
+                            // Stop checking if current filePathN is not available
+                            continueChecking = false;
+                        }
+                    }
+                }
+            } else {
+                Report.updateTestLog(Action, "filePath variable is not defined for multipart request", Status.FAIL);
+                throw new IOException("filePath variable is required for multipart/form-data requests but is not defined");
+            }
+
+            byteArrays.add(("--" + boundary + "--\r\n").getBytes(StandardCharsets.UTF_8));
 
             payloadBody = HttpRequest.BodyPublishers.ofByteArrays(byteArrays);
             httpRequestBuilder.put(key, httpRequestBuilder.get(key).setHeader("Content-Type", "multipart/form-data; boundary=" + boundary));
         } else {
             payloadBody = HttpRequest.BodyPublishers.ofString(payload);
         }
+
         try {
             switch (method) {
                 case "POST": {
@@ -2017,6 +2045,32 @@ public class Webservice extends General {
             Logger.getLogger(this.getClass().getName()).log(Level.OFF, null, ex);
             Report.updateTestLog(Action, "Error in validating response body :" + "\n" + ex.getMessage(), Status.DEBUG);
         }
+    }
+
+    private void addFilePartToMultipart(ArrayList<byte[]> byteArrays, String boundary, String filePathVar, String fieldName) throws IOException {
+        Path filePath = Path.of(filePathVar);
+        if (!filePath.isAbsolute()) {
+            String currentWorkingDir = System.getProperty("user.dir");           
+            filePath = Path.of(currentWorkingDir, filePathVar);   
+        } 
+
+        if (!Files.exists(filePath)) {
+            Report.updateTestLog(Action, "File not found at path: " + filePath, Status.FAIL);
+            throw new IOException("File not found at path: " + filePath);
+        }
+
+        long fileSize = Files.size(filePath);
+
+        String mimeType = Files.probeContentType(filePath);
+        if (mimeType == null) {
+            mimeType = "application/octet-stream"; // Default MIME type
+        }
+        String fileName = filePath.getFileName().toString();
+        byteArrays.add(("--" + boundary + "\r\n").getBytes(StandardCharsets.UTF_8));
+        byteArrays.add(("Content-Disposition: form-data; name=\"" + fieldName + "\"; filename=\"" + fileName + "\"\r\n").getBytes(StandardCharsets.UTF_8));
+        byteArrays.add(("Content-Type: " + mimeType + "\r\n\r\n").getBytes(StandardCharsets.UTF_8));
+        byteArrays.add(Files.readAllBytes(filePath));
+        byteArrays.add(("\r\n").getBytes(StandardCharsets.UTF_8));
     }
 
 }

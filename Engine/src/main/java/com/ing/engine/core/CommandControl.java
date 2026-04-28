@@ -410,4 +410,30 @@ public abstract class CommandControl {
         }
         return str;
     }
+
+    /**
+     * Checks if a runtime or user-defined variable exists.
+     * 
+     * <p>This method verifies whether a variable is defined in either the runtime variables map
+     * or the user-defined settings. The key can be provided with or without percent signs.</p>
+     * 
+     * <p>Variable resolution order:
+     * <ol>
+     *   <li>Runtime variables (set during test execution via addVar)</li>
+     *   <li>User-defined variables (configured in project settings)</li>
+     * </ol>
+     * 
+     * <p>Example usage:
+     * <ul>
+     *   <li>isVarExist("%filePath%") - checks if filePath variable exists</li>
+     *   <li>isVarExist("filePath") - equivalent to above</li>
+     * </ul>
+     * 
+     * @param key the variable key to check, with or without percent signs (e.g., "%varName%" or "varName")
+     * @return true if the variable exists and has a non-null value, false otherwise
+     */
+    public boolean isVarExist(String key) {
+        String val = getDynamicValue(key);
+        if (val == null) { return false; } return true;
+    }
 }

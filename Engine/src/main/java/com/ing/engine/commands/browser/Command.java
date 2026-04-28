@@ -362,6 +362,19 @@ public class Command {
     }
 
     /**
+     * Checks if a runtime or user-defined variable exists.
+     * 
+     * <p>This method delegates to CommandControl's isVarExist method to verify whether
+     * a variable is defined. See {@link CommandControl#isVarExist(String)} for details.</p>
+     * 
+     * @param key the variable key to check, with or without percent signs (e.g., "%varName%" or "varName")
+     * @return true if the variable exists and has a non-null value, false otherwise
+     */
+    public boolean isVarExist(String key) {
+        return Commander.isVarExist(key);
+    }
+
+    /**
      * ******************************
      */
 }
