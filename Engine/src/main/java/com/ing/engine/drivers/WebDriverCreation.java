@@ -216,4 +216,8 @@ public class WebDriverCreation {
             return false;
         }
     }
+    
+    public RunContext getRunContext() {
+        return runContext;
+    }
 }

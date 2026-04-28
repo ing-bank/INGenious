@@ -337,7 +337,7 @@
             <template x-for="browser in browsers" :key="browser">
               <option :value="browser" x-text="browser"></option>
             </template>
-            <option value="ALL" x-show="browsers.length > 1">All Browsers</option>
+            <option value="ALL" x-show="browsers.length > 1">All Browsers/Devices</option>
           </select>
           
           <!-- Theme Toggle -->
@@ -393,7 +393,7 @@
               
               <!-- Browser -->
               <div class="text-center p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
-                <div class="text-sm text-muted mb-1">Browser</div>
+                <div class="text-sm text-muted mb-1" x-text="currentDetails.browserTypeLabel"></div>
                 <div class="font-semibold" x-text="currentDetails.browser || '-'"></div>
                 <div class="text-xs text-muted" x-text="currentDetails.bversion || ''"></div>
               </div>
@@ -1101,7 +1101,7 @@
         },
         
         get currentBrowserInfo() {
-          if (this.currentView === 'ALL') return 'All Browsers';
+          if (this.currentView === 'ALL') return 'All Browsers/Devices';
           return this.currentView;
         },
         

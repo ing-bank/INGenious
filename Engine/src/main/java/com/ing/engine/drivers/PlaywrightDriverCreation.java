@@ -166,4 +166,8 @@ public class PlaywrightDriverCreation {
         return browserContext.browser().version();
     }
 
+    public RunContext getRunContext() {
+        return runContext;
+    }
+
 }

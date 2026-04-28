@@ -696,13 +696,12 @@
                   }
                 },
                 { 
-                  title: 'Browser', 
+                  title: 'Browser/Device', 
                   field: 'browser',
                   width: 140,
                   formatter: (cell) => {
                     const browser = cell.getValue() || '-';
                     let badgeClass = 'bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300';
-                    
                     if (browser.toLowerCase().includes('chromium') || browser.toLowerCase().includes('chrome')) {
                       badgeClass = 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400';
                     } else if (browser.toLowerCase().includes('webkit') || browser.toLowerCase().includes('safari')) {
@@ -712,7 +711,6 @@
                     } else if (browser.toLowerCase().includes('no browser') || browser === 'NoBrowser') {
                       badgeClass = 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400';
                     }
-                    
                     return `<span class="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-semibold ${badgeClass}">${this.escapeHtml(browser)}</span>`;
                   }
                 },
