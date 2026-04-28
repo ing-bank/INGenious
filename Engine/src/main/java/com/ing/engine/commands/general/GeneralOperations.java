@@ -1,5 +1,6 @@
 package com.ing.engine.commands.general;
 
+import java.text.DecimalFormat;
 import java.time.Instant;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -427,46 +428,88 @@ public class GeneralOperations extends General {
     }
 
     /**
-     * Stores the current timestamp in epoch seconds into a specified variable.
+     * Stores the current Epoch timestamp in a specified variable with flexible format options.
      * <p>
-     * This method captures the current system time and converts it to epoch seconds
-     * (seconds since January 1, 1970, 00:00:00 UTC). The timestamp is then stored in
-     * a runtime variable that can be accessed in subsequent test steps.
+     * This method captures the current system time and converts it to Epoch timestamp
+     * (time since January 1, 1970, 00:00:00 UTC) in one of three formats:
+     * seconds, milliseconds, or seconds with millisecond precision.
      * </p>
      * 
-     * @see #Data Contains the variable name where the epoch timestamp will be stored
+     * @see #Data Contains the format option: "Seconds", "Milliseconds", or "Seconds+Milliseconds"
+     * @see #Condition Contains the variable name where the timestamp will be stored
      * 
-     * <p><b>Usage Example:</b></p>
+     * <p><b>Usage Examples:</b></p>
      * <pre>
-     * Input (Data): %CurrentTimestamp%
-     * Result: Variable %CurrentTimestamp% contains epoch seconds (e.g., 1714176000)
+     * Input (Data): @seconds
+     * Condition: %EpochSeconds%
+     * Result: Variable %EpochSeconds% contains epoch seconds (e.g., 1714176000)
+     * 
+     * Input (Data): @milliseconds
+     * Condition: %EpochMillis%
+     * Result: Variable %EpochMillis% contains epoch milliseconds (e.g., 1714176000000)
+     * 
+     * Input (Data): @seconds+milliseconds
+     * Condition: %EpochPrecise%
+     * Result: Variable %EpochPrecise% contains seconds with 3 decimal places (e.g., 1714176000.123)
      * </pre>
      * 
      * <p><b>Validation:</b></p>
      * <ul>
-     *     <li>Variable name (Data) must not be null, blank, or "%%"</li>
+     *     <li>Data must be one of: "seconds", "milliseconds", or "seconds+milliseconds" (case-insensitive)</li>
+     *     <li>Condition must contain a valid variable name</li>
      *     <li>If validation fails, reports error with Status.FAIL and does not continue</li>
      * </ul>
      * 
      * <p><b>Behavior:</b></p>
      * <ul>
      *     <li>Uses {@link Instant#now()} to get current system time</li>
-     *     <li>Converts to epoch seconds using {@link Instant#getEpochSecond()}</li>
+     *     <li>"seconds" - Converts to epoch seconds using {@link Instant#getEpochSecond()}</li>
+     *     <li>"milliseconds" - Converts to epoch milliseconds using {@link Instant#toEpochMilli()}</li>
+     *     <li>"seconds+milliseconds" - Provides decimal representation with 3 decimal places</li>
      *     <li>Stores value in variable accessible via {@code addVar()}</li>
      *     <li>Reports success with Status.DONE or failure with Status.FAIL</li>
      * </ul>
      */
-    @Action(object = ObjectType.GENERAL, desc = "get Timestamp In Epoch seconds", input = InputType.YES)
+    @Action(object = ObjectType.GENERAL, desc = "Store Epoch Timestamp in variable", input = InputType.YES, condition = InputType.YES)
     public void storeEpochTimestampInVariable() {
-        if (Data == null || Data.isBlank() || Data.equals("%%")) {
-            Report.updateTestLog(Action, "Variable name is required. Please provide a valid variable name in the Input field.", Status.FAIL);
+        if (Condition == null || Condition.isBlank() || Condition.equals("%%")) {
+            Report.updateTestLog(Action, "Variable name is required. Please provide a valid variable name in the Condition field.", Status.FAIL);
+            return;
+        }
+        
+        if (Data == null || Data.isBlank()) {
+            Report.updateTestLog(Action, "Format option is required. Use: 'seconds', 'milliseconds', or 'seconds+milliseconds'.", Status.FAIL);
             return;
         }
         
         try {
-            String notBefore = String.valueOf(Instant.now().getEpochSecond());
-            addVar(Data, notBefore);
-            Report.updateTestLog(Action, "Timestamp added in variable with value '" + notBefore, Status.DONE);
+            String epochTimestamp = "";
+            String option = Data.trim().toLowerCase();
+
+            switch (option) {
+                case "seconds":
+                    epochTimestamp = String.valueOf(Instant.now().getEpochSecond());
+                    break;
+
+                case "milliseconds":
+                    epochTimestamp = String.valueOf(Instant.now().toEpochMilli());
+                    break;
+
+                case "seconds+milliseconds":
+                    DecimalFormat df = new DecimalFormat("0.000");
+                    df.setMaximumFractionDigits(3);
+                    double epochWithMs = Instant.now().toEpochMilli() / 1000.0;
+                    epochTimestamp = df.format(epochWithMs);
+                    break;
+
+                default:
+                    Report.updateTestLog(Action, "Invalid input. Use: 'seconds', 'milliseconds', or 'seconds+milliseconds'.", Status.FAIL);
+                    return;
+            }
+
+            addVar(Condition, epochTimestamp);
+            Report.updateTestLog(Action, "Timestamp added in variable with value '" + epochTimestamp + "'", Status.DONE);
+
         } catch (Exception e) {
             Report.updateTestLog(Action, e.getMessage(), Status.FAIL);
             Logger.getLogger(CommonMethods.class.getName()).log(Level.SEVERE, null, e);
