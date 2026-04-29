@@ -105,11 +105,8 @@ public class Database extends General {
      */
     @Action(object = ObjectType.DATABASE, desc = "Store it in Global variable from the DB column [<Condition>] ", input = InputType.YES, condition = InputType.YES)
     public void storeValueInGlobalVariable() {
-        storeValue(Input, Condition, true);
-        if (getVar(Input) != null && !getVar(Input).equals("")) {
+        if (storeValue(Input, Condition, true)) {
             Report.updateTestLog(Action, "Stored in Global variable", Status.PASSNS);
-        } else {
-            Report.updateTestLog(Action, "Value doesn't stored in Global variable", Status.FAILNS);
         }
     }
 
@@ -119,11 +116,8 @@ public class Database extends General {
      */
     @Action(object = ObjectType.DATABASE, desc = "Store it in the variable from the DB column [<Condition>] ", input = InputType.YES, condition = InputType.YES)
     public void storeValueInVariable() {
-        storeValue(Input, Condition, false);
-        if (getVar(Input) != null && !getVar(Input).equals("")) {
+        if (storeValue(Input, Condition, false)) {
             Report.updateTestLog(Action, "Stored in the variable", Status.PASSNS);
-        } else {
-            Report.updateTestLog(Action, "Value doesn't stored in Global variable", Status.FAILNS);
         }
     }
 

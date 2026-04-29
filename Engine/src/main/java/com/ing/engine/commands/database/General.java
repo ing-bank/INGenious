@@ -216,8 +216,9 @@ public class General extends Command {
      * @param input the variable name
      * @param condition the column and row specification
      * @param isGlobal true to store as a global variable, false for local
+     * @return true if the value was successfully stored, false otherwise
      */
-    public void storeValue(String input, String condition, boolean isGlobal) {
+    public boolean storeValue(String input, String condition, boolean isGlobal) {
         String value;
         int rowIndex = 1;
         String[] split = condition.split(",");
@@ -234,16 +235,20 @@ public class General extends Command {
                     } else {
                         addVar(input, value);
                     }
+                    return true;
                 } else {
                     Report.updateTestLog(Action, "Row " + rowIndex + " doesn't exist",
                             Status.FAIL);
+                    return false;
                 }
             } else {
                 Report.updateTestLog(Action, "Column " + split[0] + " doesn't exist ",
                         Status.FAIL);
+                return false;
             }
         } catch (SQLException se) {
             Report.updateTestLog(Action, "Error storing value in variable " + se.getMessage(), Status.FAIL);
+            return false;
         }
     }
 
