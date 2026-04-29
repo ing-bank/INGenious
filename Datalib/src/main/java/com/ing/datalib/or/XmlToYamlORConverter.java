@@ -25,7 +25,6 @@ public class XmlToYamlORConverter {
 
     private final YamlORWriter yamlWriter;
 
-    // ✅ FIX 1: Proper constructor
     public XmlToYamlORConverter(YamlORWriter yamlWriter) {
         this.yamlWriter = yamlWriter;
     }
@@ -47,8 +46,6 @@ public class XmlToYamlORConverter {
         writeProjectMobile(projectMobile, projectRoot);
         writeSharedMobile(sharedMobile, sharedRoot);
     }
-
-    /* ========== PROJECT ORs ========== */
 
     private void writeProjectWeb(WebOR projectOR, File projectRoot)
             throws IOException {
@@ -79,8 +76,6 @@ public class XmlToYamlORConverter {
             yamlWriter.writeMobilePage(page, pagesDir);
         }
     }
-
-    /* ========== SHARED ORs ========== */
 
     private void writeSharedWeb(WebOR sharedOR, File sharedRoot)
             throws IOException {
