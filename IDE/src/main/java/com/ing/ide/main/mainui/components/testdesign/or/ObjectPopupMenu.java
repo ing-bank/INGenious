@@ -106,7 +106,6 @@ public class ObjectPopupMenu extends JPopupMenu {
             forObject();
         }
         moveToShared.setEnabled(!isSharedSelection(currentSelection));
-        removeUnusedObject.setEnabled(!isSharedSelection(selected));
     }
 
     private void forPage() {
@@ -120,7 +119,7 @@ public class ObjectPopupMenu extends JPopupMenu {
         addObject.setEnabled(true);
         renameObject.setEnabled(false);
         deleteObject.setEnabled(false);
-        removeUnusedObject.setEnabled(true);
+        removeUnusedObject.setEnabled(!isSharedSelection(currentSelection));
         
         impactAnalysis.setEnabled(false);
         
@@ -142,6 +141,7 @@ public class ObjectPopupMenu extends JPopupMenu {
         addObject.setEnabled(true);
         renameObject.setEnabled(false);
         deleteObject.setEnabled(false);
+        removeUnusedObject.setEnabled(false);
 
         impactAnalysis.setEnabled(true);
 
