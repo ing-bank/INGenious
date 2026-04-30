@@ -99,6 +99,7 @@ public class INGeniousSettings extends javax.swing.JFrame {
         initComponents();
         setIconImage(com.ing.ide.main.fx.INGIcons.toImage(IconSettings.getIconSettings().getSettingsGear()));
         initTabs();
+        setupAutoRefreshListeners();
         applyModernStyles();
         // Ensure window is tall enough to show all checkboxes
         setMinimumSize(new java.awt.Dimension(580, 750));
@@ -439,6 +440,34 @@ public class INGeniousSettings extends javax.swing.JFrame {
         radioButton.putClientProperty("JRadioButton.icon.style", "filled");
     }
 
+    /**
+     * Sets up auto-refresh listeners for User Defined global variables.
+     * Refreshes when the Run Settings window gains focus or when User Defined tab is selected.
+     */
+    private void setupAutoRefreshListeners() {
+        // Refresh when window gains focus
+        addWindowFocusListener(new java.awt.event.WindowFocusListener() {
+            @Override
+            public void windowGainedFocus(java.awt.event.WindowEvent e) {
+                if (sProject != null) {
+                    loadUserDefinedSettings();
+                }
+            }
+
+            @Override
+            public void windowLostFocus(java.awt.event.WindowEvent e) {
+                // No action needed
+            }
+        });
+
+        // Refresh when User Defined tab is selected
+        runSettingsTab.addChangeListener(e -> {
+            if (sProject != null && runSettingsTab.getSelectedIndex() == 0) { // UserDefined is at index 0
+                loadUserDefinedSettings();
+            }
+        });
+    }
+
     private void initTabs() {
         uDPanel = new XTablePanel(false);
         runSettingsTab.setFont(UIManager.getFont("Table.font"));
@@ -530,17 +559,28 @@ public class INGeniousSettings extends javax.swing.JFrame {
         this.execSettings = sProject.getProjectSettings().getExecSettings();
         loadRunSettings();
         loadTestSetTMSettings();
+        loadUserDefinedSettings();
         loadRPSettings();
         loadExtentSettings();
         loadKafkaSSLConfigurations();
         loadLambdaTestCapabilities();
         showSettings();
     }
+    
+    /**
+     * Loads user-defined settings/global variables into the UserDefined table.
+     * This method is called automatically when the Run Settings dialog is opened.
+     */
+    private void loadUserDefinedSettings() {
+        PropUtils.loadPropertiesInTable(sProject.getProjectSettings()
+                .getUserDefinedSettings(), uDPanel.table);
+    }
 
     public void loadSettings(ExecutionSettings execSettings) {
         this.execSettings = execSettings;
         loadRunSettings();
         loadTestSetTMSettings();
+        loadUserDefinedSettings();
         showSettings();
     }
 
@@ -555,8 +595,7 @@ public class INGeniousSettings extends javax.swing.JFrame {
 
     private void loadAll() {
         loadTMSettings();
-        PropUtils.loadPropertiesInTable(sProject.getProjectSettings()
-                .getUserDefinedSettings(), uDPanel.table);
+        loadUserDefinedSettings();
         loadRPSettings();
         loadExtentSettings();
         loadKafkaSSLConfigurations();

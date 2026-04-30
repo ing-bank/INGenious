@@ -282,6 +282,7 @@ public abstract class CommandControl {
 
     public void putUserDefinedData(String key, String value) {
         Control.getCurrentProject().getProjectSettings().getUserDefinedSettings().put(key, value);
+        Control.getCurrentProject().getProjectSettings().getUserDefinedSettings().save();
     }
 
     public Stack<Locator> getRunTimeElement() {
