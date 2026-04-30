@@ -24,7 +24,7 @@
 
 * `Windows`
   
-  Double click on the [`Run.bat`](#) in the framework location
+  Double click on the [`ingenious.bat`](#) in the framework location
 
 * `Mac or Ubuntu`
 
