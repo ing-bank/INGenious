@@ -755,7 +755,7 @@ public class AppMainFrame extends JFrame {
     private void doRestart() {
         if (Desktop.isDesktopSupported()) {
             try {
-                String file = SystemInfo.isWindows() ? "Run.bat" : "Run.command";
+                String file = SystemInfo.isWindows() ? "Run.bat" : "ingenious.command";
                 Desktop.getDesktop().open(new File(file));
             } catch (Exception ex) {
                 // Do Nothing

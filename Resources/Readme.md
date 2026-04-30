@@ -30,9 +30,9 @@
 
     1. Open Terminal in the installation location and then type 
     ```shell
-    chmod +x Run.command
+    chmod +x ingenious.command
     ```
-    2. Then double click on the [`Run.command`](#)
+    2. Then double click on the [`ingenious.command`](#)
     3. If you see **It's Downloaded From Internet** warning then enter the following command in terminal: 
      ```shell
      xattr -d -r com.apple.quarantine "/path/to/the framework"

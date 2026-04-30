@@ -32,8 +32,8 @@
 | `IDE/pom.xml` | Removed duplicate compiler plugin config (now inherited from parent). Added `com.formdev:flatlaf:${flatlaf.version}` (3.5.4) dependency for modern flat Look & Feel. |
 | `Common/pom.xml` | Removed duplicate compiler plugin config (now inherited from parent). |
 | `Resources/Engine/pom.xml` | Pinned `LATEST` versions to fixed values (same as parent pom.xml). |
-| `Dist/pom.xml` | Added `unix-permissions` Maven profile with `maven-antrun-plugin` 3.1.0 — runs `chmod 755` on `Run.command` during `install` phase. Activated only on non-Windows OS (`<os><family>!windows</family></os>`). Ensures `Dist/release/Run.command` is executable after build without manual `chmod`. |
-| `Resources/Run.command` | Set git executable bit (`100644` → `100755`) so the file is executable after clone/pull without manual `chmod`. |
+| `Dist/pom.xml` | Added `unix-permissions` Maven profile with `maven-antrun-plugin` 3.1.0 — runs `chmod 755` on `ingenious.command` during `install` phase. Activated only on non-Windows OS (`<os><family>!windows</family></os>`). Ensures `Dist/release/ingenious.command` is executable after build without manual `chmod`. |
+| `Resources/ingenious.command` | Set git executable bit (`100644` → `100755`) so the file is executable after clone/pull without manual `chmod`. |
 
 ### 1.2 CI/CD
 

@@ -725,7 +725,7 @@ public class ProjectTree implements ActionListener {
         if (os.contains("windows")) {
             return "Run.bat";
         }
-        return "Run.command";
+        return "ingenious.command";
     }
 
     private void showDetails() {

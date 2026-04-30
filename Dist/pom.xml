@@ -131,7 +131,7 @@
     </build>
 
     <profiles>
-        <!-- Set executable permission on Run.command after copy (macOS/Linux only) -->
+        <!-- Set executable permission on ingenious.command after copy (macOS/Linux only) -->
         <profile>
             <id>unix-permissions</id>
             <activation>
@@ -154,7 +154,7 @@
                                 </goals>
                                 <configuration>
                                     <target>
-                                        <chmod file="${setupDir}/Run.command" perm="755"/>
+                                        <chmod file="${setupDir}/ingenious.command" perm="755"/>
                                         <chmod file="${setupDir}/ingenious" perm="755"/>
                                     </target>
                                 </configuration>
