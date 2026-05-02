@@ -66,10 +66,10 @@ public final class TestCaseReport implements Report {
         if (isRPEnabled()) {
             register(new RPTestCaseHandler(this), true);
         }
-        register(new HtmlTestCaseHandler(this), true);
         if (isAzureEnabled()) {
             register(new AzureTestCaseHandler(this), true);
         }
+        register(new HtmlTestCaseHandler(this), true);
     }
 
     public boolean isExtentEnabled() {

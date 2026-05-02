@@ -1,17 +1,6 @@
-
 package com.ing.engine.reporting.impl.azure;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
-
-import java.text.SimpleDateFormat;
-
-import org.apache.http.client.ClientProtocolException;
-import org.json.simple.parser.ParseException;
-
-import org.xml.sax.SAXException;
-
+import java.io.*;
 import com.ing.engine.constants.FilePath;
 import com.ing.engine.core.Control;
 import com.ing.engine.core.RunManager;
@@ -20,8 +9,8 @@ import com.ing.engine.reporting.impl.azureNunit.AzureReport;
 import com.ing.engine.reporting.impl.handlers.PrimaryHandler;
 import com.ing.engine.reporting.impl.handlers.SummaryHandler;
 import com.ing.engine.support.Status;
-
-import java.util.Date;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -30,11 +19,7 @@ import org.apache.commons.io.FileUtils;
 public class AzureSummaryHandler extends SummaryHandler implements PrimaryHandler {
 
     private static final Logger LOGGER = Logger.getLogger(AzureSummaryHandler.class.getName());
-
-    int FailedTestCases = 0;
-    int PassedTestCases = 0;
-
-    String testcasename = "";
+    private String startTime;
 
     public AzureSummaryHandler(SummaryReport report) {
         super(report);
@@ -43,13 +28,10 @@ public class AzureSummaryHandler extends SummaryHandler implements PrimaryHandle
     @SuppressWarnings("unchecked")
     @Override
     public synchronized void createReport(String runTime, int size) {
-        if (!RunManager.getGlobalSettings().isTestRun()) {
-            try {
-                startReport(RunManager.getGlobalSettings().getTestSet());
-            } catch (Exception ex) {
-                LOGGER.log(Level.SEVERE, ex.getMessage(), ex);
-            }
-        }
+        if (RunManager.getGlobalSettings().isTestRun()) return;
+        if (!isAzureEnabled()) return;
+
+        startTime = getDateDetails("time");
     }
 
     public boolean isAzureEnabled() {
@@ -58,17 +40,6 @@ public class AzureSummaryHandler extends SummaryHandler implements PrimaryHandle
                     .getExecSettings(RunManager.getGlobalSettings().getRelease(), RunManager.getGlobalSettings().getTestSet()).getRunSettings().isAzureEnabled();
         }
         return false;
-    }
-
-    private void startReport(String testset) {
-        System.out.println("testset : " + testset);
-        if (isAzureEnabled()) {
-            try {
-                startReport();
-            } catch (IOException | ParseException e) {
-                LOGGER.log(Level.SEVERE, e.getMessage(), e);
-            }
-        }
     }
 
     @Override
@@ -85,7 +56,7 @@ public class AzureSummaryHandler extends SummaryHandler implements PrimaryHandle
 
     @Override
     public Status getCurrentStatus() {
-        if (FailedTestCases > 0 || PassedTestCases == 0) {
+        if (AzureReport.failed > 0 || AzureReport.passed == 0) {
             return Status.FAIL;
         } else {
             return Status.PASS;
@@ -94,63 +65,46 @@ public class AzureSummaryHandler extends SummaryHandler implements PrimaryHandle
 
     @Override
     public synchronized void finalizeReport() {
-        if (!RunManager.getGlobalSettings().isTestRun()) {
-            if (isAzureEnabled()) {
-                try {
-                    finishReport(FilePath.getCurrentAzureReportPath());
-                    FileUtils.copyFileToDirectory(new File(FilePath.getCurrentAzureReportPath()),
+        if (RunManager.getGlobalSettings().isTestRun()) return;
+        if (!isAzureEnabled()) return;
+
+        try {
+            finishReport(FilePath.getCurrentAzureReportPath());
+            FileUtils.copyFileToDirectory(new File(FilePath.getCurrentAzureReportPath()),
                     new File(FilePath.getLatestResultsLocation()),true);
-                } catch (Exception ex) {
-                    LOGGER.log(Level.SEVERE, ex.getMessage(), ex);
-                }
-            }
+        } catch (Exception ex) {
+            LOGGER.log(Level.SEVERE, ex.getMessage(), ex);
         }
-
     }
 
-    public String getUUID() {
-        UUID uuid = UUID.randomUUID();
-        return uuid.toString();
-    }
-
-    public String getDateDetails(String type) {
-        SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-        Date date = new Date();
-        String fulldate = formatter.format(date);
-        if (type.equalsIgnoreCase("date")) {
-            return (fulldate.split(" ")[0]);
+    private String getDateDetails(String type) {
+        LocalDateTime now = LocalDateTime.now();
+        if ("date".equalsIgnoreCase(type)) {
+            return now.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
         } else {
-            return (fulldate.split(" ")[1]);
+            return now.format(DateTimeFormatter.ofPattern("HH:mm:ss"));
         }
     }
 
-    public void startReport()
-            throws ClientProtocolException, IOException, ParseException {
-        AzureReport.startTime = getDateDetails("time");
-    }
-
-    public void finishReport(String AzureReportPath) throws ClientProtocolException, IOException, ParseException, SAXException {
-
+    private void finishReport(String AzureReportPath) throws IOException {
         String total = String.valueOf(AzureReport.passed + AzureReport.failed);
         String passed = String.valueOf(AzureReport.passed);
         String failed = String.valueOf(AzureReport.failed);
-        String result = "Passed";
-        if (AzureReport.failed > 0) {
-            result = "Failed";
-        }
+        String result = (AzureReport.failed > 0) ? "Failed" : "Passed";
         String duration = AzureReport.totalDuration + ".000";
 
-        AzureReport.testrun = "<test-run id=\"" + getUUID() + "\" name=\"" + RunManager.getGlobalSettings().getTestSet()
+        String testRun = "<test-run id=\"" + UUID.randomUUID() + "\" name=\"" + RunManager.getGlobalSettings().getTestSet()
                 + "\" fullname=\"" + RunManager.getGlobalSettings().getTestSet() + "\" testcasecount=\"" + total
                 + "\" passed=\"" + passed
                 + "\" failed=\"" + failed
                 + "\" result=\"" + result
                 + "\" time=\"" + duration
                 + "\" run-date=\"" + getDateDetails("date")
-                + "\" start-time=\"" + AzureReport.startTime
+                + "\" start-time=\"" + startTime
                 + "\" end-time=\"" + getDateDetails("time")
                 + "\">" + "\n";
-        AzureReport.testsuite = "<test-suite id=\"" + getUUID() + "\" type=\"Assembly\" name=\""
+
+        String testSuite = "<test-suite id=\"" + UUID.randomUUID() + "\" type=\"Assembly\" name=\""
                 + RunManager.getGlobalSettings().getTestSet() + "\" fullname=\""
                 + RunManager.getGlobalSettings().getTestSet() + "\" testcasecount=\"" + total
                 + "\" passed=\"" + passed
@@ -159,40 +113,42 @@ public class AzureSummaryHandler extends SummaryHandler implements PrimaryHandle
                 + "\" time=\"" + duration
                 + "\">" + "\n";
 
-        AzureReport.xmlData = AzureReport.testrun
-                + AzureReport.testsuite
-                + AzureReport.testcase
-                + "</test-suite>"
-                + "</test-run>";
-        
-
         FileOutputStream out = new FileOutputStream(AzureReportPath);
 
-        out.write(AzureReport.xmlData.getBytes());
+        out.write(testRun.getBytes());
+        out.write(testSuite.getBytes());
+
+        try (FileInputStream in = new FileInputStream(AzureReport.testCasesFile)) {
+            byte[] buffer = new byte[8192];
+            int bytesRead;
+            while ((bytesRead = in.read(buffer)) != -1) {
+                out.write(buffer, 0, bytesRead);
+            }
+        }
+
+        out.write("</test-suite></test-run>".getBytes());
         out.close();
+
         System.out.println("\n-----------------------------------------------------");
+        System.out.println("Azure Report Path: " + AzureReportPath);
         System.out.println("Azure Report XML generated");
         System.out.println("-----------------------------------------------------\n");
-		resetAzureVars();
 
+        resetAzureVars();
     }
-    
     private void resetAzureVars() {
-    	AzureReport.totalDuration=0;
-    	AzureReport.failed=0;
-    	AzureReport.passed=0;
-    	AzureReport.message="";
-    	AzureReport.CDATA="";
-    	AzureReport.stacktraceData="";
-    	AzureReport.stacktrace="";
-    	AzureReport.xmlData="";
-    	AzureReport.testrun="";
-    	AzureReport.testsuite="";
-    	AzureReport.testcase="";
-    	AzureReport.failures="";
-    	AzureReport.attachments="";
-    	AzureReport.startTime="";
-    	AzureReport.endTime="";
-    }
+        AzureReport.totalDuration = 0;
+        AzureReport.failed = 0;
+        AzureReport.passed = 0;
 
+        try {
+            if (!AzureReport.testCasesFile.delete()) {
+                throw new RuntimeException("Cannot delete temporary file.");
+            }
+
+            AzureReport.testCasesFile = File.createTempFile("test-cases", ".xml");
+        } catch (Exception e) {
+            throw new RuntimeException(e);
+        }
+    }
 }

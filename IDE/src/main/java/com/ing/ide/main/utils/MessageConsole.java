@@ -4,6 +4,7 @@ package com.ing.ide.main.utils;
 import java.awt.Color;
 import java.io.ByteArrayOutputStream;
 import java.io.PrintStream;
+import java.nio.charset.StandardCharsets;
 import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -128,6 +129,8 @@ public class MessageConsole {
      */
     class ConsoleOutputStream extends ByteArrayOutputStream {
 
+        static final int MAX_CONSOLE_LENGTH = 16_384;
+
         private final String EOL = System.getProperty("line.separator");
         private SimpleAttributeSet attributes, attr_PASS, attr_FAIL;
         private PrintStream printStream;
@@ -164,57 +167,16 @@ public class MessageConsole {
          */
         @Override
         public void flush() {
-            String message = toString();
+            if (count == 0) return;
 
-            if (message.length() == 0) {
-                return;
-            }
+            String message = new String(buf, 0, count, StandardCharsets.UTF_8);
+            buffer.append(message);
 
-            if (isAppend) {
-                handleAppend(message);
-            } else {
-                handleInsert(message);
+            if (message.contains(EOL)) {
+                clearBuffer();
             }
 
             reset();
-        }
-
-        /*
-         *	We don't want to have blank lines in the Document. The first line
-         *  added will simply be the message. For additional lines it will be:
-         *
-         *  newLine + message
-         */
-        private void handleAppend(String message) {
-            //  This check is needed in case the text in the Document has been
-            //	cleared. The buffer may contain the EOL string from the previous
-            //  message.
-
-            if (document.getLength() == 0) {
-                buffer.setLength(0);
-            }
-
-            if (EOL.equals(message)) {
-                buffer.append(message);
-            } else {
-                buffer.append(message);
-                clearBuffer();
-            }
-
-        }
-
-        /*
-         *  We don't want to merge the new message with the existing message
-         *  so the line will be inserted as:
-         *
-         *  message + newLine
-         */
-        private void handleInsert(String message) {
-            buffer.append(message);
-
-            if (EOL.equals(message)) {
-                clearBuffer();
-            }
         }
 
         /*
@@ -235,8 +197,9 @@ public class MessageConsole {
 
             try {
                 if (isAppend) {
-                    int offset = document.getLength();
-                    document.insertString(offset, line, withDynamicColor(line));
+                    document.insertString(document.getLength(), line, withDynamicColor(line));
+                    document.remove(0, Math.max(document.getLength(), MAX_CONSOLE_LENGTH));
+
                     textComponent.setCaretPosition(document.getLength());
                 } else {
                     document.insertString(0, line, withDynamicColor(line));
