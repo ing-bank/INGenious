@@ -21,8 +21,8 @@ import javax.swing.JOptionPane;
 import javax.swing.tree.TreePath;
 
 /**
- *
- *
+ * UI tree component for displaying and managing Reusable Components scenarios and test cases.
+ * Extends ProjectTree and overrides methods to handle reusable-specific operations.
  */
 public class ReusableTree extends ProjectTree {
 
@@ -129,14 +129,39 @@ public class ReusableTree extends ProjectTree {
                 .getTreeModel().onScenarioRename(scenario);
     }
 
+    /**
+     * Moves selected test cases from Reusable Components to Test Plan.
+     * Shows error notifications for failures and reloads both trees on success.
+     */
+    @Override
+    protected void makeAsReusableRTestCase() {
+        if (!getSelectedTestCaseNodes().isEmpty()) {
+            boolean anySuccess = false;
+            for (TestCaseNode testCaseNode : getSelectedTestCaseNodes()) {
+                String error = getProject().moveTestCaseToTestPlan(testCaseNode.getTestCase());
+                if (error == null) {
+                    anySuccess = true;
+                } else {
+                    Notification.show(error);
+                }
+            }
+            if (anySuccess) {
+                getProject().reload();
+                getTestDesign().getProjectTree().load();
+                load();
+            }
+        }
+    }
+
     @Override
     void makeAsReusableRTestCase(TestCase testCase) {
-        if (getProject().moveTestCaseToTestPlan(testCase)) {
+        String error = getProject().moveTestCaseToTestPlan(testCase);
+        if (error == null) {
             getProject().reload();
             getTestDesign().getProjectTree().load();
             load();
         } else {
-            Notification.show("Unable to move test case to TestPlan");
+            Notification.show(error);
         }
     }
 

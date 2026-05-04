@@ -1,11 +1,12 @@
 
 package com.ing.datalib.component;
 
-import com.ing.datalib.component.utils.FileUtils;
-import com.ing.datalib.or.web.WebOR.ORScope;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
+
+import com.ing.datalib.component.utils.FileUtils;
+import com.ing.datalib.or.web.WebOR.ORScope;
 
 /**
  * Represents a scenario within a project’s TestPlan and serves as a container for related test cases.
@@ -128,6 +129,8 @@ public class Scenario extends DataModel {
             TestCase tc = new TestCase(this, testCaseName);
             testCases.add(tc);
             tc.setSaved(false);
+            // Auto-save to create directory and file immediately
+            tc.save();
             return tc;
         }
         return null;

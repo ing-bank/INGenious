@@ -1,30 +1,32 @@
 
 package com.ing.datalib.component;
 
+import java.io.File;
+import java.nio.file.Files;
+import java.util.ArrayList;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Objects;
+import java.util.Set;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import static java.util.stream.Collectors.toList;
+import java.util.stream.Stream;
+
+import javax.swing.table.DefaultTableModel;
+import javax.swing.table.TableModel;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ing.datalib.component.utils.FileUtils;
 import static com.ing.datalib.component.utils.FileUtils.DIR_FILTER;
 import com.ing.datalib.model.DataItem;
 import com.ing.datalib.model.Meta;
 import com.ing.datalib.model.ProjectInfo;
 import com.ing.datalib.or.ObjectRepository;
+import com.ing.datalib.or.web.WebOR.ORScope;
 import com.ing.datalib.settings.ProjectSettings;
 import com.ing.datalib.util.data.FileScanner;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.ing.datalib.or.web.WebOR.ORScope;
-import java.io.File;
-import java.nio.file.Files;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.LinkedHashSet;
-import java.util.Set;
-import java.util.Objects;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import static java.util.stream.Collectors.toList;
-import java.util.stream.Stream;
-import javax.swing.table.DefaultTableModel;
-import javax.swing.table.TableModel;
 
 /**
  * Represents an automation project and acts as the central entry point for loading, managing,
@@ -117,10 +119,18 @@ public class Project {
         return projectInfo;
     }
 
+    /**
+     * Returns the list of scenarios in the Test Plan.
+     * @return list of Test Plan scenarios
+     */
     public List<Scenario> getScenarios() {
         return scenarios;
     }
 
+    /**
+     * Returns the list of reusable scenarios.
+     * @return list of Reusable Components scenarios
+     */
     public List<Scenario> getReusableScenarios() {
         return reusableScenarios;
     }
@@ -183,6 +193,10 @@ public class Project {
         this.scenarios = scenarios;
     }
 
+    /**
+     * Returns the project's filesystem location.
+     * @return absolute path to the project directory
+     */
     public String getLocation() {
         return location;
     }
@@ -251,6 +265,10 @@ public class Project {
         return new File(getLocation(), ".project");
     }
 
+    /**
+     * Returns the project name.
+     * @return the project name
+     */
     public String getName() {
         return name;
     }
@@ -318,7 +336,7 @@ public class Project {
         for (Scenario scenario : new ArrayList<>(scenarios)) {
             for (TestCase testCase : new ArrayList<>(scenario.getTestCases())) {
                 if (testCase.getReusable() != null) {
-                    if (moveTestCaseFile(testCase, Scenario.Source.REUSABLE_COMPONENTS)) {
+                    if (moveTestCaseFile(testCase, Scenario.Source.REUSABLE_COMPONENTS) == null) {
                         moved++;
                     }
                 }
@@ -331,34 +349,58 @@ public class Project {
         LOGGER.log(Level.INFO, "Migrated reusable testcases: {0}", moved);
     }
 
-    public boolean moveTestCaseToReusable(TestCase testCase) {
+    /**
+     * Moves a test case to Reusable Components.
+     * @param testCase the test case to move
+     * @return null if successful, error message otherwise
+     */
+    public String moveTestCaseToReusable(TestCase testCase) {
         return moveTestCaseFile(testCase, Scenario.Source.REUSABLE_COMPONENTS);
     }
 
-    public boolean moveTestCaseToTestPlan(TestCase testCase) {
+    /**
+     * Moves a test case to Test Plan.
+     * @param testCase the test case to move
+     * @return null if successful, error message otherwise
+     */
+    public String moveTestCaseToTestPlan(TestCase testCase) {
         return moveTestCaseFile(testCase, Scenario.Source.TEST_PLAN);
     }
 
-    private boolean moveTestCaseFile(TestCase testCase, Scenario.Source targetSource) {
+    /**
+     * Moves a test case file to the specified target source (Test Plan or Reusable Components).
+     * @param testCase the test case to move
+     * @param targetSource the destination source (TEST_PLAN or REUSABLE_COMPONENTS)
+     * @return null if successful, error message otherwise
+     */
+    private String moveTestCaseFile(TestCase testCase, Scenario.Source targetSource) {
         if (testCase == null || testCase.getScenario() == null) {
-            return false;
+            return "Invalid test case or scenario";
         }
+        
+        String scenarioName = testCase.getScenario().getName();
+        String testCaseName = testCase.getName();
+        String targetName = targetSource == Scenario.Source.REUSABLE_COMPONENTS ? "Reusable Components" : "Test Plan";
+        
         File source = new File(testCase.getLocation());
         if (!source.exists()) {
-            return false;
+            return "Test Case file does not exist";
         }
-        File targetDir = new File(getScenarioPath(targetSource, testCase.getScenario().getName()));
+        
+        File targetDir = new File(getScenarioPath(targetSource, scenarioName));
         targetDir.mkdirs();
-        File target = new File(targetDir, testCase.getName() + ".csv");
+        File target = new File(targetDir, testCaseName + ".csv");
+        
         if (target.exists()) {
-            return false;
+            return "Test case '" + testCaseName + "' already exists in scenario '" + scenarioName + "' in " + targetName;
         }
+        
         try {
             Files.move(source.toPath(), target.toPath());
-            return true;
+            return null;
         } catch (Exception ex) {
             LOGGER.log(Level.SEVERE, "Failed moving test case file", ex);
-            return false;
+            return "Failed to move test case: " + ex.getMessage();
         }
     }
 
@@ -392,6 +434,11 @@ public class Project {
         }
     }
 
+    /**
+     * Adds a new scenario to the Test Plan.
+     * @param scenarioName name of the scenario to add
+     * @return the created scenario, or null if a scenario with the same name already exists
+     */
     public Scenario addScenario(String scenarioName) {
         if (getScenarioByName(scenarioName) == null) {
             Scenario scn = new Scenario(this, scenarioName, Scenario.Source.TEST_PLAN);
@@ -401,6 +448,11 @@ public class Project {
         return null;
     }
 
+    /**
+     * Adds a new scenario to Reusable Components.
+     * @param scenarioName name of the scenario to add
+     * @return the created scenario, or null if a scenario with the same name already exists
+     */
     public Scenario addReusableScenario(String scenarioName) {
         if (getReusableScenarioByName(scenarioName) == null) {
             Scenario scn = new Scenario(this, scenarioName, Scenario.Source.REUSABLE_COMPONENTS);
@@ -456,6 +508,9 @@ public class Project {
         projectSettings.save();
     }
 
+    /**
+     * Reloads the project from disk, refreshing all scenarios, test data, and settings.
+     */
     public void reload() {
         loadProject();
     }

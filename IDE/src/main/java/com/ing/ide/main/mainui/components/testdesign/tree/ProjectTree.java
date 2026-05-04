@@ -59,8 +59,8 @@ import java.awt.event.KeyEvent;
 import javax.swing.KeyStroke;
 
 /**
- *
- *
+ * UI tree component for displaying and managing Test Plan scenarios and test cases.
+ * Provides context menus, drag-and-drop support, and editing capabilities.
  */
 public class ProjectTree implements ActionListener {
 
@@ -599,14 +599,26 @@ public class ProjectTree implements ActionListener {
         });
     }
 
-    private void makeAsReusableRTestCase() {
+    /**
+     * Moves selected test cases from Test Plan to Reusable Components.
+     * Shows error notifications for failures and reloads both trees on success.
+     */
+    protected void makeAsReusableRTestCase() {
         if (!getSelectedTestCaseNodes().isEmpty()) {
+            boolean anySuccess = false;
             for (TestCaseNode testCaseNode : getSelectedTestCaseNodes()) {
-                getProject().moveTestCaseToReusable(testCaseNode.getTestCase());
+                String error = getProject().moveTestCaseToReusable(testCaseNode.getTestCase());
+                if (error == null) {
+                    anySuccess = true;
+                } else {
+                    Notification.show(error);
+                }
             }
-            getProject().reload();
-            load();
-            getTestDesign().getReusableTree().load();
+            if (anySuccess) {
+                getProject().reload();
+                load();
+                getTestDesign().getReusableTree().load();
+            }
         }
     }
 
