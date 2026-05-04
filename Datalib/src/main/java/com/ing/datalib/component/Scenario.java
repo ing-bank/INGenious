@@ -64,10 +64,6 @@ public class Scenario extends DataModel {
      * Returns the filesystem location of this scenario.
      * @return absolute path to the scenario directory
      */
-    /**
-     * Returns the filesystem location of this scenario.
-     * @return absolute path to the scenario directory
-     */
     public String getLocation() {
         if (project == null) {
             return "";
@@ -123,11 +119,6 @@ public class Scenario extends DataModel {
      * @param name test case name (case-insensitive)
      * @return the test case if found, null otherwise
      */
-    /**
-     * Finds a test case by name.
-     * @param name test case name (case-insensitive)
-     * @return the test case if found, null otherwise
-     */
     public TestCase getTestCaseByName(String name) {
         for (TestCase testcase : testCases) {
             if (testcase.getName().equalsIgnoreCase(name)) {
@@ -137,11 +128,6 @@ public class Scenario extends DataModel {
         return null;
     }
 
-    /**
-     * Finds the index of a test case by name.
-     * @param name test case name (case-insensitive)
-     * @return the index if found, -1 otherwise
-     */
     /**
      * Finds the index of a test case by name.
      * @param name test case name (case-insensitive)
@@ -159,9 +145,6 @@ public class Scenario extends DataModel {
     /**
      * Loads all test case CSV files from the scenario directory.
      */
-    /**
-     * Loads all test case CSV files from the scenario directory.
-     */
     private void loadTestcases() {
         File scenDir = new File(getLocation());
         if (scenDir.exists()) {
@@ -174,9 +157,6 @@ public class Scenario extends DataModel {
     /**
      * Loads table models for all test cases.
      */
-    /**
-     * Loads table models for all test cases.
-     */
     public void loadTestCasesTableModel() {
         for (TestCase testCase : testCases) {
             testCase.loadTestCaseTableModel();
@@ -186,19 +166,11 @@ public class Scenario extends DataModel {
     /**
      * Loads the table model for this scenario (delegates to loadTestCasesTableModel).
      */
-    /**
-     * Loads the table model for this scenario (delegates to loadTestCasesTableModel).
-     */
     @Override
     public void loadTableModel() {
         loadTestCasesTableModel();
     }
 
-    /**
-     * Adds a new test case to this scenario.
-     * @param testCaseName name of the test case to add
-     * @return the created test case, or null if it already exists
-     */
     /**
      * Adds a new test case to this scenario.
      * @param testCaseName name of the test case to add
@@ -223,19 +195,12 @@ public class Scenario extends DataModel {
      * Removes a test case from this scenario.
      * @param testCase test case to remove
      */
-    /**
-     * Removes a test case from this scenario.
-     * @param testCase test case to remove
-     */
     public void removeTestCase(TestCase testCase) {
         if (testCases.remove(testCase)) {
 
         }
     }
 
-    /**
-     * Saves all test cases in this scenario.
-     */
     /**
      * Saves all test cases in this scenario.
      */
@@ -257,19 +222,11 @@ public class Scenario extends DataModel {
      * Returns the row count for table model (number of non-reusable test cases).
      * @return number of test cases
      */
-    /**
-     * Returns the row count for table model (number of non-reusable test cases).
-     * @return number of test cases
-     */
     @Override
     public int getRowCount() {
         return getTestcaseCount();
     }
 
-    /**
-     * Returns the column count for table model (max number of test steps + 1).
-     * @return column count
-     */
     /**
      * Returns the column count for table model (max number of test steps + 1).
      * @return column count
@@ -285,11 +242,6 @@ public class Scenario extends DataModel {
         return max + 1;
     }
 
-    /**
-     * Returns the column name for the specified column index.
-     * @param columnIndex column index
-     * @return column name
-     */
     /**
      * Returns the column name for the specified column index.
      * @param columnIndex column index
@@ -330,12 +282,6 @@ public class Scenario extends DataModel {
      * @param columnIndex column index
      * @return cell value
      */
-    /**
-     * Returns the value at the specified cell.
-     * @param rowIndex row index
-     * @param columnIndex column index
-     * @return cell value
-     */
     @Override
     public Object getValueAt(int rowIndex, int columnIndex) {
         if (columnIndex == 0) {
@@ -344,12 +290,6 @@ public class Scenario extends DataModel {
         return getTestcasesAlone().get(rowIndex).getValueAt(columnIndex - 1, 3);
     }
 
-    /**
-     * Sets the value at the specified cell.
-     * @param aValue new value
-     * @param rowIndex row index
-     * @param columnIndex column index
-     */
     /**
      * Sets the value at the specified cell.
      * @param aValue new value
@@ -394,10 +334,6 @@ public class Scenario extends DataModel {
         throw new UnsupportedOperationException("Not supported yet.");
     }
 
-    /**
-     * Returns a detailed string representation of the scenario.
-     * @return detailed scenario information
-     */
     /**
      * Returns a detailed string representation of the scenario.
      * @return detailed scenario information
@@ -508,11 +444,6 @@ public class Scenario extends DataModel {
      * @param oldScenarioName old scenario name
      * @param newScenarioName new scenario name
      */
-    /**
-     * Refactors (renames) a scenario reference across all test cases.
-     * @param oldScenarioName old scenario name
-     * @param newScenarioName new scenario name
-     */
     public void refactorScenario(String oldScenarioName, String newScenarioName) {
         for (TestCase testcase : testCases) {
             testcase.refactorScenario(oldScenarioName, newScenarioName);
@@ -525,24 +456,12 @@ public class Scenario extends DataModel {
      * @param oldTestCaseName old test case name
      * @param newTestCaseName new test case name
      */
-    /**
-     * Refactors (renames) a test case reference across all test cases.
-     * @param scenarioName scenario containing the test case
-     * @param oldTestCaseName old test case name
-     * @param newTestCaseName new test case name
-     */
     public void refactorTestCase(String scenarioName, String oldTestCaseName, String newTestCaseName) {
         for (TestCase testcase : testCases) {
             testcase.refactorTestCase(scenarioName, oldTestCaseName, newTestCaseName);
         }
     }
 
-    /**
-     * Refactors (moves) a test case from one scenario to another.
-     * @param testCaseName test case name
-     * @param oldScenarioName old scenario name
-     * @param newScenarioName new scenario name
-     */
     /**
      * Refactors (moves) a test case from one scenario to another.
      * @param testCaseName test case name
@@ -639,11 +558,6 @@ public class Scenario extends DataModel {
      * @param testDataName test data name
      * @return list of impacted test cases
      */
-    /**
-     * Returns test cases that reference the specified test data.
-     * @param testDataName test data name
-     * @return list of impacted test cases
-     */
     public List<TestCase> getImpactedTestDataTestCases(String testDataName) {
         List<TestCase> impactedTestCases = new ArrayList<>();
         for (TestCase testCase : testCases) {
@@ -655,11 +569,6 @@ public class Scenario extends DataModel {
         return impactedTestCases;
     }
 
-    /**
-     * Renames this scenario.
-     * @param newName new scenario name
-     * @return true if successful, false if a scenario with the new name already exists
-     */
     /**
      * Renames this scenario.
      * @param newName new scenario name
