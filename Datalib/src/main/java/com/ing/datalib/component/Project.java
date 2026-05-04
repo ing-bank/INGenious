@@ -73,6 +73,12 @@ public class Project {
 
     private ProjectInfo projectInfo;
 
+    /**
+     * Constructs a new project with the specified name, location, and test data type.
+     * @param name project name
+     * @param projectLocation parent directory where the project will be located
+     * @param testdataType type of test data (e.g., "csv")
+     */
     public Project(String name, String projectLocation, String testdataType) {
         this.location = projectLocation + File.separator + name;
         this.testdataType = testdataType;
@@ -80,6 +86,11 @@ public class Project {
         load();
     }
 
+    /**
+     * Constructs a new project from an existing project location.
+     * @param projectLocation absolute path to the project directory
+     * @param testdataType type of test data (e.g., "csv")
+     */
     public Project(String projectLocation, String testdataType) {
         this.name = new File(projectLocation).getName();
         this.location = projectLocation;
@@ -87,14 +98,25 @@ public class Project {
         load();
     }
 
+    /**
+     * Constructs a new project from an existing project location with default CSV test data type.
+     * @param projectLocation absolute path to the project directory
+     */
     public Project(String projectLocation) {
         this(projectLocation, "csv");
     }
 
+    /**
+     * Initiates the project loading process.
+     */
     private void load() {
         loadProject();
     }
 
+    /**
+     * Creates a new project with default scenarios, test cases, releases, and test sets.
+     * @return this project instance
+     */
     public Project createProject() {
         addScenario("NewScenario").addTestCase("NewTestCase");
         addRelease("NewRelease").addTestSet("NewTestSet");
@@ -103,6 +125,10 @@ public class Project {
         return this;
     }
 
+    /**
+     * Loads all project components from disk including scenarios, test sets, test data, settings, and object repository.
+     * Performs migration of legacy reusable component XML if present.
+     */
     private void loadProject() {
         loadScenariosFromTestPlan();
         loadTestSets();
@@ -115,6 +141,10 @@ public class Project {
         projectInfo = loadProjectInfo(getProjectFile());
     }
 
+    /**
+     * Returns the project information metadata.
+     * @return project information
+     */
     public ProjectInfo getInfo() {
         return projectInfo;
     }
@@ -131,19 +161,36 @@ public class Project {
      * Returns the list of reusable scenarios.
      * @return list of Reusable Components scenarios
      */
+    /**
+     * Returns the list of reusable scenarios.
+     * @return list of Reusable Components scenarios
+     */
     public List<Scenario> getReusableScenarios() {
         return reusableScenarios;
     }
 
+    /**
+     * Returns all scenarios from both Test Plan and Reusable Components.
+     * @return combined list of all scenarios
+     */
     public List<Scenario> getAllScenarios() {
         return Stream.concat(scenarios.stream(), reusableScenarios.stream())
                 .collect(toList());
     }
 
+    /**
+     * Returns all releases in the project.
+     * @return list of releases
+     */
     public List<Release> getReleases() {
         return releases;
     }
 
+    /**
+     * Finds a scenario by name in the Test Plan.
+     * @param name scenario name to search for (case-insensitive)
+     * @return the scenario if found, null otherwise
+     */
     public Scenario getScenarioByName(String name) {
         for (Scenario scenario : scenarios) {
             if (scenario.getName().equalsIgnoreCase(name)) {
@@ -153,6 +200,11 @@ public class Project {
         return null;
     }
 
+    /**
+     * Finds a reusable scenario by name.
+     * @param name scenario name to search for (case-insensitive)
+     * @return the reusable scenario if found, null otherwise
+     */
     public Scenario getReusableScenarioByName(String name) {
         for (Scenario scenario : reusableScenarios) {
             if (scenario.getName().equalsIgnoreCase(name)) {
@@ -162,6 +214,11 @@ public class Project {
         return null;
     }
 
+    /**
+     * Finds the index of a scenario by name in the Test Plan.
+     * @param name scenario name to search for (case-insensitive)
+     * @return the index if found, -1 otherwise
+     */
     public int getIndexOfScenarioByName(String name) {
         for (int i = 0; i < scenarios.size(); i++) {
             if (scenarios.get(i).getName().equalsIgnoreCase(name)) {
@@ -171,6 +228,11 @@ public class Project {
         return -1;
     }
 
+    /**
+     * Finds a release by name.
+     * @param name release name to search for (case-insensitive)
+     * @return the release if found, null otherwise
+     */
     public Release getReleaseByName(String name) {
         for (Release release : releases) {
             if (release.getName().equalsIgnoreCase(name)) {
@@ -180,6 +242,11 @@ public class Project {
         return null;
     }
 
+    /**
+     * Finds the index of a release by name.
+     * @param name release name to search for (case-insensitive)
+     * @return the index if found, -1 otherwise
+     */
     public int getIndexOfReleaseByName(String name) {
         for (int i = 0; i < releases.size(); i++) {
             if (releases.get(i).getName().equalsIgnoreCase(name)) {
@@ -189,6 +256,10 @@ public class Project {
         return -1;
     }
 
+    /**
+     * Sets the list of Test Plan scenarios.
+     * @param scenarios new list of scenarios
+     */
     public void setScenarios(List<Scenario> scenarios) {
         this.scenarios = scenarios;
     }
@@ -201,14 +272,28 @@ public class Project {
         return location;
     }
 
+    /**
+     * Returns the absolute path to the TestPlan directory.
+     * @return TestPlan directory path
+     */
     public String getTestPlanPath() {
         return getLocation() + File.separator + TEST_PLAN_DIR;
     }
 
+    /**
+     * Returns the absolute path to the ReusableComponents directory.
+     * @return ReusableComponents directory path
+     */
     public String getReusableComponentsPath() {
         return getLocation() + File.separator + REUSABLE_COMPONENTS_DIR;
     }
 
+    /**
+     * Returns the absolute path to a scenario directory based on its source.
+     * @param source the scenario source (TEST_PLAN or REUSABLE_COMPONENTS)
+     * @param scenarioName name of the scenario
+     * @return absolute path to the scenario directory
+     */
     public String getScenarioPath(Scenario.Source source, String scenarioName) {
         String base = source == Scenario.Source.REUSABLE_COMPONENTS
                 ? getReusableComponentsPath()
@@ -216,10 +301,19 @@ public class Project {
         return base + File.separator + scenarioName;
     }
 
+    /**
+     * Sets the project location.
+     * @param location new project location
+     */
     public void setLocation(String location) {
         this.location = location;
     }
 
+    /**
+     * Saves the project metadata file to disk.
+     * @param project project info to save
+     * @param file target file
+     */
     private void saveProjectFile(ProjectInfo project, File file) {
         if (!file.getParentFile().exists()) {
             file.getParentFile().mkdirs();
@@ -233,6 +327,11 @@ public class Project {
         }
     }
 
+    /**
+     * Updates project metadata by removing deleted scenarios and test cases.
+     * @param project project info to update
+     * @param sp source project
+     */
     private void updateProjectInfo(ProjectInfo project, Project sp) {
         try {
             List<String> scns = sp.getAllScenarios().stream().map(Scenario::getName).collect(toList());
@@ -252,15 +351,31 @@ public class Project {
         }
     }
 
+    /**
+     * Checks if a test case exists in any scenario (Test Plan or Reusable Components).
+     * @param scenarioName scenario name
+     * @param testCaseName test case name
+     * @return true if the test case exists, false otherwise
+     */
     public boolean hasTestCaseInAnyScenario(String scenarioName, String testCaseName) {
         return hasTestCaseInScenario(testCaseName, getScenarioByName(scenarioName))
                 || hasTestCaseInScenario(testCaseName, getReusableScenarioByName(scenarioName));
     }
 
+    /**
+     * Checks if a test case exists in a given scenario.
+     * @param tc test case name
+     * @param scnobj scenario object
+     * @return true if the test case exists in the scenario, false otherwise
+     */
     private boolean hasTestCaseInScenario(String tc, Scenario scnobj) {
         return scnobj != null && scnobj.getTestCaseByName(tc) != null;
     }
 
+    /**
+     * Returns the project metadata file.
+     * @return project file (.project)
+     */
     private File getProjectFile() {
         return new File(getLocation(), ".project");
     }
@@ -273,10 +388,19 @@ public class Project {
         return name;
     }
 
+    /**
+     * Sets the project name.
+     * @param name new project name
+     */
     public void setName(String name) {
         this.name = name;
     }
 
+    /**
+     * Renames the project and updates all related settings and references.
+     * @param newName new project name
+     * @return true if successful, false otherwise
+     */
     public Boolean rename(String newName) {
         if (FileUtils.renameFile(getLocation(), newName)) {
             setName(newName);
@@ -296,6 +420,10 @@ public class Project {
         return false;
     }
 
+    /**
+     * Loads all scenarios from the TestPlan directory.
+     * @return true if successful, false otherwise
+     */
     private Boolean loadScenariosFromTestPlan() {
         scenarios.clear();
         File file = new File(location);
@@ -311,6 +439,10 @@ public class Project {
         return false;
     }
 
+    /**
+     * Loads all scenarios from the ReusableComponents directory.
+     * @return true if successful, false otherwise
+     */
     private Boolean loadScenariosFromReusableComponents() {
         reusableScenarios.clear();
         File file = new File(location);
@@ -326,6 +458,10 @@ public class Project {
         return false;
     }
 
+    /**
+     * Migrates reusable test cases from legacy XML format to directory-based format.
+     * Moves test cases marked as reusable from TestPlan to ReusableComponents.
+     */
     private void migrateReusableComponentXmlIfPresent() {
         File xmlFile = new File(getLocation(), "ReusableComponent.xml");
         if (!xmlFile.exists()) {
@@ -404,6 +540,10 @@ public class Project {
         }
     }
 
+    /**
+     * Loads all test sets from the TestLab directory.
+     * @return true if successful, false otherwise
+     */
     private Boolean loadTestSets() {
         releases.clear();
         File file = new File(location);
@@ -462,6 +602,10 @@ public class Project {
         return null;
     }
 
+    /**
+     * Removes a scenario from the project (either Test Plan or Reusable Components).
+     * @param scenario scenario to remove
+     */
     public void removeScenario(Scenario scenario) {
         if (scenario == null) {
             return;
@@ -473,14 +617,25 @@ public class Project {
         }
     }
 
+    /**
+     * Returns the environment test data.
+     * @return environment test data
+     */
     public EnvTestData getTestData() {
         return testData;
     }
 
+    /**
+     * Loads test data from disk.
+     */
     private void loadTestDatas() {
         testData = new EnvTestData(this);
     }
 
+    /**
+     * Returns the test data type.
+     * @return test data type (default "csv")
+     */
     public String getTestdataType() {
         if (testdataType == null) {
             testdataType = "csv";
@@ -488,10 +643,17 @@ public class Project {
         return testdataType;
     }
 
+    /**
+     * Sets the test data type.
+     * @param testdataType new test data type
+     */
     public void setTestdataType(String testdataType) {
         this.testdataType = testdataType;
     }
 
+    /**
+     * Saves all project components including scenarios, reusable scenarios, test data, releases, object repository, and settings.
+     */
     public void save() {
         saveProjectFile(projectInfo, getProjectFile());
         for (Scenario scenario : scenarios) {
@@ -515,6 +677,11 @@ public class Project {
         loadProject();
     }
 
+    /**
+     * Returns a table model for the given object (typically a scenario or test case).
+     * @param selectedNode object to get table model for
+     * @return table model for the object, or empty model if not applicable
+     */
     public TableModel getTableModelFor(Object selectedNode) {
         if (selectedNode instanceof DataModel) {
             DataModel scenario = (DataModel) selectedNode;
@@ -524,11 +691,19 @@ public class Project {
         return new DefaultTableModel();
     }
 
+    /**
+     * Returns string representation of the project (project name).
+     * @return project name
+     */
     @Override
     public String toString() {
         return name;
     }
 
+    /**
+     * Returns detailed string representation of the project including location and scenarios.
+     * @return detailed project information
+     */
     public String printString() {
         StringBuilder builder = new StringBuilder();
         builder
@@ -548,6 +723,11 @@ public class Project {
         return builder.toString();
     }
 
+    /**
+     * Refactors (renames) a scenario across the entire project including all releases, test sets, and test data.
+     * @param oldScenarioName old scenario name
+     * @param newScenarioName new scenario name
+     */
     public void refactorScenario(String oldScenarioName, String newScenarioName) {
         LOGGER.log(Level.INFO, "Refactoring started for Scenario [{0}] to [{1}]", new Object[]{oldScenarioName, newScenarioName});
         for (Scenario scenario : getAllScenarios()) {
@@ -565,6 +745,12 @@ public class Project {
         });
     }
 
+    /**
+     * Refactors (renames) a test case across the entire project including all releases, test sets, and test data.
+     * @param scenarioName scenario containing the test case
+     * @param oldTestCaseName old test case name
+     * @param newTestCaseName new test case name
+     */
     public void refactorTestCase(String scenarioName, String oldTestCaseName, String newTestCaseName) {
         LOGGER.log(Level.INFO, "Refactoring started for TestCase [{0}] to [{1}]", new Object[]{oldTestCaseName, newTestCaseName});
         for (Scenario scenario : getAllScenarios()) {
@@ -580,6 +766,12 @@ public class Project {
                 .forEach(di -> di.setName(newTestCaseName));
     }
 
+    /**
+     * Refactors (moves) a test case from one scenario to another across the entire project.
+     * @param testCaseName test case name
+     * @param oldScenarioName old scenario name
+     * @param newScenarioName new scenario name
+     */
     public void refactorTestCaseScenario(String testCaseName, String oldScenarioName, String newScenarioName) {
         LOGGER.log(Level.INFO, "Refactoring started TestCase [{0}] from Scenario [{1}] to [{2}]", new Object[]{testCaseName, oldScenarioName, newScenarioName});
         for (Scenario scenario : getAllScenarios()) {
@@ -598,12 +790,25 @@ public class Project {
                 });
     }
     
+    /**
+     * Refactors (renames) an object reference across all scenarios in the project.
+     * @param pageName page name containing the object
+     * @param oldName old object name
+     * @param newName new object name
+     */
     public void refactorObjectName(String pageName, String oldName, String newName) {
         for (Scenario scenario : scenarios) {
             scenario.refactorObjectName(pageName, oldName, newName);
         }
     }
 
+    /**
+     * Refactors (renames) an object and its page across all scenarios in the project.
+     * @param oldpageName old page name
+     * @param oldObjName old object name
+     * @param newPageName new page name
+     * @param newObjName new object name
+     */
     public void refactorObjectName(String oldpageName, String oldObjName, String newPageName, String newObjName) {
         for (Scenario scenario : scenarios) {
             scenario.refactorObjectName(oldpageName, oldObjName, newPageName, newObjName);
@@ -625,6 +830,11 @@ public class Project {
         }
     }
 
+    /**
+     * Refactors (renames) a page across all scenarios in the project.
+     * @param oldPageName old page name
+     * @param newPageName new page name
+     */
     public void refactorPageName(String oldPageName, String newPageName) {
         for (Scenario scenario : scenarios) {
             scenario.refactorPageName(oldPageName, newPageName);
@@ -661,18 +871,35 @@ public class Project {
         }
     }
 
+    /**
+     * Refactors (renames) a test data reference across all scenarios in the project.
+     * @param oldTDName old test data name
+     * @param newTDName new test data name
+     */
     public void refactorTestData(String oldTDName, String newTDName) {
         for (Scenario scenario : scenarios) {
             scenario.refactorTestData(oldTDName, newTDName);
         }
     }
 
+    /**
+     * Refactors (renames) a test data column reference across all scenarios in the project.
+     * @param testDataName test data name
+     * @param oldColumnName old column name
+     * @param newColumnName new column name
+     */
     public void refactorTestDataColumn(String testDataName, String oldColumnName, String newColumnName) {
         for (Scenario scenario : scenarios) {
             scenario.refactorTestDataColumn(testDataName, oldColumnName, newColumnName);
         }
     }
 
+    /**
+     * Returns test cases that reference the specified object.
+     * @param pageName page name
+     * @param objectName object name
+     * @return list of impacted test cases
+     */
     public List<TestCase> getImpactedObjectTestCases(String pageName, String objectName) {
         List<TestCase> impactedTestCases = new ArrayList<>();
         for (Scenario scenario : scenarios) {
@@ -681,6 +908,14 @@ public class Project {
         return impactedTestCases;
     }
 
+    /**
+     * Returns test cases that reference the specified object with OR scope support.
+     * Searches for both plain and scoped page names (e.g., "[Shared] PageName").
+     * @param scope Object Repository scope (SHARED or PROJECT)
+     * @param pageName page name
+     * @param objectName object name
+     * @return list of impacted test cases
+     */
     public List getImpactedObjectTestCases(ORScope scope, String pageName, String objectName) {
         Set impacted = new LinkedHashSet<>();
         String scopedPageName = null;
@@ -698,6 +933,12 @@ public class Project {
         return new ArrayList<>(impacted);
     }
 
+    /**
+     * Returns test cases that reference the specified test case.
+     * @param scenarioName scenario name
+     * @param testCaseName test case name
+     * @return list of impacted test cases
+     */
     public List<TestCase> getImpactedTestCaseTestCases(String scenarioName, String testCaseName) {
         List<TestCase> impactedTestCases = new ArrayList<>();
         for (Scenario scenario : scenarios) {
@@ -706,6 +947,11 @@ public class Project {
         return impactedTestCases;
     }
 
+    /**
+     * Returns test cases that reference the specified test data.
+     * @param testDataName test data name
+     * @return list of impacted test cases
+     */
     public List<TestCase> getImpactedTestDataTestCases(String testDataName) {
         List<TestCase> impactedTestCases = new ArrayList<>();
         for (Scenario scenario : scenarios) {
@@ -714,14 +960,27 @@ public class Project {
         return impactedTestCases;
     }
 
+    /**
+     * Returns the project settings.
+     * @return project settings
+     */
     public ProjectSettings getProjectSettings() {
         return projectSettings;
     }
 
+    /**
+     * Returns the object repository for this project.
+     * @return object repository
+     */
     public ObjectRepository getObjectRepository() {
         return objectRepository;
     }
 
+    /**
+     * Loads project information from the .project file.
+     * @param f project file
+     * @return loaded or newly created project info
+     */
     private ProjectInfo loadProjectInfo(File f) {
         try {
             if (f.exists() && !FileScanner.readFile(f).isEmpty()) {
@@ -733,6 +992,11 @@ public class Project {
         return updateData(ProjectInfo.create(name));
     }
 
+    /**
+     * Checks and updates project data if it's empty.
+     * @param project project info to check
+     * @return updated project info
+     */
     private ProjectInfo checkData(ProjectInfo project) {
         if (project.getData().isEmpty()) {
             updateData(project);
@@ -740,6 +1004,11 @@ public class Project {
         return project;
     }
 
+    /**
+     * Updates project data with current scenario and test case metadata.
+     * @param project project info to update
+     * @return updated project info
+     */
     private ProjectInfo updateData(ProjectInfo project) {
         getAllScenarios().stream().map(To::Meta).forEach(project::addMeta);
         getAllScenarios().stream().flatMap(To::TC).map(To.DI::fromTC).forEach(project::addData);
@@ -747,22 +1016,50 @@ public class Project {
         return project;
     }
 
+    /**
+     * Utility class for converting project entities to metadata and data items.
+     */
     static class To {
 
+        /**
+         * Extracts test cases from a scenario as a stream.
+         * @param scn scenario
+         * @return stream of test cases
+         */
         private static Stream<TestCase> TC(Scenario scn) {
             return scn.getTestCases().stream();
         }
 
+        /**
+         * Extracts test sets from a release as a stream.
+         * @param scn release
+         * @return stream of test sets
+         */
         private static Stream<TestSet> TS(Release scn) {
             return scn.getTestSets().stream();
         }
 
+        /**
+         * Creates metadata object from a scenario.
+         * @param scn scenario
+         * @return meta object for scenario
+         */
         private static Meta Meta(Scenario scn) {
             return Meta.createScenario(scn.getName());
         }
 
+        /**
+         * Utility class for creating DataItem objects from project entities.
+         */
         static class DI {
 
+            /**
+             * Creates a data item with specified attributes.
+             * @param id data item ID
+             * @param name data item name
+             * @param t type attribute value
+             * @return created data item
+             */
             private static DataItem create(String id, String name, Object t) {
                 DataItem data = new DataItem();
                 data.setId(id);
@@ -771,12 +1068,22 @@ public class Project {
                 return data;
             }
 
+            /**
+             * Creates a data item from a test case.
+             * @param tc test case
+             * @return data item representing the test case
+             */
             private static DataItem fromTC(TestCase tc) {
                 DataItem data = create(tc.getKey(), tc.getName(), tc.isReusable() ? Meta.Attributes.reusable : Meta.Attributes.testcase);
                 data.getAttributes().add(Meta.Attributes.scenario, tc.getScenario().getName());
                 return data;
             }
 
+            /**
+             * Creates a data item from a test set.
+             * @param ts test set
+             * @return data item representing the test set
+             */
             private static DataItem fromTS(TestSet ts) {
                 DataItem data = create(ts.getName(), ts.getName(), Meta.Attributes.testset);
                 data.getAttributes().add(Meta.Attributes.release, ts.getRelease().getName());

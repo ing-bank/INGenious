@@ -28,25 +28,44 @@ public class ReusableTree extends ProjectTree {
 
     private static final Logger LOGGER = Logger.getLogger(ReusableTree.class.getName());
 
+    /**
+     * Constructs a new ReusableTree for managing Reusable Components scenarios and test cases.
+     * @param testDesign parent TestDesign component
+     */
     public ReusableTree(TestDesign testDesign) {
         super(testDesign);
     }
 
+    /**
+     * Creates a new tree model for Reusable Components.
+     * @return new ReusableTreeModel instance
+     */
     @Override
     protected ReusableTreeModel getNewTreeModel() {
         return new ReusableTreeModel();
     }
 
+    /**
+     * Creates a new popup menu for the reusable tree.
+     * @return new ReusablePopupMenu instance
+     */
     @Override
     ReusablePopupMenu getNewPopupMenu() {
         return new ReusablePopupMenu();
     }
 
+    /**
+     * Returns the reusable tree model.
+     * @return reusable tree model
+     */
     @Override
     public ReusableTreeModel getTreeModel() {
         return (ReusableTreeModel) super.getTreeModel();
     }
 
+    /**
+     * Loads the table model for the selected test case only.
+     */
     @Override
     public void loadTableModelForSelection() {
         Object selected = getSelectedTestCase();
@@ -55,6 +74,10 @@ public class ReusableTree extends ProjectTree {
         }
     }
 
+    /**
+     * Toggles the popup menu based on selected node type, with special handling for root.
+     * @param selected selected tree node
+     */
     @Override
     protected void togglePopupMenu(Object selected) {
         if (isRootSelected()) {
@@ -64,6 +87,9 @@ public class ReusableTree extends ProjectTree {
         }
     }
 
+    /**
+     * Handles the "New" action for groups, scenarios, and test cases.
+     */
     @Override
     protected void onNewAction() {
         if (isRootSelected()) {
@@ -77,12 +103,19 @@ public class ReusableTree extends ProjectTree {
         }
     }
 
+    /**
+     * Handles the "Delete" action for groups and other items.
+     */
     @Override
     protected void onDeleteAction() {
         deleteGroups();
         super.onDeleteAction();
     }
 
+    /**
+     * Handles action events specific to reusable components (groups, scenarios, test cases).
+     * @param ae action event
+     */
     @Override
     public void actionPerformed(ActionEvent ae) {
         switch (ae.getActionCommand()) {
@@ -106,6 +139,10 @@ public class ReusableTree extends ProjectTree {
         }
     }
 
+    /**
+     * Validates and performs rename operation with group name validation.
+     * @return true if rename was successful, false otherwise
+     */
     @Override
     protected Boolean checkAndRename() {
         String name = getTree().getCellEditor().getCellEditorValue().toString().trim();
@@ -123,6 +160,10 @@ public class ReusableTree extends ProjectTree {
         return super.checkAndRename();
     }
 
+    /**
+     * Notifies the project tree that a scenario has been renamed.
+     * @param scenario renamed scenario
+     */
     @Override
     void renameScenario(Scenario scenario) {
         getTestDesign().getProjectTree()
@@ -153,6 +194,10 @@ public class ReusableTree extends ProjectTree {
         }
     }
 
+    /**
+     * Moves a test case from reusable to test plan and reloads trees.
+     * @param testCase test case to move
+     */
     @Override
     void makeAsReusableRTestCase(TestCase testCase) {
         String error = getProject().moveTestCaseToTestPlan(testCase);
@@ -165,10 +210,16 @@ public class ReusableTree extends ProjectTree {
         }
     }
 
+    /**
+     * Adds a new group to the reusable tree.
+     */
     private void addGroup() {
         selectAndScrollTo(new TreePath(getTreeModel().addGroup(fetchNewGroupName()).getPath()));
     }
 
+    /**
+     * Adds a new reusable scenario to the selected group.
+     */
     private void addReusableScenario() {
         ScenarioNode scNode = getTreeModel().addScenario(getSelectedGroupNode(),
                 getProject().addReusableScenario(fetchNewReusableScenarioName()));
@@ -177,6 +228,12 @@ public class ReusableTree extends ProjectTree {
         }
     }
 
+    /**
+     * Adds a new reusable test case to the selected scenario.
+     */
+    /**
+     * Adds a new reusable test case to the selected scenario.
+     */
     private void addReusableTestCase() {
         ScenarioNode scenarioNode = getSelectedScenarioNodeSafe();
         if (scenarioNode != null) {
@@ -191,6 +248,10 @@ public class ReusableTree extends ProjectTree {
         }
     }
 
+    /**
+     * Returns the first selected scenario node safely.
+     * @return selected ScenarioNode or null if none selected
+     */
     private ScenarioNode getSelectedScenarioNodeSafe() {
         List<ScenarioNode> nodes = getSelectedScenarioNodes();
         if (nodes.isEmpty()) {
@@ -199,6 +260,9 @@ public class ReusableTree extends ProjectTree {
         return nodes.get(0);
     }
 
+    /**
+     * Deletes selected groups with option to move test cases to Test Plan.
+     */
     private void deleteGroups() {
         List<GroupNode> groupNodes = getSelectedGroupNodes();
         if (!groupNodes.isEmpty()) {
@@ -237,6 +301,10 @@ public class ReusableTree extends ProjectTree {
         }
     }
 
+    /**
+     * Generates a unique name for a new group.
+     * @return unique group name
+     */
     private String fetchNewGroupName() {
         String newGroupName = "NewGroup";
         for (int i = 0;; i++) {
@@ -248,6 +316,10 @@ public class ReusableTree extends ProjectTree {
         return newGroupName;
     }
 
+    /**
+     * Generates a unique name for a new reusable scenario.
+     * @return unique scenario name
+     */
     private String fetchNewReusableScenarioName() {
         String newScenarioName = "NewScenario";
         for (int i = 0;; i++) {
@@ -259,6 +331,11 @@ public class ReusableTree extends ProjectTree {
         return newScenarioName;
     }
 
+    /**
+     * Generates a unique name for a new reusable test case.
+     * @param scenario scenario to check for existing test case names
+     * @return unique test case name
+     */
     private String fetchNewReusableTestCaseName(Scenario scenario) {
         String newTestCaseName = "NewTestCase";
         for (int i = 0;; i++) {
@@ -271,6 +348,10 @@ public class ReusableTree extends ProjectTree {
         return newTestCaseName;
     }
 
+    /**
+     * Checks if the root node is selected.
+     * @return true if root is selected, false otherwise
+     */
     private Boolean isRootSelected() {
         TreePath path = getTree().getSelectionPath();
         if (path != null) {
@@ -279,20 +360,32 @@ public class ReusableTree extends ProjectTree {
         return false;
     }
 
+    /**
+     * Saves the reusable tree model state.
+     */
     public void save() {
         getTreeModel().save();
     }
 
+    /**
+     * Context menu for the reusable tree with group-specific actions.
+     */
     class ReusablePopupMenu extends ProjectPopupMenu {
 
         JMenuItem addGroup;
         JMenuItem renameGroup;
         JMenuItem deleteGroup;
 
+        /**
+         * Constructs a new ReusablePopupMenu and initializes menu items.
+         */
         public ReusablePopupMenu() {
             initMenu();
         }
 
+        /**
+         * Initializes all menu items specific to reusable components.
+         */
         private void initMenu() {
             removeAll();
             add(addGroup = create("Add Group", Keystroke.NEW));
@@ -303,6 +396,9 @@ public class ReusableTree extends ProjectTree {
             toggleReusable.setText("Make As TestCase");
         }
 
+        /**
+         * Configures menu items for test case context in reusable tree.
+         */
         @Override
         protected void forTestCase() {
             super.forTestCase();
@@ -311,6 +407,9 @@ public class ReusableTree extends ProjectTree {
             deleteGroup.setEnabled(false);
         }
 
+        /**
+         * Configures menu items for scenario context in reusable tree.
+         */
         @Override
         protected void forScenario() {
             super.forScenario();
@@ -319,6 +418,9 @@ public class ReusableTree extends ProjectTree {
             deleteGroup.setEnabled(false);
         }
 
+        /**
+         * Configures menu items for test plan (group) context in reusable tree.
+         */
         @Override
         protected void forTestPlan() {
             super.forTestPlan();
@@ -327,6 +429,9 @@ public class ReusableTree extends ProjectTree {
             deleteGroup.setEnabled(true);
         }
 
+        /**
+         * Configures menu items for root context in reusable tree.
+         */
         protected void forRoot() {
             super.forTestPlan();
             addScenario.setEnabled(false);
