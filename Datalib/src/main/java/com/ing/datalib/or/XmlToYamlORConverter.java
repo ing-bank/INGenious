@@ -1,6 +1,10 @@
 
 package com.ing.datalib.or;
 
+import java.io.File;
+import java.io.IOException;
+import java.util.logging.Logger;
+
 import com.ing.datalib.or.mobile.MobileOR;
 import com.ing.datalib.or.mobile.MobileORPage;
 import com.ing.datalib.or.structureddata.StructuredDataOR;
@@ -8,10 +12,6 @@ import com.ing.datalib.or.structureddata.StructuredDataORPage;
 import com.ing.datalib.or.web.WebOR;
 import com.ing.datalib.or.web.WebORPage;
 import com.ing.datalib.or.yaml.YamlORWriter;
-
-import java.io.File;
-import java.io.IOException;
-import java.util.logging.Logger;
 
 /**
  * Converts in-memory XML Object Repositories to YAML.

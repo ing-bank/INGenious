@@ -1,26 +1,25 @@
 package com.ing.datalib.or.yaml;
 
-import com.ing.datalib.or.structureddata.StructuredDataOR;
-import com.ing.datalib.or.structureddata.StructuredDataORPage;
-import com.ing.datalib.or.mobile.MobileOR;
-import com.ing.datalib.or.mobile.MobileORPage;
-import com.ing.datalib.or.web.WebOR;
-import com.ing.datalib.or.web.WebORPage;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
-import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
-import com.fasterxml.jackson.dataformat.yaml.YAMLGenerator;
-
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.logging.Level;
 import java.util.Map;
 import java.util.Set;
 import java.util.logging.Logger;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
+import com.fasterxml.jackson.dataformat.yaml.YAMLGenerator;
+import com.ing.datalib.or.mobile.MobileOR;
+import com.ing.datalib.or.mobile.MobileORPage;
+import com.ing.datalib.or.structureddata.StructuredDataOR;
+import com.ing.datalib.or.structureddata.StructuredDataORPage;
+import com.ing.datalib.or.web.WebOR;
+import com.ing.datalib.or.web.WebORPage;
 
 /**
  * Writes YAML-based Object Repository files.

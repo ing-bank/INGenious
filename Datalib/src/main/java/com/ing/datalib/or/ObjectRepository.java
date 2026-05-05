@@ -11,6 +11,8 @@ import java.util.function.Predicate;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import javax.swing.JOptionPane;
+
 import com.fasterxml.jackson.dataformat.xml.XmlMapper;
 import com.ing.datalib.component.Project;
 import com.ing.datalib.component.TestStep;
@@ -33,7 +35,6 @@ import com.ing.datalib.or.web.WebORObject;
 import com.ing.datalib.or.web.WebORPage;
 import com.ing.datalib.or.yaml.YamlORReader;
 import com.ing.datalib.or.yaml.YamlORWriter;
-import javax.swing.JOptionPane;
 
 /**
  * Manages all Object Repository types (Web Project OR, Web Shared OR, Mobile OR)
@@ -61,6 +62,7 @@ public class ObjectRepository {
     private boolean useYamlFormat = true; // Default to YAML for new projects
     private YamlORReader yamlReader;
     private YamlORWriter yamlWriter;
+    
     
     /**
      * Creates an ObjectRepository for the given project and loads all OR files
@@ -105,10 +107,13 @@ public class ObjectRepository {
                 webProjectOR.setName(sProject.getName());
                 
                 mobileProjectOR = new MobileOR();
+                webProjectOR.setName(sProject.getName());
+                
+                mobileProjectOR = new MobileOR();
                 mobileProjectOR.setScope(MobileOR.ORScope.PROJECT);
                 mobileProjectOR.setObjectRepository(this);
                 mobileProjectOR.setName(sProject.getName());
-                
+
                 structuredDataProjectOR = new StructuredDataOR();
                 structuredDataProjectOR.setObjectRepository(this);
                 structuredDataProjectOR.setName(sProject.getName());
@@ -1320,7 +1325,7 @@ public class ObjectRepository {
         );
         return uniqueName;
     }
-    
+
     /**
      * Moves a MobileOR object from project to shared page.
      * Actually moves the object (removes from source, adds to target) instead of cloning.
@@ -1877,6 +1882,7 @@ public class ObjectRepository {
         }
     }
     
+
     public boolean deleteMobilePageYaml(String pageName, MobileOR.ORScope scope) {
         if (!useYamlFormat || yamlWriter == null) {
             return true; // XML mode - no-op
@@ -1894,7 +1900,7 @@ public class ObjectRepository {
             return false;
         }
     }
-
+    
     public boolean deleteStructuredDataPageYaml(String pageName, StructuredDataOR.ORScope scope) {
         if (!useYamlFormat || yamlWriter == null) {
             return true; // XML mode - no-op
