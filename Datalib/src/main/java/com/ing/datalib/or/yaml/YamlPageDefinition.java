@@ -30,7 +30,7 @@ import java.util.Map;
  * </pre>
  */
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
-@JsonPropertyOrder({"page", "description", "urlPattern", "tags", "elements"})
+@JsonPropertyOrder({"page", "scope", "description", "urlPattern", "tags", "elements"})
 public class YamlPageDefinition {
     
     private String page;
@@ -38,6 +38,7 @@ public class YamlPageDefinition {
     private String urlPattern;
     private List<String> tags;
     private Map<String, YamlElementDefinition> elements = new LinkedHashMap<>();
+    private WebOR.ORScope scope;
     
     public YamlPageDefinition() {
     }
@@ -54,6 +55,14 @@ public class YamlPageDefinition {
 
     public void setPage(String page) {
         this.page = page;
+    }
+
+    public WebOR.ORScope getScope() {
+        return scope;
+    }
+
+    public void setScope(WebOR.ORScope scope) {
+        this.scope = scope;
     }
 
     public String getDescription() {
@@ -97,6 +106,10 @@ public class YamlPageDefinition {
         YamlPageDefinition yaml = new YamlPageDefinition();
         yaml.setPage(page.getName());
         
+        if (page.getRoot() != null) {
+            yaml.setScope(page.getRoot().getScope());
+        }
+        
         // Iterate through object groups and objects using Lists
         for (ObjectGroup<WebORObject> group : page.getObjectGroups()) {
             for (WebORObject obj : group.getObjects()) {
@@ -114,6 +127,10 @@ public class YamlPageDefinition {
      */
     public WebORPage toWebORPage(WebOR root) {
         WebORPage page = new WebORPage(this.page, root);
+        
+        if (this.scope != null && root != null && this.scope != root.getScope()) { 
+            throw new IllegalStateException("Scope mismatch: YAML page '" + page + "' declares scope " + scope + " but is loaded under OR scope " + root.getScope());
+        }
         
         // Convert each element to WebORObject using direct list manipulation
         // to avoid calling factory methods that require ObjectRepository

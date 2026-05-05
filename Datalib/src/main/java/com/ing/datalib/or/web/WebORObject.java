@@ -109,7 +109,9 @@ public class WebORObject extends UndoRedoModel implements ORObjectInf {
             group.removeFromParent();
         }
         group.getObjects().remove(this);
-        FileUtils.deleteFile(getRepLocation());
+        if (!group.getParent().getRoot().getObjectRepository().isUsingYamlFormat()) {
+            FileUtils.deleteFile(getRepLocation());
+        } 
     }
 
     @JsonIgnore
@@ -352,28 +354,18 @@ public class WebORObject extends UndoRedoModel implements ORObjectInf {
     @JsonIgnore
     @Override
     public Boolean rename(String newName) {
-        Boolean flag = true;
         if (getParent().getChildCount() == 1) {
-            flag = getParent().rename(newName);
+            getParent().rename(newName);
         }
-        if (flag && getParent().getObjectByName(newName) == null) {
-            // Check if using YAML format
-            if (getParent().getParent().getRoot().getObjectRepository().isUsingYamlFormat()) {
-                // For YAML format, objects are stored within the page YAML file
-                // Just update the name and mark as needing save
-                setName(newName);
-                changeSave();
-                return true;
-            } else {
-                // Use original XML folder-based rename
-                if (FileUtils.renameFile(getRepLocation(), newName)) {
-                    setName(newName);
-                    changeSave();
-                    return true;
-                }
-            }
+        if (newName == null || newName.isBlank()) {
+            return false;
         }
-        return false;
+        if (getParent().getObjectByName(newName) != null) {
+            return false;
+        }
+        setName(newName);
+        changeSave();
+        return true;
     }
 
     @JsonIgnore

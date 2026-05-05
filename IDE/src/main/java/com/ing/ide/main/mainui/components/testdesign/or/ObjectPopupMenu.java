@@ -4,17 +4,15 @@ package com.ing.ide.main.mainui.components.testdesign.or;
 import com.ing.datalib.or.common.ORObjectInf;
 import com.ing.datalib.or.common.ORPageInf;
 import com.ing.datalib.or.common.ORRootInf;
-import com.ing.datalib.or.common.ObjectGroup;
-import com.ing.ide.main.utils.dnd.TransferActionListener;
+import com.ing.ide.main.mainui.components.testdesign.or.clipboard.ORClipboardManager;
+import com.ing.ide.main.mainui.components.testdesign.or.clipboard.ORObjectClipboard;
 import com.ing.ide.main.utils.keys.Keystroke;
 import com.ing.ide.util.Canvas;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
-import javax.swing.Action;
 import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
 import javax.swing.KeyStroke;
-import javax.swing.TransferHandler;
 
 /**
  * Context (right-click) popup menu for Object Repository (OR) tree nodes in the Test Design UI.
@@ -42,7 +40,7 @@ public class ObjectPopupMenu extends JPopupMenu {
     private JMenuItem renameObject;
     private JMenuItem deleteObject;
     private JMenuItem removeUnusedObject;
-    private JMenuItem copyToShared;
+    private JMenuItem moveToShared;
 
     private JMenuItem openPageDump;
 
@@ -54,6 +52,8 @@ public class ObjectPopupMenu extends JPopupMenu {
     private JMenuItem sort;
 
     private final ActionListener listener;
+    
+    private Object currentSelection;
 
     public ObjectPopupMenu(ActionListener listener) {
         this.listener = listener;
@@ -65,63 +65,66 @@ public class ObjectPopupMenu extends JPopupMenu {
         add(renamePage = create("Rename Page", Keystroke.RENAME));
         add(deletePage = create("Delete Page", Keystroke.DELETE));
         addSeparator();
+        
         add(renameObjectGroup = create("Rename Object Group", Keystroke.RENAME));
         add(deleteObjectGroup = create("Delete Object Group", Keystroke.DELETE));
         addSeparator();
+        
         add(addObject = create("Add Object", Keystroke.NEW));
         add(renameObject = create("Rename Object", Keystroke.RENAME));
         add(deleteObject = create("Delete Object", Keystroke.DELETE));
         add(removeUnusedObject = create("Remove Unused Object",Keystroke.REMOVE_OBJECT));
         addSeparator();
-        copyToShared = create("Copy to Shared", null);
-        add(copyToShared);
-
-
+        
+        moveToShared = create("Move to Shared", null);
+        moveToShared.setActionCommand("Move to Shared");
+        moveToShared.addActionListener(listener);
+        add(moveToShared);
         add(openPageDump = create("Open Page Dump", null));
         add(impactAnalysis = create("Get Impacted TestCases", null));
-
         addSeparator();
 
         setCCP();
         addSeparator();
+        
         add(sort = create("Sort", null));
         sort.setIcon(Canvas.EmptyIcon);
     }
 
     public void togglePopupMenu(Object selected) {
-        copyToShared.setEnabled(false);
+        this.currentSelection = selected;
+        copy.setEnabled(false);
+        cut.setEnabled(false);
+        paste.setEnabled((currentSelection instanceof ORPageInf || currentSelection instanceof ORObjectInf)&& ORClipboardManager.hasData());
 
         if (selected instanceof ORRootInf) {
             forRoot();
             return;
         } else if (selected instanceof ORPageInf) {
             forPage();
-        } else if (selected instanceof ObjectGroup) {
-            forObjectGroup();
         } else if (selected instanceof ORObjectInf) {
             forObject();
         }
-        copyToShared.setEnabled(!isSharedSelection(selected));
-        removeUnusedObject.setEnabled(!isSharedSelection(selected));
+        moveToShared.setEnabled(!isSharedSelection(currentSelection));
     }
 
     private void forPage() {
+        addPage.setEnabled(false);
         renamePage.setEnabled(true);
         deletePage.setEnabled(true);
 
-        addPage.setEnabled(false);
         renameObjectGroup.setEnabled(false);
         deleteObjectGroup.setEnabled(false);
 
         addObject.setEnabled(true);
         renameObject.setEnabled(false);
         deleteObject.setEnabled(false);
-        removeUnusedObject.setEnabled(true);
+        removeUnusedObject.setEnabled(!isSharedSelection(currentSelection));
         
         impactAnalysis.setEnabled(false);
 
         copy.setEnabled(true);
-        cut.setEnabled(true);
+        cut.setEnabled(isSameOR(currentSelection));
         paste.setEnabled(true);
 
         sort.setEnabled(true);
@@ -138,14 +141,15 @@ public class ObjectPopupMenu extends JPopupMenu {
         addObject.setEnabled(true);
         renameObject.setEnabled(false);
         deleteObject.setEnabled(false);
+        removeUnusedObject.setEnabled(false);
 
         impactAnalysis.setEnabled(true);
 
         copy.setEnabled(true);
-        cut.setEnabled(true);
+        cut.setEnabled(isSameOR(currentSelection));
         paste.setEnabled(true);
 
-        sort.setEnabled(false);
+        sort.setEnabled(true);
     }
 
     private void forObject() {
@@ -156,23 +160,24 @@ public class ObjectPopupMenu extends JPopupMenu {
         renameObjectGroup.setEnabled(false);
         deleteObjectGroup.setEnabled(false);
 
-        addObject.setEnabled(true);
+        addObject.setEnabled(false);
         renameObject.setEnabled(true);
         deleteObject.setEnabled(true);
+        removeUnusedObject.setEnabled(false);
 
         impactAnalysis.setEnabled(true);
 
         copy.setEnabled(true);
-        cut.setEnabled(true);
+        cut.setEnabled(isSameOR(currentSelection));
         paste.setEnabled(true);
 
         sort.setEnabled(false);
     }
 
     private void forRoot() {
+        boolean hasClipboard = ORClipboardManager.hasData();
+        
         addPage.setEnabled(true);
-        removeUnusedObject.setEnabled(false);
-
         renamePage.setEnabled(false);
         deletePage.setEnabled(false);
 
@@ -182,13 +187,12 @@ public class ObjectPopupMenu extends JPopupMenu {
         addObject.setEnabled(false);
         renameObject.setEnabled(false);
         deleteObject.setEnabled(false);
+        removeUnusedObject.setEnabled(false);
 
         impactAnalysis.setEnabled(false);
 
-        copy.setEnabled(false);
-        cut.setEnabled(false);
-        paste.setEnabled(false);
-
+        cut.setEnabled(isSameOR(currentSelection));
+        paste.setEnabled( hasClipboard && ORClipboardManager.get().getType() == ORObjectClipboard.Type.PAGE);
         sort.setEnabled(true);
     }
 
@@ -201,26 +205,25 @@ public class ObjectPopupMenu extends JPopupMenu {
     }
 
     private void setCCP() {
-        TransferActionListener actionListener = new TransferActionListener();
         cut = new JMenuItem("Cut");
-        cut.setActionCommand((String) TransferHandler.getCutAction().getValue(Action.NAME));
-        cut.addActionListener(actionListener);
+        cut.setActionCommand("Cut");           // for Pages 
         cut.setAccelerator(Keystroke.CUT);
         cut.setMnemonic(KeyEvent.VK_T);
+        cut.addActionListener(listener);
         add(cut);
 
         copy = new JMenuItem("Copy");
-        copy.setActionCommand((String) TransferHandler.getCopyAction().getValue(Action.NAME));
-        copy.addActionListener(actionListener);
+        copy.setActionCommand("Copy");         // for Pages
         copy.setAccelerator(Keystroke.COPY);
         copy.setMnemonic(KeyEvent.VK_C);
+        copy.addActionListener(listener);
         add(copy);
 
         paste = new JMenuItem("Paste");
-        paste.setActionCommand((String) TransferHandler.getPasteAction().getValue(Action.NAME));
-        paste.addActionListener(actionListener);
+        paste.setActionCommand("Paste");       // for Pages
         paste.setAccelerator(Keystroke.PASTE);
         paste.setMnemonic(KeyEvent.VK_P);
+        paste.addActionListener(listener);
         add(paste);
     }
 
@@ -230,9 +233,8 @@ public class ObjectPopupMenu extends JPopupMenu {
             page = (ORPageInf) selected;
         } else if (selected instanceof ORObjectInf) {
             page = ((ORObjectInf) selected).getPage();
-        } else if (selected instanceof ObjectGroup) {
-            page = ((ObjectGroup) selected).getParent();
         }
+        
         if (page != null && page.getRoot() instanceof com.ing.datalib.or.web.WebOR) {
             com.ing.datalib.or.web.WebOR root = (com.ing.datalib.or.web.WebOR) page.getRoot();
             return root.isShared();
@@ -242,5 +244,28 @@ public class ObjectPopupMenu extends JPopupMenu {
             return root.isShared();
         }
         return false;
+    }
+    
+    private boolean isSameOR(Object selected) {
+        if (selected instanceof ORPageInf) {
+            return ((ORPageInf) selected).getParent() == getCurrentRoot();
+        }
+        if (selected instanceof ORObjectInf) {
+            return ((ORObjectInf) selected).getPage().getParent() == getCurrentRoot();
+        }
+        return false;
+    }
+
+    private ORRootInf getCurrentRoot() {
+        if (currentSelection instanceof ORRootInf) {
+            return (ORRootInf) currentSelection;
+        }
+        if (currentSelection instanceof ORPageInf) {
+            return (ORRootInf) ((ORPageInf) currentSelection).getParent();
+        }
+        if (currentSelection instanceof ORObjectInf) {
+            return (ORRootInf) ((ORObjectInf) currentSelection).getPage().getParent();
+        }
+        return null;
     }
 }

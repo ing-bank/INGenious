@@ -4,6 +4,7 @@ package com.ing.datalib.component;
 import com.ing.datalib.component.TestStep.HEADERS;
 import com.ing.datalib.component.utils.FileUtils;
 import com.ing.datalib.component.utils.SaveListener;
+import com.ing.datalib.or.web.ResolvedWebObject;
 import com.ing.datalib.or.web.WebOR.ORScope;
 import java.io.File;
 import java.io.FileWriter;
@@ -213,6 +214,11 @@ public class TestCase extends DataModel {
 
     public void addObjectStep(int index, String objectName, String pageName) {
         TestStep step = new TestStep(this).asObjectStep(objectName, pageName);
+        addStep(index, step);
+    }
+
+    public void addObjectStep(int index, ResolvedWebObject rwo) {
+        TestStep step = new TestStep(this).asObjectStep(rwo);
         addStep(index, step);
     }
 

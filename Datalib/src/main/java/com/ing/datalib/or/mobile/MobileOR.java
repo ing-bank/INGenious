@@ -103,6 +103,9 @@ public class MobileOR implements ORRootInf<MobileORPage> {
         this.pages = pages;
         for (MobileORPage page : pages) {
             page.setRoot(this);
+            if (page.getSource() == null) {
+                page.setSource(isShared() ? ORScope.SHARED : ORScope.PROJECT);
+            }
         }
     }
 
@@ -250,7 +253,7 @@ public class MobileOR implements ORRootInf<MobileORPage> {
     public String getRepLocation() {
         return repLocationOverride != null
                 ? repLocationOverride
-                : getObjectRepository().getMORRepLocation();
+                : getObjectRepository().getORRepLocation();
     }
 
     @JsonIgnore
@@ -282,6 +285,6 @@ public class MobileOR implements ORRootInf<MobileORPage> {
     }
     
     public void setSharedProjects(List<String> projects) {
-        this.projects = (projects == null) ? new ArrayList<>() : projects;
+        this.projects = projects;
     }
 }

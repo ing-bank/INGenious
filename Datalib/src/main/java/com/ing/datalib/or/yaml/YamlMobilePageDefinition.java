@@ -33,7 +33,7 @@ import java.util.Map;
  * </pre>
  */
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
-@JsonPropertyOrder({"page", "packageName", "description", "platform", "tags", "elements"})
+@JsonPropertyOrder({"page", "scope", "packageName", "description", "platform", "tags", "elements"})
 public class YamlMobilePageDefinition {
     
     private String page;
@@ -42,6 +42,7 @@ public class YamlMobilePageDefinition {
     private String platform;     // "android" | "ios" | "both"
     private List<String> tags;
     private Map<String, YamlMobileElementDefinition> elements = new LinkedHashMap<>();
+    private MobileOR.ORScope scope;
     
     public YamlMobilePageDefinition() {
     }
@@ -58,6 +59,14 @@ public class YamlMobilePageDefinition {
 
     public void setPage(String page) {
         this.page = page;
+    }
+
+    public MobileOR.ORScope getScope() {
+        return scope;
+    }
+
+    public void setScope(MobileOR.ORScope scope) {
+        this.scope = scope;
     }
 
     public String getPackageName() {
@@ -110,6 +119,10 @@ public class YamlMobilePageDefinition {
         yaml.setPage(page.getName());
         yaml.setPackageName(page.getPackageName());
         
+        if (page.getRoot() != null) {
+            yaml.setScope(page.getRoot().getScope());
+        }
+        
         // Iterate through object groups and objects using Lists
         for (ObjectGroup<MobileORObject> group : page.getObjectGroups()) {
             for (MobileORObject obj : group.getObjects()) {
@@ -127,6 +140,11 @@ public class YamlMobilePageDefinition {
      */
     public MobileORPage toMobileORPage(MobileOR root) {
         MobileORPage page = new MobileORPage(this.page, root);
+        
+        if (this.scope != null && root != null && this.scope != root.getScope()) { 
+            throw new IllegalStateException("Scope mismatch: YAML mobile page '" + page + "' declares scope " + scope + " but is loaded under OR scope " + root.getScope());
+        }
+        
         if (this.packageName != null && !this.packageName.isEmpty()) {
             page.setPackageName(this.packageName);
         }

@@ -4,6 +4,7 @@ import com.ing.datalib.or.structureddata.StructuredData;
 import com.ing.datalib.or.structureddata.StructuredDataORPage;
 import com.ing.datalib.or.mobile.MobileOR;
 import com.ing.datalib.or.mobile.MobileORPage;
+import com.ing.datalib.or.ObjectRepository;
 import com.ing.datalib.or.web.WebOR;
 import com.ing.datalib.or.web.WebORPage;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -44,6 +45,8 @@ public class YamlORReader {
     
     private final ObjectMapper yamlMapper;
     
+    private ObjectRepository objectRepository;
+    
     public YamlORReader() {
         YAMLFactory factory = new YAMLFactory();
         factory.disable(YAMLGenerator.Feature.WRITE_DOC_START_MARKER);
@@ -52,11 +55,18 @@ public class YamlORReader {
         this.yamlMapper.findAndRegisterModules();
     }
     
+    public YamlORReader(ObjectRepository objectRepository) {
+        this.objectRepository = objectRepository;
+        YAMLFactory factory = new YAMLFactory();
+        factory.disable(YAMLGenerator.Feature.WRITE_DOC_START_MARKER);
+        this.yamlMapper = new ObjectMapper(factory);
+        this.yamlMapper.findAndRegisterModules();
+    }
     /**
      * Check if a YAML-based Web OR exists.
      */
     public boolean webORExists(File orLocation) {
-        File webPagesDir = new File(orLocation, "Web/pages");
+        File webPagesDir = new File(orLocation, "Web");
         return webPagesDir.exists() && webPagesDir.isDirectory();
     }
     
@@ -64,7 +74,7 @@ public class YamlORReader {
      * Check if a YAML-based Mobile OR exists.
      */
     public boolean mobileORExists(File orLocation) {
-        File mobilePagesDir = new File(orLocation, "Mobile/pages");
+        File mobilePagesDir = new File(orLocation, "Mobile");
         return mobilePagesDir.exists() && mobilePagesDir.isDirectory();
     }
     
@@ -84,7 +94,13 @@ public class YamlORReader {
      */
     public WebOR readWebOR(File orLocation) throws IOException {
         WebOR webOR = new WebOR();
-        File webPagesDir = new File(orLocation, "Web/pages");
+        File webPagesDir = new File(orLocation, "Web");
+        
+        if (orLocation.getPath().contains(File.separator + "Shared" + File.separator)) {
+            webOR.setScope(WebOR.ORScope.SHARED);
+        } else {
+            webOR.setScope(WebOR.ORScope.PROJECT);
+        }
         
         if (!webPagesDir.exists()) {
             LOGGER.info("No Web OR YAML directory found at: " + webPagesDir.getAbsolutePath());
@@ -116,7 +132,13 @@ public class YamlORReader {
      */
     public MobileOR readMobileOR(File orLocation) throws IOException {
         MobileOR mobileOR = new MobileOR();
-        File mobilePagesDir = new File(orLocation, "Mobile/pages");
+        File mobilePagesDir = new File(orLocation, "Mobile");
+        
+        if (orLocation.getPath().contains(File.separator + "Shared" + File.separator)) {
+            mobileOR.setScope(MobileOR.ORScope.SHARED);
+        } else {
+            mobileOR.setScope(MobileOR.ORScope.PROJECT);
+        }
         
         if (!mobilePagesDir.exists()) {
             LOGGER.info("No Mobile OR YAML directory found at: " + mobilePagesDir.getAbsolutePath());
