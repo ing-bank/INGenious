@@ -18,8 +18,9 @@ Create a new test case inside an existing or new scenario in any INGenious proje
 Project root for this skill:
 - Projects/<ProjectName>
 
-Reference patterns are embedded directly in this skill under the `## Reference Patterns` section.
-Do not rely on runtime file paths — use the inline examples below as the canonical reference.
+Reference patterns are stored in the `references/` directory alongside this skill file.
+Each pattern is documented in its own markdown file with examples and formatting rules.
+Consult these references when creating or validating test artifacts.
 
 ## When To Use
 - User provides business workflow steps and expected outcomes
@@ -341,133 +342,47 @@ When done, report:
 ## Reference Patterns
 
 All patterns below are extracted directly from a real INGenious project ("Purchase a product" flow).
-Use them as the canonical format reference — do not depend on any runtime file path.
+Each reference is documented in a dedicated file under the `references/` directory.
+Consult these files for detailed examples, formatting rules, and best practices.
 
-### 1. Main TestPlan CSV (orchestration)
-File: `Projects/<ProjectName>/TestPlan/<Scenario>/<TestCase>.csv`
-```csv
-Step,ObjectName,Description,Action,Input,Condition,Reference
-1,Execute,,Common:Login,,,
-2,Execute,,Purchase Flow:Add item to cart,,,
-3,Execute,,Purchase Flow:Fill Checkout Info,,,
-4,Execute,,Purchase Flow:Finish Checkout,,,
-```
-- `ObjectName` must be `Execute` for all orchestration rows.
-- `Action` must be `<ReusableScenario>:<ReusableName>`.
-- `Input`, `Condition`, `Reference` must all be blank.
+### Available Reference Files
 
-### 2. Reusable Component CSV (login)
-File: `Projects/<ProjectName>/ReusableComponents/Common/Login.csv`
-```csv
-Step,ObjectName,Description,Action,Input,Condition,Reference
-1,Browser,Open the Url [<Data>] in the Browser,Open,@https://www.saucedemo.com/,,
-2,Username,Enter the value [<Data>] in the Field [<Object>],Fill,Login:Username,,[Project] Login
-3,Password,Enter the value [<Data>] in the Field [<Object>],Fill,Login:Password,,[Project] Login
-4,Login [Button],Click the [<Object>],Click,,,[Project] Login
-```
-- `Reference` column uses `[Project] <PageName>` to point at the ObjectRepository page.
-- `Input` for data-driven steps uses `<Sheet>:<Column>` syntax.
-- `Open` with `@<url>` hardcodes the URL inline; use a data reference (`<Sheet>:URL`) for parameterised URLs.
+1. **[Main TestPlan CSV](references/main-testplan-csv.md)** - Test case orchestration format
+   - Execute row schema
+   - Reusable component references
+   - File: `Projects/<ProjectName>/TestPlan/<Scenario>/<TestCase>.csv`
 
-### 3. Reusable Component CSV (add item to cart + assertion)
-File: `Projects/<ProjectName>/ReusableComponents/Purchase Flow/Add Item to Cart.csv`
-```csv
-Step,ObjectName,Description,Action,Input,Condition,Reference
-1,Add to Cart [button],Click the [<Object>],Click,,,[Project] Product
-2,Shopping Cart [icon],Click the [<Object>],Click,,,[Project] Product
-3,Item Name,Assert if [<Object>] has text [<Data>],assertElementTextMatches,Purchase Details:Product,,[Project] Your Cart
-```
+2. **[Reusable Component - Login](references/reusable-component-login.md)** - Login flow pattern
+   - Data-driven inputs
+   - Page object references
+   - File: `Projects/<ProjectName>/ReusableComponents/Common/Login.csv`
 
-### 4. Reusable Component CSV (checkout form fill)
-File: `Projects/<ProjectName>/ReusableComponents/Purchase Flow/Fill Checkout Info.csv`
-```csv
-Step,ObjectName,Description,Action,Input,Condition,Reference
-1,Checkout [button],Click the [<Object>],Click,,,[Project] Your Cart
-2,First Name,Enter the value [<Data>] in the Field [<Object>],Fill,Purchase Details:FirstName,,[Project] Checkout - Your Information
-3,Last Name,Enter the value [<Data>] in the Field [<Object>],Fill,Purchase Details:LastName,,[Project] Checkout - Your Information
-4,Postal Code,Enter the value [<Data>] in the Field [<Object>],Fill,Purchase Details:PostCode,,[Project] Checkout - Your Information
-5,Continue [button],Click the [<Object>],Click,,,[Project] Checkout - Your Information
-```
+3. **[Reusable Component - Add to Cart](references/reusable-component-add-to-cart.md)** - Shopping cart pattern
+   - Navigation steps
+   - Assertion examples
+   - File: `Projects/<ProjectName>/ReusableComponents/Purchase Flow/Add Item to Cart.csv`
 
-### 5. Page Object YAML
-File: `Projects/<ProjectName>/ObjectRepository/Web/pages/<Page>.yaml`
-```yaml
-page: Login
-elements:
-  Username:
-    css: "[data-test=\"username\"]"
-  Password:
-    css: "[data-test=\"password\"]"
-  Login [Button]:
-    css: "[data-test=\"login-button\"]"
-```
-Role-based example (preferred for interactive elements):
-```yaml
-page: Mortgage - Plans
-elements:
-  Within 3 Months [Radio]:
-    role: Radio;Within 3 months
-    exact:
-      - role
-  Energy Label [Dropdown]:
-    css: "select[aria-label*='energy label']"
-  Next [Button]:
-    role: Button;Next
-  Guest [Tab]:
-    role: Tab;Guest
-```
-> **Rule:** Role type and element name are always written as `Type;Name` in a single `role:` value.
-> Never split into `role: Tab` + `text: Guest` — `text:` is not a valid INGenious YAML key.
+4. **[Reusable Component - Checkout Form](references/reusable-component-checkout-form.md)** - Form filling pattern
+   - Sequential data inputs
+   - Multi-field forms
+   - File: `Projects/<ProjectName>/ReusableComponents/Purchase Flow/Fill Checkout Info.csv`
 
-### 6. TestData CSV
-File: `Projects/<ProjectName>/TestData/<Sheet>.csv`
-```csv
-Scenario,Flow,Iteration,SubIteration,URL,Username,Password
-Common,Login,1,1,https://www.saucedemo.com/,standard_user,secret_sauce
-```
-With multiple data columns:
-```csv
-Scenario,Flow,Iteration,SubIteration,Product,FirstName,LastName,PostCode,SuccessMessage
-Purchase a product,Buy a single item,1,1,Sauce Labs Backpack,John,Doe,1121LK,Thank you for your order!
-```
+5. **[Page Object YAML](references/page-object-yaml.md)** - POM format and selector patterns
+   - CSS selectors
+   - Role-based selectors (preferred)
+   - Object naming conventions
+   - File: `Projects/<ProjectName>/ObjectRepository/Web/pages/<Page>.yaml`
 
-### 7. .project metadata file
-File: `Projects/<ProjectName>/.project`
-```json
-{
-  "id": "<ProjectName>",
-  "name": "<ProjectName>",
-  "version": "2.4",
-  "attributes": [],
-  "tags": [],
-  "_meta": [
-    { "type": "scenario", "name": "Common", "ref": "com.ing.datalib.model.Attribute", "attributes": [], "tags": [] },
-    { "type": "scenario", "name": "<YourScenario>", "ref": "com.ing.datalib.model.Attribute", "attributes": [], "tags": [] }
-  ],
-  "data": [
-    {
-      "id": "<Scenario>#<TestCaseName>",
-      "name": "<TestCaseName>",
-      "tags": [],
-      "attributes": [
-        { "name": "type", "value": "testcase" },
-        { "name": "scenario", "value": "<Scenario>" }
-      ]
-    },
-    {
-      "id": "<FlowGroup>#<ReusableName>",
-      "name": "<ReusableName>",
-      "tags": [],
-      "attributes": [
-        { "name": "type", "value": "reusable" },
-        { "name": "scenario", "value": "<FlowGroup>" }
-      ]
-    }
-  ]
-}
-```
-- Every new scenario, reusable, and testcase must be registered in `_meta` and `data` respectively.
-- Use the same id format `<Scenario>#<Name>` for all entries.
+6. **[TestData CSV](references/testdata-csv.md)** - Data sheet format
+   - Column structure
+   - Reference syntax
+   - File: `Projects/<ProjectName>/TestData/<Sheet>.csv`
+
+7. **[Project Metadata](references/project-metadata.md)** - .project file format
+   - Scenario registration
+   - Test case registration
+   - Reusable component registration
+   - File: `Projects/<ProjectName>/.project`
 
 ## Example Invocation Prompts
 - `/test-case-from-business-flow Project: Test. Scenario: Purchase a product. Testcase: Buy a single item. Reuse existing Login reusable flow and update page objects/test data as needed.`
