@@ -90,7 +90,11 @@ public class MobileORPage implements ORPageInf<MobileORObject, MobileOR> {
     public void removeFromParent() {
         root.setSaved(false);
         root.getPages().remove(this);
-        FileUtils.deleteFile(getRepLocation());
+        if (root.getObjectRepository().isUsingYamlFormat()) {
+            root.getObjectRepository().deleteMobilePageYaml(getName());
+        } else {
+            FileUtils.deleteFile(getRepLocation());
+        }
     }
 
     @JsonIgnore
@@ -256,28 +260,10 @@ public class MobileORPage implements ORPageInf<MobileORObject, MobileOR> {
 
     @Override
     public Boolean rename(String newName) {
-        if (getParent().getPageByName(newName) == null) {
-            String oldName = getName();
-            // Check if using YAML format
-            if (getRoot().getObjectRepository().isUsingYamlFormat()) {
-                // Rename the YAML file
-                if (getRoot().getObjectRepository().renameMobilePageYaml(oldName, newName)) {
-                    getRoot().getObjectRepository().renamePage(this, newName);
-                    setName(newName);
-                    getParent().setSaved(false);
-                    return true;
-                }
-            } else {
-                // Use original XML folder-based rename
-                if (FileUtils.renameFile(getRepLocation(), newName)) {
-                    getRoot().getObjectRepository().renamePage(this, newName);
-                    setName(newName);
-                    getParent().setSaved(false);
-                    return true;
-                }
-            }
-        }
-        return false;
+        getRoot()
+            .getObjectRepository()
+            .renamePage(this, newName);
+        return true;
     }
 
     @JsonIgnore

@@ -25,6 +25,8 @@ import com.ing.datalib.model.DataItem;
 import com.ing.datalib.model.Meta;
 import com.ing.datalib.model.ProjectInfo;
 import com.ing.datalib.or.ObjectRepository;
+import com.ing.datalib.or.mobile.MobileOR;
+import com.ing.datalib.or.web.WebOR;
 import com.ing.datalib.or.web.WebOR.ORScope;
 import com.ing.datalib.settings.ProjectSettings;
 import com.ing.datalib.util.data.FileScanner;
@@ -830,6 +832,26 @@ public class Project {
     public void refactorObjectName(ORScope scope, String pageName, String oldName, String newName) {
         for (Scenario scenario : scenarios) {
             scenario.refactorObjectName(scope, pageName, oldName, newName);
+        }
+    }
+ 
+    /**
+     * Refactors Mobile OR object references in TestSteps.
+     * Mobile scope is mapped to Web scope because Scenarios/TestSteps
+     * are tool-agnostic and only care about PROJECT vs SHARED.
+     */
+    public void refactorMobileObjectName(MobileOR.ORScope scope, String pageName, String oldName, String newName) {
+        for (Scenario scenario : scenarios) {
+            WebOR.ORScope webScope =
+            (scope == MobileOR.ORScope.SHARED)
+                ? WebOR.ORScope.SHARED
+                : WebOR.ORScope.PROJECT;
+            scenario.refactorObjectName(
+                webScope,
+                pageName,
+                oldName,
+                newName
+            );
         }
     }
 

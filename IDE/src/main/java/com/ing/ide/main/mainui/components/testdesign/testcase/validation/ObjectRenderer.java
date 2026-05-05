@@ -1,6 +1,7 @@
 package com.ing.ide.main.mainui.components.testdesign.testcase.validation;
 
 import com.ing.datalib.component.TestStep;
+import com.ing.datalib.or.ObjectRepository;
 import com.ing.datalib.or.web.ResolvedWebObject;
 import com.ing.datalib.or.structureddata.ResolvedStructuredDataObject;
 import com.ing.datalib.or.mobile.ResolvedMobileObject;
@@ -58,7 +59,6 @@ public class ObjectRenderer extends AbstractRenderer {
         var repo = step.getProject().getObjectRepository();
         String pageToken = step.getReference();
         String objectName = step.getObject();
-        
         
         ResolvedWebObject.PageRef wref = ResolvedWebObject.PageRef.parse(pageToken);
         if ((wref != null && wref.name != null && wref.scope != null) && (repo.resolveWebObject(wref, objectName) != null)
