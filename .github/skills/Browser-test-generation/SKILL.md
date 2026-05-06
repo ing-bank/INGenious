@@ -9,12 +9,19 @@ user-invocable: true
 
 **🔴 MANDATORY: This is an INTERACTIVE workflow**
 
-- **ALWAYS confirm** with the user before proceeding
-- **ALWAYS verify** the output by created tests in INGenious
+- **Always confirm** with the user before proceeding
+- **Always verify** output artifacts after creation or fixes by running the test case and checking for unknown action errors, missing object errors, and assertion results.
+- **Always clean up** resources after execution except .playwright-cli; Do not leave terminal processes, files, or environment changes without user confirmation. 
+- **Immediately** close browser instances opened for discovery or testing after use.
+- **Always show** the procedure step number and description to the user before executing it.
+- **Always show** the terminal that you are using for commands and explain what you are doing.
+- **Always show** the command to run the new test case after creation, with resolved placeholders.
+- **Always validate** that actions exist before adding them to any CSV file.
 - **Never assume** missing inputs; ask concise follow-up questions to fill gaps
 - **Never modify** unrelated files; only create/update what is necessary for the requested test case
+- **Never use unvalidated actions** like Navigate, GoTo, or other assumed names without verification.
 - **Always follow** the project’s existing patterns for reusable components, page objects, and test
-- **Do not** consult external documentation or resources; rely solely on the provided references and project structure
+- **Do not** consult external documentation or resources; rely solely on the provided references and project structure or use existing project artifacts as templates.
 
 # Test Case From Business Flow
 
