@@ -739,6 +739,7 @@ public class ProjectTree implements ActionListener {
             }
             if (anySuccess) {
                 getProject().reload();
+                getProject().save();
                 load();
                 getTestDesign().getReusableTree().load();
             }

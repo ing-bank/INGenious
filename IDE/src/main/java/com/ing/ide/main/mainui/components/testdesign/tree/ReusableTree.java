@@ -188,6 +188,7 @@ public class ReusableTree extends ProjectTree {
             }
             if (anySuccess) {
                 getProject().reload();
+                getProject().save();
                 getTestDesign().getProjectTree().load();
                 load();
             }
@@ -203,6 +204,7 @@ public class ReusableTree extends ProjectTree {
         String error = getProject().moveTestCaseToTestPlan(testCase);
         if (error == null) {
             getProject().reload();
+            getProject().save();
             getTestDesign().getProjectTree().load();
             load();
         } else {
