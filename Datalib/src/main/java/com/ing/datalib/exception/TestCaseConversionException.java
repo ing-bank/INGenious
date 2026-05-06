@@ -1,4 +1,4 @@
-package com.ing.datalib.component;
+package com.ing.datalib.exception;
 
 /**
  * Exception thrown when a test case conversion operation fails.

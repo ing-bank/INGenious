@@ -3,7 +3,7 @@ package com.ing.ide.main.mainui.components.testdesign.tree;
 
 import com.ing.datalib.component.Scenario;
 import com.ing.datalib.component.TestCase;
-import com.ing.datalib.component.TestCaseConversionException;
+import com.ing.datalib.exception.TestCaseConversionException;
 import com.ing.ide.main.mainui.components.testdesign.TestDesign;
 import com.ing.ide.main.mainui.components.testdesign.tree.model.GroupNode;
 import com.ing.ide.main.mainui.components.testdesign.tree.model.ReusableTreeModel;

@@ -4,7 +4,7 @@ package com.ing.ide.main.mainui.components.testdesign.tree.model;
 import com.ing.datalib.component.Project;
 import com.ing.datalib.component.Scenario;
 import com.ing.datalib.component.TestCase;
-import com.ing.datalib.component.TestCaseConversionException;
+import com.ing.datalib.exception.TestCaseConversionException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
