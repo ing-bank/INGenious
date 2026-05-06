@@ -5,6 +5,17 @@ argument-hint: 'Business flow + scenario name + testcase name + expected outcome
 user-invocable: true
 ---
 
+## Key Principles
+
+**🔴 MANDATORY: This is an INTERACTIVE workflow**
+
+- **ALWAYS confirm** with the user before proceeding
+- **ALWAYS verify** the output by created tests in INGenious
+- **Never assume** missing inputs; ask concise follow-up questions to fill gaps
+- **Never modify** unrelated files; only create/update what is necessary for the requested test case
+- **Always follow** the project’s existing patterns for reusable components, page objects, and test
+- **Do not** consult external documentation or resources; rely solely on the provided references and project structure
+
 # Test Case From Business Flow
 
 Create a new test case inside an existing or new scenario in any INGenious project, following the project pattern:
