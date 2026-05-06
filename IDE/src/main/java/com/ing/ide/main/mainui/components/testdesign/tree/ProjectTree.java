@@ -729,6 +729,9 @@ public class ProjectTree implements ActionListener {
      */
     protected void makeAsReusableRTestCase() {
         if (!getSelectedTestCaseNodes().isEmpty()) {
+            // Save current test case if it's being edited
+            saveCurrentTestCaseIfDisplayed();
+            
             boolean anySuccess = false;
             for (TestCaseNode testCaseNode : getSelectedTestCaseNodes()) {
                 try {
@@ -753,6 +756,17 @@ public class ProjectTree implements ActionListener {
      */
     void makeAsReusableRTestCase(TestCase testCase) {
         getTestDesign().getReusableTree().getTreeModel().addTestCase(testCase);
+    }
+
+    /**
+     * Saves the currently displayed test case in the editor if it exists.
+     * This ensures unsaved changes are persisted before operations like moving test cases.
+     */
+    protected void saveCurrentTestCaseIfDisplayed() {
+        TestCase currentTestCase = getTestDesign().getTestCaseComp().getCurrentTestCase();
+        if (currentTestCase != null) {
+            currentTestCase.save();
+        }
     }
 
     /**
