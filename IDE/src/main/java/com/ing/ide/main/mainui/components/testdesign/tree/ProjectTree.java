@@ -3,6 +3,7 @@ package com.ing.ide.main.mainui.components.testdesign.tree;
 import com.ing.datalib.component.Project;
 import com.ing.datalib.component.Scenario;
 import com.ing.datalib.component.TestCase;
+import com.ing.datalib.component.TestCaseConversionException;
 import com.ing.datalib.model.DataItem;
 import com.ing.datalib.model.Meta;
 import com.ing.datalib.model.Tag;
@@ -730,11 +731,11 @@ public class ProjectTree implements ActionListener {
         if (!getSelectedTestCaseNodes().isEmpty()) {
             boolean anySuccess = false;
             for (TestCaseNode testCaseNode : getSelectedTestCaseNodes()) {
-                String error = getProject().moveTestCaseToReusable(testCaseNode.getTestCase());
-                if (error == null) {
+                try {
+                    getProject().moveTestCaseToReusable(testCaseNode.getTestCase());
                     anySuccess = true;
-                } else {
-                    Notification.show(error);
+                } catch (TestCaseConversionException e) {
+                    Notification.show(e.getMessage());
                 }
             }
             if (anySuccess) {

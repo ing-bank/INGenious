@@ -3,6 +3,7 @@ package com.ing.ide.main.mainui.components.testdesign.tree;
 
 import com.ing.datalib.component.Scenario;
 import com.ing.datalib.component.TestCase;
+import com.ing.datalib.component.TestCaseConversionException;
 import com.ing.ide.main.mainui.components.testdesign.TestDesign;
 import com.ing.ide.main.mainui.components.testdesign.tree.model.GroupNode;
 import com.ing.ide.main.mainui.components.testdesign.tree.model.ReusableTreeModel;
@@ -179,11 +180,11 @@ public class ReusableTree extends ProjectTree {
         if (!getSelectedTestCaseNodes().isEmpty()) {
             boolean anySuccess = false;
             for (TestCaseNode testCaseNode : getSelectedTestCaseNodes()) {
-                String error = getProject().moveTestCaseToTestPlan(testCaseNode.getTestCase());
-                if (error == null) {
+                try {
+                    getProject().moveTestCaseToTestPlan(testCaseNode.getTestCase());
                     anySuccess = true;
-                } else {
-                    Notification.show(error);
+                } catch (TestCaseConversionException e) {
+                    Notification.show(e.getMessage());
                 }
             }
             if (anySuccess) {
@@ -201,14 +202,14 @@ public class ReusableTree extends ProjectTree {
      */
     @Override
     void makeAsReusableRTestCase(TestCase testCase) {
-        String error = getProject().moveTestCaseToTestPlan(testCase);
-        if (error == null) {
+        try {
+            getProject().moveTestCaseToTestPlan(testCase);
             getProject().reload();
             getProject().save();
             getTestDesign().getProjectTree().load();
             load();
-        } else {
-            Notification.show(error);
+        } catch (TestCaseConversionException e) {
+            Notification.show(e.getMessage());
         }
     }
 

@@ -472,8 +472,11 @@ public class Project {
         for (Scenario scenario : new ArrayList<>(scenarios)) {
             for (TestCase testCase : new ArrayList<>(scenario.getTestCases())) {
                 if (testCase.getReusable() != null) {
-                    if (moveTestCaseFile(testCase, Scenario.Source.REUSABLE_COMPONENTS) == null) {
+                    try {
+                        moveTestCaseFile(testCase, Scenario.Source.REUSABLE_COMPONENTS);
                         moved++;
+                    } catch (TestCaseConversionException e) {
+                        LOGGER.log(Level.WARNING, "Failed to migrate test case: " + e.getMessage(), e);
                     }
                 }
             }
@@ -488,30 +491,30 @@ public class Project {
     /**
      * Moves a test case to Reusable Components.
      * @param testCase the test case to move
-     * @return null if successful, error message otherwise
+     * @throws TestCaseConversionException if the move operation fails
      */
-    public String moveTestCaseToReusable(TestCase testCase) {
-        return moveTestCaseFile(testCase, Scenario.Source.REUSABLE_COMPONENTS);
+    public void moveTestCaseToReusable(TestCase testCase) throws TestCaseConversionException {
+        moveTestCaseFile(testCase, Scenario.Source.REUSABLE_COMPONENTS);
     }
 
     /**
      * Moves a test case to Test Plan.
      * @param testCase the test case to move
-     * @return null if successful, error message otherwise
+     * @throws TestCaseConversionException if the move operation fails
      */
-    public String moveTestCaseToTestPlan(TestCase testCase) {
-        return moveTestCaseFile(testCase, Scenario.Source.TEST_PLAN);
+    public void moveTestCaseToTestPlan(TestCase testCase) throws TestCaseConversionException {
+        moveTestCaseFile(testCase, Scenario.Source.TEST_PLAN);
     }
 
     /**
      * Moves a test case file to the specified target source (Test Plan or Reusable Components).
      * @param testCase the test case to move
      * @param targetSource the destination source (TEST_PLAN or REUSABLE_COMPONENTS)
-     * @return null if successful, error message otherwise
+     * @throws TestCaseConversionException if the move operation fails
      */
-    private String moveTestCaseFile(TestCase testCase, Scenario.Source targetSource) {
+    private void moveTestCaseFile(TestCase testCase, Scenario.Source targetSource) throws TestCaseConversionException {
         if (testCase == null || testCase.getScenario() == null) {
-            return "Invalid test case or scenario";
+            throw new TestCaseConversionException("Invalid test case or scenario");
         }
         
         String scenarioName = testCase.getScenario().getName();
@@ -520,7 +523,7 @@ public class Project {
         
         File source = new File(testCase.getLocation());
         if (!source.exists()) {
-            return "Test Case file does not exist";
+            throw new TestCaseConversionException("Test Case file does not exist");
         }
         
         File targetDir = new File(getScenarioPath(targetSource, scenarioName));
@@ -528,15 +531,14 @@ public class Project {
         File target = new File(targetDir, testCaseName + ".csv");
         
         if (target.exists()) {
-            return "Test case '" + testCaseName + "' already exists in scenario '" + scenarioName + "' in " + targetName;
+            throw new TestCaseConversionException("Test case '" + testCaseName + "' already exists in scenario '" + scenarioName + "' in " + targetName);
         }
         
         try {
             Files.move(source.toPath(), target.toPath());
-            return null;
         } catch (Exception ex) {
             LOGGER.log(Level.SEVERE, "Failed moving test case file", ex);
-            return "Failed to move test case: " + ex.getMessage();
+            throw new TestCaseConversionException("Failed to move test case: " + ex.getMessage(), ex);
         }
     }
 

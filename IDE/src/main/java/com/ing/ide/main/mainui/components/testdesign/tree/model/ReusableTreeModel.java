@@ -4,6 +4,9 @@ package com.ing.ide.main.mainui.components.testdesign.tree.model;
 import com.ing.datalib.component.Project;
 import com.ing.datalib.component.Scenario;
 import com.ing.datalib.component.TestCase;
+import com.ing.datalib.component.TestCaseConversionException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  *
@@ -11,6 +14,7 @@ import com.ing.datalib.component.TestCase;
  */
 public class ReusableTreeModel extends ProjectTreeModel {
 
+    private static final Logger LOGGER = Logger.getLogger(ReusableTreeModel.class.getName());
     private static final String DEFAULT_GROUP = "Reusable Components";
 
     Project project;
@@ -42,7 +46,11 @@ public class ReusableTreeModel extends ProjectTreeModel {
     public void toggleAllTestCasesFrom(GroupNode groupNode) {
         for (ScenarioNode scenarioNode : ScenarioNode.toList(groupNode.children())) {
             for (TestCaseNode testCaseNode : TestCaseNode.toList(scenarioNode.children())) {
-                project.moveTestCaseToTestPlan(testCaseNode.getTestCase());
+                try {
+                    project.moveTestCaseToTestPlan(testCaseNode.getTestCase());
+                } catch (TestCaseConversionException e) {
+                    LOGGER.log(Level.WARNING, "Failed to move test case to test plan: " + e.getMessage(), e);
+                }
             }
         }
     }
