@@ -1,5 +1,5 @@
 ---
-name: Browser-test-generation
+name: ingenious-browser-test-from-specification
 description: 'Create a new INGenious Test project test case from a business flow. Use when user gives checkout/login/order business steps and wants Scenario -> TestCase CSV, reusable component flows, page object YAMLs, and test data sheets wired together.'
 argument-hint: 'Business flow + scenario name + testcase name + expected outcomes'
 user-invocable: true
