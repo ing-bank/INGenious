@@ -1192,6 +1192,7 @@ public abstract class ObjectTree implements ActionListener {
         if (!ORClipboardManager.hasData()) {
             return;
         }
+        ORObjectInf pastedObject = null;
         ORObjectClipboard cb = ORClipboardManager.get();
         ORObjectInf source = cb.getObject();
         boolean cut = cb.isCut();
@@ -1258,6 +1259,7 @@ public abstract class ObjectTree implements ActionListener {
                     cloned.setParent(newGroup);
                     srcObj.clone(cloned);
                     newGroup.getObjects().add(cloned);
+                    pastedObject = cloned;
                 }
                 targetPage.getObjectGroups().add(newGroup);
                 ((WebOR) currentOR).setSaved(false);
@@ -1281,6 +1283,7 @@ public abstract class ObjectTree implements ActionListener {
                     cloned.setParent(newGroup);
                     srcObj.clone(cloned);
                     newGroup.getObjects().add(cloned);
+                    pastedObject = cloned;
                 }
                 targetPage.getObjectGroups().add(newGroup);
                 ((MobileOR) currentOR).setSaved(false);
@@ -1300,6 +1303,12 @@ public abstract class ObjectTree implements ActionListener {
                 }
             }
             reload();
+            final ORObjectInf highlight = pastedObject;
+            if (highlight != null) {
+                SwingUtilities.invokeLater(() -> {
+                    selectAndSrollTo(highlight.getTreePath());
+                });
+            }
             return;
         }
         if (currentOR instanceof WebOR && !((WebOR) currentOR).isShared() && sourceOR instanceof WebOR && ((WebOR) sourceOR).isShared()) {
@@ -1320,8 +1329,16 @@ public abstract class ObjectTree implements ActionListener {
             }
             targetPage.getObjectGroups().add(newGroup);
             reload();
+            final ORObjectInf highlight = pastedObject;
+            if (highlight != null) {
+                SwingUtilities.invokeLater(() -> {
+                    selectAndSrollTo(highlight.getTreePath());
+                });
+            }
             return;
         }
+        String expectedObjectName = source.getName();
+        String targetPageName = targetPage.getName();
         if (currentOR instanceof WebOR) {
             ResolvedWebObject resolved =
                 repo.resolveWebObjectWithScope(
@@ -1339,6 +1356,15 @@ public abstract class ObjectTree implements ActionListener {
                 ORClipboardManager.clear();
             }
             reload();
+            SwingUtilities.invokeLater(() -> {
+                ORPageInf page = getOR().getPageByName(targetPageName);
+                if (page != null) {
+                    ORObjectInf pasted = findObjectInPage(page, expectedObjectName);
+                    if (pasted != null) {
+                        selectAndSrollTo(pasted.getTreePath());
+                    }
+                }
+            });
             return;
         }
         if (currentOR instanceof MobileOR) {
@@ -1358,6 +1384,15 @@ public abstract class ObjectTree implements ActionListener {
                 ORClipboardManager.clear();
             }
             reload();
+            SwingUtilities.invokeLater(() -> {
+                ORPageInf page = getOR().getPageByName(targetPageName);
+                if (page != null) {
+                    ORObjectInf pasted = findObjectInPage(page, expectedObjectName);
+                    if (pasted != null) {
+                        selectAndSrollTo(pasted.getTreePath());
+                    }
+                }
+            });
         }
     }
 
@@ -1370,6 +1405,19 @@ public abstract class ObjectTree implements ActionListener {
             candidate = base + "_Copy_" + index++;
         } while (objectNameExists(page, candidate));
         return candidate;
+    }
+
+    private ORObjectInf findObjectInPage(ORPageInf page, String objectName) {
+        for (Object groupObj : page.getObjectGroups()) {
+            ObjectGroup<?> group = (ObjectGroup<?>) groupObj;
+            for (Object obj : group.getObjects()) {
+                ORObjectInf orObj = (ORObjectInf) obj;
+                if (objectName.equals(orObj.getName())) {
+                    return orObj;
+                }
+            }
+        }
+        return null;
     }
 
     private boolean objectNameExists(ORPageInf page, String name) {
@@ -1513,6 +1561,7 @@ public abstract class ObjectTree implements ActionListener {
                 ORClipboardManager.clear();
             }
             reload();
+            SwingUtilities.invokeLater(() -> {selectAndSrollTo(newPage.getTreePath());});
             return;
         }
         if (currentOR instanceof WebOR && !((WebOR) currentOR).isShared() && sourceOR instanceof WebOR && ((WebOR) sourceOR).isShared()) {
@@ -1537,6 +1586,7 @@ public abstract class ObjectTree implements ActionListener {
             }
             pageAdded(newPage);
             reload();
+            SwingUtilities.invokeLater(() -> {selectAndSrollTo(newPage.getTreePath());});
             return;
         }
         if (currentOR instanceof MobileOR && !((MobileOR) currentOR).isShared() && sourceOR instanceof MobileOR && ((MobileOR) sourceOR).isShared()) {
@@ -1561,32 +1611,45 @@ public abstract class ObjectTree implements ActionListener {
             }
             pageAdded(newPage);
             reload();
+            SwingUtilities.invokeLater(() -> {selectAndSrollTo(newPage.getTreePath());});
             return;
         }
         if (currentOR instanceof WebOR) {
-            String targetName = cut
+            String targetPageName = cut
                 ? sourcePage.getName()
                 : computeCopyPageName(sourcePage);
-            repo.copyWebPage(sourcePage.getName(), targetName);
+            repo.copyWebPage(sourcePage.getName(), targetPageName);
             if (cut) {
                 pageRemoved(sourcePage);
                 sourcePage.removeFromParent();
                 ORClipboardManager.clear();
             }
             reload();
+            SwingUtilities.invokeLater(() -> {
+                ORPageInf pastedPage = getOR().getPageByName(targetPageName);
+                if (pastedPage != null) {
+                    selectAndSrollTo(pastedPage.getTreePath());
+                }
+            });
             return;
         }
         if (currentOR instanceof MobileOR) {
-            String targetName = cut
+            String targetPageName = cut
                 ? sourcePage.getName()
                 : computeCopyPageName(sourcePage);
-            repo.copyMobilePage(sourcePage.getName(), targetName);
+            repo.copyMobilePage(sourcePage.getName(), targetPageName);
             if (cut) {
                 pageRemoved(sourcePage);
                 sourcePage.removeFromParent();
                 ORClipboardManager.clear();
             }
             reload();
+            SwingUtilities.invokeLater(() -> {
+                ORPageInf pastedPage = getOR().getPageByName(targetPageName);
+                if (pastedPage != null) {
+                    selectAndSrollTo(pastedPage.getTreePath());
+                }
+            });
         }
     }
 
@@ -1599,4 +1662,5 @@ public abstract class ObjectTree implements ActionListener {
         } while (getOR().getPageByName(candidate) != null);
         return candidate;
     }
+    
 }
