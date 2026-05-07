@@ -52,9 +52,9 @@ public class StructuredDataORObject extends UndoRedoModel implements ORObjectInf
     @JsonIgnore
     public final void setDefaultStructuredDataAttributes() {
         attributes = new ArrayList<>();
-        for (int i = 0; i < StructuredData.OBJECT_PROPS.size(); i++) {
+        for (int i = 0; i < StructuredDataOR.OBJECT_PROPS.size(); i++) {
             StructuredDataAttribute attr = new StructuredDataAttribute();
-            attr.setName(StructuredData.OBJECT_PROPS.get(i));
+            attr.setName(StructuredDataOR.OBJECT_PROPS.get(i));
             attr.setValue("");
             attributes.add(attr);
         }
@@ -86,7 +86,9 @@ public class StructuredDataORObject extends UndoRedoModel implements ORObjectInf
             group.removeFromParent();
         }
         group.getObjects().remove(this);
-        FileUtils.deleteFile(getRepLocation());
+        if (!group.getParent().getRoot().getObjectRepository().isUsingYamlFormat()) {
+            FileUtils.deleteFile(getRepLocation());
+        } 
     }
 
     @JsonIgnore
@@ -187,7 +189,7 @@ public class StructuredDataORObject extends UndoRedoModel implements ORObjectInf
     @JsonIgnore
     private Boolean isNotDefault(int rowIndex) {
         String value = getValueAt(rowIndex, 0).toString();
-        return StructuredData.OBJECT_PROPS.indexOf(value) == -1;
+        return StructuredDataOR.OBJECT_PROPS.indexOf(value) == -1;
     }
 
     @JsonIgnore
@@ -308,30 +310,18 @@ public class StructuredDataORObject extends UndoRedoModel implements ORObjectInf
     @JsonIgnore
     @Override
     public Boolean rename(String newName) {
-        Boolean flag = true;
         if (getParent().getChildCount() == 1) {
-            flag = getParent().rename(newName);
+            getParent().rename(newName);
         }
-        ObjectGroup<StructuredDataORObject> parent = getParent();
-        String parentName = parent.getName();
-        if (flag && getParent().getObjectByName(newName) == null) {
-            // Check if using YAML format
-            if (getParent().getParent().getRoot().getObjectRepository().isUsingYamlFormat()) {
-                // For YAML format, objects are stored within the page YAML file
-                // Just update the name and mark as needing save
-                setName(newName);
-                changeSave();
-                return true;
-            } else {
-                // Use original XML folder-based rename
-                if (FileUtils.renameFile(getRepLocation(), newName)) {
-                    setName(newName);
-                    changeSave();
-                    return true;
-                }
-            }
+        if (newName == null || newName.isBlank()) {
+            return false;
         }
-        return false;
+        if (getParent().getObjectByName(newName) != null) {
+            return false;
+        }
+        setName(newName);
+        changeSave();
+        return true;
     }
 
     @JsonIgnore
@@ -417,11 +407,23 @@ public class StructuredDataORObject extends UndoRedoModel implements ORObjectInf
     }
 
     @JsonIgnore
-    public void removeAttribute(int attrIndex) {
-        if (attrIndex >= 0 && attrIndex < attributes.size()) {
-            attributes.remove(attrIndex);
-            changeSave();
-            fireTableRowsDeleted(attrIndex, attrIndex);
+    public void addNewAttribute(String attrName) {
+        if (getAttribute(attrName) == null) {
+            attributes.add(new StructuredDataAttribute(attrName, attributes.size()));
+            super.rowAdded(attributes.size() - 1);
+            fireTableRowsInserted(attributes.size() - 1, attributes.size() - 1);
+        }
+    }
+
+    @JsonIgnore
+    public void removeAttribute(String attrName) {
+        if (StructuredDataOR.OBJECT_PROPS.indexOf(attrName) == -1) {
+            if (getAttribute(attrName) != null) {
+                int index = attributes.indexOf(getAttribute(attrName));
+                super.rowDeleted(index);
+                attributes.remove(index);
+                fireTableRowsDeleted(index, index);
+            }
         }
     }
 

@@ -23,7 +23,7 @@ import javax.swing.tree.TreePath;
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JsonIgnoreProperties({"root"})
-public class StructuredDataORPage implements ORPageInf<StructuredDataORObject, StructuredData> {
+public class StructuredDataORPage implements ORPageInf<StructuredDataORObject, StructuredDataOR> {
 
     @JacksonXmlProperty(isAttribute = true, localName = "ref")
     private String name;
@@ -36,13 +36,13 @@ public class StructuredDataORPage implements ORPageInf<StructuredDataORObject, S
     private List<ObjectGroup<StructuredDataORObject>> objectGroups;
 
     @JsonIgnore
-    private StructuredData root;
+    private StructuredDataOR root;
 
     public StructuredDataORPage() {
         this.objectGroups = new ArrayList<>();
     }
 
-    public StructuredDataORPage(String name, StructuredData root) {
+    public StructuredDataORPage(String name, StructuredDataOR root) {
         this.name = name;
         this.root = root;
         this.title = "";
@@ -85,7 +85,11 @@ public class StructuredDataORPage implements ORPageInf<StructuredDataORObject, S
     public void removeFromParent() {
         root.setSaved(false);
         root.getPages().remove(this);
-        FileUtils.deleteFile(getRepLocation());
+        if (root.getObjectRepository().isUsingYamlFormat()) {
+            root.getObjectRepository().deleteStructuredDataPageYaml(getName(), root.getScope());
+        } else {
+            FileUtils.deleteFile(getRepLocation());
+        }
     }
 
     @JsonIgnore
@@ -162,13 +166,13 @@ public class StructuredDataORPage implements ORPageInf<StructuredDataORObject, S
 
     @JsonIgnore
     @Override
-    public void setRoot(StructuredData root) {
+    public void setRoot(StructuredDataOR root) {
         this.root = root;
     }
 
     @JsonIgnore
     @Override
-    public StructuredData getRoot() {
+    public StructuredDataOR getRoot() {
         return root;
     }
 
@@ -259,27 +263,9 @@ public class StructuredDataORPage implements ORPageInf<StructuredDataORObject, S
     @JsonIgnore
     @Override
     public Boolean rename(String newName) {
-        // Check if using YAML format
-        if (root.getObjectRepository().isUsingYamlFormat()) {
-            // For YAML format, rename the page YAML file
-            if (root.getObjectRepository().renameStructuredDataPageYaml(name, newName)) {
-                String oldName = name;
-                root.getObjectRepository().renamePage(this, newName);
-                setName(newName);
-                root.setSaved(false);
-                return true;
-            }
-            return false;
-        } else {
-            // Use original XML folder-based rename
-            if (FileUtils.renameFile(getRepLocation(), newName)) {
-                String oldName = name;
-                root.getObjectRepository().renamePage(this, newName);
-                setName(newName);
-                root.setSaved(false);
-                return true;
-            }
-        }
-        return false;
+        getRoot()
+            .getObjectRepository()
+            .renamePage(this, newName);
+        return true;
     }
 }

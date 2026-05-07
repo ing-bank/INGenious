@@ -8,6 +8,7 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import com.ing.datalib.or.web.WebOR;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -21,7 +22,7 @@ import javax.swing.tree.TreeNode;
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JacksonXmlRootElement(localName = "Root")
-public class StructuredData implements ORRootInf<StructuredDataORPage> {
+public class StructuredDataOR implements ORRootInf<StructuredDataORPage> {
 
     public final static List<String> OBJECT_PROPS
             = new ArrayList<>(Arrays.asList(
@@ -38,17 +39,24 @@ public class StructuredData implements ORRootInf<StructuredDataORPage> {
     @JacksonXmlProperty(isAttribute = true)
     private String type;
 
+    @JacksonXmlProperty(isAttribute = true)
+    private ORScope scope = ORScope.PROJECT;
+    
+    @JacksonXmlElementWrapper(localName = "projects")
+    @JacksonXmlProperty(localName = "project")
+    private List<String> projects = new ArrayList<>();
+
     @JsonIgnore
     private ObjectRepository objectRepository;
 
     @JsonIgnore
     private Boolean saved = true;
 
-    public StructuredData() {
+    public StructuredDataOR() {
         this.pages = new ArrayList<>();
     }
 
-    public StructuredData(String name) {
+    public StructuredDataOR(String name) {
         this.name = name;
         this.type = "StructuredDataOR";
         this.pages = new ArrayList<>();
@@ -235,5 +243,31 @@ public class StructuredData implements ORRootInf<StructuredDataORPage> {
     @Override
     public void sort() {
         ORUtils.sort(this);
+    }
+    
+    public enum ORScope { 
+        PROJECT, SHARED 
+    }
+
+    @JsonIgnore
+    public ORScope getScope() { 
+        return scope; 
+    }
+    
+    public void setScope(ORScope scope) { 
+        this.scope = scope; 
+    }
+
+    @JsonIgnore
+    public boolean isShared() { 
+        return scope == ORScope.SHARED; 
+    }
+    
+    public List<String> getSharedProjects() {
+        return isShared() ? projects : Collections.emptyList();
+    }
+
+    public void setSharedProjects(List<String> projects) {
+        this.projects = projects;
     }
 }

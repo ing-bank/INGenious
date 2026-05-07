@@ -5,6 +5,7 @@ import com.ing.datalib.or.common.ORObjectInf;
 import com.ing.datalib.or.common.ORPageInf;
 import com.ing.datalib.or.common.ObjectGroup;
 import com.ing.datalib.or.mobile.MobileOR;
+import com.ing.datalib.or.structureddata.StructuredDataOR;
 import com.ing.datalib.or.web.WebOR;
 import java.util.ArrayList;
 import java.util.List;
@@ -114,6 +115,10 @@ public class ObjectRepDnD {
         }
         if (parent instanceof MobileOR) {
             MobileOR root = (MobileOR) parent;
+            return root.getScope().name();
+        }
+        if (parent instanceof StructuredDataOR) {
+            StructuredDataOR root = (StructuredDataOR) parent;
             return root.getScope().name();
         }
         return "PROJECT";

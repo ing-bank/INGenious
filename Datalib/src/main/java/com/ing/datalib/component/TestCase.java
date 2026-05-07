@@ -5,6 +5,7 @@ import com.ing.datalib.component.TestStep.HEADERS;
 import com.ing.datalib.component.utils.FileUtils;
 import com.ing.datalib.component.utils.SaveListener;
 import com.ing.datalib.or.mobile.ResolvedMobileObject;
+import com.ing.datalib.or.structureddata.ResolvedStructuredDataObject;
 import com.ing.datalib.or.web.ResolvedWebObject;
 import com.ing.datalib.or.web.WebOR.ORScope;
 import java.io.File;
@@ -422,6 +423,18 @@ public class TestCase extends DataModel {
                     return "[Shared] " + mres.getPageName();
                 } else if (mres.isFromProject()) {
                     return "[Project] " + mres.getPageName();
+                }
+            }
+            
+            // Try resolving as structured data object (Project scope first, then Shared)
+            var sdref = ResolvedStructuredDataObject.PageRef.parse(ref);
+            var sdres = repo.resolveStructuredDataObject(sdref, objectName);
+            
+            if (sdres != null) {
+                if (sdres.isFromShared()) {
+                    return "[Shared] " + sdres.getPageName();
+                } else if (sdres.isFromProject()) {
+                    return "[Project] " + sdres.getPageName();
                 }
             }
             

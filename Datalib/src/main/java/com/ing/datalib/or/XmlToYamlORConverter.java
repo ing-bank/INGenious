@@ -3,6 +3,8 @@ package com.ing.datalib.or;
 
 import com.ing.datalib.or.mobile.MobileOR;
 import com.ing.datalib.or.mobile.MobileORPage;
+import com.ing.datalib.or.structureddata.StructuredDataOR;
+import com.ing.datalib.or.structureddata.StructuredDataORPage;
 import com.ing.datalib.or.web.WebOR;
 import com.ing.datalib.or.web.WebORPage;
 import com.ing.datalib.or.yaml.YamlORWriter;
@@ -38,6 +40,8 @@ public class XmlToYamlORConverter {
             WebOR sharedWeb,
             MobileOR projectMobile,
             MobileOR sharedMobile,
+            StructuredDataOR projectStructuredData,
+            StructuredDataOR sharedStructuredData,
             File projectRoot,
             File sharedRoot) throws IOException {
 
@@ -46,6 +50,9 @@ public class XmlToYamlORConverter {
 
         writeProjectMobile(projectMobile, projectRoot);
         writeSharedMobile(sharedMobile, sharedRoot);
+
+        writeProjectStructuredData(projectStructuredData, projectRoot);
+        writeSharedStructuredData(sharedStructuredData, sharedRoot);
     }
 
     private void writeProjectWeb(WebOR projectOR, File projectRoot)
@@ -78,6 +85,21 @@ public class XmlToYamlORConverter {
         }
     }
 
+    private void writeProjectStructuredData(StructuredDataOR projectOR, File projectRoot)
+            throws IOException {
+
+        if (projectOR == null) return;
+
+        File pagesDir = new File(projectRoot, "StructuredData");
+        pagesDir.mkdirs();
+
+        LOG.info("Writing PROJECT Structured Data OR to " + pagesDir.getAbsolutePath());
+
+        for (StructuredDataORPage page : projectOR.getPages()) {
+            yamlWriter.writeStructuredDataPage(page, pagesDir);
+        }
+    }
+
     private void writeSharedWeb(WebOR sharedOR, File sharedRoot)
             throws IOException {
 
@@ -105,6 +127,21 @@ public class XmlToYamlORConverter {
 
         for (MobileORPage page : sharedOR.getPages()) {
             yamlWriter.writeMobilePage(page, pagesDir);
+        }
+    }
+
+    private void writeSharedStructuredData(StructuredDataOR sharedOR, File sharedRoot)
+            throws IOException {
+
+        if (sharedOR == null) return;
+
+        File pagesDir = new File(sharedRoot, "StructuredData");
+        pagesDir.mkdirs();
+
+        LOG.info("Writing SHARED Structured Data OR to " + pagesDir.getAbsolutePath());
+
+        for (StructuredDataORPage page : sharedOR.getPages()) {
+            yamlWriter.writeStructuredDataPage(page, pagesDir);
         }
     }
 }

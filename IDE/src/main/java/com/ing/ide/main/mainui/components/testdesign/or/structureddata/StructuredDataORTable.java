@@ -62,6 +62,9 @@ public class StructuredDataORTable extends JPanel implements ActionListener {
     public void loadObject(StructuredDataORObject object) {
         table.setModel(object);
         configureColumns();
+
+        String source = object.getPage().getRoot().isShared() ? "Shared" : "Project";
+        toolBar.setTitleSuffix("[" + source + "]");
     }
 
     private void configureColumns() {
@@ -148,8 +151,7 @@ public class StructuredDataORTable extends JPanel implements ActionListener {
         if (table.getSelectedRows().length > 0) {
             String[] attrs = getSelectedAttrs();
             for (String attr : attrs) {
-                getObject().removeAttribute(getObject().getAttribute(attr) != null ? 
-                    getObject().getAttributes().indexOf(getObject().getAttribute(attr)) : -1);
+                getObject().removeAttribute(attr);
             }
         }
     }
@@ -209,17 +211,15 @@ public class StructuredDataORTable extends JPanel implements ActionListener {
         return false;
     }
 
-    private List<ORObjectInf> getSelectedObjects() {
-        return structuredDataOR.getObjectTree().getSelectedObjects();
-    }
-
     private void clearFromSelected() {
         if (table.getSelectedRowCount() > 0) {
             String[] attrs = getSelectedAttrs();
-            for (String attr : attrs) {
-                getSelectedObjects().stream().forEach((object) -> {
-                    ((StructuredDataORObject) object).setAttributeByName(attr, "");
-                });
+            for (ORObjectInf object : structuredDataOR.getSelectedObjectsFromActiveTab()) {
+                for (String attr : attrs) {
+                    if (object instanceof StructuredDataORObject) {
+                        ((StructuredDataORObject) object).setAttributeByName(attr, "");
+                    }
+                }
             }
         }
     }
@@ -261,15 +261,16 @@ public class StructuredDataORTable extends JPanel implements ActionListener {
     private void removeFromSelected() {
         if (table.getSelectedRowCount() > 0) {
             String[] attrs = getSelectedAttrs();
-            for (String attr : attrs) {
-                getSelectedObjects().stream().forEach((object) -> {
-                    StructuredDataORObject apiObj = (StructuredDataORObject) object;
-                    StructuredDataAttribute orAttr = apiObj.getAttribute(attr);
-                    if (orAttr != null) {
-                        apiObj.removeAttribute(apiObj.getAttributes().indexOf(orAttr));
+            List<ORObjectInf> selected = structuredDataOR.getSelectedObjectsFromActiveTab();
+            for (ORObjectInf object : selected) {
+                for (String attr : attrs) {
+                    if (object instanceof StructuredDataORObject) {
+                        ((StructuredDataORObject) object).removeAttribute(attr);
                     }
-                });
+                }
             }
+            structuredDataOR.getObjectTable().revalidate();
+            structuredDataOR.getObjectTable().repaint();
         }
     }
 
@@ -283,10 +284,7 @@ public class StructuredDataORTable extends JPanel implements ActionListener {
         for (ObjectGroup<StructuredDataORObject> objectGroup : page.getObjectGroups()) {
             for (StructuredDataORObject object : objectGroup.getObjects()) {
                 for (String attr : attrs) {
-                    StructuredDataAttribute orAttr = object.getAttribute(attr);
-                    if (orAttr != null) {
-                        object.removeAttribute(object.getAttributes().indexOf(orAttr));
-                    }
+                    object.removeAttribute(attr);
                 }
             }
         }
@@ -295,11 +293,16 @@ public class StructuredDataORTable extends JPanel implements ActionListener {
     private void addToSelected() {
         if (table.getSelectedRowCount() > 0) {
             String[] attrs = getSelectedAttrs();
-            for (String attr : attrs) {
-                getSelectedObjects().stream().forEach((object) -> {
-                    ((StructuredDataORObject) object).addOrUpdateAttribute(attr, "");
-                });
+            List<ORObjectInf> selected = structuredDataOR.getSelectedObjectsFromActiveTab();
+            for (ORObjectInf object : selected) {
+                for (String attr : attrs) {
+                    if (object instanceof StructuredDataORObject) {
+                        ((StructuredDataORObject) object).addNewAttribute(attr);
+                    }
+                }
             }
+            structuredDataOR.getObjectTable().revalidate();
+            structuredDataOR.getObjectTable().repaint();
         }
     }
 
@@ -339,9 +342,17 @@ public class StructuredDataORTable extends JPanel implements ActionListener {
     private void setPriorityToSelected() {
         stopCellEditing();
         StructuredDataORObject currObj = getObject();
-        getSelectedObjects().stream().forEach((object) -> {
-            reorderAttributes(currObj.getAttributes(), ((StructuredDataORObject) object).getAttributes());
-        });
+        List<ORObjectInf> selected = structuredDataOR.getSelectedObjectsFromActiveTab();
+        for (ORObjectInf object : selected) {
+            if (object instanceof StructuredDataORObject) {
+                if (currObj != null) {
+                    reorderAttributes(currObj.getAttributes(),
+                            ((StructuredDataORObject) object).getAttributes());
+                }
+            }
+        }
+        structuredDataOR.getObjectTable().revalidate();
+        structuredDataOR.getObjectTable().repaint();
     }
 
     private void setPriorityToPage() {
@@ -384,7 +395,8 @@ public class StructuredDataORTable extends JPanel implements ActionListener {
     }
 
     class ToolBar extends JToolBar {
-
+        private JLabel titleLabel;
+        
         public ToolBar() {
             init();
             setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, UIManager.getColor("Separator.foreground")));
@@ -398,9 +410,9 @@ public class StructuredDataORTable extends JPanel implements ActionListener {
             add(new javax.swing.Box.Filler(new java.awt.Dimension(10, 0),
                     new java.awt.Dimension(10, 0),
                     new java.awt.Dimension(10, 32767)));
-            JLabel label = new JLabel("Properties");
-            label.setFont(new Font("Default", Font.BOLD, 12));
-            add(label);
+            titleLabel = new JLabel("Properties");
+            titleLabel.setFont(new Font("Default", Font.BOLD, 12));
+            add(titleLabel);
 
             add(new javax.swing.Box.Filler(new java.awt.Dimension(0, 0), new java.awt.Dimension(0, 0), new java.awt.Dimension(32767, 32767)));
 
@@ -409,6 +421,10 @@ public class StructuredDataORTable extends JPanel implements ActionListener {
             addSeparator();
             add(Utils.createButton("Move Rows Up", "up", "Ctrl+Up", StructuredDataORTable.this));
             add(Utils.createButton("Move Rows Down", "down", "Ctrl+Down", StructuredDataORTable.this));
+        }
+        
+        public void setTitleSuffix(String suffix) {
+            titleLabel.setText("Properties " + suffix);
         }
 
     }

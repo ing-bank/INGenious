@@ -1,6 +1,6 @@
 package com.ing.datalib.or.yaml;
 
-import com.ing.datalib.or.structureddata.StructuredData;
+import com.ing.datalib.or.structureddata.StructuredDataOR;
 import com.ing.datalib.or.structureddata.StructuredDataORPage;
 import com.ing.datalib.or.mobile.MobileOR;
 import com.ing.datalib.or.mobile.MobileORPage;
@@ -102,8 +102,8 @@ public class YamlORWriter {
      * @param structuredDataOR The StructuredDataOR to write
      * @param orLocation The ObjectRepository directory
      */
-    public void writeStructuredDataOR(StructuredData structuredDataOR, File orLocation) throws IOException {
-        File structuredDataPagesDir = new File(orLocation, "StructuredData/pages");
+    public void writeStructuredDataOR(StructuredDataOR structuredDataOR, File orLocation) throws IOException {
+        File structuredDataPagesDir = new File(orLocation, "StructuredData");
         ensureDirectory(structuredDataPagesDir);
         
         List<StructuredDataORPage> pages = structuredDataOR.getPages();
@@ -185,7 +185,7 @@ public class YamlORWriter {
      * Delete an Structured Data page YAML file.
      */
     public boolean deleteStructuredDataPage(String pageName, File orLocation) {
-        File structuredDataPagesDir = new File(orLocation, "StructuredData/pages");
+        File structuredDataPagesDir = new File(orLocation, "StructuredData");
         File yamlFile = new File(structuredDataPagesDir, sanitizeFileName(pageName) + ".yaml");
         
         if (yamlFile.exists()) {
@@ -253,7 +253,7 @@ public class YamlORWriter {
      * @return true if rename was successful
      */
     public boolean renameStructuredDataPage(String oldName, String newName, File orLocation) {
-        File structuredDataPagesDir = new File(orLocation, "StructuredData/pages");
+        File structuredDataPagesDir = new File(orLocation, "StructuredData");
         File oldFile = new File(structuredDataPagesDir, sanitizeFileName(oldName) + ".yaml");
         File newFile = new File(structuredDataPagesDir, sanitizeFileName(newName) + ".yaml");
         
@@ -274,7 +274,7 @@ public class YamlORWriter {
      * @param mobileOR The MobileOR loaded from XML
      * @param orLocation The ObjectRepository directory
      */
-    public void convertFromXml(WebOR webOR, MobileOR mobileOR, File orLocation) throws IOException {
+    public void convertFromXml(WebOR webOR, MobileOR mobileOR, StructuredDataOR structuredDataOR, File orLocation) throws IOException {
         LOGGER.info("Converting OR from XML to YAML format");
         
         if (webOR != null && !webOR.getPages().isEmpty()) {
@@ -287,6 +287,12 @@ public class YamlORWriter {
             writeMobileOR(mobileOR, orLocation);
             writeSharedMetadata(mobileOR, orLocation);
             LOGGER.info(() -> "Converted " + mobileOR.getPages().size() + " Mobile pages to YAML");
+        }
+
+        if (structuredDataOR != null && !structuredDataOR.getPages().isEmpty()) {
+            writeStructuredDataOR(structuredDataOR, orLocation);
+            writeSharedMetadata(structuredDataOR, orLocation);
+            LOGGER.info(() -> "Converted " + structuredDataOR.getPages().size() + " Structured Data pages to YAML");
         }
     }
     
@@ -384,6 +390,18 @@ public class YamlORWriter {
             "MobileOR",
             mobileSharedOR.getSharedProjects(),
             "mobileor-projectsdata.yaml",
+            sharedRoot
+        );
+    }
+    
+    public void writeSharedMetadata(StructuredDataOR structuredDataSharedOR, File sharedRoot) throws IOException {
+        if (structuredDataSharedOR == null || !structuredDataSharedOR.isShared()) {
+            return;
+        }
+        writeSharedMetadataInternal(
+            "StructuredDataOR",
+            structuredDataSharedOR.getSharedProjects(),
+            "structuredDataor-projectsdata.yaml",
             sharedRoot
         );
     }

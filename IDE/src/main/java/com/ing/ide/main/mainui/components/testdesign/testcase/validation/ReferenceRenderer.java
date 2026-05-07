@@ -57,21 +57,21 @@ public class ReferenceRenderer extends AbstractRenderer {
         if (wres == null) {
             var mref = ResolvedMobileObject.PageRef.parse(ref);
             var mres = repo.resolveMobileObject(mref, step.getObject());
+
             if (mres != null) {
-                if (mres.isFromShared()) {
-                    decorated = "[Shared] " + mres.getPageName();
-                } else if (mres.isFromProject()) {
-                    decorated = "[Project] " + mres.getPageName();
-                }
+                decorated = decorate(mres, ref);
             } else {
-                decorated = ref;
+                var sref = ResolvedStructuredDataObject.PageRef.parse(ref);
+                var sres = repo.resolveStructuredDataObject(sref, step.getObject());
+
+                if (sres != null) {
+                    decorated = decorate(sres, ref);
+                } else {
+                    decorated = ref;
+                }
             }
         } else {
-            if (wres.isFromShared()) {
-                decorated = "[Shared] " + wres.getPageName();
-            } else if (wres.isFromProject()) {
-                decorated = "[Project] " + wres.getPageName();
-            }
+            decorated = decorate(wres, ref);
         }
 
         if (comp instanceof javax.swing.JLabel) {
@@ -100,18 +100,28 @@ public class ReferenceRenderer extends AbstractRenderer {
         }
     }
 
+    private String decorate(Object res, String fallback) {
+        if (res == null) return fallback;
 
-    /**
-     * Checks if the Reference field is optional for the given test step.
-     * <p>
-     * The Reference field is optional when the object type is a known system type
-     * (e.g., Execute, Browser, Mobile, Database, Webservice) that doesn't require
-     * an object repository reference.
-     * </p>
-     *
-     * @param step the test step to check
-     * @return true if the Reference field is optional, false otherwise
-     */
+        if (res instanceof ResolvedWebObject) {
+            ResolvedWebObject wres = (ResolvedWebObject) res;
+            if (wres.isFromShared()) return "[Shared] " + wres.getPageName();
+            if (wres.isFromProject()) return "[Project] " + wres.getPageName();
+
+        } else if (res instanceof ResolvedMobileObject) {
+            ResolvedMobileObject mres = (ResolvedMobileObject) res;
+            if (mres.isFromShared()) return "[Shared] " + mres.getPageName();
+            if (mres.isFromProject()) return "[Project] " + mres.getPageName();
+
+        } else if (res instanceof ResolvedStructuredDataObject) {
+            ResolvedStructuredDataObject sres = (ResolvedStructuredDataObject) res;
+            if (sres.isFromShared()) return "[Shared] " + sres.getPageName();
+            if (sres.isFromProject()) return "[Project] " + sres.getPageName();
+        }
+
+        return fallback;
+    }
+
     private Boolean isOptional(TestStep step) {
         return ObjectTypeUtil.isKnownType(step.getObject());
     }

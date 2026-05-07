@@ -142,7 +142,7 @@ public class YamlMobilePageDefinition {
         MobileORPage page = new MobileORPage(this.page, root);
         
         if (this.scope != null && root != null && this.scope != root.getScope()) { 
-            throw new IllegalStateException("Scope mismatch: YAML mobile page '" + page + "' declares scope " + scope + " but is loaded under OR scope " + root.getScope());
+            throw new IllegalStateException("Scope mismatch: YAML Mobile page '" + page + "' declares scope " + scope + " but is loaded under OR scope " + root.getScope());
         }
         
         if (this.packageName != null && !this.packageName.isEmpty()) {

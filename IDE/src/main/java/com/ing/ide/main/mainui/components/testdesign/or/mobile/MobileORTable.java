@@ -70,6 +70,9 @@ public class MobileORTable extends JPanel implements ActionListener {
     public void loadObject(MobileORObject object) {
         table.setModel(object);
         configureColumns();
+
+        String source = object.getPage().getRoot().isShared() ? "Shared" : "Project";
+        toolBar.setTitleSuffix("[" + source + "]");
     }
 
     private void configureColumns() {
