@@ -1,6 +1,6 @@
 # Page Object YAML
 
-File: `Projects/<ProjectName>/ObjectRepository/Web/pages/<Page>.yaml`
+File: `Projects/<ProjectName>/ObjectRepository/Web/<Page>.yaml`
 
 ```yaml
 page: Login

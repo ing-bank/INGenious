@@ -75,7 +75,7 @@ If key inputs are missing, ask concise follow-up questions before editing files.
 Create or update only relevant files:
 - Main test case: `Projects/<ProjectName>/TestPlan/<Scenario>/<TestCase>.csv`
 - Reusable components: `Projects/<ProjectName>/ReusableComponents/<FlowGroup>/<FlowName>.csv`
-- Page object YAML: `Projects/<ProjectName>/ObjectRepository/Web/pages/<Page>.yaml`
+- Page object YAML: `Projects/<ProjectName>/ObjectRepository/Web/<Page>.yaml`
 - Data sheets: `Projects/<ProjectName>/TestData/<Sheet>.csv`
 
 Optionally update:
@@ -389,7 +389,7 @@ Consult these files for detailed examples, formatting rules, and best practices.
    - CSS selectors
    - Role-based selectors (preferred)
    - Object naming conventions
-   - File: `Projects/<ProjectName>/ObjectRepository/Web/pages/<Page>.yaml`
+   - File: `Projects/<ProjectName>/ObjectRepository/Web/<Page>.yaml`
 
 6. **[TestData CSV](references/testdata-csv.md)** - Data sheet format
    - Column structure
