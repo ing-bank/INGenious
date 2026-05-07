@@ -130,6 +130,7 @@ public abstract class ObjectTree implements ActionListener {
         tree.setInvokesStopCellEditing(true);
         
         alterDefaultKeyBindings();
+        installClipboardActions();
         
         tree.setTransferHandler(new ObjectDnD(tree));
 
@@ -1100,6 +1101,27 @@ public abstract class ObjectTree implements ActionListener {
          tree.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_X, menuShortcutKeyMask), "cut");
          tree.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_C, menuShortcutKeyMask), "copy");
          tree.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_V, menuShortcutKeyMask), "paste");   
+    }
+
+    private void installClipboardActions() {
+        tree.getActionMap().put("cut", new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                cutSelection();
+            }
+        });
+        tree.getActionMap().put("copy", new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                copySelection();
+            }
+        });
+        tree.getActionMap().put("paste", new AbstractAction() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                pasteSelection();
+            }
+        });
     }
 
     private boolean isSharedScope() {
