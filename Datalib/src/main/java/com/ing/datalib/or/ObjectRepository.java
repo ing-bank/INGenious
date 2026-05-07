@@ -161,11 +161,17 @@ public class ObjectRepository {
         return sProject.getLocation() + File.separator + "StructuredDataObjectRepository";
     }
     public String getSharedORRepLocation() {
-        File projectDir = new File(sProject.getLocation());   
-        File projectsRoot = projectDir.getParentFile();       
-        File ingeniousRoot = projectsRoot.getParentFile();    
-        File sharedOR = new File(ingeniousRoot,"Shared" + File.separator + "SharedObjectRepository");
-        return sharedOR.getAbsolutePath();
+        // Use the application root (where Run.command/Run.bat is located) for Shared OR
+        // This ensures Shared OR is always at <AppRoot>/Shared/SharedObjectRepository
+        // regardless of where individual projects are located
+        try {
+            String appRoot = new File(System.getProperty("user.dir")).getCanonicalPath();
+            return appRoot + File.separator + "Shared" + File.separator + "SharedObjectRepository";
+        } catch (IOException ex) {
+            LOG.log(Level.WARNING, "Failed to get canonical path for Shared OR location", ex);
+            // Fallback to non-canonical path
+            return System.getProperty("user.dir") + File.separator + "Shared" + File.separator + "SharedObjectRepository";
+        }
     }
     public Project getsProject() {
         return sProject;
@@ -913,7 +919,7 @@ public class ObjectRepository {
         String candidate = baseName;
         int counter = 1;
         while (exists.test(candidate)) {
-            candidate = baseName + " (" + counter + ")";
+            candidate = baseName + "_" + counter;
             counter++;
         }
         return candidate;
