@@ -26,6 +26,7 @@ import com.ing.datalib.model.Meta;
 import com.ing.datalib.model.ProjectInfo;
 import com.ing.datalib.or.ObjectRepository;
 import com.ing.datalib.or.mobile.MobileOR;
+import com.ing.datalib.or.structureddata.StructuredDataOR;
 import com.ing.datalib.or.web.WebOR;
 import com.ing.datalib.or.web.WebOR.ORScope;
 import com.ing.datalib.settings.ProjectSettings;
@@ -418,6 +419,8 @@ public class Project {
             getObjectRepository().getWebSharedOR().setName(newName);
             getObjectRepository().getMobileOR().setName(newName);
             getObjectRepository().getMobileSharedOR().setName(newName);
+            getObjectRepository().getStructuredDataOR().setName(newName);
+            getObjectRepository().getStructuredDataSharedOR().setName(newName);
             return true;
         }
         return false;
@@ -844,6 +847,26 @@ public class Project {
         for (Scenario scenario : getAllScenarios()) {
             WebOR.ORScope webScope =
             (scope == MobileOR.ORScope.SHARED)
+                ? WebOR.ORScope.SHARED
+                : WebOR.ORScope.PROJECT;
+            scenario.refactorObjectName(
+                webScope,
+                pageName,
+                oldName,
+                newName
+            );
+        }
+    }
+
+     /**
+     * Refactors Structured Data OR object references in TestSteps.
+     * Mobile scope is mapped to Web scope because Scenarios/TestSteps
+     * are tool-agnostic and only care about PROJECT vs SHARED.
+     */
+    public void refactorStructuredDataObjectName(StructuredDataOR.ORScope scope, String pageName, String oldName, String newName) {
+        for (Scenario scenario : getAllScenarios()) {
+            WebOR.ORScope webScope =
+            (scope == StructuredDataOR.ORScope.SHARED)
                 ? WebOR.ORScope.SHARED
                 : WebOR.ORScope.PROJECT;
             scenario.refactorObjectName(

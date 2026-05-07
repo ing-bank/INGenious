@@ -14,6 +14,10 @@ import com.ing.datalib.or.mobile.MobileOR;
 import com.ing.datalib.or.mobile.MobileORObject;
 import com.ing.datalib.or.mobile.MobileORPage;
 import com.ing.datalib.or.mobile.ResolvedMobileObject;
+import com.ing.datalib.or.structureddata.StructuredDataOR;
+import com.ing.datalib.or.structureddata.StructuredDataORObject;
+import com.ing.datalib.or.structureddata.StructuredDataORPage;
+import com.ing.datalib.or.structureddata.ResolvedStructuredDataObject;
 import com.ing.datalib.or.web.ResolvedWebObject;
 import com.ing.datalib.or.web.WebOR;
 import com.ing.datalib.or.web.WebORObject;
@@ -44,6 +48,8 @@ import com.ing.ide.main.mainui.components.testdesign.or.clipboard.ORClipboardMan
 import com.ing.ide.main.mainui.components.testdesign.or.clipboard.ORObjectClipboard;
 import com.ing.ide.main.mainui.components.testdesign.or.mobile.MobileORPanel;
 import com.ing.ide.main.mainui.components.testdesign.or.mobile.MobileObjectTree;
+import com.ing.ide.main.mainui.components.testdesign.or.structureddata.StructuredDataORPanel;
+import com.ing.ide.main.mainui.components.testdesign.or.structureddata.StructuredDataObjectTree;
 import com.ing.ide.main.mainui.components.testdesign.or.web.WebORPanel;
 import com.ing.ide.main.mainui.components.testdesign.or.web.WebObjectTree;
 import java.awt.Toolkit;
@@ -502,6 +508,7 @@ public abstract class ObjectTree implements ActionListener {
     private void removeUnusedObject() {
         boolean webDeletionPerformed = false;
         boolean mobileDeletionPerformed = false;
+        boolean structuredDataDeletionPerformed = false;
         try {
             if (isSharedScope()) {
                 Notification.show(
@@ -516,6 +523,7 @@ public abstract class ObjectTree implements ActionListener {
             ObjectRepository repo = getProject().getObjectRepository();
             WebOR projectWebOR = repo.getWebOR();
             MobileOR projectMobileOR = repo.getMobileOR();
+            StructuredDataOR projectStructuredDataOR = repo.getStructuredDataOR();
             Set<String> usedProjectObjects = new HashSet<>();
             for (Scenario scenario : getProject().getAllScenarios()) {
                 for (TestCase testCase : scenario.getTestCases()) {
@@ -629,7 +637,50 @@ public abstract class ObjectTree implements ActionListener {
                     }
                 }
             }
-            if (webDeletionPerformed || mobileDeletionPerformed) {
+            if (projectStructuredDataOR != null) {
+                for (ORPageInf selectedPage : selectedPages) {
+                    String pageName = selectedPage.getName();
+                    StructuredDataORPage structuredDataPage = projectStructuredDataOR.getPageByName(pageName);
+                    if (structuredDataPage == null) {
+                        continue;
+                    }
+                    List<String> unusedStructuredDataObjects = new ArrayList<>();
+                    for (ObjectGroup<StructuredDataORObject> group : structuredDataPage.getObjectGroups()) {
+                        if (!usedProjectObjects.contains(
+                                pageName + "@" + group.getName())) {
+                            unusedStructuredDataObjects.add(group.getName());
+                        }
+                    }
+                    if (!unusedStructuredDataObjects.isEmpty()) {
+                        int option = JOptionPane.showConfirmDialog(
+                            null,
+                            "<html><body><p style='width: 260px;'>"
+                            + "Delete the following Structured Data objects from page [ "
+                            + pageName + " ]?<br>"
+                            + unusedStructuredDataObjects
+                            + "</p></body></html>",
+                            "Delete Structured Data Objects",
+                            JOptionPane.YES_NO_OPTION
+                        );
+                        if (option == JOptionPane.YES_OPTION) {
+                            Iterator<ObjectGroup<StructuredDataORObject>> it =
+                                structuredDataPage.getObjectGroups().iterator();
+                            while (it.hasNext()) {
+                                ObjectGroup<StructuredDataORObject> group = it.next();
+                                if (unusedStructuredDataObjects.contains(group.getName())) {
+                                    it.remove();
+                                    projectStructuredDataOR.setSaved(false);
+                                    structuredDataDeletionPerformed = true;
+                                }
+                            }
+                            if (structuredDataDeletionPerformed) {
+                                repo.saveStructuredDataPageNow(structuredDataPage);
+                            }
+                        }
+                    }
+                }
+            }
+            if (webDeletionPerformed || mobileDeletionPerformed || structuredDataDeletionPerformed) {
                 repo.save();
             } else {
                 JOptionPane.showMessageDialog(
@@ -926,7 +977,8 @@ public abstract class ObjectTree implements ActionListener {
         ORRootInf root = getOR();
         boolean isWeb = root instanceof WebOR;
         boolean isMobile = root instanceof MobileOR;
-        String objectName = obj.getName().toString();
+        boolean isStructuredData = root instanceof StructuredDataOR;
+        String objectName = obj.getName();
         String pageName = page.getName();
         
         if (isWeb) {
@@ -987,6 +1039,35 @@ public abstract class ObjectTree implements ActionListener {
                 promptTestCaseReload();
             }
         }
+        if (isStructuredData) {
+            ResolvedStructuredDataObject resolved =
+                repo.resolveStructuredDataObject(
+                    new ResolvedStructuredDataObject.PageRef(
+                        pageName,
+                        WebOR.ORScope.PROJECT
+                    ),
+                    objectName
+                );
+            if (resolved == null || !resolved.isPresent()) {
+                Notification.show("Structured Data Object not found in Project OR");
+                return;
+            }
+            String newName = repo.moveStructuredDataObject(resolved, pageName);
+            if (newName != null) {
+                // Check if source page is now empty and remove it
+                StructuredDataOR projectOR = repo.getStructuredDataOR();
+                StructuredDataORPage sourcePage = projectOR.getPageByName(pageName);
+                if (sourcePage != null && sourcePage.getObjectGroups().isEmpty()) {
+                    sourcePage.removeFromParent();
+                }
+                
+                repo.save();
+                reload();
+                refreshSharedTree();
+                Notification.show("Moved Structured Data Object '" + newName + "' to Shared OR");
+                promptTestCaseReload();
+            }
+        }
     }
 
     private void promptTestCaseReload() {
@@ -1003,6 +1084,7 @@ public abstract class ObjectTree implements ActionListener {
         ORRootInf root = getOR();
         boolean isWeb = root instanceof WebOR;
         boolean isMobile = root instanceof MobileOR;
+        boolean isStructuredData = root instanceof StructuredDataOR;
         String pageName = page.getName();
         
         if (isWeb) {
@@ -1014,7 +1096,7 @@ public abstract class ObjectTree implements ActionListener {
                 Notification.show("Moved Page '" + pageName + "' to Shared OR");
                 promptTestCaseReload();
             } else {
-                Notification.show("Failed to move page '" + pageName + "' to Shared OR");
+                Notification.show("Failed to move Web page '" + pageName + "' to Shared OR");
             }
         }
         if (isMobile) {
@@ -1026,7 +1108,19 @@ public abstract class ObjectTree implements ActionListener {
                 Notification.show("Moved Mobile Page '" + pageName + "' to Shared OR");
                 promptTestCaseReload();
             } else {
-                Notification.show("Failed to move mobile page '" + pageName + "' to Shared OR");
+                Notification.show("Failed to move Mobile page '" + pageName + "' to Shared OR");
+            }
+        }
+        if (isStructuredData) {
+            String movedPageName = repo.moveStructuredDataPage(pageName, pageName);
+            if (movedPageName != null) {
+                repo.save();
+                reload();
+                refreshSharedTree();
+                Notification.show("Moved Structured Data Page '" + pageName + "' to Shared OR");
+                promptTestCaseReload();
+            } else {
+                Notification.show("Failed to move Structured Data page '" + pageName + "' to Shared OR");
             }
         }
     }
@@ -1035,9 +1129,11 @@ public abstract class ObjectTree implements ActionListener {
         if (this instanceof WebObjectTree) {
             WebORPanel panel = ((WebObjectTree) this).getORPanel();
             panel.getSharedTree().load();
-
         } else if (this instanceof MobileObjectTree) {
             MobileORPanel panel = ((MobileObjectTree) this).getORPanel();
+            panel.getSharedTree().load();
+        } else if (this instanceof StructuredDataObjectTree) {
+            StructuredDataORPanel panel = ((StructuredDataObjectTree) this).getORPanel();
             panel.getSharedTree().load();
         }
     }
@@ -1046,7 +1142,6 @@ public abstract class ObjectTree implements ActionListener {
     public Boolean navigateToObject(String objectName, String pageName) {
         // Parse the pageName to extract actual page name (handles scoped references like "[Project] PageName")
         String actualPageName = extractPageName(pageName);
-        
         ORPageInf page = getOR().getPageByName(actualPageName);
         if (page != null) {
             ObjectGroup group = page.getObjectGroupByName(objectName);
@@ -1070,16 +1165,15 @@ public abstract class ObjectTree implements ActionListener {
         if (pageReference == null || pageReference.trim().isEmpty()) {
             return pageReference;
         }
-        
+
         String trimmed = pageReference.trim();
-        
+
         // Check if reference starts with "[" and contains "]"
         if (trimmed.startsWith("[") && trimmed.contains("]")) {
             int endBracket = trimmed.indexOf(']');
             // Return the part after "]", trimming any leading whitespace
             return trimmed.substring(endBracket + 1).trim();
         }
-        
         // No scope prefix, return as-is
         return trimmed;
     }
@@ -1210,11 +1304,14 @@ public abstract class ObjectTree implements ActionListener {
 
     private boolean isSharedScope() {
         ORRootInf root = getOR();
-        if (root instanceof com.ing.datalib.or.web.WebOR) {
-            return ((com.ing.datalib.or.web.WebOR) root).isShared();
+        if (root instanceof WebOR) {
+            return ((WebOR) root).isShared();
         }
-        if (root instanceof com.ing.datalib.or.mobile.MobileOR) {
-            return ((com.ing.datalib.or.mobile.MobileOR) root).isShared();
+        if (root instanceof MobileOR) {
+            return ((MobileOR) root).isShared();
+        }
+        if (root instanceof StructuredDataOR) {
+            return ((StructuredDataOR) root).isShared();
         }
         return false;
     }
@@ -1224,10 +1321,16 @@ public abstract class ObjectTree implements ActionListener {
         ORRootInf root = getOR();
         java.util.List<String> projects = null;
 
-        if (root instanceof com.ing.datalib.or.web.WebOR) {
-            projects = ((com.ing.datalib.or.web.WebOR) root).getSharedProjects();
-        } else if (root instanceof com.ing.datalib.or.mobile.MobileOR) {
-            projects = ((com.ing.datalib.or.mobile.MobileOR) root).getSharedProjects();
+        String typeLabel = null;
+        if (root instanceof WebOR) {
+            projects = ((WebOR) root).getSharedProjects();
+            typeLabel = "Web";
+        } else if (root instanceof MobileOR) {
+            projects = ((MobileOR) root).getSharedProjects();
+            typeLabel = "Mobile";
+        } else if (root instanceof StructuredDataOR) {
+            projects = ((StructuredDataOR) root).getSharedProjects();
+            typeLabel = "StructuredData";
         }
 
         if (projects == null || projects.isEmpty()) {
@@ -1241,7 +1344,7 @@ public abstract class ObjectTree implements ActionListener {
             "<html><body><p style='width: 360px;'>"
             + "You are about to rename the SHARED " + entityLabel + " "
             + "<b>" + currentName + "</b> to <b>" + newName + "</b>.<br/><br/>"
-            + "Other projects that use Shared " + (root instanceof com.ing.datalib.or.mobile.MobileOR ? "Mobile" : "Web")
+            + "Other projects that use Shared " + typeLabel
             + " Objects still reference the old name in their test steps."
             + extra
             + "</body></html>";
@@ -1259,10 +1362,12 @@ public abstract class ObjectTree implements ActionListener {
         ORRootInf root = getOR();
         java.util.List<String> projects = null;
 
-        if (root instanceof com.ing.datalib.or.web.WebOR) {
-            projects = ((com.ing.datalib.or.web.WebOR) root).getSharedProjects();
-        } else if (root instanceof com.ing.datalib.or.mobile.MobileOR) {
-            projects = ((com.ing.datalib.or.mobile.MobileOR) root).getSharedProjects();
+        if (root instanceof WebOR) {
+            projects = ((WebOR) root).getSharedProjects();
+        } else if (root instanceof MobileOR) {
+            projects = ((MobileOR) root).getSharedProjects();
+        } else if (root instanceof StructuredDataOR) {
+            projects = ((StructuredDataOR) root).getSharedProjects();
         }
 
         if (projects != null && !projects.isEmpty()) {
@@ -1299,11 +1404,19 @@ public abstract class ObjectTree implements ActionListener {
             Notification.show("Cut is not allowed from Shared to Project Object Repository");
             return;
         }
+        if (cut && sourceOR instanceof StructuredDataOR && ((StructuredDataOR) sourceOR).isShared() && currentOR instanceof StructuredDataOR && !((StructuredDataOR) currentOR).isShared()) {
+            Notification.show("Cut is not allowed from Shared to Project Object Repository");
+            return;
+        }
         if (cut && sourceOR instanceof WebOR && !((WebOR) sourceOR).isShared() && currentOR instanceof WebOR && ((WebOR) currentOR).isShared()) {
             Notification.show("Cut is not allowed in Shared Object Repository. Use `Move to Shared` instead.");
             return;
         }
         if (cut && sourceOR instanceof MobileOR && !((MobileOR) sourceOR).isShared() && currentOR instanceof MobileOR && ((MobileOR) currentOR).isShared()) {
+            Notification.show("Cut is not allowed in Shared Object Repository. Use `Move to Shared` instead.");
+            return;
+        }
+        if (cut && sourceOR instanceof StructuredDataOR && !((StructuredDataOR) sourceOR).isShared() && currentOR instanceof StructuredDataOR && ((StructuredDataOR) currentOR).isShared()) {
             Notification.show("Cut is not allowed in Shared Object Repository. Use `Move to Shared` instead.");
             return;
         }
@@ -1373,6 +1486,30 @@ public abstract class ObjectTree implements ActionListener {
                 ((MobileOR) currentOR).setSaved(false);
                 repo.saveMobilePageNow((MobileORPage) targetPage);
             }
+            else if (currentOR instanceof StructuredDataOR) {
+                for (Object o : sourceGroup.getObjects()) {
+                    StructuredDataORObject srcObj = (StructuredDataORObject) o;
+                    String newObjectName;
+                    if (!cut) {
+                        newObjectName = computeCopyName(targetPage, srcObj);
+                    } else {
+                        if (objectNameExists(targetPage, srcObj.getName())) {
+                            newObjectName = computeCopyName(targetPage, srcObj);
+                        } else {
+                            newObjectName = srcObj.getName();
+                        }
+                    }
+                    StructuredDataORObject cloned = new StructuredDataORObject();
+                    cloned.setName(newObjectName);
+                    cloned.setParent(newGroup);
+                    srcObj.clone(cloned);
+                    newGroup.getObjects().add(cloned);
+                    pastedObject = cloned;
+                }
+                targetPage.getObjectGroups().add(newGroup);
+                ((StructuredDataOR) currentOR).setSaved(false);
+                repo.saveStructuredDataPageNow((StructuredDataORPage) targetPage);
+            }
             if (cut) {
                 ORPageInf sourcePage = source.getPage();
                 objectRemoved(source);
@@ -1384,6 +1521,9 @@ public abstract class ObjectTree implements ActionListener {
                 } else if (sourceOR instanceof MobileOR) {
                     ((MobileOR) sourceOR).setSaved(false);
                     repo.saveMobilePageNow((MobileORPage) sourcePage);
+                } else if (sourceOR instanceof StructuredDataOR) {
+                    ((StructuredDataOR) sourceOR).setSaved(false);
+                    repo.saveStructuredDataPageNow((StructuredDataORPage) sourcePage);
                 }
             }
             reload();
@@ -1406,6 +1546,58 @@ public abstract class ObjectTree implements ActionListener {
             for (Object o : sourceGroup.getObjects()) {
                 WebORObject srcObj = (WebORObject) o;
                 WebORObject cloned = new WebORObject();
+                cloned.setName(newGroupName);
+                cloned.setParent(newGroup);
+                srcObj.clone(cloned);
+                newGroup.getObjects().add(cloned);
+            }
+            targetPage.getObjectGroups().add(newGroup);
+            reload();
+            final ORObjectInf highlight = pastedObject;
+            if (highlight != null) {
+                SwingUtilities.invokeLater(() -> {
+                    selectAndSrollTo(highlight.getTreePath());
+                });
+            }
+            return;
+        }
+        if (currentOR instanceof MobileOR && !((MobileOR) currentOR).isShared() && sourceOR instanceof MobileOR && ((MobileOR) sourceOR).isShared()) {
+            String baseName = sourceGroup.getName().replaceAll("_Copy_\\d+$", "");
+            String newGroupName;
+            int i = 1;
+            do {
+                newGroupName = baseName + "_Copy_" + i++;
+            } while (targetPage.getObjectGroupByName(newGroupName) != null);
+            ObjectGroup<MobileORObject> newGroup = new ObjectGroup<>(newGroupName, (MobileORPage) targetPage);
+            for (Object o : sourceGroup.getObjects()) {
+                MobileORObject srcObj = (MobileORObject) o;
+                MobileORObject cloned = new MobileORObject();
+                cloned.setName(newGroupName);
+                cloned.setParent(newGroup);
+                srcObj.clone(cloned);
+                newGroup.getObjects().add(cloned);
+            }
+            targetPage.getObjectGroups().add(newGroup);
+            reload();
+            final ORObjectInf highlight = pastedObject;
+            if (highlight != null) {
+                SwingUtilities.invokeLater(() -> {
+                    selectAndSrollTo(highlight.getTreePath());
+                });
+            }
+            return;
+        }
+        if (currentOR instanceof StructuredDataOR && !((StructuredDataOR) currentOR).isShared() && sourceOR instanceof StructuredDataOR && ((StructuredDataOR) sourceOR).isShared()) {
+            String baseName = sourceGroup.getName().replaceAll("_Copy_\\d+$", "");
+            String newGroupName;
+            int i = 1;
+            do {
+                newGroupName = baseName + "_Copy_" + i++;
+            } while (targetPage.getObjectGroupByName(newGroupName) != null);
+            ObjectGroup<StructuredDataORObject> newGroup = new ObjectGroup<>(newGroupName, (StructuredDataORPage) targetPage);
+            for (Object o : sourceGroup.getObjects()) {
+                StructuredDataORObject srcObj = (StructuredDataORObject) o;
+                StructuredDataORObject cloned = new StructuredDataORObject();
                 cloned.setName(newGroupName);
                 cloned.setParent(newGroup);
                 srcObj.clone(cloned);
@@ -1462,6 +1654,33 @@ public abstract class ObjectTree implements ActionListener {
                 return;
             }
             repo.copyMobileObject(resolved, targetPage.getName());
+            if (cut) {
+                objectRemoved(source);
+                source.removeFromParent();
+                ORClipboardManager.clear();
+            }
+            reload();
+            SwingUtilities.invokeLater(() -> {
+                ORPageInf page = getOR().getPageByName(targetPageName);
+                if (page != null) {
+                    ORObjectInf pasted = findObjectInPage(page, expectedObjectName);
+                    if (pasted != null) {
+                        selectAndSrollTo(pasted.getTreePath());
+                    }
+                }
+            });
+        }
+        if (currentOR instanceof StructuredDataOR) {
+            ResolvedStructuredDataObject resolved =
+                repo.resolveStructuredDataObjectWithScope(
+                    source.getPage().getName(),
+                    sourceGroup.getName()
+                );
+            if (resolved == null || !resolved.isPresent()) {
+                Notification.show("Failed to resolve Structured Data object");
+                return;
+            }
+            repo.copyStructuredDataObject(resolved, targetPage.getName());
             if (cut) {
                 objectRemoved(source);
                 source.removeFromParent();
@@ -1591,11 +1810,20 @@ public abstract class ObjectTree implements ActionListener {
             );
             return;
         }
+        if (cut && sourceOR instanceof StructuredDataOR && ((StructuredDataOR) sourceOR).isShared() && currentOR instanceof StructuredDataOR && !((StructuredDataOR) currentOR).isShared()) {
+            Notification.show("Cut is not allowed from Shared to Project Object Repository"
+            );
+            return;
+        }
         if (cut && sourceOR instanceof WebOR && !((WebOR) sourceOR).isShared() && currentOR instanceof WebOR && ((WebOR) currentOR).isShared()) {
             Notification.show( "Cut is not allowed in Shared Object Repository. Use `Move to Shared` instead.");
             return;
         }
         if (cut && sourceOR instanceof MobileOR && !((MobileOR) sourceOR).isShared() && currentOR instanceof MobileOR && ((MobileOR) currentOR).isShared()) {
+            Notification.show( "Cut is not allowed in Shared Object Repository. Use `Move to Shared` instead.");
+            return;
+        }
+        if (cut && sourceOR instanceof StructuredDataOR && !((StructuredDataOR) sourceOR).isShared() && currentOR instanceof StructuredDataOR && ((StructuredDataOR) currentOR).isShared()) {
             Notification.show( "Cut is not allowed in Shared Object Repository. Use `Move to Shared` instead.");
             return;
         }
@@ -1630,6 +1858,23 @@ public abstract class ObjectTree implements ActionListener {
                     for (Object o : srcGroup.getObjects()) {
                         MobileORObject srcObj = (MobileORObject) o;
                         MobileORObject cloned = new MobileORObject();
+                        cloned.setName(srcObj.getName());
+                        cloned.setParent(newGroup);
+                        srcObj.clone(cloned);
+                        newGroup.getObjects().add(cloned);
+                    }
+                    tgtPage.getObjectGroups().add(newGroup);
+                }
+            }
+            else if (currentOR instanceof StructuredDataOR) {
+                StructuredDataORPage srcPage = (StructuredDataORPage) sourcePage;
+                StructuredDataORPage tgtPage = (StructuredDataORPage) newPage;
+                for (Object g : srcPage.getObjectGroups()) {
+                    ObjectGroup srcGroup = (ObjectGroup) g;
+                    ObjectGroup newGroup = new ObjectGroup(srcGroup.getName(), tgtPage);
+                    for (Object o : srcGroup.getObjects()) {
+                        StructuredDataORObject srcObj = (StructuredDataORObject) o;
+                        StructuredDataORObject cloned = new StructuredDataORObject();
                         cloned.setName(srcObj.getName());
                         cloned.setParent(newGroup);
                         srcObj.clone(cloned);
@@ -1698,6 +1943,31 @@ public abstract class ObjectTree implements ActionListener {
             SwingUtilities.invokeLater(() -> {selectAndSrollTo(newPage.getTreePath());});
             return;
         }
+        if (currentOR instanceof StructuredDataOR && !((StructuredDataOR) currentOR).isShared() && sourceOR instanceof StructuredDataOR && ((StructuredDataOR) sourceOR).isShared()) {
+            String newPageName = cut
+                ? sourcePage.getName()
+                : computeCopyPageName(sourcePage);
+            ORPageInf newPage = getOR().addPage(newPageName);
+            StructuredDataORPage srcPage = (StructuredDataORPage) sourcePage;
+            StructuredDataORPage tgtPage = (StructuredDataORPage) newPage;
+            for (Object g : srcPage.getObjectGroups()) {
+                ObjectGroup srcGroup = (ObjectGroup) g;
+                ObjectGroup newGroup = new ObjectGroup(srcGroup.getName(), tgtPage);
+                for (Object o : srcGroup.getObjects()) {
+                    StructuredDataORObject srcObj = (StructuredDataORObject) o;
+                    StructuredDataORObject cloned = new StructuredDataORObject();
+                    cloned.setName(srcObj.getName());
+                    cloned.setParent(newGroup);
+                    srcObj.clone(cloned);
+                    newGroup.getObjects().add(cloned);
+                }
+                tgtPage.getObjectGroups().add(newGroup);
+            }
+            pageAdded(newPage);
+            reload();
+            SwingUtilities.invokeLater(() -> {selectAndSrollTo(newPage.getTreePath());});
+            return;
+        }
         if (currentOR instanceof WebOR) {
             String targetPageName = cut
                 ? sourcePage.getName()
@@ -1722,6 +1992,24 @@ public abstract class ObjectTree implements ActionListener {
                 ? sourcePage.getName()
                 : computeCopyPageName(sourcePage);
             repo.copyMobilePage(sourcePage.getName(), targetPageName);
+            if (cut) {
+                pageRemoved(sourcePage);
+                sourcePage.removeFromParent();
+                ORClipboardManager.clear();
+            }
+            reload();
+            SwingUtilities.invokeLater(() -> {
+                ORPageInf pastedPage = getOR().getPageByName(targetPageName);
+                if (pastedPage != null) {
+                    selectAndSrollTo(pastedPage.getTreePath());
+                }
+            });
+        }
+        if (currentOR instanceof StructuredDataOR) {
+            String targetPageName = cut
+                ? sourcePage.getName()
+                : computeCopyPageName(sourcePage);
+            repo.copyStructuredDataPage(sourcePage.getName(), targetPageName);
             if (cut) {
                 pageRemoved(sourcePage);
                 sourcePage.removeFromParent();

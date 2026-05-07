@@ -6,6 +6,8 @@ import com.ing.datalib.or.common.ObjectGroup;
 import com.ing.datalib.or.mobile.MobileORObject;
 import com.ing.datalib.or.mobile.MobileORPage;
 import com.ing.datalib.or.mobile.ResolvedMobileObject;
+import com.ing.datalib.or.structureddata.ResolvedStructuredDataObject;
+import com.ing.datalib.or.structureddata.StructuredDataORObject;
 import com.ing.datalib.or.web.WebORObject;
 import com.ing.datalib.or.web.WebORPage;
 import com.ing.datalib.or.web.ResolvedWebObject;
@@ -151,6 +153,13 @@ public class AutomationObject implements AutomationObjectApi {
                 return mresolved.getGroup();
             }
         } catch (Exception ignore) { }
+        try {
+            ResolvedStructuredDataObject.PageRef sdref = ResolvedStructuredDataObject.PageRef.parse(page);
+            ResolvedStructuredDataObject sdresolved = objRep.resolveStructuredDataObject(sdref, object);
+            if (sdresolved != null && sdresolved.getGroup() != null) {
+                return sdresolved.getGroup();
+            }
+        } catch (Exception ignore) { }
         if (objRep.getWebOR() != null && objRep.getWebOR().getPageByName(page) != null) {
             return objRep.getWebOR().getPageByName(page).getObjectGroupByName(object);
         } else if (objRep.getWebSharedOR() != null && objRep.getWebSharedOR().getPageByName(page) != null) {
@@ -159,6 +168,10 @@ public class AutomationObject implements AutomationObjectApi {
             return objRep.getMobileOR().getPageByName(page).getObjectGroupByName(object);
         } else if (objRep.getMobileSharedOR() != null && objRep.getMobileSharedOR().getPageByName(page) != null) {
             return objRep.getMobileSharedOR().getPageByName(page).getObjectGroupByName(object);
+        } else if (objRep.getStructuredDataOR() != null && objRep.getStructuredDataOR().getPageByName(page) != null) {
+            return objRep.getStructuredDataOR().getPageByName(page).getObjectGroupByName(object);
+        } else if (objRep.getStructuredDataSharedOR() != null && objRep.getStructuredDataSharedOR().getPageByName(page) != null) {
+            return objRep.getStructuredDataSharedOR().getPageByName(page).getObjectGroupByName(object);
         }
         return null;
     }
@@ -209,6 +222,26 @@ public class AutomationObject implements AutomationObjectApi {
             return objRep.getMobileOR().getPageByName(page).getObjectGroupByName(object).getObjects().get(0);
         } else if (objRep.getMobileSharedOR() != null && objRep.getMobileSharedOR().getPageByName(page) != null) {
             return objRep.getMobileSharedOR().getPageByName(page).getObjectGroupByName(object).getObjects().get(0);
+        }
+        return null;
+    }
+
+    public ObjectGroup<StructuredDataORObject> getStructuredDataObjects(String page, String object) {
+        ObjectRepository objRep = Control.getCurrentProject().getObjectRepository();
+        if (objRep.getStructuredDataOR() != null && objRep.getStructuredDataOR().getPageByName(page) != null) {
+            return objRep.getStructuredDataOR().getPageByName(page).getObjectGroupByName(object);
+        } else if (objRep.getStructuredDataSharedOR() != null && objRep.getStructuredDataSharedOR().getPageByName(page) != null) {
+            return objRep.getStructuredDataSharedOR().getPageByName(page).getObjectGroupByName(object);
+        }
+        return null;
+    }
+
+    public StructuredDataORObject getStructuredDataObject(String page, String object) {
+        ObjectRepository objRep = Control.getCurrentProject().getObjectRepository();
+        if (objRep.getMobileOR() != null && objRep.getMobileOR().getPageByName(page) != null) {
+            return objRep.getStructuredDataOR().getPageByName(page).getObjectGroupByName(object).getObjects().get(0);
+        } else if (objRep.getStructuredDataSharedOR() != null && objRep.getStructuredDataSharedOR().getPageByName(page) != null) {
+            return objRep.getStructuredDataSharedOR().getPageByName(page).getObjectGroupByName(object).getObjects().get(0);
         }
         return null;
     }

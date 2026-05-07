@@ -1,6 +1,6 @@
 package com.ing.datalib.or.yaml;
 
-import com.ing.datalib.or.structureddata.StructuredData;
+import com.ing.datalib.or.structureddata.StructuredDataOR;
 import com.ing.datalib.or.structureddata.StructuredDataORPage;
 import com.ing.datalib.or.mobile.MobileOR;
 import com.ing.datalib.or.mobile.MobileORPage;
@@ -82,7 +82,7 @@ public class YamlORReader {
      * Check if a YAML-based Structured Data OR exists.
      */
     public boolean structuredDataORExists(File orLocation) {
-        File structuredDataPagesDir = new File(orLocation, "StructuredData/pages");
+        File structuredDataPagesDir = new File(orLocation, "StructuredData");
         return structuredDataPagesDir.exists() && structuredDataPagesDir.isDirectory();
     }
     
@@ -161,6 +161,44 @@ public class YamlORReader {
         
         return mobileOR;
     }
+
+    /**
+     * Read Structured Data OR from YAML files.
+     * 
+     * @param orLocation The ObjectRepository directory
+     * @return StructuredDataOR populated with pages from YAML files
+     */
+    public StructuredDataOR readStructuredDataOR(File orLocation) throws IOException {
+        StructuredDataOR structuredDataOR = new StructuredDataOR();
+        File structuredDataPagesDir = new File(orLocation, "StructuredData");
+        
+        if (orLocation.getPath().contains(File.separator + "Shared" + File.separator)) {
+            structuredDataOR.setScope(StructuredDataOR.ORScope.SHARED);
+        } else {
+            structuredDataOR.setScope(StructuredDataOR.ORScope.PROJECT);
+        }
+        
+        if (!structuredDataPagesDir.exists()) {
+            LOGGER.info("No Structured Data OR YAML directory found at: " + structuredDataPagesDir.getAbsolutePath());
+            return structuredDataOR;
+        }
+        
+        List<File> yamlFiles = listYamlFiles(structuredDataPagesDir);
+        LOGGER.info("Found " + yamlFiles.size() + " Structured Data OR YAML files");
+        
+        for (File yamlFile : yamlFiles) {
+            try {
+                YamlStructuredDataPageDefinition pageDef = yamlMapper.readValue(yamlFile, YamlStructuredDataPageDefinition.class);
+                StructuredDataORPage page = pageDef.toStructuredDataORPage(structuredDataOR);
+                structuredDataOR.getPages().add(page);
+                LOGGER.fine("Loaded Structured Data page: " + page.getName() + " with " + pageDef.getElementCount() + " elements");
+            } catch (IOException e) {
+                LOGGER.log(Level.WARNING, "Failed to read YAML file: " + yamlFile.getName(), e);
+            }
+        }
+        
+        return structuredDataOR;
+    }
     
     /**
      * Read a single Web page from a YAML file.
@@ -179,41 +217,9 @@ public class YamlORReader {
     }
     
     /**
-     * Read Structured Data OR from YAML files.
-     * 
-     * @param orLocation The ObjectRepository directory
-     * @return StructuredDataOR populated with pages from YAML files
-     */
-    public StructuredData readStructuredDataOR(File orLocation) throws IOException {
-        StructuredData structuredDataOR = new StructuredData();
-        File StructuredDataPagesDir = new File(orLocation, "StructuredData/pages");
-        
-        if (!StructuredDataPagesDir.exists()) {
-            LOGGER.info("No Structured Data OR YAML directory found at: " + StructuredDataPagesDir.getAbsolutePath());
-            return structuredDataOR;
-        }
-        
-        List<File> yamlFiles = listYamlFiles(StructuredDataPagesDir);
-        LOGGER.info("Found " + yamlFiles.size() + " Structured Data OR YAML files");
-        
-        for (File yamlFile : yamlFiles) {
-            try {
-                YamlStructuredDataPageDefinition pageDef = yamlMapper.readValue(yamlFile, YamlStructuredDataPageDefinition.class);
-                StructuredDataORPage page = pageDef.toStructuredDataORPage(structuredDataOR);
-                structuredDataOR.getPages().add(page);
-                LOGGER.fine("Loaded Structured Data page: " + page.getName() + " with " + pageDef.getElementCount() + " elements");
-            } catch (IOException e) {
-                LOGGER.log(Level.WARNING, "Failed to read YAML file: " + yamlFile.getName(), e);
-            }
-        }
-        
-        return structuredDataOR;
-    }
-    
-    /**
      * Read a single Structured Data page from a YAML file.
      */
-    public StructuredDataORPage readStructuredDataPage(File yamlFile, StructuredData root) throws IOException {
+    public StructuredDataORPage readStructuredDataPage(File yamlFile, StructuredDataOR root) throws IOException {
         YamlStructuredDataPageDefinition pageDef = yamlMapper.readValue(yamlFile, YamlStructuredDataPageDefinition.class);
         return pageDef.toStructuredDataORPage(root);
     }

@@ -106,10 +106,10 @@ public class ActionRenderer extends AbstractRenderer {
             return MethodInfoManager.getMethodListFor(objectName).contains(action);
         }
 
-        // Check if it's a web or mobile page object
         if (isWebObject(step)) {
             return MethodInfoManager.getMethodListFor(ObjectType.PLAYWRIGHT, ObjectType.WEB).contains(action);
         }
+
         if (isMobileObject(step)) {
             return MethodInfoManager.getMethodListFor(ObjectType.APP).contains(action);
         }

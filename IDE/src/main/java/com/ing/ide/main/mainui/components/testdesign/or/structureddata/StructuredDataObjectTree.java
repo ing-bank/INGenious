@@ -2,6 +2,7 @@ package com.ing.ide.main.mainui.components.testdesign.or.structureddata;
 
 import com.ing.datalib.component.Project;
 import com.ing.datalib.component.TestCase;
+import com.ing.datalib.or.ObjectRepository;
 import com.ing.datalib.or.structureddata.StructuredDataORObject;
 import com.ing.datalib.or.common.ORObjectInf;
 import com.ing.datalib.or.common.ORRootInf;
@@ -16,11 +17,13 @@ import javax.swing.tree.TreePath;
 public class StructuredDataObjectTree extends ObjectTree {
 
     private final StructuredDataORPanel oRPanel;
+    private final ORSource source;
 
-    public StructuredDataObjectTree(StructuredDataORPanel sProxy) {
-        this.oRPanel = sProxy;
+    public StructuredDataObjectTree(StructuredDataORPanel panel, ORSource source) {
+        this.oRPanel = panel;
+        this.source = source;
     }
-
+    
     @Override
     public void loadTableModelForSelection() {
         TreePath path = tree.getSelectionPath();
@@ -41,7 +44,8 @@ public class StructuredDataObjectTree extends ObjectTree {
 
     @Override
     public ORRootInf getOR() {
-        return oRPanel.getProject().getObjectRepository().getStructuredDataOR();
+        ObjectRepository repo = oRPanel.getProject().getObjectRepository();
+        return (source == ORSource.SHARED) ? repo.getStructuredDataSharedOR() : repo.getStructuredDataOR();
     }
 
     @Override
@@ -57,6 +61,18 @@ public class StructuredDataObjectTree extends ObjectTree {
         return oRPanel.getObjectTable().getObject();
     }
 
+    public enum ORSource { 
+        PROJECT, SHARED 
+    }
+
+    public ORSource getSource() { 
+        return source; 
+    }
+    
+    public StructuredDataORPanel getORPanel() {
+        return oRPanel;
+    }
+    
     @Override
     public TestDesign getTestDesign() {
         return oRPanel.getTestDesign();

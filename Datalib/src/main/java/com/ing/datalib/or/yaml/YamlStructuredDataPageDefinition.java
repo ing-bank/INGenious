@@ -1,6 +1,6 @@
 package com.ing.datalib.or.yaml;
 
-import com.ing.datalib.or.structureddata.StructuredData;
+import com.ing.datalib.or.structureddata.StructuredDataOR;
 import com.ing.datalib.or.structureddata.StructuredDataORObject;
 import com.ing.datalib.or.structureddata.StructuredDataORPage;
 import com.ing.datalib.or.common.ObjectGroup;
@@ -28,13 +28,14 @@ import java.util.Map;
  * </pre>
  */
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
-@JsonPropertyOrder({"page", "description", "tags", "elements"})
+@JsonPropertyOrder({"page", "scope", "description", "tags", "elements"})
 public class YamlStructuredDataPageDefinition {
     
     private String page;
     private String description;
     private List<String> tags;
     private Map<String, YamlStructuredDataElementDefinition> elements = new LinkedHashMap<>();
+    private StructuredDataOR.ORScope scope;
     
     public YamlStructuredDataPageDefinition() {
     }
@@ -51,6 +52,14 @@ public class YamlStructuredDataPageDefinition {
 
     public void setPage(String page) {
         this.page = page;
+    }
+
+    public StructuredDataOR.ORScope getScope() {
+        return scope;
+    }
+
+    public void setScope(StructuredDataOR.ORScope scope) {
+        this.scope = scope;
     }
 
     public String getDescription() {
@@ -85,6 +94,10 @@ public class YamlStructuredDataPageDefinition {
     public static YamlStructuredDataPageDefinition fromStructuredDataORPage(StructuredDataORPage page) {
         YamlStructuredDataPageDefinition yaml = new YamlStructuredDataPageDefinition();
         yaml.setPage(page.getName());
+
+        if (page.getRoot() != null) {
+            yaml.setScope(page.getRoot().getScope());
+        }
         
         // Iterate through object groups and objects using Lists
         for (ObjectGroup<StructuredDataORObject> group : page.getObjectGroups()) {
@@ -101,8 +114,12 @@ public class YamlStructuredDataPageDefinition {
     /**
      * Convert YamlStructuredDataPageDefinition to an StructuredDataORPage.
      */
-    public StructuredDataORPage toStructuredDataORPage(StructuredData root) {
+    public StructuredDataORPage toStructuredDataORPage(StructuredDataOR root) {
         StructuredDataORPage page = new StructuredDataORPage(this.page, root);
+        
+        if (this.scope != null && root != null && this.scope != root.getScope()) { 
+            throw new IllegalStateException("Scope mismatch: YAML Structured Data page '" + page + "' declares scope " + scope + " but is loaded under OR scope " + root.getScope());
+        }
         
         // Convert each element to StructuredDataORObject using direct list manipulation
         // to avoid calling factory methods that require ObjectRepository

@@ -4,6 +4,9 @@ package com.ing.ide.main.mainui.components.testdesign.or;
 import com.ing.datalib.or.common.ORObjectInf;
 import com.ing.datalib.or.common.ORPageInf;
 import com.ing.datalib.or.common.ORRootInf;
+import com.ing.datalib.or.mobile.MobileOR;
+import com.ing.datalib.or.structureddata.StructuredDataOR;
+import com.ing.datalib.or.web.WebOR;
 import com.ing.ide.main.mainui.components.testdesign.or.clipboard.ORClipboardManager;
 import com.ing.ide.main.mainui.components.testdesign.or.clipboard.ORObjectClipboard;
 import com.ing.ide.main.utils.keys.Keystroke;
@@ -235,12 +238,16 @@ public class ObjectPopupMenu extends JPopupMenu {
             page = ((ORObjectInf) selected).getPage();
         }
         
-        if (page != null && page.getRoot() instanceof com.ing.datalib.or.web.WebOR) {
-            com.ing.datalib.or.web.WebOR root = (com.ing.datalib.or.web.WebOR) page.getRoot();
+        if (page != null && page.getRoot() instanceof WebOR) {
+            WebOR root = (WebOR) page.getRoot();
             return root.isShared();
         }
-        if (page != null && page.getRoot() instanceof com.ing.datalib.or.mobile.MobileOR) {
-            com.ing.datalib.or.mobile.MobileOR root = (com.ing.datalib.or.mobile.MobileOR) page.getRoot();
+        if (page != null && page.getRoot() instanceof MobileOR) {
+            MobileOR root = (MobileOR) page.getRoot();
+            return root.isShared();
+        }
+        if (page != null && page.getRoot() instanceof StructuredDataOR) {
+            StructuredDataOR root = (StructuredDataOR) page.getRoot();
             return root.isShared();
         }
         return false;
