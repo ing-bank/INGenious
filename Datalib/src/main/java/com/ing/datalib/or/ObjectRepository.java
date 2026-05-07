@@ -930,11 +930,6 @@ public class ObjectRepository {
         return generateUniqueName(baseName, name -> or.getPageByName(name) != null);
     }
 
-    private String generateUniqueGroupName(WebORPage page, String baseName) {
-        if (page == null) return baseName;
-        return generateUniqueName(baseName, name -> page.getObjectGroupByName(name) != null);
-    }
-
     /**
      * Ensures a page exists in the given OR; creates one if missing.
      */
@@ -1032,6 +1027,14 @@ public class ObjectRepository {
         return uniqueName;
     }
     
+    /**
+     * Moved a WebOR object into a shared page (creating the page if needed)
+     * using a unique object group name.
+     *
+     * @param source          resolved web object
+     * @param targetPageName  target page in shared OR
+     * @return new object name
+     */
     public String moveWebObject(ResolvedWebObject source, String targetPageName) {
         if (source == null) return null;
         WebOR sharedOR = getWebSharedOR();
@@ -1041,34 +1044,33 @@ public class ObjectRepository {
         ObjectGroup<WebORObject> originalGroup = source.getGroup();
         if (originalGroup == null) return null;
         String originalName = originalGroup.getName();
-        if (targetPage.getObjectGroupByName(originalName) != null) {
-            return null;
+        String baseName = originalName.replaceAll("_\\d+$", "");
+        String finalName = baseName;
+        if (targetPage.getObjectGroupByName(finalName) != null) {
+            int index = 1;
+            do {
+                finalName = baseName + "_" + index++;
+            } while (targetPage.getObjectGroupByName(finalName) != null);
         }
-        ORPageInf sourcePage = originalGroup.getParent();
-        if (sourcePage != null) {
-            sourcePage.getObjectGroups().remove(originalGroup);
-            sourcePage.getRoot().setSaved(false);
-            if (useYamlFormat && sourcePage instanceof WebORPage) {
-                saveWebPageNow((WebORPage) sourcePage);
-            }
-        }
-        originalGroup.setParent(targetPage);
-        targetPage.getObjectGroups().add(originalGroup);
+        ObjectGroup<WebORObject> newGroup =
+            cloneGroupIntoPage(originalGroup, targetPage, finalName);
+        targetPage.getObjectGroups().add(newGroup);
         sharedOR.setSaved(false);
         if (useYamlFormat) {
             saveWebPageNow(targetPage);
         }
         LOG.info(
             "Moved Web Object '" + originalName +
-            "' to SHARED page '" + targetPageName + "'"
+            "' to SHARED as '" + finalName + "'"
         );
-        return originalName;
+
+        return finalName;
     }
 
     /**
      * Copies a project MobileOR page into the shared Mobile OR using a unique name.
      * @param sourcePageName project page to copy from
-     * @param targetPageName desired shared page name (will uniquify if needed)
+     * @param targetPageName desired shared page name
      * @return actual created page name in shared OR, or null on failure
      */
     public String copyMobilePage(String sourcePageName, String targetPageName) {
@@ -1123,6 +1125,13 @@ public class ObjectRepository {
         return uniqueName;
     }
     
+     /**
+     * Moves a MobileOR object into a target shared Mobile page (creates page if needed)
+     * using a unique object group name.
+     * @param source resolved mobile object (from project OR)
+     * @param targetPageName target page name in shared Mobile OR
+     * @return new object name created in shared OR, or null on failure
+     */
     public String moveMobileObject(ResolvedMobileObject source, String targetPageName) {
         if (source == null) return null;
         MobileOR sharedOR = getMobileSharedOR();
@@ -1132,39 +1141,30 @@ public class ObjectRepository {
         ObjectGroup<MobileORObject> originalGroup = source.getGroup();
         if (originalGroup == null) return null;
         String originalName = originalGroup.getName();
-        if (targetPage.getObjectGroupByName(originalName) != null) {
-            return null;
+        String baseName = originalName.replaceAll("_\\d+$", "");
+        String finalName = baseName;
+        if (targetPage.getObjectGroupByName(finalName) != null) {
+            int index = 1;
+            do {
+                finalName = baseName + "_" + index++;
+            } while (targetPage.getObjectGroupByName(finalName) != null);
         }
-        ORPageInf sourcePage = originalGroup.getParent();
-        if (sourcePage != null) {
-            sourcePage.getObjectGroups().remove(originalGroup);
-            sourcePage.getRoot().setSaved(false);
-
-            if (useYamlFormat && sourcePage instanceof MobileORPage) {
-                saveMobilePageNow((MobileORPage) sourcePage);
-            }
-        }
-        originalGroup.setParent(targetPage);
-        targetPage.getObjectGroups().add(originalGroup);
+        ObjectGroup<MobileORObject> newGroup = cloneMobileGroupIntoPage(originalGroup, targetPage, finalName);
+        targetPage.getObjectGroups().add(newGroup);
         sharedOR.setSaved(false);
         if (useYamlFormat) {
             saveMobilePageNow(targetPage);
         }
         LOG.info(
-            "Moved Mobile Object Group '" + originalName +
-            "' to SHARED page '" + targetPageName + "'"
+            "Moved Mobile Object '" + originalName +
+            "' to SHARED as '" + finalName + "'"
         );
-        return originalName;
+        return finalName;
     }
 
     private String generateUniquePageName(MobileOR mor, String baseName) {
         if (mor == null) return baseName;
         return generateUniqueName(baseName, name -> mor.getPageByName(name) != null);
-    }
-
-    private String generateUniqueMobileGroupName(MobileORPage page, String baseName) {
-        if (page == null) return baseName;
-        return generateUniqueName(baseName, name -> page.getObjectGroupByName(name) != null);
     }
 
     private MobileORPage getOrCreateMobilePage(MobileOR mor, String pageName) {
