@@ -152,6 +152,12 @@ public class TestCaseComponent extends JPanel implements ActionListener {
 
     public void loadTableModelForSelection(Object obj) {
         if (obj != null && obj instanceof TestCase) {
+            // Save the current test case before switching to a new one
+            TestCase currentTestCase = getCurrentTestCase();
+            if (currentTestCase != null && !currentTestCase.isSaved()) {
+                currentTestCase.save();
+            }
+            
             testCaseHistory.log();
             TestCase tc = (TestCase) obj;
             tc.setSaveListener(saveListener);

@@ -729,8 +729,8 @@ public class ProjectTree implements ActionListener {
      */
     protected void makeAsReusableRTestCase() {
         if (!getSelectedTestCaseNodes().isEmpty()) {
-            // Save current test case if it's being edited
-            saveCurrentTestCaseIfDisplayed();
+            // Save ALL test cases to prevent data loss on reload
+            getProject().save();
             
             boolean anySuccess = false;
             for (TestCaseNode testCaseNode : getSelectedTestCaseNodes()) {

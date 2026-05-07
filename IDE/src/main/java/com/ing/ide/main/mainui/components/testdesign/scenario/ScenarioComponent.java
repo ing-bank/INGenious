@@ -59,6 +59,11 @@ public class ScenarioComponent extends JPanel implements ActionListener {
     }
 
     public void loadTableModelForSelection(Object obj) {
+        // Save current scenario's test cases before switching to new scenario
+        if (getCurrentScenario() != null) {
+            getCurrentScenario().save();
+        }
+        
         Scenario scenario = (Scenario) obj;
         getScenarioTable().setModel(new DefaultTableModel());
         getScenarioTable().setModel(testDesign.getProject().getTableModelFor(scenario));

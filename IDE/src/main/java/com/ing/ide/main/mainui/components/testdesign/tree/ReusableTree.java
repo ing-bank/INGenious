@@ -178,8 +178,8 @@ public class ReusableTree extends ProjectTree {
     @Override
     protected void makeAsReusableRTestCase() {
         if (!getSelectedTestCaseNodes().isEmpty()) {
-            // Save current test case if it's being edited
-            saveCurrentTestCaseIfDisplayed();
+            // Save ALL test cases to prevent data loss on reload
+            getProject().save();
             
             boolean anySuccess = false;
             for (TestCaseNode testCaseNode : getSelectedTestCaseNodes()) {
@@ -205,8 +205,8 @@ public class ReusableTree extends ProjectTree {
      */
     @Override
     void makeAsReusableRTestCase(TestCase testCase) {
-        // Save current test case if it's being edited
-        saveCurrentTestCaseIfDisplayed();
+        // Save ALL test cases to prevent data loss on reload
+        getProject().save();
         
         try {
             getProject().moveTestCaseToTestPlan(testCase);
