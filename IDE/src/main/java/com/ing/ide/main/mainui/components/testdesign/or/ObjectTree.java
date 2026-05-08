@@ -499,6 +499,12 @@ public abstract class ObjectTree implements ActionListener {
         boolean webDeletionPerformed = false;
         boolean mobileDeletionPerformed = false;
         try {
+            if (isSharedScope()) {
+                Notification.show(
+                    "Remove Unused Objects is only supported for Project Object Repository"
+                );
+                return;
+            }
             List<ORPageInf> selectedPages = getSelectedPages();
             if (selectedPages == null || selectedPages.isEmpty()) {
                 return;
@@ -518,105 +524,109 @@ public abstract class ObjectTree implements ActionListener {
                         if (ref == null || ref.isBlank()) {
                             continue;
                         }
+                        if (ref.startsWith("[Shared]")) {
+                            continue;
+                        }
                         String pageName = normalizePageRef(ref);
-                        String objectName = step.getObject();
-                        if (!pageName.isBlank() && !objectName.isBlank()) {
-                            usedProjectObjects.add(pageName + "@" + objectName);
+                        String objectGroupName = step.getObject();
+                        if (!pageName.isBlank() && !objectGroupName.isBlank()) {
+                            usedProjectObjects.add(
+                                pageName + "@" + objectGroupName
+                            );
                         }
                     }
                 }
             }
-            for (ORPageInf selectedPage : selectedPages) {
-                String pageName = selectedPage.getName();
-                WebORPage webPage = projectWebOR.getPageByName(pageName);
-                if (webPage == null) {
-                    continue;
-                }
-                List<String> unusedWebObjects = new ArrayList<>();
-                for (ObjectGroup group : webPage.getObjectGroups()) {
-                    if (!usedProjectObjects.contains(pageName + "@" + group.getName())) {
-                        unusedWebObjects.add(group.getName());
+            if (projectWebOR != null) {
+                for (ORPageInf selectedPage : selectedPages) {
+                    String pageName = selectedPage.getName();
+                    WebORPage webPage = projectWebOR.getPageByName(pageName);
+                    if (webPage == null) {
+                        continue;
                     }
-                }
-                if (!unusedWebObjects.isEmpty()) {
-                    int option = JOptionPane.showConfirmDialog(
-                        null,
-                        "<html><body><p style='width: 260px;'>"
-                        + "Delete the following Web objects from page [ "
-                        + pageName + " ]?<br>"
-                        + unusedWebObjects
-                        + "</p></body></html>",
-                        "Delete Web Objects",
-                        JOptionPane.YES_NO_OPTION
-                    );
-                    if (option == JOptionPane.YES_OPTION) {
-                        Iterator<ObjectGroup<WebORObject>> it = webPage.getObjectGroups().iterator();
-                        while (it.hasNext()) {
-                            ObjectGroup group = it.next();
-                            if (unusedWebObjects.contains(group.getName())) {
-                                it.remove();
-                                projectWebOR.setSaved(false);
-                                webDeletionPerformed = true;
-                            }
+                    List<String> unusedWebObjects = new ArrayList<>();
+                    for (ObjectGroup<WebORObject> group : webPage.getObjectGroups()) {
+                        if (!usedProjectObjects.contains(
+                                pageName + "@" + group.getName())) {
+                            unusedWebObjects.add(group.getName());
                         }
-                        if (webDeletionPerformed) {
-                            repo.saveWebPageNow(webPage);
+                    }
+                    if (!unusedWebObjects.isEmpty()) {
+                        int option = JOptionPane.showConfirmDialog(
+                            null,
+                            "<html><body><p style='width: 260px;'>"
+                            + "Delete the following Web objects from page [ "
+                            + pageName + " ]?<br>"
+                            + unusedWebObjects
+                            + "</p></body></html>",
+                            "Delete Web Objects",
+                            JOptionPane.YES_NO_OPTION
+                        );
+
+                        if (option == JOptionPane.YES_OPTION) {
+                            Iterator<ObjectGroup<WebORObject>> it =
+                                webPage.getObjectGroups().iterator();
+
+                            while (it.hasNext()) {
+                                ObjectGroup<WebORObject> group = it.next();
+                                if (unusedWebObjects.contains(group.getName())) {
+                                    it.remove();
+                                    projectWebOR.setSaved(false);
+                                    webDeletionPerformed = true;
+                                }
+                            }
+                            if (webDeletionPerformed) {
+                                repo.saveWebPageNow(webPage);
+                            }
                         }
                     }
                 }
             }
-            for (ORPageInf selectedPage : selectedPages) {
-                String pageName = selectedPage.getName();
-                MobileORPage mobilePage = projectMobileOR.getPageByName(pageName);
-                if (mobilePage == null) {
-                    continue;
-                }
-                List<String> unusedMobileObjects = new ArrayList<>();
-                for (ObjectGroup group : mobilePage.getObjectGroups()) {
-                    if (!usedProjectObjects.contains(pageName + "@" + group.getName())) {
-                        unusedMobileObjects.add(group.getName());
+            if (projectMobileOR != null) {
+                for (ORPageInf selectedPage : selectedPages) {
+                    String pageName = selectedPage.getName();
+                    MobileORPage mobilePage = projectMobileOR.getPageByName(pageName);
+                    if (mobilePage == null) {
+                        continue;
                     }
-                }
-                if (!unusedMobileObjects.isEmpty()) {
-                    int option = JOptionPane.showConfirmDialog(
-                        null,
-                        "<html><body><p style='width: 260px;'>"
-                        + "Delete the following Mobile objects from page [ "
-                        + pageName + " ]?<br>"
-                        + unusedMobileObjects
-                        + "</p></body></html>",
-                        "Delete Mobile Objects",
-                        JOptionPane.YES_NO_OPTION
-                    );
-                    if (option == JOptionPane.YES_OPTION) {
-                        Iterator<ObjectGroup<MobileORObject>> it = mobilePage.getObjectGroups().iterator();
-                        while (it.hasNext()) {
-                            ObjectGroup group = it.next();
-                            if (unusedMobileObjects.contains(group.getName())) {
-                                it.remove();
-                                projectMobileOR.setSaved(false);
-                                mobileDeletionPerformed = true;
-                            }
+                    List<String> unusedMobileObjects = new ArrayList<>();
+                    for (ObjectGroup<MobileORObject> group : mobilePage.getObjectGroups()) {
+                        if (!usedProjectObjects.contains(
+                                pageName + "@" + group.getName())) {
+                            unusedMobileObjects.add(group.getName());
                         }
-                        if (mobileDeletionPerformed) {
-                            repo.saveMobilePageNow(mobilePage);
+                    }
+                    if (!unusedMobileObjects.isEmpty()) {
+                        int option = JOptionPane.showConfirmDialog(
+                            null,
+                            "<html><body><p style='width: 260px;'>"
+                            + "Delete the following Mobile objects from page [ "
+                            + pageName + " ]?<br>"
+                            + unusedMobileObjects
+                            + "</p></body></html>",
+                            "Delete Mobile Objects",
+                            JOptionPane.YES_NO_OPTION
+                        );
+                        if (option == JOptionPane.YES_OPTION) {
+                            Iterator<ObjectGroup<MobileORObject>> it =
+                                mobilePage.getObjectGroups().iterator();
+                            while (it.hasNext()) {
+                                ObjectGroup<MobileORObject> group = it.next();
+                                if (unusedMobileObjects.contains(group.getName())) {
+                                    it.remove();
+                                    projectMobileOR.setSaved(false);
+                                    mobileDeletionPerformed = true;
+                                }
+                            }
+                            if (mobileDeletionPerformed) {
+                                repo.saveMobilePageNow(mobilePage);
+                            }
                         }
                     }
                 }
             }
             if (webDeletionPerformed || mobileDeletionPerformed) {
                 repo.save();
-                int option = JOptionPane.showConfirmDialog(
-                    null,
-                    "<html><body><p style='width: 260px;'>"
-                    + "Do you want to restart INGenious to load the updated Object Repository?"
-                    + "</p></body></html>",
-                    "Restart INGenious",
-                    JOptionPane.YES_NO_OPTION
-                );
-                if (option == JOptionPane.YES_OPTION) {
-                    new AppMainFrame().restart();
-                }
             } else {
                 JOptionPane.showMessageDialog(
                     null,
@@ -627,8 +637,9 @@ public abstract class ObjectTree implements ActionListener {
                     JOptionPane.INFORMATION_MESSAGE
                 );
             }
-            ((DefaultTreeModel) tree.getModel()).reload();
-            tree.updateUI();
+            load();
+            reload();
+            tree.repaint();
         } catch (Exception e) {
             e.printStackTrace();
         }
