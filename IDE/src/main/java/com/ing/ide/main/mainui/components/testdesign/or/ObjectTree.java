@@ -491,6 +491,9 @@ public abstract class ObjectTree implements ActionListener {
                     objectRemoved(object);
                     object.removeFromParent();
                 }
+                // Save immediately to update YAML files
+                ObjectRepository repo = getProject().getObjectRepository();
+                repo.save();
             }
         }
     }
@@ -793,6 +796,9 @@ public abstract class ObjectTree implements ActionListener {
                     objectGroupRemoved(object);
                     object.removeFromParent();
                 }
+                // Save immediately to update YAML files
+                ObjectRepository repo = getProject().getObjectRepository();
+                repo.save();
             }
         }
     }
@@ -816,6 +822,9 @@ public abstract class ObjectTree implements ActionListener {
                     pageRemoved(page);
                     page.removeFromParent();
                 }
+                // Save immediately to update YAML files
+                ObjectRepository repo = getProject().getObjectRepository();
+                repo.save();
             }
         }
     }
@@ -915,11 +924,13 @@ public abstract class ObjectTree implements ActionListener {
         boolean isWeb = root instanceof WebOR;
         boolean isMobile = root instanceof MobileOR;
         String objectName = obj.getName().toString();
+        String pageName = page.getName();
+        
         if (isWeb) {
             ResolvedWebObject resolved =
                 repo.resolveWebObject(
                     new ResolvedWebObject.PageRef(
-                        page.getName(),
+                        pageName,
                         WebOR.ORScope.PROJECT
                     ),
                     objectName
@@ -928,11 +939,17 @@ public abstract class ObjectTree implements ActionListener {
                 Notification.show("Object not found in Project OR");
                 return;
             }
-            String newName = repo.moveWebObject(resolved, page.getName());
+            String newName = repo.moveWebObject(resolved, pageName);
             if (newName != null) {
-                objectRemoved(obj);
-                obj.removeFromParent();
+                // Check if source page is now empty and remove it
+                WebOR projectOR = repo.getWebOR();
+                WebORPage sourcePage = projectOR.getPageByName(pageName);
+                if (sourcePage != null && sourcePage.getObjectGroups().isEmpty()) {
+                    sourcePage.removeFromParent();
+                }
+                
                 repo.save();
+                reload();
                 refreshSharedTree();
                 Notification.show("Moved Object '" + newName + "' to Shared OR");
             }
@@ -941,7 +958,7 @@ public abstract class ObjectTree implements ActionListener {
             ResolvedMobileObject resolved =
                 repo.resolveMobileObject(
                     new ResolvedMobileObject.PageRef(
-                        page.getName(),
+                        pageName,
                         WebOR.ORScope.PROJECT
                     ),
                     objectName
@@ -950,11 +967,17 @@ public abstract class ObjectTree implements ActionListener {
                 Notification.show("Mobile Object not found in Project OR");
                 return;
             }
-            String newName = repo.moveMobileObject(resolved, page.getName());
+            String newName = repo.moveMobileObject(resolved, pageName);
             if (newName != null) {
-                objectRemoved(obj);
-                obj.removeFromParent();
+                // Check if source page is now empty and remove it
+                MobileOR projectOR = repo.getMobileOR();
+                MobileORPage sourcePage = projectOR.getPageByName(pageName);
+                if (sourcePage != null && sourcePage.getObjectGroups().isEmpty()) {
+                    sourcePage.removeFromParent();
+                }
+                
                 repo.save();
+                reload();
                 refreshSharedTree();
                 Notification.show("Moved Mobile Object '" + newName + "' to Shared OR");
             }

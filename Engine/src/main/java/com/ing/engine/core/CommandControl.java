@@ -115,7 +115,11 @@ public abstract class CommandControl {
                 if (!curr.Action.startsWith("img")) {
                     if (canIFindElement()) {
 
+                        // SObject is only initialized for Playwright/Web (when webDriver == null)
+                        if (SObject != null) {
                             structuredData = SObject.findElement(ObjectName, Reference);
+                        }
+                        
                         if (structuredData!= null) {
                             StructuredDataObject.Action = this.Action;
                             
