@@ -614,6 +614,7 @@ public class TestCase extends DataModel {
     public void refactorObjectName(String oldpageName, String oldObjName, String newPageName, String newObjName) {
         Boolean clearOnExit = getTestSteps().isEmpty();
         loadTableModel();
+        boolean changesMade = false;
 
         for (TestStep testStep : testSteps) {
             String ref = normalizePageRef(Objects.toString(testStep.getReference(), ""));
@@ -621,11 +622,14 @@ public class TestCase extends DataModel {
             if (ref.equals(oldpageName) && obj.equals(oldObjName)) {
                 testStep.setObject(newObjName);
                 testStep.setReference(newPageName);
+                changesMade = true;
             }
         }
 
-        if (clearOnExit) {
+        if (changesMade) {
             save();
+        }
+        if (clearOnExit) {
             getTestSteps().clear();
         }
     }
@@ -642,16 +646,20 @@ public class TestCase extends DataModel {
     public void refactorObjectName(ORScope scope, String pageName, String oldName, String newName) {
         Boolean clearOnExit = getTestSteps().isEmpty();
         loadTableModel();
+        boolean changesMade = false;
         for (TestStep testStep : testSteps) {
             String refRaw = Objects.toString(testStep.getReference(), "");
             String obj    = Objects.toString(testStep.getObject(), "");
             boolean scopedMatch = matchesScope(refRaw, scope) && normalizePageRef(refRaw).equals(pageName);
             if (scopedMatch && obj.equals(oldName)) {
                 testStep.setObject(newName);
+                changesMade = true;
             }
         }
-        if (clearOnExit) {
+        if (changesMade) {
             save();
+        }
+        if (clearOnExit) {
             getTestSteps().clear();
         }
     }

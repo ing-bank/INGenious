@@ -1,4 +1,3 @@
-
 package com.ing.datalib.or;
 
 import java.io.File;
@@ -1065,6 +1064,20 @@ public class ObjectRepository {
         if (useYamlFormat) {
             saveWebPageNow(targetPage);
         }
+        
+        // Update all test case references from PROJECT to SHARED scope
+        // Change page reference from unprefixed or "[Project] page" to "[Shared] page"
+        if (sourcePage != null) {
+            String sourcePageName = sourcePage.getName();
+            String targetScopedPage = "[Shared] " + targetPage.getName();
+            
+            // Update unprefixed references: "PageName" -> "[Shared] PageName"
+            sProject.refactorObjectName(sourcePageName, originalName, targetScopedPage, originalName);
+            
+            // Update [Project] prefixed references: "[Project] PageName" -> "[Shared] PageName"
+            sProject.refactorObjectName("[Project] " + sourcePageName, originalName, targetScopedPage, originalName);
+        }
+        
         LOG.info(
             "Moved Web Object '" + originalName +
             "' to SHARED page '" + targetPageName + "'"
@@ -1169,6 +1182,20 @@ public class ObjectRepository {
         if (useYamlFormat) {
             saveMobilePageNow(targetPage);
         }
+        
+        // Update all test case references from PROJECT to SHARED scope
+        // Change page reference from unprefixed or "[Project] page" to "[Shared] page"
+        if (sourcePage != null) {
+            String sourcePageName = sourcePage.getName();
+            String targetScopedPage = "[Shared] " + targetPage.getName();
+            
+            // Update unprefixed references: "PageName" -> "[Shared] PageName"
+            sProject.refactorObjectName(sourcePageName, originalName, targetScopedPage, originalName);
+            
+            // Update [Project] prefixed references: "[Project] PageName" -> "[Shared] PageName"
+            sProject.refactorObjectName("[Project] " + sourcePageName, originalName, targetScopedPage, originalName);
+        }
+        
         LOG.info(
             "Moved Mobile Object Group '" + originalName +
             "' to SHARED page '" + targetPageName + "'"

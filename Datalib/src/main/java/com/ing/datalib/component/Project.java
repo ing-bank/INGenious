@@ -548,13 +548,13 @@ public class Project {
     }
     
     public void refactorObjectName(String pageName, String oldName, String newName) {
-        for (Scenario scenario : scenarios) {
+        for (Scenario scenario : getAllScenarios()) {
             scenario.refactorObjectName(pageName, oldName, newName);
         }
     }
 
     public void refactorObjectName(String oldpageName, String oldObjName, String newPageName, String newObjName) {
-        for (Scenario scenario : scenarios) {
+        for (Scenario scenario : getAllScenarios()) {
             scenario.refactorObjectName(oldpageName, oldObjName, newPageName, newObjName);
         }
     }
@@ -569,7 +569,7 @@ public class Project {
      * @param newName  new object name to apply
      */
     public void refactorObjectName(ORScope scope, String pageName, String oldName, String newName) {
-        for (Scenario scenario : scenarios) {
+        for (Scenario scenario : getAllScenarios()) {
             scenario.refactorObjectName(scope, pageName, oldName, newName);
         }
     }
@@ -580,7 +580,7 @@ public class Project {
      * are tool-agnostic and only care about PROJECT vs SHARED.
      */
     public void refactorMobileObjectName(MobileOR.ORScope scope, String pageName, String oldName, String newName) {
-        for (Scenario scenario : scenarios) {
+        for (Scenario scenario : getAllScenarios()) {
             WebOR.ORScope webScope =
             (scope == MobileOR.ORScope.SHARED)
                 ? WebOR.ORScope.SHARED
@@ -595,7 +595,7 @@ public class Project {
     }
 
     public void refactorPageName(String oldPageName, String newPageName) {
-        for (Scenario scenario : scenarios) {
+        for (Scenario scenario : getAllScenarios()) {
             scenario.refactorPageName(oldPageName, newPageName);
         }
     }
@@ -624,7 +624,7 @@ public class Project {
     public void refactorPageName(ORScope scope, String oldPageName, String newPageName) {
         String oldScoped = scope == ORScope.SHARED ? "[Shared] " + oldPageName : "[Project] " + oldPageName;
         String newScoped = scope == ORScope.SHARED ? "[Shared] " + newPageName : "[Project] " + newPageName;
-        for (Scenario scenario : scenarios) {
+        for (Scenario scenario : getAllScenarios()) {
             scenario.refactorPageName(oldPageName, newPageName);
             scenario.refactorPageName(oldScoped, newScoped);
         }

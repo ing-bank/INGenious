@@ -39,6 +39,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 import com.ing.ide.main.mainui.AppMainFrame;
+import com.ing.ide.main.mainui.components.testdesign.TestDesign;
 import com.ing.ide.main.mainui.components.testdesign.or.clipboard.ORClipboardManager;
 import com.ing.ide.main.mainui.components.testdesign.or.clipboard.ORObjectClipboard;
 import com.ing.ide.main.mainui.components.testdesign.or.mobile.MobileORPanel;
@@ -879,6 +880,8 @@ public abstract class ObjectTree implements ActionListener {
 
     public abstract Project getProject();
 
+    public abstract TestDesign getTestDesign();
+
     public void load() {
         tree.setModel(new DefaultTreeModel(getOR()) {
             @Override
@@ -952,6 +955,7 @@ public abstract class ObjectTree implements ActionListener {
                 reload();
                 refreshSharedTree();
                 Notification.show("Moved Object '" + newName + "' to Shared OR");
+                promptTestCaseReload();
             }
         }
         if (isMobile) {
@@ -980,7 +984,17 @@ public abstract class ObjectTree implements ActionListener {
                 reload();
                 refreshSharedTree();
                 Notification.show("Moved Mobile Object '" + newName + "' to Shared OR");
+                promptTestCaseReload();
             }
+        }
+    }
+
+    private void promptTestCaseReload() {
+        try {
+            getTestDesign().getTestCaseComp().reload();
+            Notification.show("Test cases reloaded successfully");
+        } catch (Exception e) {
+            // Silently ignore if no test case is currently open
         }
     }
 

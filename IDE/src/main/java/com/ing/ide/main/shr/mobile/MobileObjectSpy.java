@@ -11,6 +11,7 @@ import com.ing.datalib.or.mobile.MobileORPage;
 import com.ing.datalib.settings.emulators.Emulator;
 import com.ing.datalib.util.data.LinkedProperties;
 import com.ing.ide.main.mainui.AppMainFrame;
+import com.ing.ide.main.mainui.components.testdesign.TestDesign;
 import com.ing.ide.main.mainui.components.testdesign.or.ObjectTree;
 import com.ing.ide.main.settings.PropUtils;
 import com.ing.ide.main.shr.mobile.android.AndroidAdbCLI;
@@ -119,6 +120,11 @@ public class MobileObjectSpy extends javax.swing.JFrame {
             @Override
             public ORRootInf getOR() {
                 return mobileOR;
+            }
+
+            @Override
+            public TestDesign getTestDesign() {
+                return sMainFrame.getTestDesign();
             }
         };
         treePanel.add(new JScrollPane(objectTree.getTree()), BorderLayout.CENTER);
