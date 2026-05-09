@@ -1,22 +1,24 @@
 
 package com.ing.datalib.or.web;
 
-import com.ing.datalib.component.utils.FileUtils;
-import com.ing.datalib.or.common.ORPageInf;
-import com.ing.datalib.or.common.ORUtils;
-import com.ing.datalib.or.common.ObjectGroup;
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Enumeration;
 import java.util.List;
+
 import javax.swing.tree.TreeNode;
 import javax.swing.tree.TreePath;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.ing.datalib.component.utils.FileUtils;
+import com.ing.datalib.or.common.ORPageInf;
+import com.ing.datalib.or.common.ORUtils;
+import com.ing.datalib.or.common.ObjectGroup;
 
 /**
  * Represents a page in the Web Object Repository (WebOR), containing object groups
@@ -91,7 +93,7 @@ public class WebORPage implements ORPageInf<WebORObject, WebOR> {
         root.setSaved(false);
         root.getPages().remove(this);
         if (root.getObjectRepository().isUsingYamlFormat()) {
-            root.getObjectRepository().deleteWebPageYaml(getName());
+            root.getObjectRepository().deleteWebPageYaml(getName(), root.getScope());
         } else {
             FileUtils.deleteFile(getRepLocation());
         }
