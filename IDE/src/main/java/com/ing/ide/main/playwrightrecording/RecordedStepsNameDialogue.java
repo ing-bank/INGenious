@@ -13,10 +13,41 @@ public class RecordedStepsNameDialogue extends javax.swing.JFrame {
     public static String ScenarioName;
     
     private final AppMainFrame sMainFrame;
+    private javax.swing.JLabel errorLabel;
     
     public RecordedStepsNameDialogue(AppMainFrame sMainFrame) {
         this.sMainFrame = sMainFrame;
         initComponents();
+        
+        // Add error label programmatically
+        errorLabel = new javax.swing.JLabel();
+        errorLabel.setFont(new java.awt.Font("SansSerif", 0, 11));
+        errorLabel.setForeground(new java.awt.Color(204, 0, 0)); // Red color
+        errorLabel.setText("");
+        errorLabel.setVisible(false);
+        errorLabel.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
+        
+        // Use null layout for absolute positioning
+        jPanel1.setLayout(null);
+        
+        // Reposition existing components
+        jLabel1.setBounds(35, 89, 360, 16);
+        errorLabel.setBounds(35, 118, 360, 20); // Wider to fit full error message
+        jTextField1.setBounds(62, 140, 309, 22);
+        jButton1.setBounds(175, 194, 80, 26);
+        
+        // Add error label
+        jPanel1.add(errorLabel);
+        
+        // Add listener to clear error when user types
+        jTextField1.addKeyListener(new java.awt.event.KeyAdapter() {
+            @Override
+            public void keyTyped(java.awt.event.KeyEvent evt) {
+                if (errorLabel.isVisible()) {
+                    errorLabel.setVisible(false);
+                }
+            }
+        });
         
         setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
         addWindowListener(new WindowAdapter() {
@@ -110,7 +141,24 @@ public class RecordedStepsNameDialogue extends javax.swing.JFrame {
     }// </editor-fold>//GEN-END:initComponents
 
     private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
-        RecordedStepsNameDialogue.setScenarioName(jTextField1.getText());
+        // Sanitize the scenario name by removing leading whitespace
+        String scenarioName = jTextField1.getText();
+        if (scenarioName != null) {
+            scenarioName = scenarioName.replaceAll("^\\s+", ""); // Remove leading whitespace
+        }
+        
+        // Validate that the name is not empty after sanitization
+        if (scenarioName == null || scenarioName.trim().isEmpty()) {
+            // Show error inline instead of popup
+            errorLabel.setText("⚠ Scenario name cannot be empty or contain only whitespace.");
+            errorLabel.setVisible(true);
+            return; // Don't proceed with the import
+        }
+        
+        // Clear any previous error
+        errorLabel.setVisible(false);
+        
+        RecordedStepsNameDialogue.setScenarioName(scenarioName);
         ActionEvent newEvent = new ActionEvent(this, ActionEvent.ACTION_PERFORMED, "Import via Playwright Recorder");
         sMainFrame.getsActionListener().actionPerformed(newEvent);
         setVisible(false);
