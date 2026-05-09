@@ -21,6 +21,148 @@ var toggleImg = {
     "false": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAYAAACNiR0NAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAACBSURBVDhPYxgFIwAwQmkYkATi5UDMA+YRBp+BOAqIn4N5WAAvEF8B4v9E4ktADNKDF0gB8SMgxmYAMn4AxCAfEQW0gfgDEGMzCITfA7EWEJME3IH4NxCjG/YTiB2AmCyQDMToBiYBMUWgA4hhhrWCBCgFTEDcDcSdUPYoGOGAgQEAwoowLhjiyB4AAAAASUVORK5CYII="
 };
 var logFileLoc="./logs/";
+
+// ===== NEW v2 REPORT RENDERING FUNCTIONS =====
+// Resolve screenshot paths to correct relative paths
+function resolveScreenshotPath(link) {
+    if (!link) return '';
+    if (link.startsWith('data:') || link.startsWith('http://') || link.startsWith('https://')) {
+        return link;
+    }
+    // Screenshots are in ./img/ relative to the HTML file
+    // Link format: /img/filename.png or ./img/filename.png
+    if (link.startsWith('/img/')) {
+        return '.' + link; // Convert /img/ to ./img/
+    }
+    return link;
+}
+
+// Global search state
+var globalStepFilter = '';
+
+// Expand all steps and reusables
+function expandAllSteps() {
+    document.querySelectorAll('[data-step-body], [data-reusable-body]').forEach(function(element) {
+        element.style.display = 'block';
+        const arrow = element.parentElement.querySelector('.step-arrow, .reusable-arrow');
+        if (arrow) arrow.style.transform = 'rotate(180deg)';
+    });
+}
+
+// Collapse all steps and reusables
+function collapseAllSteps() {
+    document.querySelectorAll('[data-step-body], [data-reusable-body]').forEach(function(element) {
+        element.style.display = 'none';
+        const arrow = element.parentElement.querySelector('.step-arrow, .reusable-arrow');
+        if (arrow) arrow.style.transform = 'rotate(0deg)';
+    });
+}
+
+// Modern recursive renderer for detailed-v2.html
+function renderStepsV2(iterations, showFailedOnly = false, stepFilter = '') {
+    function escapeHtml(unsafe) {
+        if (!unsafe) return '';
+        return unsafe.toString()
+            .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+    }
+    
+    function matchesFilter(name, description) {
+        if (!stepFilter || stepFilter.trim() === '') return true;
+        const filter = stepFilter.toLowerCase().trim();
+        return (name || '').toLowerCase().includes(filter) || (description || '').toLowerCase().includes(filter);
+    }
+    
+    function renderStep(step, keyPath) {
+        const data = step.data || {};
+        const status = (data.status || '').toLowerCase();
+        if (showFailedOnly && status !== 'fail') return '';
+        if (!matchesFilter(data.stepName || data.action || step.name, data.description)) return '';
+        
+        const action = (data.action || '').toLowerCase();
+        let statusIcon = '';
+        
+        // Check status first for proper icon color
+        if (status === 'fail') {
+            statusIcon = '<svg class="w-5 h-5 text-red-600 dark:text-red-400" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/></svg>';
+        } else if (status === 'pass' || status === 'done') {
+            statusIcon = '<svg class="w-5 h-5 text-green-600 dark:text-green-400" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>';
+        } else {
+            statusIcon = '<svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>';
+        }
+        
+        return `<div class="step-item" data-key="${keyPath}"><div class="step-item__marker step-item__marker--${status}">${statusIcon}</div><div class="step-item__content"><div class="step-item__header cursor-pointer" onclick="toggleStepV2('${keyPath}')"><div class="flex-1"><div class="flex items-center gap-3 mb-1"><span class="text-sm font-mono text-muted">#${escapeHtml(data.stepno || '')}</span><span class="p-3 rounded-lg text-sm font-mono whitespace-pre-wrap bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700">${escapeHtml(data.stepName || data.action || step.name || 'Step')}</span></div>${data.description ? `<div class="text-sm text-gray-600 dark:text-gray-400 ml-12">${escapeHtml(data.description)}</div>` : ''}</div><div class="flex items-center gap-3"><span class="text-xs text-muted">${escapeHtml(data.tStamp || '')}</span><span class="badge badge--${status}">${escapeHtml(data.status || '')}</span><svg class="w-5 h-5 text-gray-400 transition-transform duration-200 step-arrow" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg></div></div><div class="step-item__body" style="display: none;" data-step-body="${keyPath}">${data.action ? `<div class="mb-3"><strong class="text-sm">Action:</strong> <span class="text-sm">${escapeHtml(data.action)}</span></div>` : ''}${data.result ? `<div class="mb-3"><strong class="text-sm">Result:</strong> <span class="text-sm">${escapeHtml(data.result)}</span></div>` : ''}${data.failureMsg || data.failureMessage ? `<div class="mb-3 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded"><strong class="text-sm text-red-700 dark:text-red-400">Failure Message:</strong> <pre class="text-xs text-red-600 dark:text-red-300 mt-1 whitespace-pre-wrap">${escapeHtml(data.failureMsg || data.failureMessage)}</pre></div>` : ''}${data.objects ? `<div class="mb-3"><strong class="text-sm">Objects:</strong> <span class="text-sm">${escapeHtml(data.objects)}</span></div>` : ''}${data.actual ? `<div class="mb-3"><strong class="text-sm">Actual:</strong> <pre class="text-xs bg-gray-100 dark:bg-gray-800 p-2 rounded overflow-x-auto">${escapeHtml(data.actual)}</pre></div>` : ''}${data.expected ? `<div class="mb-3"><strong class="text-sm">Expected:</strong> <pre class="text-xs bg-gray-100 dark:bg-gray-800 p-2 rounded overflow-x-auto">${escapeHtml(data.expected)}</pre></div>` : ''}${data.link ? `<div class="mb-3"><strong class="text-sm">Screenshot:</strong><br><img src="${resolveScreenshotPath(data.link)}" alt="Step Screenshot" class="mt-2 rounded border border-gray-200 dark:border-gray-700 max-w-full cursor-pointer" onerror="this.style.display='none'" onclick="window.open('${resolveScreenshotPath(data.link)}', '_blank')"></div>` : ''}</div></div></div>`;
+    }
+    
+    function renderReusable(reusable, keyPath) {
+        const status = (reusable.status || '').toLowerCase();
+        const statusIcon = status === 'pass' ? '<svg class="w-5 h-5 text-green-600 dark:text-green-400" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>' : '<svg class="w-5 h-5 text-red-600 dark:text-red-400" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/></svg>';
+        let html = `<div class="reusable-component rounded-lg overflow-visible ${status === 'pass' ? 'reusable-header--passed' : 'reusable-header--failed'}" data-key="${keyPath}"><div class="flex items-center gap-3 p-4 cursor-pointer bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors" onclick="toggleReusableV2('${keyPath}')"><div class="flex items-center justify-center flex-shrink-0">${statusIcon}</div><div class="flex-1"><div class="font-semibold text-gray-800 dark:text-gray-200">${escapeHtml(reusable.name)}</div>${reusable.description ? `<div class="text-sm text-gray-600 dark:text-gray-400">${escapeHtml(reusable.description)}</div>` : ''}</div><div class="flex items-center gap-2"><span class="badge text-xs badge--${status}">${escapeHtml(reusable.status || '')}</span><svg class="w-5 h-5 text-gray-400 transition-transform duration-200 reusable-arrow" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg></div></div><div class="border-t border-gray-200 dark:border-gray-700 p-4 bg-gray-50 dark:bg-gray-900" style="display: none;" data-reusable-body="${keyPath}"><div class="step-timeline">`;
+        (reusable.data || []).forEach((child, idx) => {
+            if (child.type === 'step') html += renderStep(child, keyPath + '-' + idx);
+            else if (child.type === 'reusable') html += renderReusable(child, keyPath + '-' + idx);
+        });
+        return html + '</div></div></div>';
+    }
+    
+    let html = '';
+    (iterations || []).forEach((item, idx) => {
+        const keyPath = '' + idx;
+        if (item.type === 'step') html += renderStep(item, keyPath);
+        else if (item.type === 'reusable') html += renderReusable(item, keyPath);
+    });
+    return html;
+}
+
+// Toggle step expansion
+function toggleStepV2(keyPath) {
+    const body = document.querySelector('[data-step-body="' + keyPath + '"]');
+    const arrow = document.querySelector('[data-key="' + keyPath + '"] .step-arrow');
+    if (body) {
+        if (body.style.display === 'none') {
+            body.style.display = 'block';
+            if (arrow) arrow.style.transform = 'rotate(180deg)';
+        } else {
+            body.style.display = 'none';
+            if (arrow) arrow.style.transform = 'rotate(0deg)';
+        }
+    }
+}
+
+// Toggle reusable expansion
+function toggleReusableV2(keyPath) {
+    const body = document.querySelector('[data-reusable-body="' + keyPath + '"]');
+    const arrow = document.querySelector('[data-key="' + keyPath + '"] .reusable-arrow');
+    if (body) {
+        if (body.style.display === 'none') {
+            body.style.display = 'block';
+            if (arrow) arrow.style.transform = 'rotate(180deg)';
+        } else {
+            body.style.display = 'none';
+            if (arrow) arrow.style.transform = 'rotate(0deg)';
+        }
+    }
+}
+
+// Inject rendered steps into #steps-container
+function injectStepsV2(showFailedOnly = false, stepFilter = '') {
+    if (!window.DATA || !window.DATA.EXECUTIONS) return;
+    let html = '';
+    window.DATA.EXECUTIONS.forEach(function(exe, exeIdx) {
+        if (exe.STEPS) {
+            exe.STEPS.forEach(function(iteration, iterIdx) {
+                if (showFailedOnly && iteration.status !== 'FAIL') return;
+                html += `<div class="mb-6 pb-6 border-b border-gray-200 dark:border-gray-700 last:border-b-0"><div class="flex items-center gap-3 mb-4"><div class="px-3 py-1 rounded-full text-sm font-semibold ${iteration.status === 'PASS' ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' : 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'}">${iteration.name || 'Iteration'}</div><span class="text-sm text-muted">${iteration.status || ''}</span></div><div class="step-timeline">${renderStepsV2(iteration.data, showFailedOnly, stepFilter)}</div></div>`;
+            });
+        }
+    });
+    const container = document.getElementById('steps-container');
+    if (container) container.innerHTML = html;
+}
+
+// ===== END NEW v2 FUNCTIONS =====
+
+
 /**
  * prototype for String.replaceAll()
  * @param {type} find string to replace
@@ -149,6 +291,11 @@ var isTCMatched = function(exe) {
     return (exe[ID.scname] === Params.SC) && (exe[ID.name] === Params.TC);
 };
 (function() {
+    // Guard for Angular - skip if not loaded
+    if (typeof angular === 'undefined') {
+        console.log('Angular not loaded, skipping controller initialization');
+        return;
+    }
 
     var app = angular.module('detailedReport', []);
     app.controller('TestCase', ['$scope', '$sce', function($scope, $sce) {
@@ -714,6 +861,10 @@ function scrollToTop() {
 }
 
 var DropDown = function() {
+    if (typeof $ === 'undefined' || typeof angular === 'undefined') {
+        console.log('jQuery or Angular not loaded, skipping dropdown initialization');
+        return;
+    }
     var sel = $('select');
     var setv = function(e) {
         var scope = angular.element(sel).scope();
@@ -725,15 +876,21 @@ var DropDown = function() {
     sel.on("change", setv);
 
 };
-$(document).ready(function() {
-    scrollToTop();
-    initGalenReport();
-    browserHeaders.forEach(function(browser) {
-        setSNGLExeTab((browser).escape());
+
+// Guard jQuery initialization
+if (typeof jQuery !== 'undefined' && typeof $ !== 'undefined') {
+    $(document).ready(function() {
+        scrollToTop();
+        initGalenReport();
+        browserHeaders.forEach(function(browser) {
+            setSNGLExeTab((browser).escape());
+        });
+        setGRPExeTab();
+        DropDown();
     });
-    setGRPExeTab();
-    DropDown();
-});
+} else {
+    console.log('jQuery not loaded, skipping $(document).ready initialization');
+}
 function initGalenReport()
 {
     $(document).keydown(function(e) {

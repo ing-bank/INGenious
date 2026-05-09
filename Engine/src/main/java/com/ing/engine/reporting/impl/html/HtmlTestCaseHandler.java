@@ -195,13 +195,18 @@ public class HtmlTestCaseHandler extends TestCaseHandler implements PrimaryHandl
             putStatus(state, links, link, data);
             if (isIteration) {
                 ((JSONArray) iteration.get(RDS.Step.DATA)).add(step);
-            } else {
+            } else if (!reusableStack.isEmpty()) {
+                ((JSONArray) reusableStack.peek().get(RDS.Step.DATA)).add(step);
+            } else if (reusable != null) {
+                // fallback for legacy single-level
                 ((JSONArray) reusable.get(RDS.Step.DATA)).add(step);
             }
             if (isVideoEnabled()) {
                 if (isIteration) {
                     iteration.put(RDS.TestSet.VIDEO_REPORT_DIR, getPlaywrightDriver().page.video().path().toString());
-                } else {
+                } else if (!reusableStack.isEmpty()) {
+                    reusableStack.peek().put(RDS.TestSet.VIDEO_REPORT_DIR, getPlaywrightDriver().page.video().path().toString());
+                } else if (reusable != null) {
                     reusable.put(RDS.TestSet.VIDEO_REPORT_DIR, getPlaywrightDriver().page.video().path().toString());
                 }
                 // Capture video path early before browser closes (only need to do once)
@@ -389,23 +394,19 @@ public class HtmlTestCaseHandler extends TestCaseHandler implements PrimaryHandl
     public void endComponent(String string) {
         reusable.put(RDS.Step.END_TIME, DateTimeUtils.DateTimeNow());
         if (reusable.get(TestCase.STATUS).equals("")) {
-            /*
-            * status not is updated set it to PASS 
-             */
+            // status not is updated set it to PASS
             reusable.put(TestCase.STATUS, "PASS");
         }
-        /*
-        * remove the reusable from the stack then fall back to iteration 
-        * if stack is empty else update the outer reusable status.
-         */
+        // Save reference before popping
+        JSONObject completedReusable = reusable;
         reusableStack.pop();
         if (reusableStack.empty()) {
-            ((JSONArray) iteration.get(RDS.Step.DATA)).add(reusable);
+            ((JSONArray) iteration.get(RDS.Step.DATA)).add(completedReusable);
             reusable = null;
             isIteration = true;
         } else {
-            ((JSONArray) reusableStack.peek().get(RDS.Step.DATA)).add(reusable);
-            reusableStack.peek().put(TestCase.STATUS, reusable.get(TestCase.STATUS));
+            ((JSONArray) reusableStack.peek().get(RDS.Step.DATA)).add(completedReusable);
+            reusableStack.peek().put(TestCase.STATUS, completedReusable.get(TestCase.STATUS));
             reusable = reusableStack.peek();
         }
 

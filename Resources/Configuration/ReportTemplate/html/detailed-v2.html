@@ -39,7 +39,6 @@
     .step-item {
       position: relative;
       padding-left: 3.5rem;
-      padding-bottom: 1.5rem;
     }
     .step-item:last-child {
       padding-bottom: 0;
@@ -449,6 +448,7 @@
                 <input
                   type="text"
                   x-model="stepFilter"
+                  @input="refreshStepsDisplay()"
                   placeholder="Search steps..."
                   class="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-800 text-gray-900 dark:text-gray-100 placeholder-gray-500 dark:placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-accent-500 dark:focus:ring-accent-400"
                   title="Filter steps by name or description"
@@ -463,6 +463,7 @@
                 <input 
                   type="checkbox" 
                   x-model="showFailedOnly"
+                  @change="refreshStepsDisplay()"
                   class="rounded border-gray-300 text-accent-600 focus:ring-accent-500"
                 >
                 <span>Show failed only</span>
@@ -472,7 +473,7 @@
               <div class="btn-group">
                 <button 
                   class="btn btn--secondary btn--sm" 
-                  @click="expandAll()"
+                  onclick="expandAllSteps()"
                   title="Expand All"
                 >
                   <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -481,7 +482,7 @@
                 </button>
                 <button 
                   class="btn btn--secondary btn--sm" 
-                  @click="collapseAll()"
+                  onclick="collapseAllSteps()"
                   title="Collapse All"
                 >
                   <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -493,460 +494,17 @@
           </div>
           
           <div class="card__body">
-            <!-- Steps Timeline - Hierarchical View -->
-            <div class="step-timeline">
-              <!-- Iterate through each iteration -->
-              <template x-for="(iteration, iterIdx) in getAllIterations()" :key="'iter-' + iterIdx">
-                <!-- Iteration Container -->
-                <div class="mb-6 pb-6 border-b border-gray-200 dark:border-gray-700 last:border-b-0">
-                  <!-- Iteration Header -->
-                  <div class="flex items-center gap-3 mb-4">
-                    <div class="px-3 py-1 rounded-full text-sm font-semibold" 
-                         :class="iteration.status === 'PASS' ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' : 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'"
-                         x-text="iteration.name">
-                    </div>
-                    <span class="text-sm text-muted" x-text="iteration.status"></span>
-                  </div>
-                  
-                  <!-- Iteration Items (Reusables and Direct Steps) -->
-                  <div class="space-y-4 pl-4 border-l-2 border-gray-200 dark:border-gray-600">
-                    <template x-for="(item, itemIdx) in (iteration.data || [])" :key="'item-' + iterIdx + '-' + itemIdx">
-                      <div class="contents">
-                        <!-- Reusable Component -->
-                        <template x-if="item && item.type === 'reusable'">
-                          <div class="reusable-component rounded-lg overflow-visible" :class="item.status === 'PASS' ? 'reusable-header--passed' : 'reusable-header--failed'" x-show="hasMatchingSteps(item.data)">
-                          <!-- Reusable Header (Clickable) -->
-                          <div class="flex items-center gap-3 p-4 cursor-pointer bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
-                               @click="toggleReusable(iterIdx, itemIdx)">
-                            <!-- Status Indicator Icon -->
-                            <div class="flex items-center justify-center flex-shrink-0">
-                              <svg x-show="item.status === 'PASS'" class="w-5 h-5 text-green-600 dark:text-green-400" fill="currentColor" viewBox="0 0 20 20" title="Passed">
-                                <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
-                              </svg>
-                              <svg x-show="item.status === 'FAIL'" class="w-5 h-5 text-red-600 dark:text-red-400" fill="currentColor" viewBox="0 0 20 20" title="Failed">
-                                <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/>
-                              </svg>
-                            </div>
-                            
-                            <!-- Reusable Info -->
-                            <div class="flex-1">
-                              <div class="font-semibold text-gray-800 dark:text-gray-200" x-text="item.name"></div>
-                              <div class="text-sm text-gray-600 dark:text-gray-400" x-text="item.description || ''"></div>
-                            </div>
-                            
-                            <!-- Status Badge & Expand Arrow -->
-                            <div class="flex items-center gap-2">
-                              <span class="badge text-xs" 
-                                    :class="item.status === 'PASS'
-                                      ? 'badge--passed'
-                                      : (item.status === 'FAIL'
-                                        ? 'badge--failed'
-                                        : (item.status === 'WARNING'
-                                          ? 'badge--warning'
-                                          : 'badge--done'))"
-                                    x-text="item.status">
-                              </span>
-                              <svg class="w-5 h-5 text-gray-400 transition-transform duration-200"
-                                   :class="{ 'rotate-180': isReusableExpanded(iterIdx, itemIdx, item.data) }"
-                                   fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
-                              </svg>
-                            </div>
-                          </div>
-                          
-                          <!-- Reusable Steps (Nested) -->
-                          <div x-show="isReusableExpanded(iterIdx, itemIdx, item.data)" x-transition class="border-t border-gray-200 dark:border-gray-700 p-4 space-y-3 bg-gray-50 dark:bg-gray-900">
-                            <template x-for="(step, stepIdx) in item.data" :key="'step-' + iterIdx + '-' + itemIdx + '-' + stepIdx">
-                              <div class="step-item" x-show="(!showFailedOnly || step.data?.status === 'FAIL') && matchesSearchFilter(step.name, step.data?.description)">
-                                <!-- Step Marker -->
-                                <div class="step-item__marker"
-                                     :class="item.data?.status === 'PASS'
-                                       ? 'step-item__marker--passed'
-                                       : (item.data?.status === 'FAIL'
-                                         ? 'step-item__marker--failed'
-                                         : (item.data?.status === 'WARNING'
-                                           ? 'step-item__marker--warning'
-                                           : 'step-item__marker--done'))">
-                                  <svg x-show="step.data?.status === 'PASS'" fill="currentColor" viewBox="0 0 20 20" title="Passed">
-                                    <path d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z"/>
-                                  </svg>
-                                  <svg x-show="step.data?.status === 'FAIL'" fill="currentColor" viewBox="0 0 20 20" title="Failed">
-                                    <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/>
-                                  </svg>
-                                  <svg x-show="item.data?.status === 'WARNING'" fill="currentColor" viewBox="0 0 20 20" title="Warning">
-                                    <path fill-rule="evenodd" d="M18 10A8 8 0 112 10a8 8 0 0116 0zm-8-4a1 1 0 00-1 1v4a1 1 0 102 0V7a1 1 0 00-1-1zm0 8a1.25 1.25 0 100-2.5 1.25 1.25 0 000 2.5z" clip-rule="evenodd"/>
-                                  </svg>
-                                  <svg x-show="step.data?.status === 'DONE'" fill="currentColor" viewBox="0 0 20 20" title="Done">
-                                    <circle cx="10" cy="10" r="3"/>
-                                  </svg>
-                                </div>
-                                
-                                <!-- Step Content -->
-                                <div class="step-item__content">
-                                  <div class="step-item__marker cursor-pointer"
-                                       @click="toggleStep(iterIdx + '-' + itemIdx + '-' + stepIdx)"
-                                       :class="step.data?.status === 'PASS'
-                                         ? 'step-item__marker--passed'
-                                         : (step.data?.status === 'FAIL'
-                                           ? 'step-item__marker--failed'
-                                           : (step.data?.status === 'WARNING'
-                                             ? 'step-item__marker--warning'
-                                             : 'step-item__marker--done'))">
-                                    <div class="flex-1">
-                                      <div class="flex items-center gap-3">
-                                        <span class="text-sm font-mono text-muted" x-text="'#' + (step.data?.stepno || (stepIdx + 1))"></span>
-                                        <span class="p-3 rounded-lg text-sm font-mono whitespace-pre-wrap bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700" x-text="step.data?.stepName || step.data?.action || step.name || 'Step'"></span>
-                                      </div>
-                                      <p class="text-sm text-muted mt-1" x-text="step.data?.description || ''"></p>
-                                    <svg x-show="step.data?.status === 'WARNING'" fill="currentColor" viewBox="0 0 20 20" title="Warning">
-                                      <path fill-rule="evenodd" d="M18 10A8 8 0 112 10a8 8 0 0116 0zm-8-4a1 1 0 00-1 1v4a1 1 0 102 0V7a1 1 0 00-1-1zm0 8a1.25 1.25 0 100-2.5 1.25 1.25 0 000 2.5z" clip-rule="evenodd"/>
-                                    </svg>
-                                    </div>
-                                    
-                                    <div class="flex items-center gap-3">
-                                      <span class="text-xs text-muted" x-text="step.data?.tStamp || ''"></span>
-                                      <span class="badge" 
-                                            :class="step.data?.status === 'PASS'
-                                              ? 'badge--passed'
-                                              : (step.data?.status === 'FAIL'
-                                                ? 'badge--failed'
-                                                : (step.data?.status === 'WARNING'
-                                                  ? 'badge--warning'
-                                                  : 'badge--done'))"
-                                            x-text="step.data?.status">
-                                      </span>
-                                      <svg class="w-5 h-5 text-gray-400 transition-transform duration-200 cursor-pointer"
-                                           :class="{ 'rotate-180': isExpanded(iterIdx + '-' + itemIdx + '-' + stepIdx) }"
-                                           @click.stop="toggleStep(iterIdx + '-' + itemIdx + '-' + stepIdx)"
-                                           fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
-                                      </svg>
-                                    </div>
-                                  </div>
-                                  
-                                  <!-- Expanded Step Details -->
-                                  <div class="step-item__body"
-                                       x-show="isExpanded(iterIdx + '-' + itemIdx + '-' + stepIdx)"
-                                       x-transition>
-                                    <!-- Action/Result -->
-                                    <div x-show="step.data?.action" class="mb-4">
-                                      <div class="text-sm font-semibold mb-1">Action</div>
-                                      <div class="p-3 rounded-lg text-sm font-mono whitespace-pre-wrap bg-gray-50 dark:bg-gray-800" x-text="step.data?.action"></div>
-                                    </div>
-                                    
-                                    <!-- Expected vs Actual -->
-                                    <div x-show="step.data?.expected || step.data?.actual" class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                                      <div x-show="step.data?.expected">
-                                        <div class="text-sm font-semibold mb-1">Expected</div>
-                                        <div class="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg text-sm font-mono whitespace-pre-wrap" x-text="step.data?.expected"></div>
-                                      </div>
-                                      <div x-show="step.data?.actual">
-                                        <div class="text-sm font-semibold mb-1">Actual</div>
-                                        <div class="p-3 bg-amber-50 dark:bg-amber-900/20 rounded-lg text-sm font-mono whitespace-pre-wrap" x-text="step.data?.actual"></div>
-                                      </div>
-                                    </div>
-                                    
-                                    <!-- Comparison -->
-                                    <div x-show="step.data?.comparison" class="mb-4">
-                                      <div class="text-sm font-semibold mb-1">Comparison Result</div>
-                                      <div class="p-3 bg-gray-50 dark:bg-gray-800 rounded-lg text-sm font-mono whitespace-pre-wrap" x-text="step.data?.comparison"></div>
-                                    </div>
-                                    
-                                    <!-- Objects -->
-                                    <div x-show="step.data?.objects" class="mb-4">
-                                      <div class="text-sm font-semibold mb-1">Objects</div>
-                                      <div class="p-3 bg-gray-50 dark:bg-gray-800 rounded-lg text-sm font-mono" x-text="step.data?.objects"></div>
-                                    </div>
-                                    
-                                    <!-- Screenshot/Video Link -->
-                                    <div x-show="step.data?.link" class="flex gap-3 flex-wrap">
-                                      <template x-if="isImageLink(step.data?.link)">
-                                        <button @click="openScreenshot(step.data?.link)" class="btn btn--secondary btn--sm">
-                                          <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
-                                          </svg>
-                                          View Screenshot
-                                        </button>
-                                      </template>
-                                      <template x-if="isVideoLink(step.data?.link)">
-                                        <button @click="openVideo(step.data?.link)" class="btn btn--secondary btn--sm">
-                                          <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/>
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                                          </svg>
-                                          View Video
-                                        </button>
-                                      </template>
-                                      <template x-if="isPayloadLink(step.data?.link, step)">
-                                        <button @click="openPayloadModal(step.data?.link, step)" class="btn btn--secondary btn--sm">
-                                          <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
-                                          </svg>
-                                          View API Payload
-                                        </button>
-                                      </template>
-                                      <template x-if="!isImageLink(step.data?.link) && !isVideoLink(step.data?.link) && !isPayloadLink(step.data?.link, step)">
-                                        <a :href="normalizePath(step.data?.link)" target="_blank" class="btn btn--secondary btn--sm">
-                                          <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
-                                          </svg>
-                                          View Attachment
-                                        </a>
-                                      </template>
-                                    </div>
-                                    
-                                    <!-- aXe Accessibility Report Button (for testAccessibility steps) -->
-                                    <div x-show="isTestAccessibilityStep(step)" class="flex gap-3 flex-wrap mt-4">
-                                      <button 
-                                        @click="openAxeReportModal(item.name, getReusableAxeReportPath(item.name))"
-                                        :disabled="!getReusableAxeReportPath(item.name)"
-                                        class="btn btn--secondary btn--sm"
-                                        :style="getReusableAxeReportPath(item.name) ? {
-                                          'background-color': '#7724FF',
-                                          'color': '#FFFFFF',
-                                          'border-color': 'rgba(119, 36, 255, 0.5)',
-                                          'cursor': 'pointer'
-                                        } : {
-                                          'opacity': '0.6',
-                                          'cursor': 'not-allowed'
-                                        }"
-                                        title="View accessibility report for this step">
-                                        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m7 0a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                                        </svg>
-                                        View aXe Report
-                                      </button>
-                                    </div>
-                                  </div>
-                                </div>
-                              </div>
-                            </template>
-                          </div>
-                        </div>
-                        </template>
-                        
-                        <!-- Direct Step (not in reusable) -->
-                        <template x-if="item && item.type === 'step'">
-                          <div class="step-item" x-show="(!showFailedOnly || item.data?.status === 'FAIL') && matchesSearchFilter(item.name, item.data?.description)">
-                          <!-- Step Marker -->
-                          <div class="step-item__marker"
-                               :class="item.data?.status === 'PASS' ? 'step-item__marker--passed' : (item.data?.status === 'FAIL' ? 'step-item__marker--failed' : 'step-item__marker--done')">
-                            <svg x-show="item.data?.status === 'PASS'" fill="currentColor" viewBox="0 0 20 20" title="Passed">
-                              <path d="M10.293 3.293a1 1 0 011.414 0l6 6a1 1 0 010 1.414l-6 6a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-4.293-4.293a1 1 0 010-1.414z"/>
-                            </svg>
-                            <svg x-show="item.data?.status === 'FAIL'" fill="currentColor" viewBox="0 0 20 20" title="Failed">
-                              <path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/>
-                            </svg>
-                            <svg x-show="item.data?.status === 'DONE'" fill="currentColor" viewBox="0 0 20 20" title="Done">
-                              <circle cx="10" cy="10" r="3"/>
-                            </svg>
-                          </div>
-                          
-                          <!-- Step Content -->
-                          <div class="step-item__content">
-                            <div class="step-item__header" @click="toggleStep(iterIdx + '-' + itemIdx)">
-                              <div class="flex-1">
-                                <div class="flex items-center gap-3">
-                                  <span class="text-sm font-mono text-muted" x-text="'#' + (item.data?.stepno || (itemIdx + 1))"></span>
-                                  <span class="font-semibold" x-text="item.data?.stepName || item.data?.action || item.name || 'Step'"></span>
-                                </div>
-                                <p class="text-sm text-muted mt-1" x-text="item.data?.description || ''"></p>
-                              </div>
-                              
-                              <div class="flex items-center gap-3">
-                                <span class="text-xs text-muted" x-text="item.data?.tStamp || ''"></span>
-                                <span class="badge" 
-                                      :class="item.data?.status === 'PASS'
-                                        ? 'badge--passed'
-                                        : (item.data?.status === 'FAIL'
-                                          ? 'badge--failed'
-                                          : (item.data?.status === 'WARNING'
-                                            ? 'badge--warning'
-                                            : 'badge--done'))"
-                                      x-text="item.data?.status">
-                                </span>
-                                <svg class="w-5 h-5 text-gray-400 transition-transform duration-200"
-                                     :class="{ 'rotate-180': isExpanded(iterIdx + '-' + itemIdx) }"
-                                     fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
-                                </svg>
-                              </div>
-                            </div>
-                            
-                            <!-- Expanded Step Details -->
-                            <div class="step-item__body" x-show="isExpanded(iterIdx + '-' + itemIdx)" x-transition>
-                              <!-- Action -->
-                              <div x-show="item.data?.action" class="mb-4">
-                                <div class="text-sm font-semibold mb-1">Action</div>
-                                <div class="p-3 rounded-lg text-sm font-mono whitespace-pre-wrap bg-gray-50 dark:bg-gray-800" x-text="item.data?.action"></div>
-                              </div>
-                              
-                              <!-- Expected vs Actual -->
-                              <div x-show="item.data?.expected || item.data?.actual" class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                                <div x-show="item.data?.expected">
-                                  <div class="text-sm font-semibold mb-1">Expected</div>
-                                  <div class="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg text-sm font-mono whitespace-pre-wrap" x-text="item.data?.expected"></div>
-                                </div>
-                                <div x-show="item.data?.actual">
-                                  <div class="text-sm font-semibold mb-1">Actual</div>
-                                  <div class="p-3 bg-amber-50 dark:bg-amber-900/20 rounded-lg text-sm font-mono whitespace-pre-wrap" x-text="item.data?.actual"></div>
-                                </div>
-                              </div>
-                              
-                              <!-- Comparison -->
-                              <div x-show="item.data?.comparison" class="mb-4">
-                                <div class="text-sm font-semibold mb-1">Comparison Result</div>
-                                <div class="p-3 bg-gray-50 dark:bg-gray-800 rounded-lg text-sm font-mono whitespace-pre-wrap" x-text="item.data?.comparison"></div>
-                              </div>
-                              
-                              <!-- Objects -->
-                              <div x-show="item.data?.objects" class="mb-4">
-                                <div class="text-sm font-semibold mb-1">Objects</div>
-                                <div class="p-3 bg-gray-50 dark:bg-gray-800 rounded-lg text-sm font-mono" x-text="item.data?.objects"></div>
-                              </div>
-                              
-                              <!-- Screenshot/Video Link -->
-                                    <div x-show="item.data?.link" class="flex gap-3 flex-wrap">
-                                <template x-if="isImageLink(item.data?.link)">
-                                  <button @click="openScreenshot(item.data?.link)" class="btn btn--secondary btn--sm">
-                                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
-                                    </svg>
-                                    View Screenshot
-                                  </button>
-                                </template>
-                                <template x-if="isVideoLink(item.data?.link)">
-                                  <button @click="openVideo(item.data?.link)" class="btn btn--secondary btn--sm">
-                                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/>
-                                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                                    </svg>
-                                    View Video
-                                  </button>
-                                </template>
-                                      <template x-if="isPayloadLink(item.data?.link, item)">
-                                        <button @click="openPayloadModal(item.data?.link, item)" class="btn btn--secondary btn--sm">
-                                          <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"/>
-                                          </svg>
-                                          View API Payload
-                                        </button>
-                                      </template>
-                                      <template x-if="!isImageLink(item.data?.link) && !isVideoLink(item.data?.link) && !isPayloadLink(item.data?.link, item)">
-                                  <a :href="normalizePath(item.data?.link)" target="_blank" class="btn btn--secondary btn--sm">
-                                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
-                                    </svg>
-                                    View Attachment
-                                  </a>
-                                </template>
-                              </div>
-                            </div>
-                          </div>
-                        </div>
-                      </template>
-                    </template>
-                  </div>
-                </div>
-              </template>
-              
-              <!-- Empty State -->
-              <div x-show="getAllIterations().length === 0" class="text-center py-12">
-                <svg class="w-12 h-12 text-gray-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"/>
-                </svg>
-                <p class="text-muted">No steps to display</p>
-              </div>
-            </div>
-          </div>
-        </section>
-        
-        <!-- Test Case Video & Traces Buttons -->
-        <section class="section mt-12">
-          <div class="container">
-            <div class="flex flex-wrap items-center gap-6 mb-8">
-              <!-- View Video Button -->
-              <button
-                :disabled="!currentDetails.videoPath"
-                @click="currentDetails.videoPath && openTestCaseVideo(currentDetails.videoPath)"
-                style="display: flex; align-items: center; justify-content: center; padding: 1rem 2rem; font-size: 1rem; font-weight: 600; border-radius: 0.375rem; transition: all 0.2s; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); min-width: 180px; border: none; cursor: pointer;"
-                :style="currentDetails.videoPath ? {
-                  'background-color': '#7724FF',
-                  'color': '#FFFFFF',
-                  'box-shadow': '0 10px 15px -3px rgba(119, 36, 255, 0.4)'
-                } : {
-                  'background-color': '#e5e7eb',
-                  'color': '#9ca3af',
-                  'cursor': 'not-allowed',
-                  'opacity': '0.6'
-                }"
-                @mouseover="currentDetails.videoPath && ($event.target.style.backgroundColor = '#6518e6', $event.target.style.boxShadow = '0 10px 15px -3px rgba(119, 36, 255, 0.6)')"
-                @mouseout="currentDetails.videoPath && ($event.target.style.backgroundColor = '#7724FF', $event.target.style.boxShadow = '0 10px 15px -3px rgba(119, 36, 255, 0.4)')"
-                title="View the recorded video of this test case execution"
-              >
-                <svg class="w-5 h-5" style="margin-right: 0.75rem;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/>
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                </svg>
-                <span>View Video</span>
-              </button>
-              
-              <!-- Download Traces Button -->
-              <a
-                :href="currentDetails.tracePath ? getAbsoluteTracePath() : '#'"
-                :download="currentDetails.tracePath ? 'traces.zip' : null"
-                :style="currentDetails.tracePath ? {
-                  'display': 'flex',
-                  'align-items': 'center',
-                  'justify-content': 'center',
-                  'padding': '1rem 2rem',
-                  'font-size': '1rem',
-                  'font-weight': '600',
-                  'border-radius': '0.375rem',
-                  'transition': 'all 0.2s',
-                  'box-shadow': '0 10px 15px -3px rgba(0, 0, 0, 0.1)',
-                  'min-width': '180px',
-                  'border': 'none',
-                  'cursor': 'pointer',
-                  'text-decoration': 'none',
-                  'background-color': '#7724FF',
-                  'color': '#FFFFFF',
-                  'box-shadow': '0 10px 15px -3px rgba(119, 36, 255, 0.4)'
-                } : {
-                  'display': 'flex',
-                  'align-items': 'center',
-                  'justify-content': 'center',
-                  'padding': '1rem 2rem',
-                  'font-size': '1rem',
-                  'font-weight': '600',
-                  'border-radius': '0.375rem',
-                  'background-color': '#e5e7eb',
-                  'color': '#9ca3af',
-                  'cursor': 'not-allowed',
-                  'opacity': '0.6',
-                  'text-decoration': 'none',
-                  'pointer-events': 'none'
-                }"
-                @mouseover="currentDetails.tracePath && ($event.target.style.backgroundColor = '#6518e6', $event.target.style.boxShadow = '0 10px 15px -3px rgba(119, 36, 255, 0.6)')"
-                @mouseout="currentDetails.tracePath && ($event.target.style.backgroundColor = '#7724FF', $event.target.style.boxShadow = '0 10px 15px -3px rgba(119, 36, 255, 0.4)')"
-                title="Download trace file"
-              >
-                <svg class="w-5 h-5" style="margin-right: 0.75rem;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
-                </svg>
-                <span>Download Traces</span>
-              </a>
-              
-            </div>
+            <!-- Steps Timeline - Hierarchical View (JS-injected) -->
+            <div id="steps-container"></div>
           </div>
         </section>
         
       </div>
     </main>
     
-    <!-- Screenshot Lightbox -->
+    <!-- Image Lightbox -->
     <div 
-      id="screenshotLightbox"
+      id="imageLightbox"
       x-show="lightboxOpen"
       x-cloak
       x-transition:enter="transition ease-out duration-200"
@@ -955,7 +513,8 @@
       x-transition:leave="transition ease-in duration-150"
       x-transition:leave-start="opacity-100"
       x-transition:leave-end="opacity-0"
-      class="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4"
+      class="fixed inset-0 z-50 flex items-center justify-center p-4"
+      style="background: rgba(0, 0, 0, 0.95); backdrop-filter: blur(10px);"
       @click.self="lightboxOpen = false"
       @keydown.escape.window="lightboxOpen = false"
     >
@@ -1070,6 +629,9 @@
     
   </div>
   
+  <!-- Detailed.js - Must load before Alpine.js -->
+  <script src="../../../../media/js/detailed.js"></script>
+  
   <!-- Alpine.js -->
   <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
   
@@ -1142,6 +704,11 @@
           
           // Update view
           this.updateView();
+          
+          // Inject steps using the JS renderer
+          if (typeof injectStepsV2 === 'function') {
+            injectStepsV2(this.showFailedOnly, this.stepFilter);
+          }
           
           // Load theme preference
           const savedTheme = localStorage.getItem('ingenious-report-theme');
@@ -1320,6 +887,13 @@
             return this.expandedReusables.has(key) || this.hasMatchingSteps(itemData);
           }
           return this.expandedReusables.has(key);
+        },
+        
+        refreshStepsDisplay() {
+          // Re-render steps when filter changes
+          if (typeof injectStepsV2 === 'function') {
+            injectStepsV2(this.showFailedOnly, this.stepFilter);
+          }
         },
         
         toggleTheme() {
