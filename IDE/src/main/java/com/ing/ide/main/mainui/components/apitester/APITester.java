@@ -141,7 +141,7 @@ public class APITester {
     }
     
     public void saveRequestToCollection(APIRequest request, APICollection collection) {
-        collection.addRequest(request);
+        collection.addOrUpdateRequest(request);
         saveCollections();
         apiTesterUI.refreshCollectionsTree();
     }
@@ -280,7 +280,18 @@ public class APITester {
         if (apiPath == null) return;
         
         Path collectionsPath = apiPath.resolve("collections");
-        if (!Files.exists(collectionsPath)) return;
+        if (!Files.exists(collectionsPath)) {
+            // Create default "My Collection" if folder doesn't exist
+            try {
+                Files.createDirectories(collectionsPath);
+                APICollection defaultCollection = new APICollection("My Collection");
+                collections.add(defaultCollection);
+                saveCollections();
+            } catch (IOException e) {
+                LOG.log(Level.WARNING, "Failed to create default collection", e);
+            }
+            return;
+        }
         
         collections.clear();
         try {
@@ -294,6 +305,13 @@ public class APITester {
                             LOG.log(Level.WARNING, "Failed to load collection: " + p, e);
                         }
                     });
+            
+            // If no collections were loaded, create default one
+            if (collections.isEmpty()) {
+                APICollection defaultCollection = new APICollection("My Collection");
+                collections.add(defaultCollection);
+                saveCollections();
+            }
         } catch (IOException e) {
             LOG.log(Level.WARNING, "Failed to load collections", e);
         }

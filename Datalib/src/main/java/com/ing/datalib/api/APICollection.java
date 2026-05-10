@@ -1,11 +1,12 @@
 package com.ing.datalib.api;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import java.io.Serializable;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
+
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
 /**
  * Represents a collection of API requests organized in folders.
@@ -149,6 +150,29 @@ public class APICollection implements Serializable {
             requests = new ArrayList<>();
         }
         requests.add(request);
+        this.updatedAt = Instant.now().toEpochMilli();
+    }
+
+    /**
+     * Adds a new request or updates an existing one (by id) in the collection.
+     * If a request with the same id exists, it is replaced. Otherwise, adds as new.
+     */
+    public void addOrUpdateRequest(APIRequest request) {
+        if (requests == null) {
+            requests = new ArrayList<>();
+        }
+        boolean updated = false;
+        for (int i = 0; i < requests.size(); i++) {
+            APIRequest r = requests.get(i);
+            if (r.getId() != null && r.getId().equals(request.getId())) {
+                requests.set(i, request);
+                updated = true;
+                break;
+            }
+        }
+        if (!updated) {
+            requests.add(request);
+        }
         this.updatedAt = Instant.now().toEpochMilli();
     }
 

@@ -276,6 +276,15 @@ public class RequestPanel extends JPanel {
         if (result == javax.swing.JOptionPane.OK_OPTION) {
             com.ing.datalib.component.Scenario selectedScenario = 
                     (com.ing.datalib.component.Scenario) scenarioCombo.getSelectedItem();
+            
+            // Validate scenario is selected
+            if (selectedScenario == null) {
+                javax.swing.JOptionPane.showMessageDialog(this,
+                        "Please select a scenario.",
+                        "No Scenario Selected", javax.swing.JOptionPane.WARNING_MESSAGE);
+                return;
+            }
+            
             String testCaseName = nameField.getText().trim();
             
             if (testCaseName.isEmpty()) {

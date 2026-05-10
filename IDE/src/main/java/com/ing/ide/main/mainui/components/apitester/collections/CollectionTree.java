@@ -65,6 +65,9 @@ public class CollectionTree extends JPanel {
         tree.setRootVisible(false);
         tree.setShowsRootHandles(true);
         tree.setCellRenderer(new CollectionTreeCellRenderer());
+        tree.setRowHeight(24); // Increased row height for better readability
+        ToolTipManager.sharedInstance().registerComponent(tree);
+        tree.setRowHeight(24); // Increased row height for better readability
         tree.getSelectionModel().setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);
         
         // Double-click to open request
@@ -230,6 +233,13 @@ public class CollectionTree extends JPanel {
             colNode.collection.addRequest(request);
             controller.saveCollection(colNode.collection);
             refreshTree();
+            
+            // Expand the collection node to show the newly added request
+            TreePath collectionPath = new TreePath(node.getPath());
+            tree.expandPath(collectionPath);
+            
+            // Auto-load the new request into the editor
+            parentUI.loadRequest(request, colNode.collection);
         }
     }
     
@@ -247,6 +257,10 @@ public class CollectionTree extends JPanel {
             colNode.collection.addFolder(folder);
             controller.saveCollection(colNode.collection);
             refreshTree();
+            
+            // Expand the collection node to show the newly added folder
+            TreePath collectionPath = new TreePath(node.getPath());
+            tree.expandPath(collectionPath);
         }
     }
     
@@ -265,6 +279,13 @@ public class CollectionTree extends JPanel {
             folderNode.folder.addRequest(request);
             controller.saveCollection(folderNode.parentCollection);
             refreshTree();
+            
+            // Expand the folder node to show the newly added request
+            TreePath folderPath = new TreePath(node.getPath());
+            tree.expandPath(folderPath);
+            
+            // Auto-load the new request into the editor
+            parentUI.loadRequest(request, folderNode.parentCollection, folderNode.folder);
         }
     }
     
@@ -273,7 +294,13 @@ public class CollectionTree extends JPanel {
         if (node == null) return;
         
         RequestNode reqNode = (RequestNode) node.getUserObject();
-        parentUI.loadRequest(reqNode.request, reqNode.parentCollection);
+        
+        // If request is in a folder, pass the folder info
+        if (reqNode.parentFolder != null) {
+            parentUI.loadRequest(reqNode.request, reqNode.parentCollection, reqNode.parentFolder);
+        } else {
+            parentUI.loadRequest(reqNode.request, reqNode.parentCollection);
+        }
     }
     
     private void duplicateRequest() {
@@ -456,10 +483,10 @@ public class CollectionTree extends JPanel {
                 DefaultMutableTreeNode folderNode = new DefaultMutableTreeNode(
                     new FolderNode(folder, collection));
                 
-                // Add requests in folder
+                // Add requests in folder (pass folder info)
                 for (APIRequest request : folder.getRequests()) {
                     folderNode.add(new DefaultMutableTreeNode(
-                        new RequestNode(request, collection)));
+                        new RequestNode(request, collection, folder)));
                 }
                 
                 colNode.add(folderNode);
@@ -517,10 +544,18 @@ public class CollectionTree extends JPanel {
     static class RequestNode {
         final APIRequest request;
         final APICollection parentCollection;
+        final APICollection parentFolder; // Null if request is directly in collection
         
         RequestNode(APIRequest request, APICollection parentCollection) {
             this.request = request;
             this.parentCollection = parentCollection;
+            this.parentFolder = null;
+        }
+        
+        RequestNode(APIRequest request, APICollection parentCollection, APICollection parentFolder) {
+            this.request = request;
+            this.parentCollection = parentCollection;
+            this.parentFolder = parentFolder;
         }
         
         @Override
@@ -535,6 +570,12 @@ public class CollectionTree extends JPanel {
     
     private static class CollectionTreeCellRenderer extends DefaultTreeCellRenderer {
         
+        private JLabel label;
+        
+        public CollectionTreeCellRenderer() {
+            label = new JLabel();
+        }
+        
         @Override
         public Component getTreeCellRendererComponent(JTree tree, Object value,
                 boolean sel, boolean expanded, boolean leaf, int row, boolean hasFocus) {
@@ -543,24 +584,35 @@ public class CollectionTree extends JPanel {
             
             DefaultMutableTreeNode node = (DefaultMutableTreeNode) value;
             Object userObject = node.getUserObject();
+            String tooltipText = null;
             
             if (userObject instanceof CollectionNode) {
                 setIcon(UIManager.getIcon("FileView.directoryIcon"));
-                setText(((CollectionNode) userObject).collection.getName());
+                String collName = ((CollectionNode) userObject).collection.getName();
+                setText(collName);
+                tooltipText = "Collection: " + collName;
             } else if (userObject instanceof FolderNode) {
                 setIcon(UIManager.getIcon("FileView.directoryIcon"));
-                setText(((FolderNode) userObject).folder.getName());
+                String folderName = ((FolderNode) userObject).folder.getName();
+                setText(folderName);
+                tooltipText = "Folder: " + folderName;
             } else if (userObject instanceof RequestNode) {
                 RequestNode reqNode = (RequestNode) userObject;
                 APIRequest.HttpMethod method = reqNode.request.getMethod();
                 
                 // Create method badge
                 String methodStr = method.name();
+                String requestName = reqNode.request.getName();
                 setIcon(null);
                 setText("<html><span style='color:" + getMethodColorHex(method) + 
                        ";font-size:9px;font-weight:bold;'>" + methodStr + 
-                       "</span> " + reqNode.request.getName() + "</html>");
+                       "</span> " + requestName + "</html>");
+                tooltipText = "Request: " + methodStr + " " + requestName;
             }
+            
+            // Set tooltip for long names
+            ToolTipManager.sharedInstance().registerComponent(tree);
+            setToolTipText(tooltipText);
             
             return this;
         }
