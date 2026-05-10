@@ -279,6 +279,7 @@ public class APITester {
         Path apiPath = getApiDataPath();
         if (apiPath == null) return;
         
+        collections.clear(); // Always clear first
         Path collectionsPath = apiPath.resolve("collections");
         if (!Files.exists(collectionsPath)) {
             // Create default "My Collection" if folder doesn't exist
@@ -293,7 +294,6 @@ public class APITester {
             return;
         }
         
-        collections.clear();
         try {
             Files.list(collectionsPath)
                     .filter(p -> p.toString().endsWith(".json"))
