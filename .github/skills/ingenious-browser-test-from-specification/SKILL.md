@@ -84,7 +84,7 @@ Optionally update:
 
 If Project folder does not exist:
 - Create `Projects/<ProjectName>` with minimum scaffold:
-  - `ObjectRepository/Web/pages`
+  - `ObjectRepository/Web`
   - `ReusableComponents`
   - `Settings`
   - `TestData`
@@ -161,7 +161,7 @@ Run these checks before creating or editing flow artifacts:
 - Never leave an empty `Action` column.
 
 5. Build or reuse page objects (POM)
-- For each referenced page/object, ensure YAML exists in `ObjectRepository/Web/pages`.
+- For each referenced page/object, ensure YAML exists in `ObjectRepository/Web`.
 - In ObjectRepository entries, prioritize AriaRole-based identification for interactive elements.
 - Preferred selector order: `role` -> `data-testid` -> `aria-label` -> stable id -> scoped css/text selector.
 - For exact role+name matching, add:
