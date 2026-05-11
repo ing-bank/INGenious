@@ -220,6 +220,14 @@ public class GeneralWebservice extends Command implements WebservicePluginApi {
 
     }
 
+    /**
+     * Checks if the request is configured for form URL encoding.
+     * <p>
+     * Examines the headers to determine if the content type is set to
+     * application/x-www-form-urlencoded.
+     *
+     * @return true if form URL encoding is configured, false otherwise
+     */
     protected boolean isformUrlencoded() {
         if (headers.containsKey(key)) {
             ArrayList<String> headerlist = headers.get(key);
@@ -234,6 +242,14 @@ public class GeneralWebservice extends Command implements WebservicePluginApi {
         return false;
     }
 
+    /**
+     * Converts URL parameters to URL-encoded string format.
+     * <p>
+     * Transforms the stored URL parameters into a properly encoded query string
+     * suitable for form URL encoding.
+     *
+     * @return URL-encoded parameter string
+     */
     protected String urlencodedParams() {
         Map<String, String> parameters = new HashMap<>();
         String urlParamString = "";

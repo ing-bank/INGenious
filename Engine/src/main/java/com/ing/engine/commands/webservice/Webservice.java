@@ -45,6 +45,8 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
+
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.xpath.XPath;
@@ -72,7 +74,7 @@ import org.xml.sax.SAXException;
  * Settings include SSL verification, proxy configuration, redirect policies, and custom HTTP agents.
  * </p>
  */
-public class Webservice extends General {
+public class Webservice extends GeneralWebservice {
 
     public Webservice(CommandControl cc) {
         super(cc);
@@ -1136,54 +1138,6 @@ public class Webservice extends General {
         } catch (Exception ex) {
             Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, null, ex);
         }
-    }
-
-    /**
-     * Checks if the request is configured for form URL encoding.
-     * <p>
-     * Examines the headers to determine if the content type is set to
-     * application/x-www-form-urlencoded.
-     *
-     * @return true if form URL encoding is configured, false otherwise
-     */
-    private boolean isformUrlencoded() {
-        if (headers.containsKey(key)) {
-            ArrayList<String> headerlist = headers.get(key);
-            if (headerlist.size() > 0) {
-                for (String header : headerlist) {
-                    if (header.split("=")[1].contains("x-www-form-urlencoded")) {
-                        return true;
-                    }
-                };
-            }
-        }
-        return false;
-    }
-
-    /**
-     * Converts URL parameters to URL-encoded string format.
-     * <p>
-     * Transforms the stored URL parameters into a properly encoded query string
-     * suitable for form URL encoding.
-     *
-     * @return URL-encoded parameter string
-     */
-    private String urlencodedParams() {
-        Map<String, String> parameters = new HashMap<>();
-        String urlParamString = "";
-        try {
-            ArrayList<String> params = urlParams.get(key);
-            for (String param : params) {
-                parameters.put(param.split("=", 2)[0], param.split("=", 2)[1]);
-            }
-            urlParamString = parameters.entrySet()
-                    .stream()
-                    .map(e -> e.getKey() + "=" + URLEncoder.encode(e.getValue(), StandardCharsets.UTF_8))
-                    .collect(Collectors.joining("&"));
-        } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.OFF, ex.getMessage(), ex);
-        }
-        return urlParamString;
     }
 
     /**
