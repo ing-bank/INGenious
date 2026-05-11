@@ -1,8 +1,8 @@
 package com.ing.engine.cli.commands;
 
 import com.ing.engine.cli.INGeniousCLI;
-import com.ing.engine.support.methodInf.Action;
-import com.ing.engine.support.methodInf.ObjectType;
+import com.ing.ingenious.api.annotation.Action;
+import com.ing.ingenious.api.types.ObjectType;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
@@ -526,13 +526,13 @@ public class ActionCommand implements Callable<Integer> {
                 for (Method method : clazz.getDeclaredMethods()) {
                     if (method.isAnnotationPresent(Action.class)) {
                         Action annotation = method.getAnnotation(Action.class);
-                        ObjectType objType = annotation.object();
+                        String objType = annotation.object();
                         String category = mapObjectTypeToCategory(objType);
                         
                         actions.add(new ActionInfo(
                             method.getName(),
                             category,
-                            objType.name(),
+                            objType,
                             annotation.desc(),
                             annotation.input().name(),
                             annotation.condition().name()
@@ -560,8 +560,8 @@ public class ActionCommand implements Callable<Integer> {
     /**
      * Map ObjectType enum to user-friendly category.
      */
-    private static String mapObjectTypeToCategory(ObjectType objType) {
-        String mapping = CATEGORY_MAPPING.get(objType.name());
+    private static String mapObjectTypeToCategory(String objType) {
+        String mapping = CATEGORY_MAPPING.get(objType);
         return mapping != null ? mapping : "General";
     }
 
