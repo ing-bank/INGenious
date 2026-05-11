@@ -327,11 +327,11 @@ public class TestCaseAutoSuggest {
                 return MethodInfoManager.getMethodListFor(objectName);
             }
 
-            if (isWebObject(objectName, pageName)) {
+            if (isWebObject(objectName, pageToken)) {
                 return MethodInfoManager.getMethodListFor(ObjectType.PLAYWRIGHT, ObjectType.WEB, ObjectType.ANY);
             }
 
-            if (isMobileObject(objectName, pageName)) {
+            if (isMobileObject(objectName, pageToken)) {
                 return MethodInfoManager.getMethodListFor(ObjectType.APP);
             }
 
