@@ -49,13 +49,13 @@
         <mac.version>mac-aarch64</mac.version>
         <setupDir>../Dist/release</setupDir>
         <resourceDir>../Resources</resourceDir>
+        <ingenious-api.version>3.0</ingenious-api.version>
 
         <flatlaf.version>3.5.4</flatlaf.version>
         <ikonli.version>12.3.1</ikonli.version>
 
         <mockito.version>5.14.2</mockito.version>
         <assertj.version>3.26.3</assertj.version>
-        <ingenious-api.version>3.0</ingenious-api.version>
 
         <java.version>11</java.version>
         <maven.compiler.source>${java.version}</maven.compiler.source>
