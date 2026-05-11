@@ -1003,24 +1003,30 @@ public abstract class ObjectTree implements ActionListener {
         ORRootInf root = getOR();
         boolean isWeb = root instanceof WebOR;
         boolean isMobile = root instanceof MobileOR;
+        String pageName = page.getName();
+        
         if (isWeb) {
-            String newPageName = repo.copyWebPage(page.getName(), page.getName());
-            if (newPageName != null) {
-                pageRemoved(page);
-                page.removeFromParent();
+            String movedPageName = repo.moveWebPage(pageName, pageName);
+            if (movedPageName != null) {
                 repo.save();
+                reload();
                 refreshSharedTree();
-                Notification.show( "Moved Page '" + page.getName() + "' to Shared OR");
+                Notification.show("Moved Page '" + pageName + "' to Shared OR");
+                promptTestCaseReload();
+            } else {
+                Notification.show("Failed to move page '" + pageName + "' to Shared OR");
             }
         }
         if (isMobile) {
-            String newPageName = repo.copyMobilePage(page.getName(), page.getName());
-            if (newPageName != null) {
-                pageRemoved(page);
-                page.removeFromParent();
+            String movedPageName = repo.moveMobilePage(pageName, pageName);
+            if (movedPageName != null) {
                 repo.save();
+                reload();
                 refreshSharedTree();
-                Notification.show("Moved Mobile Page '" + page.getName() + "' to Shared OR");
+                Notification.show("Moved Mobile Page '" + pageName + "' to Shared OR");
+                promptTestCaseReload();
+            } else {
+                Notification.show("Failed to move mobile page '" + pageName + "' to Shared OR");
             }
         }
     }

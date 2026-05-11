@@ -989,6 +989,79 @@ public class ObjectRepository {
     }
 
     /**
+     * Moves an entire WebOR page from project to shared.
+     * Moves all objects on the page and updates all test case references.
+     *
+     * @param sourcePageName project page to move
+     * @param targetPageName desired shared page name
+     * @return actual created page name in shared OR, or null on failure
+     */
+    public String moveWebPage(String sourcePageName, String targetPageName) {
+        WebOR projectOR = getWebOR();
+        WebOR sharedOR = getWebSharedOR();
+        if (projectOR == null || sharedOR == null) return null;
+        
+        WebORPage sourcePage = projectOR.getPageByName(sourcePageName);
+        if (sourcePage == null) return null;
+        
+        // Use the same name (no uniqueness needed for page move)
+        String actualTargetName = targetPageName;
+        
+        // Check if target page already exists in shared OR
+        WebORPage existingTargetPage = sharedOR.getPageByName(actualTargetName);
+        if (existingTargetPage != null) {
+            // Target page exists - merge objects into it
+            List<ObjectGroup<WebORObject>> objectsToMove = new ArrayList<>(sourcePage.getObjectGroups());
+            
+            for (ObjectGroup<WebORObject> group : objectsToMove) {
+                String objectName = group.getName();
+                
+                // Skip if object already exists in target page
+                if (existingTargetPage.getObjectGroupByName(objectName) != null) {
+                    LOG.warning("Object '" + objectName + "' already exists in shared page '" + actualTargetName + "', skipping");
+                    continue;
+                }
+                
+                // Move this object
+                ResolvedWebObject resolved = new ResolvedWebObject(
+                    WebOR.ORScope.PROJECT, 
+                    sourcePageName, 
+                    objectName, 
+                    group
+                );
+                moveWebObject(resolved, actualTargetName);
+            }
+        } else {
+            // Target page doesn't exist - move entire page
+            List<ObjectGroup<WebORObject>> objectsToMove = new ArrayList<>(sourcePage.getObjectGroups());
+            
+            for (ObjectGroup<WebORObject> group : objectsToMove) {
+                // Move each object (this will create the target page on first iteration)
+                String objectName = group.getName();
+                ResolvedWebObject resolved = new ResolvedWebObject(
+                    WebOR.ORScope.PROJECT,
+                    sourcePageName,
+                    objectName,
+                    group
+                );
+                String movedName = moveWebObject(resolved, actualTargetName);
+                if (movedName == null) {
+                    LOG.warning("Failed to move object '" + group.getName() + "' to shared page '" + actualTargetName + "'");
+                }
+            }
+        }
+        
+        // Remove source page if now empty
+        if (sourcePage.getObjectGroups().isEmpty()) {
+            sourcePage.removeFromParent();
+            projectOR.setSaved(false);
+        }
+        
+        LOG.info("Moved Web Page '" + sourcePageName + "' to SHARED page '" + actualTargetName + "'");
+        return actualTargetName;
+    }
+    
+    /**
      * Copies a WebOR object into a shared page (creating the page if needed)
      * using a unique object group name.
      *
@@ -1203,6 +1276,79 @@ public class ObjectRepository {
         return originalName;
     }
 
+    /**
+     * Moves an entire MobileOR page from project to shared.
+     * Moves all objects on the page and updates all test case references.
+     *
+     * @param sourcePageName project page to move
+     * @param targetPageName desired shared page name
+     * @return actual created page name in shared OR, or null on failure
+     */
+    public String moveMobilePage(String sourcePageName, String targetPageName) {
+        MobileOR projectOR = getMobileOR();
+        MobileOR sharedOR = getMobileSharedOR();
+        if (projectOR == null || sharedOR == null) return null;
+        
+        MobileORPage sourcePage = projectOR.getPageByName(sourcePageName);
+        if (sourcePage == null) return null;
+        
+        // Use the same name (no uniqueness needed for page move)
+        String actualTargetName = targetPageName;
+        
+        // Check if target page already exists in shared OR
+        MobileORPage existingTargetPage = sharedOR.getPageByName(actualTargetName);
+        if (existingTargetPage != null) {
+            // Target page exists - merge objects into it
+            List<ObjectGroup<MobileORObject>> objectsToMove = new ArrayList<>(sourcePage.getObjectGroups());
+            
+            for (ObjectGroup<MobileORObject> group : objectsToMove) {
+                String objectName = group.getName();
+                
+                // Skip if object already exists in target page
+                if (existingTargetPage.getObjectGroupByName(objectName) != null) {
+                    LOG.warning("Mobile Object '" + objectName + "' already exists in shared page '" + actualTargetName + "', skipping");
+                    continue;
+                }
+                
+                // Move this object
+                ResolvedMobileObject resolved = new ResolvedMobileObject(
+                    WebOR.ORScope.PROJECT,
+                    sourcePageName,
+                    objectName,
+                    group
+                );
+                moveMobileObject(resolved, actualTargetName);
+            }
+        } else {
+            // Target page doesn't exist - move entire page
+            List<ObjectGroup<MobileORObject>> objectsToMove = new ArrayList<>(sourcePage.getObjectGroups());
+            
+            for (ObjectGroup<MobileORObject> group : objectsToMove) {
+                // Move each object (this will create the target page on first iteration)
+                String objectName = group.getName();
+                ResolvedMobileObject resolved = new ResolvedMobileObject(
+                    WebOR.ORScope.PROJECT,
+                    sourcePageName,
+                    objectName,
+                    group
+                );
+                String movedName = moveMobileObject(resolved, actualTargetName);
+                if (movedName == null) {
+                    LOG.warning("Failed to move mobile object '" + group.getName() + "' to shared page '" + actualTargetName + "'");
+                }
+            }
+        }
+        
+        // Remove source page if now empty
+        if (sourcePage.getObjectGroups().isEmpty()) {
+            sourcePage.removeFromParent();
+            projectOR.setSaved(false);
+        }
+        
+        LOG.info("Moved Mobile Page '" + sourcePageName + "' to SHARED page '" + actualTargetName + "'");
+        return actualTargetName;
+    }
+    
     private String generateUniquePageName(MobileOR mor, String baseName) {
         if (mor == null) return baseName;
         return generateUniqueName(baseName, name -> mor.getPageByName(name) != null);
