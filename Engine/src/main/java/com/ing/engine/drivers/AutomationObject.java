@@ -55,6 +55,7 @@ public class AutomationObject implements AutomationObjectApi {
     public static HashMap<String, String> globalDynamicValue = new HashMap<>();
     public static String Action = "";
     static HashMap<String, String> chainLocatorMaping = new HashMap<String, String>();
+    public static final Map<String, List<String>> locatorFiltersMap = new HashMap<>();
 
     public AutomationObject() {
     }
