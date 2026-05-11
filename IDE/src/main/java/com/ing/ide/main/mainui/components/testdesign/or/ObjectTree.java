@@ -1042,8 +1042,12 @@ public abstract class ObjectTree implements ActionListener {
         }
     }
 
+
     public Boolean navigateToObject(String objectName, String pageName) {
-        ORPageInf page = getOR().getPageByName(pageName);
+        // Parse the pageName to extract actual page name (handles scoped references like "[Project] PageName")
+        String actualPageName = extractPageName(pageName);
+
+        ORPageInf page = getOR().getPageByName(actualPageName);
         if (page != null) {
             ObjectGroup group = page.getObjectGroupByName(objectName);
             if (group != null) {
@@ -1052,6 +1056,32 @@ public abstract class ObjectTree implements ActionListener {
             }
         }
         return false;
+    }
+
+    /**
+     * Extracts the actual page name from a scoped reference.
+     * Handles references like "[Project] PageName" or "[Shared] PageName"
+     * by removing the scope prefix and returning just the page name.
+     *
+     * @param pageReference the page reference token (may contain scope prefix)
+     * @return the actual page name without scope prefix
+     */
+    private String extractPageName(String pageReference) {
+        if (pageReference == null || pageReference.trim().isEmpty()) {
+            return pageReference;
+        }
+
+        String trimmed = pageReference.trim();
+
+        // Check if reference starts with "[" and contains "]"
+        if (trimmed.startsWith("[") && trimmed.contains("]")) {
+            int endBracket = trimmed.indexOf(']');
+            // Return the part after "]", trimming any leading whitespace
+            return trimmed.substring(endBracket + 1).trim();
+        }
+
+        // No scope prefix, return as-is
+        return trimmed;
     }
 
     private void objectAddedPage(final ORObjectInf object) {
