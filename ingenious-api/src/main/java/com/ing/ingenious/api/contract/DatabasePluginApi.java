@@ -6,6 +6,7 @@ import java.sql.ResultSetMetaData;
 import java.sql.Statement;
 import java.util.List;
 import java.util.Properties;
+import com.ing.ingenious.api.types.DMLResult;
 
 /**
  * Interface for general database operations in INGenious.
@@ -92,10 +93,11 @@ public interface DatabasePluginApi extends CommandPluginApi {
 
     /**
      * Executes a DML (Data Manipulation Language) SQL statement (INSERT, UPDATE, DELETE).
-     * @return true if the DML operation was successful, false otherwise
+     * 
+     * @return a DMLResult containing the success status and executed query
      * @throws java.sql.SQLException if a database access error occurs
      */
-    boolean executeDML() throws java.sql.SQLException;
+    DMLResult executeDML() throws java.sql.SQLException;
 
     /**
      * Closes the current database connection.
@@ -118,7 +120,7 @@ public interface DatabasePluginApi extends CommandPluginApi {
      * @param condition the condition or key for storage
      * @param isGlobal true to store globally, false for local storage
      */
-    void storeValue(String input, String condition, boolean isGlobal);
+    boolean storeValue(String input, String condition, boolean isGlobal);
 
 }
 

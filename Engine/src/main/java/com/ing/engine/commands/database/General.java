@@ -10,6 +10,7 @@ import com.ing.util.encryption.Encryption;
 import com.ing.engine.core.Control;
 import com.ing.ingenious.api.contract.DatabasePluginApi;
 import com.ing.ingenious.api.contract.reports.TestCaseReportApi;
+import com.ing.ingenious.api.types.DMLResult;
 import java.util.Collection;
 import java.sql.*;
 import java.util.ArrayList;
@@ -124,18 +125,6 @@ public class General extends Command implements DatabasePluginApi {
         result = statement.executeQuery(query);
         resultData = result.getMetaData();
         populateColumnNames();
-    }
-
-    /**
-     * Represents the result of a DML operation, including success status and the executed query.
-     */
-    public static class DMLResult {
-        public final boolean success;
-        public final String query;
-        public DMLResult(boolean success, String query) {
-            this.success = success;
-            this.query = query;
-        }
     }
 
     /**

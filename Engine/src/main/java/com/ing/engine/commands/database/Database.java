@@ -6,6 +6,7 @@ import com.ing.ingenious.api.status.Status;
 import com.ing.ingenious.api.annotation.Action;
 import com.ing.ingenious.api.types.InputType;
 import com.ing.ingenious.api.types.ObjectType;
+import com.ing.ingenious.api.types.DMLResult;
 
 import java.sql.DatabaseMetaData;
 import java.sql.SQLException;
