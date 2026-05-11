@@ -2,7 +2,7 @@ package com.ing.engine.commands.webservice;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-import com.ing.engine.commands.webservice.Webservice.RequestMethod;
+import com.ing.ingenious.api.types.RequestMethod;
 import org.testng.annotations.Test;
 
 /**

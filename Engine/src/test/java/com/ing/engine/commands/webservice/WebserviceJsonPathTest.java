@@ -7,7 +7,7 @@ import com.ing.engine.commands.browser.Command;
 import com.ing.engine.core.CommandControl;
 import com.ing.engine.execution.data.UserDataAccess;
 import com.ing.engine.reporting.TestCaseReport;
-import com.ing.engine.support.Status;
+import com.ing.ingenious.api.status.Status;
 
 import java.lang.reflect.Field;
 

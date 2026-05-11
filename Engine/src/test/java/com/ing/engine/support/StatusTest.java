@@ -2,6 +2,7 @@ package com.ing.engine.support;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import org.testng.annotations.Test;
+import com.ing.ingenious.api.status.Status;
 
 public class StatusTest {
 
