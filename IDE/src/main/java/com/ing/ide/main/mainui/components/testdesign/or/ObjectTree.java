@@ -39,6 +39,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 import com.ing.ide.main.mainui.AppMainFrame;
+import com.ing.ide.main.mainui.components.testdesign.TestDesign;
 import com.ing.ide.main.mainui.components.testdesign.or.clipboard.ORClipboardManager;
 import com.ing.ide.main.mainui.components.testdesign.or.clipboard.ORObjectClipboard;
 import com.ing.ide.main.mainui.components.testdesign.or.mobile.MobileORPanel;
@@ -491,6 +492,9 @@ public abstract class ObjectTree implements ActionListener {
                     objectRemoved(object);
                     object.removeFromParent();
                 }
+                // Save immediately to update YAML files
+                ObjectRepository repo = getProject().getObjectRepository();
+                repo.save();
             }
         }
     }
@@ -793,6 +797,9 @@ public abstract class ObjectTree implements ActionListener {
                     objectGroupRemoved(object);
                     object.removeFromParent();
                 }
+                // Save immediately to update YAML files
+                ObjectRepository repo = getProject().getObjectRepository();
+                repo.save();
             }
         }
     }
@@ -816,6 +823,9 @@ public abstract class ObjectTree implements ActionListener {
                     pageRemoved(page);
                     page.removeFromParent();
                 }
+                // Save immediately to update YAML files
+                ObjectRepository repo = getProject().getObjectRepository();
+                repo.save();
             }
         }
     }
@@ -870,6 +880,8 @@ public abstract class ObjectTree implements ActionListener {
 
     public abstract Project getProject();
 
+    public abstract TestDesign getTestDesign();
+
     public void load() {
         tree.setModel(new DefaultTreeModel(getOR()) {
             @Override
@@ -915,11 +927,13 @@ public abstract class ObjectTree implements ActionListener {
         boolean isWeb = root instanceof WebOR;
         boolean isMobile = root instanceof MobileOR;
         String objectName = obj.getName().toString();
+        String pageName = page.getName();
+        
         if (isWeb) {
             ResolvedWebObject resolved =
                 repo.resolveWebObject(
                     new ResolvedWebObject.PageRef(
-                        page.getName(),
+                        pageName,
                         WebOR.ORScope.PROJECT
                     ),
                     objectName
@@ -928,20 +942,27 @@ public abstract class ObjectTree implements ActionListener {
                 Notification.show("Object not found in Project OR");
                 return;
             }
-            String newName = repo.moveWebObject(resolved, page.getName());
+            String newName = repo.moveWebObject(resolved, pageName);
             if (newName != null) {
-                objectRemoved(obj);
-                obj.removeFromParent();
+                // Check if source page is now empty and remove it
+                WebOR projectOR = repo.getWebOR();
+                WebORPage sourcePage = projectOR.getPageByName(pageName);
+                if (sourcePage != null && sourcePage.getObjectGroups().isEmpty()) {
+                    sourcePage.removeFromParent();
+                }
+                
                 repo.save();
+                reload();
                 refreshSharedTree();
                 Notification.show("Moved Object '" + newName + "' to Shared OR");
+                promptTestCaseReload();
             }
         }
         if (isMobile) {
             ResolvedMobileObject resolved =
                 repo.resolveMobileObject(
                     new ResolvedMobileObject.PageRef(
-                        page.getName(),
+                        pageName,
                         WebOR.ORScope.PROJECT
                     ),
                     objectName
@@ -950,14 +971,30 @@ public abstract class ObjectTree implements ActionListener {
                 Notification.show("Mobile Object not found in Project OR");
                 return;
             }
-            String newName = repo.moveMobileObject(resolved, page.getName());
+            String newName = repo.moveMobileObject(resolved, pageName);
             if (newName != null) {
-                objectRemoved(obj);
-                obj.removeFromParent();
+                // Check if source page is now empty and remove it
+                MobileOR projectOR = repo.getMobileOR();
+                MobileORPage sourcePage = projectOR.getPageByName(pageName);
+                if (sourcePage != null && sourcePage.getObjectGroups().isEmpty()) {
+                    sourcePage.removeFromParent();
+                }
+                
                 repo.save();
+                reload();
                 refreshSharedTree();
                 Notification.show("Moved Mobile Object '" + newName + "' to Shared OR");
+                promptTestCaseReload();
             }
+        }
+    }
+
+    private void promptTestCaseReload() {
+        try {
+            getTestDesign().getTestCaseComp().reload();
+            Notification.show("Test cases reloaded successfully");
+        } catch (Exception e) {
+            // Silently ignore if no test case is currently open
         }
     }
 
@@ -966,24 +1003,30 @@ public abstract class ObjectTree implements ActionListener {
         ORRootInf root = getOR();
         boolean isWeb = root instanceof WebOR;
         boolean isMobile = root instanceof MobileOR;
+        String pageName = page.getName();
+        
         if (isWeb) {
-            String newPageName = repo.copyWebPage(page.getName(), page.getName());
-            if (newPageName != null) {
-                pageRemoved(page);
-                page.removeFromParent();
+            String movedPageName = repo.moveWebPage(pageName, pageName);
+            if (movedPageName != null) {
                 repo.save();
+                reload();
                 refreshSharedTree();
-                Notification.show( "Moved Page '" + page.getName() + "' to Shared OR");
+                Notification.show("Moved Page '" + pageName + "' to Shared OR");
+                promptTestCaseReload();
+            } else {
+                Notification.show("Failed to move page '" + pageName + "' to Shared OR");
             }
         }
         if (isMobile) {
-            String newPageName = repo.copyMobilePage(page.getName(), page.getName());
-            if (newPageName != null) {
-                pageRemoved(page);
-                page.removeFromParent();
+            String movedPageName = repo.moveMobilePage(pageName, pageName);
+            if (movedPageName != null) {
                 repo.save();
+                reload();
                 refreshSharedTree();
-                Notification.show("Moved Mobile Page '" + page.getName() + "' to Shared OR");
+                Notification.show("Moved Mobile Page '" + pageName + "' to Shared OR");
+                promptTestCaseReload();
+            } else {
+                Notification.show("Failed to move mobile page '" + pageName + "' to Shared OR");
             }
         }
     }
@@ -999,8 +1042,12 @@ public abstract class ObjectTree implements ActionListener {
         }
     }
 
+
     public Boolean navigateToObject(String objectName, String pageName) {
-        ORPageInf page = getOR().getPageByName(pageName);
+        // Parse the pageName to extract actual page name (handles scoped references like "[Project] PageName")
+        String actualPageName = extractPageName(pageName);
+
+        ORPageInf page = getOR().getPageByName(actualPageName);
         if (page != null) {
             ObjectGroup group = page.getObjectGroupByName(objectName);
             if (group != null) {
@@ -1009,6 +1056,32 @@ public abstract class ObjectTree implements ActionListener {
             }
         }
         return false;
+    }
+
+    /**
+     * Extracts the actual page name from a scoped reference.
+     * Handles references like "[Project] PageName" or "[Shared] PageName"
+     * by removing the scope prefix and returning just the page name.
+     *
+     * @param pageReference the page reference token (may contain scope prefix)
+     * @return the actual page name without scope prefix
+     */
+    private String extractPageName(String pageReference) {
+        if (pageReference == null || pageReference.trim().isEmpty()) {
+            return pageReference;
+        }
+
+        String trimmed = pageReference.trim();
+
+        // Check if reference starts with "[" and contains "]"
+        if (trimmed.startsWith("[") && trimmed.contains("]")) {
+            int endBracket = trimmed.indexOf(']');
+            // Return the part after "]", trimming any leading whitespace
+            return trimmed.substring(endBracket + 1).trim();
+        }
+
+        // No scope prefix, return as-is
+        return trimmed;
     }
 
     private void objectAddedPage(final ORObjectInf object) {

@@ -6,6 +6,7 @@ import com.ing.datalib.or.ObjectRepository;
 import com.ing.datalib.or.common.ORObjectInf;
 import com.ing.datalib.or.common.ORRootInf;
 import com.ing.datalib.or.mobile.MobileORObject;
+import com.ing.ide.main.mainui.components.testdesign.TestDesign;
 import com.ing.ide.main.mainui.components.testdesign.or.ObjectTree;
 import java.util.List;
 import javax.swing.tree.TreePath;
@@ -79,5 +80,10 @@ public class MobileObjectTree extends ObjectTree {
     
     public MobileORPanel getORPanel() {
         return oRPanel;
+    }
+
+    @Override
+    public TestDesign getTestDesign() {
+        return oRPanel.getTestDesign();
     }
 }

@@ -22,6 +22,7 @@ import com.ing.ide.main.utils.Utils;
 import com.ing.ide.main.utils.keys.Keystroke;
 import com.ing.ide.main.utils.table.TableColumnManager;
 import com.ing.ide.main.utils.table.XTable;
+import com.ing.ide.util.Notification;
 import com.ing.ide.util.Canvas;
 import com.ing.ide.util.Notification;
 import com.ing.ide.util.WindowMover;
@@ -166,6 +167,17 @@ public class TestCaseComponent extends JPanel implements ActionListener {
             validator.initValidations();
             changeSave(tc.isSaved());
             refreshTitle();
+            
+            // Check if migration occurred and show notification
+            int migratedCount = tc.getMigratedReferencesCount();
+            if (migratedCount > 0) {
+                Notification.show(
+                    String.format("Migrated %d object reference%s to explicit scope prefix in '%s'",
+                        migratedCount,
+                        migratedCount > 1 ? "es" : "",
+                        tc.getName())
+                );
+            }
         }
     }
 

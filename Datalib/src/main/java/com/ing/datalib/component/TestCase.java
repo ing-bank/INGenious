@@ -4,6 +4,7 @@ package com.ing.datalib.component;
 import com.ing.datalib.component.TestStep.HEADERS;
 import com.ing.datalib.component.utils.FileUtils;
 import com.ing.datalib.component.utils.SaveListener;
+import com.ing.datalib.or.mobile.ResolvedMobileObject;
 import com.ing.datalib.or.web.ResolvedWebObject;
 import com.ing.datalib.or.web.WebOR.ORScope;
 import java.io.File;
@@ -53,6 +54,10 @@ public class TestCase extends DataModel {
     private TestCase parentTestCase = null;
     
     private Boolean exitParamLoop = false;
+    
+    private int migratedReferencesCount = 0;
+    
+    private boolean migrationChecked = false;
 
     public TestCase(Scenario scenario, String name) {
         this.scenario = scenario;
@@ -77,6 +82,18 @@ public class TestCase extends DataModel {
 
     public List<TestStep> getTestSteps() {
         return testSteps;
+    }
+    
+    /**
+     * Returns the number of references that were migrated to explicit scope prefixes during load.
+     * This count is reset after retrieval to avoid duplicate notifications.
+     * 
+     * @return The number of migrated references
+     */
+    public int getMigratedReferencesCount() {
+        int count = migratedReferencesCount;
+        migratedReferencesCount = 0; // Reset after retrieval
+        return count;
     }
 
     @Override
@@ -277,6 +294,10 @@ public class TestCase extends DataModel {
     public void loadTestCaseTableModel() {
         if (testSteps.isEmpty()) {
             loadSteps();
+        } else if (!migrationChecked) {
+            // Check for migration even if steps are already loaded
+            checkAndMigrateReferences();
+            migrationChecked = true;
         }
     }
 
@@ -294,15 +315,122 @@ public class TestCase extends DataModel {
 
     private void loadSteps() {
         List<CSVRecord> records = FileUtils.getRecords(new File(getLocation()));
+        migratedReferencesCount = 0;
+        
         if (!records.isEmpty()) {
             for (CSVRecord record : records) {
-                testSteps.add(new TestStep(this, record));
+                TestStep step = new TestStep(this, record);
+                
+                // Auto-migrate unprefixed references to explicit [Project]/[Shared] format
+                String ref = step.getReference();
+                if (ref != null && !ref.trim().isEmpty() && 
+                    !ref.startsWith("[Project] ") && !ref.startsWith("[Shared] ") &&
+                    step.isPageObjectStep()) {
+                    
+                    String migratedRef = resolveAndAddPrefix(step);
+                    if (migratedRef != null && !migratedRef.equals(ref)) {
+                        step.setReference(migratedRef);
+                        migratedReferencesCount++;
+                    }
+                }
+                
+                testSteps.add(step);
             }
             setSaved(true);
+            
+            // Auto-save if migration happened to persist explicit prefixes to CSV
+            if (migratedReferencesCount > 0) {
+                setSaved(false);
+                save();
+                Logger.getLogger(TestCase.class.getName()).log(Level.INFO, 
+                    "Migrated {0} object reference(s) to explicit scope prefixes in: {1}", 
+                    new Object[]{migratedReferencesCount, getName()});
+            }
         } else {
             testSteps.add(new TestStep(this));
         }
+        migrationChecked = true;
         super.clearUndoRedo();
+    }
+    
+    /**
+     * Checks and migrates unprefixed references for test steps already loaded in memory.
+     * This is called when test steps are already loaded but migration hasn't been checked yet.
+     */
+    private void checkAndMigrateReferences() {
+        migratedReferencesCount = 0;
+        
+        for (TestStep step : testSteps) {
+            String ref = step.getReference();
+            if (ref != null && !ref.trim().isEmpty() && 
+                !ref.startsWith("[Project] ") && !ref.startsWith("[Shared] ") &&
+                step.isPageObjectStep()) {
+                
+                String migratedRef = resolveAndAddPrefix(step);
+                if (migratedRef != null && !migratedRef.equals(ref)) {
+                    step.setReference(migratedRef);
+                    migratedReferencesCount++;
+                }
+            }
+        }
+        
+        // Auto-save if migration happened
+        if (migratedReferencesCount > 0) {
+            setSaved(false);
+            save();
+            Logger.getLogger(TestCase.class.getName()).log(Level.INFO, 
+                "Migrated {0} object reference(s) to explicit scope prefixes in: {1}", 
+                new Object[]{migratedReferencesCount, getName()});
+        }
+    }
+    
+    /**
+     * Resolves an unprefixed reference and adds the appropriate [Project] or [Shared] prefix.
+     * Uses Project-first resolution priority matching runtime behavior.
+     * 
+     * @param step The test step containing the reference to resolve
+     * @return The reference with explicit scope prefix, or null if unresolvable
+     */
+    private String resolveAndAddPrefix(TestStep step) {
+        try {
+            var repo = getProject().getObjectRepository();
+            if (repo == null) {
+                return null;
+            }
+            
+            String ref = step.getReference();
+            String objectName = step.getObject();
+            
+            // Try resolving as web object (Project scope first, then Shared)
+            var wref = ResolvedWebObject.PageRef.parse(ref);
+            var wres = repo.resolveWebObject(wref, objectName);
+            
+            if (wres != null) {
+                if (wres.isFromShared()) {
+                    return "[Shared] " + wres.getPageName();
+                } else if (wres.isFromProject()) {
+                    return "[Project] " + wres.getPageName();
+                }
+            }
+            
+            // Try resolving as mobile object (Project scope first, then Shared)
+            var mref = ResolvedMobileObject.PageRef.parse(ref);
+            var mres = repo.resolveMobileObject(mref, objectName);
+            
+            if (mres != null) {
+                if (mres.isFromShared()) {
+                    return "[Shared] " + mres.getPageName();
+                } else if (mres.isFromProject()) {
+                    return "[Project] " + mres.getPageName();
+                }
+            }
+            
+            // Unable to resolve - leave reference as-is (may be invalid or dynamic)
+            return null;
+        } catch (Exception e) {
+            // If resolution fails, return null to leave reference unchanged
+            return null;
+        }
     }
 
     public void save() {
@@ -614,6 +742,7 @@ public class TestCase extends DataModel {
     public void refactorObjectName(String oldpageName, String oldObjName, String newPageName, String newObjName) {
         Boolean clearOnExit = getTestSteps().isEmpty();
         loadTableModel();
+        boolean changesMade = false;
 
         for (TestStep testStep : testSteps) {
             String ref = normalizePageRef(Objects.toString(testStep.getReference(), ""));
@@ -621,11 +750,14 @@ public class TestCase extends DataModel {
             if (ref.equals(oldpageName) && obj.equals(oldObjName)) {
                 testStep.setObject(newObjName);
                 testStep.setReference(newPageName);
+                changesMade = true;
             }
         }
 
-        if (clearOnExit) {
+        if (changesMade) {
             save();
+        }
+        if (clearOnExit) {
             getTestSteps().clear();
         }
     }
@@ -642,16 +774,20 @@ public class TestCase extends DataModel {
     public void refactorObjectName(ORScope scope, String pageName, String oldName, String newName) {
         Boolean clearOnExit = getTestSteps().isEmpty();
         loadTableModel();
+        boolean changesMade = false;
         for (TestStep testStep : testSteps) {
             String refRaw = Objects.toString(testStep.getReference(), "");
             String obj    = Objects.toString(testStep.getObject(), "");
             boolean scopedMatch = matchesScope(refRaw, scope) && normalizePageRef(refRaw).equals(pageName);
             if (scopedMatch && obj.equals(oldName)) {
                 testStep.setObject(newName);
+                changesMade = true;
             }
         }
-        if (clearOnExit) {
+        if (changesMade) {
             save();
+        }
+        if (clearOnExit) {
             getTestSteps().clear();
         }
     }

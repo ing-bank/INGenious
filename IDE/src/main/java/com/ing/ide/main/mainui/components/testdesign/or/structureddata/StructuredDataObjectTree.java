@@ -5,6 +5,7 @@ import com.ing.datalib.component.TestCase;
 import com.ing.datalib.or.structureddata.StructuredDataORObject;
 import com.ing.datalib.or.common.ORObjectInf;
 import com.ing.datalib.or.common.ORRootInf;
+import com.ing.ide.main.mainui.components.testdesign.TestDesign;
 import com.ing.ide.main.mainui.components.testdesign.or.ObjectTree;
 import java.util.List;
 import javax.swing.tree.TreePath;
@@ -54,6 +55,11 @@ public class StructuredDataObjectTree extends ObjectTree {
 
     public StructuredDataORObject getLoadedObject() {
         return oRPanel.getObjectTable().getObject();
+    }
+
+    @Override
+    public TestDesign getTestDesign() {
+        return oRPanel.getTestDesign();
     }
 
 }
