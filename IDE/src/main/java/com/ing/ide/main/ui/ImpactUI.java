@@ -26,12 +26,40 @@ public class ImpactUI extends javax.swing.JDialog {
 
     TestDesign testDesign;
 
+    /**
+     * Custom cell renderer to display test cases with source indicator
+     */
+    private static class TestCaseListCellRenderer extends javax.swing.DefaultListCellRenderer {
+        @Override
+        public java.awt.Component getListCellRendererComponent(
+                javax.swing.JList<?> list,
+                Object value,
+                int index,
+                boolean isSelected,
+                boolean cellHasFocus) {
+            
+            super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
+            
+            if (value instanceof TestCase) {
+                TestCase testCase = (TestCase) value;
+                String sourceIndicator = testCase.getScenario().getSource() == com.ing.datalib.component.Scenario.Source.REUSABLE_COMPONENTS
+                        ? "[Reusable Component] "
+                        : "[Test Plan] ";
+                String displayText = sourceIndicator + testCase.getScenario().getName() + "/" + testCase.getName();
+                setText(displayText);
+            }
+            
+            return this;
+        }
+    }
+
     public ImpactUI(TestDesign testDesign) {
         super(new JFrame());
         this.testDesign = testDesign;
         initComponents();
         listModel = new DefaultListModel();
         testCaseList.setModel(listModel);
+        testCaseList.setCellRenderer(new TestCaseListCellRenderer());
         setSize(400, 300);
         setIconImage(Utils.getFavIcon());
     }

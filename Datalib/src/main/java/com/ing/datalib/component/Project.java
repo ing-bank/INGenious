@@ -1,32 +1,34 @@
 
 package com.ing.datalib.component;
 
+import java.io.File;
+import java.nio.file.Files;
+import java.util.ArrayList;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Objects;
+import java.util.Set;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import static java.util.stream.Collectors.toList;
+import java.util.stream.Stream;
+
+import javax.swing.table.DefaultTableModel;
+import javax.swing.table.TableModel;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ing.datalib.component.utils.FileUtils;
 import static com.ing.datalib.component.utils.FileUtils.DIR_FILTER;
 import com.ing.datalib.model.DataItem;
 import com.ing.datalib.model.Meta;
 import com.ing.datalib.model.ProjectInfo;
 import com.ing.datalib.or.ObjectRepository;
-import com.ing.datalib.settings.ProjectSettings;
-import com.ing.datalib.util.data.FileScanner;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ing.datalib.or.mobile.MobileOR;
 import com.ing.datalib.or.web.WebOR;
 import com.ing.datalib.or.web.WebOR.ORScope;
-import java.io.File;
-import java.nio.file.Files;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.LinkedHashSet;
-import java.util.Set;
-import java.util.Objects;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import static java.util.stream.Collectors.toList;
-import java.util.stream.Stream;
-import javax.swing.table.DefaultTableModel;
-import javax.swing.table.TableModel;
+import com.ing.datalib.settings.ProjectSettings;
+import com.ing.datalib.util.data.FileScanner;
 
 /**
  * Represents an automation project and acts as the central entry point for loading, managing,
@@ -546,13 +548,13 @@ public class Project {
     }
     
     public void refactorObjectName(String pageName, String oldName, String newName) {
-        for (Scenario scenario : scenarios) {
+        for (Scenario scenario : getAllScenarios()) {
             scenario.refactorObjectName(pageName, oldName, newName);
         }
     }
 
     public void refactorObjectName(String oldpageName, String oldObjName, String newPageName, String newObjName) {
-        for (Scenario scenario : scenarios) {
+        for (Scenario scenario : getAllScenarios()) {
             scenario.refactorObjectName(oldpageName, oldObjName, newPageName, newObjName);
         }
     }
@@ -567,7 +569,7 @@ public class Project {
      * @param newName  new object name to apply
      */
     public void refactorObjectName(ORScope scope, String pageName, String oldName, String newName) {
-        for (Scenario scenario : scenarios) {
+        for (Scenario scenario : getAllScenarios()) {
             scenario.refactorObjectName(scope, pageName, oldName, newName);
         }
     }
@@ -578,7 +580,7 @@ public class Project {
      * are tool-agnostic and only care about PROJECT vs SHARED.
      */
     public void refactorMobileObjectName(MobileOR.ORScope scope, String pageName, String oldName, String newName) {
-        for (Scenario scenario : scenarios) {
+        for (Scenario scenario : getAllScenarios()) {
             WebOR.ORScope webScope =
             (scope == MobileOR.ORScope.SHARED)
                 ? WebOR.ORScope.SHARED
@@ -593,7 +595,7 @@ public class Project {
     }
 
     public void refactorPageName(String oldPageName, String newPageName) {
-        for (Scenario scenario : scenarios) {
+        for (Scenario scenario : getAllScenarios()) {
             scenario.refactorPageName(oldPageName, newPageName);
         }
     }
@@ -622,7 +624,7 @@ public class Project {
     public void refactorPageName(ORScope scope, String oldPageName, String newPageName) {
         String oldScoped = scope == ORScope.SHARED ? "[Shared] " + oldPageName : "[Project] " + oldPageName;
         String newScoped = scope == ORScope.SHARED ? "[Shared] " + newPageName : "[Project] " + newPageName;
-        for (Scenario scenario : scenarios) {
+        for (Scenario scenario : getAllScenarios()) {
             scenario.refactorPageName(oldPageName, newPageName);
             scenario.refactorPageName(oldScoped, newScoped);
         }
@@ -656,13 +658,37 @@ public class Project {
                     ? "[Shared] " + pageName
                     : "[Project] " + pageName;
         }
+        // Search in TestPlan scenarios
         for (Scenario scenario : scenarios) {
             impacted.addAll(scenario.getImpactedObjectTestCases(pageName, objectName));
             if (scopedPageName != null) {
                 impacted.addAll(scenario.getImpactedObjectTestCases(scopedPageName, objectName));
             }
         }
-        return new ArrayList<>(impacted);
+        // Search in ReusableComponents scenarios
+        for (Scenario scenario : reusableScenarios) {
+            impacted.addAll(scenario.getImpactedObjectTestCases(pageName, objectName));
+            if (scopedPageName != null) {
+                impacted.addAll(scenario.getImpactedObjectTestCases(scopedPageName, objectName));
+            }
+        }
+        // Sort by type (Test Plan first), then by scenario name, then by test case name
+        List<TestCase> sortedList = new ArrayList<>(impacted);
+        sortedList.sort((tc1, tc2) -> {
+            // First compare by source type (TEST_PLAN comes before REUSABLE_COMPONENTS)
+            int sourceCompare = tc1.getScenario().getSource().compareTo(tc2.getScenario().getSource());
+            if (sourceCompare != 0) {
+                return sourceCompare;
+            }
+            // Then compare by scenario name
+            int scenarioCompare = tc1.getScenario().getName().compareToIgnoreCase(tc2.getScenario().getName());
+            if (scenarioCompare != 0) {
+                return scenarioCompare;
+            }
+            // Finally compare by test case name
+            return tc1.getName().compareToIgnoreCase(tc2.getName());
+        });
+        return sortedList;
     }
 
     public List<TestCase> getImpactedTestCaseTestCases(String scenarioName, String testCaseName) {
