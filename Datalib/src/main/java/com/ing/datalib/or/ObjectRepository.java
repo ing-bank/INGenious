@@ -1,31 +1,5 @@
-
 package com.ing.datalib.or;
 
-import com.ing.datalib.component.Project;
-import com.ing.datalib.component.TestStep;
-import com.ing.datalib.or.structureddata.StructuredData;
-import com.ing.datalib.or.common.ORPageInf;
-import com.ing.datalib.or.common.ObjectGroup;
-import com.ing.datalib.or.mobile.MobileOR;
-import com.ing.datalib.or.mobile.MobileORObject;
-import com.ing.datalib.or.mobile.MobileORPage;
-import com.ing.datalib.or.web.WebOR;
-import com.ing.datalib.or.yaml.YamlORReader;
-import com.ing.datalib.or.yaml.YamlORWriter;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.dataformat.xml.XmlMapper;
-import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
-import com.fasterxml.jackson.dataformat.yaml.YAMLGenerator;
-import com.ing.datalib.or.structureddata.StructuredDataORObject;
-import com.ing.datalib.or.structureddata.StructuredDataORPage;
-import com.ing.datalib.or.structureddata.ResolvedStructuredDataObject;
-import com.ing.datalib.or.mobile.ResolvedMobileObject;
-import com.ing.datalib.or.web.ResolvedWebObject;
-import com.ing.datalib.or.web.WebOR.ORScope;
-import static com.ing.datalib.or.web.WebOR.ORScope.PROJECT;
-import static com.ing.datalib.or.web.WebOR.ORScope.SHARED;
-import com.ing.datalib.or.web.WebORObject;
-import com.ing.datalib.or.web.WebORPage;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -36,6 +10,29 @@ import java.util.Set;
 import java.util.function.Predicate;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import com.fasterxml.jackson.dataformat.xml.XmlMapper;
+import com.ing.datalib.component.Project;
+import com.ing.datalib.component.TestStep;
+import com.ing.datalib.or.common.ORPageInf;
+import com.ing.datalib.or.common.ObjectGroup;
+import com.ing.datalib.or.mobile.MobileOR;
+import com.ing.datalib.or.mobile.MobileORObject;
+import com.ing.datalib.or.mobile.MobileORPage;
+import com.ing.datalib.or.mobile.ResolvedMobileObject;
+import com.ing.datalib.or.structureddata.ResolvedStructuredDataObject;
+import com.ing.datalib.or.structureddata.StructuredData;
+import com.ing.datalib.or.structureddata.StructuredDataORObject;
+import com.ing.datalib.or.structureddata.StructuredDataORPage;
+import com.ing.datalib.or.web.ResolvedWebObject;
+import com.ing.datalib.or.web.WebOR;
+import com.ing.datalib.or.web.WebOR.ORScope;
+import static com.ing.datalib.or.web.WebOR.ORScope.PROJECT;
+import static com.ing.datalib.or.web.WebOR.ORScope.SHARED;
+import com.ing.datalib.or.web.WebORObject;
+import com.ing.datalib.or.web.WebORPage;
+import com.ing.datalib.or.yaml.YamlORReader;
+import com.ing.datalib.or.yaml.YamlORWriter;
 
 /**
  * Manages all Object Repository types (Web Project OR, Web Shared OR, Mobile OR)
@@ -992,6 +989,79 @@ public class ObjectRepository {
     }
 
     /**
+     * Moves an entire WebOR page from project to shared.
+     * Moves all objects on the page and updates all test case references.
+     *
+     * @param sourcePageName project page to move
+     * @param targetPageName desired shared page name
+     * @return actual created page name in shared OR, or null on failure
+     */
+    public String moveWebPage(String sourcePageName, String targetPageName) {
+        WebOR projectOR = getWebOR();
+        WebOR sharedOR = getWebSharedOR();
+        if (projectOR == null || sharedOR == null) return null;
+        
+        WebORPage sourcePage = projectOR.getPageByName(sourcePageName);
+        if (sourcePage == null) return null;
+        
+        // Use the same name (no uniqueness needed for page move)
+        String actualTargetName = targetPageName;
+        
+        // Check if target page already exists in shared OR
+        WebORPage existingTargetPage = sharedOR.getPageByName(actualTargetName);
+        if (existingTargetPage != null) {
+            // Target page exists - merge objects into it
+            List<ObjectGroup<WebORObject>> objectsToMove = new ArrayList<>(sourcePage.getObjectGroups());
+            
+            for (ObjectGroup<WebORObject> group : objectsToMove) {
+                String objectName = group.getName();
+                
+                // Skip if object already exists in target page
+                if (existingTargetPage.getObjectGroupByName(objectName) != null) {
+                    LOG.warning("Object '" + objectName + "' already exists in shared page '" + actualTargetName + "', skipping");
+                    continue;
+                }
+                
+                // Move this object
+                ResolvedWebObject resolved = new ResolvedWebObject(
+                    WebOR.ORScope.PROJECT, 
+                    sourcePageName, 
+                    objectName, 
+                    group
+                );
+                moveWebObject(resolved, actualTargetName);
+            }
+        } else {
+            // Target page doesn't exist - move entire page
+            List<ObjectGroup<WebORObject>> objectsToMove = new ArrayList<>(sourcePage.getObjectGroups());
+            
+            for (ObjectGroup<WebORObject> group : objectsToMove) {
+                // Move each object (this will create the target page on first iteration)
+                String objectName = group.getName();
+                ResolvedWebObject resolved = new ResolvedWebObject(
+                    WebOR.ORScope.PROJECT,
+                    sourcePageName,
+                    objectName,
+                    group
+                );
+                String movedName = moveWebObject(resolved, actualTargetName);
+                if (movedName == null) {
+                    LOG.warning("Failed to move object '" + group.getName() + "' to shared page '" + actualTargetName + "'");
+                }
+            }
+        }
+        
+        // Remove source page if now empty
+        if (sourcePage.getObjectGroups().isEmpty()) {
+            sourcePage.removeFromParent();
+            projectOR.setSaved(false);
+        }
+        
+        LOG.info("Moved Web Page '" + sourcePageName + "' to SHARED page '" + actualTargetName + "'");
+        return actualTargetName;
+    }
+    
+    /**
      * Copies a WebOR object into a shared page (creating the page if needed)
      * using a unique object group name.
      *
@@ -1028,12 +1098,12 @@ public class ObjectRepository {
     }
     
     /**
-     * Moved a WebOR object into a shared page (creating the page if needed)
-     * using a unique object group name.
+     * Moves a WebOR object from project to shared page.
+     * Actually moves the object (removes from source, adds to target) instead of cloning.
      *
      * @param source          resolved web object
      * @param targetPageName  target page in shared OR
-     * @return new object name
+     * @return original object name if successful, null if object already exists in target
      */
     public String moveWebObject(ResolvedWebObject source, String targetPageName) {
         if (source == null) return null;
@@ -1044,27 +1114,48 @@ public class ObjectRepository {
         ObjectGroup<WebORObject> originalGroup = source.getGroup();
         if (originalGroup == null) return null;
         String originalName = originalGroup.getName();
-        String baseName = originalName.replaceAll("_\\d+$", "");
-        String finalName = baseName;
-        if (targetPage.getObjectGroupByName(finalName) != null) {
-            int index = 1;
-            do {
-                finalName = baseName + "_" + index++;
-            } while (targetPage.getObjectGroupByName(finalName) != null);
+        
+        // Fail if object with same name already exists in target
+        if (targetPage.getObjectGroupByName(originalName) != null) {
+            return null;
         }
-        ObjectGroup<WebORObject> newGroup =
-            cloneGroupIntoPage(originalGroup, targetPage, finalName);
-        targetPage.getObjectGroups().add(newGroup);
+        
+        // Remove from source page first (actual move!)
+        ORPageInf sourcePage = originalGroup.getParent();
+        if (sourcePage != null) {
+            sourcePage.getObjectGroups().remove(originalGroup);
+            sourcePage.getRoot().setSaved(false);
+            if (useYamlFormat && sourcePage instanceof WebORPage) {
+                saveWebPageNow((WebORPage) sourcePage);
+            }
+        }
+        
+        // Move the same group to target (not a clone)
+        originalGroup.setParent(targetPage);
+        targetPage.getObjectGroups().add(originalGroup);
         sharedOR.setSaved(false);
         if (useYamlFormat) {
             saveWebPageNow(targetPage);
         }
+        
+        // Update all test case references from PROJECT to SHARED scope
+        // Change page reference from unprefixed or "[Project] page" to "[Shared] page"
+        if (sourcePage != null) {
+            String sourcePageName = sourcePage.getName();
+            String targetScopedPage = "[Shared] " + targetPage.getName();
+            
+            // Update unprefixed references: "PageName" -> "[Shared] PageName"
+            sProject.refactorObjectName(sourcePageName, originalName, targetScopedPage, originalName);
+            
+            // Update [Project] prefixed references: "[Project] PageName" -> "[Shared] PageName"
+            sProject.refactorObjectName("[Project] " + sourcePageName, originalName, targetScopedPage, originalName);
+        }
+        
         LOG.info(
             "Moved Web Object '" + originalName +
-            "' to SHARED as '" + finalName + "'"
+            "' to SHARED page '" + targetPageName + "'"
         );
-
-        return finalName;
+        return originalName;
     }
 
     /**
@@ -1125,12 +1216,12 @@ public class ObjectRepository {
         return uniqueName;
     }
     
-     /**
-     * Moves a MobileOR object into a target shared Mobile page (creates page if needed)
-     * using a unique object group name.
+    /**
+     * Moves a MobileOR object from project to shared page.
+     * Actually moves the object (removes from source, adds to target) instead of cloning.
      * @param source resolved mobile object (from project OR)
      * @param targetPageName target page name in shared Mobile OR
-     * @return new object name created in shared OR, or null on failure
+     * @return original object name if successful, null if object already exists in target
      */
     public String moveMobileObject(ResolvedMobileObject source, String targetPageName) {
         if (source == null) return null;
@@ -1141,27 +1232,123 @@ public class ObjectRepository {
         ObjectGroup<MobileORObject> originalGroup = source.getGroup();
         if (originalGroup == null) return null;
         String originalName = originalGroup.getName();
-        String baseName = originalName.replaceAll("_\\d+$", "");
-        String finalName = baseName;
-        if (targetPage.getObjectGroupByName(finalName) != null) {
-            int index = 1;
-            do {
-                finalName = baseName + "_" + index++;
-            } while (targetPage.getObjectGroupByName(finalName) != null);
+        
+        // Fail if object with same name already exists in target
+        if (targetPage.getObjectGroupByName(originalName) != null) {
+            return null;
         }
-        ObjectGroup<MobileORObject> newGroup = cloneMobileGroupIntoPage(originalGroup, targetPage, finalName);
-        targetPage.getObjectGroups().add(newGroup);
+        
+        // Remove from source page first (actual move!)
+        ORPageInf sourcePage = originalGroup.getParent();
+        if (sourcePage != null) {
+            sourcePage.getObjectGroups().remove(originalGroup);
+            sourcePage.getRoot().setSaved(false);
+            if (useYamlFormat && sourcePage instanceof MobileORPage) {
+                saveMobilePageNow((MobileORPage) sourcePage);
+            }
+        }
+        
+        // Move the same group to target (not a clone)
+        originalGroup.setParent(targetPage);
+        targetPage.getObjectGroups().add(originalGroup);
         sharedOR.setSaved(false);
         if (useYamlFormat) {
             saveMobilePageNow(targetPage);
         }
+        
+        // Update all test case references from PROJECT to SHARED scope
+        // Change page reference from unprefixed or "[Project] page" to "[Shared] page"
+        if (sourcePage != null) {
+            String sourcePageName = sourcePage.getName();
+            String targetScopedPage = "[Shared] " + targetPage.getName();
+            
+            // Update unprefixed references: "PageName" -> "[Shared] PageName"
+            sProject.refactorObjectName(sourcePageName, originalName, targetScopedPage, originalName);
+            
+            // Update [Project] prefixed references: "[Project] PageName" -> "[Shared] PageName"
+            sProject.refactorObjectName("[Project] " + sourcePageName, originalName, targetScopedPage, originalName);
+        }
+        
         LOG.info(
-            "Moved Mobile Object '" + originalName +
-            "' to SHARED as '" + finalName + "'"
+            "Moved Mobile Object Group '" + originalName +
+            "' to SHARED page '" + targetPageName + "'"
         );
-        return finalName;
+        return originalName;
     }
 
+    /**
+     * Moves an entire MobileOR page from project to shared.
+     * Moves all objects on the page and updates all test case references.
+     *
+     * @param sourcePageName project page to move
+     * @param targetPageName desired shared page name
+     * @return actual created page name in shared OR, or null on failure
+     */
+    public String moveMobilePage(String sourcePageName, String targetPageName) {
+        MobileOR projectOR = getMobileOR();
+        MobileOR sharedOR = getMobileSharedOR();
+        if (projectOR == null || sharedOR == null) return null;
+        
+        MobileORPage sourcePage = projectOR.getPageByName(sourcePageName);
+        if (sourcePage == null) return null;
+        
+        // Use the same name (no uniqueness needed for page move)
+        String actualTargetName = targetPageName;
+        
+        // Check if target page already exists in shared OR
+        MobileORPage existingTargetPage = sharedOR.getPageByName(actualTargetName);
+        if (existingTargetPage != null) {
+            // Target page exists - merge objects into it
+            List<ObjectGroup<MobileORObject>> objectsToMove = new ArrayList<>(sourcePage.getObjectGroups());
+            
+            for (ObjectGroup<MobileORObject> group : objectsToMove) {
+                String objectName = group.getName();
+                
+                // Skip if object already exists in target page
+                if (existingTargetPage.getObjectGroupByName(objectName) != null) {
+                    LOG.warning("Mobile Object '" + objectName + "' already exists in shared page '" + actualTargetName + "', skipping");
+                    continue;
+                }
+                
+                // Move this object
+                ResolvedMobileObject resolved = new ResolvedMobileObject(
+                    WebOR.ORScope.PROJECT,
+                    sourcePageName,
+                    objectName,
+                    group
+                );
+                moveMobileObject(resolved, actualTargetName);
+            }
+        } else {
+            // Target page doesn't exist - move entire page
+            List<ObjectGroup<MobileORObject>> objectsToMove = new ArrayList<>(sourcePage.getObjectGroups());
+            
+            for (ObjectGroup<MobileORObject> group : objectsToMove) {
+                // Move each object (this will create the target page on first iteration)
+                String objectName = group.getName();
+                ResolvedMobileObject resolved = new ResolvedMobileObject(
+                    WebOR.ORScope.PROJECT,
+                    sourcePageName,
+                    objectName,
+                    group
+                );
+                String movedName = moveMobileObject(resolved, actualTargetName);
+                if (movedName == null) {
+                    LOG.warning("Failed to move mobile object '" + group.getName() + "' to shared page '" + actualTargetName + "'");
+                }
+            }
+        }
+        
+        // Remove source page if now empty
+        if (sourcePage.getObjectGroups().isEmpty()) {
+            sourcePage.removeFromParent();
+            projectOR.setSaved(false);
+        }
+        
+        LOG.info("Moved Mobile Page '" + sourcePageName + "' to SHARED page '" + actualTargetName + "'");
+        return actualTargetName;
+    }
+    
     private String generateUniquePageName(MobileOR mor, String baseName) {
         if (mor == null) return baseName;
         return generateUniqueName(baseName, name -> mor.getPageByName(name) != null);
@@ -1386,7 +1573,7 @@ public class ObjectRepository {
         }
     }
     
-    public boolean deleteWebPageYaml(String pageName) {
+    public boolean deleteWebPageYaml(String pageName, WebOR.ORScope scope) {
         if (!useYamlFormat || yamlWriter == null) {
             return true; // XML mode - no-op
         }
@@ -1394,7 +1581,9 @@ public class ObjectRepository {
             return true;
         }
         try {
-            File orRepLocation = new File(getORRepLocation());
+            File orRepLocation = (scope == WebOR.ORScope.SHARED) 
+                ? new File(getSharedORRepLocation()) 
+                : new File(getORRepLocation());
             return yamlWriter.deleteWebPage(pageName, orRepLocation);
         } catch (Exception e) {
             LOG.log(Level.SEVERE, "Failed to delete Web page YAML: " + pageName, e);
@@ -1402,7 +1591,7 @@ public class ObjectRepository {
         }
     }
     
-    public boolean deleteMobilePageYaml(String pageName) {
+    public boolean deleteMobilePageYaml(String pageName, MobileOR.ORScope scope) {
         if (!useYamlFormat || yamlWriter == null) {
             return true; // XML mode - no-op
         }
@@ -1410,7 +1599,9 @@ public class ObjectRepository {
             return true;
         }
         try {
-            File morRepLocation = new File(getORRepLocation());
+            File morRepLocation = (scope == MobileOR.ORScope.SHARED) 
+                ? new File(getSharedORRepLocation()) 
+                : new File(getORRepLocation());
             return yamlWriter.deleteMobilePage(pageName, morRepLocation);
         } catch (Exception e) {
             LOG.log(Level.SEVERE, "Failed to delete Mobile page YAML: " + pageName, e);

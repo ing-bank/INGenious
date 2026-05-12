@@ -48,6 +48,7 @@ public class PlaywrightRecordingParser {
             filePath.put("projectPath", sMainFrame.getProject().getLocation());
             filePath.put("importPlaywrightRecordingFilePath", file.getAbsolutePath());
             String baseName = FilenameUtils.getBaseName(file.getAbsolutePath());
+            // Use the basename as-is since sanitization is handled in the UI dialog
             testCase.put("fileName", StringUtils.capitalize(baseName));
             testCase.put("pageName", testCase.get("fileName"));
             String testScenarioName = filePath.get("projectPath") + "/TestPlan/" + testCase.get("fileName");
@@ -125,6 +126,11 @@ public class PlaywrightRecordingParser {
                         group.getObjects().add(obj);
                     }
                     testCase.put("step", String.valueOf(stepNumber));
+                    // Only add [Project] reference for object-based actions, not for Browser actions
+                    String objectName = testCase.get("ObjectName");
+                    String reference = (objectName != null && objectName.trim().equals("Browser")) 
+                        ? "" 
+                        : "[Project] " + testCase.get("pageName");
                     String stepAppender =
                             testCase.get("step") + "," +
                             testCase.get("ObjectName") + "," +
@@ -132,7 +138,7 @@ public class PlaywrightRecordingParser {
                             testCase.get("action") + "," +
                             testCase.get("input") + "," +
                             testCase.get("Condition") + "," +
-                            testCase.get("pageName");
+                            reference;
                     stepBuilder.append(stepAppender).append("\n");
                     stepNumber++;
                     testCase.put("input", "");

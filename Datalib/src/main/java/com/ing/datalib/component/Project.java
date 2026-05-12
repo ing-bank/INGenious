@@ -802,7 +802,7 @@ public class Project {
      * @param newName new object name
      */
     public void refactorObjectName(String pageName, String oldName, String newName) {
-        for (Scenario scenario : scenarios) {
+        for (Scenario scenario : getAllScenarios()) {
             scenario.refactorObjectName(pageName, oldName, newName);
         }
     }
@@ -815,7 +815,7 @@ public class Project {
      * @param newObjName new object name
      */
     public void refactorObjectName(String oldpageName, String oldObjName, String newPageName, String newObjName) {
-        for (Scenario scenario : scenarios) {
+        for (Scenario scenario : getAllScenarios()) {
             scenario.refactorObjectName(oldpageName, oldObjName, newPageName, newObjName);
         }
     }
@@ -830,7 +830,7 @@ public class Project {
      * @param newName  new object name to apply
      */
     public void refactorObjectName(ORScope scope, String pageName, String oldName, String newName) {
-        for (Scenario scenario : scenarios) {
+        for (Scenario scenario : getAllScenarios()) {
             scenario.refactorObjectName(scope, pageName, oldName, newName);
         }
     }
@@ -841,7 +841,7 @@ public class Project {
      * are tool-agnostic and only care about PROJECT vs SHARED.
      */
     public void refactorMobileObjectName(MobileOR.ORScope scope, String pageName, String oldName, String newName) {
-        for (Scenario scenario : scenarios) {
+        for (Scenario scenario : getAllScenarios()) {
             WebOR.ORScope webScope =
             (scope == MobileOR.ORScope.SHARED)
                 ? WebOR.ORScope.SHARED
@@ -861,7 +861,7 @@ public class Project {
      * @param newPageName new page name
      */
     public void refactorPageName(String oldPageName, String newPageName) {
-        for (Scenario scenario : scenarios) {
+        for (Scenario scenario : getAllScenarios()) {
             scenario.refactorPageName(oldPageName, newPageName);
         }
     }
@@ -890,7 +890,7 @@ public class Project {
     public void refactorPageName(ORScope scope, String oldPageName, String newPageName) {
         String oldScoped = scope == ORScope.SHARED ? "[Shared] " + oldPageName : "[Project] " + oldPageName;
         String newScoped = scope == ORScope.SHARED ? "[Shared] " + newPageName : "[Project] " + newPageName;
-        for (Scenario scenario : scenarios) {
+        for (Scenario scenario : getAllScenarios()) {
             scenario.refactorPageName(oldPageName, newPageName);
             scenario.refactorPageName(oldScoped, newScoped);
         }
@@ -949,13 +949,37 @@ public class Project {
                     ? "[Shared] " + pageName
                     : "[Project] " + pageName;
         }
+        // Search in TestPlan scenarios
         for (Scenario scenario : scenarios) {
             impacted.addAll(scenario.getImpactedObjectTestCases(pageName, objectName));
             if (scopedPageName != null) {
                 impacted.addAll(scenario.getImpactedObjectTestCases(scopedPageName, objectName));
             }
         }
-        return new ArrayList<>(impacted);
+        // Search in ReusableComponents scenarios
+        for (Scenario scenario : reusableScenarios) {
+            impacted.addAll(scenario.getImpactedObjectTestCases(pageName, objectName));
+            if (scopedPageName != null) {
+                impacted.addAll(scenario.getImpactedObjectTestCases(scopedPageName, objectName));
+            }
+        }
+        // Sort by type (Test Plan first), then by scenario name, then by test case name
+        List<TestCase> sortedList = new ArrayList<>(impacted);
+        sortedList.sort((tc1, tc2) -> {
+            // First compare by source type (TEST_PLAN comes before REUSABLE_COMPONENTS)
+            int sourceCompare = tc1.getScenario().getSource().compareTo(tc2.getScenario().getSource());
+            if (sourceCompare != 0) {
+                return sourceCompare;
+            }
+            // Then compare by scenario name
+            int scenarioCompare = tc1.getScenario().getName().compareToIgnoreCase(tc2.getScenario().getName());
+            if (scenarioCompare != 0) {
+                return scenarioCompare;
+            }
+            // Finally compare by test case name
+            return tc1.getName().compareToIgnoreCase(tc2.getName());
+        });
+        return sortedList;
     }
 
     /**
