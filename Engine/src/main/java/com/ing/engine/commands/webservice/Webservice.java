@@ -104,18 +104,20 @@ public class Webservice extends GeneralWebservice {
     }
 
     /**
-     * Sends a POST HTTP request to the configured endpoint with the specified payload.
+     * Sends a POST HTTP request to the configured endpoint with an optional payload.
      * <p>
-     * Executes a POST REST request using the data from the Input field and the endpoint
+     * Executes a POST REST request using the data from the Input field (if provided) and the endpoint
      * previously set with {@code setEndPoint}.
+     * <p>
      * <ul>
-     *   <li>Input: Request payload</li>
+     *   <li>Input: Request payload (optional)</li>
      *   <li>Condition: Optional API configuration alias (e.g., #alias)</li>
      * </ul>
      *
      * @see #setEndPoint()
      */
-    @Action(object = ObjectType.WEBSERVICE, desc = "POST Rest Request ", input = InputType.YES, condition = InputType.OPTIONAL)
+
+    @Action(object = ObjectType.WEBSERVICE, desc = "POST Rest Request ", input = InputType.OPTIONAL, condition = InputType.OPTIONAL)
     public void postRestRequest() {
         try {
             createHttpRequest(RequestMethodType.POST);
@@ -534,6 +536,7 @@ public class Webservice extends GeneralWebservice {
                     Status.DEBUG);
         }
     }
+
 
     /**
      * Asserts that an XML element value equals the expected value.
@@ -1165,7 +1168,6 @@ public class Webservice extends GeneralWebservice {
             Report.updateTestLog(Action, "Error closing connection :" + "\n" + ex.getMessage(), Status.DEBUG);
         }
     }
-
 
     /**
      * Retrieves the HTTP redirect policy configured for the current API driver settings.

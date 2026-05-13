@@ -224,22 +224,20 @@ public class ExtentTestCaseHandler extends TestCaseHandler implements PrimaryHan
     public void endComponent(String string) {
         reusable.put(RDS.Step.END_TIME, DateTimeUtils.DateTimeNow());
         if (reusable.get(TestCase.STATUS).equals("")) {
-            /* status not is updated set it to PASS */
+            // status not is updated set it to PASS
             reusable.put(TestCase.STATUS, "PASS");
         }
         this.test.info(MarkupHelper.createLabel("Reusable Component : [" + this.CurrentComponent + "] ends here", ExtentColor.GREY));
-        /*
-		 * remove the reusable from the stack then fall back to iteration if stack is
-		 * empty else update the outer reusable status.
-         */
+        // Save reference before popping
+        JSONObject completedReusable = reusable;
         reusableStack.pop();
         if (reusableStack.empty()) {
-            ((JSONArray) iteration.get(RDS.Step.DATA)).add(reusable);
+            ((JSONArray) iteration.get(RDS.Step.DATA)).add(completedReusable);
             reusable = null;
             isIteration = true;
         } else {
-            ((JSONArray) reusableStack.peek().get(RDS.Step.DATA)).add(reusable);
-            reusableStack.peek().put(TestCase.STATUS, reusable.get(TestCase.STATUS));
+            ((JSONArray) reusableStack.peek().get(RDS.Step.DATA)).add(completedReusable);
+            reusableStack.peek().put(TestCase.STATUS, completedReusable.get(TestCase.STATUS));
             reusable = reusableStack.peek();
         }
 
