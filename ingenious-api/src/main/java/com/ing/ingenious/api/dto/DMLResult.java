@@ -1,4 +1,4 @@
-package com.ing.ingenious.api.types;
+package com.ing.ingenious.api.dto;
 
 /**
  * Represents the result of a DML (Data Manipulation Language) operation.

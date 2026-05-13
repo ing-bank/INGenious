@@ -1,7 +1,7 @@
 package com.ing.ingenious.api.contract;
 
 import com.ing.ingenious.api.contract.CommandPluginApi;
-import com.ing.ingenious.api.types.RequestMethod;
+import com.ing.ingenious.api.types.RequestMethodType;
 import java.util.ArrayList;
 import java.util.Map;
 
@@ -52,9 +52,9 @@ public interface WebservicePluginApi extends CommandPluginApi  {
      * @param requestMethod the HTTP request method enum value
      * @throws InterruptedException if the request is interrupted
      * @throws Exception if an error occurs during request execution
-     * @see RequestMethod
+     * @see RequestMethodType
      */
-    void createHttpRequest(RequestMethod requestMethod) throws InterruptedException, Exception;
+    void createHttpRequest(RequestMethodType requestMethod) throws InterruptedException, Exception;
 
     /**
      * Gets the context key used to index all webservice-related maps.

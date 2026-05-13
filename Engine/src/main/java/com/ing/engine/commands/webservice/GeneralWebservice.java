@@ -7,7 +7,7 @@ import com.ing.engine.core.Control;
 import com.ing.ingenious.api.exception.ActionException;
 import com.ing.ingenious.api.contract.WebservicePluginApi;
 import com.ing.ingenious.api.status.Status;
-import com.ing.ingenious.api.types.RequestMethod;
+import com.ing.ingenious.api.types.RequestMethodType;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -73,7 +73,7 @@ public class GeneralWebservice extends Command implements WebservicePluginApi {
      * @param requestmethod the HTTP request method to use
      */
     @Override
-    public void createHttpRequest(RequestMethod requestmethod) throws InterruptedException, Exception {
+    public void createHttpRequest(RequestMethodType requestmethod) throws InterruptedException, Exception {
         try {
             setheaders();
             setRequestMethod(requestmethod);
@@ -127,7 +127,7 @@ public class GeneralWebservice extends Command implements WebservicePluginApi {
         }
     }
 
-    protected void setRequestMethod(RequestMethod requestmethod) throws FileNotFoundException, IOException {
+    protected void setRequestMethod(RequestMethodType requestmethod) throws FileNotFoundException, IOException {
         if (requestmethod.toString().equals("PUT") || requestmethod.toString().equals("POST") || requestmethod.toString().equals("PATCH") || requestmethod.toString().equals("DELETEWITHPAYLOAD")) {
 
             setRequestMethod(requestmethod.toString(), handlePayloadorEndpoint(Data));

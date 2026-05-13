@@ -9,9 +9,9 @@ package com.ing.ingenious.api.types;
  * in plugin architectures with child-first classloading strategies.
  * </p>
  * 
- * @see com.ing.ingenious.api.contract.WebservicePluginApi#createHttpRequest(RequestMethod)
+ * @see com.ing.ingenious.api.contract.WebservicePluginApi#createHttpRequest(RequestMethodType)
  */
-public enum RequestMethod {
+public enum RequestMethodType {
     /** HTTP POST method - typically used to create resources */
     POST,
     

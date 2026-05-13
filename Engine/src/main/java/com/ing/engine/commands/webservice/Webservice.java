@@ -7,7 +7,7 @@ import com.ing.ingenious.api.status.Status;
 import com.ing.ingenious.api.annotation.Action;
 import com.ing.ingenious.api.types.InputType;
 import com.ing.ingenious.api.types.ObjectType;
-import com.ing.ingenious.api.types.RequestMethod;
+import com.ing.ingenious.api.types.RequestMethodType;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.io.FileNotFoundException;
@@ -95,7 +95,7 @@ public class Webservice extends GeneralWebservice {
     @Action(object = ObjectType.WEBSERVICE, desc = "PUT Rest Request ", input = InputType.YES, condition = InputType.OPTIONAL)
     public void putRestRequest() {
         try {
-            createHttpRequest(RequestMethod.PUT);
+            createHttpRequest(RequestMethodType.PUT);
         } catch (Exception e) {
             Report.updateTestLog(Action,
                     "An unexpected error occurred while executing the request : " + "\n" + e.getMessage(),
@@ -118,7 +118,7 @@ public class Webservice extends GeneralWebservice {
     @Action(object = ObjectType.WEBSERVICE, desc = "POST Rest Request ", input = InputType.YES, condition = InputType.OPTIONAL)
     public void postRestRequest() {
         try {
-            createHttpRequest(RequestMethod.POST);
+            createHttpRequest(RequestMethodType.POST);
         } catch (Exception e) {
             Report.updateTestLog(Action,
                     "An unexpected error occurred while executing the request : " + "\n" + e.getMessage(),
@@ -141,7 +141,7 @@ public class Webservice extends GeneralWebservice {
     @Action(object = ObjectType.WEBSERVICE, desc = "POST SOAP Request ", input = InputType.YES, condition = InputType.OPTIONAL)
     public void postSoapRequest() {
         try {
-            createHttpRequest(RequestMethod.POST);
+            createHttpRequest(RequestMethodType.POST);
         } catch (Exception e) {
             Report.updateTestLog(Action,
                     "An unexpected error occurred while executing the request : " + "\n" + e.getMessage(),
@@ -164,7 +164,7 @@ public class Webservice extends GeneralWebservice {
     @Action(object = ObjectType.WEBSERVICE, desc = "PATCH Rest Request ", input = InputType.YES, condition = InputType.OPTIONAL)
     public void patchRestRequest() {
         try {
-            createHttpRequest(RequestMethod.PATCH);
+            createHttpRequest(RequestMethodType.PATCH);
         } catch (Exception e) {
             Report.updateTestLog(Action,
                     "An unexpected error occurred while executing the request : " + "\n" + e.getMessage(),
@@ -187,7 +187,7 @@ public class Webservice extends GeneralWebservice {
     @Action(object = ObjectType.WEBSERVICE, desc = "GET Rest Request ", input = InputType.NO, condition = InputType.OPTIONAL)
     public void getRestRequest() {
         try {
-            createHttpRequest(RequestMethod.GET);
+            createHttpRequest(RequestMethodType.GET);
         } catch (Exception e) {
             Report.updateTestLog(Action,
                     "An unexpected error occurred while executing the request : " + "\n" + e.getMessage(),
@@ -208,7 +208,7 @@ public class Webservice extends GeneralWebservice {
     @Action(object = ObjectType.WEBSERVICE, desc = "DELETE Rest Request ", input = InputType.NO)
     public void deleteRestRequest() {
         try {
-            createHttpRequest(RequestMethod.DELETE);
+            createHttpRequest(RequestMethodType.DELETE);
         } catch (Exception e) {
             Report.updateTestLog(Action,
                     "An unexpected error occurred while executing the request : " + "\n" + e.getMessage(),
@@ -230,7 +230,7 @@ public class Webservice extends GeneralWebservice {
     @Action(object = ObjectType.WEBSERVICE, desc = "DELETE with Payload ", input = InputType.YES)
     public void deleteWithPayload() {
         try {
-            createHttpRequest(RequestMethod.DELETEWITHPAYLOAD);
+            createHttpRequest(RequestMethodType.DELETEWITHPAYLOAD);
         } catch (Exception e) {
             Report.updateTestLog(Action,
                     "An unexpected error occurred while executing the request : " + "\n" + e.getMessage(),

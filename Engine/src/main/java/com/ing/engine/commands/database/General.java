@@ -10,7 +10,7 @@ import com.ing.util.encryption.Encryption;
 import com.ing.engine.core.Control;
 import com.ing.ingenious.api.contract.DatabasePluginApi;
 import com.ing.ingenious.api.contract.reports.TestCaseReportApi;
-import com.ing.ingenious.api.types.DMLResult;
+import com.ing.ingenious.api.dto.DMLResult;
 import java.util.Collection;
 import java.sql.*;
 import java.util.ArrayList;

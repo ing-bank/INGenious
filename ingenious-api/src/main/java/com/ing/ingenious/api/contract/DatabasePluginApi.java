@@ -6,7 +6,7 @@ import java.sql.ResultSetMetaData;
 import java.sql.Statement;
 import java.util.List;
 import java.util.Properties;
-import com.ing.ingenious.api.types.DMLResult;
+import com.ing.ingenious.api.dto.DMLResult;
 
 /**
  * Interface for general database operations in INGenious.
