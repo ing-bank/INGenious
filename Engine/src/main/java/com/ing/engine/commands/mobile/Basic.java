@@ -151,7 +151,8 @@ public class Basic extends MobileGeneral {
         }
     }
 
-    @Action(object = ObjectType.APP, desc = "Move the Browser View to the specified element [<Object>]")
+    @Action(object = ObjectType.APP,
+            desc = "Move the Browser View to the specified element [<Object>]")
     public void moveTo() {
         if (elementDisplayed()) {
             if (Data != null && Data.matches("(\\d)+,(\\d)+")) {
@@ -196,7 +197,9 @@ public class Basic extends MobileGeneral {
         }
     }
 
-    @Action(object = ObjectType.MOBILE, desc = "Change Default Element finding wait time by [<Data>] seconds", input = InputType.YES)
+    @Action(object = ObjectType.MOBILE,
+            desc = "Change Default Element finding wait time by [<Data>] seconds",
+            input = InputType.YES)
     public void setElementTimeOut() {
         if (Data != null && Data.matches("[0-9]+")) {
             SystemDefaults.elementWaitTime = Duration.ofSeconds(Integer.valueOf(Data));
@@ -235,91 +238,87 @@ public class Basic extends MobileGeneral {
         JavascriptExecutor js = (JavascriptExecutor) mDriver;
         js.executeScript("lambdatest_executor: {\"action\": \"stepcontext\", \"arguments\": {\"data\": \"\"}}");
     }
+
     /*
-     * 
-     * @Action(object = ObjectType.BROWSER, desc =
-     * "Open the Url [<Data>] in the Browser", input = InputType.YES)
-     * public void Open() {
-     * Boolean pageTimeOut = false;
-     * try {
-     * if (Condition.matches("[0-9]+")) {
-     * setPageTimeOut(Integer.valueOf(Condition));
-     * pageTimeOut = true;
-     * }
-     * mDriver.get(Data);
-     * Report.updateTestLog("Open", "Opened Url: " + Data, Status.DONE);
-     * } catch (TimeoutException e) {
-     * Report.updateTestLog("Open",
-     * "Opened Url: " + Data + " and cancelled page load after " + Condition +
-     * " seconds",
-     * Status.DONE);
-     * } catch (Exception e) {
-     * Logger.getLogger(this.getClass().getName()).log(Level.OFF, null, e);
-     * Report.updateTestLog("Open", e.getMessage(), Status.FAIL);
-     * throw new ForcedException("Open", e.getMessage());
-     * }
-     * if (pageTimeOut) {
-     * setPageTimeOut(300);
-     * }
-     * }
-     * 
-     * @Action(object = ObjectType.BROWSER, desc = "Start a specified browser",
-     * input = InputType.YES)
-     * public void StartBrowser() {
-     * try {
-     * getDriverControl().StartBrowser(Data);
-     * Report.setWebDriver(getMobileDriverControl());
-     * Report.updateTestLog("StartBrowser", "Browser Started: " + Data,
-     * Status.DONE);
-     * } catch (Exception e) {
-     * Logger.getLogger(this.getClass().getName()).log(Level.OFF, null, e);
-     * Report.updateTestLog("StartBrowser", "Error: " + e.getMessage(),
-     * Status.FAIL);
-     * }
-     * }
-     * 
-     * @Action(object = ObjectType.BROWSER, desc = "Restarts the Browser")
-     * public void RestartBrowser() {
-     * try {
-     * getDriverControl().RestartBrowser();
-     * Report.setWebDriver(getMobileDriverControl());
-     * Report.updateTestLog("RestartBrowser", "Restarted Browser", Status.DONE);
-     * } catch (Exception ex) {
-     * Report.updateTestLog("RestartBrowser", "Unable Restart Browser",
-     * Status.FAIL);
-     * Logger.getLogger(Basic.class.getName()).log(Level.SEVERE, null, ex);
-     * }
-     * 
-     * }
-     * 
-     * @Action(object = ObjectType.BROWSER, desc = "Stop the current browser")
-     * public void StopBrowser() {
-     * getMobileDriverControl().StopBrowser();
-     * Report.updateTestLog("StopBrowser", "Browser Stopped: ", Status.DONE);
-     * }
-     * 
-     * private void highlightElement(WebElement element, String color) {
-     * JavascriptExecutor js = (JavascriptExecutor) mDriver;
-     * js.executeScript("arguments[0].setAttribute('style', arguments[1]);",
-     * element, " outline:" + color + " solid 2px;");
-     * }
-     * 
-     * public void highlightElement(WebElement element) {
-     * highlightElement(element, "#f00");
-     * }
-     * 
-     * @Action(object = ObjectType.APP, desc = "Highlight the element [<Object>]",
-     * input = InputType.OPTIONAL)
-     * public void highlight() {
-     * if (elementDisplayed()) {
-     * if (Data != null && !Data.trim().isEmpty()) {
-     * highlightElement(Element, Data);
-     * } else {
-     * highlightElement(Element);
-     * }
-     * Report.updateTestLog(Action, "Element Highlighted",
-     * Status.PASS);
-     * }
-     * }
+
+    @Action(object = ObjectType.BROWSER, desc = "Open the Url [<Data>] in the Browser", input = InputType.YES)
+    public void Open() {
+        Boolean pageTimeOut = false;
+        try {
+            if (Condition.matches("[0-9]+")) {
+                setPageTimeOut(Integer.valueOf(Condition));
+                pageTimeOut = true;
+            }
+            mDriver.get(Data);
+            Report.updateTestLog("Open", "Opened Url: " + Data, Status.DONE);
+        } catch (TimeoutException e) {
+            Report.updateTestLog("Open",
+                    "Opened Url: " + Data + " and cancelled page load after " + Condition + " seconds",
+                    Status.DONE);
+        } catch (Exception e) {
+            Logger.getLogger(this.getClass().getName()).log(Level.OFF, null, e);
+            Report.updateTestLog("Open", e.getMessage(), Status.FAIL);
+            throw new ForcedException("Open", e.getMessage());
+        }
+        if (pageTimeOut) {
+            setPageTimeOut(300);
+        }
+    }
+
+    @Action(object = ObjectType.BROWSER, desc = "Start a specified browser", input = InputType.YES)
+    public void StartBrowser() {
+        try {
+            getDriverControl().StartBrowser(Data);
+            Report.setWebDriver(getMobileDriverControl());
+            Report.updateTestLog("StartBrowser", "Browser Started: " + Data,
+                    Status.DONE);
+        } catch (Exception e) {
+            Logger.getLogger(this.getClass().getName()).log(Level.OFF, null, e);
+            Report.updateTestLog("StartBrowser", "Error: " + e.getMessage(),
+                    Status.FAIL);
+        }
+    }
+
+    @Action(object = ObjectType.BROWSER, desc = "Restarts the Browser")
+    public void RestartBrowser() {
+        try {
+            getDriverControl().RestartBrowser();
+            Report.setWebDriver(getMobileDriverControl());
+            Report.updateTestLog("RestartBrowser", "Restarted Browser", Status.DONE);
+        } catch (Exception ex) {
+            Report.updateTestLog("RestartBrowser", "Unable Restart Browser",
+                    Status.FAIL);
+            Logger.getLogger(Basic.class.getName()).log(Level.SEVERE, null, ex);
+        }
+
+    }
+
+    @Action(object = ObjectType.BROWSER, desc = "Stop the current browser")
+    public void StopBrowser() {
+        getMobileDriverControl().StopBrowser();
+        Report.updateTestLog("StopBrowser", "Browser Stopped: ", Status.DONE);
+    }
+
+    private void highlightElement(WebElement element, String color) {
+        JavascriptExecutor js = (JavascriptExecutor) mDriver;
+        js.executeScript("arguments[0].setAttribute('style', arguments[1]);", element, " outline:" + color + " solid 2px;");
+    }
+
+    public void highlightElement(WebElement element) {
+        highlightElement(element, "#f00");
+    }
+
+    @Action(object = ObjectType.APP, desc = "Highlight the element [<Object>]", input = InputType.OPTIONAL)
+    public void highlight() {
+        if (elementDisplayed()) {
+            if (Data != null && !Data.trim().isEmpty()) {
+                highlightElement(Element, Data);
+            } else {
+                highlightElement(Element);
+            }
+            Report.updateTestLog(Action, "Element Highlighted",
+                    Status.PASS);
+        }
+    }
      */
 }
