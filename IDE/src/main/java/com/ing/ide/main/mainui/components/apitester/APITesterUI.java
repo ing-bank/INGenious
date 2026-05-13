@@ -358,18 +358,9 @@ public class APITesterUI extends JPanel implements PropertyChangeListener {
      * Called automatically when opening a different request.
      */
     public void autoSaveCurrentRequest() {
-        // Only auto-save if request came from a collection (not from history or new)
-        if (sourceCollection != null && sourceRequest != null) {
-            // Update the request with current UI values
-            requestPanel.updateRequest(currentRequest);
-            
-            // Check if there are actual changes
-            if (hasUnsavedChanges()) {
-                // Save automatically without prompting
-                apiTester.saveRequestToCollection(currentRequest, sourceCollection);
-                // Don't show notification for auto-saves (silent save)
-            }
-        }
+        // Always save the current request when switching to a different request
+        // This ensures all changes (URL, method, body, headers, params, auth, etc.) are persisted
+        forceSaveCurrentRequest();
     }
     
     /**
@@ -399,6 +390,21 @@ public class APITesterUI extends JPanel implements PropertyChangeListener {
         }
         
         return false;
+    }
+    
+    /**
+     * Force saves the current request to backend file if it's from a collection.
+     * Called by IDE's save/autosave to persist all edited requests to disk.
+     * This is public so AppMainFrame can call it during project save.
+     */
+    public void forceSaveCurrentRequest() {
+        if (sourceCollection != null && sourceRequest != null && currentRequest != null) {
+            // Update the request with current UI values
+            requestPanel.updateRequest(currentRequest);
+            
+            // Always save to ensure all changes are persisted to backend
+            apiTester.saveRequestToCollection(currentRequest, sourceCollection);
+        }
     }
     
     public void setCurrentRequest(APIRequest request) {

@@ -687,6 +687,7 @@ public class AppMainFrame extends JFrame {
         dashBoard.loadTree();
         dashBoardManager.onProjectChanged();
         apiTester.loadData();
+        apiTester.registerSlideChangeListener();  // Register to listen for panel switches
         sActionListener.afterProjectChange();
         setTitle(sProject.getName() + " - " + getAppTitle());
         // Sync multi-environment state to both Swing and FX menus

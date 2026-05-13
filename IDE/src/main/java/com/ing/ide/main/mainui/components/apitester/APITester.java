@@ -8,6 +8,7 @@ import com.ing.datalib.component.Scenario;
 import com.ing.datalib.component.TestCase;
 import com.ing.datalib.component.TestStep;
 import com.ing.ide.main.mainui.AppMainFrame;
+import com.ing.ide.main.mainui.SlideShow;
 import com.ing.ide.main.mainui.components.apitester.util.APIHttpClient;
 
 import java.io.File;
@@ -22,8 +23,9 @@ import java.util.logging.Logger;
 /**
  * Main controller for the API Tester feature.
  * Manages collections, environments, history, and request execution.
+ * Also listens for panel switches to auto-save when leaving the API Tester.
  */
-public class APITester {
+public class APITester implements SlideShow.SlideChangeListener {
 
     private static final Logger LOG = Logger.getLogger(APITester.class.getName());
     
@@ -269,10 +271,49 @@ public class APITester {
         apiTesterUI.refresh();
     }
     
+    /**
+     * Force save the currently edited request before saving all data.
+     * This ensures that any unsaved changes to the current request are persisted to the backend.
+     * Called by AppMainFrame during project save and autosave.
+     */
+    public void forceCurrentRequestSave() {
+        if (apiTesterUI != null) {
+            apiTesterUI.forceSaveCurrentRequest();
+        }
+    }
+    
     public void saveData() {
+        // First, ensure the currently edited request is saved to backend
+        forceCurrentRequestSave();
+        
+        // Then save all collections, environments, and history
         saveCollections();
         saveEnvironments();
         saveHistory();
+    }
+    
+    /**
+     * Registers this APITester with the SlideShow to listen for panel switches.
+     * Called when a project is loaded so we can auto-save when leaving the API Tester panel.
+     */
+    public void registerSlideChangeListener() {
+        SlideShow slideShow = mainFrame.getSlideShow();
+        if (slideShow != null) {
+            slideShow.addSlideChangeListener(this);
+        }
+    }
+    
+    /**
+     * Called by SlideShow when leaving the APITester slide to auto-save any edits.
+     * This ensures all changes are persisted to backend files when switching panels.
+     */
+    @Override
+    public void onSlideLeaving(String slideName) {
+        if ("APITester".equals(slideName)) {
+            // Auto-save the current request and all data when leaving API Tester panel
+            forceCurrentRequestSave();
+            saveData();
+        }
     }
     
     private void loadCollections() {
