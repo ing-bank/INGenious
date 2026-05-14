@@ -129,13 +129,13 @@ public abstract class CommandControl {
                             AutomationObject.Action = this.Action;
                             /**************************************************************/
 
-                            Locator = AObject.findElement(ObjectName, Reference, FindType.fromString(Condition));
+                            Locator = AObject.findElement(ObjectName, Reference, AutomationObjectApi.FindType.fromString(Condition));
                         } else {
                             /********** Updates the Action for NLP_locator****************/
                             MobileObject.Action = this.Action;
                             /**************************************************************/
 
-                            Element = MObject.findElement(ObjectName, Reference, FindmType.fromString(Condition));
+                            Element = MObject.findElement(ObjectName, Reference, MobileObjectApi.FindmType.fromString(Condition));
                         }
 
                     }
