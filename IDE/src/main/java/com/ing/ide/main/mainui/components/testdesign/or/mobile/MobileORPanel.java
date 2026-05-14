@@ -147,11 +147,57 @@ public class MobileORPanel extends JPanel {
     }
 
     public Boolean navigateToObject(String objectName, String pageName) {
-        MobileObjectTree active = getActiveTree();
-        if (active != null && Boolean.TRUE.equals(active.navigateToObject(objectName, pageName))) return true;
-
-        MobileObjectTree other = (active == projectTree) ? sharedTree : projectTree;
-        return (other != null) ? other.navigateToObject(objectName, pageName) : false;
+        // Extract scope from pageName (e.g., "[Shared] PageName" or "[Project] PageName")
+        String scope = extractScope(pageName);
+        
+        // If scope is explicitly specified in the reference, use only that tree
+        if (scope != null) {
+            if ("SHARED".equalsIgnoreCase(scope)) {
+                if (sharedTree != null && sharedTree.navigateToObject(objectName, pageName)) {
+                    tabs.setSelectedIndex(1); // Switch to Shared tab
+                    return true;
+                }
+                return false;
+            } else if ("PROJECT".equalsIgnoreCase(scope)) {
+                if (projectTree != null && projectTree.navigateToObject(objectName, pageName)) {
+                    tabs.setSelectedIndex(0); // Switch to Project tab
+                    return true;
+                }
+                return false;
+            }
+        }
+        
+        // If no scope specified, try shared first, then project as fallback
+        if (sharedTree != null && sharedTree.navigateToObject(objectName, pageName)) {
+            tabs.setSelectedIndex(1); // Switch to Shared tab
+            return true;
+        }
+        if (projectTree != null && projectTree.navigateToObject(objectName, pageName)) {
+            tabs.setSelectedIndex(0); // Switch to Project tab
+            return true;
+        }
+        return false;
+    }
+    
+    /**
+     * Extracts the scope prefix from a page reference.
+     * Format: "[Scope] PageName" where Scope is either "Shared" or "Project"
+     * 
+     * @param pageReference the page reference that may contain scope prefix
+     * @return the scope ("SHARED" or "PROJECT") or null if no scope prefix
+     */
+    private String extractScope(String pageReference) {
+        if (pageReference == null || pageReference.trim().isEmpty()) {
+            return null;
+        }
+        
+        String trimmed = pageReference.trim();
+        if (trimmed.startsWith("[") && trimmed.contains("]")) {
+            int endBracket = trimmed.indexOf(']');
+            String scope = trimmed.substring(1, endBracket).trim();
+            return scope.isEmpty() ? null : scope.toUpperCase();
+        }
+        return null;
     }
 
     public MobileORTable getObjectTable() { 
