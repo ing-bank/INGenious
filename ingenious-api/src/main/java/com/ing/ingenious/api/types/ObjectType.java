@@ -48,6 +48,8 @@ public class ObjectType {
     public static final String GENERAL = "General";
     /** String manipulation operations object type */
     public static final String STRINGOPERATIONS = "String Operations";
+    /** Structured data operations object type */
+    public static final String STRUCTUREDDATA = "Structured Data";
 
     /**
      * An unmodifiable set containing all standard framework object types.
