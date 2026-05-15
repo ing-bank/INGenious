@@ -145,17 +145,62 @@ function toggleReusableV2(keyPath) {
 }
 
 // Inject rendered steps into #steps-container
-function injectStepsV2(showFailedOnly = false, stepFilter = '') {
+// If filteredSteps is provided, use those; otherwise filter from window.DATA.EXECUTIONS
+function injectStepsV2(showFailedOnly = false, stepFilter = '', scenarioName = null, testcaseName = null, filteredSteps = null) {
     if (!window.DATA || !window.DATA.EXECUTIONS) return;
+    
+    let stepsToRender = [];
+    
+    if (filteredSteps && Array.isArray(filteredSteps)) {
+        // Use pre-filtered steps from component
+        console.log('[injectStepsV2] Using pre-filtered steps array, count:', filteredSteps.length);
+        console.log('[injectStepsV2] filteredSteps details:', JSON.stringify(filteredSteps.map(s => ({
+            name: s.name,
+            status: s.status,
+            dataCount: s.data ? s.data.length : 0,
+            dataNames: s.data ? s.data.slice(0, 3).map(d => d.stepName || d.name) : []
+        })), null, 2));
+        stepsToRender = filteredSteps;
+    } else {
+        // Legacy behavior: filter from raw data
+        const SC = scenarioName || Params?.SC || '';
+        const TC = testcaseName || Params?.TC || '';
+        
+        console.log('[injectStepsV2] Filtering raw data for SC:', SC, 'TC:', TC);
+        console.log('[injectStepsV2] Total executions:', window.DATA.EXECUTIONS.length);
+        
+        let matchCount = 0;
+        window.DATA.EXECUTIONS.forEach(function(exe, exeIdx) {
+            console.log('[injectStepsV2] Execution', exeIdx, '- scenarioName:', exe.scenarioName, 'testcaseName:', exe.testcaseName);
+            
+            // Filter by scenario and test case if specified
+            if (SC && TC) {
+                if (exe.scenarioName !== SC || exe.testcaseName !== TC) {
+                    console.log('[injectStepsV2] Execution', exeIdx, 'SKIPPED - no match');
+                    return; // Skip if not matching
+                }
+            } else if (!isTCMatched(exe)) {
+                // Fallback to isTCMatched if parameters weren't provided
+                console.log('[injectStepsV2] Execution', exeIdx, 'SKIPPED - isTCMatched failed');
+                return;
+            }
+            
+            console.log('[injectStepsV2] Execution', exeIdx, 'MATCHED');
+            matchCount++;
+            
+            if (exe.STEPS) {
+                stepsToRender = stepsToRender.concat(exe.STEPS);
+            }
+        });
+        console.log('[injectStepsV2] Matched executions:', matchCount, 'Total steps to render:', stepsToRender.length);
+    }
+    
     let html = '';
-    window.DATA.EXECUTIONS.forEach(function(exe, exeIdx) {
-        if (exe.STEPS) {
-            exe.STEPS.forEach(function(iteration, iterIdx) {
-                if (showFailedOnly && iteration.status !== 'FAIL') return;
-                html += `<div class="mb-6 pb-6 border-b border-gray-200 dark:border-gray-700 last:border-b-0"><div class="flex items-center gap-3 mb-4"><div class="px-3 py-1 rounded-full text-sm font-semibold ${iteration.status === 'PASS' ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' : 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'}">${iteration.name || 'Iteration'}</div><span class="text-sm text-muted">${iteration.status || ''}</span></div><div class="step-timeline">${renderStepsV2(iteration.data, showFailedOnly, stepFilter)}</div></div>`;
-            });
-        }
+    stepsToRender.forEach(function(iteration, idx) {
+        if (showFailedOnly && iteration.status !== 'FAIL') return;
+        html += `<div class="mb-6 pb-6 border-b border-gray-200 dark:border-gray-700 last:border-b-0"><div class="flex items-center gap-3 mb-4"><div class="px-3 py-1 rounded-full text-sm font-semibold ${iteration.status === 'PASS' ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' : 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'}">${iteration.name || 'Iteration'}</div><span class="text-sm text-muted">${iteration.status || ''}</span></div><div class="step-timeline">${renderStepsV2(iteration.data, showFailedOnly, stepFilter)}</div></div>`;
     });
+    
     const container = document.getElementById('steps-container');
     if (container) container.innerHTML = html;
 }

@@ -705,9 +705,17 @@
           // Update view
           this.updateView();
           
-          // Inject steps using the JS renderer
+          // Inject steps using the JS renderer with pre-filtered steps
           if (typeof injectStepsV2 === 'function') {
-            injectStepsV2(this.showFailedOnly, this.stepFilter);
+            console.log('[detailed-v2.html] Calling injectStepsV2 with filtered steps:', {
+              showFailedOnly: this.showFailedOnly,
+              stepFilter: this.stepFilter,
+              SC: this.params.SC,
+              TC: this.params.TC,
+              stepsCount: this.steps.length
+            });
+            // Pass the pre-filtered steps array so injectStepsV2 doesn't need to filter again
+            injectStepsV2(this.showFailedOnly, this.stepFilter, this.params.SC, this.params.TC, this.steps);
           }
           
           // Load theme preference
@@ -754,10 +762,28 @@
             return;
           }
           
+          console.log('[updateView] Filtering executions for SC:', this.params.SC, 'TC:', this.params.TC);
+          console.log('[updateView] Total available executions:', this.data.EXECUTIONS.length);
+          
           // Find the matching execution
           const executions = this.data.EXECUTIONS.filter(exe => 
             exe.scenarioName === this.params.SC && exe.testcaseName === this.params.TC
           );
+          
+          console.log('[updateView] Filtered executions:', executions.length);
+          executions.forEach((exe, idx) => {
+            console.log(`[updateView] Execution ${idx}: scenarioName=${exe.scenarioName}, testcaseName=${exe.testcaseName}, STEPS count=${exe.STEPS ? exe.STEPS.length : 0}`);
+            if (exe.STEPS) {
+              exe.STEPS.forEach((step, sidx) => {
+                console.log(`[updateView]   Step ${sidx}: name=${step.name}, status=${step.status}, data count=${step.data ? step.data.length : 0}`);
+                if (step.data) {
+                  step.data.forEach((d, didx) => {
+                    console.log(`[updateView]     Data ${didx}: stepName="${d.stepName}", stepno=${d.stepno}, action="${d.action}", description="${d.description}"`);
+                  });
+                }
+              });
+            }
+          });
           
           if (executions.length === 0) {
             return;
@@ -794,6 +820,8 @@
             this.steps = exe?.STEPS || [];
             
           }
+          
+          console.log('[updateView] Final steps array:', this.steps.length);
           
           // Reset expanded state
           this.expandedSteps = new Set();
@@ -891,8 +919,9 @@
         
         refreshStepsDisplay() {
           // Re-render steps when filter changes
+          console.log('[refreshStepsDisplay] Called with SC:', this.params.SC, 'TC:', this.params.TC, 'steps:', this.steps.length);
           if (typeof injectStepsV2 === 'function') {
-            injectStepsV2(this.showFailedOnly, this.stepFilter);
+            injectStepsV2(this.showFailedOnly, this.stepFilter, this.params.SC, this.params.TC, this.steps);
           }
         },
         
