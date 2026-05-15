@@ -26,15 +26,31 @@ var logFileLoc="./logs/";
 // Resolve screenshot paths to correct relative paths
 function resolveScreenshotPath(link) {
     if (!link) return '';
+    
+    // Already external URLs or data URIs - return as-is
     if (link.startsWith('data:') || link.startsWith('http://') || link.startsWith('https://')) {
         return link;
     }
-    // Screenshots are in ./img/ relative to the HTML file
-    // Link format: /img/filename.png or ./img/filename.png
-    if (link.startsWith('/img/')) {
-        return '.' + link; // Convert /img/ to ./img/
+    
+    // Convert backslashes to forward slashes
+    let normalized = link.replace(/\\/g, '/');
+    
+    // Handle /img/ paths - convert to ./img/
+    if (normalized.startsWith('/img/')) {
+        return '.' + normalized;
     }
-    return link;
+    
+    // Remove leading slash for relative paths
+    if (normalized.startsWith('/')) {
+        normalized = normalized.substring(1);
+    }
+    
+    // If path doesn't start with ./, add it
+    if (!normalized.startsWith('./') && !normalized.startsWith('../')) {
+        normalized = './' + normalized;
+    }
+    
+    return normalized;
 }
 
 // Global search state
@@ -79,10 +95,7 @@ function renderStepsV2(iterations, showFailedOnly = false, stepFilter = '') {
         if (showFailedOnly && status !== 'fail') return '';
         if (!matchesFilter(data.stepName || data.action || step.name, data.description)) return '';
         
-        const action = (data.action || '').toLowerCase();
         let statusIcon = '';
-        
-        // Check status first for proper icon color
         if (status === 'fail') {
             statusIcon = '<svg class="w-5 h-5 text-red-600 dark:text-red-400" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/></svg>';
         } else if (status === 'pass' || status === 'done') {
@@ -91,7 +104,95 @@ function renderStepsV2(iterations, showFailedOnly = false, stepFilter = '') {
             statusIcon = '<svg class="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/></svg>';
         }
         
-        return `<div class="step-item" data-key="${keyPath}"><div class="step-item__marker step-item__marker--${status}">${statusIcon}</div><div class="step-item__content"><div class="step-item__header cursor-pointer" onclick="toggleStepV2('${keyPath}')"><div class="flex-1"><div class="flex items-center gap-3 mb-1"><span class="text-sm font-mono text-muted">#${escapeHtml(data.stepno || '')}</span><span class="p-3 rounded-lg text-sm font-mono whitespace-pre-wrap bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700">${escapeHtml(data.stepName || data.action || step.name || 'Step')}</span></div>${data.description ? `<div class="text-sm text-gray-600 dark:text-gray-400 ml-12">${escapeHtml(data.description)}</div>` : ''}</div><div class="flex items-center gap-3"><span class="text-xs text-muted">${escapeHtml(data.tStamp || '')}</span><span class="badge badge--${status}">${escapeHtml(data.status || '')}</span><svg class="w-5 h-5 text-gray-400 transition-transform duration-200 step-arrow" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg></div></div><div class="step-item__body" style="display: none;" data-step-body="${keyPath}">${data.action ? `<div class="mb-3"><strong class="text-sm">Action:</strong> <span class="text-sm">${escapeHtml(data.action)}</span></div>` : ''}${data.result ? `<div class="mb-3"><strong class="text-sm">Result:</strong> <span class="text-sm">${escapeHtml(data.result)}</span></div>` : ''}${data.failureMsg || data.failureMessage ? `<div class="mb-3 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded"><strong class="text-sm text-red-700 dark:text-red-400">Failure Message:</strong> <pre class="text-xs text-red-600 dark:text-red-300 mt-1 whitespace-pre-wrap">${escapeHtml(data.failureMsg || data.failureMessage)}</pre></div>` : ''}${data.objects ? `<div class="mb-3"><strong class="text-sm">Objects:</strong> <span class="text-sm">${escapeHtml(data.objects)}</span></div>` : ''}${data.actual ? `<div class="mb-3"><strong class="text-sm">Actual:</strong> <pre class="text-xs bg-gray-100 dark:bg-gray-800 p-2 rounded overflow-x-auto">${escapeHtml(data.actual)}</pre></div>` : ''}${data.expected ? `<div class="mb-3"><strong class="text-sm">Expected:</strong> <pre class="text-xs bg-gray-100 dark:bg-gray-800 p-2 rounded overflow-x-auto">${escapeHtml(data.expected)}</pre></div>` : ''}${data.link ? `<div class="mb-3"><strong class="text-sm">Screenshot:</strong><br><img src="${resolveScreenshotPath(data.link)}" alt="Step Screenshot" class="mt-2 rounded border border-gray-200 dark:border-gray-700 max-w-full cursor-pointer" onerror="this.style.display='none'" onclick="window.open('${resolveScreenshotPath(data.link)}', '_blank')"></div>` : ''}</div></div></div>`;
+        // Build detailed content sections
+        let detailsHtml = '';
+        
+        // Action section
+        if (data.action) {
+            detailsHtml += `<div class="mb-4">
+                <div class="text-sm font-semibold mb-1">Action</div>
+                <div class="p-3 rounded-lg text-sm font-mono whitespace-pre-wrap bg-gray-50 dark:bg-gray-800">${escapeHtml(data.action)}</div>
+            </div>`;
+        }
+        
+        // Expected vs Actual (side by side)
+        if (data.expected || data.actual) {
+            detailsHtml += `<div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">`;
+            if (data.expected) {
+                detailsHtml += `<div>
+                    <div class="text-sm font-semibold mb-1">Expected</div>
+                    <div class="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-lg text-sm font-mono whitespace-pre-wrap">${escapeHtml(data.expected)}</div>
+                </div>`;
+            }
+            if (data.actual) {
+                detailsHtml += `<div>
+                    <div class="text-sm font-semibold mb-1">Actual</div>
+                    <div class="p-3 bg-amber-50 dark:bg-amber-900/20 rounded-lg text-sm font-mono whitespace-pre-wrap">${escapeHtml(data.actual)}</div>
+                </div>`;
+            }
+            detailsHtml += `</div>`;
+        }
+        
+        // Comparison Result section
+        if (data.comparison) {
+            detailsHtml += `<div class="mb-4">
+                <div class="text-sm font-semibold mb-1">Comparison Result</div>
+                <div class="p-3 bg-gray-50 dark:bg-gray-800 rounded-lg text-sm font-mono whitespace-pre-wrap">${escapeHtml(data.comparison)}</div>
+            </div>`;
+        }
+        
+        // Objects section
+        if (data.objects) {
+            detailsHtml += `<div class="mb-4">
+                <div class="text-sm font-semibold mb-1">Objects</div>
+                <div class="p-3 bg-gray-50 dark:bg-gray-800 rounded-lg text-sm font-mono">${escapeHtml(data.objects)}</div>
+            </div>`;
+        }
+        
+        // Failure Message section
+        if (data.failureMsg || data.failureMessage) {
+            detailsHtml += `<div class="mb-4 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded">
+                <strong class="text-sm text-red-700 dark:text-red-400">Failure Message:</strong>
+                <pre class="text-xs text-red-600 dark:text-red-300 mt-2 whitespace-pre-wrap">${escapeHtml(data.failureMsg || data.failureMessage)}</pre>
+            </div>`;
+        }
+        
+        // Screenshot/Link section - render with proper path resolution
+        if (data.link) {
+            const resolvedPath = resolveScreenshotPath(data.link);
+            detailsHtml += `<div class="flex gap-3 flex-wrap mt-4">`;
+            // Image link
+            if (/\.(jpg|jpeg|png|gif|webp)$/i.test(data.link) || data.link.startsWith('data:image/')) {
+                detailsHtml += `<button class="btn btn--secondary btn--sm" onclick="(() => { const app = document.querySelector('[x-data]'); if (app && app.__x && app.__x.data.openScreenshot) { app.__x.data.openScreenshot('${resolvedPath}'); } else { window.open('${resolvedPath}', '_blank'); } })()">
+                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                    </svg>
+                    View Screenshot
+                </button>`;
+            } 
+            // Video link
+            else if (/\.(mp4|webm|ogg|mov)$/i.test(data.link)) {
+                detailsHtml += `<button class="btn btn--secondary btn--sm" onclick="(() => { const app = document.querySelector('[x-data]'); if (app && app.__x && app.__x.data.openVideo) { app.__x.data.openVideo('${resolvedPath}'); } else { window.open('${resolvedPath}', '_blank'); } })()">
+                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/>
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                    </svg>
+                    View Video
+                </button>`;
+            }
+            // Generic attachment or file link
+            else {
+                detailsHtml += `<a href="${resolvedPath}" target="_blank" class="btn btn--secondary btn--sm">
+                    <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
+                    </svg>
+                    View Attachment
+                </a>`;
+            }
+            detailsHtml += `</div>`;
+        }
+        
+        return `<div class="step-item" data-key="${keyPath}"><div class="step-item__marker step-item__marker--${status}">${statusIcon}</div><div class="step-item__content"><div class="step-item__header cursor-pointer" onclick="toggleStepV2('${keyPath}')"><div class="flex-1"><div class="flex items-center gap-3 mb-1"><span class="text-sm font-mono text-muted">#${escapeHtml(data.stepno || '')}</span><span class="p-3 rounded-lg text-sm font-mono whitespace-pre-wrap bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700">${escapeHtml(data.stepName || data.action || step.name || 'Step')}</span></div>${data.description ? `<div class="text-sm text-gray-600 dark:text-gray-400 ml-12">${escapeHtml(data.description)}</div>` : ''}</div><div class="flex items-center gap-3"><span class="text-xs text-muted">${escapeHtml(data.tStamp || '')}</span><span class="badge badge--${status}">${escapeHtml(data.status || '')}</span><svg class="w-5 h-5 text-gray-400 transition-transform duration-200 step-arrow" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg></div></div><div class="step-item__body" style="display: none;" data-step-body="${keyPath}">${detailsHtml}</div></div></div>`;
     }
     
     function renderReusable(reusable, keyPath) {
@@ -153,46 +254,31 @@ function injectStepsV2(showFailedOnly = false, stepFilter = '', scenarioName = n
     
     if (filteredSteps && Array.isArray(filteredSteps)) {
         // Use pre-filtered steps from component
-        console.log('[injectStepsV2] Using pre-filtered steps array, count:', filteredSteps.length);
-        console.log('[injectStepsV2] filteredSteps details:', JSON.stringify(filteredSteps.map(s => ({
-            name: s.name,
-            status: s.status,
-            dataCount: s.data ? s.data.length : 0,
-            dataNames: s.data ? s.data.slice(0, 3).map(d => d.stepName || d.name) : []
-        })), null, 2));
         stepsToRender = filteredSteps;
     } else {
         // Legacy behavior: filter from raw data
         const SC = scenarioName || Params?.SC || '';
         const TC = testcaseName || Params?.TC || '';
         
-        console.log('[injectStepsV2] Filtering raw data for SC:', SC, 'TC:', TC);
-        console.log('[injectStepsV2] Total executions:', window.DATA.EXECUTIONS.length);
-        
         let matchCount = 0;
         window.DATA.EXECUTIONS.forEach(function(exe, exeIdx) {
-            console.log('[injectStepsV2] Execution', exeIdx, '- scenarioName:', exe.scenarioName, 'testcaseName:', exe.testcaseName);
             
             // Filter by scenario and test case if specified
             if (SC && TC) {
                 if (exe.scenarioName !== SC || exe.testcaseName !== TC) {
-                    console.log('[injectStepsV2] Execution', exeIdx, 'SKIPPED - no match');
                     return; // Skip if not matching
                 }
             } else if (!isTCMatched(exe)) {
                 // Fallback to isTCMatched if parameters weren't provided
-                console.log('[injectStepsV2] Execution', exeIdx, 'SKIPPED - isTCMatched failed');
                 return;
             }
             
-            console.log('[injectStepsV2] Execution', exeIdx, 'MATCHED');
             matchCount++;
             
             if (exe.STEPS) {
                 stepsToRender = stepsToRender.concat(exe.STEPS);
             }
         });
-        console.log('[injectStepsV2] Matched executions:', matchCount, 'Total steps to render:', stepsToRender.length);
     }
     
     let html = '';
@@ -200,6 +286,19 @@ function injectStepsV2(showFailedOnly = false, stepFilter = '', scenarioName = n
         if (showFailedOnly && iteration.status !== 'FAIL') return;
         html += `<div class="mb-6 pb-6 border-b border-gray-200 dark:border-gray-700 last:border-b-0"><div class="flex items-center gap-3 mb-4"><div class="px-3 py-1 rounded-full text-sm font-semibold ${iteration.status === 'PASS' ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' : 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'}">${iteration.name || 'Iteration'}</div><span class="text-sm text-muted">${iteration.status || ''}</span></div><div class="step-timeline">${renderStepsV2(iteration.data, showFailedOnly, stepFilter)}</div></div>`;
     });
+    
+    // Handle empty steps
+    if (!html || stepsToRender.length === 0) {
+        html = `<div class="flex flex-col items-center justify-center py-12 px-6 bg-gray-50 dark:bg-gray-900 rounded-lg border border-dashed border-gray-300 dark:border-gray-700">
+            <svg class="w-16 h-16 text-gray-400 dark:text-gray-600 mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0a2 2 0 01-2 2H6a2 2 0 01-2-2m16 0V9a2 2 0 00-2-2H6a2 2 0 00-2 2v4"/>
+            </svg>
+            <h3 class="text-lg font-semibold text-gray-700 dark:text-gray-300 mb-2">No Steps Available</h3>
+            <p class="text-sm text-gray-500 dark:text-gray-400 text-center">
+                ${stepFilter ? 'No steps match the current filter. Try adjusting your search.' : 'No test steps were recorded for this execution.'}
+            </p>
+        </div>`;
+    }
     
     const container = document.getElementById('steps-container');
     if (container) container.innerHTML = html;

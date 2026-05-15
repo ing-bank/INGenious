@@ -499,6 +499,86 @@
           </div>
         </section>
         
+        <!-- Test Case Video & Traces Buttons -->
+        <section class="section mt-12">
+          <div class="container">
+            <div class="flex flex-wrap items-center gap-6 mb-8">
+              <!-- View Video Button -->
+              <button
+                :disabled="!currentDetails.videoPath"
+                @click="currentDetails.videoPath && openTestCaseVideo(currentDetails.videoPath)"
+                style="display: flex; align-items: center; justify-content: center; padding: 1rem 2rem; font-size: 1rem; font-weight: 600; border-radius: 0.375rem; transition: all 0.2s; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); min-width: 180px; border: none; cursor: pointer;"
+                :style="currentDetails.videoPath ? {
+                  'background-color': '#7724FF',
+                  'color': '#FFFFFF',
+                  'box-shadow': '0 10px 15px -3px rgba(119, 36, 255, 0.4)'
+                } : {
+                  'background-color': '#e5e7eb',
+                  'color': '#9ca3af',
+                  'cursor': 'not-allowed',
+                  'opacity': '0.6'
+                }"
+                @mouseover="currentDetails.videoPath && ($event.target.style.backgroundColor = '#6518e6', $event.target.style.boxShadow = '0 10px 15px -3px rgba(119, 36, 255, 0.6)')"
+                @mouseout="currentDetails.videoPath && ($event.target.style.backgroundColor = '#7724FF', $event.target.style.boxShadow = '0 10px 15px -3px rgba(119, 36, 255, 0.4)')"
+                title="View the recorded video of this test case execution"
+              >
+                <svg class="w-5 h-5" style="margin-right: 0.75rem;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/>
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+                <span>View Video</span>
+              </button>
+              
+              <!-- Download Traces Button -->
+              <a
+                :href="currentDetails.tracePath ? getAbsoluteTracePath() : '#'"
+                :download="currentDetails.tracePath ? 'traces.zip' : null"
+                :style="currentDetails.tracePath ? {
+                  'display': 'flex',
+                  'align-items': 'center',
+                  'justify-content': 'center',
+                  'padding': '1rem 2rem',
+                  'font-size': '1rem',
+                  'font-weight': '600',
+                  'border-radius': '0.375rem',
+                  'transition': 'all 0.2s',
+                  'box-shadow': '0 10px 15px -3px rgba(0, 0, 0, 0.1)',
+                  'min-width': '180px',
+                  'border': 'none',
+                  'cursor': 'pointer',
+                  'text-decoration': 'none',
+                  'background-color': '#7724FF',
+                  'color': '#FFFFFF',
+                  'box-shadow': '0 10px 15px -3px rgba(119, 36, 255, 0.4)'
+                } : {
+                  'display': 'flex',
+                  'align-items': 'center',
+                  'justify-content': 'center',
+                  'padding': '1rem 2rem',
+                  'font-size': '1rem',
+                  'font-weight': '600',
+                  'border-radius': '0.375rem',
+                  'background-color': '#e5e7eb',
+                  'color': '#9ca3af',
+                  'cursor': 'not-allowed',
+                  'opacity': '0.6',
+                  'text-decoration': 'none',
+                  'pointer-events': 'none'
+                }"
+                @mouseover="currentDetails.tracePath && ($event.target.style.backgroundColor = '#6518e6', $event.target.style.boxShadow = '0 10px 15px -3px rgba(119, 36, 255, 0.6)')"
+                @mouseout="currentDetails.tracePath && ($event.target.style.backgroundColor = '#7724FF', $event.target.style.boxShadow = '0 10px 15px -3px rgba(119, 36, 255, 0.4)')"
+                title="Download trace file"
+              >
+                <svg class="w-5 h-5" style="margin-right: 0.75rem;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
+                </svg>
+                <span>Download Traces</span>
+              </a>
+              
+            </div>
+          </div>
+        </section>
+        
       </div>
     </main>
     
@@ -540,6 +620,43 @@
       </a>
     </div>
     
+    <!-- Screenshot Lightbox -->
+    <div 
+      id="screenshotLightbox"
+      x-show="lightboxOpen"
+      x-cloak
+      x-transition:enter="transition ease-out duration-200"
+      x-transition:enter-start="opacity-0"
+      x-transition:enter-end="opacity-100"
+      x-transition:leave="transition ease-in duration-150"
+      x-transition:leave-start="opacity-100"
+      x-transition:leave-end="opacity-0"
+      class="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4"
+      @click.self="lightboxOpen = false"
+      @keydown.escape.window="lightboxOpen = false"
+    >
+      <button 
+        @click="lightboxOpen = false"
+        class="absolute top-4 right-4 text-white hover:text-gray-300"
+      >
+        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+        </svg>
+      </button>
+      <img 
+        :src="lightboxSrc"
+        class="max-w-full max-h-full object-contain rounded-lg shadow-xl"
+        alt="Screenshot"
+      >
+      <a 
+        :href="lightboxSrc" 
+        target="_blank" 
+        class="absolute bottom-4 right-4 btn btn--primary btn--sm"
+      >
+        Open in New Tab
+      </a>
+    </div>
+
     <!-- Video Lightbox -->
     <div 
       id="videoLightbox"
@@ -758,32 +875,13 @@
         
         updateView() {
           if (!this.data.EXECUTIONS) {
-            console.warn('No EXECUTIONS data found');
             return;
           }
-          
-          console.log('[updateView] Filtering executions for SC:', this.params.SC, 'TC:', this.params.TC);
-          console.log('[updateView] Total available executions:', this.data.EXECUTIONS.length);
           
           // Find the matching execution
           const executions = this.data.EXECUTIONS.filter(exe => 
             exe.scenarioName === this.params.SC && exe.testcaseName === this.params.TC
           );
-          
-          console.log('[updateView] Filtered executions:', executions.length);
-          executions.forEach((exe, idx) => {
-            console.log(`[updateView] Execution ${idx}: scenarioName=${exe.scenarioName}, testcaseName=${exe.testcaseName}, STEPS count=${exe.STEPS ? exe.STEPS.length : 0}`);
-            if (exe.STEPS) {
-              exe.STEPS.forEach((step, sidx) => {
-                console.log(`[updateView]   Step ${sidx}: name=${step.name}, status=${step.status}, data count=${step.data ? step.data.length : 0}`);
-                if (step.data) {
-                  step.data.forEach((d, didx) => {
-                    console.log(`[updateView]     Data ${didx}: stepName="${d.stepName}", stepno=${d.stepno}, action="${d.action}", description="${d.description}"`);
-                  });
-                }
-              });
-            }
-          });
           
           if (executions.length === 0) {
             return;
@@ -820,8 +918,6 @@
             this.steps = exe?.STEPS || [];
             
           }
-          
-          console.log('[updateView] Final steps array:', this.steps.length);
           
           // Reset expanded state
           this.expandedSteps = new Set();
