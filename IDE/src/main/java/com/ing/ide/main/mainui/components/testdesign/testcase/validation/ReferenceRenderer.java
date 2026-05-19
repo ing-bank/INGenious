@@ -122,6 +122,17 @@ public class ReferenceRenderer extends AbstractRenderer {
         return fallback;
     }
 
+    /**
+     * Checks if the Reference field is optional for the given test step.
+     * <p>
+     * The Reference field is optional when the object type is a known system type
+     * (e.g., Execute, Browser, Mobile, Database, Webservice) that doesn't require
+     * an object repository reference.
+     * </p>
+     *
+     * @param step the test step to check
+     * @return true if the Reference field is optional, false otherwise
+     */
     private Boolean isOptional(TestStep step) {
         return ObjectTypeUtil.isKnownType(step.getObject());
     }

@@ -995,6 +995,10 @@ public abstract class ObjectTree implements ActionListener {
                 return;
             }
             String newName = repo.moveWebObject(resolved, pageName);
+            if (newName == null) {
+                Notification.show("Object with the same name already exists in Shared OR");
+                return;
+            }
             if (newName != null) {
                 // Check if source page is now empty and remove it
                 WebOR projectOR = repo.getWebOR();
@@ -1024,6 +1028,10 @@ public abstract class ObjectTree implements ActionListener {
                 return;
             }
             String newName = repo.moveMobileObject(resolved, pageName);
+            if (newName == null) {
+                Notification.show("Object with the same name already exists in Shared OR");
+                return;
+            }
             if (newName != null) {
                 // Check if source page is now empty and remove it
                 MobileOR projectOR = repo.getMobileOR();
@@ -1053,6 +1061,10 @@ public abstract class ObjectTree implements ActionListener {
                 return;
             }
             String newName = repo.moveStructuredDataObject(resolved, pageName);
+            if (newName == null) {
+                Notification.show("Object with the same name already exists in Shared OR");
+                return;
+            }
             if (newName != null) {
                 // Check if source page is now empty and remove it
                 StructuredDataOR projectOR = repo.getStructuredDataOR();

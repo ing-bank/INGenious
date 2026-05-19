@@ -92,11 +92,7 @@ public class MobileORPage implements ORPageInf<MobileORObject, MobileOR> {
     public void removeFromParent() {
         root.setSaved(false);
         root.getPages().remove(this);
-        if (root.getObjectRepository().isUsingYamlFormat()) {
-            root.getObjectRepository().deleteMobilePageYaml(getName(), root.getScope());
-        } else {
-            FileUtils.deleteFile(getRepLocation());
-        }
+        root.getObjectRepository().deleteMobilePageYaml(getName(), root.getScope());
     }
 
     @JsonIgnore

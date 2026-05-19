@@ -92,11 +92,7 @@ public class WebORPage implements ORPageInf<WebORObject, WebOR> {
     public void removeFromParent() {
         root.setSaved(false);
         root.getPages().remove(this);
-        if (root.getObjectRepository().isUsingYamlFormat()) {
-            root.getObjectRepository().deleteWebPageYaml(getName(), root.getScope());
-        } else {
-            FileUtils.deleteFile(getRepLocation());
-        }
+        root.getObjectRepository().deleteWebPageYaml(getName(), root.getScope());
     }
 
     @JsonIgnore
