@@ -21,7 +21,6 @@ metadata:
 - **Always validate** that actions exist before adding them to any CSV file.
 - **Never assume** missing inputs; ask concise follow-up questions to fill gaps
 - **Never modify** unrelated files; only create/update what is necessary for the requested test case
-- **Always follow** the project’s existing patterns for reusable components, page objects, and test
 - **Do not** consult external documentation or resources; rely solely on the provided references and project structure or use existing project artifacts as templates.
 
 # Test Case From API Business Flow
@@ -63,6 +62,7 @@ Collect these fields before writing files:
    - Method
    - Headers
      - present suggested header keys as selectable options when possible (for example Content-Type, Authorization, etc.)
+     - format key-value pairs as "HeaderKey=HeaderValue"
    - Payload
    - Expected Status Code
    - Assertions
@@ -112,7 +112,8 @@ If Project folder does not exist:
 - Create `Projects/<ProjectName>` with minimum scaffold:
   - `ReusableComponents`
   - `Settings`
-  - `Settings/API`
+  - `Settings/API/default.properties`
+    - see - [API default properties](./references/settings-api-default.md)
   - `TestData`
   - `TestPlan`
   - `Results`
@@ -124,6 +125,14 @@ If Project folder does not exist:
 
 ## Preflight Checks
 Run these checks before creating or editing API flow artifacts:
+0. Run backup process before making any changes, if available in the workspace, to allow easy rollback in case of issues.
+0.1. Create a hash id for the current session.
+0.2. Run zip backup of the entire `Projects/<ProjectName>` folder with a timestamp and the session hash in the filename, and store it in a `Backups` folder at the workspace root.
+0.3. Create just one backup per session, even if multiple iterations of flow creation or edits are needed; do not create a new backup for each edit within the same session to avoid excessive storage use.
+0.4. if backup fails, report the failure and halt further changes to prevent data loss.
+- for example: `Backups/<ProjectName>_backup_<timestamp>_<sessionHash>.zip`
+- For every session, do not overwrite existing backups; create a new one with a unique timestamp and session hash
+
 1. Baseline runtime health
 - Run one known testcase in the target project to confirm core webservice actions resolve.
 - Minimum baseline actions: `setEndPoint`, `addHeader`, one request action (`getRestRequest` or `postRestRequest`), and `assertResponseCode`.
@@ -142,13 +151,6 @@ Run these checks before creating or editing API flow artifacts:
 - Confirm the selected project exists, or scaffold it if user selected `Create new project`.
 
 ## Procedure
-0. Run backup process before making any changes, if available in the workspace, to allow easy rollback in case of issues.
-0.1. Create a hash id for the current session.
-0.2. Run zip backup of the entire `Projects/<ProjectName>` folder with a timestamp and the session hash in the filename, and store it in a `Backups` folder at the workspace root.
-0.3. if backup fails, report the failure and halt further changes to prevent data loss.
-- for example: `Backups/<ProjectName>_backup_<timestamp>_<sessionHash>.zip`
-- For every session, do not overwrite existing backups; create a new one with a unique timestamp and session hash.
-
 1. Run mandatory input interview first
 - Collect Endpoint, Method, Headers, Payload, Expected Status Code, and Assertions as separate inputs for each API step.
 - Confirm the final per-step request matrix back to the user when multi-step flows are involved.
@@ -166,19 +168,31 @@ Run these checks before creating or editing API flow artifacts:
 - Keep existing project-typical actions when present:
   - `setEndPoint`, `addHeader`, `addURLParam`
   - `getRestRequest`, `postRestRequest`, `putRestRequest`, `patchRestRequest`, `deleteRestRequest`, `deleteWithPayload`
-  - `assertResponseCode`, `assertResponsebodycontains`, `assertJSONelementEquals`, `assertJSONelementContains`, `assertXMLelementEquals`, `assertXMLelementContains`
+  - `assertResponseCode`, `assertResponsebodycontains`
+  - `assertJSONelementEquals`, `assertJSONelementContains`, `assertXMLelementEquals`, `assertXMLelementContains`
   - `storeJSONelementInDataSheet`, `storeXMLelementInDataSheet`, `storeResponseBodyInDataSheet`, `storeHeaderByNameInDatasheet`
 - Allow `Execute` only for orchestration steps in the main test case.
 
-4. Design reusable API components first
+4. Build Object Repository YAML for JSONPath/XPath elements if needed
+- Source valid Action values from methods annotated with `@Action` in:
+  - `Engine/src/main/java/com/ing/engine/commands/structuredData/StructuredData.java`
+- If any assertion uses JSONPath or XPath, create or update a YAML file under `ObjectRepository` to define those elements.
+- Follow the pattern in [Structured Data](./references/structured-data-or.md) for JSONPath/XPath element definitions.
+- For a different part of the json/xml response, create a new element with a unique name and the corresponding path expression within the same YAML file.
+- Reference those elements in the assertion steps using the defined element names.
+- For example, if the user wants to assert `$.customer.name` equals "John", then in the test case CSV, the assertion step would be like:
+  - `<stepNumber>,<elementName>,Assert JsonPath Result Contains,assertJsonPathResultContains,@John,,[Project] <pagename>`
+
+5. Design reusable API components first
 - Create or reuse flow CSVs under `ReusableComponents`.
 - Keep each component cohesive and short (about 2-12 steps).
 - For API action rows, enforce:
   - `ObjectName=Webservice`
   - `Action` uses webservice action dictionary values
+- For assertion rows, use action dictionary values from Structured Data if JSONPath/XPath is involved, otherwise use Webservice assertion actions.
 - Never leave an empty `Action` column.
 
-5. Define endpoint and payload parameterization
+6. Define endpoint and payload parameterization
 - See [input-field-patterns.md](./references/input-field-patterns.md) for comprehensive input field syntax guidance.
 - Use `@` prefix for literal values in Input when project style follows that pattern (for example `@http://localhost:3000/customers`).
 - Use `{Sheet:Column}` format (with braces) for data-driven values consistently.
@@ -195,13 +209,13 @@ Run these checks before creating or editing API flow artifacts:
 - For JSONPath/XPath assertions, use `Condition` for the path expression and `Input` for expected value.
 - Use `storeJSONelementInDataSheet` and related store actions to carry IDs across steps.
 
-6. Build or update test data sheets
+7. Build or update test data sheets
 - Add/extend CSVs under `TestData` with columns required by reusable flows.
 - Include `Scenario,Flow,Iteration,SubIteration` where relevant to existing pattern.
 - Keep references consistent with `Sheet:Column` syntax from steps.
 - Avoid trailing spaces in column names and references.
 
-7. Compose the main test case
+8. Compose the main test case
 - In `TestPlan/<Scenario>/<TestCase>.csv`, orchestrate with `Execute` steps.
 - For orchestration rows, enforce this schema:
   - `ObjectName=Execute`
@@ -213,11 +227,11 @@ Run these checks before creating or editing API flow artifacts:
   - `1,Execute,Run customer creation reusable,Execute,API Common:Create Customer,,`
 - Reference reusable components in execution order.
 
-8. Add critical API assertions
+9. Add critical API assertions
 - Ensure final business outcome is asserted (not only request calls).
 - Include at least one status code assertion and one payload/header assertion for critical outcomes.
 
-9. Validate consistency before finishing
+10. Validate consistency before finishing
 - Project path exists or was scaffolded correctly under `Projects/<ProjectName>`.
 - Every non-Execute action exists in `Webservice.java` `@Action` method names.
 - Every Execute reference maps to an existing reusable component.
