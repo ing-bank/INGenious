@@ -768,13 +768,6 @@
           
           // Inject steps using the JS renderer with pre-filtered steps
           if (typeof injectStepsV2 === 'function') {
-            console.log('[detailed-v2.html] Calling injectStepsV2 with filtered steps:', {
-              showFailedOnly: this.showFailedOnly,
-              stepFilter: this.stepFilter,
-              SC: this.params.SC,
-              TC: this.params.TC,
-              stepsCount: this.steps.length
-            });
             // Pass the pre-filtered steps array so injectStepsV2 doesn't need to filter again
             injectStepsV2(this.showFailedOnly, this.stepFilter, this.params.SC, this.params.TC, this.steps);
           }
@@ -1219,7 +1212,9 @@
 
         async openPayloadModal(link, step) {
           if (!link) return;
+          // const stepJSONa = JSON.parse(decodeURIComponent(stepJSON))
           const method = this.getHttpMethod(step);
+
           // Check if payloads are embedded in the step data (new method to avoid CORS issues)
           let rawRequest = '';
           let rawResponse = '';
