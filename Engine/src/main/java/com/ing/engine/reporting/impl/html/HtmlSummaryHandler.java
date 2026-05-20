@@ -119,7 +119,6 @@ public class HtmlSummaryHandler extends SummaryHandler implements PrimaryHandler
     public synchronized void createReport(String runTime, int size) {
 
         try {
-            Control.exe.getExecSettings().getRunSettings().save();
             ReportUtils.loadDefaultTheme(testSetData);
             RunTime = new DateTimeUtils();
             new File(FilePath.getCurrentResultsPath()).mkdirs();

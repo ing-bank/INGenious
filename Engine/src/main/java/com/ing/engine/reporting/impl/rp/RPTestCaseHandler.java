@@ -86,6 +86,7 @@ public class RPTestCaseHandler extends TestCaseHandler implements PrimaryHandler
         testCaseData.put(TestCase.B_VERSION, getPlaywrightDriver().getBrowserVersion());
         testCaseData.put(TestCase.PLATFORM, System.getProperty("os.name")+ " " +System.getProperty("os.version")+ " " +System.getProperty("os.arch"));
         testCaseData.put(TestCase.BROWSER, getPlaywrightDriver().getCurrentBrowser());
+        testCaseData.put("browserTypeLabel", resolveBrowserTypeLabel(driver != null ? driver.getRunContext() : null, false));
     }
     
     @Override
@@ -93,6 +94,33 @@ public class RPTestCaseHandler extends TestCaseHandler implements PrimaryHandler
         testCaseData.put(TestCase.B_VERSION, getWebDriver().getCurrentBrowserVersion());
         testCaseData.put(TestCase.PLATFORM, getWebDriver().getPlatform());
         testCaseData.put(TestCase.BROWSER, getWebDriver().getCurrentBrowser());
+        testCaseData.put("browserTypeLabel", resolveBrowserTypeLabel(driver != null ? driver.getRunContext() : null, driver != null && driver.isMobileExecution()));
+    }
+
+    /**
+     * Returns the dynamic label for browser/device for reporting.
+     * @param runContext The RunContext (may be null)
+     * @param isMobile True if mobile execution (for WebDriver), false otherwise
+     * @return "Device", "Browser", or "Browser/Device"
+     */
+    private String resolveBrowserTypeLabel(RunContext runContext, boolean isMobile) {
+        try {
+            if (runContext != null) {
+                String browserName = runContext.BrowserName;
+                if (isMobile || "Android".equalsIgnoreCase(browserName) || "iOS".equalsIgnoreCase(browserName)) {
+                    return "Device";
+                } else if ("Chromium".equalsIgnoreCase(browserName) ||
+                        "WebKit".equalsIgnoreCase(browserName) ||
+                        "Firefox".equalsIgnoreCase(browserName)) {
+                    return "Browser";
+                } else {
+                    return "Browser/Device";
+                }
+            }
+        } catch (Exception e) {
+            // ignore
+        }
+        return "Browser/Device";
     }
     
     @Override
