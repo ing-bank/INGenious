@@ -125,28 +125,28 @@ If Project folder does not exist:
 
 ## Preflight Checks
 Run these checks before creating or editing API flow artifacts:
-0. Run backup process before making any changes, if available in the workspace, to allow easy rollback in case of issues.
-0.1. Create a hash id for the current session.
-0.2. Run zip backup of the entire `Projects/<ProjectName>` folder with a timestamp and the session hash in the filename, and store it in a `Backups` folder at the workspace root.
-0.3. Create just one backup per session, even if multiple iterations of flow creation or edits are needed; do not create a new backup for each edit within the same session to avoid excessive storage use.
-0.4. if backup fails, report the failure and halt further changes to prevent data loss.
-- for example: `Backups/<ProjectName>_backup_<timestamp>_<sessionHash>.zip`
-- For every session, do not overwrite existing backups; create a new one with a unique timestamp and session hash
+1. Run backup process before making any changes, if available in the workspace, to allow easy rollback in case of issues.
+1.1 Show a message to the user that a backup is being created before proceeding with any file changes.
+1.2. Run zip backup of the entire `Projects/<ProjectName>` folder with a datetimestamp and the session hash in the filename, and store it in a `Backups` folder at the workspace root.
+1.3. Create just one backup per session, even if multiple iterations of flow creation or edits are needed; do not create a new backup for each edit within the same session to avoid excessive storage use.
+1.4. if backup fails, report the failure and halt further changes to prevent data loss.
+- for example: `Backups/<ProjectName>_backup_<datetimestamp>.zip`
+- For every session, do not overwrite existing backups; create a new one with a unique datetimestamp and session hash
 
-1. Baseline runtime health
+2. Baseline runtime health
 - Run one known testcase in the target project to confirm core webservice actions resolve.
 - Minimum baseline actions: `setEndPoint`, `addHeader`, one request action (`getRestRequest` or `postRestRequest`), and `assertResponseCode`.
 - If baseline fails with broad unknown-action errors, stop flow generation and report an environment/runtime blocker.
 
-2. Execution mode confirmation
+3. Execution mode confirmation
 - Confirm preferred run command in this workspace (`./ingenious.command`).
 - Confirm whether browser argument is required by the local runtime wrapper; if unknown, default to `-browser "No Browser"`.
 
-3. Project metadata behavior
+4. Project metadata behavior
 - Check whether the project requires explicit metadata registration in `.project` for new scenarios/reusables/testcases.
 - If required, plan metadata updates as part of the change.
 
-4. Project selection validation
+5. Project selection validation
 - If Project name was not explicitly provided in the request, run the Project Selection Rule first.
 - Confirm the selected project exists, or scaffold it if user selected `Create new project`.
 
