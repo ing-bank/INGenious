@@ -101,10 +101,11 @@ public class ExcelSummaryHandler extends SummaryHandler implements PrimaryHandle
             testSetData.put(RDS.TestSet.BDD_STYLE, Control.exe.getExecSettings().getRunSettings().isBddReportEnabled());
             testSetData.put(RDS.TestSet.PERF_REPORT,
                     Control.exe.getExecSettings().getRunSettings().isPerformanceLogEnabled());
+            testSetData.put(RDS.TestSet.VIDEO_REPORT, Control.exe.getExecSettings().getRunSettings().isVideoEnabled());
+            testSetData.put(RDS.TestSet.TRACING_REPORT, Control.exe.getExecSettings().getRunSettings().isTracingEnabled());
             testSetData.put(RDS.TestSet.START_TIME, runTime);
             testSetData.put(RDS.TestSet.TEST_RUN, RunManager.getGlobalSettings().isTestRun());
             testSetData.put(RDS.TestSet.NO_OF_TESTS, size);
-            testSetData.put(RDS.TestSet.VIDEO_REPORT, Control.exe.getExecSettings().getRunSettings().isVideoEnabled());
 
         } catch (Exception ex) {
             LOGGER.log(Level.SEVERE, ex.getMessage(), ex);

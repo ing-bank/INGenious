@@ -80,6 +80,7 @@ public class RDS {
         public static final String AXE_REPORT = "axeReport";
         public static final String PERF_REPORT = "perfReport";
         public static final String VIDEO_REPORT = "videoReport";
+        public static final String TRACING_REPORT = "tracingReport";
         public static final String VIDEO_REPORT_DIR = "videoReportDir";
     }
 

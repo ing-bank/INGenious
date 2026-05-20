@@ -445,6 +445,7 @@ var isTCMatched = function(exe) {
     app.controller('TestCase', ['$scope', '$sce', function($scope, $sce) {
             $scope.GRP = GRP;
             $scope.Details = getExeData();
+			// Only show performance report if enabled
 			$scope.perfReport = DATA.perfReport;
             $scope.GRPSteps = getGRPExedata($scope.Details);
             $scope.tcDetails = tcDetails;
@@ -494,9 +495,12 @@ var isTCMatched = function(exe) {
                     // onResized();
                 }
             });
-            $scope.videoReport = DATA.videoReport;
+            // Only show video button if video recording is enabled AND there's actual video data
+            $scope.videoReport = DATA.videoReport && $scope.Details[$scope.view] && $scope.Details[$scope.view].STEPS && $scope.Details[$scope.view].STEPS.length > 0 && $scope.Details[$scope.view].STEPS.some(function(step) { return step.videoReportDir; });
+            // Only show trace button if tracing is enabled AND there's actual trace data
+            $scope.tracingReport = DATA.tracingReport && $scope.Details[$scope.view] && $scope.Details[$scope.view].traceData;
             $scope.steps = $scope.Details[$scope.view].STEPS;
-            $scope.myLink = $scope.steps.length == 1 ? $scope.steps[0].videoReportDir : 'videoReport.html?SC='+ $scope.Details[$scope.view].scenarioName +'&TC='+ $scope.Details[$scope.view].testcaseName;
+            $scope.myLink = $scope.steps.length == 1 ? $scope.steps[0].videoReportDir : 'videoReport-v2.html?SC='+ $scope.Details[$scope.view].scenarioName +'&TC='+ $scope.Details[$scope.view].testcaseName;
         }]);
 })();
 var setCImage = function(url) {

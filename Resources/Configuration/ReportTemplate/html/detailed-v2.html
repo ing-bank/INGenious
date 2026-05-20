@@ -499,88 +499,8 @@
           </div>
         </section>
         
-        <!-- Test Case Video & Traces Buttons -->
-        <section class="section mt-12">
-          <div class="container">
-            <div class="flex flex-wrap items-center gap-6 mb-8">
-              <!-- View Video Button -->
-              <button
-                :disabled="!currentDetails.videoPath"
-                @click="currentDetails.videoPath && openTestCaseVideo(currentDetails.videoPath)"
-                style="display: flex; align-items: center; justify-content: center; padding: 1rem 2rem; font-size: 1rem; font-weight: 600; border-radius: 0.375rem; transition: all 0.2s; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); min-width: 180px; border: none; cursor: pointer;"
-                :style="currentDetails.videoPath ? {
-                  'background-color': '#7724FF',
-                  'color': '#FFFFFF',
-                  'box-shadow': '0 10px 15px -3px rgba(119, 36, 255, 0.4)'
-                } : {
-                  'background-color': '#e5e7eb',
-                  'color': '#9ca3af',
-                  'cursor': 'not-allowed',
-                  'opacity': '0.6'
-                }"
-                @mouseover="currentDetails.videoPath && ($event.target.style.backgroundColor = '#6518e6', $event.target.style.boxShadow = '0 10px 15px -3px rgba(119, 36, 255, 0.6)')"
-                @mouseout="currentDetails.videoPath && ($event.target.style.backgroundColor = '#7724FF', $event.target.style.boxShadow = '0 10px 15px -3px rgba(119, 36, 255, 0.4)')"
-                title="View the recorded video of this test case execution"
-              >
-                <svg class="w-5 h-5" style="margin-right: 0.75rem;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/>
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
-                </svg>
-                <span>View Video</span>
-              </button>
-              
-              <!-- Download Traces Button -->
-              <a
-                :href="currentDetails.tracePath ? getAbsoluteTracePath() : '#'"
-                :download="currentDetails.tracePath ? 'traces.zip' : null"
-                :style="currentDetails.tracePath ? {
-                  'display': 'flex',
-                  'align-items': 'center',
-                  'justify-content': 'center',
-                  'padding': '1rem 2rem',
-                  'font-size': '1rem',
-                  'font-weight': '600',
-                  'border-radius': '0.375rem',
-                  'transition': 'all 0.2s',
-                  'box-shadow': '0 10px 15px -3px rgba(0, 0, 0, 0.1)',
-                  'min-width': '180px',
-                  'border': 'none',
-                  'cursor': 'pointer',
-                  'text-decoration': 'none',
-                  'background-color': '#7724FF',
-                  'color': '#FFFFFF',
-                  'box-shadow': '0 10px 15px -3px rgba(119, 36, 255, 0.4)'
-                } : {
-                  'display': 'flex',
-                  'align-items': 'center',
-                  'justify-content': 'center',
-                  'padding': '1rem 2rem',
-                  'font-size': '1rem',
-                  'font-weight': '600',
-                  'border-radius': '0.375rem',
-                  'background-color': '#e5e7eb',
-                  'color': '#9ca3af',
-                  'cursor': 'not-allowed',
-                  'opacity': '0.6',
-                  'text-decoration': 'none',
-                  'pointer-events': 'none'
-                }"
-                @mouseover="currentDetails.tracePath && ($event.target.style.backgroundColor = '#6518e6', $event.target.style.boxShadow = '0 10px 15px -3px rgba(119, 36, 255, 0.6)')"
-                @mouseout="currentDetails.tracePath && ($event.target.style.backgroundColor = '#7724FF', $event.target.style.boxShadow = '0 10px 15px -3px rgba(119, 36, 255, 0.4)')"
-                title="Download trace file"
-              >
-                <svg class="w-5 h-5" style="margin-right: 0.75rem;" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>
-                </svg>
-                <span>Download Traces</span>
-              </a>
-              
-            </div>
-          </div>
-        </section>
+
         
-      </div>
-    </main>
     
     <!-- Image Lightbox -->
     <div 
@@ -720,28 +640,50 @@
     </div>
     
     <!-- Footer Links -->
-    <footer class="fixed bottom-4 right-4 flex gap-2 print:hidden">
-      <template x-if="perfReport">
-        <a href="perfReport.html" target="_blank" class="btn btn--secondary btn--sm" title="Performance Report">
-          <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+    <footer class="fixed print:hidden" style="bottom: 1.5rem; right: 1.5rem; z-index: 999; display: flex; flex-direction: column; gap: 0.75rem;">
+      <!-- Background container for visibility -->
+      <div style="display: flex; gap: 0.5rem; background-color: rgba(255, 255, 255, 0.98); border-radius: 0.75rem; padding: 0.75rem; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.15); backdrop-filter: blur(8px); border: 1px solid rgba(229, 231, 235, 0.8);">
+        <template x-if="videoReport">
+          <button @click="currentDetails.videoPath && openTestCaseVideo(currentDetails.videoPath)" :disabled="!currentDetails.videoPath" style="background-color: #f3f4f6; color: #374151; border: 1px solid #d1d5db; padding: 0.5rem 0.75rem; border-radius: 0.375rem; font-size: 0.875rem; font-weight: 500; display: flex; align-items: center; gap: 0.5rem; transition: all 0.2s; cursor: pointer; text-decoration: none;" title="View Video">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/>
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+            <span>Video</span>
+          </button>
+        </template>
+
+        <template x-if="tracingReport">
+          <a :href="currentDetails.tracePath ? getAbsoluteTracePath() : '#'" :download="currentDetails.tracePath ? 'traces.zip' : null" style="background-color: #f3f4f6; color: #374151; border: 1px solid #d1d5db; padding: 0.5rem 0.75rem; border-radius: 0.375rem; font-size: 0.875rem; font-weight: 500; display: flex; align-items: center; gap: 0.5rem; transition: all 0.2s; cursor: pointer; text-decoration: none;" title="Download Traces">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+            </svg>
+            <span>Trace</span>
+          </a>
+        </template>
+
+        <template x-if="perfReport">
+          <a :href="'perfReport-v2.html?SC=' + encodeURIComponent(params.SC) + '&TC=' + encodeURIComponent(params.TC)" target="_blank" style="background-color: #f3f4f6; color: #374151; border: 1px solid #d1d5db; padding: 0.5rem 0.75rem; border-radius: 0.375rem; font-size: 0.875rem; font-weight: 500; display: flex; align-items: center; gap: 0.5rem; transition: all 0.2s; cursor: pointer; text-decoration: none;" title="Performance Report">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+            </svg>
+            <span>Perf</span>
+          </a>
+        </template>
+        
+        <a href="summary-v2.html" style="background-color: #f3f4f6; color: #374151; border: 1px solid #d1d5db; padding: 0.5rem 0.75rem; border-radius: 0.375rem; font-size: 0.875rem; font-weight: 500; display: flex; align-items: center; gap: 0.5rem; transition: all 0.2s; cursor: pointer; text-decoration: none;" title="Back to Summary">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
           </svg>
-          Perf
+          <span>Summary</span>
         </a>
-      </template>
-      
-      <a href="summary-v2.html" class="btn btn--secondary btn--sm" title="Back to Summary">
-        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
-        </svg>
-        Summary
-      </a>
-      
-      <button @click="window.scrollTo({top: 0, behavior: 'smooth'})" class="btn btn--icon btn--secondary btn--sm" title="Scroll to Top">
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18"/>
-        </svg>
-      </button>
+        
+        <button @click="window.scrollTo({top: 0, behavior: 'smooth'})" style="background-color: #f3f4f6; color: #374151; border: 1px solid #d1d5db; padding: 0.5rem; border-radius: 0.375rem; font-size: 0.875rem; display: flex; align-items: center; justify-content: center; transition: all 0.2s; cursor: pointer;" title="Scroll to Top">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18"/>
+          </svg>
+        </button>
+      </div>
     </footer>
     
   </div>
@@ -772,7 +714,9 @@
         lightboxSrc: '',
         videoOpen: false,
         videoSrc: '',
-        perfReport: false,
+        perfReport: false,      // Only set after DATA loads
+        videoReport: false,
+        tracingReport: false,
         
         // Computed
         get title() {
@@ -807,8 +751,8 @@
           // Load data from global DATA object
           this.data = DATA;
           this.perfReport = DATA.perfReport || false;
-          
-          
+          this.videoReport = DATA.videoReport || false;
+          this.tracingReport = DATA.tracingReport || false;
           // Process browser data
           this.processBrowserData();
           
@@ -918,6 +862,10 @@
             this.steps = exe?.STEPS || [];
             
           }
+          
+          // Update video and trace report flags based on current details
+          this.videoReport = DATA.videoReport && this.currentDetails && this.currentDetails.videoPath;
+          this.tracingReport = DATA.tracingReport && this.currentDetails && (this.currentDetails.tracePath || this.currentDetails.traceData);
           
           // Reset expanded state
           this.expandedSteps = new Set();
