@@ -330,7 +330,7 @@ public class APIHttpClient {
 ```java
 // Add to Tools menu
 Menu toolsMenu = new Menu("Tools");
-MenuItem apiTester = new MenuItem("API Workbench");
+MenuItem apiTester = new MenuItem("API Tester");
 apiTester.setOnAction(e -> showAPITester());
 toolsMenu.getItems().add(apiTester);
 

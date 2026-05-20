@@ -103,10 +103,14 @@ public final class INGIcons {
         register("or.Page",             MaterialDesignF.FILE_DOCUMENT,                 CLR_SAVE);
         register("or.Object",           MaterialDesignC.CUBE_OUTLINE,                  CLR_SEARCH);
         register("or.Group",            MaterialDesignF.FOLDER_MULTIPLE,               CLR_OPEN);
-        register("or.Web",              MaterialDesignW.WEB,                           CLR_DATA);  // violet
-        register("or.Mobile",           MaterialDesignC.CELLPHONE,                     CLR_DATA);  // violet
-        register("or.API",              MaterialDesignA.API,                           CLR_DATA);  // violet
-        register("or.StructuredData",   MaterialDesignC.CODE_JSON,                     CLR_DATA);  // violet
+        register("or.Web",              MaterialDesignW.WEB,                           Color.web("#BB86FC"));  // violet
+        register("or.Mobile",           MaterialDesignC.CELLPHONE,                     Color.web("#BB86FC"));  // violet
+        register("or.API",              MaterialDesignA.API,                           Color.web("#BB86FC"));  // violet
+        register("or.StructuredData",   MaterialDesignC.CODE_JSON,                     Color.web("#BB86FC"));  // violet
+        register("or.Web.selected",              MaterialDesignW.WEB,                  CLR_DATA);  // violet
+        register("or.Mobile.selected",           MaterialDesignC.CELLPHONE,            CLR_DATA);  // violet
+        register("or.API.selected",              MaterialDesignA.API,                  CLR_DATA);  // violet
+        register("or.StructuredData.selected",   MaterialDesignC.CODE_JSON,            CLR_DATA);  // violet
         register("or.propViewer",       MaterialDesignT.TABLE_EYE,                     CLR_SEARCH);
         
         // ── Dark Mode Colors for OR Icons (brighter violet for visibility) ──
@@ -127,7 +131,7 @@ public final class INGIcons {
         register("SaveProject",         MaterialDesignC.CONTENT_SAVE,                  CLR_SAVE);
         register("RunSettings",         MaterialDesignC.COG,                           CLR_CONFIG);
         register("BrowserConfiguration", MaterialDesignW.WEB,                          CLR_TOOL);
-        register("APITester",           MaterialDesignA.API,                           Color.web("#00B4D8"));
+        register("APITester",           MaterialDesignA.API,                           CLR_DATA);
 
         // ── Common Actions ──
         register("add",                 MaterialDesignP.PLUS,                          CLR_CREATE);
