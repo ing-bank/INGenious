@@ -252,7 +252,7 @@ function escapeHtml(text) {
 
 async function openPayloadModal(link, stepJson) {
     if (!link) return;
-    const step = JSON.parse(decodeURIComponent(stepJson));
+    const step = JSON.parse(decodeURIComponent(escape(atob(stepJson))));
     const method = this.getHttpMethod(step);
     // Check if payloads are embedded in the step data (new method to avoid CORS issues)
     let rawRequest = '';
@@ -474,7 +474,7 @@ function renderStepsV2(iterations, showFailedOnly = false, stepFilter = '') {
             }
             // Payload link
             else if (isPayloadLink(data.link, step)) {
-                const stepJson = encodeURIComponent(JSON.stringify(step)).replace(/'/g, "\\'");
+                const stepJson = btoa(unescape(encodeURIComponent(JSON.stringify(step))));
                 detailsHtml += `<button 
                 class="btn btn--secondary btn--sm" onclick="openPayloadModal('${resolvedPath}', '${stepJson}')" >
                     <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
