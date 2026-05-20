@@ -300,6 +300,11 @@ public class GeneralWebservice extends Command implements WebservicePluginApi {
                 if (location.createNewFile()) {
                     FileWriter writer = new FileWriter(location);
                     writer.write(data);
+                    // Appending headers when saving response
+                    if (reqOrRes.equals("response")) {
+                        writer.write("\n\n--- Response Headers ---\n");
+                        writer.write(response.get(key).headers().toString());
+                    }
                     writer.close();
                 }
             }
