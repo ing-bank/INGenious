@@ -92,7 +92,7 @@ public class FXToolBar extends JFXPanel {
     }
 
     private Button createAPITesterButton() {
-        Button btn = new Button("API Tester");
+        Button btn = new Button("API Workbench");
         btn.getStyleClass().add("api-tester-btn");
         btn.setTooltip(new Tooltip("Open API Testing Console - Test REST APIs like Postman"));
         
@@ -103,7 +103,7 @@ public class FXToolBar extends JFXPanel {
             btn.setGraphic(icon);
         }
         
-        btn.setOnAction(e -> fireSwingAction("API Tester"));
+        btn.setOnAction(e -> fireSwingAction("API Workbench"));
         return btn;
     }
 

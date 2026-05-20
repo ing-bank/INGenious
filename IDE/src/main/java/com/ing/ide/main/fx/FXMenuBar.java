@@ -191,7 +191,7 @@ public class FXMenuBar extends JFXPanel {
                 menuItem("Test Design", "testdesign", KeyCode.N, KeyCombination.SHIFT_DOWN, KeyCombination.ALT_DOWN),
                 menuItem("Test Execution", "testexecution", KeyCode.E, KeyCombination.SHIFT_DOWN, KeyCombination.ALT_DOWN),
                 menuItem("Dashboard", "dashboard", KeyCode.D, KeyCombination.SHIFT_DOWN, KeyCombination.ALT_DOWN),
-                menuItem("API Tester", "APITester", KeyCode.T, KeyCombination.SHIFT_DOWN, KeyCombination.ALT_DOWN),
+                menuItem("API Workbench", "APITester", KeyCode.T, KeyCombination.SHIFT_DOWN, KeyCombination.ALT_DOWN),
                 menuItem("AdjustUI", "settings", KeyCode.A, KeyCombination.SHIFT_DOWN, KeyCombination.ALT_DOWN)
         );
         return window;

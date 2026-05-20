@@ -103,7 +103,7 @@ public class YamlORWriter {
      * @param orLocation The ObjectRepository directory
      */
     public void writeStructuredDataOR(StructuredData structuredDataOR, File orLocation) throws IOException {
-        File structuredDataPagesDir = new File(orLocation, "StructuredData/pages");
+        File structuredDataPagesDir = new File(orLocation, "StructuredData");
         ensureDirectory(structuredDataPagesDir);
         
         List<StructuredDataORPage> pages = structuredDataOR.getPages();
@@ -185,7 +185,7 @@ public class YamlORWriter {
      * Delete an Structured Data page YAML file.
      */
     public boolean deleteStructuredDataPage(String pageName, File orLocation) {
-        File structuredDataPagesDir = new File(orLocation, "StructuredData/pages");
+        File structuredDataPagesDir = new File(orLocation, "StructuredData");
         File yamlFile = new File(structuredDataPagesDir, sanitizeFileName(pageName) + ".yaml");
         
         if (yamlFile.exists()) {
@@ -253,7 +253,7 @@ public class YamlORWriter {
      * @return true if rename was successful
      */
     public boolean renameStructuredDataPage(String oldName, String newName, File orLocation) {
-        File structuredDataPagesDir = new File(orLocation, "StructuredData/pages");
+        File structuredDataPagesDir = new File(orLocation, "StructuredData");
         File oldFile = new File(structuredDataPagesDir, sanitizeFileName(oldName) + ".yaml");
         File newFile = new File(structuredDataPagesDir, sanitizeFileName(newName) + ".yaml");
         

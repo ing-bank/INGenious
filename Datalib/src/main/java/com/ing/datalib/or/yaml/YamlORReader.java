@@ -82,7 +82,7 @@ public class YamlORReader {
      * Check if a YAML-based Structured Data OR exists.
      */
     public boolean structuredDataORExists(File orLocation) {
-        File structuredDataPagesDir = new File(orLocation, "StructuredData/pages");
+        File structuredDataPagesDir = new File(orLocation, "StructuredData");
         return structuredDataPagesDir.exists() && structuredDataPagesDir.isDirectory();
     }
     
@@ -186,7 +186,7 @@ public class YamlORReader {
      */
     public StructuredData readStructuredDataOR(File orLocation) throws IOException {
         StructuredData structuredDataOR = new StructuredData();
-        File StructuredDataPagesDir = new File(orLocation, "StructuredData/pages");
+        File StructuredDataPagesDir = new File(orLocation, "StructuredData");
         
         if (!StructuredDataPagesDir.exists()) {
             LOGGER.info("No Structured Data OR YAML directory found at: " + StructuredDataPagesDir.getAbsolutePath());

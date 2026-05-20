@@ -1486,7 +1486,7 @@ public class ObjectRepository {
         if (useYamlFormat && yamlWriter != null) {
             try {
                 File structuredDataOrRepLocation = new File(getStructuredDataORRepLocation());
-                File structuredDataPagesDir = new File(structuredDataOrRepLocation, "StructuredData/pages");
+                File structuredDataPagesDir = new File(structuredDataOrRepLocation, "StructuredData");
                 if (!structuredDataPagesDir.exists()) {
                     structuredDataPagesDir.mkdirs();
                 }
