@@ -36,9 +36,15 @@ public class StructuredDataORPanel extends JPanel {
         splitPane.setBottomComponent(objectTable);
         TreeSearch tSearch = TreeSearch.installForOR(objectTree.getTree());
         splitPane.setTopComponent(tSearch);
-        splitPane.setResizeWeight(.5);
-        splitPane.setDividerLocation(.5);
+        splitPane.setResizeWeight(0.5);
         add(splitPane);
+        
+        javax.swing.SwingUtilities.invokeLater(() -> {
+            splitPane.setDividerLocation(0.5);
+        });
+
+        // hookSelectionToTable(projectTree);
+        // hookSelectionToTable(sharedTree);
     }
 
     void loadTableModelForSelection(Object object) {

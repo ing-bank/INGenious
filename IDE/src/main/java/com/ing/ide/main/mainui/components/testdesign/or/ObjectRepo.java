@@ -47,6 +47,8 @@ public class ObjectRepo extends JPanel implements ItemListener {
 
     private final StructuredDataORPanel structuredDataOR;
 
+    FXPanelHeader header = new FXPanelHeader("Object Repository");
+
     public ObjectRepo(TestDesign testDesign) {
         this.testDesign = testDesign;
         switchToolBar = new SwitchToolBar();
@@ -64,7 +66,7 @@ public class ObjectRepo extends JPanel implements ItemListener {
         // Create header panel with FXPanelHeader + SwitchToolBar
         JPanel headerPanel = new JPanel(new BorderLayout());
         headerPanel.setOpaque(false);
-        FXPanelHeader header = new FXPanelHeader("Object Repository");
+        header = new FXPanelHeader("Object Repository");
         headerPanel.add(header, BorderLayout.NORTH);
         headerPanel.add(switchToolBar, BorderLayout.CENTER);
         
@@ -97,7 +99,7 @@ public class ObjectRepo extends JPanel implements ItemListener {
                     case "Mobile":
                         mobileOR.adjustUI();
                         break;
-                    case "StructuredData":
+                    case "Structured Data":
                         structuredDataOR.adjustUI();
                         break;
                 }
@@ -172,17 +174,24 @@ public class ObjectRepo extends JPanel implements ItemListener {
         }
 
         private JToggleButton create(String text, String iconKey) {
-            JToggleButton togg = new JToggleButton();
-            togg.setIcon(INGIcons.swingColored(iconKey, 18));
-            togg.setToolTipText(text + " Object Repository");
-            togg.setActionCommand(text);
-            togg.addItemListener(ObjectRepo.this);
+            JToggleButton toggleButton = new JToggleButton();
+            toggleButton.setIcon(INGIcons.swingColored(iconKey, 18));
+            toggleButton.setToolTipText(text + " Object Repository");
+            toggleButton.setActionCommand(text);
+            toggleButton.addItemListener(ObjectRepo.this);
             // Remove hover/focus background effect
-            togg.setContentAreaFilled(false);
-            togg.setFocusPainted(false);
-            togg.setBorderPainted(false);
-            bgroup.add(togg);
-            return togg;
+            toggleButton.setContentAreaFilled(false);
+            toggleButton.setFocusPainted(false);
+            toggleButton.setBorderPainted(false);
+            toggleButton.addItemListener(e -> {
+                if (toggleButton.isSelected()) {
+                    toggleButton.setIcon(INGIcons.swingColored(iconKey+".selected", 18));
+                } else {
+                    toggleButton.setIcon(INGIcons.swingColored(iconKey, 18));
+                }
+            });
+            bgroup.add(toggleButton);
+            return toggleButton;
         }
     }
 }
