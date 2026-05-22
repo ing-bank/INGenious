@@ -169,7 +169,7 @@ public class TestCaseRunner {
     }
 
     public CommandControl createControl(final TestCaseRunner newThis) {
-        return new CommandControl(getRoot().getControl().Playwright, getRoot().getControl().Page, getRoot().getControl().BrowserContext, getRoot().getControl().webDriver, getRoot().getControl().Report) {
+        return new CommandControl(getRoot().getControl().Playwright, getRoot().getControl().Page, getRoot().getControl().BrowserContext, getRoot().getControl().webDriver, getRoot().getControl().SAPsession, getRoot().getControl().Report) {
             @Override
             public void execute(String com, int sub) {
                 newThis.runTestCase(com, sub);

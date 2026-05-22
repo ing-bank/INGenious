@@ -217,6 +217,11 @@
             <version>${kafka-avro-serializer.version}</version>
         </dependency> -->
         <dependency>
+            <groupId>io.github.osobolev</groupId>
+            <artifactId>jacob</artifactId>
+            <version>1.21</version>
+        </dependency>
+        <dependency>
             <groupId>com.ing</groupId>
             <artifactId>ingenious-testdata-csv</artifactId>
             <version>${project.version}</version>

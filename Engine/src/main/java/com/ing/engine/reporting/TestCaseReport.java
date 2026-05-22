@@ -7,6 +7,7 @@ import com.ing.engine.core.Control;
 import com.ing.engine.core.RunContext;
 import com.ing.engine.core.RunManager;
 import com.ing.engine.drivers.PlaywrightDriverCreation;
+import com.ing.engine.drivers.SAPSessionCreation;
 import com.ing.engine.reporting.impl.handlers.PrimaryHandler;
 import com.ing.engine.reporting.impl.handlers.TestCaseHandler;
 import com.ing.engine.reporting.impl.html.HtmlTestCaseHandler;
@@ -49,6 +50,7 @@ public final class TestCaseReport implements Report, TestCaseReportApi {
     public final DateTimeUtils startTime;
     PlaywrightDriverCreation playwrightdriver;
     WebDriverCreation webDriver;
+    SAPSessionCreation session;
 
     Step curr;
     Status currentStatus;
@@ -108,6 +110,13 @@ public final class TestCaseReport implements Report, TestCaseReportApi {
         webDriver = driver;
         for (TestCaseHandler handler : handlers) {
             handler.setWebDriver(driver);
+        }
+    }
+
+    public void setSapSession(SAPSessionCreation sapSession) {
+        session = sapSession;
+        for (TestCaseHandler handler : handlers) {
+            handler.setSapSession(session);
         }
     }
 

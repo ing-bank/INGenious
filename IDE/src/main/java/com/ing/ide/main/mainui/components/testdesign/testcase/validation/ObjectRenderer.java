@@ -5,6 +5,7 @@ import com.ing.datalib.or.ObjectRepository;
 import com.ing.datalib.or.web.ResolvedWebObject;
 import com.ing.datalib.or.structureddata.ResolvedStructuredDataObject;
 import com.ing.datalib.or.mobile.ResolvedMobileObject;
+import com.ing.datalib.or.sap.ResolvedSapObject;
 
 import com.ing.engine.support.ObjectTypeUtil;
 import java.awt.Color;
@@ -73,8 +74,19 @@ public class ObjectRenderer extends AbstractRenderer {
         }
         
         ResolvedStructuredDataObject.PageRef aref = ResolvedStructuredDataObject.PageRef.parse(pageToken);
-        return ((aref != null && aref.name != null && aref.scope != null) && (repo.resolveStructuredDataObject(aref, objectName) != null)
-                || (repo.resolveStructuredDataObjectWithScope(pageToken, objectName) != null ));
+        if ((aref != null && aref.name != null && aref.scope != null) && (repo.resolveStructuredDataObject(aref, objectName) != null)
+                || (repo.resolveStructuredDataObjectWithScope(pageToken, objectName) != null )) {
+            return true;
+        }
+        
+        // Check SAP OR
+        ResolvedSapObject.PageRef sref = ResolvedSapObject.PageRef.parse(pageToken);
+        if ((sref != null && sref.name != null && sref.scope != null) && (repo.resolveSapObject(sref, objectName) != null)
+                || (repo.resolveSapObjectWithScope(pageToken, objectName) != null)) {
+            return true;
+        }
+        
+        return false;
     }
 
     /**

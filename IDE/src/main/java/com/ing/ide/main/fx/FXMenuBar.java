@@ -161,6 +161,19 @@ public class FXMenuBar extends JFXPanel {
         playwright.getItems().add(menuItem("Import Playwright Recording", "recorder"));
         tools.getItems().add(playwright);
 
+        Menu sapRecording = new Menu("Import SAP Recording");
+        sapRecording.getItems().addAll(
+                // createSapImportItem("VBScript (.vbs, .vba)", "recorder", "VBScript"),
+                // createSapImportItem("JavaScript (.js)", "recorder", "JavaScript"),
+                // createSapImportItem("PowerShell (.ps1)", "recorder", "PowerShell"),
+                // createSapImportItem("Python (.py)", "recorder", "Python"),
+                // createSapImportItem("AutoIt (.au3)", "recorder", "AutoIt"),
+                // createSapImportItem("C# (.cs)", "recorder", "CSharp"),
+                // createSapImportItem("VB.NET (.vb)", "recorder", "VBNet"),
+                createSapImportItem("Java (.java, .jsh)", "recorder", "Java")
+        );
+        tools.getItems().add(sapRecording);
+
         tools.getItems().add(
                 menuItem("Har Compare", "search", KeyCode.H, KeyCombination.SHORTCUT_DOWN, KeyCombination.SHIFT_DOWN));
 
@@ -220,6 +233,22 @@ public class FXMenuBar extends JFXPanel {
 
     private MenuItem menuItem(String text) {
         return menuItem(text, (String) null, null);
+    }
+
+    /**
+     * Creates a menu item for SAP import with language-specific action command.
+     */
+    private MenuItem createSapImportItem(String text, String iconName, String language) {
+        MenuItem item = new MenuItem(text);
+        if (iconName != null) {
+            org.kordamp.ikonli.javafx.FontIcon icon = INGIcons.fxColored(iconName, 14);
+            if (icon != null) {
+                item.setGraphic(icon);
+            }
+        }
+        // Use format: "Import SAP Recording:Language"
+        item.setOnAction(e -> fireSwingAction("Import SAP Recording:" + language));
+        return item;
     }
 
     // ── Swing Bridge ──

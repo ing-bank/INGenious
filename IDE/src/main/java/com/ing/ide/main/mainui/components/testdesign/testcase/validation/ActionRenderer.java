@@ -5,6 +5,7 @@ import com.ing.datalib.component.TestStep;
 import com.ing.datalib.or.web.ResolvedWebObject;
 import com.ing.datalib.or.structureddata.ResolvedStructuredDataObject;
 import com.ing.datalib.or.mobile.ResolvedMobileObject;
+import com.ing.datalib.or.sap.ResolvedSapObject;
 import com.ing.engine.support.ObjectTypeUtil;
 import com.ing.engine.support.methodInf.MethodInfoManager;
 import com.ing.ingenious.api.types.ObjectType;
@@ -118,6 +119,10 @@ public class ActionRenderer extends AbstractRenderer {
             return MethodInfoManager.getMethodListFor(ObjectType.STRUCTUREDDATA).contains(action);
         }
 
+        if (isSapObject(step)) {
+            return MethodInfoManager.getMethodListFor(ObjectType.SAP).contains(action);
+        }
+
         // Fallback to generic actions available for any object
         return MethodInfoManager.getMethodListFor(ObjectType.ANY).contains(action);
     }
@@ -156,6 +161,19 @@ public class ActionRenderer extends AbstractRenderer {
         ResolvedStructuredDataObject r = (ref != null && ref.name != null && ref.scope != null)
             ? repo.resolveStructuredDataObject(ref, objectName)
             : repo.resolveStructuredDataObjectWithScope(pageToken, objectName);
+
+        return r != null && r.isPresent();
+    }
+    
+    private boolean isSapObject(TestStep step) {
+        var repo = step.getProject().getObjectRepository();
+        String pageToken = step.getReference();
+        String objectName = step.getObject();
+
+        ResolvedSapObject.PageRef ref = ResolvedSapObject.PageRef.parse(pageToken);
+        ResolvedSapObject r = (ref != null && ref.name != null && ref.scope != null)
+            ? repo.resolveSapObject(ref, objectName)
+            : repo.resolveSapObjectWithScope(pageToken, objectName);
 
         return r != null && r.isPresent();
     }

@@ -124,6 +124,15 @@ public class RPTestCaseHandler extends TestCaseHandler implements PrimaryHandler
     }
     
     @Override
+    public void setSapSession(com.ing.engine.drivers.SAPSessionCreation session) {
+        if (session != null) {
+            testCaseData.put(TestCase.B_VERSION, session.getCurrentBrowserVersion());
+            testCaseData.put(TestCase.PLATFORM, session.getPlatform());
+            testCaseData.put(TestCase.BROWSER, session.getCurrentBrowser());
+        }
+    }
+    
+    @Override
     public void createReport(RunContext runContext, String runTime) {
         System.out.println("Starting test case exec : " + runContext.TestCase);
         if (isRPEnabled()) {
