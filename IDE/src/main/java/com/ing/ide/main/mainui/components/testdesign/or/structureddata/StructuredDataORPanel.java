@@ -59,9 +59,10 @@ public class StructuredDataORPanel extends JPanel {
         splitPane.setOneTouchExpandable(true);
         splitPane.setTopComponent(tabs);
         splitPane.setBottomComponent(objectTable);
+        TreeSearch tSearch = TreeSearch.installForOR(objectTree.getTree());
+        splitPane.setTopComponent(tSearch);
         splitPane.setResizeWeight(0.5);
-
-        add(splitPane, BorderLayout.CENTER);
+        add(splitPane);
         
         javax.swing.SwingUtilities.invokeLater(() -> {
             splitPane.setDividerLocation(0.5);
