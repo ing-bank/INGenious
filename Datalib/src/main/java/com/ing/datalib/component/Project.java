@@ -1,11 +1,8 @@
 package com.ing.datalib.component;
 
 import java.io.File;
-import java.io.IOException;
 import java.nio.file.Files;
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Objects;
@@ -142,7 +139,7 @@ public class Project {
         projectSettings = new ProjectSettings(this);
         objectRepository = new ObjectRepository(this);
         projectInfo = loadProjectInfo(getProjectFile());
-        migrateModernReportTemplateMedia();
+        // migrateModernReportTemplateMedia();
     }
 
     /**
@@ -490,55 +487,6 @@ public class Project {
             xmlFile.renameTo(backup);
         }
         LOGGER.log(Level.INFO, "Migrated reusable testcases: {0}", moved);
-    }
-
-    /**
-     * 
-     * 
-     */
-    private void migrateModernReportTemplateMedia() {
-        try {
-            boolean useModern = this.getProjectSettings().getExecSettings().getRunSettings().isModernReport();
-            String appRoot = new File(System.getProperty("user.dir")).getCanonicalPath();
-            String mediaPath = appRoot + File.separator + "Configuration" + File.separator + "ReportTemplate" + File.separator + "media";
-            String currentResultsPath = this.location + File.separator + "Results" + File.separator + "media";
-            String currentResultsBakPath = this.location + File.separator + "Results" + File.separator + "media_bak";
-            if (useModern && new File(currentResultsPath).exists()) {
-                if (!isDirEqual(new File(mediaPath), new File(currentResultsPath))) {
-                    // If modern report is enabled and the modern template is different, backup and copy modern media to results
-                    org.apache.commons.io.FileUtils.deleteDirectory(new File(currentResultsBakPath));
-                    org.apache.commons.io.FileUtils.copyDirectory(new File(currentResultsPath), new File(currentResultsBakPath));
-                    
-                    org.apache.commons.io.FileUtils.deleteDirectory(new File(currentResultsPath));
-                    org.apache.commons.io.FileUtils.copyDirectory(new File(mediaPath), new File(currentResultsPath));
-                    LOGGER.log(Level.INFO, "Migrated modern report media to results directory.");
-                }
-            }
-        } catch (IOException ex) {
-            Logger.getLogger(Project.class.getName()).log(Level.SEVERE, "Failed to migrate modern report templates: " + ex.getMessage(), ex);
-        }
-    }
-
-    private static boolean isDirEqual(File sourceDir, File targetDir) throws IOException {
-        try {
-            Collection<File> filesSource = org.apache.commons.io.FileUtils.listFiles(sourceDir, null, true);
-            Collection<File> filesTarget = org.apache.commons.io.FileUtils.listFiles(targetDir, null, true);
-
-            if (filesSource.size() != filesTarget.size()) return false;
-
-            Iterator<File> it1 = filesSource.iterator();
-            while (it1.hasNext()) {
-                File fileSource = it1.next();
-                File fileTarget = new File(targetDir, fileSource.getAbsolutePath().substring(sourceDir.getAbsolutePath().length()));
-                if (!fileTarget.exists() || !org.apache.commons.io.FileUtils.contentEquals(fileSource, fileTarget)) {
-                    return false;
-                }
-            }
-            return true;
-        } catch (IOException e) {
-            // Optionally log the exception
-            return false;
-        }
     }
 
     /**
