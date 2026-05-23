@@ -193,7 +193,7 @@ public class Project {
      * @return the scenario if found, null otherwise
      */
     public Scenario getScenarioByName(String name) {
-        for (Scenario scenario : scenarios) {
+        for (Scenario scenario : getAllScenarios()) {
             if (scenario.getName().equalsIgnoreCase(name)) {
                 return scenario;
             }
