@@ -139,7 +139,6 @@ public class Project {
         projectSettings = new ProjectSettings(this);
         objectRepository = new ObjectRepository(this);
         projectInfo = loadProjectInfo(getProjectFile());
-        // migrateModernReportTemplateMedia();
     }
 
     /**
