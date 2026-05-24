@@ -117,7 +117,7 @@ This ensures plugins can be developed independently while maintaining compatibil
 
 **Steps:**
 1. List workspace folders and identify plugin development repositories
-2. Present options (e.g., Github-Plugins-sys-INGenious, custom path)
+2. Present options as clickable choices and allow custom path input
 3. **STOP and wait** for explicit user confirmation
 4. Validate path exists/writable, no conflicts
 
@@ -125,34 +125,26 @@ This ensures plugins can be developed independently while maintaining compatibil
 ```
 STEP 1/2: Where should I save the plugin SOURCE CODE?
 
-Option 1: /path/to/Github-Plugins-sys-INGenious/[plugin-name]/
+Option 1: /path/to/INGenious/[plugin-name]/
 Option 2: Specify a custom directory
 
 Which option?
 ```
 
-### Question 2: INGenious Installation (Deployment Target)
 
-**Ask:** "Where is your INGenious installation?"
+### Deployment Target: Auto-Detection
 
-**Steps:**
-1. Detect INGenious installations (folders with Configuration/, Engine/, Projects/)
-2. Present options or allow "Skip auto-deployment"
-3. **STOP and wait** for explicit confirmation
-4. Validate INGenious structure, plugins/ accessible
+**Auto-detect the deployment directory after source code location is confirmed:**
+- Scan for `root/Dist/release/plugins` and `root/plugins` under the INGenious installation root.
+- Use the first valid directory found as the deployment target.
+- If neither exists, prompt the user for manual input or show an error.
 
 **Example:**
 ```
-STEP 2/2: Where is your INGenious installation (deployment target)?
-
-Option 1: /path/to/Neil-ingenious-playwright-2.3/
-  └─ Plugin will deploy to: [path]/plugins/[plugin-name]/
-
-Option 2: Specify custom path
-Option 3: Skip auto-deployment (I'll deploy manually)
-
-Which option?
+✓ Deployment Target Detected:
+  └─ /path/to/INGenious/Dist/release/plugins/[plugin-name]/
 ```
+
 
 ### After Confirmation: Show Summary
 
@@ -162,33 +154,31 @@ Which option?
 Source Code Location:
   └─ /path/to/Github-Plugins-sys-INGenious/custom-actions/
 
-Deployment Target:
-  └─ /path/to/Neil-ingenious-playwright-2.3/plugins/custom-actions/
+Deployment Target (auto-detected):
+  └─ /path/to/INGenious/Dist/release/plugins/custom-actions/
 
 Proceeding with plugin creation...
 ```
+
 
 ### Critical Rules
 
 **❌ Do NOT:**
 - Assume workspace root is source code location
-- Assume deployment target from source code location
-- Create files without confirming BOTH directories
-- Skip asking about INGenious installation
+- Create files without confirming source code directory
 - Proceed if validation fails
 
 **✅ ALWAYS:**
-- Ask Question 1 (source code) and wait for confirmation
-- Ask Question 2 (deployment) and wait for confirmation
-- Validate both paths before proceeding
-- Allow user to skip auto-deployment
+- Ask for source code location and wait for confirmation
+- Auto-detect deployment target (scan for plugins directory)
 - Show summary before creating files
 
 ## Quick Start: Creating a Plugin
 
+
 **⚠️ IMPORTANT:** Before following these steps, ensure you've completed **Step 0** above:
 - ✅ Confirmed source code directory (where to create the plugin)
-- ✅ Confirmed INGenious installation directory (where to deploy the plugin)
+- ✅ Deployment target auto-detected (where to deploy the plugin)
 
 Once both directories are confirmed, proceed with creating the plugin files:
 
