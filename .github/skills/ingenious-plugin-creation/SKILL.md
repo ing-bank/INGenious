@@ -59,7 +59,7 @@ User: "Create Plugin 1 from the analysis"
 → Output: Fully functional plugin created
 ```
 
-**When Receiving Plugin Specifications:**
+**When Receiving Plugin Specifications :**
 
 This skill can accept structured input from the customization detection skill:
 - Plugin name and type
@@ -111,6 +111,7 @@ This ensures plugins can be developed independently while maintaining compatibil
 | **Source Code** | Development | pom.xml, src/, target/ | `/path/to/Github-Plugins/my-plugin/` |
 | **Deployment** | Runtime | my-plugin.jar, lib/ | `/path/to/INGenious/plugins/my-plugin/` |
 
+
 ### Question 1: Source Code Location
 
 **Ask:** "Where should I save the plugin SOURCE CODE?"
@@ -132,12 +133,15 @@ Which option?
 ```
 
 
-### Deployment Target: Auto-Detection
+### Question 2: Deployment Target
 
-**Auto-detect the deployment directory after source code location is confirmed:**
-- Scan for `root/Dist/release/plugins` and `root/plugins` under the INGenious installation root.
-- Use the first valid directory found as the deployment target.
-- If neither exists, prompt the user for manual input or show an error.
+**Ask:** "Where should the plugin be deployed for INGenious to use it?"
+
+**Steps:**
+1. List workspace folders and identify plugin development repositories
+2. Present options as clickable choices and allow custom path input
+3. **STOP and wait** for explicit user confirmation
+4. Validate path exists/writable, no conflicts
 
 **Example:**
 ```
