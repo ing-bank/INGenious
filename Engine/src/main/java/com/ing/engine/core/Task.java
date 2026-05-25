@@ -169,7 +169,7 @@ public class Task implements Runnable {
             if (isPlaywrightExecution()) {
               closePlaywrightDriver();
             } else if (isSAPExecution()) {
-
+                // Do nothing
             } else {
                     if (webDriver.isLambdaTestExecutionPlatform()) {
                     JavascriptExecutor js = (JavascriptExecutor) webDriver.driver;

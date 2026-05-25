@@ -195,9 +195,6 @@ public class ObjectRepository {
     public String getIORRepLocation() {
         return sProject.getLocation() + File.separator + "ImageObjectRepository";
     }
-    public String getStructuredDataORRepLocation() {
-        return sProject.getLocation() + File.separator + "StructuredDataObjectRepository";
-    }
     public String getSapORRepLocation() {
         return sProject.getLocation() + File.separator + "SapObjectRepository";
     }

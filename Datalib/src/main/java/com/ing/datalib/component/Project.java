@@ -26,8 +26,8 @@ import com.ing.datalib.model.Meta;
 import com.ing.datalib.model.ProjectInfo;
 import com.ing.datalib.or.ObjectRepository;
 import com.ing.datalib.or.mobile.MobileOR;
-import com.ing.datalib.or.structureddata.StructuredDataOR;
 import com.ing.datalib.or.sap.SapOR;
+import com.ing.datalib.or.structureddata.StructuredDataOR;
 import com.ing.datalib.or.web.WebOR;
 import com.ing.datalib.or.web.WebOR.ORScope;
 import com.ing.datalib.settings.ProjectSettings;
@@ -848,7 +848,7 @@ public class Project {
      * are tool-agnostic and only care about PROJECT vs SHARED.
      */
     public void refactorMobileObjectName(MobileOR.ORScope scope, String pageName, String oldName, String newName) {
-        for (Scenario scenario : scenarios) {
+        for (Scenario scenario : getAllScenarios()) {
             WebOR.ORScope webScope =
             (scope == MobileOR.ORScope.SHARED)
                 ? WebOR.ORScope.SHARED
@@ -888,7 +888,7 @@ public class Project {
      * are tool-agnostic and only care about PROJECT vs SHARED.
      */
     public void refactorSapObjectName(SapOR.ORScope scope, String pageName, String oldName, String newName) {
-        for (Scenario scenario : scenarios) {
+        for (Scenario scenario : getAllScenarios()) {
             WebOR.ORScope webScope =
             (scope == SapOR.ORScope.SHARED)
                 ? WebOR.ORScope.SHARED
