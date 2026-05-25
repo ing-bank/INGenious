@@ -407,10 +407,19 @@ public class Main {
         UIManager.put("TableHeader.bottomSeparatorColor", Color.decode("#D0D7DE"));
 
         // ── Buttons ──
-        UIManager.put("Button.default.background", ING_PURPLE);
-        UIManager.put("Button.default.foreground", Color.WHITE);
-        UIManager.put("Button.default.hoverBackground", Color.decode("#6318E0"));
-        UIManager.put("Button.default.pressedBackground", Color.decode("#5212C0"));
+        
+        putLafColor("Button.default.background", Color.WHITE);
+        putLafColor("Button.default.foreground", Color.BLACK);
+
+        putLafColor("Button.default.focusedBackground", Color.WHITE);
+        putLafColor("Button.default.focusedForeground", Color.BLACK);
+
+        putLafColor("Button.default.hoverBackground", ING_PURPLE);
+        putLafColor("Button.default.hoverForeground", Color.WHITE);
+
+        putLafColor("Button.default.pressedBackground", Color.decode("#5212C0"));
+        putLafColor("Button.default.pressedForeground", Color.WHITE);
+
 
         // ── Scrollbar (warm neutral, not grey) ──
         UIManager.put("ScrollBar.thumbColor", Color.decode("#D5D0CC"));
@@ -638,11 +647,20 @@ public class Main {
         UIManager.put("Button.disabledForeground", Color.decode("#6E6878"));  // Muted text for disabled buttons
         UIManager.put("Button.selectedForeground", warmText);
         UIManager.put("Button.unfocusedForeground", warmText);  // Ensure unfocused buttons also have light text
-        UIManager.put("Button.default.background", ING_ORANGE);
-        UIManager.put("Button.default.foreground", Color.WHITE);
-        UIManager.put("Button.default.disabledForeground", Color.decode("#6E6878"));
-        UIManager.put("Button.default.hoverBackground", Color.decode("#E55800"));
-        UIManager.put("Button.default.pressedBackground", Color.decode("#CC4E00"));
+        
+        putLafColor("Button.default.background", ING_ORANGE);
+        putLafColor("Button.default.foreground", Color.WHITE);
+
+        putLafColor("Button.default.focusedBackground", ING_ORANGE);
+        putLafColor("Button.default.focusedForeground", Color.WHITE);
+
+        putLafColor("Button.default.hoverBackground", Color.decode("#E55800"));
+        putLafColor("Button.default.hoverForeground", Color.WHITE);
+
+        putLafColor("Button.default.pressedBackground", Color.decode("#CC4E00"));
+        putLafColor("Button.default.pressedForeground", Color.WHITE);
+
+        putLafColor("Button.default.disabledForeground", Color.decode("#6E6878"));
         
         // Set button colors in L&F defaults to ensure FlatLaf picks them up
         UIManager.getLookAndFeelDefaults().put("Button.foreground", warmText);
@@ -700,6 +718,23 @@ public class Main {
         UIManager.put("ing.borderThumb", Color.decode("#4A4555"));
         UIManager.put("ing.borderThumbHover", Color.decode("#5A5565"));
         UIManager.put("ing.borderThumbSelected", Color.decode("#6A6575"));
+    }
+    
+    /**
+     * Stores a color value in both the global UIManager defaults and the active Look and Feel defaults.
+     *
+     * This is used for FlatLaf/Swing theme customization to make sure the color setting is applied
+     * consistently across newly created components and components refreshed after a theme update.
+     *
+     * @param key   the UIManager/FlatLaf color key to update, such as "Button.default.foreground"
+     * @param color the color value to assign to the given key
+     */
+    private static void putLafColor(String key, Color color) {
+        UIManager.put(key, color);
+
+        if (UIManager.getLookAndFeelDefaults() != null) {
+            UIManager.getLookAndFeelDefaults().put(key, color);
+        }
     }
 
     /**
