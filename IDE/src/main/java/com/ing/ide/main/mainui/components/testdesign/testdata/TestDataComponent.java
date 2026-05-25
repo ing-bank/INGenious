@@ -1173,10 +1173,14 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
             if (!isGlobalData) {
                 if (table.getSelectedRow() != -1) {
                     Boolean invalid = false;
+                    // For test data with FrozenColumnScrollPane, columns 0-3 are in the fixed table
+                    // We need to read Scenario (column 0) and TestCase (column 1) from the fixed table
+                    int selectedRow = table.getSelectedRow();
+                    JTable sourceTable = frozenScrollPane.getFixedTable();
                     String scenVal = Objects.toString(
-                            table.getValueAt(table.getSelectedRow(), 0), "");
+                            sourceTable.getValueAt(selectedRow, 0), "");
                     String tcVal = Objects.toString(
-                            table.getValueAt(table.getSelectedRow(), 1), "");
+                            sourceTable.getValueAt(selectedRow, 1), "");
                     if (!scenVal.isEmpty() && !tcVal.isEmpty()) {
                         Scenario scenario = testDesign.getProject()
                                 .getScenarioByName(scenVal);
