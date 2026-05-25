@@ -8,3 +8,5 @@ Step,ObjectName,Description,Action,Input,Condition,Reference
 2,Shopping Cart [icon],Click the [<Object>],Click,,,[Project] Product
 3,Item Name,Assert if [<Object>] has text [<Data>],assertElementTextMatches,Purchase Details:Product,,[Project] Your Cart
 ```
+
+- `Reference` column uses `[Project] <PageName>` to point at the ObjectRepository page

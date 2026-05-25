@@ -10,3 +10,5 @@ Step,ObjectName,Description,Action,Input,Condition,Reference
 4,Postal Code,Enter the value [<Data>] in the Field [<Object>],Fill,Purchase Details:PostCode,,[Project] Checkout - Your Information
 5,Continue [button],Click the [<Object>],Click,,,[Project] Checkout - Your Information
 ```
+
+- `Reference` column uses `[Project] <PageName>` to point at the ObjectRepository page
