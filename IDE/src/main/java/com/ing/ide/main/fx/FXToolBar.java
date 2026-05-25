@@ -92,18 +92,18 @@ public class FXToolBar extends JFXPanel {
     }
 
     private Button createAPITesterButton() {
-        Button btn = new Button("API Tester");
+        Button btn = new Button("API Workbench");
         btn.getStyleClass().add("api-tester-btn");
         btn.setTooltip(new Tooltip("Open API Testing Console - Test REST APIs like Postman"));
         
         // API icon with vibrant cyan color - use registered icon from INGIcons
         org.kordamp.ikonli.javafx.FontIcon icon = INGIcons.fxColored("APITester", 16);
         if (icon != null) {
-            icon.setIconColor(javafx.scene.paint.Color.WHITE);
+            icon.setIconColor(INGIcons.CLR_DATA);
             btn.setGraphic(icon);
         }
         
-        btn.setOnAction(e -> fireSwingAction("API Tester"));
+        btn.setOnAction(e -> fireSwingAction("API Workbench"));
         return btn;
     }
 

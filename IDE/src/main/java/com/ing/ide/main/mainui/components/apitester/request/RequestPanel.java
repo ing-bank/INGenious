@@ -953,6 +953,8 @@ class SettingsPanel extends JPanel {
 
     private void initComponents() {
         JPanel settingsGrid = new JPanel(new GridBagLayout());
+        JScrollPane scrollFrame = new JScrollPane(settingsGrid);
+
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.anchor = GridBagConstraints.WEST;
         gbc.insets = new Insets(8, 8, 8, 8);
@@ -1078,9 +1080,9 @@ class SettingsPanel extends JPanel {
         gbc.gridy = 12;
         gbc.weighty = 1;
         gbc.fill = GridBagConstraints.VERTICAL;
-        settingsGrid.add(Box.createVerticalGlue(), gbc);
 
-        add(settingsGrid, BorderLayout.CENTER);
+        scrollFrame.add(Box.createVerticalGlue(), gbc);
+        add(scrollFrame, BorderLayout.CENTER);
         
         updateCertificatePanel();
     }

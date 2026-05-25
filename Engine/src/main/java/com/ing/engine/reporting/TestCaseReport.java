@@ -205,10 +205,44 @@ public final class TestCaseReport implements Report, TestCaseReportApi {
     @Override
     public Status finalizeReport() {
         runComplete = true;
+        HtmlTestCaseHandler htmlHandler = null;
+        
         for (TestCaseHandler handler : handlers) {
             handler.finalizeReport();
+            // Keep reference to HtmlTestCaseHandler if we find it
+            if (handler instanceof HtmlTestCaseHandler) {
+                htmlHandler = (HtmlTestCaseHandler) handler;
+            }
         }
+        
         JSONObject testcasedata = (JSONObject) primaryHandler.getData();
+        
+        // Merge video/trace paths from HtmlTestCaseHandler into primary handler data
+        // This ensures multi-test execution reports have video/trace paths
+        if (htmlHandler != null && primaryHandler != htmlHandler) {
+            try {
+                Object htmlData = htmlHandler.getData();
+                if (htmlData instanceof JSONObject) {
+                    JSONObject htmlTestData = (JSONObject) htmlData;
+                    Object videoPath = htmlTestData.get("videoPath");
+                    Object tracePath = htmlTestData.get("tracePath");
+                    Object traceData = htmlTestData.get("traceData");
+                    
+                    if (videoPath != null && testcasedata.get("videoPath") == null) {
+                        testcasedata.put("videoPath", videoPath);
+                    }
+                    if (tracePath != null && testcasedata.get("tracePath") == null) {
+                        testcasedata.put("tracePath", tracePath);
+                    }
+                    if (traceData != null && testcasedata.get("traceData") == null) {
+                        testcasedata.put("traceData", traceData);
+                    }
+                }
+            } catch (Exception ex) {
+                System.out.println("[TestCaseReport] Error merging handler data: " + ex.getMessage());
+            }
+        }
+        
         String testcase = testcasedata.get("testcaseName").toString();
         String scenario = testcasedata.get("scenarioName").toString();
         String eSteps = testcasedata.get("noTests").toString();

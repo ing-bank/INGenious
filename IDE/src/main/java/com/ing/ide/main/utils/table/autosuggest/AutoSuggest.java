@@ -9,6 +9,7 @@ import java.awt.event.FocusEvent;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import javax.swing.AbstractAction;
@@ -117,6 +118,7 @@ public class AutoSuggest extends JComboBox<String> {
 
     public final void setSearchList(List<String> items) {
         searchList.clear();
+        Collections.sort(items, String.CASE_INSENSITIVE_ORDER);
         searchList.addAll(items);
     }
 

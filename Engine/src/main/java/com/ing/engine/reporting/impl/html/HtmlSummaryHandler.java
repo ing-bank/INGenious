@@ -131,6 +131,8 @@ public class HtmlSummaryHandler extends SummaryHandler implements PrimaryHandler
             testSetData.put(RDS.TestSet.MAX_THREADS, Control.exe.getExecSettings().getRunSettings().getThreadCount());
             testSetData.put(RDS.TestSet.BDD_STYLE, Control.exe.getExecSettings().getRunSettings().isBddReportEnabled());
             testSetData.put(RDS.TestSet.PERF_REPORT, Control.exe.getExecSettings().getRunSettings().isPerformanceLogEnabled());
+            testSetData.put(RDS.TestSet.VIDEO_REPORT, Control.exe.getExecSettings().getRunSettings().isVideoEnabled());
+            testSetData.put(RDS.TestSet.TRACING_REPORT, Control.exe.getExecSettings().getRunSettings().isTracingEnabled());
             testSetData.put(RDS.TestSet.START_TIME, runTime);
             testSetData.put(RDS.TestSet.TEST_RUN, RunManager.getGlobalSettings().isTestRun());
             testSetData.put(RDS.TestSet.NO_OF_TESTS, size);

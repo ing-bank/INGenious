@@ -6,6 +6,11 @@ import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Point;
 import java.util.Objects;
+import java.awt.event.AdjustmentEvent;
+import java.awt.event.AdjustmentListener;
+import java.awt.event.FocusAdapter;
+import java.awt.event.FocusEvent;
+import java.awt.event.FocusListener;
 import javax.swing.BorderFactory;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
@@ -44,45 +49,29 @@ public class FrozenColumnScrollPane extends JScrollPane {
     private TableModelListener modelListener;
     private CellEditorProvider cellEditorProvider;
     
-    // Fixed column styling - Light theme colors
-    private static final Color FIXED_COLUMN_BG_LIGHT = new Color(248, 245, 255);
-    private static final Color FIXED_COLUMN_SELECTED_BG_LIGHT = new Color(200, 170, 255);
-    private static final Color FIXED_COLUMN_HEADER_BG_LIGHT = new Color(235, 225, 255);
-    private static final Color FIXED_COLUMN_BORDER_LIGHT = new Color(200, 180, 230);
-    private static final Color ING_PURPLE = new Color(119, 36, 255);
-    private static final Color ING_BURGUNDY = Color.decode("#4D0020");
-    
-    // Fixed column styling - Dark theme colors
-    private static final Color FIXED_COLUMN_BG_DARK = new Color(45, 40, 55);       // Dark purple-grey
-    private static final Color FIXED_COLUMN_SELECTED_BG_DARK = new Color(80, 60, 110); // Brighter purple
-    private static final Color FIXED_COLUMN_HEADER_BG_DARK = new Color(55, 50, 65);  // Slightly lighter header
-    private static final Color FIXED_COLUMN_BORDER_DARK = new Color(70, 60, 90);     // Subtle purple border
-    private static final Color FIXED_COLUMN_FG_DARK = new Color(200, 195, 210);      // Light grey-purple text
-    private static final Color ING_ORANGE_DARK = new Color(255, 102, 0);             // Orange accent for dark theme
-    
     // Theme-aware color getters
     private static Color getFixedColumnBg() {
-        return isDarkMode() ? FIXED_COLUMN_BG_DARK : FIXED_COLUMN_BG_LIGHT;
+        return isDarkMode() ? TableColor.FIXED_COLUMN_BG_DARK : TableColor.FIXED_COLUMN_BG_LIGHT;
     }
     
     private static Color getFixedColumnSelectedBg() {
-        return isDarkMode() ? FIXED_COLUMN_SELECTED_BG_DARK : FIXED_COLUMN_SELECTED_BG_LIGHT;
+        return isDarkMode() ? TableColor.FIXED_COLUMN_SELECTED_BG_DARK : TableColor.FIXED_COLUMN_SELECTED_BG_LIGHT;
     }
     
     private static Color getFixedColumnHeaderBg() {
-        return isDarkMode() ? FIXED_COLUMN_HEADER_BG_DARK : FIXED_COLUMN_HEADER_BG_LIGHT;
+        return isDarkMode() ? TableColor.FIXED_COLUMN_HEADER_BG_DARK : TableColor.FIXED_COLUMN_HEADER_BG_LIGHT;
     }
     
     private static Color getFixedColumnBorder() {
-        return isDarkMode() ? FIXED_COLUMN_BORDER_DARK : FIXED_COLUMN_BORDER_LIGHT;
+        return isDarkMode() ?TableColor.FIXED_COLUMN_BORDER_DARK : TableColor.FIXED_COLUMN_BORDER_LIGHT;
     }
     
     private static Color getFixedColumnFg() {
-        return isDarkMode() ? FIXED_COLUMN_FG_DARK : ING_BURGUNDY;
+        return isDarkMode() ? TableColor.FIXED_COLUMN_FG_DARK : TableColor.ING_BURGUNDY;
     }
     
     private static Color getFixedColumnHeaderFg() {
-        return isDarkMode() ? ING_ORANGE_DARK : ING_PURPLE;
+        return isDarkMode() ? TableColor.ING_ORANGE_DARK : TableColor.ING_PURPLE;
     }
     
     private static boolean isDarkMode() {
@@ -91,7 +80,7 @@ public class FrozenColumnScrollPane extends JScrollPane {
     
     private static Color getScrollPaneBackground() {
         if (isDarkMode()) {
-            return FIXED_COLUMN_BG_DARK;  // Use fixed column bg for consistency
+            return TableColor.FIXED_COLUMN_BG_DARK;  // Use fixed column bg for consistency
         }
         Color panelBg = UIManager.getColor("Panel.background");
         return panelBg != null ? panelBg : Color.WHITE;
@@ -137,6 +126,25 @@ public class FrozenColumnScrollPane extends JScrollPane {
         // Set fixed table background for empty areas
         fixedTable.setBackground(getFixedColumnBg());
         mainTable.setBackground(bgColor);
+        
+        // Temporarily disabled as the action is misfiring
+        // causing selection in the editable data columns
+        // to be unselected when context menu is displayed.
+        // 
+        // FocusListener focusListener = new FocusAdapter(){
+        //     @Override
+        //     public void focusGained(FocusEvent e) {}
+
+        //     @Override
+        //     public void focusLost(FocusEvent e) {
+        //         JTable table = (JTable) e.getSource();
+        //         table.clearSelection();
+        //     }
+        // };
+        
+        // fixedTable.addFocusListener(focusListener);
+        // mainTable.addFocusListener(focusListener);
+        
         
         // Set all corners to eliminate white gaps
         setCornerPanels(bgColor);
@@ -494,6 +502,7 @@ public class FrozenColumnScrollPane extends JScrollPane {
         
         // Re-sync selection model
         fixedTable.setSelectionModel(mainTable.getSelectionModel());
+        fixedTable.removeRowSelectionInterval(0, fixedTable.getRowCount()-1);
         
         // Add model listener to new model
         model.addTableModelListener(modelListener);

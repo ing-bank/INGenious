@@ -12,8 +12,11 @@ import javax.swing.JTable;
 import javax.swing.UIManager;
 import javax.swing.border.Border;
 import javax.swing.table.DefaultTableCellRenderer;
+import javax.swing.border.CompoundBorder;
 
 public abstract class AbstractRenderer extends DefaultTableCellRenderer {
+
+    private static final String EMPTY_REQUIRED_ERROR_KEY = "ing.emptyRequiredError";
 
     private final Border errorBorder = BorderFactory.createLineBorder(Color.RED, 1);
 
@@ -30,11 +33,7 @@ public abstract class AbstractRenderer extends DefaultTableCellRenderer {
         if (getTestCase(table) != null) {
             TestStep step = getTestCase(table).getTestSteps().get(row);
             if (!isSelected) {
-                if (step.isEmpty()) {
-                    setDefault(comp);
-                } else {
-                    render(comp, step, value);
-                }
+                render(comp, step, value);
             } else {
                 Color selFg = UIManager.getColor("ing.selectedCellForeground");
                 comp.setForeground(selFg != null ? selFg : Color.WHITE);
@@ -46,55 +45,78 @@ public abstract class AbstractRenderer extends DefaultTableCellRenderer {
     public abstract void render(JComponent comp, TestStep step, Object value);
 
     protected void setEmpty(JComponent comp) {
-        comp.setBorder(errorBorder);
+        comp.putClientProperty(EMPTY_REQUIRED_ERROR_KEY, Boolean.TRUE);
+        comp.setOpaque(true);
+        comp.setBackground(new Color(255, 200, 200));
+        Border paddingBorder = BorderFactory.createEmptyBorder(2, 8, 2, 4);
+        comp.setBorder(new CompoundBorder(errorBorder, paddingBorder));
         comp.setToolTipText(empty);
     }
 
     protected void setNotPresent(JComponent comp, String notPresent) {
+        comp.putClientProperty(EMPTY_REQUIRED_ERROR_KEY, Boolean.FALSE);
+        comp.setBorder(null);
         Color c = UIManager.getColor("ing.errorForeground");
         comp.setForeground(c != null ? c : Color.RED);
         comp.setToolTipText(notPresent);
     }
 	
     protected void setWebserviceRequest(JComponent comp) {
+        comp.putClientProperty(EMPTY_REQUIRED_ERROR_KEY, Boolean.FALSE);
+        comp.setBorder(null);
         Color c = UIManager.getColor("ing.webserviceRequestForeground");
         comp.setForeground(c != null ? c : new Color(0,204,0));
     }
     
     protected void setText(JComponent comp) {
+        comp.putClientProperty(EMPTY_REQUIRED_ERROR_KEY, Boolean.FALSE);
+        comp.setBorder(null);
         Color c = UIManager.getColor("ing.webserviceRequestForeground");
         comp.setForeground(c != null ? c : new Color(0,204,0));
     }
     
     protected void setWebserviceStart(JComponent comp) {
+        comp.putClientProperty(EMPTY_REQUIRED_ERROR_KEY, Boolean.FALSE);
+        comp.setBorder(null);
         Color c = UIManager.getColor("ing.webserviceStartForeground");
         comp.setForeground(c != null ? c : Color.BLUE);
     }
     
     protected void setWebserviceStop(JComponent comp) {
+        comp.putClientProperty(EMPTY_REQUIRED_ERROR_KEY, Boolean.FALSE);
+        comp.setBorder(null);
         Color c = UIManager.getColor("ing.webserviceStopForeground");
         comp.setForeground(c != null ? c : new Color(153,102,0));
     }
     
     protected void setReusable(JComponent comp) {
+        comp.putClientProperty(EMPTY_REQUIRED_ERROR_KEY, Boolean.FALSE);
+        comp.setBorder(null);
         Color c = UIManager.getColor("ing.reusableForeground");
         comp.setForeground(c != null ? c : new Color(119, 36, 255));
         comp.setToolTipText(null);
     }
 
     protected void setExecute(JComponent comp) {
+        comp.putClientProperty(EMPTY_REQUIRED_ERROR_KEY, Boolean.FALSE);
+        comp.setBorder(null);
         comp.setForeground(new Color(119, 36, 255));
         comp.setToolTipText(null);
     }
 	
     protected void setDefault(JComponent comp) {
-        
+        comp.putClientProperty(EMPTY_REQUIRED_ERROR_KEY, Boolean.FALSE);
+        comp.setBorder(null);
         comp.setForeground(UIManager.getColor("text"));
         comp.setToolTipText(null);
     }
 
     protected Boolean isEmpty(Object value) {
         return Objects.toString(value, "").trim().isEmpty();
+    }
+
+    protected boolean isPristineStep(TestStep step) {
+        return isEmpty(step.getObject()) && isEmpty(step.getAction()) && isEmpty(step.getReference());
     }
 
     protected TestCase getTestCase(JTable table) {

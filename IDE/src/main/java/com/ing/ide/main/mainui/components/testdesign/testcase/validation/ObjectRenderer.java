@@ -27,7 +27,11 @@ public class ObjectRenderer extends AbstractRenderer {
     public void render(JComponent comp, TestStep step, Object value) {
         if (!step.isCommented()) {
             if (isEmpty(value)) {
-                setEmpty(comp);
+                if (isPristineStep(step)) {
+                    setDefault(comp);
+                } else {
+                    setEmpty(comp);
+                }
             } else if ("Execute".equals(Objects.toString(value, "").trim())) {
                 setExecute(comp);
             } else if (step.isPageObjectStep()) {

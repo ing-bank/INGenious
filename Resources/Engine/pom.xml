@@ -2,7 +2,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>ingenious-playwright</groupId>
     <artifactId>ingenious-engine</artifactId>
-    <version>2.4.1</version>
+    <version>3.0.0-preview</version>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <playwright.version>1.58.0</playwright.version>
@@ -227,8 +227,7 @@
             <artifactId>ingenious-api</artifactId>
             <version>${ingenious-api.version}</version>
             <type>jar</type>
-        </dependency>
-        
+        </dependency>        
         <dependency>
             <groupId>com.fasterxml.jackson.dataformat</groupId>
             <artifactId>jackson-dataformat-xml</artifactId>

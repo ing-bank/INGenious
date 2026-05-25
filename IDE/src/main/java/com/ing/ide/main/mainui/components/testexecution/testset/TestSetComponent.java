@@ -44,7 +44,7 @@ import javax.swing.table.TableColumnModel;
  *
  * 
  */
-public class TestsetComponent extends JPanel implements ActionListener {
+public class TestSetComponent extends JPanel implements ActionListener {
 
     private final TestExecution testExecution;
 
@@ -64,7 +64,7 @@ public class TestsetComponent extends JPanel implements ActionListener {
 
     private Thread runner;
 
-    public TestsetComponent(TestExecution testExecution) {
+    public TestSetComponent(TestExecution testExecution) {
         this.testExecution = testExecution;
         testSetTable = new XTable() {
 
@@ -600,7 +600,7 @@ public class TestsetComponent extends JPanel implements ActionListener {
         }
 
         private JMenuItem create(String text, String actionCommand) {
-            JMenuItem menuItem = Utils.createMenuItem(text, TestsetComponent.this);
+            JMenuItem menuItem = Utils.createMenuItem(text, TestSetComponent.this);
             menuItem.setActionCommand(actionCommand);
             return menuItem;
         }

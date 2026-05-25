@@ -28,12 +28,18 @@ public class XTableUtils {
         int numRows = table.getSelectedRowCount();
         int[] rowsSelected = table.getSelectedRows();
         int[] colsSelected = table.getSelectedColumns();
-        if (numRows != rowsSelected[rowsSelected.length - 1] - rowsSelected[0] + 1 || numRows != rowsSelected.length
-                || numCols != colsSelected[colsSelected.length - 1] - colsSelected[0] + 1 || numCols != colsSelected.length) {
 
-            Logger.getLogger(XTableUtils.class.getName()).info("Invalid Copy Selection");
-            return;
-        }
+        // Temporarily disabled as frozen columns are always selected by default thus
+        // completely blocking the copy functionality even when only ediable data
+        // cells are selected via mouseClick actions.
+        //
+        // if (numRows != rowsSelected[rowsSelected.length - 1] - rowsSelected[0] + 1 || numRows != rowsSelected.length
+        //         || numCols != colsSelected[colsSelected.length - 1] - colsSelected[0] + 1 || numCols != colsSelected.length) {
+
+        //     Logger.getLogger(XTableUtils.class.getName()).info("Invalid Copy Selection");
+        //     return;
+        // }
+
         if (table.getModel() instanceof UndoRedoModel) {
             ((UndoRedoModel) table.getModel()).startGroupEdit();
         }

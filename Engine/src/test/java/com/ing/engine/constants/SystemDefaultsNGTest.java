@@ -15,7 +15,8 @@ public class SystemDefaultsNGTest {
         System.out.println("getBuildVersion");
         String result = SystemDefaults.getBuildVersion();
         Pattern pattern = Pattern.compile("^(?:(\\d+)\\.)?(?:(\\d+)\\.)?(\\*|\\d+)$");
-        assertEquals(true, pattern.matcher(result).matches());
+        Pattern previewPattern = Pattern.compile("^(?:(\\d+)\\.)?(?:(\\d+)\\.)?(\\*|\\d+)-preview$");
+        assertEquals((pattern.matcher(result).matches() || previewPattern.matcher(result).matches()), true);
     }
 
     /**

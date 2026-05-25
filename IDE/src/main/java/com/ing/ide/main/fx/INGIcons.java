@@ -125,7 +125,7 @@ public final class INGIcons {
         register("SaveProject",         MaterialDesignC.CONTENT_SAVE,                  CLR_SAVE);
         register("RunSettings",         MaterialDesignC.COG,                           CLR_CONFIG);
         register("BrowserConfiguration", MaterialDesignW.WEB,                          CLR_TOOL);
-        register("APITester",           MaterialDesignA.API,                           Color.web("#00B4D8"));
+        register("APITester",           MaterialDesignA.API,                           CLR_DATA);
 
         // ── Common Actions ──
         register("add",                 MaterialDesignP.PLUS,                          CLR_CREATE);
@@ -217,7 +217,6 @@ public final class INGIcons {
 
         // ── Menu icons (used via icon name extraction) ──
         register("FileMenu",            MaterialDesignF.FILE_DOCUMENT,                 CLR_FILE);
-        register("AutomationMenu",      MaterialDesignR.ROBOT,                         CLR_SEARCH);
         register("TestDataMenu",        MaterialDesignD.DATABASE_IMPORT,               CLR_DATA);
         register("ConfigurationsMenu",  MaterialDesignC.COG,                           CLR_CONFIG);
         register("ToolsMenu",           MaterialDesignT.TOOLBOX,                       CLR_TOOL);

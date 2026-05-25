@@ -7,11 +7,11 @@
   <title>Test Case Details - INGenious</title>
   
   <!-- Modern CSS Framework -->
-  <link rel="stylesheet" href="../../../../media/css/modern/tailwind.min.css">
-  <link rel="stylesheet" href="../../../../media/css/modern/components.css">
-  <link rel="stylesheet" href="../../../../media/css/modern/themes/light.css" id="theme-light">
-  <link rel="stylesheet" href="../../../../media/css/modern/themes/dark.css" id="theme-dark" disabled>
-  <link rel="stylesheet" href="../../../../media/css/modern/themes/indigo.css" id="theme-accent">
+  <link rel="stylesheet" href="media/css/modern/tailwind.min.css">
+  <link rel="stylesheet" href="media/css/modern/components.css">
+  <link rel="stylesheet" href="media/css/modern/themes/light.css" id="theme-light">
+  <link rel="stylesheet" href="media/css/modern/themes/dark.css" id="theme-dark" disabled>
+  <link rel="stylesheet" href="media/css/modern/themes/indigo.css" id="theme-accent">
   
   <!-- Report Data -->
   <script>var DATA = {};</script>
@@ -499,8 +499,8 @@
           </div>
         </section>
         
-      </div>
-    </main>
+
+        
     
     <!-- Image Lightbox -->
     <div 
@@ -540,6 +540,43 @@
       </a>
     </div>
     
+    <!-- Screenshot Lightbox -->
+    <div 
+      id="screenshotLightbox"
+      x-show="lightboxOpen"
+      x-cloak
+      x-transition:enter="transition ease-out duration-200"
+      x-transition:enter-start="opacity-0"
+      x-transition:enter-end="opacity-100"
+      x-transition:leave="transition ease-in duration-150"
+      x-transition:leave-start="opacity-100"
+      x-transition:leave-end="opacity-0"
+      class="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-4"
+      @click.self="lightboxOpen = false"
+      @keydown.escape.window="lightboxOpen = false"
+    >
+      <button 
+        @click="lightboxOpen = false"
+        class="absolute top-4 right-4 text-white hover:text-gray-300"
+      >
+        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+        </svg>
+      </button>
+      <img 
+        :src="lightboxSrc"
+        class="max-w-full max-h-full object-contain rounded-lg shadow-xl"
+        alt="Screenshot"
+      >
+      <a 
+        :href="lightboxSrc" 
+        target="_blank" 
+        class="absolute bottom-4 right-4 btn btn--primary btn--sm"
+      >
+        Open in New Tab
+      </a>
+    </div>
+
     <!-- Video Lightbox -->
     <div 
       id="videoLightbox"
@@ -603,34 +640,56 @@
     </div>
     
     <!-- Footer Links -->
-    <footer class="fixed bottom-4 right-4 flex gap-2 print:hidden">
-      <template x-if="perfReport">
-        <a href="perfReport.html" target="_blank" class="btn btn--secondary btn--sm" title="Performance Report">
-          <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+    <footer class="fixed print:hidden" style="bottom: 1.5rem; right: 1.5rem; z-index: 999; display: flex; flex-direction: column; gap: 0.75rem;">
+      <!-- Background container for visibility -->
+      <div style="display: flex; gap: 0.5rem; background-color: rgba(255, 255, 255, 0.98); border-radius: 0.75rem; padding: 0.75rem; box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.15); backdrop-filter: blur(8px); border: 1px solid rgba(229, 231, 235, 0.8);">
+        <template x-if="videoReport">
+          <button @click="currentDetails.videoPath && openTestCaseVideo(currentDetails.videoPath)" :disabled="!currentDetails.videoPath" style="background-color: #f3f4f6; color: #374151; border: 1px solid #d1d5db; padding: 0.5rem 0.75rem; border-radius: 0.375rem; font-size: 0.875rem; font-weight: 500; display: flex; align-items: center; gap: 0.5rem; transition: all 0.2s; cursor: pointer; text-decoration: none;" title="View Video">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.752 11.168l-3.197-2.132A1 1 0 0010 9.87v4.263a1 1 0 001.555.832l3.197-2.132a1 1 0 000-1.664z"/>
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+            </svg>
+            <span>Video</span>
+          </button>
+        </template>
+
+        <template x-if="tracingReport">
+          <a :href="currentDetails.tracePath ? getAbsoluteTracePath() : '#'" :download="currentDetails.tracePath ? 'traces.zip' : null" style="background-color: #f3f4f6; color: #374151; border: 1px solid #d1d5db; padding: 0.5rem 0.75rem; border-radius: 0.375rem; font-size: 0.875rem; font-weight: 500; display: flex; align-items: center; gap: 0.5rem; transition: all 0.2s; cursor: pointer; text-decoration: none;" title="Download Traces">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+            </svg>
+            <span>Trace</span>
+          </a>
+        </template>
+
+        <template x-if="perfReport">
+          <a :href="'perfReport-v2.html?SC=' + encodeURIComponent(params.SC) + '&TC=' + encodeURIComponent(params.TC)" target="_blank" style="background-color: #f3f4f6; color: #374151; border: 1px solid #d1d5db; padding: 0.5rem 0.75rem; border-radius: 0.375rem; font-size: 0.875rem; font-weight: 500; display: flex; align-items: center; gap: 0.5rem; transition: all 0.2s; cursor: pointer; text-decoration: none;" title="Performance Report">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+            </svg>
+            <span>Perf</span>
+          </a>
+        </template>
+        
+        <a href="summary-v2.html" style="background-color: #f3f4f6; color: #374151; border: 1px solid #d1d5db; padding: 0.5rem 0.75rem; border-radius: 0.375rem; font-size: 0.875rem; font-weight: 500; display: flex; align-items: center; gap: 0.5rem; transition: all 0.2s; cursor: pointer; text-decoration: none;" title="Back to Summary">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
           </svg>
-          Perf
+          <span>Summary</span>
         </a>
-      </template>
-      
-      <a href="summary-v2.html" class="btn btn--secondary btn--sm" title="Back to Summary">
-        <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
-        </svg>
-        Summary
-      </a>
-      
-      <button @click="window.scrollTo({top: 0, behavior: 'smooth'})" class="btn btn--icon btn--secondary btn--sm" title="Scroll to Top">
-        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18"/>
-        </svg>
-      </button>
+        
+        <button @click="window.scrollTo({top: 0, behavior: 'smooth'})" style="background-color: #f3f4f6; color: #374151; border: 1px solid #d1d5db; padding: 0.5rem; border-radius: 0.375rem; font-size: 0.875rem; display: flex; align-items: center; justify-content: center; transition: all 0.2s; cursor: pointer;" title="Scroll to Top">
+          <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 10l7-7m0 0l7 7m-7-7v18"/>
+          </svg>
+        </button>
+      </div>
     </footer>
     
   </div>
   
   <!-- Detailed.js - Must load before Alpine.js -->
-  <script src="../../../../media/js/detailed.js"></script>
+  <script src="media/js/detailed.js"></script>
   
   <!-- Alpine.js -->
   <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
@@ -655,7 +714,9 @@
         lightboxSrc: '',
         videoOpen: false,
         videoSrc: '',
-        perfReport: false,
+        perfReport: false,      // Only set after DATA loads
+        videoReport: false,
+        tracingReport: false,
         
         // Computed
         get title() {
@@ -690,8 +751,8 @@
           // Load data from global DATA object
           this.data = DATA;
           this.perfReport = DATA.perfReport || false;
-          
-          
+          this.videoReport = DATA.videoReport || false;
+          this.tracingReport = DATA.tracingReport || false;
           // Process browser data
           this.processBrowserData();
           
@@ -705,9 +766,10 @@
           // Update view
           this.updateView();
           
-          // Inject steps using the JS renderer
+          // Inject steps using the JS renderer with pre-filtered steps
           if (typeof injectStepsV2 === 'function') {
-            injectStepsV2(this.showFailedOnly, this.stepFilter);
+            // Pass the pre-filtered steps array so injectStepsV2 doesn't need to filter again
+            injectStepsV2(this.showFailedOnly, this.stepFilter, this.params.SC, this.params.TC, this.steps);
           }
           
           // Load theme preference
@@ -750,7 +812,6 @@
         
         updateView() {
           if (!this.data.EXECUTIONS) {
-            console.warn('No EXECUTIONS data found');
             return;
           }
           
@@ -794,6 +855,10 @@
             this.steps = exe?.STEPS || [];
             
           }
+          
+          // Update video and trace report flags based on current details
+          this.videoReport = DATA.videoReport && this.currentDetails && this.currentDetails.videoPath;
+          this.tracingReport = DATA.tracingReport && this.currentDetails && (this.currentDetails.tracePath || this.currentDetails.traceData);
           
           // Reset expanded state
           this.expandedSteps = new Set();
@@ -891,8 +956,9 @@
         
         refreshStepsDisplay() {
           // Re-render steps when filter changes
+          console.log('[refreshStepsDisplay] Called with SC:', this.params.SC, 'TC:', this.params.TC, 'steps:', this.steps.length);
           if (typeof injectStepsV2 === 'function') {
-            injectStepsV2(this.showFailedOnly, this.stepFilter);
+            injectStepsV2(this.showFailedOnly, this.stepFilter, this.params.SC, this.params.TC, this.steps);
           }
         },
         
@@ -1146,7 +1212,9 @@
 
         async openPayloadModal(link, step) {
           if (!link) return;
+          // const stepJSONa = JSON.parse(decodeURIComponent(stepJSON))
           const method = this.getHttpMethod(step);
+
           // Check if payloads are embedded in the step data (new method to avoid CORS issues)
           let rawRequest = '';
           let rawResponse = '';

@@ -2,7 +2,7 @@
 package com.ing.ide.main.settings;
 
 import com.ing.datalib.util.data.LinkedProperties;
-import com.ing.ide.main.utils.table.JtableUtils;
+import com.ing.ide.main.utils.table.JTableUtils;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -48,7 +48,7 @@ public class PropUtils {
     }
 
     public static Properties getPropertiesFromTable(Properties x, JTable table) {
-        JtableUtils.stopEditing(table);
+        JTableUtils.stopEditing(table);
         int rowcount = table.getRowCount();
         for (int i = 0; i < rowcount; i++) {
             String prop = getString(table.getValueAt(i, 0));

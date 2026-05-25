@@ -245,11 +245,11 @@ public class APITester implements SlideShow.SlideChangeListener {
     public void loadData() {
         Path apiPath = getApiDataPath();
         if (apiPath == null) {
-            LOG.log(Level.WARNING, "Cannot load API Tester data - no project is open");
+            LOG.log(Level.WARNING, "Cannot load API Workbench data - no project is open");
             return;
         }
         
-        LOG.log(Level.INFO, "Loading API Tester data from: " + apiPath);
+        LOG.log(Level.INFO, "Loading API Workbench data from: " + apiPath);
         
         loadCollections();
         loadEnvironments();

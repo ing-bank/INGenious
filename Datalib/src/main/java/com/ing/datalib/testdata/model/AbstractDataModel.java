@@ -170,13 +170,13 @@ public abstract class AbstractDataModel<T extends List<String>> extends UndoRedo
         return true;
     }
 
-    public void replicateRecord(int index) {
-        T record = records.get(index);
+    public void replicateRecord(int recordIndex, int insertionIndex) {
+        T record = records.get(recordIndex);
         T nrecord = getNewRecord();
         for (int i = 0; i < columns.size(); i++) {
             nrecord.add(i, record.get(i));
         }
-        addRecord(nrecord, index);
+        addRecord(nrecord, insertionIndex);
     }
 
     public abstract T getNewRecord();

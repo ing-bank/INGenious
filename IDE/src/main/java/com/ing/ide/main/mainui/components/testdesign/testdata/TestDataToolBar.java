@@ -75,8 +75,7 @@ public class TestDataToolBar extends JToolBar {
         searchField = new SearchBox(actionListener);
         add(searchField);
         addSeparator();
-        JMenuItem addRowButton = Utils.createMenuItem("Add Row", ""
-                + "Ctrl+Plus to add a row at last"
+        JMenuItem addRowButton = Utils.createMenuItem("Add Row", "Ctrl+Plus to add a row at last"
                 + "<br>"
                 + "Ctrl+I to insert a row before the selected row"
                 + "<br>"
@@ -84,7 +83,12 @@ public class TestDataToolBar extends JToolBar {
         addColumn = Utils.createMenuItem("Add Column", "Alt+Plus", Keystroke.ADD_COLP, actionListener);
 
         JDropDownButton addSplitButton = new JDropDownButton("Add Row");
-        addSplitButton.setToolTipText("Add Rows/Columns");
+        addSplitButton.setToolTipText("Add Rows/Columns"
+                + "\n[Alt+Plus to add a column"
+                + "\n Ctrl+Plus to add a row at last"
+                + "\n Ctrl+I to insert a row before the selected row"
+                + "\n Ctrl+R to replicate the row]"
+        );
         addSplitButton.setIcon(Utils.getIconByResourceName("/ui/resources/toolbar/add"));
         addSplitButton.addMenu(addRowButton);
         addSplitButton.addMenu(addColumn);

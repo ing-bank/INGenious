@@ -291,7 +291,7 @@ public class AppMainFrame extends JFrame {
     public void showAPITester() {
         getGlassPane().setVisible(false);
         slideShow.showSlide("APITester");
-        if (fxStatusBar != null) fxStatusBar.setCurrentView("API Tester");
+        if (fxStatusBar != null) fxStatusBar.setCurrentView("API Workbench");
     }
 
     private String getAppTitle() {

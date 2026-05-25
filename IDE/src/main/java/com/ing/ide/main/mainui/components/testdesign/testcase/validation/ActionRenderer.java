@@ -31,7 +31,11 @@ public class ActionRenderer extends AbstractRenderer {
     public void render(JComponent comp, TestStep step, Object value) {
         if (!step.isCommented()) {
             if (isEmpty(value)) {
-                setEmpty(comp);
+                if (isPristineStep(step)) {
+                    setDefault(comp);
+                } else {
+                    setEmpty(comp);
+                }
             } else if (step.isReusableStep()) {
                 if (isReusablePresent(step)) {
                     setDefault(comp);

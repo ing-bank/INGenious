@@ -6,10 +6,10 @@
     <title>Performance Report</title>
     
     <!-- Modern CSS -->
-    <link rel="stylesheet" href="../../../../media/css/modern/tailwind.min.css">
-    <link rel="stylesheet" href="../../../../media/css/modern/components.css">
-    <link rel="stylesheet" href="../../../../media/css/modern/themes/light.css" id="theme-light">
-    <link rel="stylesheet" href="../../../../media/css/modern/themes/dark.css" id="theme-dark" disabled>
+    <link rel="stylesheet" href="media/css/modern/tailwind.min.css">
+    <link rel="stylesheet" href="media/css/modern/components.css">
+    <link rel="stylesheet" href="media/css/modern/themes/light.css" id="theme-light">
+    <link rel="stylesheet" href="media/css/modern/themes/dark.css" id="theme-dark" disabled>
     
     <style>
         /* Performance Report specific styles */
@@ -170,7 +170,24 @@
         }
     </style>
     
+    <!-- Define onPerfLog callback for perfLog.js (for backwards compatibility) -->
+    <script type="text/javascript">
+        // Define the callback function that older perfLog.js versions may call
+        window.onPerfLog = function(data) {
+            console.log('[perfReport] onPerfLog() callback received data:', data);
+            window.perfLog = data;
+        };
+    </script>
+    
     <script src="perfLog.js" type="text/javascript"></script>
+    <!-- Fallback if perfLog is not defined -->
+    <script type="text/javascript">
+        // Ensure perfLog variable exists
+        if (typeof perfLog === 'undefined') {
+            console.warn('[perfReport] perfLog.js did not define perfLog variable, initializing as empty object');
+            window.perfLog = {};
+        }
+    </script>
 </head>
 <body class="bg-gray-50 dark:bg-gray-900 min-h-screen" x-data="perfReportApp()" x-init="init()">
     
@@ -184,6 +201,7 @@
             </a>
             <div class="text-center flex-1">
                 <h1 class="text-3xl font-black text-orange-600 dark:text-orange-400">⚡ Performance Report</h1>
+                <p class="text-sm text-gray-500 dark:text-gray-400 mt-1" x-show="filterScenario || filterTestCase" x-text="(filterScenario ? '📍 ' + filterScenario : '') + (filterScenario && filterTestCase ? ' → ' : '') + (filterTestCase ? '🧪 ' + filterTestCase : '')"></p>
                 <p class="text-sm text-gray-500 dark:text-gray-400 mt-1" x-text="pages.length + ' page(s) captured'"></p>
             </div>
         </div>
@@ -388,12 +406,92 @@
                 viewMode: 'waterfall',
                 darkMode: false,
                 expandedPages: {},
+                filterScenario: '',
+                filterTestCase: '',
                 
                 init() {
-                    // Parse perfLog data
-                    if (typeof perfLog !== 'undefined' && perfLog.length > 0) {
-                        this.parseHarData(perfLog);
-                    }
+                    // Parse URL parameters for filtering
+                    const params = new URLSearchParams(window.location.search);
+                    this.filterScenario = params.get('SC') || '';
+                    this.filterTestCase = params.get('TC') || '';
+                    
+                    console.log('[perfReportApp] Filtering by:', { scenario: this.filterScenario, testcase: this.filterTestCase });
+                    
+                    // Wait for perfLog to be loaded from perfLog.js
+                    // perfLog.js is loaded synchronously before this script runs
+                    let retries = 0;
+                    const checkPerfLog = () => {
+                        // perfLog is an object with test case names as keys, not an array
+                        if (typeof perfLog !== 'undefined' && perfLog && Object.keys(perfLog).length > 0) {
+                            console.log('[perfReportApp] perfLog loaded with', Object.keys(perfLog).length, 'test cases');
+                            // Convert perfLog object to array of har entries, filtering if needed
+                            let harEntries = [];
+                            for (let testCaseName in perfLog) {
+                                let shouldInclude = true;
+                                
+                                // If filters are specified, only include matching test cases
+                                if (this.filterScenario || this.filterTestCase) {
+                                    let isMatched = false;
+                                    
+                                    if (this.filterScenario && this.filterTestCase) {
+                                        // Both filters specified - construct possible key patterns and check for matches
+                                        const patterns = [
+                                            `${this.filterScenario}_${this.filterTestCase}`,  // underscore separator
+                                            `${this.filterScenario}-${this.filterTestCase}`,  // dash separator
+                                        ];
+                                        
+                                        // Check if testCaseName matches any pattern (with or without suffix)
+                                        for (let pattern of patterns) {
+                                            if (testCaseName === pattern || testCaseName.startsWith(pattern + '_[')) {
+                                                isMatched = true;
+                                                console.log('[perfReportApp] Matched:', testCaseName, 'with pattern:', pattern);
+                                                break;
+                                            }
+                                        }
+                                    } else if (this.filterScenario) {
+                                        // Only scenario filter - try to extract and match
+                                        let match = testCaseName.match(/^(.+?)_(.+?)(_\[|$)|^(.+?)-(.+?)(_\[|$)/);
+                                        if (match) {
+                                            const scenario = match[1] || match[4];
+                                            if (scenario === this.filterScenario) {
+                                                isMatched = true;
+                                                console.log('[perfReportApp] Matched scenario:', testCaseName);
+                                            }
+                                        }
+                                    } else if (this.filterTestCase) {
+                                        // Only test case filter - try to extract and match
+                                        let match = testCaseName.match(/^(.+?)_(.+?)(_\[|$)|^(.+?)-(.+?)(_\[|$)/);
+                                        if (match) {
+                                            const testcase = match[2] || match[5];
+                                            if (testcase === this.filterTestCase) {
+                                                isMatched = true;
+                                                console.log('[perfReportApp] Matched testcase:', testCaseName);
+                                            }
+                                        }
+                                    }
+                                    
+                                    if (!isMatched) {
+                                        console.log('[perfReportApp] Skipping (no match):', testCaseName, '| Looking for SC:', this.filterScenario, 'TC:', this.filterTestCase);
+                                        shouldInclude = false;
+                                    }
+                                }
+                                
+                                if (shouldInclude && perfLog[testCaseName].har && Array.isArray(perfLog[testCaseName].har)) {
+                                    harEntries = harEntries.concat(perfLog[testCaseName].har);
+                                }
+                            }
+                            console.log('[perfReportApp] Found', harEntries.length, 'matching HAR entries');
+                            this.parseHarData(harEntries);
+                        } else if (retries < 10) {
+                            retries++;
+                            console.log('[perfReportApp] Waiting for perfLog... retry', retries);
+                            setTimeout(checkPerfLog, 100);
+                        } else {
+                            console.warn('[perfReportApp] perfLog not found after retries');
+                        }
+                    };
+                    
+                    checkPerfLog();
                     
                     // Initialize theme
                     this.darkMode = localStorage.getItem('theme') === 'dark' || 

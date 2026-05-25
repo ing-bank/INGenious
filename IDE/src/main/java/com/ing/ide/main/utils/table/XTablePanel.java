@@ -195,7 +195,7 @@ public class XTablePanel extends JPanel {
         addRow.setBorderPainted(false);
         addRow.setFocusPainted(false);
         addRow.addActionListener((ActionEvent ae) -> {
-            JtableUtils.addrow(table);
+            JTableUtils.addrow(table);
         });
         JButton delete = new JButton(
                 INGIcons.swingColored("icon.rem", 16));
@@ -204,7 +204,7 @@ public class XTablePanel extends JPanel {
         delete.setBorderPainted(false);
         delete.setFocusPainted(false);
         delete.addActionListener((ActionEvent ae) -> {
-            JtableUtils.deleterow(table);
+            JTableUtils.deleterow(table);
         });
         toolbar.add(new Box.Filler(
                 new Dimension(0, 0), new Dimension(0, 0), new Dimension(32767, 32767)));
@@ -226,7 +226,7 @@ public class XTablePanel extends JPanel {
         imTD.put(Keystroke.ENCRYPT, "encrypt");
         amTD.put("encrypt", enc);
         table.setComponentPopupMenu(popup);
-        JtableUtils.addlisteners(table, Boolean.FALSE);
+        JTableUtils.addlisteners(table, Boolean.FALSE);
     }
 
     private static AbstractAction getEncryptAction(final JTable table) {

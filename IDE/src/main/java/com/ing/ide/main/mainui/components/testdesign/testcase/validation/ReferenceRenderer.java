@@ -80,8 +80,11 @@ public class ReferenceRenderer extends AbstractRenderer {
 
         if (!step.isCommented()) {
             if (isEmpty(value)) {
-                if (isOptional(step)) setDefault(comp);
-                else setEmpty(comp);
+                if (isPristineStep(step) || isOptional(step)) {
+                    setDefault(comp);
+                } else {
+                    setEmpty(comp);
+                }
             } else if (step.isPageObjectStep()) {
                 if (isObjectPresent(step)) setDefault(comp);
                 else setNotPresent(comp, objNotPresent);

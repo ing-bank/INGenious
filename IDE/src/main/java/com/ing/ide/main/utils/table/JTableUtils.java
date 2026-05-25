@@ -54,7 +54,7 @@ import org.apache.commons.lang3.ArrayUtils;
  * Add-on functions for the <code>JTable</code>
  *
  */
-public class JtableUtils {
+public class JTableUtils {
 
     public static TableColumn column = null;
     public static JPopupMenu renamePopup = null;
@@ -78,8 +78,8 @@ public class JtableUtils {
                 Object val = p.getClientProperty("Table");
                 if (val != null) {
                     JTable tble = (JTable) val;
-                    JtableUtils.cancelEditing(tble);
-                    JtableUtils.copyToClipboard(false, tble);
+                    JTableUtils.cancelEditing(tble);
+                    JTableUtils.copyToClipboard(false, tble);
                 }
             }
         });
@@ -92,8 +92,8 @@ public class JtableUtils {
                 Object val = p.getClientProperty("Table");
                 if (val != null) {
                     JTable tble = (JTable) val;
-                    JtableUtils.cancelEditing(tble);
-                    JtableUtils.copyToClipboard(true, tble);
+                    JTableUtils.cancelEditing(tble);
+                    JTableUtils.copyToClipboard(true, tble);
                 }
             }
         });
@@ -106,8 +106,8 @@ public class JtableUtils {
                 Object val = p.getClientProperty("Table");
                 if (val != null) {
                     JTable tble = (JTable) val;
-                    JtableUtils.cancelEditing(tble);
-                    JtableUtils.pasteFromClipboard(tble);
+                    JTableUtils.cancelEditing(tble);
+                    JTableUtils.pasteFromClipboard(tble);
                 }
             }
         });
@@ -263,7 +263,7 @@ public class JtableUtils {
             }
 
         } catch (HeadlessException ex) {
-            Logger.getLogger(JtableUtils.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(JTableUtils.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
 
@@ -280,7 +280,7 @@ public class JtableUtils {
         try {
             pasteString = (String) (CLIPBOARD.getContents(CLIPBOARD).getTransferData(DataFlavor.stringFlavor));
         } catch (UnsupportedFlavorException | IOException ex) {
-            Logger.getLogger(JtableUtils.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(JTableUtils.class.getName()).log(Level.SEVERE, null, ex);
             return;
         }
         String[] lines = pasteString.split(LINE_BREAK);
@@ -376,7 +376,7 @@ public class JtableUtils {
             tcm.moveColumn(sCol, sCol-1);
 
         } catch (Exception e) {
-            Logger.getLogger(JtableUtils.class.getName()).log(Level.SEVERE, null, e);
+            Logger.getLogger(JTableUtils.class.getName()).log(Level.SEVERE, null, e);
         }
 
     }
@@ -389,7 +389,7 @@ public class JtableUtils {
             tcm.moveColumn(sCol, sCol+1);
 
         } catch (Exception e) {
-            Logger.getLogger(JtableUtils.class.getName()).log(Level.SEVERE, null, e);
+            Logger.getLogger(JTableUtils.class.getName()).log(Level.SEVERE, null, e);
         }
 
     }
@@ -561,7 +561,7 @@ public class JtableUtils {
                 }
             }
         } catch (Exception ex) {
-            Logger.getLogger(JtableUtils.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(JTableUtils.class.getName()).log(Level.SEVERE, null, ex);
         }
 
     }
@@ -624,7 +624,7 @@ public class JtableUtils {
             try {
                 ((DefaultTableModel) table.getModel()).removeRow(row);
             } catch (Exception ex) {
-                Logger.getLogger(JtableUtils.class.getName()).log(Level.SEVERE, null, ex);
+                Logger.getLogger(JTableUtils.class.getName()).log(Level.SEVERE, null, ex);
             }
         }
 
@@ -680,7 +680,7 @@ public class JtableUtils {
             }
 
         } catch (Exception e) {
-            Logger.getLogger(JtableUtils.class.getName()).log(Level.SEVERE, null, e);
+            Logger.getLogger(JTableUtils.class.getName()).log(Level.SEVERE, null, e);
         }
 
     }
@@ -725,7 +725,7 @@ public class JtableUtils {
                 i++;
             }
         } catch (Exception e) {
-            Logger.getLogger(JtableUtils.class.getName()).log(Level.SEVERE, null, e);
+            Logger.getLogger(JTableUtils.class.getName()).log(Level.SEVERE, null, e);
         }
         return result;
     }
@@ -757,7 +757,7 @@ public class JtableUtils {
             }
 
         } catch (Exception ex) {
-            Logger.getLogger(JtableUtils.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(JTableUtils.class.getName()).log(Level.SEVERE, null, ex);
         }
 
     }
@@ -800,7 +800,7 @@ public class JtableUtils {
                 i++;
             }
         } catch (Exception ex) {
-            Logger.getLogger(JtableUtils.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(JTableUtils.class.getName()).log(Level.SEVERE, null, ex);
         }
         return result;
     }
@@ -922,7 +922,7 @@ public class JtableUtils {
                         table.setValueAt(null, i, j);
                     }
                 } catch (Exception ex) {
-                    Logger.getLogger(JtableUtils.class.getName()).log(Level.SEVERE, null, ex);
+                    Logger.getLogger(JTableUtils.class.getName()).log(Level.SEVERE, null, ex);
                 }
             }
         }

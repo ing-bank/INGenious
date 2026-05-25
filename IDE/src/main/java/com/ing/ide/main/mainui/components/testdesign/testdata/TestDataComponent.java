@@ -12,7 +12,7 @@ import com.ing.ide.main.mainui.components.testdesign.TestDesign;
 import com.ing.ide.main.utils.TabTitleEditListener;
 import com.ing.ide.main.utils.Utils;
 import com.ing.ide.main.utils.table.FrozenColumnScrollPane;
-import com.ing.ide.main.utils.table.JtableUtils;
+import com.ing.ide.main.utils.table.JTableUtils;
 import com.ing.ide.main.utils.table.XTable;
 import com.ing.ide.util.Canvas;
 import com.ing.ide.util.Notification;
@@ -55,6 +55,7 @@ import javax.swing.table.TableCellEditor;
 import javax.swing.table.TableColumnModel;
 import javax.swing.table.TableModel;
 import com.ing.ide.main.fx.INGIcons;
+import com.ing.ide.main.utils.table.XTableUtils;
 
 /**
  *
@@ -106,7 +107,6 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
         add(envTab, BorderLayout.CENTER);
 
         saveListener = new SaveListener() {
-
             @Override
             public void onSave(Boolean bln) {
                 changeSave(bln);
@@ -446,27 +446,23 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
 
     private void makeAsGlobalData(TestDataTablePanel tdPanel) {
         int[] columns = tdPanel.table.getSelectedColumns();
-        if (columns != null && columns.length > 0) {
+        int[] rows = tdPanel.table.getSelectedRows();
+        if (columns != null && columns.length > 0 && rows != null && rows.length > 0) {
             GlobalDataModel gdModel = getCurrentEnviromentData().getGlobalData();
             Object[] data = addAndGetKeyForGlobalData(gdModel);
-            int row = (int) data[1];
-            String[] columnNames = new String[columns.length];
-            for (int i = 0; i < columns.length; i++) {
-                columnNames[i] = tdPanel.table.getColumnName(columns[i]);
-            }
-            for (String columnName : columnNames) {
+            int globalRow = (int) data[1];
+            
+            // Copy values from the first selected row in test data to global data
+            int sourceRow = rows[0];
+            for (int viewCol : columns) {
+                String columnName = tdPanel.table.getColumnName(viewCol);
                 gdModel.addColumn(columnName);
-                if (Objects.toString(gdModel.getValueAt(row,
-                        gdModel.getColumnIndex(columnName)), "").isEmpty()) {
-
-                    gdModel.setValueAt(
-                            tdPanel.table.getValueAt(
-                                    tdPanel.table.getSelectedRow(),
-                                    tdPanel.std.getColumnIndex(columnName)),
-                            row, gdModel.getColumnIndex(columnName));
-
-                }
+                // Get value using VIEW column index (table.getValueAt uses view indices)
+                Object value = tdPanel.table.getValueAt(sourceRow, viewCol);
+                // Copy value from test data to global data, overwriting if necessary
+                gdModel.setValueAt(value, globalRow, gdModel.getColumnIndex(columnName));
             }
+            // Replace all selected cells with global data reference
             tdPanel.makeAsGlobalData(data[0].toString());
         }
     }
@@ -742,6 +738,7 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
                 frozenScrollPane = new FrozenColumnScrollPane(table, 4);
                 frozenScrollPane.setBackground(UIManager.getColor("Panel.background"));
                 frozenScrollPane.getViewport().setBackground(UIManager.getColor("Panel.background"));
+                
                 // Apply popup menu to fixed table as well
                 frozenScrollPane.getFixedTable().setComponentPopupMenu(popupMenu);
                 // Set cell editor provider for fixed columns (columns 0-3: Scenario, Flow, Iteration, SubIteration)
@@ -912,9 +909,13 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
 
         private void replicateRow() {
             stopCellEditing();
-            if (table.getSelectedRow() != -1) {
-                std.replicateRecord(table.getSelectedRow());
-            }
+            int[] selectedRows = table.getSelectedRows();
+            int lastIndex = selectedRows[selectedRows.length - 1];
+            int added = 0;
+            for (int row : selectedRows){
+                std.replicateRecord(row, lastIndex+1+added);
+                added++;
+            }            
         }
 
         private void addColumn() {
@@ -1200,6 +1201,9 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
         private void stopCellEditing() {
             if (table.getCellEditor() != null) {
                 table.getCellEditor().stopCellEditing();
+            }
+            if (frozenScrollPane.getFixedTable().getCellEditor() != null){
+                frozenScrollPane.getFixedTable().getCellEditor().stopCellEditing();
             }
         }
 

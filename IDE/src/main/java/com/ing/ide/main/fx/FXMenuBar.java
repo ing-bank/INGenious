@@ -62,7 +62,6 @@ public class FXMenuBar extends JFXPanel {
 
         menuBar.getMenus().addAll(
                 createFileMenu(),
-                createAutomationMenu(),
                 createTestDataMenu(),
                 createConfigurationMenu(),
                 createToolsMenu(),
@@ -72,12 +71,11 @@ public class FXMenuBar extends JFXPanel {
 
         // Set colored icons on top-level menus
         setMenuGraphic(menuBar.getMenus().get(0), "FileMenu", 14);
-        setMenuGraphic(menuBar.getMenus().get(1), "AutomationMenu", 14);
-        setMenuGraphic(menuBar.getMenus().get(2), "TestDataMenu", 14);
-        setMenuGraphic(menuBar.getMenus().get(3), "ConfigurationsMenu", 14);
-        setMenuGraphic(menuBar.getMenus().get(4), "ToolsMenu", 14);
-        setMenuGraphic(menuBar.getMenus().get(5), "WindowMenu", 14);
-        setMenuGraphic(menuBar.getMenus().get(6), "HelpMenu", 14);
+        setMenuGraphic(menuBar.getMenus().get(1), "TestDataMenu", 14);
+        setMenuGraphic(menuBar.getMenus().get(2), "ConfigurationsMenu", 14);
+        setMenuGraphic(menuBar.getMenus().get(3), "ToolsMenu", 14);
+        setMenuGraphic(menuBar.getMenus().get(4), "WindowMenu", 14);
+        setMenuGraphic(menuBar.getMenus().get(5), "HelpMenu", 14);
 
         VBox root = new VBox(menuBar);
         root.getStyleClass().add("light-theme");
@@ -112,20 +110,6 @@ public class FXMenuBar extends JFXPanel {
                 menuItem("Quit", "close", KeyCode.X, KeyCombination.ALT_DOWN)
         );
         return file;
-    }
-
-    // ── Automation Menu ──
-
-    private Menu createAutomationMenu() {
-        Menu automation = new Menu("Automation");
-        automation.getItems().addAll(
-                menuItem("Object Spy", "objectSpy", KeyCode.P, KeyCombination.SHORTCUT_DOWN, KeyCombination.ALT_DOWN),
-                menuItem("Object Heal", "objectHeal", KeyCode.H, KeyCombination.SHORTCUT_DOWN, KeyCombination.ALT_DOWN),
-                new SeparatorMenuItem(),
-                menuItem("Image Spy", "imageSpy", KeyCode.I, KeyCombination.SHORTCUT_DOWN, KeyCombination.ALT_DOWN),
-                menuItem("Mobile Spy", "mobileSpy", KeyCode.M, KeyCombination.SHORTCUT_DOWN, KeyCombination.ALT_DOWN)
-        );
-        return automation;
     }
 
     // ── Test Data Menu ──
@@ -191,7 +175,7 @@ public class FXMenuBar extends JFXPanel {
                 menuItem("Test Design", "testdesign", KeyCode.N, KeyCombination.SHIFT_DOWN, KeyCombination.ALT_DOWN),
                 menuItem("Test Execution", "testexecution", KeyCode.E, KeyCombination.SHIFT_DOWN, KeyCombination.ALT_DOWN),
                 menuItem("Dashboard", "dashboard", KeyCode.D, KeyCombination.SHIFT_DOWN, KeyCombination.ALT_DOWN),
-                menuItem("API Tester", "api", KeyCode.T, KeyCombination.SHIFT_DOWN, KeyCombination.ALT_DOWN),
+                menuItem("API Workbench", "APITester", KeyCode.T, KeyCombination.SHIFT_DOWN, KeyCombination.ALT_DOWN),
                 menuItem("AdjustUI", "settings", KeyCode.A, KeyCombination.SHIFT_DOWN, KeyCombination.ALT_DOWN)
         );
         return window;

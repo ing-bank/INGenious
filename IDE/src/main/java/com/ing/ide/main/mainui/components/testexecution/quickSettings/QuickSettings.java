@@ -2,7 +2,7 @@
 package com.ing.ide.main.mainui.components.testexecution.quickSettings;
 
 import com.ing.datalib.settings.RunSettings;
-import com.ing.ide.main.mainui.components.testexecution.testset.TestsetComponent;
+import com.ing.ide.main.mainui.components.testexecution.testset.TestSetComponent;
 import com.ing.ide.util.logging.UILogger;
 import java.awt.event.ActionEvent;
 import javax.swing.Action;
@@ -28,7 +28,7 @@ public class QuickSettings implements PropertyListener {
         SAVE
     }
 
-    public QuickSettings(TestsetComponent view) {
+    public QuickSettings(TestSetComponent view) {
         uiLeft = new QuickSettingsUILeft();
         uiRight = new QuickSettingsUIRight() {
             @Override

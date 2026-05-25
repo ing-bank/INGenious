@@ -19,7 +19,7 @@ import com.ing.ide.main.shr.mobile.android.AndroidUtil;
 import com.ing.ide.main.shr.mobile.ios.IOSTree;
 import com.ing.ide.main.shr.mobile.ios.IOSUtil;
 //import com.ing.ide.main.shr.mobile.ios.IOSpy;
-import com.ing.ide.main.utils.table.JtableUtils;
+import com.ing.ide.main.utils.table.JTableUtils;
 import com.ing.ide.main.utils.table.PropertyAttributeRenderer;
 import com.ing.ide.settings.IconSettings;
 import com.ing.ide.util.Notification;
@@ -93,9 +93,9 @@ public class MobileObjectSpy extends javax.swing.JFrame {
         mobileUtils.setValues(jTree1, screenShotLabel, jTable1);
         mobileTree.setTree(jTree1);
         setJMenuBar(jMenuBar1);
-        JtableUtils.addlisteners(jTable1, true);
-        JtableUtils.addlisteners(mobilePropTable, true);
-        JtableUtils.addlisteners(jTable3, true);
+        JTableUtils.addlisteners(jTable1, true);
+        JTableUtils.addlisteners(mobilePropTable, true);
+        JTableUtils.addlisteners(jTable3, true);
         objectTree = new ObjectTree() {
             @Override
             public void loadTableModelForSelection() {
@@ -1012,11 +1012,11 @@ public class MobileObjectSpy extends javax.swing.JFrame {
     }//GEN-LAST:event_jCheckBox1ItemStateChanged
 
     private void addRowActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_addRowActionPerformed
-        JtableUtils.addrow(jTable3);
+        JTableUtils.addrow(jTable3);
     }//GEN-LAST:event_addRowActionPerformed
 
     private void removeRowActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_removeRowActionPerformed
-        JtableUtils.deleterow(jTable3);
+        JTableUtils.deleterow(jTable3);
     }//GEN-LAST:event_removeRowActionPerformed
 
     private void updateEmulatorActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_updateEmulatorActionPerformed

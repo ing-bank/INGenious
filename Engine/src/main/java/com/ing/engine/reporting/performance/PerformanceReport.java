@@ -110,7 +110,7 @@ public class PerformanceReport {
             System.out.println(new Date() + ": Exporting performance log ");
             File f = new File(FilePath.getCurrentResultsPath(), "perfLog.js");
             try (PrintWriter w = new PrintWriter(f);) {
-                w.write("onPerfLog(" + pLog.toJSONString() + ");");
+                w.write("var perfLog = " + pLog.toJSONString() + ";");
             } catch (Exception ex) {
                 LOG.log(Level.SEVERE, ex.getMessage(), ex);
             }

@@ -354,7 +354,6 @@
     -fx-border-width: 0;
     -fx-padding: 6 16 6 12;
     -fx-font-size: 11px;
-    -fx-text-fill: white;
     -fx-font-weight: 700;
     -fx-cursor: hand;
     -fx-graphic-text-gap: 6;
@@ -372,7 +371,7 @@
 }
 
 .api-tester-btn .ikonli-font-icon {
-    -fx-icon-color: white;
+    -fx-icon-color: "#7724FF";
 }
 
 

@@ -194,7 +194,6 @@ public class TestStep {
     }
 
     public TestStep asReusableStep(String scenario, String reusable) {
-        clearValues();
         setAction(scenario + ":" + reusable);
         setObject("Execute");
         return this;
