@@ -212,6 +212,17 @@ public class AppMenuBar extends JMenuBar {
         playwrightOptionsMenu.add(Utils.createMenuItem("Import Playwright Recording", sActionListener));
         tools.add(playwrightOptionsMenu);
         
+        JMenu sapOptionsMenu = new JMenu("Import SAP Recording");
+        // sapOptionsMenu.add(Utils.createMenuItem("VBScript (.vbs, .vba)", sActionListener, "Import SAP Recording:VBScript"));
+        // sapOptionsMenu.add(Utils.createMenuItem("JavaScript (.js)", sActionListener, "Import SAP Recording:JavaScript"));
+        sapOptionsMenu.add(Utils.createMenuItem("PowerShell (.ps1)", sActionListener, "Import SAP Recording:PowerShell"));
+        // sapOptionsMenu.add(Utils.createMenuItem("Python (.py)", sActionListener, "Import SAP Recording:Python"));
+        // sapOptionsMenu.add(Utils.createMenuItem("AutoIt (.au3)", sActionListener, "Import SAP Recording:AutoIt"));
+        // sapOptionsMenu.add(Utils.createMenuItem("C# (.cs)", sActionListener, "Import SAP Recording:CSharp"));
+        // sapOptionsMenu.add(Utils.createMenuItem("VB.NET (.vb)", sActionListener, "Import SAP Recording:VBNet"));
+        sapOptionsMenu.add(Utils.createMenuItem("Java (.java, .jsh)", sActionListener, "Import SAP Recording:Java"));
+        tools.add(sapOptionsMenu);
+        
         tools.add(
                 withMnemonics(
                         withShortCut(

@@ -81,6 +81,17 @@ public class HtmlTestCaseHandler extends TestCaseHandler implements PrimaryHandl
         testCaseData.put(TestCase.BROWSER, getWebDriver().getCurrentBrowser());
         testCaseData.put("browserTypeLabel", resolveBrowserTypeLabel(driver != null ? driver.getRunContext() : null, driver != null && driver.isMobileExecution()));
     }
+    
+    @Override
+    public void setSapSession(com.ing.engine.drivers.SAPSessionCreation session) {
+        if (session != null) {
+            testCaseData.put(TestCase.B_VERSION, session.getCurrentBrowserVersion());
+            testCaseData.put(TestCase.PLATFORM, session.getPlatform());
+            testCaseData.put(TestCase.BROWSER, session.getCurrentBrowser());
+            // SAP is neither web browser nor mobile, so use Browser/Device
+            testCaseData.put("browserTypeLabel", "Browser/Device");
+        }
+    }
 
     /**
      * Returns the dynamic label for browser/device for reporting.

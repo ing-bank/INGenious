@@ -26,11 +26,13 @@ import com.ing.datalib.model.Meta;
 import com.ing.datalib.model.ProjectInfo;
 import com.ing.datalib.or.ObjectRepository;
 import com.ing.datalib.or.mobile.MobileOR;
+import com.ing.datalib.or.sap.SapOR;
 import com.ing.datalib.or.structureddata.StructuredDataOR;
 import com.ing.datalib.or.web.WebOR;
 import com.ing.datalib.or.web.WebOR.ORScope;
 import com.ing.datalib.settings.ProjectSettings;
 import com.ing.datalib.util.data.FileScanner;
+
 
 /**
  * Represents an automation project and acts as the central entry point for loading, managing,
@@ -421,6 +423,8 @@ public class Project {
             getObjectRepository().getMobileSharedOR().setName(newName);
             getObjectRepository().getStructuredDataOR().setName(newName);
             getObjectRepository().getStructuredDataSharedOR().setName(newName);
+            getObjectRepository().getSapOR().setName(newName);
+            getObjectRepository().getSapSharedOR().setName(newName);
             return true;
         }
         return false;
@@ -867,6 +871,26 @@ public class Project {
         for (Scenario scenario : getAllScenarios()) {
             WebOR.ORScope webScope =
             (scope == StructuredDataOR.ORScope.SHARED)
+                ? WebOR.ORScope.SHARED
+                : WebOR.ORScope.PROJECT;
+            scenario.refactorObjectName(
+                webScope,
+                pageName,
+                oldName,
+                newName
+            );
+        }
+    }
+
+    /**
+     * Refactors SAP OR object references in TestSteps.
+     * SAP scope is mapped to Web scope because Scenarios/TestSteps
+     * are tool-agnostic and only care about PROJECT vs SHARED.
+     */
+    public void refactorSapObjectName(SapOR.ORScope scope, String pageName, String oldName, String newName) {
+        for (Scenario scenario : getAllScenarios()) {
+            WebOR.ORScope webScope =
+            (scope == SapOR.ORScope.SHARED)
                 ? WebOR.ORScope.SHARED
                 : WebOR.ORScope.PROJECT;
             scenario.refactorObjectName(

@@ -250,6 +250,10 @@ public class ObjectPopupMenu extends JPopupMenu {
             StructuredDataOR root = (StructuredDataOR) page.getRoot();
             return root.isShared();
         }
+        if (page != null && page.getRoot() instanceof com.ing.datalib.or.sap.SapOR) {
+            com.ing.datalib.or.sap.SapOR root = (com.ing.datalib.or.sap.SapOR) page.getRoot();
+            return root.isShared();
+        }
         return false;
     }
     

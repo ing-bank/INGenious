@@ -1,21 +1,26 @@
 
 package com.ing.ide.main.mainui.components.testdesign.or;
 
-import com.ing.ide.main.fx.FXPanelHeader;
-import com.ing.ide.main.fx.INGIcons;
-import com.ing.ide.main.mainui.components.testdesign.TestDesign;
-import com.ing.ide.main.mainui.components.testdesign.or.structureddata.StructuredDataORPanel;
-import com.ing.ide.main.mainui.components.testdesign.or.mobile.MobileORPanel;
-import com.ing.ide.main.mainui.components.testdesign.or.web.WebORPanel;
-import java.awt.BorderLayout;
-import java.awt.CardLayout;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
+
+import java.awt.BorderLayout;
+import java.awt.CardLayout;
+import java.awt.Color;
 import javax.swing.ButtonGroup;
 import javax.swing.JPanel;
 import javax.swing.JToggleButton;
 import javax.swing.JToolBar;
 import javax.swing.SwingUtilities;
+import javax.swing.text.Highlighter.Highlight;
+
+import com.ing.ide.main.fx.FXPanelHeader;
+import com.ing.ide.main.fx.INGIcons;
+import com.ing.ide.main.mainui.components.testdesign.TestDesign;
+import com.ing.ide.main.mainui.components.testdesign.or.mobile.MobileORPanel;
+import com.ing.ide.main.mainui.components.testdesign.or.sap.SapORPanel;
+import com.ing.ide.main.mainui.components.testdesign.or.structureddata.StructuredDataORPanel;
+import com.ing.ide.main.mainui.components.testdesign.or.web.WebORPanel;
 
 /**
  * Main UI container for managing the Object Repository within Test Design.
@@ -47,6 +52,8 @@ public class ObjectRepo extends JPanel implements ItemListener {
 
     private final StructuredDataORPanel structuredDataOR;
 
+    private final SapORPanel sapOR;
+
     FXPanelHeader header = new FXPanelHeader("Object Repository");
 
     public ObjectRepo(TestDesign testDesign) {
@@ -56,6 +63,7 @@ public class ObjectRepo extends JPanel implements ItemListener {
         webOR = new WebORPanel(testDesign);
         mobileOR = new MobileORPanel(testDesign);
         structuredDataOR = new StructuredDataORPanel(testDesign);
+        sapOR = new SapORPanel(testDesign);
         init();
     }
 
@@ -81,6 +89,7 @@ public class ObjectRepo extends JPanel implements ItemListener {
         repos.add(webOR, "Web");
         repos.add(mobileOR, "Mobile");
         repos.add(structuredDataOR, "Structured Data");
+        repos.add(sapOR, "SAP");
         switchToolBar.bgroup.getElements().nextElement().setSelected(true);
     }
 
@@ -102,6 +111,9 @@ public class ObjectRepo extends JPanel implements ItemListener {
                     case "Structured Data":
                         structuredDataOR.adjustUI();
                         break;
+                    case "SAP":
+                        sapOR.adjustUI();
+                        break;
                 }
             });
         }
@@ -111,12 +123,14 @@ public class ObjectRepo extends JPanel implements ItemListener {
         webOR.load();
         mobileOR.load();
         structuredDataOR.load();
+        sapOR.load();
     }
 
     public void adjustUI() {
         webOR.adjustUI();
         mobileOR.adjustUI();
         structuredDataOR.adjustUI();
+        sapOR.adjustUI();
     }
 
     public WebORPanel getWebOR() {
@@ -131,6 +145,10 @@ public class ObjectRepo extends JPanel implements ItemListener {
         return structuredDataOR;
     }
 
+    public SapORPanel getSapOR() {
+        return sapOR;
+    }
+
     public Boolean navigateToObject(String objectName, String pageName) {
         if (webOR.navigateToObject(objectName, pageName)) {
             switchToolBar.webButton.setSelected(true);
@@ -140,6 +158,9 @@ public class ObjectRepo extends JPanel implements ItemListener {
             return true;
         } else if (structuredDataOR.navigateToObject(objectName, pageName)) {
             switchToolBar.structuredDataButton.setSelected(true);
+            return true;
+        } else if (sapOR.navigateToObject(objectName, pageName)) {
+            switchToolBar.sapButton.setSelected(true);
             return true;
         }
         return false;
@@ -153,6 +174,7 @@ public class ObjectRepo extends JPanel implements ItemListener {
         //private JToggleButton imageButton;
         private JToggleButton mobileButton;
         private JToggleButton structuredDataButton;
+        private JToggleButton sapButton;
 
         public SwitchToolBar() {
             init();
@@ -170,7 +192,9 @@ public class ObjectRepo extends JPanel implements ItemListener {
             add(webButton = create("Web", "or.Web"));
             //add(imageButton = create("Image"));
             add(mobileButton = create("Mobile", "or.Mobile"));
+
             add(structuredDataButton = create("Structured Data", "or.StructuredData"));
+            add(sapButton = create("SAP", "or.SAP"));
         }
 
         private JToggleButton create(String text, String iconKey) {

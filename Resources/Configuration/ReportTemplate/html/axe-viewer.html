@@ -14,7 +14,36 @@
   <link rel="stylesheet" href="media/css/modern/themes/indigo.css" id="theme-accent">
   
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+
+    /* Local Inter font faces */
+    @font-face {
+      font-family: 'Inter';
+      font-style: normal;
+      font-weight: 400;
+      font-display: swap;
+      src: url('../media/fonts/vendor/inter/Inter-Regular.woff2') format('woff2');
+    }
+    @font-face {
+      font-family: 'Inter';
+      font-style: normal;
+      font-weight: 500;
+      font-display: swap;
+      src: url('../media/fonts/vendor/inter/Inter-Medium.woff2') format('woff2');
+    }
+    @font-face {
+      font-family: 'Inter';
+      font-style: normal;
+      font-weight: 600;
+      font-display: swap;
+      src: url('../media/fonts/vendor/inter/Inter-SemiBold.woff2') format('woff2');
+    }
+    @font-face {
+      font-family: 'Inter';
+      font-style: normal;
+      font-weight: 700;
+      font-display: swap;
+      src: url('../media/fonts/vendor/inter/Inter-Bold.woff2') format('woff2');
+    }
     
     [x-cloak] { display: none !important; }
     
@@ -322,7 +351,7 @@
   </main>
 
   <!-- Alpine.js -->
-  <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
+  <script defer src="../../../../media/js/vendor/alpine.min.js"></script>
   
   <script>
     function axeApp() {

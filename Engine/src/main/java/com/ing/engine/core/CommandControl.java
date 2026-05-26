@@ -26,6 +26,10 @@ import java.util.Stack;
 import com.ing.engine.drivers.WebDriverCreation;
 import com.ing.engine.drivers.MobileObject;
 import com.ing.ingenious.api.contract.drivers.MobileObjectApi;
+import com.ing.engine.drivers.SAPObject;
+import com.ing.engine.drivers.SAPSessionCreation;
+import com.jacob.com.Dispatch;
+import com.ing.engine.drivers.SAPObject.SAPFindType;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
@@ -64,26 +68,44 @@ public abstract class CommandControl {
     public WebElement Element;
     public String structuredData;
 
-    public CommandControl(PlaywrightDriverCreation playwright,
-            PlaywrightDriverCreation page,
+    //For SAPTesting
+    public SAPObject SAPObject;
+    public Dispatch SAPElement;
+    public SAPSessionCreation SAPsession;
+    public Process SAPProcess;
+
+    public CommandControl(PlaywrightDriverCreation playwright, 
+            PlaywrightDriverCreation page, 
             PlaywrightDriverCreation browserContext,
-            WebDriverCreation driver,
+            WebDriverCreation driver, 
+            SAPSessionCreation session, 
             TestCaseReport report) {
         Playwright = playwright;
         BrowserContext = browserContext;
         Page = page;
         webDriver = driver;
+        SAPsession = session;
         userData = new UserDataAccess() {
             @Override
             public TestCaseRunner context() {
                 return (TestCaseRunner) CommandControl.this.context();
             }
         };
-        if(webDriver==null) {
-           AObject = new AutomationObject(Page.page); 
-           SObject = new StructuredDataObject(Page.page);
-        } else if(webDriver!=null) {
-           MObject = new MobileObject(webDriver.driver); 
+
+        if(webDriver==null && SAPsession==null)
+        {
+           if(Page != null && Page.page != null) {
+               AObject = new AutomationObject(Page.page); 
+               SObject = new StructuredDataObject(Page.page);
+           }
+        }
+        else if(SAPsession!=null && SAPsession.session!=null)
+        {
+           SAPObject=new SAPObject(SAPsession.session); 
+        }
+        else if(webDriver!=null && webDriver.driver!=null)
+        {
+           MObject=new MobileObject(webDriver.driver); 
         }
         Report = (TestCaseReport) report;
 
@@ -93,10 +115,11 @@ public abstract class CommandControl {
         Data = ObjectName = Condition = Description = Input = Reference = Action = "";
         Locator = null;
         imageObjectGroup = null;
+        //For SAPTesting
+        SAPElement = null;
     }
 
     public void sync(Step curr) throws UnCaughtException {
-            
         refresh();
         this.Description = curr.Description;
         this.Action = curr.Action;
@@ -113,24 +136,34 @@ public abstract class CommandControl {
             if (!(ObjectName.matches("(?i:app|browser|execute|executeclass)"))) {
                 this.Reference = curr.Reference;
                 if (!curr.Action.startsWith("img")) {
+                    // Skip object finding for non-SAP actions when in SAP mode
+                    if (SAPsession != null && !isSAPAction()) {
+                        // Non-SAP action in SAP test case - don't try to find SAP objects
+                        // The action handler will proceed without an object
+                        return;
+                    }
+                    
                     if (canIFindElement()) {
-
-                        // SObject is only initialized for Playwright/Web (when webDriver == null)
                         if (SObject != null) {
                             structuredData = SObject.findElement(ObjectName, Reference);
                         }
-                        
                         if (structuredData!= null) {
                             StructuredDataObject.Action = this.Action;
                             
                             Data = structuredData;
-                        } else if (webDriver==null) {
+                        } else if (webDriver==null && AObject != null) {
                             /********** Updates the Action for NLP_locator****************/
                             AutomationObject.Action = this.Action;
                             /**************************************************************/
 
                             Locator = AObject.findElement(ObjectName, Reference, AutomationObjectApi.FindType.fromString(Condition));
-                        } else {
+                        } else if(SAPsession!=null && SAPObject != null && isSAPAction()){
+                            /********** Updates the Action for NLP_locator****************/
+                            SAPObject.Action = this.Action;
+                            /**************************************************************/
+
+                            SAPElement = SAPObject.findSAPElement(ObjectName, Reference, SAPFindType.fromString(Condition));
+                        } else if(webDriver != null && MObject != null) {
                             /********** Updates the Action for NLP_locator****************/
                             MobileObject.Action = this.Action;
                             /**************************************************************/
@@ -143,6 +176,35 @@ public abstract class CommandControl {
             }
         } 
         
+    }
+
+    /**
+     * Checks if the current step requires SAP object finding.
+     * A step is SAP-specific if the ObjectName exists in the SAP Object Repository.
+     * 
+     * <p>This is used when in SAP mode (SAPsession != null) to determine whether
+     * to attempt finding a SAP object. If the object doesn't exist in SAP OR,
+     * it's a non-SAP action (General, Database, etc.) and should skip object finding.</p>
+     * 
+     * @return true if ObjectName exists in SAP OR, false otherwise
+     */
+    private boolean isSAPAction() {
+        // If no ObjectName, it's not a SAP action
+        if (ObjectName == null || ObjectName.isEmpty()) {
+            return false;
+        }
+        
+        // If no Reference (page name), it's not a SAP action
+        if (Reference == null || Reference.isEmpty()) {
+            return false;
+        }
+        
+        // Check if this object exists in the SAP Object Repository
+        if (SAPObject != null) {
+            return SAPObject.getSapObject(Reference, ObjectName) != null;
+        }
+        
+        return false;
     }
 
     private Boolean canIFindElement() {
@@ -162,8 +224,18 @@ public abstract class CommandControl {
                     }
                 }
             }
+        } else if (SAPsession != null) {
+            // For SAP, only find objects if it's a SAP action
+            if (!isSAPAction()) {
+                return false;
+            }
+            // Check if we have an ObjectName to find
+            if (ObjectName == null || ObjectName.isEmpty()) {
+                return false;
+            }
+            return true;
         } else {
-            if (Page.isAlive()) {
+            if (Page != null && Page.isAlive()) {
                     switch (Action) {
                         case "waitForElementToBePresent":
                         case "setObjectProperty":

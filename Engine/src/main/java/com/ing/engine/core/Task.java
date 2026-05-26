@@ -8,6 +8,7 @@ import com.ing.datalib.settings.RunSettings;
 import static com.ing.engine.commands.browser.Command.faker;
 import com.ing.engine.constants.SystemDefaults;
 import com.ing.engine.drivers.PlaywrightDriverCreation;
+import com.ing.engine.drivers.SAPSessionCreation;
 import com.ing.engine.execution.data.Parameter;
 import com.ing.engine.execution.data.UserDataAccess;
 import com.ing.engine.execution.exception.DriverClosedException;
@@ -37,6 +38,7 @@ public class Task implements Runnable {
     UserDataAccess userData;
     TestCaseRunner runner;
     WebDriverCreation webDriver;
+    SAPSessionCreation session;
 
     public Task(RunContext RC) {
         runContext = RC;
@@ -138,7 +140,10 @@ public class Task implements Runnable {
             faker.put(runContext.Scenario + runContext.TestCase, new Faker(new Locale("en-US")));
             if (isPlaywrightExecution()) {
                 playwrightDriver = getPlaywrightDriver();
-                launchPlaywright();
+                launchPlaywright();            
+            } else if(isSAPExecution()){
+                session = getSAPSession();
+                launchSap();            
             } else  {
                 webDriver = getWebDriver();
                 launchWebDriver();
@@ -163,8 +168,9 @@ public class Task implements Runnable {
         } finally {
             if (isPlaywrightExecution()) {
               closePlaywrightDriver();
-            }
-            else {
+            } else if (isSAPExecution()) {
+                // Do nothing
+            } else {
                     if (webDriver.isLambdaTestExecutionPlatform()) {
                     JavascriptExecutor js = (JavascriptExecutor) webDriver.driver;
                     if (report.finalizeReport().toString().equalsIgnoreCase("PASS")) {
@@ -220,8 +226,15 @@ public class Task implements Runnable {
         report.setWebDriver(webDriver);
     }
 
+    private void launchSap() throws UnCaughtException {
+        if (!getRunSettings().useExistingDriver() || session.session == null) {
+            session.launchSession(runContext);
+        }
+        report.setSapSession(session);
+    }
+
     private CommandControl createControl() {
-        return new CommandControl(playwrightDriver, playwrightDriver, playwrightDriver, webDriver, report) {
+        return new CommandControl(playwrightDriver, playwrightDriver, playwrightDriver, webDriver, session, report) {
             @Override
             public void execute(String com, int sub) {
                 runner.runTestCase(com, sub);
@@ -281,6 +294,18 @@ public class Task implements Runnable {
         return webDriver;
     }
 
+    private SAPSessionCreation getSAPSession() {
+        SAPSessionCreation sapSession;
+        if (!getRunSettings().useExistingDriver()
+                || Control.getSapSession() == null) {
+            session = new SAPSessionCreation();
+            Control.setSapSession(session);
+        } else {
+            session = Control.getSapSession();
+        }
+        return session;
+    }
+
     public boolean isLocalExecution() {
             return !Control.exe.getExecSettings().getRunSettings().isGridExecution();
     }
@@ -298,6 +323,18 @@ public class Task implements Runnable {
         return isBrowserExecution;
     }
 
+    public boolean isSAPExecution() {
+        boolean isSAPExecution = false;
+        try {
+            String browserName = runContext.BrowserName;
+            if (browserName.equals("SAP")) {
+                isSAPExecution = true;
+            }
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+        return isSAPExecution;
+    }
 
     public boolean isWebDriverExecution() {
          return !isPlaywrightExecution();
