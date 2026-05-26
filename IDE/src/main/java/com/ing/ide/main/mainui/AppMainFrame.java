@@ -285,6 +285,7 @@ public class AppMainFrame extends JFrame {
     public void showDashBoard() {
         getGlassPane().setVisible(false);
         slideShow.showSlide("DashBoard");
+        dashBoard.loadTree();
         if (fxStatusBar != null) fxStatusBar.setCurrentView("DashBoard");
     }
 
