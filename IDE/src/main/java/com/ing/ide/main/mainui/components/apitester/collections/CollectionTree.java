@@ -107,9 +107,9 @@ public class CollectionTree extends JPanel {
         addRequest.addActionListener(e -> addRequestToCollection());
         collectionMenu.add(addRequest);
         
-        JMenuItem addFolder = new JMenuItem("Add Folder");
-        addFolder.addActionListener(e -> addFolderToCollection());
-        collectionMenu.add(addFolder);
+        // JMenuItem addFolder = new JMenuItem("Add Folder");
+        // addFolder.addActionListener(e -> addFolderToCollection());
+        // collectionMenu.add(addFolder);
         
         collectionMenu.addSeparator();
         
@@ -243,26 +243,26 @@ public class CollectionTree extends JPanel {
         }
     }
     
-    private void addFolderToCollection() {
-        DefaultMutableTreeNode node = getSelectedNode();
-        if (node == null) return;
-        
-        CollectionNode colNode = (CollectionNode) node.getUserObject();
-        
-        String name = JOptionPane.showInputDialog(this,
-            "Enter folder name:", "New Folder", JOptionPane.PLAIN_MESSAGE);
-        
-        if (name != null && !name.trim().isEmpty()) {
-            APICollection folder = new APICollection(name.trim());
-            colNode.collection.addFolder(folder);
-            controller.saveCollection(colNode.collection);
-            refreshTree();
-            
-            // Expand the collection node to show the newly added folder
-            TreePath collectionPath = new TreePath(node.getPath());
-            tree.expandPath(collectionPath);
-        }
-    }
+//    private void addFolderToCollection() {
+//        DefaultMutableTreeNode node = getSelectedNode();
+//        if (node == null) return;
+//        
+//        CollectionNode colNode = (CollectionNode) node.getUserObject();
+//        
+//        String name = JOptionPane.showInputDialog(this,
+//            "Enter folder name:", "New Folder", JOptionPane.PLAIN_MESSAGE);
+//        
+//        if (name != null && !name.trim().isEmpty()) {
+//            APICollection folder = new APICollection(name.trim());
+//            colNode.collection.addFolder(folder);
+//            controller.saveCollection(colNode.collection);
+//            refreshTree();
+//            
+//            // Expand the collection node to show the newly added folder
+//            TreePath collectionPath = new TreePath(node.getPath());
+//            tree.expandPath(collectionPath);
+//        }
+//    }
     
     private void addRequestToFolder() {
         DefaultMutableTreeNode node = getSelectedNode();
