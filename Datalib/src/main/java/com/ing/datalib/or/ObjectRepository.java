@@ -1420,6 +1420,7 @@ public class ObjectRepository {
         if (sourcePage == null) return null;
         String actualTargetName = targetPageName;
         WebORPage existingTargetPage = sharedOR.getPageByName(actualTargetName);
+        int movedCount = 0;
         if (existingTargetPage != null) {
             List<ObjectGroup<WebORObject>> objectsToMove = new ArrayList<>(sourcePage.getObjectGroups());
             for (ObjectGroup<WebORObject> group : objectsToMove) {
@@ -1434,7 +1435,10 @@ public class ObjectRepository {
                     objectName, 
                     group
                 );
-                moveWebObject(resolved, actualTargetName);
+                String moved = moveWebObject(resolved, actualTargetName);
+                if (moved != null) {
+                    movedCount++;
+                }
             }
         } else {
             List<ObjectGroup<WebORObject>> objectsToMove = new ArrayList<>(sourcePage.getObjectGroups());
@@ -1449,12 +1453,18 @@ public class ObjectRepository {
                 String movedName = moveWebObject(resolved, actualTargetName);
                 if (movedName == null) {
                     LOG.warning("Failed to move object '" + group.getName() + "' to shared page '" + actualTargetName + "'");
+                } else {
+                    movedCount++;
                 }
             }
         }
         if (sourcePage.getObjectGroups().isEmpty()) {
             sourcePage.removeFromParent();
             projectOR.setSaved(false);
+        }
+        if (movedCount == 0) {
+            LOG.warning("No objects were moved - all objects already exist in shared page '" + actualTargetName + "'");
+            return null;
         }
         LOG.info("Moved Web Page '" + sourcePageName + "' to SHARED page '" + actualTargetName + "'");
         return actualTargetName;
@@ -1584,6 +1594,7 @@ public class ObjectRepository {
         
         // Use the same name (no uniqueness needed for page move)
         String actualTargetName = targetPageName;
+        int movedCount = 0;
         
         // Check if target page already exists in shared OR
         MobileORPage existingTargetPage = sharedMOR.getPageByName(actualTargetName);
@@ -1607,7 +1618,10 @@ public class ObjectRepository {
                     objectName, 
                     group
                 );
-                moveMobileObject(resolved, actualTargetName);
+                String moved = moveMobileObject(resolved, actualTargetName);
+                if (moved != null) {
+                    movedCount++;
+                }
             }
         } else {
             // Target page doesn't exist - move entire page
@@ -1625,6 +1639,8 @@ public class ObjectRepository {
                 String movedName = moveMobileObject(resolved, actualTargetName);
                 if (movedName == null) {
                     LOG.warning("Failed to move object '" + group.getName() + "' to shared page '" + actualTargetName + "'");
+                } else {
+                    movedCount++;
                 }
             }
         }
@@ -1633,6 +1649,11 @@ public class ObjectRepository {
         if (sourcePage.getObjectGroups().isEmpty()) {
             sourcePage.removeFromParent();
             projectMOR.setSaved(false);
+        }
+        
+        if (movedCount == 0) {
+            LOG.warning("No objects were moved - all objects already exist in shared page '" + actualTargetName + "'");
+            return null;
         }
         
         LOG.info("Moved Mobile Page '" + sourcePageName + "' to SHARED page '" + actualTargetName + "'");
@@ -1795,6 +1816,7 @@ public class ObjectRepository {
         
         // Use the same name (no uniqueness needed for page move)
         String actualTargetName = targetPageName;
+        int movedCount = 0;
         
         // Check if target page already exists in shared OR
         SapORPage existingTargetPage = sharedSapOR.getPageByName(actualTargetName);
@@ -1818,7 +1840,10 @@ public class ObjectRepository {
                     objectName, 
                     group
                 );
-                moveSapObject(resolved, actualTargetName);
+                String moved = moveSapObject(resolved, actualTargetName);
+                if (moved != null) {
+                    movedCount++;
+                }
             }
         } else {
             // Target page doesn't exist - move entire page
@@ -1836,6 +1861,8 @@ public class ObjectRepository {
                 String movedName = moveSapObject(resolved, actualTargetName);
                 if (movedName == null) {
                     LOG.warning("Failed to move object '" + group.getName() + "' to shared page '" + actualTargetName + "'");
+                } else {
+                    movedCount++;
                 }
             }
         }
@@ -1844,6 +1871,11 @@ public class ObjectRepository {
         if (sourcePage.getObjectGroups().isEmpty()) {
             sourcePage.removeFromParent();
             projectSapOR.setSaved(false);
+        }
+        
+        if (movedCount == 0) {
+            LOG.warning("No objects were moved - all objects already exist in shared page '" + actualTargetName + "'");
+            return null;
         }
         
         LOG.info("Moved SAP Page '" + sourcePageName + "' to SHARED page '" + actualTargetName + "'");
@@ -2085,6 +2117,7 @@ public class ObjectRepository {
         StructuredDataORPage sourcePage = projectOR.getPageByName(sourcePageName);
         if (sourcePage == null) return null;
         String actualTargetName = targetPageName;
+        int movedCount = 0;
         StructuredDataORPage existingTargetPage = sharedOR.getPageByName(actualTargetName);
         if (existingTargetPage != null) {
             List<ObjectGroup<StructuredDataORObject>> objectsToMove = new ArrayList<>(sourcePage.getObjectGroups());
@@ -2100,7 +2133,10 @@ public class ObjectRepository {
                     objectName,
                     group
                 );
-                moveStructuredDataObject(resolved, actualTargetName);
+                String moved = moveStructuredDataObject(resolved, actualTargetName);
+                if (moved != null) {
+                    movedCount++;
+                }
             }
         } else {
             List<ObjectGroup<StructuredDataORObject>> objectsToMove = new ArrayList<>(sourcePage.getObjectGroups());
@@ -2115,12 +2151,18 @@ public class ObjectRepository {
                 String movedName = moveStructuredDataObject(resolved, actualTargetName);
                 if (movedName == null) {
                     LOG.warning("Failed to move Structured Data object '" + group.getName() + "' to shared page '" + actualTargetName + "'");
+                } else {
+                    movedCount++;
                 }
             }
         }
         if (sourcePage.getObjectGroups().isEmpty()) {
             sourcePage.removeFromParent();
             projectOR.setSaved(false);
+        }
+        if (movedCount == 0) {
+            LOG.warning("No objects were moved - all objects already exist in shared page '" + actualTargetName + "'");
+            return null;
         }
         LOG.info("Moved Structured Data Page '" + sourcePageName + "' to SHARED page '" + actualTargetName + "'");
         return actualTargetName;

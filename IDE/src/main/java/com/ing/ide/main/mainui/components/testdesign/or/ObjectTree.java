@@ -1164,6 +1164,10 @@ public abstract class ObjectTree implements ActionListener {
                 return;
             }
             String newName = repo.moveSapObject(resolved, pageName);
+            if (newName == null) {
+                Notification.show("Object with the same name already exists in Shared OR");
+                return;
+            }
             if (newName != null) {
                 // Check if source page is now empty and remove it
                 SapOR projectOR = repo.getSapOR();
@@ -1208,7 +1212,7 @@ public abstract class ObjectTree implements ActionListener {
                 Notification.show( "Moved Page '" + page.getName() + "' to Shared OR");
                 promptTestCaseReload();
             } else {
-                Notification.show("Failed to move Web page '" + pageName + "' to Shared OR");
+                Notification.show("Page '" + pageName + "' and all its objects already exist in Shared OR");
             }
         }
         if (isMobile) {
@@ -1220,6 +1224,8 @@ public abstract class ObjectTree implements ActionListener {
                 refreshSharedTree();
                 Notification.show("Moved Mobile Page '" + page.getName() + "' to Shared OR");
                 promptTestCaseReload();
+            } else {
+                Notification.show("Mobile Page '" + pageName + "' and all its objects already exist in Shared OR");
             }
         }
         if (isSap) {
@@ -1232,7 +1238,7 @@ public abstract class ObjectTree implements ActionListener {
                 Notification.show("Moved SAP Page '" + page.getName() + "' to Shared OR");
                 promptTestCaseReload();
             } else {
-                Notification.show("Failed to move Mobile page '" + pageName + "' to Shared OR");
+                Notification.show("SAP Page '" + pageName + "' and all its objects already exist in Shared OR");
             }
         }
         if (isStructuredData) {
@@ -1244,7 +1250,7 @@ public abstract class ObjectTree implements ActionListener {
                 Notification.show("Moved Structured Data Page '" + pageName + "' to Shared OR");
                 promptTestCaseReload();
             } else {
-                Notification.show("Failed to move Structured Data page '" + pageName + "' to Shared OR");
+                Notification.show("Structured Data Page '" + pageName + "' and all its objects already exist in Shared OR");
             }
         }
     }
