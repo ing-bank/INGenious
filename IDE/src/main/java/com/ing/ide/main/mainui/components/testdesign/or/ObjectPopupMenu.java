@@ -5,6 +5,7 @@ import com.ing.datalib.or.common.ORObjectInf;
 import com.ing.datalib.or.common.ORPageInf;
 import com.ing.datalib.or.common.ORRootInf;
 import com.ing.datalib.or.mobile.MobileOR;
+import com.ing.datalib.or.sap.SapOR;
 import com.ing.datalib.or.structureddata.StructuredDataOR;
 import com.ing.datalib.or.web.WebOR;
 import com.ing.ide.main.mainui.components.testdesign.or.clipboard.ORClipboardManager;
@@ -250,8 +251,8 @@ public class ObjectPopupMenu extends JPopupMenu {
             StructuredDataOR root = (StructuredDataOR) page.getRoot();
             return root.isShared();
         }
-        if (page != null && page.getRoot() instanceof com.ing.datalib.or.sap.SapOR) {
-            com.ing.datalib.or.sap.SapOR root = (com.ing.datalib.or.sap.SapOR) page.getRoot();
+        if (page != null && page.getRoot() instanceof SapOR) {
+            SapOR root = (SapOR) page.getRoot();
             return root.isShared();
         }
         return false;

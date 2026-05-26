@@ -78,6 +78,7 @@ public class ObjectType {
         add(GENERAL);
         add(STRINGOPERATIONS);
         add(STRUCTUREDDATA);
+        add(SAP);
         }};
 
     /**

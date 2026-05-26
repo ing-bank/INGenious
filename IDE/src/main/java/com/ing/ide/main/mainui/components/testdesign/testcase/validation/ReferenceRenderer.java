@@ -125,6 +125,11 @@ public class ReferenceRenderer extends AbstractRenderer {
             ResolvedStructuredDataObject sres = (ResolvedStructuredDataObject) res;
             if (sres.isFromShared()) return "[Shared] " + sres.getPageName();
             if (sres.isFromProject()) return "[Project] " + sres.getPageName();
+
+        } else if (res instanceof ResolvedSapObject) {
+            ResolvedSapObject sapres = (ResolvedSapObject) res;
+            if (sapres.isFromShared()) return "[Shared] " + sapres.getPageName();
+            if (sapres.isFromProject()) return "[Project] " + sapres.getPageName();
         }
 
         return fallback;
