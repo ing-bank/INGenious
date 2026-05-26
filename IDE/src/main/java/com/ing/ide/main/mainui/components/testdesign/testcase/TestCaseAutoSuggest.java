@@ -591,6 +591,9 @@ public class TestCaseAutoSuggest {
 
     class MouseMotionAdapterImpl extends MouseMotionAdapter {
 
+        private static final int SHOW_DELAY = 1000;
+        private static final int HIDE_DELAY = 5000; 
+        
         Point hintCell;
         Timer showTimerp;
         Timer showTimerd;
@@ -636,6 +639,14 @@ public class TestCaseAutoSuggest {
             popupf.add(jMenuItemf);
             popupm.add(jMenuItemm);
             popups.add(jMenuItems);
+
+            // Add mouse listeners to popups to prevent premature disposal
+            installPopupMouseListener(popupp, disposeTimerp);
+            installPopupMouseListener(popupd, disposeTimerd);
+            installPopupMouseListener(popupw, disposeTimerw);
+            installPopupMouseListener(popupf, disposeTimerf);
+            installPopupMouseListener(popupm, disposeTimerm);
+            installPopupMouseListener(popups, disposeTimers);
 
             jMenuItemp.addActionListener((ActionEvent ae) -> {
                 if (step != null && (isProtractorjsStep(step))) {
@@ -686,7 +697,7 @@ public class TestCaseAutoSuggest {
             });
 
             // Timer p
-            showTimerp = new Timer(1000, (ActionEvent ae) -> {
+            showTimerp = new Timer(SHOW_DELAY, (ActionEvent ae) -> {
                 if (hintCell != null) {
                     disposeTimerp.stop();
                     popupp.setVisible(false);
@@ -699,14 +710,14 @@ public class TestCaseAutoSuggest {
             });
             showTimerp.setRepeats(false);
             showTimerp.setCoalesce(true);
-            disposeTimerp = new Timer(2000, (ActionEvent ae) -> {
+            disposeTimerp = new Timer(HIDE_DELAY, (ActionEvent ae) -> {
                 popupp.setVisible(false);
             });
             disposeTimerp.setRepeats(false);
             disposeTimerp.setCoalesce(true);
 
             // Timer D
-            showTimerd = new Timer(1000, (ActionEvent ae) -> {
+            showTimerd = new Timer(SHOW_DELAY, (ActionEvent ae) -> {
                 if (hintCell != null) {
                     disposeTimerd.stop();
                     popupd.setVisible(false);
@@ -719,14 +730,14 @@ public class TestCaseAutoSuggest {
             });
             showTimerd.setRepeats(false);
             showTimerd.setCoalesce(true);
-            disposeTimerd = new Timer(2000, (ActionEvent ae) -> {
+            disposeTimerd = new Timer(HIDE_DELAY, (ActionEvent ae) -> {
                 popupd.setVisible(false);
             });
             disposeTimerd.setRepeats(false);
             disposeTimerd.setCoalesce(true);
 
             //Timer w
-            showTimerw = new Timer(1000, (ActionEvent ae) -> {
+            showTimerw = new Timer(SHOW_DELAY, (ActionEvent ae) -> {
                 if (hintCell != null) {
                     disposeTimerw.stop();
                     popupw.setVisible(false);
@@ -739,14 +750,14 @@ public class TestCaseAutoSuggest {
             });
             showTimerw.setRepeats(false);
             showTimerw.setCoalesce(true);
-            disposeTimerw = new Timer(2000, (ActionEvent ae) -> {
+            disposeTimerw = new Timer(HIDE_DELAY, (ActionEvent ae) -> {
                 popupw.setVisible(false);
             });
             disposeTimerw.setRepeats(false);
             disposeTimerw.setCoalesce(true);
 
             //Timer f
-            showTimerf = new Timer(1000, (ActionEvent ae) -> {
+            showTimerf = new Timer(SHOW_DELAY, (ActionEvent ae) -> {
                 if (hintCell != null) {
                     disposeTimerf.stop();
                     popupf.setVisible(false);
@@ -759,14 +770,14 @@ public class TestCaseAutoSuggest {
             });
             showTimerf.setRepeats(false);
             showTimerf.setCoalesce(true);
-            disposeTimerf = new Timer(2000, (ActionEvent ae) -> {
+            disposeTimerf = new Timer(HIDE_DELAY, (ActionEvent ae) -> {
                 popupf.setVisible(false);
             });
             disposeTimerf.setRepeats(false);
             disposeTimerf.setCoalesce(true);
 
             //Timer m
-            showTimerm = new Timer(1000, (ActionEvent ae) -> {
+            showTimerm = new Timer(SHOW_DELAY, (ActionEvent ae) -> {
                 if (hintCell != null) {
                     disposeTimerm.stop();
                     popupm.setVisible(false);
@@ -779,14 +790,14 @@ public class TestCaseAutoSuggest {
             });
             showTimerm.setRepeats(false);
             showTimerm.setCoalesce(true);
-            disposeTimerm = new Timer(2000, (ActionEvent ae) -> {
+            disposeTimerm = new Timer(HIDE_DELAY, (ActionEvent ae) -> {
                 popupm.setVisible(false);
             });
             disposeTimerm.setRepeats(false);
             disposeTimerm.setCoalesce(true);
 
             //Timer s
-            showTimers = new Timer(1000, (ActionEvent ae) -> {
+            showTimers = new Timer(SHOW_DELAY, (ActionEvent ae) -> {
                 if (hintCell != null) {
                     disposeTimers.stop();
                     popups.setVisible(false);
@@ -794,16 +805,36 @@ public class TestCaseAutoSuggest {
                     int x = bounds.x;
                     int y = bounds.y + bounds.height;
                     popups.show(table, x, y);
-                    disposeTimerf.start();
+                    disposeTimers.start();
                 }
             });
             showTimers.setRepeats(false);
             showTimers.setCoalesce(true);
-            disposeTimers = new Timer(2000, (ActionEvent ae) -> {
+            disposeTimers = new Timer(HIDE_DELAY, (ActionEvent ae) -> {
                 popups.setVisible(false);
             });
             disposeTimers.setRepeats(false);
             disposeTimers.setCoalesce(true);
+        }
+
+        /**
+         * Install a mouse listener on the popup to keep it visible when user hovers over it.
+         * This prevents the dispose timer from hiding the popup while the user is trying to interact with it.
+         */
+        private void installPopupMouseListener(JPopupMenu popup, Timer disposeTimer) {
+            popup.addMouseListener(new MouseAdapter() {
+                @Override
+                public void mouseEntered(MouseEvent e) {
+                    // Cancel disposal when user moves mouse over the popup
+                    disposeTimer.stop();
+                }
+
+                @Override
+                public void mouseExited(MouseEvent e) {
+                    // Restart disposal timer when user moves mouse away from popup
+                    disposeTimer.start();
+                }
+            });
         }
 
         @Override
@@ -891,6 +922,13 @@ public class TestCaseAutoSuggest {
                         popupf.setVisible(false);
                         popupm.setVisible(false);
                         popups.setVisible(false);
+                        // Stop all dispose timers to prevent inconsistent state
+                        disposeTimerp.stop();
+                        disposeTimerd.stop();
+                        disposeTimerw.stop();
+                        disposeTimerf.stop();
+                        disposeTimerm.stop();
+                        disposeTimers.stop();
                     }
                 }
             }
