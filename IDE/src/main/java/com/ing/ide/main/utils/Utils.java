@@ -41,6 +41,7 @@ import javax.swing.filechooser.FileNameExtensionFilter;
 public class Utils {
 
     public static final Image FAVICON = new ImageIcon(Utils.class.getResource("/ui/resources/favicon.png")).getImage();
+    public static final Image FAVICON_OUTLINE = new ImageIcon(Utils.class.getResource("/ui/resources/favicon-outline.png")).getImage();
     private static final FileFilter JAVAC_FILTER = new JavaCFilter();
 
     public static List<Integer> getReverseSorted(int[] array) {
