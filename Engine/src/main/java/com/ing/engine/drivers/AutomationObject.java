@@ -339,7 +339,7 @@ public class AutomationObject implements AutomationObjectApi {
                     locator = this.page.locator("xpath=" + value);
                     break;
                 case "Role":
-                    locator = createRoleLocator(value, this.page);
+                    locator = createRoleLocator(value, this.page, (Page.GetByRoleOptions) options);
                     break;
                 case "ChainedLocator":
                     locator = createChainedLocator(value, this.page);
@@ -384,7 +384,7 @@ public class AutomationObject implements AutomationObjectApi {
                     locator = framelocator.locator("xpath=" + value);
                     break;
                 case "Role":
-                    locator = createRoleLocator(value, framelocator);
+                    locator = createRoleLocator(value, framelocator, (FrameLocator.GetByRoleOptions) options);
                     break;
                 case "ChainedLocator":
                     locator = createChainedLocator(value, framelocator);
@@ -896,11 +896,9 @@ public class AutomationObject implements AutomationObjectApi {
                 
                 if (locatorType.equals(LocatorType.LOCATOR)){
                     textOptions.setExact(exact);
-                    System.out.println("textOptions : " + textOptions);
                     return textOptions;
                 } else if (locatorType.equals(LocatorType.FRAMELOCATOR)){
                     textFrameLocatorOptions.setExact(exact);
-                    System.out.println("textFrameLocatorOptions : " + textFrameLocatorOptions);
                     return textFrameLocatorOptions;
                 }
                 break;
@@ -910,11 +908,9 @@ public class AutomationObject implements AutomationObjectApi {
 
                 if (locatorType.equals(LocatorType.LOCATOR)){
                     labelOptions.setExact(exact);
-                    System.out.println("labelOptions : " + labelOptions);
                     return labelOptions;
                 } else if (locatorType.equals(LocatorType.FRAMELOCATOR)){
                     labelFrameLocatorOptions.setExact(exact);
-                    System.out.println("labelFrameLocatorOptions : " + labelFrameLocatorOptions);
                     return labelFrameLocatorOptions;
                 }
                 break;
@@ -924,11 +920,9 @@ public class AutomationObject implements AutomationObjectApi {
 
                 if (locatorType.equals(LocatorType.LOCATOR)){
                     placeholderOptions.setExact(exact);
-                    System.out.println("placeholderOptions : " + placeholderOptions);
                     return placeholderOptions;
                 } else if (locatorType.equals(LocatorType.FRAMELOCATOR)){
                     placeholderFrameLocatorOptions.setExact(exact);
-                    System.out.println("placeholderFrameLocatorOptions : " + placeholderFrameLocatorOptions);
                     return placeholderFrameLocatorOptions;
                 }
                 break;
@@ -938,11 +932,9 @@ public class AutomationObject implements AutomationObjectApi {
 
                 if (locatorType.equals(LocatorType.LOCATOR)){
                     altTextOptions.setExact(exact);
-                    System.out.println("altTextOptions : " + altTextOptions);
                     return altTextOptions;
                 } else if (locatorType.equals(LocatorType.FRAMELOCATOR)){
                     altTextFrameLocatorOptions.setExact(exact);
-                    System.out.println("altTextFrameLocatorOptions : " + altTextFrameLocatorOptions);
                     return altTextFrameLocatorOptions;
                 }
                 break;
@@ -952,26 +944,32 @@ public class AutomationObject implements AutomationObjectApi {
 
                 if (locatorType.equals(LocatorType.LOCATOR)){
                     titleOptions.setExact(exact);
-                    System.out.println("titleOptions : " + titleOptions);
                     return titleOptions;
                 } else if (locatorType.equals(LocatorType.FRAMELOCATOR)){
                     titleFrameLocatorOptions.setExact(exact);
-                    System.out.println("titleFrameLocatorOptions : " + titleFrameLocatorOptions);
                     return titleFrameLocatorOptions;
+                }
+                break;
+            case "Role":
+                Page.GetByRoleOptions roleOptions = new Page.GetByRoleOptions();
+                FrameLocator.GetByRoleOptions roleFrameLocatorOptions = new FrameLocator.GetByRoleOptions();
+
+                if (locatorType.equals(LocatorType.LOCATOR)){
+                    roleOptions.setExact(exact);
+                    return roleOptions;
+                } else if (locatorType.equals(LocatorType.FRAMELOCATOR)){
+                    roleFrameLocatorOptions.setExact(exact);
+                    return roleFrameLocatorOptions;
                 }
                 break;
         }
         return null;
     }
 
-    private Locator createRoleLocator(String value, Page page) {
+    private Locator createRoleLocator(String value, Page page, Page.GetByRoleOptions roleOptions) {
         if (value.contains(";")) {
             String[] parts = value.split(";");
             String roleType = parts[0].toUpperCase();
-            Page.GetByRoleOptions roleOptions = new Page.GetByRoleOptions();
-            if (value.toLowerCase().contains(";exact")) {
-                roleOptions.setExact(true);
-            }
             if (parts.length > 1) {
                 roleOptions.setName(parts[1]);
             }
@@ -981,14 +979,10 @@ public class AutomationObject implements AutomationObjectApi {
         }
     }
 
-    private Locator createRoleLocator(String value, FrameLocator framelocator) {
+    private Locator createRoleLocator(String value, FrameLocator framelocator, FrameLocator.GetByRoleOptions roleOptions) {
         if (value.contains(";")) {
             String[] parts = value.split(";");
             String roleType = parts[0].toUpperCase();
-            FrameLocator.GetByRoleOptions roleOptions = new FrameLocator.GetByRoleOptions();
-            if (value.toLowerCase().contains(";exact")) {
-                roleOptions.setExact(true);
-            }
             if (parts.length > 1) {
                 roleOptions.setName(parts[1]);
             }
