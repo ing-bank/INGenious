@@ -602,7 +602,6 @@ public class TestCaseAutoSuggest {
             actionItem = new JMenuItem();
             popup.add(actionItem);
 
-            // Handle the click action based on the current step
             actionItem.addActionListener((ActionEvent ae) -> {
                 if (currentStep == null) return;
                 
@@ -622,7 +621,6 @@ public class TestCaseAutoSuggest {
                 hidePopup();
             });
 
-            // Single timer to show the popup after 1 second of hovering
             showTimer = new Timer(1000, (ActionEvent ae) -> {
                 if (hintCell.x != -1 && hintCell.y != -1) {
                     Rectangle bounds = table.getCellRect(hintCell.y, hintCell.x, true);
@@ -631,10 +629,19 @@ public class TestCaseAutoSuggest {
             });
             showTimer.setRepeats(false);
 
-            // Ensure popup hides if mouse leaves the table entirely
+            // Handle when the mouse exits the table bounds entirely
             table.addMouseListener(new MouseAdapter() {
                 @Override
                 public void mouseExited(MouseEvent e) {
+                    // Don't close if the mouse exited the table directly into the popup window
+                    if (popup.isVisible() && popup.isShowing()) {
+                        try {
+                            Rectangle popupRect = new Rectangle(popup.getLocationOnScreen(), popup.getSize());
+                            if (popupRect.contains(e.getLocationOnScreen())) {
+                                return; 
+                            }
+                        } catch (Exception ex) {}
+                    }
                     hidePopup();
                 }
             });
@@ -650,25 +657,37 @@ public class TestCaseAutoSuggest {
 
         @Override
         public void mouseMoved(MouseEvent e) {
+            // FIX: If the popup is visible, check if the mouse is currently crossing into it.
+            // We expand the bounds check slightly (by 4 pixels) to seamlessly catch border handoffs.
+            if (popup.isVisible() && popup.isShowing()) {
+                try {
+                    Point pOnScreen = e.getLocationOnScreen();
+                    Rectangle popupRect = new Rectangle(popup.getLocationOnScreen(), popup.getSize());
+                    popupRect.grow(4, 4); 
+                    if (popupRect.contains(pOnScreen)) {
+                        return; // Ignore table tracking; user is interacting with the popup!
+                    }
+                } catch (Exception ex) {
+                    // Safe fallback if hierarchy UI threads race
+                }
+            }
+
             Point p = e.getPoint();
             int row = table.rowAtPoint(p);
             int col = table.columnAtPoint(p);
 
-            // If we are hovering over the exact same cell, do nothing
             if (row == hintCell.y && col == hintCell.x) {
                 return;
             }
 
-            // We moved to a new cell. Cancel any pending timers and hide the current popup.
             hidePopup();
 
             if (row != -1 && col == Input.getIndex() && getTestCase(table) != null) {
                 currentStep = getTestCase(table).getTestSteps().get(row);
                 
-                // Update the menu text based on the step type
                 if (updateMenuTextForStep(currentStep)) {
                     hintCell = new Point(col, row);
-                    showTimer.restart(); // Start the 1-second delay
+                    showTimer.restart();
                 }
             }
         }
