@@ -629,7 +629,7 @@ public class TestCaseAutoSuggest {
                 hidePopupNow();
             });
 
-            showTimer = new Timer(1000, (ActionEvent ae) -> {
+            showTimer = new Timer(650, (ActionEvent ae) -> {
                 if (hintCell.x != -1 && hintCell.y != -1) {
                     Rectangle bounds = table.getCellRect(hintCell.y, hintCell.x, true);
                     popup.show(table, bounds.x, bounds.y + bounds.height);
@@ -724,6 +724,10 @@ public class TestCaseAutoSuggest {
             int col = table.columnAtPoint(p);
 
             if (row == hintCell.y && col == hintCell.x) {
+                if (!popup.isVisible()) {
+                    showTimer.restart();
+                }
+
                 return;
             }
 
