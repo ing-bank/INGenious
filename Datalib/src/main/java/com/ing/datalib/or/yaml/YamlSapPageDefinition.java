@@ -1,16 +1,16 @@
 package com.ing.datalib.or.yaml;
 
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import com.ing.datalib.or.common.ObjectGroup;
 import com.ing.datalib.or.sap.SapOR;
 import com.ing.datalib.or.sap.SapORObject;
 import com.ing.datalib.or.sap.SapORPage;
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.annotation.JsonPropertyOrder;
-
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
 
 /**
  * YAML representation of a SAP OR page.
@@ -33,7 +33,7 @@ import java.util.Map;
  * </pre>
  */
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
-@JsonPropertyOrder({"page", "packageName", "description", "tags", "elements"})
+@JsonPropertyOrder({"page", "scope", "packageName", "description", "tags", "elements"})
 public class YamlSapPageDefinition {
     
     private String page;
@@ -41,6 +41,7 @@ public class YamlSapPageDefinition {
     private String description;
     private List<String> tags;
     private Map<String, YamlSapElementDefinition> elements = new LinkedHashMap<>();
+    private SapOR.ORScope scope;
     
     public YamlSapPageDefinition() {
     }
@@ -57,6 +58,14 @@ public class YamlSapPageDefinition {
 
     public void setPage(String page) {
         this.page = page;
+    }
+
+    public SapOR.ORScope getScope() {
+        return scope;
+    }
+
+    public void setScope(SapOR.ORScope scope) {
+        this.scope = scope;
     }
 
     public String getPackageName() {
@@ -97,19 +106,23 @@ public class YamlSapPageDefinition {
      * Create from SapORPage (for writing YAML).
      */
     public static YamlSapPageDefinition fromSapORPage(SapORPage page) {
-        YamlSapPageDefinition def = new YamlSapPageDefinition(page.getName());
-        def.setPackageName(page.getPackageName());
+        YamlSapPageDefinition yaml = new YamlSapPageDefinition(page.getName());
+        yaml.setPackageName(page.getPackageName());
+        
+        if (page.getRoot() != null) {
+            yaml.setScope(page.getRoot().getScope());
+        }
         
         // Convert all object groups to YAML elements
         for (ObjectGroup<SapORObject> group : page.getObjectGroups()) {
             for (SapORObject object : group.getObjects()) {
-                YamlSapElementDefinition elementDef = YamlSapElementDefinition.fromSapORObject(object);
+                YamlSapElementDefinition element = YamlSapElementDefinition.fromSapORObject(object);
                 // Add all objects, even if empty (matches Web OR behavior)
-                def.elements.put(object.getName(), elementDef);
+                yaml.getElements().put(object.getName(), element);
             }
         }
         
-        return def;
+        return yaml;
     }
     
     /**
@@ -117,6 +130,10 @@ public class YamlSapPageDefinition {
      */
     public SapORPage toSapORPage(SapOR root) {
         SapORPage page = new SapORPage(this.page, root);
+
+        if (this.scope != null && root != null && this.scope != root.getScope()) { 
+            throw new IllegalStateException("Scope mismatch: YAML page '" + page + "' declares scope " + scope + " but is loaded under OR scope " + root.getScope());
+        }
         
         if (packageName != null && !packageName.isEmpty()) {
             page.setPackageName(packageName);

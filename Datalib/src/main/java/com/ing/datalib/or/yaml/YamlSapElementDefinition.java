@@ -1,13 +1,13 @@
 package com.ing.datalib.or.yaml;
 
-import com.ing.datalib.or.common.ORAttribute;
-import com.ing.datalib.or.common.ObjectGroup;
-import com.ing.datalib.or.sap.SapORObject;
+import java.util.Objects;
+
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
-
-import java.util.Objects;
+import com.ing.datalib.or.common.ORAttribute;
+import com.ing.datalib.or.common.ObjectGroup;
+import com.ing.datalib.or.sap.SapORObject;
 
 /**
  * YAML representation of a SAP OR element.
@@ -27,11 +27,12 @@ import java.util.Objects;
  * </pre>
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
-@JsonPropertyOrder({"id", "name"})
+@JsonPropertyOrder({"id", "name", "Text"})
 public class YamlSapElementDefinition {
     
     private String id;
     private String name;
+    private String Text;
     
     public YamlSapElementDefinition() {
     }
@@ -52,6 +53,14 @@ public class YamlSapElementDefinition {
 
     public void setName(String name) {
         this.name = name;
+    }
+
+    public String getText() {
+        return Text;
+    }
+
+    public void setText(String text) {
+        this.Text = text;
     }
     
     // ==================== Conversion Methods ====================
@@ -75,6 +84,9 @@ public class YamlSapElementDefinition {
                         break;
                     case "name":
                         def.setName(value);
+                        break;
+                    case "Text":
+                        def.setText(value);
                         break;
                 }
             }
@@ -105,6 +117,11 @@ public class YamlSapElementDefinition {
                         attr.setValue(name);
                     }
                     break;
+                case "Text":
+                    if (Text != null && !Text.isEmpty()) {
+                        attr.setValue(Text);
+                    }
+                    break;
             }
         }
         
@@ -118,7 +135,8 @@ public class YamlSapElementDefinition {
     @JsonIgnore
     public boolean isEmpty() {
         return (id == null || id.isEmpty()) 
-            && (name == null || name.isEmpty());
+            && (name == null || name.isEmpty())
+            && (Text == null || Text.isEmpty());
     }
     
     @Override
@@ -127,11 +145,12 @@ public class YamlSapElementDefinition {
         if (o == null || getClass() != o.getClass()) return false;
         YamlSapElementDefinition that = (YamlSapElementDefinition) o;
         return Objects.equals(id, that.id) 
-            && Objects.equals(name, that.name);
+            && Objects.equals(name, that.name)
+            && Objects.equals(Text, that.Text);
     }
     
     @Override
     public int hashCode() {
-        return Objects.hash(id, name);
+        return Objects.hash(id, name, Text);
     }
 }
