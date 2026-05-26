@@ -11,7 +11,6 @@ import javax.swing.border.EmptyBorder;
 import javax.swing.tree.*;
 import java.awt.*;
 import java.awt.event.*;
-import java.util.List;
 
 /**
  * Tree panel for displaying and managing API collections.
@@ -163,9 +162,9 @@ public class CollectionTree extends JPanel {
         renameRequest.addActionListener(e -> renameSelected());
         requestMenu.add(renameRequest);
         
-        JMenuItem moveRequest = new JMenuItem("Move...");
-        moveRequest.addActionListener(e -> moveRequest());
-        requestMenu.add(moveRequest);
+        // JMenuItem moveRequest = new JMenuItem("Move...");
+        // moveRequest.addActionListener(e -> moveRequest());
+        // requestMenu.add(moveRequest);
         
         requestMenu.addSeparator();
         
@@ -316,45 +315,45 @@ public class CollectionTree extends JPanel {
         controller.saveCollection(reqNode.parentCollection);
         refreshTree();
     }
-    
-    private void moveRequest() {
-        // Simple move dialog - show list of collections
-        DefaultMutableTreeNode node = getSelectedNode();
-        if (node == null) return;
-        
-        RequestNode reqNode = (RequestNode) node.getUserObject();
-        List<APICollection> collections = controller.getCollections();
-        
-        if (collections.isEmpty()) {
-            JOptionPane.showMessageDialog(this, "No other collections available.");
-            return;
-        }
-        
-        String[] names = collections.stream()
-            .map(APICollection::getName)
-            .toArray(String[]::new);
-        
-        String selected = (String) JOptionPane.showInputDialog(this,
-            "Move to collection:", "Move Request",
-            JOptionPane.PLAIN_MESSAGE, null, names, names[0]);
-        
-        if (selected != null) {
-            APICollection target = collections.stream()
-                .filter(c -> c.getName().equals(selected))
-                .findFirst().orElse(null);
-            
-            if (target != null && target != reqNode.parentCollection) {
-                // Remove from current collection
-                reqNode.parentCollection.getRequests().remove(reqNode.request);
-                controller.saveCollection(reqNode.parentCollection);
-                
-                // Add to target
-                target.addRequest(reqNode.request);
-                controller.saveCollection(target);
-                refreshTree();
-            }
-        }
-    }
+
+//    private void moveRequest() {
+//        // Simple move dialog - show list of collections
+//        DefaultMutableTreeNode node = getSelectedNode();
+//        if (node == null) return;
+//        
+//        RequestNode reqNode = (RequestNode) node.getUserObject();
+//        List<APICollection> collections = controller.getCollections();
+//        
+//        if (collections.isEmpty()) {
+//            JOptionPane.showMessageDialog(this, "No other collections available.");
+//            return;
+//        }
+//        
+//        String[] names = collections.stream()
+//            .map(APICollection::getName)
+//            .toArray(String[]::new);
+//        
+//        String selected = (String) JOptionPane.showInputDialog(this,
+//            "Move to collection:", "Move Request",
+//            JOptionPane.PLAIN_MESSAGE, null, names, names[0]);
+//        
+//        if (selected != null) {
+//            APICollection target = collections.stream()
+//                .filter(c -> c.getName().equals(selected))
+//                .findFirst().orElse(null);
+//            
+//            if (target != null && target != reqNode.parentCollection) {
+//                // Remove from current collection
+//                reqNode.parentCollection.getRequests().remove(reqNode.request);
+//                controller.saveCollection(reqNode.parentCollection);
+//                
+//                // Add to target
+//                target.addRequest(reqNode.request);
+//                controller.saveCollection(target);
+//                refreshTree();
+//            }
+//        }
+//    }
     
     private void renameSelected() {
         DefaultMutableTreeNode node = getSelectedNode();
