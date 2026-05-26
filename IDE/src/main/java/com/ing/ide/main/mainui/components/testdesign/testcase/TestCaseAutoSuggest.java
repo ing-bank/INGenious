@@ -593,6 +593,8 @@ public class TestCaseAutoSuggest {
 
         private Point hintCell = new Point(-1, -1);
         private Timer showTimer;
+        private Timer hideTimer;
+
         private JPopupMenu popup;
         private JMenuItem actionItem;
         private TestStep currentStep;
@@ -604,13 +606,18 @@ public class TestCaseAutoSuggest {
 
             actionItem.addActionListener((ActionEvent ae) -> {
                 if (currentStep == null) return;
-                
+
                 if (isProtractorjsStep(currentStep) || isDataBaseQueryStep(currentStep)) {
                     new SQLTextArea(null, currentStep, getInputs());
-                } else if (isRestWebservicePostStep(currentStep) || 
-                           (currentStep.isWebserviceStep() && currentStep.getAction().contains("postSoap")) ||
-                           (currentStep.isBrowserStep() && currentStep.getAction().contains("RouteFulfillSetBody"))) {
-                    new WebservicePayloadArea(null, currentStep, isRestWebservicePostStep(currentStep) ? "REST" : "SOAP", getInputs());
+                } else if (isRestWebservicePostStep(currentStep) ||
+                        (currentStep.isWebserviceStep() && currentStep.getAction().contains("postSoap")) ||
+                        (currentStep.isBrowserStep() && currentStep.getAction().contains("RouteFulfillSetBody"))) {
+                    new WebservicePayloadArea(
+                            null,
+                            currentStep,
+                            isRestWebservicePostStep(currentStep) ? "REST" : "SOAP",
+                            getInputs()
+                    );
                 } else if (isSetEndPointStep(currentStep) || isRouteFulfillEndpointStep(currentStep)) {
                     new EndPointTextArea(null, currentStep, getInputs());
                 } else if (isFileStep(currentStep) || isMessageStep(currentStep)) {
@@ -618,7 +625,8 @@ public class TestCaseAutoSuggest {
                 } else if (isStringOperationsStep(currentStep)) {
                     new StringOperationsPayloadArea(null, currentStep, getInputs());
                 }
-                hidePopup();
+
+                hidePopupNow();
             });
 
             showTimer = new Timer(1000, (ActionEvent ae) -> {
@@ -629,47 +637,86 @@ public class TestCaseAutoSuggest {
             });
             showTimer.setRepeats(false);
 
-            // Handle when the mouse exits the table bounds entirely
+            hideTimer = new Timer(250, (ActionEvent ae) -> {
+                hidePopupNow();
+            });
+            hideTimer.setRepeats(false);
+
+            MouseAdapter popupMouseAdapter = new MouseAdapter() {
+                @Override
+                public void mouseEntered(MouseEvent e) {
+                    cancelHideTimer();
+                }
+
+                @Override
+                public void mouseExited(MouseEvent e) {
+                    scheduleHidePopup();
+                }
+            };
+
+            popup.addMouseListener(popupMouseAdapter);
+            actionItem.addMouseListener(popupMouseAdapter);
+
             table.addMouseListener(new MouseAdapter() {
                 @Override
                 public void mouseExited(MouseEvent e) {
-                    // Don't close if the mouse exited the table directly into the popup window
-                    if (popup.isVisible() && popup.isShowing()) {
-                        try {
-                            Rectangle popupRect = new Rectangle(popup.getLocationOnScreen(), popup.getSize());
-                            if (popupRect.contains(e.getLocationOnScreen())) {
-                                return; 
-                            }
-                        } catch (Exception ex) {}
+                    if (isMouseOverPopup(e)) {
+                        cancelHideTimer();
+                        return;
                     }
-                    hidePopup();
+
+                    scheduleHidePopup();
+                }
+
+                @Override
+                public void mouseEntered(MouseEvent e) {
+                    cancelHideTimer();
                 }
             });
         }
 
-        private void hidePopup() {
+        private void scheduleHidePopup() {
             showTimer.stop();
+            hideTimer.restart();
+        }
+
+        private void cancelHideTimer() {
+            if (hideTimer != null) {
+                hideTimer.stop();
+            }
+        }
+
+        private void hidePopupNow() {
+            showTimer.stop();
+            cancelHideTimer();
+
             if (popup.isVisible()) {
                 popup.setVisible(false);
             }
+
             hintCell = new Point(-1, -1);
+        }
+
+        private boolean isMouseOverPopup(MouseEvent e) {
+            if (!popup.isVisible() || !popup.isShowing()) {
+                return false;
+            }
+
+            try {
+                Rectangle popupRect = new Rectangle(popup.getLocationOnScreen(), popup.getSize());
+                popupRect.grow(4, 4);
+                return popupRect.contains(e.getLocationOnScreen());
+            } catch (Exception ex) {
+                return false;
+            }
         }
 
         @Override
         public void mouseMoved(MouseEvent e) {
-            // FIX: If the popup is visible, check if the mouse is currently crossing into it.
-            // We expand the bounds check slightly (by 4 pixels) to seamlessly catch border handoffs.
-            if (popup.isVisible() && popup.isShowing()) {
-                try {
-                    Point pOnScreen = e.getLocationOnScreen();
-                    Rectangle popupRect = new Rectangle(popup.getLocationOnScreen(), popup.getSize());
-                    popupRect.grow(4, 4); 
-                    if (popupRect.contains(pOnScreen)) {
-                        return; // Ignore table tracking; user is interacting with the popup!
-                    }
-                } catch (Exception ex) {
-                    // Safe fallback if hierarchy UI threads race
-                }
+            cancelHideTimer();
+
+            if (isMouseOverPopup(e)) {
+                return;
             }
 
             Point p = e.getPoint();
@@ -680,16 +727,24 @@ public class TestCaseAutoSuggest {
                 return;
             }
 
-            hidePopup();
-
             if (row != -1 && col == Input.getIndex() && getTestCase(table) != null) {
                 currentStep = getTestCase(table).getTestSteps().get(row);
-                
+
                 if (updateMenuTextForStep(currentStep)) {
-                    hintCell = new Point(col, row);
-                    showTimer.restart();
+                    cancelHideTimer();
+
+                    if (hintCell.x != col || hintCell.y != row) {
+                        hidePopupNow();
+                        hintCell = new Point(col, row);
+                        cancelHideTimer();
+                        showTimer.restart();
+                    }
+
+                    return;
                 }
             }
+
+            scheduleHidePopup();
         }
 
         private boolean updateMenuTextForStep(TestStep step) {
@@ -699,9 +754,9 @@ public class TestCaseAutoSuggest {
             } else if (isProtractorjsStep(step)) {
                 actionItem.setText("Click to open ProtractorJS command editor");
                 return true;
-            } else if (isSOAPWebservicePostStep(step) || isRestWebservicePostStep(step) || 
-                       isSetEndPointStep(step) || isRouteFulfillEndpointStep(step) || 
-                       isRouteFulfillSetBodyStep(step)) {
+            } else if (isSOAPWebservicePostStep(step) || isRestWebservicePostStep(step) ||
+                    isSetEndPointStep(step) || isRouteFulfillEndpointStep(step) ||
+                    isRouteFulfillSetBodyStep(step)) {
                 actionItem.setText("Click to Open Webservice Editor");
                 return true;
             } else if (isFileStep(step)) {
@@ -714,6 +769,7 @@ public class TestCaseAutoSuggest {
                 actionItem.setText("Click to Open String Operations Editor");
                 return true;
             }
+
             return false;
         }
     }
