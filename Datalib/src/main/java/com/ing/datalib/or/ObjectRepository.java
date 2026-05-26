@@ -450,7 +450,7 @@ public class ObjectRepository {
         useYamlFormat = true;
 
         LOG.info("XML OR migration complete. YAML is now active.");
-        showNotification("XML Object Repository migration complete. YAML Object Repository is now active.");
+        //showNotification("XML Object Repository migration complete. YAML Object Repository is now active.");
     }
 
     private void archiveProjectXmlORs() {
