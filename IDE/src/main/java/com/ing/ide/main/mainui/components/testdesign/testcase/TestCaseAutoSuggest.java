@@ -591,250 +591,61 @@ public class TestCaseAutoSuggest {
 
     class MouseMotionAdapterImpl extends MouseMotionAdapter {
 
-        private static final int SHOW_DELAY = 1000;
-        private static final int HIDE_DELAY = 5000; 
-        
-        Point hintCell;
-        Timer showTimerp;
-        Timer showTimerd;
-        Timer showTimerw;
-        Timer showTimerf;
-        Timer showTimerm;
-        Timer showTimers;
-
-        Timer disposeTimerp;
-        Timer disposeTimerd;
-        Timer disposeTimerw;
-        Timer disposeTimerf;
-        Timer disposeTimerm;
-        Timer disposeTimers;
-
-        JPopupMenu popupp;
-        JPopupMenu popupd;
-        JPopupMenu popupw;
-        JPopupMenu popupf;
-        JPopupMenu popupm;
-        JPopupMenu popups;
-
-        TestStep step;
+        private Point hintCell = new Point(-1, -1);
+        private Timer showTimer;
+        private JPopupMenu popup;
+        private JMenuItem actionItem;
+        private TestStep currentStep;
 
         public MouseMotionAdapterImpl() {
-            popupp = new JPopupMenu();
-            popupd = new JPopupMenu();
-            popupw = new JPopupMenu();
-            popupf = new JPopupMenu();
-            popupm = new JPopupMenu();
-            popups = new JPopupMenu();
+            popup = new JPopupMenu();
+            actionItem = new JMenuItem();
+            popup.add(actionItem);
 
-            final JMenuItem jMenuItemp = new JMenuItem("Click to open ProtractorJS command editor");
-            final JMenuItem jMenuItemd = new JMenuItem("Click to Open SQL Query Editor ");
-            final JMenuItem jMenuItemw = new JMenuItem("Click to Open Webservice Editor ");
-            final JMenuItem jMenuItemf = new JMenuItem("Click to Open File Editor ");
-            final JMenuItem jMenuItemm = new JMenuItem("Click to Open Message Editor ");
-            final JMenuItem jMenuItems = new JMenuItem("Click to Open String Operations Editor ");
-
-            popupp.add(jMenuItemp);
-            popupd.add(jMenuItemd);
-            popupw.add(jMenuItemw);
-            popupf.add(jMenuItemf);
-            popupm.add(jMenuItemm);
-            popups.add(jMenuItems);
-
-            // Add mouse listeners to popups to prevent premature disposal
-            installPopupMouseListener(popupp, disposeTimerp);
-            installPopupMouseListener(popupd, disposeTimerd);
-            installPopupMouseListener(popupw, disposeTimerw);
-            installPopupMouseListener(popupf, disposeTimerf);
-            installPopupMouseListener(popupm, disposeTimerm);
-            installPopupMouseListener(popups, disposeTimers);
-
-            jMenuItemp.addActionListener((ActionEvent ae) -> {
-                if (step != null && (isProtractorjsStep(step))) {
-                    new SQLTextArea(null, step, getInputs());
+            // Handle the click action based on the current step
+            actionItem.addActionListener((ActionEvent ae) -> {
+                if (currentStep == null) return;
+                
+                if (isProtractorjsStep(currentStep) || isDataBaseQueryStep(currentStep)) {
+                    new SQLTextArea(null, currentStep, getInputs());
+                } else if (isRestWebservicePostStep(currentStep) || 
+                           (currentStep.isWebserviceStep() && currentStep.getAction().contains("postSoap")) ||
+                           (currentStep.isBrowserStep() && currentStep.getAction().contains("RouteFulfillSetBody"))) {
+                    new WebservicePayloadArea(null, currentStep, isRestWebservicePostStep(currentStep) ? "REST" : "SOAP", getInputs());
+                } else if (isSetEndPointStep(currentStep) || isRouteFulfillEndpointStep(currentStep)) {
+                    new EndPointTextArea(null, currentStep, getInputs());
+                } else if (isFileStep(currentStep) || isMessageStep(currentStep)) {
+                    new WebservicePayloadArea(null, currentStep, "SOAP", getInputs());
+                } else if (isStringOperationsStep(currentStep)) {
+                    new StringOperationsPayloadArea(null, currentStep, getInputs());
                 }
+                hidePopup();
             });
 
-            jMenuItemd.addActionListener((ActionEvent ae) -> {
-                if (step != null && (isDataBaseQueryStep(step))) {
-                    new SQLTextArea(null, step, getInputs());
-                }
-            });
-
-            jMenuItemw.addActionListener((ActionEvent ae) -> {
-                if (step.isWebserviceStep() && step.getAction().contains("postSoap")) {
-                    new WebservicePayloadArea(null, step, "SOAP", getInputs());
-                }
-                if (isRestWebservicePostStep(step)) {
-                    new WebservicePayloadArea(null, step, "REST", getInputs());
-                }
-                if (isSetEndPointStep(step)) {
-                    new EndPointTextArea(null, step, getInputs());
-                }
-                if (step.isBrowserStep() && step.getAction().contains("RouteFulfillSetBody")) {
-                    new WebservicePayloadArea(null, step, "REST", getInputs());
-                }
-                if (isRouteFulfillEndpointStep(step)) {
-                    new EndPointTextArea(null, step, getInputs());
-                }
-            });
-
-            jMenuItemf.addActionListener((ActionEvent ae) -> {
-                if (step != null && (isFileStep(step))) {
-                    new WebservicePayloadArea(null, step, "SOAP", getInputs());
-                }
-            });
-
-            jMenuItemm.addActionListener((ActionEvent ae) -> {
-                if (step != null && (isMessageStep(step))) {
-                    new WebservicePayloadArea(null, step, "SOAP", getInputs());
-                }
-            });
-
-            jMenuItems.addActionListener((ActionEvent ae) -> {
-                if (step != null && (isStringOperationsStep(step))) {
-                    new StringOperationsPayloadArea(null, step, getInputs());
-                }
-            });
-
-            // Timer p
-            showTimerp = new Timer(SHOW_DELAY, (ActionEvent ae) -> {
-                if (hintCell != null) {
-                    disposeTimerp.stop();
-                    popupp.setVisible(false);
+            // Single timer to show the popup after 1 second of hovering
+            showTimer = new Timer(1000, (ActionEvent ae) -> {
+                if (hintCell.x != -1 && hintCell.y != -1) {
                     Rectangle bounds = table.getCellRect(hintCell.y, hintCell.x, true);
-                    int x = bounds.x;
-                    int y = bounds.y + bounds.height;
-                    popupp.show(table, x, y);
-                    disposeTimerp.start();
+                    popup.show(table, bounds.x, bounds.y + bounds.height);
                 }
             });
-            showTimerp.setRepeats(false);
-            showTimerp.setCoalesce(true);
-            disposeTimerp = new Timer(HIDE_DELAY, (ActionEvent ae) -> {
-                popupp.setVisible(false);
-            });
-            disposeTimerp.setRepeats(false);
-            disposeTimerp.setCoalesce(true);
+            showTimer.setRepeats(false);
 
-            // Timer D
-            showTimerd = new Timer(SHOW_DELAY, (ActionEvent ae) -> {
-                if (hintCell != null) {
-                    disposeTimerd.stop();
-                    popupd.setVisible(false);
-                    Rectangle bounds = table.getCellRect(hintCell.y, hintCell.x, true);
-                    int x = bounds.x;
-                    int y = bounds.y + bounds.height;
-                    popupd.show(table, x, y);
-                    disposeTimerd.start();
-                }
-            });
-            showTimerd.setRepeats(false);
-            showTimerd.setCoalesce(true);
-            disposeTimerd = new Timer(HIDE_DELAY, (ActionEvent ae) -> {
-                popupd.setVisible(false);
-            });
-            disposeTimerd.setRepeats(false);
-            disposeTimerd.setCoalesce(true);
-
-            //Timer w
-            showTimerw = new Timer(SHOW_DELAY, (ActionEvent ae) -> {
-                if (hintCell != null) {
-                    disposeTimerw.stop();
-                    popupw.setVisible(false);
-                    Rectangle bounds = table.getCellRect(hintCell.y, hintCell.x, true);
-                    int x = bounds.x;
-                    int y = bounds.y + bounds.height;
-                    popupw.show(table, x, y);
-                    disposeTimerw.start();
-                }
-            });
-            showTimerw.setRepeats(false);
-            showTimerw.setCoalesce(true);
-            disposeTimerw = new Timer(HIDE_DELAY, (ActionEvent ae) -> {
-                popupw.setVisible(false);
-            });
-            disposeTimerw.setRepeats(false);
-            disposeTimerw.setCoalesce(true);
-
-            //Timer f
-            showTimerf = new Timer(SHOW_DELAY, (ActionEvent ae) -> {
-                if (hintCell != null) {
-                    disposeTimerf.stop();
-                    popupf.setVisible(false);
-                    Rectangle bounds = table.getCellRect(hintCell.y, hintCell.x, true);
-                    int x = bounds.x;
-                    int y = bounds.y + bounds.height;
-                    popupf.show(table, x, y);
-                    disposeTimerf.start();
-                }
-            });
-            showTimerf.setRepeats(false);
-            showTimerf.setCoalesce(true);
-            disposeTimerf = new Timer(HIDE_DELAY, (ActionEvent ae) -> {
-                popupf.setVisible(false);
-            });
-            disposeTimerf.setRepeats(false);
-            disposeTimerf.setCoalesce(true);
-
-            //Timer m
-            showTimerm = new Timer(SHOW_DELAY, (ActionEvent ae) -> {
-                if (hintCell != null) {
-                    disposeTimerm.stop();
-                    popupm.setVisible(false);
-                    Rectangle bounds = table.getCellRect(hintCell.y, hintCell.x, true);
-                    int x = bounds.x;
-                    int y = bounds.y + bounds.height;
-                    popupm.show(table, x, y);
-                    disposeTimerm.start();
-                }
-            });
-            showTimerm.setRepeats(false);
-            showTimerm.setCoalesce(true);
-            disposeTimerm = new Timer(HIDE_DELAY, (ActionEvent ae) -> {
-                popupm.setVisible(false);
-            });
-            disposeTimerm.setRepeats(false);
-            disposeTimerm.setCoalesce(true);
-
-            //Timer s
-            showTimers = new Timer(SHOW_DELAY, (ActionEvent ae) -> {
-                if (hintCell != null) {
-                    disposeTimers.stop();
-                    popups.setVisible(false);
-                    Rectangle bounds = table.getCellRect(hintCell.y, hintCell.x, true);
-                    int x = bounds.x;
-                    int y = bounds.y + bounds.height;
-                    popups.show(table, x, y);
-                    disposeTimers.start();
-                }
-            });
-            showTimers.setRepeats(false);
-            showTimers.setCoalesce(true);
-            disposeTimers = new Timer(HIDE_DELAY, (ActionEvent ae) -> {
-                popups.setVisible(false);
-            });
-            disposeTimers.setRepeats(false);
-            disposeTimers.setCoalesce(true);
-        }
-
-        /**
-         * Install a mouse listener on the popup to keep it visible when user hovers over it.
-         * This prevents the dispose timer from hiding the popup while the user is trying to interact with it.
-         */
-        private void installPopupMouseListener(JPopupMenu popup, Timer disposeTimer) {
-            popup.addMouseListener(new MouseAdapter() {
-                @Override
-                public void mouseEntered(MouseEvent e) {
-                    // Cancel disposal when user moves mouse over the popup
-                    disposeTimer.stop();
-                }
-
+            // Ensure popup hides if mouse leaves the table entirely
+            table.addMouseListener(new MouseAdapter() {
                 @Override
                 public void mouseExited(MouseEvent e) {
-                    // Restart disposal timer when user moves mouse away from popup
-                    disposeTimer.start();
+                    hidePopup();
                 }
             });
+        }
+
+        private void hidePopup() {
+            showTimer.stop();
+            if (popup.isVisible()) {
+                popup.setVisible(false);
+            }
+            hintCell = new Point(-1, -1);
         }
 
         @Override
@@ -842,96 +653,49 @@ public class TestCaseAutoSuggest {
             Point p = e.getPoint();
             int row = table.rowAtPoint(p);
             int col = table.columnAtPoint(p);
-            if (row != -1 && getTestCase(table) != null) {
-                step = getTestCase(table).getTestSteps().get(row);
-                if (isDataBaseQueryStep(step) && col == Input.getIndex()) {
-                    if (hintCell == null
-                            || (hintCell.x != col
-                            || hintCell.y != row)) {
-                        hintCell = new Point(col, row);
-                        showTimerd.restart();
-                    }
-                } else if (isProtractorjsStep(step) && col == Input.getIndex()) {
-                    if (hintCell == null
-                            || (hintCell.x != col
-                            || hintCell.y != row)) {
-                        hintCell = new Point(col, row);
-                        showTimerp.restart();
-                    }
-                } else if ((isSOAPWebservicePostStep(step) && col == Input.getIndex())
-                        || (isRestWebservicePostStep(step) && col == Input.getIndex())) {
-                    if (hintCell == null
-                            || (hintCell.x != col
-                            || hintCell.y != row)) {
-                        hintCell = new Point(col, row);
-                        showTimerw.restart();
-                    }
-                } else if ((isSetEndPointStep(step) && col == Input.getIndex())) {
-                    if (hintCell == null
-                            || (hintCell.x != col
-                            || hintCell.y != row)) {
-                        hintCell = new Point(col, row);
-                        showTimerw.restart();
-                    }
-                } else if ((isFileStep(step) && col == Input.getIndex())) {
-                    if (hintCell == null
-                            || (hintCell.x != col
-                            || hintCell.y != row)) {
-                        hintCell = new Point(col, row);
-                        showTimerf.restart();
-                    }
-                } else if ((isRouteFulfillEndpointStep(step) && col == Input.getIndex())) {
-                    if (hintCell == null
-                            || (hintCell.x != col
-                            || hintCell.y != row)) {
-                        hintCell = new Point(col, row);
-                        showTimerw.restart();
-                    }
-                } else if ((isRouteFulfillSetBodyStep(step) && col == Input.getIndex())) {
-                    if (hintCell == null
-                            || (hintCell.x != col
-                            || hintCell.y != row)) {
-                        hintCell = new Point(col, row);
-                        showTimerw.restart();
-                    }
-                } else if ((isMessageStep(step) && col == Input.getIndex())) {
-                    if (hintCell == null
-                            || (hintCell.x != col
-                            || hintCell.y != row)) {
-                        hintCell = new Point(col, row);
-                        showTimerm.restart();
-                    }
-                } else if ((isStringOperationsStep(step) && col == Input.getIndex())) {
-                    if (hintCell == null
-                            || (hintCell.x != col
-                            || hintCell.y != row)) {
-                        hintCell = new Point(col, row);
-                        showTimers.restart();
-                    }
-                } else {
-                    hintCell = null;
-                    if (popupp.isVisible()
-                            || popupd.isVisible()
-                            || popupw.isVisible()
-                            || popupf.isVisible()
-                            || popupm.isVisible()
-                            || popups.isVisible()) {
-                        popupp.setVisible(false);
-                        popupd.setVisible(false);
-                        popupw.setVisible(false);
-                        popupf.setVisible(false);
-                        popupm.setVisible(false);
-                        popups.setVisible(false);
-                        // Stop all dispose timers to prevent inconsistent state
-                        disposeTimerp.stop();
-                        disposeTimerd.stop();
-                        disposeTimerw.stop();
-                        disposeTimerf.stop();
-                        disposeTimerm.stop();
-                        disposeTimers.stop();
-                    }
+
+            // If we are hovering over the exact same cell, do nothing
+            if (row == hintCell.y && col == hintCell.x) {
+                return;
+            }
+
+            // We moved to a new cell. Cancel any pending timers and hide the current popup.
+            hidePopup();
+
+            if (row != -1 && col == Input.getIndex() && getTestCase(table) != null) {
+                currentStep = getTestCase(table).getTestSteps().get(row);
+                
+                // Update the menu text based on the step type
+                if (updateMenuTextForStep(currentStep)) {
+                    hintCell = new Point(col, row);
+                    showTimer.restart(); // Start the 1-second delay
                 }
             }
+        }
+
+        private boolean updateMenuTextForStep(TestStep step) {
+            if (isDataBaseQueryStep(step)) {
+                actionItem.setText("Click to Open SQL Query Editor");
+                return true;
+            } else if (isProtractorjsStep(step)) {
+                actionItem.setText("Click to open ProtractorJS command editor");
+                return true;
+            } else if (isSOAPWebservicePostStep(step) || isRestWebservicePostStep(step) || 
+                       isSetEndPointStep(step) || isRouteFulfillEndpointStep(step) || 
+                       isRouteFulfillSetBodyStep(step)) {
+                actionItem.setText("Click to Open Webservice Editor");
+                return true;
+            } else if (isFileStep(step)) {
+                actionItem.setText("Click to Open File Editor");
+                return true;
+            } else if (isMessageStep(step)) {
+                actionItem.setText("Click to Open Message Editor");
+                return true;
+            } else if (isStringOperationsStep(step)) {
+                actionItem.setText("Click to Open String Operations Editor");
+                return true;
+            }
+            return false;
         }
     }
 }
