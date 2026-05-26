@@ -140,9 +140,11 @@ public class Capabilities {
         String chromiumFile = location + File.separator + "Chromium.properties";
         String webkitFile = location + File.separator + "WebKit.properties";
         String firefoxFile = location + File.separator + "Firefox.properties";
+        String sapFile = location + File.separator + "SAP.properties";
         createFile(chromiumFile);
         createFile(webkitFile);
         createFile(firefoxFile);
+        createFile(sapFile);
     }
 
     private void createFile(String fileName) {
@@ -150,26 +152,48 @@ public class Capabilities {
         if (!propertiesFile.exists()) {
             try (FileOutputStream fos = new FileOutputStream(propertiesFile)) {
                 Properties prop = new Properties();
-                // Add default key-value pairs
-                prop.setProperty("setHeadless", "false");
-                prop.setProperty("setSlowMo", "");
-                prop.setProperty("setDevtools", "");
-                prop.setProperty("setDownloadsPath", "");
-                prop.setProperty("setExecutablePath", "");
-                prop.setProperty("setTimeout", "30000");
-                prop.setProperty("setProxy", "");
-                if (fileName.contains("Chromium")) {
-                    prop.setProperty("setChannel", "");
-                    prop.setProperty("setChromiumSandbox", "");
+                
+                // Determine browser type from filename
+                String baseName = propertiesFile.getName();
+                
+                if (baseName.equals("SAP.properties")) {
+                    // SAP-specific properties
+                    prop.setProperty("app", "C:\\Program Files\\SAP\\FrontEnd\\SAPGUI\\saplogon.exe");
+                    prop.setProperty("libraryPath", "lib/jacob-1.21");
+                    prop.setProperty("dllPath", "lib/jacob-1.21/jacob-1.21-x64.dll");
+                    prop.setProperty("connectionName", "SAP_CONN_NAME");
+                    prop.setProperty("platformName", "Windows");
+                } else if (baseName.equals("Chromium.properties") || baseName.equals("WebKit.properties") || baseName.equals("Firefox.properties")) {
+                    // Playwright browser properties (same for all)
+                    prop.setProperty("setHeadless", "false");
+                    prop.setProperty("setSlowMo", "");
+                    prop.setProperty("setDevtools", "");
+                    prop.setProperty("setDownloadsPath", "");
+                    prop.setProperty("setExecutablePath", "");
+                    prop.setProperty("setTimeout", "30000");
+                    prop.setProperty("setProxy", "");
+                    if (baseName.equals("Chromium.properties")) {
+                        prop.setProperty("setChannel", "");
+                        prop.setProperty("setChromiumSandbox", "");
+                    }
                 }
                 // Write properties to the file
                 prop.store(fos, null);
             } catch (IOException e) {
-                System.err.println("Error writing to Chromium.properties file: " + e.getMessage());
+                System.err.println("Error writing to properties file: " + e.getMessage());
             }
         } else {
             System.out.println(fileName + " properties file already exists: " + location);
         }
+    }
+    
+    /**
+     * Ensures SAP.properties file exists. 
+     * Creates it if missing for projects that have SAP emulator.
+     */
+    public void ensureSAPCapabilitiesExist() {
+        String sapFile = location + File.separator + "SAP.properties";
+        createFile(sapFile);
     }
 
 }

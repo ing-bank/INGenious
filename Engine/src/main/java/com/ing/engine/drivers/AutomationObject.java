@@ -11,6 +11,7 @@ import com.ing.datalib.or.structureddata.StructuredDataORObject;
 import com.ing.datalib.or.web.WebORObject;
 import com.ing.datalib.or.web.WebORPage;
 import com.ing.datalib.or.web.ResolvedWebObject;
+import com.ing.datalib.or.sap.ResolvedSapObject;
 import com.ing.engine.constants.SystemDefaults;
 import com.ing.engine.core.Control;
 import com.ing.engine.core.CommandControl;
@@ -160,6 +161,13 @@ public class AutomationObject implements AutomationObjectApi {
                 return sdresolved.getGroup();
             }
         } catch (Exception ignore) { }
+        try {
+            ResolvedSapObject.PageRef sref = ResolvedSapObject.PageRef.parse(page);
+            ResolvedSapObject sresolved = objRep.resolveSapObject(sref, object);
+            if (sresolved != null && sresolved.getGroup() != null) {
+                return sresolved.getGroup();
+            }
+        } catch (Exception ignore) { }
         if (objRep.getWebOR() != null && objRep.getWebOR().getPageByName(page) != null) {
             return objRep.getWebOR().getPageByName(page).getObjectGroupByName(object);
         } else if (objRep.getWebSharedOR() != null && objRep.getWebSharedOR().getPageByName(page) != null) {
@@ -172,6 +180,10 @@ public class AutomationObject implements AutomationObjectApi {
             return objRep.getStructuredDataOR().getPageByName(page).getObjectGroupByName(object);
         } else if (objRep.getStructuredDataSharedOR() != null && objRep.getStructuredDataSharedOR().getPageByName(page) != null) {
             return objRep.getStructuredDataSharedOR().getPageByName(page).getObjectGroupByName(object);
+        } else if (objRep.getSapOR() != null && objRep.getSapOR().getPageByName(page) != null) {
+            return objRep.getSapOR().getPageByName(page).getObjectGroupByName(object);
+        } else if (objRep.getSapSharedOR() != null && objRep.getSapSharedOR().getPageByName(page) != null) {
+            return objRep.getSapSharedOR().getPageByName(page).getObjectGroupByName(object);
         }
         return null;
     }

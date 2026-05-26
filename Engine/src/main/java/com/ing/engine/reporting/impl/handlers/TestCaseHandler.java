@@ -9,6 +9,7 @@ import com.ing.engine.support.Step;
 import java.io.File;
 import java.util.List;
 import com.ing.engine.drivers.WebDriverCreation;
+import com.ing.engine.drivers.SAPSessionCreation;
 
 /**
  *
@@ -101,6 +102,10 @@ public class TestCaseHandler implements Report {
     }
 
     public void setWebDriver(WebDriverCreation driver) {
+
+    }
+
+    public void setSapSession(SAPSessionCreation session) {
 
     }
 }

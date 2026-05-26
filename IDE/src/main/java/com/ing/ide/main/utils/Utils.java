@@ -169,6 +169,22 @@ public class Utils {
         return btn;
     }
 
+    /**
+     * Creates a menu item with separate text and action command.
+     * @param text Display text for the menu item
+     * @param actionlistener Action listener
+     * @param actionCommand Action command to be sent when clicked
+     * @return JMenuItem
+     */
+    public static JMenuItem createMenuItem(String text, ActionListener actionlistener, String actionCommand) {
+        JMenuItem btn = new JMenuItem();
+        btn.setActionCommand(actionCommand);
+        btn.setText(text);
+        btn.addActionListener(actionlistener);
+        btn.setFont(UIManager.getFont("TableMenu.font"));
+        return btn;
+    }
+
     public static File openINGeniousProject() {
         int option = OPEN_PROJECT.showOpenDialog(null);
         if (option == JFileChooser.APPROVE_OPTION) {

@@ -6,6 +6,7 @@ import com.ing.ide.main.utils.SearchBox;
 import com.ing.ide.main.utils.Utils;
 import com.ing.ide.settings.IconSettings;
 import java.awt.event.ItemEvent;
+import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.List;
 import javax.swing.AbstractButton;
@@ -114,12 +115,26 @@ public class TestCaseToolBar extends JToolBar {
 
     void loadBrowsers(List<String> emulators) {
         browsersMenu.removeAll();
+        
+        // Add Playwright browsers first
         List<String> browsers = PlaywrightDriverFactory.Browser.getValuesAsList();
         setBrowserListPopupMenu(browsers);
-        if (!emulators.isEmpty()) {
+        
+        // Extract SAP and add it with separator
+        List<String> emulatorsCopy = new ArrayList<>(emulators);
+        boolean hasSAP = emulatorsCopy.remove("SAP");
+        
+        if (hasSAP) {
             browsersMenu.addSeparator();
-            setBrowserListPopupMenu(emulators);
+            setBrowserListPopupMenu(List.of("SAP"));
         }
+        
+        // Add remaining emulators
+        if (!emulatorsCopy.isEmpty()) {
+            browsersMenu.addSeparator();
+            setBrowserListPopupMenu(emulatorsCopy);
+        }
+        
         selectABrowser();
     }
 
