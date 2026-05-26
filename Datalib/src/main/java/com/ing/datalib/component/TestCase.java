@@ -5,6 +5,7 @@ import com.ing.datalib.component.TestStep.HEADERS;
 import com.ing.datalib.component.utils.FileUtils;
 import com.ing.datalib.component.utils.SaveListener;
 import com.ing.datalib.or.mobile.ResolvedMobileObject;
+import com.ing.datalib.or.sap.ResolvedSapObject;
 import com.ing.datalib.or.structureddata.ResolvedStructuredDataObject;
 import com.ing.datalib.or.web.ResolvedWebObject;
 import com.ing.datalib.or.web.WebOR.ORScope;
@@ -435,6 +436,18 @@ public class TestCase extends DataModel {
                     return "[Shared] " + sdres.getPageName();
                 } else if (sdres.isFromProject()) {
                     return "[Project] " + sdres.getPageName();
+                }
+            }
+            
+            // Try resolving as SAP object (Project scope first, then Shared)
+            var sapdref = ResolvedSapObject.PageRef.parse(ref);
+            var sapdres = repo.resolveSapObject(sapdref, objectName);
+            
+            if (sapdres != null) {
+                if (sapdres.isFromShared()) {
+                    return "[Shared] " + sapdres.getPageName();
+                } else if (sapdres.isFromProject()) {
+                    return "[Project] " + sapdres.getPageName();
                 }
             }
             
