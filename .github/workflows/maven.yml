@@ -21,7 +21,10 @@ jobs:
           distribution: 'temurin'
           cache: maven
 
-      - name: Build with Maven
+      - name: Build INGenious API with Maven
+        run: mvn clean install --file ./ingenious-api/pom.xml
+
+      - name: Build INGenious framework with Maven
         run: mvn clean install --file pom.xml
 
       - name: Publish Test Results

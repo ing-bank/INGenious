@@ -37,5 +37,27 @@
     "attributes" : [ ],
     "tags" : [ ]
   } ],
-  "data" : [ ]
+  "data" : [ {
+    "id" : "AppTesting#Purchase Product_iOS",
+    "name" : "Purchase Product_iOS",
+    "tags" : [ ],
+    "attributes" : [ {
+      "name" : "type",
+      "value" : "testcase"
+    }, {
+      "name" : "scenario",
+      "value" : "AppTesting"
+    } ]
+  }, {
+    "id" : "AppTesting#Purchase Product_Android",
+    "name" : "Purchase Product_Android",
+    "tags" : [ ],
+    "attributes" : [ {
+      "name" : "type",
+      "value" : "testcase"
+    }, {
+      "name" : "scenario",
+      "value" : "AppTesting"
+    } ]
+  } ]
 }
