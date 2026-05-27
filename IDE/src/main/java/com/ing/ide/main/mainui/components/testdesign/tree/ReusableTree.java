@@ -156,9 +156,31 @@ public class ReusableTree extends ProjectTree {
                     Notification.show("Scenario " + name + " Already present");
                     return false;
                 }
+            } 
+            ScenarioNode scenarioNode = super.getSelectedScenarioNode();
+            if (scenarioNode != null && !scenarioNode.toString().equals(name)) {
+                if (scenarioNode.getScenario().renameReusable(name)) {
+                    getTreeModel().reload(scenarioNode);
+                    renameScenario(scenarioNode.getScenario());
+                    super.getTestDesign().getScenarioComp().refreshTitle();
+                    return true;
+                } else {
+                    Notification.show("Scenario " + name + " Already present");
+                    return false;
+                }
+            }
+            TestCaseNode testCaseNode = super.getSelectedTestCaseNode();
+            if (testCaseNode != null && !testCaseNode.toString().equals(name)) {
+                if (testCaseNode.getTestCase().renameReusable(name)) {
+                    getTreeModel().reload(testCaseNode);
+                    super.getTestDesign().getTestCaseComp().refreshTitle();
+                    return true;
+                } else {
+                    Notification.show("Testcase '" + name + "' Already present in Scenario - " + getSelectedTestCase().getScenario().getName());
+                }
             }
         }
-        return super.checkAndRename();
+        return false;
     }
 
     /**

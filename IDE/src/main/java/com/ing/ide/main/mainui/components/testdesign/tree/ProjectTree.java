@@ -445,7 +445,8 @@ public class ProjectTree implements ActionListener {
     private String fetchNewTestCaseName(Scenario scenario) {
         String newTestCaseName = "NewTestCase";
         for (int i = 0;; i++) {
-            if (scenario.getTestCaseByName(newTestCaseName) == null) {
+            if (scenario.getTestCaseByName(newTestCaseName) == null 
+                    && !getProject().hasTestCaseInAnyScenario(scenario.getName(), newTestCaseName)) {
                 break;
             }
             newTestCaseName = "NewTestCase" + i;
@@ -641,7 +642,7 @@ public class ProjectTree implements ActionListener {
      * Returns the first selected scenario node.
      * @return selected scenario node or null if none selected
      */
-    private ScenarioNode getSelectedScenarioNode() {
+    public ScenarioNode getSelectedScenarioNode() {
         List<ScenarioNode> scenarioNodes = getSelectedScenarioNodes();
         if (scenarioNodes.isEmpty()) {
             return null;
@@ -682,7 +683,7 @@ public class ProjectTree implements ActionListener {
      * Returns the first selected test case node.
      * @return selected test case node or null if none selected
      */
-    private TestCaseNode getSelectedTestCaseNode() {
+    public TestCaseNode getSelectedTestCaseNode() {
         List<TestCaseNode> tcNodes = getSelectedTestCaseNodes();
         if (tcNodes.isEmpty()) {
             return null;

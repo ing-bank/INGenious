@@ -1,4 +1,3 @@
-
 package com.ing.datalib.component;
 
 import java.io.File;
@@ -122,6 +121,43 @@ public class Scenario extends DataModel {
     public TestCase getTestCaseByName(String name) {
         for (TestCase testcase : testCases) {
             if (testcase.getName().equalsIgnoreCase(name)) {
+                return testcase;
+            }
+        }
+        return null;
+    }
+    /**
+     * Finds a test case by name.
+     * @param scenarioName scenario name (case-insensitive)
+     * @param testCaseName test case name (case-insensitive)
+     * @return the reusable test case if found, null otherwise
+     */
+    public TestCase getTestCaseByName(String scenarioName, String testCaseName) {
+        Scenario sc = project.getScenarioByName(scenarioName);
+        List<TestCase> tc = sc.getTestCases();
+        String tc_name;
+        for (TestCase testcase : tc) {
+            tc_name = testcase.getName();
+            if (tc_name.equalsIgnoreCase(testCaseName)) {
+                return testcase;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Finds a reusable test case by name.
+     * @param scenarioName scenario name (case-insensitive)
+     * @param testCaseName test case name (case-insensitive)
+     * @return the reusable test case if found, null otherwise
+     */
+    public TestCase getReusableTestCaseByName(String scenarioName, String testCaseName) {
+        Scenario sc = project.getReusableScenarioByName(scenarioName);
+        List<TestCase> reusables = sc.getTestCases();
+        String tc_name;
+        for (TestCase testcase : reusables) {
+            tc_name = testcase.getName();
+            if (tc_name.equalsIgnoreCase(testCaseName)) {
                 return testcase;
             }
         }
@@ -576,7 +612,7 @@ public class Scenario extends DataModel {
      */
     @Override
     public Boolean rename(String newName) {
-        if (getProject().getScenarioByName(newName) == null) {
+        if (getProject().getTestPlanScenarioByName(newName) == null) {
             if (FileUtils.renameFile(getLocation(), newName)) {
                 getProject().refactorScenario(name, newName);
                 name = newName;
@@ -585,7 +621,24 @@ public class Scenario extends DataModel {
         }
         return false;
     }
-
+    /**
+     * Renames this scenario.
+     * @param newName new scenario name
+     * @return true if successful, false if a scenario with the new name already exists
+     */
+    
+    public Boolean renameReusable(String newName) {
+        if (getProject().getReusableScenarioByName(newName) == null) {
+            if (FileUtils.renameFile(getLocation(), newName)) {
+                getProject().refactorScenario(name, newName);
+                name = newName;
+                return true;
+            }
+        }
+        
+        return false;
+    }
+    
     /**
      * Deletes this scenario from disk and removes it from the project.
      * @return true if successful, false otherwise

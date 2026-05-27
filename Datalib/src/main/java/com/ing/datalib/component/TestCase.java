@@ -922,7 +922,18 @@ public class TestCase extends DataModel {
 
     @Override
     public Boolean rename(String newName) {
-        if (getScenario().getTestCaseByName(newName) == null) {
+        if (getScenario().getTestCaseByName(newName) == null && getScenario().getReusableTestCaseByName(getScenario().getName(), newName) == null) {
+            if (FileUtils.renameFile(getLocation(), newName + ".csv")) {
+                getProject().refactorTestCase(getScenario().getName(), name, newName);
+                name = newName;
+                return true;
+            }
+        }
+        return false;
+    }
+    
+    public Boolean renameReusable(String newName) {
+        if (getScenario().getTestCaseByName(getScenario().getName(), newName) == null && getScenario().getReusableTestCaseByName(getScenario().getName(), newName) == null) {
             if (FileUtils.renameFile(getLocation(), newName + ".csv")) {
                 getProject().refactorTestCase(getScenario().getName(), name, newName);
                 name = newName;

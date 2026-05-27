@@ -167,10 +167,6 @@ public class Project {
      * Returns the list of reusable scenarios.
      * @return list of Reusable Components scenarios
      */
-    /**
-     * Returns the list of reusable scenarios.
-     * @return list of Reusable Components scenarios
-     */
     public List<Scenario> getReusableScenarios() {
         return reusableScenarios;
     }
@@ -213,6 +209,20 @@ public class Project {
      */
     public Scenario getReusableScenarioByName(String name) {
         for (Scenario scenario : reusableScenarios) {
+            if (scenario.getName().equalsIgnoreCase(name)) {
+                return scenario;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Finds a test plan scenario by name.
+     * @param name scenario name to search for (case-insensitive)
+     * @return the reusable scenario if found, null otherwise
+     */
+    public Scenario getTestPlanScenarioByName(String name) {
+        for (Scenario scenario : scenarios) {
             if (scenario.getName().equalsIgnoreCase(name)) {
                 return scenario;
             }

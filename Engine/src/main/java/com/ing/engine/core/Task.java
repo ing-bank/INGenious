@@ -115,21 +115,34 @@ public class Task implements Runnable {
     private TestCase getTestCase() {
         try {
             Scenario scn = project().getScenarioByName(runContext.Scenario);
-            if (scn != null) {
-                TestCase stc = scn.getTestCaseByName(runContext.TestCase);
-                if (stc != null) {
-                    return stc;
-                } else {
-                    LOG.log(Level.WARNING, "Testcase [{0}] not found", runContext.Scenario);
-                }
-            } else {
+            if (scn == null) {
                 LOG.log(Level.WARNING, "Scenario [{0}] not found", runContext.Scenario);
+                return null;
             }
+            
+            TestCase stc = scn.getTestCaseByName(runContext.TestCase);
+            if (stc == null) {
+                // Try reusable scenario as fallback
+                Scenario scnR = project().getReusableScenarioByName(runContext.Scenario);
+                if (scnR == null) {
+                    LOG.log(Level.WARNING, "Reusable scenario [{0}] not found", runContext.Scenario);
+                    return null;
+                } 
+                
+                TestCase stcR = scnR.getTestCaseByName(runContext.TestCase);
+                if (stcR == null) {
+                    LOG.log(Level.WARNING, "Testcase [{0}] not found in scenario [{1}]", new Object[]{runContext.TestCase, scn.getName()});
+                    return null;
+                }
+                return stcR;
+            }
+            return stc;
         } catch (Exception ex) {
-            LOG.log(Level.WARNING, "Unable to load TestaCase", ex);
+            LOG.log(Level.WARNING, "Unable to load TestCase", ex);
+            return null;
         }
-        return null;
     }
+    
     private static final Logger LOG = Logger.getLogger(Task.class.getName());
 
     public boolean runIteration(int iter) {
