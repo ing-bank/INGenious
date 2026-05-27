@@ -53,6 +53,8 @@ public class WebOR implements ORRootInf<WebORPage> {
     @JacksonXmlProperty(isAttribute = true)
     private ORScope scope = ORScope.PROJECT;
     
+    @JacksonXmlElementWrapper(localName = "projects")
+    @JacksonXmlProperty(localName = "project")
     private List<String> projects = new ArrayList<>();
 
     @JsonIgnore

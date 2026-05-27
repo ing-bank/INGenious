@@ -57,7 +57,7 @@
         <mockito.version>5.14.2</mockito.version>
         <assertj.version>3.26.3</assertj.version>
 
-        <java.version>11</java.version>
+        <java.version>17</java.version>
         <maven.compiler.source>${java.version}</maven.compiler.source>
         <maven.compiler.target>${java.version}</maven.compiler.target>
 
