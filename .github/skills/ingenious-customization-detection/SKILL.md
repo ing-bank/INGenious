@@ -8,40 +8,17 @@ argument-hint: 'Describe which INGenious installation to analyze or confirm the 
 
 ## When to Use This Skill
 
-Use this skill when you need to:
-- Detect customizations or modifications made to INGenious framework
-- Compare a user's INGenious installation against the official release
-- Identify version and type of INGenious installation (build vs source)
-- Generate reports of enhancements grouped by functionality
-- Analyze differences between user code and official release
-- Track custom modifications across modules (Engine, Datalib, Common, etc.)
-- Extract customizations as plugins for safer upgrades
-
-## Skill Structure
-
-This skill uses **progressive loading** with organized assets:
-
-- **[scripts/](./scripts/)** - 7 executable scripts for detection, comparison, and analysis
-- **[references/](./references/)** - 7 detailed reference documents (loaded on-demand)
-- **[assets/templates/](./assets/templates/)** - 1 report template for customization reports
-
-See [scripts/README.md](./scripts/README.md) for script usage and [references/README.md](./references/README.md) for reference documentation index.
+Use this skill to detect customizations or modifications made to INGenious framework, compare a user's installation against the official release, identify version and copy type, generate customization reports, track modifications across modules, and extract customizations as plugins for safe upgrades.
 
 ## Key Principles
 
 **🔴 MANDATORY: This is an INTERACTIVE workflow**
 
-- **NEVER assume** which folder to analyze
-- **ALWAYS confirm** with the user before proceeding
+- **NEVER assume** which folder to analyze - **ALWAYS confirm** with the user first
 - **STOP at Step 1** until user explicitly confirms the target installation
-- **Present clear options** when multiple installations are detected
-- **Validate** user's choice before moving forward
-
-Each step requires validation before proceeding to the next step. This ensures accuracy and prevents analyzing the wrong codebase.
+- Each step requires validation before proceeding to ensure accuracy
 
 ## Decision Flow
-
-This skill follows a systematic 7-step workflow:
 
 ```
 1. Identify Repository → 2. Detect Version → 3. Determine Copy Type → 
@@ -49,7 +26,9 @@ This skill follows a systematic 7-step workflow:
 7. Identify Plugin Candidates (Optional)
 ```
 
-**Skill Integration:** This skill can invoke the `ingenious-plugin-creation` skill to help convert customizations into plugins.
+**Skill Integration:** This skill can invoke the `ingenious-plugin-creation` skill to convert customizations into plugins.
+
+---
 
 ## Workflow Steps
 
@@ -57,241 +36,366 @@ This skill follows a systematic 7-step workflow:
 
 **CRITICAL: ALWAYS verify with user before proceeding to Step 2**
 
-**Actions:**
-1. **Detect** - List workspace folders and identify INGenious installations
-2. **Present** - Show options to user with clear numbering
-3. **STOP** - Wait for explicit user confirmation
-4. **Validate** - Run [validate-installation.sh](./scripts/validate-installation.sh) to verify INGenious markers
+**Workflow:**
 
-**User Interaction:**
-```
-I've detected the following potential INGenious installations:
+1. **Detect Available Options** - List workspace folders and identify those with INGenious markers
+   
+2. **Present Options to User:**
+   ```
+   I've detected the following potential INGenious installations:
+   
+   Option 1: [path1]
+   Option 2: [path2]
+   
+   Which installation would you like to analyze for customizations?
+   ```
 
-Option 1: /path/to/installation-1
-  └─ Contains: Configuration/, Engine/, Projects/
-  
-Option 2: /path/to/installation-2
-  └─ Contains: Common/, Datalib/, Engine/, IDE/
+3. **STOP and Wait for User Response** - Do NOT proceed without explicit confirmation
 
-Which installation would you like to analyze?
-(Or provide a different path)
-```
+4. **Validate User's Choice** using `scripts/validate_ingenious_root.sh`
 
-**Required User Response:**
-- Option number ("Option 1", "1", "The first one")
-- Absolute path ("/path/to/my-ingenious")
-- Confirmation ("Yes", "Correct", "That's right")
+**INGenious Markers to Check:**
+- Configuration/ directory with conf.js or XPLOR_SETTINGS.json
+- Engine/ directory with pom.xml
+- Projects/ directory
+- Run.bat or Run.command files
 
-**Validation:**
-```bash
-./scripts/validate-installation.sh --check markers --path "$USER_PATH"
-```
+**Expected User Responses:** "Option 1", "Use [name]", "[path]", "Yes, that's correct"
 
-**If validation fails:**
-- Show warning to user
-- Ask for confirmation or alternative path
-- Do NOT proceed until validation passes
+**Reference:** See [examples/user_interaction_flow.md](examples/user_interaction_flow.md) for detailed interaction patterns.
 
-**Key Requirements:**
-- ✅ ALWAYS present options (never assume)
-- ✅ ALWAYS wait for confirmation
-- ✅ ALWAYS validate before Step 2
-- ❌ NEVER auto-select or guess
+**Script:** Use `scripts/validate_ingenious_root.sh <path>` to validate installation.
 
-See [references/troubleshooting.md](./references/troubleshooting.md#installation-detection-issues) for common issues.
+---
 
 ### Step 2: Detect Version
 
-**Action:** Run [detect-version.sh](./scripts/detect-version.sh) to identify INGenious version
+**Action:** Identify the INGenious version using multi-strategy detection.
 
-**Script:**
-```bash
-./scripts/detect-version.sh "$USER_PATH"
-```
+**Detection Strategies:**
+1. Check Engine/pom.xml for `<version>` tag
+2. Check Configuration/package.properties
+3. Check JAR manifest files (if built)
+4. Check Git tags (if git repository)
 
-**Detection Strategy:** Multi-source search across:
-1. pom.xml files (`<version>` tags)
-2. JAR manifest files (Implementation-Version)
-3. Property files (VERSION keys)
-4. Git tags (if .git/ exists)
-5. Source code constants
+**Common Version Patterns:** `2.3`, `2.3.0`, `v2.3`, `release-2.3`
 
-**Common Patterns:** `2.3`, `2.3.0`, `v2.3`, `release-2.3`
+**Script:** Use `scripts/detect_version.sh <path>` for automated detection.
 
-**Output:** Version string (e.g., "2.3.0") or "UNKNOWN"
+If version cannot be auto-detected, ask user to specify version manually.
 
-For detailed strategies, see [version-detection-reference.md](./references/version-detection-reference.md).
+---
 
 ### Step 3: Determine Copy Type
 
-**Action:** Run [detect-copy-type.sh](./scripts/detect-copy-type.sh) to determine installation type
+**Action:** Determine if installation is **Source Code Copy** or **Build Copy**.
 
-**Script:**
-```bash
-./scripts/detect-copy-type.sh "$USER_PATH"
-```
+| Copy Type | Indicators | Modules |
+|-----------|-----------|---------|
+| **Source Code Copy** | Multiple Maven modules | Datalib/, Common/, Engine/, IDE/, StoryWriter/ |
+| **Build Copy** | Only Engine module | Engine/ only with Configuration/, Projects/, lib/ |
 
-**Types:**
-- **SOURCE_CODE_COPY** - Full Maven multi-module project (Datalib/, Common/, Engine/, IDE/, StoryWriter/)
-- **BUILD_COPY** - Runtime distribution with Engine/ only
+**Script:** Use `scripts/detect_copy_type.sh <path>` for automated detection.
 
-**Detection:** Counts modules with `src/` subdirectories. If ≥2 modules found → Source Code Copy.
+**Reference:** See [examples/module_structures.md](examples/module_structures.md) for detailed structure comparison.
 
-**Why It Matters:**
-- **Source Code Copy:** Compare all modules (comprehensive analysis)
-- **Build Copy:** Compare Engine/ only (focused analysis)
-
-For module structures and edge cases, see [copy-type-reference.md](./references/copy-type-reference.md).
+---
 
 ### Step 4: Download Official INGenious Release
 
-**Action:** Run [download-official.sh](./scripts/download-official.sh) to clone and checkout matching version
+**Action:** Clone official repository and checkout matching version.
 
-**Script:**
-```bash
-./scripts/download-official.sh "$VERSION" "/tmp/ingenious-official"
-```
-
-**Prerequisites:**
-- Git installed
-- Internet connection
-- ~100-500MB disk space
+**Prerequisites:** Git installed, internet connection, ~100-500MB disk space
 
 **Process:**
-1. Clone official repository from GitHub
-2. Try version tags: `v{VERSION}`, `{VERSION}`, `release-{VERSION}`, etc.
-3. Checkout exact tag or fall back to main branch
-4. Verify checkout successful
+1. Create temporary directory
+2. Clone `https://github.com/ing-bank/INGenious.git`
+3. Checkout tag matching detected version (try: `v{VERSION}`, `{VERSION}`, `release-{VERSION}`)
+4. Verify checkout success
 
-**Exit Codes:**
-- `0` - Success (exact version found)
-- `1` - Git error or network failure
-- `2` - Version tag not found (using main branch)
+**Script:** Use `scripts/download_official_release.sh <version> [output_dir]`
 
-For troubleshooting clone failures, see [troubleshooting.md](./references/troubleshooting.md#download-issues).
+**Error Handling:**
+- If exact tag not found: List available tags, ask user which to use
+- If git unavailable: Request local path to official copy or install git
+- If no internet: Use local official copy or skip comparison
+
+**Reference:** Use `scripts/error_handling_utils.sh` for validation checks.
+
+---
 
 ### Step 5: Compare and Detect Changes
 
-**Action:** Run [compare-installations.sh](./scripts/compare-installations.sh) to generate diffs
+**Action:** Systematically compare user's installation against official release.
 
-**Script:**
+**For Source Code Copy:**
+- Compare all modules: Common, Datalib, Engine, IDE, StoryWriter, ingenious-api, TestData - Csv
+
+**For Build Copy:**
+- Compare Engine module only
+
+**Comparison Process:**
+1. Quick file-level comparison: `scripts/compare_modules.sh <user_path> <official_path> <copy_type>`
+2. Detailed diff generation: `scripts/generate_diff.sh <user_path> <official_path> <module>`
+
+**Whitespace Handling:**
+All comparison and diff operations ignore changes in the amount of whitespace (using the `-b` flag for `diff`). This ensures that only substantive code changes are reported, not formatting-only changes.
+
+**Example diff command:**
 ```bash
-./scripts/compare-installations.sh \
-    "$USER_PATH" \
-    "$OFFICIAL_PATH/official-ingenious" \
-    "$COPY_TYPE" \
-    "/tmp/customization-diffs"
+diff -Naur -b --exclude='target' --exclude='*.class' --exclude='.git' ...
 ```
 
-**Process:**
-- **Source Code Copy:** Compares all modules (Common, Datalib, Engine, IDE, ingenious-api, StoryWriter)
-- **Build Copy:** Compares Engine module only
+**Exclusions:** target/, *.class, .git, .idea, *.iml, *.log
 
-**Exclusions:** Automatically excludes `target/`, `.git/`, `.idea/`, `*.class`, log files
+**Analysis:**
+- Count files modified, added, deleted
+- Calculate lines added/removed (excluding whitespace-only changes)
+- Categorize changes by pattern matching
 
-**Output Files:**
-- `diff_<module>.patch` - Detailed unified diff for each module
-- `files_<module>.txt` - Quick summary of changed files
-- Statistics: files changed, lines added/removed
+**Categorization:** Use `scripts/categorize_changes.py <diff_file>` for automatic categorization.
 
-For comparison strategies and handling large diffs, see [comparison-strategy-reference.md](./references/comparison-strategy-reference.md).
+**Reference:** See [references/categorization_rules.md](references/categorization_rules.md) for category definitions.
+
+---
 
 ### Step 6: Generate Customization Report
 
-**Action:** Run [generate-report.py](./scripts/generate-report.py) to create comprehensive report
+**Action:** Create comprehensive markdown report of all customizations.
 
-**Script:**
-```bash
-./scripts/generate-report.py \
-    "/tmp/customization-diffs" \
-    "$USER_PATH" \
-    "$VERSION" \
-    "$COPY_TYPE" \
-    "customization_report.md"
-```
+**Report Sections:**
+1. **Summary** - Installation path, version, copy type, analysis date
+2. **Overview Statistics** - Files changed, lines added/removed, categories
+3. **Detailed Changes by Module** - Per-module breakdown with categorization
+4. **Customization Categories** - Grouped by: Feature Enhancements, Bug Fixes, Configuration, Integration, Performance, UI/Reporting, Framework Core
+5. **Risk Assessment** - Impact levels (High/Medium/Low)
+6. **Recommendations** - Upgrade path, plugin candidates, contribution opportunities
 
-**Report Includes:**
-- Summary (installation details, version, copy type)
-- Statistics (modules, files, lines changed)
-- Customizations grouped by category (Feature Enhancement, Bug Fix, Configuration, Integration, Performance, UI/Reporting, Framework Core)
-- Risk assessment (High/Medium/Low impact)
-- Plugin extraction opportunities (if applicable)
-- Detailed diff file references
+**Template:** Use [references/customization_report_template.md](references/customization_report_template.md)
 
-**Template:** Uses [customization-report-template.md](./assets/templates/customization-report-template.md)
+**Output Artifacts:**
+- `customization_report.md` - Main report
+- `diff_<Module>.patch` - Detailed diffs per module
+- `stats.json` - Statistics summary (schema: [references/statistics_schema.json](references/statistics_schema.json))
+- `files_added.txt`, `files_modified.txt`, `files_deleted.txt` - File lists
 
-**Categorization:** Automatic pattern-matching based on file paths, imports, and code patterns. See [categorization-patterns.md](./references/categorization-patterns.md) for logic details.
+**Impact Assessment:**
+- **High Impact:** Core engine changes, API contract modifications, plugin system changes
+- **Medium Impact:** Feature additions, integration points, configuration changes
+- **Low Impact:** Bug fixes, minor enhancements, formatting
+
+---
 
 ### Step 7: Identify Plugin Candidates (Optional)
 
-**Action:** Analyze customizations and identify which ones should be extracted as plugins.
+**Action:** Analyze customizations and identify which should be extracted as plugins.
 
-**When to Execute This Step:**
-- After completing Step 6 (report generation)
+**When to Execute:**
+- After Step 6 completion
 - When user asks to "extract customizations to plugins"
-- When user wants to upgrade INGenious and preserve customizations
-- When customizations are significant enough to warrant plugin extraction
+- When preparing for INGenious upgrade
 
-**Action:** Run [identify-plugins.py](./scripts/identify-plugins.py) to analyze plugin candidates
+**Plugin Candidate Criteria:**
+1. ✅ Adds new functionality (not modifies existing core)
+2. ✅ Self-contained (minimal dependencies on framework internals)
+3. ✅ Provides reusable actions
+4. ✅ Located in appropriate modules (new methods in Engine)
 
-**Script:**
-```bash
-./scripts/identify-plugins.py \
-    "/tmp/customization-diffs" \
-    "$USER_PATH" \
-    "plugin_recommendations.md"
-```
+**Not Suitable for Plugins:**
+- ❌ Modifications to existing framework methods
+- ❌ Changes requiring access to private framework internals
+- ❌ Project-specific hacks without general utility
 
-**Output:**
-- `plugin_recommendations.md` - Human-readable recommendations with priority, complexity, action lists
+**Detection Process:**
+1. Identify new methods: `scripts/identify_new_methods.sh <user_path> <official_path> <module>`
+2. Analyze imports to determine plugin type
+3. Extract action specifications
+4. Generate plugin spec: `scripts/generate_plugin_spec.py <customization_data.json>`
 
-**Plugin Criteria:** See [plugin-extraction-reference.md](./references/plugin-extraction-reference.md) for:
-- Good candidate criteria (new functionality, self-contained, reusable, appropriate location)
-- Plugin type detection (Browser, Mobile, Webservice, Database, General)
-- Action method patterns
-- Validation checklist
+**Plugin Type Detection:**
+
+| Import Pattern | Plugin Type | API Contract |
+|---------------|-------------|--------------|
+| `com.microsoft.playwright.*` | Browser | BrowserPluginApi |
+| `io.appium.*` | Mobile | MobilePluginApi |
+| `java.net.http.*` | Webservice | WebservicePluginApi |
+| `java.sql.*` | Database | DatabasePluginApi |
+| None specific | General | CommandPluginApi |
+
+**Output Format:**
+
+Present recommendations using template: [references/plugin_recommendation_template.md](references/plugin_recommendation_template.md)
+
+Generate machine-readable spec using: [references/plugin_specification_template.json](references/plugin_specification_template.json)
 
 **Cross-Skill Integration:**
-When user confirms plugin creation, invoke the `ingenious-plugin-creation` skill with plugin specifications from this step.
+
+When user confirms plugin creation:
+1. Load the `ingenious-plugin-creation` skill
+2. Provide: plugin type, action specifications, source code, dependencies
+3. The plugin creation skill will generate complete plugin project
+
+**Reference:** See [examples/workflow_example.md](examples/workflow_example.md) for complete end-to-end example.
 
 ---
 
-## Usage Examples
+## Implementation Guidelines
 
-For complete end-to-end workflow examples, see [references/examples.md](./references/examples.md):
-- Basic customization detection
-- Plugin extraction workflow
-- Upgrade preservation scenario
-- Team collaboration use case
+### Recommended Tool Sequence
 
-**Quick Start:**
-```
-User: "Analyze my INGenious installation for customizations"
-Agent: Guides through Steps 1-6 interactively, then offers Step 7 for plugin extraction
-```
+1. `run_in_terminal` - Execute scripts, git commands, diff operations
+2. `read_file` - Read configuration files for version detection
+3. `grep_search` - Search for version strings and patterns
+4. `create_file` - Generate customization report
+5. `file_search` - Find specific files across modules
 
----
+### Common Operations
 
-## Troubleshooting
-
-For common issues and solutions, see [references/troubleshooting.md](./references/troubleshooting.md):
-- Installation detection issues
-- Version detection problems
-- Download failures
-- Comparison issues
-- Permission problems
-- Report generation issues
-
-**Quick Diagnostic:**
+**Multi-file Version Search:**
 ```bash
-# Check installation health
-./scripts/validate-installation.sh --check markers --path "$PATH"
-./scripts/detect-version.sh "$PATH"
-./scripts/detect-copy-type.sh "$PATH"
+grep -h -r "VERSION\|version" --include="*.xml" --include="*.properties" \
+  Configuration/ Engine/ | grep -o "[0-9]\+\.[0-9]\+\(\.[0-9]\+\)\?" | sort -V | uniq
+```
+
+**Module Detection:**
+```bash
+MODULES_FOUND=()
+for module in Common Datalib Engine IDE StoryWriter; do
+    [ -d "$module/src" ] && MODULES_FOUND+=("$module")
+done
+[ ${#MODULES_FOUND[@]} -gt 1 ] && echo "SOURCE_CODE_COPY" || echo "BUILD_COPY"
+```
+
+**Diff with Exclusions:**
+```bash
+diff -Nur -x target -x '*.class' -x .git -x .idea "$OFFICIAL" "$USER" > changes.diff
+```
+
+### Validation Before Each Step
+
+Use `scripts/error_handling_utils.sh` functions:
+- `check_disk_space <path>` - Verify sufficient disk space
+- `check_git_available` - Verify git is installed
+- `check_internet` - Check connectivity for downloads
+- `validate_path <path>` - Verify path exists and is accessible
+
+---
+
+## Error Handling
+
+### Common Issues and Solutions
+
+| Issue | Symptom | Solution |
+|-------|---------|----------|
+| Version tag not found | `git checkout` fails | List all tags, ask user which to use |
+| Git not available | `command not found` | Ask user to install git or provide local official copy |
+| Large diff output | Diff files >100MB | Summarize changes, provide file list only |
+| Permission denied | Cannot access files | Check permissions, ask user to run with appropriate access |
+| Module mismatch | Different structure | Document structural differences separately |
+
+**Validation Checks:**
+```bash
+# Check disk space
+df -h . | awk 'NR==2 {print $4}'
+
+# Verify path exists
+[ -d "$USER_PATH" ] || { echo "Path not found"; exit 1; }
+
+# Verify git is available
+command -v git >/dev/null 2>&1 || { echo "Git not installed"; exit 1; }
+
+# Check internet (for clone)
+ping -c 1 github.com >/dev/null 2>&1 || { echo "No internet"; exit 1; }
 ```
 
 ---
 
-**Version:** 2.0 (Refactored)  
-**Last Updated:** May 2026  
-**Structure:** Progressive loading with modular assets
+## Best Practices
+
+1. **Always Confirm Paths** - Never assume; always ask user to verify
+2. **Save Official Clone** - Keep for future comparisons
+3. **Use Absolute Paths** - Avoid relative path issues
+4. **Generate Timestamped Reports** - Include date in filenames
+5. **Preserve Context** - Include surrounding code in diffs
+6. **Group Related Changes** - Combine related modifications
+7. **Provide Examples** - Include code snippets for key customizations
+8. **Document Intent** - Infer why changes were made
+9. **Risk Assessment** - Identify changes impacting upgrades
+10. **Actionable Recommendations** - Suggest concrete next steps
+
+---
+
+## Reference Files
+
+All scripts, templates, and examples are organized in subdirectories:
+
+### Scripts (`scripts/`)
+- `validate_ingenious_root.sh` - Validate INGenious installation markers
+- `detect_version.sh` - Multi-strategy version detection
+- `detect_copy_type.sh` - Determine source vs build copy
+- `download_official_release.sh` - Clone and checkout official release
+- `compare_modules.sh` - Compare modules between installations
+- `generate_diff.sh` - Generate detailed diff patches
+- `identify_new_methods.sh` - Find new action method candidates
+- `error_handling_utils.sh` - Common validation functions
+- `categorize_changes.py` - Categorize customizations by pattern
+- `generate_plugin_spec.py` - Generate plugin specifications from customizations
+
+### References (`references/`)
+- `customization_report_template.md` - Report structure template
+- `plugin_specification_template.json` - Machine-readable plugin spec format
+- `plugin_recommendation_template.md` - Plugin extraction recommendation format
+- `statistics_schema.json` - Statistics output schema
+- `categorization_rules.md` - Category definitions and impact guidelines
+
+### Examples (`examples/`)
+- `workflow_example.md` - Complete end-to-end workflow demonstration
+- `user_interaction_flow.md` - Detailed interaction patterns for each step
+- `module_structures.md` - Source vs build copy structure comparison
+
+---
+
+## Quick Start Example
+
+**User:** "Analyze my INGenious installation for customizations"
+
+**Agent Workflow:**
+1. **Step 1:** Present detected installations, wait for user confirmation ✋
+2. **User confirms:** "Option 1" ✓
+3. **Steps 2-3:** Auto-detect version (2.3) and copy type (BUILD_COPY)
+4. **Step 4:** Download official v2.3 from GitHub
+5. **Step 5:** Compare Engine module, categorize changes
+6. **Step 6:** Generate report with statistics and recommendations
+7. **Ask user:** "Would you like me to identify plugin extraction opportunities?"
+8. **If yes → Step 7:** Analyze and present plugin candidates
+9. **If user confirms:** Invoke `ingenious-plugin-creation` skill to create plugins
+
+**Reference:** See [examples/workflow_example.md](examples/workflow_example.md) for detailed example with full dialogue.
+
+---
+
+## Integration with Plugin Creation Skill
+
+After identifying plugin candidates in Step 7, if user requests plugin creation:
+
+1. **Detection skill** outputs plugin specifications
+2. **User confirms** which plugins to create (1, 2, all, etc.)
+3. **Detection skill invokes** `ingenious-plugin-creation` skill with:
+   - Plugin name and type
+   - Action specifications
+   - Source code snippets  
+   - Required dependencies
+
+The plugin creation skill handles complete plugin project generation, build configuration, and deployment instructions.
+
+---
+
+## Notes
+
+- All scripts include usage instructions in their headers
+- Templates can be copied and customized
+- Examples demonstrate realistic scenarios
+- Categorization rules are extensible for new patterns
+- Plugin specifications follow standard JSON schema
+
+For complete documentation, see README.md in this directory.
