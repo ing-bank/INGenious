@@ -161,8 +161,7 @@
             </plugin>
         </plugins>
     </build>
-    <repositories>
-    </repositories>
+    <repositories/>
     <pluginRepositories/>
     <dependencies>
         
@@ -202,16 +201,20 @@
         
         
      
-        <!-- <dependency>
-            <groupId>org.apache.kafka</groupId>
-            <artifactId>kafka-clients</artifactId>
-            <version>${kafka-clients.version}</version>
-        </dependency>
+        <!-- Dependency for kafka -->
+<!--
         <dependency>
-            <groupId>io.confluent</groupId>
-            <artifactId>kafka-avro-serializer</artifactId>
-            <version>${kafka-avro-serializer.version}</version>
-        </dependency> -->
+            <groupId>com.ing.apisdk</groupId>
+            <artifactId>toolkit-connectivity-kafka-avro-serialization_2.13</artifactId>
+            <version>28.2.2</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.glassfish.jersey.core</groupId>
+                    <artifactId>jersey-common</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>    
+--> 
         <dependency>
             <groupId>io.github.osobolev</groupId>
             <artifactId>jacob</artifactId>
