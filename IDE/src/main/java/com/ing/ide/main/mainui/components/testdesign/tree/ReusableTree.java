@@ -94,7 +94,7 @@ public class ReusableTree extends ProjectTree {
     @Override
     protected void onNewAction() {
         if (isRootSelected()) {
-            addGroup();
+            // addGroup();
         } else if (getSelectedScenarioNodeSafe() != null) {
             addReusableTestCase();
         } else if (getSelectedGroupNode() != null) {
@@ -120,21 +120,21 @@ public class ReusableTree extends ProjectTree {
     @Override
     public void actionPerformed(ActionEvent ae) {
         switch (ae.getActionCommand()) {
-            case "Add Group":
-                addGroup();
-                break;
+            // case "Add Group":
+            //     addGroup();
+            //     break;
             case "Add Scenario":
                 addReusableScenario();
                 break;
             case "Add TestCase":
                 addReusableTestCase();
                 break;
-            case "Rename Group":
-                getTree().startEditingAtPath(new TreePath(getSelectedGroupNode().getPath()));
-                break;
-            case "Delete Group":
-                deleteGroups();
-                break;
+            // case "Rename Group":
+            //     getTree().startEditingAtPath(new TreePath(getSelectedGroupNode().getPath()));
+            //     break;
+            // case "Delete Group":
+            //     deleteGroups();
+            //     break;
             default:
                 super.actionPerformed(ae);
         }
@@ -403,9 +403,9 @@ public class ReusableTree extends ProjectTree {
      */
     class ReusablePopupMenu extends ProjectPopupMenu {
 
-        JMenuItem addGroup;
-        JMenuItem renameGroup;
-        JMenuItem deleteGroup;
+        // JMenuItem addGroup;
+        // JMenuItem renameGroup;
+        // JMenuItem deleteGroup;
 
         /**
          * Constructs a new ReusablePopupMenu and initializes menu items.
@@ -419,10 +419,10 @@ public class ReusableTree extends ProjectTree {
          */
         private void initMenu() {
             removeAll();
-            add(addGroup = create("Add Group", Keystroke.NEW));
-            add(renameGroup = create("Rename Group", Keystroke.RENAME));
-            add(deleteGroup = create("Delete Group", Keystroke.DELETE));
-            addSeparator();
+            // add(addGroup = create("Add Group", Keystroke.NEW));
+            // add(renameGroup = create("Rename Group", Keystroke.RENAME));
+            // add(deleteGroup = create("Delete Group", Keystroke.DELETE));
+            // addSeparator();
             super.init();
             toggleReusable.setText("Make As TestCase");
         }
@@ -433,9 +433,9 @@ public class ReusableTree extends ProjectTree {
         @Override
         protected void forTestCase() {
             super.forTestCase();
-            addGroup.setEnabled(false);
-            renameGroup.setEnabled(false);
-            deleteGroup.setEnabled(false);
+            // addGroup.setEnabled(false);
+            // renameGroup.setEnabled(false);
+            // deleteGroup.setEnabled(false);
         }
 
         /**
@@ -444,9 +444,9 @@ public class ReusableTree extends ProjectTree {
         @Override
         protected void forScenario() {
             super.forScenario();
-            addGroup.setEnabled(false);
-            renameGroup.setEnabled(false);
-            deleteGroup.setEnabled(false);
+            // addGroup.setEnabled(false);
+            // renameGroup.setEnabled(false);
+            // deleteGroup.setEnabled(false);
         }
 
         /**
@@ -455,9 +455,9 @@ public class ReusableTree extends ProjectTree {
         @Override
         protected void forTestPlan() {
             super.forTestPlan();
-            addGroup.setEnabled(false);
-            renameGroup.setEnabled(true);
-            deleteGroup.setEnabled(true);
+            // addGroup.setEnabled(false);
+            // renameGroup.setEnabled(true);
+            // deleteGroup.setEnabled(true);
         }
 
         /**
@@ -466,9 +466,9 @@ public class ReusableTree extends ProjectTree {
         protected void forRoot() {
             super.forTestPlan();
             addScenario.setEnabled(false);
-            addGroup.setEnabled(true);
-            renameGroup.setEnabled(false);
-            deleteGroup.setEnabled(false);
+            // addGroup.setEnabled(true);
+            // renameGroup.setEnabled(false);
+            // deleteGroup.setEnabled(false);
         }
     }
 

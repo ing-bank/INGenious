@@ -134,6 +134,10 @@ public class Scenario extends DataModel {
      */
     public TestCase getTestCaseByName(String scenarioName, String testCaseName) {
         Scenario sc = project.getScenarioByName(scenarioName);
+        if (sc == null) {
+            return null;
+        }
+        
         List<TestCase> tc = sc.getTestCases();
         String tc_name;
         for (TestCase testcase : tc) {
@@ -153,6 +157,10 @@ public class Scenario extends DataModel {
      */
     public TestCase getReusableTestCaseByName(String scenarioName, String testCaseName) {
         Scenario sc = project.getReusableScenarioByName(scenarioName);
+        if (sc == null) {
+            return null;
+        }
+
         List<TestCase> reusables = sc.getTestCases();
         String tc_name;
         for (TestCase testcase : reusables) {
