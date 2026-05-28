@@ -212,6 +212,33 @@ public class Basic extends MobileGeneral {
         }
 
     }
+
+    @Action(object = ObjectType.MOBILE, desc = "Start Testcase Lambdatest", input = InputType.YES, condition = InputType.NO)
+    public void startTestcase() {
+        JavascriptExecutor js = (JavascriptExecutor) mDriver;
+        js.executeScript("lambda-testCase-start=" + Data);
+    }
+
+    @Action(object = ObjectType.MOBILE, desc = "End Testcase Lambdatest", input = InputType.YES, condition = InputType.NO)
+    public void endTestcase() {
+        JavascriptExecutor js = (JavascriptExecutor) mDriver;
+        js.executeScript("lambda-testCase-end=" + Data);
+
+    }
+
+    @Action(object = ObjectType.MOBILE, desc = "Start Annotation Lambdatest", input = InputType.YES, condition = InputType.NO)
+    public void startAnnotation() {
+        JavascriptExecutor js = (JavascriptExecutor) mDriver;
+        js.executeScript("lambdatest_executor: {\"action\": \"stepcontext\", \"arguments\": {\"data\": \"" + Data
+                + "\", \"level\": \"debug\"}}");
+    }
+
+    @Action(object = ObjectType.MOBILE, desc = "End Annotation Lambdatest", input = InputType.NO, condition = InputType.NO)
+    public void endAnnotation() {
+        JavascriptExecutor js = (JavascriptExecutor) mDriver;
+        js.executeScript("lambdatest_executor: {\"action\": \"stepcontext\", \"arguments\": {\"data\": \"\"}}");
+    }
+
     /*
 
     @Action(object = ObjectType.BROWSER, desc = "Open the Url [<Data>] in the Browser", input = InputType.YES)
