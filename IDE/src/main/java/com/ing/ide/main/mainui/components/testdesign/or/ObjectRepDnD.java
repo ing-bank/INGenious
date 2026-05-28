@@ -4,6 +4,10 @@ package com.ing.ide.main.mainui.components.testdesign.or;
 import com.ing.datalib.or.common.ORObjectInf;
 import com.ing.datalib.or.common.ORPageInf;
 import com.ing.datalib.or.common.ObjectGroup;
+import com.ing.datalib.or.mobile.MobileOR;
+import com.ing.datalib.or.structureddata.StructuredDataOR;
+import com.ing.datalib.or.sap.SapOR;
+import com.ing.datalib.or.web.WebOR;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -102,11 +106,26 @@ public class ObjectRepDnD {
     }
     
     private String scopeOf(ORPageInf page) {
-        try {
-            var m = page.getClass().getMethod("getSource");
-            Object src = m.invoke(page);
-            if (src != null && src.toString().equalsIgnoreCase("SHARED")) return "SHARED";
-        } catch (Exception ignore) { }
+        if (page == null) {
+            return "PROJECT";
+        }
+        Object parent = page.getParent();
+        if (parent instanceof WebOR) {
+            WebOR root = (WebOR) parent;
+            return root.getScope().name();
+        }
+        if (parent instanceof MobileOR) {
+            MobileOR root = (MobileOR) parent;
+            return root.getScope().name();
+        }
+        if (parent instanceof StructuredDataOR) {
+            StructuredDataOR root = (StructuredDataOR) parent;
+            return root.getScope().name();
+        }
+        if (parent instanceof SapOR) {
+            SapOR root = (SapOR) parent;
+            return root.getScope().name();
+        }
         return "PROJECT";
     }
 

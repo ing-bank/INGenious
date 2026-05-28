@@ -6,7 +6,7 @@ import com.ing.engine.reporting.SummaryReport;
 import com.ing.engine.reporting.TestCaseReport;
 import com.ing.engine.reporting.intf.OverviewReport;
 import com.ing.engine.reporting.performance.har.Har;
-import com.ing.engine.support.Status;
+import com.ing.ingenious.api.status.Status;
 
 /**
  *

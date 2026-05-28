@@ -17,4 +17,5 @@ public final class ObjectProperty {
     public static final String Type = "type";
     public static final String UiAutomator = "UiAutomator";
     public static final String Accessibility = "Accessibility";
+    public static final String Text = "Text";
 }

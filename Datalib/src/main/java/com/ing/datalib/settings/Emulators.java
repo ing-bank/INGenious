@@ -1,9 +1,6 @@
 
 package com.ing.datalib.settings;
 
-import com.ing.datalib.settings.emulators.Emulator;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.ing.datalib.util.data.LinkedProperties;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -11,7 +8,10 @@ import java.util.List;
 import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import com.ing.datalib.settings.Capabilities;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.ing.datalib.settings.emulators.Emulator;
+import com.ing.datalib.util.data.LinkedProperties;
 
 /**
  *
@@ -37,9 +37,29 @@ public class Emulators {
         if (emFile.exists()) {
             try {
                 emulators = objMapper.readValue(emFile, objMapper.getTypeFactory().constructCollectionType(List.class, Emulator.class));
+                // Ensure SAP emulator exists by default only for actual projects (Settings folder)
+                if (isRealProjectSettings()) {
+                    ensureDefaultEmulators();
+                }
             } catch (IOException ex) {
                 Logger.getLogger(Emulators.class.getName()).log(Level.SEVERE, null, ex);
             }
+        }
+    }
+    
+    /**
+     * Check if this is a real project's Settings folder (not a test directory)
+     */
+    private boolean isRealProjectSettings() {
+        // Real projects have "Settings" folder name in path
+        return location.endsWith("Settings");
+    }
+    
+    private void ensureDefaultEmulators() {
+        // Add SAP emulator if it doesn't exist
+        if (getEmulator("SAP") == null) {
+            addEmulator("SAP");
+            save();
         }
     }
     
@@ -67,6 +87,21 @@ public class Emulators {
         props.setProperty("platformName", "");
         props.setProperty("platformVersion", "");
         props.setProperty("automationName", "");
+        
+        return props;
+    }
+
+    /**
+     * Returns default SAP-specific capabilities for SAP browser configuration
+     */
+    public LinkedProperties defaultSAPCapability() {
+        LinkedProperties props = new LinkedProperties();
+        // SAP-specific properties as defined in Capabilities.createFile()
+        props.setProperty("app", "C:\\Program Files\\SAP\\FrontEnd\\SAPGUI\\saplogon.exe");
+        props.setProperty("libraryPath", "lib/jacob-1.21");
+        props.setProperty("dllPath", "lib/jacob-1.21/jacob-1.21-x64.dll");
+        props.setProperty("connectionName", "SAP_CONN_NAME");
+        props.setProperty("platformName", "Windows");
         
         return props;
     }

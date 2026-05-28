@@ -80,6 +80,7 @@ public class RDS {
         public static final String AXE_REPORT = "axeReport";
         public static final String PERF_REPORT = "perfReport";
         public static final String VIDEO_REPORT = "videoReport";
+        public static final String TRACING_REPORT = "tracingReport";
         public static final String VIDEO_REPORT_DIR = "videoReportDir";
     }
 
@@ -101,6 +102,9 @@ public class RDS {
         public static final String BROWSER = "browser";
         public static final String STATUS = "status";
         public static final String STEPS = "STEPS";
+        public static final String VIDEO_PATH = "videoPath";
+        public static final String TRACE_PATH = "tracePath";
+        public static final String TRACE_DATA = "traceData";
 
     }
 

@@ -1,12 +1,12 @@
 package com.ing.engine.commands.browser;
 
 import com.ing.engine.core.CommandControl;
-import com.ing.engine.execution.exception.ActionException;
-import com.ing.engine.execution.exception.ForcedException;
-import com.ing.engine.support.Status;
-import com.ing.engine.support.methodInf.Action;
-import com.ing.engine.support.methodInf.InputType;
-import com.ing.engine.support.methodInf.ObjectType;
+import com.ing.ingenious.api.exception.ActionException;
+import com.ing.ingenious.api.exception.ForcedException;
+import com.ing.ingenious.api.status.Status;
+import com.ing.ingenious.api.annotation.Action;
+import com.ing.ingenious.api.types.InputType;
+import com.ing.ingenious.api.types.ObjectType;
 import com.microsoft.playwright.PlaywrightException;
 import com.microsoft.playwright.assertions.LocatorAssertions;
 import com.microsoft.playwright.assertions.PageAssertions;
@@ -260,7 +260,7 @@ public class Assertions extends General {
         try {
             LocatorAssertions.HasCSSOptions options = new LocatorAssertions.HasCSSOptions();
             options.setTimeout(getTimeoutValue());
-            value = (String) Locator.evaluate("(element) => window.getComputetStyle(element).getPropertyValue(" + attributeName + ")");
+            value = (String) Locator.evaluate("(element) => window.getComputedStyle(element).getPropertyValue('" + attributeName + "')");
             highlightElement();
             assertThat(Locator).hasCSS(attributeName, attributeValue, options);
             Report.updateTestLog(Action, "[" + ObjectName + "] has CSS attribute '" + attributeName + "' with value '" + attributeValue + "'", Status.PASS);
@@ -281,7 +281,7 @@ public class Assertions extends General {
         try {
             LocatorAssertions.HasCSSOptions options = new LocatorAssertions.HasCSSOptions();
             options.setTimeout(getTimeoutValue());
-            value = (String) Locator.evaluate("(element) => window.getComputetStyle(element).getPropertyValue(" + attributeName + ")");
+            value = (String) Locator.evaluate("(element) => window.getComputedStyle(element).getPropertyValue('" + attributeName + "')");
             highlightElement();
             assertThat(Locator).not().hasCSS(attributeName, attributeValue, options);
             Report.updateTestLog(Action, "[" + ObjectName + "] does not have CSS attribute '" + attributeName + "' with value '" + attributeValue + "'. Actual value is '" + value + "'", Status.PASS);

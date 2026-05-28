@@ -1,0 +1,15 @@
+{
+  "id" : "45a10198-0faf-4f57-aaf1-a852b77f2134",
+  "name" : "My Collection",
+  "description" : null,
+  "requests" : [ ],
+  "folders" : [ ],
+  "variables" : [ ],
+  "defaultAuth" : null,
+  "defaultHeaders" : [ ],
+  "createdAt" : 1779862345551,
+  "updatedAt" : 1779862345551,
+  "parentId" : null,
+  "totalRequestCount" : 0,
+  "allRequests" : [ ]
+}

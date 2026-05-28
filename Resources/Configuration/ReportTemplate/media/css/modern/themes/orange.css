@@ -1,0 +1,99 @@
+/**
+ * INGenious Modern Report - Orange Theme
+ * Warm orange accent color scheme
+ * Version: 1.0.0
+ */
+
+[data-theme="orange"],
+[data-accent="orange"] {
+  /* Primary Palette - Orange */
+  --color-primary: 249 115 22; /* Orange-500 */
+  --color-primary-50: 255 247 237;
+  --color-primary-100: 255 237 213;
+  --color-primary-200: 254 215 170;
+  --color-primary-300: 253 186 116;
+  --color-primary-400: 251 146 60;
+  --color-primary-500: 249 115 22;
+  --color-primary-600: 234 88 12;
+  --color-primary-700: 194 65 12;
+  --color-primary-800: 154 52 18;
+  --color-primary-900: 124 45 18;
+  --color-primary-dark: 234 88 12;
+  --color-primary-light: 253 186 116;
+
+  /* Gradient adjustments */
+  --gradient-primary: linear-gradient(135deg, rgb(249 115 22) 0%, rgb(251 146 60) 100%);
+
+  /* Focus ring */
+  --tw-ring-color: rgb(249 115 22 / 0.3);
+}
+
+/* Orange theme header accent */
+[data-theme="orange"] .app-header,
+[data-accent="orange"] .app-header {
+  border-bottom-color: rgb(var(--color-primary));
+  border-bottom-width: 2px;
+}
+
+/* Orange theme stat card accents */
+[data-theme="orange"] .stat-card--info::before,
+[data-accent="orange"] .stat-card--info::before {
+  background: linear-gradient(to right, rgb(249 115 22), rgb(253 186 116));
+}
+
+/* Button primary color */
+[data-theme="orange"] .btn--primary,
+[data-accent="orange"] .btn--primary {
+  background-color: rgb(249 115 22);
+}
+
+[data-theme="orange"] .btn--primary:hover,
+[data-accent="orange"] .btn--primary:hover {
+  background-color: rgb(234 88 12);
+}
+
+/* Active tab indicator */
+[data-theme="orange"] .tabs--underline .tabs__tab[aria-selected="true"]::after,
+[data-accent="orange"] .tabs--underline .tabs__tab[aria-selected="true"]::after {
+  background-color: rgb(249 115 22);
+}
+
+[data-theme="orange"] .tabs--underline .tabs__tab[aria-selected="true"],
+[data-accent="orange"] .tabs--underline .tabs__tab[aria-selected="true"] {
+  color: rgb(249 115 22);
+}
+
+/* Links */
+[data-theme="orange"] a:hover,
+[data-accent="orange"] a:hover {
+  color: rgb(249 115 22);
+}
+
+/* Focus states */
+[data-theme="orange"] .search-input__field:focus,
+[data-accent="orange"] .search-input__field:focus {
+  border-color: rgb(249 115 22);
+  box-shadow: 0 0 0 3px rgba(249, 115, 22, 0.1);
+}
+
+/* Filter pill active */
+[data-theme="orange"] .filter-pill[aria-pressed="true"],
+[data-theme="orange"] .filter-pill--active,
+[data-accent="orange"] .filter-pill[aria-pressed="true"],
+[data-accent="orange"] .filter-pill--active {
+  background-color: rgb(249 115 22);
+  border-color: rgb(249 115 22);
+}
+
+/* Progress bar info variant */
+[data-theme="orange"] .progress-bar__fill--info,
+[data-accent="orange"] .progress-bar__fill--info {
+  background: linear-gradient(90deg, rgb(249 115 22) 0%, rgb(251 146 60) 100%);
+}
+
+/* Adjust sidebar active state */
+[data-theme="orange"] .sidebar-item--active,
+[data-accent="orange"] .sidebar-item--active {
+  background-color: rgb(255 247 237);
+  border-left-color: rgb(249 115 22);
+}

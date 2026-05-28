@@ -22,6 +22,8 @@ import javax.swing.JOptionPane;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
 import com.ing.util.encryption.Encryption;
+import com.ing.ide.main.fx.INGIcons;
+import com.ing.ide.main.utils.StyledConfirmDialog;
 
 public class Utility {
 
@@ -32,16 +34,15 @@ public class Utility {
 	public static FileNameExtensionFilter csvFIlter = new FileNameExtensionFilter("CSV File", "csv"),
 			exeFilter = new FileNameExtensionFilter("Executable Files", "exe"),
 			dbFilter = new FileNameExtensionFilter("SqLite Database", "db");
-	private static final Icon C_SAVE = new ImageIcon(Utility.class.getResource("/ui/resources/csave.png"));
+	private static final Icon C_SAVE = INGIcons.swingColored("icon.csave", 16);
 
 	private Utility() {
 
 	}
 
 	public static boolean confirmSave(JComponent parent, String val) {
-		int op = JOptionPane.showConfirmDialog(parent, "Do you want to save the " + val + " ?", "Save",
-				JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE, C_SAVE);
-		return op == JOptionPane.YES_OPTION;
+		return StyledConfirmDialog.showYesNo(parent, "Do you want to save the " + val + " ?", "Save",
+				StyledConfirmDialog.CONFIRM) == StyledConfirmDialog.YES_OPTION;
 	}
 
 	public static boolean isEmpty(Object val) {
@@ -83,7 +84,7 @@ public class Utility {
 	 * @return the TIME_FILE_FORMAT
 	 */
 	public static SimpleDateFormat getTIME_FILE_FORMAT() {
-		return new SimpleDateFormat("hh-mm-ssa");
+		return new SimpleDateFormat("hh-mm-ss a");
 	}
 
 	/**

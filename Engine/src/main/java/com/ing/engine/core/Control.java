@@ -13,7 +13,7 @@ import com.ing.engine.execution.run.ProjectRunner;
 import com.ing.engine.reporting.SummaryReport;
 import com.ing.engine.reporting.impl.ConsoleReport;
 import com.ing.engine.reporting.util.DateTimeUtils;
-import com.ing.engine.support.Status;
+import com.ing.ingenious.api.status.Status;
 import com.ing.engine.support.methodInf.MethodInfoManager;
 import com.ing.engine.support.reflect.MethodExecutor;
 import com.ing.util.encryption.Encryption;
@@ -25,6 +25,9 @@ import java.util.logging.Logger;
 
 import com.ing.engine.drivers.WebDriverCreation;
 import com.ing.engine.drivers.WebDriverFactory;
+import com.ing.engine.drivers.SAPSessionCreation;
+import java.time.Instant;
+import com.ing.exceptions.DuplicateMethodException;
 
 public class Control {
 
@@ -38,10 +41,13 @@ public class Control {
     public Boolean executionFinished = false;
     public static ProjectRunner exe;
     public static String triggerId;
+    public static String executionStartTime;
 
     private static PlaywrightDriverCreation playwrightDriver;
 
     private static WebDriverCreation webDriver;
+
+    private static SAPSessionCreation sapSession;
 
     private static void start() {
         do {
@@ -104,11 +110,15 @@ public class Control {
         MethodExecutor.init();
         ConsoleReport.init();
         SystemDefaults.printSystemInfo();
-        System.out.println("👉 Run Started on " + new Date().toString()+"\n");
+        
+        // Print INGenious ASCII Banner
+        printExecutionBanner();
+        
         WebDriverFactory.initDriverLocation(exe.getProject().getProjectSettings());
         RunManager.loadRunManager();
         ReportManager = new SummaryReport();
         triggerId = UUID.randomUUID().toString().replace("-", "").toUpperCase().substring(0, 15);
+        executionStartTime = String.valueOf(Instant.now());
     }
 
     private void startRun() {
@@ -120,8 +130,7 @@ public class Control {
                     exe.getExecSettings().getRunSettings().getThreadCount(),
                     exe.getExecSettings().getRunSettings().getExecutionTimeOut(),
                     exe.getExecSettings().getRunSettings().isGridExecution());
-            System.out.println("\n👉 Run Manager : " + !RunManager.queue().isEmpty()+"\n");
-            System.out.println("👉 Continue Execution : " + !SystemDefaults.stopExecution.get()+"\n");
+            
             while (!RunManager.queue().isEmpty() && !SystemDefaults.stopExecution.get()) {
                 Task t = null;
                 try {
@@ -174,8 +183,16 @@ public class Control {
         return webDriver;
     }
 
+    static SAPSessionCreation getSapSession() {
+        return sapSession;
+    }
+    
     static void setPlaywrightDriver(PlaywrightDriverCreation Driver) {
         playwrightDriver = Driver;
+    }
+
+    static void setSapSession(SAPSessionCreation session) {
+        sapSession = session;
     }
 
     static void setWebDriver(WebDriverCreation Driver) {
@@ -209,19 +226,112 @@ public class Control {
 
     }
 
+    /**
+     * Initializes all core dependencies required for execution engine startup.
+     * <p>
+     * This method must be called before any execution begins. It performs the following:
+     * <ul>
+     *   <li>Loads test data factory for data-driven testing</li>
+     *   <li>Loads method information manager for action discovery and routing</li>
+     *   <li>Initializes encryption utilities for secure data handling</li>
+     * </ul>
+     * If duplicate methods are detected during loading, the error is logged but
+     * initialization continues to allow the application to start.
+     * </p>
+     *
+     * @see TestDataFactory#load()
+     * @see MethodInfoManager#load()
+     * @see Encryption#getInstance()
+     */
     private static void initDeps() {
         TestDataFactory.load();
-        MethodInfoManager.load();
+        try {
+            MethodInfoManager.load();
+        } catch (DuplicateMethodException ex) {
+            System.getLogger(Control.class.getName()).log(System.Logger.Level.ERROR, (String) null, ex);
+        }
         Encryption.getInstance();
+    }
+
+    /**
+     * Determines if arguments are for the new CLI (picocli-based).
+     * New CLI commands: project, scenario, testcase, action, run, report, config, server, shell
+     * Legacy CLI uses: -run, -project_location, -scenario, etc.
+     */
+    private static boolean isNewCLICommand(String[] args) {
+        if (args == null || args.length == 0) return false;
+        
+        String firstArg = args[0].toLowerCase();
+        
+        // New CLI subcommands
+        String[] newCommands = {
+            "project", "scenario", "testcase", "action", "actions", 
+            "run", "report", "config", "server", "shell", 
+            "interactive", "repl", "help", "--help", "-h", "--version"
+        };
+        
+        for (String cmd : newCommands) {
+            if (firstArg.equals(cmd)) {
+                return true;
+            }
+        }
+        
+        return false;
     }
 
     public static void main(String[] args) throws UnCaughtException {
         initDeps();
+        
         if (args != null && args.length > 0) {
-            LookUp.exe(args);
+            // Check if new CLI command
+            if (isNewCLICommand(args)) {
+                // Use new Picocli-based CLI
+                int exitCode = com.ing.engine.cli.INGeniousCLI.run(args);
+                if (exitCode != 0) {
+                    System.exit(exitCode);
+                }
+            } else {
+                // Legacy CLI handling
+                LookUp.exe(args);
+            }
         } else {
-            call();
+            // No args - show CLI help with banner
+            int exitCode = com.ing.engine.cli.INGeniousCLI.run(new String[0]);
+            System.exit(exitCode);
         }
+    }
+
+    /**
+     * Print INGenious ASCII banner at execution start
+     */
+    private void printExecutionBanner() {
+        String projectName = exe.getProject() != null ? exe.getProject().getName() : "Unknown";
+        String browser = RunManager.getGlobalSettings().getBrowser();
+        if (browser == null || browser.isEmpty()) {
+            browser = "Default";
+        }
+        String platform = System.getProperty("os.name", "Unknown");
+        
+        System.out.println();
+        System.out.println("╔══════════════════════════════════════════════════════════════════════════════╗");
+        System.out.println("║                                                                              ║");
+        System.out.println("║   ██╗███╗   ██╗ ██████╗ ███████╗███╗   ██╗██╗ ██████╗ ██╗   ██╗███████╗      ║");
+        System.out.println("║   ██║████╗  ██║██╔════╝ ██╔════╝████╗  ██║██║██╔═══██╗██║   ██║██╔════╝      ║");
+        System.out.println("║   ██║██╔██╗ ██║██║  ███╗█████╗  ██╔██╗ ██║██║██║   ██║██║   ██║███████╗      ║");
+        System.out.println("║   ██║██║╚██╗██║██║   ██║██╔══╝  ██║╚██╗██║██║██║   ██║██║   ██║╚════██║      ║");
+        System.out.println("║   ██║██║ ╚████║╚██████╔╝███████╗██║ ╚████║██║╚██████╔╝╚██████╔╝███████║      ║");
+        System.out.println("║   ╚═╝╚═╝  ╚═══╝ ╚═════╝ ╚══════╝╚═╝  ╚═══╝╚═╝ ╚═════╝  ╚═════╝ ╚══════╝      ║");
+        System.out.println("║                                                                              ║");
+        System.out.println("║                    🚀 Test Automation Framework v2.3.1                       ║");
+        System.out.println("║                                                                              ║");
+        System.out.println("╚══════════════════════════════════════════════════════════════════════════════╝");
+        System.out.println();
+        System.out.println("══════════════════════════════════════════════════════════════════════════════");
+        System.out.println("  📁 Project:  " + projectName);
+        System.out.println("  🌐 Browser:  " + browser);
+        System.out.println("  💻 Platform: " + platform);
+        System.out.println("══════════════════════════════════════════════════════════════════════════════");
+        System.out.println();
     }
 
 }

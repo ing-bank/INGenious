@@ -38,7 +38,7 @@ public class CLI {
         formatter.setOptionComparator(null);
         System.out.println("CLI\n"
                 + "Invoke command line options  for retrieving execution details, setting variable, change settings etc.");
-        formatter.printHelp("\nRun.bat", LookUp.OPTIONS, true);
+        formatter.printHelp("\ningenious.bat", LookUp.OPTIONS, true);
     }
 
     static void setVar(String val) {

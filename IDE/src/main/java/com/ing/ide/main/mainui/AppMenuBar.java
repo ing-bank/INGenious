@@ -38,7 +38,6 @@ public class AppMenuBar extends JMenuBar {
         initShortcut();
         setMargin(new Insets(0,0,0,5));
         add(changeFont(createFileMenu()));
-        add(changeFont(createObjectMenu()));
         add(changeFont(createTestDataMenu()));
         add(changeFont(createConfigurationMenu()));
         add(changeFont(createToolsMenu()));
@@ -57,15 +56,6 @@ public class AppMenuBar extends JMenuBar {
         shortcuts.put("Quit", KeyStroke.getKeyStroke(
                 KeyEvent.VK_X, KeyEvent.ALT_MASK));
 
-        shortcuts.put("Object Spy", KeyStroke.getKeyStroke(
-                KeyEvent.VK_P, SHORTCUT | KeyEvent.ALT_DOWN_MASK));
-        shortcuts.put("Object Heal", KeyStroke.getKeyStroke(
-                KeyEvent.VK_H, SHORTCUT | KeyEvent.ALT_DOWN_MASK));
-        shortcuts.put("Image Spy", KeyStroke.getKeyStroke(
-                KeyEvent.VK_I, SHORTCUT | KeyEvent.ALT_DOWN_MASK));
-        shortcuts.put("Mobile Spy", KeyStroke.getKeyStroke(
-                KeyEvent.VK_M, SHORTCUT | KeyEvent.ALT_DOWN_MASK));
-
         shortcuts.put("Run Settings", KeyStroke.getKeyStroke(
                 KeyEvent.VK_S, SHORTCUT | KeyEvent.ALT_DOWN_MASK));
 
@@ -80,6 +70,8 @@ public class AppMenuBar extends JMenuBar {
                 KeyEvent.VK_E, KeyEvent.SHIFT_DOWN_MASK | KeyEvent.ALT_DOWN_MASK));
         shortcuts.put("Dashboard", KeyStroke.getKeyStroke(
                 KeyEvent.VK_D, KeyEvent.SHIFT_DOWN_MASK | KeyEvent.ALT_DOWN_MASK));
+        shortcuts.put("API Workbench", KeyStroke.getKeyStroke(
+                KeyEvent.VK_T, KeyEvent.SHIFT_DOWN_MASK | KeyEvent.ALT_DOWN_MASK));
         shortcuts.put("AdjustUI", KeyStroke.getKeyStroke(
                 KeyEvent.VK_A, KeyEvent.SHIFT_DOWN_MASK | KeyEvent.ALT_DOWN_MASK));
 
@@ -103,8 +95,6 @@ public class AppMenuBar extends JMenuBar {
       
        // menu.setFont(new Font("Courier", Font.BOLD, 12));
        menu.setFont(new Font("ING Me", Font.BOLD, 12));
-//        setting color of menu text
-        menu.setForeground(UIManager.getColor("text"));
         menu.setMargin(new Insets(5,3,5,3));
        return menu;
     }
@@ -136,37 +126,6 @@ public class AppMenuBar extends JMenuBar {
                 Utils.createMenuItem("Quit", sActionListener)));
 
         return file;
-    }
-
-    private JMenu createObjectMenu() {
-        JMenu object = new JMenu("Automation");
-        object.setMnemonic('A');
-
-        object.add(withMnemonics(
-                withShortCut(
-                        withIcon(
-                                Utils.createMenuItem("Object Spy", sActionListener))), 'S'));
-        object.add(withMnemonics(
-                withShortCut(
-                        withIcon(
-                                Utils.createMenuItem("Object Heal", sActionListener))), 'H'));
-        object.addSeparator();
-        object.add(withMnemonics(
-                withShortCut(
-                        withIcon(
-                                Utils.createMenuItem("Image Spy", sActionListener))), 'I'));
-        object.add(withMnemonics(
-                withShortCut(
-                        withIcon(
-                                Utils.createMenuItem("Mobile Spy", sActionListener))), 'M'));
-        object.addSeparator();
-      //  object.add(
-      //          withMnemonics(
-      //                  withIcon(
-      //                          Utils.createMenuItem("Inject Script", sActionListener)), 'n'));
-      //  object.add(
-      //          withMnemonics(Utils.createMenuItem("Create CM Project", sActionListener), 'C'));
-        return object;
     }
 
     private JMenu createTestDataMenu() {
@@ -218,10 +177,10 @@ public class AppMenuBar extends JMenuBar {
                         Utils.createMenuItem("Options", sActionListener), 'O'));
         
         
-        configure.add(
-                withMnemonics(
-                        withIcon(
-                                Utils.createMenuItem("ToggleMode", sActionListener)), 'M'));
+        // JCheckBoxMenuItem darkModeItem = new JCheckBoxMenuItem("Dark Mode");
+        // darkModeItem.setFont(UIManager.getFont("TableMenu.font"));
+        // darkModeItem.addActionListener(sActionListener);
+        // configure.add(withMnemonics(darkModeItem, 'D'));
     
      return configure;
     }
@@ -252,6 +211,17 @@ public class AppMenuBar extends JMenuBar {
         playwrightOptionsMenu.add(withMnemonics(playwrightOptionsMenu, 'I'));
         playwrightOptionsMenu.add(Utils.createMenuItem("Import Playwright Recording", sActionListener));
         tools.add(playwrightOptionsMenu);
+        
+        JMenu sapOptionsMenu = new JMenu("Import SAP Recording");
+        // sapOptionsMenu.add(Utils.createMenuItem("VBScript (.vbs, .vba)", sActionListener, "Import SAP Recording:VBScript"));
+        // sapOptionsMenu.add(Utils.createMenuItem("JavaScript (.js)", sActionListener, "Import SAP Recording:JavaScript"));
+        sapOptionsMenu.add(Utils.createMenuItem("PowerShell (.ps1)", sActionListener, "Import SAP Recording:PowerShell"));
+        // sapOptionsMenu.add(Utils.createMenuItem("Python (.py)", sActionListener, "Import SAP Recording:Python"));
+        // sapOptionsMenu.add(Utils.createMenuItem("AutoIt (.au3)", sActionListener, "Import SAP Recording:AutoIt"));
+        // sapOptionsMenu.add(Utils.createMenuItem("C# (.cs)", sActionListener, "Import SAP Recording:CSharp"));
+        // sapOptionsMenu.add(Utils.createMenuItem("VB.NET (.vb)", sActionListener, "Import SAP Recording:VBNet"));
+        sapOptionsMenu.add(Utils.createMenuItem("Java (.java, .jsh)", sActionListener, "Import SAP Recording:Java"));
+        tools.add(sapOptionsMenu);
         
         tools.add(
                 withMnemonics(
@@ -299,6 +269,11 @@ public class AppMenuBar extends JMenuBar {
                 withMnemonics(
                         withShortCut(
                                 Utils.createMenuItem("Dashboard", sActionListener)), 'D'));
+
+        window.add(
+                withMnemonics(
+                        withShortCut(
+                                Utils.createMenuItem("API Workbench", sActionListener)), 'P'));
 
         window.add(
                 withMnemonics(

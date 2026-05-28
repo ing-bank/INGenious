@@ -1,13 +1,20 @@
 package com.ing.engine.commands.general;
 
+import java.text.DecimalFormat;
+import java.time.Instant;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 import com.ing.engine.commands.browser.CommonMethods;
 import com.ing.engine.commands.browser.General;
 import com.ing.engine.core.CommandControl;
-import com.ing.engine.execution.exception.ForcedException;
-import com.ing.engine.support.Status;
-import com.ing.engine.support.methodInf.Action;
-import com.ing.engine.support.methodInf.InputType;
-import com.ing.engine.support.methodInf.ObjectType;
+import com.ing.ingenious.api.exception.ForcedException;
+import com.ing.ingenious.api.status.Status;
+import com.ing.ingenious.api.annotation.Action;
+import com.ing.ingenious.api.types.InputType;
+import com.ing.ingenious.api.types.ObjectType;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
@@ -387,6 +394,28 @@ public class GeneralOperations extends General {
         Report.updateTestLog("resetPreviousTestCaseDataVariables", " Variables %PreviousScenario%, %PreviousTestCase%, %PreviousIteration% and %PreviousSubIteration% has been reset." + Input, Status.DONE);  
     }
     
+    /**
+     * Stores a value in the global datasheet.
+     * <p>
+     * This method stores data that can be accessed across different test scenarios and test cases.
+     * The global datasheet is identified by a unique ID and column name combination.
+     * </p>
+     * 
+     * @see #Data Contains the value to be stored in the global datasheet
+     * @see #Condition Contains the global datasheet reference in format "GlobalDataID:ColumnName"
+     * 
+     * <p><b>Usage Example:</b></p>
+     * <pre>
+     * Input (Data): myValue123
+     * Condition: GlobalSheet:UserData
+     * </pre>
+     * 
+     * <p><b>Behavior:</b></p>
+     * <ul>
+     *     <li>If Condition is null or invalid, reports an error with Status.DEBUG</li>
+     *     <li>If successful, stores the value with Status.DONE</li>
+     * </ul>
+     */
     @Action(object = ObjectType.GENERAL, desc = "store in Global Datasheet", input = InputType.YES, condition = InputType.YES)
     public void storeInGlobalDataSheet() {
         if (Condition != null) {
@@ -401,4 +430,95 @@ public class GeneralOperations extends General {
             System.out.println("Incorrect input format " + Condition);
         }
     }
+
+    /**
+     * Stores the current Epoch timestamp in a specified variable with flexible format options.
+     * <p>
+     * This method captures the current system time and converts it to Epoch timestamp
+     * (time since January 1, 1970, 00:00:00 UTC) in one of three formats:
+     * seconds, milliseconds, or seconds with millisecond precision.
+     * </p>
+     * 
+     * @see #Data Contains the format option: "Seconds", "Milliseconds", or "Seconds+Milliseconds"
+     * @see #Condition Contains the variable name where the timestamp will be stored
+     * 
+     * <p><b>Usage Examples:</b></p>
+     * <pre>
+     * Input (Data): @seconds
+     * Condition: %EpochSeconds%
+     * Result: Variable %EpochSeconds% contains epoch seconds (e.g., 1714176000)
+     * 
+     * Input (Data): @milliseconds
+     * Condition: %EpochMillis%
+     * Result: Variable %EpochMillis% contains epoch milliseconds (e.g., 1714176000000)
+     * 
+     * Input (Data): @seconds+milliseconds
+     * Condition: %EpochPrecise%
+     * Result: Variable %EpochPrecise% contains seconds with 3 decimal places (e.g., 1714176000.123)
+     * </pre>
+     * 
+     * <p><b>Validation:</b></p>
+     * <ul>
+     *     <li>Data must be one of: "seconds", "milliseconds", or "seconds+milliseconds" (case-insensitive)</li>
+     *     <li>Condition must contain a valid variable name</li>
+     *     <li>If validation fails, reports error with Status.FAIL and does not continue</li>
+     * </ul>
+     * 
+     * <p><b>Behavior:</b></p>
+     * <ul>
+     *     <li>Uses {@link Instant#now()} to get current system time</li>
+     *     <li>"seconds" - Converts to epoch seconds using {@link Instant#getEpochSecond()}</li>
+     *     <li>"milliseconds" - Converts to epoch milliseconds using {@link Instant#toEpochMilli()}</li>
+     *     <li>"seconds+milliseconds" - Provides decimal representation with 3 decimal places</li>
+     *     <li>Stores value in variable accessible via {@code addVar()}</li>
+     *     <li>Reports success with Status.DONE or failure with Status.FAIL</li>
+     * </ul>
+     */
+    @Action(object = ObjectType.GENERAL, desc = "Store Epoch Timestamp in variable", input = InputType.YES, condition = InputType.YES)
+    public void storeEpochTimestampInVariable() {
+        if (Condition == null || Condition.isBlank() || Condition.equals("%%")) {
+            Report.updateTestLog(Action, "Variable name is required. Please provide a valid variable name in the Condition field.", Status.FAIL);
+            return;
+        }
+        
+        if (Data == null || Data.isBlank()) {
+            Report.updateTestLog(Action, "Format option is required. Use: 'seconds', 'milliseconds', or 'seconds+milliseconds'.", Status.FAIL);
+            return;
+        }
+        
+        try {
+            String epochTimestamp = "";
+            String option = Data.trim().toLowerCase();
+
+            switch (option) {
+                case "seconds":
+                    epochTimestamp = String.valueOf(Instant.now().getEpochSecond());
+                    break;
+
+                case "milliseconds":
+                    epochTimestamp = String.valueOf(Instant.now().toEpochMilli());
+                    break;
+
+                case "seconds+milliseconds":
+                    DecimalFormat df = new DecimalFormat("0.000");
+                    df.setMaximumFractionDigits(3);
+                    double epochWithMs = Instant.now().toEpochMilli() / 1000.0;
+                    epochTimestamp = df.format(epochWithMs);
+                    break;
+
+                default:
+                    Report.updateTestLog(Action, "Invalid input. Use: 'seconds', 'milliseconds', or 'seconds+milliseconds'.", Status.FAIL);
+                    return;
+            }
+
+            addVar(Condition, epochTimestamp);
+            Report.updateTestLog(Action, "Timestamp added in variable with value '" + epochTimestamp + "'", Status.DONE);
+
+        } catch (Exception e) {
+            Report.updateTestLog(Action, e.getMessage(), Status.FAIL);
+            Logger.getLogger(CommonMethods.class.getName()).log(Level.SEVERE, null, e);
+        }
+
+    }
+ 
 }

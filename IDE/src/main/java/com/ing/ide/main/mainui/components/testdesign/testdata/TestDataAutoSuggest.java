@@ -2,14 +2,19 @@
 package com.ing.ide.main.mainui.components.testdesign.testdata;
 
 import com.ing.datalib.component.Project;
+import com.ing.datalib.component.Scenario;
 import com.ing.engine.util.data.fx.FParser;
 import com.ing.ide.main.utils.Utils;
 import com.ing.ide.main.utils.table.autosuggest.AutoSuggest;
 import com.ing.ide.main.utils.table.autosuggest.AutoSuggestCellEditor;
 import java.awt.event.ActionEvent;
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Objects;
+import java.util.Set;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.JTable;
@@ -70,19 +75,48 @@ public class TestDataAutoSuggest {
     }
 
     private void updateScenarios() {
-        scenarioSugg.setSearchList(Utils.asStringList(sProject.getScenarios()));
+        Set allScenarios = new LinkedHashSet<>();
+        
+        // Add Test Scenarios to the autosuggest list
+        List<String> scenarioList = Utils.asStringList(sProject.getScenarios());
+        Collections.sort(scenarioList, String.CASE_INSENSITIVE_ORDER);
+        allScenarios.addAll(scenarioList);
+        
+        // Add Reusable Component Test Scenarios to the autosuggest list
+        List<String> reusableScenarioList = Utils.asStringList(sProject.getReusableScenarios());
+        Collections.sort(reusableScenarioList, String.CASE_INSENSITIVE_ORDER);
+        allScenarios.addAll(reusableScenarioList);
+        
+        scenarioSugg.setSearchList(new ArrayList<>(allScenarios));
     }
 
     private void updateTestCases() {
         testCaseSugg.clearSearchList();
         if (table.getSelectedRow() != -1) {
+            // Use model directly to get scenario value (column 0 in model)
+            // This works regardless of whether we're in the fixed table or main table
             String scenario = Objects.toString(
-                    table.getValueAt(table.getSelectedRow(), 0), "");
-            if (!scenario.trim().isEmpty()
-                    && sProject.getScenarioByName(scenario) != null) {
-                testCaseSugg.setSearchList(
-                        Utils.asStringList(
-                                sProject.getScenarioByName(scenario).getTestCases()));
+                    table.getModel().getValueAt(table.getSelectedRow(), 0), "");
+            if (!scenario.trim().isEmpty()){
+                Set allTestCases = new LinkedHashSet<>();
+                
+                // Add all test cases that match the scenario name
+                if (sProject.getScenarioByName(scenario) != null) {
+                    List<String> testCaseList = Utils.asStringList(
+                            sProject.getScenarioByName(scenario).getTestCases());
+                    Collections.sort(testCaseList, String.CASE_INSENSITIVE_ORDER);
+                    allTestCases.addAll(testCaseList);
+                }
+                
+                // Add all reusable component test cases that match the scenario name
+                if (sProject.getReusableScenarioByName(scenario) != null) {
+                    List<String> reusableTestCaseList = Utils.asStringList(
+                            sProject.getReusableScenarioByName(scenario).getTestCases());
+                    Collections.sort(reusableTestCaseList, String.CASE_INSENSITIVE_ORDER);
+                    allTestCases.addAll(reusableTestCaseList);
+                }
+                
+                testCaseSugg.setSearchList(new ArrayList<>(allTestCases));
             }
         }
     }

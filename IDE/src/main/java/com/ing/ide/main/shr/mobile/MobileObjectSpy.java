@@ -11,6 +11,7 @@ import com.ing.datalib.or.mobile.MobileORPage;
 import com.ing.datalib.settings.emulators.Emulator;
 import com.ing.datalib.util.data.LinkedProperties;
 import com.ing.ide.main.mainui.AppMainFrame;
+import com.ing.ide.main.mainui.components.testdesign.TestDesign;
 import com.ing.ide.main.mainui.components.testdesign.or.ObjectTree;
 import com.ing.ide.main.settings.PropUtils;
 import com.ing.ide.main.shr.mobile.android.AndroidAdbCLI;
@@ -19,7 +20,8 @@ import com.ing.ide.main.shr.mobile.android.AndroidUtil;
 import com.ing.ide.main.shr.mobile.ios.IOSTree;
 import com.ing.ide.main.shr.mobile.ios.IOSUtil;
 //import com.ing.ide.main.shr.mobile.ios.IOSpy;
-import com.ing.ide.main.utils.table.JtableUtils;
+import com.ing.ide.main.utils.table.JTableUtils;
+import com.ing.ide.main.utils.table.PropertyAttributeRenderer;
 import com.ing.ide.settings.IconSettings;
 import com.ing.ide.util.Notification;
 import java.awt.BasicStroke;
@@ -47,7 +49,9 @@ import javax.swing.SwingUtilities;
 import javax.swing.filechooser.FileFilter;
 import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.table.DefaultTableModel;
+import javax.swing.table.TableColumn;
 import javax.swing.tree.DefaultTreeModel;
+import com.ing.ide.main.fx.INGIcons;
 
 /**
  *
@@ -57,10 +61,10 @@ public class MobileObjectSpy extends javax.swing.JFrame {
 
     private static final Logger LOG = Logger.getLogger(MobileObjectSpy.class.getName());
 
-    private final transient Icon spy = new ImageIcon(getClass().getResource("/mobilespy/spy.png"));
-    private final transient Icon heal = new ImageIcon(getClass().getResource("/mobilespy/heal.png"));
-    private final transient Icon android = new ImageIcon(getClass().getResource("/mobilespy/android.png"));
-    private final transient Icon ios = new ImageIcon(getClass().getResource("/mobilespy/apple.png"));
+    private final transient Icon spy = INGIcons.swingColored("icon.spy", 16);
+    private final transient Icon heal = INGIcons.swingColored("icon.heal", 16);
+    private final transient Icon android = INGIcons.swingColored("icon.android", 16);
+    private final transient Icon ios = INGIcons.swingColored("icon.apple", 16);
 
     private final transient AndroidAdbCLI screenshotAction = new AndroidAdbCLI();
     private transient Rect selectedRect;
@@ -78,7 +82,7 @@ public class MobileObjectSpy extends javax.swing.JFrame {
 
     public MobileObjectSpy(AppMainFrame sMainFrame) {
         initComponents();
-        setIconImage(IconSettings.getIconSettings().getMobileObjectGrabb().getImage());
+        setIconImage(com.ing.ide.main.fx.INGIcons.toImage(IconSettings.getIconSettings().getMobileObjectGrabb()));
         this.sMainFrame = sMainFrame;
         initVars();
         loadDefaultAppiumCaps();
@@ -90,15 +94,16 @@ public class MobileObjectSpy extends javax.swing.JFrame {
         mobileUtils.setValues(jTree1, screenShotLabel, jTable1);
         mobileTree.setTree(jTree1);
         setJMenuBar(jMenuBar1);
-        JtableUtils.addlisteners(jTable1, true);
-        JtableUtils.addlisteners(mobilePropTable, true);
-        JtableUtils.addlisteners(jTable3, true);
+        JTableUtils.addlisteners(jTable1, true);
+        JTableUtils.addlisteners(mobilePropTable, true);
+        JTableUtils.addlisteners(jTable3, true);
         objectTree = new ObjectTree() {
             @Override
             public void loadTableModelForSelection() {
                 Object obj = objectTree.getSelectedObject();
                 if (obj != null && obj instanceof MobileORObject) {
                     mobilePropTable.setModel((MobileORObject) obj);
+                    configureMobilePropTableColumns();
                 }
             }
 
@@ -116,6 +121,11 @@ public class MobileObjectSpy extends javax.swing.JFrame {
             public ORRootInf getOR() {
                 return mobileOR;
             }
+
+            @Override
+            public TestDesign getTestDesign() {
+                return sMainFrame.getTestDesign();
+            }
         };
         treePanel.add(new JScrollPane(objectTree.getTree()), BorderLayout.CENTER);
     }
@@ -129,6 +139,21 @@ public class MobileObjectSpy extends javax.swing.JFrame {
         andEmulatorCombo.setModel(new DefaultComboBoxModel(sMainFrame.getProject().getProjectSettings()
                 .getEmulators().getAppiumEmulatorNames().toArray()));
         iosEmulatorCombo.setModel(andEmulatorCombo.getModel());
+    }
+
+    private void configureMobilePropTableColumns() {
+        if (mobilePropTable.getColumnCount() >= 2) {
+            // Column 0: Attribute - narrow width
+            TableColumn attrCol = mobilePropTable.getColumnModel().getColumn(0);
+            attrCol.setCellRenderer(new PropertyAttributeRenderer());
+            attrCol.setPreferredWidth(100);
+            attrCol.setMinWidth(80);
+            attrCol.setMaxWidth(150);
+            
+            // Column 1: Value - takes remaining space
+            TableColumn valueCol = mobilePropTable.getColumnModel().getColumn(1);
+            valueCol.setPreferredWidth(300);
+        }
     }
 
     /**
@@ -406,7 +431,7 @@ public class MobileObjectSpy extends javax.swing.JFrame {
         imageAndObjectRepo.setResizeWeight(0.7);
         imageAndObjectRepo.setOneTouchExpandable(true);
 
-        screenShotLabel.setIcon(new javax.swing.ImageIcon(getClass().getResource("/mobilespy/screenshot.png"))); // NOI18N
+        screenShotLabel.setIcon(INGIcons.swingColored("icon.screenshot", 64)); // Placeholder
         screenShotLabel.setVerticalAlignment(javax.swing.SwingConstants.TOP);
         screenShotLabel.setMaximumSize(new java.awt.Dimension(78676, 778786));
         screenShotLabel.setMinimumSize(new java.awt.Dimension(346, 680));
@@ -477,7 +502,7 @@ public class MobileObjectSpy extends javax.swing.JFrame {
         });
         jToolBar3.add(addToSelectedPage);
 
-        loadResourceFromPage.setIcon(new javax.swing.ImageIcon(getClass().getResource("/ui/resources/Inject.png"))); // NOI18N
+        loadResourceFromPage.setIcon(INGIcons.swingColored("icon.import", 16));
         loadResourceFromPage.setToolTipText("Load From Page [Ctrl+Alt+ L]");
         loadResourceFromPage.setFocusable(false);
         loadResourceFromPage.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
@@ -489,7 +514,7 @@ public class MobileObjectSpy extends javax.swing.JFrame {
         });
         jToolBar3.add(loadResourceFromPage);
 
-        mapCurrentToPage.setIcon(new javax.swing.ImageIcon(getClass().getResource("/ui/resources/Inject.png"))); // NOI18N
+        mapCurrentToPage.setIcon(INGIcons.swingColored("icon.map", 16));
         mapCurrentToPage.setToolTipText("Map Current view to Page [Ctrl+Alt+M]");
         mapCurrentToPage.setFocusable(false);
         mapCurrentToPage.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
@@ -516,7 +541,7 @@ public class MobileObjectSpy extends javax.swing.JFrame {
         jToolBar4.setRollover(true);
         jToolBar4.add(filler3);
 
-        loadAndroidDevices.setIcon(new javax.swing.ImageIcon(getClass().getResource("/ui/resources/ref.png"))); // NOI18N
+        loadAndroidDevices.setIcon(INGIcons.swingColored("icon.refresh", 16));
         loadAndroidDevices.setToolTipText("Load UDID");
         loadAndroidDevices.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -525,7 +550,7 @@ public class MobileObjectSpy extends javax.swing.JFrame {
         });
         jToolBar4.add(loadAndroidDevices);
 
-        loadPackageAndActivity.setIcon(new javax.swing.ImageIcon(getClass().getResource("/ui/resources/objects.png"))); // NOI18N
+        loadPackageAndActivity.setIcon(INGIcons.swingColored("icon.objects", 16));
         loadPackageAndActivity.setToolTipText("Fetch current Acitivity");
         loadPackageAndActivity.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -534,7 +559,7 @@ public class MobileObjectSpy extends javax.swing.JFrame {
         });
         jToolBar4.add(loadPackageAndActivity);
 
-        addAsAndroidemulator.setIcon(new javax.swing.ImageIcon(getClass().getResource("/ui/resources/saveproj.png"))); // NOI18N
+        addAsAndroidemulator.setIcon(INGIcons.swingColored("icon.saveproj", 16));
         addAsAndroidemulator.setToolTipText("Save/Update Device");
         addAsAndroidemulator.setFocusable(false);
         addAsAndroidemulator.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
@@ -689,7 +714,7 @@ public class MobileObjectSpy extends javax.swing.JFrame {
         jToolBar2.setRollover(true);
         jToolBar2.add(filler1);
 
-        loadDefault.setIcon(new javax.swing.ImageIcon(getClass().getResource("/ui/resources/refresh.png"))); // NOI18N
+        loadDefault.setIcon(INGIcons.swingColored("icon.refresh", 16));
         loadDefault.setToolTipText("Load Default Value");
         loadDefault.setFocusable(false);
         loadDefault.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
@@ -701,7 +726,7 @@ public class MobileObjectSpy extends javax.swing.JFrame {
         });
         jToolBar2.add(loadDefault);
 
-        addRow.setIcon(new javax.swing.ImageIcon(getClass().getResource("/ui/resources/add.png"))); // NOI18N
+        addRow.setIcon(INGIcons.swingColored("icon.add", 16)); // NOI18N
         addRow.setToolTipText("Add Row");
         addRow.setFocusable(false);
         addRow.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
@@ -713,7 +738,7 @@ public class MobileObjectSpy extends javax.swing.JFrame {
         });
         jToolBar2.add(addRow);
 
-        removeRow.setIcon(new javax.swing.ImageIcon(getClass().getResource("/ui/resources/rem.png"))); // NOI18N
+        removeRow.setIcon(INGIcons.swingColored("icon.rem", 16)); // NOI18N
         removeRow.setToolTipText("Remove Rows");
         removeRow.setFocusable(false);
         removeRow.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
@@ -725,7 +750,7 @@ public class MobileObjectSpy extends javax.swing.JFrame {
         });
         jToolBar2.add(removeRow);
 
-        updateEmulator.setIcon(new javax.swing.ImageIcon(getClass().getResource("/ui/resources/saveproj.png"))); // NOI18N
+        updateEmulator.setIcon(INGIcons.swingColored("icon.saveproj", 16));
         updateEmulator.setToolTipText("Update Selected Emulator");
         updateEmulator.setEnabled(false);
         updateEmulator.setFocusable(false);
@@ -993,11 +1018,11 @@ public class MobileObjectSpy extends javax.swing.JFrame {
     }//GEN-LAST:event_jCheckBox1ItemStateChanged
 
     private void addRowActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_addRowActionPerformed
-        JtableUtils.addrow(jTable3);
+        JTableUtils.addrow(jTable3);
     }//GEN-LAST:event_addRowActionPerformed
 
     private void removeRowActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_removeRowActionPerformed
-        JtableUtils.deleterow(jTable3);
+        JTableUtils.deleterow(jTable3);
     }//GEN-LAST:event_removeRowActionPerformed
 
     private void updateEmulatorActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_updateEmulatorActionPerformed

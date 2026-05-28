@@ -67,6 +67,12 @@ public class TestDesign {
 
     public void loadTableModelForSelection(Object selectedNode) {
         if (selectedNode instanceof Scenario) {
+            // Save current test case before switching to scenario view
+            TestCase currentTestCase = testcaseComp.getCurrentTestCase();
+            if (currentTestCase != null && !currentTestCase.isSaved()) {
+                currentTestCase.save();
+            }
+            
             testCaseScenarioCard.show(testcaseMirage, "scenario");
             scenarioComp.loadTableModelForSelection(selectedNode);
         } else if (selectedNode instanceof TestCase) {

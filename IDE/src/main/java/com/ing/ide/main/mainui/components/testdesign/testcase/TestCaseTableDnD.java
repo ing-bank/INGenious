@@ -2,8 +2,11 @@
 package com.ing.ide.main.mainui.components.testdesign.testcase;
 
 import com.ing.datalib.component.TestCase;
+import com.ing.datalib.component.TestStep;
 import com.ing.datalib.component.TestStep.HEADERS;
+import com.ing.datalib.or.ObjectRepository;
 import com.ing.datalib.or.common.ORPageInf;
+import com.ing.datalib.or.web.ResolvedWebObject;
 import com.ing.ide.main.mainui.components.testdesign.or.ObjectDnD;
 import com.ing.ide.main.mainui.components.testdesign.or.ObjectRepDnD;
 import com.ing.ide.main.mainui.components.testdesign.testdata.TestDataDetail;
@@ -123,7 +126,17 @@ public class TestCaseTableDnD extends TransferHandler {
                     testCase.setValueAt(objs.getPageName(val), row, HEADERS.Reference.getIndex());
                     testCase.fireTableRowsUpdated(row, row);
                 } else {
-                    testCase.addObjectStep(row, objs.getObjectName(val), objs.getPageName(val));
+                    ObjectRepository or = testCase.getProject().getObjectRepository();
+                    TestStep tempStep = new TestStep(testCase);
+                    ResolvedWebObject rwo =
+                        or.resolveWebObjectWithScope(
+                            objs.getPageName(val),
+                            objs.getObjectName(val),
+                            tempStep
+                        );
+                    if (rwo != null) {
+                        testCase.addObjectStep(row, rwo);
+                    }
                 }
                 row++;
             }

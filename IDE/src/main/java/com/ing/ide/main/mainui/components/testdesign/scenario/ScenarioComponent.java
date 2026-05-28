@@ -59,6 +59,11 @@ public class ScenarioComponent extends JPanel implements ActionListener {
     }
 
     public void loadTableModelForSelection(Object obj) {
+        // Save current scenario's test cases before switching to new scenario
+        if (getCurrentScenario() != null) {
+            getCurrentScenario().save();
+        }
+        
         Scenario scenario = (Scenario) obj;
         getScenarioTable().setModel(new DefaultTableModel());
         getScenarioTable().setModel(testDesign.getProject().getTableModelFor(scenario));
@@ -182,8 +187,24 @@ public class ScenarioComponent extends JPanel implements ActionListener {
                 TestStep tStep = testCase.getTestSteps().get(scenarioTable.getSelectedColumn() - 1);
                 String[] reusableData = tStep.getReusableData();
                 if (reusableData != null) {
-                    TestCase rtestCase = testDesign.getProject().getScenarioByName(reusableData[0]).getTestCaseByName(reusableData[1]);
-                    testDesign.loadTableModelForSelection(rtestCase);
+                    // Try reusable scenarios first, then fall back to regular scenarios
+                    Scenario scenario = testDesign.getProject().getReusableScenarioByName(reusableData[0]);
+                    if (scenario == null) {
+                        scenario = testDesign.getProject().getScenarioByName(reusableData[0]);
+                    }
+                    
+                    if (scenario != null) {
+                        TestCase rtestCase = scenario.getTestCaseByName(reusableData[1]);
+                        if (rtestCase != null) {
+                            testDesign.loadTableModelForSelection(rtestCase);
+                        } else {
+                            Notification.show("TestCase [" + reusableData[1]
+                                    + "] not present in the Scenario [" + reusableData[0] + "]");
+                        }
+                    } else {
+                        Notification.show("Scenario [" + reusableData[0]
+                                + "] not present in the project");
+                    }
                 } else {
                     testDesign.loadTableModelForSelection(testCase);
                     testDesign.getTestCaseComp().getTestCaseTable().changeSelection(scenarioTable.getSelectedColumn() - 1, 3, false, false);

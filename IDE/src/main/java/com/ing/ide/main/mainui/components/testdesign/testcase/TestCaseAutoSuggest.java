@@ -12,12 +12,16 @@ import static com.ing.datalib.component.TestStep.HEADERS.Description;
 import static com.ing.datalib.component.TestStep.HEADERS.Input;
 import static com.ing.datalib.component.TestStep.HEADERS.ObjectName;
 import static com.ing.datalib.component.TestStep.HEADERS.Reference;
+import com.ing.datalib.or.structureddata.ResolvedStructuredDataObject;
+import com.ing.datalib.or.structureddata.ResolvedStructuredDataObject;
 import com.ing.datalib.or.mobile.ResolvedMobileObject;
+import com.ing.datalib.or.sap.ResolvedSapObject;
 import com.ing.datalib.or.web.ResolvedWebObject;
 import com.ing.datalib.testdata.model.Record;
 import com.ing.datalib.testdata.model.TestDataModel;
+import com.ing.engine.support.ObjectTypeUtil;
 import com.ing.engine.support.methodInf.MethodInfoManager;
-import com.ing.engine.support.methodInf.ObjectType;
+import com.ing.ingenious.api.types.ObjectType;
 import com.ing.engine.util.data.fx.FParser;
 import com.ing.ide.main.utils.table.SQLTextArea;
 import com.ing.ide.main.utils.table.WebservicePayloadArea;
@@ -54,7 +58,8 @@ import javax.swing.Timer;
  * Auto-suggest controller for the Test Case table, providing intelligent
  * suggestions for Object, Action, Condition, and Input columns.
  *
- * Updated to support Mobile OR separation (Project + Shared) and scoped
+ * Updated to support Web, Mobile and Structured Data OR separation (Project + Shared) and scoped
+ * Updated to support Web, Mobile and Structured Data OR separation (Project + Shared) and scoped
  * reference tokens ("[Project]" / "[Shared]") when detecting object type.
  */
 public class TestCaseAutoSuggest {
@@ -117,25 +122,25 @@ public class TestCaseAutoSuggest {
 
     public void installForTestCase() {
         table.getColumnModel().getColumn(0).setMaxWidth(50);
+        table.getColumnModel().getColumn(Action.getIndex()).setPreferredWidth(250);
         table.getColumnModel().getColumn(ObjectName.getIndex()).setCellEditor(new AutoSuggestCellEditor(objAutoSuggest));
         table.getColumnModel().getColumn(Action.getIndex()).setCellEditor(new AutoSuggestCellEditor(actionAutoSuggest));
         table.getColumnModel().getColumn(Condition.getIndex()).setCellEditor(new AutoSuggestCellEditor(conditionAutoSuggest));
         table.getColumnModel().getColumn(Input.getIndex()).setCellEditor(new InputAutoSuggestCellEditor(inputAutoSuggest));
     }
 
-    private List getObjectList() {
-        List objectList = new ArrayList<>();
-        objectList.add("Browser");
-        objectList.add("Mobile");
-        objectList.add("Webservice");
-        objectList.add("Database");
-        objectList.add("Kafka");
-        objectList.add("Queue");
-        objectList.add("Synthetic Data");
-        objectList.add("File");
-        objectList.add("General");
-        objectList.add("Execute");
-        objectList.add("String Operations");
+    /**
+     * Retrieves a list of all object types available in the IDE.
+     * <p>
+     * The object types are sourced from {@link ObjectTypeUtil#getAllTypesForIDE()}
+     * and are used to populate the ObjectName dropdown in test case design.
+     * </p>
+     *
+     * @return a List of String containing all object type names available in the IDE
+     * @see ObjectTypeUtil#getAllTypesForIDE()
+     */
+    private List<String> getObjectList() {
+        List<String> objectList = new ArrayList<>(ObjectTypeUtil.getAllTypesForIDE()); // arraylist to allow ordered list
         return objectList;
     }
 
@@ -296,53 +301,60 @@ public class TestCaseAutoSuggest {
 
     class ActionAutoSuggest extends AutoSuggest {
 
-        private List getActionBasedOnObject() {
+         /**
+         * Retrieves available actions for the currently selected object in the test design table.
+         * <p>
+         * Returns action methods appropriate for the object type (Browser, Database, Webservice, etc.)
+         * or reusable components for Execute objects. For unrecognized object names, attempts to
+         * resolve them as custom types, web objects, or mobile objects from the object repository.
+         * </p>
+         *
+         * @return list of action method names for the selected object, or an empty list if unrecognized
+         * @see MethodInfoManager#getMethodListFor(String...)
+         * @see ObjectTypeUtil#isKnownType(String)
+         */
+        private List<String> getActionBasedOnObject() {
             String objectName = Objects.toString(table.getValueAt(
                     table.getSelectedRow(), ObjectName.getIndex()), "");
             String pageToken = Objects.toString(table.getValueAt(
                     table.getSelectedRow(), Reference.getIndex()), "");
 
-            switch (objectName) {
-                case "Execute":
-                    return getReusables();
-                case "Browser":
-                    return MethodInfoManager.getMethodListFor(ObjectType.BROWSER, ObjectType.ANY);
-                case "Mobile":
-                    return MethodInfoManager.getMethodListFor(ObjectType.MOBILE, ObjectType.MOBILE);
-                case "Database":
-                    return MethodInfoManager.getMethodListFor(ObjectType.DATABASE, ObjectType.DATABASE);
-                case "ProtractorJS":
-                    return MethodInfoManager.getMethodListFor(ObjectType.PROTRACTORJS, ObjectType.PROTRACTORJS);
-                case "Webservice":
-                    return MethodInfoManager.getMethodListFor(ObjectType.WEBSERVICE, ObjectType.WEBSERVICE);
-                case "Synthetic Data":
-                    return MethodInfoManager.getMethodListFor(ObjectType.DATA, ObjectType.DATA);
-                case "Queue":
-                    return MethodInfoManager.getMethodListFor(ObjectType.QUEUE, ObjectType.QUEUE);
-                case "Kafka":
-                    return MethodInfoManager.getMethodListFor(ObjectType.KAFKA, ObjectType.KAFKA);
-                case "File":
-                    return MethodInfoManager.getMethodListFor(ObjectType.FILE, ObjectType.FILE);
-                case "General":
-                    return MethodInfoManager.getMethodListFor(ObjectType.GENERAL, ObjectType.GENERAL);
-                case "String Operations":
-                    return MethodInfoManager.getMethodListFor(ObjectType.STRINGOPERATIONS, ObjectType.STRINGOPERATIONS);
-                default:
-                    if (isWebObject(objectName, pageToken)) {
-                        return MethodInfoManager.getMethodListFor(ObjectType.PLAYWRIGHT, ObjectType.WEB, ObjectType.ANY);
-                    } else if (isMobileObject(objectName, pageToken)) {
-                        return MethodInfoManager.getMethodListFor(ObjectType.APP);
-                    }
+            if ("Execute".equals(objectName)) {
+                return getReusables();
             }
+
+            if ("Browser".equals(objectName)) {
+                return MethodInfoManager.getMethodListFor(ObjectType.BROWSER, ObjectType.ANY);
+            }
+
+            if (ObjectTypeUtil.isKnownType(objectName)) {
+                return MethodInfoManager.getMethodListFor(objectName);
+            }
+
+            if (isWebObject(objectName, pageToken)) {
+                return MethodInfoManager.getMethodListFor(ObjectType.PLAYWRIGHT, ObjectType.WEB, ObjectType.ANY);
+            }
+
+            if (isMobileObject(objectName, pageToken)) {
+                return MethodInfoManager.getMethodListFor(ObjectType.APP);
+            }
+            
+            if (isStructuredDataObject(objectName, pageToken)) {
+                return MethodInfoManager.getMethodListFor(ObjectType.STRUCTUREDDATA);
+            }
+    
+            if (isSapObject(objectName, pageToken)) {
+                return MethodInfoManager.getMethodListFor(ObjectType.SAP);
+            }
+            
             return new ArrayList<>();
         }
 
-        private List getReusables() {
-            List reusableList = new ArrayList<>();
-            for (Scenario scenario : sProject.getScenarios()) {
-                int rcount = scenario.getReusableCount();
-                for (int i = 0; i < rcount; i++) {
-                    reusableList.add(scenario.getName() + ":" + scenario.getReusableAt(i).getName());
+        private List<String> getReusables() {
+            List<String> reusableList = new ArrayList<>();
+            for (Scenario scenario : sProject.getReusableScenarios()) {
+                for (TestCase testCase : scenario.getTestCases()) {
+                    reusableList.add(scenario.getName() + ":" + testCase.getName());
                 }
             }
             return reusableList;
@@ -379,6 +391,44 @@ public class TestCaseAutoSuggest {
             ResolvedMobileObject r = (ref != null && ref.name != null && ref.scope != null)
                     ? repo.resolveMobileObject(ref, objectName)
                     : repo.resolveMobileObjectWithScope(pageToken, objectName);
+            return r != null && r.isPresent();
+        }
+        
+        /**
+         * Detect Structured Data objects via Structured Data resolver (supports scoped refs + shared)
+         * instead of directly accessing getStructuredDataOR()/pages.
+         */
+        private boolean isStructuredDataObject(String objectName, String pageToken) {
+            if (pageToken == null
+                    || pageToken.isBlank()
+                    || objectName == null
+                    || objectName.isBlank()) {
+                return false;
+            }
+            var repo = sProject.getObjectRepository();
+            ResolvedStructuredDataObject.PageRef ref = ResolvedStructuredDataObject.PageRef.parse(pageToken);
+            ResolvedStructuredDataObject r = (ref != null && ref.name != null && ref.scope != null)
+                    ? repo.resolveStructuredDataObject(ref, objectName)
+                    : repo.resolveStructuredDataObjectWithScope(pageToken, objectName);
+            return r != null && r.isPresent();
+        }
+
+        /**
+         * Detect SAP objects via SAP resolver (supports scoped refs + shared)
+         * instead of directly accessing getSapOR()/pages.
+         */
+        private boolean isSapObject(String objectName, String pageToken) {
+            if (pageToken == null
+                    || pageToken.isBlank()
+                    || objectName == null
+                    || objectName.isBlank()) {
+                return false;
+            }
+            var repo = sProject.getObjectRepository();
+            ResolvedSapObject.PageRef ref = ResolvedSapObject.PageRef.parse(pageToken);
+            ResolvedSapObject r = (ref != null && ref.name != null && ref.scope != null)
+                    ? repo.resolveSapObject(ref, objectName)
+                    : repo.resolveSapObjectWithScope(pageToken, objectName);
             return r != null && r.isPresent();
         }
 
@@ -591,309 +641,190 @@ public class TestCaseAutoSuggest {
 
     class MouseMotionAdapterImpl extends MouseMotionAdapter {
 
-        Point hintCell;
-        Timer showTimerp;
-        Timer showTimerd;
-        Timer showTimerw;
-        Timer showTimerf;
-        Timer showTimerm;
-        Timer showTimers;
+        private Point hintCell = new Point(-1, -1);
+        private Timer showTimer;
+        private Timer hideTimer;
 
-        Timer disposeTimerp;
-        Timer disposeTimerd;
-        Timer disposeTimerw;
-        Timer disposeTimerf;
-        Timer disposeTimerm;
-        Timer disposeTimers;
-
-        JPopupMenu popupp;
-        JPopupMenu popupd;
-        JPopupMenu popupw;
-        JPopupMenu popupf;
-        JPopupMenu popupm;
-        JPopupMenu popups;
-
-        TestStep step;
+        private JPopupMenu popup;
+        private JMenuItem actionItem;
+        private TestStep currentStep;
 
         public MouseMotionAdapterImpl() {
-            popupp = new JPopupMenu();
-            popupd = new JPopupMenu();
-            popupw = new JPopupMenu();
-            popupf = new JPopupMenu();
-            popupm = new JPopupMenu();
-            popups = new JPopupMenu();
+            popup = new JPopupMenu();
+            actionItem = new JMenuItem();
+            popup.add(actionItem);
 
-            final JMenuItem jMenuItemp = new JMenuItem("Click to open ProtractorJS command editor");
-            final JMenuItem jMenuItemd = new JMenuItem("Click to Open SQL Query Editor ");
-            final JMenuItem jMenuItemw = new JMenuItem("Click to Open Webservice Editor ");
-            final JMenuItem jMenuItemf = new JMenuItem("Click to Open File Editor ");
-            final JMenuItem jMenuItemm = new JMenuItem("Click to Open Message Editor ");
-            final JMenuItem jMenuItems = new JMenuItem("Click to Open String Operations Editor ");
+            actionItem.addActionListener((ActionEvent ae) -> {
+                if (currentStep == null) return;
 
-            popupp.add(jMenuItemp);
-            popupd.add(jMenuItemd);
-            popupw.add(jMenuItemw);
-            popupf.add(jMenuItemf);
-            popupm.add(jMenuItemm);
-            popups.add(jMenuItems);
-
-            jMenuItemp.addActionListener((ActionEvent ae) -> {
-                if (step != null && (isProtractorjsStep(step))) {
-                    new SQLTextArea(null, step, getInputs());
+                if (isProtractorjsStep(currentStep) || isDataBaseQueryStep(currentStep)) {
+                    new SQLTextArea(null, currentStep, getInputs());
+                } else if (isRestWebservicePostStep(currentStep) ||
+                        (currentStep.isWebserviceStep() && currentStep.getAction().contains("postSoap")) ||
+                        (currentStep.isBrowserStep() && currentStep.getAction().contains("RouteFulfillSetBody"))) {
+                    new WebservicePayloadArea(
+                            null,
+                            currentStep,
+                            isRestWebservicePostStep(currentStep) ? "REST" : "SOAP",
+                            getInputs()
+                    );
+                } else if (isSetEndPointStep(currentStep) || isRouteFulfillEndpointStep(currentStep)) {
+                    new EndPointTextArea(null, currentStep, getInputs());
+                } else if (isFileStep(currentStep) || isMessageStep(currentStep)) {
+                    new WebservicePayloadArea(null, currentStep, "SOAP", getInputs());
+                } else if (isStringOperationsStep(currentStep)) {
+                    new StringOperationsPayloadArea(null, currentStep, getInputs());
                 }
+
+                hidePopupNow();
             });
 
-            jMenuItemd.addActionListener((ActionEvent ae) -> {
-                if (step != null && (isDataBaseQueryStep(step))) {
-                    new SQLTextArea(null, step, getInputs());
-                }
-            });
-
-            jMenuItemw.addActionListener((ActionEvent ae) -> {
-                if (step.isWebserviceStep() && step.getAction().contains("postSoap")) {
-                    new WebservicePayloadArea(null, step, "SOAP", getInputs());
-                }
-                if (isRestWebservicePostStep(step)) {
-                    new WebservicePayloadArea(null, step, "REST", getInputs());
-                }
-                if (isSetEndPointStep(step)) {
-                    new EndPointTextArea(null, step, getInputs());
-                }
-                if (step.isBrowserStep() && step.getAction().contains("RouteFulfillSetBody")) {
-                    new WebservicePayloadArea(null, step, "REST", getInputs());
-                }
-                if (isRouteFulfillEndpointStep(step)) {
-                    new EndPointTextArea(null, step, getInputs());
-                }
-            });
-
-            jMenuItemf.addActionListener((ActionEvent ae) -> {
-                if (step != null && (isFileStep(step))) {
-                    new WebservicePayloadArea(null, step, "SOAP", getInputs());
-                }
-            });
-
-            jMenuItemm.addActionListener((ActionEvent ae) -> {
-                if (step != null && (isMessageStep(step))) {
-                    new WebservicePayloadArea(null, step, "SOAP", getInputs());
-                }
-            });
-
-            jMenuItems.addActionListener((ActionEvent ae) -> {
-                if (step != null && (isStringOperationsStep(step))) {
-                    new StringOperationsPayloadArea(null, step, getInputs());
-                }
-            });
-
-            // Timer p
-            showTimerp = new Timer(1000, (ActionEvent ae) -> {
-                if (hintCell != null) {
-                    disposeTimerp.stop();
-                    popupp.setVisible(false);
+            showTimer = new Timer(650, (ActionEvent ae) -> {
+                if (hintCell.x != -1 && hintCell.y != -1) {
                     Rectangle bounds = table.getCellRect(hintCell.y, hintCell.x, true);
-                    int x = bounds.x;
-                    int y = bounds.y + bounds.height;
-                    popupp.show(table, x, y);
-                    disposeTimerp.start();
+                    popup.show(table, bounds.x, bounds.y + bounds.height);
                 }
             });
-            showTimerp.setRepeats(false);
-            showTimerp.setCoalesce(true);
-            disposeTimerp = new Timer(2000, (ActionEvent ae) -> {
-                popupp.setVisible(false);
-            });
-            disposeTimerp.setRepeats(false);
-            disposeTimerp.setCoalesce(true);
+            showTimer.setRepeats(false);
 
-            // Timer D
-            showTimerd = new Timer(1000, (ActionEvent ae) -> {
-                if (hintCell != null) {
-                    disposeTimerd.stop();
-                    popupd.setVisible(false);
-                    Rectangle bounds = table.getCellRect(hintCell.y, hintCell.x, true);
-                    int x = bounds.x;
-                    int y = bounds.y + bounds.height;
-                    popupd.show(table, x, y);
-                    disposeTimerd.start();
-                }
+            hideTimer = new Timer(250, (ActionEvent ae) -> {
+                hidePopupNow();
             });
-            showTimerd.setRepeats(false);
-            showTimerd.setCoalesce(true);
-            disposeTimerd = new Timer(2000, (ActionEvent ae) -> {
-                popupd.setVisible(false);
-            });
-            disposeTimerd.setRepeats(false);
-            disposeTimerd.setCoalesce(true);
+            hideTimer.setRepeats(false);
 
-            //Timer w
-            showTimerw = new Timer(1000, (ActionEvent ae) -> {
-                if (hintCell != null) {
-                    disposeTimerw.stop();
-                    popupw.setVisible(false);
-                    Rectangle bounds = table.getCellRect(hintCell.y, hintCell.x, true);
-                    int x = bounds.x;
-                    int y = bounds.y + bounds.height;
-                    popupw.show(table, x, y);
-                    disposeTimerw.start();
+            MouseAdapter popupMouseAdapter = new MouseAdapter() {
+                @Override
+                public void mouseEntered(MouseEvent e) {
+                    cancelHideTimer();
                 }
-            });
-            showTimerw.setRepeats(false);
-            showTimerw.setCoalesce(true);
-            disposeTimerw = new Timer(2000, (ActionEvent ae) -> {
-                popupw.setVisible(false);
-            });
-            disposeTimerw.setRepeats(false);
-            disposeTimerw.setCoalesce(true);
 
-            //Timer f
-            showTimerf = new Timer(1000, (ActionEvent ae) -> {
-                if (hintCell != null) {
-                    disposeTimerf.stop();
-                    popupf.setVisible(false);
-                    Rectangle bounds = table.getCellRect(hintCell.y, hintCell.x, true);
-                    int x = bounds.x;
-                    int y = bounds.y + bounds.height;
-                    popupf.show(table, x, y);
-                    disposeTimerf.start();
+                @Override
+                public void mouseExited(MouseEvent e) {
+                    scheduleHidePopup();
                 }
-            });
-            showTimerf.setRepeats(false);
-            showTimerf.setCoalesce(true);
-            disposeTimerf = new Timer(2000, (ActionEvent ae) -> {
-                popupf.setVisible(false);
-            });
-            disposeTimerf.setRepeats(false);
-            disposeTimerf.setCoalesce(true);
+            };
 
-            //Timer m
-            showTimerm = new Timer(1000, (ActionEvent ae) -> {
-                if (hintCell != null) {
-                    disposeTimerm.stop();
-                    popupm.setVisible(false);
-                    Rectangle bounds = table.getCellRect(hintCell.y, hintCell.x, true);
-                    int x = bounds.x;
-                    int y = bounds.y + bounds.height;
-                    popupm.show(table, x, y);
-                    disposeTimerm.start();
-                }
-            });
-            showTimerm.setRepeats(false);
-            showTimerm.setCoalesce(true);
-            disposeTimerm = new Timer(2000, (ActionEvent ae) -> {
-                popupm.setVisible(false);
-            });
-            disposeTimerm.setRepeats(false);
-            disposeTimerm.setCoalesce(true);
+            popup.addMouseListener(popupMouseAdapter);
+            actionItem.addMouseListener(popupMouseAdapter);
 
-            //Timer s
-            showTimers = new Timer(1000, (ActionEvent ae) -> {
-                if (hintCell != null) {
-                    disposeTimers.stop();
-                    popups.setVisible(false);
-                    Rectangle bounds = table.getCellRect(hintCell.y, hintCell.x, true);
-                    int x = bounds.x;
-                    int y = bounds.y + bounds.height;
-                    popups.show(table, x, y);
-                    disposeTimerf.start();
+            table.addMouseListener(new MouseAdapter() {
+                @Override
+                public void mouseExited(MouseEvent e) {
+                    if (isMouseOverPopup(e)) {
+                        cancelHideTimer();
+                        return;
+                    }
+
+                    scheduleHidePopup();
+                }
+
+                @Override
+                public void mouseEntered(MouseEvent e) {
+                    cancelHideTimer();
                 }
             });
-            showTimers.setRepeats(false);
-            showTimers.setCoalesce(true);
-            disposeTimers = new Timer(2000, (ActionEvent ae) -> {
-                popups.setVisible(false);
-            });
-            disposeTimers.setRepeats(false);
-            disposeTimers.setCoalesce(true);
+        }
+
+        private void scheduleHidePopup() {
+            showTimer.stop();
+            hideTimer.restart();
+        }
+
+        private void cancelHideTimer() {
+            if (hideTimer != null) {
+                hideTimer.stop();
+            }
+        }
+
+        private void hidePopupNow() {
+            showTimer.stop();
+            cancelHideTimer();
+
+            if (popup.isVisible()) {
+                popup.setVisible(false);
+            }
+
+            hintCell = new Point(-1, -1);
+        }
+
+        private boolean isMouseOverPopup(MouseEvent e) {
+            if (!popup.isVisible() || !popup.isShowing()) {
+                return false;
+            }
+
+            try {
+                Rectangle popupRect = new Rectangle(popup.getLocationOnScreen(), popup.getSize());
+                popupRect.grow(4, 4);
+                return popupRect.contains(e.getLocationOnScreen());
+            } catch (Exception ex) {
+                return false;
+            }
         }
 
         @Override
         public void mouseMoved(MouseEvent e) {
+            cancelHideTimer();
+
+            if (isMouseOverPopup(e)) {
+                return;
+            }
+
             Point p = e.getPoint();
             int row = table.rowAtPoint(p);
             int col = table.columnAtPoint(p);
-            if (row != -1 && getTestCase(table) != null) {
-                step = getTestCase(table).getTestSteps().get(row);
-                if (isDataBaseQueryStep(step) && col == Input.getIndex()) {
-                    if (hintCell == null
-                            || (hintCell.x != col
-                            || hintCell.y != row)) {
+
+            if (row == hintCell.y && col == hintCell.x) {
+                if (!popup.isVisible()) {
+                    showTimer.restart();
+                }
+
+                return;
+            }
+
+            if (row != -1 && col == Input.getIndex() && getTestCase(table) != null) {
+                currentStep = getTestCase(table).getTestSteps().get(row);
+
+                if (updateMenuTextForStep(currentStep)) {
+                    cancelHideTimer();
+
+                    if (hintCell.x != col || hintCell.y != row) {
+                        hidePopupNow();
                         hintCell = new Point(col, row);
-                        showTimerd.restart();
+                        cancelHideTimer();
+                        showTimer.restart();
                     }
-                } else if (isProtractorjsStep(step) && col == Input.getIndex()) {
-                    if (hintCell == null
-                            || (hintCell.x != col
-                            || hintCell.y != row)) {
-                        hintCell = new Point(col, row);
-                        showTimerp.restart();
-                    }
-                } else if ((isSOAPWebservicePostStep(step) && col == Input.getIndex())
-                        || (isRestWebservicePostStep(step) && col == Input.getIndex())) {
-                    if (hintCell == null
-                            || (hintCell.x != col
-                            || hintCell.y != row)) {
-                        hintCell = new Point(col, row);
-                        showTimerw.restart();
-                    }
-                } else if ((isSetEndPointStep(step) && col == Input.getIndex())) {
-                    if (hintCell == null
-                            || (hintCell.x != col
-                            || hintCell.y != row)) {
-                        hintCell = new Point(col, row);
-                        showTimerw.restart();
-                    }
-                } else if ((isFileStep(step) && col == Input.getIndex())) {
-                    if (hintCell == null
-                            || (hintCell.x != col
-                            || hintCell.y != row)) {
-                        hintCell = new Point(col, row);
-                        showTimerf.restart();
-                    }
-                } else if ((isRouteFulfillEndpointStep(step) && col == Input.getIndex())) {
-                    if (hintCell == null
-                            || (hintCell.x != col
-                            || hintCell.y != row)) {
-                        hintCell = new Point(col, row);
-                        showTimerw.restart();
-                    }
-                } else if ((isRouteFulfillSetBodyStep(step) && col == Input.getIndex())) {
-                    if (hintCell == null
-                            || (hintCell.x != col
-                            || hintCell.y != row)) {
-                        hintCell = new Point(col, row);
-                        showTimerw.restart();
-                    }
-                } else if ((isMessageStep(step) && col == Input.getIndex())) {
-                    if (hintCell == null
-                            || (hintCell.x != col
-                            || hintCell.y != row)) {
-                        hintCell = new Point(col, row);
-                        showTimerm.restart();
-                    }
-                } else if ((isStringOperationsStep(step) && col == Input.getIndex())) {
-                    if (hintCell == null
-                            || (hintCell.x != col
-                            || hintCell.y != row)) {
-                        hintCell = new Point(col, row);
-                        showTimers.restart();
-                    }
-                } else {
-                    hintCell = null;
-                    if (popupp.isVisible()
-                            || popupd.isVisible()
-                            || popupw.isVisible()
-                            || popupf.isVisible()
-                            || popupm.isVisible()
-                            || popups.isVisible()) {
-                        popupp.setVisible(false);
-                        popupd.setVisible(false);
-                        popupw.setVisible(false);
-                        popupf.setVisible(false);
-                        popupm.setVisible(false);
-                        popups.setVisible(false);
-                    }
+
+                    return;
                 }
             }
+
+            scheduleHidePopup();
+        }
+
+        private boolean updateMenuTextForStep(TestStep step) {
+            if (isDataBaseQueryStep(step)) {
+                actionItem.setText("Click to Open SQL Query Editor");
+                return true;
+            } else if (isProtractorjsStep(step)) {
+                actionItem.setText("Click to open ProtractorJS command editor");
+                return true;
+            } else if (isSOAPWebservicePostStep(step) || isRestWebservicePostStep(step) ||
+                    isSetEndPointStep(step) || isRouteFulfillEndpointStep(step) ||
+                    isRouteFulfillSetBodyStep(step)) {
+                actionItem.setText("Click to Open Webservice Editor");
+                return true;
+            } else if (isFileStep(step)) {
+                actionItem.setText("Click to Open File Editor");
+                return true;
+            } else if (isMessageStep(step)) {
+                actionItem.setText("Click to Open Message Editor");
+                return true;
+            } else if (isStringOperationsStep(step)) {
+                actionItem.setText("Click to Open String Operations Editor");
+                return true;
+            }
+
+            return false;
         }
     }
 }

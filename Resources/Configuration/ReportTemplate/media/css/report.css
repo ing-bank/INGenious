@@ -275,6 +275,11 @@ div.dataTables_wrapper {
     background-image:url("../../media/images/video.png");
     background-size: 80%;
     }
+
+.footer-icons>.footer-trace{
+    background-image:url("../../media/images/trace.svg");
+    background-size: 80%;
+    }
     
 .noVideoFound{
     background-color: #f0ad4e;

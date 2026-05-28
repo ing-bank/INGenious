@@ -5,9 +5,12 @@ import com.ing.datalib.settings.UserDefinedSettings;
 import com.ing.datalib.util.data.LinkedProperties;
 import com.ing.engine.commands.browser.Command;
 import com.ing.engine.core.CommandControl;
-import com.ing.engine.support.Status;
+import com.ing.ingenious.api.status.Status;
 import com.ing.util.encryption.Encryption;
 import com.ing.engine.core.Control;
+import com.ing.ingenious.api.contract.DatabasePluginApi;
+import com.ing.ingenious.api.contract.reports.TestCaseReportApi;
+import com.ing.ingenious.api.dto.DMLResult;
 import java.util.Collection;
 import java.sql.*;
 import java.util.ArrayList;
@@ -23,7 +26,7 @@ import java.util.regex.Pattern;
  * handling variable resolution, and storing results. This class is intended to be extended
  * for specific database operations and supports both DML and SELECT queries.
  */
-public class General extends Command {
+public class General extends Command implements DatabasePluginApi {
 
     public static Connection dbconnection;
     static Statement statement;
@@ -125,18 +128,6 @@ public class General extends Command {
     }
 
     /**
-     * Represents the result of a DML operation, including success status and the executed query.
-     */
-    public static class DMLResult {
-        public final boolean success;
-        public final String query;
-        public DMLResult(boolean success, String query) {
-            this.success = success;
-            this.query = query;
-        }
-    }
-
-    /**
      * Executes a DML SQL query (INSERT, UPDATE, DELETE) after resolving variables.
      *
      * @return a DMLResult containing the success status and the executed query
@@ -216,8 +207,9 @@ public class General extends Command {
      * @param input the variable name
      * @param condition the column and row specification
      * @param isGlobal true to store as a global variable, false for local
+     * @return true if the value was successfully stored, false otherwise
      */
-    public void storeValue(String input, String condition, boolean isGlobal) {
+    public boolean storeValue(String input, String condition, boolean isGlobal) {
         String value;
         int rowIndex = 1;
         String[] split = condition.split(",");
@@ -234,16 +226,20 @@ public class General extends Command {
                     } else {
                         addVar(input, value);
                     }
+                    return true;
                 } else {
                     Report.updateTestLog(Action, "Row " + rowIndex + " doesn't exist",
                             Status.FAIL);
+                    return false;
                 }
             } else {
                 Report.updateTestLog(Action, "Column " + split[0] + " doesn't exist ",
                         Status.FAIL);
+                return false;
             }
         } catch (SQLException se) {
             Report.updateTestLog(Action, "Error storing value in variable " + se.getMessage(), Status.FAIL);
+            return false;
         }
     }
 
@@ -344,4 +340,70 @@ public class General extends Command {
         }
         return query;
     }
+    
+
+    /**
+     * Returns the current database connection used by this command.
+     * <p>
+     * <b>API-Plugin Contract:</b> This method is required by the {@link GeneralDbApi} contract. Plugin code may use this to access the underlying JDBC {@link Connection} for advanced operations.
+     * </p>
+     * @return the active {@link Connection} instance, or null if not connected
+     */
+    @Override
+    public Connection getDbconnection() {
+        return dbconnection;
+    }
+
+
+    /**
+     * Returns the current SQL statement object used for database operations.
+     * <p>
+     * <b>API-Plugin Contract:</b> This method is required by the {@link GeneralDbApi} contract. Plugin code may use this to execute custom SQL queries or updates.
+     * </p>
+     * @return the current {@link Statement} instance, or null if not initialized
+     */
+    @Override
+    public Statement getStatement() {
+        return statement;
+    }
+
+
+    /**
+     * Returns the current result set from the last executed query.
+     * <p>
+     * <b>API-Plugin Contract:</b> This method is required by the {@link GeneralDbApi} contract. Plugin code may use this to iterate over query results.
+     * </p>
+     * @return the current {@link ResultSet}, or null if no query has been executed
+     */
+    @Override
+    public ResultSet getResult() {
+        return result;
+    }
+
+
+    /**
+     * Returns the metadata for the current result set.
+     * <p>
+     * <b>API-Plugin Contract:</b> This method is required by the {@link GeneralDbApi} contract. Plugin code may use this to inspect column information for the current result set.
+     * </p>
+     * @return the {@link ResultSetMetaData} for the current result set, or null if not available
+     */
+    @Override
+    public ResultSetMetaData getResultData() {
+        return resultData;
+    }
+
+
+    /**
+     * Returns the list of column names for the current result set.
+     * <p>
+     * <b>API-Plugin Contract:</b> This method is required by the {@link GeneralDbApi} contract. Plugin code may use this to access or display column names from the last query.
+     * </p>
+     * @return a list of column names, or an empty list if no result set is available
+     */
+    @Override
+    public List<String> getColNames() {
+        return colNames;
+    }
+
 }

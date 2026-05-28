@@ -15,6 +15,7 @@ import java.util.Date;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JOptionPane;
+import com.ing.ide.main.fx.INGIcons;
 
 /**
  *
@@ -29,7 +30,7 @@ public class ExplorerBar extends javax.swing.JFrame {
     private static ExplorerBar expBar;
     public static int barHeight = 43;
     public JButton selected = new JButton();
-    private static ImageIcon icon;
+    private static javax.swing.Icon icon;
 
     AppMainFrame sMainFrame;
 
@@ -65,7 +66,7 @@ public class ExplorerBar extends javax.swing.JFrame {
 
     public ExplorerBar(AppMainFrame sMainFrame) throws IOException {
         this.sMainFrame = sMainFrame;
-        icon = new ImageIcon(getClass().getResource("/explorer/explorer.png"));
+        icon = INGIcons.swingColored("icon.explorer", 16);
         initComponents();
         addBtn.setVisible(false);
         done.setVisible(false);
@@ -77,7 +78,7 @@ public class ExplorerBar extends javax.swing.JFrame {
                 selected.setSelected(visible);
             }
         };
-        setIconImage(icon.getImage());
+        setIconImage(INGIcons.toImage(icon));
     }
 
     @Override
@@ -218,12 +219,12 @@ public class ExplorerBar extends javax.swing.JFrame {
 
             jButton8.setText("jButton8");
 
-            done.setIcon(new javax.swing.ImageIcon(getClass().getResource("/explorer/done.png"))); // NOI18N
+            done.setIcon(INGIcons.swingColored("icon.done", 16));
             done.setText("Done");
             done.setContentAreaFilled(false);
             done.setFocusPainted(false);
             done.setFocusable(false);
-            done.setSelectedIcon(new javax.swing.ImageIcon(getClass().getResource("/explorer/selected_done.png"))); // NOI18N
+            done.setSelectedIcon(INGIcons.swingColored("icon.selected_done", 16));
             done.setVerticalAlignment(javax.swing.SwingConstants.TOP);
             done.addActionListener(new java.awt.event.ActionListener() {
                 public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -247,12 +248,12 @@ public class ExplorerBar extends javax.swing.JFrame {
             toolbarEast.setRollover(true);
             toolbarEast.setBorderPainted(false);
 
-            addBtn.setIcon(new javax.swing.ImageIcon(getClass().getResource("/explorer/add.png"))); // NOI18N
+            addBtn.setIcon(INGIcons.swingColored("icon.add", 16)); // NOI18N
             addBtn.setText("Add Image");
             addBtn.setContentAreaFilled(false);
             addBtn.setFocusPainted(false);
             addBtn.setFocusable(false);
-            addBtn.setSelectedIcon(new javax.swing.ImageIcon(getClass().getResource("/explorer/selected_add.png"))); // NOI18N
+            addBtn.setSelectedIcon(INGIcons.swingColored("icon.selected_add", 16));
             addBtn.setVerticalAlignment(javax.swing.SwingConstants.TOP);
             addBtn.addActionListener(new java.awt.event.ActionListener() {
                 public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -261,11 +262,11 @@ public class ExplorerBar extends javax.swing.JFrame {
             });
             toolbarEast.add(addBtn);
 
-            settingsBtn.setIcon(new javax.swing.ImageIcon(getClass().getResource("/explorer/exploreSettings.png"))); // NOI18N
+            settingsBtn.setIcon(INGIcons.swingColored("icon.exploreSettings", 16));
             settingsBtn.setText("Settings");
             settingsBtn.setContentAreaFilled(false);
             settingsBtn.setFocusable(false);
-            settingsBtn.setSelectedIcon(new javax.swing.ImageIcon(getClass().getResource("/explorer/exploreSettingsSel.png"))); // NOI18N
+            settingsBtn.setSelectedIcon(INGIcons.swingColored("icon.exploreSettingsSel", 16));
             settingsBtn.addActionListener(new java.awt.event.ActionListener() {
                 public void actionPerformed(java.awt.event.ActionEvent evt) {
                     settingsBtnActionPerformed(evt);
@@ -273,11 +274,11 @@ public class ExplorerBar extends javax.swing.JFrame {
             });
             toolbarEast.add(settingsBtn);
 
-            closeBtn.setIcon(new javax.swing.ImageIcon(getClass().getResource("/explorer/close.png"))); // NOI18N
+            closeBtn.setIcon(INGIcons.swingColored("icon.close", 16));
             closeBtn.setText("Close");
             closeBtn.setContentAreaFilled(false);
             closeBtn.setFocusable(false);
-            closeBtn.setSelectedIcon(new javax.swing.ImageIcon(getClass().getResource("/explorer/selected_close.png"))); // NOI18N
+            closeBtn.setSelectedIcon(INGIcons.swingColored("icon.selected_close", 16));
             closeBtn.setVerticalAlignment(javax.swing.SwingConstants.TOP);
             closeBtn.addActionListener(new java.awt.event.ActionListener() {
                 public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -293,13 +294,13 @@ public class ExplorerBar extends javax.swing.JFrame {
             toolbarWest.setBorderPainted(false);
             toolbarWest.add(jSeparator1);
 
-            snapscreenBtn.setIcon(new javax.swing.ImageIcon(getClass().getResource("/explorer/snap.png"))); // NOI18N
+            snapscreenBtn.setIcon(INGIcons.swingColored("icon.snap", 16));
             snapscreenBtn.setText("Snap Screen  ");
             snapscreenBtn.setAlignmentX(0.2F);
             snapscreenBtn.setContentAreaFilled(false);
             snapscreenBtn.setFocusPainted(false);
             snapscreenBtn.setFocusable(false);
-            snapscreenBtn.setSelectedIcon(new javax.swing.ImageIcon(getClass().getResource("/explorer/selected_snap.png"))); // NOI18N
+            snapscreenBtn.setSelectedIcon(INGIcons.swingColored("icon.selected_snap", 16));
             snapscreenBtn.setVerticalAlignment(javax.swing.SwingConstants.TOP);
             snapscreenBtn.addActionListener(new java.awt.event.ActionListener() {
                 public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -309,13 +310,13 @@ public class ExplorerBar extends javax.swing.JFrame {
             toolbarWest.add(snapscreenBtn);
             toolbarWest.add(jSeparator4);
 
-            cropscreenBtn.setIcon(new javax.swing.ImageIcon(getClass().getResource("/explorer/crop.png"))); // NOI18N
+            cropscreenBtn.setIcon(INGIcons.swingColored("icon.crop", 16));
             cropscreenBtn.setText("Crop Screen  ");
             cropscreenBtn.setAlignmentX(0.2F);
             cropscreenBtn.setContentAreaFilled(false);
             cropscreenBtn.setFocusPainted(false);
             cropscreenBtn.setFocusable(false);
-            cropscreenBtn.setSelectedIcon(new javax.swing.ImageIcon(getClass().getResource("/explorer/selected_crop.png"))); // NOI18N
+            cropscreenBtn.setSelectedIcon(INGIcons.swingColored("icon.selected_crop", 16));
             cropscreenBtn.setVerticalAlignment(javax.swing.SwingConstants.TOP);
             cropscreenBtn.addActionListener(new java.awt.event.ActionListener() {
                 public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -325,13 +326,13 @@ public class ExplorerBar extends javax.swing.JFrame {
             toolbarWest.add(cropscreenBtn);
             toolbarWest.add(jSeparator2);
 
-            screenshotsBtn.setIcon(new javax.swing.ImageIcon(getClass().getResource("/explorer/iedit.png"))); // NOI18N
+            screenshotsBtn.setIcon(INGIcons.swingColored("icon.iedit", 16));
             screenshotsBtn.setText("Screen Shots  ");
             screenshotsBtn.setAlignmentX(0.2F);
             screenshotsBtn.setContentAreaFilled(false);
             screenshotsBtn.setFocusPainted(false);
             screenshotsBtn.setFocusable(false);
-            screenshotsBtn.setSelectedIcon(new javax.swing.ImageIcon(getClass().getResource("/explorer/selected_iedit.png"))); // NOI18N
+            screenshotsBtn.setSelectedIcon(INGIcons.swingColored("icon.selected_iedit", 16));
             screenshotsBtn.setVerticalAlignment(javax.swing.SwingConstants.TOP);
             screenshotsBtn.addActionListener(new java.awt.event.ActionListener() {
                 public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -341,13 +342,13 @@ public class ExplorerBar extends javax.swing.JFrame {
             toolbarWest.add(screenshotsBtn);
             toolbarWest.add(jSeparator8);
 
-            recordBtn.setIcon(new javax.swing.ImageIcon(getClass().getResource("/explorer/record - Off.png"))); // NOI18N
+            recordBtn.setIcon(INGIcons.swingColored("icon.record_off", 16));
             recordBtn.setText("Record");
             recordBtn.setToolTipText("Toggle Recording");
             recordBtn.setAlignmentX(0.2F);
             recordBtn.setContentAreaFilled(false);
             recordBtn.setFocusable(false);
-            recordBtn.setSelectedIcon(new javax.swing.ImageIcon(getClass().getResource("/explorer/record -On.png"))); // NOI18N
+            recordBtn.setSelectedIcon(INGIcons.swingColored("icon.record_on", 16));
             recordBtn.setVerticalAlignment(javax.swing.SwingConstants.TOP);
             recordBtn.addActionListener(new java.awt.event.ActionListener() {
                 public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -357,12 +358,12 @@ public class ExplorerBar extends javax.swing.JFrame {
             toolbarWest.add(recordBtn);
             toolbarWest.add(jSeparator5);
 
-            teststepsBtn.setIcon(new javax.swing.ImageIcon(getClass().getResource("/explorer/testedit.png"))); // NOI18N
+            teststepsBtn.setIcon(INGIcons.swingColored("icon.testedit", 16));
             teststepsBtn.setText("Test Steps  ");
             teststepsBtn.setAlignmentX(0.2F);
             teststepsBtn.setContentAreaFilled(false);
             teststepsBtn.setFocusable(false);
-            teststepsBtn.setSelectedIcon(new javax.swing.ImageIcon(getClass().getResource("/explorer/selected_testedit.png"))); // NOI18N
+            teststepsBtn.setSelectedIcon(INGIcons.swingColored("icon.selected_testedit", 16));
             teststepsBtn.setVerticalAlignment(javax.swing.SwingConstants.TOP);
             teststepsBtn.addActionListener(new java.awt.event.ActionListener() {
                 public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -372,12 +373,12 @@ public class ExplorerBar extends javax.swing.JFrame {
             toolbarWest.add(teststepsBtn);
             toolbarWest.add(jSeparator3);
 
-            exportBtn.setIcon(new javax.swing.ImageIcon(getClass().getResource("/explorer/export.png"))); // NOI18N
+            exportBtn.setIcon(INGIcons.swingColored("icon.export", 16));
             exportBtn.setText("Export  ");
             exportBtn.setAlignmentX(0.2F);
             exportBtn.setContentAreaFilled(false);
             exportBtn.setFocusable(false);
-            exportBtn.setSelectedIcon(new javax.swing.ImageIcon(getClass().getResource("/explorer/selected_export.png"))); // NOI18N
+            exportBtn.setSelectedIcon(INGIcons.swingColored("icon.selected_export", 16));
             exportBtn.setVerticalAlignment(javax.swing.SwingConstants.TOP);
             exportBtn.addActionListener(new java.awt.event.ActionListener() {
                 public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -387,13 +388,13 @@ public class ExplorerBar extends javax.swing.JFrame {
             toolbarWest.add(exportBtn);
             toolbarWest.add(jSeparator6);
 
-            bugBtn.setIcon(new javax.swing.ImageIcon(getClass().getResource("/explorer/bug.png"))); // NOI18N
+            bugBtn.setIcon(INGIcons.swingColored("icon.bug", 16));
             bugBtn.setText("Report Bug  ");
             bugBtn.setAlignmentX(0.2F);
             bugBtn.setContentAreaFilled(false);
             bugBtn.setFocusPainted(false);
             bugBtn.setFocusable(false);
-            bugBtn.setSelectedIcon(new javax.swing.ImageIcon(getClass().getResource("/explorer/selected_bug.png"))); // NOI18N
+            bugBtn.setSelectedIcon(INGIcons.swingColored("icon.selected_bug", 16));
             bugBtn.setVerticalAlignment(javax.swing.SwingConstants.TOP);
             bugBtn.addActionListener(new java.awt.event.ActionListener() {
                 public void actionPerformed(java.awt.event.ActionEvent evt) {

@@ -170,13 +170,13 @@ public abstract class AbstractDataModel<T extends List<String>> extends UndoRedo
         return true;
     }
 
-    public void replicateRecord(int index) {
-        T record = records.get(index);
+    public void replicateRecord(int recordIndex, int insertionIndex) {
+        T record = records.get(recordIndex);
         T nrecord = getNewRecord();
         for (int i = 0; i < columns.size(); i++) {
             nrecord.add(i, record.get(i));
         }
-        addRecord(nrecord, index);
+        addRecord(nrecord, insertionIndex);
     }
 
     public abstract T getNewRecord();
@@ -243,6 +243,46 @@ public abstract class AbstractDataModel<T extends List<String>> extends UndoRedo
             fireTableStructureChanged();
         }
         return flag;
+    }
+
+    /**
+     * Add a new column at a specific index with auto-generated name.
+     * @param colIndex The index at which to insert the column
+     * @return true if column was successfully added
+     */
+    public Boolean addColumnAt(int colIndex) {
+        String val = "NewColumn";
+        int i = 0;
+        String colVal = val + i;
+        while (columns.contains(colVal)) {
+            colVal = val + i++;
+        }
+        return addColumnAt(colIndex, colVal);
+    }
+
+    /**
+     * Add a new column at a specific index.
+     * @param colIndex The index at which to insert the column
+     * @param columnName The name of the new column
+     * @return true if column was successfully added
+     */
+    public Boolean addColumnAt(int colIndex, String columnName) {
+        if (columns.contains(columnName)) {
+            return false;
+        }
+        // Ensure index is valid
+        if (colIndex < 0) {
+            colIndex = 0;
+        } else if (colIndex > columns.size()) {
+            colIndex = columns.size();
+        }
+        // Create empty values array
+        Object[] emptyValues = new Object[records.size()];
+        for (int i = 0; i < emptyValues.length; i++) {
+            emptyValues[i] = "";
+        }
+        insertColumnAt(colIndex, columnName, emptyValues);
+        return true;
     }
 
     public Boolean removeColumn(String column) {
@@ -370,10 +410,6 @@ public abstract class AbstractDataModel<T extends List<String>> extends UndoRedo
         setSaved(true);
     }
     
-    
-        
-    
-
 
     public abstract Set<String> loadColumns(File location);
 

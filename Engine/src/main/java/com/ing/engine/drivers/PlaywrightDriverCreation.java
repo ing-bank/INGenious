@@ -8,18 +8,20 @@ import com.ing.engine.execution.exception.DriverClosedException;
 import com.ing.engine.execution.exception.UnCaughtException;
 import com.ing.engine.constants.FilePath;
 import com.ing.engine.reporting.util.DateTimeUtils;
+import com.ing.ingenious.api.contract.drivers.PlaywrightDriverCreationApi;
 import java.io.File;
 import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import com.microsoft.playwright.*;
+import java.io.UnsupportedEncodingException;
 import java.nio.file.Paths;
 
 /**
  * Class to handle driver related operation
  *
  */
-public class PlaywrightDriverCreation {
+public class PlaywrightDriverCreation implements PlaywrightDriverCreationApi {
 
     public Playwright playwright;
     public Page page;
@@ -33,7 +35,7 @@ public class PlaywrightDriverCreation {
     public void setPage(Page page) {
         this.page = page;
     }
-    public void launchDriver(RunContext context) throws UnCaughtException {
+    public void launchDriver(RunContext context) throws UnCaughtException, UnsupportedEncodingException {
         runContext = context;
         System.out.println("\n🚀 Launching " + runContext.BrowserName+"\n");
         try {
@@ -62,7 +64,7 @@ public class PlaywrightDriverCreation {
         }
     }
 
-    public void launchDriver(String browser) throws UnCaughtException {
+    public void launchDriver(String browser) throws UnCaughtException, UnsupportedEncodingException {
         RunContext context = new RunContext();
         context.BrowserName = browser;
         context.Browser = Browser.fromString(browser);
@@ -90,7 +92,7 @@ public class PlaywrightDriverCreation {
         browserContext.close();
     }
 
-    public void RestartBrowser() throws UnCaughtException {
+    public void RestartBrowser() throws UnCaughtException, UnsupportedEncodingException {
         StopBrowser();
         StartBrowser(runContext.BrowserName);
     }
@@ -98,8 +100,10 @@ public class PlaywrightDriverCreation {
     public void StopBrowser() {
         try {
 
-            closeBrowserContext();
+            com.microsoft.playwright.Browser browser = browserContext.browser();
             page.close();
+            closeBrowserContext();
+            browser.close();
 
         } catch (Exception ex) {
             Logger.getLogger(this.getClass().getName()).log(Level.OFF, null, ex);
@@ -108,7 +112,7 @@ public class PlaywrightDriverCreation {
         browserContext = null;
     }
 
-    public void StartBrowser(String b) throws UnCaughtException {
+    public void StartBrowser(String b) throws UnCaughtException, UnsupportedEncodingException {
         StopBrowser();
         launchDriver(b);
     }
@@ -116,8 +120,8 @@ public class PlaywrightDriverCreation {
     public void closeBrowser() {
         if (this.page != null) {
             try {
-                closeBrowserContext();
                 this.page.close();
+                closeBrowserContext();
             } catch (Exception ex) {
                 Logger.getLogger(this.getClass().getName()).log(Level.OFF, "Couldn't Kill the Driver", ex);
             }
@@ -161,6 +165,49 @@ public class PlaywrightDriverCreation {
 
     public String getBrowserVersion() {
         return browserContext.browser().version();
+    }
+
+    public RunContext getRunContext() {
+        return runContext;
+    }
+
+
+     /**
+      * Sets the Playwright Page instance for this driver.
+      * <p>
+      * <b>API-Plugin Contract:</b> Required by {@link PlaywrightDriverCreationApi}. The argument is provided as Object for type erasure; cast to {@link Page} when calling framework methods.
+      * </p>
+      * @param page the Playwright Page instance (as Object, must be cast to {@link Page})
+      */
+     @Override
+     public void setPage(Object page) {
+         setPage((Page) page);
+     }
+
+
+    /**
+     * Returns the current Playwright BrowserContext instance.
+     * <p>
+     * <b>API-Plugin Contract:</b> Required by {@link PlaywrightDriverCreationApi}. The returned Object should be cast to {@link BrowserContext} for Playwright operations.
+     * </p>
+     * @return the current BrowserContext as Object (cast to {@link BrowserContext})
+     */
+    @Override
+    public Object getBrowserContext() {
+        return browserContext;
+    }
+
+
+    /**
+     * Returns the current Playwright instance.
+     * <p>
+     * <b>API-Plugin Contract:</b> Required by {@link PlaywrightDriverCreationApi}. The returned Object should be cast to {@link Playwright} for Playwright operations.
+     * </p>
+     * @return the current Playwright instance as Object (cast to {@link Playwright})
+     */
+    @Override
+    public Object getPlaywright() {
+        return playwright;
     }
 
 }

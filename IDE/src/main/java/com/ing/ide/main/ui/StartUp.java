@@ -3,9 +3,11 @@ package com.ing.ide.main.ui;
 
 import com.ing.datalib.testdata.TestDataFactory;
 import com.ing.ide.main.mainui.AppMainFrame;
+import com.ing.ide.main.utils.AppIcon;
 import com.ing.ide.main.utils.INGeniousFileChooser;
 import com.ing.ide.main.utils.recentItem.RecentItem;
 import com.ing.ide.settings.AppSettings;
+import com.ing.ide.util.Notification;
 import com.ing.ide.util.Validator;
 import java.awt.BorderLayout;
 import java.awt.CardLayout;
@@ -41,7 +43,7 @@ public class StartUp extends javax.swing.JDialog {
         super(new JFrame());
         this.sMainFrame = sMainFrame;
         initComponents();
-        setIconImage(new ImageIcon(getClass().getResource("/ui/resources/favicon.png")).getImage());
+        AppIcon.applyTo(this);
         initFileChooser();
         load();
     }
@@ -390,8 +392,20 @@ public class StartUp extends javax.swing.JDialog {
         if (evt.getClickCount() == 2) {
             int index = recentItems.locationToIndex(evt.getPoint());
             if (index != -1) {
-                loadProject(((RecentItem) recentModel.
-                        getElementAt(index)).getLocation());
+                RecentItem selectedItem = (RecentItem) recentModel.getElementAt(index);
+                String location = selectedItem.getLocation();
+                
+                // Validate that the project path exists
+                if (!new File(location).exists()) {
+                    Notification.show("Project path no longer exists: " + location);
+                    sMainFrame.getRecentItems().removeItemByLocation(location);
+                    sMainFrame.getRecentItems().save();
+                    // Refresh the list
+                    recentModel.removeElement(selectedItem);
+                    return;
+                }
+                
+                loadProject(location);
             }
         }
     }//GEN-LAST:event_recentItemsMouseClicked

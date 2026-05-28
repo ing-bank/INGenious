@@ -1,8 +1,0 @@
-Step,ObjectName,Description,Action,Input,Condition,Reference
-1,First name,"Click the [<Object>] ",Click,,,ContactUs
-2,First name,Enter the value [<Data>] in the Field [<Object>],Fill,@John,,ContactUs
-3,Last name,"Click the [<Object>] ",Click,,,ContactUs
-4,Last name,Enter the value [<Data>] in the Field [<Object>],Fill,@Doe,,ContactUs
-5,Email Address,"Click the [<Object>] ",Click,,,ContactUs
-6,Email Address,Enter the value [<Data>] in the Field [<Object>],Fill,@John.Doe@email.com,,ContactUs
-7,Country,Select item in [<Object>] which has text: [<Data>],SelectSingleByText,@Austria,,ContactUs

@@ -2,6 +2,7 @@
 package com.ing.ide.main.mainui.components.testexecution.quickSettings;
 
 import com.ing.datalib.settings.RunSettings;
+import java.awt.Color;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ItemEvent;
@@ -156,7 +157,7 @@ public abstract class QuickSettingsUIRight extends QuickSettingsUI {
 
         gridUrl.setFont(UIManager.getFont("TableMenu.font"));
         gridUrl.setForeground(new java.awt.Color(0, 0, 255));
-        gridUrl.setText("http://localhost:4444/wd/hub ");
+        gridUrl.setText("wss://cdp.lambdatest.com");
         gridUrl.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
                 gridUrlActionPerformed(evt);
@@ -281,6 +282,87 @@ public abstract class QuickSettingsUIRight extends QuickSettingsUI {
         } else {
             localMode.setSelected(true);
         }
+    }
+    
+    /**
+     * Apply dark mode colors to all components
+     */
+    private void applyDarkModeColors() {
+        Color panelBg = UIManager.getColor("Panel.background");
+        Color panelFg = UIManager.getColor("Panel.foreground");
+        Color separatorColor = UIManager.getColor("Separator.foreground");
+        
+        // Ensure colors are set (use defaults if UIManager doesn't have them yet)
+        if (panelBg == null) panelBg = new Color(37, 32, 48); // darkPanel
+        if (panelFg == null) panelFg = new Color(232, 226, 229); // warmText
+        if (separatorColor == null) separatorColor = new Color(58, 53, 69); // dividerGray
+        
+        setBackground(panelBg);
+        setOpaque(true);
+        setForeground(panelFg);
+        
+        // Apply foreground and background to labels
+        jLabel4.setForeground(panelFg);
+        jLabel4.setBackground(panelBg);
+        jLabel4.setOpaque(true);
+        
+        qsParrelExelabel.setForeground(panelFg);
+        qsParrelExelabel.setBackground(panelBg);
+        qsParrelExelabel.setOpaque(true);
+        
+        jLabel1.setForeground(panelFg);
+        jLabel1.setBackground(panelBg);
+        jLabel1.setOpaque(true);
+        
+        qsExeTimoutLabel.setForeground(panelFg);
+        qsExeTimoutLabel.setBackground(panelBg);
+        qsExeTimoutLabel.setOpaque(true);
+        
+        jLabel2.setForeground(panelFg);
+        jLabel2.setBackground(panelBg);
+        jLabel2.setOpaque(true);
+        
+        qsRetryExeLabel.setForeground(panelFg);
+        qsRetryExeLabel.setBackground(panelBg);
+        qsRetryExeLabel.setOpaque(true);
+        
+        jLabel3.setForeground(panelFg);
+        jLabel3.setBackground(panelBg);
+        jLabel3.setOpaque(true);
+        
+        exeModeLabel.setForeground(panelFg);
+        exeModeLabel.setBackground(panelBg);
+        exeModeLabel.setOpaque(true);
+        
+        // Apply foreground and background to radio buttons
+        localMode.setForeground(panelFg);
+        localMode.setBackground(panelBg);
+        localMode.setOpaque(true);
+        
+        gridMode.setForeground(panelFg);
+        gridMode.setBackground(panelBg);
+        gridMode.setOpaque(true);
+        
+        // Apply colors to spinners, combo boxes, and text field
+        threadCount.setBackground(panelBg);
+        threadCount.setForeground(panelFg);
+        threadCount.setOpaque(true);
+        
+        executionTimeOut.setBackground(panelBg);
+        executionTimeOut.setForeground(panelFg);
+        executionTimeOut.setOpaque(true);
+        
+        reRunNo.setBackground(panelBg);
+        reRunNo.setForeground(panelFg);
+        reRunNo.setOpaque(true);
+        
+        testEnv.setBackground(panelBg);
+        testEnv.setForeground(panelFg);
+        testEnv.setOpaque(true);
+        
+        gridUrl.setBackground(panelBg);
+        gridUrl.setForeground(panelFg);
+        gridUrl.setCaretColor(panelFg);
     }
     
     private void alterDefaultKeyBindings(JTextField textField) {

@@ -1,6 +1,7 @@
 package com.ing.ide.main.utils.table;
 
 import com.ing.datalib.undoredo.UndoRedoModel;
+import com.ing.ide.main.Main;
 import com.ing.ide.main.utils.keys.ClipboardKeyAdapter;
 import com.ing.ide.main.utils.keys.Keystroke;
 import java.awt.Color;
@@ -34,6 +35,7 @@ import static javax.swing.JTable.AUTO_RESIZE_OFF;
 import static javax.swing.JTable.AUTO_RESIZE_SUBSEQUENT_COLUMNS;
 import javax.swing.JTextField;
 import javax.swing.KeyStroke;
+import javax.swing.UIManager;
 import javax.swing.event.ChangeEvent;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.TableCellRenderer;
@@ -71,21 +73,44 @@ public class XTable extends JTable {
         setFillsViewportHeight(true);
         setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
         getTableHeader().setFont(new Font("ING Me", Font.BOLD, 11));
-        getTableHeader().setBackground(Color.decode("#f0edf6"));
-        getTableHeader().setForeground(Color.decode("#342245"));
-        getTableHeader().setBorder(BorderFactory.createMatteBorder(0, 0, 1, 1, Color.decode("#462e5c")));
+        Color headerBg = UIManager.getColor("TableHeader.background");
+        Color headerFg = UIManager.getColor("TableHeader.foreground");
+        Color gridClr = UIManager.getColor("Table.gridColor");
+        getTableHeader().setBackground(headerBg != null ? headerBg : Color.decode("#F6F8FA"));
+        getTableHeader().setForeground(headerFg != null ? headerFg : Color.decode("#24292F"));
+        Color borderClr = UIManager.getColor("Component.borderColor");
+        getTableHeader().setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, borderClr != null ? borderClr : Color.decode("#D0D7DE")));
         getTableHeader().setReorderingAllowed(false);
+        getTableHeader().setDefaultRenderer(new javax.swing.table.DefaultTableCellRenderer() {
+            @Override
+            public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
+                Component c = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
+                setBorder(BorderFactory.createCompoundBorder(
+                    BorderFactory.createMatteBorder(0, 0, 1, 0, borderClr != null ? borderClr : Color.decode("#D0D7DE")),
+                    BorderFactory.createEmptyBorder(4, 8, 4, 4)));
+                Color hBg = UIManager.getColor("TableHeader.background");
+                setBackground(hBg != null ? hBg : Color.decode("#F6F8FA"));
+                Color hFg = UIManager.getColor("TableHeader.foreground");
+                setForeground(hFg != null ? hFg : Color.decode("#24292F"));
+                return c;
+            }
+        });
         setCellSelectionEnabled(true);
         setColumnSelectionAllowed(true);
-        setGridColor(new Color(246, 227, 221));
+        setGridColor(gridClr != null ? gridClr : new Color(246, 227, 221));
+        setIntercellSpacing(new java.awt.Dimension(0, 1));
+        
+        // Apply theme-aware background
+        Color tableBg = UIManager.getColor("Table.background");
+        setBackground(tableBg != null ? tableBg : Color.WHITE);
+        Color tableFg = UIManager.getColor("Table.foreground");
+        setForeground(tableFg != null ? tableFg : Color.BLACK);
         
         setDefaultEditor(Object.class, new CustomTableCellEditor());
         addKeyListeners();
-        
-
 
         putClientProperty("terminateEditOnFocusLost", true);
-        addFocusListener(new FocusListener() {
+        this.addFocusListener(new FocusListener() {
             @Override
             public void focusGained(FocusEvent fe) {
                 searchRenderer.focused = true;
@@ -99,6 +124,31 @@ public class XTable extends JTable {
             }
         });
         TableCellDrag.install(this);
+    }
+    
+    /**
+     * Called when the L&F changes. Refresh theme-aware colors.
+     */
+    @Override
+    public void updateUI() {
+        super.updateUI();
+        // Refresh grid color
+        Color gridClr = UIManager.getColor("Table.gridColor");
+        setGridColor(gridClr != null ? gridClr : new Color(246, 227, 221));
+        // Refresh background/foreground
+        Color tableBg = UIManager.getColor("Table.background");
+        setBackground(tableBg != null ? tableBg : Color.WHITE);
+        Color tableFg = UIManager.getColor("Table.foreground");
+        setForeground(tableFg != null ? tableFg : Color.BLACK);
+        // Refresh header
+        if (getTableHeader() != null) {
+            Color headerBg = UIManager.getColor("TableHeader.background");
+            getTableHeader().setBackground(headerBg != null ? headerBg : Color.decode("#F6F8FA"));
+            Color headerFg = UIManager.getColor("TableHeader.foreground");
+            getTableHeader().setForeground(headerFg != null ? headerFg : Color.decode("#24292F"));
+            Color borderClr = UIManager.getColor("Component.borderColor");
+            getTableHeader().setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, borderClr != null ? borderClr : Color.decode("#D0D7DE")));
+        }
     }
 
     private void addKeyListeners() {
@@ -282,21 +332,26 @@ public class XTable extends JTable {
                         DefaultTableCellRenderer headerRenderer = new DefaultTableCellRenderer();
                         setColumnSelectionAllowed(true);
                         headerRenderer.setForeground(Color.BLACK);
-                        headerRenderer.setBackground(Color.ORANGE);
+                        Color matchBg = UIManager.getColor("ing.searchHighlight");
+                        headerRenderer.setBackground(matchBg != null ? matchBg : Color.ORANGE);
                         getTableHeader().getColumnModel().getColumn(i).setHeaderRenderer(headerRenderer);
 
                     } else {
                         DefaultTableCellRenderer headerRenderer = new DefaultTableCellRenderer();
-                        headerRenderer.setBackground(Color.decode("#f0edf6"));
-                        getTableHeader().setForeground(Color.decode("#342245"));
+                        Color hdrBg = UIManager.getColor("TableHeader.background");
+                        Color hdrFg = UIManager.getColor("TableHeader.foreground");
+                        headerRenderer.setBackground(hdrBg != null ? hdrBg : Color.decode("#f0edf6"));
+                        getTableHeader().setForeground(hdrFg != null ? hdrFg : Color.decode("#342245"));
                         getTableHeader().getColumnModel().getColumn(i).setHeaderRenderer(headerRenderer);
 
                     }
 
                 } else {
                     DefaultTableCellRenderer headerRenderer = new DefaultTableCellRenderer();
-                    headerRenderer.setBackground(Color.decode("#f0edf6"));
-                    getTableHeader().setForeground(Color.decode("#342245"));
+                    Color hdrBg = UIManager.getColor("TableHeader.background");
+                    Color hdrFg = UIManager.getColor("TableHeader.foreground");
+                    headerRenderer.setBackground(hdrBg != null ? hdrBg : Color.decode("#f0edf6"));
+                    getTableHeader().setForeground(hdrFg != null ? hdrFg : Color.decode("#342245"));
                     getTableHeader().getColumnModel().getColumn(i).setHeaderRenderer(headerRenderer);
 
                 }
@@ -458,16 +513,34 @@ public class XTable extends JTable {
             }
         });
     }
+    
+    @Override
+    public Component getTableCellEditorComponent(JTable table, Object value,
+            boolean isSelected, int row, int column) {
+        JTextField editor = (JTextField) super.getTableCellEditorComponent(table, value, isSelected, row, column);
+        
+        // Apply theme colors to ensure visibility in dark mode
+        Color fgColor = UIManager.getColor("TextField.foreground");
+        Color bgColor = UIManager.getColor("TextField.background");
+        Color caretColor = UIManager.getColor("TextField.caretForeground");
+        
+        if (fgColor != null) {
+            editor.setForeground(fgColor);
+        }
+        if (bgColor != null) {
+            editor.setBackground(bgColor);
+        }
+        if (caretColor != null) {
+            editor.setCaretColor(caretColor);
+        }
+        
+        return editor;
+    }
 }    
 
 }
 
 class SearchRenderer extends DefaultTableCellRenderer {
-
-    private static final Color BG_SELECT_COLOR = Color.decode("#ffcfb2");
-    private static final Color BG_SEARCH_COLOR = Color.decode("#C8FACF");
-    private static final Color DEF_SELECTION_COLOR = Color.decode("#FF6200");
-    private static final Color NOFOCUS_SELECTION_COLOR = Color.decode("#ffcfb2");
 
     public Map<Integer, List<Integer>> searchRowMap = new LinkedHashMap<>();
 
@@ -483,6 +556,13 @@ class SearchRenderer extends DefaultTableCellRenderer {
     @Override
     public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
         JComponent comp = (JComponent) defCellRenderer.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
+
+        // Add left padding for modern web-table look unless renderer already marked this cell as empty-required error.
+        boolean emptyRequiredError = Boolean.TRUE.equals(comp.getClientProperty("ing.emptyRequiredError"));
+        if (!emptyRequiredError) {
+            comp.setBorder(javax.swing.BorderFactory.createEmptyBorder(2, 8, 2, 4));
+        }
+
         Boolean rowSelected = false;
         for (int srow : table.getSelectedRows()) {
             if (srow == row) {
@@ -497,26 +577,41 @@ class SearchRenderer extends DefaultTableCellRenderer {
     }
 
     private void setSearchColor(JComponent comp, int row, int column, Boolean cellSelected) {
+        // Preserve empty-required error styling from base renderer.
+        if (Boolean.TRUE.equals(comp.getClientProperty("ing.emptyRequiredError"))) {
+            return;
+        }
         if (!cellSelected) {
             if (searchRowMap.get(row) != null && searchRowMap.get(row).indexOf(column) != -1) {
-                comp.setBackground(BG_SEARCH_COLOR);
+                Color searchBg = UIManager.getColor("ing.searchHighlight");
+                comp.setBackground(searchBg != null ? searchBg : Color.decode("#E5D6FF"));
             }
         }
     }
 
     private void setSelectionColor(Boolean rowSelected, Boolean cellSelected,
             JComponent comp, Color defalutRowBgColor) {
+        // Preserve empty-required error styling from base renderer.
+        if (Boolean.TRUE.equals(comp.getClientProperty("ing.emptyRequiredError"))) {
+            return;
+        }
         if (rowSelected) {
-            comp.setBackground(BG_SELECT_COLOR);
+            Color selBg = UIManager.getColor("ing.selectionBackground");
+            comp.setBackground(selBg != null ? selBg : Color.decode("#D4EDFD"));
         } else {
             comp.setBackground(defalutRowBgColor);
         }
         if (cellSelected) {
             if (focused) {
-                comp.setBackground(DEF_SELECTION_COLOR);
+                Color focusBg = UIManager.getColor("ing.focusedSelectionBackground");
+                comp.setBackground(focusBg != null ? focusBg : Color.decode("#89D6FD"));
             } else {
-                comp.setBackground(NOFOCUS_SELECTION_COLOR);
-                comp.setForeground(Color.decode("#583A74"));
+                Color inactiveBg = UIManager.getColor("ing.selectionInactiveBackground");
+                comp.setBackground(inactiveBg != null ? inactiveBg : Color.decode("#D4EDFD"));
+                Color selFg = UIManager.getColor("ing.selectionForeground");
+                // Use theme-aware fallback: white text in dark mode, burgundy in light mode
+                Color fallbackFg = Main.isDarkMode() ? Color.WHITE : Color.decode("#4D0020");
+                comp.setForeground(selFg != null ? selFg : fallbackFg);
             }
         }
     }

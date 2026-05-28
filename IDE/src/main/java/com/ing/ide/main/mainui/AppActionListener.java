@@ -2,8 +2,10 @@
 package com.ing.ide.main.mainui;
 
 import com.ing.engine.support.methodInf.MethodInfoManager;
+import com.ing.exceptions.DuplicateMethodException;
 import com.ing.ide.main.bdd.BddParser;
 import com.ing.ide.main.explorer.ExplorerBar;
+import com.ing.ide.main.Main;
 import com.ing.ide.main.help.Help;
 import com.ing.ide.main.mainui.components.testdesign.testdata.ImportTestData;
 import com.ing.ide.main.settings.INGeniousSettings;
@@ -12,6 +14,7 @@ import com.ing.ide.main.settings.TMSettings;
 import com.ing.ide.main.googlerecordingjson.JsonParser;
 import com.ing.ide.main.playwrightrecording.PlaywrightRecordingParser;
 import com.ing.ide.main.playwrightrecording.RecordedStepsNameDialogue;
+import com.ing.ide.main.sapscript.SapScriptParser;
 import com.ing.ide.main.ui.AboutUI;
 import com.ing.ide.main.ui.InjectScript;
 import com.ing.ide.main.ui.NewProject;
@@ -20,20 +23,19 @@ import com.ing.ide.main.utils.CMProjectCreator;
 import com.ing.ide.main.utils.Utils;
 import com.ing.ide.util.Notification;
 import com.ing.ide.util.logging.UILogger;
-import java.awt.Color;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.swing.JToggleButton;
 import java.util.Timer;
 import java.util.TimerTask;
-import javax.swing.UIManager;
 
 public class AppActionListener implements ActionListener {
 
@@ -54,6 +56,8 @@ public class AppActionListener implements ActionListener {
     private final BddParser bddParser;
     
     private final JsonParser jsonParser;
+    
+    private final SapScriptParser sapScriptParser;
 
     private final InjectScript injectScript;
 
@@ -62,6 +66,8 @@ public class AppActionListener implements ActionListener {
     private final AppToolBar appToolBar;
     
     private Timer autoSaveTimer;
+    
+    private boolean autoSaveEnabled = false;
     
     //private static AppActionListener instance;
     
@@ -76,6 +82,7 @@ public class AppActionListener implements ActionListener {
        // scheduler = new SchedulerUI();
         bddParser = new BddParser(sMainFrame);
         jsonParser = new JsonParser(sMainFrame);
+        sapScriptParser = new SapScriptParser(sMainFrame);
         injectScript = new InjectScript();
         importTestData = new ImportTestData(sMainFrame);
     }
@@ -99,14 +106,10 @@ public class AppActionListener implements ActionListener {
                 sMainFrame.quit();
                 break;
             case "Auto Save":
-                JToggleButton toggleSwitch = appToolBar.getToggleSwitch();
-                if (toggleSwitch.isSelected()) {
-                    toggleSwitch.setText("ON");
-                    toggleSwitch.setBackground(Color.decode("#349651"));
+                autoSaveEnabled = !autoSaveEnabled;
+                if (autoSaveEnabled) {
                     startAutoSave();
                 } else {
-                    toggleSwitch.setText("OFF");
-                    toggleSwitch.setBackground(UIManager.getColor("text"));
                     stopAutoSave();
                 }
                 break;    
@@ -195,10 +198,17 @@ public class AppActionListener implements ActionListener {
             case "Dashboard":
                 sMainFrame.showDashBoard();
                 break;
+            case "API Workbench":
+                sMainFrame.showAPITester();
+                break;
             case "Refresh":
                 doRefresh();
                 break;
             case "AdjustUI":
+                sMainFrame.adjustUI();
+                break;
+            case "Dark Mode":
+                Main.toggleTheme();
                 sMainFrame.adjustUI();
                 break;
             case "Create CM Project":
@@ -257,11 +267,96 @@ public class AppActionListener implements ActionListener {
                         Logger.getLogger(AppActionListener.class.getName()).log(Level.SEVERE, null, ex);
                     }
                 } 
-                 break; 
+                 break;
+            case "Import SAP Recording":
+                {
+                    handleSapImport(null); // All languages
+                }
+                break; 
             default:
-                System.out.println(ae.getActionCommand());
-                sMainFrame.getLoader().showIDontCare();
-
+                // Handle language-specific SAP imports
+                if (ae.getActionCommand().startsWith("Import SAP Recording:")) {
+                    String language = ae.getActionCommand().substring("Import SAP Recording:".length());
+                    handleSapImport(language);
+                } else {
+                    System.out.println("UNHANDLED ACTION: [" + ae.getActionCommand() + "]");
+                    sMainFrame.getLoader().showIDontCare();
+                }
+        }
+    }
+    
+    /**
+     * Handle SAP script import with optional language filter.
+     * @param language Specific language filter (VBScript, JavaScript, etc.) or null for all languages
+     */
+    private void handleSapImport(String language) {
+        try {
+            System.out.println("DEBUG: Import SAP Recording clicked" + (language != null ? " for " + language : ""));
+            
+            if (sMainFrame.getProject() == null) {
+                Notification.show("Please open a project first before importing SAP scripts.");
+                System.out.println("ERROR: No project loaded");
+                return;
+            }
+            
+            String projectLocation = sMainFrame.getProject().getLocation();
+            System.out.println("DEBUG: Project location: " + projectLocation);
+            
+            File sapScriptFile;
+            
+            // Use language-specific file dialog or all languages
+            if (language != null) {
+                switch (language) {
+                    // case "VBScript":
+                    //     sapScriptFile = Utils.openDialog("VBScript SAP Files (*.vbs, *.vba)", "vbs", "vba");
+                    //     break;
+                    // case "JavaScript":
+                    //     sapScriptFile = Utils.openDialog("JavaScript SAP Files (*.js)", "js");
+                    //     break;
+                    case "PowerShell":
+                        sapScriptFile = Utils.openDialog("PowerShell SAP Files (*.ps1)", "ps1");
+                        break;
+                    // case "Python":
+                    //     sapScriptFile = Utils.openDialog("Python SAP Files (*.py)", "py");
+                    //     break;
+                    // case "AutoIt":
+                    //     sapScriptFile = Utils.openDialog("AutoIt SAP Files (*.au3)", "au3");
+                    //     break;
+                    // case "CSharp":
+                    //     sapScriptFile = Utils.openDialog("C# SAP Files (*.cs)", "cs");
+                    //     break;
+                    // case "VBNet":
+                    //     sapScriptFile = Utils.openDialog("VB.NET SAP Files (*.vb)", "vb");
+                    //     break;
+                    case "Java":
+                        sapScriptFile = Utils.openDialog("Java SAP Files (*.java, *.jsh)", "java", "jsh");
+                        break;
+                    default:
+                        sapScriptFile = Utils.openDialog("SAP GUI Script Files (PS1, JAVA)", 
+                            "ps1", "java", "jsh");
+                }
+            } else {
+                // All languages (only PowerShell and Java supported)
+                sapScriptFile = Utils.openDialog("SAP GUI Script Files (PS1, JAVA)", 
+                    "ps1", "java", "jsh");
+            }
+            
+            System.out.println("DEBUG: Selected file: " + (sapScriptFile != null ? sapScriptFile.getAbsolutePath() : "null"));
+            
+            if (sapScriptFile != null && sapScriptFile.exists()) {
+                System.out.println("INFO: Importing SAP Script Tracker file: " + sapScriptFile.getName());
+                sapScriptParser.parseSapScript(sapScriptFile);
+                sMainFrame.loadProject(projectLocation);
+                Notification.show("SAP Script imported successfully and test cases created.");
+            } else {
+                System.out.println("DEBUG: File selection cancelled or file does not exist");
+            }
+        } catch (Exception ex) {
+            System.err.println("ERROR: Exception in Import SAP Recording: " + ex.getMessage());
+            ex.printStackTrace();
+            Logger.getLogger(AppActionListener.class.getName()).log(Level.SEVERE, 
+                "Error importing SAP Script Tracker file", ex);
+            Notification.show("Failed to import SAP Script: " + ex.getMessage());
         }
     }
     
@@ -317,8 +412,33 @@ public class AppActionListener implements ActionListener {
         tmSettings.load();
     }
 
+    /**
+     * Refreshes the method information by reloading it from the MethodInfoManager.
+     * <p>
+     * This method attempts to reload all method information. If a duplicate method
+     * is detected during the loading process, an error is logged and the application
+     * terminates with exit code 1.
+     * </p>
+     *
+     * @throws DuplicateMethodException if duplicate methods are found during reload
+     *                                   (caught and handled internally by logging and exiting)
+     */
     private void doRefresh() {
-        MethodInfoManager.load();
+        try {
+            MethodInfoManager.load();
+        } catch (DuplicateMethodException ex) {
+            System.getLogger(AppActionListener.class.getName()).log(System.Logger.Level.ERROR, (String) null, ex);
+            System.exit(1);
+        }
+    }      
+      
+    /**
+     * Closes the BDD editor (StoryWriter) if it is open.
+     */
+    public void closeBddEditorIfOpen() {
+        if (bddParser != null) {
+            bddParser.closeEditor();
+        }
     }
 
 }

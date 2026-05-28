@@ -22,7 +22,7 @@ public class NewProject extends javax.swing.JDialog {
         this.sMainFrame = sMainFrame;
         initComponents();
 
-        setIconImage(((ImageIcon) Utils.getIconByResourceName("/ui/resources/main/NewProject")).getImage());
+        setIconImage(com.ing.ide.main.fx.INGIcons.toImage(Utils.getIconByResourceName("/ui/resources/main/NewProject")));
         String currDirectory = new File(System.getProperty("user.dir")).getCanonicalPath() + File.separator + "Projects";
         fileChooser.setCurrentDirectory(new File(currDirectory));
         projLocation.setText(fileChooser.getCurrentDirectory().getAbsolutePath());

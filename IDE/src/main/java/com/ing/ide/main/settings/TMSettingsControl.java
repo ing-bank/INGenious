@@ -3,7 +3,7 @@ package com.ing.ide.main.settings;
 
 import com.ing.engine.core.TMIntegration;
 import com.ing.ide.main.utils.keys.Keystroke;
-import com.ing.ide.main.utils.table.JtableUtils;
+import com.ing.ide.main.utils.table.JTableUtils;
 import java.awt.HeadlessException;
 import java.awt.event.ActionEvent;
 import java.util.logging.Level;
@@ -35,7 +35,7 @@ public class TMSettingsControl {
         imTD.put(Keystroke.ENCRYPT, "encrypt");
         amTD.put("encrypt", enc);
         table.setComponentPopupMenu(popup);
-        JtableUtils.addlisteners(table, Boolean.FALSE);
+        JTableUtils.addlisteners(table, Boolean.FALSE);
     }
 
     private static AbstractAction getEncryptAction(final JTable table) {

@@ -3,6 +3,7 @@ package com.ing.ide.main.mainui.components.testdesign.tree;
 import com.ing.datalib.component.Project;
 import com.ing.datalib.component.Scenario;
 import com.ing.datalib.component.TestCase;
+import com.ing.datalib.exception.TestCaseConversionException;
 import com.ing.datalib.model.DataItem;
 import com.ing.datalib.model.Meta;
 import com.ing.datalib.model.Tag;
@@ -59,8 +60,8 @@ import java.awt.event.KeyEvent;
 import javax.swing.KeyStroke;
 
 /**
- *
- *
+ * UI tree component for displaying and managing Test Plan scenarios and test cases.
+ * Provides context menus, drag-and-drop support, and editing capabilities.
  */
 public class ProjectTree implements ActionListener {
 
@@ -76,6 +77,10 @@ public class ProjectTree implements ActionListener {
 
     ProjectTreeModel treeModel = new TestPlanTreeModel();
 
+    /**
+     * Constructs a new ProjectTree for managing Test Plan scenarios and test cases.
+     * @param testDesign parent TestDesign component
+     */
     public ProjectTree(TestDesign testDesign) {
         this.testDesign = testDesign;
         tree = new JTree();
@@ -83,14 +88,29 @@ public class ProjectTree implements ActionListener {
         init();
     }
 
+    /**
+     * Creates a new tree model for Test Plan.
+     * @return new ProjectTreeModel instance
+     */
     ProjectTreeModel getNewTreeModel() {
         return new TestPlanTreeModel();
     }
 
+    /**
+     * Creates a new popup menu for the tree.
+     * @return new ProjectPopupMenu instance
+     */
+    /**
+     * Creates a new popup menu for the tree.
+     * @return new ProjectPopupMenu instance
+     */
     ProjectPopupMenu getNewPopupMenu() {
         return new ProjectPopupMenu();
     }
 
+    /**
+     * Initializes the tree component with event handlers, keybindings, and UI settings.
+     */
     private void init() {
         try {
             //create the font to use. Specify the size!
@@ -117,6 +137,7 @@ public class ProjectTree implements ActionListener {
         tree.setFont(new Font("ING Me", Font.PLAIN, 11));
         tree.getInputMap(JComponent.WHEN_FOCUSED).put(Keystroke.NEW, "New");
         tree.getInputMap(JComponent.WHEN_FOCUSED).put(Keystroke.DELETE, "Delete");
+        tree.getInputMap(JComponent.WHEN_FOCUSED).put(Keystroke.RENAME, "Rename");
         tree.getInputMap(JComponent.WHEN_FOCUSED).put(Keystroke.ALTENTER, "AltEnter");
         tree.getInputMap(JComponent.WHEN_FOCUSED).put(KeyStroke.getKeyStroke("ESCAPE"), "Escape");
 
@@ -143,6 +164,23 @@ public class ProjectTree implements ActionListener {
                 onDeleteAction();
             }
         });
+
+        tree.getActionMap().put("Rename", new AbstractAction() {
+
+            @Override
+            public void actionPerformed(ActionEvent ae) {
+                ScenarioNode scenarioNode = getSelectedScenarioNode();
+                if (scenarioNode != null) {
+                    tree.startEditingAtPath(new TreePath(scenarioNode.getPath()));
+                    return;
+                }
+                TestCaseNode testCaseNode = getSelectedTestCaseNode();
+                if (testCaseNode != null) {
+                    tree.startEditingAtPath(new TreePath(testCaseNode.getPath()));
+                }
+            }
+        });
+
         tree.getActionMap().put("Escape", new AbstractAction() {
 
             @Override
@@ -195,6 +233,9 @@ public class ProjectTree implements ActionListener {
         });
     }
 
+    /**
+     * Sets the custom icons for tree nodes based on node type.
+     */
     private void setTreeIcon() {
         try {
             //create the font to use. Specify the size!
@@ -215,7 +256,11 @@ public class ProjectTree implements ActionListener {
                 } else if (value instanceof ScenarioNode) {
                     setIcons(IconSettings.getIconSettings().getTestPlanScenario());
                 } else if (value instanceof TestCaseNode) {
-                    setIcons(IconSettings.getIconSettings().getTestPlanTestCase());
+                    if (ProjectTree.this instanceof ReusableTree) {
+                        setIcons(IconSettings.getIconSettings().getReusableTestCase());
+                    } else {
+                        setIcons(IconSettings.getIconSettings().getTestPlanTestCase());
+                    }
                 } else {
                     setIcons(IconSettings.getIconSettings().getTestPlanRoot());
                 }
@@ -231,6 +276,9 @@ public class ProjectTree implements ActionListener {
         };
     }
 
+    /**
+     * Loads the table model for the selected tree node (scenario or test case).
+     */
     public void loadTableModelForSelection() {
         Object selected = getSelectedTestCase();
         if (selected == null) {
@@ -239,6 +287,9 @@ public class ProjectTree implements ActionListener {
         testDesign.loadTableModelForSelection(selected);
     }
 
+    /**
+     * Handles right-click events on tree nodes to show context menu.
+     */
     private void onRightClick() {
         TreePath path = tree.getSelectionPath();
         if (path != null) {
@@ -248,6 +299,10 @@ public class ProjectTree implements ActionListener {
         }
     }
 
+    /**
+     * Toggles the popup menu based on the selected node type.
+     * @param selected selected tree node
+     */
     protected void togglePopupMenu(Object selected) {
         if (selected instanceof ScenarioNode) {
             popupMenu.forScenario();
@@ -258,6 +313,9 @@ public class ProjectTree implements ActionListener {
         }
     }
 
+    /**
+     * Handles the "New" action based on current selection.
+     */
     protected void onNewAction() {
         if (getSelectedScenarioNode() != null) {
             addTestCase();
@@ -266,11 +324,18 @@ public class ProjectTree implements ActionListener {
         }
     }
 
+    /**
+     * Handles the "Delete" action for selected test cases and scenarios.
+     */
     protected void onDeleteAction() {
         deleteTestCases();
         deleteScenarios();
     }
 
+    /**
+     * Handles action events from menu items and context menus.
+     * @param ae action event
+     */
     @Override
     public void actionPerformed(ActionEvent ae) {
         switch (ae.getActionCommand()) {
@@ -325,16 +390,27 @@ public class ProjectTree implements ActionListener {
         }
     }
 
+    /**
+     * Returns the tree model.
+     * @return tree model
+     */
     public ProjectTreeModel getTreeModel() {
         return treeModel;
     }
 
+    /**
+     * Adds a new scenario to the project.
+     */
     private void addScenario() {
         ScenarioNode scNode = treeModel.addScenario(getSelectedGroupNode(),
                 testDesign.getProject().addScenario(fetchNewScenarioName()));
         selectAndScrollTo(new TreePath(scNode.getPath()));
     }
 
+    /**
+     * Generates a unique name for a new scenario.
+     * @return unique scenario name
+     */
     private String fetchNewScenarioName() {
         String newScenarioName = "NewScenario";
         for (int i = 0;; i++) {
@@ -346,6 +422,9 @@ public class ProjectTree implements ActionListener {
         return newScenarioName;
     }
 
+    /**
+     * Adds a new test case to the selected scenario.
+     */
     private void addTestCase() {
         ScenarioNode scenarioNode = getSelectedScenarioNode();
         if (scenarioNode != null) {
@@ -358,10 +437,16 @@ public class ProjectTree implements ActionListener {
         }
     }
 
+    /**
+     * Generates a unique name for a new test case within a scenario.
+     * @param scenario scenario to check for existing test case names
+     * @return unique test case name
+     */
     private String fetchNewTestCaseName(Scenario scenario) {
         String newTestCaseName = "NewTestCase";
         for (int i = 0;; i++) {
-            if (scenario.getTestCaseByName(newTestCaseName) == null) {
+            if (scenario.getTestCaseByName(newTestCaseName) == null 
+                    && !getProject().hasTestCaseInAnyScenario(scenario.getName(), newTestCaseName)) {
                 break;
             }
             newTestCaseName = "NewTestCase" + i;
@@ -369,6 +454,10 @@ public class ProjectTree implements ActionListener {
         return newTestCaseName;
     }
 
+    /**
+     * Validates and performs rename operation on selected scenario or test case.
+     * @return true if rename was successful, false otherwise
+     */
     protected Boolean checkAndRename() {
         String name = tree.getCellEditor().getCellEditorValue().toString().trim();
         if (Validator.isValidName(name)) {
@@ -398,11 +487,18 @@ public class ProjectTree implements ActionListener {
         return false;
     }
 
+    /**
+     * Notifies the reusable tree that a scenario has been renamed.
+     * @param scenario renamed scenario
+     */
     void renameScenario(Scenario scenario) {
         getTestDesign().getReusableTree()
                 .getTreeModel().onScenarioRename(scenario);
     }
 
+    /**
+     * Deletes selected scenarios after user confirmation.
+     */
     private void deleteScenarios() {
         List<ScenarioNode> scenarioNodes = getSelectedScenarioNodes();
         if (!scenarioNodes.isEmpty()) {
@@ -425,6 +521,9 @@ public class ProjectTree implements ActionListener {
         }
     }
 
+    /**
+     * Deletes selected test cases after user confirmation.
+     */
     private void deleteTestCases() {
         List<TestCaseNode> testcaseNodes = getSelectedTestCaseNodes();
         if (!testcaseNodes.isEmpty()) {
@@ -443,6 +542,10 @@ public class ProjectTree implements ActionListener {
         }
     }
 
+    /**
+     * Deletes the specified test cases and resets table if needed.
+     * @param testcaseNodes list of test case nodes to delete
+     */
     private void deleteTestCases(List<TestCaseNode> testcaseNodes) {
         TestCase loadedTestCase = testDesign.getTestCaseComp().getCurrentTestCase();
         Boolean shouldRemove = false;
@@ -460,6 +563,10 @@ public class ProjectTree implements ActionListener {
         }
     }
 
+    /**
+     * Returns the currently selected scenario.
+     * @return selected scenario or null if none selected
+     */
     private Scenario getSelectedScenario() {
         ScenarioNode scenarioNode = getSelectedScenarioNode();
         if (scenarioNode != null) {
@@ -468,6 +575,10 @@ public class ProjectTree implements ActionListener {
         return null;
     }
 
+    /**
+     * Returns all selected scenarios.
+     * @return list of selected scenarios
+     */
     private List<Scenario> getSelectedScenarios() {
         List<Scenario> scenarios = new ArrayList<>();
         TreePath[] paths = tree.getSelectionPaths();
@@ -481,6 +592,10 @@ public class ProjectTree implements ActionListener {
         return scenarios;
     }
 
+    /**
+     * Returns all selected test cases.
+     * @return list of selected test cases
+     */
     private List<TestCase> getSelectedTestCases() {
         List<TestCase> testcases = new ArrayList<>();
         TreePath[] paths = tree.getSelectionPaths();
@@ -494,6 +609,10 @@ public class ProjectTree implements ActionListener {
         return testcases;
     }
 
+    /**
+     * Returns the first selected group node.
+     * @return selected group node or null if none selected
+     */
     protected GroupNode getSelectedGroupNode() {
         List<GroupNode> groups = getSelectedGroupNodes();
         if (groups.isEmpty()) {
@@ -502,6 +621,10 @@ public class ProjectTree implements ActionListener {
         return groups.get(0);
     }
 
+    /**
+     * Returns all selected group nodes.
+     * @return list of selected group nodes
+     */
     protected List<GroupNode> getSelectedGroupNodes() {
         List<GroupNode> groupNodes = new ArrayList<>();
         TreePath[] paths = tree.getSelectionPaths();
@@ -515,7 +638,11 @@ public class ProjectTree implements ActionListener {
         return groupNodes;
     }
 
-    private ScenarioNode getSelectedScenarioNode() {
+    /**
+     * Returns the first selected scenario node.
+     * @return selected scenario node or null if none selected
+     */
+    public ScenarioNode getSelectedScenarioNode() {
         List<ScenarioNode> scenarioNodes = getSelectedScenarioNodes();
         if (scenarioNodes.isEmpty()) {
             return null;
@@ -523,6 +650,10 @@ public class ProjectTree implements ActionListener {
         return scenarioNodes.get(0);
     }
 
+    /**
+     * Returns all selected scenario nodes.
+     * @return list of selected scenario nodes
+     */
     protected List<ScenarioNode> getSelectedScenarioNodes() {
         List<ScenarioNode> scenarioNodes = new ArrayList<>();
         TreePath[] paths = tree.getSelectionPaths();
@@ -536,6 +667,10 @@ public class ProjectTree implements ActionListener {
         return scenarioNodes;
     }
 
+    /**
+     * Returns the currently selected test case.
+     * @return selected test case or null if none selected
+     */
     protected TestCase getSelectedTestCase() {
         TestCaseNode testcaseNode = getSelectedTestCaseNode();
         if (testcaseNode != null) {
@@ -544,7 +679,11 @@ public class ProjectTree implements ActionListener {
         return null;
     }
 
-    private TestCaseNode getSelectedTestCaseNode() {
+    /**
+     * Returns the first selected test case node.
+     * @return selected test case node or null if none selected
+     */
+    public TestCaseNode getSelectedTestCaseNode() {
         List<TestCaseNode> tcNodes = getSelectedTestCaseNodes();
         if (tcNodes.isEmpty()) {
             return null;
@@ -552,6 +691,10 @@ public class ProjectTree implements ActionListener {
         return tcNodes.get(0);
     }
 
+    /**
+     * Returns all selected test case nodes.
+     * @return list of selected test case nodes
+     */
     protected List<TestCaseNode> getSelectedTestCaseNodes() {
         List<TestCaseNode> tcNodes = new ArrayList<>();
         TreePath[] paths = tree.getSelectionPaths();
@@ -565,6 +708,10 @@ public class ProjectTree implements ActionListener {
         return tcNodes;
     }
 
+    /**
+     * Selects and scrolls to the specified tree path.
+     * @param path tree path to select and scroll to
+     */
     protected void selectAndScrollTo(final TreePath path) {
         SwingUtilities.invokeLater(new Runnable() {
             @Override
@@ -577,20 +724,56 @@ public class ProjectTree implements ActionListener {
         });
     }
 
-    private void makeAsReusableRTestCase() {
+    /**
+     * Moves selected test cases from Test Plan to Reusable Components.
+     * Shows error notifications for failures and reloads both trees on success.
+     */
+    protected void makeAsReusableRTestCase() {
         if (!getSelectedTestCaseNodes().isEmpty()) {
+            // Save ALL test cases to prevent data loss on reload
+            getProject().save();
+            
+            boolean anySuccess = false;
             for (TestCaseNode testCaseNode : getSelectedTestCaseNodes()) {
-                testCaseNode.getTestCase().toggleAsReusable();
-                getTreeModel().removeNodeFromParent(testCaseNode);
-                makeAsReusableRTestCase(testCaseNode.getTestCase());
+                try {
+                    getProject().moveTestCaseToReusable(testCaseNode.getTestCase());
+                    anySuccess = true;
+                } catch (TestCaseConversionException e) {
+                    Notification.show(e.getMessage());
+                }
+            }
+            if (anySuccess) {
+                getProject().reload();
+                getProject().save();
+                load();
+                getTestDesign().getReusableTree().load();
             }
         }
     }
 
+    /**
+     * Adds a test case to the reusable tree model.
+     * @param testCase test case to add to reusable components
+     */
     void makeAsReusableRTestCase(TestCase testCase) {
         getTestDesign().getReusableTree().getTreeModel().addTestCase(testCase);
     }
 
+    /**
+     * Saves the currently displayed test case in the editor if it exists.
+     * This ensures unsaved changes are persisted before operations like moving test cases.
+     */
+    protected void saveCurrentTestCaseIfDisplayed() {
+        TestCase currentTestCase = getTestDesign().getTestCaseComp().getCurrentTestCase();
+        if (currentTestCase != null) {
+            currentTestCase.save();
+        }
+    }
+
+    /**
+     * Converts selected scenarios or test cases to manual test case CSV format.
+     * @throws IOException if file writing fails
+     */
     private void convertToManual() throws IOException {
         if (!getSelectedScenarios().isEmpty()) {
             testDesign.getsMainFrame().getStepMap().convertScenarios(
@@ -604,12 +787,18 @@ public class ProjectTree implements ActionListener {
         }
     }
 
+    /**
+     * Sorts the children of the selected tree node.
+     */
     private void sort() {
         if (tree.getSelectionPath() != null) {
             getTreeModel().sort(tree.getSelectionPath().getLastPathComponent());
         }
     }
 
+    /**
+     * Opens the tag editor for selected items.
+     */
     private void editTag() {
         TreePath[] sel = tree.getSelectionPaths();
         if (sel != null && sel.length > 0) {
@@ -622,15 +811,28 @@ public class ProjectTree implements ActionListener {
 
     }
 
+    /**
+     * Adds a new tag to the project.
+     * @param tag tag name
+     * @return created tag
+     */
     private Tag onAddTag(String tag) {
         getProject().getInfo().addMeta(Meta.createTag(tag));
         return Tag.create(tag);
     }
 
+    /**
+     * Removes a tag from the project.
+     * @param tag tag to remove
+     */
     private void onRemoveTag(Tag tag) {
         getProject().getInfo().removeAll(tag);
     }
 
+    /**
+     * Opens the tag editor for a test case data item.
+     * @param tc test case data item
+     */
     private void editTag(DataItem tc) {
         TagEditorDialog.build(testDesign.getsMainFrame(),
                 getProject().getInfo().getAllTags(tc.getTags()), tc.getTags(),
@@ -639,6 +841,10 @@ public class ProjectTree implements ActionListener {
 
     }
 
+    /**
+     * Opens the tag editor for a scenario metadata.
+     * @param scn scenario metadata
+     */
     private void editTag(Meta scn) {
         TagEditorDialog.build(testDesign.getsMainFrame(),
                 getProject().getInfo().getAllTags(scn.getTags()), scn.getTags(),
@@ -647,10 +853,19 @@ public class ProjectTree implements ActionListener {
 
     }
 
+    /**
+     * Creates the tag editor dialog title.
+     * @param t item name
+     * @return formatted title string
+     */
     private String editTagTitle(String t) {
         return String.format("Edit Tag: %s", t);
     }
 
+    /**
+     * Opens the tag editor for a tree path (scenario or test case).
+     * @param path tree path to edit tags for
+     */
     private void editTag(TreePath path) {
         if (path.getLastPathComponent() instanceof TestCaseNode) {
             TestCase tcn = ((TestCaseNode) path.getLastPathComponent()).getTestCase();
@@ -662,10 +877,17 @@ public class ProjectTree implements ActionListener {
         }
     }
 
+    /**
+     * Opens the tag editor for multiple tree paths.
+     * @param paths list of tree paths to edit tags for
+     */
     private void editTag(List<TreePath> paths) {
         paths.stream().forEach(this::editTag);
     }
 
+    /**
+     * Shows impacted test cases for the selected test case.
+     */
     private void getImpactedTestCases() {
         TestCase testCase = getSelectedTestCase();
         if (testCase != null) {
@@ -678,6 +900,9 @@ public class ProjectTree implements ActionListener {
         }
     }
 
+    /**
+     * Generates and copies command line syntax for running the selected test case.
+     */
     private void getCmdLineSyntax() {
         TestCase testCase = getSelectedTestCase();
         if (testCase != null) {
@@ -697,14 +922,21 @@ public class ProjectTree implements ActionListener {
         }
     }
 
+    /**
+     * Returns the appropriate run command based on the operating system.
+     * @return "Run.bat" for Windows, "Run.command" for others
+     */
     private String getBatRCommand() {
         String os = System.getProperty("os.name").toLowerCase();
         if (os.contains("windows")) {
-            return "Run.bat";
+            return "ingenious.bat";
         }
-        return "Run.command";
+        return "ingenious.command";
     }
 
+    /**
+     * Shows the project details dialog if a tree path is selected.
+     */
     private void showDetails() {
         TreePath path = tree.getSelectionPath();
         if (path != null) {
@@ -712,6 +944,9 @@ public class ProjectTree implements ActionListener {
         }
     }
 
+    /**
+     * Displays the project properties dialog.
+     */
     private void showProjDetails() {
         projectProperties.loadForCurrentProject();
 //        projectProperties.pack();
@@ -719,18 +954,33 @@ public class ProjectTree implements ActionListener {
         projectProperties.setVisible(true);
     }
 
+    /**
+     * Returns the JTree component.
+     * @return tree component
+     */
     public final JTree getTree() {
         return tree;
     }
 
+    /**
+     * Returns the current project.
+     * @return project instance
+     */
     public final Project getProject() {
         return testDesign.getProject();
     }
 
+    /**
+     * Returns the parent TestDesign component.
+     * @return test design component
+     */
     public final TestDesign getTestDesign() {
         return testDesign;
     }
 
+    /**
+     * Loads the project into the tree model and refreshes the view.
+     */
     public final void load() {
         treeModel.setProject(testDesign.getProject());
         treeModel.reload();
@@ -738,6 +988,9 @@ public class ProjectTree implements ActionListener {
         loadTableModelForSelection();
     }
 
+    /**
+     * Context menu for the project tree with actions for scenarios and test cases.
+     */
     class ProjectPopupMenu extends JPopupMenu {
 
         protected JMenuItem addScenario;
@@ -759,10 +1012,16 @@ public class ProjectTree implements ActionListener {
         protected JMenuItem getCmdSyntax;
         protected JMenuItem getAzDo;
 
+        /**
+         * Constructs a new ProjectPopupMenu and initializes menu items.
+         */
         public ProjectPopupMenu() {
             init();
         }
 
+        /**
+         * Initializes all menu items and adds them to the popup menu.
+         */
         protected final void init() {
             add(addScenario = create("Add Scenario", Keystroke.NEW));
             add(renameScenario = create("Rename Scenario", Keystroke.RENAME));
@@ -792,6 +1051,9 @@ public class ProjectTree implements ActionListener {
             sort.setIcon(Canvas.EmptyIcon);
         }
 
+        /**
+         * Configures menu items for scenario context.
+         */
         protected void forScenario() {
             renameScenario.setEnabled(true);
             deleteScenario.setEnabled(true);
@@ -815,6 +1077,9 @@ public class ProjectTree implements ActionListener {
             sort.setEnabled(true);
         }
 
+        /**
+         * Configures menu items for test case context.
+         */
         protected void forTestCase() {
             addScenario.setEnabled(false);
             renameScenario.setEnabled(false);
@@ -840,6 +1105,9 @@ public class ProjectTree implements ActionListener {
             sort.setEnabled(false);
         }
 
+        /**
+         * Configures menu items for test plan (group) context.
+         */
         protected void forTestPlan() {
             addScenario.setEnabled(true);
 
@@ -864,6 +1132,12 @@ public class ProjectTree implements ActionListener {
             sort.setEnabled(true);
         }
 
+        /**
+         * Creates a menu item with the specified name and keystroke.
+         * @param name menu item name
+         * @param keyStroke keyboard shortcut
+         * @return created menu item
+         */
         protected JMenuItem create(String name, KeyStroke keyStroke) {
             try {
                 //create the font to use. Specify the size!
@@ -884,6 +1158,9 @@ public class ProjectTree implements ActionListener {
             return menuItem;
         }
 
+        /**
+         * Sets up Cut/Copy/Paste menu items.
+         */
         private void setCCP() {
             TransferActionListener actionListener = new TransferActionListener();
 
@@ -911,6 +1188,9 @@ public class ProjectTree implements ActionListener {
 
     }
 
+    /**
+     * Alters default tree key bindings to support cut, copy, and paste operations.
+     */
     private void alterTreeDefaultKeyBindings() {
 
         int menuShortcutKeyMask = Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx();

@@ -4,7 +4,7 @@
     <parent>
         <groupId>com.ing</groupId>
         <artifactId>ingenious-playwright</artifactId>
-        <version>2.4.1</version>
+        <version>3.0.0-preview</version>
     </parent>
     <artifactId>ingenious-datalib</artifactId>
     <packaging>jar</packaging>
@@ -13,17 +13,18 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.8.1</version>
-                <configuration>
-                    <source>${maven.compiler.source}</source>
-                    <target>${maven.compiler.target}</target>
-                </configuration>
             </plugin>
         </plugins>
     </build>
 
     
     <dependencies>
+        <dependency>
+            <groupId>com.ing</groupId>
+            <artifactId>ingenious-api</artifactId>
+            <version>${ingenious-api.version}</version>
+            <type>jar</type>
+        </dependency>
         <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-csv</artifactId>
@@ -32,6 +33,11 @@
         <dependency>
             <groupId>com.fasterxml.jackson.dataformat</groupId>
             <artifactId>jackson-dataformat-xml</artifactId>
+            <version>${jackson.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.dataformat</groupId>
+            <artifactId>jackson-dataformat-yaml</artifactId>
             <version>${jackson.version}</version>
         </dependency>
         <dependency>
@@ -49,6 +55,18 @@
             <groupId>org.testng</groupId>
             <artifactId>testng</artifactId>
             <version>${testng.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-core</artifactId>
+            <version>${mockito.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.assertj</groupId>
+            <artifactId>assertj-core</artifactId>
+            <version>${assertj.version}</version>
             <scope>test</scope>
         </dependency>
     </dependencies>

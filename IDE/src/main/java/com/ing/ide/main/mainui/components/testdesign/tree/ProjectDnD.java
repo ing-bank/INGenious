@@ -207,13 +207,26 @@ public class ProjectDnD extends TransferHandler {
     private void addScenario(Scenario scenario, GroupNode gNode) {
         String newName = scenario.getName();
         int i = 1;
-        while (scenario.getProject().getScenarioByName(newName) != null) {
-            newName = scenario.getName() + " Copy(" + i++ + ")";
-        }
-        ScenarioNode sNode = pTree.getTreeModel().addScenario(gNode,
-                scenario.getProject().addScenario(newName));
-        List<TestCase> testcases;
         if (pTree.getTreeModel().getRoot() instanceof TestPlanNode) {
+            while (scenario.getProject().getScenarioByName(newName) != null) {
+                newName = scenario.getName() + " Copy(" + i++ + ")";
+            }
+            ScenarioNode sNode = pTree.getTreeModel().addScenario(gNode,
+                    scenario.getProject().addScenario(newName));
+            copyTestCases(sNode, scenario, true);
+        } else {
+            while (scenario.getProject().getReusableScenarioByName(newName) != null) {
+                newName = scenario.getName() + " Copy(" + i++ + ")";
+            }
+            ScenarioNode sNode = pTree.getTreeModel().addScenario(gNode,
+                    scenario.getProject().addReusableScenario(newName));
+            copyTestCases(sNode, scenario, false);
+        }
+    }
+
+    private void copyTestCases(ScenarioNode sNode, Scenario scenario, boolean useTestPlan) {
+        List<TestCase> testcases;
+        if (useTestPlan) {
             testcases = scenario.getTestcasesAlone();
         } else {
             testcases = scenario.getReusables();

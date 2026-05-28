@@ -1,0 +1,6 @@
+#!/bin/bash
+# INGenious CLI wrapper script
+# Usage: ./ingenious <command> [options]
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+java -cp "$SCRIPT_DIR/lib/*" com.ing.engine.core.Control "$@"

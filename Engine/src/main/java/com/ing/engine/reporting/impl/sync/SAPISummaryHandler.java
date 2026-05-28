@@ -9,7 +9,7 @@ import com.ing.engine.reporting.SummaryReport;
 import com.ing.engine.reporting.TestCaseReport;
 import com.ing.engine.reporting.impl.handlers.SummaryHandler;
 import com.ing.engine.reporting.sync.sapi.ApiLink;
-import com.ing.engine.support.Status;
+import com.ing.ingenious.api.status.Status;
 import java.net.MalformedURLException;
 import java.util.logging.Level;
 import java.util.logging.Logger;

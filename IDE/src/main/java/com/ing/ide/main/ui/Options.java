@@ -2,6 +2,7 @@
 package com.ing.ide.main.ui;
 
 import com.ing.engine.constants.FilePath;
+import com.ing.ide.main.fx.INGIcons;
 import com.ing.ide.settings.AppSettings;
 import com.ing.ide.settings.AppSettings.APP_SETTINGS;
 import java.awt.Image;
@@ -94,7 +95,7 @@ public class Options extends javax.swing.JDialog {
 
         }
         if (icon == null) {
-            icon = new ImageIcon(getClass().getResource("/ui/resources/pnf.png"));
+            icon = new ImageIcon(INGIcons.toImage(INGIcons.swingColored("icon.image", 64)));
         }
         int w = reportViewer.getWidth();
         int h = reportViewer.getHeight();

@@ -4,7 +4,7 @@ package com.ing.engine.commands.galenCommands;
 import com.ing.engine.commands.browser.Command;
 import com.ing.engine.constants.FilePath;
 import com.ing.engine.core.CommandControl;
-import com.ing.engine.support.Status;
+import com.ing.ingenious.api.status.Status;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.galenframework.rainbow4j.Rainbow4J;

@@ -24,9 +24,11 @@ public class StepRenderer extends AbstractRenderer {
 
     private Color getColor(TestStep step) {
         if (step.isCommented()) {
-            return Color.lightGray;
+            Color c = UIManager.getColor("ing.commentedForeground");
+            return c != null ? c : Color.lightGray;
         } else if (step.hasBreakPoint()) {
-            return Color.BLUE;
+            Color c = UIManager.getColor("ing.breakpointForeground");
+            return c != null ? c : Color.BLUE;
         }
         return UIManager.getColor("text");
     }
