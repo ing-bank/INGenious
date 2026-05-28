@@ -12,9 +12,9 @@ import com.ing.engine.execution.data.DataProcessor;
 import com.ing.engine.execution.data.Parameter;
 import com.ing.engine.execution.data.StepSet;
 import com.ing.engine.execution.exception.DriverClosedException;
-import com.ing.engine.execution.exception.ForcedException;
+import com.ing.ingenious.api.exception.ForcedException;
 import com.ing.engine.execution.exception.TestFailedException;
-import com.ing.engine.execution.exception.ActionException;
+import com.ing.ingenious.api.exception.ActionException;
 import com.ing.engine.execution.exception.AppiumDriverException;
 import com.ing.engine.execution.exception.UnCaughtException;
 import com.ing.engine.execution.exception.data.DataNotFoundException;
@@ -22,9 +22,9 @@ import com.ing.engine.execution.exception.data.DataNotFoundException.Cause;
 import com.ing.engine.execution.exception.data.DataNotFoundException.CauseInfo;
 import com.ing.engine.execution.exception.data.GlobalDataNotFoundException;
 import com.ing.engine.execution.exception.data.TestDataNotFoundException;
-import com.ing.engine.execution.exception.element.ElementException;
+import com.ing.ingenious.api.exception.mobile.ElementException;
 import com.ing.engine.reporting.TestCaseReport;
-import com.ing.engine.support.Status;
+import com.ing.ingenious.api.status.Status;
 import com.ing.engine.support.Step;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -169,7 +169,7 @@ public class TestCaseRunner {
     }
 
     public CommandControl createControl(final TestCaseRunner newThis) {
-        return new CommandControl(getRoot().getControl().Playwright, getRoot().getControl().Page, getRoot().getControl().BrowserContext, getRoot().getControl().webDriver, getRoot().getControl().Report) {
+        return new CommandControl(getRoot().getControl().Playwright, getRoot().getControl().Page, getRoot().getControl().BrowserContext, getRoot().getControl().webDriver, getRoot().getControl().SAPsession, getRoot().getControl().Report) {
             @Override
             public void execute(String com, int sub) {
                 newThis.runTestCase(com, sub);
@@ -419,7 +419,12 @@ public class TestCaseRunner {
                         // once exitParamLoop flag is detected
                         if (testCase.exitParamLoop()){
                             if (Parameter.endParamRLoop(testStep.getCondition())){
+                                
+                                // Run the last iteration step
+                                runStep(testStep);
+                                
                                 if (canRunStep(currStep+1)){
+                                    // Skip to the step outside the loop block, after the step with End Param condition
                                     currStep++;
                                     testStep = testCase.getTestSteps().get(currStep);
                                 } else {

@@ -14,9 +14,16 @@ pom.xml.releaseBackup
 pom.xml.versionsBackup
 pom.xml.next
 
+# NPM
+node_modules/
+npm-debug.log
+
 # Release
 /Dist/release
 /Dist/release/**
+
+#Plugins
+/Resources/Plugins/**
 
 # IDE Generated Files
 nbproject

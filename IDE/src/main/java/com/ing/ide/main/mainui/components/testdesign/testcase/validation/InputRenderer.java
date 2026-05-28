@@ -2,7 +2,7 @@ package com.ing.ide.main.mainui.components.testdesign.testcase.validation;
 
 import com.ing.datalib.component.TestStep;
 import com.ing.datalib.testdata.model.TestDataModel;
-import com.ing.engine.support.methodInf.Action;
+import com.ing.ingenious.api.annotation.Action;
 import com.ing.engine.support.methodInf.MethodInfoManager;
 import java.awt.Color;
 import java.awt.Font;
@@ -49,8 +49,8 @@ public class InputRenderer extends AbstractRenderer {
 	private Boolean isOptional(TestStep step) {
 		if (step.getObject().matches("Execute"))
 			return Boolean.valueOf(true);
-		if (MethodInfoManager.methodInfoMap.containsKey(step.getAction())) {
-			return Boolean.valueOf(!((Action) MethodInfoManager.methodInfoMap.get(step.getAction())).input()
+		if (MethodInfoManager.containsAction(step.getAction())) {
+			return Boolean.valueOf(!MethodInfoManager.getActionFor(step.getAction()).input()
 					.isMandatory().booleanValue());
 		}
 		return Boolean.valueOf(true);
@@ -59,8 +59,8 @@ public class InputRenderer extends AbstractRenderer {
 	private Boolean isNotNeeded(TestStep step) {
 		if (step.getObject().matches("Execute"))
 			return Boolean.valueOf(false);
-		if (MethodInfoManager.methodInfoMap.containsKey(step.getAction())) {
-			return ((Action) MethodInfoManager.methodInfoMap.get(step.getAction())).input().isNotNeeded();
+		if (MethodInfoManager.containsAction(step.getAction())) {
+			return MethodInfoManager.getActionFor(step.getAction()).input().isNotNeeded();
 		}
 		return Boolean.valueOf(true);
 	}

@@ -1,0 +1,92 @@
+/**
+ * INGenious Modern Report - Indigo Theme
+ * Default indigo accent color scheme
+ * Version: 1.0.0
+ */
+
+[data-theme="indigo"],
+[data-accent="indigo"] {
+  /* Primary Palette - Indigo (default) */
+  --color-primary: 99 102 241; /* Indigo-500 */
+  --color-primary-50: 238 242 255;
+  --color-primary-100: 224 231 255;
+  --color-primary-200: 199 210 254;
+  --color-primary-300: 165 180 252;
+  --color-primary-400: 129 140 248;
+  --color-primary-500: 99 102 241;
+  --color-primary-600: 79 70 229;
+  --color-primary-700: 67 56 202;
+  --color-primary-800: 55 48 163;
+  --color-primary-900: 49 46 129;
+  --color-primary-dark: 79 70 229;
+  --color-primary-light: 165 180 252;
+
+  /* Gradient adjustments */
+  --gradient-primary: linear-gradient(135deg, rgb(99 102 241) 0%, rgb(129 140 248) 100%);
+
+  /* Focus ring */
+  --tw-ring-color: rgb(99 102 241 / 0.3);
+}
+
+/* Indigo theme header accent */
+[data-theme="indigo"] .app-header,
+[data-accent="indigo"] .app-header {
+  border-bottom-color: rgb(var(--color-primary));
+  border-bottom-width: 2px;
+}
+
+/* Indigo theme stat card accents */
+[data-theme="indigo"] .stat-card--info::before,
+[data-accent="indigo"] .stat-card--info::before {
+  background: linear-gradient(to right, rgb(99 102 241), rgb(165 180 252));
+}
+
+/* Button primary color */
+[data-theme="indigo"] .btn--primary,
+[data-accent="indigo"] .btn--primary {
+  background-color: rgb(99 102 241);
+}
+
+[data-theme="indigo"] .btn--primary:hover,
+[data-accent="indigo"] .btn--primary:hover {
+  background-color: rgb(79 70 229);
+}
+
+/* Active tab indicator */
+[data-theme="indigo"] .tabs--underline .tabs__tab[aria-selected="true"]::after,
+[data-accent="indigo"] .tabs--underline .tabs__tab[aria-selected="true"]::after {
+  background-color: rgb(99 102 241);
+}
+
+[data-theme="indigo"] .tabs--underline .tabs__tab[aria-selected="true"],
+[data-accent="indigo"] .tabs--underline .tabs__tab[aria-selected="true"] {
+  color: rgb(99 102 241);
+}
+
+/* Links */
+[data-theme="indigo"] a:hover,
+[data-accent="indigo"] a:hover {
+  color: rgb(99 102 241);
+}
+
+/* Focus states */
+[data-theme="indigo"] .search-input__field:focus,
+[data-accent="indigo"] .search-input__field:focus {
+  border-color: rgb(99 102 241);
+  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+}
+
+/* Filter pill active */
+[data-theme="indigo"] .filter-pill[aria-pressed="true"],
+[data-theme="indigo"] .filter-pill--active,
+[data-accent="indigo"] .filter-pill[aria-pressed="true"],
+[data-accent="indigo"] .filter-pill--active {
+  background-color: rgb(99 102 241);
+  border-color: rgb(99 102 241);
+}
+
+/* Progress bar info variant */
+[data-theme="indigo"] .progress-bar__fill--info,
+[data-accent="indigo"] .progress-bar__fill--info {
+  background: linear-gradient(90deg, rgb(99 102 241) 0%, rgb(129 140 248) 100%);
+}

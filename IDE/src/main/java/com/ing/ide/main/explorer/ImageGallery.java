@@ -35,6 +35,7 @@ import javax.swing.SwingUtilities;
 import javax.swing.border.LineBorder;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.ArrayUtils;
+import com.ing.ide.main.fx.INGIcons;
 
 /**
  *
@@ -61,8 +62,8 @@ public class ImageGallery extends javax.swing.JPanel {
     private Icon close, closesel;
 
     public ImageGallery(final String ext) {
-        close = new ImageIcon(ClassLoader.getSystemClassLoader().getResource("ui/resources/close16.png"));
-        closesel = new ImageIcon(ClassLoader.getSystemClassLoader().getResource("ui/resources/close16sel.png"));
+        close = INGIcons.swingColored("icon.close16", 16);
+        closesel = INGIcons.swingColored("icon.selected_close", 16);
         thumbselected = new MouseAdapter() {
 
             @Override
@@ -460,7 +461,7 @@ public class ImageGallery extends javax.swing.JPanel {
         thumbnailpanel = new javax.swing.JScrollPane();
         thumbPanel = new javax.swing.JPanel();
 
-        setBackground(new java.awt.Color(255, 255, 255));
+        // background managed by L&F
         setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(153, 153, 153), 2));
         setMaximumSize(new java.awt.Dimension(653, 481));
         setMinimumSize(new java.awt.Dimension(653, 481));

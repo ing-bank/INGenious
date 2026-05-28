@@ -10,6 +10,7 @@ import javax.swing.JButton;
 import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
 import javax.swing.JToolBar;
+import javax.swing.UIManager;
 
 /**
  *
@@ -29,7 +30,8 @@ public class TestDataToolBar extends JToolBar {
     public TestDataToolBar(ActionListener tdProxy) {
         this.actionListener = tdProxy;
         setFloatable(false);
-        setBorder(javax.swing.BorderFactory.createEtchedBorder());
+        setOpaque(false);
+        setBorder(javax.swing.BorderFactory.createMatteBorder(0, 0, 1, 0, UIManager.getColor("Separator.foreground")));
         setLayout(new javax.swing.BoxLayout(this, javax.swing.BoxLayout.X_AXIS));
         init();
     }
@@ -73,8 +75,7 @@ public class TestDataToolBar extends JToolBar {
         searchField = new SearchBox(actionListener);
         add(searchField);
         addSeparator();
-        JMenuItem addRowButton = Utils.createMenuItem("Add Row", ""
-                + "Ctrl+Plus to add a row at last"
+        JMenuItem addRowButton = Utils.createMenuItem("Add Row", "Ctrl+Plus to add a row at last"
                 + "<br>"
                 + "Ctrl+I to insert a row before the selected row"
                 + "<br>"
@@ -82,7 +83,12 @@ public class TestDataToolBar extends JToolBar {
         addColumn = Utils.createMenuItem("Add Column", "Alt+Plus", Keystroke.ADD_COLP, actionListener);
 
         JDropDownButton addSplitButton = new JDropDownButton("Add Row");
-        addSplitButton.setToolTipText("Add Rows/Columns");
+        addSplitButton.setToolTipText("Add Rows/Columns"
+                + "\n[Alt+Plus to add a column"
+                + "\n Ctrl+Plus to add a row at last"
+                + "\n Ctrl+I to insert a row before the selected row"
+                + "\n Ctrl+R to replicate the row]"
+        );
         addSplitButton.setIcon(Utils.getIconByResourceName("/ui/resources/toolbar/add"));
         addSplitButton.addMenu(addRowButton);
         addSplitButton.addMenu(addColumn);
@@ -107,8 +113,6 @@ public class TestDataToolBar extends JToolBar {
         add(makeAsGlobalData);
         add(Utils.createButton("Move Rows Up", "up", "Ctrl+Up", actionListener));
         add(Utils.createButton("Move Rows Down", "down", "Ctrl+Down", actionListener));
-        add(Utils.createLRButton("Move Column Left", "moveleft", actionListener));
-        add(Utils.createLRButton("Move Column Right", "moveright",  actionListener));
         addSeparator();
         add(saveButton = Utils.createButton("Save", "save", "Ctrl+S", actionListener));
         add(Utils.createButton("Reload", "reload", "F5", actionListener));

@@ -5,11 +5,11 @@ import com.ing.engine.core.CommandControl;
 import com.ing.engine.drivers.AutomationObject;
 import com.ing.engine.reporting.impl.html.bdd.Report;
 import com.ing.engine.reporting.util.RDS;
-import com.ing.engine.support.Status;
+import com.ing.ingenious.api.status.Status;
 import com.ing.engine.support.Step;
-import com.ing.engine.support.methodInf.Action;
-import com.ing.engine.support.methodInf.InputType;
-import com.ing.engine.support.methodInf.ObjectType;
+import com.ing.ingenious.api.annotation.Action;
+import com.ing.ingenious.api.types.InputType;
+import com.ing.ingenious.api.types.ObjectType;
 
 import java.util.ArrayList;
 import java.util.HashMap;

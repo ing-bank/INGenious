@@ -22,6 +22,14 @@ import javax.swing.DefaultComboBoxModel;
 import javax.swing.ImageIcon;
 import javax.swing.SwingUtilities;
 import javax.swing.table.DefaultTableModel;
+import com.ing.ide.main.fx.INGIcons;
+import java.awt.Color;
+import java.awt.Font;
+import javax.swing.BorderFactory;
+import javax.swing.JComponent;
+import javax.swing.UIManager;
+import javax.swing.border.EmptyBorder;
+import javax.swing.border.MatteBorder;
 
 /**
  *
@@ -29,12 +37,23 @@ import javax.swing.table.DefaultTableModel;
  */
 public class TMSettings extends javax.swing.JFrame {
 
-    private static final ImageIcon DEFAULT_ICON
-            = new ImageIcon(TMSettings.class.getResource("/ui/resources/toolbar/bulb_yellow.png"));
-    private static final ImageIcon PASS_ICON
-            = new ImageIcon(TMSettings.class.getResource("/ui/resources/toolbar/bulb_green.png"));
-    private static final ImageIcon FAIL_ICON
-            = new ImageIcon(TMSettings.class.getResource("/ui/resources/toolbar/bulb_red.png"));
+    private static final javax.swing.Icon DEFAULT_ICON = INGIcons.swingColored("icon.bulb_yellow", 16);
+    private static final javax.swing.Icon PASS_ICON = INGIcons.swingColored("icon.bulb_green", 16);
+    private static final javax.swing.Icon FAIL_ICON = INGIcons.swingColored("icon.bulb_red", 16);
+    
+    // Theme-aware color constants
+    private static final Color DARK_BG = new Color(30, 26, 36);
+    private static final Color DARK_PANEL_BG = new Color(37, 32, 48);
+    private static final Color DARK_BORDER = new Color(60, 50, 80);
+    private static final Color DARK_INPUT_BG = new Color(45, 40, 55);
+    private static final Color DARK_TEXT = new Color(232, 226, 229);
+    private static final Color DARK_LABEL = new Color(200, 195, 210);
+    private static final Color ING_ORANGE_DARK = new Color(255, 102, 0);
+    private static final Color ING_PURPLE = new Color(119, 36, 255);
+    private static final Color ING_BURGUNDY = Color.decode("#4D0020");
+    private static final Color WARM_BG = Color.decode("#FAFAF8");
+    private static final Color PURPLE_VERY_LIGHT = Color.decode("#F5F0FF");
+    private static final Color PURPLE_LIGHT = Color.decode("#E5D6FF");
 
     AppMainFrame sMainFrame;
     Project sProject;
@@ -49,7 +68,8 @@ public class TMSettings extends javax.swing.JFrame {
     public TMSettings(AppMainFrame sMainFrame) {
         this.sMainFrame = sMainFrame;
         initComponents();
-        setIconImage(((ImageIcon) Utils.getIconByResourceName("/ui/resources/main/AzureDevOpsTestPlanConfiguration")).getImage());
+        setIconImage(com.ing.ide.main.fx.INGIcons.toImage(Utils.getIconByResourceName("/ui/resources/main/AzureDevOpsTestPlanConfiguration")));
+        applyThemeStyles();
     }
 
     public void load() {
@@ -157,6 +177,154 @@ public class TMSettings extends javax.swing.JFrame {
     private void failure() {
         checkConnection.setIcon(FAIL_ICON);
     }
+    
+    // Theme-aware color getters
+    private boolean isDarkMode() {
+        return com.ing.ide.main.Main.isDarkMode();
+    }
+    
+    private Color getBgColor() {
+        return isDarkMode() ? DARK_BG : WARM_BG;
+    }
+    
+    private Color getPanelBgColor() {
+        return isDarkMode() ? DARK_PANEL_BG : PURPLE_VERY_LIGHT;
+    }
+    
+    private Color getBorderColor() {
+        return isDarkMode() ? DARK_BORDER : PURPLE_LIGHT;
+    }
+    
+    private Color getInputBgColor() {
+        return isDarkMode() ? DARK_INPUT_BG : Color.WHITE;
+    }
+    
+    private Color getTextColor() {
+        return isDarkMode() ? DARK_TEXT : ING_BURGUNDY;
+    }
+    
+    private Color getLabelColor() {
+        return isDarkMode() ? DARK_LABEL : ING_BURGUNDY;
+    }
+    
+    private Color getAccentColor() {
+        return isDarkMode() ? ING_ORANGE_DARK : ING_PURPLE;
+    }
+    
+    /**
+     * Apply theme-aware styling to the window.
+     */
+    private void applyThemeStyles() {
+        Color bgColor = getBgColor();
+        Color panelBgColor = getPanelBgColor();
+        Color borderColor = getBorderColor();
+        Color textColor = getTextColor();
+        Color inputBgColor = getInputBgColor();
+        
+        // Style main frame
+        this.setBackground(bgColor);
+        getContentPane().setBackground(bgColor);
+        if (getContentPane() instanceof JComponent) {
+            ((JComponent) getContentPane()).setOpaque(true);
+        }
+        
+        // Style panels
+        if (jPanel2 != null) {
+            jPanel2.setBackground(panelBgColor);
+            jPanel2.setOpaque(true);
+            jPanel2.setBorder(BorderFactory.createCompoundBorder(
+                new MatteBorder(1, 0, 0, 0, borderColor),
+                new EmptyBorder(8, 16, 8, 16)));
+        }
+        
+        // Style toolbar
+        if (jToolBar3 != null) {
+            jToolBar3.setBackground(panelBgColor);
+            jToolBar3.setOpaque(true);
+            jToolBar3.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, borderColor));
+        }
+        
+        // Style table
+        if (moduleTable != null) {
+            moduleTable.setBackground(inputBgColor);
+            moduleTable.setForeground(textColor);
+            moduleTable.setGridColor(borderColor);
+            moduleTable.setSelectionBackground(getAccentColor());
+            moduleTable.setSelectionForeground(Color.WHITE);
+            if (moduleTable.getTableHeader() != null) {
+                moduleTable.getTableHeader().setBackground(panelBgColor);
+                moduleTable.getTableHeader().setForeground(textColor);
+            }
+        }
+        
+        // Style combo box
+        if (moduleCombo != null) {
+            moduleCombo.setBackground(inputBgColor);
+            moduleCombo.setForeground(textColor);
+        }
+        
+        // Style labels
+        if (jLabel2 != null) {
+            jLabel2.setForeground(textColor);
+        }
+        
+        // Style buttons
+        styleButton(save, true);
+        styleButton(checkConnection, true);
+        styleButton(reset, false);
+        
+        // Recursively style all components
+        styleComponentsRecursively(getContentPane());
+        
+        revalidate();
+        repaint();
+    }
+    
+    private void styleButton(javax.swing.JButton button, boolean primary) {
+        if (button == null) return;
+        Color buttonBg = primary ? getAccentColor() : getInputBgColor();
+        Color buttonFg = primary ? Color.WHITE : getAccentColor();
+        button.setBackground(buttonBg);
+        button.setForeground(buttonFg);
+        button.setFocusPainted(false);
+        button.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(getAccentColor(), 1),
+            new EmptyBorder(8, 20, 8, 20)));
+    }
+    
+    private void styleComponentsRecursively(java.awt.Container container) {
+        if (container == null) return;
+        
+        Color bgColor = getBgColor();
+        Color textColor = getTextColor();
+        Color inputBgColor = getInputBgColor();
+        Color borderColor = getBorderColor();
+        
+        for (java.awt.Component comp : container.getComponents()) {
+            if (comp instanceof javax.swing.JPanel) {
+                ((javax.swing.JPanel) comp).setBackground(bgColor);
+                ((javax.swing.JPanel) comp).setOpaque(true);
+            }
+            if (comp instanceof javax.swing.JScrollPane) {
+                javax.swing.JScrollPane sp = (javax.swing.JScrollPane) comp;
+                sp.setBackground(bgColor);
+                sp.setOpaque(true);
+                sp.getViewport().setBackground(inputBgColor);
+                sp.getViewport().setOpaque(true);
+                sp.setBorder(BorderFactory.createLineBorder(borderColor, 1));
+            }
+            if (comp instanceof javax.swing.JLabel) {
+                ((javax.swing.JLabel) comp).setForeground(textColor);
+            }
+            if (comp instanceof javax.swing.JToolBar) {
+                ((javax.swing.JToolBar) comp).setBackground(getPanelBgColor());
+                ((javax.swing.JToolBar) comp).setOpaque(true);
+            }
+            if (comp instanceof java.awt.Container) {
+                styleComponentsRecursively((java.awt.Container) comp);
+            }
+        }
+    }
 
     /**
      * This method is called from within the constructor to initialize the form.
@@ -245,7 +413,7 @@ public class TMSettings extends javax.swing.JFrame {
         jToolBar3.add(moduleCombo);
         jToolBar3.add(filler7);
 
-        addNewModule.setIcon(new javax.swing.ImageIcon(getClass().getResource("/ui/resources/toolbar/addIcon.png"))); // NOI18N
+        addNewModule.setIcon(INGIcons.swingColored("icon.add", 16));
         addNewModule.setToolTipText("Add New Module");
         addNewModule.setFocusable(false);
         addNewModule.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
@@ -257,7 +425,7 @@ public class TMSettings extends javax.swing.JFrame {
         });
         jToolBar3.add(addNewModule);
 
-        editModule.setIcon(new javax.swing.ImageIcon(getClass().getResource("/ui/resources/toolbar/editIcon.png"))); // NOI18N
+        editModule.setIcon(INGIcons.swingColored("icon.edit", 16));
         editModule.setToolTipText("Rename Module");
         editModule.setFocusable(false);
         editModule.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
@@ -269,7 +437,7 @@ public class TMSettings extends javax.swing.JFrame {
         });
         jToolBar3.add(editModule);
 
-        deleteModule.setIcon(new javax.swing.ImageIcon(getClass().getResource("/ui/resources/toolbar/deleteIcon.png"))); // NOI18N
+        deleteModule.setIcon(INGIcons.swingColored("icon.delete", 16));
         deleteModule.setToolTipText("Remove Module");
         deleteModule.setFocusable(false);
         deleteModule.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
@@ -282,7 +450,7 @@ public class TMSettings extends javax.swing.JFrame {
         jToolBar3.add(deleteModule);
         jToolBar3.add(jSeparator1);
 
-        checkConnection.setIcon(new javax.swing.ImageIcon(getClass().getResource("/ui/resources/toolbar/bulb_yellow.png"))); // NOI18N
+        checkConnection.setIcon(INGIcons.swingColored("icon.bulb_yellow", 16));
         checkConnection.setText("Test Connection");
         checkConnection.setToolTipText("Check Connection");
         checkConnection.setFocusable(false);
@@ -304,7 +472,7 @@ public class TMSettings extends javax.swing.JFrame {
         jToolBar1.setRollover(true);
         jToolBar1.add(filler1);
 
-        encrypt.setIcon(new javax.swing.ImageIcon(getClass().getResource("/ui/resources/toolbar/lock.png"))); // NOI18N
+        encrypt.setIcon(INGIcons.swingColored("icon.lock", 16));
         encrypt.setToolTipText("Encrypt Selected Fields");
         encrypt.setFocusable(false);
         encrypt.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
@@ -317,7 +485,7 @@ public class TMSettings extends javax.swing.JFrame {
         jToolBar1.add(encrypt);
         jToolBar1.add(jSeparator3);
 
-        add.setIcon(new javax.swing.ImageIcon(getClass().getResource("/ui/resources/toolbar/add.png"))); // NOI18N
+        add.setIcon(INGIcons.swingColored("icon.add", 16));
         add.setFocusable(false);
         add.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
         add.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
@@ -328,7 +496,7 @@ public class TMSettings extends javax.swing.JFrame {
         });
         jToolBar1.add(add);
 
-        remove.setIcon(new javax.swing.ImageIcon(getClass().getResource("/ui/resources/toolbar/remove.png"))); // NOI18N
+        remove.setIcon(INGIcons.swingColored("icon.remove", 16));
         remove.setFocusable(false);
         remove.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
         remove.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);

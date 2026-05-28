@@ -3,7 +3,7 @@ package com.ing.ide.main.mainui.components.testexecution;
 
 import com.ing.datalib.component.Project;
 import com.ing.ide.main.mainui.AppMainFrame;
-import com.ing.ide.main.mainui.components.testexecution.testset.TestsetComponent;
+import com.ing.ide.main.mainui.components.testexecution.testset.TestSetComponent;
 import com.ing.ide.main.mainui.components.testexecution.tree.TestSetTree;
 
 /**
@@ -14,7 +14,7 @@ public class TestExecution {
 
     private final TestExecutionUI testExecutionUI;
 
-    private final TestsetComponent testSetComp;
+    private final TestSetComponent testSetComp;
 
     private final TestSetTree testSetTree;
 
@@ -22,7 +22,7 @@ public class TestExecution {
 
     public TestExecution(AppMainFrame sMainFrame) {
         this.sMainFrame = sMainFrame;
-        testSetComp = new TestsetComponent(this);
+        testSetComp = new TestSetComponent(this);
         testSetTree = new TestSetTree(this);
         testExecutionUI = new TestExecutionUI(this);
     }
@@ -31,7 +31,7 @@ public class TestExecution {
         return testExecutionUI;
     }
 
-    public TestsetComponent getTestSetComp() {
+    public TestSetComponent getTestSetComp() {
         return testSetComp;
     }
 

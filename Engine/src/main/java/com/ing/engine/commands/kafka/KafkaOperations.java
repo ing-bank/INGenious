@@ -12,10 +12,10 @@
 // import com.ing.engine.commands.browser.General;
 // import com.ing.engine.core.CommandControl;
 // import com.ing.engine.core.Control;
-// import com.ing.engine.support.Status;
-// import com.ing.engine.support.methodInf.Action;
-// import com.ing.engine.support.methodInf.InputType;
-// import com.ing.engine.support.methodInf.ObjectType;
+// import com.ing.ingenious.api.status.Status;
+// import com.ing.ingenious.api.annotation.Action;
+// import com.ing.ingenious.api.types.InputType;
+// import com.ing.ingenious.api.types.ObjectType;
 // import com.jayway.jsonpath.JsonPath;
 // import io.confluent.kafka.serializers.KafkaAvroDeserializer;
 // import io.confluent.kafka.serializers.KafkaAvroDeserializerConfig;

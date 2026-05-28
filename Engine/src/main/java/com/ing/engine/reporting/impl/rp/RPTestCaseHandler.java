@@ -29,7 +29,7 @@ import com.ing.engine.reporting.util.DateTimeUtils;
 import com.ing.engine.reporting.util.RDS;
 import com.ing.engine.reporting.util.RDS.TestCase;
 import com.ing.engine.reporting.util.ReportUtils;
-import com.ing.engine.support.Status;
+import com.ing.ingenious.api.status.Status;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -86,6 +86,7 @@ public class RPTestCaseHandler extends TestCaseHandler implements PrimaryHandler
         testCaseData.put(TestCase.B_VERSION, getPlaywrightDriver().getBrowserVersion());
         testCaseData.put(TestCase.PLATFORM, System.getProperty("os.name")+ " " +System.getProperty("os.version")+ " " +System.getProperty("os.arch"));
         testCaseData.put(TestCase.BROWSER, getPlaywrightDriver().getCurrentBrowser());
+        testCaseData.put("browserTypeLabel", resolveBrowserTypeLabel(driver != null ? driver.getRunContext() : null, false));
     }
     
     @Override
@@ -93,6 +94,42 @@ public class RPTestCaseHandler extends TestCaseHandler implements PrimaryHandler
         testCaseData.put(TestCase.B_VERSION, getWebDriver().getCurrentBrowserVersion());
         testCaseData.put(TestCase.PLATFORM, getWebDriver().getPlatform());
         testCaseData.put(TestCase.BROWSER, getWebDriver().getCurrentBrowser());
+        testCaseData.put("browserTypeLabel", resolveBrowserTypeLabel(driver != null ? driver.getRunContext() : null, driver != null && driver.isMobileExecution()));
+    }
+
+    /**
+     * Returns the dynamic label for browser/device for reporting.
+     * @param runContext The RunContext (may be null)
+     * @param isMobile True if mobile execution (for WebDriver), false otherwise
+     * @return "Device", "Browser", or "Browser/Device"
+     */
+    private String resolveBrowserTypeLabel(RunContext runContext, boolean isMobile) {
+        try {
+            if (runContext != null) {
+                String browserName = runContext.BrowserName;
+                if (isMobile || "Android".equalsIgnoreCase(browserName) || "iOS".equalsIgnoreCase(browserName)) {
+                    return "Device";
+                } else if ("Chromium".equalsIgnoreCase(browserName) ||
+                        "WebKit".equalsIgnoreCase(browserName) ||
+                        "Firefox".equalsIgnoreCase(browserName)) {
+                    return "Browser";
+                } else {
+                    return "Browser/Device";
+                }
+            }
+        } catch (Exception e) {
+            // ignore
+        }
+        return "Browser/Device";
+    }
+    
+    @Override
+    public void setSapSession(com.ing.engine.drivers.SAPSessionCreation session) {
+        if (session != null) {
+            testCaseData.put(TestCase.B_VERSION, session.getCurrentBrowserVersion());
+            testCaseData.put(TestCase.PLATFORM, session.getPlatform());
+            testCaseData.put(TestCase.BROWSER, session.getCurrentBrowser());
+        }
     }
     
     @Override
@@ -222,20 +259,19 @@ public class RPTestCaseHandler extends TestCaseHandler implements PrimaryHandler
     public void endComponent(String string) {
         reusable.put(RDS.Step.END_TIME, DateTimeUtils.DateTimeNow());
         if (reusable.get(TestCase.STATUS).equals("")) {
-            /* status not is updated set it to PASS */
+            // status not is updated set it to PASS
             reusable.put(TestCase.STATUS, "PASS");
         }
-        
-        /* remove the reusable from the stack then fall back to iteration
-        if stack is empty else update the outer reusable status. */
+        // Save reference before popping
+        JSONObject completedReusable = reusable;
         reusableStack.pop();
         if (reusableStack.empty()) {
-            ((JSONArray) iteration.get(RDS.Step.DATA)).add(reusable);
+            ((JSONArray) iteration.get(RDS.Step.DATA)).add(completedReusable);
             reusable = null;
             isIteration = true;
         } else {
-            ((JSONArray) reusableStack.peek().get(RDS.Step.DATA)).add(reusable);
-            reusableStack.peek().put(TestCase.STATUS, reusable.get(TestCase.STATUS));
+            ((JSONArray) reusableStack.peek().get(RDS.Step.DATA)).add(completedReusable);
+            reusableStack.peek().put(TestCase.STATUS, completedReusable.get(TestCase.STATUS));
             reusable = reusableStack.peek();
         }
         

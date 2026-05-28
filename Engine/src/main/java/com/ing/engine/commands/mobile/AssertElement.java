@@ -1,11 +1,11 @@
 package com.ing.engine.commands.mobile;
 
 import com.ing.engine.core.CommandControl;
-import com.ing.engine.execution.exception.ForcedException;
-import com.ing.engine.support.Status;
-import com.ing.engine.support.methodInf.Action;
-import com.ing.engine.support.methodInf.InputType;
-import com.ing.engine.support.methodInf.ObjectType;
+import com.ing.ingenious.api.status.Status;
+import com.ing.ingenious.api.annotation.Action;
+import com.ing.ingenious.api.exception.ForcedException;
+import com.ing.ingenious.api.types.InputType;
+import com.ing.ingenious.api.types.ObjectType;
 import org.openqa.selenium.JavascriptExecutor;
 
 public class AssertElement extends MobileGeneral {

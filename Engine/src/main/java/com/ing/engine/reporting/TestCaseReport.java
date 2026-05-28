@@ -7,12 +7,13 @@ import com.ing.engine.core.Control;
 import com.ing.engine.core.RunContext;
 import com.ing.engine.core.RunManager;
 import com.ing.engine.drivers.PlaywrightDriverCreation;
+import com.ing.engine.drivers.SAPSessionCreation;
 import com.ing.engine.reporting.impl.handlers.PrimaryHandler;
 import com.ing.engine.reporting.impl.handlers.TestCaseHandler;
 import com.ing.engine.reporting.impl.html.HtmlTestCaseHandler;
 import com.ing.engine.reporting.intf.Report;
 import com.ing.engine.reporting.util.DateTimeUtils;
-import com.ing.engine.support.Status;
+import com.ing.ingenious.api.status.Status;
 import com.ing.engine.support.Step;
 import com.ing.engine.support.methodInf.MethodInfoManager;
 import com.ing.engine.reporting.impl.azure.AzureTestCaseHandler;
@@ -25,8 +26,9 @@ import java.util.List;
 import java.io.FileWriter;
 import org.json.simple.JSONObject;
 import com.ing.engine.drivers.WebDriverCreation;
+import com.ing.ingenious.api.contract.reports.TestCaseReportApi;
 
-public final class TestCaseReport implements Report {
+public final class TestCaseReport implements Report, TestCaseReportApi {
 
     public static volatile int tcCount;
 
@@ -48,6 +50,7 @@ public final class TestCaseReport implements Report {
     public final DateTimeUtils startTime;
     PlaywrightDriverCreation playwrightdriver;
     WebDriverCreation webDriver;
+    SAPSessionCreation session;
 
     Step curr;
     Status currentStatus;
@@ -107,6 +110,13 @@ public final class TestCaseReport implements Report {
         webDriver = driver;
         for (TestCaseHandler handler : handlers) {
             handler.setWebDriver(driver);
+        }
+    }
+
+    public void setSapSession(SAPSessionCreation sapSession) {
+        session = sapSession;
+        for (TestCaseHandler handler : handlers) {
+            handler.setSapSession(session);
         }
     }
 
@@ -187,6 +197,7 @@ public final class TestCaseReport implements Report {
           emoji = "🔴"; 
         System.out.println(String.format("[%s]   | %s " + emoji, state, stepDescription));
         System.out.println(String.format("\n%99s\n", "=").replace(" ", "="));
+        
         String stepInfo = stepLevelLog(String.valueOf(getStep().StepNum), getStep().ObjectName, getStep().Action, getStep().Input, getStep().Condition, state, stepDescription);
         this.sb.append(stepInfo).append("\n");
         for (TestCaseHandler handler : handlers) {
@@ -203,10 +214,44 @@ public final class TestCaseReport implements Report {
     @Override
     public Status finalizeReport() {
         runComplete = true;
+        HtmlTestCaseHandler htmlHandler = null;
+        
         for (TestCaseHandler handler : handlers) {
             handler.finalizeReport();
+            // Keep reference to HtmlTestCaseHandler if we find it
+            if (handler instanceof HtmlTestCaseHandler) {
+                htmlHandler = (HtmlTestCaseHandler) handler;
+            }
         }
+        
         JSONObject testcasedata = (JSONObject) primaryHandler.getData();
+        
+        // Merge video/trace paths from HtmlTestCaseHandler into primary handler data
+        // This ensures multi-test execution reports have video/trace paths
+        if (htmlHandler != null && primaryHandler != htmlHandler) {
+            try {
+                Object htmlData = htmlHandler.getData();
+                if (htmlData instanceof JSONObject) {
+                    JSONObject htmlTestData = (JSONObject) htmlData;
+                    Object videoPath = htmlTestData.get("videoPath");
+                    Object tracePath = htmlTestData.get("tracePath");
+                    Object traceData = htmlTestData.get("traceData");
+                    
+                    if (videoPath != null && testcasedata.get("videoPath") == null) {
+                        testcasedata.put("videoPath", videoPath);
+                    }
+                    if (tracePath != null && testcasedata.get("tracePath") == null) {
+                        testcasedata.put("tracePath", tracePath);
+                    }
+                    if (traceData != null && testcasedata.get("traceData") == null) {
+                        testcasedata.put("traceData", traceData);
+                    }
+                }
+            } catch (Exception ex) {
+                System.out.println("[TestCaseReport] Error merging handler data: " + ex.getMessage());
+            }
+        }
+        
         String testcase = testcasedata.get("testcaseName").toString();
         String scenario = testcasedata.get("scenarioName").toString();
         String eSteps = testcasedata.get("noTests").toString();
@@ -214,10 +259,10 @@ public final class TestCaseReport implements Report {
         String fSteps = testcasedata.get("nofailTests").toString();
         String exeTime = testcasedata.get("exeTime").toString();
 
+        Status finalStatus = primaryHandler.getCurrentStatus();
         this.sb.append(closingLog(scenario + ":" + testcase, eSteps, pSteps, fSteps, exeTime));
         log(this.sb.toString());
-        //   log(System.getProperty("line.separator")+"Status:"+primaryHandler.getCurrentStatus());
-        return (currentStatus = primaryHandler.getCurrentStatus());
+        return (currentStatus = finalStatus);
     }
 
     private void setScreenShotName() {
@@ -315,6 +360,16 @@ public final class TestCaseReport implements Report {
                 + stepNo + "_"
                 + DateTimeUtils.TimeNowForFolder()
                 + ".png";
+    }
+
+    public String getVideoLinkName() {
+        return File.separator
+                + "video"
+                + File.separator
+                + Scenario
+                + "_"
+                + TestCase
+                + ".webm";
     }
 
     public String getWebserviceResponseFileName() {

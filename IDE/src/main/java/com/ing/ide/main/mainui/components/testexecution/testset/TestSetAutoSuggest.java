@@ -89,8 +89,20 @@ public class TestSetAutoSuggest {
    
 
     void loadBrowsers() {
-        List<String> browsers = PlaywrightDriverFactory.Browser.getValuesAsList();
-        browsers.addAll(sProject.getProjectSettings().getEmulators().getEmulatorNames());
+        List<String> browsers = new ArrayList<>();
+        
+        // Add Playwright browsers first
+        browsers.addAll(PlaywrightDriverFactory.Browser.getValuesAsList());
+        
+        // Extract SAP and add it next
+        List<String> emulators = new ArrayList<>(sProject.getProjectSettings().getEmulators().getEmulatorNames());
+        if (emulators.remove("SAP")) {
+            browsers.add("SAP");
+        }
+        
+        // Add remaining emulators
+        browsers.addAll(emulators);
+        
         browserAutoSuggest.setSearchList(browsers);
     }
 }

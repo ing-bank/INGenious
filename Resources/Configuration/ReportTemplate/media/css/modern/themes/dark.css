@@ -1,0 +1,348 @@
+/**
+ * INGenious Modern Report - Dark Theme
+ * Dark color scheme for reduced eye strain
+ * Version: 1.0.0
+ */
+
+[data-theme="dark"],
+.dark {
+  /* Primary Palette - Indigo (adjusted for dark) */
+  --color-primary: 129 140 248; /* Indigo-400 */
+  --color-primary-50: 49 46 129;
+  --color-primary-100: 55 48 163;
+  --color-primary-200: 67 56 202;
+  --color-primary-300: 79 70 229;
+  --color-primary-400: 99 102 241;
+  --color-primary-500: 129 140 248;
+  --color-primary-600: 165 180 252;
+  --color-primary-700: 199 210 254;
+  --color-primary-800: 224 231 255;
+  --color-primary-900: 238 242 255;
+  --color-primary-dark: 165 180 252;
+  --color-primary-light: 79 70 229;
+
+  /* Background & Surface */
+  --color-background: 15 23 42; /* Slate-900 */
+  --color-background-alt: 30 41 59; /* Slate-800 */
+  --color-surface: 30 41 59; /* Slate-800 */
+  --color-surface-raised: 51 65 85; /* Slate-700 */
+
+  /* Text Colors */
+  --color-text-primary: 241 245 249; /* Slate-100 */
+  --color-text-secondary: 148 163 184; /* Slate-400 */
+  --color-text-muted: 100 116 139; /* Slate-500 */
+  --color-text-inverted: 15 23 42; /* Slate-900 */
+
+  /* Border Colors */
+  --color-border: 51 65 85; /* Slate-700 */
+  --color-border-light: 71 85 105; /* Slate-600 */
+  --color-border-dark: 30 41 59; /* Slate-800 */
+
+  /* Status Colors (slightly brighter for dark mode) */
+  --color-success: 52 211 153; /* Emerald-400 */
+  --color-success-light: 6 78 59; /* Emerald-900 */
+  --color-success-dark: 110 231 183; /* Emerald-300 */
+  --color-success-text: 167 243 208; /* Emerald-200 */
+
+  --color-fail: 248 113 113; /* Red-400 */
+  --color-fail-light: 127 29 29; /* Red-900 */
+  --color-fail-dark: 252 165 165; /* Red-300 */
+  --color-fail-text: 254 202 202; /* Red-200 */
+
+  --color-warning: 251 191 36; /* Amber-400 */
+  --color-warning-light: 120 53 15; /* Amber-900 */
+  --color-warning-dark: 252 211 77; /* Amber-300 */
+  --color-warning-text: 253 230 138; /* Amber-200 */
+
+  --color-info: 96 165 250; /* Blue-400 */
+  --color-info-light: 30 58 138; /* Blue-900 */
+  --color-info-dark: 147 197 253; /* Blue-300 */
+  --color-info-text: 191 219 254; /* Blue-200 */
+
+  /* Chart Colors */
+  --chart-success: 52 211 153;
+  --chart-fail: 248 113 113;
+  --chart-warning: 251 191 36;
+  --chart-info: 96 165 250;
+  --chart-neutral: 100 116 139;
+
+  /* Shadows (more subtle in dark mode) */
+  --shadow-color: 0 0 0;
+  --shadow-ambient-opacity: 0.2;
+  --shadow-direct-opacity: 0.3;
+
+  /* Overlays */
+  --overlay-backdrop: 0 0 0 / 0.7;
+
+  /* Gradients */
+  --gradient-primary: linear-gradient(135deg, rgb(129 140 248) 0%, rgb(99 102 241) 100%);
+  --gradient-success: linear-gradient(135deg, rgb(52 211 153) 0%, rgb(16 185 129) 100%);
+  --gradient-surface: linear-gradient(180deg, rgb(51 65 85) 0%, rgb(30 41 59) 100%);
+
+  /* Header */
+  --header-bg: 30 41 59;
+  --header-border: 51 65 85;
+
+  /* Sidebar */
+  --sidebar-bg: 15 23 42;
+  --sidebar-border: 51 65 85;
+  --sidebar-item-hover: 30 41 59;
+  --sidebar-item-active: 51 65 85;
+
+  /* Cards */
+  --card-bg: 30 41 59;
+  --card-border: 51 65 85;
+  --card-hover-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.3), 0 2px 4px -2px rgb(0 0 0 / 0.2);
+
+  /* Tables */
+  --table-header-bg: 51 65 85;
+  --table-row-hover: 51 65 85;
+  --table-row-stripe: 34 46 64;
+
+  /* Inputs */
+  --input-bg: 51 65 85;
+  --input-border: 71 85 105;
+  --input-border-focus: 129 140 248;
+  --input-placeholder: 100 116 139;
+
+  /* Code Blocks */
+  --code-bg: 15 23 42;
+  --code-text: 226 232 240;
+  --code-border: 51 65 85;
+
+  /* Color scheme hint for browser elements */
+  color-scheme: dark;
+}
+
+/* Dark theme specific component overrides */
+[data-theme="dark"] body,
+.dark body {
+  background-color: rgb(var(--color-background));
+  color: rgb(var(--color-text-primary));
+}
+
+[data-theme="dark"] .card,
+.dark .card {
+  background: linear-gradient(180deg, rgb(var(--color-surface-raised)) 0%, rgb(var(--color-surface)) 100%);
+  border-color: rgb(var(--color-border));
+}
+
+[data-theme="dark"] .stat-card,
+.dark .stat-card {
+  background: linear-gradient(135deg, rgb(var(--color-surface)) 0%, rgb(var(--color-background)) 100%);
+}
+
+[data-theme="dark"] .data-table thead,
+.dark .data-table thead {
+  background-color: rgb(var(--table-header-bg));
+}
+
+[data-theme="dark"] .data-table tbody tr:hover,
+.dark .data-table tbody tr:hover {
+  background-color: rgb(var(--table-row-hover));
+}
+
+[data-theme="dark"] .data-table tbody tr:nth-child(even),
+.dark .data-table tbody tr:nth-child(even) {
+  background-color: rgba(var(--table-row-stripe), 0.5);
+}
+
+/* Status badges in dark mode */
+[data-theme="dark"] .badge--passed,
+[data-theme="dark"] .badge--pass,
+[data-theme="dark"] .badge--success,
+.dark .badge--passed,
+.dark .badge--pass,
+.dark .badge--success {
+  background-color: rgba(var(--color-success), 0.15);
+  color: rgb(var(--color-success));
+}
+
+[data-theme="dark"] .badge--done,
+.dark .badge--done {
+  background-color: rgba(119, 36, 255, 0.15);
+  color: #a78bfa;
+}
+
+[data-theme="dark"] .badge--failed,
+[data-theme="dark"] .badge--fail,
+[data-theme="dark"] .badge--error,
+.dark .badge--failed,
+.dark .badge--fail,
+.dark .badge--error {
+  background-color: rgba(var(--color-fail), 0.15);
+  color: rgb(var(--color-fail));
+}
+
+[data-theme="dark"] .badge--warning,
+[data-theme="dark"] .badge--skipped,
+[data-theme="dark"] .badge--incomplete,
+.dark .badge--warning,
+.dark .badge--skipped,
+.dark .badge--incomplete {
+  background-color: rgba(var(--color-warning), 0.15);
+  color: rgb(var(--color-warning));
+}
+
+[data-theme="dark"] .badge--info,
+[data-theme="dark"] .badge--pending,
+[data-theme="dark"] .badge--running,
+.dark .badge--info,
+.dark .badge--pending,
+.dark .badge--running {
+  background-color: rgba(var(--color-info), 0.15);
+  color: rgb(var(--color-info));
+}
+
+/* Input styling in dark mode */
+[data-theme="dark"] .search-input__field,
+.dark .search-input__field {
+  background-color: rgb(var(--input-bg));
+  border-color: rgb(var(--input-border));
+  color: rgb(var(--color-text-primary));
+}
+
+[data-theme="dark"] .search-input__field::placeholder,
+.dark .search-input__field::placeholder {
+  color: rgb(var(--input-placeholder));
+}
+
+/* Button adjustments for dark mode */
+[data-theme="dark"] .btn--secondary,
+.dark .btn--secondary {
+  background-color: rgb(var(--color-surface-raised));
+  border-color: rgb(var(--color-border-light));
+  color: rgb(var(--color-text-primary));
+}
+
+[data-theme="dark"] .btn--secondary:hover,
+.dark .btn--secondary:hover {
+  background-color: rgb(var(--color-border));
+}
+
+[data-theme="dark"] .btn--ghost:hover,
+.dark .btn--ghost:hover {
+  background-color: rgb(var(--color-surface-raised));
+}
+
+/* Accordion in dark mode */
+[data-theme="dark"] .accordion,
+.dark .accordion {
+  border-color: rgb(var(--color-border));
+}
+
+[data-theme="dark"] .accordion__trigger,
+.dark .accordion__trigger {
+  background-color: rgb(var(--color-surface));
+}
+
+[data-theme="dark"] .accordion__trigger:hover,
+.dark .accordion__trigger:hover {
+  background-color: rgb(var(--color-surface-raised));
+}
+
+/* Tabs in dark mode */
+[data-theme="dark"] .tabs__list,
+.dark .tabs__list {
+  background-color: rgb(var(--color-background));
+  border-color: rgb(var(--color-border));
+}
+
+[data-theme="dark"] .tabs__tab:hover,
+.dark .tabs__tab:hover {
+  background-color: rgb(var(--color-surface));
+}
+
+[data-theme="dark"] .tabs__tab[aria-selected="true"],
+.dark .tabs__tab[aria-selected="true"] {
+  background-color: rgb(var(--color-surface-raised));
+}
+
+/* Progress bars in dark mode */
+[data-theme="dark"] .progress-bar,
+.dark .progress-bar {
+  background-color: rgb(var(--color-border));
+}
+
+/* Screenshot cards in dark mode */
+[data-theme="dark"] .screenshot-card,
+.dark .screenshot-card {
+  background-color: rgb(var(--color-surface));
+  border-color: rgb(var(--color-border));
+}
+
+/* Timeline in dark mode */
+[data-theme="dark"] .timeline::before,
+.dark .timeline::before {
+  background-color: rgb(var(--color-border));
+}
+
+[data-theme="dark"] .timeline__marker,
+.dark .timeline__marker {
+  background-color: rgb(var(--color-surface));
+  border-color: rgb(var(--color-border));
+}
+
+/* Toast in dark mode */
+[data-theme="dark"] .toast,
+.dark .toast {
+  background-color: rgb(var(--color-surface-raised));
+  border-color: rgb(var(--color-border));
+}
+
+/* Scrollbar styling */
+[data-theme="dark"],
+.dark {
+  scrollbar-color: rgb(var(--color-border-light)) rgb(var(--color-background));
+}
+
+[data-theme="dark"]::-webkit-scrollbar-thumb,
+.dark ::-webkit-scrollbar-thumb {
+  background-color: rgb(var(--color-border-light));
+}
+
+[data-theme="dark"]::-webkit-scrollbar-track,
+.dark ::-webkit-scrollbar-track {
+  background-color: rgb(var(--color-background));
+}
+
+/* Selection highlight */
+[data-theme="dark"] ::selection,
+.dark ::selection {
+  background-color: rgba(var(--color-primary), 0.3);
+  color: rgb(var(--color-text-primary));
+}
+
+/* Focus ring color */
+[data-theme="dark"] *:focus,
+.dark *:focus {
+  --tw-ring-color: rgb(var(--color-primary) / 0.4);
+}
+
+/* Skeleton loading animation */
+[data-theme="dark"] .skeleton,
+.dark .skeleton {
+  background: linear-gradient(
+    90deg,
+    rgb(var(--color-surface)) 0%,
+    rgb(var(--color-surface-raised)) 50%,
+    rgb(var(--color-surface)) 100%
+  );
+  background-size: 200% 100%;
+}
+
+/* Code blocks */
+[data-theme="dark"] pre,
+[data-theme="dark"] code,
+.dark pre,
+.dark code {
+  background-color: rgb(var(--code-bg));
+  color: rgb(var(--code-text));
+  border-color: rgb(var(--code-border));
+}
+
+/* Image backgrounds */
+[data-theme="dark"] .screenshot-card__image,
+.dark .screenshot-card__image {
+  background-color: rgb(var(--color-background));
+}

@@ -13,16 +13,62 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+          cache: maven
+
+      - name: Build INGenious API with Maven
+        run: mvn clean install --file ./ingenious-api/pom.xml
+
+      - name: Build INGenious framework with Maven
+        run: mvn clean install --file pom.xml
+
+      - name: Publish Test Results
+        uses: EnricoMi/publish-unit-test-result-action@v2
+        if: always()
+        with:
+          files: '**/surefire-reports/TEST-*.xml'
+
+      - name: Upload JaCoCo Coverage Reports
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: jacoco-coverage-reports
+          path: '**/target/site/jacoco/'
+          retention-days: 14
+
+      - name: Upload INGenious release
+        uses: actions/upload-artifact@v4
+        with:
+          name: INGenious framework
+          path: Dist/target/*.zip
+
+  security-scan:
+
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+
+    steps:
+      - uses: actions/checkout@v4
+
       - name: Set up JDK 11
         uses: actions/setup-java@v4
         with:
           java-version: '11'
           distribution: 'temurin'
           cache: maven
-      - name: Build with Maven
-        run: mvn clean install --file pom.xml
-      - name: Upload INGenious release
-        uses: actions/upload-artifact@v4.3.6
+
+      - name: OWASP Dependency Check
+        run: mvn dependency-check:check --file pom.xml
+
+      - name: Upload Dependency Check Report
+        uses: actions/upload-artifact@v4
+        if: always()
         with:
-          name: INGenious framework
-          path: Dist/target/*.zip
+          name: dependency-check-report
+          path: '**/target/dependency-check-report.html'
+          retention-days: 30

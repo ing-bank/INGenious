@@ -4,7 +4,7 @@
     <parent>
         <groupId>com.ing</groupId>
         <artifactId>ingenious-playwright</artifactId>
-        <version>2.4.1</version>
+        <version>3.0.0-preview</version>
     </parent>
     <artifactId>Dist</artifactId>
     <packaging>pom</packaging>
@@ -55,6 +55,14 @@
                                     <type>jar</type>
                                     <overWrite>true</overWrite>
                                     <outputDirectory>${setupDir}/Engine/lib</outputDirectory>
+                                </artifactItem>
+                                <artifactItem>
+                                    <groupId>${project.parent.groupId}</groupId>
+                                    <artifactId>ingenious-engine</artifactId>
+                                    <version>${project.parent.version}</version>
+                                    <type>jar</type>
+                                    <overWrite>true</overWrite>
+                                    <outputDirectory>${setupDir}/lib</outputDirectory>
                                 </artifactItem>
                             </artifactItems>
                         </configuration>
@@ -121,4 +129,69 @@
             </plugin>
         </plugins>
     </build>
+
+    <profiles>
+        <!-- Set executable permission on ingenious.command after copy (macOS/Linux only) -->
+        <profile>
+            <id>unix-permissions</id>
+            <activation>
+                <os>
+                    <family>!windows</family>
+                </os>
+            </activation>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-antrun-plugin</artifactId>
+                        <version>3.1.0</version>
+                        <executions>
+                            <execution>
+                                <id>set-executable-permission</id>
+                                <phase>install</phase>
+                                <goals>
+                                    <goal>run</goal>
+                                </goals>
+                                <configuration>
+                                    <target>
+                                        <chmod file="${setupDir}/ingenious.command" perm="755"/>
+                                        <chmod file="${setupDir}/ingenious" perm="755"/>
+                                    </target>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+        <!-- Optional npm install - activate with -Pnpm-install when needed -->
+        <profile>
+            <id>npm-install</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.codehaus.mojo</groupId>
+                        <artifactId>exec-maven-plugin</artifactId>
+                        <version>3.1.0</version>
+                        <executions>
+                            <execution>
+                                <id>npm-install</id>
+                                <phase>install</phase>
+                                <goals>
+                                    <goal>exec</goal>
+                                </goals>
+                                <configuration>
+                                    <executable>npm</executable>
+                                    <arguments>
+                                        <argument>install</argument>
+                                    </arguments>
+                                    <workingDirectory>${setupDir}</workingDirectory>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
 </project>

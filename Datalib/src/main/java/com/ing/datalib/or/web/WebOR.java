@@ -53,6 +53,8 @@ public class WebOR implements ORRootInf<WebORPage> {
     @JacksonXmlProperty(isAttribute = true)
     private ORScope scope = ORScope.PROJECT;
     
+    @JacksonXmlElementWrapper(localName = "projects")
+    @JacksonXmlProperty(localName = "project")
     private List<String> projects = new ArrayList<>();
 
     @JsonIgnore
@@ -149,8 +151,16 @@ public class WebOR implements ORRootInf<WebORPage> {
             WebORPage page = new WebORPage(pageName, this);
             pages.add(page);
             page.setSource(isShared() ? "SHARED" : "PROJECT");
-            new File(page.getRepLocation()).mkdirs();
+            // Only create folder for non-YAML formats
+            if (objectRepository == null || !objectRepository.isUsingYamlFormat()) {
+                new File(page.getRepLocation()).mkdirs();
+            }
             setSaved(false);
+            
+            // Auto-save for YAML format
+            if (objectRepository != null && objectRepository.isUsingYamlFormat()) {
+                objectRepository.saveWebPageNow(page);
+            }
             return page;
         }
         return null;
@@ -281,13 +291,11 @@ public class WebOR implements ORRootInf<WebORPage> {
         return scope == ORScope.SHARED; 
     }
     
-    @JsonProperty("projects")
     public List<String> getSharedProjects() {
         return isShared() ? projects : Collections.emptyList();
     }
 
-    @JsonProperty("projects")
     public void setSharedProjects(List<String> projects) {
-        this.projects = (projects == null) ? new ArrayList<>() : projects;
+        this.projects = projects;
     }
 }

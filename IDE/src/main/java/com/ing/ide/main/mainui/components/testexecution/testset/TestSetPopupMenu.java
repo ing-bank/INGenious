@@ -6,6 +6,7 @@ import com.ing.ide.main.utils.Utils;
 import com.ing.ide.main.utils.keys.Keystroke;
 import com.ing.ide.util.Canvas;
 import java.awt.event.ActionListener;
+import java.util.ArrayList;
 import java.util.List;
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
@@ -77,10 +78,23 @@ public class TestSetPopupMenu extends JPopupMenu {
 
     void loadBrowsers(List<String> emulators) {
         changeBrowser.removeAll();
+        
+        // Add Playwright browsers first
         loadBrowsersToMenu(PlaywrightDriverFactory.Browser.getValuesAsList());
-        if (!emulators.isEmpty()) {
+        
+        // Extract SAP and add it with separator
+        List<String> emulatorsCopy = new ArrayList<>(emulators);
+        boolean hasSAP = emulatorsCopy.remove("SAP");
+        
+        if (hasSAP) {
             changeBrowser.addSeparator();
-            loadBrowsersToMenu(emulators);
+            loadBrowsersToMenu(List.of("SAP"));
+        }
+        
+        // Add remaining emulators
+        if (!emulatorsCopy.isEmpty()) {
+            changeBrowser.addSeparator();
+            loadBrowsersToMenu(emulatorsCopy);
         }
     }
 

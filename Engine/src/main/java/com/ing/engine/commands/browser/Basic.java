@@ -1,12 +1,12 @@
 package com.ing.engine.commands.browser;
 
 import com.ing.engine.core.CommandControl;
-import com.ing.engine.execution.exception.ActionException;
-import com.ing.engine.execution.exception.ForcedException;
-import com.ing.engine.support.Status;
-import com.ing.engine.support.methodInf.Action;
-import com.ing.engine.support.methodInf.InputType;
-import com.ing.engine.support.methodInf.ObjectType;
+import com.ing.ingenious.api.exception.ActionException;
+import com.ing.ingenious.api.exception.ForcedException;
+import com.ing.ingenious.api.status.Status;
+import com.ing.ingenious.api.annotation.Action;
+import com.ing.ingenious.api.types.InputType;
+import com.ing.ingenious.api.types.ObjectType;
 import com.microsoft.playwright.Page.GoBackOptions;
 import com.microsoft.playwright.Page.GoForwardOptions;
 import com.microsoft.playwright.Page.NavigateOptions;
@@ -370,12 +370,12 @@ public class Basic extends General {
         String cssValue = "";
         String strObj = Input;
         try {
-            cssValue = (String) Locator.evaluate("(element) => window.getComputetStyle(element).getPropertyValue("+Condition+")");
+            cssValue = (String) Locator.evaluate("(element) => window.getComputedStyle(element).getPropertyValue('" + Condition + "')");
             if (strObj.matches(".*:.*")) {
                 String sheetName = strObj.split(":", 2)[0];
                 String columnName = strObj.split(":", 2)[1];
                 userData.putData(sheetName, columnName, cssValue);
-                Report.updateTestLog(Action, "Element's '"+Condition+"' value [" + cssValue + "] is stored in " + strObj, Status.DONE);
+                Report.updateTestLog(Action, "Element's '" + Condition + "' value [" + cssValue + "] is stored in " + strObj, Status.DONE);
             } else {
                 Report.updateTestLog(Action,
                         "Given input [" + Input + "] format is invalid. It should be [sheetName:ColumnName]",

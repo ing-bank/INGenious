@@ -4,7 +4,7 @@
 	<parent>
 		<groupId>com.ing</groupId>
 		<artifactId>ingenious-playwright</artifactId>
-		<version>2.4.1</version>
+		<version>3.0.0-preview</version>
 	</parent>
 	<artifactId>ingenious-ide</artifactId>
 	<packaging>jar</packaging>
@@ -13,6 +13,32 @@
 		<maven.build.timestamp.format>yyyy-MM-dd HH:mm</maven.build.timestamp.format>
 	</properties>
 	<dependencies>
+		<dependency>
+			<groupId>com.formdev</groupId>
+			<artifactId>flatlaf</artifactId>
+			<version>${flatlaf.version}</version>
+		</dependency>
+		<!-- Ikonli icon fonts (web icons) -->
+		<dependency>
+			<groupId>org.kordamp.ikonli</groupId>
+			<artifactId>ikonli-javafx</artifactId>
+			<version>${ikonli.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.kordamp.ikonli</groupId>
+			<artifactId>ikonli-swing</artifactId>
+			<version>${ikonli.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.kordamp.ikonli</groupId>
+			<artifactId>ikonli-materialdesign2-pack</artifactId>
+			<version>${ikonli.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.kordamp.ikonli</groupId>
+			<artifactId>ikonli-fontawesome5-pack</artifactId>
+			<version>${ikonli.version}</version>
+		</dependency>
 		<dependency>
 			<groupId>com.ing</groupId>
 			<artifactId>ingenious-engine</artifactId>
@@ -24,6 +50,13 @@
 			<artifactId>ingenious-datalib</artifactId>
 			<version>${project.version}</version>
                         <type>jar</type>
+		</dependency>
+		
+		<!-- SLF4J Simple binding for clean logging -->
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-simple</artifactId>
+			<version>${slf4j-api.version}</version>
 		</dependency>
 		
 		<dependency>
@@ -219,11 +252,6 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-compiler-plugin</artifactId>
-				<version>3.8.1</version>
-				<configuration>
-					<source>${maven.compiler.source}</source>
-					<target>${maven.compiler.target}</target>
-				</configuration>
 			</plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>

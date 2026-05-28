@@ -2,20 +2,20 @@
 package com.ing.ide.main.mainui.components.testdesign.tree.model;
 
 import com.ing.datalib.component.Project;
-import com.ing.datalib.component.Reusable;
 import com.ing.datalib.component.Scenario;
 import com.ing.datalib.component.TestCase;
-import com.ing.datalib.component.utils.XMLOperation;
-import java.io.File;
-import java.util.Collections;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
+import com.ing.datalib.exception.TestCaseConversionException;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  *
  * 
  */
 public class ReusableTreeModel extends ProjectTreeModel {
+
+    private static final Logger LOGGER = Logger.getLogger(ReusableTreeModel.class.getName());
+    private static final String DEFAULT_GROUP = "Reusable Components";
 
     Project project;
 
@@ -46,7 +46,11 @@ public class ReusableTreeModel extends ProjectTreeModel {
     public void toggleAllTestCasesFrom(GroupNode groupNode) {
         for (ScenarioNode scenarioNode : ScenarioNode.toList(groupNode.children())) {
             for (TestCaseNode testCaseNode : TestCaseNode.toList(scenarioNode.children())) {
-                testCaseNode.getTestCase().toggleAsReusable();
+                try {
+                    project.moveTestCaseToTestPlan(testCaseNode.getTestCase());
+                } catch (TestCaseConversionException e) {
+                    LOGGER.log(Level.WARNING, "Failed to move test case to test plan: " + e.getMessage(), e);
+                }
             }
         }
     }
@@ -64,21 +68,14 @@ public class ReusableTreeModel extends ProjectTreeModel {
             }
             groupNode = (GroupNode) getRoot().getChildAt(0);
         } else {
-            groupNode = addGroup("New Group");
+            groupNode = addGroup(DEFAULT_GROUP);
         }
         return addTestCase(addScenario(groupNode, testCase.getScenario()), testCase);
     }
 
     @Override
     public TestCaseNode addTestCase(ScenarioNode scNode, TestCase testCase) {
-        TestCaseNode tcNode = super.addTestCase(scNode, testCase);
-        Reusable reusable = tcNode.getTestCase().getReusable();
-        if (reusable == null) {
-            reusable = new Reusable();
-        }
-        reusable.setGroup(scNode.getParent().toString());
-        tcNode.getTestCase().setReusable(reusable);
-        return tcNode;
+        return super.addTestCase(scNode, testCase);
     }
 
     @Override
@@ -94,49 +91,7 @@ public class ReusableTreeModel extends ProjectTreeModel {
     }
 
     public void save() {
-        String xml = project.getLocation() + File.separator + "ReusableComponent.xml";
-        Document doc = XMLOperation.initTreeOp();
-        Element rootElement = doc.createElement("Root");
-        rootElement.setAttribute("type", "RC");
-        rootElement.setAttribute("ref", project.getName());
-        doc.appendChild(rootElement);
-        saveProjectXML(rootElement);
-        XMLOperation.finishTreeOp(doc, xml);
-    }
-
-    private void saveProjectXML(Element rootElement) {
-        if (getRoot().getChildCount() > 0) {
-            for (GroupNode group : GroupNode.toList(getRoot().children())) {
-                Element groupElement = createAndSetAttribute(rootElement, group);
-                for (ScenarioNode scenarioNode : ScenarioNode.toList(group.children())) {
-                    Element scenarioElement = createAndSetAttribute(groupElement, scenarioNode.scenario);
-                    for (TestCaseNode testCaseNode : TestCaseNode.toList(scenarioNode.children())) {
-                        createAndSetAttribute(scenarioElement, testCaseNode.testCase);
-                    }
-                }
-            }
-        }
-    }
-
-    private Element createAndSetAttribute(Element parentElement, GroupNode group) {
-        Element newElement = parentElement.getOwnerDocument().createElement("Folder");
-        newElement.setAttribute("ref", group.toString());
-        parentElement.appendChild(newElement);
-        return newElement;
-    }
-
-    private Element createAndSetAttribute(Element parentElement, Scenario scenario) {
-        Element newElement = parentElement.getOwnerDocument().createElement("Scenario");
-        newElement.setAttribute("ref", scenario.getName());
-        parentElement.appendChild(newElement);
-        return newElement;
-    }
-
-    private void createAndSetAttribute(Element parentElement, TestCase testCase) {
-        Element newElement = parentElement.getOwnerDocument().createElement("TestCase");
-        newElement.setAttribute("ref", testCase.getName());
-        newElement.setAttribute("exeType", testCase.getReusable().getExecutableType());
-        parentElement.appendChild(newElement);
+        // No-op: reusable components are now inferred from directory placement.
     }
 
 }

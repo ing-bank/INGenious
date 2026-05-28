@@ -103,6 +103,9 @@ public class MobileOR implements ORRootInf<MobileORPage> {
         this.pages = pages;
         for (MobileORPage page : pages) {
             page.setRoot(this);
+            if (page.getSource() == null) {
+                page.setSource(isShared() ? ORScope.SHARED : ORScope.PROJECT);
+            }
         }
     }
 
@@ -137,8 +140,16 @@ public class MobileOR implements ORRootInf<MobileORPage> {
             MobileORPage page = new MobileORPage(pageName, this);
             page.setSource(this.isShared() ? ORScope.SHARED : ORScope.PROJECT);
             pages.add(page);
-            new File(page.getRepLocation()).mkdirs();
+            // Only create folder for non-YAML formats
+            if (objectRepository == null || !objectRepository.isUsingYamlFormat()) {
+                new File(page.getRepLocation()).mkdirs();
+            }
             setSaved(false);
+            
+            // Auto-save for YAML format
+            if (objectRepository != null && objectRepository.isUsingYamlFormat()) {
+                objectRepository.saveMobilePageNow(page);
+            }
             return page;
         }
         return null;
@@ -242,7 +253,7 @@ public class MobileOR implements ORRootInf<MobileORPage> {
     public String getRepLocation() {
         return repLocationOverride != null
                 ? repLocationOverride
-                : getObjectRepository().getMORRepLocation();
+                : getObjectRepository().getORRepLocation();
     }
 
     @JsonIgnore
@@ -274,6 +285,6 @@ public class MobileOR implements ORRootInf<MobileORPage> {
     }
     
     public void setSharedProjects(List<String> projects) {
-        this.projects = (projects == null) ? new ArrayList<>() : projects;
+        this.projects = projects;
     }
 }

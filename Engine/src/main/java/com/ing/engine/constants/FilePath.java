@@ -11,6 +11,7 @@ public class FilePath extends AppResourcePath {
     private final static String MOR = "MOR.object";
     private final static String FORMAT = ".csv";
     private final static String DESIGN = "TestPlan";
+    private final static String REUSABLE = "ReusableComponents";
     private final static String EXECUTION = "TestLab";
     private final static String IOR_DATA = "ImageObjectRepository";
     private final static String OR_DATA = "ObjectRepository";
@@ -67,6 +68,10 @@ public class FilePath extends AppResourcePath {
 
     public static String getTestPlanPath() {
         return RunManager.getGlobalSettings().getProjectPath() + File.separatorChar + DESIGN;
+    }
+
+    public static String getReusableComponentsPath() {
+        return RunManager.getGlobalSettings().getProjectPath() + File.separatorChar + REUSABLE;
     }
 
     public static String getReleasePath() {

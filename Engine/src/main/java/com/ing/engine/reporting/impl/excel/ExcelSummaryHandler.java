@@ -15,7 +15,7 @@ import com.ing.engine.reporting.performance.har.Har;
 import com.ing.engine.reporting.util.DateTimeUtils;
 import com.ing.engine.reporting.util.RDS;
 import com.ing.engine.reporting.util.ReportUtils;
-import com.ing.engine.support.Status;
+import com.ing.ingenious.api.status.Status;
 
 import java.awt.Font;
 import java.io.File;
@@ -101,10 +101,11 @@ public class ExcelSummaryHandler extends SummaryHandler implements PrimaryHandle
             testSetData.put(RDS.TestSet.BDD_STYLE, Control.exe.getExecSettings().getRunSettings().isBddReportEnabled());
             testSetData.put(RDS.TestSet.PERF_REPORT,
                     Control.exe.getExecSettings().getRunSettings().isPerformanceLogEnabled());
+            testSetData.put(RDS.TestSet.VIDEO_REPORT, Control.exe.getExecSettings().getRunSettings().isVideoEnabled());
+            testSetData.put(RDS.TestSet.TRACING_REPORT, Control.exe.getExecSettings().getRunSettings().isTracingEnabled());
             testSetData.put(RDS.TestSet.START_TIME, runTime);
             testSetData.put(RDS.TestSet.TEST_RUN, RunManager.getGlobalSettings().isTestRun());
             testSetData.put(RDS.TestSet.NO_OF_TESTS, size);
-            testSetData.put(RDS.TestSet.VIDEO_REPORT, Control.exe.getExecSettings().getRunSettings().isVideoEnabled());
 
         } catch (Exception ex) {
             LOGGER.log(Level.SEVERE, ex.getMessage(), ex);

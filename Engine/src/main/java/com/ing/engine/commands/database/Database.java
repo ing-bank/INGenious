@@ -2,10 +2,11 @@ package com.ing.engine.commands.database;
 
 import com.ing.datalib.testdata.view.TestDataView;
 import com.ing.engine.core.CommandControl;
-import com.ing.engine.support.Status;
-import com.ing.engine.support.methodInf.Action;
-import com.ing.engine.support.methodInf.InputType;
-import com.ing.engine.support.methodInf.ObjectType;
+import com.ing.ingenious.api.status.Status;
+import com.ing.ingenious.api.annotation.Action;
+import com.ing.ingenious.api.types.InputType;
+import com.ing.ingenious.api.types.ObjectType;
+import com.ing.ingenious.api.dto.DMLResult;
 
 import java.sql.DatabaseMetaData;
 import java.sql.SQLException;
@@ -105,11 +106,8 @@ public class Database extends General {
      */
     @Action(object = ObjectType.DATABASE, desc = "Store it in Global variable from the DB column [<Condition>] ", input = InputType.YES, condition = InputType.YES)
     public void storeValueInGlobalVariable() {
-        storeValue(Input, Condition, true);
-        if (getVar(Input) != null && !getVar(Input).equals("")) {
+        if (storeValue(Input, Condition, true)) {
             Report.updateTestLog(Action, "Stored in Global variable", Status.PASSNS);
-        } else {
-            Report.updateTestLog(Action, "Value doesn't stored in Global variable", Status.FAILNS);
         }
     }
 
@@ -119,11 +117,8 @@ public class Database extends General {
      */
     @Action(object = ObjectType.DATABASE, desc = "Store it in the variable from the DB column [<Condition>] ", input = InputType.YES, condition = InputType.YES)
     public void storeValueInVariable() {
-        storeValue(Input, Condition, false);
-        if (getVar(Input) != null && !getVar(Input).equals("")) {
+        if (storeValue(Input, Condition, false)) {
             Report.updateTestLog(Action, "Stored in the variable", Status.PASSNS);
-        } else {
-            Report.updateTestLog(Action, "Value doesn't stored in Global variable", Status.FAILNS);
         }
     }
 

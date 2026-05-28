@@ -1,7 +1,6 @@
 package com.ing.ide.main.utils.table.autosuggest;
 
 import java.awt.Color;
-import java.awt.Graphics2D;
 import java.awt.Insets;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
@@ -10,6 +9,7 @@ import java.awt.event.FocusEvent;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import javax.swing.AbstractAction;
@@ -22,9 +22,8 @@ import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JTextField;
 import javax.swing.KeyStroke;
-import javax.swing.Painter;
 import javax.swing.SwingUtilities;
-import javax.swing.UIDefaults;
+import javax.swing.plaf.basic.BasicComboBoxUI;
 
 /**
  *
@@ -77,8 +76,7 @@ public class AutoSuggest extends JComboBox<String> {
      */
     @Override
     public void updateUI() {
-        //super.updateUI();
-        setUI(new javax.swing.plaf.synth.SynthComboBoxUI() {
+        setUI(new BasicComboBoxUI() {
             @Override
             protected JButton createArrowButton() {
                 JButton button = new JButton() {
@@ -96,23 +94,8 @@ public class AutoSuggest extends JComboBox<String> {
             public void configureArrowButton() {
             }
         });
-        UIDefaults d = new UIDefaults();
-
-        Painter<JComponent> emptyPainter = new Painter<JComponent>() {
-            @Override
-            public void paint(Graphics2D g, JComponent c, int w, int h) {
-                /* Empty painter */
-            }
-        };
-        d.put("TextField.borderPainter", emptyPainter);
-        d.put("TextField[Enabled].borderPainter", emptyPainter);
-        d.put("TextField[Focused].borderPainter", emptyPainter);
-        d.put("ComboBox:\"ComboBox.textField\"[Enabled].backgroundPainter", emptyPainter);
-        d.put("ComboBox:\"ComboBox.textField\"[Selected].backgroundPainter", emptyPainter);
-        d.put("ComboBox[Editable+Focused].backgroundPainter", emptyPainter);
-        putClientProperty("Nimbus.Overrides", d);
+        setBorder(BorderFactory.createEmptyBorder());
         JComponent c = (JComponent) getEditor().getEditorComponent();
-        c.putClientProperty("Nimbus.Overrides", d);
         c.setBorder(BorderFactory.createLineBorder(Color.BLACK));
     }
 
@@ -135,6 +118,7 @@ public class AutoSuggest extends JComboBox<String> {
 
     public final void setSearchList(List<String> items) {
         searchList.clear();
+        Collections.sort(items, String.CASE_INSENSITIVE_ORDER);
         searchList.addAll(items);
     }
 
@@ -235,6 +219,36 @@ public class AutoSuggest extends JComboBox<String> {
         public void keyPressed(KeyEvent e) {
             shouldHide = false;
             switch (e.getKeyCode()) {
+                case KeyEvent.VK_DOWN:
+                    if (!isPopupVisible() && !searchList.isEmpty()) {
+                        setSuggestionModel(getSuggestedModel(), getSearchString());
+                        showPopup();
+                        e.consume();
+                    } else if (isPopupVisible()) {
+                        // Allow the combo box to handle navigation when popup is visible
+                        int currentIndex = getSelectedIndex();
+                        if (currentIndex < getItemCount() - 1) {
+                            setSelectedIndex(currentIndex + 1);
+                        }
+                        e.consume();
+                    }
+                    break;
+                case KeyEvent.VK_UP:
+                    if (!isPopupVisible() && !searchList.isEmpty()) {
+                        setSuggestionModel(getSuggestedModel(), getSearchString());
+                        showPopup();
+                        e.consume();
+                    } else if (isPopupVisible()) {
+                        // Allow the combo box to handle navigation when popup is visible
+                        int currentIndex = getSelectedIndex();
+                        if (currentIndex > 0) {
+                            setSelectedIndex(currentIndex - 1);
+                        } else if (currentIndex == -1 && getItemCount() > 0) {
+                            setSelectedIndex(0);
+                        }
+                        e.consume();
+                    }
+                    break;
                 case KeyEvent.VK_ENTER:
                     shouldHide = true;
                     break;

@@ -5,6 +5,7 @@ import com.ing.ide.main.utils.table.XTableUtils;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import javax.swing.JTable;
+import org.jline.utils.Log;
 
 /**
  *

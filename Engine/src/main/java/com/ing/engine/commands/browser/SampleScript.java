@@ -6,7 +6,7 @@ import com.ing.engine.constants.ObjectProperty;
 import com.ing.engine.constants.SystemDefaults;
 import com.ing.engine.core.CommandControl;
 import com.ing.engine.execution.exception.UnCaughtException;
-import com.ing.engine.support.Status;
+import com.ing.ingenious.api.status.Status;
 import com.microsoft.playwright.Locator;
 import java.util.List;
 import java.util.logging.Level;

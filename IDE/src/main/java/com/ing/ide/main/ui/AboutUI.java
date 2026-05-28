@@ -83,7 +83,7 @@ public class AboutUI extends javax.swing.JDialog {
 
         jPanel2.setLayout(new java.awt.BorderLayout());
 
-        jPanel4.setMaximumSize(new java.awt.Dimension(2147483647, 113));
+        jPanel4.setMaximumSize(new java.awt.Dimension(2147483647, 140));
         jPanel4.setLayout(new java.awt.BorderLayout());
 
         jTextPane1.setEditable(false);

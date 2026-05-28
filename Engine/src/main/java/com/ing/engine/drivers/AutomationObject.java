@@ -6,12 +6,18 @@ import com.ing.datalib.or.common.ObjectGroup;
 import com.ing.datalib.or.mobile.MobileORObject;
 import com.ing.datalib.or.mobile.MobileORPage;
 import com.ing.datalib.or.mobile.ResolvedMobileObject;
+import com.ing.datalib.or.structureddata.ResolvedStructuredDataObject;
+import com.ing.datalib.or.structureddata.StructuredDataORObject;
 import com.ing.datalib.or.web.WebORObject;
 import com.ing.datalib.or.web.WebORPage;
 import com.ing.datalib.or.web.ResolvedWebObject;
+import com.ing.datalib.or.sap.ResolvedSapObject;
 import com.ing.engine.constants.SystemDefaults;
 import com.ing.engine.core.Control;
 import com.ing.engine.core.CommandControl;
+import com.ing.engine.reporting.intf.Report;
+import com.ing.ingenious.api.contract.drivers.AutomationObjectApi;
+import com.ing.ingenious.api.status.Status;
 import com.microsoft.playwright.BrowserContext;
 import com.microsoft.playwright.FrameLocator;
 import com.microsoft.playwright.Locator;
@@ -26,7 +32,7 @@ import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class AutomationObject {
+public class AutomationObject implements AutomationObjectApi {
 
     public AutomationObject(CommandControl cc) {
         super();
@@ -54,19 +60,6 @@ public class AutomationObject {
     static HashMap<String, String> chainLocatorMaping = new HashMap<String, String>();
     public static final Map<String, List<String>> locatorFiltersMap = new HashMap<>();
 
-    public enum FindType {
-        GLOBAL_OBJECT, DEFAULT;
-
-        public static FindType fromString(String val) {
-            switch (val.toLowerCase()) {
-                case "globalobject":
-                    return GLOBAL_OBJECT;
-                default:
-                    return DEFAULT;
-            }
-        }
-    }
-
     public AutomationObject() {
     }
 
@@ -77,6 +70,8 @@ public class AutomationObject {
     public AutomationObject(BrowserContext BrowserContext) {
         this.browserContext = BrowserContext;
     }
+    
+    public enum LocatorType { LOCATOR, FRAMELOCATOR }
 
     /**
      *
@@ -159,6 +154,20 @@ public class AutomationObject {
                 return mresolved.getGroup();
             }
         } catch (Exception ignore) { }
+        try {
+            ResolvedStructuredDataObject.PageRef sdref = ResolvedStructuredDataObject.PageRef.parse(page);
+            ResolvedStructuredDataObject sdresolved = objRep.resolveStructuredDataObject(sdref, object);
+            if (sdresolved != null && sdresolved.getGroup() != null) {
+                return sdresolved.getGroup();
+            }
+        } catch (Exception ignore) { }
+        try {
+            ResolvedSapObject.PageRef sref = ResolvedSapObject.PageRef.parse(page);
+            ResolvedSapObject sresolved = objRep.resolveSapObject(sref, object);
+            if (sresolved != null && sresolved.getGroup() != null) {
+                return sresolved.getGroup();
+            }
+        } catch (Exception ignore) { }
         if (objRep.getWebOR() != null && objRep.getWebOR().getPageByName(page) != null) {
             return objRep.getWebOR().getPageByName(page).getObjectGroupByName(object);
         } else if (objRep.getWebSharedOR() != null && objRep.getWebSharedOR().getPageByName(page) != null) {
@@ -167,6 +176,14 @@ public class AutomationObject {
             return objRep.getMobileOR().getPageByName(page).getObjectGroupByName(object);
         } else if (objRep.getMobileSharedOR() != null && objRep.getMobileSharedOR().getPageByName(page) != null) {
             return objRep.getMobileSharedOR().getPageByName(page).getObjectGroupByName(object);
+        } else if (objRep.getStructuredDataOR() != null && objRep.getStructuredDataOR().getPageByName(page) != null) {
+            return objRep.getStructuredDataOR().getPageByName(page).getObjectGroupByName(object);
+        } else if (objRep.getStructuredDataSharedOR() != null && objRep.getStructuredDataSharedOR().getPageByName(page) != null) {
+            return objRep.getStructuredDataSharedOR().getPageByName(page).getObjectGroupByName(object);
+        } else if (objRep.getSapOR() != null && objRep.getSapOR().getPageByName(page) != null) {
+            return objRep.getSapOR().getPageByName(page).getObjectGroupByName(object);
+        } else if (objRep.getSapSharedOR() != null && objRep.getSapSharedOR().getPageByName(page) != null) {
+            return objRep.getSapSharedOR().getPageByName(page).getObjectGroupByName(object);
         }
         return null;
     }
@@ -217,6 +234,26 @@ public class AutomationObject {
             return objRep.getMobileOR().getPageByName(page).getObjectGroupByName(object).getObjects().get(0);
         } else if (objRep.getMobileSharedOR() != null && objRep.getMobileSharedOR().getPageByName(page) != null) {
             return objRep.getMobileSharedOR().getPageByName(page).getObjectGroupByName(object).getObjects().get(0);
+        }
+        return null;
+    }
+
+    public ObjectGroup<StructuredDataORObject> getStructuredDataObjects(String page, String object) {
+        ObjectRepository objRep = Control.getCurrentProject().getObjectRepository();
+        if (objRep.getStructuredDataOR() != null && objRep.getStructuredDataOR().getPageByName(page) != null) {
+            return objRep.getStructuredDataOR().getPageByName(page).getObjectGroupByName(object);
+        } else if (objRep.getStructuredDataSharedOR() != null && objRep.getStructuredDataSharedOR().getPageByName(page) != null) {
+            return objRep.getStructuredDataSharedOR().getPageByName(page).getObjectGroupByName(object);
+        }
+        return null;
+    }
+
+    public StructuredDataORObject getStructuredDataObject(String page, String object) {
+        ObjectRepository objRep = Control.getCurrentProject().getObjectRepository();
+        if (objRep.getMobileOR() != null && objRep.getMobileOR().getPageByName(page) != null) {
+            return objRep.getStructuredDataOR().getPageByName(page).getObjectGroupByName(object).getObjects().get(0);
+        } else if (objRep.getStructuredDataSharedOR() != null && objRep.getStructuredDataSharedOR().getPageByName(page) != null) {
+            return objRep.getStructuredDataSharedOR().getPageByName(page).getObjectGroupByName(object).getObjects().get(0);
         }
         return null;
     }
@@ -274,7 +311,7 @@ public class AutomationObject {
     }
 
     private List<Locator> getElements(final List<ORAttribute> attributes) {
-        return getElementsInternal(attributes, (tag, value, options) -> {
+        return getElementsInternal(LocatorType.LOCATOR, attributes, (tag, value, options) -> {
             Locator locator = null;
             switch (tag) {
                 case "Text":
@@ -302,7 +339,7 @@ public class AutomationObject {
                     locator = this.page.locator("xpath=" + value);
                     break;
                 case "Role":
-                    locator = createRoleLocator(value, this.page);
+                    locator = createRoleLocator(value, this.page, (Page.GetByRoleOptions) options);
                     break;
                 case "ChainedLocator":
                     locator = createChainedLocator(value, this.page);
@@ -319,7 +356,7 @@ public class AutomationObject {
     }
 
     private List<Locator> getElements(FrameLocator framelocator, final List<ORAttribute> attributes) {
-        return getElementsInternal(attributes, (tag, value, options) -> {
+        return getElementsInternal(LocatorType.FRAMELOCATOR, attributes, (tag, value, options) -> {
             Locator locator = null;
             switch (tag) {
                 case "Text":
@@ -347,7 +384,7 @@ public class AutomationObject {
                     locator = framelocator.locator("xpath=" + value);
                     break;
                 case "Role":
-                    locator = createRoleLocator(value, framelocator);
+                    locator = createRoleLocator(value, framelocator, (FrameLocator.GetByRoleOptions) options);
                     break;
                 case "ChainedLocator":
                     locator = createChainedLocator(value, framelocator);
@@ -834,15 +871,14 @@ public class AutomationObject {
         Locator create(String tag, String value, Object options);
     }
 
-    private List<Locator> getElementsInternal(final List<ORAttribute> attributes, LocatorFactory factory) {
+    private List<Locator> getElementsInternal(LocatorType locatorType, final List<ORAttribute> attributes, LocatorFactory factory) {
         if (attributes == null || attributes.isEmpty()) return null;
-        List<Locator> elements = new ArrayList<>();
+        List<Locator> elements = new ArrayList<Locator>();
         for (ORAttribute attr : attributes) {
             String value = getRuntimeValue(attr.getValue() != null ? attr.getValue() : "");
             if (value.trim().isEmpty()) continue;
             String tag = attr.getName();
-            Object options = getOptions(tag, value);
-            value = value.replace(";exact", "").trim();
+            Object options = getOptions(locatorType, tag, value, attr.isExact());
             Locator locator = factory.create(tag, value, options);
             if (locator != null) {
                 elements.add(locator);
@@ -852,52 +888,88 @@ public class AutomationObject {
         return elements.isEmpty() ? null : elements;
     }
 
-    private Object getOptions(String tag, String value) {
+    private Object getOptions(LocatorType locatorType, String tag, String value, Boolean exact) {
         switch (tag) {
             case "Text":
                 Page.GetByTextOptions textOptions = new Page.GetByTextOptions();
-                if (value.toLowerCase().contains(";exact")) {
-                    textOptions.setExact(true);
+                FrameLocator.GetByTextOptions textFrameLocatorOptions = new FrameLocator.GetByTextOptions();
+                
+                if (locatorType.equals(LocatorType.LOCATOR)){
+                    textOptions.setExact(exact);
+                    return textOptions;
+                } else if (locatorType.equals(LocatorType.FRAMELOCATOR)){
+                    textFrameLocatorOptions.setExact(exact);
+                    return textFrameLocatorOptions;
                 }
-                System.out.println("textOptions : " + textOptions);
-                return textOptions;
+                break;
             case "Label":
                 Page.GetByLabelOptions labelOptions = new Page.GetByLabelOptions();
-                if (value.toLowerCase().contains(";exact")) {
-                    labelOptions.setExact(true);
+                FrameLocator.GetByLabelOptions labelFrameLocatorOptions = new FrameLocator.GetByLabelOptions();
+
+                if (locatorType.equals(LocatorType.LOCATOR)){
+                    labelOptions.setExact(exact);
+                    return labelOptions;
+                } else if (locatorType.equals(LocatorType.FRAMELOCATOR)){
+                    labelFrameLocatorOptions.setExact(exact);
+                    return labelFrameLocatorOptions;
                 }
-                return labelOptions;
+                break;
             case "Placeholder":
                 Page.GetByPlaceholderOptions placeholderOptions = new Page.GetByPlaceholderOptions();
-                if (value.toLowerCase().contains(";exact")) {
-                    placeholderOptions.setExact(true);
+                FrameLocator.GetByPlaceholderOptions placeholderFrameLocatorOptions = new FrameLocator.GetByPlaceholderOptions();
+
+                if (locatorType.equals(LocatorType.LOCATOR)){
+                    placeholderOptions.setExact(exact);
+                    return placeholderOptions;
+                } else if (locatorType.equals(LocatorType.FRAMELOCATOR)){
+                    placeholderFrameLocatorOptions.setExact(exact);
+                    return placeholderFrameLocatorOptions;
                 }
-                return placeholderOptions;
+                break;
             case "AltText":
                 Page.GetByAltTextOptions altTextOptions = new Page.GetByAltTextOptions();
-                if (value.toLowerCase().contains(";exact")) {
-                    altTextOptions.setExact(true);
+                FrameLocator.GetByAltTextOptions altTextFrameLocatorOptions = new FrameLocator.GetByAltTextOptions();
+
+                if (locatorType.equals(LocatorType.LOCATOR)){
+                    altTextOptions.setExact(exact);
+                    return altTextOptions;
+                } else if (locatorType.equals(LocatorType.FRAMELOCATOR)){
+                    altTextFrameLocatorOptions.setExact(exact);
+                    return altTextFrameLocatorOptions;
                 }
-                return altTextOptions;
+                break;
             case "Title":
                 Page.GetByTitleOptions titleOptions = new Page.GetByTitleOptions();
-                if (value.toLowerCase().contains(";exact")) {
-                    titleOptions.setExact(true);
+                FrameLocator.GetByTitleOptions titleFrameLocatorOptions = new FrameLocator.GetByTitleOptions();
+
+                if (locatorType.equals(LocatorType.LOCATOR)){
+                    titleOptions.setExact(exact);
+                    return titleOptions;
+                } else if (locatorType.equals(LocatorType.FRAMELOCATOR)){
+                    titleFrameLocatorOptions.setExact(exact);
+                    return titleFrameLocatorOptions;
                 }
-                return titleOptions;
-            default:
-                return null;
+                break;
+            case "Role":
+                Page.GetByRoleOptions roleOptions = new Page.GetByRoleOptions();
+                FrameLocator.GetByRoleOptions roleFrameLocatorOptions = new FrameLocator.GetByRoleOptions();
+
+                if (locatorType.equals(LocatorType.LOCATOR)){
+                    roleOptions.setExact(exact);
+                    return roleOptions;
+                } else if (locatorType.equals(LocatorType.FRAMELOCATOR)){
+                    roleFrameLocatorOptions.setExact(exact);
+                    return roleFrameLocatorOptions;
+                }
+                break;
         }
+        return null;
     }
 
-    private Locator createRoleLocator(String value, Page page) {
+    private Locator createRoleLocator(String value, Page page, Page.GetByRoleOptions roleOptions) {
         if (value.contains(";")) {
             String[] parts = value.split(";");
             String roleType = parts[0].toUpperCase();
-            Page.GetByRoleOptions roleOptions = new Page.GetByRoleOptions();
-            if (value.toLowerCase().contains(";exact")) {
-                roleOptions.setExact(true);
-            }
             if (parts.length > 1) {
                 roleOptions.setName(parts[1]);
             }
@@ -907,14 +979,10 @@ public class AutomationObject {
         }
     }
 
-    private Locator createRoleLocator(String value, FrameLocator framelocator) {
+    private Locator createRoleLocator(String value, FrameLocator framelocator, FrameLocator.GetByRoleOptions roleOptions) {
         if (value.contains(";")) {
             String[] parts = value.split(";");
             String roleType = parts[0].toUpperCase();
-            FrameLocator.GetByRoleOptions roleOptions = new FrameLocator.GetByRoleOptions();
-            if (value.toLowerCase().contains(";exact")) {
-                roleOptions.setExact(true);
-            }
             if (parts.length > 1) {
                 roleOptions.setName(parts[1]);
             }
@@ -970,6 +1038,149 @@ public class AutomationObject {
         }
 
         return locator;
+    }
+
+    // ===== API Interface Implementations (Object type wrappers) =====
+    
+
+    /**
+     * Sets the Playwright Page instance for this automation object.
+     * <p>
+     * <b>API-Plugin Contract:</b> Required by {@link AutomationObjectApi}. The argument is provided as Object for type erasure; cast to {@link Page} when calling framework methods.
+     * </p>
+     * @param page the Playwright Page instance (as Object, must be cast to {@link Page})
+     */
+    @Override
+    public void setPage(Object page) {
+        setPage((Page) page);
+    }
+
+
+    /**
+     * Sets the Playwright Page instance as the driver for this automation object.
+     * <p>
+     * <b>API-Plugin Contract:</b> Required by {@link AutomationObjectApi}. The argument is provided as Object for type erasure; cast to {@link Page} when calling framework methods.
+     * </p>
+     * @param page the Playwright Page instance (as Object, must be cast to {@link Page})
+     */
+    @Override
+    public void setDriver(Object page) {
+        setDriver((Page) page);
+    }
+
+
+    /**
+     * Finds a single element on the page using the provided keys and condition.
+     * <p>
+     * <b>API-Plugin Contract:</b> Required by {@link AutomationObjectApi}. The returned Object should be cast to {@link Locator} for Playwright operations.
+     * </p>
+     * @param page the Playwright Page instance (as Object, must be cast to {@link Page})
+     * @param objectKey the object key in the object repository
+     * @param pageKey the page key in the object repository
+     * @param condition the find condition
+     * @return the found element as Object (cast to {@link Locator})
+     */
+    @Override
+    public Object findElement(Object page, String objectKey, String pageKey, FindType condition) {
+        return findElement((Page) page, objectKey, pageKey, condition);
+    }
+    
+
+    /**
+     * Finds all elements matching the given keys and returns them as a list of Objects.
+     * <p>
+     * <b>API-Plugin Contract:</b> Required by {@link AutomationObjectApi}. Each Object in the returned list should be cast to {@link Locator} for Playwright operations.
+     * </p>
+     * @param objectKey the object key in the object repository
+     * @param pageKey the page key in the object repository
+     * @return a list of Objects (cast each to {@link Locator}), or null if none found
+     */
+    @Override
+    public List<Object> findElementsList(String objectKey, String pageKey) {
+        List<Locator> locators = findElements(objectKey, pageKey);
+        return locators != null ? new ArrayList<>(locators) : null;
+    }
+    
+
+    /**
+     * Finds all elements matching the given keys and attribute, returning them as a list of Objects.
+     * <p>
+     * <b>API-Plugin Contract:</b> Required by {@link AutomationObjectApi}. Each Object in the returned list should be cast to {@link Locator} for Playwright operations.
+     * </p>
+     * @param objectKey the object key in the object repository
+     * @param pageKey the page key in the object repository
+     * @param attribute the attribute to match
+     * @return a list of Objects (cast each to {@link Locator}), or null if none found
+     */
+    @Override
+    public List<Object> findElementsList(String objectKey, String pageKey, String attribute) {
+        List<Locator> locators = findElements(objectKey, pageKey, attribute);
+        return locators != null ? new ArrayList<>(locators) : null;
+    }
+    
+
+    /**
+     * Finds all elements matching the given keys and condition, returning them as a list of Objects.
+     * <p>
+     * <b>API-Plugin Contract:</b> Required by {@link AutomationObjectApi}. Each Object in the returned list should be cast to {@link Locator} for Playwright operations.
+     * </p>
+     * @param objectKey the object key in the object repository
+     * @param pageKey the page key in the object repository
+     * @param condition the find condition
+     * @return a list of Objects (cast each to {@link Locator}), or null if none found
+     */
+    @Override
+    public List<Object> findElementsList(String objectKey, String pageKey, FindType condition) {
+        List<Locator> locators = findElements(objectKey, pageKey, condition);
+        return locators != null ? new ArrayList<>(locators) : null;
+    }
+    
+
+    /**
+     * Finds all elements matching the given keys, attribute, and condition, returning them as a list of Objects.
+     * <p>
+     * <b>API-Plugin Contract:</b> Required by {@link AutomationObjectApi}. Each Object in the returned list should be cast to {@link Locator} for Playwright operations.
+     * </p>
+     * @param objectKey the object key in the object repository
+     * @param pageKey the page key in the object repository
+     * @param attribute the attribute to match
+     * @param condition the find condition
+     * @return a list of Objects (cast each to {@link Locator}), or null if none found
+     */
+    @Override
+    public List<Object> findElementsList(String objectKey, String pageKey, String attribute, FindType condition) {
+        List<Locator> locators = findElements(objectKey, pageKey, attribute, condition);
+        return locators != null ? new ArrayList<>(locators) : null;
+    }
+
+
+    /**
+     * Stores the given attribute value in the object repository for the specified element.
+     * <p>
+     * <b>API-Plugin Contract:</b> Required by {@link AutomationObjectApi}. The attributes argument is provided as Object for type erasure; cast to {@code List<ORAttribute>} when calling framework methods.
+     * </p>
+     * @param attributes the attributes list (as Object, must be cast to {@code List<ORAttribute>})
+     * @param attribute the attribute name
+     * @param value the value to store
+     */
+    @Override
+    public void storeElementDetailsinOR(Object attributes, String attribute, String value) {
+        storeElementDetailsinOR((List<ORAttribute>) attributes, attribute, value);
+    }
+
+
+    /**
+     * Retrieves the value of the specified attribute from the given attributes list.
+     * <p>
+     * <b>API-Plugin Contract:</b> Required by {@link AutomationObjectApi}. The attributes argument is provided as Object for type erasure; cast to {@code List<ORAttribute>} when calling framework methods.
+     * </p>
+     * @param attributes the attributes list (as Object, must be cast to {@code List<ORAttribute>})
+     * @param attribute the attribute name
+     * @return the value of the attribute, or null if not found
+     */
+    @Override
+    public String getAttributeValue(Object attributes, String attribute) {
+        return getAttributeValue((List<ORAttribute>) attributes, attribute);
     }
 
 }

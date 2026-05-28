@@ -2,14 +2,18 @@
 package com.ing.engine.commands.browser;
 
 import com.ing.engine.core.CommandControl;
-import com.ing.engine.execution.exception.element.ElementException;
-import com.ing.engine.execution.exception.element.ElementException.ExceptionType;
+import com.ing.ingenious.api.exception.mobile.ElementException;
+import com.ing.ingenious.api.exception.mobile.ElementException.ExceptionType;
+import com.ing.ingenious.api.contract.BrowserPluginApi;
+import com.ing.ingenious.api.contract.data.UserDataAccessApi;
+import com.ing.ingenious.api.contract.drivers.AutomationObjectApi;
+import com.ing.ingenious.api.contract.drivers.PlaywrightDriverCreationApi;
 
 /**
  *
  * 
  */
-public class General extends Command {
+public class General extends Command implements BrowserPluginApi {
 
     public General(CommandControl cc) {
         super(cc);
@@ -57,7 +61,60 @@ public class General extends Command {
         return (boolean) (Page
                 .evaluate("document.documentElement.scrollHeight>document.documentElement.clientHeight;"));
     }
-
     
+    
+    /**
+     * Implementation of {@link CommandPluginApi#getPage()} for the API-plugin contract.
+     * @return the Page object that should be cast to {@link com.microsoft.playwright.Page}
+     */
+    @Override
+    public Object getPage() {
+        return Page;
+    }
+
+    /**
+     * Implementation of {@link CommandPluginApi#getPlaywright()} for the API-plugin contract.
+     * @return the Playwright object that should be cast to {@link com.microsoft.playwright.Playwright}
+     */
+    @Override
+    public Object getPlaywright() {
+        return Playwright;
+    }
+
+    /**
+     * Implementation of {@link CommandPluginApi#getBrowserContext()} for the API-plugin contract.
+     * @return the BrowserContext object that should be cast to {@link com.microsoft.playwright.BrowserContext}
+     */
+    @Override
+    public Object getBrowserContext() {
+        return BrowserContext;
+    }
+
+    /**
+     * Implementation of {@link CommandPluginApi#getLocator()} for the API-plugin contract.
+     * @return the Locator object that should be cast to {@link com.microsoft.playwright.Locator}
+     */
+    @Override
+    public Object getLocator() {
+        return Locator;
+    }
+
+    /**
+     * Implementation of {@link CommandPluginApi#getAObject()} for the API-plugin contract.
+     * @return the AutomationObjectApi instance for web element interactions
+     */
+    @Override
+    public AutomationObjectApi getAObject() {
+        return AObject;
+    }
+
+    /**
+     * Implementation of {@link CommandPluginApi#getDriver()} for the API-plugin contract.
+     * @return the PlaywrightDriverCreationApi instance for driver management
+     */
+    @Override
+    public PlaywrightDriverCreationApi getDriver() {
+        return Driver;
+    }
 
 }

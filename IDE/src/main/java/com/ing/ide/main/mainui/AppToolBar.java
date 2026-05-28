@@ -35,7 +35,8 @@ public class AppToolBar extends JToolBar {
 
     private void init() {
         setFloatable(false);
-        setBorder(BorderFactory.createEtchedBorder());
+        setOpaque(false);
+        setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, UIManager.getColor("Separator.foreground")));
         add(createButton("New Project"));
         add(createButton("Open Project"));
         addSeparator();

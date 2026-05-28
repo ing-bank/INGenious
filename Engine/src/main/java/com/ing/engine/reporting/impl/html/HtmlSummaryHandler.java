@@ -17,7 +17,7 @@ import com.ing.engine.reporting.util.DateTimeUtils;
 import com.ing.engine.reporting.util.RDS;
 import com.ing.engine.reporting.util.ReportUtils;
 import com.ing.engine.support.DesktopApi;
-import com.ing.engine.support.Status;
+import com.ing.ingenious.api.status.Status;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.File;
 import java.io.IOException;
@@ -89,6 +89,23 @@ public class HtmlSummaryHandler extends SummaryHandler implements PrimaryHandler
                 LOGGER.log(Level.SEVERE, null, ex);
             }
         }
+        
+        // Ensure modern CSS and JS folders exist (for v2 templates)
+        try {
+            File modernCssSource = new File(FilePath.getReportResourcePath() + File.separator + "css" + File.separator + "modern");
+            File modernCssTarget = new File(path + File.separator + "media" + File.separator + "css" + File.separator + "modern");
+            if (modernCssSource.exists() && !modernCssTarget.exists()) {
+                FileUtils.copyDirectory(modernCssSource, modernCssTarget);
+            }
+            
+            File modernJsSource = new File(FilePath.getReportResourcePath() + File.separator + "js" + File.separator + "modern");
+            File modernJsTarget = new File(path + File.separator + "media" + File.separator + "js" + File.separator + "modern");
+            if (modernJsSource.exists() && !modernJsTarget.exists()) {
+                FileUtils.copyDirectory(modernJsSource, modernJsTarget);
+            }
+        } catch (IOException ex) {
+            LOGGER.log(Level.SEVERE, "Failed to copy modern CSS/JS", ex);
+        }
     }
 
     /**
@@ -114,6 +131,8 @@ public class HtmlSummaryHandler extends SummaryHandler implements PrimaryHandler
             testSetData.put(RDS.TestSet.MAX_THREADS, Control.exe.getExecSettings().getRunSettings().getThreadCount());
             testSetData.put(RDS.TestSet.BDD_STYLE, Control.exe.getExecSettings().getRunSettings().isBddReportEnabled());
             testSetData.put(RDS.TestSet.PERF_REPORT, Control.exe.getExecSettings().getRunSettings().isPerformanceLogEnabled());
+            testSetData.put(RDS.TestSet.VIDEO_REPORT, Control.exe.getExecSettings().getRunSettings().isVideoEnabled());
+            testSetData.put(RDS.TestSet.TRACING_REPORT, Control.exe.getExecSettings().getRunSettings().isTracingEnabled());
             testSetData.put(RDS.TestSet.START_TIME, runTime);
             testSetData.put(RDS.TestSet.TEST_RUN, RunManager.getGlobalSettings().isTestRun());
             testSetData.put(RDS.TestSet.NO_OF_TESTS, size);
@@ -217,18 +236,62 @@ public class HtmlSummaryHandler extends SummaryHandler implements PrimaryHandler
      * @throws IOException if file operations fail
      */
     private void createHtmls() throws IOException {
-        FileUtils.copyFileToDirectory(new File(FilePath.getSummaryHTMLPath()),
-                new File(FilePath.getCurrentResultsPath()));
-        FileUtils.copyFileToDirectory(new File(FilePath.getDetailedHTMLPath()),
-                new File(FilePath.getCurrentResultsPath()));
-        if (perf != null) {
-            perf.exportReport();
-            FileUtils.copyFileToDirectory(new File(FilePath.getPerfReportHTMLPath()),
+        // Check if modern report style is enabled
+        boolean useModern = Control.exe.getExecSettings().getRunSettings().isModernReport();
+        
+        if (useModern) {
+            // Copy modern v2 templates
+            FileUtils.copyFileToDirectory(new File(FilePath.getSummaryHTMLPathV2()),
+                    new File(FilePath.getCurrentResultsPath()));
+            FileUtils.copyFileToDirectory(new File(FilePath.getDetailedHTMLPathV2()),
+                    new File(FilePath.getCurrentResultsPath()));
+            embedAxeDataInDetailedV2(new File(FilePath.getCurrentDetailedHTMLPathV2()));
+            // Copy media folder for embedded CSS/JS resources
+            FileUtils.copyDirectoryToDirectory(new File(FilePath.getReportMediaPath()),
+                    new File(FilePath.getCurrentResultsPath()));
+            
+            // Fix media paths in the copied HTML files
+            String summaryHtml = FileUtils.readFileToString(new File(FilePath.getCurrentSummaryHTMLPathV2()), Charset.defaultCharset());
+            summaryHtml = summaryHtml.replaceAll("../../../../media", "media");
+            FileUtils.writeStringToFile(new File(FilePath.getCurrentSummaryHTMLPathV2()), summaryHtml, Charset.defaultCharset());
+            
+            String detailedHtml = FileUtils.readFileToString(new File(FilePath.getCurrentDetailedHTMLPathV2()), Charset.defaultCharset());
+            detailedHtml = detailedHtml.replaceAll("../../../../media", "media");
+            FileUtils.writeStringToFile(new File(FilePath.getCurrentDetailedHTMLPathV2()), detailedHtml, Charset.defaultCharset());
+        } else {
+            // Copy classic templates
+            FileUtils.copyFileToDirectory(new File(FilePath.getSummaryHTMLPath()),
+                    new File(FilePath.getCurrentResultsPath()));
+            FileUtils.copyFileToDirectory(new File(FilePath.getDetailedHTMLPath()),
                     new File(FilePath.getCurrentResultsPath()));
         }
+        
+        if (perf != null) {
+            perf.exportReport();
+            if (useModern) {
+                FileUtils.copyFileToDirectory(new File(FilePath.getPerfReportHTMLPathV2()),
+                        new File(FilePath.getCurrentResultsPath()));
+                // Fix media paths in performance report
+                String perfHtml = FileUtils.readFileToString(new File(FilePath.getCurrentPerfReportHTMLPathV2()), Charset.defaultCharset());
+                perfHtml = perfHtml.replaceAll("../../../../media", "media");
+                FileUtils.writeStringToFile(new File(FilePath.getCurrentPerfReportHTMLPathV2()), perfHtml, Charset.defaultCharset());
+            } else {
+                FileUtils.copyFileToDirectory(new File(FilePath.getPerfReportHTMLPath()),
+                        new File(FilePath.getCurrentResultsPath()));
+            }
+        }
         if (Control.exe.getExecSettings().getRunSettings().isVideoEnabled()) {
-            FileUtils.copyFileToDirectory(new File(FilePath.getVideoReportHTMLPath()),
-                    new File(FilePath.getCurrentResultsPath()));
+            if (useModern) {
+                FileUtils.copyFileToDirectory(new File(FilePath.getVideoReportHTMLPathV2()),
+                        new File(FilePath.getCurrentResultsPath()));
+                // Fix media paths in video report
+                String videoHtml = FileUtils.readFileToString(new File(FilePath.getCurrentVideoReportHTMLPathV2()), Charset.defaultCharset());
+                videoHtml = videoHtml.replaceAll("../../../../media", "media");
+                FileUtils.writeStringToFile(new File(FilePath.getCurrentVideoReportHTMLPathV2()), videoHtml, Charset.defaultCharset());
+            } else {
+                FileUtils.copyFileToDirectory(new File(FilePath.getVideoReportHTMLPath()),
+                        new File(FilePath.getCurrentResultsPath()));
+            }
         }
     }
 
@@ -239,21 +302,117 @@ public class HtmlSummaryHandler extends SummaryHandler implements PrimaryHandler
     private void createStandaloneHtmls() throws IOException {
 
         createReportIfNotExists(FilePath.getCurrentResultsPath());
+        
+        // Check if modern report style is enabled
+        boolean useModern = Control.exe.getExecSettings().getRunSettings().isModernReport();
+        
+        if (useModern) {
+            // Copy and adjust modern v2 templates for standalone
+            String summaryHtml = FileUtils.readFileToString(new File(FilePath.getSummaryHTMLPathV2()), Charset.defaultCharset());
+            summaryHtml = summaryHtml.replaceAll("../../../../media", "media");
+            FileUtils.writeStringToFile(new File(FilePath.getCurrentSummaryHTMLPathV2()), summaryHtml, Charset.defaultCharset());
 
-        String summaryHtml = FileUtils.readFileToString(new File(FilePath.getSummaryHTMLPath()), Charset.defaultCharset());
-        summaryHtml = summaryHtml.replaceAll("../../../../media", "media");
-        FileUtils.writeStringToFile(new File(FilePath.getCurrentSummaryHTMLPath()), summaryHtml, Charset.defaultCharset());
+            String detailedHtml = FileUtils.readFileToString(new File(FilePath.getDetailedHTMLPathV2()), Charset.defaultCharset());
+            detailedHtml = detailedHtml.replaceAll("../../../../media", "media");
+            FileUtils.writeStringToFile(new File(FilePath.getCurrentDetailedHTMLPathV2()), detailedHtml, Charset.defaultCharset());
+            embedAxeDataInDetailedV2(new File(FilePath.getCurrentDetailedHTMLPathV2()));
 
-        String detailedHtml = FileUtils.readFileToString(new File(FilePath.getDetailedHTMLPath()), Charset.defaultCharset());
-        detailedHtml = detailedHtml.replaceAll("../../../../media", "media");
-        FileUtils.writeStringToFile(new File(FilePath.getCurrentDetailedHTMLPath()), detailedHtml, Charset.defaultCharset());
+            if (perf != null) {
+                perf.exportReport();
+                String perfHtml = FileUtils.readFileToString(new File(FilePath.getPerfReportHTMLPathV2()), Charset.defaultCharset());
+                perfHtml = perfHtml.replaceAll("../../../../media", "media");
+                FileUtils.writeStringToFile(new File(FilePath.getCurrentPerfReportHTMLPathV2()), perfHtml, Charset.defaultCharset());
+            }
+        } else {
+            // Classic templates
+            String summaryHtml = FileUtils.readFileToString(new File(FilePath.getSummaryHTMLPath()), Charset.defaultCharset());
+            summaryHtml = summaryHtml.replaceAll("../../../../media", "media");
+            FileUtils.writeStringToFile(new File(FilePath.getCurrentSummaryHTMLPath()), summaryHtml, Charset.defaultCharset());
 
-        if (perf != null) {
-            perf.exportReport();
-            String perfHtml = FileUtils.readFileToString(new File(FilePath.getPerfReportHTMLPath()), Charset.defaultCharset());
-            perfHtml = perfHtml.replaceAll("../../../../media", "media");
-            FileUtils.writeStringToFile(new File(FilePath.getCurrentPerfReportHTMLPath()), perfHtml, Charset.defaultCharset());
+            String detailedHtml = FileUtils.readFileToString(new File(FilePath.getDetailedHTMLPath()), Charset.defaultCharset());
+            detailedHtml = detailedHtml.replaceAll("../../../../media", "media");
+            FileUtils.writeStringToFile(new File(FilePath.getCurrentDetailedHTMLPath()), detailedHtml, Charset.defaultCharset());
 
+            if (perf != null) {
+                perf.exportReport();
+                String perfHtml = FileUtils.readFileToString(new File(FilePath.getPerfReportHTMLPath()), Charset.defaultCharset());
+                perfHtml = perfHtml.replaceAll("../../../../media", "media");
+                FileUtils.writeStringToFile(new File(FilePath.getCurrentPerfReportHTMLPath()), perfHtml, Charset.defaultCharset());
+            }
+        }
+    }
+
+    private void embedAxeDataInDetailedV2(File detailedHtmlFile) {
+        if (detailedHtmlFile == null || !detailedHtmlFile.exists()) {
+            return;
+        }
+
+        try {
+            String htmlContent = FileUtils.readFileToString(detailedHtmlFile, Charset.defaultCharset());
+            String updatedContent = embedAxeDataInHtml(htmlContent);
+            if (!updatedContent.equals(htmlContent)) {
+                FileUtils.writeStringToFile(detailedHtmlFile, updatedContent, Charset.defaultCharset());
+            }
+        } catch (IOException ex) {
+            LOGGER.log(Level.WARNING, "Failed to update detailed-v2.html", ex);
+        }
+    }
+
+    private String embedAxeDataInHtml(String htmlContent) {
+        try {
+            if (htmlContent == null || htmlContent.isEmpty()) {
+                return htmlContent;
+            }
+
+            String axePath = FilePath.getCurrentTestCaseAccessibilityLocation();
+            File axeFolder = new File(axePath);
+
+            File[] axeFiles = null;
+            if (!axeFolder.exists()) {
+                return htmlContent;
+            } else {
+                axeFiles = axeFolder.listFiles((dir, name) -> name.endsWith("axe-results.json"));
+                if (axeFiles == null || axeFiles.length == 0) {
+                    return htmlContent;
+                }
+            }
+
+            StringBuilder axeScriptTags = new StringBuilder();
+            if (axeFiles != null) {
+                for (File axeFile : axeFiles) {
+                    try {
+                        String jsonContent = FileUtils.readFileToString(axeFile, Charset.defaultCharset());
+                        // Prevent </script> from terminating the script tag early
+                        jsonContent = jsonContent.replace("</script", "<\\/script");
+                        String fileName = axeFile.getName();
+                        String reusablePart = fileName.replace("_axe-results.json", "");
+                        String[] parts = reusablePart.split("_");
+                        if (parts.length >= 2) {
+                            StringBuilder reusableName = new StringBuilder();
+                            for (int i = 1; i < parts.length; i++) {
+                                if (i > 1) reusableName.append("_");
+                                reusableName.append(parts[i]);
+                            }
+                            String sanitizedId = reusableName.toString().replaceAll("[^a-zA-Z0-9]", "-");
+                            axeScriptTags.append("<script type=\"application/json\" id=\"axe-data-")
+                                    .append(sanitizedId)
+                                    .append("\">\n")
+                                    .append(jsonContent)
+                                    .append("\n</script>\n");
+                        }
+                    } catch (Exception ex) {
+                        LOGGER.log(Level.WARNING, "Failed to read aXe file: " + axeFile.getName(), ex);
+                    }
+                }
+            }
+            if (axeScriptTags.length() > 0) {
+                return htmlContent.replace("</head>", axeScriptTags.toString() + "</head>");
+            }
+
+            return htmlContent;
+        } catch (Exception ex) {
+            LOGGER.log(Level.WARNING, "Failed to embed aXe data", ex);
+            return htmlContent;
         }
     }
 
@@ -317,7 +476,12 @@ public class HtmlSummaryHandler extends SummaryHandler implements PrimaryHandler
     public synchronized void launchResultSummary() {
         if (!isExtentEnabled()) {
             if (SystemDefaults.canLaunchSummary()) {
-                DesktopApi.open(new File(FilePath.getCurrentSummaryHTMLPath()));
+                // Open modern v2 report if enabled, otherwise open classic
+                boolean useModern = Control.exe.getExecSettings().getRunSettings().isModernReport();
+                String reportPath = useModern 
+                    ? FilePath.getCurrentSummaryHTMLPathV2()
+                    : FilePath.getCurrentSummaryHTMLPath();
+                DesktopApi.open(new File(reportPath));
             }
         }
     }

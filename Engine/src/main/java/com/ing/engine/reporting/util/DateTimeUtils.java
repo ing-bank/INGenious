@@ -9,7 +9,7 @@ public class DateTimeUtils {
 
     private static final String DATE_FORMAT_NOW = "dd-MMM-yyyy";
 
-    private static final String TIME_FORMAT_NOW = "HH:mm:ss.sss";
+    private static final String TIME_FORMAT_NOW = "HH:mm:ss.SSS";
 
     private static final String DATE_FORMAT_FOR_FOLDER = "dd-MMM-yyyy";
 

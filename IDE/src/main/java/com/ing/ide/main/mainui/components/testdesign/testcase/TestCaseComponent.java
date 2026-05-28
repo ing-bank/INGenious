@@ -15,12 +15,14 @@ import com.ing.ide.main.mainui.EngineConfig;
 import com.ing.ide.main.mainui.components.testdesign.TestDesign;
 import com.ing.ide.main.playwrightrecording.PlaywrightSpinner;
 import com.ing.ide.main.playwrightrecording.ClipboardMonitor;
+import com.ing.ide.main.utils.AppIcon;
 import com.ing.ide.main.utils.ConsolePanel;
 import com.ing.ide.main.utils.MenuScroller;
 import com.ing.ide.main.utils.Utils;
 import com.ing.ide.main.utils.keys.Keystroke;
 import com.ing.ide.main.utils.table.TableColumnManager;
 import com.ing.ide.main.utils.table.XTable;
+import com.ing.ide.util.Notification;
 import com.ing.ide.util.Canvas;
 import com.ing.ide.util.Notification;
 import com.ing.ide.util.WindowMover;
@@ -151,6 +153,12 @@ public class TestCaseComponent extends JPanel implements ActionListener {
 
     public void loadTableModelForSelection(Object obj) {
         if (obj != null && obj instanceof TestCase) {
+            // Save the current test case before switching to a new one
+            TestCase currentTestCase = getCurrentTestCase();
+            if (currentTestCase != null && !currentTestCase.isSaved()) {
+                currentTestCase.save();
+            }
+            
             testCaseHistory.log();
             TestCase tc = (TestCase) obj;
             tc.setSaveListener(saveListener);
@@ -159,6 +167,17 @@ public class TestCaseComponent extends JPanel implements ActionListener {
             validator.initValidations();
             changeSave(tc.isSaved());
             refreshTitle();
+            
+            // Check if migration occurred and show notification
+            int migratedCount = tc.getMigratedReferencesCount();
+            if (migratedCount > 0) {
+                Notification.show(
+                    String.format("Migrated %d object reference%s to explicit scope prefix in '%s'",
+                        migratedCount,
+                        migratedCount > 1 ? "es" : "",
+                        tc.getName())
+                );
+            }
         }
     }
 
@@ -932,11 +951,16 @@ public class TestCaseComponent extends JPanel implements ActionListener {
             TestStep tStep = getCurrentTestCase().getTestSteps().get(testCaseTable.getSelectedRow());
             String[] reusableData = tStep.getReusableData();
             if (reusableData != null) {
-                Scenario scenario = testDesign.getProject().getScenarioByName(reusableData[0]);
+                // Try reusable scenarios first, then fall back to regular scenarios
+                Scenario scenario = testDesign.getProject().getReusableScenarioByName(reusableData[0]);
+                if (scenario == null) {
+                    scenario = testDesign.getProject().getScenarioByName(reusableData[0]);
+                }
+                
                 if (scenario != null) {
                     TestCase testCase = scenario.getTestCaseByName(reusableData[1]);
                     if (testCase != null) {
-                        loadTableModelForSelection(testCase);
+                        testDesign.loadTableModelForSelection(testCase);
                     } else {
                         Notification.show("TestCase [" + reusableData[1]
                                 + "] not present in the Scenario [" + reusableData[0] + "]");
@@ -954,7 +978,9 @@ public class TestCaseComponent extends JPanel implements ActionListener {
             TestStep tStep = getCurrentTestCase().getTestSteps().get(testCaseTable.getSelectedRow());
             String[] tdFromInput = tStep.getTestDataFromInput();
             if (tdFromInput != null) {
-                testDesign.getTestDatacomp().navigateToTestData(tdFromInput[0], tdFromInput[1]);
+                if (!testDesign.getTestDatacomp().navigateToTestData(tdFromInput[0], tdFromInput[1])) {
+                    Notification.show("Test Data [" + tdFromInput[0] + ":" + tdFromInput[1] + "] not found in Test Data");
+                }
             }
         }
     }
@@ -998,7 +1024,7 @@ public class TestCaseComponent extends JPanel implements ActionListener {
             cPanel = new ConsolePanel();
             add(cPanel, BorderLayout.CENTER);
             setTitle("Console");
-            setIconImage(new ImageIcon(getClass().getResource("/ui/resources/favicon.png")).getImage());
+            AppIcon.applyTo(this);
             setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
             setModalExclusionType(ModalExclusionType.APPLICATION_EXCLUDE);
         }
@@ -1032,13 +1058,17 @@ public class TestCaseComponent extends JPanel implements ActionListener {
             JToolBar toolBar = new JToolBar();
             toolBar.setFloatable(false);
             JButton drag = new JButton("   ");
+
+            
             toolBar.add(drag);
             registerDrag(drag);
-            toolBar.add(create("Show Console", "cmd"));
+            
+            toolBar.add(create("Show Console", "console"));
             toolBar.add(create("Continue Execution", "continue"));
-            toolBar.add(create("Go to Next Step", "next"));
+            toolBar.add(create("Go to Next Step", "stepover")); 
             toolBar.add(create("Pause the Execution", "pause"));
             toolBar.add(create("Stop the Execution", "stop"));
+            
             add(toolBar);
         }
 

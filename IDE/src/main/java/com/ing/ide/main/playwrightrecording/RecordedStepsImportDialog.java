@@ -44,9 +44,7 @@ public class RecordedStepsImportDialog extends javax.swing.JFrame {
         jButton2 = new javax.swing.JButton();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
-        setBackground(new java.awt.Color(243, 239, 225));
 
-        jPanel1.setBackground(new java.awt.Color(243, 239, 225));
         jPanel1.setPreferredSize(new java.awt.Dimension(350, 250));
 
         jLabel1.setFont(new java.awt.Font("SansSerif", 1, 12)); // NOI18N

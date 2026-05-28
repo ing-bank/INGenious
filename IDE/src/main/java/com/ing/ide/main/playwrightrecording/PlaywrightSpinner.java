@@ -14,6 +14,7 @@ import java.time.Instant;
 import javax.swing.ImageIcon;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
+import com.ing.ide.main.fx.INGIcons;
 
 public class PlaywrightSpinner extends javax.swing.JFrame implements Runnable {
 
@@ -24,7 +25,7 @@ public class PlaywrightSpinner extends javax.swing.JFrame implements Runnable {
     public PlaywrightSpinner() {
         initComponents();
         setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
-        Image icon=new ImageIcon(Utils.class.getResource("/playwrightrecorder/ImportPlaywrightRecordingMenu.png")).getImage();
+        Image icon=INGIcons.toImage("icon.ImportPlaywrightRecordingMenu", 32);
      
         setIconImage(icon);
         addWindowListener(new WindowAdapter() {
@@ -58,10 +59,8 @@ public class PlaywrightSpinner extends javax.swing.JFrame implements Runnable {
         jLabel3 = new javax.swing.JLabel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
-        setBackground(new java.awt.Color(255, 255, 255));
         setResizable(false);
 
-        jPanel1.setBackground(java.awt.Color.white);
         jPanel1.setBorder(new javax.swing.border.LineBorder(new java.awt.Color(255, 102, 0), 1, true));
 
         jLabel1.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N

@@ -47,6 +47,7 @@ import javax.swing.event.DocumentListener;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.Document;
 import javax.swing.text.JTextComponent;
+import com.ing.ide.main.fx.INGIcons;
 
 /**
  *
@@ -55,7 +56,7 @@ import javax.swing.text.JTextComponent;
  */
 public class JSList<T> extends JPanel {
 
-    private static final ImageIcon ADD_NEW_ICON = new ImageIcon(JSList.class.getResource("/ui/resources/addNew.png"));
+    private static final javax.swing.Icon ADD_NEW_ICON = INGIcons.swingColored("icon.addNew", 16);
     private ListPanel listPanel;
     private TopBar topBar;
     private Consumer<List<T>> onSelect;
@@ -385,7 +386,11 @@ public class JSList<T> extends JPanel {
                 if (cellHasFocus) {
                     focused = value;
                 }
-                this.setForeground(cellHasFocus ? Color.BLUE : Color.BLACK);
+                this.setForeground(cellHasFocus
+                        ? javax.swing.UIManager.getColor("ing.focusedForeground") != null
+                            ? javax.swing.UIManager.getColor("ing.focusedForeground") : Color.BLUE
+                        : javax.swing.UIManager.getColor("text") != null
+                            ? javax.swing.UIManager.getColor("text") : Color.BLACK);
                 return this;
             }
 

@@ -3,14 +3,17 @@ package com.ing.ide.main.mainui.components.testdesign.testcase.validation;
 import com.ing.datalib.component.Scenario;
 import com.ing.datalib.component.TestStep;
 import com.ing.datalib.or.web.ResolvedWebObject;
+import com.ing.datalib.or.structureddata.ResolvedStructuredDataObject;
 import com.ing.datalib.or.mobile.ResolvedMobileObject;
+import com.ing.datalib.or.sap.ResolvedSapObject;
+import com.ing.engine.support.ObjectTypeUtil;
 import com.ing.engine.support.methodInf.MethodInfoManager;
-import com.ing.engine.support.methodInf.ObjectType;
-
+import com.ing.ingenious.api.types.ObjectType;
 import java.awt.Color;
 import java.awt.Font;
 import java.util.Objects;
 import javax.swing.JComponent;
+import javax.swing.UIManager;
 
 /**
  * Renderer for the “Action” column of a test step, validating actions and
@@ -30,7 +33,11 @@ public class ActionRenderer extends AbstractRenderer {
     public void render(JComponent comp, TestStep step, Object value) {
         if (!step.isCommented()) {
             if (isEmpty(value)) {
-                setEmpty(comp);
+                if (isPristineStep(step)) {
+                    setDefault(comp);
+                } else {
+                    setEmpty(comp);
+                }
             } else if (step.isReusableStep()) {
                 if (isReusablePresent(step)) {
                     setDefault(comp);
@@ -46,7 +53,7 @@ public class ActionRenderer extends AbstractRenderer {
             } else if ((step.isSetTextStep())) {
                 setText(comp);
             } else if ((step.getObject().equals("Execute"))) {
-                setReusable(comp);
+                setExecute(comp);
             } else if (isActionValid(step, value)) {
                 setDefault(comp);
             } else {
@@ -54,14 +61,15 @@ public class ActionRenderer extends AbstractRenderer {
             }
         } else {
             setDefault(comp);
-            comp.setForeground(Color.lightGray);
+            Color c = UIManager.getColor("ing.commentedForeground");
+            comp.setForeground(c != null ? c : Color.lightGray);
             comp.setFont(new Font("Default", Font.ITALIC, 11));
         }
     }
 
     private Boolean isReusablePresent(TestStep step) {
         String[] data = step.getReusableData();
-        Scenario scenario = step.getProject().getScenarioByName(data[0]);
+        Scenario scenario = step.getProject().getReusableScenarioByName(data[0]);
         if (scenario != null) {
             return scenario.getTestCaseByName(data[1]) != null;
         }
@@ -73,61 +81,50 @@ public class ActionRenderer extends AbstractRenderer {
         return val.isEmpty() ? null : val;
     }
 
+    /**
+     * Validates if the given action is valid for the test step's object type.
+     * <p>
+     * Execute objects always accept any action. For other objects, checks if the action
+     * is available in the method list for known object types (Browser, Database, etc.),
+     * web/mobile page objects from the repository, or falls back to generic actions.
+     * </p>
+     *
+     * @param step the test step containing the object type
+     * @param value the action to validate
+     * @return true if the action is valid for the object type, false otherwise
+     */
     private Boolean isActionValid(TestStep step, Object value) {
         String action = Objects.toString(value, "").trim();
         String objectName = step.getObject();
-        Boolean valid = false;
 
-        switch (objectName) {
-            case "Execute":
-                valid = true;
-                break;
-            case "Browser":
-                valid = MethodInfoManager.getMethodListFor(ObjectType.BROWSER).contains(action);
-                break;
-            case "Mobile":
-                valid = MethodInfoManager.getMethodListFor(ObjectType.MOBILE).contains(action);
-                break;
-            case "Database":
-                valid = MethodInfoManager.getMethodListFor(ObjectType.DATABASE).contains(action);
-                break;
-            case "ProtractorJS":
-                valid = MethodInfoManager.getMethodListFor(ObjectType.PROTRACTORJS).contains(action);
-                break;
-            case "Webservice":
-                valid = MethodInfoManager.getMethodListFor(ObjectType.WEBSERVICE).contains(action);
-                break;
-            case "File":
-                valid = MethodInfoManager.getMethodListFor(ObjectType.FILE).contains(action);
-                break;
-            case "Synthetic Data":
-                valid = MethodInfoManager.getMethodListFor(ObjectType.DATA).contains(action);
-                break;
-            case "Queue":
-                valid = MethodInfoManager.getMethodListFor(ObjectType.QUEUE).contains(action);
-                break;
-            case "Kafka":
-                valid = MethodInfoManager.getMethodListFor(ObjectType.KAFKA).contains(action);
-                break;
-            case "General":
-                valid = MethodInfoManager.getMethodListFor(ObjectType.GENERAL).contains(action);
-                break;
-            case "String Operations":
-                valid = MethodInfoManager.getMethodListFor(ObjectType.STRINGOPERATIONS).contains(action);
-                break;
-            default:
-                if (isWebObject(step)) {
-                    valid = MethodInfoManager.getMethodListFor(ObjectType.PLAYWRIGHT, ObjectType.WEB).contains(action);
-                } else if (isMobileObject(step)) {
-                    valid = MethodInfoManager.getMethodListFor(ObjectType.APP).contains(action);
-                }
-                break;
+        // Execute always accepts any action (reusable)
+        if ("Execute".equals(objectName)) {
+            return true;
         }
 
-        if (!valid) {
-            valid = MethodInfoManager.getMethodListFor(ObjectType.ANY).contains(action);
+        // Check if it's a known object type (Browser, Mobile, Database, etc.)
+        if (ObjectTypeUtil.isKnownType(objectName)) {
+            return MethodInfoManager.getMethodListFor(objectName).contains(action);
         }
-        return valid;
+
+        if (isWebObject(step)) {
+            return MethodInfoManager.getMethodListFor(ObjectType.PLAYWRIGHT, ObjectType.WEB).contains(action);
+        }
+
+        if (isMobileObject(step)) {
+            return MethodInfoManager.getMethodListFor(ObjectType.APP).contains(action);
+        }
+
+        if (isStructuredDataObject(step)) {
+            return MethodInfoManager.getMethodListFor(ObjectType.STRUCTUREDDATA).contains(action);
+        }
+
+        if (isSapObject(step)) {
+            return MethodInfoManager.getMethodListFor(ObjectType.SAP).contains(action);
+        }
+
+        // Fallback to generic actions available for any object
+        return MethodInfoManager.getMethodListFor(ObjectType.ANY).contains(action);
     }
 
     private boolean isWebObject(TestStep step) {
@@ -151,6 +148,32 @@ public class ActionRenderer extends AbstractRenderer {
         ResolvedMobileObject r = (ref != null && ref.name != null && ref.scope != null)
             ? repo.resolveMobileObject(ref, objectName)
             : repo.resolveMobileObjectWithScope(pageToken, objectName);
+
+        return r != null && r.isPresent();
+    }
+
+    private boolean isStructuredDataObject(TestStep step) {
+        var repo = step.getProject().getObjectRepository();
+        String pageToken = step.getReference();
+        String objectName = step.getObject();
+
+        ResolvedStructuredDataObject.PageRef ref = ResolvedStructuredDataObject.PageRef.parse(pageToken);
+        ResolvedStructuredDataObject r = (ref != null && ref.name != null && ref.scope != null)
+            ? repo.resolveStructuredDataObject(ref, objectName)
+            : repo.resolveStructuredDataObjectWithScope(pageToken, objectName);
+
+        return r != null && r.isPresent();
+    }
+    
+    private boolean isSapObject(TestStep step) {
+        var repo = step.getProject().getObjectRepository();
+        String pageToken = step.getReference();
+        String objectName = step.getObject();
+
+        ResolvedSapObject.PageRef ref = ResolvedSapObject.PageRef.parse(pageToken);
+        ResolvedSapObject r = (ref != null && ref.name != null && ref.scope != null)
+            ? repo.resolveSapObject(ref, objectName)
+            : repo.resolveSapObjectWithScope(pageToken, objectName);
 
         return r != null && r.isPresent();
     }

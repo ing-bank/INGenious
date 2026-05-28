@@ -7,6 +7,7 @@ import java.awt.event.ActionListener;
 import javax.swing.JButton;
 import javax.swing.JToggleButton;
 import javax.swing.JToolBar;
+import javax.swing.UIManager;
 
 /**
  *
@@ -23,7 +24,8 @@ public class TestSetToolBar extends JToolBar {
     public TestSetToolBar(ActionListener tdProxy) {
         this.actionListener = tdProxy;
         setFloatable(false);
-        setBorder(javax.swing.BorderFactory.createEtchedBorder());
+        setOpaque(false);
+        setBorder(javax.swing.BorderFactory.createMatteBorder(0, 0, 1, 0, UIManager.getColor("Separator.foreground")));
         setLayout(new javax.swing.BoxLayout(this, javax.swing.BoxLayout.X_AXIS));
         init();
     }

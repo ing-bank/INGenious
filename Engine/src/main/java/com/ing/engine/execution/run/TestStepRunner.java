@@ -9,11 +9,11 @@ import com.ing.engine.execution.data.DataProcessor;
 import com.ing.engine.execution.data.Parameter;
 import com.ing.engine.core.CommandControl;
 import com.ing.engine.execution.exception.DriverClosedException;
-import com.ing.engine.execution.exception.ForcedException;
+import com.ing.ingenious.api.exception.ForcedException;
 import com.ing.engine.execution.exception.UnKnownError;
 import com.ing.engine.execution.exception.data.DataNotFoundException;
-import com.ing.engine.execution.exception.element.ElementException;
-import com.ing.engine.support.Status;
+import com.ing.ingenious.api.exception.mobile.ElementException;
+import com.ing.ingenious.api.status.Status;
 import com.ing.engine.support.Step;
 import com.ing.engine.support.reflect.MethodExecutor;
 import java.util.logging.Level;
@@ -100,7 +100,7 @@ public class TestStepRunner {
             String[] rData = getStep().getReusableData();
             String scenario = rData[0];
             String testcase = rData[1];
-            Scenario scn = context.project().getScenarioByName(scenario);
+            Scenario scn = context.project().getReusableScenarioByName(scenario);
             if (scn != null) {
                 TestCase stc = scn.getTestCaseByName(testcase);
                 stc.setParentTestCase(context.getTestCase());
@@ -112,7 +112,7 @@ public class TestStepRunner {
                             scenario, testcase));
                 }
             } else {
-                throw new ForcedException(format("scenario [%s] not found", scenario));
+                throw new ForcedException(format("reusable scenario [%s] not found", scenario));
             }
         }
         throw new ForcedException(

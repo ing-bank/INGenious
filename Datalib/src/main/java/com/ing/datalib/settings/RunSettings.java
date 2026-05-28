@@ -109,7 +109,7 @@ public class RunSettings extends AbstractPropSettings {
     }
 
     public String getRemoteGridURL() {
-        return getProperty("RemoteGridURL", "http://localhost:4444/wd/hub");
+        return getProperty("RemoteGridURL", "wss://cdp.lambdatest.com");
     }
 
     public void setIterationMode(String value) {
@@ -190,5 +190,22 @@ public class RunSettings extends AbstractPropSettings {
     
     public void setSlackNotification(Boolean value) {
         setProperty("slacknotify", String.valueOf(value));
+    }
+    
+    /**
+     * Check if modern HTML report (v2) is enabled
+     * Uses Alpine.js, Tailwind CSS, Chart.js instead of legacy AngularJS/Bootstrap
+     * @return true if modern report style is enabled
+     */
+    public Boolean isModernReport() {
+        return Boolean.valueOf(getProperty("ModernReport", "true"));
+    }
+    
+    /**
+     * Enable or disable modern HTML report style
+     * @param value true to use modern v2 templates, false for classic templates
+     */
+    public void setModernReport(Boolean value) {
+        setProperty("ModernReport", String.valueOf(value));
     }
 }

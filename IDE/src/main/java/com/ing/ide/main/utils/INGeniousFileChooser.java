@@ -62,7 +62,7 @@ public class INGeniousFileChooser extends JFileChooser implements PropertyChange
         }
     }
 
-    public static final INGeniousFileChooser OPEN_PROJECT = new INGeniousFileChooser(Utils.FAVICON,
+    public static final INGeniousFileChooser OPEN_PROJECT = new INGeniousFileChooser(Utils.FAVICON_OUTLINE,
             "Open Project", SelectionMode.DIR, Dir.PROJECTS.value(),
             PROJECT_SELECTOR, PROJECT_FILTER);
 

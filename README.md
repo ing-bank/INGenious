@@ -1,7 +1,7 @@
 # INGenious Playwright Studio - Test Automation for Everyone
 
 [![Build INGenious Source Code](https://github.com/ing-bank/INGenious/actions/workflows/maven.yml/badge.svg)](https://github.com/ing-bank/INGenious/actions/workflows/maven.yml)
-![Static Badge](https://img.shields.io/badge/Version-2.4-%23FF6200)
+![Static Badge](https://img.shields.io/badge/Version-3.0.0--preview-%23FF6200)
 
 --------------------------------------------------------------------
 
@@ -61,7 +61,13 @@ Developed and perfected by <span style="color:#FF6200;width:100px">**ING Bank**<
 
     <span style="color:#FF6200">INGenious</span> leverages **JDBC** to connect and test databases.
 
-    [:arrow_right: Database Testing](https://ing-bank.github.io/ingenious-doc/databaseTesting/)    
+    [:arrow_right: Database Testing](https://ing-bank.github.io/ingenious-doc/databaseTesting/database/)    
+
+-   :white_check_mark: __SAP Testing__
+
+    <span style="color:#FF6200">INGenious</span> leverages **Java JACOB Library** to connect and test SAP GUI.
+
+    [:arrow_right: SAP Testing](https://ing-bank.github.io/ingenious-doc/sapTesting/sap/)    
 
 -   :white_check_mark: __Synthetic Data Generation__
 
@@ -69,9 +75,9 @@ Developed and perfected by <span style="color:#FF6200;width:100px">**ING Bank**<
 
     [:arrow_right: Synthetic Data Generation](https://ing-bank.github.io/ingenious-doc/syntheticData/)     
 
--   :white_check_mark: __Full customization__
+-   :white_check_mark: __Plugin for Customization__
 
-    <span style="color:#FF6200">INGenious</span> comes with a full blown `maven` project which can be easily customized based on project needs.
+    <span style="color:#FF6200">INGenious</span> features a powerful **Plugin System** that lets you extend the framework with custom automation actions, new object types, and integrations—across browser, database, mobile, web services, and more.
 
     [:arrow_right: Customizations](https://ing-bank.github.io/ingenious-doc/customizations/)
 
@@ -91,7 +97,7 @@ Developed and perfected by <span style="color:#FF6200;width:100px">**ING Bank**<
 
     <span style="color:#FF6200">INGenious</span> is built in Java and has a strong command line interface. This makes integration with any CI tool, very easy.
 
-    [:arrow_right: Integration](https://ing-bank.github.io/ingenious-doc/ci/)
+    [:arrow_right: Integration](https://ing-bank.github.io/ingenious-doc/integrations/ci/)
 
 -   :white_check_mark: __Open Source, MIT__
 

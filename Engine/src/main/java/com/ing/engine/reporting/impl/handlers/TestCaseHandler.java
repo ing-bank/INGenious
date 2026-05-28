@@ -4,11 +4,12 @@ import com.ing.engine.core.RunContext;
 import com.ing.engine.drivers.PlaywrightDriverCreation;
 import com.ing.engine.reporting.TestCaseReport;
 import com.ing.engine.reporting.intf.Report;
-import com.ing.engine.support.Status;
+import com.ing.ingenious.api.status.Status;
 import com.ing.engine.support.Step;
 import java.io.File;
 import java.util.List;
 import com.ing.engine.drivers.WebDriverCreation;
+import com.ing.engine.drivers.SAPSessionCreation;
 
 /**
  *
@@ -63,6 +64,11 @@ public class TestCaseHandler implements Report {
     }
 
     @Override
+    public String getVideoLinkName() {
+        return report.getVideoLinkName();
+    }
+
+    @Override
     public File getReportLoc() {
         return report.getReportLoc();
     }
@@ -96,6 +102,10 @@ public class TestCaseHandler implements Report {
     }
 
     public void setWebDriver(WebDriverCreation driver) {
+
+    }
+
+    public void setSapSession(SAPSessionCreation session) {
 
     }
 }

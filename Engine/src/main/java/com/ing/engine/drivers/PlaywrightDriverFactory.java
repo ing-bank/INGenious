@@ -1,5 +1,6 @@
 package com.ing.engine.drivers;
 
+import com.google.gson.JsonObject;
 import com.ing.datalib.settings.ProjectSettings;
 import com.ing.engine.constants.FilePath;
 import com.ing.engine.core.Control;
@@ -17,9 +18,11 @@ import com.microsoft.playwright.BrowserType.LaunchOptions;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
-import java.awt.Dimension;
-import java.awt.Toolkit;
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
 
 public class PlaywrightDriverFactory {
     
@@ -69,7 +72,13 @@ public class PlaywrightDriverFactory {
     }
 
     public static Playwright createPlaywright() {
-        return Playwright.create();
+        Map<String, String> env = new HashMap<>();
+ 
+        //if(Control.exe.getExecSettings().getRunSettings().isGridExecution())
+        //    env.put("PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD", "1");
+ 
+        return Playwright.create(new Playwright.CreateOptions().setEnv(env));
+        
     }
 
     public static BrowserType createBrowserType(Playwright playwright, String browserName, RunContext context, ProjectSettings settings) {
@@ -96,7 +105,7 @@ public class PlaywrightDriverFactory {
 
     }
 
-    public static BrowserContext createContext(Boolean isGrid, BrowserType browserType, String browserName, ProjectSettings settings, RunContext context) {
+    public static BrowserContext createContext(Boolean isGrid, BrowserType browserType, String browserName, ProjectSettings settings, RunContext context) throws UnsupportedEncodingException {
         List<String> capabilities = getCapability(browserName, settings);
         NewContextOptions newContextOptions = new NewContextOptions();
         newContextOptions = addContextOptions(newContextOptions, context, capabilities, settings);
@@ -104,7 +113,11 @@ public class PlaywrightDriverFactory {
         launchOptions = addLaunchOptions(launchOptions, capabilities);
         BrowserContext browserContext = null;
         if (isGrid) {
-            browserContext = browserType.connect("").newContext(newContextOptions);
+            String cdpURL = Control.exe.getExecSettings().getRunSettings().getRemoteGridURL();
+            if(!cdpURL.endsWith("/"))
+                cdpURL = cdpURL + "/";
+            cdpURL = cdpURL + "playwright?capabilities=" + lambdaTestCapabilities(context, capabilities);
+            browserContext = browserType.connect(cdpURL).newContext(newContextOptions);
         } else {
             browserContext = browserType.launch(launchOptions).newContext(newContextOptions);
         }
@@ -144,8 +157,8 @@ public class PlaywrightDriverFactory {
                     if (!value.trim().equals(""))
                         launchOptions.setChromiumSandbox((boolean) getPropertyValueAsDesiredType(value));
                 } else if (key.toLowerCase().contains("setdevtools")) {
-                    if (!value.trim().equals("")) {}
-                        // launchOptions.setDevtools((boolean) getPropertyValueAsDesiredType(value));
+                    if (!value.trim().equals(""))
+                        customArgs.add("--auto-open-devtools-for-tabs");
                 } else if (key.toLowerCase().contains("setdownloadspath")) {
                     if (!value.trim().equals(""))
                         launchOptions.setDownloadsPath(Paths.get((String) getPropertyValueAsDesiredType(value)));
@@ -278,6 +291,76 @@ public class PlaywrightDriverFactory {
 
         return newContextOptions;
     }
+    
+    private static String lambdaTestCapabilities(RunContext context, List<String> caps) throws UnsupportedEncodingException {
+
+        JsonObject ltcapabilities = new JsonObject();
+        JsonObject ltOptions = new JsonObject();
+
+        String browserName = "pw-"+context.BrowserName.toLowerCase();
+        
+        if (!caps.isEmpty()) {
+            for (String cap : caps) {
+                String key = cap.split("=",2)[0];
+                String value = cap.split("=",2)[1];
+                
+                if (key.toLowerCase().contains("setchannel")) {
+                    if(value.toLowerCase().contains("edge"))
+                        browserName = "Microsoft Edge";
+                    else
+                        browserName = "Chrome";
+                    break;
+                }
+            }
+        }      
+        
+        String platform = "";
+        if(context.PlatformValue.contains("Mac"))
+            platform = "ubuntu-20";
+        else if(context.PlatformValue.contains("Any"))
+            platform = "Windows 11";
+        else
+            platform = context.PlatformValue;
+        
+        String browserVersion = "latest";
+        
+        if (context.BrowserVersionValue == null) {
+            browserVersion = "latest";
+        } else if (context.BrowserVersionValue.contains("Default")) {
+            browserVersion = "latest";
+        } else {
+            browserVersion = context.BrowserVersionValue;
+        }
+        
+        
+        ltcapabilities.addProperty("browserName", browserName);
+        ltcapabilities.addProperty("browserVersion", browserVersion);
+        ltOptions.addProperty("platform", platform);
+        ltOptions.addProperty("name", context.TestCase);
+        if(getLambdaTestCap("build").isEmpty())
+            ltOptions.addProperty("build", context.Scenario + " - " + Control.executionStartTime);
+        else
+            ltOptions.addProperty("build", getLambdaTestCap("build"));
+        ltOptions.addProperty("user", getLambdaTestCap("user"));
+        ltOptions.addProperty("accessKey", getLambdaTestCap("accessKey"));
+        ltOptions.addProperty("video", Boolean.valueOf(getLambdaTestCap("video")));
+        ltOptions.addProperty("console", Boolean.valueOf(getLambdaTestCap("console")));
+        ltOptions.addProperty("network", Boolean.valueOf(getLambdaTestCap("network")));
+        ltOptions.addProperty("resolution", getLambdaTestCap("resolution"));
+        ltOptions.addProperty("visual", Boolean.valueOf(getLambdaTestCap("visual")));
+        ltOptions.addProperty("tunnel", Boolean.valueOf(getLambdaTestCap("tunnel")));
+        if(!getLambdaTestCap("tunnelName").isEmpty())
+             ltOptions.addProperty("tunnel", getLambdaTestCap("tunnelName"));
+        if(!getLambdaTestCap("geoLocation").isEmpty())
+             ltOptions.addProperty("tunnel", getLambdaTestCap("geoLocation"));
+        ltOptions.addProperty("idleTimeout", Integer.valueOf(getLambdaTestCap("idleTimeout")));
+        ltOptions.addProperty("useSpecificBundleVersion", Boolean.valueOf(getLambdaTestCap("useSpecificBundleVersion")));
+        
+        ltcapabilities.add("LT:Options", ltOptions);
+
+
+        return URLEncoder.encode(ltcapabilities.toString(), "utf-8");
+    }
 
     private static void setHttpCredentialsIfAuthenticated(NewContextOptions newContextOptions, Properties contextDetails) {
         boolean isContextAuthenticated = Boolean.parseBoolean(contextDetails.getProperty("isAuthenticated"));
@@ -408,6 +491,10 @@ public class PlaywrightDriverFactory {
     private static Properties getContextDetails(String contextAlias) {
         return Control.getCurrentProject().getProjectSettings().getContextSettings().getContextOptionsFor(contextAlias);
 
+    }
+    
+    private static String getLambdaTestCap(String property) {
+        return Control.getCurrentProject().getProjectSettings().getLambdaTestCaps().getProperty(property);
     }
 
     private static String handleUserDefinedVariables(String value) {

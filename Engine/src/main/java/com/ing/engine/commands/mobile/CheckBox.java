@@ -2,9 +2,9 @@ package com.ing.engine.commands.mobile;
 
 import com.ing.engine.commands.browser.Command;
 import com.ing.engine.core.CommandControl;
-import com.ing.engine.support.Status;
-import com.ing.engine.support.methodInf.Action;
-import com.ing.engine.support.methodInf.ObjectType;
+import com.ing.ingenious.api.status.Status;
+import com.ing.ingenious.api.annotation.Action;
+import com.ing.ingenious.api.types.ObjectType;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;

@@ -22,7 +22,7 @@ public class FileLogger {
     private static double maxFileSize;
     private static String logBackupLoc;
     final static SimpleDateFormat Datefileformat = new SimpleDateFormat("MM-dd-yyyy"),
-            Timefileformat = new SimpleDateFormat("hh-mm-ssa");
+            Timefileformat = new SimpleDateFormat("hh-mm-ss a");
 
     private FileLogger() {
         try {

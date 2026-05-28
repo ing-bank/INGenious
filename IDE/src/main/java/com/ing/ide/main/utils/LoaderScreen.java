@@ -2,7 +2,6 @@
 package com.ing.ide.main.utils;
 
 import java.awt.BorderLayout;
-import java.awt.Color;
 import java.awt.Component;
 import java.awt.event.ActionEvent;
 import javax.swing.ImageIcon;
@@ -34,12 +33,9 @@ public class LoaderScreen extends JPanel {
 
     private void init() {
         setLayout(new BorderLayout());
-        setBackground(Color.WHITE);
         loadLabel.setHorizontalAlignment(SwingConstants.CENTER);
         loadLabel.setHorizontalTextPosition(SwingConstants.CENTER);
         loadLabel.setVerticalTextPosition(SwingConstants.BOTTOM);
-
-        loadLabel.setBackground(Color.WHITE);
         add(loadLabel, BorderLayout.CENTER);
 
         tick = new Timer(500, (ActionEvent ae) -> {
@@ -54,10 +50,15 @@ public class LoaderScreen extends JPanel {
     }
 
     private void setIcon(String iconLoc) {
-        ImageIcon icon = new ImageIcon(
-                LoaderScreen.class.getResource(iconLoc));
-        loadLabel.setIcon(icon);
-        icon.setImageObserver(loadLabel);
+        java.net.URL iconUrl = LoaderScreen.class.getResource(iconLoc);
+        if (iconUrl != null) {
+            ImageIcon icon = new ImageIcon(iconUrl);
+            loadLabel.setIcon(icon);
+            icon.setImageObserver(loadLabel);
+        } else {
+            // Resource not found - clear icon to avoid NullPointerException
+            loadLabel.setIcon(null);
+        }
     }
 
     public void showFor(final Runnable runnable, final String text) {
