@@ -114,26 +114,11 @@ public class FXMenuBar extends JFXPanel {
         );
         bindAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_X, InputEvent.ALT_DOWN_MASK), "Quit");
 
-        bindAccelerator(
-            KeyStroke.getKeyStroke(KeyEvent.VK_P, shortcutMask | InputEvent.ALT_DOWN_MASK),
-            "Object Spy"
-        );
-        bindAccelerator(
-            KeyStroke.getKeyStroke(KeyEvent.VK_H, shortcutMask | InputEvent.ALT_DOWN_MASK),
-            "Object Heal"
-        );
-        bindAccelerator(
-            KeyStroke.getKeyStroke(KeyEvent.VK_I, shortcutMask | InputEvent.ALT_DOWN_MASK),
-            "Image Spy"
-        );
-        bindAccelerator(
-            KeyStroke.getKeyStroke(KeyEvent.VK_M, shortcutMask | InputEvent.ALT_DOWN_MASK),
-            "Mobile Spy"
-        );
-        bindAccelerator(
-            KeyStroke.getKeyStroke(KeyEvent.VK_S, shortcutMask | InputEvent.ALT_DOWN_MASK),
-            "Run Settings"
-        );
+        // bindAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_P, shortcutMask | InputEvent.ALT_DOWN_MASK), "Object Spy");
+        // bindAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_H, shortcutMask | InputEvent.ALT_DOWN_MASK), "Object Heal");
+        // bindAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_I, shortcutMask | InputEvent.ALT_DOWN_MASK), "Image Spy");
+        // bindAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_M, shortcutMask | InputEvent.ALT_DOWN_MASK), "Mobile Spy");
+        bindAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S, shortcutMask | InputEvent.ALT_DOWN_MASK), "Run Settings");
 
         bindAccelerator(
             KeyStroke.getKeyStroke(KeyEvent.VK_E, shortcutMask | InputEvent.SHIFT_DOWN_MASK),
@@ -144,41 +129,11 @@ public class FXMenuBar extends JFXPanel {
             "Har Compare"
         );
 
-        bindAccelerator(
-            KeyStroke.getKeyStroke(
-                KeyEvent.VK_N,
-                InputEvent.SHIFT_DOWN_MASK | InputEvent.ALT_DOWN_MASK
-            ),
-            "Test Design"
-        );
-        bindAccelerator(
-            KeyStroke.getKeyStroke(
-                KeyEvent.VK_E,
-                InputEvent.SHIFT_DOWN_MASK | InputEvent.ALT_DOWN_MASK
-            ),
-            "Test Execution"
-        );
-        bindAccelerator(
-            KeyStroke.getKeyStroke(
-                KeyEvent.VK_D,
-                InputEvent.SHIFT_DOWN_MASK | InputEvent.ALT_DOWN_MASK
-            ),
-            "Dashboard"
-        );
-        bindAccelerator(
-            KeyStroke.getKeyStroke(
-                KeyEvent.VK_T,
-                InputEvent.SHIFT_DOWN_MASK | InputEvent.ALT_DOWN_MASK
-            ),
-            "API Tester"
-        );
-        bindAccelerator(
-            KeyStroke.getKeyStroke(
-                KeyEvent.VK_A,
-                InputEvent.SHIFT_DOWN_MASK | InputEvent.ALT_DOWN_MASK
-            ),
-            "AdjustUI"
-        );
+        bindAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_N, InputEvent.SHIFT_DOWN_MASK | InputEvent.ALT_DOWN_MASK), "Test Design");
+        bindAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_E, InputEvent.SHIFT_DOWN_MASK | InputEvent.ALT_DOWN_MASK), "Test Execution");
+        bindAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_D, InputEvent.SHIFT_DOWN_MASK | InputEvent.ALT_DOWN_MASK), "Dashboard");
+        bindAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_W, InputEvent.SHIFT_DOWN_MASK | InputEvent.ALT_DOWN_MASK), "API Workbench");
+        bindAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_A, InputEvent.SHIFT_DOWN_MASK | InputEvent.ALT_DOWN_MASK), "AdjustUI");
 
         bindAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_F1, 0), "Help");
         bindAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_F3, 0), "About");
