@@ -1384,5 +1384,5 @@ public class Assertions extends General {
         }
 
         return timeout;
-    }
+    }   
 }
