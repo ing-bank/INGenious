@@ -2,6 +2,7 @@ package com.ing.engine.commands.browser;
 
 import com.ing.engine.core.CommandControl;
 import com.ing.ingenious.api.contract.BrowserPluginApi;
+import com.ing.ingenious.api.contract.CommandPluginApi;
 import com.ing.ingenious.api.contract.data.UserDataAccessApi;
 import com.ing.ingenious.api.contract.drivers.AutomationObjectApi;
 import com.ing.ingenious.api.contract.drivers.PlaywrightDriverCreationApi;
@@ -16,6 +17,17 @@ public class General extends Command implements BrowserPluginApi {
 
     public General(CommandControl cc) {
         super(cc);
+    }
+
+    private static final ThreadLocal<Double> defaultAssertionTimeout =
+            ThreadLocal.withInitial(() -> 5000.0);
+
+    protected double getDefaultAssertionTimeout() {
+        return defaultAssertionTimeout.get();
+    }
+
+    protected void setDefaultAssertionTimeout(double timeout) {
+        defaultAssertionTimeout.set(timeout);
     }
 
     public Boolean checkIfDriverIsAlive() {

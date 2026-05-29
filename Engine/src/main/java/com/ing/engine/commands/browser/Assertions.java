@@ -1369,7 +1369,8 @@ public class Assertions extends General {
     }
 
     private double getTimeoutValue() {
-        double timeout = 5000;
+        double timeout = getDefaultAssertionTimeout();
+
         if (StringUtils.isNotBlank(Condition)) {
             try {
                 timeout = Double.parseDouble(Condition.trim());
@@ -1381,6 +1382,7 @@ public class Assertions extends General {
                 );
             }
         }
+
         return timeout;
-    }
+    }   
 }
