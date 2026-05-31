@@ -19,6 +19,9 @@ import java.util.stream.Stream;
     "id",
     "name",
     "version",
+    "testCaseFormat",
+    "autoMigrateCsvToYaml",
+    "keepCsvBackupOnMigrate",
     "attributes",
     "tags",
     "_meta",
@@ -47,6 +50,30 @@ public class ProjectInfo {
     @JsonProperty("version")
     private String version; 
             
+    /**
+     * On-disk test case format. {@code "CSV"} or {@code "YAML"}. When absent
+     * {@code YAML} is assumed for new writes; existing {@code .csv} files on
+     * disk are still read transparently. See
+     * {@code YAML_TESTCASE_MIGRATION_PLAN.md} §4.4.
+     */
+    @JsonProperty("testCaseFormat")
+    private String testCaseFormat;
+
+    /**
+     * Whether the application should auto-migrate CSV test cases to YAML on
+     * project load. Null (legacy) defaults to {@code false} during the opt-in
+     * phase; new projects opt in by setting this to {@code true}.
+     */
+    @JsonProperty("autoMigrateCsvToYaml")
+    private Boolean autoMigrateCsvToYaml;
+
+    /**
+     * Whether to keep the original CSV files in {@code .migration-backup/}
+     * after a successful migration. Defaults to {@code true} for safety.
+     */
+    @JsonProperty("keepCsvBackupOnMigrate")
+    private Boolean keepCsvBackupOnMigrate;
+
     @JsonProperty("name")
     public String getName() {
         return name;
@@ -229,6 +256,36 @@ public class ProjectInfo {
     @JsonIgnore
     private boolean isScn(Meta m) {
         return Meta.Attributes.scenario.name().equals(m.getType());
+    }
+
+    @JsonProperty("testCaseFormat")
+    public String getTestCaseFormat() {
+        return testCaseFormat;
+    }
+
+    @JsonProperty("testCaseFormat")
+    public void setTestCaseFormat(String testCaseFormat) {
+        this.testCaseFormat = testCaseFormat;
+    }
+
+    @JsonProperty("autoMigrateCsvToYaml")
+    public Boolean getAutoMigrateCsvToYaml() {
+        return autoMigrateCsvToYaml;
+    }
+
+    @JsonProperty("autoMigrateCsvToYaml")
+    public void setAutoMigrateCsvToYaml(Boolean autoMigrateCsvToYaml) {
+        this.autoMigrateCsvToYaml = autoMigrateCsvToYaml;
+    }
+
+    @JsonProperty("keepCsvBackupOnMigrate")
+    public Boolean getKeepCsvBackupOnMigrate() {
+        return keepCsvBackupOnMigrate;
+    }
+
+    @JsonProperty("keepCsvBackupOnMigrate")
+    public void setKeepCsvBackupOnMigrate(Boolean keepCsvBackupOnMigrate) {
+        this.keepCsvBackupOnMigrate = keepCsvBackupOnMigrate;
     }
 
 }

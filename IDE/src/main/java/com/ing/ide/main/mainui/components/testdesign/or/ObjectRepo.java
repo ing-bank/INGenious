@@ -124,6 +124,51 @@ public class ObjectRepo extends JPanel implements ItemListener {
         mobileOR.load();
         structuredDataOR.load();
         sapOR.load();
+        selectDefaultRepo();
+    }
+
+    /**
+     * Picks the most relevant OR tab to show after a project is loaded.
+     * <p>
+     * Web is selected by default. However, if the Web OR has no pages while
+     * another repository (Mobile / Structured Data / SAP) does, that repository
+     * is selected instead so the user does not need an extra click to see the
+     * objects for their project type (e.g. a Mobile Test Automation project).
+     * </p>
+     */
+    private void selectDefaultRepo() {
+        try {
+            com.ing.datalib.or.ObjectRepository repo =
+                    testDesign.getProject().getObjectRepository();
+            boolean webHasPages = hasPages(repo.getWebOR() == null ? null : repo.getWebOR().getPages());
+            if (webHasPages) {
+                switchToolBar.webButton.setSelected(true);
+                return;
+            }
+            boolean mobileHasPages = hasPages(repo.getMobileOR() == null ? null : repo.getMobileOR().getPages());
+            if (mobileHasPages) {
+                switchToolBar.mobileButton.setSelected(true);
+                return;
+            }
+            boolean structuredHasPages = hasPages(repo.getStructuredDataOR() == null ? null : repo.getStructuredDataOR().getPages());
+            if (structuredHasPages) {
+                switchToolBar.structuredDataButton.setSelected(true);
+                return;
+            }
+            boolean sapHasPages = hasPages(repo.getSapOR() == null ? null : repo.getSapOR().getPages());
+            if (sapHasPages) {
+                switchToolBar.sapButton.setSelected(true);
+                return;
+            }
+            switchToolBar.webButton.setSelected(true);
+        } catch (Exception ex) {
+            // Fall back to Web if anything goes wrong while inspecting the OR
+            switchToolBar.webButton.setSelected(true);
+        }
+    }
+
+    private static boolean hasPages(java.util.List<?> pages) {
+        return pages != null && !pages.isEmpty();
     }
 
     public void adjustUI() {

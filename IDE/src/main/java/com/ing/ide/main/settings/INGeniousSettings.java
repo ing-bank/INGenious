@@ -863,6 +863,7 @@ public class INGeniousSettings extends javax.swing.JFrame {
             }
         }
         testConn.setIcon(DEFAULT_ICON);
+        applyTestConnDefaultStyle();
     }
 
     public List<String> getUserDefinedList() {
@@ -1439,6 +1440,7 @@ public class INGeniousSettings extends javax.swing.JFrame {
                 this.setCursor(java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.WAIT_CURSOR));
                 if (connection.isConnected()) {
                     testConn.setIcon(PASS_ICON);
+                    applyTestConnSuccessStyle();
                     this.setCursor(java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.DEFAULT_CURSOR));
                     return;
 
@@ -1450,6 +1452,33 @@ public class INGeniousSettings extends javax.swing.JFrame {
         }
         this.setCursor(java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.DEFAULT_CURSOR));
         testConn.setIcon(FAIL_ICON);
+        applyTestConnDefaultStyle();
+    }
+
+    /**
+     * Switch the Test Connection button to a white background so the green
+     * "success" bulb icon stands out against the otherwise blue primary button.
+     */
+    private void applyTestConnSuccessStyle() {
+        if (testConn == null) return;
+        testConn.setBackground(Color.WHITE);
+        testConn.setForeground(MODERN_TEXT);
+        testConn.putClientProperty("JButton.hoverBackground", Color.WHITE);
+        testConn.putClientProperty("JButton.pressedBackground", MODERN_ACCENT_LIGHT);
+        testConn.setBorder(BorderFactory.createCompoundBorder(
+            BorderFactory.createLineBorder(MODERN_ACCENT, 1),
+            new EmptyBorder(9, 27, 9, 27)
+        ));
+        testConn.repaint();
+    }
+
+    /**
+     * Restore the Test Connection button to its default primary (blue) style,
+     * used for the initial yellow bulb and the red "failure" bulb states.
+     */
+    private void applyTestConnDefaultStyle() {
+        if (testConn == null) return;
+        styleModernButton(testConn, true);
     }
 
 

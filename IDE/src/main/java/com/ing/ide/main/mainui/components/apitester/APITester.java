@@ -654,36 +654,32 @@ public class APITester implements SlideShow.SlideChangeListener {
         if (auth == null || auth.getAuthType() == AuthConfig.AuthType.NONE) {
             return;
         }
-        
+
         TestStep authStep = testCase.addNewStep();
         authStep.setObject("Webservice");
-        
+        authStep.setAction("addHeader");
+        authStep.setCondition("");
+
         switch (auth.getAuthType()) {
-            case BASIC:
+            case BASIC: {
                 authStep.setDescription("Add Basic Auth Header");
-                authStep.setAction("addHeader");
-                authStep.setInput("Authorization");
-                // Basic auth value
                 String basicAuth = "Basic " + java.util.Base64.getEncoder().encodeToString(
                         (auth.getBasicUsername() + ":" + auth.getBasicPassword()).getBytes());
-                authStep.setCondition(basicAuth);
+                authStep.setInput("@Authorization=" + basicAuth);
                 break;
-                
-            case BEARER:
+            }
+            case BEARER: {
                 authStep.setDescription("Add Bearer Token Header");
-                authStep.setAction("addHeader");
-                authStep.setInput("Authorization");
                 String prefix = auth.getBearerPrefix() != null ? auth.getBearerPrefix() : "Bearer";
-                authStep.setCondition(prefix + " " + auth.getBearerToken());
+                authStep.setInput("@Authorization=" + prefix + " " + auth.getBearerToken());
                 break;
-                
-            case API_KEY:
-                authStep.setDescription("Add API Key Header");
-                authStep.setAction("addHeader");
-                authStep.setInput(auth.getApiKeyName() != null ? auth.getApiKeyName() : "X-API-Key");
-                authStep.setCondition(auth.getApiKeyValue());
+            }
+            case API_KEY: {
+                String keyName = auth.getApiKeyName() != null ? auth.getApiKeyName() : "X-API-Key";
+                authStep.setDescription("Add API Key Header: " + keyName);
+                authStep.setInput("@" + keyName + "=" + (auth.getApiKeyValue() != null ? auth.getApiKeyValue() : ""));
                 break;
-                
+            }
             default:
                 // Remove the step if auth type not supported
                 testCase.getTestSteps().remove(authStep);

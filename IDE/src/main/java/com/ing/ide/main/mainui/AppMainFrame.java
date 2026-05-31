@@ -37,7 +37,6 @@ import com.ing.ide.util.SystemInfo;
 import com.ing.ide.util.Utility;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import java.awt.BorderLayout;
-import java.awt.Desktop;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.WindowAdapter;
@@ -181,10 +180,10 @@ public class AppMainFrame extends JFrame {
                         sActionListener.closeBddEditorIfOpen();
                     }
                     setDefaultCloseOperation(AppMainFrame.EXIT_ON_CLOSE);
-                    dispose();
                     if (quitType == QUIT_TYPE.RESTART) {
                         doRestart();
                     }
+                    dispose();
                 }
             }
         });
@@ -755,13 +754,29 @@ public class AppMainFrame extends JFrame {
     }
 
     private void doRestart() {
-        if (Desktop.isDesktopSupported()) {
-            try {
-                String file = SystemInfo.isWindows() ? "ingenious.bat" : "ingenious.command";
-                Desktop.getDesktop().open(new File(file));
-            } catch (Exception ex) {
-                // Do Nothing
+        try {
+            File workingDir = new File(System.getProperty("user.dir"));
+            ProcessBuilder pb;
+            if (SystemInfo.isWindows()) {
+                // Launch the batch file in a new console window, detached from this JVM
+                pb = new ProcessBuilder("cmd", "/c", "start", "\"INGenious\"", "ingenious.bat");
+            } else if (SystemInfo.osx()) {
+                // 'open' launches the .command file via Terminal.app as an independent process
+                pb = new ProcessBuilder("/usr/bin/open", "ingenious.command");
+            } else {
+                // Linux / other Unix: run the shell script directly
+                File script = new File(workingDir, "ingenious.command");
+                if (!script.canExecute()) {
+                    script.setExecutable(true);
+                }
+                pb = new ProcessBuilder("/bin/sh", script.getAbsolutePath());
             }
+            pb.directory(workingDir);
+            pb.redirectErrorStream(true);
+            pb.redirectOutput(ProcessBuilder.Redirect.DISCARD);
+            pb.start();
+        } catch (Exception ex) {
+            Logger.getLogger(AppMainFrame.class.getName()).log(Level.WARNING, "Failed to restart INGenious", ex);
         }
     }
     

@@ -6,6 +6,7 @@ import com.ing.datalib.or.common.ObjectGroup;
 import com.ing.datalib.or.image.ImageORObject;
 import com.ing.datalib.or.mobile.MobileORObject;
 import com.ing.datalib.or.mobile.MobileORPage;
+import com.ing.datalib.or.mobile.MobilePlatform;
 import com.ing.datalib.or.mobile.ResolvedMobileObject;
 import com.ing.datalib.or.web.WebORObject;
 import com.ing.datalib.or.web.WebORPage;
@@ -257,14 +258,31 @@ public class MobileObject implements MobileObjectApi {
     private List<WebElement> getMElements(SearchContext context, ObjectGroup<MobileORObject> objectGroup, String prop) {
         long startTime = System.nanoTime();
         List<WebElement> elements = null;
+        MobilePlatform platform = resolvePlatform();
         for (MobileORObject object : objectGroup.getObjects()) {
-            elements = getElements(context, object.getAttributes(), prop);
+            elements = getElements(context, object.getAttributes(platform), prop);
             if (elements != null && !elements.isEmpty()) {
                 break;
             }
         }
         printStats(elements, objectGroup, startTime, System.nanoTime());
         return elements;
+    }
+
+    /**
+     * Determines which mobile platform's locator attributes to use for the
+     * current execution. Falls back to Android when the driver type cannot
+     * be detected, preserving legacy behaviour.
+     */
+    private MobilePlatform resolvePlatform() {
+        try {
+            if (driver instanceof io.appium.java_client.ios.IOSDriver) {
+                return MobilePlatform.IOS;
+            }
+        } catch (Throwable ignore) {
+            // io.appium not on classpath in some contexts – fall back.
+        }
+        return MobilePlatform.ANDROID;
     }
 
     private void printStats(List<?> elements, ObjectGroup<?> objectGroup, long startTime, long stopTime) {

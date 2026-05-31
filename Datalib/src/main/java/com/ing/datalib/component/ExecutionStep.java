@@ -54,6 +54,15 @@ public class ExecutionStep {
         loadStep(record);
     }
 
+    /**
+     * Constructs an execution step from a pre-parsed row (format-agnostic).
+     * Used by the YAML loader.
+     */
+    public ExecutionStep(TestSet testSet, List<String> row) {
+        this.testSet = testSet;
+        loadStep(row);
+    }
+
     public ExecutionStep(TestSet testSet) {
         this.testSet = testSet;
         loadEmptyStep();
@@ -141,6 +150,17 @@ public class ExecutionStep {
     private void loadStep(CSVRecord record) {
         for (int i = 0; i < record.size(); i++) {
             exeStepDetails.add(record.get(i));
+        }
+    }
+
+    private void loadStep(List<String> row) {
+        int target = HEADERS.size();
+        for (int i = 0; i < Math.min(row.size(), target); i++) {
+            String value = row.get(i);
+            exeStepDetails.add(value == null ? "" : value);
+        }
+        while (exeStepDetails.size() < target) {
+            exeStepDetails.add("");
         }
     }
 

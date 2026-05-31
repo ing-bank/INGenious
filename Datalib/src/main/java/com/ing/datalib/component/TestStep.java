@@ -72,6 +72,16 @@ public class TestStep {
         loadStep(record);
     }
 
+    /**
+     * Constructs a step from a pre-parsed row of values (format-agnostic).
+     * Used by the YAML loader; the row is expected to be aligned with
+     * {@link HEADERS} and is padded/truncated to the header count.
+     */
+    public TestStep(TestCase testcase, List<String> row) {
+        this.testCase = testcase;
+        loadStep(row);
+    }
+
     public TestStep(TestCase testcase) {
         this.testCase = testcase;
         loadEmptyStep();
@@ -152,6 +162,17 @@ public class TestStep {
             stepDetails.add(record.get(i));
         }
         while (stepDetails.size() < HEADERS.values().length) {
+            stepDetails.add("");
+        }
+    }
+
+    private void loadStep(List<String> row) {
+        int target = HEADERS.values().length;
+        for (int i = 0; i < Math.min(row.size(), target); i++) {
+            String value = row.get(i);
+            stepDetails.add(value == null ? "" : value);
+        }
+        while (stepDetails.size() < target) {
             stepDetails.add("");
         }
     }
