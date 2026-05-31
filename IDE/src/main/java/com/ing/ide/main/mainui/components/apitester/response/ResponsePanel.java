@@ -1,5 +1,7 @@
 package com.ing.ide.main.mainui.components.apitester.response;
 
+import com.ing.datalib.api.APIAssertion;
+import com.ing.datalib.api.APIRequest;
 import com.ing.datalib.api.APIResponse;
 import com.ing.ide.main.mainui.components.apitester.APITesterUI;
 import com.ing.ide.main.mainui.components.apitester.util.APITesterColors;
@@ -8,10 +10,27 @@ import java.util.List;
 import java.util.Map;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
-import javax.swing.table.DefaultTableModel;
+import javax.swing.table.DefaultTableModel;import com.ing.ide.main.mainui.components.apitester.util.JsonPathLocator;
+import com.ing.ide.main.mainui.components.apitester.util.XPathLocator;
+import com.ing.ide.util.Notification;
+
 import org.fife.ui.rsyntaxtextarea.RSyntaxTextArea;
 import org.fife.ui.rsyntaxtextarea.SyntaxConstants;
 import org.fife.ui.rtextarea.RTextScrollPane;
+import org.kordamp.ikonli.materialdesign2.MaterialDesignC;
+import org.kordamp.ikonli.swing.FontIcon;
+
+import javax.swing.*;
+import javax.swing.border.EmptyBorder;
+import javax.swing.table.DefaultTableModel;
+import java.awt.*;
+import java.awt.datatransfer.Clipboard;
+import java.awt.datatransfer.StringSelection;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
 
 /**
  * Panel for displaying API response.
@@ -146,6 +165,7 @@ public class ResponsePanel extends JPanel {
         bodyTextArea.setBracketMatchingEnabled(true);
         bodyTextArea.setMarkOccurrences(true);
         bodyTextArea.setSyntaxEditingStyle(SyntaxConstants.SYNTAX_STYLE_JSON);
+        installAssertionPopup(bodyTextArea);
         RTextScrollPane bodyScroll = new RTextScrollPane(bodyTextArea);
         bodyScroll.setLineNumbersEnabled(true);
         bodyScroll.setBorder(BorderFactory.createEmptyBorder());
@@ -624,6 +644,268 @@ public class ResponsePanel extends JPanel {
                 updateComponentColors((Container) c);
             }
         }
+    }
+
+    // ═══════════════════════════════════════════════════════════════════
+    // Assertion popup — right-click on the response body to add assertions
+    // ═══════════════════════════════════════════════════════════════════
+
+    /**
+     * Installs a right-click context menu on the response body so the user can
+     * generate assertions (JSON path exists / value equals, body contains, ...)
+     * directly from the response they just received.
+     */
+    private void installAssertionPopup(final RSyntaxTextArea area) {
+        area.addMouseListener(new MouseAdapter() {
+            @Override public void mousePressed(MouseEvent e)  { maybeShow(e); }
+            @Override public void mouseReleased(MouseEvent e) { maybeShow(e); }
+            private void maybeShow(MouseEvent e) {
+                if (!e.isPopupTrigger()) return;
+                int offset = area.viewToModel2D(e.getPoint());
+                if (offset < 0) offset = area.getCaretPosition();
+                area.setCaretPosition(offset);
+                JPopupMenu menu = buildAssertionMenu(area, offset);
+                if (menu.getComponentCount() > 0) {
+                    menu.show(area, e.getX(), e.getY());
+                }
+            }
+        });
+    }
+
+    /**
+     * Builds a popup header showing a generated path (JSONPath/XPath) alongside a
+     * small copy-to-clipboard icon button. Clicking the icon copies the raw path
+     * (without the leading "Path:" label) to the system clipboard.
+     */
+    private JComponent buildPathHeader(String label, final String path, final JPopupMenu owner) {
+        JPanel row = new JPanel(new BorderLayout(6, 0));
+        row.setOpaque(false);
+        row.setBorder(new EmptyBorder(2, 8, 2, 4));
+
+        JLabel pathLabel = new JLabel(label + ": " + path);
+        pathLabel.setEnabled(false);
+        row.add(pathLabel, BorderLayout.CENTER);
+
+        FontIcon copyIcon = FontIcon.of(MaterialDesignC.CONTENT_COPY, 14,
+                UIManager.getColor("Label.foreground"));
+        JButton copyBtn = new JButton(copyIcon);
+        copyBtn.setToolTipText("Copy path to clipboard");
+        copyBtn.setFocusable(false);
+        copyBtn.setBorderPainted(false);
+        copyBtn.setContentAreaFilled(false);
+        copyBtn.setMargin(new Insets(0, 0, 0, 0));
+        copyBtn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        copyBtn.addActionListener(ev -> {
+            try {
+                Clipboard cb = Toolkit.getDefaultToolkit().getSystemClipboard();
+                cb.setContents(new StringSelection(path), null);
+                Notification.showInfo(this, "Copied to clipboard: " + path);
+            } catch (Exception ex) {
+                Notification.showWarning(this, "Could not copy to clipboard: " + ex.getMessage());
+            }
+            if (owner != null) owner.setVisible(false);
+        });
+        row.add(copyBtn, BorderLayout.EAST);
+
+        return row;
+    }
+
+    private JPopupMenu buildAssertionMenu(RSyntaxTextArea area, int offset) {
+        JPopupMenu menu = new JPopupMenu();
+        String body = rawBody != null ? area.getText() : null;
+        String selection = area.getSelectedText();
+
+        // JSON-specific options
+        if (body != null && SyntaxConstants.SYNTAX_STYLE_JSON.equals(area.getSyntaxEditingStyle())) {
+            JsonPathLocator.Hit hit = JsonPathLocator.locate(body, offset);
+            if (hit != null && hit.path != null && !"$".equals(hit.path)) {
+                menu.add(buildPathHeader("Path", hit.path, menu));
+                menu.addSeparator();
+
+                final String path = hit.path;
+                JMenuItem exists = new JMenuItem("Assert JSON path exists");
+                exists.addActionListener(ev -> addAssertion(
+                        APIAssertion.jsonPathExists(path)));
+                menu.add(exists);
+
+                if (hit.value != null) {
+                    final String value = hit.value;
+                    String preview = value.length() > 40 ? value.substring(0, 37) + "..." : value;
+                    JMenuItem equals = new JMenuItem("Assert value equals: \"" + preview + "\"");
+                    equals.addActionListener(ev -> addAssertion(
+                            APIAssertion.jsonPath(path, APIAssertion.Operator.EQUALS, value)));
+                    menu.add(equals);
+
+                    JMenuItem contains = new JMenuItem("Assert value contains: \"" + preview + "\"");
+                    contains.addActionListener(ev -> addAssertion(
+                            APIAssertion.jsonPath(path, APIAssertion.Operator.CONTAINS, value)));
+                    menu.add(contains);
+
+                    JMenuItem custom = new JMenuItem("Assert value (custom)...");
+                    custom.addActionListener(ev -> promptCustomJsonAssertion(path, value));
+                    menu.add(custom);
+                } else {
+                    JMenuItem custom = new JMenuItem("Assert value (custom)...");
+                    custom.addActionListener(ev -> promptCustomJsonAssertion(path, ""));
+                    menu.add(custom);
+                }
+                menu.addSeparator();
+            }
+        }
+
+        // XML-specific options
+        if (body != null && SyntaxConstants.SYNTAX_STYLE_XML.equals(area.getSyntaxEditingStyle())) {
+            XPathLocator.Hit hit = XPathLocator.locate(body, offset);
+            if (hit != null && hit.path != null && !"/".equals(hit.path)) {
+                menu.add(buildPathHeader("XPath", hit.path, menu));
+                menu.addSeparator();
+
+                final String path = hit.path;
+                JMenuItem exists = new JMenuItem("Assert XPath exists");
+                exists.addActionListener(ev -> addAssertion(
+                        APIAssertion.xPathExists(path)));
+                menu.add(exists);
+
+                if (hit.value != null && !hit.value.isEmpty()) {
+                    final String value = hit.value;
+                    String preview = value.length() > 40 ? value.substring(0, 37) + "..." : value;
+                    JMenuItem equals = new JMenuItem("Assert value equals: \"" + preview + "\"");
+                    equals.addActionListener(ev -> addAssertion(
+                            APIAssertion.xPath(path, APIAssertion.Operator.EQUALS, value)));
+                    menu.add(equals);
+
+                    JMenuItem contains = new JMenuItem("Assert value contains: \"" + preview + "\"");
+                    contains.addActionListener(ev -> addAssertion(
+                            APIAssertion.xPath(path, APIAssertion.Operator.CONTAINS, value)));
+                    menu.add(contains);
+
+                    JMenuItem custom = new JMenuItem("Assert value (custom)...");
+                    custom.addActionListener(ev -> promptCustomXPathAssertion(path, value));
+                    menu.add(custom);
+                } else {
+                    JMenuItem custom = new JMenuItem("Assert value (custom)...");
+                    custom.addActionListener(ev -> promptCustomXPathAssertion(path, ""));
+                    menu.add(custom);
+                }
+                menu.addSeparator();
+            }
+        }
+
+        // Body-text options (always available when there is a body)
+        if (body != null && !body.isEmpty()) {
+            String snippet = selection;
+            if (snippet == null || snippet.isEmpty()) {
+                snippet = currentLineText(area, offset);
+            }
+            if (snippet != null) snippet = snippet.trim();
+            if (snippet != null && !snippet.isEmpty()) {
+                String preview = snippet.length() > 40 ? snippet.substring(0, 37) + "..." : snippet;
+                JMenuItem contains = new JMenuItem("Assert body contains: \"" + preview + "\"");
+                final String value = snippet;
+                contains.addActionListener(ev -> {
+                    APIAssertion a = new APIAssertion(
+                            APIAssertion.AssertionType.BODY_CONTAINS,
+                            null, APIAssertion.Operator.CONTAINS, value);
+                    a.setName("Body contains \"" + preview + "\"");
+                    addAssertion(a);
+                });
+                menu.add(contains);
+            }
+        }
+
+        return menu;
+    }
+
+    private void promptCustomJsonAssertion(String path, String currentValue) {
+        APIAssertion.Operator[] ops = {
+                APIAssertion.Operator.EQUALS,
+                APIAssertion.Operator.NOT_EQUALS,
+                APIAssertion.Operator.CONTAINS,
+                APIAssertion.Operator.STARTS_WITH,
+                APIAssertion.Operator.ENDS_WITH,
+                APIAssertion.Operator.MATCHES_REGEX,
+                APIAssertion.Operator.GREATER_THAN,
+                APIAssertion.Operator.LESS_THAN,
+                APIAssertion.Operator.EXISTS,
+                APIAssertion.Operator.NOT_EXISTS
+        };
+        JComboBox<APIAssertion.Operator> opCombo = new JComboBox<>(ops);
+        JTextField pathField = new JTextField(path, 24);
+        JTextField valueField = new JTextField(currentValue == null ? "" : currentValue, 24);
+        JPanel form = new JPanel(new GridLayout(0, 1, 4, 4));
+        form.add(new JLabel("JSON path:"));
+        form.add(pathField);
+        form.add(new JLabel("Operator:"));
+        form.add(opCombo);
+        form.add(new JLabel("Expected value:"));
+        form.add(valueField);
+        int res = JOptionPane.showConfirmDialog(this, form, "Add JSON Path Assertion",
+                JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
+        if (res != JOptionPane.OK_OPTION) return;
+        APIAssertion.Operator op = (APIAssertion.Operator) opCombo.getSelectedItem();
+        addAssertion(APIAssertion.jsonPath(pathField.getText().trim(), op, valueField.getText()));
+    }
+
+    private void promptCustomXPathAssertion(String path, String currentValue) {
+        APIAssertion.Operator[] ops = {
+                APIAssertion.Operator.EQUALS,
+                APIAssertion.Operator.NOT_EQUALS,
+                APIAssertion.Operator.CONTAINS,
+                APIAssertion.Operator.STARTS_WITH,
+                APIAssertion.Operator.ENDS_WITH,
+                APIAssertion.Operator.MATCHES_REGEX,
+                APIAssertion.Operator.GREATER_THAN,
+                APIAssertion.Operator.LESS_THAN,
+                APIAssertion.Operator.EXISTS,
+                APIAssertion.Operator.NOT_EXISTS
+        };
+        JComboBox<APIAssertion.Operator> opCombo = new JComboBox<>(ops);
+        JTextField pathField = new JTextField(path, 24);
+        JTextField valueField = new JTextField(currentValue == null ? "" : currentValue, 24);
+        JPanel form = new JPanel(new GridLayout(0, 1, 4, 4));
+        form.add(new JLabel("XPath:"));
+        form.add(pathField);
+        form.add(new JLabel("Operator:"));
+        form.add(opCombo);
+        form.add(new JLabel("Expected value:"));
+        form.add(valueField);
+        int res = JOptionPane.showConfirmDialog(this, form, "Add XPath Assertion",
+                JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE);
+        if (res != JOptionPane.OK_OPTION) return;
+        APIAssertion.Operator op = (APIAssertion.Operator) opCombo.getSelectedItem();
+        addAssertion(APIAssertion.xPath(pathField.getText().trim(), op, valueField.getText()));
+    }
+
+    private String currentLineText(RSyntaxTextArea area, int offset) {
+        try {
+            int line = area.getLineOfOffset(offset);
+            int start = area.getLineStartOffset(line);
+            int end = area.getLineEndOffset(line);
+            return area.getText(start, end - start);
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    private void addAssertion(APIAssertion assertion) {
+        if (assertion == null || parent == null) return;
+        APIRequest req = parent.getCurrentRequest();
+        if (req == null) {
+            Notification.showWarning(this, "No active request - cannot add assertion.");
+            return;
+        }
+        List<APIAssertion> list = req.getAssertions();
+        if (list == null) {
+            list = new ArrayList<>();
+            req.setAssertions(list);
+        }
+        list.add(assertion);
+        try {
+            parent.forceSaveCurrentRequest();
+        } catch (Exception ignored) {
+            // Non-collection request: held in memory only.
+        }
+        Notification.showSuccess(this, "Assertion added: " + assertion.getName());
     }
 
     /**

@@ -4,7 +4,6 @@ import com.galenframework.config.GalenConfig;
 import com.galenframework.config.GalenProperty;
 import com.galenframework.utils.GalenUtils;
 import com.ing.datalib.settings.ProjectSettings;
-import com.ing.datalib.settings.emulators.Emulator;
 import com.ing.engine.core.Control;
 import com.ing.engine.core.RunContext;
 import com.ing.engine.drivers.customWebDriver.EmptyDriver;
@@ -89,18 +88,8 @@ public class WebDriverCreation implements MobileDriverControlApi {
     }
 
     public String getDriverName(String browserName) {
-        try {
-            Emulator emulator = Control
-                .getCurrentProject()
-                .getProjectSettings()
-                .getEmulators()
-                .getEmulator(browserName);
-            if (emulator != null) {
-                return emulator.getDriver();
-            }
-        } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.OFF, null, ex);
-        }
+        // Devices no longer carry a separate "Driver" field; the browser/device
+        // name is sufficient for downstream lookups.
         return browserName;
     }
 
@@ -250,13 +239,8 @@ public class WebDriverCreation implements MobileDriverControlApi {
 
     public boolean isLambdaTestExecutionPlatform() {
         if (!runContext.BrowserName.equalsIgnoreCase("No Browser")) {
-            String url = Control
-                .getCurrentProject()
-                .getProjectSettings()
-                .getEmulators()
-                .getEmulator(runContext.BrowserName)
-                .getRemoteUrl();
-            return url.endsWith("hub.lambdatest.com/wd/hub");
+            String url = Control.getCurrentProject().getProjectSettings().resolveRemoteUrl(runContext.BrowserName);
+            return url != null && url.endsWith("hub.lambdatest.com/wd/hub");
         } else {
             return false;
         }

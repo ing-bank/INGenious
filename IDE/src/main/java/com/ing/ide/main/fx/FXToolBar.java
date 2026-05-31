@@ -62,8 +62,8 @@ public class FXToolBar extends JFXPanel {
                 new Separator(),
                 createAutoSaveSection(),
                 new Separator(),
-                createButton("Run Settings", "RunSettings"),
-                createButton("Browser Configuration", "BrowserConfiguration"),
+                createButton("Settings", "RunSettings"),
+                createButton("Archetype Configurations", "BrowserConfiguration"),
                 new Separator(),
                 createAPITesterButton(),
                 createSpacer()

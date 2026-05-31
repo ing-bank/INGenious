@@ -50,6 +50,18 @@ public class FileUtils {
         }
     };
 
+    /**
+     * Matches YAML test case / test set files ({@code .yaml} or {@code .yml}).
+     * Introduced by the YAML test case migration; coexists with
+     * {@link #CSV_FILTER} during the dual-format period.
+     */
+    public static final FilenameFilter YAML_FILTER = new FilenameFilter() {
+        @Override
+        public boolean accept(File dir, String name) {
+            return name.matches("(?i).*\\.ya?ml");
+        }
+    };
+
     public static void loadFileinTable(File file, JTable table) {
         if (file.exists()) {
             try (Reader in = new FileReader(file)) {

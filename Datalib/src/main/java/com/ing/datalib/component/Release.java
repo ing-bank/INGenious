@@ -1,5 +1,6 @@
 package com.ing.datalib.component;
 
+import com.ing.datalib.component.io.TestCaseStoreFactory;
 import com.ing.datalib.component.utils.FileUtils;
 import java.io.File;
 import java.util.ArrayList;
@@ -68,8 +69,8 @@ public class Release extends DataModel {
     private void loadTestSets() {
         File relDir = new File(getLocation());
         if (relDir.exists()) {
-            for (String testSet : relDir.list(FileUtils.CSV_FILTER)) {
-                testSets.add(new TestSet(this, testSet));
+            for (String baseName : TestCaseStoreFactory.listLogicalFiles(relDir).keySet()) {
+                testSets.add(new TestSet(this, baseName));
             }
         }
     }

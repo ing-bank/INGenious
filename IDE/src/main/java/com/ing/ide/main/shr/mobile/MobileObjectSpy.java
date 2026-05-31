@@ -7,6 +7,7 @@ import com.ing.datalib.or.common.ObjectGroup;
 import com.ing.datalib.or.mobile.MobileOR;
 import com.ing.datalib.or.mobile.MobileORObject;
 import com.ing.datalib.or.mobile.MobileORPage;
+import com.ing.datalib.settings.emulators.Device;
 import com.ing.datalib.settings.emulators.Emulator;
 import com.ing.datalib.util.data.LinkedProperties;
 import com.ing.ide.main.fx.INGIcons;
@@ -151,16 +152,15 @@ public class MobileObjectSpy extends javax.swing.JFrame {
     }
 
     public void reloadEmulators() {
-        andEmulatorCombo.setModel(
-            new DefaultComboBoxModel(
-                sMainFrame
-                    .getProject()
-                    .getProjectSettings()
-                    .getEmulators()
-                    .getAppiumEmulatorNames()
-                    .toArray()
-            )
-        );
+        // Merge legacy Appium emulator names with new "Manage Devices" entries.
+        java.util.List<String> names = new java.util.ArrayList<>(sMainFrame.getProject()
+                .getProjectSettings().getEmulators().getAppiumEmulatorNames());
+        for (String d : sMainFrame.getProject().getProjectSettings().getDevices().getDeviceNames()) {
+            if (!names.contains(d)) {
+                names.add(d);
+            }
+        }
+        andEmulatorCombo.setModel(new DefaultComboBoxModel(names.toArray()));
         iosEmulatorCombo.setModel(andEmulatorCombo.getModel());
     }
 
@@ -1417,11 +1417,14 @@ public class MobileObjectSpy extends javax.swing.JFrame {
         String val = Objects.toString(emulatorName, "");
         if (!val.trim().isEmpty()) {
             if (((DefaultComboBoxModel) iosEmulatorCombo.getModel()).getIndexOf(val) == -1) {
-                sMainFrame
-                    .getProject()
-                    .getProjectSettings()
-                    .getEmulators()
-                    .addAppiumEmulator(val, appiumServerLoc.getText());
+                // New entries are added to the "Manage Devices" store; legacy
+                // Emulators.json is no longer written from the Object Spy.
+                sMainFrame.getProject().getProjectSettings().getDevices().addDevice(val);
+                Device device = sMainFrame.getProject().getProjectSettings().getDevices().getDevice(val);
+                if (device != null) {
+                    device.setRemoteUrl(appiumServerLoc.getText());
+                }
+                sMainFrame.getProject().getProjectSettings().getDevices().save();
                 ((DefaultComboBoxModel) iosEmulatorCombo.getModel()).addElement(val);
                 iosEmulatorCombo.setSelectedItem(emulatorName);
                 andEmulatorCombo.setSelectedItem(emulatorName);
@@ -1482,11 +1485,18 @@ public class MobileObjectSpy extends javax.swing.JFrame {
     }
 
     private void loadEmulator(String emulatorName) {
-        Emulator emul = sMainFrame
-            .getProject()
-            .getProjectSettings()
-            .getEmulators()
-            .getEmulator(emulatorName);
+        // Prefer the new "Manage Devices" store; fall back to legacy emulators
+        // for any project that hasn't been migrated yet (defensive only).
+        Device device = sMainFrame.getProject().getProjectSettings()
+                .getDevices().getDevice(emulatorName);
+        if (device != null) {
+            appiumServerLoc.setText(device.getRemoteUrl());
+            PropUtils.loadPropertiesInTable(
+                    sMainFrame.getProject().getProjectSettings().getCapabilities().getCapabiltiesFor(emulatorName), jTable3);
+            return;
+        }
+        Emulator emul = sMainFrame.getProject().getProjectSettings()
+                .getEmulators().getEmulator(emulatorName);
         if (emul != null) {
             appiumServerLoc.setText(emul.getRemoteUrl());
             PropUtils.loadPropertiesInTable(

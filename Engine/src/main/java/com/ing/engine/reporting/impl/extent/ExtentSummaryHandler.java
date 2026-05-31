@@ -78,11 +78,9 @@ public class ExtentSummaryHandler extends SummaryHandler implements PrimaryHandl
     private void startLaunch(String testset) {
         if (isExtentEnabled()) {
             try {
-                initiateExtentReport(
-                    getExtentSetting("HTML-Theme"),
-                    testset + " : Execution Report",
-                    testset + " : Execution Report"
-                );
+                // The Extent report theme is intentionally hard-coded to "dark";
+                // the per-project "Extent Report Settings" tab has been removed.
+                initiateExtentReport("dark", testset + " : Execution Report", testset + " : Execution Report");
             } catch (IOException | ParseException e) {
                 LOGGER.log(Level.SEVERE, e.getMessage(), e);
             }

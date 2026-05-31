@@ -4,16 +4,24 @@ import com.ing.engine.core.RunManager;
 import java.io.File;
 
 public class FilePath extends AppResourcePath {
-    private static final String OR = "OR.object";
-    private static final String IOR = "IOR.object";
-    private static final String MOR = "MOR.object";
-    private static final String FORMAT = ".csv";
-    private static final String DESIGN = "TestPlan";
-    private static final String REUSABLE = "ReusableComponents";
-    private static final String EXECUTION = "TestLab";
-    private static final String IOR_DATA = "ImageObjectRepository";
-    private static final String OR_DATA = "ObjectRepository";
-    private static final String PAGEDUMP = "PageDump";
+
+    private final static String OR = "OR.object";
+    private final static String IOR = "IOR.object";
+    private final static String MOR = "MOR.object";
+    /**
+     * Legacy fallback extension. Use {@link #resolveExtension(String)} or the
+     * {@code getTestCasePath} / {@code getTestSetPath} overloads to honour
+     * YAML files written by the new test case format.
+     */
+    private final static String FORMAT = ".csv";
+    private final static String YAML_FORMAT = ".yaml";
+    private final static String YML_FORMAT = ".yml";
+    private final static String DESIGN = "TestPlan";
+    private final static String REUSABLE = "ReusableComponents";
+    private final static String EXECUTION = "TestLab";
+    private final static String IOR_DATA = "ImageObjectRepository";
+    private final static String OR_DATA = "ObjectRepository";
+    private final static String PAGEDUMP = "PageDump";
 
     private static final String PROJ_SETT = "Settings";
     private static final String SETT_EXECUTION = "TestExecution";
@@ -77,12 +85,7 @@ public class FilePath extends AppResourcePath {
     }
 
     public static String getTestSetPath() {
-        return (
-            getReleasePath() +
-            File.separatorChar +
-            RunManager.getGlobalSettings().getTestSet() +
-            FORMAT
-        );
+        return resolveFile(getReleasePath(), RunManager.getGlobalSettings().getTestSet());
     }
 
     public static String getScenarioPath() {
@@ -92,12 +95,7 @@ public class FilePath extends AppResourcePath {
     }
 
     public static String getTestCasePath() {
-        return (
-            getScenarioPath() +
-            File.separatorChar +
-            RunManager.getGlobalSettings().getTestCase() +
-            FORMAT
-        );
+        return resolveFile(getScenarioPath(), RunManager.getGlobalSettings().getTestCase());
     }
 
     public static String getScenarioPath(String scenario) {
@@ -105,7 +103,39 @@ public class FilePath extends AppResourcePath {
     }
 
     public static String getTestCasePath(String scenario, String testCase) {
-        return getScenarioPath(scenario) + File.separatorChar + testCase + FORMAT;
+        return resolveFile(getScenarioPath(scenario), testCase);
+    }
+
+    /**
+     * Resolves the on-disk path for a test case / test set base name,
+     * preferring an existing YAML file ({@code .yaml} / {@code .yml}) over
+     * CSV. When no file exists yet, falls back to the legacy CSV extension to
+     * preserve backward compatibility with code paths that create files on
+     * demand.
+     */
+    private static String resolveFile(String directory, String baseName) {
+        File dir = new File(directory);
+        File yaml = new File(dir, baseName + YAML_FORMAT);
+        if (yaml.isFile()) {
+            return yaml.getPath();
+        }
+        File yml = new File(dir, baseName + YML_FORMAT);
+        if (yml.isFile()) {
+            return yml.getPath();
+        }
+        return directory + File.separatorChar + baseName + FORMAT;
+    }
+
+    /** Returns the extension that should be used for the given base file (existing wins, else {@code .csv}). */
+    public static String resolveExtension(String directory, String baseName) {
+        File dir = new File(directory);
+        if (new File(dir, baseName + YAML_FORMAT).isFile()) {
+            return YAML_FORMAT;
+        }
+        if (new File(dir, baseName + YML_FORMAT).isFile()) {
+            return YML_FORMAT;
+        }
+        return FORMAT;
     }
 
     public static String getTestEnv() {

@@ -915,20 +915,20 @@ public class ProjectTree implements ActionListener {
     }
 
     /**
-     * Opens the tag editor for a test case data item.
-     * @param tc test case data item
+     * Opens the tag editor for a test case data item and, when a corresponding
+     * {@link TestCase} is supplied, re-saves its YAML so the new tag set is
+     * mirrored on disk.
      */
-    private void editTag(DataItem tc) {
-        TagEditorDialog
-            .build(
-                testDesign.getsMainFrame(),
-                getProject().getInfo().getAllTags(tc.getTags()),
-                tc.getTags(),
-                this::onRemoveTag,
-                this::onAddTag
-            )
-            .withTitle(editTagTitle(tc.getName()))
-            .show(tc::setTags);
+    private void editTag(DataItem tc, TestCase testCase) {
+        TagEditorDialog.build(testDesign.getsMainFrame(),
+                getProject().getInfo().getAllTags(tc.getTags()), tc.getTags(),
+                this::onRemoveTag, this::onAddTag)
+                .withTitle(editTagTitle(tc.getName())).show(tags -> {
+                    tc.setTags(tags);
+                    if (testCase != null) {
+                        testCase.saveMetadata();
+                    }
+                });
     }
 
     /**
@@ -969,7 +969,7 @@ public class ProjectTree implements ActionListener {
                     .getInfo()
                     .getData()
                     .findOrCreate(tcn.getName(), tcn.getScenario().getName())
-            );
+            , tcn);
         } else if (path.getLastPathComponent() instanceof ScenarioNode) {
             Scenario scn = ((ScenarioNode) path.getLastPathComponent()).getScenario();
             editTag(getProject().getInfo().findScenarioOrCreate(scn.getName()));

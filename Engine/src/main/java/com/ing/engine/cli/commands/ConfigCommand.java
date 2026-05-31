@@ -21,7 +21,8 @@ import picocli.CommandLine.ParentCommand;
         ConfigCommand.GetCommand.class,
         ConfigCommand.SetCommand.class,
         ConfigCommand.DriversCommand.class,
-        ConfigCommand.ResetCommand.class
+        ConfigCommand.ResetCommand.class,
+        ConfigCommand.PrefixesCommand.class
     }
 )
 public class ConfigCommand implements Callable<Integer> {
@@ -391,6 +392,47 @@ public class ConfigCommand implements Callable<Integer> {
                 cli.printError("Reset failed: " + e.getMessage());
                 return 1;
             }
+        }
+    }
+
+    /**
+     * Print the catalogue of recognised {@code -setEnv} prefixes.
+     *
+     * <p>Each entry is sourced from {@link com.ing.engine.execution.run.ProjectRunner#PREFIX_CATALOGUE}
+     * so the help stays in sync with the dispatcher automatically.</p>
+     */
+    @Command(name = "prefixes",
+            description = "List all recognised -setEnv / --set-env override prefixes")
+    public static class PrefixesCommand implements Callable<Integer> {
+
+        @ParentCommand
+        private ConfigCommand parent;
+
+        @Override
+        public Integer call() {
+            INGeniousCLI cli = INGeniousCLI.getInstance();
+            Map<String, String> catalogue =
+                    com.ing.engine.execution.run.ProjectRunner.PREFIX_CATALOGUE;
+
+            cli.printInfo("Recognised override prefixes (use with -setEnv / --set-env):");
+            System.out.println();
+
+            int maxKeyLen = 0;
+            for (String k : catalogue.keySet()) {
+                if (k.length() > maxKeyLen) maxKeyLen = k.length();
+            }
+            String fmt = "  %-" + maxKeyLen + "s   %s%n";
+            for (Map.Entry<String, String> e : catalogue.entrySet()) {
+                System.out.printf(fmt, e.getKey(), e.getValue());
+            }
+
+            System.out.println();
+            System.out.println("Examples:");
+            System.out.println("  ingenious run testset -r R1 -t Smoke --capability \"Chrome.--headless=new\"");
+            System.out.println("  ingenious run testcase Login/Smoke --lambdatest-cap \"build=ci-1234\"");
+            System.out.println("  ingenious -run -project_location ./proj -release R1 -testset Smoke \\");
+            System.out.println("            -setEnv \"device.Pixel5.RemoteURL=http://hub:4723/;tmModule.AzureDO.collection=https://dev.azure.com/x\"");
+            return 0;
         }
     }
 

@@ -6,6 +6,10 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
+import com.ing.datalib.component.io.TestCaseStoreFactory;
+import com.ing.datalib.component.utils.FileUtils;
+import com.ing.datalib.or.web.WebOR.ORScope;
+
 /**
  * Represents a scenario within a project’s TestPlan and serves as a container for related test cases.
  * <p>
@@ -137,7 +141,6 @@ public class Scenario extends DataModel {
         if (sc == null) {
             return null;
         }
-
         List<TestCase> tc = sc.getTestCases();
         String tc_name;
         for (TestCase testcase : tc) {
@@ -160,7 +163,6 @@ public class Scenario extends DataModel {
         if (sc == null) {
             return null;
         }
-
         List<TestCase> reusables = sc.getTestCases();
         String tc_name;
         for (TestCase testcase : reusables) {
@@ -187,13 +189,15 @@ public class Scenario extends DataModel {
     }
 
     /**
-     * Loads all test case CSV files from the scenario directory.
+     * Loads test case files from the scenario directory. Enumerates both CSV
+     * and YAML files, deduplicating by base name (YAML wins when both formats
+     * exist for the same name).
      */
     private void loadTestcases() {
         File scenDir = new File(getLocation());
         if (scenDir.exists()) {
-            for (String testCase : scenDir.list(FileUtils.CSV_FILTER)) {
-                testCases.add(new TestCase(this, testCase));
+            for (String baseName : TestCaseStoreFactory.listLogicalFiles(scenDir).keySet()) {
+                testCases.add(new TestCase(this, baseName));
             }
         }
     }

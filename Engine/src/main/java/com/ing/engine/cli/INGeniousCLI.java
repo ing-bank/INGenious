@@ -4,6 +4,8 @@ import com.ing.engine.cli.commands.*;
 import com.ing.engine.cli.output.OutputFormatter;
 import java.io.PrintWriter;
 import java.util.concurrent.Callable;
+import com.ing.engine.cli.output.Style;
+import com.ing.engine.constants.SystemDefaults;
 import picocli.CommandLine;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.HelpCommand;
@@ -16,8 +18,8 @@ import picocli.CommandLine.Option;
  */
 @Command(
     name = "ingenious",
-    mixinStandardHelpOptions = true,
-    version = "INGenious CLI 2.3.1",
+    mixinStandardHelpOptions = false,
+    versionProvider = INGeniousVersionProvider.class,
     description = "INGenious Test Automation Platform - Command Line Interface",
     subcommands = {
         HelpCommand.class,
@@ -42,7 +44,16 @@ import picocli.CommandLine.Option;
     commandListHeading = "%nCommands:%n"
 )
 public class INGeniousCLI implements Callable<Integer> {
-    @Option(names = { "--json" }, description = "Output in JSON format")
+
+    @Option(names = {"-h", "--help"}, usageHelp = true,
+            description = "Show this help message and exit")
+    private boolean helpRequested;
+
+    @Option(names = {"-v", "-V", "--version"}, versionHelp = true,
+            description = "Print version information and exit")
+    private boolean versionRequested;
+
+    @Option(names = {"--json"}, description = "Output in JSON format")
     private boolean jsonOutput;
 
     @Option(names = { "--yaml" }, description = "Output in YAML format")
@@ -60,6 +71,7 @@ public class INGeniousCLI implements Callable<Integer> {
     // Shared state for subcommands
     private static INGeniousCLI instance;
     private OutputFormatter outputFormatter;
+    private Style style;
 
     public INGeniousCLI() {
         instance = this;
@@ -67,6 +79,14 @@ public class INGeniousCLI implements Callable<Integer> {
 
     public static INGeniousCLI getInstance() {
         return instance;
+    }
+
+    /** Lazy-built shared Style, honouring --no-color. */
+    public Style style() {
+        if (style == null) {
+            style = new Style(!noColor);
+        }
+        return style;
     }
 
     public boolean isJsonOutput() {
@@ -256,16 +276,10 @@ public class INGeniousCLI implements Callable<Integer> {
             r
         );
         System.out.println();
-        System.out.println(
-            bo + l + "              ═══════════════════════════════════════════════════════════" + r
-        );
-        System.out.println(
-            bo + w + "               ✦  T E S T   A U T O M A T I O N   F R A M E W O R K  ✦" + r
-        );
-        System.out.println(bo + b + "                              Version 3.1.0" + r);
-        System.out.println(
-            bo + l + "              ═══════════════════════════════════════════════════════════" + r
-        );
+        System.out.println(bo + l + "              ═══════════════════════════════════════════════════════════" + r);
+        System.out.println(bo + w + "               ✦  T E S T   A U T O M A T I O N   F R A M E W O R K  ✦" + r);
+        System.out.println(bo + b + "                              Version " + SystemDefaults.getBuildVersion() + r);
+        System.out.println(bo + l + "              ═══════════════════════════════════════════════════════════" + r);
         System.out.println();
     }
 
@@ -311,18 +325,10 @@ public class INGeniousCLI implements Callable<Integer> {
         }
         // Legacy args start with single dash and are from the old CLI
         String firstArg = args[0];
-        return (
-            firstArg.startsWith("-") &&
-            !firstArg.startsWith("--") &&
-            (
-                firstArg.equals("-run") ||
-                firstArg.equals("-rerun") ||
-                firstArg.equals("-v") ||
+        return firstArg.startsWith("-") && !firstArg.startsWith("--") &&
+               (firstArg.equals("-run") || firstArg.equals("-rerun") || 
                 firstArg.equals("-help") ||
-                firstArg.equals("-project_location") ||
-                firstArg.equals("-latest_exe_status")
-            )
-        );
+                firstArg.equals("-project_location") || firstArg.equals("-latest_exe_status"));
     }
 
     /**
@@ -330,11 +336,7 @@ public class INGeniousCLI implements Callable<Integer> {
      */
     public void printSuccess(String message) {
         if (!quiet) {
-            if (noColor) {
-                System.out.println("✓ " + message);
-            } else {
-                System.out.println("\u001B[32m✓ " + message + "\u001B[0m");
-            }
+            System.out.println(style().success(Style.ICON_OK) + " " + message);
         }
     }
 
@@ -342,11 +344,7 @@ public class INGeniousCLI implements Callable<Integer> {
      * Print an error message with optional color.
      */
     public void printError(String message) {
-        if (noColor) {
-            System.err.println("✗ " + message);
-        } else {
-            System.err.println("\u001B[31m✗ " + message + "\u001B[0m");
-        }
+        System.err.println(style().failure(Style.ICON_ERR) + " " + style().red(message));
     }
 
     /**
@@ -354,11 +352,7 @@ public class INGeniousCLI implements Callable<Integer> {
      */
     public void printWarning(String message) {
         if (!quiet) {
-            if (noColor) {
-                System.out.println("⚠ " + message);
-            } else {
-                System.out.println("\u001B[33m⚠ " + message + "\u001B[0m");
-            }
+            System.out.println(style().warning(Style.ICON_WARN) + " " + style().yellow(message));
         }
     }
 
@@ -367,7 +361,35 @@ public class INGeniousCLI implements Callable<Integer> {
      */
     public void printInfo(String message) {
         if (!quiet) {
-            System.out.println(message);
+            System.out.println(style().cyan(Style.ICON_INFO) + " " + message);
         }
+    }
+
+    /**
+     * Print a section header (blank line + bold cyan + dim underline).
+     * The underline is capped at 60 chars so long titles don't blow up
+     * vertically on narrow terminals.
+     */
+    public void printHeader(String title) {
+        if (quiet) return;
+        int rule = Math.min(60, Math.max(8, title.length()));
+        System.out.println();
+        System.out.println(style().header(title));
+        System.out.println(style().dim("─".repeat(rule)));
+    }
+
+    /**
+     * Print a compact callout box that highlights one fact (e.g. the
+     * auto-detected target of {@code ingenious run …}).
+     */
+    public void printCallout(String label, String value) {
+        if (quiet) {
+            System.out.println(label + ": " + value);
+            return;
+        }
+        Style s = style();
+        String arrow = s.cyan(Style.ICON_ARROW);
+        System.out.println();
+        System.out.println("  " + arrow + " " + s.bold(label) + "  " + s.header(value));
     }
 }

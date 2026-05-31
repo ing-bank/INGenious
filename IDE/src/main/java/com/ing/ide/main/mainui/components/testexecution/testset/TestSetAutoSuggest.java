@@ -126,6 +126,11 @@ public class TestSetAutoSuggest {
         // Add remaining emulators
         browsers.addAll(emulators);
 
+        // Add devices from Manage Devices tab
+        for (String d : sProject.getProjectSettings().getDevices().getDeviceNames()) {
+            if (!browsers.contains(d)) browsers.add(d);
+        }
+
         browserAutoSuggest.setSearchList(browsers);
     }
 }

@@ -79,7 +79,6 @@ public class PluginLoader {
                     .log(System.Logger.Level.ERROR, (String) null, ex);
             }
         }
-        System.out.println(classes);
         return classes;
     }
 

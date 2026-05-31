@@ -47,8 +47,8 @@ public class AppToolBar extends JToolBar {
         //addSeparator();
         //add(createButton("Mobile Spy")); /**** This is disabled to ensure that the mobile capabilities are captured from Appium Inspector ****/
         addSeparator();
-        add(createButton("Run Settings"));
-        add(createButton("Browser Configuration"));
+        add(createButton("Settings"));
+        add(createButton("Archetype Configurations"));
         addSeparator();
         add(
             new javax.swing.Box.Filler(
