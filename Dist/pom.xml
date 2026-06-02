@@ -49,6 +49,14 @@
                                     <outputDirectory>${setupDir}/Engine/lib</outputDirectory>
                                 </artifactItem>
                                 <artifactItem>
+                                    <groupId>com.ing</groupId>
+                                    <artifactId>ingenious-api</artifactId>
+                                    <version>${ingenious-api.version}</version>
+                                    <type>jar</type>
+                                    <overWrite>true</overWrite>
+                                    <outputDirectory>${setupDir}/Engine/lib</outputDirectory>
+                                </artifactItem>
+                                <artifactItem>
                                     <groupId>${project.parent.groupId}</groupId>
                                     <artifactId>ingenious-testdata-csv</artifactId>
                                     <version>${project.parent.version}</version>
