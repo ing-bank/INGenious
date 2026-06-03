@@ -1,4 +1,4 @@
-package com.ing.engine.MFA;
+package com.ing.engine.commands.MFA;
 
 
 import java.io.BufferedReader;

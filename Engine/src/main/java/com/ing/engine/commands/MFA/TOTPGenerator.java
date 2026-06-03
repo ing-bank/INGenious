@@ -1,11 +1,11 @@
-package com.ing.engine.MFA;
+package com.ing.engine.commands.MFA;
 
 import com.ing.engine.commands.browser.General;
 import com.ing.engine.core.CommandControl;
-import com.ing.engine.support.Status;
-import com.ing.engine.support.methodInf.Action;
-import com.ing.engine.support.methodInf.ObjectType;
-import com.ing.engine.support.methodInf.InputType;
+import com.ing.ingenious.api.status.Status;
+import com.ing.ingenious.api.annotation.Action;
+import com.ing.ingenious.api.types.ObjectType;
+import com.ing.ingenious.api.types.InputType;
 import com.ing.engine.execution.exception.ActionException;
 import com.azure.identity.DefaultAzureCredentialBuilder;
 import com.azure.security.keyvault.secrets.SecretClient;
