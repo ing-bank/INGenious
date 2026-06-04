@@ -19,8 +19,9 @@ public class General extends Command implements BrowserPluginApi {
         super(cc);
     }
 
-    private static final ThreadLocal<Double> defaultAssertionTimeout =
-            ThreadLocal.withInitial(() -> 5000.0);
+    private static final ThreadLocal<Double> defaultAssertionTimeout = ThreadLocal.withInitial(
+        () -> 5000.0
+    );
 
     protected double getDefaultAssertionTimeout() {
         return defaultAssertionTimeout.get();
