@@ -233,7 +233,7 @@ public class Main {
             bo + l + "              ═══════════════════════════════════════════════════════════" + r
         );
         System.out.println(bo + w + "               ✦  P L A Y W R I G H T   S T U D I O  ✦" + r);
-        System.out.println(bo + b + "                              Version 3.0.0-preview" + r);
+        System.out.println(bo + b + "                              Version 3.1.0" + r);
         System.out.println(
             bo + l + "              ═══════════════════════════════════════════════════════════" + r
         );

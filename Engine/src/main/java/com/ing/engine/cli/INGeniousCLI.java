@@ -262,7 +262,7 @@ public class INGeniousCLI implements Callable<Integer> {
         System.out.println(
             bo + w + "               ✦  T E S T   A U T O M A T I O N   F R A M E W O R K  ✦" + r
         );
-        System.out.println(bo + b + "                              Version 3.0.0-preview" + r);
+        System.out.println(bo + b + "                              Version 3.1.0" + r);
         System.out.println(
             bo + l + "              ═══════════════════════════════════════════════════════════" + r
         );
