@@ -208,7 +208,11 @@ public class Basic extends General {
         }
     }
 
-    @Action(object = ObjectType.BROWSER, desc = "Set Assertion Timeout (in milliseconds)", input = InputType.YES)
+    @Action(
+        object = ObjectType.BROWSER,
+        desc = "Set Assertion Timeout (in milliseconds)",
+        input = InputType.YES
+    )
     public void setAssertionTimeout() {
         if (Data != null && Data.matches("[0-9]+")) {
             double timeout = Double.parseDouble(Data);
