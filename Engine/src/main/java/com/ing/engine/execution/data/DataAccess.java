@@ -79,26 +79,25 @@ public class DataAccess extends DataAccessInternal {
      */
     public static String getNextData(
         TestCaseRunner context,
+        String scn,
+        String tc,
         String sheet,
         String field,
         String iter,
         String subIter
     )
         throws DataNotFoundException {
-        String subIteration = (Integer.parseInt(subIter) + 1) + "";
-        Object val;
+        String nextSubIteration = (Integer.parseInt(subIter) + 1) + "";
+        String val = null;
         TestDataModel env;
         TestDataModel def = getDefModel(context, sheet);
         if (validEnv(context)) {
             env = getModel(context, sheet);
-            val = getData(context, env, def, field, iter, subIteration);
+            val = getDataFromModel(env, field, scn, tc, iter, nextSubIteration);
         } else {
-            val = getData(context, def, field, iter, subIteration);
+            val = getDataFromModel(def, field, scn, tc, iter, nextSubIteration);
         }
-        if (val == null) {
-            return null;
-        }
-        return DataProcessor.resolve(val, context, field);
+        return val;
     }
 
     /**
@@ -374,6 +373,74 @@ public class DataAccess extends DataAccessInternal {
     }
 
     /**
+     * resolves test data
+     *
+     * check for Testcase+env else Testcase+default environment if not available
+     * check for reusable+env else Reusable+default environment
+     *
+     * @param env the data model for execution environment
+     * @param def the data model for default environment
+     * @param gid global data id
+     * @param field the column/field name
+     * @return the data value
+     */
+    private static Object getDynamicLoopData(
+        TestCaseRunner context,
+        TestDataModel env,
+        TestDataModel def,
+        String field,
+        String iter,
+        String subIter
+    ) {
+        if (notNull(env) && env.hasColumn(field)) {
+            Object val = getDataFromModel(
+                env,
+                field,
+                context.getRoot().scenario(),
+                context.getRoot().testcase(),
+                iter,
+                subIter
+            );
+            if (val == null) {
+                val =
+                    getDataFromModel(
+                        def,
+                        field,
+                        context.getRoot().scenario(),
+                        context.getRoot().testcase(),
+                        iter,
+                        subIter
+                    );
+                if (val == null) {
+                    val =
+                        getDataFromModel(
+                            env,
+                            field,
+                            context.scenario(),
+                            context.testcase(),
+                            iter,
+                            subIter
+                        );
+                    if (val == null) {
+                        val =
+                            getDataFromModel(
+                                def,
+                                field,
+                                context.scenario(),
+                                context.testcase(),
+                                iter,
+                                subIter
+                            );
+                    }
+                }
+            }
+            return val;
+        } else {
+            return getDynamicLoopData(context, def, field, iter, subIter);
+        }
+    }
+
+    /**
      * update test data
      *
      * check for Testcase+env else Testcase+default environment if not available
@@ -450,6 +517,36 @@ public class DataAccess extends DataAccessInternal {
                     subIter
                 ),
                 getDataFromModel(def, field, context.scenario(), context.testcase(), iter, subIter)
+            );
+        }
+        return null;
+    }
+
+    /**
+     * resolves test data for default model
+     *
+     * check for Testcase + env else Reusable+default environment
+     *
+     * @param def the data model for default environment
+     * @param field the column/field name
+     * @param subIter the sub iteration value
+     * @return the data value
+     */
+    private static Object getDynamicLoopData(
+        TestCaseRunner context,
+        TestDataModel def,
+        String field,
+        String iter,
+        String subIter
+    ) {
+        if (notNull(def) && def.hasColumn(field)) {
+            return getDataFromModel(
+                def,
+                field,
+                context.scenario(),
+                context.testcase(),
+                iter,
+                subIter
             );
         }
         return null;

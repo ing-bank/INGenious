@@ -246,6 +246,7 @@ public class TestCaseRunner {
             // Read next data if step with data access
             String data = "";
             String testInput = testStep.getInput();
+            TestCase parentTestCase = this.testCase.getParentTestCase();
             if (!testInput.startsWith("@") && DataProcessor.isInputPatternDataSheet(testInput)) {
                 String sheet = testStep.getInput().split(":")[0];
                 String dataCol = testStep.getInput().split(":")[1];
@@ -253,6 +254,8 @@ public class TestCaseRunner {
                 data =
                     DataAccess.getNextData(
                         this,
+                        getRoot().getTestCase().getScenario().getName(),
+                        getRoot().getTestCase().getName(),
                         sheet,
                         dataCol,
                         parameter.getIteration() + "",
@@ -262,6 +265,10 @@ public class TestCaseRunner {
             if (data == null) {
                 // Execution has reached end of the test data sheet
                 this.breakSubIterationFlag = true;
+                if (parentTestCase != null && parentTestCase.getDynamicMaxIter() == null) {
+                    parentTestCase.setDynamicMaxIter(this.currentSubIteration);
+                    this.getRoot().getTestCase().setDynamicMaxIter(this.currentSubIteration);
+                }
             }
 
             String condition = testStep.getCondition();
@@ -432,29 +439,43 @@ public class TestCaseRunner {
             this.breakSubIterationFlag = false;
             testCase.setExitParamLoop(false);
 
+            TestCase parentTestCase = testCase.getParentTestCase();
             for (int currStep = 0; canRunStep(currStep); currStep++) {
                 TestStep testStep = testCase.getTestSteps().get(currStep);
-                TestCase parentTestCase = testCase.getParentTestCase();
 
                 if (!testStep.isCommented()) {
                     checkForStartLoop(testStep, currStep);
                     try {
-                        // For reusable components, exit after End Param
-                        // once exitParamLoop flag is detected
-                        if (testCase.exitParamLoop()) {
-                            if (Parameter.endParamRLoop(testStep.getCondition())) {
-                                // Run the last iteration step
-                                runStep(testStep);
+                        if (
+                            (
+                                Parameter.startParamRLoop(testStep.getCondition()) &&
+                                (
+                                    parentTestCase != null &&
+                                    parentTestCase.getDynamicMaxIter() != null &&
+                                    (
+                                        parentTestCase.getDynamicMaxIter() <=
+                                        this.currentSubIteration
+                                    ) ||
+                                    (
+                                        this.getRoot().getTestCase().getDynamicMaxIter() != null &&
+                                        this.getRoot().getTestCase().getDynamicMaxIter() <=
+                                        this.currentSubIteration
+                                    )
+                                )
+                            )
+                        ) {
+                            System.out.println("Detected parent max is over");
 
-                                if (canRunStep(currStep + 1)) {
-                                    // Skip to the step outside the loop block, after the step with End Param condition
-                                    currStep++;
-                                    testStep = testCase.getTestSteps().get(currStep);
-                                } else {
-                                    continue;
-                                }
-                                checkForEndLoop(testStep, currStep);
-                                testCase.setExitParamLoop(false);
+                            //Skip to EndParam
+                            while (!Parameter.endParamRLoop(testStep.getCondition())) {
+                                currStep++;
+                                testStep = testCase.getTestSteps().get(currStep);
+                            }
+                            // Increment one more time to exit the Param block
+                            currStep++;
+                            testStep = testCase.getTestSteps().get(currStep);
+                            if (parentTestCase != null) {
+                                parentTestCase.setDynamicMaxIter(null);
                             }
                         }
 
@@ -501,6 +522,10 @@ public class TestCaseRunner {
                     }
                     currStep = checkForEndLoop(testStep, currStep);
                 }
+            }
+            if (parentTestCase != null) {
+                parentTestCase.setDynamicMaxIter(null);
+                this.getRoot().getTestCase().setDynamicMaxIter(null);
             }
         }
     }

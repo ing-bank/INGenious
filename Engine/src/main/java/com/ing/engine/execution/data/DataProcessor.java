@@ -114,6 +114,21 @@ public class DataProcessor {
         return resolveKeyMapVars(inp, 2, context.getControl().getRunTimeVars());
     }
 
+    public static String resolveDynamicData(Object raw, TestCaseRunner context, String field)
+        throws DataNotFoundException {
+        String inp = resolveKeyMapVars(
+            Objects.toString(raw, ""),
+            2,
+            context.getControl().getRunTimeVars()
+        );
+        inp = resolveDynamic(resolveIn(inp), context);
+        if (inp.startsWith("#")) {
+            inp = DataAccess.getGlobalData(context, inp, field);
+        }
+
+        return resolveKeyMapVars(inp, 2, context.getControl().getRunTimeVars());
+    }
+
     public static String resolveKeyMapVars(String inp, int pass, Map<String, String> runTimeVars) {
         inp =
             KeyMap.replaceKeys(
