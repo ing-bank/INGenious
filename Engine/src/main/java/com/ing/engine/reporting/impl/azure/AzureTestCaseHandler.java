@@ -73,6 +73,8 @@ public class AzureTestCaseHandler extends TestCaseHandler implements PrimaryHand
     String iterationValue = "";
     String attachments = "";
 
+    private boolean reportFinalized = false; // Guard to prevent double incrementing
+
     String messageCDATA = "";
     String stacktraceData = "";
 
@@ -274,8 +276,8 @@ public class AzureTestCaseHandler extends TestCaseHandler implements PrimaryHand
         }
 
         /*
-		 * remove the reusable from the stack then fall back to iteration if stack is
-		 * empty else update the outer reusable status.
+         * remove the reusable from the stack then fall back to iteration if stack is
+         * empty else update the outer reusable status.
          */
         reusableStack.pop();
         if (reusableStack.empty()) {
@@ -414,6 +416,13 @@ public class AzureTestCaseHandler extends TestCaseHandler implements PrimaryHand
      */
     @Override
     public Status finalizeReport() {
+        
+        if (reportFinalized) {
+            return report.getCurrentStatus(); // Skip if already finalized
+        }
+
+        reportFinalized = true;
+        
         updateResults();
         String prefix = testCaseData.get(TestCase.SCENARIO_NAME) + "_" + testCaseData.get(TestCase.TESTCASE_NAME);
         File logsFolder = new File(FilePath.getCurrentTestCaseLogsLocation());
