@@ -75,7 +75,7 @@ public class PlaywrightDriverFactory {
         Map<String, String> env = new HashMap<>();
 
         //if(Control.exe.getExecSettings().getRunSettings().isGridExecution())
-           env.put("PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD", "1");
+        env.put("PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD", "1");
 
         return Playwright.create(new Playwright.CreateOptions().setEnv(env));
     }
@@ -117,7 +117,7 @@ public class PlaywrightDriverFactory {
         NewContextOptions newContextOptions = new NewContextOptions();
         newContextOptions = addContextOptions(newContextOptions, context, capabilities, settings);
         LaunchOptions launchOptions = new LaunchOptions();
-        launchOptions = addLaunchOptions(launchOptions, capabilities);
+        launchOptions = addLaunchOptions(launchOptions, capabilities, browserName);
         BrowserContext browserContext = null;
         if (isGrid) {
             String cdpURL = Control.exe.getExecSettings().getRunSettings().getRemoteGridURL();
@@ -138,9 +138,16 @@ public class PlaywrightDriverFactory {
 
     private static final Logger LOGGER = Logger.getLogger(PlaywrightDriverFactory.class.getName());
 
-    private static LaunchOptions addLaunchOptions(LaunchOptions launchOptions, List<String> caps) {
+    private static LaunchOptions addLaunchOptions(
+        LaunchOptions launchOptions,
+        List<String> caps,
+        String browserName
+    ) {
         List<String> customArgs = new ArrayList<>();
         customArgs.add("--auth-server-allowlist='_'");
+
+        boolean hasExplicitChannel = false;
+        boolean hasExplicitExecutablePath = false;
 
         if (isViewPortSizeMaximized) {
             customArgs.add("--start-maximized=true");
@@ -160,9 +167,10 @@ public class PlaywrightDriverFactory {
                         (double) getPropertyValueAsDesiredType(value)
                     );
                 } else if (key.toLowerCase().contains("setchannel")) {
-                    if (!value.trim().equals("")) launchOptions.setChannel(
-                        (String) getPropertyValueAsDesiredType(value)
-                    );
+                    if (!value.trim().equals("")) {
+                        launchOptions.setChannel((String) getPropertyValueAsDesiredType(value));
+                        hasExplicitChannel = true;
+                    }
                 } else if (key.toLowerCase().contains("setchromiumsandbox")) {
                     if (!value.trim().equals("")) launchOptions.setChromiumSandbox(
                         (boolean) getPropertyValueAsDesiredType(value)
@@ -174,9 +182,12 @@ public class PlaywrightDriverFactory {
                         Paths.get((String) getPropertyValueAsDesiredType(value))
                     );
                 } else if (key.toLowerCase().contains("setexecutablepath")) {
-                    if (!value.trim().equals("")) launchOptions.setExecutablePath(
-                        Paths.get((String) getPropertyValueAsDesiredType(value))
-                    );
+                    if (!value.trim().equals("")) {
+                        launchOptions.setExecutablePath(
+                            Paths.get((String) getPropertyValueAsDesiredType(value))
+                        );
+                        hasExplicitExecutablePath = true;
+                    }
                 } else if (key.toLowerCase().contains("settimeout")) {
                     if (!value.trim().equals("")) launchOptions.setTimeout(
                         (double) getPropertyValueAsDesiredType(value)
@@ -190,6 +201,11 @@ public class PlaywrightDriverFactory {
                 }
             }
         }
+
+        if (isChromiumBrowser(browserName) && !hasExplicitChannel && !hasExplicitExecutablePath) {
+            launchOptions.setChannel("chrome");
+        }
+
         launchOptions.setArgs(customArgs);
 
         return launchOptions;
@@ -472,6 +488,12 @@ public class PlaywrightDriverFactory {
         int width = Integer.parseInt(dimensions[0]);
         int height = Integer.parseInt(dimensions[1]);
         newContextOptions.setRecordVideoSize(width, height);
+    }
+
+    private static boolean isChromiumBrowser(String browserName) {
+        return (
+            browserName != null && browserName.equalsIgnoreCase(Browser.Chromium.getBrowserValue())
+        );
     }
 
     private static BrowserContext enhanceContext(BrowserContext browserContext) {
