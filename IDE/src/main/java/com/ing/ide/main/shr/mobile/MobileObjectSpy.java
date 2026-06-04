@@ -1574,10 +1574,7 @@ public class MobileObjectSpy extends javax.swing.JFrame {
                 }
                 if (
                     remoteServer.startsWith("http") && remoteServer.endsWith("/wd/hub")
-                ) //    if (xml != null && screenshot != null) { //    String screenshot = IOSpy.getScreenShot(); //    String xml = IOSpy.getXML(); //    IOSpy.setSettings(remoteServer, jTable3);
-                //        mobileTree.loadTree(xml);
-                //        mobileUtils.setScreenShotImageToLabelWResize(screenshot);
-                //    }
+                ) 
                 setNormalCursor();
             }
         };
