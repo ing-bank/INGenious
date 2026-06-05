@@ -1574,8 +1574,7 @@ public class MobileObjectSpy extends javax.swing.JFrame {
                 }
                 if (
                     remoteServer.startsWith("http") && remoteServer.endsWith("/wd/hub")
-                ) 
-                setNormalCursor();
+                ) setNormalCursor();
             }
         };
         setLoadingCursor();
