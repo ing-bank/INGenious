@@ -355,7 +355,7 @@ public class FXMenuBar extends JFXPanel {
                 menuItem(
                     "API Workbench",
                     "APITester",
-                    KeyCode.T,
+                    KeyCode.W,
                     KeyCombination.SHIFT_DOWN,
                     KeyCombination.ALT_DOWN
                 ),

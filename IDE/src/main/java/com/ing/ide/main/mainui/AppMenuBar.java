@@ -87,7 +87,7 @@ public class AppMenuBar extends JMenuBar {
         );
         shortcuts.put(
             "API Workbench",
-            KeyStroke.getKeyStroke(KeyEvent.VK_T, KeyEvent.SHIFT_DOWN_MASK | KeyEvent.ALT_DOWN_MASK)
+            KeyStroke.getKeyStroke(KeyEvent.VK_W, KeyEvent.SHIFT_DOWN_MASK | KeyEvent.ALT_DOWN_MASK)
         );
         shortcuts.put(
             "AdjustUI",
