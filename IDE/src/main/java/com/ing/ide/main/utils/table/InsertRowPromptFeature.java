@@ -29,10 +29,25 @@ public class InsertRowPromptFeature {
 
     private static final int INSERT_HOVER_ZONE = INSERT_PLUS_SIZE / 2 + INSERT_PLUS_HIT_PADDING;
 
+    /*
+     * Prevents accidental JTable drag-selection after clicking the plus button.
+     *
+     * The bug happens when:
+     * 1. Mouse is pressed on the plus.
+     * 2. Row is inserted.
+     * 3. Rows shift under the still-held mouse.
+     * 4. Mouse moves slightly.
+     * 5. JTable treats it as drag-selection.
+     */
+    private static final int INSERT_MOUSE_SUPPRESSION_MS = 140;
+
     private final JTable table;
 
     private int hoverInsertRow = -1;
     private boolean insertingRow = false;
+    private boolean installed = false;
+
+    private long suppressMouseEventsUntil = 0L;
 
     private IntConsumer insertRowHandler;
 
@@ -41,10 +56,21 @@ public class InsertRowPromptFeature {
     }
 
     public void install() {
+        if (installed) {
+            return;
+        }
+
+        installed = true;
+
         MouseAdapter insertRowMouseAdapter = new MouseAdapter() {
 
             @Override
             public void mouseMoved(MouseEvent e) {
+                if (isSuppressingMouseEvents()) {
+                    e.consume();
+                    return;
+                }
+
                 int newHoverInsertRow = getInsertRowForPoint(e.getPoint());
 
                 if (newHoverInsertRow != hoverInsertRow) {
@@ -61,11 +87,7 @@ public class InsertRowPromptFeature {
 
             @Override
             public void mouseExited(MouseEvent e) {
-                if (hoverInsertRow != -1) {
-                    hoverInsertRow = -1;
-                    table.setCursor(Cursor.getDefaultCursor());
-                    table.repaint();
-                }
+                clearHoverState();
             }
         };
 
@@ -84,6 +106,11 @@ public class InsertRowPromptFeature {
     }
 
     public boolean processMouseEvent(MouseEvent e) {
+        if (isSuppressingMouseEvents()) {
+            e.consume();
+            return true;
+        }
+
         if (e.getID() == MouseEvent.MOUSE_PRESSED) {
             if (!insertingRow && hoverInsertRow != -1 && isPointOnPlus(e.getPoint())) {
                 insertRowAtHoverPosition();
@@ -93,6 +120,23 @@ public class InsertRowPromptFeature {
         }
 
         return false;
+    }
+
+    public boolean processMouseMotionEvent(MouseEvent e) {
+        if (isSuppressingMouseEvents()) {
+            e.consume();
+            return true;
+        }
+
+        return false;
+    }
+
+    private boolean isSuppressingMouseEvents() {
+        return System.currentTimeMillis() < suppressMouseEventsUntil;
+    }
+
+    private void suppressMouseEventsBriefly() {
+        suppressMouseEventsUntil = System.currentTimeMillis() + INSERT_MOUSE_SUPPRESSION_MS;
     }
 
     private int getInsertRowForPoint(Point point) {
@@ -152,9 +196,7 @@ public class InsertRowPromptFeature {
 
     private Rectangle getPlusBounds(int insertRow) {
         int y = getInsertLineY(insertRow);
-
         int x = INSERT_PLUS_X;
-
         int half = INSERT_PLUS_SIZE / 2;
 
         return new Rectangle(x - half, y - half, INSERT_PLUS_SIZE, INSERT_PLUS_SIZE);
@@ -162,7 +204,6 @@ public class InsertRowPromptFeature {
 
     private Rectangle getPlusHitBounds(int insertRow) {
         Rectangle visual = getPlusBounds(insertRow);
-
         int padding = INSERT_PLUS_HIT_PADDING;
 
         return new Rectangle(
@@ -178,7 +219,7 @@ public class InsertRowPromptFeature {
             return;
         }
 
-        int insertIndex = hoverInsertRow;
+        final int insertIndex = hoverInsertRow;
 
         if (insertIndex < 0) {
             return;
@@ -186,17 +227,36 @@ public class InsertRowPromptFeature {
 
         insertingRow = true;
 
-        if (table.isEditing() && table.getCellEditor() != null) {
-            boolean editingStopped = table.getCellEditor().stopCellEditing();
-
-            if (!editingStopped) {
-                insertingRow = false;
-                return;
-            }
-        }
+        /*
+         * Capture selection BEFORE the insert.
+         * This snapshot represents only the rows/columns selected before clicking plus.
+         * The inserted row itself will not be selected.
+         */
+        final SelectionSnapshot selectionSnapshot = SelectionSnapshot.capture(table, insertIndex);
 
         try {
+            if (table.isEditing() && table.getCellEditor() != null) {
+                boolean editingStopped = table.getCellEditor().stopCellEditing();
+
+                if (!editingStopped) {
+                    return;
+                }
+            }
+
+            /*
+             * Start suppression before insertion.
+             * This prevents held-click + slight mouse movement from becoming drag-selection.
+             */
+            suppressMouseEventsBriefly();
+
+            /*
+             * Clear current selection before fallback action.
+             * triggerDefaultInsertRowAction temporarily selects a row so the existing
+             * Add/Insert actions work, but we do not want JTable extending old anchors.
+             */
             table.clearSelection();
+
+            clearHoverState();
 
             if (insertRowHandler != null) {
                 insertRowHandler.accept(insertIndex);
@@ -204,7 +264,11 @@ public class InsertRowPromptFeature {
                 triggerDefaultInsertRowAction(insertIndex);
             }
 
-            table.clearSelection();
+            /*
+             * Restore only the rows that were selected before insertion.
+             * If insertion happened above a selected row, that selected row shifts down by one.
+             */
+            selectionSnapshot.restore(table);
         } finally {
             hoverInsertRow = -1;
             insertingRow = false;
@@ -212,9 +276,13 @@ public class InsertRowPromptFeature {
             table.repaint();
         }
 
+        /*
+         * Restore again after Swing/model events finish.
+         * This catches any delayed selection changes caused by the existing Add/Insert actions.
+         */
         SwingUtilities.invokeLater(
             () -> {
-                table.clearSelection();
+                selectionSnapshot.restore(table);
                 table.repaint();
             }
         );
@@ -259,6 +327,17 @@ public class InsertRowPromptFeature {
         }
     }
 
+    private void clearHoverState() {
+        if (hoverInsertRow == -1) {
+            table.setCursor(Cursor.getDefaultCursor());
+            return;
+        }
+
+        hoverInsertRow = -1;
+        table.setCursor(Cursor.getDefaultCursor());
+        table.repaint();
+    }
+
     private void triggerDefaultInsertRowAction(int rowIndex) {
         int rowCount = table.getRowCount();
 
@@ -289,6 +368,115 @@ public class InsertRowPromptFeature {
             action.actionPerformed(
                 new ActionEvent(table, ActionEvent.ACTION_PERFORMED, actionName)
             );
+        }
+    }
+
+    private static class SelectionSnapshot {
+        private final int[] selectedRows;
+        private final int[] selectedColumns;
+        private final int leadRow;
+        private final int leadColumn;
+        private final int insertIndex;
+
+        private SelectionSnapshot(
+            int[] selectedRows,
+            int[] selectedColumns,
+            int leadRow,
+            int leadColumn,
+            int insertIndex
+        ) {
+            this.selectedRows = selectedRows;
+            this.selectedColumns = selectedColumns;
+            this.leadRow = leadRow;
+            this.leadColumn = leadColumn;
+            this.insertIndex = insertIndex;
+        }
+
+        static SelectionSnapshot capture(JTable table, int insertIndex) {
+            return new SelectionSnapshot(
+                table.getSelectedRows(),
+                table.getSelectedColumns(),
+                table.getSelectionModel().getLeadSelectionIndex(),
+                table.getColumnModel().getSelectionModel().getLeadSelectionIndex(),
+                insertIndex
+            );
+        }
+
+        void restore(JTable table) {
+            if (table.getRowCount() == 0 || table.getColumnCount() == 0) {
+                table.clearSelection();
+                return;
+            }
+
+            final boolean oldRowAdjusting = table.getSelectionModel().getValueIsAdjusting();
+            final boolean oldColumnAdjusting = table
+                .getColumnModel()
+                .getSelectionModel()
+                .getValueIsAdjusting();
+
+            try {
+                table.getSelectionModel().setValueIsAdjusting(true);
+                table.getColumnModel().getSelectionModel().setValueIsAdjusting(true);
+
+                table.clearSelection();
+
+                boolean hasRows = selectedRows != null && selectedRows.length > 0;
+                boolean hasColumns = selectedColumns != null && selectedColumns.length > 0;
+
+                if (!hasRows) {
+                    return;
+                }
+
+                int[] columnsToRestore = hasColumns ? selectedColumns : new int[] { 0 };
+
+                for (int selectedRow : selectedRows) {
+                    int restoredRow = selectedRow;
+
+                    /*
+                     * This is the key part:
+                     *
+                     * If the new row was inserted above or at the old selected row,
+                     * the old selected row moved down by one.
+                     *
+                     * The inserted row itself is NOT selected.
+                     */
+                    if (insertIndex <= restoredRow) {
+                        restoredRow++;
+                    }
+
+                    if (restoredRow < 0 || restoredRow >= table.getRowCount()) {
+                        continue;
+                    }
+
+                    table.addRowSelectionInterval(restoredRow, restoredRow);
+                }
+
+                for (int selectedColumn : columnsToRestore) {
+                    int restoredColumn = Math.max(
+                        0,
+                        Math.min(selectedColumn, table.getColumnCount() - 1)
+                    );
+
+                    table.addColumnSelectionInterval(restoredColumn, restoredColumn);
+                }
+
+                int restoredLeadRow = leadRow;
+
+                if (insertIndex <= restoredLeadRow) {
+                    restoredLeadRow++;
+                }
+
+                if (restoredLeadRow >= 0 && restoredLeadRow < table.getRowCount()) {
+                    table.getSelectionModel().setLeadSelectionIndex(restoredLeadRow);
+                }
+
+                if (leadColumn >= 0 && leadColumn < table.getColumnCount()) {
+                    table.getColumnModel().getSelectionModel().setLeadSelectionIndex(leadColumn);
+                }
+            } finally {
+                table.getSelectionModel().setValueIsAdjusting(oldRowAdjusting);
+                table.getColumnModel().getSelectionModel().setValueIsAdjusting(oldColumnAdjusting);
+            }
         }
     }
 }

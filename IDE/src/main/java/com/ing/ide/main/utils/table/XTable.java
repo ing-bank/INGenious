@@ -601,6 +601,15 @@ public class XTable extends JTable {
         super.processMouseEvent(e);
     }
 
+    @Override
+    protected void processMouseMotionEvent(java.awt.event.MouseEvent e) {
+        if (insertRowPromptFeature != null && insertRowPromptFeature.processMouseMotionEvent(e)) {
+            return;
+        }
+
+        super.processMouseMotionEvent(e);
+    }
+
     // -----------------------------------------------------------------------------
     // End of insert row prompt feature
     // -----------------------------------------------------------------------------
