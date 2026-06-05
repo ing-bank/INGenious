@@ -1,8 +1,5 @@
 package com.ing.ide.main.utils.table;
 
-import static javax.swing.JTable.AUTO_RESIZE_OFF;
-import static javax.swing.JTable.AUTO_RESIZE_SUBSEQUENT_COLUMNS;
-
 import com.ing.datalib.undoredo.UndoRedoModel;
 import com.ing.ide.main.Main;
 import com.ing.ide.main.utils.keys.ClipboardKeyAdapter;
@@ -11,6 +8,7 @@ import java.awt.Color;
 import java.awt.Component;
 import java.awt.Font;
 import java.awt.FontFormatException;
+import java.awt.Graphics;
 import java.awt.GraphicsEnvironment;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
@@ -49,6 +47,9 @@ public class XTable extends JTable {
     private SearchRenderer searchRenderer;
 
     private EditHeader editHeader;
+
+    // Insert row prompt feature
+    private InsertRowPromptFeature insertRowPromptFeature;
 
     public XTable() {
         init();
@@ -165,6 +166,10 @@ public class XTable extends JTable {
                 }
             );
         TableCellDrag.install(this);
+
+        // Insert row prompt feature
+        insertRowPromptFeature = new InsertRowPromptFeature(this);
+        insertRowPromptFeature.install();
     }
 
     /**
@@ -369,6 +374,12 @@ public class XTable extends JTable {
         return flag;
     }
 
+    public void setInsertRowHandler(java.util.function.IntConsumer insertRowHandler) {
+        if (insertRowPromptFeature != null) {
+            insertRowPromptFeature.setInsertRowHandler(insertRowHandler);
+        }
+    }
+
     public void setActionFor(String value, Action action) {
         getActionMap().put(value, action);
     }
@@ -567,6 +578,32 @@ public class XTable extends JTable {
             }
         }
     }
+
+    // -----------------------------------------------------------------------------
+    // Insert row prompt feature
+    // -----------------------------------------------------------------------------
+
+    @Override
+    protected void paintComponent(Graphics g) {
+        super.paintComponent(g);
+
+        if (insertRowPromptFeature != null) {
+            insertRowPromptFeature.paint(g);
+        }
+    }
+
+    @Override
+    protected void processMouseEvent(java.awt.event.MouseEvent e) {
+        if (insertRowPromptFeature != null && insertRowPromptFeature.processMouseEvent(e)) {
+            return;
+        }
+
+        super.processMouseEvent(e);
+    }
+
+    // -----------------------------------------------------------------------------
+    // End of insert row prompt feature
+    // -----------------------------------------------------------------------------
 
     public class CustomTableCellEditor extends DefaultCellEditor {
 
