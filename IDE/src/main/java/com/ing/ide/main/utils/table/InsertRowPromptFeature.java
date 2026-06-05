@@ -186,11 +186,13 @@ public class InsertRowPromptFeature {
 
         insertingRow = true;
 
-        int[] selectedRows = table.getSelectedRows();
-        int selectedColumn = table.getSelectedColumn();
-
         if (table.isEditing() && table.getCellEditor() != null) {
-            table.getCellEditor().stopCellEditing();
+            boolean editingStopped = table.getCellEditor().stopCellEditing();
+
+            if (!editingStopped) {
+                insertingRow = false;
+                return;
+            }
         }
 
         try {
@@ -200,7 +202,7 @@ public class InsertRowPromptFeature {
                 triggerDefaultInsertRowAction(insertIndex);
             }
 
-            restoreSelectionAfterInsert(selectedRows, selectedColumn, insertIndex);
+            table.clearSelection();
         } finally {
             hoverInsertRow = -1;
             insertingRow = false;
@@ -210,50 +212,10 @@ public class InsertRowPromptFeature {
 
         SwingUtilities.invokeLater(
             () -> {
-                restoreSelectionAfterInsert(selectedRows, selectedColumn, insertIndex);
+                table.clearSelection();
                 table.repaint();
             }
         );
-    }
-
-    private void restoreSelectionAfterInsert(
-        int[] selectedRows,
-        int selectedColumn,
-        int insertIndex
-    ) {
-        table.clearSelection();
-
-        if (selectedRows == null || selectedRows.length == 0) {
-            return;
-        }
-
-        if (table.getRowCount() == 0 || table.getColumnCount() == 0) {
-            return;
-        }
-
-        int safeColumn = selectedColumn >= 0
-            ? Math.min(selectedColumn, table.getColumnCount() - 1)
-            : 0;
-
-        int leadRow = -1;
-
-        for (int selectedRow : selectedRows) {
-            int restoredRow = selectedRow;
-
-            if (insertIndex <= restoredRow) {
-                restoredRow = restoredRow + 1;
-            }
-
-            if (restoredRow >= 0 && restoredRow < table.getRowCount()) {
-                table.addRowSelectionInterval(restoredRow, restoredRow);
-                leadRow = restoredRow;
-            }
-        }
-
-        if (leadRow != -1 && safeColumn >= 0 && safeColumn < table.getColumnCount()) {
-            table.getSelectionModel().setLeadSelectionIndex(leadRow);
-            table.getColumnModel().getSelectionModel().setLeadSelectionIndex(safeColumn);
-        }
     }
 
     private void paintInsertRowIndicator(Graphics g) {
