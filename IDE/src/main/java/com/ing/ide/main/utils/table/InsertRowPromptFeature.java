@@ -196,6 +196,8 @@ public class InsertRowPromptFeature {
         }
 
         try {
+            table.clearSelection();
+
             if (insertRowHandler != null) {
                 insertRowHandler.accept(insertIndex);
             } else {
