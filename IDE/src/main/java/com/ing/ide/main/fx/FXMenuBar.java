@@ -114,22 +114,10 @@ public class FXMenuBar extends JFXPanel {
         );
         bindAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_X, InputEvent.ALT_DOWN_MASK), "Quit");
 
-        bindAccelerator(
-            KeyStroke.getKeyStroke(KeyEvent.VK_P, shortcutMask | InputEvent.ALT_DOWN_MASK),
-            "Object Spy"
-        );
-        bindAccelerator(
-            KeyStroke.getKeyStroke(KeyEvent.VK_H, shortcutMask | InputEvent.ALT_DOWN_MASK),
-            "Object Heal"
-        );
-        bindAccelerator(
-            KeyStroke.getKeyStroke(KeyEvent.VK_I, shortcutMask | InputEvent.ALT_DOWN_MASK),
-            "Image Spy"
-        );
-        bindAccelerator(
-            KeyStroke.getKeyStroke(KeyEvent.VK_M, shortcutMask | InputEvent.ALT_DOWN_MASK),
-            "Mobile Spy"
-        );
+        // bindAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_P, shortcutMask | InputEvent.ALT_DOWN_MASK), "Object Spy");
+        // bindAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_H, shortcutMask | InputEvent.ALT_DOWN_MASK), "Object Heal");
+        // bindAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_I, shortcutMask | InputEvent.ALT_DOWN_MASK), "Image Spy");
+        // bindAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_M, shortcutMask | InputEvent.ALT_DOWN_MASK), "Mobile Spy");
         bindAccelerator(
             KeyStroke.getKeyStroke(KeyEvent.VK_S, shortcutMask | InputEvent.ALT_DOWN_MASK),
             "Run Settings"
@@ -167,10 +155,10 @@ public class FXMenuBar extends JFXPanel {
         );
         bindAccelerator(
             KeyStroke.getKeyStroke(
-                KeyEvent.VK_T,
+                KeyEvent.VK_W,
                 InputEvent.SHIFT_DOWN_MASK | InputEvent.ALT_DOWN_MASK
             ),
-            "API Tester"
+            "API Workbench"
         );
         bindAccelerator(
             KeyStroke.getKeyStroke(
