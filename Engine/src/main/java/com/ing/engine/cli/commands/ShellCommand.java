@@ -498,11 +498,25 @@ public class ShellCommand implements Callable<Integer> {
         System.out.println();
         System.out.println(bold + purple + "    ╔══════════════════════════════════════════════════════════════════════╗" + reset);
         System.out.println(bold + purple + "    ║" + white + "       ✦  T E S T   A U T O M A T I O N   F R A M E W O R K  ✦        " + purple + "║" + reset);
-        System.out.println(bold + purple + "    ║" + lightPurple + "                     Interactive Shell v2.3.1                       " + purple + "║" + reset);
+        System.out.println(bold + purple + "    ║" + lightPurple + formatShellBannerLine("Interactive Shell v" + com.ing.engine.constants.SystemDefaults.getBuildVersion(), 68) + purple + "║" + reset);
         System.out.println(bold + purple + "    ╚══════════════════════════════════════════════════════════════════════╝" + reset);
         System.out.println();
     }
-
+    /**
+     * Center {@code content} within {@code width} spaces so the dynamic
+     * Maven version sits cleanly between the ║ ║ borders of the shell
+     * banner box, irrespective of version length.
+     */
+    private static String formatShellBannerLine(String content, int width) {
+        int pad = Math.max(0, width - content.length());
+        int left = pad / 2;
+        int right = pad - left;
+        StringBuilder sb = new StringBuilder(width);
+        for (int i = 0; i < left; i++) sb.append(' ');
+        sb.append(content);
+        for (int i = 0; i < right; i++) sb.append(' ');
+        return sb.toString();
+    }
     private void printHelp(String topic) {
         if (topic.isEmpty()) {
             System.out.println("INGenious Interactive Shell Commands:");

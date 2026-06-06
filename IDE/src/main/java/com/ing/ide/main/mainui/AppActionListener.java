@@ -152,10 +152,10 @@ public class AppActionListener implements ActionListener {
             }
                 break;
 
-            case "Run Settings":
+            case "Settings":
                 openSettings();
                 break;
-            case "Browser Configuration":
+            case "Archetype Configurations":
                 driverSettings.open();
                 break;
             case "AzureDevOps TestPlan Configuration":
@@ -278,6 +278,16 @@ public class AppActionListener implements ActionListener {
                 if (ae.getActionCommand().startsWith("Import SAP Recording:")) {
                     String language = ae.getActionCommand().substring("Import SAP Recording:".length());
                     handleSapImport(language);
+                } else if (ae.getActionCommand().startsWith("Import Collection:")) {
+                    String fmt = ae.getActionCommand().substring("Import Collection:".length());
+                    com.ing.datalib.api.importer.ImportSource src;
+                    try {
+                        src = com.ing.datalib.api.importer.ImportSource.valueOf(fmt.toUpperCase());
+                    } catch (IllegalArgumentException ex) {
+                        src = com.ing.datalib.api.importer.ImportSource.POSTMAN;
+                    }
+                    new com.ing.ide.main.mainui.components.apitester.importing.ImportCollectionAction(sMainFrame)
+                            .openWizard(src);
                 } else {
                     System.out.println("UNHANDLED ACTION: [" + ae.getActionCommand() + "]");
                     sMainFrame.getLoader().showIDontCare();

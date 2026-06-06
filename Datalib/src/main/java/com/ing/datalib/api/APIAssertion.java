@@ -114,6 +114,25 @@ public class APIAssertion implements Serializable {
         return assertion;
     }
 
+    public static APIAssertion xPath(String path, Operator operator, String expectedValue) {
+        APIAssertion assertion = new APIAssertion();
+        assertion.setType(AssertionType.XPATH);
+        assertion.setTarget(path);
+        assertion.setOperator(operator);
+        assertion.setExpectedValue(expectedValue);
+        assertion.setName("XPath " + path + " " + operator + " " + expectedValue);
+        return assertion;
+    }
+
+    public static APIAssertion xPathExists(String path) {
+        APIAssertion assertion = new APIAssertion();
+        assertion.setType(AssertionType.XPATH);
+        assertion.setTarget(path);
+        assertion.setOperator(Operator.EXISTS);
+        assertion.setName("XPath " + path + " exists");
+        return assertion;
+    }
+
     public static APIAssertion header(String headerName, Operator operator, String expectedValue) {
         APIAssertion assertion = new APIAssertion();
         assertion.setType(AssertionType.HEADER);

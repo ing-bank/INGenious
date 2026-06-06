@@ -6,6 +6,7 @@ import com.ing.ingenious.api.annotation.Action;
 import com.ing.ingenious.api.types.InputType;
 import com.ing.ingenious.api.types.ObjectType;
 import io.appium.java_client.AppiumBy;
+import io.appium.java_client.android.AndroidDriver;
 import io.appium.java_client.ios.IOSDriver;
 import java.util.HashMap;
 import java.util.logging.Level;
@@ -111,6 +112,68 @@ public class Scroll extends MobileGeneral {
 
     }
 */    
+    /**
+     * Normalized scroll action that works on both Android and iOS.
+     *
+     * Input (Data): direction - one of [up | down | left | right].
+     * Condition (optional): target element identifier.
+     *   - On Android: visible text to scroll to (uses UiScrollable.scrollIntoView).
+     *   - On iOS: attribute=value pair (e.g. name=submitBtn) passed to mobile:scroll.
+     *
+     * If no Condition is supplied, a directional scroll is performed:
+     *   - Android: UiScrollable.scrollForward()/scrollBackward() on a vertical or horizontal list.
+     *   - iOS: mobile:scroll with the given direction.
+     */
+    @Action(object = ObjectType.MOBILE, desc = "Scroll [<Data>] (up|down|left|right) - platform aware", input = InputType.YES, condition = InputType.OPTIONAL)
+    public void scroll() {
+        try {
+            String direction = (Data == null) ? "" : Data.trim().toLowerCase();
+            if (!direction.matches("up|down|left|right")) {
+                Report.updateTestLog(Action, "Invalid input [" + Data + "]. Expected one of [up|down|left|right]", Status.DEBUG);
+                return;
+            }
+            if (mDriver instanceof AndroidDriver) {
+                scrollOnAndroid(direction);
+            } else if (mDriver instanceof IOSDriver) {
+                scrollOnIOS(direction);
+            } else {
+                Report.updateTestLog(Action, "Unsupported driver/platform for scroll action", Status.FAIL);
+            }
+        } catch (Exception e) {
+            Logger.getLogger(this.getClass().getName()).log(Level.OFF, null, e);
+            Report.updateTestLog("Could not perfom [" + Action + "] action", "Error: " + e.getMessage(), Status.FAIL);
+        }
+    }
+
+    private void scrollOnAndroid(String direction) {
+        boolean vertical = direction.equals("up") || direction.equals("down");
+        boolean forward = direction.equals("down") || direction.equals("right");
+        String scrollable = "new UiScrollable(new UiSelector().scrollable(true))"
+                + (vertical ? ".setAsVerticalList()" : ".setAsHorizontalList()");
+        String uia;
+        boolean hasTarget = Condition != null && !Condition.trim().isEmpty();
+        if (hasTarget) {
+            // scrollIntoView searches by scrolling forward; orientation is honored above.
+            uia = scrollable + ".scrollIntoView(new UiSelector().text(\"" + Condition + "\").instance(0))";
+        } else {
+            uia = scrollable + (forward ? ".scrollForward()" : ".scrollBackward()");
+        }
+        mDriver.findElement(AppiumBy.androidUIAutomator(uia));
+        Report.updateTestLog(Action, "Scrolled " + direction + (hasTarget ? " to '" + Condition + "'" : ""), Status.DONE);
+    }
+
+    private void scrollOnIOS(String direction) {
+        HashMap<String, Object> scrollObject = new HashMap<>();
+        scrollObject.put("direction", direction);
+        boolean hasTarget = Condition != null && Condition.contains("=");
+        if (hasTarget) {
+            String[] parts = Condition.split("=", 2);
+            scrollObject.put(parts[0].trim(), parts[1].trim());
+        }
+        ((IOSDriver) mDriver).executeScript("mobile:scroll", scrollObject);
+        Report.updateTestLog(Action, "Scrolled " + direction + (hasTarget ? " to '" + Condition + "'" : ""), Status.DONE);
+    }
+
     @Action(object = ObjectType.MOBILE, desc ="Scroll to Text in Android", input = InputType.YES)
     public void scrollInAndroid() {
         try {

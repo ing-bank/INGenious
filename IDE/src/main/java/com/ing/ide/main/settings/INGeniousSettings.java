@@ -68,14 +68,10 @@ public class INGeniousSettings extends javax.swing.JFrame {
     private XTablePanel databaseSettingsPanel;
     
     private XTablePanel rpSettingsPanel;
-    
-    private XTablePanel extentSettingsPanel;
 
     private XTablePanel uDPanel;
     
     private XTablePanel lambdatestCapsPanel;
-    
-    private XTablePanel KafkaSSLConfigsPanel;
     
     private ConnectButton mailConnect;
 
@@ -225,8 +221,6 @@ public class INGeniousSettings extends javax.swing.JFrame {
         
         // Style XTablePanels
         styleModernXTablePanel(uDPanel);
-        styleModernXTablePanel(extentSettingsPanel);
-        styleModernXTablePanel(KafkaSSLConfigsPanel);
         styleModernXTablePanel(lambdatestCapsPanel);
         
         // Style filler
@@ -478,16 +472,16 @@ public class INGeniousSettings extends javax.swing.JFrame {
         //runSettingsTab.addTab("Database Settings", databaseSettingsPanel);
         rpSettingsPanel= new XTablePanel(true);
         //runSettingsTab.addTab("Report Portal Settings", rpSettingsPanel);
-        extentSettingsPanel = new XTablePanel(true);
-        runSettingsTab.addTab("Extent Report Settings", extentSettingsPanel);
-        
-        //Added for Kafka SSL certificate settings
-        KafkaSSLConfigsPanel = new XTablePanel(true);
-        runSettingsTab.addTab("Kafka ssl Configurations", KafkaSSLConfigsPanel);
-        
+        // Extent Report Settings tab removed; the report theme is now hard-coded to "dark"
+        // in com.ing.engine.reporting.impl.extent.ExtentSummaryHandler.
+
+        // Kafka SSL Configurations have moved to the Archetype Configurations dialog
+        // (formerly Browser Configuration). Project storage is unchanged, so existing
+        // projects keep their previously saved values.
+
         //Added for LambdaTest
         lambdatestCapsPanel = new XTablePanel(true);
-        runSettingsTab.addTab("LambdaTest Capabilities", lambdatestCapsPanel);
+        runSettingsTab.addTab("LambdaTest Grid Capabilities", lambdatestCapsPanel);
         
         
         mailConnect = new ConnectButton() {
@@ -561,8 +555,6 @@ public class INGeniousSettings extends javax.swing.JFrame {
         loadTestSetTMSettings();
         loadUserDefinedSettings();
         loadRPSettings();
-        loadExtentSettings();
-        loadKafkaSSLConfigurations();
         loadLambdaTestCapabilities();
         showSettings();
     }
@@ -597,8 +589,6 @@ public class INGeniousSettings extends javax.swing.JFrame {
         loadTMSettings();
         loadUserDefinedSettings();
         loadRPSettings();
-        loadExtentSettings();
-        loadKafkaSSLConfigurations();
         loadLambdaTestCapabilities();
     }
 
@@ -698,19 +688,7 @@ public class INGeniousSettings extends javax.swing.JFrame {
                 sProject.getProjectSettings().getLambdaTestCaps(),
                 lambdatestCapsPanel.table);
     }
-    
-    private void loadExtentSettings() {
-        PropUtils.loadPropertiesInTable(
-                sProject.getProjectSettings().getExtentSettings(),
-                extentSettingsPanel.table);
-    }
-    
-    private void loadKafkaSSLConfigurations() {
-        PropUtils.loadPropertiesInTable(
-                sProject.getProjectSettings().getKafkaSSLConfigurations(),
-                KafkaSSLConfigsPanel.table);
-    }
-        
+
     private void setButtonModelFromText(String text, ButtonGroup Bgroup) {
         for (Enumeration<AbstractButton> buttons = Bgroup.getElements(); buttons.hasMoreElements();) {
             AbstractButton button = buttons.nextElement();
@@ -815,22 +793,7 @@ public class INGeniousSettings extends javax.swing.JFrame {
         sProject.getProjectSettings().getRPSettings().set(properties);
         sProject.getProjectSettings().getRPSettings().save();
     }
-    
-    private void saveExtentSettings() {
-        Properties properties = encryptpassword(PropUtils.getPropertiesFromTable(((XTablePanel) extentSettingsPanel).table), " Enc");
-        PropUtils.loadPropertiesInTable(properties, extentSettingsPanel.table, "");
-        sProject.getProjectSettings().getExtentSettings().set(properties);
-        sProject.getProjectSettings().getExtentSettings().save();
-    }
-    
-    private void saveKafkaSSLConfigurations() {
-//        Properties properties = encryptpassword(PropUtils.getPropertiesFromTable(((XTablePanel) KafkaSSLConfigsPanel).table), " Enc");
-       Properties properties = PropUtils.getPropertiesFromTable( KafkaSSLConfigsPanel.table);       
-//        PropUtils.loadPropertiesInTable(properties, KafkaSSLConfigsPanel.table, "");
-        sProject.getProjectSettings().getKafkaSSLConfigurations().set(properties);
-        sProject.getProjectSettings().getKafkaSSLConfigurations().save();
-    }
-        
+
     private void saveLambdaTestCaps() {
         Properties properties = encryptpassword(PropUtils.getPropertiesFromTable(((XTablePanel) lambdatestCapsPanel).table), " Enc");
         PropUtils.loadPropertiesInTable(properties, lambdatestCapsPanel.table, "");
@@ -844,8 +807,6 @@ public class INGeniousSettings extends javax.swing.JFrame {
         saveTMSettings();
         saveuserDefinedSettings();
         saveRPSettings();
-        saveExtentSettings();
-        saveKafkaSSLConfigurations();
         saveLambdaTestCaps();
     }
 
@@ -938,7 +899,7 @@ public class INGeniousSettings extends javax.swing.JFrame {
         filler5 = new javax.swing.Box.Filler(new java.awt.Dimension(0, 10), new java.awt.Dimension(0, 10), new java.awt.Dimension(32767, 10));
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
-        setTitle("Run Settings");
+        setTitle("Settings");
         addWindowListener(new java.awt.event.WindowAdapter() {
             public void windowClosing(java.awt.event.WindowEvent evt) {
                 formWindowClosing(evt);

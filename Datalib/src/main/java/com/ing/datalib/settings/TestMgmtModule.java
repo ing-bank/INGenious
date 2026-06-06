@@ -101,6 +101,24 @@ public class TestMgmtModule {
         }
     }
 
+    /**
+     * Set (or update) a single option on a module. If the module does not
+     * exist it is created. If the option already exists its value is
+     * replaced; otherwise it is appended. Used by the CLI override path
+     * ({@code -setEnv "tmModule.<mod>.<key>=<value>"}).
+     */
+    public void setOption(String moduleName, String optionName, String value) {
+        addModule(moduleName);
+        TestMgModule module = getModule(moduleName);
+        for (Option opt : module.getOptions()) {
+            if (opt.getName() != null && opt.getName().equals(optionName)) {
+                opt.setValue(value);
+                return;
+            }
+        }
+        module.getOptions().add(new Option(optionName, value));
+    }
+
     public String getLocation() {
         return location + File.separator + "TMModules.json";
     }

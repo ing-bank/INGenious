@@ -106,7 +106,7 @@ public class FXMenuBar extends JFXPanel {
         bindAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_H, shortcutMask | InputEvent.ALT_DOWN_MASK), "Object Heal");
         bindAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_I, shortcutMask | InputEvent.ALT_DOWN_MASK), "Image Spy");
         bindAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_M, shortcutMask | InputEvent.ALT_DOWN_MASK), "Mobile Spy");
-        bindAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S, shortcutMask | InputEvent.ALT_DOWN_MASK), "Run Settings");
+        bindAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S, shortcutMask | InputEvent.ALT_DOWN_MASK), "Settings");
 
         bindAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_E, shortcutMask | InputEvent.SHIFT_DOWN_MASK), "Exploratory");
         bindAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_H, shortcutMask | InputEvent.SHIFT_DOWN_MASK), "Har Compare");
@@ -177,8 +177,8 @@ public class FXMenuBar extends JFXPanel {
     private Menu createConfigurationMenu() {
         Menu config = new Menu("Configurations");
         config.getItems().addAll(
-                menuItem("Run Settings", "settings", KeyCode.S, KeyCombination.SHORTCUT_DOWN, KeyCombination.ALT_DOWN),
-                menuItem("Browser Configuration", "BrowserConfiguration"),
+                menuItem("Settings", "settings", KeyCode.S, KeyCombination.SHORTCUT_DOWN, KeyCombination.ALT_DOWN),
+                menuItem("Archetype Configurations", "BrowserConfiguration"),
                 new SeparatorMenuItem(),
                 menuItem("Options", "settings")
         );
@@ -213,6 +213,13 @@ public class FXMenuBar extends JFXPanel {
                 createSapImportItem("Java (.java, .jsh)", "recorder", "Java")
         );
         tools.getItems().add(sapRecording);
+
+        Menu importCollection = new Menu("Import Collection");
+        importCollection.getItems().addAll(
+                createImportCollectionItem("Postman", "recorder", "Postman"),
+                createImportCollectionItem("Bruno", "recorder", "Bruno")
+        );
+        tools.getItems().add(importCollection);
 
         tools.getItems().add(
                 menuItem("Har Compare", "search", KeyCode.H, KeyCombination.SHORTCUT_DOWN, KeyCombination.SHIFT_DOWN));
@@ -288,6 +295,21 @@ public class FXMenuBar extends JFXPanel {
         }
         // Use format: "Import SAP Recording:Language"
         item.setOnAction(e -> fireSwingAction("Import SAP Recording:" + language));
+        return item;
+    }
+
+    /**
+     * Creates a menu item for Import Collection with format-specific action command.
+     */
+    private MenuItem createImportCollectionItem(String text, String iconName, String format) {
+        MenuItem item = new MenuItem(text);
+        if (iconName != null) {
+            org.kordamp.ikonli.javafx.FontIcon icon = INGIcons.fxColored(iconName, 14);
+            if (icon != null) {
+                item.setGraphic(icon);
+            }
+        }
+        item.setOnAction(e -> fireSwingAction("Import Collection:" + format));
         return item;
     }
 

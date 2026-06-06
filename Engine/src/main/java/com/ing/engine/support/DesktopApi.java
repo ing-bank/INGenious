@@ -200,7 +200,10 @@ public class DesktopApi {
     }
 
     private static void logOut(String msg) {
-        LOG.info(msg);
+        // Diagnostic "Trying to ..." messages from the cross-platform desktop
+        // launcher. Kept at DEBUG so they don't clutter normal console output
+        // (visible only when the logger is configured at DEBUG/TRACE).
+        LOG.debug(msg);
     }
 
     public static enum EnumOS {

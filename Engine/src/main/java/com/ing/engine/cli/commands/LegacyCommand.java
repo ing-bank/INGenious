@@ -109,8 +109,8 @@ public class LegacyCommand implements Callable<Integer> {
         }
 
         if (threads != null) {
-            legacyArgs.add("-setThreads");
-            legacyArgs.add(threads);
+            legacyArgs.add("-setEnv");
+            legacyArgs.add("run.ThreadCount=" + threads);
         }
 
         if (tags != null) {
@@ -186,9 +186,9 @@ public class LegacyCommand implements Callable<Integer> {
                     break;
                     
                 case "--parallel":
-                    legacyArgs.add("-setThreads");
+                    legacyArgs.add("-setEnv");
                     if (i + 1 < newArgs.length) {
-                        legacyArgs.add(newArgs[++i]);
+                        legacyArgs.add("run.ThreadCount=" + newArgs[++i]);
                     }
                     break;
                     

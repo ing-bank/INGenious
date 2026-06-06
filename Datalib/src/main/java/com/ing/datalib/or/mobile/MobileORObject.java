@@ -576,27 +576,39 @@ public class MobileORObject extends UndoRedoModel implements ORObjectInf {
 
     @JsonIgnore
     public void setId(String val) {
-        setAttributeByName("id", val);
+        setAttributeOnBothPlatforms("id", val);
     }
 
     @JsonIgnore
     public void setNameAttr(String val) {
-        setAttributeByName("name", val);
+        setAttributeOnBothPlatforms("name", val);
     }
 
     @JsonIgnore
     public void setClassName(String val) {
-        setAttributeByName("class", val);
+        setAttributeOnBothPlatforms("class", val);
     }
 
     @JsonIgnore
     public void setXpath(String val) {
-        setAttributeByName("xpath", val);
+        setAttributeOnBothPlatforms("xpath", val);
     }
 
     @JsonIgnore
     public void setAccessibility(String val) {
-        setAttributeByName("Accessibility", val);
+        setAttributeOnBothPlatforms("Accessibility", val);
+    }
+
+    /**
+     * Writes a platform-agnostic locator (id / xpath / class / name / Accessibility)
+     * to BOTH the Android and iOS attribute lists. The Mobile Object Spy and other
+     * capture flows use the convenience setters above, and a single captured value
+     * is expected to identify the element on either platform.
+     */
+    @JsonIgnore
+    private void setAttributeOnBothPlatforms(String attr, String val) {
+        setAttributeByName(MobilePlatform.ANDROID, attr, val);
+        setAttributeByName(MobilePlatform.IOS, attr, val);
     }
 
     @JsonIgnore

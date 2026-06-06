@@ -251,6 +251,13 @@ public class Command implements CommandPluginApi {
             Action = Commander.Action;
             userData = Commander.userData;
         }
+        // STRUCTUREDDATA actions (JSON/XML path assertions on Webservice responses)
+        // are driver-agnostic. The webDriver/SAP branches above don't copy SObject,
+        // so do it here so that STRUCTUREDDATA actions can resolve OR references
+        // regardless of execution mode.
+        if (SObject == null) {
+            SObject = Commander.SObject;
+        }
         /**
          * ******Webservice*******
          */
