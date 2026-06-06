@@ -234,54 +234,6 @@ public class Basic extends General {
 
     @Action(
         object = ObjectType.BROWSER,
-        desc = "Set Assertion Timeout (in milliseconds)",
-        input = InputType.YES
-    )
-    public void setAssertionTimeout() {
-        if (Data != null && Data.matches("[0-9]+")) {
-            double timeout = Double.parseDouble(Data);
-            setDefaultAssertionTimeout(timeout);
-
-            Report.updateTestLog(
-                Action,
-                "Assertion timeout changed to [" + Data + "] millisecond/s",
-                Status.DONE
-            );
-        } else {
-            Report.updateTestLog(
-                Action,
-                "Couldn't change assertion timeout (invalid input) " + Data,
-                Status.DEBUG
-            );
-        }
-    }
-
-    @Action(
-        object = ObjectType.BROWSER,
-        desc = "Set Assertion Timeout (in milliseconds)",
-        input = InputType.YES
-    )
-    public void setAssertionTimeout() {
-        if (Data != null && Data.matches("[0-9]+")) {
-            double timeout = Double.parseDouble(Data);
-            setDefaultAssertionTimeout(timeout);
-
-            Report.updateTestLog(
-                Action,
-                "Assertion timeout changed to [" + Data + "] millisecond/s",
-                Status.DONE
-            );
-        } else {
-            Report.updateTestLog(
-                Action,
-                "Couldn't change assertion timeout (invalid input) " + Data,
-                Status.DEBUG
-            );
-        }
-    }
-
-    @Action(
-        object = ObjectType.BROWSER,
         desc = "Changes the browser size into [<Data>]",
         input = InputType.YES
     )
