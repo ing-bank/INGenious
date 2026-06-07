@@ -1243,7 +1243,7 @@ public class ProjectCommand implements Callable<Integer> {
     /**
      * Create a new project.
      */
-    @Command(name = "create", description = "Create a new project")
+    @Command(name = "create", description = "Create a new project with the full INGenious folder layout")
     public static class CreateCommand implements Callable<Integer> {
 
         @ParentCommand
@@ -1258,48 +1258,63 @@ public class ProjectCommand implements Callable<Integer> {
         @Option(names = {"--template"}, description = "Project template (web, mobile, api)")
         private String template;
 
+        @Option(names = {"--format"},
+                description = "Default test case format: ${COMPLETION-CANDIDATES} (default: YAML)",
+                defaultValue = "YAML")
+        private FormatChoice format;
+
+        @Option(names = {"--no-sample"},
+                description = "Do not create the default sample scenario/test case")
+        private boolean noSample;
+
+        public enum FormatChoice { YAML, CSV }
+
         @Override
         public Integer call() {
             INGeniousCLI cli = INGeniousCLI.getInstance();
-            
-            File projectDir = new File(directory, projectName);
-            
+
+            File parentDir = directory.getAbsoluteFile();
+            File projectDir = new File(parentDir, projectName);
+
             if (projectDir.exists()) {
                 cli.printError("Project already exists: " + projectDir.getAbsolutePath());
                 return 1;
             }
 
             try {
-                // The scaffolding itself is quiet today, but constructing
-                // a Project (which the IDE / future enhancements may do to
-                // materialise default settings files) is chatty. Wrap the
-                // whole bootstrap so any such side-effects stay silent.
                 try (Silencer ignored = Silencer.aroundProjectLoad()) {
-                    // Create project structure
+                    // Pre-create the folder layout so Datalib loaders are happy.
                     projectDir.mkdirs();
                     new File(projectDir, "TestPlan").mkdirs();
+                    new File(projectDir, "ReusableComponents").mkdirs();
                     new File(projectDir, "ObjectRepository").mkdirs();
                     new File(projectDir, "TestData").mkdirs();
+                    new File(projectDir, "TestLab").mkdirs();
                     new File(projectDir, "Settings").mkdirs();
                     new File(projectDir, "Results").mkdirs();
+                    new File(projectDir, "Configuration").mkdirs();
 
-                    // Create default scenario
-                    File defaultScenario = new File(projectDir, "TestPlan/NewScenario");
-                    defaultScenario.mkdirs();
-                    new File(defaultScenario, "NewTestCase.csv").createNewFile();
-
-                    // Create default release and testset
-                    File defaultRelease = new File(projectDir, "TestPlan/NewRelease");
-                    defaultRelease.mkdirs();
-                    new File(defaultRelease, "NewTestSet.csv").createNewFile();
+                    // Use the Datalib bootstrapper - this writes .project, the
+                    // default scenario/test case and the release/test set.
+                    Project project = new Project(projectName,
+                            parentDir.getAbsolutePath(), "csv");
+                    if (!noSample) {
+                        project.createProject();
+                    }
+                    if (project.getInfo() != null) {
+                        project.getInfo().setTestCaseFormat(format.name());
+                    }
+                    project.save();
                 }
 
-                cli.printSuccess("Project created: " + projectDir.getAbsolutePath());
+                cli.printSuccess("Project created: " + projectDir.getAbsolutePath()
+                        + " (default format: " + format.name() + ")");
 
                 Map<String, Object> result = new LinkedHashMap<>();
                 result.put("name", projectName);
                 result.put("location", projectDir.getAbsolutePath());
                 result.put("template", template != null ? template : "default");
+                result.put("format", format.name());
 
                 System.out.println(cli.getOutputFormatter().formatKeyValue(result));
                 return 0;

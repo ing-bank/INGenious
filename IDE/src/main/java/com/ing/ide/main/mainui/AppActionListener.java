@@ -99,6 +99,9 @@ public class AppActionListener implements ActionListener {
             case "Save Project":
                 sMainFrame.save();
                 break;
+            case "Reload Project":
+                sMainFrame.reloadProject();
+                break;
             case "Restart":
                 sMainFrame.restart();
                 break;
@@ -138,6 +141,9 @@ public class AppActionListener implements ActionListener {
 
             case "Multiple Environment":
                 sMainFrame.getTestDesign().getTestDatacomp().switchEnvView();
+                break;
+            case "Auto Reload on External Changes":
+                sMainFrame.setAutoReloadEnabled(!sMainFrame.isAutoReloadEnabled());
                 break;
             case "Import TestData":
                 importTestData.importTestData();

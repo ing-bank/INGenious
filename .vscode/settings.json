@@ -2,5 +2,11 @@
     "java.configuration.updateBuildConfiguration": "interactive",
     "java.project.sourcePaths": [
         "Resources/Projects/Tutorial"
-    ]
+    ],
+    "mcp.servers": {
+        "ingenious": {
+            "command": "/Users/la56qs/MyDevelopmentWork/INGeniousOpensource/SourceCode/INGenious3.0/INGenious/Dist/release/ingenious",
+            "args": ["server", "mcp", "-p", "CLIDemo"]
+        }
+    }
 }

@@ -1012,7 +1012,13 @@ public abstract class ObjectTree implements ActionListener {
     }
 
     public void reload() {
+        // Preserve expansion + selection across model reloads so that
+        // operations like copy/paste, cut/paste, delete and drag-and-drop
+        // do not collapse already-expanded pages or object groups.
+        com.ing.ide.main.utils.tree.TreeStateSaver snap
+                = com.ing.ide.main.utils.tree.TreeStateSaver.capture(tree);
         ((DefaultTreeModel) tree.getModel()).reload();
+        snap.restore(tree);
     }
 
     public abstract ORRootInf getOR();

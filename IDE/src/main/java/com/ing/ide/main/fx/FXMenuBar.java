@@ -100,6 +100,7 @@ public class FXMenuBar extends JFXPanel {
         bindAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_N, shortcutMask | InputEvent.SHIFT_DOWN_MASK), "New Project");
         bindAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_O, shortcutMask | InputEvent.SHIFT_DOWN_MASK), "Open Project");
         bindAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S, shortcutMask | InputEvent.SHIFT_DOWN_MASK), "Save Project");
+        bindAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_R, shortcutMask | InputEvent.SHIFT_DOWN_MASK), "Reload Project");
         bindAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_X, InputEvent.ALT_DOWN_MASK), "Quit");
 
         bindAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_P, shortcutMask | InputEvent.ALT_DOWN_MASK), "Object Spy");
@@ -150,6 +151,7 @@ public class FXMenuBar extends JFXPanel {
                 menuItem("New Project", "NewProject", KeyCode.N, KeyCombination.SHORTCUT_DOWN, KeyCombination.SHIFT_DOWN),
                 menuItem("Open Project", "OpenProject", KeyCode.O, KeyCombination.SHORTCUT_DOWN, KeyCombination.SHIFT_DOWN),
                 menuItem("Save Project", "SaveProject", KeyCode.S, KeyCombination.SHORTCUT_DOWN, KeyCombination.SHIFT_DOWN),
+                menuItem("Reload Project", "reload", KeyCode.R, KeyCombination.SHORTCUT_DOWN, KeyCombination.SHIFT_DOWN),
                 new SeparatorMenuItem(),
                 recentProjectsMenu,
                 new SeparatorMenuItem(),
@@ -182,10 +184,6 @@ public class FXMenuBar extends JFXPanel {
                 new SeparatorMenuItem(),
                 menuItem("Options", "settings")
         );
-
-        // darkModeItem = new CheckMenuItem("Dark Mode");
-        // darkModeItem.setOnAction(e -> fireSwingAction("Dark Mode"));
-        // config.getItems().add(darkModeItem);
 
         return config;
     }
@@ -399,5 +397,14 @@ public class FXMenuBar extends JFXPanel {
                 multiEnvItem.setSelected(selected);
             }
         });
+    }
+
+    /**
+     * Syncs the Auto Reload checkbox state. Called from
+     * AppMainFrame.setAutoReloadEnabled() so both menus stay in sync.
+     */
+    public void setAutoReload(boolean selected) {
+        // Auto-reload is now controlled by a pill toggle in FXToolBar; the
+        // menu entry has been removed. Keep this no-op so callers don't break.
     }
 }

@@ -2,6 +2,7 @@ package com.ing.engine.cli.commands;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.ing.datalib.component.io.TestCaseFormat;
 import com.ing.engine.cli.INGeniousCLI;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Mixin;
@@ -53,7 +54,7 @@ public class RunCommand implements Callable<Integer> {
     private String autoPath;
 
     @Option(names = {"-b", "--browser"},
-            description = "Browser to use (Chromium, Firefox, WebKit). Default: Chromium",
+            description = "Browser: Chromium | Firefox | WebKit | 'No Browser' (aliases: NoBrowser, no-browser). Default: Chromium",
             defaultValue = "Chromium")
     private String browser;
 
@@ -115,22 +116,24 @@ public class RunCommand implements Callable<Integer> {
             return 1;
         }
 
-        File testCaseCsv = new File(projectDir, "TestPlan/" + group + "/" + name + ".csv");
-        File testSetCsv  = new File(projectDir, "TestLab/"  + group + "/" + name + ".csv");
-        boolean isTestCase = testCaseCsv.isFile();
-        boolean isTestSet  = testSetCsv.isFile();
+        File testCaseFile = resolveTestArtifact(projectDir, "TestPlan", group, name);
+        File testSetFile  = resolveTestArtifact(projectDir, "TestLab",  group, name);
+        boolean isTestCase = testCaseFile != null;
+        boolean isTestSet  = testSetFile  != null;
 
         if (isTestCase && isTestSet) {
             cli.printError("Ambiguous: path matches both a test case and a test set.");
-            cli.printInfo("  TestCase: " + testCaseCsv.getPath());
-            cli.printInfo("  TestSet : " + testSetCsv.getPath());
+            cli.printInfo("  TestCase: " + testCaseFile.getPath());
+            cli.printInfo("  TestSet : " + testSetFile.getPath());
             cli.printInfo("Use 'ingenious run testcase' or 'ingenious run testset' explicitly.");
             return 1;
         }
         if (!isTestCase && !isTestSet) {
             cli.printError("Not found as a test case or test set.");
-            cli.printInfo("  Tried: " + testCaseCsv.getPath());
-            cli.printInfo("  Tried: " + testSetCsv.getPath());
+            File baseTc = new File(projectDir, "TestPlan/" + group + "/" + name);
+            File baseTs = new File(projectDir, "TestLab/"  + group + "/" + name);
+            cli.printInfo("  Tried: " + baseTc.getPath() + " (.csv | .yaml | .yml)");
+            cli.printInfo("  Tried: " + baseTs.getPath() + " (.csv | .yaml | .yml)");
             return 1;
         }
 
@@ -177,7 +180,7 @@ public class RunCommand implements Callable<Integer> {
             }
         }
         args.add("-browser");
-        args.add(browser);
+        args.add(com.ing.engine.cli.lib.BrowserNames.normalize(browser));
         if (headless) {
             args.add("-op_setHeadless");
             args.add("true");
@@ -214,6 +217,26 @@ public class RunCommand implements Callable<Integer> {
             return underProjects;
         }
         return null;
+    }
+
+    /**
+     * Probe for a test case / test set artifact under
+     * {@code <projectDir>/<topDir>/<group>/<name>}, accepting any of the
+     * supported on-disk formats (YAML preferred, CSV legacy).
+     *
+     * @return the matching file, or {@code null} if none exists
+     */
+    private static File resolveTestArtifact(File projectDir, String topDir, String group, String name) {
+        File parent = new File(projectDir, topDir + "/" + group);
+        // YAML first (the canonical format), then YML alias, then legacy CSV.
+        for (String ext : TestCaseFormat.YAML_EXTENSIONS) {
+            File candidate = new File(parent, name + ext);
+            if (candidate.isFile()) {
+                return candidate;
+            }
+        }
+        File csv = new File(parent, name + TestCaseFormat.CSV.extension());
+        return csv.isFile() ? csv : null;
     }
 
     /**
@@ -312,7 +335,7 @@ public class RunCommand implements Callable<Integer> {
             args.add("-testcase");
             args.add(tc[1]);
             args.add("-browser");
-            args.add(browser);
+            args.add(com.ing.engine.cli.lib.BrowserNames.normalize(browser));
             if (headless) {
                 args.add("-op_setHeadless");
                 args.add("true");
@@ -343,7 +366,7 @@ public class RunCommand implements Callable<Integer> {
         private String projectPath;
 
         @Option(names = {"-b", "--browser"},
-                description = "Browser to use (Chromium, Firefox, WebKit)",
+                description = "Browser: Chromium | Firefox | WebKit | 'No Browser' (aliases: NoBrowser, no-browser)",
                 defaultValue = "Chromium")
         private String browser;
 
@@ -436,7 +459,7 @@ public class RunCommand implements Callable<Integer> {
             args.add("-testcase");
             args.add(config.get("testcase").toString());
             args.add("-browser");
-            args.add(config.get("browser").toString());
+            args.add(com.ing.engine.cli.lib.BrowserNames.normalize(config.get("browser").toString()));
             
             if ((boolean) config.getOrDefault("headless", false)) {
                 args.add("-op_setHeadless");
@@ -473,7 +496,7 @@ public class RunCommand implements Callable<Integer> {
         private String testset;
 
         @Option(names = {"-b", "--browser"},
-                description = "Browser to use (Chromium, Firefox, WebKit)",
+                description = "Browser: Chromium | Firefox | WebKit | 'No Browser' (aliases: NoBrowser, no-browser)",
                 defaultValue = "Chromium")
         private String browser;
 
@@ -527,7 +550,7 @@ public class RunCommand implements Callable<Integer> {
                 args.add("-testset");
                 args.add(testset);
                 args.add("-browser");
-                args.add(browser);
+                args.add(com.ing.engine.cli.lib.BrowserNames.normalize(browser));
                 if (parallel > 1) {
                     args.add("-setEnv");
                     args.add("run.ThreadCount=" + parallel);
@@ -564,7 +587,7 @@ public class RunCommand implements Callable<Integer> {
         private String projectPath;
 
         @Option(names = {"-b", "--browser"},
-                description = "Browser to use (Chromium, Firefox, WebKit)",
+                description = "Browser: Chromium | Firefox | WebKit | 'No Browser' (aliases: NoBrowser, no-browser)",
                 defaultValue = "Chromium")
         private String browser;
 
@@ -608,7 +631,7 @@ public class RunCommand implements Callable<Integer> {
                 args.add("-project_location");
                 args.add(path);
                 args.add("-browser");
-                args.add(browser);
+                args.add(com.ing.engine.cli.lib.BrowserNames.normalize(browser));
                 args.add("-tags");
                 args.add(String.join(",", tags));
                 
@@ -648,7 +671,7 @@ public class RunCommand implements Callable<Integer> {
         private String autoPath;
 
         @Option(names = {"-b", "--browser"},
-                description = "Browser to use (Chromium, Firefox, WebKit). Default: Chromium",
+                description = "Browser: Chromium | Firefox | WebKit | 'No Browser' (aliases: NoBrowser, no-browser). Default: Chromium",
                 defaultValue = "Chromium")
         private String browser;
 
@@ -675,7 +698,7 @@ public class RunCommand implements Callable<Integer> {
             forward.add("run");
             forward.add("--rerun");
             forward.add("-b");
-            forward.add(browser);
+            forward.add(com.ing.engine.cli.lib.BrowserNames.normalize(browser));
             if (headless) forward.add("--headless");
             forward.add(autoPath);
             return INGeniousCLI.execute(forward.toArray(new String[0]));

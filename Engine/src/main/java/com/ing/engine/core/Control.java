@@ -275,6 +275,7 @@ public class Control {
             "data", "action", "actions",
             "run", "report", "config", "server",
             "shell", "interactive", "repl",
+            "import",
             "help",
             "--help", "-h",
             "--version", "-v", "-V"

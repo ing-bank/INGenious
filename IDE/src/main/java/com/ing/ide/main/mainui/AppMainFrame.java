@@ -43,6 +43,7 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Paths;
 import java.util.Enumeration;
 import java.util.Iterator;
 import java.util.List;
@@ -101,6 +102,9 @@ public class AppMainFrame extends JFrame {
     private Project sProject;
 
     private final LoaderScreen loader;
+
+    /** Watches the active project directory for external changes. */
+    private ProjectWatcher projectWatcher;
 
     private QUIT_TYPE quitType = QUIT_TYPE.NORMAL;
     
@@ -628,9 +632,18 @@ public class AppMainFrame extends JFrame {
 
     public void saveLoadedProject() {
         if (sProject != null && !sProject.getName().isEmpty()) {
-            sProject.save();
-            testDesign.save();
-            apiTester.saveData();
+            if (projectWatcher != null) {
+                projectWatcher.beginIdeWrite();
+            }
+            try {
+                sProject.save();
+                testDesign.save();
+                apiTester.saveData();
+            } finally {
+                if (projectWatcher != null) {
+                    projectWatcher.endIdeWrite();
+                }
+            }
         }
     }
 
@@ -650,6 +663,169 @@ public class AppMainFrame extends JFrame {
     public void autoSave() {
         if (sProject != null) {
             saveLoadedProject();
+        }
+    }
+
+    /**
+     * Reloads the current project from disk in-place, picking up any new
+     * test cases, scenarios, reusables, test data, test sets, object
+     * repository or settings added externally (e.g. via the CLI or MCP
+     * server). Unsaved IDE changes are persisted first.
+     */
+    public void reloadProject() {
+        if (sProject == null) {
+            return;
+        }
+        // Persist any pending edits before reloading from disk.
+        saveLoadedProject();
+        final String projectName = sProject.getName();
+        SwingUtilities.invokeLater(() -> {
+            if (projectWatcher != null) {
+                projectWatcher.beginIdeWrite();
+            }
+            // Capture tree state so scenarios / reusables / OR pages
+            // stay expanded across the reload.
+            java.util.Map<javax.swing.JTree, com.ing.ide.main.utils.tree.TreeStateSaver> snapshots
+                    = captureTreeSnapshots();
+            try {
+                sProject.reload();
+                load();
+                afterProjectChange();
+            } finally {
+                if (projectWatcher != null) {
+                    projectWatcher.endIdeWrite();
+                }
+            }
+            // Restore after the new model has been installed.
+            SwingUtilities.invokeLater(() -> restoreTreeSnapshots(snapshots));
+            Notification.show("Project [" + projectName + "] Reloaded");
+        });
+    }
+
+    /**
+     * Captures expansion/selection state of all project trees (Test Plan,
+     * Reusable Components, and every Object Repository tree) so it can be
+     * restored after a project reload.
+     */
+    private java.util.Map<javax.swing.JTree, com.ing.ide.main.utils.tree.TreeStateSaver>
+            captureTreeSnapshots() {
+        java.util.Map<javax.swing.JTree, com.ing.ide.main.utils.tree.TreeStateSaver> map
+                = new java.util.LinkedHashMap<>();
+        for (javax.swing.JTree t : collectProjectTrees()) {
+            if (t != null) {
+                map.put(t, com.ing.ide.main.utils.tree.TreeStateSaver.capture(t));
+            }
+        }
+        return map;
+    }
+
+    private void restoreTreeSnapshots(
+            java.util.Map<javax.swing.JTree, com.ing.ide.main.utils.tree.TreeStateSaver> map) {
+        if (map == null) {
+            return;
+        }
+        for (java.util.Map.Entry<javax.swing.JTree, com.ing.ide.main.utils.tree.TreeStateSaver> e
+                : map.entrySet()) {
+            try {
+                e.getValue().restore(e.getKey());
+            } catch (RuntimeException ignored) {
+                // best-effort — tree may have been replaced
+            }
+        }
+    }
+
+    private java.util.List<javax.swing.JTree> collectProjectTrees() {
+        java.util.List<javax.swing.JTree> trees = new java.util.ArrayList<>();
+        try {
+            trees.add(testDesign.getProjectTree().getTree());
+        } catch (RuntimeException ignored) { /* defensive */ }
+        try {
+            trees.add(testDesign.getReusableTree().getTree());
+        } catch (RuntimeException ignored) { /* defensive */ }
+        try {
+            com.ing.ide.main.mainui.components.testdesign.or.ObjectRepo repo
+                    = testDesign.getObjectRepo();
+            if (repo != null) {
+                addIfNotNull(trees, repo.getWebOR().getProjectTree().getTree());
+                addIfNotNull(trees, repo.getWebOR().getSharedTree().getTree());
+                addIfNotNull(trees, repo.getMobileOR().getProjectTree().getTree());
+                addIfNotNull(trees, repo.getMobileOR().getSharedTree().getTree());
+                addIfNotNull(trees, repo.getStructuredDataOR().getProjectTree().getTree());
+                addIfNotNull(trees, repo.getStructuredDataOR().getSharedTree().getTree());
+                addIfNotNull(trees, repo.getSapOR().getProjectTree().getTree());
+                addIfNotNull(trees, repo.getSapOR().getSharedTree().getTree());
+            }
+        } catch (RuntimeException ignored) { /* defensive */ }
+        return trees;
+    }
+
+    private static void addIfNotNull(java.util.List<javax.swing.JTree> trees, javax.swing.JTree t) {
+        if (t != null) {
+            trees.add(t);
+        }
+    }
+
+    /**
+     * Returns true if auto-reload on external project changes is enabled.
+     */
+    public boolean isAutoReloadEnabled() {
+        return AppSettings.isAutoReloadEnabled();
+    }
+
+    /**
+     * Enables or disables auto-reload on external project changes and
+     * persists the setting. Starts or stops the project watcher as
+     * appropriate for the currently-open project.
+     */
+    public void setAutoReloadEnabled(boolean enabled) {
+        AppSettings.setAutoReloadEnabled(enabled);
+        if (enabled) {
+            startProjectWatcher();
+            Notification.show("Auto-reload enabled");
+        } else {
+            stopProjectWatcher();
+            Notification.show("Auto-reload disabled");
+        }
+        // Sync the FX toolbar pill toggle if the change came from elsewhere
+        // (e.g. menu, keyboard shortcut, programmatic call).
+        if (fxToolBar != null) {
+            fxToolBar.setAutoReload(enabled);
+        }
+    }
+
+    /**
+     * Starts a {@link ProjectWatcher} for the currently-open project if
+     * auto-reload is enabled. Stops any existing watcher first.
+     */
+    private void startProjectWatcher() {
+        stopProjectWatcher();
+        if (sProject == null || !AppSettings.isAutoReloadEnabled()) {
+            return;
+        }
+        try {
+            projectWatcher = new ProjectWatcher(
+                    Paths.get(sProject.getLocation()),
+                    this::reloadProject);
+            projectWatcher.start();
+        } catch (RuntimeException ex) {
+            Logger.getLogger(AppMainFrame.class.getName())
+                    .log(Level.WARNING, "Failed to start project watcher", ex);
+            projectWatcher = null;
+        }
+    }
+
+    /**
+     * Stops the current {@link ProjectWatcher} if any. Safe to call
+     * when no watcher is active.
+     */
+    private void stopProjectWatcher() {
+        if (projectWatcher != null) {
+            try {
+                projectWatcher.stop();
+            } catch (RuntimeException ignored) {
+                // ignored
+            }
+            projectWatcher = null;
         }
     }
 
@@ -702,6 +878,8 @@ public class AppMainFrame extends JFrame {
         if (fxStatusBar != null) {
             fxStatusBar.setProjectName(sProject.getName());
         }
+        // (Re)start the filesystem watcher for the newly-active project.
+        startProjectWatcher();
     }
 
     public void adjustUI() {
@@ -743,6 +921,7 @@ public class AppMainFrame extends JFrame {
             recentItems.save();
 //            spyHealReco.stopServerIfAny();
             dashBoardManager.stopServer();
+            stopProjectWatcher();
             Main.finish();
             return true;
         }

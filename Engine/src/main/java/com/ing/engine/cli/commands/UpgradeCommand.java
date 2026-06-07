@@ -287,7 +287,7 @@ public class UpgradeCommand implements Callable<Integer> {
     private void renderPlan(INGeniousCLI cli, UpgradePlan plan) {
         Style s = cli.style();
         cli.printHeader("Findings");
-        bullet(s, "Legacy OR XML",      plan.hasXmlOR ? plan.xmlORFiles.size() + " file(s)" : "none");
+        bullet(s, "Legacy XML Object Repository",      plan.hasXmlOR ? plan.xmlORFiles.size() + " file(s)" : "none");
         bullet(s, "CSV test cases",     plan.csvTestCases == 0 ? "none" : plan.csvTestCases + " file(s)");
         bullet(s, "Deprecated files",   plan.deprecated.isEmpty() ? "none" : plan.deprecated.size() + " item(s)");
         bullet(s, "Mislocated reusables", plan.mislocatedReusables.isEmpty()

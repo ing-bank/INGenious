@@ -2,6 +2,7 @@
 package com.ing.ide.main.mainui;
 
 import com.ing.ide.main.utils.Utils;
+import com.ing.ide.settings.AppSettings;
 import com.ing.ide.util.Canvas;
 import java.awt.Insets;
 import java.awt.Font;
@@ -53,6 +54,8 @@ public class AppMenuBar extends JMenuBar {
                 KeyEvent.VK_O, SHORTCUT | KeyEvent.SHIFT_DOWN_MASK));
         shortcuts.put("Save Project", KeyStroke.getKeyStroke(
                 KeyEvent.VK_S, SHORTCUT | KeyEvent.SHIFT_DOWN_MASK));
+        shortcuts.put("Reload Project", KeyStroke.getKeyStroke(
+                KeyEvent.VK_R, SHORTCUT | KeyEvent.SHIFT_DOWN_MASK));
         shortcuts.put("Quit", KeyStroke.getKeyStroke(
                 KeyEvent.VK_X, KeyEvent.ALT_MASK));
 
@@ -115,6 +118,10 @@ public class AppMenuBar extends JMenuBar {
                 withShortCut(
                         withIcon(
                                 Utils.createMenuItem("Save Project", sActionListener))), 'S'));
+        file.add(withMnemonics(
+                withShortCut(
+                        withEmptyIcon(
+                                Utils.createMenuItem("Reload Project", sActionListener))), 'R'));
         file.addSeparator();
 
         file.add(sActionListener.getMainFrame().getRecentItems());
@@ -175,13 +182,7 @@ public class AppMenuBar extends JMenuBar {
         configure.add(
                 withMnemonics(
                         Utils.createMenuItem("Options", sActionListener), 'O'));
-        
-        
-        // JCheckBoxMenuItem darkModeItem = new JCheckBoxMenuItem("Dark Mode");
-        // darkModeItem.setFont(UIManager.getFont("TableMenu.font"));
-        // darkModeItem.addActionListener(sActionListener);
-        // configure.add(withMnemonics(darkModeItem, 'D'));
-    
+
      return configure;
     }
 

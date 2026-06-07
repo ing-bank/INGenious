@@ -36,6 +36,7 @@ import java.util.concurrent.Callable;
         ConfigCommand.class,
         ServerCommand.class,
         ShellCommand.class,
+        ImportCommand.class,
         LegacyCommand.class
     },
     synopsisHeading = "%nUsage: ",

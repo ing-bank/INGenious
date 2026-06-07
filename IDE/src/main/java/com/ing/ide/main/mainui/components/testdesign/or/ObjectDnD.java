@@ -43,7 +43,9 @@ public class ObjectDnD extends TransferHandler {
 
     @Override
     public int getSourceActions(JComponent c) {
-        return COPY_OR_MOVE;
+        // Drag-and-drop between pages acts as cut-paste (move), matching
+        // the behaviour requested for the Object Repository.
+        return MOVE;
     }
 
     private ORRootInf getRoot() {
@@ -100,7 +102,11 @@ public boolean importData(TransferSupport ts) {
                 return false;
             }
             Object object = getDestinationObject(ts);
-            Boolean shouldCut = ts.isDrop() ? ts.getDropAction() == MOVE : isCut;
+            // Drag-and-drop is always treated as cut-paste (move) so that
+            // dragging an object/page from one page to another moves it
+            // rather than duplicating it. Clipboard-driven imports still
+            // honour the original cut/copy intent.
+            Boolean shouldCut = ts.isDrop() ? Boolean.TRUE : isCut;
 //            if (object instanceof ORPageInf) {
 //                if (oDnd.isGroup()) {
 //                    copyObjectGroups((ORPageInf) object, oDnd, shouldCut);

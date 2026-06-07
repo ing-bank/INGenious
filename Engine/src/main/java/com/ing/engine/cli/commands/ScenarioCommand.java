@@ -200,7 +200,7 @@ public class ScenarioCommand implements Callable<Integer> {
         @Override
         public Integer call() {
             INGeniousCLI cli = INGeniousCLI.getInstance();
-            
+
             String path = projectPath != null ? projectPath : cli.getProjectPath();
             if (path == null || path.isEmpty()) {
                 cli.printError("Project path required.");
@@ -209,23 +209,41 @@ public class ScenarioCommand implements Callable<Integer> {
 
             try {
                 Project project = new Project(path);
-                
-                // Check if scenario already exists
-                boolean exists = project.getScenarios().stream()
-                        .anyMatch(s -> s.getName().equals(scenarioName));
-                
-                if (exists) {
-                    cli.printError("Scenario already exists: " + scenarioName);
+
+                Scenario existing = reusable
+                        ? project.getReusableScenarioByName(scenarioName)
+                        : project.getScenarioByName(scenarioName);
+                if (existing != null) {
+                    cli.printError((reusable ? "Reusable scenario" : "Scenario")
+                            + " already exists: " + scenarioName);
                     return 1;
                 }
 
-                // Create scenario directory
-                File scenarioDir = new File(path, "TestPlan/" + scenarioName);
-                scenarioDir.mkdirs();
+                // Make sure parent directory exists (esp. ReusableComponents/)
+                String parentDir = reusable
+                        ? project.getReusableComponentsPath()
+                        : project.getTestPlanPath();
+                new File(parentDir).mkdirs();
 
-                cli.printSuccess("Created scenario: " + scenarioName);
+                Scenario scn = reusable
+                        ? project.addReusableScenario(scenarioName)
+                        : project.addScenario(scenarioName);
+                if (scn == null) {
+                    cli.printError("Failed to add scenario in project model.");
+                    return 1;
+                }
+
+                // Persist - addScenario only updates the in-memory model.
+                new File(path, (reusable
+                        ? Project.REUSABLE_COMPONENTS_DIR
+                        : Project.TEST_PLAN_DIR) + File.separator + scenarioName)
+                        .mkdirs();
+                project.save();
+
+                cli.printSuccess("Created " + (reusable ? "reusable " : "") + "scenario: "
+                        + scenarioName);
                 return 0;
-                
+
             } catch (Exception e) {
                 cli.printError("Failed to create scenario: " + e.getMessage());
                 return 1;

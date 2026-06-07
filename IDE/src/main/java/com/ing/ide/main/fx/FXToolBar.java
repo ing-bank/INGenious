@@ -31,6 +31,7 @@ public class FXToolBar extends JFXPanel {
 
     private final AppActionListener actionListener;
     private ToggleButton autoSaveToggle;
+    private ToggleButton autoReloadToggle;
     private ToggleButton darkModeToggle;
     private javafx.scene.control.ToolBar toolBar;
 
@@ -58,6 +59,7 @@ public class FXToolBar extends JFXPanel {
                 createButton("Save Project", "SaveProject"),
                 new Separator(),
                 createAutoSaveSection(),
+                createAutoReloadSection(),
                 new Separator(),
                 createButton("Settings", "RunSettings"),
                 createButton("Archetype Configurations", "BrowserConfiguration"),
@@ -122,6 +124,27 @@ public class FXToolBar extends JFXPanel {
         });
 
         HBox section = new HBox(6, label, autoSaveToggle);
+        section.setAlignment(Pos.CENTER);
+        return section;
+    }
+
+    private HBox createAutoReloadSection() {
+        Label label = new Label("Auto Reload");
+        label.getStyleClass().add("auto-save-label");
+        Tooltip.install(label,
+                new Tooltip("Auto reload the project when files change on disk"));
+
+        boolean enabled = com.ing.ide.settings.AppSettings.isAutoReloadEnabled();
+        autoReloadToggle = new ToggleButton(enabled ? "ON" : "OFF");
+        autoReloadToggle.setSelected(enabled);
+        autoReloadToggle.setTooltip(
+                new Tooltip("Auto reload the project when files change on disk"));
+        autoReloadToggle.setOnAction(e -> {
+            autoReloadToggle.setText(autoReloadToggle.isSelected() ? "ON" : "OFF");
+            fireSwingAction("Auto Reload on External Changes");
+        });
+
+        HBox section = new HBox(6, label, autoReloadToggle);
         section.setAlignment(Pos.CENTER);
         return section;
     }
@@ -196,5 +219,20 @@ public class FXToolBar extends JFXPanel {
      */
     public ToggleButton getAutoSaveToggle() {
         return autoSaveToggle;
+    }
+
+    /**
+     * Syncs the Auto Reload pill toggle state. Safe to call from any thread.
+     */
+    public void setAutoReload(boolean enabled) {
+        Platform.runLater(() -> {
+            if (autoReloadToggle == null) {
+                return;
+            }
+            if (autoReloadToggle.isSelected() != enabled) {
+                autoReloadToggle.setSelected(enabled);
+            }
+            autoReloadToggle.setText(enabled ? "ON" : "OFF");
+        });
     }
 }

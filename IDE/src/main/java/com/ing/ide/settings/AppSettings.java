@@ -33,6 +33,7 @@ public class AppSettings {
         ELEMENT_WAIT_TIME("elementWaitTime", "10"),
         LOAD_RECENT("loadRecentProject", "true"),
         STANDALONE_REPORT("standaloneReport", "false"),
+        AUTO_RELOAD("autoReloadOnExternalChange", "true"),
         HELP_DOC("helpdoc", "https://ing-bank.github.io/ingenious-doc/");
 
         private final String key;
@@ -112,6 +113,15 @@ public class AppSettings {
 
     public static void openRecentProjectsOnLaunch(Boolean value) {
         AppSettings.set(APP_SETTINGS.LOAD_RECENT.getKey(), String.valueOf(value));
+    }
+
+    public static Boolean isAutoReloadEnabled() {
+        return Boolean.valueOf(AppSettings.get(APP_SETTINGS.AUTO_RELOAD.getKey()));
+    }
+
+    public static void setAutoReloadEnabled(Boolean value) {
+        AppSettings.set(APP_SETTINGS.AUTO_RELOAD.getKey(), String.valueOf(value));
+        store("AutoReload toggled");
     }
 
     public static String getHelpLoc() {
