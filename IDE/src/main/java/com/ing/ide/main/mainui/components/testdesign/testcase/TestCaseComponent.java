@@ -153,14 +153,19 @@ public class TestCaseComponent extends JPanel implements ActionListener {
         initTestCaseAccelerators();
     }
 
+    /**
+     * Registers keyboard shortcuts at the window level ({@link JComponent#WHEN_IN_FOCUSED_WINDOW})
+     * so they work regardless of which component has focus (table, toolbar, search box).
+     * <p>
+     * The existing {@link XTable} shortcuts only use {@code WHEN_FOCUSED}, which stops working
+     * when focus moves away from the table. This window-level registration matches the approach
+     * used in {@code FXMenuBar.registerSwingAccelerators()} and works reliably on both Windows
+     * and Mac. On Mac the {@code SHORTCUT} modifier resolves to the Command (⌘) key, which is
+     * the standard cross-platform mapping for Ctrl-based shortcuts.
+     * </p>
+     */
     private void initTestCaseAccelerators() {
-        // Register keyboard shortcuts at the window level so they work regardless of which
-        // component has focus — table, toolbar, search box, or even the FXMenuBar (JFXPanel).
-        // The existing XTable shortcuts only use WHEN_FOCUSED, which stops working when focus
-        // moves away from the table. Using WHEN_IN_FOCUSED_WINDOW matches the approach used
-        // in FXMenuBar.registerSwingAccelerators() and works reliably on both Windows and Mac.
-
-        // Ctrl+Alt+R — Start Recording
+        // Ctrl+Alt+R / ⌘+⌥+R — Start Recording
         getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(Keystroke.RECORD, "Record");
         getActionMap()
             .put(
@@ -180,7 +185,7 @@ public class TestCaseComponent extends JPanel implements ActionListener {
                 }
             );
 
-        // Toolbar action shortcuts (listed in toolbar tooltips)
+        
         getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(Keystroke.F6, "RunTestCase");
         getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW)
             .put(Keystroke.CTRLF6, "DebugTestCase");
