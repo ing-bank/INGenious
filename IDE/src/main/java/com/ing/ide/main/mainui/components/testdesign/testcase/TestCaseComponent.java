@@ -58,6 +58,7 @@ import java.util.stream.Collectors;
 import javax.swing.AbstractAction;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
+import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -149,6 +150,67 @@ public class TestCaseComponent extends JPanel implements ActionListener {
         testCaseTable.setComponentPopupMenu(popupMenu);
         initTableListeners();
         initRunner();
+        initTestCaseAccelerators();
+    }
+
+    /**
+     * Registers keyboard shortcuts at the window level ({@link JComponent#WHEN_IN_FOCUSED_WINDOW})
+     * so they work regardless of which component has focus (table, toolbar, search box).
+     * <p>
+     * The existing {@link XTable} shortcuts only use {@code WHEN_FOCUSED}, which stops working
+     * when focus moves away from the table. This window-level registration matches the approach
+     * used in {@code FXMenuBar.registerSwingAccelerators()} and works reliably on both Windows
+     * and Mac. On Mac the {@code SHORTCUT} modifier resolves to the Command (⌘) key, which is
+     * the standard cross-platform mapping for Ctrl-based shortcuts.
+     * </p>
+     */
+    private void initTestCaseAccelerators() {
+        // Ctrl+Alt+R / ⌘+⌥+R — Start Recording
+        getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(Keystroke.RECORD, "Record");
+        getActionMap()
+            .put(
+                "Record",
+                new AbstractAction() {
+
+                    @Override
+                    public void actionPerformed(ActionEvent e) {
+                        try {
+                            record();
+                        } catch (IOException ex) {
+                            Logger
+                                .getLogger(TestCaseComponent.class.getName())
+                                .log(Level.SEVERE, null, ex);
+                        }
+                    }
+                }
+            );
+
+        
+        getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(Keystroke.F6, "RunTestCase");
+        getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW)
+            .put(Keystroke.CTRLF6, "DebugTestCase");
+        getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(Keystroke.SAVE, "Save");
+        getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(Keystroke.F5, "Reload");
+        getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(Keystroke.UP, "MoveUp");
+        getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(Keystroke.DOWN, "MoveDown");
+        getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(Keystroke.OPEN, "Open");
+        getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(Keystroke.FIND, "Search");
+        getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW)
+            .put(Keystroke.COMMENT, "Comment");
+        getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW)
+            .put(Keystroke.BREAKPOINT, "BreakPoint");
+        getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW)
+            .put(Keystroke.INSERT_ROW, "Insert");
+        getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(Keystroke.ADD_ROW, "Add");
+        getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(Keystroke.ADD_ROWX, "Add");
+        getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW)
+            .put(Keystroke.REMOVE_ROW, "Delete");
+        getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW)
+            .put(Keystroke.REMOVE_ROWX, "Delete");
+        getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW)
+            .put(Keystroke.REPLICATE_ROW, "Replicate");
+        getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW)
+            .put(Keystroke.COPY_ABOVE, "Copy Above");
     }
 
     public void loadTableModelForSelection(Object obj) {

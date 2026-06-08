@@ -6,6 +6,7 @@ import com.ing.ide.main.utils.SearchBox;
 import com.ing.ide.main.utils.Utils;
 import com.ing.ide.settings.IconSettings;
 import java.awt.event.ItemEvent;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.List;
@@ -79,7 +80,7 @@ public class TestCaseToolBar extends JToolBar {
 
         record = Utils.createButton("Record", testCaseComp);
         record.setText(null);
-        record.setToolTipText("Start Recording");
+        record.setToolTipText("Start Recording [Ctrl+Alt+R]");
         record.setIcon(IconSettings.getIconSettings().getRecordStartIcon());
 
         record.addActionListener(e -> toggleRecording());
@@ -239,11 +240,17 @@ public class TestCaseToolBar extends JToolBar {
     }
 
     void toggleRecording() {
-        record.setEnabled(false);
+        try {
+            testCaseComp.record();
+        } catch (IOException ex) {
+            java
+                .util.logging.Logger.getLogger(TestCaseComponent.class.getName())
+                .log(java.util.logging.Level.SEVERE, null, ex);
+        }
     }
 
     public void enableRecordButton() {
         record.setEnabled(true);
-        record.setToolTipText("Start Recording");
+        record.setToolTipText("Start Recording [Ctrl+Alt+R]");
     }
 }
