@@ -227,13 +227,6 @@ public class InsertRowPromptFeature {
 
         insertingRow = true;
 
-        /*
-         * Capture selection BEFORE the insert.
-         * This snapshot represents only the rows/columns selected before clicking plus.
-         * The inserted row itself will not be selected.
-         */
-        final SelectionSnapshot selectionSnapshot = SelectionSnapshot.capture(table, insertIndex);
-
         try {
             if (table.isEditing() && table.getCellEditor() != null) {
                 boolean editingStopped = table.getCellEditor().stopCellEditing();
@@ -265,10 +258,9 @@ public class InsertRowPromptFeature {
             }
 
             /*
-             * Restore only the rows that were selected before insertion.
-             * If insertion happened above a selected row, that selected row shifts down by one.
+             * Select the newly inserted row.
              */
-            selectionSnapshot.restore(table);
+            selectInsertedRow(insertIndex);
         } finally {
             hoverInsertRow = -1;
             insertingRow = false;
@@ -277,15 +269,46 @@ public class InsertRowPromptFeature {
         }
 
         /*
-         * Restore again after Swing/model events finish.
+         * Select again after Swing/model events finish.
          * This catches any delayed selection changes caused by the existing Add/Insert actions.
          */
         SwingUtilities.invokeLater(
             () -> {
-                selectionSnapshot.restore(table);
+                selectInsertedRow(insertIndex);
                 table.repaint();
             }
         );
+    }
+
+    private void selectInsertedRow(int insertedRowIndex) {
+        if (table.getRowCount() == 0 || table.getColumnCount() == 0) {
+            table.clearSelection();
+            return;
+        }
+
+        int safeRow = Math.max(0, Math.min(insertedRowIndex, table.getRowCount() - 1));
+
+        final boolean oldRowAdjusting = table.getSelectionModel().getValueIsAdjusting();
+        final boolean oldColumnAdjusting = table
+            .getColumnModel()
+            .getSelectionModel()
+            .getValueIsAdjusting();
+
+        try {
+            table.getSelectionModel().setValueIsAdjusting(true);
+            table.getColumnModel().getSelectionModel().setValueIsAdjusting(true);
+
+            table.clearSelection();
+
+            table.addRowSelectionInterval(safeRow, safeRow);
+            table.addColumnSelectionInterval(0, table.getColumnCount() - 1);
+
+            table.getSelectionModel().setLeadSelectionIndex(safeRow);
+            table.getColumnModel().getSelectionModel().setLeadSelectionIndex(0);
+        } finally {
+            table.getSelectionModel().setValueIsAdjusting(oldRowAdjusting);
+            table.getColumnModel().getSelectionModel().setValueIsAdjusting(oldColumnAdjusting);
+        }
     }
 
     private void paintInsertRowIndicator(Graphics g) {
@@ -368,115 +391,6 @@ public class InsertRowPromptFeature {
             action.actionPerformed(
                 new ActionEvent(table, ActionEvent.ACTION_PERFORMED, actionName)
             );
-        }
-    }
-
-    private static class SelectionSnapshot {
-        private final int[] selectedRows;
-        private final int[] selectedColumns;
-        private final int leadRow;
-        private final int leadColumn;
-        private final int insertIndex;
-
-        private SelectionSnapshot(
-            int[] selectedRows,
-            int[] selectedColumns,
-            int leadRow,
-            int leadColumn,
-            int insertIndex
-        ) {
-            this.selectedRows = selectedRows;
-            this.selectedColumns = selectedColumns;
-            this.leadRow = leadRow;
-            this.leadColumn = leadColumn;
-            this.insertIndex = insertIndex;
-        }
-
-        static SelectionSnapshot capture(JTable table, int insertIndex) {
-            return new SelectionSnapshot(
-                table.getSelectedRows(),
-                table.getSelectedColumns(),
-                table.getSelectionModel().getLeadSelectionIndex(),
-                table.getColumnModel().getSelectionModel().getLeadSelectionIndex(),
-                insertIndex
-            );
-        }
-
-        void restore(JTable table) {
-            if (table.getRowCount() == 0 || table.getColumnCount() == 0) {
-                table.clearSelection();
-                return;
-            }
-
-            final boolean oldRowAdjusting = table.getSelectionModel().getValueIsAdjusting();
-            final boolean oldColumnAdjusting = table
-                .getColumnModel()
-                .getSelectionModel()
-                .getValueIsAdjusting();
-
-            try {
-                table.getSelectionModel().setValueIsAdjusting(true);
-                table.getColumnModel().getSelectionModel().setValueIsAdjusting(true);
-
-                table.clearSelection();
-
-                boolean hasRows = selectedRows != null && selectedRows.length > 0;
-                boolean hasColumns = selectedColumns != null && selectedColumns.length > 0;
-
-                if (!hasRows) {
-                    return;
-                }
-
-                int[] columnsToRestore = hasColumns ? selectedColumns : new int[] { 0 };
-
-                for (int selectedRow : selectedRows) {
-                    int restoredRow = selectedRow;
-
-                    /*
-                     * This is the key part:
-                     *
-                     * If the new row was inserted above or at the old selected row,
-                     * the old selected row moved down by one.
-                     *
-                     * The inserted row itself is NOT selected.
-                     */
-                    if (insertIndex <= restoredRow) {
-                        restoredRow++;
-                    }
-
-                    if (restoredRow < 0 || restoredRow >= table.getRowCount()) {
-                        continue;
-                    }
-
-                    table.addRowSelectionInterval(restoredRow, restoredRow);
-                }
-
-                for (int selectedColumn : columnsToRestore) {
-                    int restoredColumn = Math.max(
-                        0,
-                        Math.min(selectedColumn, table.getColumnCount() - 1)
-                    );
-
-                    table.addColumnSelectionInterval(restoredColumn, restoredColumn);
-                }
-
-                int restoredLeadRow = leadRow;
-
-                if (insertIndex <= restoredLeadRow) {
-                    restoredLeadRow++;
-                }
-
-                if (restoredLeadRow >= 0 && restoredLeadRow < table.getRowCount()) {
-                    table.getSelectionModel().setLeadSelectionIndex(restoredLeadRow);
-                }
-
-                if (leadColumn >= 0 && leadColumn < table.getColumnCount()) {
-                    table.getColumnModel().getSelectionModel().setLeadSelectionIndex(leadColumn);
-                }
-            } finally {
-                table.getSelectionModel().setValueIsAdjusting(oldRowAdjusting);
-                table.getColumnModel().getSelectionModel().setValueIsAdjusting(oldColumnAdjusting);
-            }
         }
     }
 }
