@@ -5,8 +5,8 @@ import com.ing.engine.drivers.PlaywrightDriverFactory;
 import com.ing.ide.main.utils.SearchBox;
 import com.ing.ide.main.utils.Utils;
 import com.ing.ide.settings.IconSettings;
-import java.io.IOException;
 import java.awt.event.ItemEvent;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.List;
@@ -243,7 +243,8 @@ public class TestCaseToolBar extends JToolBar {
         try {
             testCaseComp.record();
         } catch (IOException ex) {
-            java.util.logging.Logger.getLogger(TestCaseComponent.class.getName())
+            java
+                .util.logging.Logger.getLogger(TestCaseComponent.class.getName())
                 .log(java.util.logging.Level.SEVERE, null, ex);
         }
     }

@@ -90,8 +90,8 @@ public class Keystroke {
     ), REDO = KeyStroke.getKeyStroke(KeyEvent.VK_Y, SHORTCUT), ALTENTER = KeyStroke.getKeyStroke(
         KeyEvent.VK_ENTER,
         KeyEvent.ALT_MASK
-    ), REMOVE_OBJECT = KeyStroke.getKeyStroke(KeyEvent.VK_O, SHORTCUT), RECORD = KeyStroke.getKeyStroke(
-        KeyEvent.VK_R,
-        SHORTCUT | KeyEvent.ALT_MASK
-    );
+    ), REMOVE_OBJECT = KeyStroke.getKeyStroke(
+        KeyEvent.VK_O,
+        SHORTCUT
+    ), RECORD = KeyStroke.getKeyStroke(KeyEvent.VK_R, SHORTCUT | KeyEvent.ALT_MASK);
 }
