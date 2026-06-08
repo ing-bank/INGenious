@@ -58,6 +58,7 @@ import java.util.stream.Collectors;
 import javax.swing.AbstractAction;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
+import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -149,6 +150,26 @@ public class TestCaseComponent extends JPanel implements ActionListener {
         testCaseTable.setComponentPopupMenu(popupMenu);
         initTableListeners();
         initRunner();
+        initTestCaseAccelerators();
+    }
+
+    private void initTestCaseAccelerators() {
+        // Ctrl+Alt+R — Start Recording (works when any child of TestCaseComponent has focus)
+        getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(Keystroke.RECORD, "Record");
+        getActionMap().put(
+            "Record",
+            new AbstractAction() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    try {
+                        record();
+                    } catch (IOException ex) {
+                        Logger.getLogger(TestCaseComponent.class.getName())
+                            .log(Level.SEVERE, null, ex);
+                    }
+                }
+            }
+        );
     }
 
     public void loadTableModelForSelection(Object obj) {
