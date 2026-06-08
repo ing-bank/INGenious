@@ -464,8 +464,6 @@ public class TestCaseRunner {
                                 )
                             )
                         ) {
-                            System.out.println("Detected parent max is over");
-
                             //Skip to EndParam
                             while (!Parameter.endParamRLoop(testStep.getCondition())) {
                                 currStep++;
