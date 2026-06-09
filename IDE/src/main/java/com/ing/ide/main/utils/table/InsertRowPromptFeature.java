@@ -29,16 +29,6 @@ public class InsertRowPromptFeature {
 
     private static final int INSERT_HOVER_ZONE = INSERT_PLUS_SIZE / 2 + INSERT_PLUS_HIT_PADDING;
 
-    /*
-     * Prevents accidental JTable drag-selection after clicking the plus button.
-     *
-     * The bug happens when:
-     * 1. Mouse is pressed on the plus.
-     * 2. Row is inserted.
-     * 3. Rows shift under the still-held mouse.
-     * 4. Mouse moves slightly.
-     * 5. JTable treats it as drag-selection.
-     */
     private static final int INSERT_MOUSE_SUPPRESSION_MS = 140;
 
     private final JTable table;
@@ -236,17 +226,8 @@ public class InsertRowPromptFeature {
                 }
             }
 
-            /*
-             * Start suppression before insertion.
-             * This prevents held-click + slight mouse movement from becoming drag-selection.
-             */
             suppressMouseEventsBriefly();
 
-            /*
-             * Clear current selection before fallback action.
-             * triggerDefaultInsertRowAction temporarily selects a row so the existing
-             * Add/Insert actions work, but we do not want JTable extending old anchors.
-             */
             table.clearSelection();
 
             clearHoverState();
@@ -257,9 +238,6 @@ public class InsertRowPromptFeature {
                 triggerDefaultInsertRowAction(insertIndex);
             }
 
-            /*
-             * Select the newly inserted row.
-             */
             selectInsertedRow(insertIndex);
         } finally {
             hoverInsertRow = -1;
@@ -268,10 +246,6 @@ public class InsertRowPromptFeature {
             table.repaint();
         }
 
-        /*
-         * Select again after Swing/model events finish.
-         * This catches any delayed selection changes caused by the existing Add/Insert actions.
-         */
         SwingUtilities.invokeLater(
             () -> {
                 selectInsertedRow(insertIndex);
