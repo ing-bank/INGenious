@@ -31,9 +31,12 @@ import java.awt.Component;
 import java.awt.Cursor;
 import java.awt.GraphicsDevice;
 import java.awt.GraphicsEnvironment;
+import java.awt.KeyEventPostProcessor;
+import java.awt.KeyboardFocusManager;
 import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.BufferedReader;
@@ -68,6 +71,7 @@ import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.JToolBar;
+import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
@@ -125,6 +129,8 @@ public class TestCaseComponent extends JPanel implements ActionListener {
 
     private CompletableFuture<Void> launchPlaywrightTask;
 
+    private boolean globalShortcutsRegistered = false;
+
     public static long INSTANCE_START_TIME;
 
     public TestCaseComponent(TestDesign testDesign, AppMainFrame sMainFrame) {
@@ -153,53 +159,19 @@ public class TestCaseComponent extends JPanel implements ActionListener {
     }
 
     /**
-     * Registers keyboard shortcuts for the test case panel.
+     * Registers keyboard shortcuts for the TestCase panel.
      * <p>
-     * Global shortcuts (Record, Run, Debug) are registered on the window's root pane
-     * via {@code WHEN_IN_FOCUSED_WINDOW} so they work regardless of which component
-     * has focus (even the FXMenuBar JFXPanel).
+     * <b>Global shortcuts</b> (Record, Run, Debug) use a keyboard focus manager key event
+     * post-processor that fires regardless of focus, bypassing Swing input map priority
+     * rules and FXMenuBar interception.
      * <p>
-     * All other shortcuts use {@code WHEN_ANCESTOR_OF_FOCUSED_COMPONENT} on this panel
-     * so they only trigger when focus is within this component (table, toolbar, search
-     * box). This avoids conflicts with identical shortcuts (e.g. Ctrl+S, F5) that may
-     * exist in other panels of the application.
-     * <p>
-     * The existing {@link XTable} shortcuts use {@code WHEN_FOCUSED} — they still work
-     * when the table has focus. These additional registrations ensure the shortcuts
-     * work even when the table doesn't have focus.
+     * <b>Focus-dependent shortcuts</b> (Save, Reload, rows, etc.) use
+     * {@code WHEN_ANCESTOR_OF_FOCUSED_COMPONENT} so they only fire when focus is within
+     * this panel, avoiding conflicts with identical shortcuts in other panels.
      */
     private void initTestCaseAccelerators() {
-        // ── Global shortcuts (root pane level, no focus needed) ──
-        JComponent root = sMainFrame.getRootPane();
-        if (root != null) {
-            // Ctrl+Alt+R / ⌘+⌥+R — Start Recording
-            root.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(Keystroke.RECORD, "Record");
-            root
-                .getActionMap()
-                .put(
-                    "Record",
-                    new AbstractAction() {
+        registerGlobalShortcuts();
 
-                        @Override
-                        public void actionPerformed(ActionEvent e) {
-                            try {
-                                record();
-                            } catch (IOException ex) {
-                                Logger
-                                    .getLogger(TestCaseComponent.class.getName())
-                                    .log(Level.SEVERE, null, ex);
-                            }
-                        }
-                    }
-                );
-
-            root.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(Keystroke.F6, "RunTestCase");
-            root
-                .getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW)
-                .put(Keystroke.CTRLF6, "DebugTestCase");
-        }
-
-        // ── Focus-dependent shortcuts (only when focus is inside this panel) ──
         getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(Keystroke.SAVE, "Save");
         getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(Keystroke.F5, "Reload");
         getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(Keystroke.UP, "MoveUp");
@@ -224,9 +196,81 @@ public class TestCaseComponent extends JPanel implements ActionListener {
             .put(Keystroke.COPY_ABOVE, "Copy Above");
     }
 
+    /**
+     * Registers global shortcuts (Record, Run, Debug) via a
+     * {@link java.awt.KeyboardFocusManager} key event post-processor.
+     * <p>
+     * Fires for every key press regardless of focus or component hierarchy, so we guard
+     * against misfiring by checking the main frame is focused and TestDesign is showing.
+     */
+    private void registerGlobalShortcuts() {
+        if (globalShortcutsRegistered) {
+            return;
+        }
+        globalShortcutsRegistered = true;
+
+        KeyEventPostProcessor processor = e -> {
+            if (e.getID() != KeyEvent.KEY_PRESSED) {
+                return false;
+            }
+            if (!isMainFrameFocused()) {
+                return false;
+            }
+            if (!sMainFrame.isTestDesign()) {
+                return false;
+            }
+
+            int code = e.getKeyCode();
+            int mods = e.getModifiersEx();
+
+            // Ctrl+F6 / ⌘+F6 — Debug
+            boolean isCtrlF6 = code == KeyEvent.VK_F6 && (mods & KeyEvent.CTRL_DOWN_MASK) != 0;
+            boolean isCmdF6 = code == KeyEvent.VK_F6 && (mods & KeyEvent.META_DOWN_MASK) != 0;
+            if (isCtrlF6 || isCmdF6) {
+                debug();
+                return true;
+            }
+
+            // F6 — Run (no modifiers)
+            if (code == KeyEvent.VK_F6 && mods == 0) {
+                run();
+                return true;
+            }
+
+            // Ctrl+Alt+R / ⌘+⌥+R — Record
+            boolean isCtrlAltR =
+                code == KeyEvent.VK_R &&
+                (mods & KeyEvent.CTRL_DOWN_MASK) != 0 &&
+                (mods & KeyEvent.ALT_DOWN_MASK) != 0;
+            boolean isCmdAltR =
+                code == KeyEvent.VK_R &&
+                (mods & KeyEvent.META_DOWN_MASK) != 0 &&
+                (mods & KeyEvent.ALT_DOWN_MASK) != 0;
+            if (isCtrlAltR || isCmdAltR) {
+                try {
+                    record();
+                } catch (IOException ex) {
+                    Logger.getLogger(TestCaseComponent.class.getName()).log(Level.SEVERE, null, ex);
+                }
+                return true;
+            }
+
+            return false;
+        };
+        KeyboardFocusManager.getCurrentKeyboardFocusManager().addKeyEventPostProcessor(processor);
+    }
+
+    /** @return true if the main frame or one of its children currently has focus */
+    private boolean isMainFrameFocused() {
+        KeyboardFocusManager kfm = KeyboardFocusManager.getCurrentKeyboardFocusManager();
+        return (
+            kfm.getFocusedWindow() == sMainFrame ||
+            SwingUtilities.isDescendingFrom(kfm.getFocusOwner(), sMainFrame)
+        );
+    }
+
     public void loadTableModelForSelection(Object obj) {
         if (obj != null && obj instanceof TestCase) {
-            // Save the current test case before switching to a new one
             TestCase currentTestCase = getCurrentTestCase();
             if (currentTestCase != null && !currentTestCase.isSaved()) {
                 currentTestCase.save();
@@ -241,7 +285,6 @@ public class TestCaseComponent extends JPanel implements ActionListener {
             changeSave(tc.isSaved());
             refreshTitle();
 
-            // Check if migration occurred and show notification
             int migratedCount = tc.getMigratedReferencesCount();
             if (migratedCount > 0) {
                 Notification.show(
@@ -510,14 +553,10 @@ public class TestCaseComponent extends JPanel implements ActionListener {
     public void actionPerformed(ActionEvent ae) {
         switch (ae.getActionCommand()) {
             case "Record":
-                {
-                    try {
-                        record();
-                    } catch (IOException ex) {
-                        Logger
-                            .getLogger(TestCaseComponent.class.getName())
-                            .log(Level.SEVERE, null, ex);
-                    }
+                try {
+                    record();
+                } catch (IOException ex) {
+                    Logger.getLogger(TestCaseComponent.class.getName()).log(Level.SEVERE, null, ex);
                 }
                 break;
             case "Open with System Editor":
@@ -668,7 +707,6 @@ public class TestCaseComponent extends JPanel implements ActionListener {
                 File printDeps = new File(printDepsPath);
                 if (!printDeps.exists()) {
                     new File(printDepsDir).mkdirs();
-
                     try (
                         InputStream in = getClass()
                             .getResourceAsStream("/Engine/winldd-1007/PrintDeps.exe")
@@ -681,9 +719,9 @@ public class TestCaseComponent extends JPanel implements ActionListener {
                         Files.copy(in, Path.of(printDepsPath), StandardCopyOption.REPLACE_EXISTING);
                     }
                 }
-                classpath = "lib/*;."; // Windows
+                classpath = "lib/*;.";
             } else {
-                classpath = "lib/*:."; // Mac
+                classpath = "lib/*:.";
             }
 
             String javaCommand = String.format(
@@ -691,30 +729,21 @@ public class TestCaseComponent extends JPanel implements ActionListener {
                 classpath,
                 processName
             );
-
             String[] command = osName.contains("windows")
                 ? new String[] { "cmd", "/c", javaCommand }
                 : new String[] { "bash", "-l", "-c", javaCommand };
 
-            Process process = Runtime.getRuntime().exec(command);
-            return process;
+            return Runtime.getRuntime().exec(command);
         } catch (Exception ex) {
             System.out.println("Error starting Playwright process: " + ex.getMessage());
         }
-
         return null;
     }
 
     /**
      * Launches the Playwright codegen process and handles the recording workflow.
-     * <p>
-     * Displays an informational dialog, starts clipboard monitoring, and executes
-     * the Playwright codegen process. If required, triggers Playwright installation.
-     * After recording, attempts to import the latest recorded steps and notifies the user
-     * if no recording is available.
-     * </p>
      *
-     * @param playwrightSpinnerGUI the spinner GUI component for Playwright status updates
+     * @param playwrightSpinnerGUI spinner GUI for Playwright status updates
      * @throws IOException if an I/O error occurs during process execution
      */
     public void launchPlaywright(PlaywrightSpinner playwrightSpinnerGUI) throws IOException {
@@ -738,7 +767,7 @@ public class TestCaseComponent extends JPanel implements ActionListener {
         BufferedReader stdError = new BufferedReader(
             new InputStreamReader(launchRecorder.getErrorStream())
         );
-        String s = null;
+        String s;
         while ((s = stdInput.readLine()) != null) {
             System.out.println(s);
         }
@@ -757,7 +786,7 @@ public class TestCaseComponent extends JPanel implements ActionListener {
                 BufferedReader stdError1 = new BufferedReader(
                     new InputStreamReader(playwrightInstall.getErrorStream())
                 );
-                String s1 = null;
+                String s1;
                 while ((s1 = stdInput1.readLine()) != null) {
                     System.out.println(s1);
                 }
@@ -795,14 +824,12 @@ public class TestCaseComponent extends JPanel implements ActionListener {
                             .filter(file -> file.lastModified() >= INSTANCE_START_TIME)
                             .sorted(Comparator.comparingLong(File::lastModified).reversed())
                             .collect(Collectors.toList());
-
                         if (!filteredFiles.isEmpty()) {
                             latestFile = filteredFiles.get(0);
                         }
                     }
 
                     final File recordedFile = latestFile;
-
                     SwingUtilities.invokeLater(
                         () -> {
                             if (recordedFile != null && recordedFile.exists()) {
@@ -1111,14 +1138,12 @@ public class TestCaseComponent extends JPanel implements ActionListener {
                 .get(testCaseTable.getSelectedRow());
             String[] reusableData = tStep.getReusableData();
             if (reusableData != null) {
-                // Try reusable scenarios first, then fall back to regular scenarios
                 Scenario scenario = testDesign
                     .getProject()
                     .getReusableScenarioByName(reusableData[0]);
                 if (scenario == null) {
                     scenario = testDesign.getProject().getScenarioByName(reusableData[0]);
                 }
-
                 if (scenario != null) {
                     TestCase testCase = scenario.getTestCaseByName(reusableData[1]);
                     if (testCase != null) {
@@ -1236,16 +1261,13 @@ public class TestCaseComponent extends JPanel implements ActionListener {
             JToolBar toolBar = new JToolBar();
             toolBar.setFloatable(false);
             JButton drag = new JButton("   ");
-
             toolBar.add(drag);
             registerDrag(drag);
-
             toolBar.add(create("Show Console", "console"));
             toolBar.add(create("Continue Execution", "continue"));
             toolBar.add(create("Go to Next Step", "stepover"));
             toolBar.add(create("Pause the Execution", "pause"));
             toolBar.add(create("Stop the Execution", "stop"));
-
             add(toolBar);
         }
 
@@ -1298,9 +1320,7 @@ public class TestCaseComponent extends JPanel implements ActionListener {
 
     class TCHistory extends JMenu implements ActionListener {
         private final LinkedList<String> historyList = new LinkedList<>();
-
         private final int max = 20;
-
         private Boolean allowed = false;
 
         public TCHistory() {

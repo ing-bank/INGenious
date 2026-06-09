@@ -4,6 +4,12 @@ import java.awt.Toolkit;
 import java.awt.event.KeyEvent;
 import javax.swing.KeyStroke;
 
+/**
+ * Central registry of application-wide {@link KeyStroke} constants.
+ * <p>
+ * The {@code SHORTCUT} modifier resolves to {@code Ctrl} on Windows/Linux
+ * and {@code ⌘ Command} on Mac, following Swing's cross-platform convention.
+ */
 public class Keystroke {
     private static final int SHORTCUT = Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx();
     public static final KeyStroke DELETE = KeyStroke.getKeyStroke(
@@ -90,8 +96,10 @@ public class Keystroke {
     ), REDO = KeyStroke.getKeyStroke(KeyEvent.VK_Y, SHORTCUT), ALTENTER = KeyStroke.getKeyStroke(
         KeyEvent.VK_ENTER,
         KeyEvent.ALT_MASK
-    ), REMOVE_OBJECT = KeyStroke.getKeyStroke(
-        KeyEvent.VK_O,
-        SHORTCUT
-    ), RECORD = KeyStroke.getKeyStroke(KeyEvent.VK_R, SHORTCUT | KeyEvent.ALT_MASK);
+    ), REMOVE_OBJECT = KeyStroke.getKeyStroke(KeyEvent.VK_O, SHORTCUT), /**
+     * Ctrl+Alt+R / ⌘+⌥+R — Start Playwright recording.
+     * Registered globally via {@link
+     * com.ing.ide.main.mainui.components.testdesign.testcase.TestCaseComponent#registerGlobalShortcuts()}.
+     */
+    RECORD = KeyStroke.getKeyStroke(KeyEvent.VK_R, SHORTCUT | KeyEvent.ALT_MASK);
 }
