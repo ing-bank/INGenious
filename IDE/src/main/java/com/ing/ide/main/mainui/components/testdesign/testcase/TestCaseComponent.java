@@ -25,7 +25,6 @@ import com.ing.ide.main.utils.table.TableColumnManager;
 import com.ing.ide.main.utils.table.XTable;
 import com.ing.ide.util.Canvas;
 import com.ing.ide.util.Notification;
-import com.ing.ide.util.Notification;
 import com.ing.ide.util.WindowMover;
 import java.awt.BorderLayout;
 import java.awt.Component;
@@ -154,62 +153,74 @@ public class TestCaseComponent extends JPanel implements ActionListener {
     }
 
     /**
-     * Registers keyboard shortcuts at the window level ({@link JComponent#WHEN_IN_FOCUSED_WINDOW})
-     * so they work regardless of which component has focus (table, toolbar, search box).
+     * Registers keyboard shortcuts for the test case panel.
      * <p>
-     * The existing {@link XTable} shortcuts only use {@code WHEN_FOCUSED}, which stops working
-     * when focus moves away from the table. This window-level registration matches the approach
-     * used in {@code FXMenuBar.registerSwingAccelerators()} and works reliably on both Windows
-     * and Mac. On Mac the {@code SHORTCUT} modifier resolves to the Command (⌘) key, which is
-     * the standard cross-platform mapping for Ctrl-based shortcuts.
-     * </p>
+     * Global shortcuts (Record, Run, Debug) are registered on the window's root pane
+     * via {@code WHEN_IN_FOCUSED_WINDOW} so they work regardless of which component
+     * has focus (even the FXMenuBar JFXPanel).
+     * <p>
+     * All other shortcuts use {@code WHEN_ANCESTOR_OF_FOCUSED_COMPONENT} on this panel
+     * so they only trigger when focus is within this component (table, toolbar, search
+     * box). This avoids conflicts with identical shortcuts (e.g. Ctrl+S, F5) that may
+     * exist in other panels of the application.
+     * <p>
+     * The existing {@link XTable} shortcuts use {@code WHEN_FOCUSED} — they still work
+     * when the table has focus. These additional registrations ensure the shortcuts
+     * work even when the table doesn't have focus.
      */
     private void initTestCaseAccelerators() {
-        // Ctrl+Alt+R / ⌘+⌥+R — Start Recording
-        getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(Keystroke.RECORD, "Record");
-        getActionMap()
-            .put(
-                "Record",
-                new AbstractAction() {
+        // ── Global shortcuts (root pane level, no focus needed) ──
+        JComponent root = sMainFrame.getRootPane();
+        if (root != null) {
+            // Ctrl+Alt+R / ⌘+⌥+R — Start Recording
+            root.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(Keystroke.RECORD, "Record");
+            root
+                .getActionMap()
+                .put(
+                    "Record",
+                    new AbstractAction() {
 
-                    @Override
-                    public void actionPerformed(ActionEvent e) {
-                        try {
-                            record();
-                        } catch (IOException ex) {
-                            Logger
-                                .getLogger(TestCaseComponent.class.getName())
-                                .log(Level.SEVERE, null, ex);
+                        @Override
+                        public void actionPerformed(ActionEvent e) {
+                            try {
+                                record();
+                            } catch (IOException ex) {
+                                Logger
+                                    .getLogger(TestCaseComponent.class.getName())
+                                    .log(Level.SEVERE, null, ex);
+                            }
                         }
                     }
-                }
-            );
+                );
 
-        
-        getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(Keystroke.F6, "RunTestCase");
-        getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW)
-            .put(Keystroke.CTRLF6, "DebugTestCase");
-        getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(Keystroke.SAVE, "Save");
-        getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(Keystroke.F5, "Reload");
-        getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(Keystroke.UP, "MoveUp");
-        getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(Keystroke.DOWN, "MoveDown");
-        getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(Keystroke.OPEN, "Open");
-        getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(Keystroke.FIND, "Search");
-        getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW)
+            root.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(Keystroke.F6, "RunTestCase");
+            root
+                .getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW)
+                .put(Keystroke.CTRLF6, "DebugTestCase");
+        }
+
+        // ── Focus-dependent shortcuts (only when focus is inside this panel) ──
+        getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(Keystroke.SAVE, "Save");
+        getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(Keystroke.F5, "Reload");
+        getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(Keystroke.UP, "MoveUp");
+        getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(Keystroke.DOWN, "MoveDown");
+        getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(Keystroke.OPEN, "Open");
+        getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(Keystroke.FIND, "Search");
+        getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT)
             .put(Keystroke.COMMENT, "Comment");
-        getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW)
+        getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT)
             .put(Keystroke.BREAKPOINT, "BreakPoint");
-        getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW)
+        getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT)
             .put(Keystroke.INSERT_ROW, "Insert");
-        getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(Keystroke.ADD_ROW, "Add");
-        getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(Keystroke.ADD_ROWX, "Add");
-        getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW)
+        getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(Keystroke.ADD_ROW, "Add");
+        getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(Keystroke.ADD_ROWX, "Add");
+        getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT)
             .put(Keystroke.REMOVE_ROW, "Delete");
-        getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW)
+        getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT)
             .put(Keystroke.REMOVE_ROWX, "Delete");
-        getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW)
+        getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT)
             .put(Keystroke.REPLICATE_ROW, "Replicate");
-        getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW)
+        getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT)
             .put(Keystroke.COPY_ABOVE, "Copy Above");
     }
 
@@ -260,10 +271,6 @@ public class TestCaseComponent extends JPanel implements ActionListener {
         if (tcText.length() > 20) {
             tcText = tcText.substring(0, 20) + "...";
         }
-        //        String toolTip
-        //                = getCurrentTestCase().getScenario().getName()
-        //                + " - "
-        //                + getCurrentTestCase().getName();
         toolBar.setPlaceHolderText(scText + " - " + tcText, null);
     }
 
@@ -693,30 +700,10 @@ public class TestCaseComponent extends JPanel implements ActionListener {
             return process;
         } catch (Exception ex) {
             System.out.println("Error starting Playwright process: " + ex.getMessage());
-            //playwrightSpinnerGUI.appendLog(ex.getMessage());
         }
 
         return null;
     }
-
-    //    public void initialization(PlaywrightSpinner playwrightSpinnerGUI){
-    //        try{
-    //            String[] command = new String[0];
-    //            String osName = System.getProperty("os.name").toLowerCase();
-    //            if (osName.contains("windows")) {
-    //                // Windows command
-    //
-    //                command = new String[]{"cmd", "/c", "mvn initialize -f engine/pom.xml"};
-    //            } else if (osName.contains("mac")) {
-    //                // Mac command
-    //                command = new String[]{"bash", "-l", "-c", "mvn initialize -f engine/pom.xml"};
-    //            }
-    //           Runtime.getRuntime().exec(command);
-    //       }catch (Exception ex){
-    //         System.out.println(ex.getMessage());
-    //         //playwrightSpinnerGUI.appendLog(ex.getMessage());
-    //       }
-    //    }
 
     /**
      * Launches the Playwright codegen process and handles the recording workflow.
@@ -734,8 +721,6 @@ public class TestCaseComponent extends JPanel implements ActionListener {
         System.out.println(
             "============================== Playwright Log Started =============================="
         );
-        //playwrightSpinnerGUI.appendLog("============================== Playwright Log Started ==============================");
-        //initialization(playwrightSpinnerGUI);
         JDialog topDialog = new JDialog();
         topDialog.setAlwaysOnTop(true);
         JOptionPane.showMessageDialog(
@@ -756,7 +741,6 @@ public class TestCaseComponent extends JPanel implements ActionListener {
         String s = null;
         while ((s = stdInput.readLine()) != null) {
             System.out.println(s);
-            //playwrightSpinnerGUI.appendLog(s);
         }
         while ((s = stdError.readLine()) != null) {
             System.out.println(s);
@@ -766,8 +750,6 @@ public class TestCaseComponent extends JPanel implements ActionListener {
                 )
             ) {
                 System.out.println("");
-                //System.out.println("--> mvn exec:java -e -D exec.mainClass=com.microsoft.playwright.CLI -D exec.args=\"install\" --> Got executed");
-                //playwrightSpinnerGUI.appendLog("--> mvn exec:java -e -D exec.mainClass=com.microsoft.playwright.CLI -D exec.args=\"install\" --> Got executed");
                 Process playwrightInstall = startPlaywrightProcess("install", playwrightSpinnerGUI);
                 BufferedReader stdInput1 = new BufferedReader(
                     new InputStreamReader(playwrightInstall.getInputStream())
@@ -778,17 +760,14 @@ public class TestCaseComponent extends JPanel implements ActionListener {
                 String s1 = null;
                 while ((s1 = stdInput1.readLine()) != null) {
                     System.out.println(s1);
-                    //playwrightSpinnerGUI.appendLog(s1);
                 }
                 while ((s1 = stdError1.readLine()) != null) {
                     System.out.println(s1);
-                    //playwrightSpinnerGUI.appendLog(s1);
                 }
                 try {
                     playwrightInstall.waitFor();
                 } catch (InterruptedException ex) {
                     Logger.getLogger(TestCaseComponent.class.getName()).log(Level.SEVERE, null, ex);
-                    //playwrightSpinnerGUI.appendLog(ex.getMessage());
                 }
                 startPlaywrightProcess("codegen", playwrightSpinnerGUI);
                 break;
@@ -797,7 +776,6 @@ public class TestCaseComponent extends JPanel implements ActionListener {
         System.out.println(
             "============================== Playwright Log Ended =============================="
         );
-        //playwrightSpinnerGUI.appendLog("============================== Playwright Log Ended ==============================");
 
         new Thread(
             () -> {
