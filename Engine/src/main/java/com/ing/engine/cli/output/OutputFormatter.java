@@ -245,18 +245,15 @@ public abstract class OutputFormatter {
 
         @Override
         public String formatKeyValue(Map<String, Object> data) {
-            int maxKeyLength = data.keySet().stream()
-                    .mapToInt(String::length)
-                    .max()
-                    .orElse(10);
+            int maxKeyLength = data.keySet().stream().mapToInt(String::length).max().orElse(10);
 
             // Bullet prefix gives each entry a visible anchor on multi-line scans.
             String bullet = colored ? CYAN + "  \u2022 " + RESET : "  \u2022 ";
-            String sep    = colored ? "\u001B[2m :\u001B[0m " : " : ";
+            String sep = colored ? "\u001B[2m :\u001B[0m " : " : ";
 
             // Bullet prefix gives each entry a visible anchor on multi-line scans.
             String bullet = colored ? CYAN + "  \u2022 " + RESET : "  \u2022 ";
-            String sep    = colored ? "\u001B[2m :\u001B[0m " : " : ";
+            String sep = colored ? "\u001B[2m :\u001B[0m " : " : ";
 
             StringBuilder sb = new StringBuilder();
             for (Map.Entry<String, Object> entry : data.entrySet()) {
@@ -264,14 +261,8 @@ public abstract class OutputFormatter {
                 String value = entry.getValue() != null ? entry.getValue().toString() : "null";
                 sb.append(bullet);
                 if (colored) {
-                    sb
-                        .append("\u001B[1m").append(CYAN)
-                        .append(key)
-                        .append(RESET)
-                        ;
-                    sb.append(sep)
-                        .append(value)
-                        .append("\n");
+                    sb.append("\u001B[1m").append(CYAN).append(key).append(RESET);
+                    sb.append(sep).append(value).append("\n");
                 } else {
                     sb.append(key).append(sep).append(value).append("\n");
                 }

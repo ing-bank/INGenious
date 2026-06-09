@@ -1,5 +1,8 @@
 package com.ing.datalib.settings;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.ing.datalib.settings.emulators.Device;
+import com.ing.datalib.util.data.LinkedProperties;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -8,10 +11,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.ing.datalib.settings.emulators.Device;
-import com.ing.datalib.util.data.LinkedProperties;
 
 /**
  * Manages the list of mobile devices configured under the
@@ -23,7 +22,6 @@ import com.ing.datalib.util.data.LinkedProperties;
  * capabilities (via {@link Capabilities}) using the device name as the key.
  */
 public class Devices {
-
     /** Marker prefix used to render section header rows in the capability table. */
     public static final String SECTION_PREFIX = "-- ";
     public static final String SECTION_SUFFIX = " --";
@@ -43,9 +41,11 @@ public class Devices {
         File f = new File(getLocation());
         if (f.exists()) {
             try {
-                devices = objMapper.readValue(
+                devices =
+                    objMapper.readValue(
                         f,
-                        objMapper.getTypeFactory().constructCollectionType(List.class, Device.class));
+                        objMapper.getTypeFactory().constructCollectionType(List.class, Device.class)
+                    );
             } catch (IOException ex) {
                 Logger.getLogger(Devices.class.getName()).log(Level.SEVERE, null, ex);
             }
@@ -226,9 +226,11 @@ public class Devices {
      * category header (rather than an actual capability key).
      */
     public static boolean isSectionHeader(String propertyCell) {
-        return propertyCell != null
-                && propertyCell.startsWith(SECTION_PREFIX)
-                && propertyCell.endsWith(SECTION_SUFFIX);
+        return (
+            propertyCell != null &&
+            propertyCell.startsWith(SECTION_PREFIX) &&
+            propertyCell.endsWith(SECTION_SUFFIX)
+        );
     }
 
     public static String sectionHeader(String name) {

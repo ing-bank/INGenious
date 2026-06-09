@@ -193,7 +193,10 @@ public class TestSet extends DataModel {
     private TestCaseFormat projectDefaultFormat() {
         try {
             if (getProject() != null && getProject().getInfo() != null) {
-                return TestCaseFormat.parse(getProject().getInfo().getTestCaseFormat(), TestCaseFormat.YAML);
+                return TestCaseFormat.parse(
+                    getProject().getInfo().getTestCaseFormat(),
+                    TestCaseFormat.YAML
+                );
             }
         } catch (Exception ignored) {
             // Project info may be unavailable in unit-test contexts.
@@ -235,8 +238,9 @@ public class TestSet extends DataModel {
         try {
             rows = store.load(file);
         } catch (Exception ex) {
-            Logger.getLogger(TestSet.class.getName()).log(Level.SEVERE,
-                    "Error loading test set from " + file.getPath(), ex);
+            Logger
+                .getLogger(TestSet.class.getName())
+                .log(Level.SEVERE, "Error loading test set from " + file.getPath(), ex);
             rows = new ArrayList<>();
         }
         if (!rows.isEmpty()) {

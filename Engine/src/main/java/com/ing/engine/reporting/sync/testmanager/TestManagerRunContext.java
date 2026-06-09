@@ -13,7 +13,6 @@ import java.util.Set;
  * can be looked up cheaply without re-querying the API.
  */
 final class TestManagerRunContext {
-
     final String correlationId;
     final String projectId;
     final String releaseName;
@@ -36,8 +35,13 @@ final class TestManagerRunContext {
     /** testCaseId -> testCaseInstanceId(s) returned by Step 3b */
     final Map<String, Set<String>> instanceIdsByTestCaseId = new LinkedHashMap<>();
 
-    TestManagerRunContext(String correlationId, String projectId,
-                          String releaseName, String testSetName, String runTitle) {
+    TestManagerRunContext(
+        String correlationId,
+        String projectId,
+        String releaseName,
+        String testSetName,
+        String runTitle
+    ) {
         this.correlationId = correlationId;
         this.projectId = projectId;
         this.releaseName = releaseName;
@@ -45,13 +49,17 @@ final class TestManagerRunContext {
         this.runTitle = runTitle;
     }
 
-    void recordTestCase(String scenarioName, String scenarioFolderId,
-                        String testCaseName, String testCaseId) {
+    void recordTestCase(
+        String scenarioName,
+        String scenarioFolderId,
+        String testCaseName,
+        String testCaseId
+    ) {
         scenarioFolderIds.put(scenarioName, scenarioFolderId);
         testCaseIdByName.put(key(scenarioName, testCaseName), testCaseId);
         testCaseIdsByScenarioFolder
-                .computeIfAbsent(scenarioFolderId, k -> new LinkedHashSet<>())
-                .add(testCaseId);
+            .computeIfAbsent(scenarioFolderId, k -> new LinkedHashSet<>())
+            .add(testCaseId);
     }
 
     String getTestCaseId(String scenarioName, String testCaseName) {

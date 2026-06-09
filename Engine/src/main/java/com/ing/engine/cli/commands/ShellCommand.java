@@ -644,7 +644,10 @@ public class ShellCommand implements Callable<Integer> {
             purple +
             "    ║" +
             lightPurple +
-            formatShellBannerLine("Interactive Shell v" + com.ing.engine.constants.SystemDefaults.getBuildVersion(), 68) +
+            formatShellBannerLine(
+                "Interactive Shell v" + com.ing.engine.constants.SystemDefaults.getBuildVersion(),
+                68
+            ) +
             purple +
             "║" +
             reset
@@ -657,6 +660,7 @@ public class ShellCommand implements Callable<Integer> {
         );
         System.out.println();
     }
+
     /**
      * Center {@code content} within {@code width} spaces so the dynamic
      * Maven version sits cleanly between the ║ ║ borders of the shell
@@ -672,6 +676,7 @@ public class ShellCommand implements Callable<Integer> {
         for (int i = 0; i < right; i++) sb.append(' ');
         return sb.toString();
     }
+
     private void printHelp(String topic) {
         if (topic.isEmpty()) {
             System.out.println("INGenious Interactive Shell Commands:");

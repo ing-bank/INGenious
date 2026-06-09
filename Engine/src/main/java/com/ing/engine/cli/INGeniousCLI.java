@@ -2,10 +2,10 @@ package com.ing.engine.cli;
 
 import com.ing.engine.cli.commands.*;
 import com.ing.engine.cli.output.OutputFormatter;
-import java.io.PrintWriter;
-import java.util.concurrent.Callable;
 import com.ing.engine.cli.output.Style;
 import com.ing.engine.constants.SystemDefaults;
+import java.io.PrintWriter;
+import java.util.concurrent.Callable;
 import picocli.CommandLine;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.HelpCommand;
@@ -44,16 +44,21 @@ import picocli.CommandLine.Option;
     commandListHeading = "%nCommands:%n"
 )
 public class INGeniousCLI implements Callable<Integer> {
-
-    @Option(names = {"-h", "--help"}, usageHelp = true,
-            description = "Show this help message and exit")
+    @Option(
+        names = { "-h", "--help" },
+        usageHelp = true,
+        description = "Show this help message and exit"
+    )
     private boolean helpRequested;
 
-    @Option(names = {"-v", "-V", "--version"}, versionHelp = true,
-            description = "Print version information and exit")
+    @Option(
+        names = { "-v", "-V", "--version" },
+        versionHelp = true,
+        description = "Print version information and exit"
+    )
     private boolean versionRequested;
 
-    @Option(names = {"--json"}, description = "Output in JSON format")
+    @Option(names = { "--json" }, description = "Output in JSON format")
     private boolean jsonOutput;
 
     @Option(names = { "--yaml" }, description = "Output in YAML format")
@@ -276,10 +281,18 @@ public class INGeniousCLI implements Callable<Integer> {
             r
         );
         System.out.println();
-        System.out.println(bo + l + "              ═══════════════════════════════════════════════════════════" + r);
-        System.out.println(bo + w + "               ✦  T E S T   A U T O M A T I O N   F R A M E W O R K  ✦" + r);
-        System.out.println(bo + b + "                              Version " + SystemDefaults.getBuildVersion() + r);
-        System.out.println(bo + l + "              ═══════════════════════════════════════════════════════════" + r);
+        System.out.println(
+            bo + l + "              ═══════════════════════════════════════════════════════════" + r
+        );
+        System.out.println(
+            bo + w + "               ✦  T E S T   A U T O M A T I O N   F R A M E W O R K  ✦" + r
+        );
+        System.out.println(
+            bo + b + "                              Version " + SystemDefaults.getBuildVersion() + r
+        );
+        System.out.println(
+            bo + l + "              ═══════════════════════════════════════════════════════════" + r
+        );
         System.out.println();
     }
 
@@ -325,10 +338,17 @@ public class INGeniousCLI implements Callable<Integer> {
         }
         // Legacy args start with single dash and are from the old CLI
         String firstArg = args[0];
-        return firstArg.startsWith("-") && !firstArg.startsWith("--") &&
-               (firstArg.equals("-run") || firstArg.equals("-rerun") || 
+        return (
+            firstArg.startsWith("-") &&
+            !firstArg.startsWith("--") &&
+            (
+                firstArg.equals("-run") ||
+                firstArg.equals("-rerun") ||
                 firstArg.equals("-help") ||
-                firstArg.equals("-project_location") || firstArg.equals("-latest_exe_status"));
+                firstArg.equals("-project_location") ||
+                firstArg.equals("-latest_exe_status")
+            )
+        );
     }
 
     /**

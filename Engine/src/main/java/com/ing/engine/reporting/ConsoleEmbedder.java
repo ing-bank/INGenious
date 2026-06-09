@@ -22,13 +22,11 @@ import java.util.logging.Logger;
  * tag and can be retrieved client-side via {@code element.textContent}).
  */
 public final class ConsoleEmbedder {
-
     private static final Logger LOG = Logger.getLogger(ConsoleEmbedder.class.getName());
 
     private static final String DATA_ID = "ing-console-data";
 
-    private ConsoleEmbedder() {
-    }
+    private ConsoleEmbedder() {}
 
     /**
      * Embed the contents of {@code resultsDir/console.txt} into every
@@ -44,7 +42,8 @@ public final class ConsoleEmbedder {
         }
         String consoleText;
         try {
-            consoleText = new String(Files.readAllBytes(consoleFile.toPath()), StandardCharsets.UTF_8);
+            consoleText =
+                new String(Files.readAllBytes(consoleFile.toPath()), StandardCharsets.UTF_8);
         } catch (IOException ex) {
             LOG.log(Level.WARNING, "Unable to read console.txt for embedding", ex);
             return;

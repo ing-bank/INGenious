@@ -56,6 +56,7 @@ public class FileUtils {
      * {@link #CSV_FILTER} during the dual-format period.
      */
     public static final FilenameFilter YAML_FILTER = new FilenameFilter() {
+
         @Override
         public boolean accept(File dir, String name) {
             return name.matches("(?i).*\\.ya?ml");

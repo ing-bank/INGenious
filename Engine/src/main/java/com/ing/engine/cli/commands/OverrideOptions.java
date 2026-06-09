@@ -1,9 +1,8 @@
 package com.ing.engine.cli.commands;
 
 import com.ing.engine.constants.SystemDefaults;
-import picocli.CommandLine.Option;
-
 import java.util.List;
+import picocli.CommandLine.Option;
 
 /**
  * Shared typed override flags for the {@code ingenious run …} subcommands.
@@ -22,82 +21,109 @@ import java.util.List;
  * <em>before</em> delegating to the legacy {@code Control.main(…)} bridge.
  */
 public class OverrideOptions {
-
-    @Option(names = {"--set-env"},
-            description = "Raw override, equivalent to legacy -setEnv. Format: 'key=value' (repeatable).",
-            paramLabel = "<k=v>")
+    @Option(
+        names = { "--set-env" },
+        description = "Raw override, equivalent to legacy -setEnv. Format: 'key=value' (repeatable).",
+        paramLabel = "<k=v>"
+    )
     List<String> setEnv;
 
-    @Option(names = {"--driver"},
-            description = "Driver / Launch Configurations override. Format: 'key=value' (repeatable).",
-            paramLabel = "<k=v>")
+    @Option(
+        names = { "--driver" },
+        description = "Driver / Launch Configurations override. Format: 'key=value' (repeatable).",
+        paramLabel = "<k=v>"
+    )
     List<String> driver;
 
-    @Option(names = {"--user"},
-            description = "UserDefined variable override. Format: 'key=value' (repeatable).",
-            paramLabel = "<k=v>")
+    @Option(
+        names = { "--user" },
+        description = "UserDefined variable override. Format: 'key=value' (repeatable).",
+        paramLabel = "<k=v>"
+    )
     List<String> user;
 
-    @Option(names = {"--tm"},
-            description = "Flat Test Manager setting override. Format: 'key=value' (repeatable).",
-            paramLabel = "<k=v>")
+    @Option(
+        names = { "--tm" },
+        description = "Flat Test Manager setting override. Format: 'key=value' (repeatable).",
+        paramLabel = "<k=v>"
+    )
     List<String> tm;
 
-    @Option(names = {"--capability"},
-            description = "Per-browser capability override. Format: '<browser>.<key>=value' (repeatable).",
-            paramLabel = "<b.k=v>")
+    @Option(
+        names = { "--capability" },
+        description = "Per-browser capability override. Format: '<browser>.<key>=value' (repeatable).",
+        paramLabel = "<b.k=v>"
+    )
     List<String> capability;
 
-    @Option(names = {"--db"},
-            description = "Database property override. Format: '<alias>.<key>=value' (repeatable).",
-            paramLabel = "<db.k=v>")
+    @Option(
+        names = { "--db" },
+        description = "Database property override. Format: '<alias>.<key>=value' (repeatable).",
+        paramLabel = "<db.k=v>"
+    )
     List<String> db;
 
-    @Option(names = {"--context"},
-            description = "Context property override. Format: '<alias>.<key>=value' (repeatable).",
-            paramLabel = "<ctx.k=v>")
+    @Option(
+        names = { "--context" },
+        description = "Context property override. Format: '<alias>.<key>=value' (repeatable).",
+        paramLabel = "<ctx.k=v>"
+    )
     List<String> context;
 
-    @Option(names = {"--api"},
-            description = "API property override. Format: '<alias>.<key>=value' (repeatable).",
-            paramLabel = "<api.k=v>")
+    @Option(
+        names = { "--api" },
+        description = "API property override. Format: '<alias>.<key>=value' (repeatable).",
+        paramLabel = "<api.k=v>"
+    )
     List<String> api;
 
-    @Option(names = {"--kafka-ssl"},
-            description = "Kafka SSL configuration override. Format: 'key=value' (repeatable). "
-                    + "Accepts the canonical 'kafkaSsl' spelling.",
-            paramLabel = "<k=v>")
+    @Option(
+        names = { "--kafka-ssl" },
+        description = "Kafka SSL configuration override. Format: 'key=value' (repeatable). " +
+        "Accepts the canonical 'kafkaSsl' spelling.",
+        paramLabel = "<k=v>"
+    )
     List<String> kafkaSsl;
 
-    @Option(names = {"--lambdatest-cap"},
-            description = "LambdaTest Grid Capabilities override. Format: 'key=value' (repeatable).",
-            paramLabel = "<k=v>")
+    @Option(
+        names = { "--lambdatest-cap" },
+        description = "LambdaTest Grid Capabilities override. Format: 'key=value' (repeatable).",
+        paramLabel = "<k=v>"
+    )
     List<String> lambdatestCap;
 
-    @Option(names = {"--browser-arg"},
-            description = "Indexed per-browser launch flag. Format: '<browser>.<index>=<arg>' "
-                    + "(e.g. 'Chrome.1=--headless=new'). Repeatable.",
-            paramLabel = "<b.n=v>")
+    @Option(
+        names = { "--browser-arg" },
+        description = "Indexed per-browser launch flag. Format: '<browser>.<index>=<arg>' " +
+        "(e.g. 'Chrome.1=--headless=new'). Repeatable.",
+        paramLabel = "<b.n=v>"
+    )
     List<String> browserArg;
 
-    @Option(names = {"--browser-set"},
-            description = "Arbitrary per-browser property (create-on-missing). "
-                    + "Format: '<browser>.<key>=value' (repeatable).",
-            paramLabel = "<b.k=v>")
+    @Option(
+        names = { "--browser-set" },
+        description = "Arbitrary per-browser property (create-on-missing). " +
+        "Format: '<browser>.<key>=value' (repeatable).",
+        paramLabel = "<b.k=v>"
+    )
     List<String> browserSet;
 
-    @Option(names = {"--device"},
-            description = "Per-device override (Manage Devices). "
-                    + "Format: '<name>.<key>=value' (repeatable). "
-                    + "Reserved keys: RemoteURL, LambdaTest, __enabled.",
-            paramLabel = "<dev.k=v>")
+    @Option(
+        names = { "--device" },
+        description = "Per-device override (Manage Devices). " +
+        "Format: '<name>.<key>=value' (repeatable). " +
+        "Reserved keys: RemoteURL, LambdaTest, __enabled.",
+        paramLabel = "<dev.k=v>"
+    )
     List<String> device;
 
-    @Option(names = {"--tm-module"},
-            description = "AzureDevOps TestPlan per-module option. "
-                    + "Format: '<module>.<key>=value' (repeatable). "
-                    + "Reserved key: __enabled.",
-            paramLabel = "<mod.k=v>")
+    @Option(
+        names = { "--tm-module" },
+        description = "AzureDevOps TestPlan per-module option. " +
+        "Format: '<module>.<key>=value' (repeatable). " +
+        "Reserved key: __enabled.",
+        paramLabel = "<mod.k=v>"
+    )
     List<String> tmModule;
 
     /**
@@ -109,19 +135,19 @@ public class OverrideOptions {
         // 1) raw pass-through
         addAll(setEnv, "");
         // 2) typed flags -> prefixed entries
-        addAll(driver,        "driver.");
-        addAll(user,          "user.");
-        addAll(tm,            "tm.");
-        addAll(capability,    "capability.");
-        addAll(db,            "db.");
-        addAll(context,       "context.");
-        addAll(api,           "api.");
-        addAll(kafkaSsl,      "kafkaSsl.");
+        addAll(driver, "driver.");
+        addAll(user, "user.");
+        addAll(tm, "tm.");
+        addAll(capability, "capability.");
+        addAll(db, "db.");
+        addAll(context, "context.");
+        addAll(api, "api.");
+        addAll(kafkaSsl, "kafkaSsl.");
         addAll(lambdatestCap, "lambdatest.");
-        addAll(browserArg,    "browserArg.");
-        addAll(browserSet,    "browser.");
-        addAll(device,        "device.");
-        addAll(tmModule,      "tmModule.");
+        addAll(browserArg, "browserArg.");
+        addAll(browserSet, "browser.");
+        addAll(device, "device.");
+        addAll(tmModule, "tmModule.");
     }
 
     private static void addAll(List<String> items, String prefix) {
@@ -145,11 +171,25 @@ public class OverrideOptions {
 
     /** True when the user supplied at least one override flag. */
     public boolean hasAny() {
-        return nonEmpty(setEnv) || nonEmpty(driver) || nonEmpty(user) || nonEmpty(tm)
-                || nonEmpty(capability) || nonEmpty(db) || nonEmpty(context) || nonEmpty(api)
-                || nonEmpty(kafkaSsl) || nonEmpty(lambdatestCap) || nonEmpty(browserArg)
-                || nonEmpty(browserSet) || nonEmpty(device) || nonEmpty(tmModule);
+        return (
+            nonEmpty(setEnv) ||
+            nonEmpty(driver) ||
+            nonEmpty(user) ||
+            nonEmpty(tm) ||
+            nonEmpty(capability) ||
+            nonEmpty(db) ||
+            nonEmpty(context) ||
+            nonEmpty(api) ||
+            nonEmpty(kafkaSsl) ||
+            nonEmpty(lambdatestCap) ||
+            nonEmpty(browserArg) ||
+            nonEmpty(browserSet) ||
+            nonEmpty(device) ||
+            nonEmpty(tmModule)
+        );
     }
 
-    private static boolean nonEmpty(List<?> l) { return l != null && !l.isEmpty(); }
+    private static boolean nonEmpty(List<?> l) {
+        return l != null && !l.isEmpty();
+    }
 }

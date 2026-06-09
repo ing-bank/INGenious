@@ -16,7 +16,7 @@ public enum TestCaseFormat {
     YAML(".yaml");
 
     /** Recognised YAML aliases (used only when probing existing files on disk). */
-    public static final String[] YAML_EXTENSIONS = {".yaml", ".yml"};
+    public static final String[] YAML_EXTENSIONS = { ".yaml", ".yml" };
 
     private final String extension;
 

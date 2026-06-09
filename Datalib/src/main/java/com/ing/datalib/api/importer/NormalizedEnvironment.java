@@ -8,7 +8,6 @@ import java.util.List;
  * An environment (named set of variables) in the normalized import model.
  */
 public class NormalizedEnvironment implements Serializable {
-
     private static final long serialVersionUID = 1L;
 
     private String name;
@@ -20,9 +19,19 @@ public class NormalizedEnvironment implements Serializable {
         this.name = name;
     }
 
-    public String getName() { return name; }
-    public void setName(String name) { this.name = name; }
+    public String getName() {
+        return name;
+    }
 
-    public List<NormalizedVariable> getVariables() { return variables; }
-    public void setVariables(List<NormalizedVariable> variables) { this.variables = variables; }
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public List<NormalizedVariable> getVariables() {
+        return variables;
+    }
+
+    public void setVariables(List<NormalizedVariable> variables) {
+        this.variables = variables;
+    }
 }

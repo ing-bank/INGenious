@@ -8,7 +8,6 @@ import java.util.List;
  * Outcome of a collection import. Pure data holder.
  */
 public class ImportResult implements Serializable {
-
     private static final long serialVersionUID = 1L;
 
     private int requestsRead;
@@ -19,19 +18,47 @@ public class ImportResult implements Serializable {
     private final List<String> createdReusables = new ArrayList<>();
     private final List<ImportWarning> warnings = new ArrayList<>();
 
-    public int getRequestsRead() { return requestsRead; }
-    public void setRequestsRead(int requestsRead) { this.requestsRead = requestsRead; }
+    public int getRequestsRead() {
+        return requestsRead;
+    }
 
-    public int getReusablesCreated() { return reusablesCreated; }
-    public void incReusablesCreated() { this.reusablesCreated++; }
+    public void setRequestsRead(int requestsRead) {
+        this.requestsRead = requestsRead;
+    }
 
-    public int getReusablesSkipped() { return reusablesSkipped; }
-    public void incReusablesSkipped() { this.reusablesSkipped++; }
+    public int getReusablesCreated() {
+        return reusablesCreated;
+    }
 
-    public int getEnvironmentsCreated() { return environmentsCreated; }
-    public void incEnvironmentsCreated() { this.environmentsCreated++; }
+    public void incReusablesCreated() {
+        this.reusablesCreated++;
+    }
 
-    public List<String> getCreatedScenarios() { return createdScenarios; }
-    public List<String> getCreatedReusables() { return createdReusables; }
-    public List<ImportWarning> getWarnings() { return warnings; }
+    public int getReusablesSkipped() {
+        return reusablesSkipped;
+    }
+
+    public void incReusablesSkipped() {
+        this.reusablesSkipped++;
+    }
+
+    public int getEnvironmentsCreated() {
+        return environmentsCreated;
+    }
+
+    public void incEnvironmentsCreated() {
+        this.environmentsCreated++;
+    }
+
+    public List<String> getCreatedScenarios() {
+        return createdScenarios;
+    }
+
+    public List<String> getCreatedReusables() {
+        return createdReusables;
+    }
+
+    public List<ImportWarning> getWarnings() {
+        return warnings;
+    }
 }

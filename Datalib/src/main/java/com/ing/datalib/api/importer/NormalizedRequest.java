@@ -11,7 +11,6 @@ import java.util.List;
  * where in the source folder hierarchy the request was located.
  */
 public class NormalizedRequest implements Serializable {
-
     private static final long serialVersionUID = 1L;
 
     /** Folder path components from the collection root to this request's parent folder. */
@@ -29,15 +28,35 @@ public class NormalizedRequest implements Serializable {
         this.request = request;
     }
 
-    public List<String> getFolderPath() { return folderPath; }
-    public void setFolderPath(List<String> folderPath) { this.folderPath = folderPath; }
+    public List<String> getFolderPath() {
+        return folderPath;
+    }
 
-    public APIRequest getRequest() { return request; }
-    public void setRequest(APIRequest request) { this.request = request; }
+    public void setFolderPath(List<String> folderPath) {
+        this.folderPath = folderPath;
+    }
 
-    public String getTestScript() { return testScript; }
-    public void setTestScript(String testScript) { this.testScript = testScript; }
+    public APIRequest getRequest() {
+        return request;
+    }
 
-    public String getPreRequestScript() { return preRequestScript; }
-    public void setPreRequestScript(String preRequestScript) { this.preRequestScript = preRequestScript; }
+    public void setRequest(APIRequest request) {
+        this.request = request;
+    }
+
+    public String getTestScript() {
+        return testScript;
+    }
+
+    public void setTestScript(String testScript) {
+        this.testScript = testScript;
+    }
+
+    public String getPreRequestScript() {
+        return preRequestScript;
+    }
+
+    public void setPreRequestScript(String preRequestScript) {
+        this.preRequestScript = preRequestScript;
+    }
 }

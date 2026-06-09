@@ -8,7 +8,6 @@ import java.util.List;
  * Root of a parsed collection.
  */
 public class NormalizedCollection implements Serializable {
-
     private static final long serialVersionUID = 1L;
 
     private String name;
@@ -25,21 +24,51 @@ public class NormalizedCollection implements Serializable {
         this.source = source;
     }
 
-    public String getName() { return name; }
-    public void setName(String name) { this.name = name; }
+    public String getName() {
+        return name;
+    }
 
-    public String getDescription() { return description; }
-    public void setDescription(String description) { this.description = description; }
+    public void setName(String name) {
+        this.name = name;
+    }
 
-    public ImportSource getSource() { return source; }
-    public void setSource(ImportSource source) { this.source = source; }
+    public String getDescription() {
+        return description;
+    }
 
-    public List<NormalizedVariable> getVariables() { return variables; }
-    public void setVariables(List<NormalizedVariable> variables) { this.variables = variables; }
+    public void setDescription(String description) {
+        this.description = description;
+    }
 
-    public List<NormalizedRequest> getRequests() { return requests; }
-    public void setRequests(List<NormalizedRequest> requests) { this.requests = requests; }
+    public ImportSource getSource() {
+        return source;
+    }
 
-    public List<NormalizedEnvironment> getEnvironments() { return environments; }
-    public void setEnvironments(List<NormalizedEnvironment> environments) { this.environments = environments; }
+    public void setSource(ImportSource source) {
+        this.source = source;
+    }
+
+    public List<NormalizedVariable> getVariables() {
+        return variables;
+    }
+
+    public void setVariables(List<NormalizedVariable> variables) {
+        this.variables = variables;
+    }
+
+    public List<NormalizedRequest> getRequests() {
+        return requests;
+    }
+
+    public void setRequests(List<NormalizedRequest> requests) {
+        this.requests = requests;
+    }
+
+    public List<NormalizedEnvironment> getEnvironments() {
+        return environments;
+    }
+
+    public void setEnvironments(List<NormalizedEnvironment> environments) {
+        this.environments = environments;
+    }
 }

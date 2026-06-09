@@ -4,18 +4,17 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ing.engine.cli.INGeniousCLI;
 import java.io.File;
+import java.io.File;
+import java.nio.file.Files;
 import java.util.*;
+import java.util.*;
+import java.util.concurrent.Callable;
 import java.util.concurrent.Callable;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Mixin;
 import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
 import picocli.CommandLine.ParentCommand;
-
-import java.io.File;
-import java.nio.file.Files;
-import java.util.*;
-import java.util.concurrent.Callable;
 
 /**
  * Test execution commands.
@@ -43,38 +42,50 @@ public class RunCommand implements Callable<Integer> {
     @ParentCommand
     private INGeniousCLI parent;
 
-    @Parameters(index = "0", arity = "0..1",
-            paramLabel = "<Project>/<X>/<Y>",
-            description = {
-                "Auto-detected target. Either:",
-                "  <Project>/<Scenario>/<TestCase>  - a test case under TestPlan/",
-                "  <Project>/<Release>/<TestSet>    - a test set under TestLab/",
-                "<Project> may be a folder under the current directory,",
-                "under ./Projects/, or an absolute path."
-            })
+    @Parameters(
+        index = "0",
+        arity = "0..1",
+        paramLabel = "<Project>/<X>/<Y>",
+        description = {
+            "Auto-detected target. Either:",
+            "  <Project>/<Scenario>/<TestCase>  - a test case under TestPlan/",
+            "  <Project>/<Release>/<TestSet>    - a test set under TestLab/",
+            "<Project> may be a folder under the current directory,",
+            "under ./Projects/, or an absolute path."
+        }
+    )
     private String autoPath;
 
-    @Option(names = {"-b", "--browser"},
-            description = "Browser to use (Chromium, Firefox, WebKit). Default: Chromium",
-            defaultValue = "Chromium")
+    @Option(
+        names = { "-b", "--browser" },
+        description = "Browser to use (Chromium, Firefox, WebKit). Default: Chromium",
+        defaultValue = "Chromium"
+    )
     private String browser;
 
-    @Option(names = {"--headless"}, description = "Run in headless mode")
+    @Option(names = { "--headless" }, description = "Run in headless mode")
     private boolean headless;
 
-    @Option(names = {"--parallel"},
-            description = "Number of parallel threads (test sets only). Default: 1",
-            defaultValue = "1")
+    @Option(
+        names = { "--parallel" },
+        description = "Number of parallel threads (test sets only). Default: 1",
+        defaultValue = "1"
+    )
     private int parallel;
 
-    @Option(names = {"-t", "--tags"}, split = ",",
-            description = "Filter by tag(s). Repeat the flag or comma-separate values"
-                    + " (e.g. -t @smoke,@api). Test sets only.")
+    @Option(
+        names = { "-t", "--tags" },
+        split = ",",
+        description = "Filter by tag(s). Repeat the flag or comma-separate values" +
+        " (e.g. -t @smoke,@api). Test sets only."
+    )
     private List<String> tags;
 
-    @Option(names = {"--rerun"},
-            description = "Re-execute only the test cases that failed in the last run"
-                    + " of the detected target. Reads from Results/.../Latest/data.js.")
+    @Option(
+        names = { "--rerun" },
+        description = "Re-execute only the test cases that failed in the last run" +
+        " of the detected target. Reads from Results/.../Latest/data.js."
+    )
     private boolean rerun;
 
     @Mixin
@@ -87,10 +98,18 @@ public class RunCommand implements Callable<Integer> {
         if (autoPath == null || autoPath.isEmpty()) {
             com.ing.engine.cli.output.Style s = cli.style();
             cli.printHeader("Usage");
-            System.out.println("  " + s.cyan(com.ing.engine.cli.output.Style.ICON_ARROW)
-                    + " ingenious run " + s.bold("<Project>/<Scenario>/<TestCase>"));
-            System.out.println("  " + s.cyan(com.ing.engine.cli.output.Style.ICON_ARROW)
-                    + " ingenious run " + s.bold("<Project>/<Release>/<TestSet>"));
+            System.out.println(
+                "  " +
+                s.cyan(com.ing.engine.cli.output.Style.ICON_ARROW) +
+                " ingenious run " +
+                s.bold("<Project>/<Scenario>/<TestCase>")
+            );
+            System.out.println(
+                "  " +
+                s.cyan(com.ing.engine.cli.output.Style.ICON_ARROW) +
+                " ingenious run " +
+                s.bold("<Project>/<Release>/<TestSet>")
+            );
             System.out.println();
             System.out.println("  " + s.dim("For advanced options, see 'ingenious run --help'"));
             return 0;
@@ -100,27 +119,33 @@ public class RunCommand implements Callable<Integer> {
 
         String[] parts = autoPath.split("/");
         if (parts.length != 3) {
-            cli.printError("Path must be '<Project>/<Scenario>/<TestCase>' "
-                    + "or '<Project>/<Release>/<TestSet>'.");
+            cli.printError(
+                "Path must be '<Project>/<Scenario>/<TestCase>' " +
+                "or '<Project>/<Release>/<TestSet>'."
+            );
             return 1;
         }
         String projectName = parts[0];
-        String group       = parts[1];
-        String name        = parts[2];
+        String group = parts[1];
+        String name = parts[2];
 
         File projectDir = resolveProjectDir(projectName);
         if (projectDir == null) {
             cli.printError("Project not found: " + projectName);
-            cli.printInfo("Looked in: ./" + projectName
-                    + ", ./Projects/" + projectName
-                    + ", and as an absolute path.");
+            cli.printInfo(
+                "Looked in: ./" +
+                projectName +
+                ", ./Projects/" +
+                projectName +
+                ", and as an absolute path."
+            );
             return 1;
         }
 
         File testCaseCsv = new File(projectDir, "TestPlan/" + group + "/" + name + ".csv");
-        File testSetCsv  = new File(projectDir, "TestLab/"  + group + "/" + name + ".csv");
+        File testSetCsv = new File(projectDir, "TestLab/" + group + "/" + name + ".csv");
         boolean isTestCase = testCaseCsv.isFile();
-        boolean isTestSet  = testSetCsv.isFile();
+        boolean isTestSet = testSetCsv.isFile();
 
         if (isTestCase && isTestSet) {
             cli.printError("Ambiguous: path matches both a test case and a test set.");
@@ -231,10 +256,21 @@ public class RunCommand implements Callable<Integer> {
      * (the cleanest, most predictable approach — preserves browser/headless
      * flags and avoids fighting the engine's own test-set selection logic).
      */
-    private int rerunFailed(INGeniousCLI cli, File projectDir,
-                            String group, String name, boolean isTestCase) {
-        File latest = new File(projectDir, (isTestCase ? "Results/TestDesign/" : "Results/TestExecution/")
-                + group + "/" + name + "/Latest");
+    private int rerunFailed(
+        INGeniousCLI cli,
+        File projectDir,
+        String group,
+        String name,
+        boolean isTestCase
+    ) {
+        File latest = new File(
+            projectDir,
+            (isTestCase ? "Results/TestDesign/" : "Results/TestExecution/") +
+            group +
+            "/" +
+            name +
+            "/Latest"
+        );
         File dataJs = new File(latest, "data.js");
         if (!dataJs.isFile()) {
             cli.printError("No previous run found for this target.");
@@ -259,18 +295,22 @@ public class RunCommand implements Callable<Integer> {
             if (executions.isArray()) {
                 for (JsonNode tc : executions) {
                     if ("FAIL".equalsIgnoreCase(tc.path("status").asText())) {
-                        failed.add(new String[] {
+                        failed.add(
+                            new String[] {
                                 tc.path("scenarioName").asText(),
                                 tc.path("testcaseName").asText()
-                        });
+                            }
+                        );
                     }
                 }
             } else if ("FAIL".equalsIgnoreCase(root.path("status").asText())) {
                 // Single test-case data.js — no EXECUTIONS array.
-                failed.add(new String[] {
+                failed.add(
+                    new String[] {
                         root.path("scenarioName").asText(group),
                         root.path("testcaseName").asText(name)
-                });
+                    }
+                );
             }
         } catch (Exception e) {
             cli.printError("Could not read " + dataJs.getName() + ": " + e.getMessage());
@@ -284,8 +324,14 @@ public class RunCommand implements Callable<Integer> {
 
         cli.printHeader("Failed test cases (" + failed.size() + ")");
         for (String[] tc : failed) {
-            System.out.println("  " + cli.style().cyan(com.ing.engine.cli.output.Style.ICON_BULLET)
-                    + " " + tc[0] + "/" + tc[1]);
+            System.out.println(
+                "  " +
+                cli.style().cyan(com.ing.engine.cli.output.Style.ICON_BULLET) +
+                " " +
+                tc[0] +
+                "/" +
+                tc[1]
+            );
         }
 
         // Re-execute each as an individual test case. Stop on the first
@@ -322,7 +368,9 @@ public class RunCommand implements Callable<Integer> {
             try {
                 com.ing.engine.core.Control.main(args.toArray(new String[0]));
             } catch (Exception e) {
-                cli.printError("Execution failed for " + tc[0] + "/" + tc[1] + ": " + e.getMessage());
+                cli.printError(
+                    "Execution failed for " + tc[0] + "/" + tc[1] + ": " + e.getMessage()
+                );
                 return 1;
             }
         }
@@ -343,9 +391,11 @@ public class RunCommand implements Callable<Integer> {
         @Option(names = { "-p", "--project" }, description = "Project path")
         private String projectPath;
 
-        @Option(names = {"-b", "--browser"},
-                description = "Browser to use (Chromium, Firefox, WebKit)",
-                defaultValue = "Chromium")
+        @Option(
+            names = { "-b", "--browser" },
+            description = "Browser to use (Chromium, Firefox, WebKit)",
+            defaultValue = "Chromium"
+        )
         private String browser;
 
         @Option(names = { "-e", "--env" }, description = "Environment name")
@@ -378,7 +428,7 @@ public class RunCommand implements Callable<Integer> {
         public Integer call() {
             INGeniousCLI cli = INGeniousCLI.getInstance();
             overrides.applyAll();
-            
+
             String path = projectPath != null ? projectPath : cli.getProjectPath();
             if (path == null || path.isEmpty()) {
                 cli.printError("Project path required. Use --project or -p flag.");
@@ -480,9 +530,11 @@ public class RunCommand implements Callable<Integer> {
         @Option(names = { "-t", "--testset" }, description = "Test set name", required = true)
         private String testset;
 
-        @Option(names = {"-b", "--browser"},
-                description = "Browser to use (Chromium, Firefox, WebKit)",
-                defaultValue = "Chromium")
+        @Option(
+            names = { "-b", "--browser" },
+            description = "Browser to use (Chromium, Firefox, WebKit)",
+            defaultValue = "Chromium"
+        )
         private String browser;
 
         @Option(names = { "--headless" }, description = "Run in headless mode")
@@ -505,7 +557,7 @@ public class RunCommand implements Callable<Integer> {
         public Integer call() {
             INGeniousCLI cli = INGeniousCLI.getInstance();
             overrides.applyAll();
-            
+
             String path = projectPath != null ? projectPath : cli.getProjectPath();
             if (path == null || path.isEmpty()) {
                 cli.printError("Project path required.");
@@ -544,7 +596,7 @@ public class RunCommand implements Callable<Integer> {
                     args.add("-setEnv");
                     args.add("run.ThreadCount=" + parallel);
                 }
-                
+
                 if (headless) {
                     args.add("-op_setHeadless");
                     args.add("true");
@@ -573,9 +625,11 @@ public class RunCommand implements Callable<Integer> {
         @Option(names = { "-p", "--project" }, description = "Project path")
         private String projectPath;
 
-        @Option(names = {"-b", "--browser"},
-                description = "Browser to use (Chromium, Firefox, WebKit)",
-                defaultValue = "Chromium")
+        @Option(
+            names = { "-b", "--browser" },
+            description = "Browser to use (Chromium, Firefox, WebKit)",
+            defaultValue = "Chromium"
+        )
         private String browser;
 
         @Option(names = { "--headless" }, description = "Run in headless mode")
@@ -594,7 +648,7 @@ public class RunCommand implements Callable<Integer> {
         public Integer call() {
             INGeniousCLI cli = INGeniousCLI.getInstance();
             overrides.applyAll();
-            
+
             String path = projectPath != null ? projectPath : cli.getProjectPath();
             if (path == null || path.isEmpty()) {
                 cli.printError("Project path required.");
@@ -646,20 +700,27 @@ public class RunCommand implements Callable<Integer> {
      * to remember which sub-flavour applies. The actual logic lives on the
      * parent {@link RunCommand#rerunFailed} method.
      */
-    @Command(name = "rerun",
-            description = "Rerun only the failed test cases from the last execution")
+    @Command(
+        name = "rerun",
+        description = "Rerun only the failed test cases from the last execution"
+    )
     public static class RerunCommand implements Callable<Integer> {
         @ParentCommand
         private RunCommand parent;
 
-        @Parameters(index = "0", arity = "0..1",
-                paramLabel = "<Project>/<X>/<Y>",
-                description = "Same auto-detected path as 'ingenious run'.")
+        @Parameters(
+            index = "0",
+            arity = "0..1",
+            paramLabel = "<Project>/<X>/<Y>",
+            description = "Same auto-detected path as 'ingenious run'."
+        )
         private String autoPath;
 
-        @Option(names = {"-b", "--browser"},
-                description = "Browser to use (Chromium, Firefox, WebKit). Default: Chromium",
-                defaultValue = "Chromium")
+        @Option(
+            names = { "-b", "--browser" },
+            description = "Browser to use (Chromium, Firefox, WebKit). Default: Chromium",
+            defaultValue = "Chromium"
+        )
         private String browser;
 
         @Option(names = { "--headless" }, description = "Run in headless mode")

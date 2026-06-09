@@ -4,7 +4,6 @@ import com.ing.datalib.settings.Devices;
 import com.ing.datalib.settings.Emulators;
 import com.ing.datalib.settings.emulators.Device;
 import com.ing.datalib.settings.emulators.Emulator;
-
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
@@ -32,15 +31,15 @@ import java.util.logging.Logger;
  * is deleted from the source list, so a re-run finds nothing to do.
  */
 public final class EmulatorToDeviceMigration {
-
-    private static final Logger LOGGER = Logger.getLogger(EmulatorToDeviceMigration.class.getName());
+    private static final Logger LOGGER = Logger.getLogger(
+        EmulatorToDeviceMigration.class.getName()
+    );
 
     private static final String SAP_NAME = "SAP";
     private static final String REMOTE_URL_TYPE = "Remote URL";
     private static final String LAMBDATEST_URL_SUFFIX = "hub.lambdatest.com/wd/hub";
 
-    private EmulatorToDeviceMigration() {
-    }
+    private EmulatorToDeviceMigration() {}
 
     /**
      * Performs the migration in-memory and persists both stores if anything
@@ -94,9 +93,11 @@ public final class EmulatorToDeviceMigration {
             try {
                 src.save();
                 dst.save();
-                LOGGER.log(Level.INFO,
-                        "Emulator->Device migration: migrated={0}, skippedExisting={1}, skippedLegacy={2}",
-                        new Object[]{result.migrated, result.skippedExisting, result.skippedLegacy});
+                LOGGER.log(
+                    Level.INFO,
+                    "Emulator->Device migration: migrated={0}, skippedExisting={1}, skippedLegacy={2}",
+                    new Object[] { result.migrated, result.skippedExisting, result.skippedLegacy }
+                );
             } catch (RuntimeException ex) {
                 LOGGER.log(Level.SEVERE, "Failed to persist Emulator->Device migration", ex);
             }

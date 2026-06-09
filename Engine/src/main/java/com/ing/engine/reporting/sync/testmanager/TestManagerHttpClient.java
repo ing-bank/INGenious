@@ -11,7 +11,6 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.client.methods.HttpPut;
 
 public class TestManagerHttpClient extends BasicHttpClient {
-
     private final String authHeader;
 
     public TestManagerHttpClient(URL url, String username, String apiToken, Map config) {
@@ -19,8 +18,7 @@ public class TestManagerHttpClient extends BasicHttpClient {
         // Default: HTTP Basic with username + token. Swap to "Bearer " + apiToken if the
         // Test Manager API requires bearer tokens instead.
         String raw = (username == null ? "" : username) + ":" + (apiToken == null ? "" : apiToken);
-        this.authHeader = "Basic " + java.util.Base64.getEncoder()
-                .encodeToString(raw.getBytes());
+        this.authHeader = "Basic " + java.util.Base64.getEncoder().encodeToString(raw.getBytes());
     }
 
     @Override

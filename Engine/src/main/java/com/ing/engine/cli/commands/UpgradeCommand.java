@@ -8,10 +8,6 @@ import com.ing.datalib.component.io.TestCaseYaml;
 import com.ing.engine.cli.INGeniousCLI;
 import com.ing.engine.cli.output.Silencer;
 import com.ing.engine.cli.output.Style;
-import picocli.CommandLine.Command;
-import picocli.CommandLine.Option;
-import picocli.CommandLine.Parameters;
-
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
@@ -25,6 +21,9 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.concurrent.Callable;
 import java.util.stream.Stream;
+import picocli.CommandLine.Command;
+import picocli.CommandLine.Option;
+import picocli.CommandLine.Parameters;
 
 /**
  * Interactive project upgrade wizard. Walks the user through four
@@ -51,23 +50,30 @@ import java.util.stream.Stream;
  * <p>Each step prompts before executing. Use {@code --yes} to accept all
  * defaults, or {@code --dry-run} to preview without writing.
  */
-@Command(name = "upgrade",
-        description = "Interactive upgrade wizard: modernise ORs, test cases, and clean up legacy files")
+@Command(
+    name = "upgrade",
+    description = "Interactive upgrade wizard: modernise ORs, test cases, and clean up legacy files"
+)
 public class UpgradeCommand implements Callable<Integer> {
-
     @Parameters(index = "0", description = "Project name or path", defaultValue = "")
     private String projectPath;
 
-    @Option(names = {"-y", "--yes"},
-            description = "Accept the default for every prompt (run unattended)")
+    @Option(
+        names = { "-y", "--yes" },
+        description = "Accept the default for every prompt (run unattended)"
+    )
     private boolean assumeYes;
 
-    @Option(names = {"--dry-run"},
-            description = "Report what would change without writing any files")
+    @Option(
+        names = { "--dry-run" },
+        description = "Report what would change without writing any files"
+    )
     private boolean dryRun;
 
-    @Option(names = {"--keep-backup"},
-            description = "When migrating CSV → YAML, keep originals under .migration-backup/")
+    @Option(
+        names = { "--keep-backup" },
+        description = "When migrating CSV → YAML, keep originals under .migration-backup/"
+    )
     private boolean keepBackup;
 
     /** Cached interactive reader. Falls back to {@code System.in} when no console. */
@@ -116,21 +122,40 @@ public class UpgradeCommand implements Callable<Integer> {
         }
 
         // --- Step 2: Test cases CSV → YAML --------------------------------
-        if (plan.csvTestCases > 0 && askYes(cli,
-                "Convert " + plan.csvTestCases + " CSV test case(s) / reusable(s) to YAML?", true)) {
+        if (
+            plan.csvTestCases > 0 &&
+            askYes(
+                cli,
+                "Convert " + plan.csvTestCases + " CSV test case(s) / reusable(s) to YAML?",
+                true
+            )
+        ) {
             totalChanges += upgradeTestCases(cli, projectDir);
         }
 
         // --- Step 3: Deprecated files cleanup -----------------------------
-        if (!plan.deprecated.isEmpty() && askYes(cli,
-                "Delete " + plan.deprecated.size() + " deprecated file(s) / folder(s)?", true)) {
+        if (
+            !plan.deprecated.isEmpty() &&
+            askYes(
+                cli,
+                "Delete " + plan.deprecated.size() + " deprecated file(s) / folder(s)?",
+                true
+            )
+        ) {
             totalChanges += cleanupDeprecated(cli, plan.deprecated);
         }
 
         // --- Step 4: Relocate mislocated reusables ------------------------
-        if (!plan.mislocatedReusables.isEmpty() && askYes(cli,
-                "Move " + plan.mislocatedReusables.size()
-                        + " reusable component(s) from TestPlan/ to ReusableComponents/?", true)) {
+        if (
+            !plan.mislocatedReusables.isEmpty() &&
+            askYes(
+                cli,
+                "Move " +
+                plan.mislocatedReusables.size() +
+                " reusable component(s) from TestPlan/ to ReusableComponents/?",
+                true
+            )
+        ) {
             totalChanges += relocateReusables(cli, projectDir, plan.mislocatedReusables);
         }
 
@@ -138,11 +163,16 @@ public class UpgradeCommand implements Callable<Integer> {
         if (totalChanges == 0) {
             cli.printInfo("No changes applied.");
         } else if (dryRun) {
-            cli.printInfo(totalChanges + " change(s) would be applied. Re-run without --dry-run to commit.");
+            cli.printInfo(
+                totalChanges + " change(s) would be applied. Re-run without --dry-run to commit."
+            );
         } else {
             cli.printSuccess(totalChanges + " change(s) applied.");
-            cli.printInfo("Re-run 'ingenious project validate " + projectDir.getName()
-                    + "' to see the updated health score.");
+            cli.printInfo(
+                "Re-run 'ingenious project validate " +
+                projectDir.getName() +
+                "' to see the updated health score."
+            );
         }
         return 0;
     }
@@ -160,8 +190,12 @@ public class UpgradeCommand implements Callable<Integer> {
         final List<File> mislocatedReusables = new ArrayList<>();
 
         boolean hasAnything() {
-            return hasXmlOR || csvTestCases > 0
-                    || !deprecated.isEmpty() || !mislocatedReusables.isEmpty();
+            return (
+                hasXmlOR ||
+                csvTestCases > 0 ||
+                !deprecated.isEmpty() ||
+                !mislocatedReusables.isEmpty()
+            );
         }
     }
 
@@ -170,8 +204,12 @@ public class UpgradeCommand implements Callable<Integer> {
         UpgradePlan plan = new UpgradePlan();
 
         // OR XML files — both project root and Shared/* siblings.
-        String[] orXmlNames = { "IOR.object", "MOR.object",
-                "StructuredDataOR.object", "SapOR.object" };
+        String[] orXmlNames = {
+            "IOR.object",
+            "MOR.object",
+            "StructuredDataOR.object",
+            "SapOR.object"
+        };
         for (String name : orXmlNames) {
             File f = new File(projectDir, name);
             if (f.isFile() && f.length() > 0) {
@@ -182,9 +220,10 @@ public class UpgradeCommand implements Callable<Integer> {
         File sharedDir = new File(projectDir.getParentFile(), "Shared");
         if (sharedDir.isDirectory()) {
             for (String[] pair : new String[][] {
-                    {"SharedWebObjects",    "SharedOR.object"},
-                    {"SharedMobileObjects", "SharedMOR.object"},
-                    {"SharedSapObjects",    "SharedSapOR.object"} }) {
+                { "SharedWebObjects", "SharedOR.object" },
+                { "SharedMobileObjects", "SharedMOR.object" },
+                { "SharedSapObjects", "SharedSapOR.object" }
+            }) {
                 File f = new File(new File(sharedDir, pair[0]), pair[1]);
                 if (f.isFile() && f.length() > 0) {
                     plan.hasXmlOR = true;
@@ -194,14 +233,18 @@ public class UpgradeCommand implements Callable<Integer> {
         }
 
         // CSV test cases under TestPlan/, ReusableComponents/, TestLab/.
-        plan.csvTestCases = countCsv(new File(projectDir, "TestPlan"))
-                + countCsv(new File(projectDir, "ReusableComponents"))
-                + countCsv(new File(projectDir, "TestLab"));
+        plan.csvTestCases =
+            countCsv(new File(projectDir, "TestPlan")) +
+            countCsv(new File(projectDir, "ReusableComponents")) +
+            countCsv(new File(projectDir, "TestLab"));
 
         // Deprecated files / archive folders.
         for (String name : new String[] {
-                "ReusableComponent.xml.bak", "ReusableComponent.xml",
-                "ProjectXMLOR", "SharedXMLOR" }) {
+            "ReusableComponent.xml.bak",
+            "ReusableComponent.xml",
+            "ProjectXMLOR",
+            "SharedXMLOR"
+        }) {
             File f = new File(projectDir, name);
             if (f.exists()) plan.deprecated.add(f);
         }
@@ -228,9 +271,10 @@ public class UpgradeCommand implements Callable<Integer> {
     private int countCsv(File root) {
         if (root == null || !root.isDirectory()) return 0;
         try (Stream<Path> stream = Files.walk(root.toPath())) {
-            return (int) stream.filter(Files::isRegularFile)
-                    .filter(p -> p.getFileName().toString().toLowerCase().endsWith(".csv"))
-                    .count();
+            return (int) stream
+                .filter(Files::isRegularFile)
+                .filter(p -> p.getFileName().toString().toLowerCase().endsWith(".csv"))
+                .count();
         } catch (IOException ignored) {
             return 0;
         }
@@ -244,13 +288,20 @@ public class UpgradeCommand implements Callable<Integer> {
     private void rescanDeprecated(File projectDir, UpgradePlan plan) {
         plan.deprecated.clear();
         for (String name : new String[] {
-                "ReusableComponent.xml.bak", "ReusableComponent.xml",
-                "ProjectXMLOR", "SharedXMLOR" }) {
+            "ReusableComponent.xml.bak",
+            "ReusableComponent.xml",
+            "ProjectXMLOR",
+            "SharedXMLOR"
+        }) {
             File f = new File(projectDir, name);
             if (f.exists()) plan.deprecated.add(f);
         }
-        for (String name : new String[] { "IOR.object", "MOR.object",
-                "StructuredDataOR.object", "SapOR.object" }) {
+        for (String name : new String[] {
+            "IOR.object",
+            "MOR.object",
+            "StructuredDataOR.object",
+            "SapOR.object"
+        }) {
             File f = new File(projectDir, name);
             // After conversion, any file still here is a stub by definition.
             if (f.isFile()) plan.deprecated.add(f);
@@ -260,12 +311,16 @@ public class UpgradeCommand implements Callable<Integer> {
     private void collectMislocatedReusables(File testPlanRoot, List<File> out) {
         ObjectMapper yaml = new ObjectMapper(new YAMLFactory());
         try (Stream<Path> stream = Files.walk(testPlanRoot.toPath())) {
-            stream.filter(Files::isRegularFile)
-                    .filter(p -> {
+            stream
+                .filter(Files::isRegularFile)
+                .filter(
+                    p -> {
                         String n = p.getFileName().toString().toLowerCase();
                         return n.endsWith(".yaml") || n.endsWith(".yml");
-                    })
-                    .forEach(p -> {
+                    }
+                )
+                .forEach(
+                    p -> {
                         try {
                             TestCaseYaml tcy = yaml.readValue(p.toFile(), TestCaseYaml.class);
                             if (tcy != null && tcy.isReusable()) {
@@ -274,7 +329,8 @@ public class UpgradeCommand implements Callable<Integer> {
                         } catch (Exception ignored) {
                             // Malformed YAML — leave for the validate command.
                         }
-                    });
+                    }
+                );
         } catch (IOException ignored) {
             // Walk failure — nothing to relocate.
         }
@@ -287,11 +343,24 @@ public class UpgradeCommand implements Callable<Integer> {
     private void renderPlan(INGeniousCLI cli, UpgradePlan plan) {
         Style s = cli.style();
         cli.printHeader("Findings");
-        bullet(s, "Legacy OR XML",      plan.hasXmlOR ? plan.xmlORFiles.size() + " file(s)" : "none");
-        bullet(s, "CSV test cases",     plan.csvTestCases == 0 ? "none" : plan.csvTestCases + " file(s)");
-        bullet(s, "Deprecated files",   plan.deprecated.isEmpty() ? "none" : plan.deprecated.size() + " item(s)");
-        bullet(s, "Mislocated reusables", plan.mislocatedReusables.isEmpty()
-                ? "none" : plan.mislocatedReusables.size() + " file(s)");
+        bullet(s, "Legacy OR XML", plan.hasXmlOR ? plan.xmlORFiles.size() + " file(s)" : "none");
+        bullet(
+            s,
+            "CSV test cases",
+            plan.csvTestCases == 0 ? "none" : plan.csvTestCases + " file(s)"
+        );
+        bullet(
+            s,
+            "Deprecated files",
+            plan.deprecated.isEmpty() ? "none" : plan.deprecated.size() + " item(s)"
+        );
+        bullet(
+            s,
+            "Mislocated reusables",
+            plan.mislocatedReusables.isEmpty()
+                ? "none"
+                : plan.mislocatedReusables.size() + " file(s)"
+        );
     }
 
     private void bullet(Style s, String label, String value) {
@@ -299,7 +368,9 @@ public class UpgradeCommand implements Callable<Integer> {
         padded = padded.substring(0, 24);
         boolean isNone = "none".equals(value);
         String coloured = isNone ? s.green(value) : s.yellow(value);
-        System.out.println("  " + s.cyan(Style.ICON_BULLET) + " " + s.bold(padded) + s.dim(": ") + coloured);
+        System.out.println(
+            "  " + s.cyan(Style.ICON_BULLET) + " " + s.bold(padded) + s.dim(": ") + coloured
+        );
     }
 
     // -----------------------------------------------------------------------
@@ -352,8 +423,14 @@ public class UpgradeCommand implements Callable<Integer> {
             cli.printInfo(r.skippedYamlExisted.size() + " already-YAML file(s) skipped.");
         }
         if (!r.conflicts.isEmpty()) {
-            cli.printWarning(r.conflicts.size() + " CSV/YAML conflict(s) parked under "
-                    + ProjectMigrator.BACKUP_DIR + "/" + ProjectMigrator.CONFLICTS_SUBDIR + "/");
+            cli.printWarning(
+                r.conflicts.size() +
+                " CSV/YAML conflict(s) parked under " +
+                ProjectMigrator.BACKUP_DIR +
+                "/" +
+                ProjectMigrator.CONFLICTS_SUBDIR +
+                "/"
+            );
         }
         for (String err : r.errors) {
             cli.printError(err);
@@ -395,21 +472,24 @@ public class UpgradeCommand implements Callable<Integer> {
             Path rel = testPlanRoot.relativize(f.toPath());
             Path target = reusableRoot.resolve(rel);
             if (dryRun) {
-                cli.printInfo("  → would move " + relPath(f) + " → "
-                        + projectDir.toPath().relativize(target));
+                cli.printInfo(
+                    "  → would move " + relPath(f) + " → " + projectDir.toPath().relativize(target)
+                );
                 moved++;
                 continue;
             }
             try {
                 Files.createDirectories(target.getParent());
                 if (Files.exists(target)) {
-                    cli.printWarning("Target already exists, skipping: "
-                            + projectDir.toPath().relativize(target));
+                    cli.printWarning(
+                        "Target already exists, skipping: " + projectDir.toPath().relativize(target)
+                    );
                     continue;
                 }
                 Files.move(f.toPath(), target, StandardCopyOption.ATOMIC_MOVE);
-                cli.printSuccess("Moved " + relPath(f) + " → "
-                        + projectDir.toPath().relativize(target));
+                cli.printSuccess(
+                    "Moved " + relPath(f) + " → " + projectDir.toPath().relativize(target)
+                );
                 moved++;
             } catch (IOException ex) {
                 cli.printError("Move failed for " + relPath(f) + ": " + ex.getMessage());
@@ -439,16 +519,20 @@ public class UpgradeCommand implements Callable<Integer> {
 
     private boolean askYes(INGeniousCLI cli, String question, boolean def) {
         if (assumeYes) {
-            System.out.println("  " + cli.style().dim("? ") + question
-                    + " " + cli.style().cyan("[y/N → auto-yes]"));
+            System.out.println(
+                "  " + cli.style().dim("? ") + question + " " + cli.style().cyan("[y/N → auto-yes]")
+            );
             return true;
         }
         String hint = def ? "[Y/n]" : "[y/N]";
-        System.out.print("  " + cli.style().cyan("? ") + question + " " + cli.style().dim(hint) + " ");
+        System.out.print(
+            "  " + cli.style().cyan("? ") + question + " " + cli.style().dim(hint) + " "
+        );
         System.out.flush();
         try {
             if (stdin == null) {
-                stdin = new BufferedReader(new InputStreamReader(System.in, StandardCharsets.UTF_8));
+                stdin =
+                    new BufferedReader(new InputStreamReader(System.in, StandardCharsets.UTF_8));
             }
             String line = stdin.readLine();
             if (line == null) return def; // EOF — accept default

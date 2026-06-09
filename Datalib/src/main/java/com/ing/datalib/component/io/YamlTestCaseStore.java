@@ -34,7 +34,6 @@ import java.util.regex.Pattern;
  * </ul>
  */
 public class YamlTestCaseStore implements TestCaseStore {
-
     private static final String BREAKPOINT = "*";
     private static final String COMMENT = "//";
     private static final Pattern STEP_DIGITS = Pattern.compile("(\\d+)");
@@ -100,12 +99,15 @@ public class YamlTestCaseStore implements TestCaseStore {
     }
 
     @Override
-    public void save(File file,
-                     String testCaseName,
-                     String scenarioName,
-                     boolean reusable,
-                     List<String> tags,
-                     List<List<String>> rows) throws IOException {
+    public void save(
+        File file,
+        String testCaseName,
+        String scenarioName,
+        boolean reusable,
+        List<String> tags,
+        List<List<String>> rows
+    )
+        throws IOException {
         CsvTestCaseStore.ensureParent(file);
 
         TestCaseYaml yaml = new TestCaseYaml();

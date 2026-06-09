@@ -2,27 +2,26 @@ package com.ing.engine.cli.commands;
 
 import com.ing.datalib.component.Project;
 import com.ing.datalib.component.Release;
+import com.ing.datalib.component.Release;
 import com.ing.datalib.component.Scenario;
 import com.ing.datalib.component.TestCase;
-import com.ing.datalib.component.TestStep;
-import com.ing.datalib.component.Release;
 import com.ing.datalib.component.TestSet;
+import com.ing.datalib.component.TestStep;
 import com.ing.engine.cli.INGeniousCLI;
 import com.ing.engine.cli.output.OutputFormatter;
-import java.io.File;
-import java.util.*;
-import java.util.concurrent.Callable;
 import com.ing.engine.cli.output.Silencer;
 import com.ing.engine.cli.output.Style;
+import java.io.File;
+import java.io.File;
+import java.nio.file.Files;
+import java.util.*;
+import java.util.*;
+import java.util.concurrent.Callable;
+import java.util.concurrent.Callable;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
 import picocli.CommandLine.ParentCommand;
-
-import java.io.File;
-import java.nio.file.Files;
-import java.util.*;
-import java.util.concurrent.Callable;
 
 /**
  * Project management commands.
@@ -75,12 +74,21 @@ public class ProjectCommand implements Callable<Integer> {
             // Compact, scannable layout: name + counts. Path is shown
             // separately as a header line so the table doesn't blow up
             // horizontally and wrap on narrow terminals.
-            List<String> headers = Arrays.asList("Project", "Scenarios", "Test Cases", "Test Sets", "Location");
+            List<String> headers = Arrays.asList(
+                "Project",
+                "Scenarios",
+                "Test Cases",
+                "Test Sets",
+                "Location"
+            );
             List<List<String>> rows = new ArrayList<>();
 
             File[] subdirs = directory.listFiles(File::isDirectory);
             if (subdirs != null) {
-                Arrays.sort(subdirs, Comparator.comparing(File::getName, String.CASE_INSENSITIVE_ORDER));
+                Arrays.sort(
+                    subdirs,
+                    Comparator.comparing(File::getName, String.CASE_INSENSITIVE_ORDER)
+                );
                 // Silence the chatty bootstrap output from Datalib (default
                 // properties materialisation, YamlORReader scans). We're only
                 // reading counts here; the noise is irrelevant for `list`.
@@ -90,22 +98,36 @@ public class ProjectCommand implements Callable<Integer> {
                             try {
                                 Project project = new Project(subdir.getAbsolutePath());
                                 int scenarioCount = project.getScenarios().size();
-                                int testCaseCount = project.getScenarios().stream()
-                                        .mapToInt(s -> s.getTestCases().size())
-                                        .sum();
-                                int testSetCount = project.getReleases().stream()
-                                        .mapToInt(r -> r.getTestSets().size())
-                                        .sum();
+                                int testCaseCount = project
+                                    .getScenarios()
+                                    .stream()
+                                    .mapToInt(s -> s.getTestCases().size())
+                                    .sum();
+                                int testSetCount = project
+                                    .getReleases()
+                                    .stream()
+                                    .mapToInt(r -> r.getTestSets().size())
+                                    .sum();
 
-                                rows.add(Arrays.asList(
-                                    project.getName(),
-                                    String.valueOf(scenarioCount),
-                                    String.valueOf(testCaseCount),
-                                    String.valueOf(testSetCount),
-                                    shortLocation(subdir, directory)
-                                ));
+                                rows.add(
+                                    Arrays.asList(
+                                        project.getName(),
+                                        String.valueOf(scenarioCount),
+                                        String.valueOf(testCaseCount),
+                                        String.valueOf(testSetCount),
+                                        shortLocation(subdir, directory)
+                                    )
+                                );
                             } catch (Exception e) {
-                                rows.add(Arrays.asList(subdir.getName(), "?", "?", "?", shortLocation(subdir, directory)));
+                                rows.add(
+                                    Arrays.asList(
+                                        subdir.getName(),
+                                        "?",
+                                        "?",
+                                        "?",
+                                        shortLocation(subdir, directory)
+                                    )
+                                );
                             }
                         }
                     }
@@ -270,8 +292,10 @@ public class ProjectCommand implements Callable<Integer> {
      * The six sub-scores are averaged into an overall percentage and mapped
      * to A/B/C/D/F.
      */
-    @Command(name = "validate",
-            description = "Show a health dashboard for the project (formats, quality, tagging, score)")
+    @Command(
+        name = "validate",
+        description = "Show a health dashboard for the project (formats, quality, tagging, score)"
+    )
     public static class ValidateCommand implements Callable<Integer> {
         @ParentCommand
         private ProjectCommand parent;
@@ -279,18 +303,21 @@ public class ProjectCommand implements Callable<Integer> {
         @Parameters(index = "0", description = "Project name or path", defaultValue = "")
         private String projectPath;
 
-        @Option(names = "--strict",
-                description = "Treat warnings as errors (non-zero exit) and add stricter checks")
+        @Option(
+            names = "--strict",
+            description = "Treat warnings as errors (non-zero exit) and add stricter checks"
+        )
         private boolean strict;
 
-        @Option(names = "--no-detail",
-                description = "Skip the per-test-case quality table; show only the summary scores")
+        @Option(
+            names = "--no-detail",
+            description = "Skip the per-test-case quality table; show only the summary scores"
+        )
         private boolean noDetail;
 
         @Override
         public Integer call() {
             INGeniousCLI cli = INGeniousCLI.getInstance();
-
 
             String path = projectPath.isEmpty() ? cli.getProjectPath() : projectPath;
             if (path == null || path.isEmpty()) {
@@ -356,12 +383,16 @@ public class ProjectCommand implements Callable<Integer> {
                         // is empty until we explicitly load it from disk.
                         try (Silencer silenced = Silencer.aroundProjectLoad()) {
                             tc.loadTestCaseTableModel();
-                        } catch (Exception loadEx) { /* best effort */ }
+                        } catch (Exception loadEx) {
+                            /* best effort */
+                        }
                         TestCaseQuality q = analyseTestCase(project, scenario, tc, new HashSet<>());
                         tcQuality.add(q);
                         if (q.hasTag) taggedTcCount++;
                         if (tc.getTestSteps().isEmpty()) {
-                            warnings.add("Empty test case: " + scenario.getName() + "/" + tc.getName());
+                            warnings.add(
+                                "Empty test case: " + scenario.getName() + "/" + tc.getName()
+                            );
                         }
                     }
                     if (scenario.getTestCases().isEmpty()) {
@@ -376,9 +407,10 @@ public class ProjectCommand implements Callable<Integer> {
                         reusableComponentCount++;
                         try (Silencer silenced = Silencer.aroundProjectLoad()) {
                             rtc.loadTestCaseTableModel();
-                        } catch (Exception loadEx) { /* best effort */ }
-                        reusableQuality.add(
-                                analyseTestCase(project, rs, rtc, new HashSet<>()));
+                        } catch (Exception loadEx) {
+                            /* best effort */
+                        }
+                        reusableQuality.add(analyseTestCase(project, rs, rtc, new HashSet<>()));
                     }
                 }
 
@@ -389,7 +421,9 @@ public class ProjectCommand implements Callable<Integer> {
                         // Steps are populated lazily — load before reading.
                         try (Silencer silenced = Silencer.aroundProjectLoad()) {
                             ts.loadTestSetTableModel();
-                        } catch (Exception loadEx) { /* best effort */ }
+                        } catch (Exception loadEx) {
+                            /* best effort */
+                        }
                         for (com.ing.datalib.component.ExecutionStep es : ts.getTestSteps()) {
                             String scn = es.getTestScenarioName();
                             String tcName = es.getTestCaseName();
@@ -433,17 +467,34 @@ public class ProjectCommand implements Callable<Integer> {
             int tagScore = scoreTagging(taggedTcCount, totalTestCases);
 
             int overall = (int) Math.round(
-                    (orScore + tcFormatScore + modularityScore
-                            + dataScore + testSetScore + tagScore) / 6.0);
+                (orScore + tcFormatScore + modularityScore + dataScore + testSetScore + tagScore) /
+                6.0
+            );
 
             // ----------------------------------------------------------------
             // 5. Render the dashboard
             // ----------------------------------------------------------------
-            renderDashboard(cli, projectDir, project, orFormat, tcFormat,
-                    scenarioCount, reusableScenarioCount, reusableComponentCount,
-                    totalTestCases, totalReleases, totalTestSets, taggedTcCount,
-                    orScore, tcFormatScore, modularityScore, dataScore,
-                    testSetScore, tagScore, overall);
+            renderDashboard(
+                cli,
+                projectDir,
+                project,
+                orFormat,
+                tcFormat,
+                scenarioCount,
+                reusableScenarioCount,
+                reusableComponentCount,
+                totalTestCases,
+                totalReleases,
+                totalTestSets,
+                taggedTcCount,
+                orScore,
+                tcFormatScore,
+                modularityScore,
+                dataScore,
+                testSetScore,
+                tagScore,
+                overall
+            );
 
             if (!noDetail && !tcQuality.isEmpty()) {
                 renderTestCaseTable(cli, tcQuality);
@@ -493,24 +544,35 @@ public class ProjectCommand implements Callable<Integer> {
 
         /** Marker of which OR format(s) live on disk. */
         private enum OrFormat {
-            YAML_ONLY, XML_ONLY, MIXED, NONE;
+            YAML_ONLY,
+            XML_ONLY,
+            MIXED,
+            NONE;
 
             String label() {
                 switch (this) {
-                    case YAML_ONLY: return "YAML (modern)";
-                    case XML_ONLY:  return "XML (legacy)";
-                    case MIXED:     return "Mixed XML + YAML";
-                    default:        return "None";
+                    case YAML_ONLY:
+                        return "YAML (modern)";
+                    case XML_ONLY:
+                        return "XML (legacy)";
+                    case MIXED:
+                        return "Mixed XML + YAML";
+                    default:
+                        return "None";
                 }
             }
 
             /** YAML=100, mixed=60, XML=30, none=50 (no signal). */
             int score() {
                 switch (this) {
-                    case YAML_ONLY: return 100;
-                    case MIXED:     return 60;
-                    case XML_ONLY:  return 30;
-                    default:        return 50;
+                    case YAML_ONLY:
+                        return 100;
+                    case MIXED:
+                        return 60;
+                    case XML_ONLY:
+                        return 30;
+                    default:
+                        return 50;
                 }
             }
         }
@@ -522,14 +584,14 @@ public class ProjectCommand implements Callable<Integer> {
          *   YAML lives under {@code ObjectRepository/<Web|Mobile|StructuredData|SAP>/}.
          */
         private static OrFormat detectOrFormat(File projectDir) {
-            boolean xml = new File(projectDir, "IOR.object").isFile()
-                    || new File(projectDir, "MOR.object").isFile()
-                    || new File(projectDir, "StructuredDataOR.object").isFile()
-                    || new File(projectDir, "SapOR.object").isFile();
+            boolean xml = new File(projectDir, "IOR.object").isFile() ||
+            new File(projectDir, "MOR.object").isFile() ||
+            new File(projectDir, "StructuredDataOR.object").isFile() ||
+            new File(projectDir, "SapOR.object").isFile();
             File orDir = new File(projectDir, "ObjectRepository");
             boolean yaml = false;
             if (orDir.isDirectory()) {
-                for (String sub : new String[] {"Web", "Mobile", "StructuredData", "SAP"}) {
+                for (String sub : new String[] { "Web", "Mobile", "StructuredData", "SAP" }) {
                     File subDir = new File(orDir, sub);
                     if (subDir.isDirectory() && hasFiles(subDir)) {
                         yaml = true;
@@ -547,7 +609,7 @@ public class ProjectCommand implements Callable<Integer> {
                 return OrFormat.MIXED;
             }
             if (yaml) return OrFormat.YAML_ONLY;
-            if (xml)  return OrFormat.XML_ONLY;
+            if (xml) return OrFormat.XML_ONLY;
             return OrFormat.NONE;
         }
 
@@ -565,14 +627,19 @@ public class ProjectCommand implements Callable<Integer> {
         private static class TcFormatStats {
             int csv = 0;
             int yaml = 0;
-            int total() { return csv + yaml; }
+
+            int total() {
+                return csv + yaml;
+            }
+
             String label() {
-                if (total() == 0)      return "—";
-                if (csv == 0)          return "YAML (modern)";
-                if (yaml == 0)         return "CSV (legacy)";
+                if (total() == 0) return "—";
+                if (csv == 0) return "YAML (modern)";
+                if (yaml == 0) return "CSV (legacy)";
                 int pct = (int) Math.round(yaml * 100.0 / total());
                 return "Mixed (" + pct + "% YAML)";
             }
+
             int scoreYamlPct() {
                 if (total() == 0) return 50;
                 return (int) Math.round(yaml * 100.0 / total());
@@ -583,12 +650,19 @@ public class ProjectCommand implements Callable<Integer> {
             TcFormatStats s = new TcFormatStats();
             if (!testPlanDir.isDirectory()) return s;
             try {
-                Files.walk(testPlanDir.toPath()).forEach(p -> {
-                    String name = p.getFileName().toString().toLowerCase(Locale.ROOT);
-                    if (name.endsWith(".csv")) s.csv++;
-                    else if (name.endsWith(".yaml") || name.endsWith(".yml")) s.yaml++;
-                });
-            } catch (Exception ignored) { /* best-effort scan */ }
+                Files
+                    .walk(testPlanDir.toPath())
+                    .forEach(
+                        p -> {
+                            String name = p.getFileName().toString().toLowerCase(Locale.ROOT);
+                            if (name.endsWith(".csv")) s.csv++; else if (
+                                name.endsWith(".yaml") || name.endsWith(".yml")
+                            ) s.yaml++;
+                        }
+                    );
+            } catch (Exception ignored) {
+                /* best-effort scan */
+            }
             return s;
         }
 
@@ -611,18 +685,20 @@ public class ProjectCommand implements Callable<Integer> {
             int kafkaSteps;
 
             int reusablePct() {
-                return totalSteps == 0 ? 0
-                        : (int) Math.round(reusableSteps * 100.0 / totalSteps);
+                return totalSteps == 0 ? 0 : (int) Math.round(reusableSteps * 100.0 / totalSteps);
             }
 
             int dataPct() {
                 int inputs = hardcodedInputs + parameterisedInputs;
-                return inputs == 0 ? 100  // nothing to parameterise = perfect
-                        : (int) Math.round(parameterisedInputs * 100.0 / inputs);
+                return inputs == 0
+                    ? 100 // nothing to parameterise = perfect
+                    : (int) Math.round(parameterisedInputs * 100.0 / inputs);
             }
 
             /** True when at least one Webservice/StructuredOR step is present. */
-            boolean isApi() { return apiSteps > 0; }
+            boolean isApi() {
+                return apiSteps > 0;
+            }
 
             /**
              * Renders the {@code Kind} column. Joins every non-zero archetype
@@ -631,11 +707,11 @@ public class ProjectCommand implements Callable<Integer> {
              */
             String kindLabel() {
                 List<String> parts = new ArrayList<>(5);
-                if (webSteps    > 0) parts.add("UI");
-                if (apiSteps    > 0) parts.add("API");
+                if (webSteps > 0) parts.add("UI");
+                if (apiSteps > 0) parts.add("API");
                 if (mobileSteps > 0) parts.add("Mobile");
-                if (dbSteps     > 0) parts.add("DB");
-                if (kafkaSteps  > 0) parts.add("Kafka");
+                if (dbSteps > 0) parts.add("DB");
+                if (kafkaSteps > 0) parts.add("Kafka");
                 return parts.isEmpty() ? "Unknown" : String.join(" + ", parts);
             }
         }
@@ -666,8 +742,12 @@ public class ProjectCommand implements Callable<Integer> {
          *       parameterisation buried inside their reusables.</li>
          * </ol>
          */
-        private static TestCaseQuality analyseTestCase(Project project, Scenario scenario,
-                                                       TestCase tc, Set<String> visiting) {
+        private static TestCaseQuality analyseTestCase(
+            Project project,
+            Scenario scenario,
+            TestCase tc,
+            Set<String> visiting
+        ) {
             TestCaseQuality q = new TestCaseQuality();
             q.scenario = scenario.getName();
             q.name = tc.getName();
@@ -694,12 +774,22 @@ public class ProjectCommand implements Callable<Integer> {
                 boolean stepIsApi = "API".equals(archetype);
                 if (archetype != null) {
                     switch (archetype) {
-                        case "Web":    q.webSteps++;    break;
-                        case "API":    q.apiSteps++;    break;
-                        case "Mobile": q.mobileSteps++; break;
-                        case "DB":     q.dbSteps++;     break;
-                        case "Kafka":  q.kafkaSteps++;  break;
-                        default: /* leave unclassified */
+                        case "Web":
+                            q.webSteps++;
+                            break;
+                        case "API":
+                            q.apiSteps++;
+                            break;
+                        case "Mobile":
+                            q.mobileSteps++;
+                            break;
+                        case "DB":
+                            q.dbSteps++;
+                            break;
+                        case "Kafka":
+                            q.kafkaSteps++;
+                            break;
+                        default:/* leave unclassified */
                     }
                 }
 
@@ -714,14 +804,17 @@ public class ProjectCommand implements Callable<Integer> {
                     if (looksLikePayload(trimmed)) {
                         int[] counts = scorePayload(trimmed);
                         q.parameterisedInputs += counts[0];
-                        q.hardcodedInputs     += counts[1];
+                        q.hardcodedInputs += counts[1];
                     }
                     // else: skip — not a payload field
                 } else {
                     if (trimmed.startsWith("@")) {
                         q.hardcodedInputs++;
-                    } else if (trimmed.startsWith("%") || trimmed.startsWith("=")
-                            || Boolean.TRUE.equals(step.isTestDataStep())) {
+                    } else if (
+                        trimmed.startsWith("%") ||
+                        trimmed.startsWith("=") ||
+                        Boolean.TRUE.equals(step.isTestDataStep())
+                    ) {
                         q.parameterisedInputs++;
                     } else {
                         // Inline body / free text — count as hard-coded.
@@ -733,14 +826,23 @@ public class ProjectCommand implements Callable<Integer> {
             // Tag detection: drill into the data items the same way
             // TestCase.collectTags() does, but tolerate missing project info.
             try {
-                if (tc.getProject() != null && tc.getProject().getInfo() != null
-                        && tc.getProject().getInfo().getData() != null) {
-                    q.hasTag = tc.getProject().getInfo().getData()
+                if (
+                    tc.getProject() != null &&
+                    tc.getProject().getInfo() != null &&
+                    tc.getProject().getInfo().getData() != null
+                ) {
+                    q.hasTag =
+                        tc
+                            .getProject()
+                            .getInfo()
+                            .getData()
                             .find(tc.getName(), scenario.getName())
                             .map(di -> di.getTags() != null && !di.getTags().isEmpty())
                             .orElse(false);
                 }
-            } catch (Exception ignored) { /* tags optional */ }
+            } catch (Exception ignored) {
+                /* tags optional */
+            }
             return q;
         }
 
@@ -751,8 +853,12 @@ public class ProjectCommand implements Callable<Integer> {
          * by {@code "<scenario>/<reusable>"} to prevent infinite recursion
          * if a reusable calls back into the call chain.
          */
-        private static void mergeReusableInto(TestCaseQuality q, Project project,
-                                              TestStep step, Set<String> visiting) {
+        private static void mergeReusableInto(
+            TestCaseQuality q,
+            Project project,
+            TestStep step,
+            Set<String> visiting
+        ) {
             if (project == null) return;
             String[] parts = step.getReusableData();
             if (parts == null || parts.length < 2) return;
@@ -765,17 +871,19 @@ public class ProjectCommand implements Callable<Integer> {
                 if (rtc == null) return;
                 try (Silencer silenced = Silencer.aroundProjectLoad()) {
                     rtc.loadTestCaseTableModel();
-                } catch (Exception loadEx) { /* best effort */ }
+                } catch (Exception loadEx) {
+                    /* best effort */
+                }
                 TestCaseQuality inner = analyseTestCase(project, rs, rtc, visiting);
-                q.hardcodedInputs     += inner.hardcodedInputs;
+                q.hardcodedInputs += inner.hardcodedInputs;
                 q.parameterisedInputs += inner.parameterisedInputs;
                 // Propagate archetype tallies so the parent's Kind column
                 // reflects what the reusables actually do.
-                q.webSteps    += inner.webSteps;
-                q.apiSteps    += inner.apiSteps;
+                q.webSteps += inner.webSteps;
+                q.apiSteps += inner.apiSteps;
                 q.mobileSteps += inner.mobileSteps;
-                q.dbSteps     += inner.dbSteps;
-                q.kafkaSteps  += inner.kafkaSteps;
+                q.dbSteps += inner.dbSteps;
+                q.kafkaSteps += inner.kafkaSteps;
             } finally {
                 visiting.remove(key);
             }
@@ -806,14 +914,20 @@ public class ProjectCommand implements Callable<Integer> {
         private static String classifyObjectType(Project project, String obj) {
             if (obj == null || obj.isEmpty()) return null;
             switch (obj.toLowerCase()) {
-                case "browser":    return "Web";
-                case "webservice": return "API";
-                case "mobile":     return "Mobile";
+                case "browser":
+                    return "Web";
+                case "webservice":
+                    return "API";
+                case "mobile":
+                    return "Mobile";
                 case "database":
-                case "db":         return "DB";
+                case "db":
+                    return "DB";
                 case "kafka":
-                case "queue":      return "Kafka";
-                default: break;
+                case "queue":
+                    return "Kafka";
+                default:
+                    break;
             }
             if (project == null) return null;
             Map<String, String> index = orNameIndex(project);
@@ -830,8 +944,9 @@ public class ProjectCommand implements Callable<Integer> {
          * {@code Project} instances pointing at the same disk location
          * never collide.
          */
-        private static final java.util.Map<Project, Map<String, String>> OR_NAME_INDEX =
-                java.util.Collections.synchronizedMap(new java.util.IdentityHashMap<>());
+        private static final java.util.Map<Project, Map<String, String>> OR_NAME_INDEX = java.util.Collections.synchronizedMap(
+            new java.util.IdentityHashMap<>()
+        );
 
         private static Map<String, String> orNameIndex(Project project) {
             Map<String, String> cached = OR_NAME_INDEX.get(project);
@@ -841,17 +956,35 @@ public class ProjectCommand implements Callable<Integer> {
                 com.ing.datalib.or.ObjectRepository or = project.getObjectRepository();
                 if (or != null) {
                     // Project ORs
-                    try { indexWeb(or.getWebOR(),                      index, "Web"); }    catch (Exception ignored) {}
-                    try { indexWeb(or.getSapOR(),                      index, "Web"); }    catch (Exception ignored) {}
-                    try { indexMobile(or.getMobileOR(),                index, "Mobile"); } catch (Exception ignored) {}
-                    try { indexStructured(or.getStructuredDataOR(),    index, "API"); }    catch (Exception ignored) {}
+                    try {
+                        indexWeb(or.getWebOR(), index, "Web");
+                    } catch (Exception ignored) {}
+                    try {
+                        indexWeb(or.getSapOR(), index, "Web");
+                    } catch (Exception ignored) {}
+                    try {
+                        indexMobile(or.getMobileOR(), index, "Mobile");
+                    } catch (Exception ignored) {}
+                    try {
+                        indexStructured(or.getStructuredDataOR(), index, "API");
+                    } catch (Exception ignored) {}
                     // Shared ORs (each has its own getXxxSharedOR accessor)
-                    try { indexWeb(or.getWebSharedOR(),                index, "Web"); }    catch (Exception ignored) {}
-                    try { indexWeb(or.getSapSharedOR(),                index, "Web"); }    catch (Exception ignored) {}
-                    try { indexMobile(or.getMobileSharedOR(),          index, "Mobile"); } catch (Exception ignored) {}
-                    try { indexStructured(or.getStructuredDataSharedOR(), index, "API"); } catch (Exception ignored) {}
+                    try {
+                        indexWeb(or.getWebSharedOR(), index, "Web");
+                    } catch (Exception ignored) {}
+                    try {
+                        indexWeb(or.getSapSharedOR(), index, "Web");
+                    } catch (Exception ignored) {}
+                    try {
+                        indexMobile(or.getMobileSharedOR(), index, "Mobile");
+                    } catch (Exception ignored) {}
+                    try {
+                        indexStructured(or.getStructuredDataSharedOR(), index, "API");
+                    } catch (Exception ignored) {}
                 }
-            } catch (Exception ignored) { /* OR may be partially loaded */ }
+            } catch (Exception ignored) {
+                /* OR may be partially loaded */
+            }
             OR_NAME_INDEX.put(project, index);
             return index;
         }
@@ -865,32 +998,56 @@ public class ProjectCommand implements Callable<Integer> {
         private static void indexWeb(Object orObj, Map<String, String> index, String archetype) {
             if (orObj == null) return;
             try {
-                java.util.List<?> pages = (java.util.List<?>)
-                        orObj.getClass().getMethod("getPages").invoke(orObj);
+                java.util.List<?> pages = (java.util.List<?>) orObj
+                    .getClass()
+                    .getMethod("getPages")
+                    .invoke(orObj);
                 if (pages == null) return;
                 for (Object page : pages) {
-                    addLower(index, (String) page.getClass().getMethod("getName").invoke(page), archetype);
-                    java.util.List<?> groups = (java.util.List<?>)
-                            page.getClass().getMethod("getObjectGroups").invoke(page);
+                    addLower(
+                        index,
+                        (String) page.getClass().getMethod("getName").invoke(page),
+                        archetype
+                    );
+                    java.util.List<?> groups = (java.util.List<?>) page
+                        .getClass()
+                        .getMethod("getObjectGroups")
+                        .invoke(page);
                     if (groups == null) continue;
                     for (Object group : groups) {
-                        addLower(index, (String) group.getClass().getMethod("getName").invoke(group), archetype);
-                        java.util.List<?> objs = (java.util.List<?>)
-                                group.getClass().getMethod("getObjects").invoke(group);
+                        addLower(
+                            index,
+                            (String) group.getClass().getMethod("getName").invoke(group),
+                            archetype
+                        );
+                        java.util.List<?> objs = (java.util.List<?>) group
+                            .getClass()
+                            .getMethod("getObjects")
+                            .invoke(group);
                         if (objs == null) continue;
                         for (Object o : objs) {
-                            addLower(index, (String) o.getClass().getMethod("getName").invoke(o), archetype);
+                            addLower(
+                                index,
+                                (String) o.getClass().getMethod("getName").invoke(o),
+                                archetype
+                            );
                         }
                     }
                 }
-            } catch (Exception ignored) { /* shape mismatch — skip */ }
+            } catch (Exception ignored) {
+                /* shape mismatch — skip */
+            }
         }
 
         private static void indexMobile(Object orObj, Map<String, String> index, String archetype) {
             indexWeb(orObj, index, archetype); // identical OR shape
         }
 
-        private static void indexStructured(Object orObj, Map<String, String> index, String archetype) {
+        private static void indexStructured(
+            Object orObj,
+            Map<String, String> index,
+            String archetype
+        ) {
             indexWeb(orObj, index, archetype); // identical OR shape
         }
 
@@ -923,22 +1080,24 @@ public class ProjectCommand implements Callable<Integer> {
 
             if (payload.startsWith("{") || payload.startsWith("[")) {
                 try {
-                    com.fasterxml.jackson.databind.JsonNode root =
-                            new com.fasterxml.jackson.databind.ObjectMapper().readTree(payload);
-                    int[] counts = {0, 0};
+                    com.fasterxml.jackson.databind.JsonNode root = new com.fasterxml.jackson.databind.ObjectMapper()
+                    .readTree(payload);
+                    int[] counts = { 0, 0 };
                     walkJsonLeaves(root, counts);
                     parameterised = counts[0];
                     hardcoded = counts[1];
                     parsed = true;
-                } catch (Exception ignored) { /* fall through to regex */ }
+                } catch (Exception ignored) {
+                    /* fall through to regex */
+                }
             } else if (payload.startsWith("<")) {
-                java.util.regex.Matcher m = java.util.regex.Pattern
-                        .compile(">([^<>]+)<").matcher(payload);
+                java.util.regex.Matcher m = java
+                    .util.regex.Pattern.compile(">([^<>]+)<")
+                    .matcher(payload);
                 while (m.find()) {
                     String value = m.group(1).trim();
                     if (value.isEmpty()) continue;
-                    if (VAR_REF.matcher(value).find()) parameterised++;
-                    else hardcoded++;
+                    if (VAR_REF.matcher(value).find()) parameterised++; else hardcoded++;
                 }
                 parsed = (parameterised + hardcoded) > 0;
             }
@@ -949,19 +1108,23 @@ public class ProjectCommand implements Callable<Integer> {
                 long varHits = VAR_REF.matcher(payload).results().count();
                 if (varHits > 0) {
                     parameterised = (int) varHits;
-                    hardcoded = 1;          // treat as "mostly templated"
+                    hardcoded = 1; // treat as "mostly templated"
                 } else {
-                    hardcoded = 1;          // one opaque literal payload
+                    hardcoded = 1; // one opaque literal payload
                 }
             }
             return new int[] { parameterised, hardcoded };
         }
 
-        private static final java.util.regex.Pattern VAR_REF =
-                java.util.regex.Pattern.compile("%[A-Za-z0-9_.]+%");
+        private static final java.util.regex.Pattern VAR_REF = java.util.regex.Pattern.compile(
+            "%[A-Za-z0-9_.]+%"
+        );
 
         /** Recursive walker: every non-null scalar leaf is one "tag". */
-        private static void walkJsonLeaves(com.fasterxml.jackson.databind.JsonNode node, int[] counts) {
+        private static void walkJsonLeaves(
+            com.fasterxml.jackson.databind.JsonNode node,
+            int[] counts
+        ) {
             if (node == null || node.isNull()) return;
             if (node.isObject()) {
                 node.fields().forEachRemaining(e -> walkJsonLeaves(e.getValue(), counts));
@@ -971,8 +1134,7 @@ public class ProjectCommand implements Callable<Integer> {
                 }
             } else {
                 String text = node.asText("");
-                if (VAR_REF.matcher(text).find()) counts[0]++;
-                else counts[1]++;
+                if (VAR_REF.matcher(text).find()) counts[0]++; else counts[1]++;
             }
         }
 
@@ -1016,12 +1178,14 @@ public class ProjectCommand implements Callable<Integer> {
          * a test set that includes only some of a scenario's test cases
          * doesn't falsely score 100%.
          */
-        private static int scoreTestSets(int totalTestSets, int totalTestCases,
-                                         Set<String> testCasesInTestSets) {
+        private static int scoreTestSets(
+            int totalTestSets,
+            int totalTestCases,
+            Set<String> testCasesInTestSets
+        ) {
             if (totalTestSets == 0) return 0;
             if (totalTestCases == 0) return 50;
-            double coverage = Math.min(1.0,
-                    testCasesInTestSets.size() / (double) totalTestCases);
+            double coverage = Math.min(1.0, testCasesInTestSets.size() / (double) totalTestCases);
             return (int) Math.round(50 + coverage * 50);
         }
 
@@ -1053,19 +1217,32 @@ public class ProjectCommand implements Callable<Integer> {
                 bar.append(i < filled ? "█" : "░");
             }
             String coloured;
-            if (score >= 80)      coloured = s.green(bar.toString());
-            else if (score >= 60) coloured = s.yellow(bar.toString());
-            else                  coloured = s.red(bar.toString());
+            if (score >= 80) coloured = s.green(bar.toString()); else if (score >= 60) coloured =
+                s.yellow(bar.toString()); else coloured = s.red(bar.toString());
             return coloured;
         }
 
-        private static void renderDashboard(INGeniousCLI cli, File projectDir, Project project,
-                                            OrFormat orFormat, TcFormatStats tcFormat,
-                                            int scenarios, int reusableScenarios,
-                                            int reusableComponents, int testCases,
-                                            int releases, int testSets, int taggedTcs,
-                                            int orScore, int tcScore, int modScore, int dataScore,
-                                            int tsScore, int tagScore, int overall) {
+        private static void renderDashboard(
+            INGeniousCLI cli,
+            File projectDir,
+            Project project,
+            OrFormat orFormat,
+            TcFormatStats tcFormat,
+            int scenarios,
+            int reusableScenarios,
+            int reusableComponents,
+            int testCases,
+            int releases,
+            int testSets,
+            int taggedTcs,
+            int orScore,
+            int tcScore,
+            int modScore,
+            int dataScore,
+            int tsScore,
+            int tagScore,
+            int overall
+        ) {
             Style s = cli.style();
             String projectName = project != null ? project.getName() : projectDir.getName();
 
@@ -1073,33 +1250,38 @@ public class ProjectCommand implements Callable<Integer> {
             System.out.println("  " + s.dim("Location: ") + projectDir.getAbsolutePath());
 
             cli.printHeader("Inventory");
-            printRow(s, "Scenarios",            String.valueOf(scenarios));
-            printRow(s, "Test cases",           String.valueOf(testCases));
-            printRow(s, "Reusable scenarios",   String.valueOf(reusableScenarios));
-            printRow(s, "Reusable components",  String.valueOf(reusableComponents));
-            printRow(s, "Releases",             String.valueOf(releases));
-            printRow(s, "Test sets",            String.valueOf(testSets));
-            printRow(s, "Tagged test cases",    taggedTcs + " / " + testCases);
+            printRow(s, "Scenarios", String.valueOf(scenarios));
+            printRow(s, "Test cases", String.valueOf(testCases));
+            printRow(s, "Reusable scenarios", String.valueOf(reusableScenarios));
+            printRow(s, "Reusable components", String.valueOf(reusableComponents));
+            printRow(s, "Releases", String.valueOf(releases));
+            printRow(s, "Test sets", String.valueOf(testSets));
+            printRow(s, "Tagged test cases", taggedTcs + " / " + testCases);
 
             cli.printHeader("Formats");
             printRow(s, "Object Repository", orFormat.label());
-            printRow(s, "Test cases",        tcFormat.label()
-                    + s.dim("  (" + tcFormat.csv + " CSV, " + tcFormat.yaml + " YAML)"));
+            printRow(
+                s,
+                "Test cases",
+                tcFormat.label() + s.dim("  (" + tcFormat.csv + " CSV, " + tcFormat.yaml + " YAML)")
+            );
 
             cli.printHeader("Scores");
-            printScoreRow(s, "OR modernisation",      orScore);
+            printScoreRow(s, "OR modernisation", orScore);
             printScoreRow(s, "Test-case modernisation", tcScore);
             printScoreRow(s, "Modularity (reusables)", modScore);
-            printScoreRow(s, "Data parameterisation",  dataScore);
-            printScoreRow(s, "Test-set coverage",      tsScore);
-            printScoreRow(s, "Tag adoption",           tagScore);
+            printScoreRow(s, "Data parameterisation", dataScore);
+            printScoreRow(s, "Test-set coverage", tsScore);
+            printScoreRow(s, "Tag adoption", tagScore);
 
             cli.printHeader("Overall");
             String g = grade(overall);
             String coloured;
-            if (overall >= 80)      coloured = s.bold(s.green(overall + " / 100  (Grade " + g + ")"));
-            else if (overall >= 60) coloured = s.bold(s.yellow(overall + " / 100  (Grade " + g + ")"));
-            else                    coloured = s.bold(s.red(overall + " / 100  (Grade " + g + ")"));
+            if (overall >= 80) coloured =
+                s.bold(s.green(overall + " / 100  (Grade " + g + ")")); else if (
+                overall >= 60
+            ) coloured = s.bold(s.yellow(overall + " / 100  (Grade " + g + ")")); else coloured =
+                s.bold(s.red(overall + " / 100  (Grade " + g + ")"));
             System.out.println("  " + scoreBar(s, overall) + "  " + coloured);
         }
 
@@ -1107,26 +1289,44 @@ public class ProjectCommand implements Callable<Integer> {
             // Pad to 24 chars so the values line up.
             String padded = label + "                        ";
             padded = padded.substring(0, 24);
-            System.out.println("  " + s.cyan(Style.ICON_BULLET) + " " + s.bold(padded) + s.dim(": ") + value);
+            System.out.println(
+                "  " + s.cyan(Style.ICON_BULLET) + " " + s.bold(padded) + s.dim(": ") + value
+            );
         }
 
         private static void printScoreRow(Style s, String label, int score) {
             String padded = label + "                        ";
             padded = padded.substring(0, 24);
-            System.out.println("  " + s.cyan(Style.ICON_BULLET) + " " + s.bold(padded)
-                    + " " + scoreBar(s, score) + "  " + scoreColor(s, score));
+            System.out.println(
+                "  " +
+                s.cyan(Style.ICON_BULLET) +
+                " " +
+                s.bold(padded) +
+                " " +
+                scoreBar(s, score) +
+                "  " +
+                scoreColor(s, score)
+            );
         }
 
         private static void renderTestCaseTable(INGeniousCLI cli, List<TestCaseQuality> list) {
             Style s = cli.style();
             cli.printHeader("Per-Test-Case Quality");
             // Header
-            System.out.println("  " + s.bold(pad("Scenario / Test Case", 38))
-                    + " " + s.bold(pad("Kind", 16))
-                    + " " + s.bold(pad("Steps", 6))
-                    + " " + s.bold(pad("Reusable", 10))
-                    + " " + s.bold(pad("Param", 7))
-                    + " " + s.bold(pad("Tagged", 7)));
+            System.out.println(
+                "  " +
+                s.bold(pad("Scenario / Test Case", 38)) +
+                " " +
+                s.bold(pad("Kind", 16)) +
+                " " +
+                s.bold(pad("Steps", 6)) +
+                " " +
+                s.bold(pad("Reusable", 10)) +
+                " " +
+                s.bold(pad("Param", 7)) +
+                " " +
+                s.bold(pad("Tagged", 7))
+            );
             System.out.println("  " + s.dim("─".repeat(87)));
             for (TestCaseQuality q : list) {
                 String tcName = q.scenario + "/" + q.name;
@@ -1155,12 +1355,20 @@ public class ProjectCommand implements Callable<Integer> {
                     paramPctVisLen = pctTxt.length();
                 }
                 String tagged = q.hasTag ? s.green("✓") : s.dim("·");
-                System.out.println("  " + pad(tcName, 38)
-                        + " " + padRaw(kindColoured, 16, kindRaw.length())
-                        + " " + pad(String.valueOf(q.totalSteps), 6)
-                        + " " + padRaw(reuse, 10, reusePctVisLen)
-                        + " " + padRaw(param, 7, paramPctVisLen)
-                        + " " + padRaw(tagged, 7, 1));
+                System.out.println(
+                    "  " +
+                    pad(tcName, 38) +
+                    " " +
+                    padRaw(kindColoured, 16, kindRaw.length()) +
+                    " " +
+                    pad(String.valueOf(q.totalSteps), 6) +
+                    " " +
+                    padRaw(reuse, 10, reusePctVisLen) +
+                    " " +
+                    padRaw(param, 7, paramPctVisLen) +
+                    " " +
+                    padRaw(tagged, 7, 1)
+                );
             }
         }
 
@@ -1172,14 +1380,24 @@ public class ProjectCommand implements Callable<Integer> {
          * each "user intent" really is (a reusable full of @hardcoded
          * literals is barely reusable).
          */
-        private static void renderReusableComponentTable(INGeniousCLI cli, List<TestCaseQuality> list) {
+        private static void renderReusableComponentTable(
+            INGeniousCLI cli,
+            List<TestCaseQuality> list
+        ) {
             Style s = cli.style();
             cli.printHeader("Per-Reusable-Component Quality");
-            System.out.println("  " + s.bold(pad("Scenario / Reusable", 42))
-                    + " " + s.bold(pad("Kind", 16))
-                    + " " + s.bold(pad("Steps", 6))
-                    + " " + s.bold(pad("Param", 7))
-                    + " " + s.bold(pad("Calls reuse", 12)));
+            System.out.println(
+                "  " +
+                s.bold(pad("Scenario / Reusable", 42)) +
+                " " +
+                s.bold(pad("Kind", 16)) +
+                " " +
+                s.bold(pad("Steps", 6)) +
+                " " +
+                s.bold(pad("Param", 7)) +
+                " " +
+                s.bold(pad("Calls reuse", 12))
+            );
             System.out.println("  " + s.dim("─".repeat(88)));
             for (TestCaseQuality q : list) {
                 String name = q.scenario + "/" + q.name;
@@ -1198,15 +1416,23 @@ public class ProjectCommand implements Callable<Integer> {
                     paramPctVisLen = pctTxt.length();
                 }
                 String calls = q.reusableSteps > 0
-                        ? s.cyan(String.valueOf(q.reusableSteps))
-                        : s.dim("·");
+                    ? s.cyan(String.valueOf(q.reusableSteps))
+                    : s.dim("·");
                 int callsVisLen = q.reusableSteps > 0
-                        ? String.valueOf(q.reusableSteps).length() : 1;
-                System.out.println("  " + pad(name, 42)
-                        + " " + padRaw(kindColoured, 16, kindRaw.length())
-                        + " " + pad(String.valueOf(q.totalSteps), 6)
-                        + " " + padRaw(param, 7, paramPctVisLen)
-                        + " " + padRaw(calls, 12, callsVisLen));
+                    ? String.valueOf(q.reusableSteps).length()
+                    : 1;
+                System.out.println(
+                    "  " +
+                    pad(name, 42) +
+                    " " +
+                    padRaw(kindColoured, 16, kindRaw.length()) +
+                    " " +
+                    pad(String.valueOf(q.totalSteps), 6) +
+                    " " +
+                    padRaw(param, 7, paramPctVisLen) +
+                    " " +
+                    padRaw(calls, 12, callsVisLen)
+                );
             }
         }
 
@@ -1217,14 +1443,20 @@ public class ProjectCommand implements Callable<Integer> {
          */
         private static String colourKind(Style s, String label) {
             if ("Unknown".equals(label)) return s.dim(label);
-            if (label.contains(" + "))   return s.bold(label);
+            if (label.contains(" + ")) return s.bold(label);
             switch (label) {
-                case "UI":     return s.cyan(label);
-                case "API":    return s.magenta(label);
-                case "Mobile": return s.blue(label);
-                case "DB":     return s.yellow(label);
-                case "Kafka":  return s.green(label);
-                default:       return label;
+                case "UI":
+                    return s.cyan(label);
+                case "API":
+                    return s.magenta(label);
+                case "Mobile":
+                    return s.blue(label);
+                case "DB":
+                    return s.yellow(label);
+                case "Kafka":
+                    return s.green(label);
+                default:
+                    return label;
             }
         }
 
@@ -1251,7 +1483,7 @@ public class ProjectCommand implements Callable<Integer> {
         /** Colours a "<pct>%" string by threshold and pads-safe for tables. */
         private static String colourPct(Style s, int pct, int goodAt) {
             String txt = pct + "%";
-            if (pct >= goodAt)     return s.green(txt);
+            if (pct >= goodAt) return s.green(txt);
             if (pct >= goodAt / 2) return s.yellow(txt);
             return s.red(txt);
         }
@@ -1316,16 +1548,13 @@ public class ProjectCommand implements Callable<Integer> {
 
                 cli.printSuccess("Project created: " + projectDir.getAbsolutePath());
 
-
                 Map<String, Object> result = new LinkedHashMap<>();
                 result.put("name", projectName);
                 result.put("location", projectDir.getAbsolutePath());
                 result.put("template", template != null ? template : "default");
 
-
                 System.out.println(cli.getOutputFormatter().formatKeyValue(result));
                 return 0;
-
             } catch (Exception e) {
                 cli.printError("Failed to create project: " + e.getMessage());
                 return 1;

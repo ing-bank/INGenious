@@ -41,7 +41,6 @@ import org.json.simple.JSONObject;
  *   4            — Update overall run status
  */
 public class TestManagerSync implements Sync {
-
     private static final Logger LOG = Logger.getLogger(TestManagerSync.class.getName());
 
     private static final String STATUS_PASSED = "Passed";
@@ -60,19 +59,26 @@ public class TestManagerSync implements Sync {
     private final String projectId;
     private final List<TestManagerTestData> queued = new ArrayList<>();
 
-    public TestManagerSync(String url, String username, String apiToken,
-                           String projectId, Map config) {
+    public TestManagerSync(
+        String url,
+        String username,
+        String apiToken,
+        String projectId,
+        Map config
+    ) {
         this.projectId = projectId == null ? "" : projectId;
         this.client = new TestManagerClient(url, username, apiToken, config);
     }
 
     /** Called by TMIntegration with the decrypted module Properties. */
     public TestManagerSync(Properties options) {
-        this(options.getProperty("TestManager URL"),
-             options.getProperty("Username"),
-             options.getProperty("AccessKey"),
-             options.getProperty("ProjectId"),
-             options);
+        this(
+            options.getProperty("TestManager URL"),
+            options.getProperty("Username"),
+            options.getProperty("AccessKey"),
+            options.getProperty("ProjectId"),
+            options
+        );
     }
 
     @Override
@@ -92,8 +98,9 @@ public class TestManagerSync implements Sync {
 
     @Override
     public boolean updateResults(TestInfo tc, String status, List<File> attach) {
-        queued.add(new TestManagerTestData(projectId, "",
-                tc.testScenario, tc.testCase, status, attach));
+        queued.add(
+            new TestManagerTestData(projectId, "", tc.testScenario, tc.testCase, status, attach)
+        );
         return true;
     }
 
@@ -112,7 +119,9 @@ public class TestManagerSync implements Sync {
 
     @Override
     public String createIssue(JSONObject issue, List<File> attach) {
-        throw new UnsupportedOperationException("Defect creation not supported by Test Manager module yet.");
+        throw new UnsupportedOperationException(
+            "Defect creation not supported by Test Manager module yet."
+        );
     }
 
     // -------------------------------------------------------------------
@@ -138,18 +147,29 @@ public class TestManagerSync implements Sync {
         String correlationId = UUID.randomUUID().toString();
 
         TestManagerRunContext ctx = new TestManagerRunContext(
-                correlationId, projectId, release, testSet, runTitle);
+            correlationId,
+            projectId,
+            release,
+            testSet,
+            runTitle
+        );
 
         println("");
-        println("\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550");
+        println(
+            "\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550"
+        );
         println("  \uD83D\uDCE1  Test Manager — publishing results");
-        println("\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500");
+        println(
+            "\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500"
+        );
         println("  Project    : " + projectId);
         println("  Release    : " + release);
         println("  Test Set   : " + testSet);
         println("  Run Title  : " + runTitle);
         println("  Queued     : " + queued.size() + " result(s)");
-        println("\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550");
+        println(
+            "\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550"
+        );
 
         // Step 1a/1b/1b.2 — resolve scenario folders + test cases + metadata.
         section("Step 1 — Resolving scenarios & test cases");
@@ -169,7 +189,8 @@ public class TestManagerSync implements Sync {
         section("Step 1d — Test Set folder");
         ctx.testSetFolderId = client.findTestSetFolderId(projectId, ctx.releaseFolderId, testSet);
         if (ctx.testSetFolderId == null) {
-            ctx.testSetFolderId = client.createTestSetFolder(projectId, ctx.releaseFolderId, testSet);
+            ctx.testSetFolderId =
+                client.createTestSetFolder(projectId, ctx.releaseFolderId, testSet);
             item("created test set folder", testSet, ctx.testSetFolderId);
         } else {
             item("reused test set folder", testSet, ctx.testSetFolderId);
@@ -182,17 +203,30 @@ public class TestManagerSync implements Sync {
 
         // Step 3a — attach test cases.
         section("Step 3a — Adding test cases to the run");
-        client.addTestCasesToRun(projectId, ctx.testRunId, runTitle, ctx.testCaseIdsByScenarioFolder);
-        println("    \u2022 added " + countTestCases(ctx) + " test case(s) across "
-                + ctx.testCaseIdsByScenarioFolder.size() + " folder(s)");
+        client.addTestCasesToRun(
+            projectId,
+            ctx.testRunId,
+            runTitle,
+            ctx.testCaseIdsByScenarioFolder
+        );
+        println(
+            "    \u2022 added " +
+            countTestCases(ctx) +
+            " test case(s) across " +
+            ctx.testCaseIdsByScenarioFolder.size() +
+            " folder(s)"
+        );
 
         // Step 3b — fetch instance ids.
         section("Step 3b — Fetching run instances");
         List<TestManagerClient.TestCaseInstance> instances = client.getRunInstances(ctx.testRunId);
         for (TestManagerClient.TestCaseInstance inst : instances) {
-            ctx.instanceIdsByTestCaseId
-                    .computeIfAbsent(inst.testCaseId, k -> new LinkedHashSet<>())
-                    .add(inst.instanceId);
+            ctx
+                .instanceIdsByTestCaseId.computeIfAbsent(
+                    inst.testCaseId,
+                    k -> new LinkedHashSet<>()
+                )
+                .add(inst.instanceId);
         }
         println("    \u2022 received " + instances.size() + " instance(s)");
 
@@ -208,26 +242,56 @@ public class TestManagerSync implements Sync {
             }
             String testCaseId = ctx.getTestCaseId(row.suite, row.testcase);
             if (testCaseId == null) {
-                warn("no test_case_id resolved for " + row.suite + " / " + row.testcase + " — skipped");
+                warn(
+                    "no test_case_id resolved for " +
+                    row.suite +
+                    " / " +
+                    row.testcase +
+                    " — skipped"
+                );
                 failedUpdates++;
                 continue;
             }
             Set<String> instanceIds = ctx.instanceIdsByTestCaseId.get(testCaseId);
             if (instanceIds == null || instanceIds.isEmpty()) {
-                warn("no instance for " + row.suite + " / " + row.testcase + " (testCaseId=" + testCaseId + ")");
+                warn(
+                    "no instance for " +
+                    row.suite +
+                    " / " +
+                    row.testcase +
+                    " (testCaseId=" +
+                    testCaseId +
+                    ")"
+                );
                 failedUpdates++;
                 continue;
             }
             for (String instanceId : instanceIds) {
                 try {
                     client.updateInstanceStatus(instanceId, mapped);
-                    println("    " + statusIcon(mapped) + "  " + row.suite + " / " + row.testcase
-                            + "  \u2192  " + mapped);
+                    println(
+                        "    " +
+                        statusIcon(mapped) +
+                        "  " +
+                        row.suite +
+                        " / " +
+                        row.testcase +
+                        "  \u2192  " +
+                        mapped
+                    );
                     updated++;
                 } catch (TestManagerApiException ex) {
                     failedUpdates++;
-                    warn("failed to update instance " + instanceId + " ("
-                            + row.suite + " / " + row.testcase + "): " + ex.getMessage());
+                    warn(
+                        "failed to update instance " +
+                        instanceId +
+                        " (" +
+                        row.suite +
+                        " / " +
+                        row.testcase +
+                        "): " +
+                        ex.getMessage()
+                    );
                 }
             }
         }
@@ -240,27 +304,35 @@ public class TestManagerSync implements Sync {
         println("    " + statusIcon(overall) + "  run status: " + overall);
 
         println("");
-        println("\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550");
+        println(
+            "\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550"
+        );
         println("  " + statusIcon(overall) + "  Test Manager publish complete");
         println("  Run id     : " + ctx.testRunId);
         println("  Status     : " + overall);
-        println("\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550");
+        println(
+            "\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550"
+        );
         println("");
 
         // Detailed correlation id kept in the structured log for support / debugging.
-        LOG.log(Level.FINE, "Test Manager publish done: cid={0} runId={1} status={2}",
-                new Object[]{correlationId, ctx.testRunId, overall});
+        LOG.log(
+            Level.FINE,
+            "Test Manager publish done: cid={0} runId={1} status={2}",
+            new Object[] { correlationId, ctx.testRunId, overall }
+        );
     }
 
-    private void resolveScenariosAndTestCases(TestManagerRunContext ctx) throws TestManagerApiException {
+    private void resolveScenariosAndTestCases(TestManagerRunContext ctx)
+        throws TestManagerApiException {
         // Collect unique scenarios and (scenario, testCase) pairs preserving order.
         Set<String> scenarios = new LinkedHashSet<>();
         Map<String, Set<String>> testCasesByScenario = new LinkedHashMap<>();
         for (TestManagerTestData row : queued) {
             scenarios.add(row.suite);
             testCasesByScenario
-                    .computeIfAbsent(row.suite, k -> new LinkedHashSet<>())
-                    .add(row.testcase);
+                .computeIfAbsent(row.suite, k -> new LinkedHashSet<>())
+                .add(row.testcase);
         }
 
         // Step 1a — folder per scenario.
@@ -308,23 +380,45 @@ public class TestManagerSync implements Sync {
         try {
             String snapshotId = client.getTestCaseSnapshotId(testCaseId);
             if (snapshotId == null || snapshotId.isEmpty()) {
-                warn("no snapshot_id for newly created test case " + testCaseName
-                        + " (" + testCaseId + ") — metadata update skipped");
+                warn(
+                    "no snapshot_id for newly created test case " +
+                    testCaseName +
+                    " (" +
+                    testCaseId +
+                    ") — metadata update skipped"
+                );
                 return;
             }
             List<String> tcTags = tagsFor(scenarioName, testCaseName);
             String newSnapshot = client.updateTestCaseMetadata(
-                    projectId, testCaseId, testCaseName,
-                    TC_STATUS, TC_AUTOMATION_STATUS, TC_PRIORITY,
-                    tcTags, snapshotId);
+                projectId,
+                testCaseId,
+                testCaseName,
+                TC_STATUS,
+                TC_AUTOMATION_STATUS,
+                TC_PRIORITY,
+                tcTags,
+                snapshotId
+            );
             if (newSnapshot == null) {
-                warn("metadata update for " + testCaseName + " returned no snapshot (stale conflict?)");
+                warn(
+                    "metadata update for " +
+                    testCaseName +
+                    " returned no snapshot (stale conflict?)"
+                );
             } else {
                 String tagsLabel = tcTags.isEmpty() ? "" : "  tags=" + tcTags;
-                println("    \uD83E\uDD16  marked " + testCaseName
-                        + " — status=" + TC_STATUS
-                        + ", automation=" + TC_AUTOMATION_STATUS
-                        + ", priority=" + TC_PRIORITY + tagsLabel);
+                println(
+                    "    \uD83E\uDD16  marked " +
+                    testCaseName +
+                    " — status=" +
+                    TC_STATUS +
+                    ", automation=" +
+                    TC_AUTOMATION_STATUS +
+                    ", priority=" +
+                    TC_PRIORITY +
+                    tagsLabel
+                );
             }
         } catch (TestManagerApiException ex) {
             warn("metadata update failed for " + testCaseName + ": " + ex.getMessage());
@@ -339,13 +433,19 @@ public class TestManagerSync implements Sync {
      */
     private static List<String> tagsFor(String scenarioName, String testCaseName) {
         try {
-            if (Control.getCurrentProject() == null
-                    || Control.getCurrentProject().getInfo() == null
-                    || Control.getCurrentProject().getInfo().getData() == null) {
+            if (
+                Control.getCurrentProject() == null ||
+                Control.getCurrentProject().getInfo() == null ||
+                Control.getCurrentProject().getInfo().getData() == null
+            ) {
                 return Collections.emptyList();
             }
-            Tags tags = Control.getCurrentProject().getInfo().getData()
-                    .findOrCreate(testCaseName, scenarioName).getTags();
+            Tags tags = Control
+                .getCurrentProject()
+                .getInfo()
+                .getData()
+                .findOrCreate(testCaseName, scenarioName)
+                .getTags();
             if (tags == null || tags.isEmpty()) {
                 return Collections.emptyList();
             }
@@ -403,9 +503,13 @@ public class TestManagerSync implements Sync {
 
     private static void banner(String msg, String icon) {
         println("");
-        println("\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550");
+        println(
+            "\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550"
+        );
         println("  " + icon + "  " + msg);
-        println("\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550");
+        println(
+            "\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550"
+        );
         println("");
     }
 
@@ -415,11 +519,14 @@ public class TestManagerSync implements Sync {
      * report remains readable.
      */
     private static volatile boolean httpNoiseSilenced;
+
     private static synchronized void silenceHttpClientNoise() {
         if (httpNoiseSilenced) {
             return;
         }
-        Logger.getLogger("org.apache.http.client.protocol.ResponseProcessCookies").setLevel(Level.SEVERE);
+        Logger
+            .getLogger("org.apache.http.client.protocol.ResponseProcessCookies")
+            .setLevel(Level.SEVERE);
         Logger.getLogger("org.apache.http").setLevel(Level.SEVERE);
         httpNoiseSilenced = true;
     }
@@ -441,8 +548,12 @@ public class TestManagerSync implements Sync {
             return STATUS_FAILED;
         }
         String s = engineStatus.trim();
-        if (s.equalsIgnoreCase("PASS") || s.equalsIgnoreCase("PASSED")
-                || s.equalsIgnoreCase("SUCCESS") || s.equalsIgnoreCase("OK")) {
+        if (
+            s.equalsIgnoreCase("PASS") ||
+            s.equalsIgnoreCase("PASSED") ||
+            s.equalsIgnoreCase("SUCCESS") ||
+            s.equalsIgnoreCase("OK")
+        ) {
             return STATUS_PASSED;
         }
         return STATUS_FAILED;

@@ -28,7 +28,6 @@ import org.json.simple.JSONObject;
  * and readable. Failures surface as {@link TestManagerApiException}.
  */
 public class TestManagerClient {
-
     private static final Logger LOGGER = Logger.getLogger(TestManagerClient.class.getName());
 
     private final TestManagerHttpClient httpClient;
@@ -63,14 +62,17 @@ public class TestManagerClient {
             HttpResponse response = httpClient.execute(req);
             int status = response.getStatusLine().getStatusCode();
             String body = response.getEntity() != null
-                    ? EntityUtils.toString(response.getEntity()) : "";
+                ? EntityUtils.toString(response.getEntity())
+                : "";
             if (status >= 200 && status < 300) {
                 DLogger.Log("Test Manager connection OK [" + status + "] for project " + projectId);
                 return true;
             }
-            LOGGER.log(Level.WARNING,
-                    "Test Manager connection failed [{0}] for project {1}: {2}",
-                    new Object[]{status, projectId, body});
+            LOGGER.log(
+                Level.WARNING,
+                "Test Manager connection failed [{0}] for project {1}: {2}",
+                new Object[] { status, projectId, body }
+            );
             return false;
         } catch (Exception ex) {
             LOGGER.log(Level.WARNING, "Test Manager connection failed: " + ex.getMessage(), ex);
@@ -85,13 +87,15 @@ public class TestManagerClient {
     // -------------------------------------------------------------------
 
     /** Returns the folder id matching {@code scenarioName}, or {@code null} if not found. */
-    public String findScenarioFolderId(String projectId, String scenarioName) throws TestManagerApiException {
+    public String findScenarioFolderId(String projectId, String scenarioName)
+        throws TestManagerApiException {
         JSONObject res = get("folder/entity/" + projectId);
         return findFolderRecursive(asArray(res.get("data")), scenarioName);
     }
 
     /** Creates a scenario folder under the project and returns its id. */
-    public String createScenarioFolder(String projectId, String scenarioName) throws TestManagerApiException {
+    public String createScenarioFolder(String projectId, String scenarioName)
+        throws TestManagerApiException {
         JSONObject folder = new JSONObject();
         folder.put("name", scenarioName);
         folder.put("entity_id", projectId);
@@ -111,7 +115,7 @@ public class TestManagerClient {
 
     /** Returns the test_case_id with title {@code testCaseName} in the folder, or {@code null}. */
     public String findTestCaseId(String projectId, String folderId, String testCaseName)
-            throws TestManagerApiException {
+        throws TestManagerApiException {
         JSONObject res = get("projects/" + projectId + "/folder/" + folderId + "/test-cases");
         JSONArray data = asArray(res.get("data"));
         for (Object item : data) {
@@ -129,7 +133,7 @@ public class TestManagerClient {
 
     /** Creates a single test case in the given folder and returns its id. */
     public String createTestCase(String projectId, String folderId, String testCaseName)
-            throws TestManagerApiException {
+        throws TestManagerApiException {
         JSONObject testCase = new JSONObject();
         testCase.put("title", testCaseName);
         JSONArray testCases = new JSONArray();
@@ -164,10 +168,17 @@ public class TestManagerClient {
     }
 
     /** Best-effort metadata update. Returns the new snapshot id, or {@code null} on stale conflict. */
-    public String updateTestCaseMetadata(String projectId, String testCaseId, String title,
-                                         String status, String automationStatus, String priority,
-                                         Collection<String> tags, String snapshotId)
-            throws TestManagerApiException {
+    public String updateTestCaseMetadata(
+        String projectId,
+        String testCaseId,
+        String title,
+        String status,
+        String automationStatus,
+        String priority,
+        Collection<String> tags,
+        String snapshotId
+    )
+        throws TestManagerApiException {
         JSONObject payload = new JSONObject();
         payload.put("title", title);
         payload.put("id", testCaseId);
@@ -195,12 +206,14 @@ public class TestManagerClient {
     // Step 1c — Release folder (test-run scope)
     // -------------------------------------------------------------------
 
-    public String findReleaseFolderId(String projectId, String releaseName) throws TestManagerApiException {
+    public String findReleaseFolderId(String projectId, String releaseName)
+        throws TestManagerApiException {
         JSONObject res = get("folder/test-run/entity/" + projectId);
         return findFolderTopLevel(asArray(res.get("data")), releaseName);
     }
 
-    public String createReleaseFolder(String projectId, String releaseName) throws TestManagerApiException {
+    public String createReleaseFolder(String projectId, String releaseName)
+        throws TestManagerApiException {
         JSONObject folder = new JSONObject();
         folder.put("name", releaseName);
         folder.put("description", "");
@@ -219,7 +232,7 @@ public class TestManagerClient {
     // -------------------------------------------------------------------
 
     public String findTestSetFolderId(String projectId, String releaseFolderId, String testSetName)
-            throws TestManagerApiException {
+        throws TestManagerApiException {
         JSONObject res = get("folder/test-run/entity/" + projectId);
         for (Object item : asArray(res.get("data"))) {
             if (!(item instanceof JSONObject)) {
@@ -243,7 +256,7 @@ public class TestManagerClient {
     }
 
     public String createTestSetFolder(String projectId, String releaseFolderId, String testSetName)
-            throws TestManagerApiException {
+        throws TestManagerApiException {
         JSONObject folder = new JSONObject();
         folder.put("name", testSetName);
         folder.put("entity_id", projectId);
@@ -262,7 +275,7 @@ public class TestManagerClient {
     // -------------------------------------------------------------------
 
     public String createTestRun(String projectId, String testSetFolderId, String runTitle)
-            throws TestManagerApiException {
+        throws TestManagerApiException {
         JSONObject payload = new JSONObject();
         payload.put("title", runTitle);
         payload.put("project_id", projectId);
@@ -275,9 +288,13 @@ public class TestManagerClient {
     // Step 3a — Add test cases (folder_selections)
     // -------------------------------------------------------------------
 
-    public void addTestCasesToRun(String projectId, String testRunId, String runTitle,
-                                  Map<String, ? extends Collection<String>> testCaseIdsByScenarioFolder)
-            throws TestManagerApiException {
+    public void addTestCasesToRun(
+        String projectId,
+        String testRunId,
+        String runTitle,
+        Map<String, ? extends Collection<String>> testCaseIdsByScenarioFolder
+    )
+        throws TestManagerApiException {
         JSONObject folderSelections = new JSONObject();
         for (Map.Entry<String, ? extends Collection<String>> e : testCaseIdsByScenarioFolder.entrySet()) {
             JSONArray ids = new JSONArray();
@@ -302,7 +319,9 @@ public class TestManagerClient {
     public List<TestCaseInstance> getRunInstances(String testRunId) throws TestManagerApiException {
         JSONObject res = get("test-run/instances/" + testRunId);
         JSONObject envelope = (JSONObject) res.get("test_run_instances");
-        JSONArray data = envelope != null ? asArray(envelope.get("data")) : asArray(res.get("data"));
+        JSONArray data = envelope != null
+            ? asArray(envelope.get("data"))
+            : asArray(res.get("data"));
         List<TestCaseInstance> out = new ArrayList<>();
         for (Object item : data) {
             if (!(item instanceof JSONObject)) {
@@ -322,11 +341,14 @@ public class TestManagerClient {
     // Step 3c — Per-instance status
     // -------------------------------------------------------------------
 
-    public void updateInstanceStatus(String instanceId, String status) throws TestManagerApiException {
+    public void updateInstanceStatus(String instanceId, String status)
+        throws TestManagerApiException {
         JSONObject payload = new JSONObject();
         payload.put("status", status);
-        expectSuccess(put("test-run/instance/" + instanceId, payload.toJSONString()),
-                "updateInstanceStatus(" + instanceId + ")");
+        expectSuccess(
+            put("test-run/instance/" + instanceId, payload.toJSONString()),
+            "updateInstanceStatus(" + instanceId + ")"
+        );
     }
 
     // -------------------------------------------------------------------
@@ -336,8 +358,10 @@ public class TestManagerClient {
     public void updateRunStatus(String testRunId, String status) throws TestManagerApiException {
         JSONObject payload = new JSONObject();
         payload.put("status", status);
-        expectSuccess(put("test-run/status/" + testRunId, payload.toJSONString()),
-                "updateRunStatus(" + testRunId + ")");
+        expectSuccess(
+            put("test-run/status/" + testRunId, payload.toJSONString()),
+            "updateRunStatus(" + testRunId + ")"
+        );
     }
 
     // -------------------------------------------------------------------
@@ -364,7 +388,8 @@ public class TestManagerClient {
         return invoke("PUT", v2Base() + pathFromV2, body);
     }
 
-    private JSONObject invoke(String method, String url, String body) throws TestManagerApiException {
+    private JSONObject invoke(String method, String url, String body)
+        throws TestManagerApiException {
         URL target = toUrl(url);
         if (target == null) {
             throw new TestManagerApiException("Invalid URL: " + url);
@@ -383,7 +408,10 @@ public class TestManagerClient {
         } catch (TestManagerApiException ex) {
             throw ex;
         } catch (Exception ex) {
-            throw new TestManagerApiException(method + " " + url + " failed: " + ex.getMessage(), ex);
+            throw new TestManagerApiException(
+                method + " " + url + " failed: " + ex.getMessage(),
+                ex
+            );
         }
     }
 
@@ -490,4 +518,3 @@ public class TestManagerClient {
         }
     }
 }
-

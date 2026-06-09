@@ -26,8 +26,7 @@ import java.util.List;
  */
 public final class CurlParser {
 
-    private CurlParser() {
-    }
+    private CurlParser() {}
 
     /**
      * Returns {@code true} if the given text starts with a {@code curl}
@@ -91,82 +90,102 @@ public final class CurlParser {
                     }
                     break;
                 case "-H":
-                case "--header": {
-                    if (i + 1 < tokens.size()) {
-                        addHeader(request, tokens.get(++i));
+                case "--header":
+                    {
+                        if (i + 1 < tokens.size()) {
+                            addHeader(request, tokens.get(++i));
+                        }
+                        break;
                     }
-                    break;
-                }
                 case "-A":
-                case "--user-agent": {
-                    if (i + 1 < tokens.size()) {
-                        request.getHeaders().add(new KeyValuePair("User-Agent", tokens.get(++i)));
+                case "--user-agent":
+                    {
+                        if (i + 1 < tokens.size()) {
+                            request
+                                .getHeaders()
+                                .add(new KeyValuePair("User-Agent", tokens.get(++i)));
+                        }
+                        break;
                     }
-                    break;
-                }
                 case "-e":
-                case "--referer": {
-                    if (i + 1 < tokens.size()) {
-                        request.getHeaders().add(new KeyValuePair("Referer", tokens.get(++i)));
+                case "--referer":
+                    {
+                        if (i + 1 < tokens.size()) {
+                            request.getHeaders().add(new KeyValuePair("Referer", tokens.get(++i)));
+                        }
+                        break;
                     }
-                    break;
-                }
                 case "-b":
-                case "--cookie": {
-                    if (i + 1 < tokens.size()) {
-                        request.getHeaders().add(new KeyValuePair("Cookie", tokens.get(++i)));
+                case "--cookie":
+                    {
+                        if (i + 1 < tokens.size()) {
+                            request.getHeaders().add(new KeyValuePair("Cookie", tokens.get(++i)));
+                        }
+                        break;
                     }
-                    break;
-                }
                 case "-d":
                 case "--data":
                 case "--data-raw":
                 case "--data-binary":
-                case "--data-ascii": {
-                    if (i + 1 < tokens.size()) {
-                        appendData(rawBody, tokens.get(++i));
-                        hasBody = true;
-                    }
-                    break;
-                }
-                case "--data-urlencode": {
-                    if (i + 1 < tokens.size()) {
-                        String value = tokens.get(++i);
-                        int eq = value.indexOf('=');
-                        if (eq >= 0) {
-                            urlEncoded.add(new KeyValuePair(value.substring(0, eq), value.substring(eq + 1)));
-                        } else {
-                            urlEncoded.add(new KeyValuePair("", value));
+                case "--data-ascii":
+                    {
+                        if (i + 1 < tokens.size()) {
+                            appendData(rawBody, tokens.get(++i));
+                            hasBody = true;
                         }
-                        hasBody = true;
+                        break;
                     }
-                    break;
-                }
+                case "--data-urlencode":
+                    {
+                        if (i + 1 < tokens.size()) {
+                            String value = tokens.get(++i);
+                            int eq = value.indexOf('=');
+                            if (eq >= 0) {
+                                urlEncoded.add(
+                                    new KeyValuePair(
+                                        value.substring(0, eq),
+                                        value.substring(eq + 1)
+                                    )
+                                );
+                            } else {
+                                urlEncoded.add(new KeyValuePair("", value));
+                            }
+                            hasBody = true;
+                        }
+                        break;
+                    }
                 case "-F":
-                case "--form": {
-                    if (i + 1 < tokens.size()) {
-                        String value = tokens.get(++i);
-                        int eq = value.indexOf('=');
-                        if (eq >= 0) {
-                            formData.add(new KeyValuePair(value.substring(0, eq), value.substring(eq + 1)));
-                        } else {
-                            formData.add(new KeyValuePair(value, ""));
+                case "--form":
+                    {
+                        if (i + 1 < tokens.size()) {
+                            String value = tokens.get(++i);
+                            int eq = value.indexOf('=');
+                            if (eq >= 0) {
+                                formData.add(
+                                    new KeyValuePair(
+                                        value.substring(0, eq),
+                                        value.substring(eq + 1)
+                                    )
+                                );
+                            } else {
+                                formData.add(new KeyValuePair(value, ""));
+                            }
+                            hasBody = true;
                         }
-                        hasBody = true;
+                        break;
                     }
-                    break;
-                }
                 case "-u":
-                case "--user": {
-                    if (i + 1 < tokens.size()) {
-                        String creds = tokens.get(++i);
-                        int colon = creds.indexOf(':');
-                        String user = colon >= 0 ? creds.substring(0, colon) : creds;
-                        String pass = colon >= 0 ? creds.substring(colon + 1) : "";
-                        request.setAuth(AuthConfig.basic(user, pass));
+                case "--user":
+                    {
+                        if (i + 1 < tokens.size()) {
+                            String creds = tokens.get(++i);
+                            int colon = creds.indexOf(':');
+                            String user = colon >= 0 ? creds.substring(0, colon) : creds;
+                            String pass = colon >= 0 ? creds.substring(colon + 1) : "";
+                            request.setAuth(AuthConfig.basic(user, pass));
+                        }
+                        break;
                     }
-                    break;
-                }
                 case "-k":
                 case "--insecure":
                     request.setSslVerificationEnabled(false);
@@ -209,12 +228,13 @@ public final class CurlParser {
                 case "--tlsv1.3":
                     // Flags with no argument – safe to ignore.
                     break;
-                case "--url": {
-                    if (i + 1 < tokens.size()) {
-                        url = tokens.get(++i);
+                case "--url":
+                    {
+                        if (i + 1 < tokens.size()) {
+                            url = tokens.get(++i);
+                        }
+                        break;
                     }
-                    break;
-                }
                 case "-o":
                 case "--output":
                 case "--connect-timeout":
@@ -396,7 +416,10 @@ public final class CurlParser {
         }
     }
 
-    private static RequestBody.RawFormat detectRawFormat(String content, List<KeyValuePair> headers) {
+    private static RequestBody.RawFormat detectRawFormat(
+        String content,
+        List<KeyValuePair> headers
+    ) {
         if (headers != null) {
             for (KeyValuePair h : headers) {
                 if (h.getKey() != null && "content-type".equalsIgnoreCase(h.getKey())) {
@@ -483,8 +506,12 @@ public final class CurlParser {
                     String decoded = new String(Base64.getDecoder().decode(encoded));
                     int colon = decoded.indexOf(':');
                     if (colon >= 0) {
-                        request.setAuth(AuthConfig.basic(decoded.substring(0, colon),
-                                decoded.substring(colon + 1)));
+                        request.setAuth(
+                            AuthConfig.basic(
+                                decoded.substring(0, colon),
+                                decoded.substring(colon + 1)
+                            )
+                        );
                         headers.remove(i);
                         return;
                     }

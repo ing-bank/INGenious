@@ -1,5 +1,7 @@
 package com.ing.datalib.component.io;
 
+import static org.assertj.core.api.Assertions.assertThat;
+
 import com.ing.datalib.component.TestStep.HEADERS;
 import java.io.File;
 import java.nio.file.Files;
@@ -12,14 +14,11 @@ import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
-import static org.assertj.core.api.Assertions.assertThat;
-
 /**
  * Round-trip parity tests for {@link YamlTestCaseStore} versus
  * {@link CsvTestCaseStore}.
  */
 public class YamlTestCaseStoreTest {
-
     private Path tempDir;
     private final YamlTestCaseStore yaml = new YamlTestCaseStore();
     private final CsvTestCaseStore csv = new CsvTestCaseStore();
@@ -32,15 +31,39 @@ public class YamlTestCaseStoreTest {
     @AfterMethod
     public void tearDown() throws Exception {
         if (tempDir != null) {
-            Files.walk(tempDir).sorted(Comparator.reverseOrder()).map(Path::toFile).forEach(File::delete);
+            Files
+                .walk(tempDir)
+                .sorted(Comparator.reverseOrder())
+                .map(Path::toFile)
+                .forEach(File::delete);
         }
     }
 
     @Test
     public void roundTripPreservesAllFields() throws Exception {
         List<List<String>> rows = new ArrayList<>();
-        rows.add(row("1", "Execute", "Given user is logged in", "StepDefinitions:User is logged in", "", "", ""));
-        rows.add(row("2", "Username", "Enter the value [<Data>] in the Field [<Object>]", "Fill", "%user%", "", "Login"));
+        rows.add(
+            row(
+                "1",
+                "Execute",
+                "Given user is logged in",
+                "StepDefinitions:User is logged in",
+                "",
+                "",
+                ""
+            )
+        );
+        rows.add(
+            row(
+                "2",
+                "Username",
+                "Enter the value [<Data>] in the Field [<Object>]",
+                "Fill",
+                "%user%",
+                "",
+                "Login"
+            )
+        );
         rows.add(row("3", "signin-submit", "Click the [<Object>]", "Click", "", "", "Login"));
 
         File file = new File(tempDir.toFile(), "MyTest.yaml");
@@ -56,9 +79,9 @@ public class YamlTestCaseStoreTest {
     @Test
     public void roundTripPreservesBreakpointAndCommentMarkers() throws Exception {
         List<List<String>> rows = new ArrayList<>();
-        rows.add(row("*1", "Username", "desc", "Fill", "u", "", "Login"));   // breakpoint
-        rows.add(row("//2", "Password", "desc", "Fill", "p", "", "Login"));  // commented
-        rows.add(row("//*3", "Submit", "desc", "Click", "", "", "Login"));   // commented + breakpoint
+        rows.add(row("*1", "Username", "desc", "Fill", "u", "", "Login")); // breakpoint
+        rows.add(row("//2", "Password", "desc", "Fill", "p", "", "Login")); // commented
+        rows.add(row("//*3", "Submit", "desc", "Click", "", "", "Login")); // commented + breakpoint
 
         File file = new File(tempDir.toFile(), "Markers.yaml");
         yaml.save(file, "Markers", "Login", false, null, rows);
@@ -163,11 +186,26 @@ public class YamlTestCaseStoreTest {
         yaml.save(file, "Spaced", "SC1", false, null, rows);
         String body = new String(Files.readAllBytes(file.toPath()));
         // Exactly two blank-line separators (between 1-2 and 2-3), none before the first step.
-        long blankBeforeStep = body.lines()
-                .reduce("", (prev, line) -> {
-                    return prev + (line.equals("  - step: 1") || line.equals("  - step: 2") || line.equals("  - step: 3")
-                            ? "|" + line : line);
-                }).chars().filter(c -> c == '|').count();
+        long blankBeforeStep = body
+            .lines()
+            .reduce(
+                "",
+                (prev, line) -> {
+                    return (
+                        prev +
+                        (
+                            line.equals("  - step: 1") ||
+                                line.equals("  - step: 2") ||
+                                line.equals("  - step: 3")
+                                ? "|" + line
+                                : line
+                        )
+                    );
+                }
+            )
+            .chars()
+            .filter(c -> c == '|')
+            .count();
         assertThat(body).contains("\n\n  - step: 2");
         assertThat(body).contains("\n\n  - step: 3");
         assertThat(body).doesNotContain("\n\n  - step: 1");
@@ -177,22 +215,32 @@ public class YamlTestCaseStoreTest {
     @Test
     public void legacyReusableBooleanIsAcceptedOnLoad() throws Exception {
         File file = new File(tempDir.toFile(), "Legacy.yaml");
-        String legacy = "schemaVersion: 1\n"
-                + "name: Old\n"
-                + "scenario: Scn\n"
-                + "reusable: true\n"
-                + "steps:\n"
-                + "  - step: 1\n"
-                + "    object: A\n"
-                + "    action: Open\n";
+        String legacy =
+            "schemaVersion: 1\n" +
+            "name: Old\n" +
+            "scenario: Scn\n" +
+            "reusable: true\n" +
+            "steps:\n" +
+            "  - step: 1\n" +
+            "    object: A\n" +
+            "    action: Open\n";
         Files.write(file.toPath(), legacy.getBytes());
         List<List<String>> loaded = yaml.load(file);
         assertThat(loaded).hasSize(1);
         assertThat(loaded.get(0).get(HEADERS.ObjectName.getIndex())).isEqualTo("A");
     }
 
-    private static List<String> row(String step, String object, String description,
-                                    String action, String input, String condition, String reference) {
-        return new ArrayList<>(Arrays.asList(step, object, description, action, input, condition, reference));
+    private static List<String> row(
+        String step,
+        String object,
+        String description,
+        String action,
+        String input,
+        String condition,
+        String reference
+    ) {
+        return new ArrayList<>(
+            Arrays.asList(step, object, description, action, input, condition, reference)
+        );
     }
 }

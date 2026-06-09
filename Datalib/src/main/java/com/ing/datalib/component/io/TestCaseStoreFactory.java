@@ -24,7 +24,6 @@ import java.util.Set;
  * stores are reused via {@link #yamlTestCaseStore()} etc.
  */
 public final class TestCaseStoreFactory {
-
     private static final TestCaseStore CSV_TC = new CsvTestCaseStore();
     private static final TestCaseStore YAML_TC = new YamlTestCaseStore();
     private static final TestSetStore CSV_TS = new CsvTestSetStore();
@@ -44,10 +43,21 @@ public final class TestCaseStoreFactory {
 
     private TestCaseStoreFactory() {}
 
-    public static TestCaseStore csvTestCaseStore() { return CSV_TC; }
-    public static TestCaseStore yamlTestCaseStore() { return YAML_TC; }
-    public static TestSetStore csvTestSetStore() { return CSV_TS; }
-    public static TestSetStore yamlTestSetStore() { return YAML_TS; }
+    public static TestCaseStore csvTestCaseStore() {
+        return CSV_TC;
+    }
+
+    public static TestCaseStore yamlTestCaseStore() {
+        return YAML_TC;
+    }
+
+    public static TestSetStore csvTestSetStore() {
+        return CSV_TS;
+    }
+
+    public static TestSetStore yamlTestSetStore() {
+        return YAML_TS;
+    }
 
     public static TestCaseStore testCaseStore(TestCaseFormat format) {
         return format == TestCaseFormat.YAML ? YAML_TC : CSV_TC;
@@ -65,7 +75,11 @@ public final class TestCaseStoreFactory {
      * @param baseName    file name without extension
      * @param projectDefault format to assume when no file exists yet
      */
-    public static TestCaseFormat resolveFormat(File directory, String baseName, TestCaseFormat projectDefault) {
+    public static TestCaseFormat resolveFormat(
+        File directory,
+        String baseName,
+        TestCaseFormat projectDefault
+    ) {
         if (directory != null && baseName != null) {
             if (existing(directory, baseName, TestCaseFormat.YAML_EXTENSIONS) != null) {
                 return TestCaseFormat.YAML;
@@ -86,7 +100,9 @@ public final class TestCaseStoreFactory {
         if (existing != null) {
             return existing;
         }
-        File csv = directory == null ? null : new File(directory, baseName + TestCaseFormat.CSV.extension());
+        File csv = directory == null
+            ? null
+            : new File(directory, baseName + TestCaseFormat.CSV.extension());
         if (csv != null && csv.isFile()) {
             return csv;
         }

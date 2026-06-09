@@ -4,7 +4,6 @@ import com.ing.datalib.component.Project;
 import com.ing.datalib.settings.emulators.Device;
 import com.ing.datalib.settings.emulators.Emulator;
 import com.ing.datalib.settings.migration.EmulatorToDeviceMigration;
-
 import java.io.File;
 
 /**

@@ -301,7 +301,10 @@ public class TestCase extends DataModel {
     private TestCaseFormat projectDefaultFormat() {
         try {
             if (getProject() != null && getProject().getInfo() != null) {
-                return TestCaseFormat.parse(getProject().getInfo().getTestCaseFormat(), TestCaseFormat.YAML);
+                return TestCaseFormat.parse(
+                    getProject().getInfo().getTestCaseFormat(),
+                    TestCaseFormat.YAML
+                );
             }
         } catch (Exception ignored) {
             // Project info may be unavailable in unit-test contexts; fall through.
@@ -342,8 +345,9 @@ public class TestCase extends DataModel {
         try {
             rows = store.load(file);
         } catch (Exception ex) {
-            Logger.getLogger(TestCase.class.getName()).log(Level.SEVERE,
-                    "Error loading test case from " + file.getPath(), ex);
+            Logger
+                .getLogger(TestCase.class.getName())
+                .log(Level.SEVERE, "Error loading test case from " + file.getPath(), ex);
             rows = new ArrayList<>();
         }
         syncTagsFromStore(store, file);
@@ -368,7 +372,6 @@ public class TestCase extends DataModel {
                         migratedReferencesCount++;
                     }
                 }
-
 
                 testSteps.add(step);
             }
@@ -520,8 +523,14 @@ public class TestCase extends DataModel {
                 for (TestStep testStep : testSteps) {
                     rows.add(new ArrayList<>(testStep.stepDetails));
                 }
-                store.save(file, name, scenario == null ? null : scenario.getName(),
-                        reusable != null, collectTags(), rows);
+                store.save(
+                    file,
+                    name,
+                    scenario == null ? null : scenario.getName(),
+                    reusable != null,
+                    collectTags(),
+                    rows
+                );
                 setSaved(true);
             } catch (Exception ex) {
                 Logger
@@ -563,20 +572,27 @@ public class TestCase extends DataModel {
             return;
         }
         try {
-            if (getProject() == null || getProject().getInfo() == null
-                    || getProject().getInfo().getData() == null) {
+            if (
+                getProject() == null ||
+                getProject().getInfo() == null ||
+                getProject().getInfo().getData() == null
+            ) {
                 return;
             }
             List<String> diskTags = ((YamlTestCaseStore) store).loadTags(file);
             if (diskTags == null || diskTags.isEmpty()) {
                 return;
             }
-            com.ing.datalib.model.DataItem di = getProject().getInfo().getData()
-                    .findOrCreate(name, scenario.getName());
+            com.ing.datalib.model.DataItem di = getProject()
+                .getInfo()
+                .getData()
+                .findOrCreate(name, scenario.getName());
             for (String t : diskTags) {
                 if (t == null || t.isEmpty()) continue;
-                boolean exists = di.getTags().stream()
-                        .anyMatch(x -> x != null && t.equals(x.getValue()));
+                boolean exists = di
+                    .getTags()
+                    .stream()
+                    .anyMatch(x -> x != null && t.equals(x.getValue()));
                 if (!exists) {
                     di.getTags().add(com.ing.datalib.model.Tag.create(t));
                 }
@@ -592,19 +608,31 @@ public class TestCase extends DataModel {
      */
     private List<String> collectTags() {
         try {
-            if (scenario == null || getProject() == null || getProject().getInfo() == null
-                    || getProject().getInfo().getData() == null) {
+            if (
+                scenario == null ||
+                getProject() == null ||
+                getProject().getInfo() == null ||
+                getProject().getInfo().getData() == null
+            ) {
                 return Collections.emptyList();
             }
-            return getProject().getInfo().getData()
-                    .find(name, scenario.getName())
-                    .map(di -> di.getTags() == null ? Collections.<String>emptyList()
-                            : di.getTags().stream()
-                                    .filter(Objects::nonNull)
-                                    .map(t -> t.getValue())
-                                    .filter(v -> v != null && !v.isEmpty())
-                                    .collect(java.util.stream.Collectors.toList()))
-                    .orElse(Collections.emptyList());
+            return getProject()
+                .getInfo()
+                .getData()
+                .find(name, scenario.getName())
+                .map(
+                    di ->
+                        di.getTags() == null
+                            ? Collections.<String>emptyList()
+                            : di
+                                .getTags()
+                                .stream()
+                                .filter(Objects::nonNull)
+                                .map(t -> t.getValue())
+                                .filter(v -> v != null && !v.isEmpty())
+                                .collect(java.util.stream.Collectors.toList())
+                )
+                .orElse(Collections.emptyList());
         } catch (Exception ignored) {
             return Collections.emptyList();
         }

@@ -1,19 +1,18 @@
 package com.ing.datalib.or.yaml;
 
-import com.ing.datalib.or.common.ORAttribute;
-import com.ing.datalib.or.common.ObjectGroup;
-import com.ing.datalib.or.mobile.MobileORObject;
-import com.ing.datalib.or.mobile.MobilePlatform;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
+import com.fasterxml.jackson.annotation.JsonSetter;
 import com.ing.datalib.or.common.ORAttribute;
+import com.ing.datalib.or.common.ORAttribute;
+import com.ing.datalib.or.common.ObjectGroup;
 import com.ing.datalib.or.common.ObjectGroup;
 import com.ing.datalib.or.mobile.MobileOR;
 import com.ing.datalib.or.mobile.MobileORObject;
-import com.fasterxml.jackson.annotation.JsonSetter;
-
+import com.ing.datalib.or.mobile.MobileORObject;
+import com.ing.datalib.or.mobile.MobilePlatform;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -40,27 +39,46 @@ import java.util.List;
  * top-level fields are migrated into both platform blocks on read.
  */
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
-@JsonPropertyOrder({"android", "ios"})
+@JsonPropertyOrder({ "android", "ios" })
 public class YamlMobileElementDefinition {
-
     private PlatformLocators android;
     private PlatformLocators ios;
 
     // ---- Legacy flat fields, retained for backward-compat read only. ----
-    @JsonIgnore private String uiAutomator;
-    @JsonIgnore private String uiAutomation;
-    @JsonIgnore private String id;
-    @JsonIgnore private String accessibility;
-    @JsonIgnore private String xpath;
-    @JsonIgnore private String css;
-    @JsonIgnore private String name;
-    @JsonIgnore private String tagName;
-    @JsonIgnore private String linkText;
-    @JsonIgnore private String className;
-    @JsonIgnore private List<String> exact;
+    @JsonIgnore
+    private String uiAutomator;
 
-    public YamlMobileElementDefinition() {
-    }
+    @JsonIgnore
+    private String uiAutomation;
+
+    @JsonIgnore
+    private String id;
+
+    @JsonIgnore
+    private String accessibility;
+
+    @JsonIgnore
+    private String xpath;
+
+    @JsonIgnore
+    private String css;
+
+    @JsonIgnore
+    private String name;
+
+    @JsonIgnore
+    private String tagName;
+
+    @JsonIgnore
+    private String linkText;
+
+    @JsonIgnore
+    private String className;
+
+    @JsonIgnore
+    private List<String> exact;
+
+    public YamlMobileElementDefinition() {}
 
     // =================== Nested platform blocks ===================
 
@@ -86,10 +104,14 @@ public class YamlMobileElementDefinition {
     // platform block.
 
     @JsonSetter("uiAutomator")
-    public void setUiAutomator(String v) { ensureAndroid().setUiAutomator(v); }
+    public void setUiAutomator(String v) {
+        ensureAndroid().setUiAutomator(v);
+    }
 
     @JsonSetter("uiAutomation")
-    public void setUiAutomation(String v) { ensureIos().setUiAutomation(v); }
+    public void setUiAutomation(String v) {
+        ensureIos().setUiAutomation(v);
+    }
 
     @JsonSetter("id")
     public void setId(String v) {
@@ -180,7 +202,6 @@ public class YamlMobileElementDefinition {
         return yaml;
     }
 
-
     /**
      * Convert YamlMobileElementDefinition to a MobileORObject.
      */
@@ -200,8 +221,7 @@ public class YamlMobileElementDefinition {
      */
     @JsonIgnore
     public boolean isEmpty() {
-        return (android == null || android.isEmpty())
-            && (ios == null || ios.isEmpty());
+        return (android == null || android.isEmpty()) && (ios == null || ios.isEmpty());
     }
 
     /**
@@ -230,10 +250,22 @@ public class YamlMobileElementDefinition {
     // Per-platform locator block
     // =================================================================
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
-    @JsonPropertyOrder({"uiAutomator", "uiAutomation", "id", "accessibility",
-                        "xpath", "css", "name", "tagName", "linkText", "className", "exact"})
+    @JsonPropertyOrder(
+        {
+            "uiAutomator",
+            "uiAutomation",
+            "id",
+            "accessibility",
+            "xpath",
+            "css",
+            "name",
+            "tagName",
+            "linkText",
+            "className",
+            "exact"
+        }
+    )
     public static class PlatformLocators {
-
         private String uiAutomator;
         private String uiAutomation;
         private String id;
@@ -242,47 +274,104 @@ public class YamlMobileElementDefinition {
         private String css;
         private String name;
         private String tagName;
+
         @JsonProperty("linkText")
         private String linkText;
+
         @JsonProperty("className")
         private String className;
+
         private List<String> exact;
 
-        public PlatformLocators() {
+        public PlatformLocators() {}
+
+        public String getUiAutomator() {
+            return uiAutomator;
         }
 
-        public String getUiAutomator() { return uiAutomator; }
-        public void setUiAutomator(String v) { this.uiAutomator = v; }
+        public void setUiAutomator(String v) {
+            this.uiAutomator = v;
+        }
 
-        public String getUiAutomation() { return uiAutomation; }
-        public void setUiAutomation(String v) { this.uiAutomation = v; }
+        public String getUiAutomation() {
+            return uiAutomation;
+        }
 
-        public String getId() { return id; }
-        public void setId(String v) { this.id = v; }
+        public void setUiAutomation(String v) {
+            this.uiAutomation = v;
+        }
 
-        public String getAccessibility() { return accessibility; }
-        public void setAccessibility(String v) { this.accessibility = v; }
+        public String getId() {
+            return id;
+        }
 
-        public String getXpath() { return xpath; }
-        public void setXpath(String v) { this.xpath = v; }
+        public void setId(String v) {
+            this.id = v;
+        }
 
-        public String getCss() { return css; }
-        public void setCss(String v) { this.css = v; }
+        public String getAccessibility() {
+            return accessibility;
+        }
 
-        public String getName() { return name; }
-        public void setName(String v) { this.name = v; }
+        public void setAccessibility(String v) {
+            this.accessibility = v;
+        }
 
-        public String getTagName() { return tagName; }
-        public void setTagName(String v) { this.tagName = v; }
+        public String getXpath() {
+            return xpath;
+        }
 
-        public String getLinkText() { return linkText; }
-        public void setLinkText(String v) { this.linkText = v; }
+        public void setXpath(String v) {
+            this.xpath = v;
+        }
 
-        public String getClassName() { return className; }
-        public void setClassName(String v) { this.className = v; }
+        public String getCss() {
+            return css;
+        }
 
-        public List<String> getExact() { return exact; }
-        public void setExact(List<String> exact) { this.exact = exact; }
+        public void setCss(String v) {
+            this.css = v;
+        }
+
+        public String getName() {
+            return name;
+        }
+
+        public void setName(String v) {
+            this.name = v;
+        }
+
+        public String getTagName() {
+            return tagName;
+        }
+
+        public void setTagName(String v) {
+            this.tagName = v;
+        }
+
+        public String getLinkText() {
+            return linkText;
+        }
+
+        public void setLinkText(String v) {
+            this.linkText = v;
+        }
+
+        public String getClassName() {
+            return className;
+        }
+
+        public void setClassName(String v) {
+            this.className = v;
+        }
+
+        public List<String> getExact() {
+            return exact;
+        }
+
+        public void setExact(List<String> exact) {
+            this.exact = exact;
+        }
 
         public void addExact(String name) {
             if (this.exact == null) {
@@ -299,11 +388,18 @@ public class YamlMobileElementDefinition {
 
         @JsonIgnore
         public boolean isEmpty() {
-            return isNullOrEmpty(uiAutomator) && isNullOrEmpty(uiAutomation)
-                && isNullOrEmpty(id) && isNullOrEmpty(accessibility)
-                && isNullOrEmpty(xpath) && isNullOrEmpty(css)
-                && isNullOrEmpty(name) && isNullOrEmpty(tagName)
-                && isNullOrEmpty(linkText) && isNullOrEmpty(className);
+            return (
+                isNullOrEmpty(uiAutomator) &&
+                isNullOrEmpty(uiAutomation) &&
+                isNullOrEmpty(id) &&
+                isNullOrEmpty(accessibility) &&
+                isNullOrEmpty(xpath) &&
+                isNullOrEmpty(css) &&
+                isNullOrEmpty(name) &&
+                isNullOrEmpty(tagName) &&
+                isNullOrEmpty(linkText) &&
+                isNullOrEmpty(className)
+            );
         }
 
         private static boolean isNullOrEmpty(String s) {
@@ -321,17 +417,38 @@ public class YamlMobileElementDefinition {
                     continue;
                 }
                 switch (attr.getName()) {
-                    case "UiAutomator":   p.uiAutomator = value; break;
-                    case "UiAutomation":  p.uiAutomation = value; break;
-                    case "id":            p.id = value; break;
-                    case "Accessibility": p.accessibility = value; break;
-                    case "xpath":         p.xpath = value; break;
-                    case "css":           p.css = value; break;
-                    case "name":          p.name = value; break;
-                    case "tagName":       p.tagName = value; break;
-                    case "link_text":     p.linkText = value; break;
-                    case "class":         p.className = value; break;
-                    default: break; // ignore unknown
+                    case "UiAutomator":
+                        p.uiAutomator = value;
+                        break;
+                    case "UiAutomation":
+                        p.uiAutomation = value;
+                        break;
+                    case "id":
+                        p.id = value;
+                        break;
+                    case "Accessibility":
+                        p.accessibility = value;
+                        break;
+                    case "xpath":
+                        p.xpath = value;
+                        break;
+                    case "css":
+                        p.css = value;
+                        break;
+                    case "name":
+                        p.name = value;
+                        break;
+                    case "tagName":
+                        p.tagName = value;
+                        break;
+                    case "link_text":
+                        p.linkText = value;
+                        break;
+                    case "class":
+                        p.className = value;
+                        break;
+                    default:
+                        break; // ignore unknown
                 }
                 if (attr.isExact()) {
                     p.addExact(attr.getName());
@@ -341,20 +458,25 @@ public class YamlMobileElementDefinition {
         }
 
         void applyTo(MobileORObject obj, MobilePlatform platform) {
-            setAttr(obj, platform, "UiAutomator",   uiAutomator,   isExact("uiautomator"));
-            setAttr(obj, platform, "UiAutomation",  uiAutomation,  isExact("uiautomation"));
-            setAttr(obj, platform, "id",            id,            isExact("id"));
+            setAttr(obj, platform, "UiAutomator", uiAutomator, isExact("uiautomator"));
+            setAttr(obj, platform, "UiAutomation", uiAutomation, isExact("uiautomation"));
+            setAttr(obj, platform, "id", id, isExact("id"));
             setAttr(obj, platform, "Accessibility", accessibility, isExact("accessibility"));
-            setAttr(obj, platform, "xpath",         xpath,         isExact("xpath"));
-            setAttr(obj, platform, "css",           css,           isExact("css"));
-            setAttr(obj, platform, "name",          name,          isExact("name"));
-            setAttr(obj, platform, "tagName",       tagName,       isExact("tagname"));
-            setAttr(obj, platform, "link_text",     linkText,      isExact("link_text"));
-            setAttr(obj, platform, "class",         className,     isExact("class"));
+            setAttr(obj, platform, "xpath", xpath, isExact("xpath"));
+            setAttr(obj, platform, "css", css, isExact("css"));
+            setAttr(obj, platform, "name", name, isExact("name"));
+            setAttr(obj, platform, "tagName", tagName, isExact("tagname"));
+            setAttr(obj, platform, "link_text", linkText, isExact("link_text"));
+            setAttr(obj, platform, "class", className, isExact("class"));
         }
 
-        private void setAttr(MobileORObject obj, MobilePlatform platform,
-                             String propName, String value, boolean exactMatch) {
+        private void setAttr(
+            MobileORObject obj,
+            MobilePlatform platform,
+            String propName,
+            String value,
+            boolean exactMatch
+        ) {
             ORAttribute attr = obj.getAttribute(platform, propName);
             if (attr != null && value != null && !value.isEmpty()) {
                 attr.setValue(value);

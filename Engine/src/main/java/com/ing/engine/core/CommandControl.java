@@ -268,9 +268,13 @@ public abstract class CommandControl {
             // Allow the OR lookup when an SD reference is present so the engine
             // resolves Object/Reference -> JsonPath/Xpath into `Data` for the
             // STRUCTUREDDATA actions.
-            if (SObject != null
-                    && ObjectName != null && !ObjectName.isEmpty()
-                    && Reference != null && !Reference.isEmpty()) {
+            if (
+                SObject != null &&
+                ObjectName != null &&
+                !ObjectName.isEmpty() &&
+                Reference != null &&
+                !Reference.isEmpty()
+            ) {
                 return true;
             }
         }

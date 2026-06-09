@@ -11,9 +11,8 @@ import com.fasterxml.jackson.annotation.JsonPropertyOrder;
  * default capability set is presented in the IDE).
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
-@JsonPropertyOrder({"Name", "LambdaTest", "Remote URL"})
+@JsonPropertyOrder({ "Name", "LambdaTest", "Remote URL" })
 public class Device {
-
     public static final String DEFAULT_REMOTE_URL = "http://127.0.0.1:4723/";
 
     @JsonProperty("Name")
@@ -25,8 +24,7 @@ public class Device {
     @JsonProperty("Remote URL")
     private String remoteUrl;
 
-    public Device() {
-    }
+    public Device() {}
 
     public Device(String name) {
         this.name = name;

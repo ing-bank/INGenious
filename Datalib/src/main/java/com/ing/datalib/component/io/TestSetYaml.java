@@ -10,9 +10,8 @@ import java.util.List;
  * YAML on-disk representation of a {@link com.ing.datalib.component.TestSet}.
  */
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
-@JsonPropertyOrder({"schemaVersion", "name", "release", "executions"})
+@JsonPropertyOrder({ "schemaVersion", "name", "release", "executions" })
 public class TestSetYaml {
-
     public static final int CURRENT_SCHEMA_VERSION = 1;
 
     @JsonProperty("schemaVersion")
@@ -27,25 +26,52 @@ public class TestSetYaml {
     @JsonProperty("executions")
     private List<ExecutionYaml> executions = new ArrayList<>();
 
-    public Integer getSchemaVersion() { return schemaVersion; }
-    public void setSchemaVersion(Integer schemaVersion) { this.schemaVersion = schemaVersion; }
+    public Integer getSchemaVersion() {
+        return schemaVersion;
+    }
 
-    public String getName() { return name; }
-    public void setName(String name) { this.name = name; }
+    public void setSchemaVersion(Integer schemaVersion) {
+        this.schemaVersion = schemaVersion;
+    }
 
-    public String getRelease() { return release; }
-    public void setRelease(String release) { this.release = release; }
+    public String getName() {
+        return name;
+    }
 
-    public List<ExecutionYaml> getExecutions() { return executions; }
+    public void setName(String name) {
+        this.name = name;
+    }
+
+    public String getRelease() {
+        return release;
+    }
+
+    public void setRelease(String release) {
+        this.release = release;
+    }
+
+    public List<ExecutionYaml> getExecutions() {
+        return executions;
+    }
+
     public void setExecutions(List<ExecutionYaml> executions) {
         this.executions = executions == null ? new ArrayList<>() : executions;
     }
 
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
-    @JsonPropertyOrder({"execute", "testScenario", "testCase", "iteration", "status",
-            "browser", "browserVersion", "platform"})
+    @JsonPropertyOrder(
+        {
+            "execute",
+            "testScenario",
+            "testCase",
+            "iteration",
+            "status",
+            "browser",
+            "browserVersion",
+            "platform"
+        }
+    )
     public static class ExecutionYaml {
-
         @JsonProperty("execute")
         private Boolean execute;
 
@@ -70,28 +96,68 @@ public class TestSetYaml {
         @JsonProperty("platform")
         private String platform;
 
-        public Boolean getExecute() { return execute; }
-        public void setExecute(Boolean execute) { this.execute = execute; }
+        public Boolean getExecute() {
+            return execute;
+        }
 
-        public String getTestScenario() { return testScenario; }
-        public void setTestScenario(String testScenario) { this.testScenario = testScenario; }
+        public void setExecute(Boolean execute) {
+            this.execute = execute;
+        }
 
-        public String getTestCase() { return testCase; }
-        public void setTestCase(String testCase) { this.testCase = testCase; }
+        public String getTestScenario() {
+            return testScenario;
+        }
 
-        public String getIteration() { return iteration; }
-        public void setIteration(String iteration) { this.iteration = iteration; }
+        public void setTestScenario(String testScenario) {
+            this.testScenario = testScenario;
+        }
 
-        public String getStatus() { return status; }
-        public void setStatus(String status) { this.status = status; }
+        public String getTestCase() {
+            return testCase;
+        }
 
-        public String getBrowser() { return browser; }
-        public void setBrowser(String browser) { this.browser = browser; }
+        public void setTestCase(String testCase) {
+            this.testCase = testCase;
+        }
 
-        public String getBrowserVersion() { return browserVersion; }
-        public void setBrowserVersion(String browserVersion) { this.browserVersion = browserVersion; }
+        public String getIteration() {
+            return iteration;
+        }
 
-        public String getPlatform() { return platform; }
-        public void setPlatform(String platform) { this.platform = platform; }
+        public void setIteration(String iteration) {
+            this.iteration = iteration;
+        }
+
+        public String getStatus() {
+            return status;
+        }
+
+        public void setStatus(String status) {
+            this.status = status;
+        }
+
+        public String getBrowser() {
+            return browser;
+        }
+
+        public void setBrowser(String browser) {
+            this.browser = browser;
+        }
+
+        public String getBrowserVersion() {
+            return browserVersion;
+        }
+
+        public void setBrowserVersion(String browserVersion) {
+            this.browserVersion = browserVersion;
+        }
+
+        public String getPlatform() {
+            return platform;
+        }
+
+        public void setPlatform(String platform) {
+            this.platform = platform;
+        }
     }
 }

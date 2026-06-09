@@ -278,17 +278,32 @@ public class Control {
         if (args == null || args.length == 0) return false;
 
         String firstArg = args[0].toLowerCase();
-        
+
         // New CLI subcommands & global flags
         String[] newCommands = {
-            "project", "scenario", "testcase", "testset",
-            "object", "objects", "or",
-            "data", "action", "actions",
-            "run", "report", "config", "server",
-            "shell", "interactive", "repl",
+            "project",
+            "scenario",
+            "testcase",
+            "testset",
+            "object",
+            "objects",
+            "or",
+            "data",
+            "action",
+            "actions",
+            "run",
+            "report",
+            "config",
+            "server",
+            "shell",
+            "interactive",
+            "repl",
             "help",
-            "--help", "-h",
-            "--version", "-v", "-V"
+            "--help",
+            "-h",
+            "--version",
+            "-v",
+            "-V"
         };
 
         for (String cmd : newCommands) {
@@ -334,18 +349,45 @@ public class Control {
         String platform = System.getProperty("os.name", "Unknown");
 
         System.out.println();
-        System.out.println("╔══════════════════════════════════════════════════════════════════════════════╗");
-        System.out.println("║                                                                              ║");
-        System.out.println("║   ██╗███╗   ██╗ ██████╗ ███████╗███╗   ██╗██╗ ██████╗ ██╗   ██╗███████╗      ║");
-        System.out.println("║   ██║████╗  ██║██╔════╝ ██╔════╝████╗  ██║██║██╔═══██╗██║   ██║██╔════╝      ║");
-        System.out.println("║   ██║██╔██╗ ██║██║  ███╗█████╗  ██╔██╗ ██║██║██║   ██║██║   ██║███████╗      ║");
-        System.out.println("║   ██║██║╚██╗██║██║   ██║██╔══╝  ██║╚██╗██║██║██║   ██║██║   ██║╚════██║      ║");
-        System.out.println("║   ██║██║ ╚████║╚██████╔╝███████╗██║ ╚████║██║╚██████╔╝╚██████╔╝███████║      ║");
-        System.out.println("║   ╚═╝╚═╝  ╚═══╝ ╚═════╝ ╚══════╝╚═╝  ╚═══╝╚═╝ ╚═════╝  ╚═════╝ ╚══════╝      ║");
-        System.out.println("║                                                                              ║");
-        System.out.println(formatVersionBannerLine("🚀 Test Automation Framework v" + com.ing.engine.constants.SystemDefaults.getBuildVersion()));
-        System.out.println("║                                                                              ║");
-        System.out.println("╚══════════════════════════════════════════════════════════════════════════════╝");
+        System.out.println(
+            "╔══════════════════════════════════════════════════════════════════════════════╗"
+        );
+        System.out.println(
+            "║                                                                              ║"
+        );
+        System.out.println(
+            "║   ██╗███╗   ██╗ ██████╗ ███████╗███╗   ██╗██╗ ██████╗ ██╗   ██╗███████╗      ║"
+        );
+        System.out.println(
+            "║   ██║████╗  ██║██╔════╝ ██╔════╝████╗  ██║██║██╔═══██╗██║   ██║██╔════╝      ║"
+        );
+        System.out.println(
+            "║   ██║██╔██╗ ██║██║  ███╗█████╗  ██╔██╗ ██║██║██║   ██║██║   ██║███████╗      ║"
+        );
+        System.out.println(
+            "║   ██║██║╚██╗██║██║   ██║██╔══╝  ██║╚██╗██║██║██║   ██║██║   ██║╚════██║      ║"
+        );
+        System.out.println(
+            "║   ██║██║ ╚████║╚██████╔╝███████╗██║ ╚████║██║╚██████╔╝╚██████╔╝███████║      ║"
+        );
+        System.out.println(
+            "║   ╚═╝╚═╝  ╚═══╝ ╚═════╝ ╚══════╝╚═╝  ╚═══╝╚═╝ ╚═════╝  ╚═════╝ ╚══════╝      ║"
+        );
+        System.out.println(
+            "║                                                                              ║"
+        );
+        System.out.println(
+            formatVersionBannerLine(
+                "🚀 Test Automation Framework v" +
+                com.ing.engine.constants.SystemDefaults.getBuildVersion()
+            )
+        );
+        System.out.println(
+            "║                                                                              ║"
+        );
+        System.out.println(
+            "╚══════════════════════════════════════════════════════════════════════════════╝"
+        );
         System.out.println();
         System.out.println(
             "══════════════════════════════════════════════════════════════════════════════"
@@ -381,5 +423,4 @@ public class Control {
         sb.append('║');
         return sb.toString();
     }
-
 }

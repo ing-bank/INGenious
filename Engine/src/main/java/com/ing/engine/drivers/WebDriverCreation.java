@@ -239,7 +239,10 @@ public class WebDriverCreation implements MobileDriverControlApi {
 
     public boolean isLambdaTestExecutionPlatform() {
         if (!runContext.BrowserName.equalsIgnoreCase("No Browser")) {
-            String url = Control.getCurrentProject().getProjectSettings().resolveRemoteUrl(runContext.BrowserName);
+            String url = Control
+                .getCurrentProject()
+                .getProjectSettings()
+                .resolveRemoteUrl(runContext.BrowserName);
             return url != null && url.endsWith("hub.lambdatest.com/wd/hub");
         } else {
             return false;

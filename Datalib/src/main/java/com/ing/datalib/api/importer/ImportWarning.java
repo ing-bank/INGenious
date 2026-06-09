@@ -6,10 +6,13 @@ import java.io.Serializable;
  * A non-fatal issue encountered while parsing or mapping an imported collection.
  */
 public class ImportWarning implements Serializable {
-
     private static final long serialVersionUID = 1L;
 
-    public enum Severity { INFO, WARN, ERROR }
+    public enum Severity {
+        INFO,
+        WARN,
+        ERROR
+    }
 
     private final Severity severity;
     private final String location;
@@ -33,9 +36,17 @@ public class ImportWarning implements Serializable {
         return new ImportWarning(Severity.ERROR, location, message);
     }
 
-    public Severity getSeverity() { return severity; }
-    public String getLocation() { return location; }
-    public String getMessage() { return message; }
+    public Severity getSeverity() {
+        return severity;
+    }
+
+    public String getLocation() {
+        return location;
+    }
+
+    public String getMessage() {
+        return message;
+    }
 
     @Override
     public String toString() {

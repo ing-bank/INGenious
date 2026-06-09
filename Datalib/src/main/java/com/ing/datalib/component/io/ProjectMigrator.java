@@ -35,7 +35,6 @@ import java.util.logging.Logger;
  * </ul>
  */
 public final class ProjectMigrator {
-
     private static final Logger LOGGER = Logger.getLogger(ProjectMigrator.class.getName());
 
     public static final String BACKUP_DIR = ".migration-backup";
@@ -72,30 +71,56 @@ public final class ProjectMigrator {
         File backupRoot = new File(projectRoot, BACKUP_DIR);
 
         // Test plan and reusable components — use TestCaseStore.
-        migrateFolderTree(new File(projectRoot, Project.TEST_PLAN_DIR), projectRoot, backupRoot,
-                TestCaseStoreFactory.csvTestCaseStore(), TestCaseStoreFactory.yamlTestCaseStore(),
-                /*testSet*/ false, dryRun, keepCsvBackup, result);
-        migrateFolderTree(new File(projectRoot, Project.REUSABLE_COMPONENTS_DIR), projectRoot, backupRoot,
-                TestCaseStoreFactory.csvTestCaseStore(), TestCaseStoreFactory.yamlTestCaseStore(),
-                /*testSet*/ false, dryRun, keepCsvBackup, result);
+        migrateFolderTree(
+            new File(projectRoot, Project.TEST_PLAN_DIR),
+            projectRoot,
+            backupRoot,
+            TestCaseStoreFactory.csvTestCaseStore(),
+            TestCaseStoreFactory.yamlTestCaseStore(),
+            /*testSet*/false,
+            dryRun,
+            keepCsvBackup,
+            result
+        );
+        migrateFolderTree(
+            new File(projectRoot, Project.REUSABLE_COMPONENTS_DIR),
+            projectRoot,
+            backupRoot,
+            TestCaseStoreFactory.csvTestCaseStore(),
+            TestCaseStoreFactory.yamlTestCaseStore(),
+            /*testSet*/false,
+            dryRun,
+            keepCsvBackup,
+            result
+        );
 
         // Test lab — use TestSetStore.
-        migrateFolderTree(new File(projectRoot, "TestLab"), projectRoot, backupRoot,
-                null, null,
-                /*testSet*/ true, dryRun, keepCsvBackup, result);
+        migrateFolderTree(
+            new File(projectRoot, "TestLab"),
+            projectRoot,
+            backupRoot,
+            null,
+            null,
+            /*testSet*/true,
+            dryRun,
+            keepCsvBackup,
+            result
+        );
 
         return result;
     }
 
-    private static void migrateFolderTree(File root,
-                                          File projectRoot,
-                                          File backupRoot,
-                                          TestCaseStore csvTc,
-                                          TestCaseStore yamlTc,
-                                          boolean testSet,
-                                          boolean dryRun,
-                                          boolean keepCsvBackup,
-                                          Result result) {
+    private static void migrateFolderTree(
+        File root,
+        File projectRoot,
+        File backupRoot,
+        TestCaseStore csvTc,
+        TestCaseStore yamlTc,
+        boolean testSet,
+        boolean dryRun,
+        boolean keepCsvBackup,
+        Result result
+    ) {
         if (root == null || !root.isDirectory()) {
             return;
         }
@@ -105,24 +130,44 @@ public final class ProjectMigrator {
         }
         for (File child : children) {
             if (child.isDirectory()) {
-                migrateFolderTree(child, projectRoot, backupRoot, csvTc, yamlTc, testSet,
-                        dryRun, keepCsvBackup, result);
+                migrateFolderTree(
+                    child,
+                    projectRoot,
+                    backupRoot,
+                    csvTc,
+                    yamlTc,
+                    testSet,
+                    dryRun,
+                    keepCsvBackup,
+                    result
+                );
             } else if (TestCaseFormat.fromFile(child) == TestCaseFormat.CSV) {
-                migrateOneFile(child, projectRoot, backupRoot, csvTc, yamlTc, testSet,
-                        dryRun, keepCsvBackup, result);
+                migrateOneFile(
+                    child,
+                    projectRoot,
+                    backupRoot,
+                    csvTc,
+                    yamlTc,
+                    testSet,
+                    dryRun,
+                    keepCsvBackup,
+                    result
+                );
             }
         }
     }
 
-    private static void migrateOneFile(File csvFile,
-                                       File projectRoot,
-                                       File backupRoot,
-                                       TestCaseStore csvTc,
-                                       TestCaseStore yamlTc,
-                                       boolean testSet,
-                                       boolean dryRun,
-                                       boolean keepCsvBackup,
-                                       Result result) {
+    private static void migrateOneFile(
+        File csvFile,
+        File projectRoot,
+        File backupRoot,
+        TestCaseStore csvTc,
+        TestCaseStore yamlTc,
+        boolean testSet,
+        boolean dryRun,
+        boolean keepCsvBackup,
+        Result result
+    ) {
         String baseName = TestCaseFormat.stripExtension(csvFile.getName());
         File parent = csvFile.getParentFile();
         File yamlFile = new File(parent, baseName + TestCaseFormat.YAML.extension());
@@ -132,7 +177,10 @@ public final class ProjectMigrator {
             result.conflicts.add(csvFile);
             if (!dryRun) {
                 if (keepCsvBackup) {
-                    File dest = new File(new File(backupRoot, CONFLICTS_SUBDIR), relativize(projectRoot, csvFile));
+                    File dest = new File(
+                        new File(backupRoot, CONFLICTS_SUBDIR),
+                        relativize(projectRoot, csvFile)
+                    );
                     moveQuietly(csvFile, dest, result);
                 } else {
                     deleteQuietly(csvFile, result);
@@ -158,7 +206,7 @@ public final class ProjectMigrator {
             if (testSet) {
                 TestCaseStoreFactory.yamlTestSetStore().save(yamlFile, baseName, parentName, rows);
             } else {
-                yamlTc.save(yamlFile, baseName, parentName, /*reusable*/ false, /*tags*/ null, rows);
+                yamlTc.save(yamlFile, baseName, parentName, /*reusable*/false, /*tags*/null, rows);
             }
 
             // Round-trip verification.
@@ -232,7 +280,9 @@ public final class ProjectMigrator {
             }
             Files.move(src.toPath(), dest.toPath(), StandardCopyOption.REPLACE_EXISTING);
         } catch (IOException ex) {
-            result.errors.add("Failed to move " + src.getPath() + " -> " + dest.getPath() + ": " + ex.getMessage());
+            result.errors.add(
+                "Failed to move " + src.getPath() + " -> " + dest.getPath() + ": " + ex.getMessage()
+            );
             LOGGER.log(Level.WARNING, "Move failed", ex);
         }
     }

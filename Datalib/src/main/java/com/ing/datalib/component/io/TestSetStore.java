@@ -11,13 +11,10 @@ import java.util.List;
  * order so the in-memory model is independent of disk format.
  */
 public interface TestSetStore {
-
     TestCaseFormat format();
 
     List<List<String>> load(File file) throws IOException;
 
-    void save(File file,
-              String testSetName,
-              String releaseName,
-              List<List<String>> rows) throws IOException;
+    void save(File file, String testSetName, String releaseName, List<List<String>> rows)
+        throws IOException;
 }

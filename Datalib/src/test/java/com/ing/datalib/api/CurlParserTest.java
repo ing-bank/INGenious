@@ -1,9 +1,9 @@
 package com.ing.datalib.api;
 
-import org.testng.annotations.Test;
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
+
+import org.testng.annotations.Test;
 
 public class CurlParserTest {
 
@@ -30,7 +30,9 @@ public class CurlParserTest {
 
     @Test
     public void splitsQueryParameters() {
-        APIRequest r = CurlParser.parse("curl 'https://api.example.com/search?q=hello%20world&limit=10'");
+        APIRequest r = CurlParser.parse(
+            "curl 'https://api.example.com/search?q=hello%20world&limit=10'"
+        );
         assertThat(r.getUrl()).isEqualTo("https://api.example.com/search");
         assertThat(r.getQueryParams()).hasSize(2);
         assertThat(r.getQueryParams().get(0).getKey()).isEqualTo("q");
@@ -41,10 +43,11 @@ public class CurlParserTest {
 
     @Test
     public void parsesHeadersAndJsonPostWithLineContinuations() {
-        String cmd = "curl -X POST https://api.example.com/users \\\n"
-                + "  -H 'Content-Type: application/json' \\\n"
-                + "  -H \"X-Trace: abc-123\" \\\n"
-                + "  --data-raw '{\"name\":\"Ada\",\"age\":36}'";
+        String cmd =
+            "curl -X POST https://api.example.com/users \\\n" +
+            "  -H 'Content-Type: application/json' \\\n" +
+            "  -H \"X-Trace: abc-123\" \\\n" +
+            "  --data-raw '{\"name\":\"Ada\",\"age\":36}'";
         APIRequest r = CurlParser.parse(cmd);
         assertThat(r.getMethod()).isEqualTo(APIRequest.HttpMethod.POST);
         assertThat(r.getUrl()).isEqualTo("https://api.example.com/users");
@@ -73,7 +76,9 @@ public class CurlParserTest {
 
     @Test
     public void parsesFormFlagsAsMultipart() {
-        APIRequest r = CurlParser.parse("curl -X POST https://x.test -F 'file=@/tmp/x.png' -F name=Ada");
+        APIRequest r = CurlParser.parse(
+            "curl -X POST https://x.test -F 'file=@/tmp/x.png' -F name=Ada"
+        );
         assertThat(r.getBody().getBodyType()).isEqualTo(RequestBody.BodyType.FORM_DATA);
         assertThat(r.getBody().getFormData()).hasSize(2);
         assertThat(r.getBody().getFormData().get(0).getKey()).isEqualTo("file");
@@ -85,7 +90,8 @@ public class CurlParserTest {
     @Test
     public void parsesUrlEncodedFlags() {
         APIRequest r = CurlParser.parse(
-                "curl https://x.test --data-urlencode 'q=hello world' --data-urlencode lang=en");
+            "curl https://x.test --data-urlencode 'q=hello world' --data-urlencode lang=en"
+        );
         assertThat(r.getBody().getBodyType()).isEqualTo(RequestBody.BodyType.URL_ENCODED);
         assertThat(r.getBody().getUrlEncodedData()).hasSize(2);
         assertThat(r.getBody().getUrlEncodedData().get(0).getKey()).isEqualTo("q");
@@ -94,7 +100,9 @@ public class CurlParserTest {
 
     @Test
     public void promotesBearerAuthorizationHeader() {
-        APIRequest r = CurlParser.parse("curl https://x.test -H 'Authorization: Bearer abc.def.ghi'");
+        APIRequest r = CurlParser.parse(
+            "curl https://x.test -H 'Authorization: Bearer abc.def.ghi'"
+        );
         assertThat(r.getAuth()).isNotNull();
         assertThat(r.getAuth().getAuthType()).isEqualTo(AuthConfig.AuthType.BEARER);
         assertThat(r.getAuth().getBearerToken()).isEqualTo("abc.def.ghi");
@@ -138,6 +146,6 @@ public class CurlParserTest {
     @Test
     public void rejectsNonCurlInput() {
         assertThatThrownBy(() -> CurlParser.parse("wget https://x.test"))
-                .isInstanceOf(IllegalArgumentException.class);
+            .isInstanceOf(IllegalArgumentException.class);
     }
 }

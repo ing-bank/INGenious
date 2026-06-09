@@ -28,12 +28,11 @@ import java.util.logging.Logger;
  * }</pre>
  */
 public final class Silencer implements AutoCloseable {
-
     /** Loggers known to be chatty during project metadata loading. */
     private static final String[] DATALIB_LOGGERS = {
-            "com.ing.datalib",
-            "com.ing.datalib.or.yaml.YamlORReader",
-            "com.ing.datalib.settings"
+        "com.ing.datalib",
+        "com.ing.datalib.or.yaml.YamlORReader",
+        "com.ing.datalib.settings"
     };
 
     private final PrintStream origOut;

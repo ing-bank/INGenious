@@ -6,7 +6,6 @@ import java.io.Serializable;
  * User-selected options that drive {@code ReusableImportEngine}.
  */
 public class ImportOptions implements Serializable {
-
     private static final long serialVersionUID = 1L;
 
     public enum HierarchyStrategy {
@@ -43,21 +42,51 @@ public class ImportOptions implements Serializable {
     private String targetScenarioName;
     private boolean importEnvironments = true;
 
-    public HierarchyStrategy getHierarchyStrategy() { return hierarchyStrategy; }
-    public void setHierarchyStrategy(HierarchyStrategy s) { this.hierarchyStrategy = s; }
+    public HierarchyStrategy getHierarchyStrategy() {
+        return hierarchyStrategy;
+    }
 
-    public ConflictPolicy getConflictPolicy() { return conflictPolicy; }
-    public void setConflictPolicy(ConflictPolicy p) { this.conflictPolicy = p; }
+    public void setHierarchyStrategy(HierarchyStrategy s) {
+        this.hierarchyStrategy = s;
+    }
 
-    public TargetType getTargetType() { return targetType; }
-    public void setTargetType(TargetType targetType) { this.targetType = targetType; }
+    public ConflictPolicy getConflictPolicy() {
+        return conflictPolicy;
+    }
 
-    public String getScenarioPrefix() { return scenarioPrefix; }
-    public void setScenarioPrefix(String scenarioPrefix) { this.scenarioPrefix = scenarioPrefix; }
+    public void setConflictPolicy(ConflictPolicy p) {
+        this.conflictPolicy = p;
+    }
 
-    public String getTargetScenarioName() { return targetScenarioName; }
-    public void setTargetScenarioName(String targetScenarioName) { this.targetScenarioName = targetScenarioName; }
+    public TargetType getTargetType() {
+        return targetType;
+    }
 
-    public boolean isImportEnvironments() { return importEnvironments; }
-    public void setImportEnvironments(boolean importEnvironments) { this.importEnvironments = importEnvironments; }
+    public void setTargetType(TargetType targetType) {
+        this.targetType = targetType;
+    }
+
+    public String getScenarioPrefix() {
+        return scenarioPrefix;
+    }
+
+    public void setScenarioPrefix(String scenarioPrefix) {
+        this.scenarioPrefix = scenarioPrefix;
+    }
+
+    public String getTargetScenarioName() {
+        return targetScenarioName;
+    }
+
+    public void setTargetScenarioName(String targetScenarioName) {
+        this.targetScenarioName = targetScenarioName;
+    }
+
+    public boolean isImportEnvironments() {
+        return importEnvironments;
+    }
+
+    public void setImportEnvironments(boolean importEnvironments) {
+        this.importEnvironments = importEnvironments;
+    }
 }

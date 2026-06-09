@@ -14,7 +14,6 @@ import java.util.List;
  * regardless of on-disk format.
  */
 public interface TestCaseStore {
-
     /** Format handled by this store. */
     TestCaseFormat format();
 
@@ -35,10 +34,13 @@ public interface TestCaseStore {
      * @param tags         optional metadata tags (may be null/empty)
      * @param rows         step rows in {@link com.ing.datalib.component.TestStep.HEADERS} order
      */
-    void save(File file,
-              String testCaseName,
-              String scenarioName,
-              boolean reusable,
-              List<String> tags,
-              List<List<String>> rows) throws IOException;
+    void save(
+        File file,
+        String testCaseName,
+        String scenarioName,
+        boolean reusable,
+        List<String> tags,
+        List<List<String>> rows
+    )
+        throws IOException;
 }

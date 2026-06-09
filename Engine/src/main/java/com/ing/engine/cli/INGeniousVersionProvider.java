@@ -23,29 +23,61 @@ public class INGeniousVersionProvider implements IVersionProvider {
         boolean color = useColor();
 
         String purple = color ? "\u001b[38;2;119;36;255m" : "";
-        String light  = color ? "\u001b[38;2;180;140;255m" : "";
-        String bold   = color ? "\u001b[1m" : "";
-        String dim    = color ? "\u001b[2m" : "";
-        String cyan   = color ? "\u001B[36m" : "";
-        String reset  = color ? "\u001b[0m" : "";
+        String light = color ? "\u001b[38;2;180;140;255m" : "";
+        String bold = color ? "\u001b[1m" : "";
+        String dim = color ? "\u001b[2m" : "";
+        String cyan = color ? "\u001B[36m" : "";
+        String reset = color ? "\u001b[0m" : "";
 
-        String version  = SystemDefaults.getBuildVersion();
-        String javaVer  = System.getProperty("java.version", "?");
+        String version = SystemDefaults.getBuildVersion();
+        String javaVer = System.getProperty("java.version", "?");
         String javaVend = System.getProperty("java.vendor", "?");
-        String osName   = System.getProperty("os.name", "?");
-        String osArch   = System.getProperty("os.arch", "?");
+        String osName = System.getProperty("os.name", "?");
+        String osArch = System.getProperty("os.arch", "?");
 
         return new String[] {
             "",
-            "  " + bold + purple + "INGenious" + reset + " "
-                + bold + light + "CLI" + reset + "  "
-                + dim + "v" + reset + bold + version + reset,
+            "  " +
+            bold +
+            purple +
+            "INGenious" +
+            reset +
+            " " +
+            bold +
+            light +
+            "CLI" +
+            reset +
+            "  " +
+            dim +
+            "v" +
+            reset +
+            bold +
+            version +
+            reset,
             "",
             "  " + dim + "Build  :" + reset + " " + version,
-            "  " + dim + "Java   :" + reset + " " + javaVer + " " + dim + "(" + javaVend + ")" + reset,
+            "  " +
+            dim +
+            "Java   :" +
+            reset +
+            " " +
+            javaVer +
+            " " +
+            dim +
+            "(" +
+            javaVend +
+            ")" +
+            reset,
             "  " + dim + "OS     :" + reset + " " + osName + " " + dim + osArch + reset,
             "",
-            "  " + cyan + "→" + reset + " " + dim + "https://github.com/INGenious-Test-Automation" + reset,
+            "  " +
+            cyan +
+            "→" +
+            reset +
+            " " +
+            dim +
+            "https://github.com/INGenious-Test-Automation" +
+            reset,
             ""
         };
     }

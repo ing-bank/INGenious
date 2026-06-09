@@ -1,7 +1,11 @@
 package com.ing.datalib.or.mobile;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonSetter;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.ing.datalib.component.utils.FileUtils;
 import com.ing.datalib.or.common.ORAttribute;
@@ -9,10 +13,6 @@ import com.ing.datalib.or.common.ORObjectInf;
 import com.ing.datalib.or.common.ORUtils;
 import com.ing.datalib.or.common.ObjectGroup;
 import com.ing.datalib.undoredo.UndoRedoModel;
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonSetter;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -183,7 +183,10 @@ public class MobileORObject extends UndoRedoModel implements ORObjectInf {
     }
 
     @JsonIgnore
-    private static List<ORAttribute> buildFromLegacy(List<ORAttribute> legacy, List<String> defaults) {
+    private static List<ORAttribute> buildFromLegacy(
+        List<ORAttribute> legacy,
+        List<String> defaults
+    ) {
         List<ORAttribute> result = buildDefaults(defaults);
         for (ORAttribute src : legacy) {
             if (src == null || src.getName() == null) {
@@ -727,14 +730,22 @@ public class MobileORObject extends UndoRedoModel implements ORObjectInf {
     public Boolean isEqualOf(ORObjectInf obj) {
         MobileORObject object = (MobileORObject) obj;
         for (ORAttribute attribute : getAttributes(MobilePlatform.ANDROID)) {
-            if (!Objects.equals(attribute.getValue(),
-                    object.getAttributeByName(MobilePlatform.ANDROID, attribute.getName()))) {
+            if (
+                !Objects.equals(
+                    attribute.getValue(),
+                    object.getAttributeByName(MobilePlatform.ANDROID, attribute.getName())
+                )
+            ) {
                 return false;
             }
         }
         for (ORAttribute attribute : getAttributes(MobilePlatform.IOS)) {
-            if (!Objects.equals(attribute.getValue(),
-                    object.getAttributeByName(MobilePlatform.IOS, attribute.getName()))) {
+            if (
+                !Objects.equals(
+                    attribute.getValue(),
+                    object.getAttributeByName(MobilePlatform.IOS, attribute.getName())
+                )
+            ) {
                 return false;
             }
         }

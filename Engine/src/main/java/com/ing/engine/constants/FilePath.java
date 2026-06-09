@@ -4,24 +4,23 @@ import com.ing.engine.core.RunManager;
 import java.io.File;
 
 public class FilePath extends AppResourcePath {
-
-    private final static String OR = "OR.object";
-    private final static String IOR = "IOR.object";
-    private final static String MOR = "MOR.object";
+    private static final String OR = "OR.object";
+    private static final String IOR = "IOR.object";
+    private static final String MOR = "MOR.object";
     /**
      * Legacy fallback extension. Use {@link #resolveExtension(String)} or the
      * {@code getTestCasePath} / {@code getTestSetPath} overloads to honour
      * YAML files written by the new test case format.
      */
-    private final static String FORMAT = ".csv";
-    private final static String YAML_FORMAT = ".yaml";
-    private final static String YML_FORMAT = ".yml";
-    private final static String DESIGN = "TestPlan";
-    private final static String REUSABLE = "ReusableComponents";
-    private final static String EXECUTION = "TestLab";
-    private final static String IOR_DATA = "ImageObjectRepository";
-    private final static String OR_DATA = "ObjectRepository";
-    private final static String PAGEDUMP = "PageDump";
+    private static final String FORMAT = ".csv";
+    private static final String YAML_FORMAT = ".yaml";
+    private static final String YML_FORMAT = ".yml";
+    private static final String DESIGN = "TestPlan";
+    private static final String REUSABLE = "ReusableComponents";
+    private static final String EXECUTION = "TestLab";
+    private static final String IOR_DATA = "ImageObjectRepository";
+    private static final String OR_DATA = "ObjectRepository";
+    private static final String PAGEDUMP = "PageDump";
 
     private static final String PROJ_SETT = "Settings";
     private static final String SETT_EXECUTION = "TestExecution";

@@ -9,7 +9,6 @@ import java.util.List;
 
 /** YAML implementation of {@link TestSetStore}. */
 public class YamlTestSetStore implements TestSetStore {
-
     private final ObjectMapper mapper;
 
     public YamlTestSetStore() {
@@ -38,10 +37,8 @@ public class YamlTestSetStore implements TestSetStore {
     }
 
     @Override
-    public void save(File file,
-                     String testSetName,
-                     String releaseName,
-                     List<List<String>> rows) throws IOException {
+    public void save(File file, String testSetName, String releaseName, List<List<String>> rows)
+        throws IOException {
         CsvTestCaseStore.ensureParent(file);
 
         TestSetYaml yaml = new TestSetYaml();
@@ -63,13 +60,19 @@ public class YamlTestSetStore implements TestSetStore {
         for (int i = 0; i < size; i++) {
             row.add("");
         }
-        row.set(HEADERS.Execute.getIndex(), ex.getExecute() == null ? "true" : String.valueOf(ex.getExecute()));
+        row.set(
+            HEADERS.Execute.getIndex(),
+            ex.getExecute() == null ? "true" : String.valueOf(ex.getExecute())
+        );
         row.set(HEADERS.TestScenario.getIndex(), nullToEmpty(ex.getTestScenario()));
         row.set(HEADERS.TestCase.getIndex(), nullToEmpty(ex.getTestCase()));
         row.set(HEADERS.Iteration.getIndex(), defaultIfEmpty(ex.getIteration(), "Single"));
         row.set(HEADERS.Status.getIndex(), defaultIfEmpty(ex.getStatus(), "NoRun"));
         row.set(HEADERS.Browser.getIndex(), nullToEmpty(ex.getBrowser()));
-        row.set(HEADERS.BrowserVersion.getIndex(), defaultIfEmpty(ex.getBrowserVersion(), "Default"));
+        row.set(
+            HEADERS.BrowserVersion.getIndex(),
+            defaultIfEmpty(ex.getBrowserVersion(), "Default")
+        );
         row.set(HEADERS.Platform.getIndex(), defaultIfEmpty(ex.getPlatform(), "Any"));
         return row;
     }

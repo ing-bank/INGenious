@@ -19,10 +19,8 @@ public class CsvTestSetStore implements TestSetStore {
     }
 
     @Override
-    public void save(File file,
-                     String testSetName,
-                     String releaseName,
-                     List<List<String>> rows) throws IOException {
+    public void save(File file, String testSetName, String releaseName, List<List<String>> rows)
+        throws IOException {
         CsvTestCaseStore.writeRows(file, ExecutionStep.HEADERS.getValues(), rows);
     }
 }

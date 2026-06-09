@@ -6,13 +6,11 @@ import com.ing.datalib.settings.Devices;
 import com.ing.datalib.settings.Emulators;
 import com.ing.datalib.settings.emulators.Device;
 import com.ing.datalib.settings.emulators.Emulator;
-
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Comparator;
-
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
@@ -21,7 +19,6 @@ import org.testng.annotations.Test;
  * Tests for the one-time Emulators.json -> Devices.json migration.
  */
 public class EmulatorToDeviceMigrationTest {
-
     private Path tempDir;
 
     @BeforeMethod
@@ -32,10 +29,11 @@ public class EmulatorToDeviceMigrationTest {
     @AfterMethod
     public void tearDown() throws IOException {
         if (tempDir != null) {
-            Files.walk(tempDir)
-                    .sorted(Comparator.reverseOrder())
-                    .map(Path::toFile)
-                    .forEach(File::delete);
+            Files
+                .walk(tempDir)
+                .sorted(Comparator.reverseOrder())
+                .map(Path::toFile)
+                .forEach(File::delete);
         }
     }
 

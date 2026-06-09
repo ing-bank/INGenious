@@ -106,7 +106,10 @@ public class WebDriverFactory {
                     ltOptions.put(capability, typedValue);
                     appliedCaps.put("lt:options." + capability, String.valueOf(typedValue));
                 } else {
-                    if (capability.contains("platformName") || capability.toLowerCase().contains("browsername")) {
+                    if (
+                        capability.contains("platformName") ||
+                        capability.toLowerCase().contains("browsername")
+                    ) {
                         caps.setCapability(capability, typedValue);
                         appliedCaps.put(capability, String.valueOf(typedValue));
                     } else {
@@ -132,7 +135,12 @@ public class WebDriverFactory {
             caps.setCapability("lt:options", ltOptions);
         }
 
-        logConnectionDetails(context.BrowserName, resolveCapabilitySource(context.BrowserName, settings), url, appliedCaps);
+        logConnectionDetails(
+            context.BrowserName,
+            resolveCapabilitySource(context.BrowserName, settings),
+            url,
+            appliedCaps
+        );
         return caps;
     }
 
@@ -158,7 +166,8 @@ public class WebDriverFactory {
      * the value would otherwise fit in an {@code int}.
      */
     private static final java.util.Set<String> LONG_ONLY_CAPABILITIES = new java.util.HashSet<>(
-            java.util.Arrays.asList("waitforidletimeout"));
+        java.util.Arrays.asList("waitforidletimeout")
+    );
 
     /**
      * Convert a raw capability string into the most appropriate JSON type.
@@ -179,8 +188,8 @@ public class WebDriverFactory {
         if (v.isEmpty()) {
             return v;
         }
-        boolean longOnly = capability != null
-                && LONG_ONLY_CAPABILITIES.contains(capability.toLowerCase());
+        boolean longOnly =
+            capability != null && LONG_ONLY_CAPABILITIES.contains(capability.toLowerCase());
         if (longOnly) {
             if (v.matches("-?\\d+")) {
                 try {
@@ -258,11 +267,15 @@ public class WebDriverFactory {
         return "Unknown";
     }
 
-    private static void logConnectionDetails(String name, String source, String url,
-            java.util.LinkedHashMap<String, String> caps) {
+    private static void logConnectionDetails(
+        String name,
+        String source,
+        String url,
+        java.util.LinkedHashMap<String, String> caps
+    ) {
         final int width = 78;
-        String top    = "┌" + repeat("─", width) + "┐";
-        String mid    = "├" + repeat("─", width) + "┤";
+        String top = "┌" + repeat("─", width) + "┐";
+        String mid = "├" + repeat("─", width) + "┤";
         String bottom = "└" + repeat("─", width) + "┘";
 
         StringBuilder sb = new StringBuilder();
@@ -271,11 +284,20 @@ public class WebDriverFactory {
         sb.append(mid).append('\n');
         sb.append(padLine("  Device / Browser : " + nullSafe(name), width)).append('\n');
         sb.append(padLine("  Source           : " + nullSafe(source), width)).append('\n');
-        sb.append(padLine("  Remote URL       : " + nullSafe(maskUrlCredentials(url)), width)).append('\n');
+        sb
+            .append(padLine("  Remote URL       : " + nullSafe(maskUrlCredentials(url)), width))
+            .append('\n');
         sb.append(mid).append('\n');
         sb.append(padLine("  Capabilities (" + caps.size() + "):", width)).append('\n');
         for (java.util.Map.Entry<String, String> e : caps.entrySet()) {
-            sb.append(padLine("   \u2022 " + padRight(e.getKey(), 28) + " : " + nullSafe(e.getValue()), width)).append('\n');
+            sb
+                .append(
+                    padLine(
+                        "   \u2022 " + padRight(e.getKey(), 28) + " : " + nullSafe(e.getValue()),
+                        width
+                    )
+                )
+                .append('\n');
         }
         sb.append(bottom);
         System.out.println(sb.toString());
@@ -350,7 +372,8 @@ public class WebDriverFactory {
      * the value would otherwise fit in an {@code int}.
      */
     private static final java.util.Set<String> LONG_ONLY_CAPABILITIES = new java.util.HashSet<>(
-            java.util.Arrays.asList("waitforidletimeout"));
+        java.util.Arrays.asList("waitforidletimeout")
+    );
 
     /**
      * Convert a raw capability string into the most appropriate JSON type.
@@ -371,8 +394,8 @@ public class WebDriverFactory {
         if (v.isEmpty()) {
             return v;
         }
-        boolean longOnly = capability != null
-                && LONG_ONLY_CAPABILITIES.contains(capability.toLowerCase());
+        boolean longOnly =
+            capability != null && LONG_ONLY_CAPABILITIES.contains(capability.toLowerCase());
         if (longOnly) {
             if (v.matches("-?\\d+")) {
                 try {
@@ -450,11 +473,15 @@ public class WebDriverFactory {
         return "Unknown";
     }
 
-    private static void logConnectionDetails(String name, String source, String url,
-            java.util.LinkedHashMap<String, String> caps) {
+    private static void logConnectionDetails(
+        String name,
+        String source,
+        String url,
+        java.util.LinkedHashMap<String, String> caps
+    ) {
         final int width = 78;
-        String top    = "┌" + repeat("─", width) + "┐";
-        String mid    = "├" + repeat("─", width) + "┤";
+        String top = "┌" + repeat("─", width) + "┐";
+        String mid = "├" + repeat("─", width) + "┤";
         String bottom = "└" + repeat("─", width) + "┘";
 
         StringBuilder sb = new StringBuilder();
@@ -463,11 +490,20 @@ public class WebDriverFactory {
         sb.append(mid).append('\n');
         sb.append(padLine("  Device / Browser : " + nullSafe(name), width)).append('\n');
         sb.append(padLine("  Source           : " + nullSafe(source), width)).append('\n');
-        sb.append(padLine("  Remote URL       : " + nullSafe(maskUrlCredentials(url)), width)).append('\n');
+        sb
+            .append(padLine("  Remote URL       : " + nullSafe(maskUrlCredentials(url)), width))
+            .append('\n');
         sb.append(mid).append('\n');
         sb.append(padLine("  Capabilities (" + caps.size() + "):", width)).append('\n');
         for (java.util.Map.Entry<String, String> e : caps.entrySet()) {
-            sb.append(padLine("   \u2022 " + padRight(e.getKey(), 28) + " : " + nullSafe(e.getValue()), width)).append('\n');
+            sb
+                .append(
+                    padLine(
+                        "   \u2022 " + padRight(e.getKey(), 28) + " : " + nullSafe(e.getValue()),
+                        width
+                    )
+                )
+                .append('\n');
         }
         sb.append(bottom);
         System.out.println(sb.toString());
@@ -541,7 +577,12 @@ public class WebDriverFactory {
         return checkEmulators(browserName, caps, settings);
     }
 
-    private static WebDriver checkEmulators(String browserName, DesiredCapabilities caps, ProjectSettings settings) throws MalformedURLException {
+    private static WebDriver checkEmulators(
+        String browserName,
+        DesiredCapabilities caps,
+        ProjectSettings settings
+    )
+        throws MalformedURLException {
         // "Manage Devices" is now the single source of truth for Appium endpoints.
         // resolveRemoteUrl() still falls back to any unmigrated legacy emulator
         // entries in Emulators.json, so this remains backwards-compatible.
@@ -552,8 +593,8 @@ public class WebDriverFactory {
         return null;
     }
 
-    private static WebDriver createRemoteDriver(String url, DesiredCapabilities caps) throws MalformedURLException {
-
+    private static WebDriver createRemoteDriver(String url, DesiredCapabilities caps)
+        throws MalformedURLException {
         System.out.println("\u27A4 Connecting to remote driver at: " + maskUrlCredentials(url));
         if (isAppiumNative(url, caps.asMap())) {
             if (driverInformation.get("isAndroidNative")) {

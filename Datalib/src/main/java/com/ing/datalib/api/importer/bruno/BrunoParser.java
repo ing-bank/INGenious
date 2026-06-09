@@ -115,10 +115,17 @@ public final class BrunoParser {
         for (int k = 0; k < s.length(); k++) {
             char ch = s.charAt(k);
             if (inString) {
-                if (ch == '\\' && k + 1 < s.length()) { k++; continue; }
+                if (ch == '\\' && k + 1 < s.length()) {
+                    k++;
+                    continue;
+                }
                 if (ch == quote) inString = false;
             } else {
-                if (ch == '"' || ch == '\'') { inString = true; quote = ch; continue; }
+                if (ch == '"' || ch == '\'') {
+                    inString = true;
+                    quote = ch;
+                    continue;
+                }
                 if (ch == c) n++;
             }
         }
@@ -137,13 +144,18 @@ public final class BrunoParser {
             String val = t.substring(colon + 1).trim();
             // Strip optional trailing comment
             int commentIdx = -1;
-            boolean inStr = false; char q = 0;
+            boolean inStr = false;
+            char q = 0;
             for (int k = 0; k < val.length(); k++) {
                 char ch = val.charAt(k);
-                if (inStr) { if (ch == q) inStr = false; }
-                else if (ch == '"' || ch == '\'') { inStr = true; q = ch; }
-                else if (ch == '/' && k + 1 < val.length() && val.charAt(k + 1) == '/') {
-                    commentIdx = k; break;
+                if (inStr) {
+                    if (ch == q) inStr = false;
+                } else if (ch == '"' || ch == '\'') {
+                    inStr = true;
+                    q = ch;
+                } else if (ch == '/' && k + 1 < val.length() && val.charAt(k + 1) == '/') {
+                    commentIdx = k;
+                    break;
                 }
             }
             if (commentIdx >= 0) val = val.substring(0, commentIdx).trim();

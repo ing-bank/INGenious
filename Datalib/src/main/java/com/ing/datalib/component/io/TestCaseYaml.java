@@ -21,9 +21,8 @@ import java.util.List;
  * boolean flag are still accepted on read for backward compatibility.
  */
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
-@JsonPropertyOrder({"schemaVersion", "testCase", "reusable", "scenario", "tags", "steps"})
+@JsonPropertyOrder({ "schemaVersion", "testCase", "reusable", "scenario", "tags", "steps" })
 public class TestCaseYaml {
-
     public static final int CURRENT_SCHEMA_VERSION = 1;
 
     @JsonProperty("schemaVersion")
@@ -31,7 +30,7 @@ public class TestCaseYaml {
 
     /** Name when this artifact lives under {@code TestPlan/}. */
     @JsonProperty("testCase")
-    @JsonAlias({"name"})
+    @JsonAlias({ "name" })
     private String testCase;
 
     /** Name when this artifact lives under {@code ReusableComponents/}. */
@@ -46,15 +45,27 @@ public class TestCaseYaml {
     @JsonProperty("steps")
     private List<StepYaml> steps = new ArrayList<>();
 
-    public Integer getSchemaVersion() { return schemaVersion; }
-    public void setSchemaVersion(Integer schemaVersion) { this.schemaVersion = schemaVersion; }
+    public Integer getSchemaVersion() {
+        return schemaVersion;
+    }
+
+    public void setSchemaVersion(Integer schemaVersion) {
+        this.schemaVersion = schemaVersion;
+    }
 
     @JsonProperty("testCase")
-    public String getTestCase() { return testCase; }
-    public void setTestCase(String testCase) { this.testCase = testCase; }
+    public String getTestCase() {
+        return testCase;
+    }
+
+    public void setTestCase(String testCase) {
+        this.testCase = testCase;
+    }
 
     @JsonProperty("reusable")
-    public String getReusable() { return reusable; }
+    public String getReusable() {
+        return reusable;
+    }
 
     /**
      * Accepts either the new {@code reusable: <name>} shape or the legacy
@@ -75,7 +86,9 @@ public class TestCaseYaml {
         }
     }
 
-    public void setReusable(String reusable) { this.reusable = reusable; }
+    public void setReusable(String reusable) {
+        this.reusable = reusable;
+    }
 
     /** Returns whichever of {@link #testCase} / {@link #reusable} is populated. */
     @JsonIgnore
@@ -88,14 +101,29 @@ public class TestCaseYaml {
         return reusable != null;
     }
 
-    public String getScenario() { return scenario; }
-    public void setScenario(String scenario) { this.scenario = scenario; }
+    public String getScenario() {
+        return scenario;
+    }
 
-    public List<String> getTags() { return tags; }
-    public void setTags(List<String> tags) { this.tags = tags == null ? new ArrayList<>() : tags; }
+    public void setScenario(String scenario) {
+        this.scenario = scenario;
+    }
 
-    public List<StepYaml> getSteps() { return steps; }
-    public void setSteps(List<StepYaml> steps) { this.steps = steps == null ? new ArrayList<>() : steps; }
+    public List<String> getTags() {
+        return tags;
+    }
+
+    public void setTags(List<String> tags) {
+        this.tags = tags == null ? new ArrayList<>() : tags;
+    }
+
+    public List<StepYaml> getSteps() {
+        return steps;
+    }
+
+    public void setSteps(List<StepYaml> steps) {
+        this.steps = steps == null ? new ArrayList<>() : steps;
+    }
 
     /**
      * YAML representation of a single {@link com.ing.datalib.component.TestStep}.
@@ -106,9 +134,20 @@ public class TestCaseYaml {
      * {@code breakpoint} / {@code comment} booleans.
      */
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
-    @JsonPropertyOrder({"step", "object", "description", "action", "input", "condition", "reference", "breakpoint", "comment"})
+    @JsonPropertyOrder(
+        {
+            "step",
+            "object",
+            "description",
+            "action",
+            "input",
+            "condition",
+            "reference",
+            "breakpoint",
+            "comment"
+        }
+    )
     public static class StepYaml {
-
         @JsonProperty("step")
         private Integer step;
 
@@ -136,31 +175,76 @@ public class TestCaseYaml {
         @JsonProperty("comment")
         private Boolean comment;
 
-        public Integer getStep() { return step; }
-        public void setStep(Integer step) { this.step = step; }
+        public Integer getStep() {
+            return step;
+        }
 
-        public String getObject() { return object; }
-        public void setObject(String object) { this.object = object; }
+        public void setStep(Integer step) {
+            this.step = step;
+        }
 
-        public String getDescription() { return description; }
-        public void setDescription(String description) { this.description = description; }
+        public String getObject() {
+            return object;
+        }
 
-        public String getAction() { return action; }
-        public void setAction(String action) { this.action = action; }
+        public void setObject(String object) {
+            this.object = object;
+        }
 
-        public String getInput() { return input; }
-        public void setInput(String input) { this.input = input; }
+        public String getDescription() {
+            return description;
+        }
 
-        public String getCondition() { return condition; }
-        public void setCondition(String condition) { this.condition = condition; }
+        public void setDescription(String description) {
+            this.description = description;
+        }
 
-        public String getReference() { return reference; }
-        public void setReference(String reference) { this.reference = reference; }
+        public String getAction() {
+            return action;
+        }
 
-        public Boolean getBreakpoint() { return breakpoint; }
-        public void setBreakpoint(Boolean breakpoint) { this.breakpoint = breakpoint; }
+        public void setAction(String action) {
+            this.action = action;
+        }
 
-        public Boolean getComment() { return comment; }
-        public void setComment(Boolean comment) { this.comment = comment; }
+        public String getInput() {
+            return input;
+        }
+
+        public void setInput(String input) {
+            this.input = input;
+        }
+
+        public String getCondition() {
+            return condition;
+        }
+
+        public void setCondition(String condition) {
+            this.condition = condition;
+        }
+
+        public String getReference() {
+            return reference;
+        }
+
+        public void setReference(String reference) {
+            this.reference = reference;
+        }
+
+        public Boolean getBreakpoint() {
+            return breakpoint;
+        }
+
+        public void setBreakpoint(Boolean breakpoint) {
+            this.breakpoint = breakpoint;
+        }
+
+        public Boolean getComment() {
+            return comment;
+        }
+
+        public void setComment(Boolean comment) {
+            this.comment = comment;
+        }
     }
 }

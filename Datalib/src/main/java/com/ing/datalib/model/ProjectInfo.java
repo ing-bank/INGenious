@@ -14,19 +14,20 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
-@JsonPropertyOrder({
-    "id",
-    "name",
-    "version",
-    "testCaseFormat",
-    "autoMigrateCsvToYaml",
-    "keepCsvBackupOnMigrate",
-    "attributes",
-    "tags",
-    "_meta",
-    "data"
-})
-
+@JsonPropertyOrder(
+    {
+        "id",
+        "name",
+        "version",
+        "testCaseFormat",
+        "autoMigrateCsvToYaml",
+        "keepCsvBackupOnMigrate",
+        "attributes",
+        "tags",
+        "_meta",
+        "data"
+    }
+)
 /**
  *
  *
@@ -51,8 +52,8 @@ public class ProjectInfo {
     private Data data = new Data();
 
     @JsonProperty("version")
-    private String version; 
-            
+    private String version;
+
     /**
      * On-disk test case format. {@code "CSV"} or {@code "YAML"}. When absent
      * {@code YAML} is assumed for new writes; existing {@code .csv} files on
@@ -299,5 +300,4 @@ public class ProjectInfo {
     public void setKeepCsvBackupOnMigrate(Boolean keepCsvBackupOnMigrate) {
         this.keepCsvBackupOnMigrate = keepCsvBackupOnMigrate;
     }
-
 }

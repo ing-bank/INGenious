@@ -313,7 +313,11 @@ public class StructuredData extends General {
      *   <li>Input: Expected prefix</li>
      * </ul>
      */
-    @Action(object = ObjectType.STRUCTUREDDATA, desc = "Assert JsonPath Result Starts With ", input = InputType.YES)
+    @Action(
+        object = ObjectType.STRUCTUREDDATA,
+        desc = "Assert JsonPath Result Starts With ",
+        input = InputType.YES
+    )
     public void assertJsonPathResultStartsWith() {
         try {
             String response = responsebodies.get(key);
@@ -322,9 +326,17 @@ public class StructuredData extends General {
             String value = String.valueOf(JsonPath.read(response, jsonpath));
             String strObj = getInputValue(Input);
             if (value.startsWith(strObj)) {
-                Report.updateTestLog(Action, "Element text [" + value + "] starts with [" + strObj + "] as expected", Status.PASSNS);
+                Report.updateTestLog(
+                    Action,
+                    "Element text [" + value + "] starts with [" + strObj + "] as expected",
+                    Status.PASSNS
+                );
             } else {
-                Report.updateTestLog(Action, "Element text [" + value + "] does not start with [" + strObj + "]", Status.FAILNS);
+                Report.updateTestLog(
+                    Action,
+                    "Element text [" + value + "] does not start with [" + strObj + "]",
+                    Status.FAILNS
+                );
             }
         } catch (Exception ex) {
             Logger.getLogger(this.getClass().getName()).log(Level.OFF, null, ex);
@@ -345,7 +357,11 @@ public class StructuredData extends General {
      *   <li>Input: Expected suffix</li>
      * </ul>
      */
-    @Action(object = ObjectType.STRUCTUREDDATA, desc = "Assert JsonPath Result Ends With ", input = InputType.YES)
+    @Action(
+        object = ObjectType.STRUCTUREDDATA,
+        desc = "Assert JsonPath Result Ends With ",
+        input = InputType.YES
+    )
     public void assertJsonPathResultEndsWith() {
         try {
             String response = responsebodies.get(key);
@@ -354,13 +370,25 @@ public class StructuredData extends General {
             String value = String.valueOf(JsonPath.read(response, jsonpath));
             String strObj = getInputValue(Input);
             if (value.endsWith(strObj)) {
-                Report.updateTestLog(Action, "Element text [" + value + "] ends with [" + strObj + "] as expected", Status.PASSNS);
+                Report.updateTestLog(
+                    Action,
+                    "Element text [" + value + "] ends with [" + strObj + "] as expected",
+                    Status.PASSNS
+                );
             } else {
-                Report.updateTestLog(Action, "Element text [" + value + "] does not end with [" + strObj + "]", Status.FAILNS);
+                Report.updateTestLog(
+                    Action,
+                    "Element text [" + value + "] does not end with [" + strObj + "]",
+                    Status.FAILNS
+                );
             }
         } catch (Exception ex) {
             Logger.getLogger(this.getClass().getName()).log(Level.OFF, null, ex);
-            Report.updateTestLog(Action, "Error in validating JSON element :" + "\n" + ex.getMessage(), Status.DEBUG);
+            Report.updateTestLog(
+                Action,
+                "Error in validating JSON element :" + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
@@ -373,7 +401,11 @@ public class StructuredData extends General {
      *   <li>Input: Java regular expression</li>
      * </ul>
      */
-    @Action(object = ObjectType.STRUCTUREDDATA, desc = "Assert JsonPath Result Matches Regex ", input = InputType.YES)
+    @Action(
+        object = ObjectType.STRUCTUREDDATA,
+        desc = "Assert JsonPath Result Matches Regex ",
+        input = InputType.YES
+    )
     public void assertJsonPathResultMatchesRegex() {
         try {
             String response = responsebodies.get(key);
@@ -382,13 +414,25 @@ public class StructuredData extends General {
             String value = String.valueOf(JsonPath.read(response, jsonpath));
             String regex = getInputValue(Input);
             if (value.matches(regex)) {
-                Report.updateTestLog(Action, "Element text [" + value + "] matches regex [" + regex + "] as expected", Status.PASSNS);
+                Report.updateTestLog(
+                    Action,
+                    "Element text [" + value + "] matches regex [" + regex + "] as expected",
+                    Status.PASSNS
+                );
             } else {
-                Report.updateTestLog(Action, "Element text [" + value + "] does not match regex [" + regex + "]", Status.FAILNS);
+                Report.updateTestLog(
+                    Action,
+                    "Element text [" + value + "] does not match regex [" + regex + "]",
+                    Status.FAILNS
+                );
             }
         } catch (Exception ex) {
             Logger.getLogger(this.getClass().getName()).log(Level.OFF, null, ex);
-            Report.updateTestLog(Action, "Error in validating JSON element :" + "\n" + ex.getMessage(), Status.DEBUG);
+            Report.updateTestLog(
+                Action,
+                "Error in validating JSON element :" + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
@@ -401,7 +445,11 @@ public class StructuredData extends General {
      *   <li>Input: Expected numeric threshold</li>
      * </ul>
      */
-    @Action(object = ObjectType.STRUCTUREDDATA, desc = "Assert JsonPath Result Greater Than ", input = InputType.YES)
+    @Action(
+        object = ObjectType.STRUCTUREDDATA,
+        desc = "Assert JsonPath Result Greater Than ",
+        input = InputType.YES
+    )
     public void assertJsonPathResultGreaterThan() {
         try {
             String response = responsebodies.get(key);
@@ -413,16 +461,40 @@ public class StructuredData extends General {
                 double actual = Double.parseDouble(value.trim());
                 double expected = Double.parseDouble(strObj.trim());
                 if (actual > expected) {
-                    Report.updateTestLog(Action, "Element value [" + actual + "] is greater than [" + expected + "] as expected", Status.PASSNS);
+                    Report.updateTestLog(
+                        Action,
+                        "Element value [" +
+                        actual +
+                        "] is greater than [" +
+                        expected +
+                        "] as expected",
+                        Status.PASSNS
+                    );
                 } else {
-                    Report.updateTestLog(Action, "Element value [" + actual + "] is not greater than [" + expected + "]", Status.FAILNS);
+                    Report.updateTestLog(
+                        Action,
+                        "Element value [" + actual + "] is not greater than [" + expected + "]",
+                        Status.FAILNS
+                    );
                 }
             } catch (NumberFormatException nfe) {
-                Report.updateTestLog(Action, "Cannot compare non-numeric values: actual=[" + value + "], expected=[" + strObj + "]", Status.FAILNS);
+                Report.updateTestLog(
+                    Action,
+                    "Cannot compare non-numeric values: actual=[" +
+                    value +
+                    "], expected=[" +
+                    strObj +
+                    "]",
+                    Status.FAILNS
+                );
             }
         } catch (Exception ex) {
             Logger.getLogger(this.getClass().getName()).log(Level.OFF, null, ex);
-            Report.updateTestLog(Action, "Error in validating JSON element :" + "\n" + ex.getMessage(), Status.DEBUG);
+            Report.updateTestLog(
+                Action,
+                "Error in validating JSON element :" + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
@@ -435,7 +507,11 @@ public class StructuredData extends General {
      *   <li>Input: Expected numeric threshold</li>
      * </ul>
      */
-    @Action(object = ObjectType.STRUCTUREDDATA, desc = "Assert JsonPath Result Less Than ", input = InputType.YES)
+    @Action(
+        object = ObjectType.STRUCTUREDDATA,
+        desc = "Assert JsonPath Result Less Than ",
+        input = InputType.YES
+    )
     public void assertJsonPathResultLessThan() {
         try {
             String response = responsebodies.get(key);
@@ -447,16 +523,40 @@ public class StructuredData extends General {
                 double actual = Double.parseDouble(value.trim());
                 double expected = Double.parseDouble(strObj.trim());
                 if (actual < expected) {
-                    Report.updateTestLog(Action, "Element value [" + actual + "] is less than [" + expected + "] as expected", Status.PASSNS);
+                    Report.updateTestLog(
+                        Action,
+                        "Element value [" +
+                        actual +
+                        "] is less than [" +
+                        expected +
+                        "] as expected",
+                        Status.PASSNS
+                    );
                 } else {
-                    Report.updateTestLog(Action, "Element value [" + actual + "] is not less than [" + expected + "]", Status.FAILNS);
+                    Report.updateTestLog(
+                        Action,
+                        "Element value [" + actual + "] is not less than [" + expected + "]",
+                        Status.FAILNS
+                    );
                 }
             } catch (NumberFormatException nfe) {
-                Report.updateTestLog(Action, "Cannot compare non-numeric values: actual=[" + value + "], expected=[" + strObj + "]", Status.FAILNS);
+                Report.updateTestLog(
+                    Action,
+                    "Cannot compare non-numeric values: actual=[" +
+                    value +
+                    "], expected=[" +
+                    strObj +
+                    "]",
+                    Status.FAILNS
+                );
             }
         } catch (Exception ex) {
             Logger.getLogger(this.getClass().getName()).log(Level.OFF, null, ex);
-            Report.updateTestLog(Action, "Error in validating JSON element :" + "\n" + ex.getMessage(), Status.DEBUG);
+            Report.updateTestLog(
+                Action,
+                "Error in validating JSON element :" + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
@@ -467,7 +567,11 @@ public class StructuredData extends General {
      * when the path resolves to any value (including {@code null}); fails when the path cannot
      * be resolved. The Input column is ignored for this assertion.
      */
-    @Action(object = ObjectType.STRUCTUREDDATA, desc = "Assert JsonPath Exists ", input = InputType.NO)
+    @Action(
+        object = ObjectType.STRUCTUREDDATA,
+        desc = "Assert JsonPath Exists ",
+        input = InputType.NO
+    )
     public void assertJsonPathExists() {
         try {
             String response = responsebodies.get(key);
@@ -477,19 +581,42 @@ public class StructuredData extends General {
             try {
                 result = JsonPath.read(response, jsonpath);
             } catch (PathNotFoundException pnf) {
-                Report.updateTestLog(Action, "JSON path [" + jsonpath + "] does not exist", Status.FAILNS);
+                Report.updateTestLog(
+                    Action,
+                    "JSON path [" + jsonpath + "] does not exist",
+                    Status.FAILNS
+                );
                 return;
             }
             if (result == null) {
-                Report.updateTestLog(Action, "JSON path [" + jsonpath + "] exists (value is null)", Status.PASSNS);
-            } else if (result instanceof java.util.Collection && ((java.util.Collection<?>) result).isEmpty()) {
-                Report.updateTestLog(Action, "JSON path [" + jsonpath + "] resolved to an empty result", Status.FAILNS);
+                Report.updateTestLog(
+                    Action,
+                    "JSON path [" + jsonpath + "] exists (value is null)",
+                    Status.PASSNS
+                );
+            } else if (
+                result instanceof java.util.Collection &&
+                ((java.util.Collection<?>) result).isEmpty()
+            ) {
+                Report.updateTestLog(
+                    Action,
+                    "JSON path [" + jsonpath + "] resolved to an empty result",
+                    Status.FAILNS
+                );
             } else {
-                Report.updateTestLog(Action, "JSON path [" + jsonpath + "] exists as expected", Status.PASSNS);
+                Report.updateTestLog(
+                    Action,
+                    "JSON path [" + jsonpath + "] exists as expected",
+                    Status.PASSNS
+                );
             }
         } catch (Exception ex) {
             Logger.getLogger(this.getClass().getName()).log(Level.OFF, null, ex);
-            Report.updateTestLog(Action, "Error in validating JSON path existence :" + "\n" + ex.getMessage(), Status.DEBUG);
+            Report.updateTestLog(
+                Action,
+                "Error in validating JSON path existence :" + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
@@ -500,7 +627,11 @@ public class StructuredData extends General {
      * when the path cannot be resolved (or resolves to an empty result); fails otherwise. The
      * Input column is ignored for this assertion.
      */
-    @Action(object = ObjectType.STRUCTUREDDATA, desc = "Assert JsonPath Not Exists ", input = InputType.NO)
+    @Action(
+        object = ObjectType.STRUCTUREDDATA,
+        desc = "Assert JsonPath Not Exists ",
+        input = InputType.NO
+    )
     public void assertJsonPathNotExists() {
         try {
             String response = responsebodies.get(key);
@@ -510,17 +641,38 @@ public class StructuredData extends General {
             try {
                 result = JsonPath.read(response, jsonpath);
             } catch (PathNotFoundException pnf) {
-                Report.updateTestLog(Action, "JSON path [" + jsonpath + "] does not exist as expected", Status.PASSNS);
+                Report.updateTestLog(
+                    Action,
+                    "JSON path [" + jsonpath + "] does not exist as expected",
+                    Status.PASSNS
+                );
                 return;
             }
-            if (result instanceof java.util.Collection && ((java.util.Collection<?>) result).isEmpty()) {
-                Report.updateTestLog(Action, "JSON path [" + jsonpath + "] resolves to an empty result (treated as not present)", Status.PASSNS);
+            if (
+                result instanceof java.util.Collection &&
+                ((java.util.Collection<?>) result).isEmpty()
+            ) {
+                Report.updateTestLog(
+                    Action,
+                    "JSON path [" +
+                    jsonpath +
+                    "] resolves to an empty result (treated as not present)",
+                    Status.PASSNS
+                );
             } else {
-                Report.updateTestLog(Action, "JSON path [" + jsonpath + "] exists but should not (value=[" + result + "])", Status.FAILNS);
+                Report.updateTestLog(
+                    Action,
+                    "JSON path [" + jsonpath + "] exists but should not (value=[" + result + "])",
+                    Status.FAILNS
+                );
             }
         } catch (Exception ex) {
             Logger.getLogger(this.getClass().getName()).log(Level.OFF, null, ex);
-            Report.updateTestLog(Action, "Error in validating JSON path absence :" + "\n" + ex.getMessage(), Status.DEBUG);
+            Report.updateTestLog(
+                Action,
+                "Error in validating JSON path absence :" + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
@@ -828,7 +980,11 @@ public class StructuredData extends General {
             if (!value.contains(inputValue)) {
                 Report.updateTestLog(
                     Action,
-                    "Element text [" + value + "] does not contain [" + inputValue + "] as expected",
+                    "Element text [" +
+                    value +
+                    "] does not contain [" +
+                    inputValue +
+                    "] as expected",
                     Status.PASSNS
                 );
             } else {
@@ -984,20 +1140,41 @@ public class StructuredData extends General {
      *   <li>Input: Expected prefix</li>
      * </ul>
      */
-    @Action(object = ObjectType.STRUCTUREDDATA, desc = "Assert XmlPath Result Starts With ", input = InputType.YES)
+    @Action(
+        object = ObjectType.STRUCTUREDDATA,
+        desc = "Assert XmlPath Result Starts With ",
+        input = InputType.YES
+    )
     public void assertXmlPathResultStartsWith() {
         try {
             String value = readXmlPathValue(resolveStructuredDataPath());
             String inputValue = getInputValue(Input);
             if (value.startsWith(inputValue)) {
-                Report.updateTestLog(Action, "Element text [" + value + "] starts with [" + inputValue + "] as expected", Status.PASSNS);
+                Report.updateTestLog(
+                    Action,
+                    "Element text [" + value + "] starts with [" + inputValue + "] as expected",
+                    Status.PASSNS
+                );
             } else {
-                Report.updateTestLog(Action, "Element text [" + value + "] does not start with [" + inputValue + "]", Status.FAILNS);
+                Report.updateTestLog(
+                    Action,
+                    "Element text [" + value + "] does not start with [" + inputValue + "]",
+                    Status.FAILNS
+                );
             }
-        } catch (IOException | ParserConfigurationException | XPathExpressionException | DOMException
-                | SAXException ex) {
+        } catch (
+            IOException
+            | ParserConfigurationException
+            | XPathExpressionException
+            | DOMException
+            | SAXException ex
+        ) {
             Logger.getLogger(this.getClass().getName()).log(Level.OFF, null, ex);
-            Report.updateTestLog(Action, "Error validating XML element :" + "\n" + ex.getMessage(), Status.DEBUG);
+            Report.updateTestLog(
+                Action,
+                "Error validating XML element :" + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
@@ -1010,20 +1187,41 @@ public class StructuredData extends General {
      *   <li>Input: Expected suffix</li>
      * </ul>
      */
-    @Action(object = ObjectType.STRUCTUREDDATA, desc = "Assert XmlPath Result Ends With ", input = InputType.YES)
+    @Action(
+        object = ObjectType.STRUCTUREDDATA,
+        desc = "Assert XmlPath Result Ends With ",
+        input = InputType.YES
+    )
     public void assertXmlPathResultEndsWith() {
         try {
             String value = readXmlPathValue(resolveStructuredDataPath());
             String inputValue = getInputValue(Input);
             if (value.endsWith(inputValue)) {
-                Report.updateTestLog(Action, "Element text [" + value + "] ends with [" + inputValue + "] as expected", Status.PASSNS);
+                Report.updateTestLog(
+                    Action,
+                    "Element text [" + value + "] ends with [" + inputValue + "] as expected",
+                    Status.PASSNS
+                );
             } else {
-                Report.updateTestLog(Action, "Element text [" + value + "] does not end with [" + inputValue + "]", Status.FAILNS);
+                Report.updateTestLog(
+                    Action,
+                    "Element text [" + value + "] does not end with [" + inputValue + "]",
+                    Status.FAILNS
+                );
             }
-        } catch (IOException | ParserConfigurationException | XPathExpressionException | DOMException
-                | SAXException ex) {
+        } catch (
+            IOException
+            | ParserConfigurationException
+            | XPathExpressionException
+            | DOMException
+            | SAXException ex
+        ) {
             Logger.getLogger(this.getClass().getName()).log(Level.OFF, null, ex);
-            Report.updateTestLog(Action, "Error validating XML element :" + "\n" + ex.getMessage(), Status.DEBUG);
+            Report.updateTestLog(
+                Action,
+                "Error validating XML element :" + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
@@ -1036,20 +1234,41 @@ public class StructuredData extends General {
      *   <li>Input: Java regular expression</li>
      * </ul>
      */
-    @Action(object = ObjectType.STRUCTUREDDATA, desc = "Assert XmlPath Result Matches Regex ", input = InputType.YES)
+    @Action(
+        object = ObjectType.STRUCTUREDDATA,
+        desc = "Assert XmlPath Result Matches Regex ",
+        input = InputType.YES
+    )
     public void assertXmlPathResultMatchesRegex() {
         try {
             String value = readXmlPathValue(resolveStructuredDataPath());
             String regex = getInputValue(Input);
             if (value.matches(regex)) {
-                Report.updateTestLog(Action, "Element text [" + value + "] matches regex [" + regex + "] as expected", Status.PASSNS);
+                Report.updateTestLog(
+                    Action,
+                    "Element text [" + value + "] matches regex [" + regex + "] as expected",
+                    Status.PASSNS
+                );
             } else {
-                Report.updateTestLog(Action, "Element text [" + value + "] does not match regex [" + regex + "]", Status.FAILNS);
+                Report.updateTestLog(
+                    Action,
+                    "Element text [" + value + "] does not match regex [" + regex + "]",
+                    Status.FAILNS
+                );
             }
-        } catch (IOException | ParserConfigurationException | XPathExpressionException | DOMException
-                | SAXException ex) {
+        } catch (
+            IOException
+            | ParserConfigurationException
+            | XPathExpressionException
+            | DOMException
+            | SAXException ex
+        ) {
             Logger.getLogger(this.getClass().getName()).log(Level.OFF, null, ex);
-            Report.updateTestLog(Action, "Error validating XML element :" + "\n" + ex.getMessage(), Status.DEBUG);
+            Report.updateTestLog(
+                Action,
+                "Error validating XML element :" + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
@@ -1059,7 +1278,11 @@ public class StructuredData extends General {
      *   <li>Input: Expected numeric threshold</li>
      * </ul>
      */
-    @Action(object = ObjectType.STRUCTUREDDATA, desc = "Assert XmlPath Result Greater Than ", input = InputType.YES)
+    @Action(
+        object = ObjectType.STRUCTUREDDATA,
+        desc = "Assert XmlPath Result Greater Than ",
+        input = InputType.YES
+    )
     public void assertXmlPathResultGreaterThan() {
         try {
             String value = readXmlPathValue(resolveStructuredDataPath());
@@ -1068,17 +1291,46 @@ public class StructuredData extends General {
                 double actual = Double.parseDouble(value.trim());
                 double expected = Double.parseDouble(inputValue.trim());
                 if (actual > expected) {
-                    Report.updateTestLog(Action, "Element value [" + actual + "] is greater than [" + expected + "] as expected", Status.PASSNS);
+                    Report.updateTestLog(
+                        Action,
+                        "Element value [" +
+                        actual +
+                        "] is greater than [" +
+                        expected +
+                        "] as expected",
+                        Status.PASSNS
+                    );
                 } else {
-                    Report.updateTestLog(Action, "Element value [" + actual + "] is not greater than [" + expected + "]", Status.FAILNS);
+                    Report.updateTestLog(
+                        Action,
+                        "Element value [" + actual + "] is not greater than [" + expected + "]",
+                        Status.FAILNS
+                    );
                 }
             } catch (NumberFormatException nfe) {
-                Report.updateTestLog(Action, "Cannot compare non-numeric values: actual=[" + value + "], expected=[" + inputValue + "]", Status.FAILNS);
+                Report.updateTestLog(
+                    Action,
+                    "Cannot compare non-numeric values: actual=[" +
+                    value +
+                    "], expected=[" +
+                    inputValue +
+                    "]",
+                    Status.FAILNS
+                );
             }
-        } catch (IOException | ParserConfigurationException | XPathExpressionException | DOMException
-                | SAXException ex) {
+        } catch (
+            IOException
+            | ParserConfigurationException
+            | XPathExpressionException
+            | DOMException
+            | SAXException ex
+        ) {
             Logger.getLogger(this.getClass().getName()).log(Level.OFF, null, ex);
-            Report.updateTestLog(Action, "Error validating XML element :" + "\n" + ex.getMessage(), Status.DEBUG);
+            Report.updateTestLog(
+                Action,
+                "Error validating XML element :" + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
@@ -1088,7 +1340,11 @@ public class StructuredData extends General {
      *   <li>Input: Expected numeric threshold</li>
      * </ul>
      */
-    @Action(object = ObjectType.STRUCTUREDDATA, desc = "Assert XmlPath Result Less Than ", input = InputType.YES)
+    @Action(
+        object = ObjectType.STRUCTUREDDATA,
+        desc = "Assert XmlPath Result Less Than ",
+        input = InputType.YES
+    )
     public void assertXmlPathResultLessThan() {
         try {
             String value = readXmlPathValue(resolveStructuredDataPath());
@@ -1097,17 +1353,46 @@ public class StructuredData extends General {
                 double actual = Double.parseDouble(value.trim());
                 double expected = Double.parseDouble(inputValue.trim());
                 if (actual < expected) {
-                    Report.updateTestLog(Action, "Element value [" + actual + "] is less than [" + expected + "] as expected", Status.PASSNS);
+                    Report.updateTestLog(
+                        Action,
+                        "Element value [" +
+                        actual +
+                        "] is less than [" +
+                        expected +
+                        "] as expected",
+                        Status.PASSNS
+                    );
                 } else {
-                    Report.updateTestLog(Action, "Element value [" + actual + "] is not less than [" + expected + "]", Status.FAILNS);
+                    Report.updateTestLog(
+                        Action,
+                        "Element value [" + actual + "] is not less than [" + expected + "]",
+                        Status.FAILNS
+                    );
                 }
             } catch (NumberFormatException nfe) {
-                Report.updateTestLog(Action, "Cannot compare non-numeric values: actual=[" + value + "], expected=[" + inputValue + "]", Status.FAILNS);
+                Report.updateTestLog(
+                    Action,
+                    "Cannot compare non-numeric values: actual=[" +
+                    value +
+                    "], expected=[" +
+                    inputValue +
+                    "]",
+                    Status.FAILNS
+                );
             }
-        } catch (IOException | ParserConfigurationException | XPathExpressionException | DOMException
-                | SAXException ex) {
+        } catch (
+            IOException
+            | ParserConfigurationException
+            | XPathExpressionException
+            | DOMException
+            | SAXException ex
+        ) {
             Logger.getLogger(this.getClass().getName()).log(Level.OFF, null, ex);
-            Report.updateTestLog(Action, "Error validating XML element :" + "\n" + ex.getMessage(), Status.DEBUG);
+            Report.updateTestLog(
+                Action,
+                "Error validating XML element :" + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
@@ -1116,20 +1401,45 @@ public class StructuredData extends General {
      * <p>
      * The Input column is ignored for this assertion.
      */
-    @Action(object = ObjectType.STRUCTUREDDATA, desc = "Assert XmlPath Exists ", input = InputType.NO)
+    @Action(
+        object = ObjectType.STRUCTUREDDATA,
+        desc = "Assert XmlPath Exists ",
+        input = InputType.NO
+    )
     public void assertXmlPathExists() {
         try {
             String expression = resolveStructuredDataPath();
             NodeList nodeList = readXmlPathNodes(expression);
             if (nodeList != null && nodeList.getLength() > 0) {
-                Report.updateTestLog(Action, "XPath [" + expression + "] exists (" + nodeList.getLength() + " node(s)) as expected", Status.PASSNS);
+                Report.updateTestLog(
+                    Action,
+                    "XPath [" +
+                    expression +
+                    "] exists (" +
+                    nodeList.getLength() +
+                    " node(s)) as expected",
+                    Status.PASSNS
+                );
             } else {
-                Report.updateTestLog(Action, "XPath [" + expression + "] does not match any nodes", Status.FAILNS);
+                Report.updateTestLog(
+                    Action,
+                    "XPath [" + expression + "] does not match any nodes",
+                    Status.FAILNS
+                );
             }
-        } catch (IOException | ParserConfigurationException | XPathExpressionException | DOMException
-                | SAXException ex) {
+        } catch (
+            IOException
+            | ParserConfigurationException
+            | XPathExpressionException
+            | DOMException
+            | SAXException ex
+        ) {
             Logger.getLogger(this.getClass().getName()).log(Level.OFF, null, ex);
-            Report.updateTestLog(Action, "Error validating XML path existence :" + "\n" + ex.getMessage(), Status.DEBUG);
+            Report.updateTestLog(
+                Action,
+                "Error validating XML path existence :" + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
@@ -1138,20 +1448,45 @@ public class StructuredData extends General {
      * <p>
      * The Input column is ignored for this assertion.
      */
-    @Action(object = ObjectType.STRUCTUREDDATA, desc = "Assert XmlPath Not Exists ", input = InputType.NO)
+    @Action(
+        object = ObjectType.STRUCTUREDDATA,
+        desc = "Assert XmlPath Not Exists ",
+        input = InputType.NO
+    )
     public void assertXmlPathNotExists() {
         try {
             String expression = resolveStructuredDataPath();
             NodeList nodeList = readXmlPathNodes(expression);
             if (nodeList == null || nodeList.getLength() == 0) {
-                Report.updateTestLog(Action, "XPath [" + expression + "] does not match any nodes as expected", Status.PASSNS);
+                Report.updateTestLog(
+                    Action,
+                    "XPath [" + expression + "] does not match any nodes as expected",
+                    Status.PASSNS
+                );
             } else {
-                Report.updateTestLog(Action, "XPath [" + expression + "] matches " + nodeList.getLength() + " node(s) but should not", Status.FAILNS);
+                Report.updateTestLog(
+                    Action,
+                    "XPath [" +
+                    expression +
+                    "] matches " +
+                    nodeList.getLength() +
+                    " node(s) but should not",
+                    Status.FAILNS
+                );
             }
-        } catch (IOException | ParserConfigurationException | XPathExpressionException | DOMException
-                | SAXException ex) {
+        } catch (
+            IOException
+            | ParserConfigurationException
+            | XPathExpressionException
+            | DOMException
+            | SAXException ex
+        ) {
             Logger.getLogger(this.getClass().getName()).log(Level.OFF, null, ex);
-            Report.updateTestLog(Action, "Error validating XML path absence :" + "\n" + ex.getMessage(), Status.DEBUG);
+            Report.updateTestLog(
+                Action,
+                "Error validating XML path absence :" + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
@@ -1159,8 +1494,8 @@ public class StructuredData extends General {
      * Evaluates an XPath expression against the last Webservice XML response and returns the
      * string value of the first matching node.
      */
-    private String readXmlPathValue(String expression) throws IOException, ParserConfigurationException,
-            XPathExpressionException, SAXException {
+    private String readXmlPathValue(String expression)
+        throws IOException, ParserConfigurationException, XPathExpressionException, SAXException {
         NodeList nodeList = readXmlPathNodes(expression);
         if (nodeList == null || nodeList.getLength() == 0) {
             return "";
@@ -1177,8 +1512,8 @@ public class StructuredData extends General {
      * Evaluates an XPath expression against the last Webservice XML response and returns the
      * matching node list.
      */
-    private NodeList readXmlPathNodes(String expression) throws IOException, ParserConfigurationException,
-            XPathExpressionException, SAXException {
+    private NodeList readXmlPathNodes(String expression)
+        throws IOException, ParserConfigurationException, XPathExpressionException, SAXException {
         DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
         DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
         InputSource inputSource = new InputSource();
@@ -1376,9 +1711,16 @@ public class StructuredData extends General {
      * current key.
      */
     private void logJsonPathContext(String actionName, String response, String path) {
-        System.out.println("[StructuredData] " + actionName + " key=" + key
-                + " response=" + (response == null ? "<null>" : response)
-                + " path=" + path);
+        System.out.println(
+            "[StructuredData] " +
+            actionName +
+            " key=" +
+            key +
+            " response=" +
+            (response == null ? "<null>" : response) +
+            " path=" +
+            path
+        );
     }
 
     /**
@@ -1398,30 +1740,53 @@ public class StructuredData extends General {
      */
     private String resolveStructuredDataPath() {
         try {
-            if (SObject != null
-                    && ObjectName != null && !ObjectName.isEmpty()
-                    && Reference != null && !Reference.isEmpty()) {
+            if (
+                SObject != null &&
+                ObjectName != null &&
+                !ObjectName.isEmpty() &&
+                Reference != null &&
+                !Reference.isEmpty()
+            ) {
                 String path = SObject.findElement(ObjectName, Reference);
-                System.out.println("[StructuredData] resolveStructuredDataPath: SObject.findElement("
-                        + "ObjectName=" + ObjectName
-                        + ", Reference=" + Reference
-                        + ") -> " + path);
+                System.out.println(
+                    "[StructuredData] resolveStructuredDataPath: SObject.findElement(" +
+                    "ObjectName=" +
+                    ObjectName +
+                    ", Reference=" +
+                    Reference +
+                    ") -> " +
+                    path
+                );
                 if (path != null && !path.isEmpty()) {
                     return path;
                 }
-                System.out.println("[StructuredData] resolveStructuredDataPath: OR lookup returned null/empty - "
-                        + "falling back to Data=" + Data);
+                System.out.println(
+                    "[StructuredData] resolveStructuredDataPath: OR lookup returned null/empty - " +
+                    "falling back to Data=" +
+                    Data
+                );
             } else {
-                System.out.println("[StructuredData] resolveStructuredDataPath: OR lookup skipped"
-                        + " (SObject=" + (SObject == null ? "null" : "set")
-                        + ", ObjectName=" + ObjectName
-                        + ", Reference=" + Reference
-                        + ") - using Data=" + Data);
+                System.out.println(
+                    "[StructuredData] resolveStructuredDataPath: OR lookup skipped" +
+                    " (SObject=" +
+                    (SObject == null ? "null" : "set") +
+                    ", ObjectName=" +
+                    ObjectName +
+                    ", Reference=" +
+                    Reference +
+                    ") - using Data=" +
+                    Data
+                );
             }
         } catch (Exception ex) {
-            System.out.println("[StructuredData] resolveStructuredDataPath: OR lookup threw "
-                    + ex.getClass().getSimpleName() + ": " + ex.getMessage()
-                    + " - falling back to Data=" + Data);
+            System.out.println(
+                "[StructuredData] resolveStructuredDataPath: OR lookup threw " +
+                ex.getClass().getSimpleName() +
+                ": " +
+                ex.getMessage() +
+                " - falling back to Data=" +
+                Data
+            );
         }
         return Data == null ? "" : Data;
     }
@@ -1449,5 +1814,4 @@ public class StructuredData extends General {
         }
         return value == null ? "" : value;
     }
-
 }

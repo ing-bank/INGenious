@@ -42,7 +42,7 @@ public class AppResourcePath {
 
     private static final String EXPLORER_CONFIG = "ExplorerConfig.properties";
 
-    private final static String ENC = ".enc";
+    private static final String ENC = ".enc";
 
     private static final String ADDON_LOCATION = "Extensions";
 

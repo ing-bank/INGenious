@@ -4,7 +4,6 @@ import com.ing.datalib.api.importer.ImportException;
 import com.ing.datalib.api.importer.ImportSource;
 import com.ing.datalib.api.importer.ImportWarning;
 import com.ing.datalib.api.importer.NormalizedCollection;
-
 import java.io.File;
 import java.util.List;
 
@@ -13,7 +12,6 @@ import java.util.List;
  * into INGenious's {@link NormalizedCollection} model.
  */
 public interface CollectionImporter {
-
     /** Identifies which format this importer handles. */
     ImportSource source();
 

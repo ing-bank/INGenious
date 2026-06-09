@@ -375,7 +375,9 @@ public class MobileObject implements MobileObjectApi {
             // Mobile Spy with the other platform active), fall back to the other
             // platform's attributes so the lookup still works.
             if (!hasUsableValue(attrs)) {
-                MobilePlatform other = platform == MobilePlatform.IOS ? MobilePlatform.ANDROID : MobilePlatform.IOS;
+                MobilePlatform other = platform == MobilePlatform.IOS
+                    ? MobilePlatform.ANDROID
+                    : MobilePlatform.IOS;
                 List<ORAttribute> otherAttrs = object.getAttributes(other);
                 if (hasUsableValue(otherAttrs)) {
                     attrs = otherAttrs;
@@ -491,35 +493,38 @@ public class MobileObject implements MobileObjectApi {
         WebDriverWait wait = new WebDriverWait(driver, getWaitTime());
 
         try {
-            return wait.until((ExpectedCondition<List<WebElement>>) (WebDriver driver) -> {
-                String found = "no";
-                String elementString = "";
-                String tag = "";
-                String value = "";
-                List<WebElement> elements = new ArrayList<WebElement>();
-                elements = null;
-                for (ORAttribute attr : attributes) {
-                    if (!attr.getValue().trim().isEmpty()) {
-                        tag = attr.getName();
-                        value = getRuntimeValue(attr.getValue());
-                        if (tag.equals("NLP_locator")) {
-                            elements = NLP_located_element(attributes, Action, value);
-                            if (elements != null) {
-                                safeStoreOuterHTML(attributes, elements.get(0));
+            return wait.until(
+                (ExpectedCondition<List<WebElement>>) (WebDriver driver) -> {
+                    String found = "no";
+                    String elementString = "";
+                    String tag = "";
+                    String value = "";
+                    List<WebElement> elements = new ArrayList<WebElement>();
+                    elements = null;
+                    for (ORAttribute attr : attributes) {
+                        if (!attr.getValue().trim().isEmpty()) {
+                            tag = attr.getName();
+                            value = getRuntimeValue(attr.getValue());
+                            if (tag.equals("NLP_locator")) {
+                                elements = NLP_located_element(attributes, Action, value);
+                                if (elements != null) {
+                                    safeStoreOuterHTML(attributes, elements.get(0));
+                                }
                             }
-                        }
-                        if (tag.equals("outerHTML")) {
-                            elementString = attr.getValue();
-                            continue;
-                        }
-                        //JSPath********'
-                        if (tag.equals("JSPath")) {
-                            if (!attr.getValue().trim().isEmpty()) {
-                                JavascriptExecutor js = (JavascriptExecutor) driver;
-                                elements = new ArrayList<WebElement>();
-                                elements.add((WebElement) js.executeScript("return " + attr.getValue()));
+                            if (tag.equals("outerHTML")) {
+                                elementString = attr.getValue();
+                                continue;
                             }
-                        }
+                            //JSPath********'
+                            if (tag.equals("JSPath")) {
+                                if (!attr.getValue().trim().isEmpty()) {
+                                    JavascriptExecutor js = (JavascriptExecutor) driver;
+                                    elements = new ArrayList<WebElement>();
+                                    elements.add(
+                                        (WebElement) js.executeScript("return " + attr.getValue())
+                                    );
+                                }
+                            }
 
                             if (elements != null) {
                                 return elements;
@@ -553,22 +558,23 @@ public class MobileObject implements MobileObjectApi {
                                         continue;
                                     }
 
-                                if (elements.size() == 1) {
-                                    System.out.print(foundElementBy(tag, value));
-                                    found = "yes";
-                                    if (!attributes.toString().contains("UiAutomator")) {
-                                        safeStoreOuterHTML(attributes, elements.get(0));
+                                    if (elements.size() == 1) {
+                                        System.out.print(foundElementBy(tag, value));
+                                        found = "yes";
+                                        if (!attributes.toString().contains("UiAutomator")) {
+                                            safeStoreOuterHTML(attributes, elements.get(0));
+                                        }
+                                        return elements;
+                                    } else if (elements.size() > 1 || elements.size() == 0) {
+                                        found = "no";
                                     }
-                                    return elements;
-                                } else if (elements.size() > 1 || elements.size() == 0) {
-                                    found = "no";
                                 }
                             }
                         }
                     }
+                    return null;
                 }
-                return null;
-            });
+            );
         } catch (Exception ex) {
             //Logger.getLogger(this.getClass().getName()).log(Level.OFF, null, ex);
             return null;

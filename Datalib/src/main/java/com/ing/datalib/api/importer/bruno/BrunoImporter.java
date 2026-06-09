@@ -13,9 +13,8 @@ import com.ing.datalib.api.importer.NormalizedCollection;
 import com.ing.datalib.api.importer.NormalizedEnvironment;
 import com.ing.datalib.api.importer.NormalizedRequest;
 import com.ing.datalib.api.importer.NormalizedVariable;
-import com.ing.datalib.api.importer.spi.CollectionImporter;
 import com.ing.datalib.api.importer.bruno.BrunoParser.Block;
-
+import com.ing.datalib.api.importer.spi.CollectionImporter;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -59,7 +58,8 @@ public class BrunoImporter implements CollectionImporter {
     }
 
     @Override
-    public NormalizedCollection parse(File fileOrDir, List<ImportWarning> warnings) throws ImportException {
+    public NormalizedCollection parse(File fileOrDir, List<ImportWarning> warnings)
+        throws ImportException {
         File root = resolveRoot(fileOrDir);
         if (root == null) {
             throw new ImportException("No bruno.json found in or above: " + fileOrDir);
@@ -67,7 +67,9 @@ public class BrunoImporter implements CollectionImporter {
 
         String collectionName = root.getName();
         try {
-            String brunoJson = new String(Files.readAllBytes(new File(root, "bruno.json").toPath()));
+            String brunoJson = new String(
+                Files.readAllBytes(new File(root, "bruno.json").toPath())
+            );
             Matcher m = Pattern.compile("\"name\"\\s*:\\s*\"([^\"]+)\"").matcher(brunoJson);
             if (m.find()) collectionName = m.group(1);
         } catch (IOException ignored) {
@@ -81,10 +83,10 @@ public class BrunoImporter implements CollectionImporter {
         Path envDir = rootPath.resolve("environments");
         try (Stream<Path> stream = Files.walk(rootPath)) {
             List<Path> bruFiles = stream
-                    .filter(p -> p.toString().toLowerCase(Locale.ROOT).endsWith(".bru"))
-                    .filter(p -> !p.startsWith(envDir))
-                    .sorted()
-                    .collect(Collectors.toList());
+                .filter(p -> p.toString().toLowerCase(Locale.ROOT).endsWith(".bru"))
+                .filter(p -> !p.startsWith(envDir))
+                .sorted()
+                .collect(Collectors.toList());
             for (Path p : bruFiles) {
                 NormalizedRequest nr = parseRequestFile(p, rootPath, warnings);
                 if (nr != null) nc.getRequests().add(nr);
@@ -96,14 +98,22 @@ public class BrunoImporter implements CollectionImporter {
         // Environments
         if (Files.isDirectory(envDir)) {
             try (Stream<Path> s = Files.list(envDir)) {
-                s.filter(p -> p.toString().endsWith(".bru")).forEach(p -> {
-                    try {
-                        nc.getEnvironments().add(parseEnvironmentFile(p));
-                    } catch (IOException e) {
-                        warnings.add(ImportWarning.warn("environments/" + p.getFileName(),
-                                "Failed to read environment: " + e.getMessage()));
-                    }
-                });
+                s
+                    .filter(p -> p.toString().endsWith(".bru"))
+                    .forEach(
+                        p -> {
+                            try {
+                                nc.getEnvironments().add(parseEnvironmentFile(p));
+                            } catch (IOException e) {
+                                warnings.add(
+                                    ImportWarning.warn(
+                                        "environments/" + p.getFileName(),
+                                        "Failed to read environment: " + e.getMessage()
+                                    )
+                                );
+                            }
+                        }
+                    );
             } catch (IOException ignored) {
                 // no envs
             }
@@ -117,8 +127,12 @@ public class BrunoImporter implements CollectionImporter {
         try {
             blocks = BrunoParser.parseFile(file);
         } catch (IOException e) {
-            warnings.add(ImportWarning.warn(root.relativize(file).toString(),
-                    "Failed to read: " + e.getMessage()));
+            warnings.add(
+                ImportWarning.warn(
+                    root.relativize(file).toString(),
+                    "Failed to read: " + e.getMessage()
+                )
+            );
             return null;
         }
 
@@ -144,8 +158,13 @@ public class BrunoImporter implements CollectionImporter {
                 case "meta":
                     if (b.entries.containsKey("name")) req.setName(b.entries.get("name"));
                     break;
-                case "get": case "post": case "put": case "patch": case "delete":
-                case "head": case "options":
+                case "get":
+                case "post":
+                case "put":
+                case "patch":
+                case "delete":
+                case "head":
+                case "options":
                     req.setMethod(parseMethod(name));
                     if (b.entries.containsKey("url")) {
                         req.setUrl(ImportUtils.rewriteVariables(b.entries.get("url")));
@@ -153,100 +172,169 @@ public class BrunoImporter implements CollectionImporter {
                     break;
                 case "headers":
                     for (Map.Entry<String, String> e : b.entries.entrySet()) {
-                        req.getHeaders().add(new KeyValuePair(
-                                ImportUtils.rewriteVariables(e.getKey()),
-                                ImportUtils.rewriteVariables(e.getValue()), true));
+                        req
+                            .getHeaders()
+                            .add(
+                                new KeyValuePair(
+                                    ImportUtils.rewriteVariables(e.getKey()),
+                                    ImportUtils.rewriteVariables(e.getValue()),
+                                    true
+                                )
+                            );
                     }
                     break;
                 case "query":
                 case "params:query":
                     for (Map.Entry<String, String> e : b.entries.entrySet()) {
-                        req.getQueryParams().add(new KeyValuePair(
-                                ImportUtils.rewriteVariables(e.getKey()),
-                                ImportUtils.rewriteVariables(e.getValue()), true));
+                        req
+                            .getQueryParams()
+                            .add(
+                                new KeyValuePair(
+                                    ImportUtils.rewriteVariables(e.getKey()),
+                                    ImportUtils.rewriteVariables(e.getValue()),
+                                    true
+                                )
+                            );
                     }
                     break;
-                case "body:json": case "body:text": case "body:xml":
-                case "body:graphql": case "body:sparql": {
-                    RequestBody body = new RequestBody();
-                    body.setBodyType(RequestBody.BodyType.RAW);
-                    body.setRawFormat(mapRawFormat(name.substring("body:".length())));
-                    body.setRawContent(ImportUtils.rewriteVariables(b.raw.trim()));
-                    req.setBody(body);
-                    break;
-                }
-                case "body:multipartForm": {
-                    RequestBody body = new RequestBody();
-                    body.setBodyType(RequestBody.BodyType.FORM_DATA);
-                    for (Map.Entry<String, String> e : b.entries.entrySet()) {
-                        body.getFormData().add(new KeyValuePair(
-                                ImportUtils.rewriteVariables(e.getKey()),
-                                ImportUtils.rewriteVariables(e.getValue()), true));
+                case "body:json":
+                case "body:text":
+                case "body:xml":
+                case "body:graphql":
+                case "body:sparql":
+                    {
+                        RequestBody body = new RequestBody();
+                        body.setBodyType(RequestBody.BodyType.RAW);
+                        body.setRawFormat(mapRawFormat(name.substring("body:".length())));
+                        body.setRawContent(ImportUtils.rewriteVariables(b.raw.trim()));
+                        req.setBody(body);
+                        break;
                     }
-                    req.setBody(body);
-                    break;
-                }
-                case "body:formUrlEncoded": {
-                    RequestBody body = new RequestBody();
-                    body.setBodyType(RequestBody.BodyType.URL_ENCODED);
-                    for (Map.Entry<String, String> e : b.entries.entrySet()) {
-                        body.getUrlEncodedData().add(new KeyValuePair(
-                                ImportUtils.rewriteVariables(e.getKey()),
-                                ImportUtils.rewriteVariables(e.getValue()), true));
+                case "body:multipartForm":
+                    {
+                        RequestBody body = new RequestBody();
+                        body.setBodyType(RequestBody.BodyType.FORM_DATA);
+                        for (Map.Entry<String, String> e : b.entries.entrySet()) {
+                            body
+                                .getFormData()
+                                .add(
+                                    new KeyValuePair(
+                                        ImportUtils.rewriteVariables(e.getKey()),
+                                        ImportUtils.rewriteVariables(e.getValue()),
+                                        true
+                                    )
+                                );
+                        }
+                        req.setBody(body);
+                        break;
                     }
-                    req.setBody(body);
-                    break;
-                }
-                case "auth:basic": {
-                    req.setAuth(AuthConfig.basic(
-                            ImportUtils.rewriteVariables(b.entries.getOrDefault("username", "")),
-                            ImportUtils.rewriteVariables(b.entries.getOrDefault("password", ""))));
-                    break;
-                }
-                case "auth:bearer": {
-                    req.setAuth(AuthConfig.bearer(
-                            ImportUtils.rewriteVariables(b.entries.getOrDefault("token", ""))));
-                    break;
-                }
-                case "auth:apikey": {
-                    String k = b.entries.getOrDefault("key", "X-API-Key");
-                    String v = b.entries.getOrDefault("value", "");
-                    String placement = b.entries.getOrDefault("placement", "header");
-                    AuthConfig.ApiKeyLocation locEnum = "queryparams".equalsIgnoreCase(placement)
+                case "body:formUrlEncoded":
+                    {
+                        RequestBody body = new RequestBody();
+                        body.setBodyType(RequestBody.BodyType.URL_ENCODED);
+                        for (Map.Entry<String, String> e : b.entries.entrySet()) {
+                            body
+                                .getUrlEncodedData()
+                                .add(
+                                    new KeyValuePair(
+                                        ImportUtils.rewriteVariables(e.getKey()),
+                                        ImportUtils.rewriteVariables(e.getValue()),
+                                        true
+                                    )
+                                );
+                        }
+                        req.setBody(body);
+                        break;
+                    }
+                case "auth:basic":
+                    {
+                        req.setAuth(
+                            AuthConfig.basic(
+                                ImportUtils.rewriteVariables(
+                                    b.entries.getOrDefault("username", "")
+                                ),
+                                ImportUtils.rewriteVariables(b.entries.getOrDefault("password", ""))
+                            )
+                        );
+                        break;
+                    }
+                case "auth:bearer":
+                    {
+                        req.setAuth(
+                            AuthConfig.bearer(
+                                ImportUtils.rewriteVariables(b.entries.getOrDefault("token", ""))
+                            )
+                        );
+                        break;
+                    }
+                case "auth:apikey":
+                    {
+                        String k = b.entries.getOrDefault("key", "X-API-Key");
+                        String v = b.entries.getOrDefault("value", "");
+                        String placement = b.entries.getOrDefault("placement", "header");
+                        AuthConfig.ApiKeyLocation locEnum = "queryparams".equalsIgnoreCase(
+                                    placement
+                                )
                             ? AuthConfig.ApiKeyLocation.QUERY_PARAM
                             : AuthConfig.ApiKeyLocation.HEADER;
-                    if (locEnum == AuthConfig.ApiKeyLocation.QUERY_PARAM) {
-                        warnings.add(ImportWarning.warn(location,
-                                "API key in query string — only header injection is generated automatically."));
+                        if (locEnum == AuthConfig.ApiKeyLocation.QUERY_PARAM) {
+                            warnings.add(
+                                ImportWarning.warn(
+                                    location,
+                                    "API key in query string — only header injection is generated automatically."
+                                )
+                            );
+                        }
+                        req.setAuth(
+                            AuthConfig.apiKey(
+                                ImportUtils.rewriteVariables(k),
+                                ImportUtils.rewriteVariables(v),
+                                locEnum
+                            )
+                        );
+                        break;
                     }
-                    req.setAuth(AuthConfig.apiKey(
-                            ImportUtils.rewriteVariables(k),
-                            ImportUtils.rewriteVariables(v), locEnum));
-                    break;
-                }
                 case "assert":
                     translateAsserts(b.entries, req);
                     break;
                 case "tests":
                 case "script:post-response":
                     nr.setTestScript(b.raw);
-                    warnings.add(ImportWarning.info(location,
-                            "Bruno '" + name + "' block preserved verbatim — review manually."));
+                    warnings.add(
+                        ImportWarning.info(
+                            location,
+                            "Bruno '" + name + "' block preserved verbatim — review manually."
+                        )
+                    );
                     break;
                 case "script:pre-request":
                     nr.setPreRequestScript(b.raw);
-                    warnings.add(ImportWarning.info(location,
-                            "Bruno pre-request script preserved verbatim — not executed in INGenious."));
+                    warnings.add(
+                        ImportWarning.info(
+                            location,
+                            "Bruno pre-request script preserved verbatim — not executed in INGenious."
+                        )
+                    );
                     break;
                 case "vars:pre-request":
                 case "vars:post-response":
-                    warnings.add(ImportWarning.info(location,
-                            "Bruno '" + name + "' block — variables are not set automatically."));
+                    warnings.add(
+                        ImportWarning.info(
+                            location,
+                            "Bruno '" + name + "' block — variables are not set automatically."
+                        )
+                    );
                     break;
                 default:
                     if (name.startsWith("auth:")) {
-                        warnings.add(ImportWarning.warn(location,
-                                "Auth type '" + name + "' not converted — manual configuration required."));
+                        warnings.add(
+                            ImportWarning.warn(
+                                location,
+                                "Auth type '" +
+                                name +
+                                "' not converted — manual configuration required."
+                            )
+                        );
                     }
             }
         }
@@ -269,14 +357,19 @@ public class BrunoImporter implements CollectionImporter {
             if (key.equals("res.status")) {
                 if ("eq".equalsIgnoreCase(op)) {
                     try {
-                        req.getAssertions().add(APIAssertion.statusCode(Integer.parseInt(expected.trim())));
+                        req
+                            .getAssertions()
+                            .add(APIAssertion.statusCode(Integer.parseInt(expected.trim())));
                     } catch (NumberFormatException ignored) {}
                 }
             } else if (key.startsWith("res.body")) {
                 APIAssertion a = new APIAssertion();
                 a.setType(APIAssertion.AssertionType.JSON_PATH);
-                a.setOperator("contains".equalsIgnoreCase(op)
-                        ? APIAssertion.Operator.CONTAINS : APIAssertion.Operator.EQUALS);
+                a.setOperator(
+                    "contains".equalsIgnoreCase(op)
+                        ? APIAssertion.Operator.CONTAINS
+                        : APIAssertion.Operator.EQUALS
+                );
                 a.setTarget(key.substring("res.body".length()));
                 a.setExpectedValue(stripQuotes(expected.trim()));
                 req.getAssertions().add(a);
@@ -303,10 +396,16 @@ public class BrunoImporter implements CollectionImporter {
 
     private static RequestBody.RawFormat mapRawFormat(String f) {
         switch (f.toLowerCase(Locale.ROOT)) {
-            case "json": case "graphql": case "sparql": return RequestBody.RawFormat.JSON;
-            case "xml": return RequestBody.RawFormat.XML;
-            case "html": return RequestBody.RawFormat.HTML;
-            default: return RequestBody.RawFormat.TEXT;
+            case "json":
+            case "graphql":
+            case "sparql":
+                return RequestBody.RawFormat.JSON;
+            case "xml":
+                return RequestBody.RawFormat.XML;
+            case "html":
+                return RequestBody.RawFormat.HTML;
+            default:
+                return RequestBody.RawFormat.TEXT;
         }
     }
 
@@ -319,7 +418,9 @@ public class BrunoImporter implements CollectionImporter {
             if ("vars".equals(b.name) || "vars:secret".equals(b.name)) {
                 boolean secret = "vars:secret".equals(b.name);
                 for (Map.Entry<String, String> e : b.entries.entrySet()) {
-                    env.getVariables().add(new NormalizedVariable(e.getKey(), e.getValue(), secret));
+                    env
+                        .getVariables()
+                        .add(new NormalizedVariable(e.getKey(), e.getValue(), secret));
                 }
             }
         }

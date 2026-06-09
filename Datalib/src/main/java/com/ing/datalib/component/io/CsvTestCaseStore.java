@@ -44,15 +44,20 @@ public class CsvTestCaseStore implements TestCaseStore {
 
     @Override
     @SuppressWarnings("deprecation")
-    public void save(File file,
-                     String testCaseName,
-                     String scenarioName,
-                     boolean reusable,
-                     List<String> tags,
-                     List<List<String>> rows) throws IOException {
+    public void save(
+        File file,
+        String testCaseName,
+        String scenarioName,
+        boolean reusable,
+        List<String> tags,
+        List<List<String>> rows
+    )
+        throws IOException {
         ensureParent(file);
-        try (FileWriter out = new FileWriter(file);
-             CSVPrinter printer = new CSVPrinter(out, CSVFormat.EXCEL.withIgnoreEmptyLines())) {
+        try (
+            FileWriter out = new FileWriter(file);
+            CSVPrinter printer = new CSVPrinter(out, CSVFormat.EXCEL.withIgnoreEmptyLines())
+        ) {
             printer.printRecord(TestStep.HEADERS.getValues());
             for (List<String> row : rows) {
                 printer.printRecord(row);
@@ -85,10 +90,13 @@ public class CsvTestCaseStore implements TestCaseStore {
     }
 
     @SuppressWarnings("deprecation")
-    static void writeRows(File file, List<String> headers, List<List<String>> rows) throws IOException {
+    static void writeRows(File file, List<String> headers, List<List<String>> rows)
+        throws IOException {
         ensureParent(file);
-        try (FileWriter out = new FileWriter(file);
-             CSVPrinter printer = new CSVPrinter(out, CSVFormat.EXCEL.withIgnoreEmptyLines())) {
+        try (
+            FileWriter out = new FileWriter(file);
+            CSVPrinter printer = new CSVPrinter(out, CSVFormat.EXCEL.withIgnoreEmptyLines())
+        ) {
             printer.printRecord(headers);
             for (List<String> row : rows) {
                 printer.printRecord(row);
