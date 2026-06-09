@@ -59,8 +59,10 @@ public class AppMenuBar extends JMenuBar {
         );
         shortcuts.put("Quit", KeyStroke.getKeyStroke(KeyEvent.VK_X, KeyEvent.ALT_MASK));
 
-        shortcuts.put("Settings", KeyStroke.getKeyStroke(
-                KeyEvent.VK_S, SHORTCUT | KeyEvent.ALT_DOWN_MASK));
+        shortcuts.put(
+            "Settings",
+            KeyStroke.getKeyStroke(KeyEvent.VK_S, SHORTCUT | KeyEvent.ALT_DOWN_MASK)
+        );
 
         shortcuts.put(
             "Exploratory",
@@ -176,18 +178,21 @@ public class AppMenuBar extends JMenuBar {
         configure.setMnemonic('C');
 
         configure.add(
-                withMnemonics(
-                        withShortCut(
-                                withIcon(
-                                        Utils.createMenuItem("Settings", sActionListener))), 'S'));
+            withMnemonics(
+                withShortCut(withIcon(Utils.createMenuItem("Settings", sActionListener))),
+                'S'
+            )
+        );
         configure.add(
-                withMnemonics(
-                        withIcon(
-                                Utils.createMenuItem("Archetype Configurations", sActionListener)), 'A'));
-     //   configure.add(
-     //           withMnemonics(
-     //                   withIcon(
-     //                           Utils.createMenuItem("AzureDevOps TestPlan Configuration", sActionListener)), 'T'));
+            withMnemonics(
+                withIcon(Utils.createMenuItem("Archetype Configurations", sActionListener)),
+                'A'
+            )
+        );
+        //   configure.add(
+        //           withMnemonics(
+        //                   withIcon(
+        //                           Utils.createMenuItem("AzureDevOps TestPlan Configuration", sActionListener)), 'T'));
         configure.addSeparator();
 
         //  configure.add(
@@ -258,10 +263,14 @@ public class AppMenuBar extends JMenuBar {
         tools.add(sapOptionsMenu);
 
         JMenu importCollectionMenu = new JMenu("Import Collection");
-        importCollectionMenu.add(Utils.createMenuItem("Postman", sActionListener, "Import Collection:Postman"));
-        importCollectionMenu.add(Utils.createMenuItem("Bruno", sActionListener, "Import Collection:Bruno"));
+        importCollectionMenu.add(
+            Utils.createMenuItem("Postman", sActionListener, "Import Collection:Postman")
+        );
+        importCollectionMenu.add(
+            Utils.createMenuItem("Bruno", sActionListener, "Import Collection:Bruno")
+        );
         tools.add(importCollectionMenu);
-        
+
         tools.add(
             withMnemonics(withShortCut(Utils.createMenuItem("Har Compare", sActionListener)), 'H')
         );

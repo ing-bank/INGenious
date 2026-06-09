@@ -44,7 +44,6 @@ import javax.swing.table.DefaultTableModel;
  * section which is the only section that allows adding and removing rows.
  */
 public class LambdaTestCapsPanel extends JPanel {
-
     private static final String ADDITIONAL_GROUP = "Additional";
 
     private final JPanel sectionsHolder;
@@ -79,9 +78,10 @@ public class LambdaTestCapsPanel extends JPanel {
         wrap.add(new JPanel(), gc);
 
         JScrollPane scroll = new JScrollPane(
-                wrap,
-                ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
-                ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+            wrap,
+            ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED,
+            ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER
+        );
         scroll.getVerticalScrollBar().setUnitIncrement(16);
         scroll.setBorder(BorderFactory.createEmptyBorder());
         add(scroll, BorderLayout.CENTER);
@@ -138,9 +138,9 @@ public class LambdaTestCapsPanel extends JPanel {
                 String key = k.toString();
                 knownKeys.add(key);
                 Object val = (existing != null && existing.containsKey(key))
-                        ? existing.get(key)
-                        : group.getValue().get(key);
-                section.model.addRow(new Object[]{key, val});
+                    ? existing.get(key)
+                    : group.getValue().get(key);
+                section.model.addRow(new Object[] { key, val });
             }
             section.adjustHeight();
             sections.put(group.getKey(), section);
@@ -154,7 +154,7 @@ public class LambdaTestCapsPanel extends JPanel {
             for (Object k : existing.orderedKeys()) {
                 String key = k.toString();
                 if (!knownKeys.contains(key)) {
-                    additional.model.addRow(new Object[]{key, existing.get(key)});
+                    additional.model.addRow(new Object[] { key, existing.get(key) });
                 }
             }
         }
@@ -178,7 +178,6 @@ public class LambdaTestCapsPanel extends JPanel {
     // ------------------------------------------------------------------
 
     private static final class Section extends JPanel {
-
         private static final Color HEADER_BG = new Color(245, 240, 255);
         private static final Color HEADER_BG_HOVER = new Color(229, 214, 255);
         private static final Color HEADER_FG = new Color(77, 0, 32);
@@ -200,15 +199,17 @@ public class LambdaTestCapsPanel extends JPanel {
             setBorder(BorderFactory.createLineBorder(BORDER, 1));
 
             // ---- Body (table) ---- (build first so listeners can reference it)
-            model = new DefaultTableModel(new Object[]{"Property", "Value"}, 0) {
-                @Override
-                public boolean isCellEditable(int row, int column) {
-                    // For known groups, only the value column is editable —
-                    // keys are defined by the platform. For the "Additional"
-                    // section, everything is editable.
-                    return Section.this.editableStructure || column == 1;
-                }
-            };
+            model =
+                new DefaultTableModel(new Object[] { "Property", "Value" }, 0) {
+
+                    @Override
+                    public boolean isCellEditable(int row, int column) {
+                        // For known groups, only the value column is editable —
+                        // keys are defined by the platform. For the "Additional"
+                        // section, everything is editable.
+                        return Section.this.editableStructure || column == 1;
+                    }
+                };
             table = new JTable(model);
             table.setRowHeight(ROW_HEIGHT);
             table.setFillsViewportHeight(false);
@@ -216,9 +217,11 @@ public class LambdaTestCapsPanel extends JPanel {
             table.setShowGrid(true);
             table.setGridColor(BORDER);
 
-            JScrollPane sp = new JScrollPane(table,
-                    ScrollPaneConstants.VERTICAL_SCROLLBAR_NEVER,
-                    ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+            JScrollPane sp = new JScrollPane(
+                table,
+                ScrollPaneConstants.VERTICAL_SCROLLBAR_NEVER,
+                ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER
+            );
             sp.setBorder(BorderFactory.createMatteBorder(1, 0, 0, 0, BORDER));
 
             body = new JPanel(new BorderLayout());
@@ -253,27 +256,37 @@ public class LambdaTestCapsPanel extends JPanel {
             rightSide.setOpaque(false);
 
             if (editableStructure) {
-                JButton add = makeHeaderButton(INGIcons.swingColored("icon.add", 14), "Add capability");
-                add.addActionListener(e -> {
-                    model.addRow(new Object[]{"", ""});
-                    updateCountLabel();
-                    adjustHeight();
-                    if (!expanded) {
-                        toggle();
+                JButton add = makeHeaderButton(
+                    INGIcons.swingColored("icon.add", 14),
+                    "Add capability"
+                );
+                add.addActionListener(
+                    e -> {
+                        model.addRow(new Object[] { "", "" });
+                        updateCountLabel();
+                        adjustHeight();
+                        if (!expanded) {
+                            toggle();
+                        }
                     }
-                });
-                JButton remove = makeHeaderButton(INGIcons.swingColored("icon.remove", 14), "Remove selected capability");
-                remove.addActionListener(e -> {
-                    if (table.isEditing()) {
-                        table.getCellEditor().stopCellEditing();
+                );
+                JButton remove = makeHeaderButton(
+                    INGIcons.swingColored("icon.remove", 14),
+                    "Remove selected capability"
+                );
+                remove.addActionListener(
+                    e -> {
+                        if (table.isEditing()) {
+                            table.getCellEditor().stopCellEditing();
+                        }
+                        int[] rows = table.getSelectedRows();
+                        for (int i = rows.length - 1; i >= 0; i--) {
+                            model.removeRow(rows[i]);
+                        }
+                        updateCountLabel();
+                        adjustHeight();
                     }
-                    int[] rows = table.getSelectedRows();
-                    for (int i = rows.length - 1; i >= 0; i--) {
-                        model.removeRow(rows[i]);
-                    }
-                    updateCountLabel();
-                    adjustHeight();
-                });
+                );
                 rightSide.add(add);
                 rightSide.add(remove);
             }
@@ -283,6 +296,7 @@ public class LambdaTestCapsPanel extends JPanel {
             header.add(rightSide, BorderLayout.EAST);
 
             MouseAdapter toggler = new MouseAdapter() {
+
                 @Override
                 public void mouseClicked(MouseEvent e) {
                     if (e.getSource() instanceof JButton) {
@@ -290,10 +304,12 @@ public class LambdaTestCapsPanel extends JPanel {
                     }
                     toggle();
                 }
+
                 @Override
                 public void mouseEntered(MouseEvent e) {
                     header.setBackground(HEADER_BG_HOVER);
                 }
+
                 @Override
                 public void mouseExited(MouseEvent e) {
                     header.setBackground(HEADER_BG);

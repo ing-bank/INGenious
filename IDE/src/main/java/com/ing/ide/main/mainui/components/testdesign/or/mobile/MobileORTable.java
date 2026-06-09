@@ -378,8 +378,10 @@ public class MobileORTable extends JPanel implements ActionListener {
     private void setPriorityToPage(MobileORPage page, MobileORObject currObj) {
         for (ObjectGroup<MobileORObject> objectGroup : page.getObjectGroups()) {
             for (MobileORObject object : objectGroup.getObjects()) {
-                reorderAttributes(currObj.getAttributes(activePlatform),
-                        object.getAttributes(activePlatform));
+                reorderAttributes(
+                    currObj.getAttributes(activePlatform),
+                    object.getAttributes(activePlatform)
+                );
             }
         }
     }
@@ -441,7 +443,13 @@ public class MobileORTable extends JPanel implements ActionListener {
             titleLabel.setFont(new Font("Default", Font.BOLD, 12));
             add(titleLabel);
 
-            add(new javax.swing.Box.Filler(new java.awt.Dimension(0, 0), new java.awt.Dimension(0, 0), new java.awt.Dimension(32767, 32767)));
+            add(
+                new javax.swing.Box.Filler(
+                    new java.awt.Dimension(0, 0),
+                    new java.awt.Dimension(0, 0),
+                    new java.awt.Dimension(32767, 32767)
+                )
+            );
 
             // Platform toggle – choose Android vs iOS attributes view.
             JToggleButton androidBtn = new JToggleButton("Android", true);

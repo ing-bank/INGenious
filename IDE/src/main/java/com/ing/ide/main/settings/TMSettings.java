@@ -321,11 +321,14 @@ public class TMSettings extends javax.swing.JFrame {
         button.setBackground(chipBg);
         button.setForeground(textFg);
         button.setFocusPainted(false);
-        button.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createLineBorder(outline, 1),
-            new EmptyBorder(6, 14, 6, 14)));
+        button.setBorder(
+            BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(outline, 1),
+                new EmptyBorder(6, 14, 6, 14)
+            )
+        );
     }
-    
+
     private void styleComponentsRecursively(java.awt.Container container) {
         if (container == null) return;
 

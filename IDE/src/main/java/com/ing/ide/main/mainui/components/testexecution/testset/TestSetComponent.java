@@ -153,8 +153,14 @@ public class TestSetComponent extends JPanel implements ActionListener {
     }
 
     public void loadBrowsers() {
-        java.util.List<String> names = new java.util.ArrayList<>(testExecution.getProject().getProjectSettings().getEmulators().getEmulatorNames());
-        for (String d : testExecution.getProject().getProjectSettings().getDevices().getDeviceNames()) {
+        java.util.List<String> names = new java.util.ArrayList<>(
+            testExecution.getProject().getProjectSettings().getEmulators().getEmulatorNames()
+        );
+        for (String d : testExecution
+            .getProject()
+            .getProjectSettings()
+            .getDevices()
+            .getDeviceNames()) {
             if (!names.contains(d)) names.add(d);
         }
         popupMenu.loadBrowsers(names);

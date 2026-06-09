@@ -153,9 +153,14 @@ public class MobileObjectSpy extends javax.swing.JFrame {
 
     public void reloadEmulators() {
         // Merge legacy Appium emulator names with new "Manage Devices" entries.
-        java.util.List<String> names = new java.util.ArrayList<>(sMainFrame.getProject()
-                .getProjectSettings().getEmulators().getAppiumEmulatorNames());
-        for (String d : sMainFrame.getProject().getProjectSettings().getDevices().getDeviceNames()) {
+        java.util.List<String> names = new java.util.ArrayList<>(
+            sMainFrame.getProject().getProjectSettings().getEmulators().getAppiumEmulatorNames()
+        );
+        for (String d : sMainFrame
+            .getProject()
+            .getProjectSettings()
+            .getDevices()
+            .getDeviceNames()) {
             if (!names.contains(d)) {
                 names.add(d);
             }
@@ -1420,7 +1425,11 @@ public class MobileObjectSpy extends javax.swing.JFrame {
                 // New entries are added to the "Manage Devices" store; legacy
                 // Emulators.json is no longer written from the Object Spy.
                 sMainFrame.getProject().getProjectSettings().getDevices().addDevice(val);
-                Device device = sMainFrame.getProject().getProjectSettings().getDevices().getDevice(val);
+                Device device = sMainFrame
+                    .getProject()
+                    .getProjectSettings()
+                    .getDevices()
+                    .getDevice(val);
                 if (device != null) {
                     device.setRemoteUrl(appiumServerLoc.getText());
                 }
@@ -1487,16 +1496,28 @@ public class MobileObjectSpy extends javax.swing.JFrame {
     private void loadEmulator(String emulatorName) {
         // Prefer the new "Manage Devices" store; fall back to legacy emulators
         // for any project that hasn't been migrated yet (defensive only).
-        Device device = sMainFrame.getProject().getProjectSettings()
-                .getDevices().getDevice(emulatorName);
+        Device device = sMainFrame
+            .getProject()
+            .getProjectSettings()
+            .getDevices()
+            .getDevice(emulatorName);
         if (device != null) {
             appiumServerLoc.setText(device.getRemoteUrl());
             PropUtils.loadPropertiesInTable(
-                    sMainFrame.getProject().getProjectSettings().getCapabilities().getCapabiltiesFor(emulatorName), jTable3);
+                sMainFrame
+                    .getProject()
+                    .getProjectSettings()
+                    .getCapabilities()
+                    .getCapabiltiesFor(emulatorName),
+                jTable3
+            );
             return;
         }
-        Emulator emul = sMainFrame.getProject().getProjectSettings()
-                .getEmulators().getEmulator(emulatorName);
+        Emulator emul = sMainFrame
+            .getProject()
+            .getProjectSettings()
+            .getEmulators()
+            .getEmulator(emulatorName);
         if (emul != null) {
             appiumServerLoc.setText(emul.getRemoteUrl());
             PropUtils.loadPropertiesInTable(

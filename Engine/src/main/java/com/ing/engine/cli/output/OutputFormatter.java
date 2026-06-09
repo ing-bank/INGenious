@@ -251,10 +251,6 @@ public abstract class OutputFormatter {
             String bullet = colored ? CYAN + "  \u2022 " + RESET : "  \u2022 ";
             String sep = colored ? "\u001B[2m :\u001B[0m " : " : ";
 
-            // Bullet prefix gives each entry a visible anchor on multi-line scans.
-            String bullet = colored ? CYAN + "  \u2022 " + RESET : "  \u2022 ";
-            String sep = colored ? "\u001B[2m :\u001B[0m " : " : ";
-
             StringBuilder sb = new StringBuilder();
             for (Map.Entry<String, Object> entry : data.entrySet()) {
                 String key = padRight(entry.getKey(), maxKeyLength);

@@ -19,8 +19,8 @@ public final class XPathLocator {
 
     /** Result of a path lookup. */
     public static final class Hit {
-        public final String path;   // e.g. "/root/items/item[1]/id"
-        public final String value;  // text content of the element, or null
+        public final String path; // e.g. "/root/items/item[1]/id"
+        public final String value; // text content of the element, or null
         public final boolean isAttribute;
 
         public Hit(String path, String value, boolean isAttribute) {
@@ -54,7 +54,8 @@ public final class XPathLocator {
     private static final class Frame {
         final String name;
         final int siblingIndex; // 1-based index among siblings with the same name
-        final int startOffset;  // start of opening '<'
+        final int startOffset; // start of opening '<'
+
         Frame(String name, int siblingIndex, int startOffset) {
             this.name = name;
             this.siblingIndex = siblingIndex;
@@ -124,7 +125,9 @@ public final class XPathLocator {
                             childCounts.remove(childCounts.size() - 1);
                         }
                         // suppress unused warning
-                        if (name == null) { /* tolerate */ }
+                        if (name == null) {
+                            /* tolerate */
+                        }
                     } else {
                         // Opening tag <name ...>  or self-closing <name ... />
                         int tagStart = i;
@@ -135,7 +138,9 @@ public final class XPathLocator {
                             continue;
                         }
                         // Sibling index = count of previously-seen siblings of this name + 1.
-                        java.util.Map<String, Integer> counts = childCounts.get(childCounts.size() - 1);
+                        java.util.Map<String, Integer> counts = childCounts.get(
+                            childCounts.size() - 1
+                        );
                         int idx = counts.getOrDefault(name, 0) + 1;
                         counts.put(name, idx);
 
@@ -217,8 +222,12 @@ public final class XPathLocator {
                             if (i < len) i++; // closing quote
                         } else {
                             int vStart = i;
-                            while (i < len && !Character.isWhitespace(t.charAt(i))
-                                    && t.charAt(i) != '>' && t.charAt(i) != '/') i++;
+                            while (
+                                i < len &&
+                                !Character.isWhitespace(t.charAt(i)) &&
+                                t.charAt(i) != '>' &&
+                                t.charAt(i) != '/'
+                            ) i++;
                             value = t.substring(vStart, i);
                         }
                     }
@@ -227,7 +236,9 @@ public final class XPathLocator {
                 String attrPath = elementPath + "/@" + name;
                 record(attrStart, attrEnd, attrPath, value, true);
                 // suppress unused warning
-                if (tagStart < 0) { /* unused */ }
+                if (tagStart < 0) {
+                    /* unused */
+                }
             }
         }
 
@@ -269,7 +280,10 @@ public final class XPathLocator {
                 if (i + terminator.length() <= len) {
                     boolean match = true;
                     for (int k = 0; k < terminator.length(); k++) {
-                        if (t.charAt(i + k) != terminator.charAt(k)) { match = false; break; }
+                        if (t.charAt(i + k) != terminator.charAt(k)) {
+                            match = false;
+                            break;
+                        }
                     }
                     if (match) {
                         i += terminator.length();

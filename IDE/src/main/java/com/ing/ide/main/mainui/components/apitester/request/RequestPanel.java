@@ -96,7 +96,7 @@ public class RequestPanel extends JPanel {
         );
         urlField.setPreferredSize(new Dimension(100, 36));
         installCurlPasteHandler(urlField);
-        
+
         // Send button
         sendButton = new JButton("Send");
         sendButton.setFont(sendButton.getFont().deriveFont(Font.BOLD, 12f));
@@ -358,6 +358,7 @@ public class RequestPanel extends JPanel {
             }
         }
     }
+
     private String extractPathName(String url) {
         if (url == null || url.isEmpty()) return "Request";
         try {
@@ -392,35 +393,45 @@ public class RequestPanel extends JPanel {
      */
     private void installCurlPasteHandler(JTextField field) {
         final TransferHandler delegate = field.getTransferHandler();
-        field.setTransferHandler(new TransferHandler() {
-            @Override
-            public boolean canImport(TransferSupport support) {
-                return support.isDataFlavorSupported(java.awt.datatransfer.DataFlavor.stringFlavor)
-                        || (delegate != null && delegate.canImport(support));
-            }
+        field.setTransferHandler(
+            new TransferHandler() {
 
-            @Override
-            public boolean importData(TransferSupport support) {
-                if (support.isDataFlavorSupported(java.awt.datatransfer.DataFlavor.stringFlavor)) {
-                    try {
-                        String text = (String) support.getTransferable()
-                                .getTransferData(java.awt.datatransfer.DataFlavor.stringFlavor);
-                        if (com.ing.datalib.api.CurlParser.looksLikeCurl(text)) {
-                            applyCurlCommand(text);
-                            return true;
-                        }
-                    } catch (Exception ignore) {
-                        // Fall through to default handler below.
-                    }
+                @Override
+                public boolean canImport(TransferSupport support) {
+                    return (
+                        support.isDataFlavorSupported(
+                            java.awt.datatransfer.DataFlavor.stringFlavor
+                        ) ||
+                        (delegate != null && delegate.canImport(support))
+                    );
                 }
-                return delegate != null && delegate.importData(support);
-            }
 
-            @Override
-            public int getSourceActions(JComponent c) {
-                return delegate != null ? delegate.getSourceActions(c) : COPY;
+                @Override
+                public boolean importData(TransferSupport support) {
+                    if (
+                        support.isDataFlavorSupported(java.awt.datatransfer.DataFlavor.stringFlavor)
+                    ) {
+                        try {
+                            String text = (String) support
+                                .getTransferable()
+                                .getTransferData(java.awt.datatransfer.DataFlavor.stringFlavor);
+                            if (com.ing.datalib.api.CurlParser.looksLikeCurl(text)) {
+                                applyCurlCommand(text);
+                                return true;
+                            }
+                        } catch (Exception ignore) {
+                            // Fall through to default handler below.
+                        }
+                    }
+                    return delegate != null && delegate.importData(support);
+                }
+
+                @Override
+                public int getSourceActions(JComponent c) {
+                    return delegate != null ? delegate.getSourceActions(c) : COPY;
+                }
             }
-        });
+        );
     }
 
     /**
@@ -441,9 +452,12 @@ public class RequestPanel extends JPanel {
             }
             loadRequest(parsed);
         } catch (Exception ex) {
-            JOptionPane.showMessageDialog(this,
-                    "Could not parse curl command: " + ex.getMessage(),
-                    "Invalid curl", JOptionPane.WARNING_MESSAGE);
+            JOptionPane.showMessageDialog(
+                this,
+                "Could not parse curl command: " + ex.getMessage(),
+                "Invalid curl",
+                JOptionPane.WARNING_MESSAGE
+            );
         }
     }
 

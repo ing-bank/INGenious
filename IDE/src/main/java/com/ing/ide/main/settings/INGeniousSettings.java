@@ -72,7 +72,7 @@ public class INGeniousSettings extends javax.swing.JFrame {
     private XTablePanel uDPanel;
 
     private XTablePanel lambdatestCapsPanel;
-    
+
     private ConnectButton mailConnect;
 
     private ConnectButton dbConnect;
@@ -504,39 +504,51 @@ public class INGeniousSettings extends javax.swing.JFrame {
         //Added for LambdaTest
         lambdatestCapsPanel = new XTablePanel(true);
         runSettingsTab.addTab("LambdaTest Grid Capabilities", lambdatestCapsPanel);
-        
-        
-        mailConnect = new ConnectButton() {
-            @Override
-            public void actionPerformed(ActionEvent ae) {
-                try {
-//                    if (Mailer.connect(PropUtils.getPropertiesFromTable(((XTablePanel) mailSettingsPanel).table))) {
-//                        success();
-//                    }
-                } catch (Exception ex) {
-                    Logger.getLogger(INGeniousSettings.class.getName()).log(Level.SEVERE, null, ex);
-                    failure();
+
+        mailConnect =
+            new ConnectButton() {
+
+                @Override
+                public void actionPerformed(ActionEvent ae) {
+                    try {
+                        //                    if (Mailer.connect(PropUtils.getPropertiesFromTable(((XTablePanel) mailSettingsPanel).table))) {
+                        //                        success();
+                        //                    }
+                    } catch (Exception ex) {
+                        Logger
+                            .getLogger(INGeniousSettings.class.getName())
+                            .log(Level.SEVERE, null, ex);
+                        failure();
+                    }
                 }
-            }
-        };
-        
-        dbConnect = new ConnectButton() {
-            @Override
-            public void actionPerformed(ActionEvent ae) {
-                Properties encrypted = PropUtils.getPropertiesFromTable(
-                        ((XTablePanel) databaseSettingsPanel).table);
-                Properties prop = new Properties();
-                Optional.ofNullable(prop)
-                        .filter((p) -> {
-                            return Optional
-                                    .ofNullable(p.getProperty("db.driver"))
-                                    .filter((val) -> {
-                                        return !val.trim().isEmpty();
-                                    })
-                                    .isPresent()
-                                    && Optional
-                                            .ofNullable(p.getProperty("db.connection.string"))
-                                            .filter((val) -> {
+            };
+
+        dbConnect =
+            new ConnectButton() {
+
+                @Override
+                public void actionPerformed(ActionEvent ae) {
+                    Properties encrypted = PropUtils.getPropertiesFromTable(
+                        ((XTablePanel) databaseSettingsPanel).table
+                    );
+                    Properties prop = new Properties();
+                    Optional
+                        .ofNullable(prop)
+                        .filter(
+                            p -> {
+                                return (
+                                    Optional
+                                        .ofNullable(p.getProperty("db.driver"))
+                                        .filter(
+                                            val -> {
+                                                return !val.trim().isEmpty();
+                                            }
+                                        )
+                                        .isPresent() &&
+                                    Optional
+                                        .ofNullable(p.getProperty("db.connection.string"))
+                                        .filter(
+                                            val -> {
                                                 return !val.trim().isEmpty();
                                             }
                                         )
@@ -745,7 +757,7 @@ public class INGeniousSettings extends javax.swing.JFrame {
             lambdatestCapsPanel.table
         );
     }
-   
+
     private void setButtonModelFromText(String text, ButtonGroup Bgroup) {
         for (
             Enumeration<AbstractButton> buttons = Bgroup.getElements();
@@ -1000,11 +1012,14 @@ public class INGeniousSettings extends javax.swing.JFrame {
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         setTitle("Settings");
-        addWindowListener(new java.awt.event.WindowAdapter() {
-            public void windowClosing(java.awt.event.WindowEvent evt) {
-                formWindowClosing(evt);
+        addWindowListener(
+            new java.awt.event.WindowAdapter() {
+
+                public void windowClosing(java.awt.event.WindowEvent evt) {
+                    formWindowClosing(evt);
+                }
             }
-        });
+        );
 
         savePanel.setBorder(javax.swing.BorderFactory.createEmptyBorder(1, 1, 1, 1));
         savePanel.setFont(new java.awt.Font("sansserif", 0, 11)); // NOI18N
@@ -1767,7 +1782,9 @@ public class INGeniousSettings extends javax.swing.JFrame {
                 if (connection.isConnected()) {
                     testConn.setIcon(PASS_ICON);
                     applyTestConnSuccessStyle();
-                    this.setCursor(java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.DEFAULT_CURSOR));
+                    this.setCursor(
+                            java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.DEFAULT_CURSOR)
+                        );
                     return;
                 }
             }
@@ -1791,10 +1808,12 @@ public class INGeniousSettings extends javax.swing.JFrame {
         testConn.setForeground(MODERN_TEXT);
         testConn.putClientProperty("JButton.hoverBackground", Color.WHITE);
         testConn.putClientProperty("JButton.pressedBackground", MODERN_ACCENT_LIGHT);
-        testConn.setBorder(BorderFactory.createCompoundBorder(
-            BorderFactory.createLineBorder(MODERN_ACCENT, 1),
-            new EmptyBorder(9, 27, 9, 27)
-        ));
+        testConn.setBorder(
+            BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(MODERN_ACCENT, 1),
+                new EmptyBorder(9, 27, 9, 27)
+            )
+        );
         testConn.repaint();
     }
 
@@ -1806,7 +1825,6 @@ public class INGeniousSettings extends javax.swing.JFrame {
         if (testConn == null) return;
         styleModernButton(testConn, true);
     }
-
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JCheckBox azure;

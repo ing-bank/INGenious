@@ -233,8 +233,12 @@ public class Main {
             bo + l + "              ═══════════════════════════════════════════════════════════" + r
         );
         System.out.println(bo + w + "               ✦  P L A Y W R I G H T   S T U D I O  ✦" + r);
-        System.out.println(bo + b + "                              Version " + About.getBuildVersion() + r);
-        System.out.println(bo + l + "              ═══════════════════════════════════════════════════════════" + r);
+        System.out.println(
+            bo + b + "                              Version " + About.getBuildVersion() + r
+        );
+        System.out.println(
+            bo + l + "              ═══════════════════════════════════════════════════════════" + r
+        );
         System.out.println();
     }
 

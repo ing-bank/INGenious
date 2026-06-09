@@ -3,7 +3,6 @@ package com.ing.ide.main.mainui.components.apitester.importing;
 import com.ing.datalib.api.importer.ImportResult;
 import com.ing.datalib.api.importer.ImportWarning;
 import com.ing.datalib.api.importer.NormalizedCollection;
-
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
@@ -20,7 +19,8 @@ public final class ImportReportWriter {
 
     private ImportReportWriter() {}
 
-    public static File write(String projectLocation, NormalizedCollection nc, ImportResult result) throws IOException {
+    public static File write(String projectLocation, NormalizedCollection nc, ImportResult result)
+        throws IOException {
         Path dir = Paths.get(projectLocation, "api", "import-reports");
         Files.createDirectories(dir);
         String ts = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd-HHmmss"));
@@ -33,7 +33,10 @@ public final class ImportReportWriter {
         sb.append("- Requests read: ").append(result.getRequestsRead()).append("\n");
         sb.append("- Items created: ").append(result.getReusablesCreated()).append("\n");
         sb.append("- Items skipped: ").append(result.getReusablesSkipped()).append("\n");
-        sb.append("- Environments created: ").append(result.getEnvironmentsCreated()).append("\n\n");
+        sb
+            .append("- Environments created: ")
+            .append(result.getEnvironmentsCreated())
+            .append("\n\n");
 
         sb.append("## Scenarios created\n");
         if (result.getCreatedScenarios().isEmpty()) {
@@ -54,8 +57,14 @@ public final class ImportReportWriter {
             sb.append("_(none)_\n");
         } else {
             for (ImportWarning w : result.getWarnings()) {
-                sb.append("- **").append(w.getSeverity()).append("** ")
-                        .append(w.getLocation()).append(" — ").append(w.getMessage()).append("\n");
+                sb
+                    .append("- **")
+                    .append(w.getSeverity())
+                    .append("** ")
+                    .append(w.getLocation())
+                    .append(" — ")
+                    .append(w.getMessage())
+                    .append("\n");
             }
         }
 

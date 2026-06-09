@@ -114,7 +114,10 @@ public class FXMenuBar extends JFXPanel {
         );
         bindAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_X, InputEvent.ALT_DOWN_MASK), "Quit");
 
-        bindAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S, shortcutMask | InputEvent.ALT_DOWN_MASK), "Run Settings");
+        bindAccelerator(
+            KeyStroke.getKeyStroke(KeyEvent.VK_S, shortcutMask | InputEvent.ALT_DOWN_MASK),
+            "Run Settings"
+        );
 
         bindAccelerator(
             KeyStroke.getKeyStroke(KeyEvent.VK_E, shortcutMask | InputEvent.SHIFT_DOWN_MASK),
@@ -303,17 +306,12 @@ public class FXMenuBar extends JFXPanel {
         tools.getItems().add(sapRecording);
 
         Menu importCollection = new Menu("Import Collection");
-        importCollection.getItems().addAll(
+        importCollection
+            .getItems()
+            .addAll(
                 createImportCollectionItem("Postman", "recorder", "Postman"),
                 createImportCollectionItem("Bruno", "recorder", "Bruno")
-        );
-        tools.getItems().add(importCollection);
-
-        Menu importCollection = new Menu("Import Collection");
-        importCollection.getItems().addAll(
-                createImportCollectionItem("Postman", "recorder", "Postman"),
-                createImportCollectionItem("Bruno", "recorder", "Bruno")
-        );
+            );
         tools.getItems().add(importCollection);
 
         tools

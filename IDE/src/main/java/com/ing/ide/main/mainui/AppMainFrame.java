@@ -169,22 +169,25 @@ public class AppMainFrame extends JFrame {
         add(simpleFiller(), BorderLayout.WEST);
         dashBoard.load();
         loader.setFrame(this);
-        addWindowListener(new WindowAdapter() {
-            @Override
-            public void windowClosing(WindowEvent we) {
-                if (iCanQuit()) {                    
-                    // Close StoryWriter editor if open
-                    if (sActionListener != null) {
-                        sActionListener.closeBddEditorIfOpen();
+        addWindowListener(
+            new WindowAdapter() {
+
+                @Override
+                public void windowClosing(WindowEvent we) {
+                    if (iCanQuit()) {
+                        // Close StoryWriter editor if open
+                        if (sActionListener != null) {
+                            sActionListener.closeBddEditorIfOpen();
+                        }
+                        setDefaultCloseOperation(AppMainFrame.EXIT_ON_CLOSE);
+                        if (quitType == QUIT_TYPE.RESTART) {
+                            doRestart();
+                        }
+                        dispose();
                     }
-                    setDefaultCloseOperation(AppMainFrame.EXIT_ON_CLOSE);
-                    if (quitType == QUIT_TYPE.RESTART) {
-                        doRestart();
-                    }
-                    dispose();
                 }
             }
-        });
+        );
         progressed(90);
     }
 
@@ -212,15 +215,17 @@ public class AppMainFrame extends JFrame {
         filler.addMouseListener(
             new MouseAdapter() {
 
-            @Override
-            public void mouseEntered(MouseEvent me) {
-                setGlassPane(docker);
-                SwingUtilities.invokeLater(() -> {
-                    getGlassPane().setVisible(true);
-                });
+                @Override
+                public void mouseEntered(MouseEvent me) {
+                    setGlassPane(docker);
+                    SwingUtilities.invokeLater(
+                        () -> {
+                            getGlassPane().setVisible(true);
+                        }
+                    );
+                }
             }
-
-        });
+        );
         return filler;
     }
 
@@ -916,7 +921,9 @@ public class AppMainFrame extends JFrame {
             pb.redirectOutput(ProcessBuilder.Redirect.DISCARD);
             pb.start();
         } catch (Exception ex) {
-            Logger.getLogger(AppMainFrame.class.getName()).log(Level.WARNING, "Failed to restart INGenious", ex);
+            Logger
+                .getLogger(AppMainFrame.class.getName())
+                .log(Level.WARNING, "Failed to restart INGenious", ex);
         }
     }
 

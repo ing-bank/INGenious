@@ -13,7 +13,6 @@ import com.ing.datalib.api.importer.NormalizedVariable;
 import com.ing.datalib.component.Project;
 import com.ing.datalib.component.Scenario;
 import com.ing.ide.main.mainui.components.apitester.APITester;
-
 import java.util.List;
 import java.util.logging.Logger;
 
@@ -22,7 +21,6 @@ import java.util.logging.Logger;
  * test cases via {@link APITester#convertRequestToReusable}.
  */
 public class ReusableImportEngine {
-
     private static final Logger LOG = Logger.getLogger(ReusableImportEngine.class.getName());
 
     private final APITester apiTester;
@@ -44,10 +42,11 @@ public class ReusableImportEngine {
             try {
                 String scenarioName = resolveScenarioName(nc, nr, opts);
                 Scenario scn = toReusable
-                        ? project.getReusableScenarioByName(scenarioName)
-                        : project.getScenarioByName(scenarioName);
+                    ? project.getReusableScenarioByName(scenarioName)
+                    : project.getScenarioByName(scenarioName);
                 if (scn == null) {
-                    scn = toReusable
+                    scn =
+                        toReusable
                             ? project.addReusableScenario(scenarioName)
                             : project.addScenario(scenarioName);
                     if (scn != null) {
@@ -55,8 +54,14 @@ public class ReusableImportEngine {
                     }
                 }
                 if (scn == null) {
-                    result.getWarnings().add(ImportWarning.error(loc(nr),
-                            "Could not create scenario '" + scenarioName + "'"));
+                    result
+                        .getWarnings()
+                        .add(
+                            ImportWarning.error(
+                                loc(nr),
+                                "Could not create scenario '" + scenarioName + "'"
+                            )
+                        );
                     result.incReusablesSkipped();
                     continue;
                 }
@@ -78,16 +83,25 @@ public class ReusableImportEngine {
                 APIRequest req = nr.getRequest();
                 req.setName(tcName);
                 com.ing.datalib.component.TestCase created = toReusable
-                        ? apiTester.convertRequestToReusable(req, scn, tcName)
-                        : apiTester.convertRequestToTestCase(req, scn, tcName);
+                    ? apiTester.convertRequestToReusable(req, scn, tcName)
+                    : apiTester.convertRequestToTestCase(req, scn, tcName);
                 if (created != null) {
                     result.incReusablesCreated();
                     result.getCreatedReusables().add(scenarioName + " / " + tcName);
                 } else {
                     result.incReusablesSkipped();
-                    result.getWarnings().add(ImportWarning.warn(loc(nr),
-                            "Failed to create " + (toReusable ? "reusable" : "test case")
-                                    + " '" + tcName + "'"));
+                    result
+                        .getWarnings()
+                        .add(
+                            ImportWarning.warn(
+                                loc(nr),
+                                "Failed to create " +
+                                (toReusable ? "reusable" : "test case") +
+                                " '" +
+                                tcName +
+                                "'"
+                            )
+                        );
                 }
             } catch (Exception ex) {
                 LOG.warning("Failed to import request " + loc(nr) + ": " + ex.getMessage());
@@ -103,16 +117,27 @@ public class ReusableImportEngine {
                     for (NormalizedVariable v : env.getVariables()) {
                         ae.setVariable(v.getKey(), v.isSecret() ? "" : v.getValue());
                         if (v.isSecret()) {
-                            result.getWarnings().add(ImportWarning.warn(
-                                    "env/" + env.getName() + "/" + v.getKey(),
-                                    "Secret variable imported with empty value — set it manually."));
+                            result
+                                .getWarnings()
+                                .add(
+                                    ImportWarning.warn(
+                                        "env/" + env.getName() + "/" + v.getKey(),
+                                        "Secret variable imported with empty value — set it manually."
+                                    )
+                                );
                         }
                     }
                     apiTester.addEnvironment(ae);
                     result.incEnvironmentsCreated();
                 } catch (Exception ex) {
-                    result.getWarnings().add(ImportWarning.warn("env/" + env.getName(),
-                            "Failed to import environment: " + ex.getMessage()));
+                    result
+                        .getWarnings()
+                        .add(
+                            ImportWarning.warn(
+                                "env/" + env.getName(),
+                                "Failed to import environment: " + ex.getMessage()
+                            )
+                        );
                 }
             }
         }
@@ -123,7 +148,10 @@ public class ReusableImportEngine {
     private static String loc(NormalizedRequest nr) {
         if (nr == null || nr.getRequest() == null) return "?";
         List<String> p = nr.getFolderPath();
-        return ((p == null || p.isEmpty()) ? "" : String.join("/", p) + "/") + nr.getRequest().getName();
+        return (
+            ((p == null || p.isEmpty()) ? "" : String.join("/", p) + "/") +
+            nr.getRequest().getName()
+        );
     }
 
     private static List<ImportWarning> safe(NormalizedCollection nc) {
@@ -131,22 +159,27 @@ public class ReusableImportEngine {
     }
 
     /** Returns the target reusable scenario name based on the chosen strategy. */
-    private String resolveScenarioName(NormalizedCollection nc, NormalizedRequest nr, ImportOptions opts) {
+    private String resolveScenarioName(
+        NormalizedCollection nc,
+        NormalizedRequest nr,
+        ImportOptions opts
+    ) {
         if (opts.getTargetScenarioName() != null && !opts.getTargetScenarioName().isEmpty()) {
             return ImportUtils.sanitizeFileName(opts.getTargetScenarioName());
         }
         String prefix = opts.getScenarioPrefix() == null ? "" : opts.getScenarioPrefix();
         String base;
         switch (opts.getHierarchyStrategy()) {
-            case SCENARIO_PER_TOP_FOLDER: {
-                List<String> p = nr.getFolderPath();
-                if (p == null || p.isEmpty()) {
-                    base = nc.getName();
-                } else {
-                    base = p.get(0);
+            case SCENARIO_PER_TOP_FOLDER:
+                {
+                    List<String> p = nr.getFolderPath();
+                    if (p == null || p.isEmpty()) {
+                        base = nc.getName();
+                    } else {
+                        base = p.get(0);
+                    }
+                    break;
                 }
-                break;
-            }
             case FLATTEN:
             default:
                 base = nc.getName();
@@ -156,13 +189,19 @@ public class ReusableImportEngine {
     }
 
     /** Builds the reusable test case name including any folder-flattening + conflict policy. */
-    private String resolveTestCaseName(Scenario scn, NormalizedCollection nc,
-                                       NormalizedRequest nr, ImportOptions opts) {
+    private String resolveTestCaseName(
+        Scenario scn,
+        NormalizedCollection nc,
+        NormalizedRequest nr,
+        ImportOptions opts
+    ) {
         List<String> p = nr.getFolderPath();
         StringBuilder sb = new StringBuilder();
         if (p != null && !p.isEmpty()) {
-            int start = opts.getHierarchyStrategy() == ImportOptions.HierarchyStrategy.SCENARIO_PER_TOP_FOLDER
-                    ? 1 : 0;
+            int start = opts.getHierarchyStrategy() ==
+                ImportOptions.HierarchyStrategy.SCENARIO_PER_TOP_FOLDER
+                ? 1
+                : 0;
             for (int i = start; i < p.size(); i++) {
                 if (sb.length() > 0) sb.append('_');
                 sb.append(p.get(i));
@@ -172,8 +211,10 @@ public class ReusableImportEngine {
         sb.append(nr.getRequest().getName());
         String candidate = ImportUtils.sanitizeFileName(sb.toString());
 
-        if (project.hasTestCaseInAnyScenario(scn.getName(), candidate)
-                || scn.getTestCaseByName(candidate) != null) {
+        if (
+            project.hasTestCaseInAnyScenario(scn.getName(), candidate) ||
+            scn.getTestCaseByName(candidate) != null
+        ) {
             switch (opts.getConflictPolicy()) {
                 case SKIP:
                     return null;
@@ -186,8 +227,10 @@ public class ReusableImportEngine {
                     do {
                         renamed = candidate + "_" + n;
                         n++;
-                    } while (project.hasTestCaseInAnyScenario(scn.getName(), renamed)
-                            || scn.getTestCaseByName(renamed) != null);
+                    } while (
+                        project.hasTestCaseInAnyScenario(scn.getName(), renamed) ||
+                        scn.getTestCaseByName(renamed) != null
+                    );
                     return renamed;
             }
         }

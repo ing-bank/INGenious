@@ -420,34 +420,6 @@ public class MobileObject implements MobileObjectApi {
         return MobilePlatform.ANDROID;
     }
 
-    private static boolean hasUsableValue(List<ORAttribute> attrs) {
-        if (attrs == null) {
-            return false;
-        }
-        for (ORAttribute a : attrs) {
-            if (a != null && a.getValue() != null && !a.getValue().trim().isEmpty()) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    /**
-     * Determines which mobile platform's locator attributes to use for the
-     * current execution. Falls back to Android when the driver type cannot
-     * be detected, preserving legacy behaviour.
-     */
-    private MobilePlatform resolvePlatform() {
-        try {
-            if (driver instanceof io.appium.java_client.ios.IOSDriver) {
-                return MobilePlatform.IOS;
-            }
-        } catch (Throwable ignore) {
-            // io.appium not on classpath in some contexts – fall back.
-        }
-        return MobilePlatform.ANDROID;
-    }
-
     private void printStats(
         List<?> elements,
         ObjectGroup<?> objectGroup,

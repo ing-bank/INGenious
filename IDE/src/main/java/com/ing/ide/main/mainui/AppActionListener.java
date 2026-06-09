@@ -153,7 +153,6 @@ public class AppActionListener implements ActionListener {
                     }
                 }
                 break;
-
             case "Settings":
                 openSettings();
                 break;
@@ -310,8 +309,10 @@ public class AppActionListener implements ActionListener {
                     } catch (IllegalArgumentException ex) {
                         src = com.ing.datalib.api.importer.ImportSource.POSTMAN;
                     }
-                    new com.ing.ide.main.mainui.components.apitester.importing.ImportCollectionAction(sMainFrame)
-                            .openWizard(src);
+                    new com.ing.ide.main.mainui.components.apitester.importing.ImportCollectionAction(
+                        sMainFrame
+                    )
+                    .openWizard(src);
                 } else {
                     System.out.println("UNHANDLED ACTION: [" + ae.getActionCommand() + "]");
                     sMainFrame.getLoader().showIDontCare();

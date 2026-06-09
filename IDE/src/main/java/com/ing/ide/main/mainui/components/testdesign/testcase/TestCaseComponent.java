@@ -212,8 +212,14 @@ public class TestCaseComponent extends JPanel implements ActionListener {
     }
 
     public void loadBrowsers() {
-        java.util.List<String> names = new java.util.ArrayList<>(testDesign.getProject().getProjectSettings().getEmulators().getEmulatorNames());
-        for (String d : testDesign.getProject().getProjectSettings().getDevices().getDeviceNames()) {
+        java.util.List<String> names = new java.util.ArrayList<>(
+            testDesign.getProject().getProjectSettings().getEmulators().getEmulatorNames()
+        );
+        for (String d : testDesign
+            .getProject()
+            .getProjectSettings()
+            .getDevices()
+            .getDeviceNames()) {
             if (!names.contains(d)) names.add(d);
         }
         toolBar.loadBrowsers(names);

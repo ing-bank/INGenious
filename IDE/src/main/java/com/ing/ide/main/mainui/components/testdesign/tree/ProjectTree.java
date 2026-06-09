@@ -920,15 +920,23 @@ public class ProjectTree implements ActionListener {
      * mirrored on disk.
      */
     private void editTag(DataItem tc, TestCase testCase) {
-        TagEditorDialog.build(testDesign.getsMainFrame(),
-                getProject().getInfo().getAllTags(tc.getTags()), tc.getTags(),
-                this::onRemoveTag, this::onAddTag)
-                .withTitle(editTagTitle(tc.getName())).show(tags -> {
+        TagEditorDialog
+            .build(
+                testDesign.getsMainFrame(),
+                getProject().getInfo().getAllTags(tc.getTags()),
+                tc.getTags(),
+                this::onRemoveTag,
+                this::onAddTag
+            )
+            .withTitle(editTagTitle(tc.getName()))
+            .show(
+                tags -> {
                     tc.setTags(tags);
                     if (testCase != null) {
                         testCase.saveMetadata();
                     }
-                });
+                }
+            );
     }
 
     /**
@@ -968,8 +976,9 @@ public class ProjectTree implements ActionListener {
                 getProject()
                     .getInfo()
                     .getData()
-                    .findOrCreate(tcn.getName(), tcn.getScenario().getName())
-            , tcn);
+                    .findOrCreate(tcn.getName(), tcn.getScenario().getName()),
+                tcn
+            );
         } else if (path.getLastPathComponent() instanceof ScenarioNode) {
             Scenario scn = ((ScenarioNode) path.getLastPathComponent()).getScenario();
             editTag(getProject().getInfo().findScenarioOrCreate(scn.getName()));

@@ -36,7 +36,11 @@ public class About {
     private static synchronized Properties load() {
         if (buildProperties == null) {
             Properties p = new Properties();
-            try (java.io.InputStream in = About.class.getResourceAsStream("/ui/resources/build.properties")) {
+            try (
+                java.io.InputStream in = About.class.getResourceAsStream(
+                        "/ui/resources/build.properties"
+                    )
+            ) {
                 if (in != null) {
                     p.load(in);
                 }

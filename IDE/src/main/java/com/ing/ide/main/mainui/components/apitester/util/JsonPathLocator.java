@@ -11,9 +11,9 @@ public final class JsonPathLocator {
 
     /** Result of a path lookup. */
     public static final class Hit {
-        public final String path;       // e.g. "$.user.name" or "$.items[2]"
-        public final String value;      // primitive value at path (unescaped), or null
-        public final boolean isString;  // true if the value is a JSON string literal
+        public final String path; // e.g. "$.user.name" or "$.items[2]"
+        public final String value; // primitive value at path (unescaped), or null
+        public final boolean isString; // true if the value is a JSON string literal
 
         public Hit(String path, String value, boolean isString) {
             this.path = path;
@@ -106,8 +106,14 @@ public final class JsonPathLocator {
                     record(objStart, i, path, null, false);
                     return;
                 }
-                if (c == ',') { i++; continue; }
-                if (c != '"') { i++; continue; } // tolerate stray chars
+                if (c == ',') {
+                    i++;
+                    continue;
+                }
+                if (c != '"') {
+                    i++;
+                    continue;
+                } // tolerate stray chars
                 int keyStart = i;
                 String key = parseString();
                 String childPath = buildChildPath(path, key);
@@ -122,9 +128,13 @@ public final class JsonPathLocator {
                 skipWs();
                 if (i < len && t.charAt(i) == ',') i++;
                 int entryEnd = i;
-                record(keyStart, entryEnd, childPath,
-                        extractPrimitive(valStart, valEnd),
-                        valStart < len && t.charAt(valStart) == '"');
+                record(
+                    keyStart,
+                    entryEnd,
+                    childPath,
+                    extractPrimitive(valStart, valEnd),
+                    valStart < len && t.charAt(valStart) == '"'
+                );
             }
         }
 
@@ -140,18 +150,29 @@ public final class JsonPathLocator {
                     record(arrStart, i, path, null, false);
                     return;
                 }
-                if (c == ',') { i++; idx++; continue; }
+                if (c == ',') {
+                    i++;
+                    idx++;
+                    continue;
+                }
                 String childPath = path + "[" + idx + "]";
                 int elemStart = i;
                 parseValue(childPath);
                 int elemEnd = i;
                 skipWs();
                 boolean hadComma = false;
-                if (i < len && t.charAt(i) == ',') { i++; hadComma = true; }
+                if (i < len && t.charAt(i) == ',') {
+                    i++;
+                    hadComma = true;
+                }
                 int entryEnd = i;
-                record(elemStart, entryEnd, childPath,
-                        extractPrimitive(elemStart, elemEnd),
-                        elemStart < len && t.charAt(elemStart) == '"');
+                record(
+                    elemStart,
+                    entryEnd,
+                    childPath,
+                    extractPrimitive(elemStart, elemEnd),
+                    elemStart < len && t.charAt(elemStart) == '"'
+                );
                 if (hadComma) idx++;
             }
         }
@@ -165,18 +186,44 @@ public final class JsonPathLocator {
                 if (c == '\\' && i + 1 < len) {
                     char n = t.charAt(i + 1);
                     switch (n) {
-                        case '"':  sb.append('"');  i += 2; break;
-                        case '\\': sb.append('\\'); i += 2; break;
-                        case '/':  sb.append('/');  i += 2; break;
-                        case 'b':  sb.append('\b'); i += 2; break;
-                        case 'f':  sb.append('\f'); i += 2; break;
-                        case 'n':  sb.append('\n'); i += 2; break;
-                        case 'r':  sb.append('\r'); i += 2; break;
-                        case 't':  sb.append('\t'); i += 2; break;
+                        case '"':
+                            sb.append('"');
+                            i += 2;
+                            break;
+                        case '\\':
+                            sb.append('\\');
+                            i += 2;
+                            break;
+                        case '/':
+                            sb.append('/');
+                            i += 2;
+                            break;
+                        case 'b':
+                            sb.append('\b');
+                            i += 2;
+                            break;
+                        case 'f':
+                            sb.append('\f');
+                            i += 2;
+                            break;
+                        case 'n':
+                            sb.append('\n');
+                            i += 2;
+                            break;
+                        case 'r':
+                            sb.append('\r');
+                            i += 2;
+                            break;
+                        case 't':
+                            sb.append('\t');
+                            i += 2;
+                            break;
                         case 'u':
                             if (i + 5 < len) {
                                 try {
-                                    sb.append((char) Integer.parseInt(t.substring(i + 2, i + 6), 16));
+                                    sb.append(
+                                        (char) Integer.parseInt(t.substring(i + 2, i + 6), 16)
+                                    );
                                     i += 6;
                                 } catch (NumberFormatException e) {
                                     sb.append(n);

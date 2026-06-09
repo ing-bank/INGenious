@@ -136,24 +136,33 @@ public class ObjectRepo extends JPanel implements ItemListener {
      */
     private void selectDefaultRepo() {
         try {
-            com.ing.datalib.or.ObjectRepository repo =
-                    testDesign.getProject().getObjectRepository();
-            boolean webHasPages = hasPages(repo.getWebOR() == null ? null : repo.getWebOR().getPages());
+            com.ing.datalib.or.ObjectRepository repo = testDesign
+                .getProject()
+                .getObjectRepository();
+            boolean webHasPages = hasPages(
+                repo.getWebOR() == null ? null : repo.getWebOR().getPages()
+            );
             if (webHasPages) {
                 switchToolBar.webButton.setSelected(true);
                 return;
             }
-            boolean mobileHasPages = hasPages(repo.getMobileOR() == null ? null : repo.getMobileOR().getPages());
+            boolean mobileHasPages = hasPages(
+                repo.getMobileOR() == null ? null : repo.getMobileOR().getPages()
+            );
             if (mobileHasPages) {
                 switchToolBar.mobileButton.setSelected(true);
                 return;
             }
-            boolean structuredHasPages = hasPages(repo.getStructuredDataOR() == null ? null : repo.getStructuredDataOR().getPages());
+            boolean structuredHasPages = hasPages(
+                repo.getStructuredDataOR() == null ? null : repo.getStructuredDataOR().getPages()
+            );
             if (structuredHasPages) {
                 switchToolBar.structuredDataButton.setSelected(true);
                 return;
             }
-            boolean sapHasPages = hasPages(repo.getSapOR() == null ? null : repo.getSapOR().getPages());
+            boolean sapHasPages = hasPages(
+                repo.getSapOR() == null ? null : repo.getSapOR().getPages()
+            );
             if (sapHasPages) {
                 switchToolBar.sapButton.setSelected(true);
                 return;

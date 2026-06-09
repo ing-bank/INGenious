@@ -581,7 +581,9 @@ public class APITester implements SlideShow.SlideChangeListener {
         // Create the test case
         TestCase testCase = scenario.addTestCase(testCaseName);
         if (testCase == null) {
-            LOG.warning("Test case '" + testCaseName + "' could not be created (likely already exists)");
+            LOG.warning(
+                "Test case '" + testCaseName + "' could not be created (likely already exists)"
+            );
             return null;
         }
 
@@ -592,13 +594,21 @@ public class APITester implements SlideShow.SlideChangeListener {
             testCase.save();
 
             // Add the test case to the Test Design tree so it's immediately visible
-            if (mainFrame.getTestDesign() != null && mainFrame.getTestDesign().getProjectTree() != null) {
+            if (
+                mainFrame.getTestDesign() != null &&
+                mainFrame.getTestDesign().getProjectTree() != null
+            ) {
                 mainFrame.getTestDesign().getProjectTree().getTreeModel().addTestCase(testCase);
             }
 
-            LOG.info("Converted API request '" + request.getName() + "' to test case '" + testCaseName + "'");
+            LOG.info(
+                "Converted API request '" +
+                request.getName() +
+                "' to test case '" +
+                testCaseName +
+                "'"
+            );
             return testCase;
-
         } catch (Exception e) {
             LOG.log(Level.SEVERE, "Failed to convert API request to test case", e);
             // Remove failed test case
@@ -618,18 +628,27 @@ public class APITester implements SlideShow.SlideChangeListener {
      * @param testCaseName      Name for the new reusable test case
      * @return The created {@link TestCase}, or {@code null} on failure / name collision
      */
-    public TestCase convertRequestToReusable(APIRequest request, Scenario reusableScenario, String testCaseName) {
+    public TestCase convertRequestToReusable(
+        APIRequest request,
+        Scenario reusableScenario,
+        String testCaseName
+    ) {
         if (request == null || reusableScenario == null || testCaseName == null) {
             return null;
         }
         if (!reusableScenario.isReusableScenario()) {
-            LOG.warning("convertRequestToReusable called with non-reusable scenario: " + reusableScenario.getName());
+            LOG.warning(
+                "convertRequestToReusable called with non-reusable scenario: " +
+                reusableScenario.getName()
+            );
             return null;
         }
 
         TestCase testCase = reusableScenario.addTestCase(testCaseName);
         if (testCase == null) {
-            LOG.warning("Reusable '" + testCaseName + "' could not be created (likely already exists)");
+            LOG.warning(
+                "Reusable '" + testCaseName + "' could not be created (likely already exists)"
+            );
             return null;
         }
 
@@ -638,11 +657,20 @@ public class APITester implements SlideShow.SlideChangeListener {
             testCase.save();
 
             // Refresh Reusables tree so the new reusable appears immediately
-            if (mainFrame.getTestDesign() != null && mainFrame.getTestDesign().getReusableTree() != null) {
+            if (
+                mainFrame.getTestDesign() != null &&
+                mainFrame.getTestDesign().getReusableTree() != null
+            ) {
                 mainFrame.getTestDesign().getReusableTree().getTreeModel().addTestCase(testCase);
             }
 
-            LOG.info("Converted API request '" + request.getName() + "' to reusable '" + testCaseName + "'");
+            LOG.info(
+                "Converted API request '" +
+                request.getName() +
+                "' to reusable '" +
+                testCaseName +
+                "'"
+            );
             return testCase;
         } catch (Exception e) {
             LOG.log(Level.SEVERE, "Failed to convert API request to reusable", e);
@@ -709,8 +737,11 @@ public class APITester implements SlideShow.SlideChangeListener {
                 }
                 break;
             case DELETE:
-                if (request.getBody() != null && request.getBody().getRawContent() != null
-                        && !request.getBody().getRawContent().isEmpty()) {
+                if (
+                    request.getBody() != null &&
+                    request.getBody().getRawContent() != null &&
+                    !request.getBody().getRawContent().isEmpty()
+                ) {
                     requestStep.setAction("deleteWithPayload");
                     requestStep.setInput(request.getBody().getRawContent());
                 } else {
@@ -758,36 +789,48 @@ public class APITester implements SlideShow.SlideChangeListener {
         authStep.setCondition("");
 
         switch (auth.getAuthType()) {
-            case BASIC: {
-                authStep.setDescription("Add Basic Auth Header");
-                String basicAuth =
-                    "Basic " +
-                    java
-                        .util.Base64.getEncoder()
-                        .encodeToString(
-                            (auth.getBasicUsername() + ":" + auth.getBasicPassword()).getBytes()
-                        );
-                authStep.setInput("@Authorization=" + basicAuth);
-                break;
-            }
-            case BEARER: {
-                authStep.setDescription("Add Bearer Token Header");
-                String prefix = auth.getBearerPrefix() != null ? auth.getBearerPrefix() : "Bearer";
-                authStep.setInput("@Authorization=" + prefix + " " + auth.getBearerToken());
-                break;
-            }
-            case API_KEY: {
-                String keyName = auth.getApiKeyName() != null ? auth.getApiKeyName() : "X-API-Key";
-                authStep.setDescription("Add API Key Header: " + keyName);
-                authStep.setInput("@" + keyName + "=" + (auth.getApiKeyValue() != null ? auth.getApiKeyValue() : ""));
-                break;
-            }
+            case BASIC:
+                {
+                    authStep.setDescription("Add Basic Auth Header");
+                    String basicAuth =
+                        "Basic " +
+                        java
+                            .util.Base64.getEncoder()
+                            .encodeToString(
+                                (auth.getBasicUsername() + ":" + auth.getBasicPassword()).getBytes()
+                            );
+                    authStep.setInput("@Authorization=" + basicAuth);
+                    break;
+                }
+            case BEARER:
+                {
+                    authStep.setDescription("Add Bearer Token Header");
+                    String prefix = auth.getBearerPrefix() != null
+                        ? auth.getBearerPrefix()
+                        : "Bearer";
+                    authStep.setInput("@Authorization=" + prefix + " " + auth.getBearerToken());
+                    break;
+                }
+            case API_KEY:
+                {
+                    String keyName = auth.getApiKeyName() != null
+                        ? auth.getApiKeyName()
+                        : "X-API-Key";
+                    authStep.setDescription("Add API Key Header: " + keyName);
+                    authStep.setInput(
+                        "@" +
+                        keyName +
+                        "=" +
+                        (auth.getApiKeyValue() != null ? auth.getApiKeyValue() : "")
+                    );
+                    break;
+                }
             default:
                 // Remove the step if auth type not supported
                 testCase.getTestSteps().remove(authStep);
         }
     }
-    
+
     /**
      * Builds INGenious test steps for the assertions configured on the API request.
      * <p>
@@ -811,72 +854,86 @@ public class APITester implements SlideShow.SlideChangeListener {
             if (!assertion.isEnabled()) continue;
 
             switch (assertion.getType()) {
-                case STATUS_CODE: {
-                    TestStep step = testCase.addNewStep();
-                    step.setObject("Webservice");
-                    step.setDescription("Assert Response Code");
-                    step.setAction("assertResponseCode");
-                    step.setInput(prefixAtForLiteral(assertion.getExpectedValue()));
-                    break;
-                }
-
-                case JSON_PATH:
-                case XPATH: {
-                    boolean isXPath = assertion.getType() == APIAssertion.AssertionType.XPATH;
-                    ResolvedStructuredDataObject rsdo =
-                            getOrCreateStructuredDataObject(request, assertion, isXPath);
-                    if (rsdo == null) {
-                        // OR not available (e.g. no project) - fall back to legacy behaviour
-                        // so the test case still has a runnable assertion step.
-                        addLegacyPathAssertionStep(testCase, assertion, isXPath);
-                        break;
-                    }
-                    createdAnyORObject = true;
-
-                    String action = pickPathActionName(isXPath, assertion.getOperator());
-                    if (action == null) {
-                        LOG.warning("Unsupported operator [" + assertion.getOperator()
-                                + "] for " + (isXPath ? "XPATH" : "JSON_PATH") + " assertion - step skipped");
-                        break;
-                    }
-
-                    TestStep step = testCase.addNewStep();
-                    step.asObjectStep(rsdo); // sets Object + Reference
-                    step.setAction(action);
-                    step.setDescription("Assert " + (isXPath ? "XPath" : "JSON") + ": "
-                            + assertion.getTarget());
-                    // Existence checks ignore the expected value
-                    if (assertion.getOperator() != APIAssertion.Operator.EXISTS
-                            && assertion.getOperator() != APIAssertion.Operator.NOT_EXISTS) {
+                case STATUS_CODE:
+                    {
+                        TestStep step = testCase.addNewStep();
+                        step.setObject("Webservice");
+                        step.setDescription("Assert Response Code");
+                        step.setAction("assertResponseCode");
                         step.setInput(prefixAtForLiteral(assertion.getExpectedValue()));
+                        break;
                     }
-                    break;
-                }
+                case JSON_PATH:
+                case XPATH:
+                    {
+                        boolean isXPath = assertion.getType() == APIAssertion.AssertionType.XPATH;
+                        ResolvedStructuredDataObject rsdo = getOrCreateStructuredDataObject(
+                            request,
+                            assertion,
+                            isXPath
+                        );
+                        if (rsdo == null) {
+                            // OR not available (e.g. no project) - fall back to legacy behaviour
+                            // so the test case still has a runnable assertion step.
+                            addLegacyPathAssertionStep(testCase, assertion, isXPath);
+                            break;
+                        }
+                        createdAnyORObject = true;
 
-                case BODY_CONTAINS: {
-                    TestStep step = testCase.addNewStep();
-                    step.setObject("Webservice");
-                    step.setDescription("Assert Response Body Contains");
-                    step.setAction("assertResponsebodycontains");
-                    step.setInput(prefixAtForLiteral(assertion.getExpectedValue()));
-                    break;
-                }
+                        String action = pickPathActionName(isXPath, assertion.getOperator());
+                        if (action == null) {
+                            LOG.warning(
+                                "Unsupported operator [" +
+                                assertion.getOperator() +
+                                "] for " +
+                                (isXPath ? "XPATH" : "JSON_PATH") +
+                                " assertion - step skipped"
+                            );
+                            break;
+                        }
 
-                case HEADER: {
-                    TestStep step = testCase.addNewStep();
-                    step.setObject("Webservice");
-                    step.setDescription("Assert Header: " + assertion.getTarget());
-                    String action = (assertion.getOperator() == APIAssertion.Operator.CONTAINS)
-                            ? "assertHeaderValueContains" : "assertHeaderValueEquals";
-                    step.setAction(action);
-                    step.setCondition(assertion.getTarget());                  // header name
-                    step.setInput(prefixAtForLiteral(assertion.getExpectedValue())); // expected
-                    break;
-                }
-
+                        TestStep step = testCase.addNewStep();
+                        step.asObjectStep(rsdo); // sets Object + Reference
+                        step.setAction(action);
+                        step.setDescription(
+                            "Assert " + (isXPath ? "XPath" : "JSON") + ": " + assertion.getTarget()
+                        );
+                        // Existence checks ignore the expected value
+                        if (
+                            assertion.getOperator() != APIAssertion.Operator.EXISTS &&
+                            assertion.getOperator() != APIAssertion.Operator.NOT_EXISTS
+                        ) {
+                            step.setInput(prefixAtForLiteral(assertion.getExpectedValue()));
+                        }
+                        break;
+                    }
+                case BODY_CONTAINS:
+                    {
+                        TestStep step = testCase.addNewStep();
+                        step.setObject("Webservice");
+                        step.setDescription("Assert Response Body Contains");
+                        step.setAction("assertResponsebodycontains");
+                        step.setInput(prefixAtForLiteral(assertion.getExpectedValue()));
+                        break;
+                    }
+                case HEADER:
+                    {
+                        TestStep step = testCase.addNewStep();
+                        step.setObject("Webservice");
+                        step.setDescription("Assert Header: " + assertion.getTarget());
+                        String action = (assertion.getOperator() == APIAssertion.Operator.CONTAINS)
+                            ? "assertHeaderValueContains"
+                            : "assertHeaderValueEquals";
+                        step.setAction(action);
+                        step.setCondition(assertion.getTarget()); // header name
+                        step.setInput(prefixAtForLiteral(assertion.getExpectedValue())); // expected
+                        break;
+                    }
                 default:
-                    LOG.warning("Unsupported assertion type for test-case conversion: "
-                            + assertion.getType());
+                    LOG.warning(
+                        "Unsupported assertion type for test-case conversion: " +
+                        assertion.getType()
+                    );
             }
         }
 
@@ -894,18 +951,30 @@ public class APITester implements SlideShow.SlideChangeListener {
         String prefix = isXPath ? "assertXmlPathResult" : "assertJsonPathResult";
         if (op == null) return prefix + "Equals";
         switch (op) {
-            case EQUALS:        return prefix + "Equals";
-            case NOT_EQUALS:    return prefix + "NotEquals";
-            case CONTAINS:      return prefix + "Contains";
-            case NOT_CONTAINS:  return prefix + "NotContains";
-            case STARTS_WITH:   return prefix + "StartsWith";
-            case ENDS_WITH:     return prefix + "EndsWith";
-            case MATCHES_REGEX: return prefix + "MatchesRegex";
-            case GREATER_THAN:  return prefix + "GreaterThan";
-            case LESS_THAN:     return prefix + "LessThan";
-            case EXISTS:        return isXPath ? "assertXmlPathExists"    : "assertJsonPathExists";
-            case NOT_EXISTS:    return isXPath ? "assertXmlPathNotExists" : "assertJsonPathNotExists";
-            default:            return null;
+            case EQUALS:
+                return prefix + "Equals";
+            case NOT_EQUALS:
+                return prefix + "NotEquals";
+            case CONTAINS:
+                return prefix + "Contains";
+            case NOT_CONTAINS:
+                return prefix + "NotContains";
+            case STARTS_WITH:
+                return prefix + "StartsWith";
+            case ENDS_WITH:
+                return prefix + "EndsWith";
+            case MATCHES_REGEX:
+                return prefix + "MatchesRegex";
+            case GREATER_THAN:
+                return prefix + "GreaterThan";
+            case LESS_THAN:
+                return prefix + "LessThan";
+            case EXISTS:
+                return isXPath ? "assertXmlPathExists" : "assertJsonPathExists";
+            case NOT_EXISTS:
+                return isXPath ? "assertXmlPathNotExists" : "assertJsonPathNotExists";
+            default:
+                return null;
         }
     }
 
@@ -914,10 +983,16 @@ public class APITester implements SlideShow.SlideChangeListener {
      * not available — keeps the original Webservice-only assertion shape but
      * still applies the {@code @} prefix convention for the expected value.
      */
-    private void addLegacyPathAssertionStep(TestCase testCase, APIAssertion assertion, boolean isXPath) {
+    private void addLegacyPathAssertionStep(
+        TestCase testCase,
+        APIAssertion assertion,
+        boolean isXPath
+    ) {
         TestStep step = testCase.addNewStep();
         step.setObject("Webservice");
-        step.setDescription("Assert " + (isXPath ? "XPath" : "JSON") + ": " + assertion.getTarget());
+        step.setDescription(
+            "Assert " + (isXPath ? "XPath" : "JSON") + ": " + assertion.getTarget()
+        );
         if (assertion.getOperator() == APIAssertion.Operator.CONTAINS) {
             step.setAction("assertJSONelementContains");
         } else {
@@ -936,7 +1011,10 @@ public class APITester implements SlideShow.SlideChangeListener {
      * @return the resolved OR object, or {@code null} if no project / OR is available.
      */
     private ResolvedStructuredDataObject getOrCreateStructuredDataObject(
-            APIRequest request, APIAssertion assertion, boolean isXPath) {
+        APIRequest request,
+        APIAssertion assertion,
+        boolean isXPath
+    ) {
         Project project = mainFrame.getProject();
         if (project == null) return null;
         if (project.getObjectRepository() == null) return null;
@@ -963,13 +1041,16 @@ public class APITester implements SlideShow.SlideChangeListener {
         for (ObjectGroup<StructuredDataORObject> grp : page.getObjectGroups()) {
             for (StructuredDataORObject obj : grp.getObjects()) {
                 for (StructuredDataAttribute attr : obj.getAttributes()) {
-                    if (attrName.equalsIgnoreCase(attr.getName())
-                            && pathValue.equals(attr.getValue())) {
+                    if (
+                        attrName.equalsIgnoreCase(attr.getName()) &&
+                        pathValue.equals(attr.getValue())
+                    ) {
                         return new ResolvedStructuredDataObject(
-                                WebOR.ORScope.PROJECT,
-                                page.getName(),
-                                obj.getName(),
-                                grp);
+                            WebOR.ORScope.PROJECT,
+                            page.getName(),
+                            obj.getName(),
+                            grp
+                        );
                     }
                 }
             }
@@ -1003,21 +1084,28 @@ public class APITester implements SlideShow.SlideChangeListener {
         try {
             project.getObjectRepository().saveStructuredDataPageNow(page);
         } catch (Exception e) {
-            LOG.log(Level.WARNING, "Failed to save Structured Data page '" + page.getName() + "'", e);
+            LOG.log(
+                Level.WARNING,
+                "Failed to save Structured Data page '" + page.getName() + "'",
+                e
+            );
         }
 
         return new ResolvedStructuredDataObject(
-                WebOR.ORScope.PROJECT,
-                page.getName(),
-                objectName,
-                group);
+            WebOR.ORScope.PROJECT,
+            page.getName(),
+            objectName,
+            group
+        );
     }
 
     private void refreshStructuredDataTree() {
         try {
-            if (mainFrame.getTestDesign() != null
-                    && mainFrame.getTestDesign().getObjectRepo() != null
-                    && mainFrame.getTestDesign().getObjectRepo().getStructuredDataOR() != null) {
+            if (
+                mainFrame.getTestDesign() != null &&
+                mainFrame.getTestDesign().getObjectRepo() != null &&
+                mainFrame.getTestDesign().getObjectRepo().getStructuredDataOR() != null
+            ) {
                 mainFrame.getTestDesign().getObjectRepo().getStructuredDataOR().load();
             }
         } catch (Exception e) {
@@ -1048,9 +1136,10 @@ public class APITester implements SlideShow.SlideChangeListener {
         if (s == null) return fallback;
         String trimmed = s.trim();
         if (trimmed.isEmpty()) return fallback;
-        String cleaned = trimmed.replaceAll("[^A-Za-z0-9_]+", "_")
-                                .replaceAll("_+", "_")
-                                .replaceAll("^_+|_+$", "");
+        String cleaned = trimmed
+            .replaceAll("[^A-Za-z0-9_]+", "_")
+            .replaceAll("_+", "_")
+            .replaceAll("^_+|_+$", "");
         if (cleaned.isEmpty()) return fallback;
         if (Character.isDigit(cleaned.charAt(0))) {
             cleaned = "_" + cleaned;
@@ -1067,8 +1156,7 @@ public class APITester implements SlideShow.SlideChangeListener {
     private String deriveObjectNameFromPath(String path) {
         if (path == null || path.isEmpty()) return "Element";
         String s = path;
-        if (s.startsWith("$.")) s = s.substring(2);
-        else if (s.startsWith("$")) s = s.substring(1);
+        if (s.startsWith("$.")) s = s.substring(2); else if (s.startsWith("$")) s = s.substring(1);
         // JSONPath bracket notation
         s = s.replace("['", ".").replace("']", "");
         // XPath separators
