@@ -206,45 +206,58 @@ public class YamlElementDefinition {
         for (ORAttribute attr : obj.getAttributes()) {
             if (attr.getValue() != null && !attr.getValue().isEmpty()) {
                 String attrName = attr.getName().toLowerCase();
+                String attrValue = attr.getValue();
+                boolean hasExactSuffix = false;
+                
+                // Trim any leading or trailing whitespace first
+                attrValue = attrValue.trim();
+                
+                // Check if value ends with ";exact" suffix (legacy format)
+                if (attrValue.endsWith(";exact")) {
+                    hasExactSuffix = true;
+                    attrValue = attrValue.substring(0, attrValue.length() - 6); // Remove ";exact"
+                }
+                
                 switch (attrName) {
                     case "role":
-                        elem.setRole(attr.getValue());
+                        elem.setRole(attrValue);
                         break;
                     case "text":
-                        elem.setText(attr.getValue());
+                        elem.setText(attrValue);
                         break;
                     case "label":
-                        elem.setLabel(attr.getValue());
+                        elem.setLabel(attrValue);
                         break;
                     case "placeholder":
-                        elem.setPlaceholder(attr.getValue());
+                        elem.setPlaceholder(attrValue);
                         break;
                     case "xpath":
-                        elem.setXpath(attr.getValue());
+                        elem.setXpath(attrValue);
                         break;
                     case "css":
-                        elem.setCss(attr.getValue());
+                        elem.setCss(attrValue);
                         break;
                     case "alttext":
-                        elem.setAltText(attr.getValue());
+                        elem.setAltText(attrValue);
                         break;
                     case "title":
-                        elem.setTitle(attr.getValue());
+                        elem.setTitle(attrValue);
                         break;
                     case "testid":
-                        elem.setTestId(attr.getValue());
+                        elem.setTestId(attrValue);
                         break;
                     case "chainedlocator":
-                        elem.setChainedLocator(attr.getValue());
+                        elem.setChainedLocator(attrValue);
                         break;
                     default:
                         // Store unknown attributes in additionalProperties
-                        elem.setAdditionalProperty(attr.getName(), attr.getValue());
+                        elem.setAdditionalProperty(attr.getName(), attrValue);
                         break;
                 }
                 
-                // Add to exact list if the attribute has exact flag set
-                if (attr.isExact()) {
+                // Add to exact list if the attribute has exact flag set (new format)
+                // or if value had ";exact" suffix (legacy format)
+                if (attr.isExact() || hasExactSuffix) {
                     elem.addExact(attr.getName());
                 }
             }
