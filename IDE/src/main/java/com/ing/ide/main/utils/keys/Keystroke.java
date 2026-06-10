@@ -152,28 +152,41 @@ public class Keystroke {
         int code = ks.getKeyCode();
         StringBuilder sb = new StringBuilder();
 
-        // Determine the shortcut modifier key based on the mask value
+        // KeyStroke.getKeyStroke() internally converts legacy masks to extended
+        // modifiers, so BOTH ALT_MASK (0x8) and ALT_DOWN_MASK (0x200) are often set
+        // simultaneously. Use group-level checks to avoid double-counting.
+        boolean hasCtrl =
+            (mods & InputEvent.CTRL_DOWN_MASK) != 0 || (mods & InputEvent.CTRL_MASK) != 0;
+        boolean hasAlt =
+            (mods & InputEvent.ALT_DOWN_MASK) != 0 || (mods & InputEvent.ALT_MASK) != 0;
+        boolean hasShift =
+            (mods & InputEvent.SHIFT_DOWN_MASK) != 0 || (mods & InputEvent.SHIFT_MASK) != 0;
+        boolean hasMeta =
+            (mods & InputEvent.META_DOWN_MASK) != 0 || (mods & InputEvent.META_MASK) != 0;
+
+        // Platform shortcut key (Ctrl or ⌘) — consume Ctrl/Meta group
         if ((mods & SHORTCUT) != 0) {
             sb.append(shortcutKeyLabel()).append("+");
-        }
-        if (
-            (mods & InputEvent.CTRL_DOWN_MASK) != 0 && (SHORTCUT & InputEvent.CTRL_DOWN_MASK) == 0
-        ) {
+            hasCtrl = false;
+            hasMeta = false;
+        } else if (hasCtrl) {
             sb.append("Ctrl+");
+            hasCtrl = false;
+        } else if (hasMeta) {
+            sb.append("⌘+");
+            hasMeta = false;
         }
-        if ((mods & InputEvent.ALT_DOWN_MASK) != 0) {
+
+        // Alt / Option
+        if (hasAlt) {
             sb.append(altKeyLabel()).append("+");
+            hasAlt = false;
         }
-        if ((mods & InputEvent.ALT_MASK) != 0) {
-            sb.append(altKeyLabel()).append("+");
-        }
-        if ((mods & InputEvent.SHIFT_DOWN_MASK) != 0) {
+
+        // Shift
+        if (hasShift) {
             sb.append(shiftKeyLabel()).append("+");
-        }
-        if (
-            (mods & InputEvent.META_DOWN_MASK) != 0 && (SHORTCUT & InputEvent.META_DOWN_MASK) == 0
-        ) {
-            sb.append("⌘");
+            hasShift = false;
         }
 
         // Key name
