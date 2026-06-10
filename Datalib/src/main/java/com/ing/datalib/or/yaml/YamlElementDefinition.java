@@ -209,6 +209,9 @@ public class YamlElementDefinition {
                 String attrValue = attr.getValue();
                 boolean hasExactSuffix = false;
                 
+                // Trim any leading or trailing whitespace first
+                attrValue = attrValue.trim();
+                
                 // Check if value ends with ";exact" suffix (legacy format)
                 if (attrValue.endsWith(";exact")) {
                     hasExactSuffix = true;
