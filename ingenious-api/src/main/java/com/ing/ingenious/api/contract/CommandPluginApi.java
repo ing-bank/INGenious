@@ -124,5 +124,12 @@ public interface CommandPluginApi {
      */
     String resolveAllRuntimeVars(String str);
     
+    /**
+     * The key is typically constructed as: scenario + testCase
+     * This key is used to store and retrieve request/response data in the shared maps.
+     * 
+     * @return the context key for the current test execution
+     */
+    String getKey();
 
 }
