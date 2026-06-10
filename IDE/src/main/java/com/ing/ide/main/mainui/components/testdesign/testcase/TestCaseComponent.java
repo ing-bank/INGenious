@@ -27,7 +27,6 @@ import com.ing.ide.util.Canvas;
 import com.ing.ide.util.Notification;
 import com.ing.ide.util.WindowMover;
 import java.awt.BorderLayout;
-import java.awt.Component;
 import java.awt.Cursor;
 import java.awt.GraphicsDevice;
 import java.awt.GraphicsEnvironment;
@@ -200,8 +199,12 @@ public class TestCaseComponent extends JPanel implements ActionListener {
      * Registers global shortcuts (Record, Run, Debug) via a
      * {@link java.awt.KeyboardFocusManager} key event post-processor.
      * <p>
-     * Fires for every key press regardless of focus or component hierarchy, so we guard
-     * against misfiring by checking the main frame is focused and TestDesign is showing.
+     * Fires for every key press regardless of focus or component hierarchy.
+     * Guards against misfiring by checking the main frame is focused
+     * and the TestDesign slide is currently showing.
+     * <p>
+     * The F6 and Ctrl+F6 shortcuts were previously registered on the
+     * XTable but have been moved here exclusively to avoid double-firing.
      */
     private void registerGlobalShortcuts() {
         if (globalShortcutsRegistered) {
@@ -223,6 +226,9 @@ public class TestCaseComponent extends JPanel implements ActionListener {
             int code = e.getKeyCode();
             int mods = e.getModifiersEx();
 
+            // F6/Ctrl+F6 are handled exclusively here (global post-processor).
+            // The XTable bindings have been removed to prevent double-firing.
+
             // Ctrl+F6 / ⌘+F6 — Debug
             boolean isCtrlF6 = code == KeyEvent.VK_F6 && (mods & KeyEvent.CTRL_DOWN_MASK) != 0;
             boolean isCmdF6 = code == KeyEvent.VK_F6 && (mods & KeyEvent.META_DOWN_MASK) != 0;
@@ -237,7 +243,7 @@ public class TestCaseComponent extends JPanel implements ActionListener {
                 return true;
             }
 
-            // Ctrl+Alt+R / ⌘+⌥+R — Record
+            // Ctrl+Alt+R / ⌘+⌥+R — Record (no table binding exists, always fire)
             boolean isCtrlAltR =
                 code == KeyEvent.VK_R &&
                 (mods & KeyEvent.CTRL_DOWN_MASK) != 0 &&
@@ -473,29 +479,6 @@ public class TestCaseComponent extends JPanel implements ActionListener {
                 @Override
                 public void actionPerformed(ActionEvent e) {
                     moveRowDown();
-                }
-            }
-        );
-
-        testCaseTable.setKeyStrokeFor("RunTestCase", Keystroke.F6);
-        testCaseTable.setActionFor(
-            "RunTestCase",
-            new AbstractAction() {
-
-                @Override
-                public void actionPerformed(ActionEvent e) {
-                    run();
-                }
-            }
-        );
-        testCaseTable.setKeyStrokeFor("DebugTestCase", Keystroke.CTRLF6);
-        testCaseTable.setActionFor(
-            "DebugTestCase",
-            new AbstractAction() {
-
-                @Override
-                public void actionPerformed(ActionEvent e) {
-                    debug();
                 }
             }
         );
