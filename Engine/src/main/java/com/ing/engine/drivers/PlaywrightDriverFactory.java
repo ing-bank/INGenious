@@ -71,15 +71,33 @@ public class PlaywrightDriverFactory {
         }
     }
 
+    /**
+     * Creates a Playwright instance with browser download skipping enabled.
+     * <p>
+     * This keeps the runtime from downloading bundled browser binaries and allows
+     * the application to rely on local browser installations instead.
+     *
+     * @return a configured {@link Playwright} instance
+     */
     public static Playwright createPlaywright() {
         Map<String, String> env = new HashMap<>();
 
         //if(Control.exe.getExecSettings().getRunSettings().isGridExecution())
-        //    env.put("PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD", "1");
+        //env.put("PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD", "1");
 
         return Playwright.create(new Playwright.CreateOptions().setEnv(env));
     }
 
+    /**
+     * Resolves the Playwright browser type for the requested browser name.
+     *
+     * @param playwright the Playwright runtime instance
+     * @param browserName the configured browser name
+     * @param context the current execution context
+     * @param settings the active project settings
+     * @return the matching {@link BrowserType}
+     * @throws AssertionError if the browser name is not recognized
+     */
     public static BrowserType createBrowserType(
         Playwright playwright,
         String browserName,
@@ -105,6 +123,20 @@ public class PlaywrightDriverFactory {
         return browserType;
     }
 
+    /**
+     * Creates a browser context either locally or through the configured grid provider.
+     * <p>
+     * When running locally, Chromium defaults to the local Chrome channel unless an explicit
+     * channel or executable path is supplied through capabilities.
+     *
+     * @param isGrid {@code true} when launching through the remote grid
+     * @param browserType the Playwright browser type to launch or connect with
+     * @param browserName the configured browser name
+     * @param settings the active project settings
+     * @param context the current execution context
+     * @return an enhanced {@link BrowserContext}
+     * @throws UnsupportedEncodingException if grid capability encoding fails
+     */
     public static BrowserContext createContext(
         Boolean isGrid,
         BrowserType browserType,
@@ -117,7 +149,7 @@ public class PlaywrightDriverFactory {
         NewContextOptions newContextOptions = new NewContextOptions();
         newContextOptions = addContextOptions(newContextOptions, context, capabilities, settings);
         LaunchOptions launchOptions = new LaunchOptions();
-        launchOptions = addLaunchOptions(launchOptions, capabilities);
+        launchOptions = addLaunchOptions(launchOptions, capabilities, browserName);
         BrowserContext browserContext = null;
         if (isGrid) {
             String cdpURL = Control.exe.getExecSettings().getRunSettings().getRemoteGridURL();
@@ -138,9 +170,27 @@ public class PlaywrightDriverFactory {
 
     private static final Logger LOGGER = Logger.getLogger(PlaywrightDriverFactory.class.getName());
 
-    private static LaunchOptions addLaunchOptions(LaunchOptions launchOptions, List<String> caps) {
+    /**
+     * Applies launch configuration derived from browser capabilities.
+     * <p>
+     * Explicit project settings always win. If Chromium is launched locally without an explicit
+     * channel or executable path, the method defaults to the local Google Chrome channel.
+     *
+     * @param launchOptions the launch options to populate
+     * @param caps browser capability entries in {@code key=value} form
+     * @param browserName the configured browser name
+     * @return the configured {@link LaunchOptions}
+     */
+    private static LaunchOptions addLaunchOptions(
+        LaunchOptions launchOptions,
+        List<String> caps,
+        String browserName
+    ) {
         List<String> customArgs = new ArrayList<>();
         customArgs.add("--auth-server-allowlist='_'");
+
+        boolean hasExplicitChannel = false;
+        boolean hasExplicitExecutablePath = false;
 
         if (isViewPortSizeMaximized) {
             customArgs.add("--start-maximized=true");
@@ -160,9 +210,10 @@ public class PlaywrightDriverFactory {
                         (double) getPropertyValueAsDesiredType(value)
                     );
                 } else if (key.toLowerCase().contains("setchannel")) {
-                    if (!value.trim().equals("")) launchOptions.setChannel(
-                        (String) getPropertyValueAsDesiredType(value)
-                    );
+                    if (!value.trim().equals("")) {
+                        launchOptions.setChannel((String) getPropertyValueAsDesiredType(value));
+                        hasExplicitChannel = true;
+                    }
                 } else if (key.toLowerCase().contains("setchromiumsandbox")) {
                     if (!value.trim().equals("")) launchOptions.setChromiumSandbox(
                         (boolean) getPropertyValueAsDesiredType(value)
@@ -174,9 +225,12 @@ public class PlaywrightDriverFactory {
                         Paths.get((String) getPropertyValueAsDesiredType(value))
                     );
                 } else if (key.toLowerCase().contains("setexecutablepath")) {
-                    if (!value.trim().equals("")) launchOptions.setExecutablePath(
-                        Paths.get((String) getPropertyValueAsDesiredType(value))
-                    );
+                    if (!value.trim().equals("")) {
+                        launchOptions.setExecutablePath(
+                            Paths.get((String) getPropertyValueAsDesiredType(value))
+                        );
+                        hasExplicitExecutablePath = true;
+                    }
                 } else if (key.toLowerCase().contains("settimeout")) {
                     if (!value.trim().equals("")) launchOptions.setTimeout(
                         (double) getPropertyValueAsDesiredType(value)
@@ -190,6 +244,11 @@ public class PlaywrightDriverFactory {
                 }
             }
         }
+
+        if (isChromiumBrowser(browserName) && !hasExplicitChannel && !hasExplicitExecutablePath) {
+            launchOptions.setChannel("chrome");
+        }
+
         launchOptions.setArgs(customArgs);
 
         return launchOptions;
@@ -472,6 +531,12 @@ public class PlaywrightDriverFactory {
         int width = Integer.parseInt(dimensions[0]);
         int height = Integer.parseInt(dimensions[1]);
         newContextOptions.setRecordVideoSize(width, height);
+    }
+
+    private static boolean isChromiumBrowser(String browserName) {
+        return (
+            browserName != null && browserName.equalsIgnoreCase(Browser.Chromium.getBrowserValue())
+        );
     }
 
     private static BrowserContext enhanceContext(BrowserContext browserContext) {
