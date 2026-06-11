@@ -722,35 +722,54 @@ public class TestCase extends DataModel {
             getTestSteps().clear();
         }
     }
-
+    
     public void refactorTestData(String oldTDName, String newTDName) {
         Boolean clearOnExit = getTestSteps().isEmpty();
+
         loadTableModel();
+
         for (TestStep testStep : testSteps) {
+
             String[] values = testStep.getTestDataFromInput();
-            if (values != null) {
+
+            if (values != null && values.length >= 2) {
+
                 if (values[0].equals(oldTDName)) {
+
+                    // Preserve everything after first colon
                     testStep.setInput(newTDName + ":" + values[1]);
                 }
             }
         }
+
         if (clearOnExit) {
             save();
             getTestSteps().clear();
         }
     }
 
-    public void refactorTestDataColumn(String testDataName, String oldColumnName, String newColumnName) {
+    public void refactorTestDataColumn(String testDataName,
+                                    String oldColumnName,
+                                    String newColumnName) {
+
         Boolean clearOnExit = getTestSteps().isEmpty();
+
         loadTableModel();
+
         for (TestStep testStep : testSteps) {
+
             String[] values = testStep.getTestDataFromInput();
-            if (values != null) {
-                if (values[0].equals(testDataName) && values[1].equals(oldColumnName)) {
+
+            if (values != null && values.length >= 2) {
+
+                if (values[0].equals(testDataName)
+                        && values[1].equals(oldColumnName)) {
+
                     testStep.setInput(testDataName + ":" + newColumnName);
                 }
             }
         }
+
         if (clearOnExit) {
             save();
             getTestSteps().clear();
