@@ -259,12 +259,12 @@ public class EnvTestData {
         }
     }
 
-    public Boolean renameTestData(String oldName, String newName) {
-        for (TestData testData : getAllEnvironments()) {
-            if (testData.getByName(newName) != null) {
-                return false;
-            }
+    public Boolean renameTestData(String oldName, String newName, String envName) {
+        TestDataModel sTestData = sProject.getTestData().getTestDataFor(envName).getByName(newName);
+        if (sTestData != null) {
+            return false;
         }
+        
         for (TestData testData : getAllEnvironments()) {
             if (testData.getByName(oldName) != null) {
                 testData.getByName(oldName).rename(newName);

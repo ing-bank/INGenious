@@ -857,7 +857,8 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
 
         private Boolean rename(String newName) {
             String oldName = std.getName();
-            if (testDesign.getProject().getTestData().renameTestData(oldName, newName)) {
+            String envName = envTab.getTitleAt(envTab.getSelectedIndex());
+            if (testDesign.getProject().getTestData().renameTestData(oldName, newName, envName)) {
                 renameTestDataTabs(oldName, newName);
                 return true;
             } else {
