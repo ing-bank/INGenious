@@ -106,6 +106,11 @@ public class PlaywrightRecordingParser {
                     attributeInitialization(line);
                     if (!"Browser".equals(testCase.get("ObjectName"))) {
                         String objectName = testCase.get("ObjectName");
+                        // Generate unique name if it's a Refactor_Object
+                        if (objectName != null && objectName.startsWith("Refactor_Object")) {
+                            objectName = getUniqueObjectName(page, objectName);
+                            testCase.put("ObjectName", objectName);
+                        }
                         ObjectGroup group = page.getObjectGroupByName(objectName);
                         if (group == null) {
                             group = new ObjectGroup(objectName, page);
@@ -210,6 +215,19 @@ public class PlaywrightRecordingParser {
             pageName = pageName + "_" + filecount;
         }
         return pageName;
+    }
+
+    private String getUniqueObjectName(WebORPage page, String objectName) {
+        String baseObjectName = objectName;
+        String uniqueName = baseObjectName;
+        int counter = 1;
+        
+        while (page.getObjectGroupByName(uniqueName) != null) {
+            uniqueName = baseObjectName + "_" + counter;
+            counter++;
+        }
+        
+        return uniqueName;
     }
 
     public static List<String> readFileInList(String fileName) {
