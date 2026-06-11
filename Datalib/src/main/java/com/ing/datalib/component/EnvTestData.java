@@ -1,8 +1,5 @@
 package com.ing.datalib.component;
 
-import com.ing.datalib.testdata.TestDataFactory;
-import com.ing.datalib.testdata.model.AbstractDataModel;
-import com.ing.datalib.testdata.model.TestDataModel;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
@@ -18,6 +15,10 @@ import java.util.Properties;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import com.ing.datalib.testdata.TestDataFactory;
+import com.ing.datalib.testdata.model.AbstractDataModel;
+import com.ing.datalib.testdata.model.TestDataModel;
 
 /**
  *
@@ -260,13 +261,13 @@ public class EnvTestData {
     }
 
     public Boolean renameTestData(String oldName, String newName, String envName) {
-        TestDataModel sTestData = sProject.getTestData().getTestDataFor(envName).getByName(newName);
-        if (sTestData != null) {
+        TestData ntestData = sProject.getTestData().getTestDataFor(envName);
+        if (ntestData.getByName(newName) != null) {
             return false;
         }
         
         for (TestData testData : getAllEnvironments()) {
-            if (testData.getByName(oldName) != null) {
+            if (testData.getByName(oldName) != null && testData.getEnviroment().equals(envName)) {
                 testData.getByName(oldName).rename(newName);
             }
         }
