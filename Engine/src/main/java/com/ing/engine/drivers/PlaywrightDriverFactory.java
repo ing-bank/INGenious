@@ -83,7 +83,7 @@ public class PlaywrightDriverFactory {
         Map<String, String> env = new HashMap<>();
 
         //if(Control.exe.getExecSettings().getRunSettings().isGridExecution())
-        env.put("PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD", "1");
+        //env.put("PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD", "1");
 
         return Playwright.create(new Playwright.CreateOptions().setEnv(env));
     }
