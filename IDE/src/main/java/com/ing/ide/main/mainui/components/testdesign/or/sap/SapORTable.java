@@ -51,6 +51,9 @@ public class SapORTable extends JPanel implements ActionListener {
     }
 
     public void loadObject(SapORObject object) {
+        if (table.isEditing()) {
+            table.getCellEditor().stopCellEditing();
+        }
         table.setModel(object);
     }
 

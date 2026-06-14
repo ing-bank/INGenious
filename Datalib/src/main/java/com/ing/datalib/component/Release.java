@@ -215,7 +215,8 @@ public class Release extends DataModel {
 
     @Override
     public Boolean rename(String newName) {
-        if (getProject().getReleaseByName(newName) == null) {
+        Release existing = getProject().getReleaseByName(newName);
+        if (existing == null || existing == this) {
             if (FileUtils.renameFile(getLocation(), newName)) {
                 name = newName;
                 for (TestSet testSet : testSets) {

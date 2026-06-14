@@ -195,4 +195,9 @@ public class ReferenceRenderer extends AbstractRenderer {
 
         return false;
     }
+
+    @Override
+    protected Object getColumnValue(TestStep step) {
+        return step.getReference();
+    }
 }

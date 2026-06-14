@@ -198,7 +198,8 @@ public class ObjectGroup<T extends ORObjectInf> implements TreeNode {
 
     @JsonIgnore
     public Boolean rename(String newName) {
-        if (getParent().getObjectGroupByName(newName) == null) {
+        ObjectGroup<?> existing = getParent().getObjectGroupByName(newName);
+        if (existing == null || existing == this) {
             // Check if using YAML format
             if (getParent().getRoot().getObjectRepository().isUsingYamlFormat()) {
                 // For YAML format, objects are stored within the page YAML file

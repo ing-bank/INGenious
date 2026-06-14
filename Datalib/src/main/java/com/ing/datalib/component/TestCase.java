@@ -210,6 +210,24 @@ public class TestCase extends DataModel {
         stopGroupEdit();
     }
 
+    /**
+     * Marks the assertion steps at the given row indices as hard or soft
+     * assertions. Non-assertion steps are ignored.
+     *
+     * @param indices the selected row indices
+     * @param hard    {@code true} for hard assertion, {@code false} for soft
+     */
+    public void setHardAssertion(int[] indices, boolean hard) {
+        startGroupEdit();
+        for (int index : indices) {
+            TestStep step = testSteps.get(index);
+            if (step.isAssertStep()) {
+                step.setHardAssertion(hard);
+            }
+        }
+        stopGroupEdit();
+    }
+
     public void addReusableStep(String reusable) {
         TestStep step = new TestStep(this);
         step.setObject("Execute");
@@ -247,13 +265,39 @@ public class TestCase extends DataModel {
     }
 
     public TestCase createAsReusable(String reusableName, int fromStep, int toStep) {
-        TestCase newTestcase = getScenario().addTestCase(reusableName);
+        return createAsReusable(getScenario(), reusableName, fromStep, toStep);
+    }
+
+    /**
+     * Extracts the selected steps into a new reusable test case under the given
+     * target scenario, replacing them in this test case with a single step that
+     * invokes the newly created reusable.
+     *
+     * @param targetScenario scenario (typically under Reusable Components) that
+     *                       will hold the new reusable test case
+     * @param reusableName   name of the reusable test case to create
+     * @param fromStep       index of the first selected step (inclusive)
+     * @param toStep         index of the last selected step (inclusive)
+     * @return the created reusable test case, or {@code null} if it could not be
+     *         created
+     */
+    public TestCase createAsReusable(
+        Scenario targetScenario,
+        String reusableName,
+        int fromStep,
+        int toStep
+    ) {
+        if (targetScenario == null) {
+            return null;
+        }
+        TestCase newTestcase = targetScenario.addTestCase(reusableName);
         if (newTestcase != null) {
             for (int i = fromStep; i <= toStep; i++) {
                 testSteps.get(i).copyValuesTo(newTestcase.addNewStep());
             }
+            newTestcase.save();
             startGroupEdit();
-            addReusableStep(fromStep, getScenario().getName() + ":" + reusableName);
+            addReusableStep(fromStep, targetScenario.getName() + ":" + reusableName);
             for (int i = toStep + 1; i >= fromStep + 1; i--) {
                 rowDeleted(i);
                 testSteps.remove(i);
@@ -1096,11 +1140,12 @@ public class TestCase extends DataModel {
 
     @Override
     public Boolean rename(String newName) {
+        TestCase existing = getScenario().getTestCaseByName(newName);
         if (
-            getScenario().getTestCaseByName(newName) == null &&
+            (existing == null || existing == this) &&
             getScenario().getReusableTestCaseByName(getScenario().getName(), newName) == null
         ) {
-            if (FileUtils.renameFile(getLocation(), newName + ".csv")) {
+            if (FileUtils.renameFile(getLocation(), newName + getFormat().extension())) {
                 getProject().refactorTestCase(getScenario().getName(), name, newName);
                 name = newName;
                 return true;
@@ -1110,11 +1155,13 @@ public class TestCase extends DataModel {
     }
 
     public Boolean renameReusable(String newName) {
+        TestCase existingReusable = getScenario()
+            .getReusableTestCaseByName(getScenario().getName(), newName);
         if (
             getScenario().getTestCaseByName(getScenario().getName(), newName) == null &&
-            getScenario().getReusableTestCaseByName(getScenario().getName(), newName) == null
+            (existingReusable == null || existingReusable == this)
         ) {
-            if (FileUtils.renameFile(getLocation(), newName + ".csv")) {
+            if (FileUtils.renameFile(getLocation(), newName + getFormat().extension())) {
                 getProject().refactorTestCase(getScenario().getName(), name, newName);
                 name = newName;
                 return true;

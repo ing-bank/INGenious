@@ -70,7 +70,7 @@ public class YamlORWriter {
         ensureDirectory(webPagesDir);
 
         List<WebORPage> pages = webOR.getPages();
-        LOGGER.info(() -> "Writing " + pages.size() + " Web pages to YAML");
+        LOGGER.fine(() -> "Writing " + pages.size() + " Web pages to YAML");
 
         for (WebORPage page : pages) {
             writeWebPage(page, webPagesDir);
@@ -88,7 +88,7 @@ public class YamlORWriter {
         ensureDirectory(mobilePagesDir);
 
         List<MobileORPage> pages = mobileOR.getPages();
-        LOGGER.info(() -> "Writing " + pages.size() + " Mobile pages to YAML");
+        LOGGER.fine(() -> "Writing " + pages.size() + " Mobile pages to YAML");
 
         for (MobileORPage page : pages) {
             writeMobilePage(page, mobilePagesDir);
@@ -107,7 +107,7 @@ public class YamlORWriter {
         ensureDirectory(structuredDataPagesDir);
 
         List<StructuredDataORPage> pages = structuredDataOR.getPages();
-        LOGGER.info("Writing " + pages.size() + " Structured Data pages to YAML");
+        LOGGER.fine("Writing " + pages.size() + " Structured Data pages to YAML");
 
         for (StructuredDataORPage page : pages) {
             writeStructuredDataPage(page, structuredDataPagesDir);
@@ -125,7 +125,7 @@ public class YamlORWriter {
         ensureDirectory(sapPagesDir);
 
         List<SapORPage> pages = sapOR.getPages();
-        LOGGER.info("Writing " + pages.size() + " SAP pages to YAML");
+        LOGGER.fine("Writing " + pages.size() + " SAP pages to YAML");
 
         for (SapORPage page : pages) {
             writeSapPage(page, sapPagesDir);

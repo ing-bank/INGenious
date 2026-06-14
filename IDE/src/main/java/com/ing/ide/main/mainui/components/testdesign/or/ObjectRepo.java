@@ -126,6 +126,17 @@ public class ObjectRepo extends JPanel implements ItemListener {
     }
 
     /**
+     * Reloads the Web OR project tree so newly added pages/objects (e.g. during Playwright live
+     * recording) appear immediately without requiring a full project refresh. The given page is
+     * kept expanded so users can watch objects being added live.
+     *
+     * @param pageName the page to keep expanded after reload
+     */
+    public void refreshWebOR(String pageName) {
+        SwingUtilities.invokeLater(() -> webOR.reloadProjectTree(pageName));
+    }
+
+    /**
      * Picks the most relevant OR tab to show after a project is loaded.
      * <p>
      * Web is selected by default. However, if the Web OR has no pages while

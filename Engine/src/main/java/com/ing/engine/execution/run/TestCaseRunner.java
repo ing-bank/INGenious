@@ -59,6 +59,8 @@ public class TestCaseRunner {
 
     private int currentSubIteration = -1;
     private boolean breakSubIterationFlag = false;
+    private volatile int currentStepIndex = -1;
+    private volatile boolean stopAfterCurrentStep = false;
 
     //<editor-fold defaultstate="collapsed" desc="_init_">
     public TestCaseRunner(ProjectRunner exe, String scenario, String testCase) {
@@ -204,15 +206,45 @@ public class TestCaseRunner {
         return testCase;
     }
 
+    /**
+     * @return the zero-based index of the step currently being executed in this test case, or
+     *         {@code -1} if no step is running. Used by the live recorder to know where to insert
+     *         newly recorded steps (right after the executing {@code RecordFromHere} step).
+     */
+    public int getCurrentStepIndex() {
+        return currentStepIndex;
+    }
+
+    /**
+     * Requests that this test case stop after the step currently executing. Used by the live
+     * recorder so the steps captured during {@code RecordFromHere} are saved for later runs but
+     * not replayed in the current execution (mirroring Playwright's pause-and-record behaviour).
+     */
+    public void requestStopAfterCurrentStep() {
+        this.stopAfterCurrentStep = true;
+    }
+
     //</editor-fold>
 
     //<editor-fold defaultstate="collapsed" desc="internal apis">
     private boolean canRunStep(int currStep) {
-        return currStep < testCase.getTestSteps().size() && canRun();
+        return !stopAfterCurrentStep && currStep < testCase.getTestSteps().size() && canRun();
     }
 
     private boolean canRun() {
         return !SystemDefaults.stopExecution.get() && !SystemDefaults.stopCurrentIteration.get();
+    }
+
+    /**
+     * @return {@code true} when the most recently logged step result is a
+     *         failure (used to detect a failed hard assertion).
+     */
+    private boolean lastStepFailed() {
+        if (getReport() == null) {
+            return false;
+        }
+        Status status = getReport().getCurrentStatus();
+        return status == Status.FAIL || status == Status.FAILNS;
     }
 
     private void setControl(CommandControl cc) {
@@ -435,6 +467,7 @@ public class TestCaseRunner {
             for (int currStep = 0; canRunStep(currStep); currStep++) {
                 TestStep testStep = testCase.getTestSteps().get(currStep);
                 TestCase parentTestCase = testCase.getParentTestCase();
+                this.currentStepIndex = currStep;
 
                 if (!testStep.isCommented()) {
                     checkForStartLoop(testStep, currStep);
@@ -459,6 +492,23 @@ public class TestCaseRunner {
                         }
 
                         runStep(testStep);
+                        if (testStep.isHardAssertion() && lastStepFailed()) {
+                            /*
+                             * Hard assertion failed: fail and stop the current
+                             * iteration. Setting stopCurrentIteration makes
+                             * canRunStep() false so the loop ends gracefully and
+                             * the outer Task loop continues with the next
+                             * iteration.
+                             */
+                            getReport()
+                                .updateTestLog(
+                                    testStep.getAction(),
+                                    "Hard assertion failed - stopping current iteration",
+                                    Status.DEBUG
+                                );
+                            SystemDefaults.stopCurrentIteration.set(true);
+                            return;
+                        }
                         isLastData = checkIfLastData(testStep, currStep);
                     } catch (DriverClosedException | TestFailedException | UnCaughtException ex) {
                         throw ex;

@@ -169,6 +169,16 @@ public class WebORPanel extends JPanel {
         projectTree.load();
     }
 
+    /**
+     * Reloads the project Web OR tree so newly added pages/objects appear immediately
+     * without requiring a full project refresh, keeping the given page expanded.
+     *
+     * @param pageName the page to keep expanded after reload
+     */
+    public void reloadProjectTree(String pageName) {
+        projectTree.reloadAndExpandPage(pageName);
+    }
+
     public void adjustUI() {
         int height = splitPane.getHeight();
         if (height > 0) {

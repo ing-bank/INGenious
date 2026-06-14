@@ -20,6 +20,7 @@ import javax.swing.UIManager;
  */
 public class ObjectRenderer extends AbstractRenderer {
     String objNotPresent = "Object is not present in the Object Repository";
+    String reusableHasError = "Reusable has IDE validation error(s)";
 
     public ObjectRenderer() {
         super("Object Shouldn't be empty.It should be one of[Execute,App,Browser or Object]");
@@ -35,7 +36,11 @@ public class ObjectRenderer extends AbstractRenderer {
                     setEmpty(comp);
                 }
             } else if ("Execute".equals(Objects.toString(value, "").trim())) {
-                setExecute(comp);
+                if (step.isReusableStep() && TestCaseValidation.reusableHasError(step)) {
+                    setNotPresent(comp, reusableHasError);
+                } else {
+                    setExecute(comp);
+                }
             } else if (step.isPageObjectStep()) {
                 if (isObjectPresent(step)) {
                     setDefault(comp);
@@ -114,5 +119,10 @@ public class ObjectRenderer extends AbstractRenderer {
      */
     private Boolean isValidObject(Object value) {
         return ObjectTypeUtil.isKnownType(Objects.toString(value, "").trim());
+    }
+
+    @Override
+    protected Object getColumnValue(TestStep step) {
+        return step.getObject();
     }
 }

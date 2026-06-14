@@ -13,10 +13,12 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.commons.io.FilenameUtils;
@@ -33,8 +35,135 @@ public class PlaywrightRecordingParser {
     Map<String, String> pageMapping = new HashMap<>();
     boolean pageSwitchOnClick = false;
 
+    /** Tracks object names already used during the current live-recording rebuild cycle. */
+    private final Set<String> usedLiveObjectNames = new HashSet<>();
+
     public PlaywrightRecordingParser(AppMainFrame sMainFrame) {
         this.sMainFrame = sMainFrame;
+    }
+
+    /**
+     * Creates a new, uniquely named Web OR page for a live recording session.
+     *
+     * @param basePageName the desired page name (typically the test case name)
+     * @return the newly created Web OR page
+     */
+    public WebORPage createLiveRecordingPage(String basePageName) {
+        WebOR webOR = sMainFrame.getProject().getObjectRepository().getWebOR();
+        String pageName = basePageName;
+        if (webOR.getPageByName(pageName) != null) {
+            int counter = 1;
+            while (webOR.getPageByName(basePageName + "_" + counter) != null) {
+                counter++;
+            }
+            pageName = basePageName + "_" + counter;
+        }
+        testCase.put("pageName", pageName);
+        return webOR.addPage(pageName);
+    }
+
+    /**
+     * Returns the resolved page name for the current live recording session.
+     */
+    public String getLiveRecordingPageName() {
+        return testCase.get("pageName");
+    }
+
+    /**
+     * Resets the live-recording object registry and clears the given page's object groups so a
+     * fresh rebuild from the full recorder output produces deterministic, incrementally numbered
+     * object names (e.g. {@code Refactor_Object}, {@code Refactor_Object_1}, ...).
+     *
+     * @param page the Web OR page being rebuilt
+     */
+    public void resetLiveObjectRegistry(WebORPage page) {
+        usedLiveObjectNames.clear();
+        if (page != null) {
+            page.getObjectGroups().clear();
+        }
+    }
+
+    /**
+     * Extracts the web object for a single recorder line and registers it into the given Web OR
+     * page. Distinct objects that resolve to the same name are uniquely numbered so each detected
+     * element gets its own OR object. Navigation/dialog lines resolve to {@code "Browser"} and do
+     * not create an OR object.
+     *
+     * @param line the recorder output line
+     * @param page the Web OR page to populate
+     * @return the resolved object name to be used in the test step
+     */
+    public String registerLiveObject(String line, WebORPage page) {
+        attributeDeclaration();
+        testCaseParameter();
+        if (line.trim().startsWith("page")) {
+            pageMapping.put("currentPage", line.trim().split("\\.")[0]);
+        }
+        attributeInitialization(line);
+
+        String objectName = testCase.get("ObjectName");
+        if (objectName == null || objectName.isEmpty()) {
+            objectName = "Refactor_Object";
+        }
+
+        if (!"Browser".equals(objectName) && page != null) {
+            objectName = resolveUniqueObjectName(objectName);
+            ObjectGroup group = page.getObjectGroupByName(objectName);
+            if (group == null) {
+                group = new ObjectGroup(objectName, page);
+                page.getObjectGroups().add(group);
+            }
+            WebORObject obj = new WebORObject(objectName, group);
+            for (Map.Entry<String, String> entry : attribute.entrySet()) {
+                String key = entry.getKey();
+                String value = entry.getValue();
+                if (value != null && !value.isEmpty()) {
+                    obj.setAttributeByName(key, value);
+                }
+            }
+            String frame = testCase.get("frame");
+            if (frame != null && !frame.isEmpty()) {
+                obj.setFrame(frame);
+            }
+            group.getObjects().clear();
+            group.getObjects().add(obj);
+        }
+        return objectName;
+    }
+
+    /**
+     * Returns the object name to use for the current rebuild cycle.
+     * <p>
+     * Named objects (e.g. {@code username}) are returned as-is so that repeated interactions with
+     * the same element (a click then a fill) reuse the same OR object. Only the generic
+     * {@code Refactor_Object} fallback is incrementally numbered ({@code Refactor_Object_1},
+     * {@code Refactor_Object_2}, ...) since each unnamed element is a distinct object.
+     * </p>
+     */
+    private String resolveUniqueObjectName(String objectName) {
+        if (!"Refactor_Object".equals(objectName)) {
+            return objectName;
+        }
+        if (!usedLiveObjectNames.contains(objectName)) {
+            usedLiveObjectNames.add(objectName);
+            return objectName;
+        }
+        int counter = 1;
+        while (usedLiveObjectNames.contains(objectName + "_" + counter)) {
+            counter++;
+        }
+        String uniqueName = objectName + "_" + counter;
+        usedLiveObjectNames.add(uniqueName);
+        return uniqueName;
+    }
+
+    /**
+     * Persists the given Web OR page to disk.
+     */
+    public void saveLiveRecordingPage(WebORPage page) {
+        if (page != null) {
+            page.getRoot().getObjectRepository().saveWebPageNow(page);
+        }
     }
 
     public void playwrightParser(File file) {
@@ -465,10 +594,19 @@ public class PlaywrightRecordingParser {
                 }
             }
             if (!line.contains("frameLocator")) {
+                // A simple single locator (e.g. page.locator(".a.b.c")) already captured the
+                // selector into the css attribute; in that case we must NOT also build a
+                // ChainedLocator. Chained locators (.first()/.nth()/multiple parts) skip the
+                // switch above via chainAttributeExist(), leaving css empty, so they still chain.
+                boolean cssCaptured =
+                    attribute.get("css") != null && !attribute.get("css").isEmpty();
                 if (
-                    testCase.get("ObjectName").equals("Refactor_Object") ||
-                    testCase.get("ObjectName").equals("") &&
-                    !testCase.get("ObjectName").equals("Browser")
+                    !cssCaptured &&
+                    (
+                        testCase.get("ObjectName").equals("Refactor_Object") ||
+                        testCase.get("ObjectName").equals("") &&
+                        !testCase.get("ObjectName").equals("Browser")
+                    )
                 ) {
                     chainAttributeInitialization(line);
                 }

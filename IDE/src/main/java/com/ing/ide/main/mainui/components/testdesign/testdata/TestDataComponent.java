@@ -1351,7 +1351,9 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
             if (table.getCellEditor() != null) {
                 table.getCellEditor().stopCellEditing();
             }
-            if (frozenScrollPane.getFixedTable().getCellEditor() != null) {
+            if (
+                frozenScrollPane != null && frozenScrollPane.getFixedTable().getCellEditor() != null
+            ) {
                 frozenScrollPane.getFixedTable().getCellEditor().stopCellEditing();
             }
         }

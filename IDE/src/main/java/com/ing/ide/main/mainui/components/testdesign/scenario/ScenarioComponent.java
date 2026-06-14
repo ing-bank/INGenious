@@ -3,6 +3,7 @@ package com.ing.ide.main.mainui.components.testdesign.scenario;
 import com.ing.datalib.component.Scenario;
 import com.ing.datalib.component.TestCase;
 import com.ing.datalib.component.TestStep;
+import com.ing.ide.main.mainui.components.testdesign.ReusableComponentDialog;
 import com.ing.ide.main.mainui.components.testdesign.TestDesign;
 import com.ing.ide.main.utils.Utils;
 import com.ing.ide.main.utils.table.XTable;
@@ -255,14 +256,30 @@ public class ScenarioComponent extends JPanel implements ActionListener {
                 if (to >= testCase.getRowCount()) {
                     to = testCase.getRowCount() - 1;
                 }
-                String name = JOptionPane.showInputDialog("Enter the Reusable Name");
-                if (name != null && !name.trim().isEmpty()) {
-                    TestCase reusable = testCase.createAsReusable(name, from, to);
+                ReusableComponentDialog.Result result = ReusableComponentDialog.prompt(
+                    this,
+                    testDesign.getProject()
+                );
+                if (result != null) {
+                    Scenario targetScenario = testDesign
+                        .getProject()
+                        .getReusableScenarioByName(result.getScenarioName());
+                    if (targetScenario == null) {
+                        targetScenario =
+                            testDesign.getProject().addReusableScenario(result.getScenarioName());
+                    }
+                    TestCase reusable = testCase.createAsReusable(
+                        targetScenario,
+                        result.getReusableName(),
+                        from,
+                        to
+                    );
                     if (reusable != null) {
+                        testCase.save();
                         testDesign.getReusableTree().getTreeModel().addTestCase(reusable);
                         getCurrentScenario().fireTableStructureChanged();
                     } else {
-                        Notification.show("Couldn't Create Reusable - " + name);
+                        Notification.show("Couldn't Create Reusable - " + result.getReusableName());
                     }
                 }
             }

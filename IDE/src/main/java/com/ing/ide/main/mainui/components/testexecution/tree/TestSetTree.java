@@ -88,7 +88,7 @@ public class TestSetTree implements ActionListener {
 
                     @Override
                     public void actionPerformed(ActionEvent ae) {
-                        if (getSelectedRelease() != null) {
+                        if (getSelectedRelease() != null || getSelectedTestSet() != null) {
                             addTestSet();
                         } else {
                             addRelease();
@@ -338,6 +338,12 @@ public class TestSetTree implements ActionListener {
 
     private void addTestSet() {
         ReleaseNode releaseNode = getSelectedReleaseNode();
+        if (releaseNode == null) {
+            TestSetNode tsNode = getSelectedTestSetNode();
+            if (tsNode != null && tsNode.getParent() instanceof ReleaseNode) {
+                releaseNode = (ReleaseNode) tsNode.getParent();
+            }
+        }
         if (releaseNode != null) {
             String testSetName = fetchNewTestSetName(releaseNode.getRelease());
             TestSet testset = releaseNode.getRelease().addTestSet(testSetName);
@@ -354,8 +360,6 @@ public class TestSetTree implements ActionListener {
                 public void run() {
                     tree.setSelectionPath(path);
                     tree.scrollPathToVisible(path);
-                    tree.removeSelectionPath(path);
-                    tree.addSelectionPaths(new TreePath[] { path.getParentPath(), path });
                 }
             }
         );

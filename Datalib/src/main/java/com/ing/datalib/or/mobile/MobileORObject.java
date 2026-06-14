@@ -478,7 +478,8 @@ public class MobileORObject extends UndoRedoModel implements ORObjectInf {
         if (newName == null || newName.isBlank()) {
             return false;
         }
-        if (getParent().getObjectByName(newName) != null) {
+        ORObjectInf existing = getParent().getObjectByName(newName);
+        if (existing != null && existing != this) {
             return false;
         }
         setName(newName);

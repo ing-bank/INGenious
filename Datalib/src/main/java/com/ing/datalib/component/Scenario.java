@@ -130,13 +130,13 @@ public class Scenario extends DataModel {
     }
 
     /**
-     * Finds a test case by name.
+     * Finds a Test Plan test case by name.
      * @param scenarioName scenario name (case-insensitive)
      * @param testCaseName test case name (case-insensitive)
-     * @return the reusable test case if found, null otherwise
+     * @return the Test Plan test case if found, null otherwise
      */
     public TestCase getTestCaseByName(String scenarioName, String testCaseName) {
-        Scenario sc = project.getScenarioByName(scenarioName);
+        Scenario sc = project.getTestPlanScenarioByName(scenarioName);
         if (sc == null) {
             return null;
         }
@@ -638,7 +638,8 @@ public class Scenario extends DataModel {
      */
     @Override
     public Boolean rename(String newName) {
-        if (getProject().getTestPlanScenarioByName(newName) == null) {
+        Scenario existing = getProject().getTestPlanScenarioByName(newName);
+        if (existing == null || existing == this) {
             if (FileUtils.renameFile(getLocation(), newName)) {
                 getProject().refactorScenario(name, newName);
                 name = newName;
@@ -655,7 +656,8 @@ public class Scenario extends DataModel {
      */
 
     public Boolean renameReusable(String newName) {
-        if (getProject().getReusableScenarioByName(newName) == null) {
+        Scenario existing = getProject().getReusableScenarioByName(newName);
+        if (existing == null || existing == this) {
             if (FileUtils.renameFile(getLocation(), newName)) {
                 getProject().refactorScenario(name, newName);
                 name = newName;

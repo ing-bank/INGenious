@@ -258,7 +258,8 @@ public class SapORPage implements ORPageInf<SapORObject, SapOR> {
 
     @Override
     public Boolean rename(String newName) {
-        if (getParent().getPageByName(newName) == null) {
+        SapORPage existing = getParent().getPageByName(newName);
+        if (existing == null || existing == this) {
             if (FileUtils.renameFile(getRepLocation(), newName)) {
                 getRoot().getObjectRepository().renamePage(this, newName);
                 setName(newName);

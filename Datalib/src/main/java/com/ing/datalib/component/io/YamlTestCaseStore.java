@@ -29,6 +29,9 @@ import java.util.regex.Pattern;
  *   <li>{@code comment: true} adds a leading {@code //} marker so
  *       {@link com.ing.datalib.component.TestStep#isCommented()} keeps
  *       returning {@code true}.</li>
+ *   <li>{@code hardAssertion: true} adds a {@code ~} marker so
+ *       {@link com.ing.datalib.component.TestStep#isHardAssertion()} keeps
+ *       returning {@code true}.</li>
  *   <li>Missing fields ({@code input}, {@code condition}, {@code reference})
  *       round-trip as empty strings, matching the CSV behaviour.</li>
  * </ul>
@@ -36,6 +39,7 @@ import java.util.regex.Pattern;
 public class YamlTestCaseStore implements TestCaseStore {
     private static final String BREAKPOINT = "*";
     private static final String COMMENT = "//";
+    private static final String HARD_ASSERTION = "~";
     private static final Pattern STEP_DIGITS = Pattern.compile("(\\d+)");
 
     private final ObjectMapper mapper;
@@ -179,6 +183,9 @@ public class YamlTestCaseStore implements TestCaseStore {
         if (Boolean.TRUE.equals(step.getBreakpoint())) {
             sb.append(BREAKPOINT);
         }
+        if (Boolean.TRUE.equals(step.getHardAssertion())) {
+            sb.append(HARD_ASSERTION);
+        }
         sb.append(number);
         return sb.toString();
     }
@@ -194,6 +201,9 @@ public class YamlTestCaseStore implements TestCaseStore {
         String afterComment = tag.startsWith(COMMENT) ? tag.substring(COMMENT.length()) : tag;
         if (afterComment.startsWith(BREAKPOINT)) {
             step.setBreakpoint(Boolean.TRUE);
+        }
+        if (tag.contains(HARD_ASSERTION)) {
+            step.setHardAssertion(Boolean.TRUE);
         }
         step.setObject(emptyToNull(safeGet(row, HEADERS.ObjectName.getIndex())));
         step.setDescription(emptyToNull(safeGet(row, HEADERS.Description.getIndex())));

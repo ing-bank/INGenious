@@ -244,6 +244,21 @@ public class TestCaseToolBar extends JToolBar {
 
     public void enableRecordButton() {
         record.setEnabled(true);
-        record.setToolTipText("Start Recording");
+        record.setToolTipText(isRecording ? "Stop Recording" : "Start Recording");
+    }
+
+    public boolean isRecording() {
+        return isRecording;
+    }
+
+    public void setRecordingState(boolean recording) {
+        isRecording = recording;
+        record.setIcon(
+            recording
+                ? IconSettings.getIconSettings().getRecordStopIcon()
+                : IconSettings.getIconSettings().getRecordStartIcon()
+        );
+        record.setToolTipText(recording ? "Stop Recording" : "Start Recording");
+        record.setEnabled(true);
     }
 }

@@ -1,6 +1,9 @@
 package com.ing.engine.commands.browser;
 
 import com.ing.engine.core.CommandControl;
+import com.ing.engine.core.LiveRecordingHook;
+import com.ing.engine.core.LiveRecordingService;
+import com.ing.engine.execution.run.TestCaseRunner;
 import com.ing.ingenious.api.annotation.Action;
 import com.ing.ingenious.api.exception.ActionException;
 import com.ing.ingenious.api.exception.ForcedException;
@@ -138,13 +141,118 @@ public class Basic extends General {
     )
     public void RecordFromHere() {
         try {
+            LiveRecordingHook hook = LiveRecordingService.getHook();
+            String outputFile = null;
+            TestCaseRunner recordingRunner = null;
+            if (hook != null) {
+                try {
+                    TestCaseRunner runner = userData.context();
+                    if (runner != null) {
+                        recordingRunner = runner;
+                        outputFile =
+                            hook.onRecordingStarted(
+                                runner.getTestCase(),
+                                runner.getCurrentStepIndex()
+                            );
+                    }
+                } catch (Exception ex) {
+                    Logger
+                        .getLogger(this.getClass().getName())
+                        .log(Level.WARNING, "Live recording hook failed to start", ex);
+                }
+            }
+
+            boolean liveRecording = false;
+            if (outputFile != null && !outputFile.isEmpty()) {
+                liveRecording = enableLiveRecorder(outputFile);
+                if (liveRecording && hook != null) {
+                    hook.onRecordingReady();
+                }
+            }
+
             Page.pause();
+
+            if (liveRecording) {
+                disableLiveRecorder();
+                // Captured steps are saved for future runs; do not replay them in this execution.
+                if (recordingRunner != null) {
+                    recordingRunner.requestStopAfterCurrentStep();
+                }
+            }
+            if (liveRecording && hook != null) {
+                hook.onRecordingStopped();
+            }
             Report.updateTestLog(Action, "Successfully started Playwright recorder", Status.DONE);
         } catch (Exception e) {
             Logger.getLogger(this.getClass().getName()).log(Level.OFF, null, e);
             Report.updateTestLog(Action, e.getMessage(), Status.FAIL);
             throw new ActionException(e);
         }
+    }
+
+    /**
+     * Enables the Playwright recorder on the already-running browser context, directing the
+     * generated Java code to {@code outputFile}. This reuses the same internal protocol method
+     * ({@code BrowserContext.enableRecorder}) that {@code playwright codegen --output} relies on,
+     * but targets the live context so the user records on top of the session built by the
+     * preceding steps. The {@code sendMessage} channel method is package-private, hence reflection.
+     *
+     * @return {@code true} when the recorder was enabled successfully
+     */
+    private boolean enableLiveRecorder(String outputFile) {
+        try {
+            com.google.gson.JsonObject params = new com.google.gson.JsonObject();
+            params.addProperty("language", "java");
+            params.addProperty("mode", "recording");
+            params.addProperty("outputFile", outputFile);
+            invokeChannel("enableRecorder", params);
+            return true;
+        } catch (Exception ex) {
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.WARNING, "Unable to enable live recorder", ex);
+            return false;
+        }
+    }
+
+    /** Stops the live recorder so it no longer writes generated code once the user resumes. */
+    private void disableLiveRecorder() {
+        try {
+            invokeChannel("disableRecorder", new com.google.gson.JsonObject());
+        } catch (Exception ex) {
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.FINE, "Unable to disable live recorder", ex);
+        }
+    }
+
+    /**
+     * Sends a raw Playwright protocol message to the current {@code BrowserContext} channel via
+     * the package-private {@code ChannelOwner.sendMessage(String, JsonObject, Double)} method.
+     */
+    private void invokeChannel(String method, com.google.gson.JsonObject params) throws Exception {
+        java.lang.reflect.Method sendMessage = null;
+        Class<?> clazz = BrowserContext.getClass();
+        while (clazz != null && sendMessage == null) {
+            try {
+                sendMessage =
+                    clazz.getDeclaredMethod(
+                        "sendMessage",
+                        String.class,
+                        com.google.gson.JsonObject.class,
+                        Double.class
+                    );
+            } catch (NoSuchMethodException nsme) {
+                clazz = clazz.getSuperclass();
+            }
+        }
+        if (sendMessage == null) {
+            throw new NoSuchMethodException(
+                "ChannelOwner.sendMessage not found on " + BrowserContext.getClass().getName()
+            );
+        }
+        sendMessage.setAccessible(true);
+        sendMessage.invoke(BrowserContext, method, params, null);
     }
 
     @Action(

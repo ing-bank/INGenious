@@ -71,6 +71,9 @@ public class MobileORTable extends JPanel implements ActionListener {
     }
 
     public void loadObject(MobileORObject object) {
+        if (table.isEditing()) {
+            table.getCellEditor().stopCellEditing();
+        }
         object.setActivePlatform(activePlatform);
         table.setModel(object);
         configureColumns();

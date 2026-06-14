@@ -465,7 +465,8 @@ public class TestSet extends DataModel {
 
     @Override
     public Boolean rename(String newName) {
-        if (getRelease().getTestSetByName(newName) == null) {
+        TestSet existing = getRelease().getTestSetByName(newName);
+        if (existing == null || existing == this) {
             if (FileUtils.renameFile(getLocation(), newName + getFormat().extension())) {
                 name = newName;
                 resetExecSettingsLocation();

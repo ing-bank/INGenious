@@ -144,7 +144,8 @@ public class TestCaseYaml {
             "condition",
             "reference",
             "breakpoint",
-            "comment"
+            "comment",
+            "hardAssertion"
         }
     )
     public static class StepYaml {
@@ -174,6 +175,9 @@ public class TestCaseYaml {
 
         @JsonProperty("comment")
         private Boolean comment;
+
+        @JsonProperty("hardAssertion")
+        private Boolean hardAssertion;
 
         public Integer getStep() {
             return step;
@@ -245,6 +249,14 @@ public class TestCaseYaml {
 
         public void setComment(Boolean comment) {
             this.comment = comment;
+        }
+
+        public Boolean getHardAssertion() {
+            return hardAssertion;
+        }
+
+        public void setHardAssertion(Boolean hardAssertion) {
+            this.hardAssertion = hardAssertion;
         }
     }
 }

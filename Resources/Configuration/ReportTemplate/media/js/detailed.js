@@ -499,7 +499,7 @@ function collapseAllSteps() {
 }
 
 // Modern recursive renderer for detailed-v2.html
-function renderStepsV2(iterations, showFailedOnly = false, stepFilter = '') {
+function renderStepsV2(iterations, showFailedOnly = false, stepFilter = '', keyPrefix = '') {
     function escapeHtml(unsafe) {
         if (!unsafe) return '';
         return unsafe.toString()
@@ -665,7 +665,7 @@ function renderStepsV2(iterations, showFailedOnly = false, stepFilter = '') {
     
     let html = '';
     (iterations || []).forEach((item, idx) => {
-        const keyPath = '' + idx;
+        const keyPath = keyPrefix === '' ? ('' + idx) : (keyPrefix + '-' + idx);
         if (item.type === 'step') html += renderStep(item, keyPath);
         else if (item.type === 'reusable') html += renderReusable(item, keyPath);
     });
@@ -741,7 +741,7 @@ function injectStepsV2(showFailedOnly = false, stepFilter = '', scenarioName = n
     let html = '';
     stepsToRender.forEach(function(iteration, idx) {
         if (showFailedOnly && iteration.status !== 'FAIL') return;
-        html += `<div class="mb-6 pb-6 border-b border-gray-200 dark:border-gray-700 last:border-b-0"><div class="flex items-center gap-3 mb-4"><div class="px-3 py-1 rounded-full text-sm font-semibold ${iteration.status === 'PASS' ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' : 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'}">${iteration.name || 'Iteration'}</div><span class="text-sm text-muted">${iteration.status || ''}</span></div><div class="step-timeline">${renderStepsV2(iteration.data, showFailedOnly, stepFilter)}</div></div>`;
+        html += `<div class="mb-6 pb-6 border-b border-gray-200 dark:border-gray-700 last:border-b-0"><div class="flex items-center gap-3 mb-4"><div class="px-3 py-1 rounded-full text-sm font-semibold ${iteration.status === 'PASS' ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' : 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'}">${iteration.name || 'Iteration'}</div><span class="text-sm text-muted">${iteration.status || ''}</span></div><div class="step-timeline">${renderStepsV2(iteration.data, showFailedOnly, stepFilter, 'iter' + idx)}</div></div>`;
     });
     
     // Handle empty steps

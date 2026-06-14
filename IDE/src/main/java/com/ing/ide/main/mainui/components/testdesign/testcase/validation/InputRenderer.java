@@ -101,4 +101,9 @@ public class InputRenderer extends AbstractRenderer {
             ) return true; else return false;
         }
     }
+
+    @Override
+    protected Object getColumnValue(TestStep step) {
+        return step.getInput();
+    }
 }

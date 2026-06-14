@@ -18,6 +18,7 @@ import org.apache.commons.csv.CSVRecord;
 public class TestStep {
     private static String BREAKPOINT = "*";
     private static String COMMENT = "//";
+    private static String HARD_ASSERTION = "~";
 
     public enum HEADERS {
         Step(0),
@@ -52,6 +53,13 @@ public class TestStep {
     }
 
     private final TestCase testCase;
+
+    /**
+     * Transient, in-memory only flag marking a step that was just added by the live
+     * Playwright recorder. Used by the editor to highlight freshly recorded steps; it is
+     * never persisted to disk and is cleared when the user explicitly saves the test case.
+     */
+    private transient boolean newlyRecorded = false;
 
     List<String> stepDetails = Collections.synchronizedList(
         new ArrayList<String>(HEADERS.values().length) {
@@ -321,6 +329,52 @@ public class TestStep {
 
     public Boolean isCommented() {
         return getTag().startsWith(COMMENT);
+    }
+
+    /**
+     * @return {@code true} when this step's action is an assertion (its action
+     *         name starts with {@code assert}, case-insensitive).
+     */
+    public Boolean isAssertStep() {
+        return getAction().toLowerCase().startsWith("assert");
+    }
+
+    /**
+     * @return {@code true} when this assertion step is marked as a hard
+     *         assertion. All assertions are soft by default; a hard assertion
+     *         stops the current data iteration on failure.
+     */
+    public Boolean isHardAssertion() {
+        return getTag().contains(HARD_ASSERTION);
+    }
+
+    /**
+     * Marks (or unmarks) this step as a hard assertion. The flag is stored as a
+     * marker in the step tag, mirroring how comment and breakpoint markers are
+     * persisted, so it survives save/load without a schema change.
+     *
+     * @param hard {@code true} for hard assertion, {@code false} for soft
+     *             (the default).
+     */
+    public void setHardAssertion(boolean hard) {
+        boolean current = getTag().contains(HARD_ASSERTION);
+        if (hard && !current) {
+            setTag(getTag().concat(HARD_ASSERTION));
+        } else if (!hard && current) {
+            setTag(getTag().replace(HARD_ASSERTION, ""));
+        }
+    }
+
+    /**
+     * @return {@code true} when this step was just added by the live recorder and has not yet
+     *         been saved by the user. Highlighted in the editor while {@code true}.
+     */
+    public boolean isNewlyRecorded() {
+        return newlyRecorded;
+    }
+
+    public void setNewlyRecorded(boolean newlyRecorded) {
+        this.newlyRecorded = newlyRecorded;
     }
 
     public String[] getReusableData() {

@@ -166,7 +166,13 @@ public class FileUtils {
             File src = new File(fromFile);
             if (src.exists()) {
                 File target = new File(src.getParent(), sanitizePathTraversal(toName));
-                if (target.exists()) {
+                // A case-only rename (e.g. "Page" -> "page") keeps the same file on
+                // case-insensitive file systems (default on macOS/Windows). It must be
+                // allowed even though target.exists() reports true for the source itself.
+                boolean caseOnlyChange =
+                    src.getName().equalsIgnoreCase(target.getName()) &&
+                    !src.getName().equals(target.getName());
+                if (target.exists() && !caseOnlyChange) {
                     LOGGER.log(
                         Level.INFO,
                         "A File with Name '{1}' already exists, failed to rename '{0}'",
@@ -174,7 +180,17 @@ public class FileUtils {
                     );
                     return false;
                 }
-                Files.move(src.toPath(), target.toPath());
+                if (caseOnlyChange) {
+                    // Two-step move so the change is applied on case-insensitive file systems.
+                    File tmp = new File(
+                        src.getParent(),
+                        target.getName() + "_ing_rename_" + System.nanoTime()
+                    );
+                    Files.move(src.toPath(), tmp.toPath());
+                    Files.move(tmp.toPath(), target.toPath());
+                } else {
+                    Files.move(src.toPath(), target.toPath());
+                }
             }
         } catch (IOException ex) {
             Logger.getLogger(FileUtils.class.getName()).log(Level.SEVERE, null, ex);

@@ -1053,7 +1053,7 @@ public class Project {
      * @param newTDName new test data name
      */
     public void refactorTestData(String oldTDName, String newTDName) {
-        for (Scenario scenario : scenarios) {
+        for (Scenario scenario : getAllScenarios()) {
             scenario.refactorTestData(oldTDName, newTDName);
         }
     }
@@ -1069,7 +1069,7 @@ public class Project {
         String oldColumnName,
         String newColumnName
     ) {
-        for (Scenario scenario : scenarios) {
+        for (Scenario scenario : getAllScenarios()) {
             scenario.refactorTestDataColumn(testDataName, oldColumnName, newColumnName);
         }
     }

@@ -5,7 +5,9 @@ import com.ing.datalib.component.TestCase;
 import com.ing.datalib.or.ObjectRepository;
 import com.ing.datalib.or.common.ORObjectInf;
 import com.ing.datalib.or.common.ORRootInf;
+import com.ing.datalib.or.web.WebOR;
 import com.ing.datalib.or.web.WebORObject;
+import com.ing.datalib.or.web.WebORPage;
 import com.ing.ide.main.mainui.components.testdesign.TestDesign;
 import com.ing.ide.main.mainui.components.testdesign.or.ObjectTree;
 import java.util.List;
@@ -70,6 +72,28 @@ public class WebObjectTree extends ObjectTree {
     public ORRootInf getOR() {
         ObjectRepository repo = oRPanel.getProject().getObjectRepository();
         return (source == ORSource.SHARED) ? repo.getWebSharedOR() : repo.getWebOR();
+    }
+
+    /**
+     * Reloads this tree and keeps the given page expanded so newly added objects (e.g. during
+     * Playwright live recording) remain visible without the user having to expand it manually.
+     *
+     * @param pageName the page to keep expanded after reload
+     */
+    public void reloadAndExpandPage(String pageName) {
+        reload();
+        if (pageName == null || pageName.isEmpty()) {
+            return;
+        }
+        ORRootInf root = getOR();
+        if (root instanceof WebOR) {
+            WebORPage page = ((WebOR) root).getPageByName(pageName);
+            if (page != null) {
+                TreePath path = page.getTreePath();
+                getTree().expandPath(path);
+                getTree().scrollPathToVisible(path);
+            }
+        }
     }
 
     @Override

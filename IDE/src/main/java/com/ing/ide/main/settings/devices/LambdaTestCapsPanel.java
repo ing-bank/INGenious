@@ -12,6 +12,7 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.awt.event.MouseWheelEvent;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
@@ -29,6 +30,7 @@ import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.ScrollPaneConstants;
 import javax.swing.SwingConstants;
+import javax.swing.SwingUtilities;
 import javax.swing.event.TableModelListener;
 import javax.swing.table.DefaultTableModel;
 
@@ -223,6 +225,11 @@ public class LambdaTestCapsPanel extends JPanel {
                 ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER
             );
             sp.setBorder(BorderFactory.createMatteBorder(1, 0, 0, 0, BORDER));
+            // The section's table sits in its own (never-scrolling) scroll pane
+            // which would otherwise swallow mouse-wheel events. Forward them to
+            // the enclosing scroll pane so the whole panel keeps scrolling when
+            // the cursor is over an expanded section.
+            forwardWheelToEnclosingScrollPane(sp);
 
             body = new JPanel(new BorderLayout());
             body.add(sp, BorderLayout.CENTER);
@@ -325,6 +332,28 @@ public class LambdaTestCapsPanel extends JPanel {
 
             model.addTableModelListener(e -> updateCountLabel());
             updateCountLabel();
+        }
+
+        /**
+         * Re-dispatches mouse-wheel events received by {@code inner} (which
+         * never scrolls on its own) to the first enclosing {@link JScrollPane},
+         * so the outer accordion scrolls even when the pointer is over a table.
+         */
+        private static void forwardWheelToEnclosingScrollPane(JScrollPane inner) {
+            inner.setWheelScrollingEnabled(false);
+            inner.addMouseWheelListener(
+                e -> {
+                    JScrollPane parent = (JScrollPane) SwingUtilities.getAncestorOfClass(
+                        JScrollPane.class,
+                        inner
+                    );
+                    if (parent != null) {
+                        parent.dispatchEvent(
+                            (MouseWheelEvent) SwingUtilities.convertMouseEvent(inner, e, parent)
+                        );
+                    }
+                }
+            );
         }
 
         private static JButton makeHeaderButton(javax.swing.Icon icon, String tooltip) {
