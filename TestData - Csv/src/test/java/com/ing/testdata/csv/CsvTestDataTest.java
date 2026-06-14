@@ -9,6 +9,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Comparator;
 import java.util.Set;
+import org.assertj.core.api.Assertions;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
@@ -97,6 +98,28 @@ public class CsvTestDataTest {
     }
 
     @Test
+    public void testRenameReturnsFalseWhenRenameToFails() throws IOException {
+        File csvFile = tempDir.resolve("original.csv").toFile();
+        try (FileWriter fw = new FileWriter(csvFile)) {
+            fw.write("Col1\nval1\n");
+        }
+
+        // Force renameTo to fail by creating a non-empty directory at the target path.
+        File blockedTarget = tempDir.resolve("blocked.csv").toFile();
+        assertThat(blockedTarget.mkdir()).isTrue();
+        File blockedChild = new File(blockedTarget, "child.txt");
+        assertThat(blockedChild.createNewFile()).isTrue();
+
+        CsvTestData td = new CsvTestData(csvFile.getAbsolutePath());
+        Boolean result = td.rename("blocked");
+
+        assertThat(result).isFalse();
+        assertThat(new File(td.getLocation()).getAbsolutePath())
+            .isEqualTo(csvFile.getAbsolutePath());
+        assertThat(csvFile).exists();
+    }
+
+    @Test
     public void testRenameWithNoFile() {
         String location = tempDir.resolve("nofile.csv").toString();
         CsvTestData td = new CsvTestData(location);
@@ -152,5 +175,35 @@ public class CsvTestDataTest {
 
         String content = new String(Files.readAllBytes(csvFile.toPath()));
         assertThat(content).contains("Col1");
+    }
+
+    @Test
+    public void loadColumnsPlaceholderTest() {
+        Assertions
+            .assertThatThrownBy(
+                () -> {
+                    CsvTestData csvTestData = new CsvTestData(
+                        tempDir.resolve("empty.csv").toString()
+                    );
+                    csvTestData.loadColumns();
+                }
+            )
+            .isInstanceOf(UnsupportedOperationException.class)
+            .hasMessageContaining("Not supported yet.");
+    }
+
+    @Test
+    public void loadRecordsPlaceholderTest() {
+        Assertions
+            .assertThatThrownBy(
+                () -> {
+                    CsvTestData csvTestData = new CsvTestData(
+                        tempDir.resolve("empty.csv").toString()
+                    );
+                    csvTestData.loadRecords();
+                }
+            )
+            .isInstanceOf(UnsupportedOperationException.class)
+            .hasMessageContaining("Not supported yet.");
     }
 }
