@@ -314,27 +314,12 @@ public class TestStep {
         return null;
     }
 
-    
     public String[] getTestDataFromInput() {
-        if (!isTestDataStep()) {
-            return null;
+        if (isTestDataStep() ) {
+            return getInput().split(":");
         }
-
-        String input = getInput();
-
-        if (input == null || input.trim().isEmpty()) {
-            return null;
-        }
-
-        String[] parts = input.split(":", 2);
-
-        if (parts.length < 2) {
-            return null;
-        }
-
-        return parts;
+        return null;
     }
-
 
     public String[] getPageObject() {
         if (isPageObjectStep()) {
