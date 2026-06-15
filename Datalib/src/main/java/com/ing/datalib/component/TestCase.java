@@ -56,6 +56,8 @@ public class TestCase extends DataModel {
 
     private Boolean exitParamLoop = false;
 
+    private Integer dynamicMaxInt = null;
+
     private int migratedReferencesCount = 0;
 
     private boolean migrationChecked = false;
@@ -844,8 +846,16 @@ public class TestCase extends DataModel {
         this.exitParamLoop = exitParamLoop;
     }
 
-    public boolean exitParamLoop() {
+    public boolean getExitParamLoopFlag() {
         return exitParamLoop;
+    }
+
+    public Integer getDynamicMaxIter() {
+        return dynamicMaxInt;
+    }
+
+    public void setDynamicMaxIter(Integer dynamicMaxInt) {
+        this.dynamicMaxInt = dynamicMaxInt;
     }
 
     public String getKey() {

@@ -163,19 +163,7 @@ public class TestStepRunner {
         throws Throwable {
         step.printStep();
         if (step.ObjectName.equals("String Operations")) {
-            List<String> concatList = context.getControl().smartCommaSplitter(getStep().getInput());
-            List<String> result = new ArrayList();
-            for (String part : concatList) {
-                if (part.matches("%.*%")) result.add(
-                    "'" + context.getControl().getVar(part) + "'"
-                ); else if (part.matches("^\\{.*:.*\\}")) result.add(
-                    "'" + context.getControl().getDatasheet(part) + "'"
-                ); else if (part.matches("\".*\"")) result.add(
-                    "'" + part.substring(1, part.length() - 1) + "'"
-                );
-            }
-            step.Data = String.join(",", result);
-            context.getControl().sync(step);
+            executeStringOperation(context);
         } else {
             context.getControl().sync(step, String.valueOf(parameter.getSubIteration()));
         }
@@ -187,5 +175,21 @@ public class TestStepRunner {
             System.out.println("[ERROR][Could not find Action:" + action + "]");
             context.getReport().updateTestLog(action, "[Could not find Action]", Status.DEBUG);
         }
+    }
+
+    private void executeStringOperation(TestCaseRunner context) {
+        List<String> concatList = context.getControl().smartCommaSplitter(getStep().getInput());
+        List<String> result = new ArrayList();
+        for (String part : concatList) {
+            if (part.matches("%.*%")) result.add(
+                "'" + context.getControl().getVar(part) + "'"
+            ); else if (part.matches("^\\{.*:.*\\}")) result.add(
+                "'" + context.getControl().getDatasheet(part) + "'"
+            ); else if (part.matches("\".*\"")) result.add(
+                "'" + part.substring(1, part.length() - 1) + "'"
+            );
+        }
+        step.Data = String.join(",", result);
+        context.getControl().sync(step);
     }
 }
