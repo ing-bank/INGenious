@@ -135,6 +135,10 @@ public class CollectionTree extends JPanel {
         addRequestToFolder.addActionListener(e -> addRequestToFolder());
         folderMenu.add(addRequestToFolder);
 
+        JMenuItem addSubFolder = new JMenuItem("Add Folder");
+        addSubFolder.addActionListener(e -> addFolderToFolder());
+        folderMenu.add(addSubFolder);
+
         folderMenu.addSeparator();
 
         JMenuItem renameFolder = new JMenuItem("Rename");
@@ -331,6 +335,31 @@ public class CollectionTree extends JPanel {
         }
     }
 
+    private void addFolderToFolder() {
+        DefaultMutableTreeNode node = getSelectedNode();
+        if (node == null) return;
+
+        FolderNode folderNode = (FolderNode) node.getUserObject();
+
+        String name = JOptionPane.showInputDialog(
+            this,
+            "Enter folder name:",
+            "New Folder",
+            JOptionPane.PLAIN_MESSAGE
+        );
+
+        if (name != null && !name.trim().isEmpty()) {
+            APICollection subFolder = new APICollection(name.trim());
+            folderNode.folder.addFolder(subFolder);
+
+            controller.saveCollection(folderNode.parentCollection);
+            refreshTree();
+
+            TreePath folderPath = new TreePath(node.getPath());
+            tree.expandPath(folderPath);
+        }
+    }
+
     private void openSelectedRequest() {
         DefaultMutableTreeNode node = getSelectedNode();
         if (node == null) return;
@@ -370,47 +399,133 @@ public class CollectionTree extends JPanel {
     }
 
     private void moveRequest() {
-        // Simple move dialog - show list of collections
         DefaultMutableTreeNode node = getSelectedNode();
         if (node == null) return;
 
         RequestNode reqNode = (RequestNode) node.getUserObject();
-        List<APICollection> collections = controller.getCollections();
 
-        if (collections.isEmpty()) {
-            JOptionPane.showMessageDialog(this, "No other collections available.");
+        List<MoveDestination> destinations = buildMoveDestinations(reqNode);
+
+        if (destinations.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "No move destinations available.");
             return;
         }
 
-        String[] names = collections.stream().map(APICollection::getName).toArray(String[]::new);
-
-        String selected = (String) JOptionPane.showInputDialog(
+        MoveDestination selected = (MoveDestination) JOptionPane.showInputDialog(
             this,
-            "Move to collection:",
+            "Move request to:",
             "Move Request",
             JOptionPane.PLAIN_MESSAGE,
             null,
-            names,
-            names[0]
+            destinations.toArray(),
+            destinations.get(0)
         );
 
-        if (selected != null) {
-            APICollection target = collections
-                .stream()
-                .filter(c -> c.getName().equals(selected))
-                .findFirst()
-                .orElse(null);
+        if (selected == null) {
+            return;
+        }
 
-            if (target != null && target != reqNode.parentCollection) {
-                // Remove from current collection
-                reqNode.parentCollection.getRequests().remove(reqNode.request);
-                controller.saveCollection(reqNode.parentCollection);
+        boolean sameCollection = selected.collection == reqNode.parentCollection;
+        boolean sameFolder = selected.folder == reqNode.parentFolder;
 
-                // Add to target
-                target.addRequest(reqNode.request);
-                controller.saveCollection(target);
-                refreshTree();
+        if (sameCollection && sameFolder) {
+            return;
+        }
+
+        boolean removed = removeRequestFromCollection(reqNode.parentCollection, reqNode.request);
+
+        if (!removed) {
+            JOptionPane.showMessageDialog(
+                this,
+                "Unable to move request. The request could not be removed from its current location.",
+                "Move Request",
+                JOptionPane.ERROR_MESSAGE
+            );
+            return;
+        }
+
+        if (selected.folder != null) {
+            selected.folder.addRequest(reqNode.request);
+        } else {
+            selected.collection.addRequest(reqNode.request);
+        }
+
+        controller.saveCollection(reqNode.parentCollection);
+
+        if (selected.collection != reqNode.parentCollection) {
+            controller.saveCollection(selected.collection);
+        }
+
+        refreshTree();
+
+        if (selected.folder != null) {
+            parentUI.loadRequest(reqNode.request, selected.collection, selected.folder);
+        } else {
+            parentUI.loadRequest(reqNode.request, selected.collection);
+        }
+    }
+
+    private List<MoveDestination> buildMoveDestinations(RequestNode requestNode) {
+        List<MoveDestination> destinations = new java.util.ArrayList<>();
+
+        for (APICollection collection : controller.getCollections()) {
+            if (collection == null) {
+                continue;
             }
+
+            String collectionName = collection.getName();
+
+            // Collection root destination
+            if (!(collection == requestNode.parentCollection && requestNode.parentFolder == null)) {
+                destinations.add(new MoveDestination(collection, null, collectionName));
+            }
+
+            // Folder destinations, including nested folders
+            addFolderMoveDestinations(
+                destinations,
+                collection,
+                collection.getFolders(),
+                collectionName,
+                requestNode
+            );
+        }
+
+        return destinations;
+    }
+
+    private void addFolderMoveDestinations(
+        List<MoveDestination> destinations,
+        APICollection parentCollection,
+        List<APICollection> folders,
+        String parentPath,
+        RequestNode requestNode
+    ) {
+        if (folders == null) {
+            return;
+        }
+
+        for (APICollection folder : folders) {
+            if (folder == null) {
+                continue;
+            }
+
+            String folderPath = parentPath + "/" + folder.getName();
+
+            boolean isCurrentLocation =
+                parentCollection == requestNode.parentCollection &&
+                folder == requestNode.parentFolder;
+
+            if (!isCurrentLocation) {
+                destinations.add(new MoveDestination(parentCollection, folder, folderPath));
+            }
+
+            addFolderMoveDestinations(
+                destinations,
+                parentCollection,
+                folder.getFolders(),
+                folderPath,
+                requestNode
+            );
         }
     }
 
@@ -481,8 +596,19 @@ public class CollectionTree extends JPanel {
                 controller.deleteCollection(cn.collection);
             } else if (userObject instanceof FolderNode) {
                 FolderNode fn = (FolderNode) userObject;
-                fn.parentCollection.getFolders().remove(fn.folder);
-                controller.saveCollection(fn.parentCollection);
+
+                boolean removed = removeFolderFromCollection(fn.parentCollection, fn.folder);
+
+                if (removed) {
+                    controller.saveCollection(fn.parentCollection);
+                } else {
+                    JOptionPane.showMessageDialog(
+                        this,
+                        "Unable to delete folder. The folder could not be found.",
+                        "Delete Folder",
+                        JOptionPane.ERROR_MESSAGE
+                    );
+                }
             } else if (userObject instanceof RequestNode) {
                 RequestNode rn = (RequestNode) userObject;
 
@@ -497,16 +623,81 @@ public class CollectionTree extends JPanel {
         }
     }
 
+    private boolean removeFolderFromCollection(
+        APICollection collection,
+        APICollection folderToDelete
+    ) {
+        if (collection == null || folderToDelete == null) {
+            return false;
+        }
+
+        return removeFolderFromFolders(collection.getFolders(), folderToDelete);
+    }
+
+    private boolean removeFolderFromFolders(
+        java.util.List<APICollection> folders,
+        APICollection folderToDelete
+    ) {
+        if (folders == null || folderToDelete == null) {
+            return false;
+        }
+
+        // First, try removing from the current folder list.
+        boolean removed = folders.removeIf(folder -> folder == folderToDelete);
+
+        if (removed) {
+            return true;
+        }
+
+        // If not found at this level, search nested folders.
+        for (APICollection folder : folders) {
+            if (folder == null) {
+                continue;
+            }
+
+            removed = removeFolderFromFolders(folder.getFolders(), folderToDelete);
+
+            if (removed) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     private boolean removeRequestFromCollection(
         APICollection collection,
         APIRequest requestToDelete
     ) {
+        if (collection == null || requestToDelete == null) {
+            return false;
+        }
+
         boolean removed = false;
 
         removed |= removeRequestFromList(collection.getRequests(), requestToDelete);
+        removed |= removeRequestFromFolders(collection.getFolders(), requestToDelete);
 
-        for (APICollection folder : collection.getFolders()) {
+        return removed;
+    }
+
+    private boolean removeRequestFromFolders(
+        java.util.List<APICollection> folders,
+        APIRequest requestToDelete
+    ) {
+        if (folders == null || requestToDelete == null) {
+            return false;
+        }
+
+        boolean removed = false;
+
+        for (APICollection folder : folders) {
+            if (folder == null) {
+                continue;
+            }
+
             removed |= removeRequestFromList(folder.getRequests(), requestToDelete);
+            removed |= removeRequestFromFolders(folder.getFolders(), requestToDelete);
         }
 
         return removed;
@@ -586,21 +777,8 @@ public class CollectionTree extends JPanel {
                 new CollectionNode(collection)
             );
 
-            // Add folders
-            for (APICollection folder : collection.getFolders()) {
-                DefaultMutableTreeNode folderNode = new DefaultMutableTreeNode(
-                    new FolderNode(folder, collection)
-                );
-
-                // Add requests in folder (pass folder info)
-                for (APIRequest request : folder.getRequests()) {
-                    folderNode.add(
-                        new DefaultMutableTreeNode(new RequestNode(request, collection, folder))
-                    );
-                }
-
-                colNode.add(folderNode);
-            }
+            // Add folders recursively
+            addFolderNodes(colNode, collection, collection.getFolders());
 
             // Add root-level requests
             for (APIRequest request : collection.getRequests()) {
@@ -615,6 +793,38 @@ public class CollectionTree extends JPanel {
         // Expand all collections
         for (int i = 0; i < tree.getRowCount(); i++) {
             tree.expandRow(i);
+        }
+    }
+
+    private void addFolderNodes(
+        DefaultMutableTreeNode parentTreeNode,
+        APICollection parentCollection,
+        List<APICollection> folders
+    ) {
+        if (folders == null) {
+            return;
+        }
+
+        for (APICollection folder : folders) {
+            DefaultMutableTreeNode folderNode = new DefaultMutableTreeNode(
+                new FolderNode(folder, parentCollection)
+            );
+
+            // Add nested folders first
+            addFolderNodes(folderNode, parentCollection, folder.getFolders());
+
+            // Add requests in this folder
+            if (folder.getRequests() != null) {
+                for (APIRequest request : folder.getRequests()) {
+                    folderNode.add(
+                        new DefaultMutableTreeNode(
+                            new RequestNode(request, parentCollection, folder)
+                        )
+                    );
+                }
+            }
+
+            parentTreeNode.add(folderNode);
         }
     }
 
@@ -800,6 +1010,23 @@ public class CollectionTree extends JPanel {
             if (c instanceof Container) {
                 refreshComponentColors((Container) c);
             }
+        }
+    }
+
+    static class MoveDestination {
+        final APICollection collection;
+        final APICollection folder; // null means collection root
+        final String displayPath;
+
+        MoveDestination(APICollection collection, APICollection folder, String displayPath) {
+            this.collection = collection;
+            this.folder = folder;
+            this.displayPath = displayPath;
+        }
+
+        @Override
+        public String toString() {
+            return displayPath;
         }
     }
 }
