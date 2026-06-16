@@ -8,6 +8,7 @@ import com.ing.datalib.model.DataItem;
 import com.ing.datalib.model.Meta;
 import com.ing.datalib.model.Tag;
 import com.ing.ide.main.mainui.components.testdesign.TestDesign;
+import com.ing.ide.main.mainui.components.testdesign.testcase.validation.TestCaseValidation;
 import com.ing.ide.main.mainui.components.testdesign.tree.model.GroupNode;
 import com.ing.ide.main.mainui.components.testdesign.tree.model.ProjectTreeModel;
 import com.ing.ide.main.mainui.components.testdesign.tree.model.ScenarioNode;
@@ -22,6 +23,7 @@ import com.ing.ide.settings.IconSettings;
 import com.ing.ide.util.Canvas;
 import com.ing.ide.util.Notification;
 import com.ing.ide.util.Validator;
+import java.awt.Color;
 import java.awt.Component;
 import java.awt.Font;
 import java.awt.FontFormatException;
@@ -65,6 +67,9 @@ import javax.swing.tree.TreePath;
  */
 public class ProjectTree implements ActionListener {
     private static final Logger LOGGER = Logger.getLogger(ProjectTree.class.getName());
+
+    /** Colour used to mark scenario/test-case nodes that have validation errors. */
+    private static final Color VALIDATION_ERROR_COLOR = new Color(0xCE2323);
 
     ProjectPopupMenu popupMenu;
 
@@ -320,7 +325,27 @@ public class ProjectTree implements ActionListener {
                 } else {
                     setIcons(IconSettings.getIconSettings().getTestPlanRoot());
                 }
+                markValidationError(c, value);
                 return c;
+            }
+
+            /**
+             * Marks a scenario or test case node in red when it (or any
+             * reusable it references) contains an IDE-level validation error.
+             *
+             * @param comp  the rendered tree cell component
+             * @param value the tree node being rendered
+             */
+            void markValidationError(Component comp, Object value) {
+                boolean error = false;
+                if (value instanceof ScenarioNode) {
+                    error = TestCaseValidation.hasError(((ScenarioNode) value).getScenario());
+                } else if (value instanceof TestCaseNode) {
+                    error = TestCaseValidation.hasError(((TestCaseNode) value).getTestCase());
+                }
+                if (error) {
+                    comp.setForeground(VALIDATION_ERROR_COLOR);
+                }
             }
 
             void setIcons(Icon icon) {
@@ -373,7 +398,7 @@ public class ProjectTree implements ActionListener {
      * Handles the "New" action based on current selection.
      */
     protected void onNewAction() {
-        if (getSelectedScenarioNode() != null) {
+        if (getSelectedScenarioNode() != null || getSelectedTestCaseNode() != null) {
             addTestCase();
         } else if (getSelectedGroupNode() != null) {
             addScenario();
@@ -484,6 +509,12 @@ public class ProjectTree implements ActionListener {
      */
     private void addTestCase() {
         ScenarioNode scenarioNode = getSelectedScenarioNode();
+        if (scenarioNode == null) {
+            TestCaseNode tcNode = getSelectedTestCaseNode();
+            if (tcNode != null && tcNode.getParent() instanceof ScenarioNode) {
+                scenarioNode = (ScenarioNode) tcNode.getParent();
+            }
+        }
         if (scenarioNode != null) {
             TestCase testcase;
             String testCaseName = fetchNewTestCaseName(scenarioNode.getScenario());
@@ -794,8 +825,6 @@ public class ProjectTree implements ActionListener {
                 public void run() {
                     tree.setSelectionPath(path);
                     tree.scrollPathToVisible(path);
-                    tree.removeSelectionPath(path);
-                    tree.addSelectionPaths(new TreePath[] { path.getParentPath(), path });
                 }
             }
         );
@@ -915,10 +944,11 @@ public class ProjectTree implements ActionListener {
     }
 
     /**
-     * Opens the tag editor for a test case data item.
-     * @param tc test case data item
+     * Opens the tag editor for a test case data item and, when a corresponding
+     * {@link TestCase} is supplied, re-saves its YAML so the new tag set is
+     * mirrored on disk.
      */
-    private void editTag(DataItem tc) {
+    private void editTag(DataItem tc, TestCase testCase) {
         TagEditorDialog
             .build(
                 testDesign.getsMainFrame(),
@@ -928,7 +958,14 @@ public class ProjectTree implements ActionListener {
                 this::onAddTag
             )
             .withTitle(editTagTitle(tc.getName()))
-            .show(tc::setTags);
+            .show(
+                tags -> {
+                    tc.setTags(tags);
+                    if (testCase != null) {
+                        testCase.saveMetadata();
+                    }
+                }
+            );
     }
 
     /**
@@ -968,7 +1005,8 @@ public class ProjectTree implements ActionListener {
                 getProject()
                     .getInfo()
                     .getData()
-                    .findOrCreate(tcn.getName(), tcn.getScenario().getName())
+                    .findOrCreate(tcn.getName(), tcn.getScenario().getName()),
+                tcn
             );
         } else if (path.getLastPathComponent() instanceof ScenarioNode) {
             Scenario scn = ((ScenarioNode) path.getLastPathComponent()).getScenario();

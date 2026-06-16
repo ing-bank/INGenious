@@ -132,7 +132,9 @@ public final class INGIcons {
         register("OpenProject", MaterialDesignF.FOLDER_OPEN, CLR_OPEN);
         register("SaveProject", MaterialDesignC.CONTENT_SAVE, CLR_SAVE);
         register("RunSettings", MaterialDesignC.COG, CLR_CONFIG);
+        register("Settings", MaterialDesignC.COG, CLR_CONFIG);
         register("BrowserConfiguration", MaterialDesignW.WEB, CLR_TOOL);
+        register("ArchetypeConfigurations", MaterialDesignW.WEB, CLR_TOOL);
         register("APITester", MaterialDesignA.API, CLR_DATA);
 
         // ── Common Actions ──

@@ -23,6 +23,7 @@ import javax.swing.UIManager;
 public class ActionRenderer extends AbstractRenderer {
     final String actionNotPresent = "Action not available/Not a valid action";
     final String reusableNotPresent = "Reusable is not available in the Project";
+    final String reusableHasError = "Reusable has IDE validation error(s)";
 
     public ActionRenderer() {
         super("Action Shouldn't be empty.It should be either an action or Reusable");
@@ -38,10 +39,12 @@ public class ActionRenderer extends AbstractRenderer {
                     setEmpty(comp);
                 }
             } else if (step.isReusableStep()) {
-                if (isReusablePresent(step)) {
-                    setDefault(comp);
-                } else {
+                if (!isReusablePresent(step)) {
                     setNotPresent(comp, reusableNotPresent);
+                } else if (TestCaseValidation.reusableHasError(step)) {
+                    setNotPresent(comp, reusableHasError);
+                } else {
+                    setDefault(comp);
                 }
             } else if (step.isWebserviceStartStep()) {
                 setWebserviceStart(comp);
@@ -126,6 +129,11 @@ public class ActionRenderer extends AbstractRenderer {
 
         // Fallback to generic actions available for any object
         return MethodInfoManager.getMethodListFor(ObjectType.ANY).contains(action);
+    }
+
+    @Override
+    protected Object getColumnValue(TestStep step) {
+        return step.getAction();
     }
 
     private boolean isWebObject(TestStep step) {

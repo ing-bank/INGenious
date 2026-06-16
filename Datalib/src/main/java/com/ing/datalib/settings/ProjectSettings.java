@@ -1,6 +1,9 @@
 package com.ing.datalib.settings;
 
 import com.ing.datalib.component.Project;
+import com.ing.datalib.settings.emulators.Device;
+import com.ing.datalib.settings.emulators.Emulator;
+import com.ing.datalib.settings.migration.EmulatorToDeviceMigration;
 import java.io.File;
 
 /**
@@ -16,6 +19,7 @@ public class ProjectSettings {
     // private final DriverSettings driverSettings;
     private final Capabilities capabilities;
     private final Emulators emulators;
+    private final Devices devices;
     private final TestMgmtModule testMgmtModule;
     private final ReportPortalSettings rpSettings;
     private final ExtentReportSettings extentSettings;
@@ -32,6 +36,7 @@ public class ProjectSettings {
         this.driverSettings = new DriverProperties(getLocation());
         this.capabilities = new Capabilities(getLocation());
         this.emulators = new Emulators(getLocation());
+        this.devices = new Devices(getLocation());
         this.testMgmtModule = new TestMgmtModule(getLocation());
         this.execSettings = new ExecutionSettings(getLocation());
         this.dbSettings = new DBProperties(getLocation());
@@ -43,6 +48,10 @@ public class ProjectSettings {
 
         // Ensure SAP is available as default browser
         ensureSAPDefaultEmulator();
+
+        // One-time migration: move legacy "Manage Browsers" emulator entries
+        // into the new "Manage Devices" store. Idempotent and SAP-preserving.
+        EmulatorToDeviceMigration.migrate(emulators, devices);
     }
 
     /**
@@ -67,6 +76,7 @@ public class ProjectSettings {
         driverSettings.setLocation(getLocation());
         capabilities.setLocation(getLocation());
         emulators.setLocation(getLocation());
+        devices.setLocation(getLocation());
         testMgmtModule.setLocation(getLocation());
         execSettings.setLocation(getLocation());
         dbSettings.setLocation(getLocation());
@@ -116,6 +126,29 @@ public class ProjectSettings {
         return emulators;
     }
 
+    public Devices getDevices() {
+        return devices;
+    }
+
+    /**
+     * Resolves the Remote URL / Appium endpoint for the given browser-or-device
+     * name. Falls back from Emulators (legacy) to Devices (new Manage Devices
+     * tab) so the driver factory works for entries from either source.
+     *
+     * @return the configured URL, or {@code null} if none is found.
+     */
+    public String resolveRemoteUrl(String name) {
+        Emulator e = emulators.getEmulator(name);
+        if (e != null && e.getRemoteUrl() != null && !e.getRemoteUrl().isEmpty()) {
+            return e.getRemoteUrl();
+        }
+        Device d = devices.getDevice(name);
+        if (d != null && d.getRemoteUrl() != null && !d.getRemoteUrl().isEmpty()) {
+            return d.getRemoteUrl();
+        }
+        return null;
+    }
+
     public TestMgmtModule getTestMgmtModule() {
         return testMgmtModule;
     }
@@ -141,6 +174,7 @@ public class ProjectSettings {
         execSettings.save();
         driverSettings.save();
         emulators.save();
+        devices.save();
         capabilities.save();
         testMgmtModule.save();
         dbSettings.save();

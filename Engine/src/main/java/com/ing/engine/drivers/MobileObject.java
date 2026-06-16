@@ -6,6 +6,7 @@ import com.ing.datalib.or.common.ObjectGroup;
 import com.ing.datalib.or.image.ImageORObject;
 import com.ing.datalib.or.mobile.MobileORObject;
 import com.ing.datalib.or.mobile.MobileORPage;
+import com.ing.datalib.or.mobile.MobilePlatform;
 import com.ing.datalib.or.mobile.ResolvedMobileObject;
 import com.ing.datalib.or.web.WebORObject;
 import com.ing.datalib.or.web.WebORPage;
@@ -366,14 +367,57 @@ public class MobileObject implements MobileObjectApi {
     ) {
         long startTime = System.nanoTime();
         List<WebElement> elements = null;
+        MobilePlatform platform = resolvePlatform();
         for (MobileORObject object : objectGroup.getObjects()) {
-            elements = getElements(context, object.getAttributes(), prop);
+            List<ORAttribute> attrs = object.getAttributes(platform);
+            // Backward-compatibility safety net: if the target platform's locator
+            // list has no usable value (e.g. legacy object only filled in via the
+            // Mobile Spy with the other platform active), fall back to the other
+            // platform's attributes so the lookup still works.
+            if (!hasUsableValue(attrs)) {
+                MobilePlatform other = platform == MobilePlatform.IOS
+                    ? MobilePlatform.ANDROID
+                    : MobilePlatform.IOS;
+                List<ORAttribute> otherAttrs = object.getAttributes(other);
+                if (hasUsableValue(otherAttrs)) {
+                    attrs = otherAttrs;
+                }
+            }
+            elements = getElements(context, attrs, prop);
             if (elements != null && !elements.isEmpty()) {
                 break;
             }
         }
         printStats(elements, objectGroup, startTime, System.nanoTime());
         return elements;
+    }
+
+    private static boolean hasUsableValue(List<ORAttribute> attrs) {
+        if (attrs == null) {
+            return false;
+        }
+        for (ORAttribute a : attrs) {
+            if (a != null && a.getValue() != null && !a.getValue().trim().isEmpty()) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Determines which mobile platform's locator attributes to use for the
+     * current execution. Falls back to Android when the driver type cannot
+     * be detected, preserving legacy behaviour.
+     */
+    private MobilePlatform resolvePlatform() {
+        try {
+            if (driver instanceof io.appium.java_client.ios.IOSDriver) {
+                return MobilePlatform.IOS;
+            }
+        } catch (Throwable ignore) {
+            // io.appium not on classpath in some contexts – fall back.
+        }
+        return MobilePlatform.ANDROID;
     }
 
     private void printStats(
@@ -425,7 +469,6 @@ public class MobileObject implements MobileObjectApi {
                 (ExpectedCondition<List<WebElement>>) (WebDriver driver) -> {
                     String found = "no";
                     String elementString = "";
-                    String tagName = "";
                     String tag = "";
                     String value = "";
                     List<WebElement> elements = new ArrayList<WebElement>();
@@ -437,24 +480,11 @@ public class MobileObject implements MobileObjectApi {
                             if (tag.equals("NLP_locator")) {
                                 elements = NLP_located_element(attributes, Action, value);
                                 if (elements != null) {
-                                    storeElementDetailsinOR(
-                                        attributes,
-                                        "tagName",
-                                        elements.get(0).getTagName()
-                                    );
-                                    storeElementDetailsinOR(
-                                        attributes,
-                                        "outerHTML",
-                                        elements.get(0).getAttribute("outerHTML")
-                                    );
+                                    safeStoreOuterHTML(attributes, elements.get(0));
                                 }
                             }
                             if (tag.equals("outerHTML")) {
                                 elementString = attr.getValue();
-                                continue;
-                            }
-                            if (tag.equals("tagName")) {
-                                tagName = attr.getValue();
                                 continue;
                             }
                             //JSPath********'
@@ -504,16 +534,7 @@ public class MobileObject implements MobileObjectApi {
                                         System.out.print(foundElementBy(tag, value));
                                         found = "yes";
                                         if (!attributes.toString().contains("UiAutomator")) {
-                                            storeElementDetailsinOR(
-                                                attributes,
-                                                "tagName",
-                                                elements.get(0).getTagName()
-                                            );
-                                            storeElementDetailsinOR(
-                                                attributes,
-                                                "outerHTML",
-                                                elements.get(0).getAttribute("outerHTML")
-                                            );
+                                            safeStoreOuterHTML(attributes, elements.get(0));
                                         }
                                         return elements;
                                     } else if (elements.size() > 1 || elements.size() == 0) {
@@ -929,6 +950,19 @@ public class MobileObject implements MobileObjectApi {
                 attr.setValue(value);
                 break;
             }
+        }
+    }
+
+    /**
+     * Stores the outerHTML diagnostic on the OR attributes without letting a
+     * failed remote driver call (e.g. native iOS Appium does not support the
+     * {@code outerHTML} attribute) discard a successful element lookup.
+     */
+    private void safeStoreOuterHTML(List<ORAttribute> attributes, WebElement element) {
+        try {
+            storeElementDetailsinOR(attributes, "outerHTML", element.getAttribute("outerHTML"));
+        } catch (Exception ignore) {
+            // outerHTML not supported (e.g. native iOS Appium)
         }
     }
 

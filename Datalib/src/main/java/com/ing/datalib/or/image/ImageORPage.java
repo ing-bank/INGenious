@@ -234,7 +234,8 @@ public class ImageORPage implements ORPageInf<ImageORObject, ImageOR> {
 
     @Override
     public Boolean rename(String newName) {
-        if (getParent().getPageByName(newName) == null) {
+        ImageORPage existing = getParent().getPageByName(newName);
+        if (existing == null || existing == this) {
             if (FileUtils.renameFile(getRepLocation(), newName)) {
                 getRoot().getObjectRepository().renamePage(this, newName);
                 setName(newName);

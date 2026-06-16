@@ -292,6 +292,19 @@ public class APITesterUI extends JPanel implements PropertyChangeListener {
         editingHeaderLabel.setForeground(UIManager.getColor("Label.foreground"));
         headerPanel.add(editingHeaderLabel, BorderLayout.WEST);
 
+        // "New Request" button — opens a fresh blank request in the editor without
+        // discarding the current one (it is auto-saved if it came from a collection).
+        JButton newRequestBtn = new JButton("+ New Request");
+        newRequestBtn.setToolTipText("Open a new blank request in the editor");
+        newRequestBtn.setFont(newRequestBtn.getFont().deriveFont(11f));
+        newRequestBtn.setFocusPainted(false);
+        newRequestBtn.addActionListener(e -> newBlankRequest());
+        JPanel headerRight = new JPanel(new FlowLayout(FlowLayout.RIGHT, 6, 0));
+        headerRight.setOpaque(false);
+        headerRight.setBorder(new EmptyBorder(4, 4, 4, 8));
+        headerRight.add(newRequestBtn);
+        headerPanel.add(headerRight, BorderLayout.EAST);
+
         panel.add(headerPanel, BorderLayout.NORTH);
 
         // Vertical split: Request builder on top, Response viewer on bottom
@@ -418,6 +431,18 @@ public class APITesterUI extends JPanel implements PropertyChangeListener {
     public void setCurrentRequest(APIRequest request) {
         this.currentRequest = request;
         requestPanel.loadRequest(request);
+    }
+
+    /**
+     * Opens a fresh, blank request in the editor. Any current request that came
+     * from a collection is auto-saved first, so no work is lost. After this call
+     * the editor is on a brand-new {@link APIRequest} that is not yet attached to
+     * any collection — the user can either save it via the Save button (which
+     * will prompt for a target collection) or discard it by loading another.
+     */
+    public void newBlankRequest() {
+        loadRequest(new APIRequest());
+        requestPanel.focusUrl();
     }
 
     /**

@@ -7,6 +7,7 @@ import com.ing.ide.main.mainui.AppMainFrame;
 import com.ing.ide.main.mainui.components.testdesign.or.ObjectRepo;
 import com.ing.ide.main.mainui.components.testdesign.scenario.ScenarioComponent;
 import com.ing.ide.main.mainui.components.testdesign.testcase.TestCaseComponent;
+import com.ing.ide.main.mainui.components.testdesign.testcase.validation.TestCaseValidation;
 import com.ing.ide.main.mainui.components.testdesign.testdata.TestDataComponent;
 import com.ing.ide.main.mainui.components.testdesign.tree.ProjectTree;
 import com.ing.ide.main.mainui.components.testdesign.tree.ReusableTree;
@@ -143,6 +144,23 @@ public class TestDesign {
         reusableTree.load();
         projectTree.load();
         objectRepo.load();
+        validateProjectAsync();
+    }
+
+    /**
+     * Kicks off a one-time background validation pass so that scenarios and
+     * test cases with IDE-level validation errors are marked in red as soon as
+     * the project is opened, without the user having to open each test case.
+     */
+    private void validateProjectAsync() {
+        TestCaseValidation.clearCache();
+        TestCaseValidation.validateAllAsync(
+            getProject(),
+            () -> {
+                projectTree.getTree().repaint();
+                reusableTree.getTree().repaint();
+            }
+        );
     }
 
     public final void afterProjectChange() {

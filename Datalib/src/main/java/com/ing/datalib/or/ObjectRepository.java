@@ -388,7 +388,7 @@ public class ObjectRepository {
                     sapSharedOR.setSaved(true);
                 }
                 saveAsYaml();
-                LOG.info("Saved project ORs in YAML format");
+                LOG.fine("Saved project ORs in YAML format");
             }
         } catch (IOException ex) {
             Logger
@@ -413,7 +413,7 @@ public class ObjectRepository {
             structuredDataProjectOR.setSaved(true);
             sapProjectOR.setSaved(true);
             useYamlFormat = true;
-            LOG.info("Saved Object Repository in YAML format");
+            LOG.fine("Saved Object Repository in YAML format");
         } catch (IOException ex) {
             LOG.log(Level.SEVERE, "Error saving Object Repository as YAML", ex);
         }

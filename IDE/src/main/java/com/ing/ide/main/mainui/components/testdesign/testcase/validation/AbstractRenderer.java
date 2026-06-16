@@ -20,9 +20,51 @@ public abstract class AbstractRenderer extends DefaultTableCellRenderer {
 
     private final String empty;
 
+    /**
+     * Set to {@code true} whenever a validation error decoration
+     * ({@link #setEmpty} or {@link #setNotPresent}) is applied during a render
+     * pass. Used by {@link #hasError(TestStep)} to report validation state
+     * without inspecting the rendered Swing component.
+     */
+    private boolean errorState;
+
+    /**
+     * Scratch component reused by {@link #hasError(TestStep)} so the existing
+     * render logic can be exercised without touching the live table cell.
+     */
+    private final javax.swing.JLabel scratch = new javax.swing.JLabel();
+
     public AbstractRenderer(String empty) {
         this.empty = empty;
     }
+
+    /**
+     * Runs the same validation logic used for cell rendering against the given
+     * step and reports whether this column would be flagged as a validation
+     * error (red marker).
+     *
+     * @param step the test step to validate
+     * @return {@code true} if this column shows a validation error for the step
+     */
+    public final boolean hasError(TestStep step) {
+        // Save/restore makes this safe under the re-entrant evaluation that
+        // happens when a reusable step triggers validation of its referenced
+        // reusable test case (which uses these same renderer instances).
+        boolean previous = errorState;
+        errorState = false;
+        try {
+            render(scratch, step, getColumnValue(step));
+            return errorState;
+        } finally {
+            errorState = previous;
+        }
+    }
+
+    /**
+     * @param step the test step being validated
+     * @return the value of the column this renderer is responsible for
+     */
+    protected abstract Object getColumnValue(TestStep step);
 
     @Override
     public Component getTableCellRendererComponent(
@@ -56,6 +98,7 @@ public abstract class AbstractRenderer extends DefaultTableCellRenderer {
     public abstract void render(JComponent comp, TestStep step, Object value);
 
     protected void setEmpty(JComponent comp) {
+        errorState = true;
         comp.putClientProperty(EMPTY_REQUIRED_ERROR_KEY, Boolean.TRUE);
         comp.setOpaque(true);
         comp.setBackground(new Color(255, 200, 200));
@@ -65,6 +108,7 @@ public abstract class AbstractRenderer extends DefaultTableCellRenderer {
     }
 
     protected void setNotPresent(JComponent comp, String notPresent) {
+        errorState = true;
         comp.putClientProperty(EMPTY_REQUIRED_ERROR_KEY, Boolean.FALSE);
         comp.setBorder(null);
         Color c = UIManager.getColor("ing.errorForeground");

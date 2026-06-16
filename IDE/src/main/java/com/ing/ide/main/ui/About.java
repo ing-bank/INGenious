@@ -26,12 +26,30 @@ public class About {
     private static Properties buildProperties;
 
     public static void init() {
-        buildProperties = new Properties();
-        try {
-            buildProperties.load(About.class.getResourceAsStream("/ui/resources/build.properties"));
-        } catch (IOException ex) {
-            Logger.getLogger(About.class.getName()).log(Level.SEVERE, ex.getMessage(), ex);
+        load();
+    }
+
+    /**
+     * Lazily load build.properties on first access so callers (e.g. the
+     * startup banner) don't have to depend on {@link #init()} having run.
+     */
+    private static synchronized Properties load() {
+        if (buildProperties == null) {
+            Properties p = new Properties();
+            try (
+                java.io.InputStream in = About.class.getResourceAsStream(
+                        "/ui/resources/build.properties"
+                    )
+            ) {
+                if (in != null) {
+                    p.load(in);
+                }
+            } catch (IOException ex) {
+                Logger.getLogger(About.class.getName()).log(Level.SEVERE, ex.getMessage(), ex);
+            }
+            buildProperties = p;
         }
+        return buildProperties;
     }
 
     public static String getDetailsAsHTML() {
@@ -43,11 +61,12 @@ public class About {
     }
 
     public static String getBuildVersion() {
-        return buildProperties.getProperty("Bundle-Version");
+        String v = load().getProperty("Bundle-Version");
+        return v != null ? v : "dev";
     }
 
     public static String getBuildDate() {
-        return buildProperties.getProperty("Build-Date");
+        return load().getProperty("Build-Date");
     }
 
     public static String getJavaVersion() {

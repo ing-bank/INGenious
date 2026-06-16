@@ -69,13 +69,9 @@ public class INGeniousSettings extends javax.swing.JFrame {
 
     private XTablePanel rpSettingsPanel;
 
-    private XTablePanel extentSettingsPanel;
-
     private XTablePanel uDPanel;
 
     private XTablePanel lambdatestCapsPanel;
-
-    private XTablePanel KafkaSSLConfigsPanel;
 
     private ConnectButton mailConnect;
 
@@ -234,8 +230,6 @@ public class INGeniousSettings extends javax.swing.JFrame {
 
         // Style XTablePanels
         styleModernXTablePanel(uDPanel);
-        styleModernXTablePanel(extentSettingsPanel);
-        styleModernXTablePanel(KafkaSSLConfigsPanel);
         styleModernXTablePanel(lambdatestCapsPanel);
 
         // Style filler
@@ -500,16 +494,16 @@ public class INGeniousSettings extends javax.swing.JFrame {
         //runSettingsTab.addTab("Database Settings", databaseSettingsPanel);
         rpSettingsPanel = new XTablePanel(true);
         //runSettingsTab.addTab("Report Portal Settings", rpSettingsPanel);
-        extentSettingsPanel = new XTablePanel(true);
-        runSettingsTab.addTab("Extent Report Settings", extentSettingsPanel);
+        // Extent Report Settings tab removed; the report theme is now hard-coded to "dark"
+        // in com.ing.engine.reporting.impl.extent.ExtentSummaryHandler.
 
-        //Added for Kafka SSL certificate settings
-        KafkaSSLConfigsPanel = new XTablePanel(true);
-        runSettingsTab.addTab("Kafka ssl Configurations", KafkaSSLConfigsPanel);
+        // Kafka SSL Configurations have moved to the Archetype Configurations dialog
+        // (formerly Browser Configuration). Project storage is unchanged, so existing
+        // projects keep their previously saved values.
 
         //Added for LambdaTest
         lambdatestCapsPanel = new XTablePanel(true);
-        runSettingsTab.addTab("LambdaTest Capabilities", lambdatestCapsPanel);
+        runSettingsTab.addTab("LambdaTest Grid Capabilities", lambdatestCapsPanel);
 
         mailConnect =
             new ConnectButton() {
@@ -602,8 +596,6 @@ public class INGeniousSettings extends javax.swing.JFrame {
         loadTestSetTMSettings();
         loadUserDefinedSettings();
         loadRPSettings();
-        loadExtentSettings();
-        loadKafkaSSLConfigurations();
         loadLambdaTestCapabilities();
         showSettings();
     }
@@ -640,8 +632,6 @@ public class INGeniousSettings extends javax.swing.JFrame {
         loadTMSettings();
         loadUserDefinedSettings();
         loadRPSettings();
-        loadExtentSettings();
-        loadKafkaSSLConfigurations();
         loadLambdaTestCapabilities();
     }
 
@@ -765,20 +755,6 @@ public class INGeniousSettings extends javax.swing.JFrame {
         PropUtils.loadPropertiesInTable(
             sProject.getProjectSettings().getLambdaTestCaps(),
             lambdatestCapsPanel.table
-        );
-    }
-
-    private void loadExtentSettings() {
-        PropUtils.loadPropertiesInTable(
-            sProject.getProjectSettings().getExtentSettings(),
-            extentSettingsPanel.table
-        );
-    }
-
-    private void loadKafkaSSLConfigurations() {
-        PropUtils.loadPropertiesInTable(
-            sProject.getProjectSettings().getKafkaSSLConfigurations(),
-            KafkaSSLConfigsPanel.table
         );
     }
 
@@ -906,24 +882,6 @@ public class INGeniousSettings extends javax.swing.JFrame {
         sProject.getProjectSettings().getRPSettings().save();
     }
 
-    private void saveExtentSettings() {
-        Properties properties = encryptpassword(
-            PropUtils.getPropertiesFromTable(((XTablePanel) extentSettingsPanel).table),
-            " Enc"
-        );
-        PropUtils.loadPropertiesInTable(properties, extentSettingsPanel.table, "");
-        sProject.getProjectSettings().getExtentSettings().set(properties);
-        sProject.getProjectSettings().getExtentSettings().save();
-    }
-
-    private void saveKafkaSSLConfigurations() {
-        //        Properties properties = encryptpassword(PropUtils.getPropertiesFromTable(((XTablePanel) KafkaSSLConfigsPanel).table), " Enc");
-        Properties properties = PropUtils.getPropertiesFromTable(KafkaSSLConfigsPanel.table);
-        //        PropUtils.loadPropertiesInTable(properties, KafkaSSLConfigsPanel.table, "");
-        sProject.getProjectSettings().getKafkaSSLConfigurations().set(properties);
-        sProject.getProjectSettings().getKafkaSSLConfigurations().save();
-    }
-
     private void saveLambdaTestCaps() {
         Properties properties = encryptpassword(
             PropUtils.getPropertiesFromTable(((XTablePanel) lambdatestCapsPanel).table),
@@ -940,8 +898,6 @@ public class INGeniousSettings extends javax.swing.JFrame {
         saveTMSettings();
         saveuserDefinedSettings();
         saveRPSettings();
-        saveExtentSettings();
-        saveKafkaSSLConfigurations();
         saveLambdaTestCaps();
     }
 
@@ -967,6 +923,7 @@ public class INGeniousSettings extends javax.swing.JFrame {
             }
         }
         testConn.setIcon(DEFAULT_ICON);
+        applyTestConnDefaultStyle();
     }
 
     public List<String> getUserDefinedList() {
@@ -1054,7 +1011,7 @@ public class INGeniousSettings extends javax.swing.JFrame {
             );
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
-        setTitle("Run Settings");
+        setTitle("Settings");
         addWindowListener(
             new java.awt.event.WindowAdapter() {
 
@@ -1824,6 +1781,7 @@ public class INGeniousSettings extends javax.swing.JFrame {
                 this.setCursor(java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.WAIT_CURSOR));
                 if (connection.isConnected()) {
                     testConn.setIcon(PASS_ICON);
+                    applyTestConnSuccessStyle();
                     this.setCursor(
                             java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.DEFAULT_CURSOR)
                         );
@@ -1837,6 +1795,35 @@ public class INGeniousSettings extends javax.swing.JFrame {
         }
         this.setCursor(java.awt.Cursor.getPredefinedCursor(java.awt.Cursor.DEFAULT_CURSOR));
         testConn.setIcon(FAIL_ICON);
+        applyTestConnDefaultStyle();
+    }
+
+    /**
+     * Switch the Test Connection button to a white background so the green
+     * "success" bulb icon stands out against the otherwise blue primary button.
+     */
+    private void applyTestConnSuccessStyle() {
+        if (testConn == null) return;
+        testConn.setBackground(Color.WHITE);
+        testConn.setForeground(MODERN_TEXT);
+        testConn.putClientProperty("JButton.hoverBackground", Color.WHITE);
+        testConn.putClientProperty("JButton.pressedBackground", MODERN_ACCENT_LIGHT);
+        testConn.setBorder(
+            BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(MODERN_ACCENT, 1),
+                new EmptyBorder(9, 27, 9, 27)
+            )
+        );
+        testConn.repaint();
+    }
+
+    /**
+     * Restore the Test Connection button to its default primary (blue) style,
+     * used for the initial yellow bulb and the red "failure" bulb states.
+     */
+    private void applyTestConnDefaultStyle() {
+        if (testConn == null) return;
+        styleModernButton(testConn, true);
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables

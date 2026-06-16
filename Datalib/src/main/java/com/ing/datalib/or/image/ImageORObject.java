@@ -465,7 +465,8 @@ public class ImageORObject extends UndoRedoModel implements ORObjectInf {
         if (getParent().getChildCount() == 1) {
             flag = getParent().rename(newName);
         }
-        if (flag && getParent().getObjectByName(newName) == null) {
+        ORObjectInf existing = getParent().getObjectByName(newName);
+        if (flag && (existing == null || existing == this)) {
             if (FileUtils.renameFile(getRepLocation(), newName)) {
                 setName(newName);
                 changeSave();

@@ -103,6 +103,14 @@ public abstract class CommandControl {
         } else if (webDriver != null && webDriver.driver != null) {
             MObject = new MobileObject(webDriver.driver);
         }
+        // STRUCTUREDDATA actions (JSON/XML path assertions on Webservice responses)
+        // are driver-agnostic. Ensure SObject is always initialized so OR references
+        // can be resolved regardless of execution mode (Playwright, WebDriver, SAP,
+        // or API-only where a WebDriverCreation wrapper exists but no browser was
+        // launched).
+        if (SObject == null) {
+            SObject = new StructuredDataObject();
+        }
         Report = (TestCaseReport) report;
     }
 
@@ -253,6 +261,21 @@ public abstract class CommandControl {
                     default:
                         return true;
                 }
+            }
+            // API / Structured-Data flows have no browser, no SAP session and no
+            // Playwright page, but the test step may still reference a Structured
+            // Data OR object (e.g. JsonPath / XPath assertions on a REST response).
+            // Allow the OR lookup when an SD reference is present so the engine
+            // resolves Object/Reference -> JsonPath/Xpath into `Data` for the
+            // STRUCTUREDDATA actions.
+            if (
+                SObject != null &&
+                ObjectName != null &&
+                !ObjectName.isEmpty() &&
+                Reference != null &&
+                !Reference.isEmpty()
+            ) {
+                return true;
             }
         }
         return false;

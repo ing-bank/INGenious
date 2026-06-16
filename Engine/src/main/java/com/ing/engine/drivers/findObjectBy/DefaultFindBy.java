@@ -59,6 +59,11 @@ public class DefaultFindBy {
         return By.tagName(tagName);
     }
 
+    @SProperty(name = "tagName")
+    public By getByTagName(String tagName) {
+        return By.tagName(tagName);
+    }
+
     @SProperty(name = "Accessibility")
     public By getByAccess(String access) {
         return AppiumBy.accessibilityId(access);

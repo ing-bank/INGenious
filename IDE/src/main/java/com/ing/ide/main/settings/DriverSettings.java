@@ -1,7 +1,9 @@
 package com.ing.ide.main.settings;
 
 import com.ing.datalib.component.Project;
+import com.ing.datalib.settings.Devices;
 import com.ing.datalib.settings.ProjectSettings;
+import com.ing.datalib.settings.emulators.Device;
 import com.ing.datalib.settings.emulators.Emulator;
 import com.ing.datalib.util.data.LinkedProperties;
 import com.ing.engine.drivers.PlaywrightDriverFactory;
@@ -65,6 +67,14 @@ public class DriverSettings extends javax.swing.JFrame {
     private boolean isAddingEmulator = false;
 
     /**
+     * Kafka SSL Configurations editor (moved here from the legacy "Settings"
+     * dialog). Persistence still goes through
+     * {@link ProjectSettings#getKafkaSSLConfigurations()}, so existing projects
+     * keep their previously saved values.
+     */
+    private com.ing.ide.main.utils.table.XTablePanel kafkaSSLPanel;
+
+    /**
      * Creates new form NewJFrame
      *
      * @param sMainFrame
@@ -79,8 +89,18 @@ public class DriverSettings extends javax.swing.JFrame {
             )
         );
 
-        //loadChromeEmulators();
-        initAddEmulatorListener();
+        // Build the "Manage Devices" tab programmatically (not in generated initComponents)
+        buildDevicesTab();
+
+        // Build the "Kafka SSL Configurations" tab programmatically. Moved here
+        // from the legacy "Settings" dialog; same project-side storage backs it.
+        buildKafkaSSLTab();
+
+        // Legacy emulator-add affordance on "Manage Browsers" is being phased out:
+        // emulator entries are now managed exclusively from the "Manage Devices" tab
+        // and existing Emulators.json entries are auto-migrated on project load
+        // (see EmulatorToDeviceMigration).
+        suppressLegacyEmulatorUI();
         initAddNewDBListener();
         initAddNewContextListener();
         initAddNewDBAPIListener();
@@ -289,18 +309,27 @@ public class DriverSettings extends javax.swing.JFrame {
     }
 
     private void initAddEmulatorListener() {
-        browserCombo
-            .getEditor()
-            .addActionListener(
-                new ActionListener() {
+        // Retained for backwards-compat with any callers; intentionally a no-op.
+        // The "Manage Browsers" tab no longer accepts new emulator entries.
+    }
 
-                    @Override
-                    public void actionPerformed(ActionEvent ae) {
-                        addNewEmulator();
-                        saveSettings.setEnabled(true);
-                    }
-                }
-            );
+    /**
+     * Hides UI controls that used to let users create / rename / delete
+     * mobile emulators from the "Manage Browsers" tab. Devices are now
+     * managed exclusively from the "Manage Devices" tab; SAP and Playwright
+     * browsers remain editable here (capabilities only).
+     */
+    private void suppressLegacyEmulatorUI() {
+        // Stop accepting typed-in browser names as new emulators.
+        browserCombo.setEditable(false);
+        // Hide rename / delete buttons (they only ever acted on emulators).
+        editEmulator.setVisible(false);
+        deleteEmulator.setVisible(false);
+        // Remove the "Mobile" sub-tab (Remote URL / Appium connection editor).
+        int mobileIdx = emCapTab.indexOfComponent(emulatorPanel);
+        if (mobileIdx >= 0) {
+            emCapTab.removeTabAt(mobileIdx);
+        }
     }
 
     private void initAddNewDBListener() {
@@ -360,6 +389,8 @@ public class DriverSettings extends javax.swing.JFrame {
         loadDatabases();
         loadContexts();
         loadAPI();
+        loadDevices();
+        loadKafkaSSLConfigurations();
     }
 
     private void loadDriverPropTable() {
@@ -421,15 +452,14 @@ public class DriverSettings extends javax.swing.JFrame {
         // Add Playwright browsers first
         list.addAll(PlaywrightDriverFactory.Browser.getValuesAsList());
 
-        // Extract SAP and add it next
+        // Extract SAP and add it next (SAP remains an Emulators.json entry on purpose)
         List<String> emulators = new ArrayList<>(settings.getEmulators().getEmulatorNames());
         if (emulators.remove("SAP")) {
             list.add("SAP");
         }
 
-        // Add remaining emulators
-        list.addAll(emulators);
-
+        // Any leftover legacy emulator entries (unmigrated) are intentionally
+        // not exposed here anymore — devices belong on the "Manage Devices" tab.
         return list;
     }
 
@@ -449,16 +479,24 @@ public class DriverSettings extends javax.swing.JFrame {
         String selBrowser = browserCombo.getSelectedItem().toString();
         Emulator emulator = settings.getEmulators().getEmulator(selBrowser);
         if (emulator == null) {
-            emCapTab.setEnabledAt(0, false);
+            if (emCapTab.indexOfComponent(emulatorPanel) >= 0) {
+                emCapTab.setEnabledAt(0, false);
+            }
             editEmulator.setEnabled(false);
             deleteEmulator.setEnabled(false);
-            emCapTab.setSelectedIndex(1);
+            if (emCapTab.getTabCount() > 1) {
+                emCapTab.setSelectedIndex(1);
+            }
         } else {
-            emCapTab.setEnabledAt(0, true);
+            if (emCapTab.indexOfComponent(emulatorPanel) >= 0) {
+                emCapTab.setEnabledAt(0, true);
+                emCapTab.setSelectedIndex(0);
+                loadEmulator(emulator);
+            }
+            // Edit / delete affordances remain hidden post-phase-out; keep the
+            // enable flags accurate in case the UI is restored in future.
             editEmulator.setEnabled(true);
             deleteEmulator.setEnabled(true);
-            emCapTab.setSelectedIndex(0);
-            loadEmulator(emulator);
         }
         loadCapabilities(selBrowser);
     }
@@ -644,21 +682,25 @@ public class DriverSettings extends javax.swing.JFrame {
     }
 
     private void saveSettings() {
+        if (mainTab.getSelectedComponent() == devicePanel) {
+            saveDeviceCapabilities();
+            settings.getDevices().save();
+            return;
+        }
+        if (kafkaSSLPanel != null && mainTab.getSelectedComponent() == kafkaSSLPanel) {
+            saveKafkaSSLConfigurations();
+            return;
+        }
         if (mainTab.getSelectedIndex() == 0) {
             saveContextProperties();
         } else if (mainTab.getSelectedIndex() == 1) {
             saveDBProperties();
         } else if (mainTab.getSelectedIndex() == 2) {
             saveCommonSettings();
-        } else if (emCapTab.getSelectedIndex() == 0) {
-            saveEmulator();
-            settings.getEmulators().save();
-            saveCapabilities();
         } else {
-            if (emCapTab.isEnabledAt(0)) {
-                saveEmulator();
-            }
-            settings.getEmulators().save();
+            // Manage Browsers tab: emulator creation is phased out, so only
+            // persist capabilities for the currently-selected entry (SAP,
+            // Playwright browser, or any not-yet-migrated legacy emulator).
             saveCapabilities();
         }
     }
@@ -1987,7 +2029,766 @@ public class DriverSettings extends javax.swing.JFrame {
         contextPropTable
             .getModel()
             .addTableModelListener(saveSettingsListeners.new SaveTableModelListener());
+        if (deviceCombo != null) {
+            deviceCombo.addItemListener(saveSettingsListeners.new SaveItemListener());
+            deviceCapTable
+                .getModel()
+                .addTableModelListener(saveSettingsListeners.new SaveTableModelListener());
+            lambdaTestCheckBox.addItemListener(saveSettingsListeners.new SaveItemListener());
+            // lambdaCapsPanel is created lazily; its listener is hooked up in
+            // ensureLambdaCapsPanel() once the panel actually exists.
+        }
         // End of SaveSettings Listeners
+    }
+
+    // ====================================================================
+    // "Manage Devices" tab — manually-built (not part of generated form)
+    // ====================================================================
+
+    private javax.swing.JPanel devicePanel;
+    private javax.swing.JToolBar deviceToolBar;
+    private javax.swing.JLabel deviceLabel;
+    private javax.swing.JComboBox<String> deviceCombo;
+    private javax.swing.JCheckBox lambdaTestCheckBox;
+    private javax.swing.JButton addDevice;
+    private javax.swing.JButton editDevice;
+    private javax.swing.JButton deleteDevice;
+    private javax.swing.JButton addDeviceCap;
+    private javax.swing.JButton removeDeviceCap;
+    private javax.swing.JToolBar deviceCapToolBar;
+    private javax.swing.JTable deviceCapTable;
+    private javax.swing.JScrollPane deviceScrollPane;
+    private javax.swing.JLabel deviceRemoteUrlLabel;
+    private javax.swing.JTextField deviceRemoteUrlField;
+    // Grouped / collapsible view used for LambdaTest devices.
+    private com.ing.ide.main.settings.devices.LambdaTestCapsPanel lambdaCapsPanel;
+    private javax.swing.JPanel deviceCapsCards;
+    private java.awt.CardLayout deviceCapsLayout;
+    private static final String CAP_CARD_FLAT = "flat";
+    private static final String CAP_CARD_GROUPED = "grouped";
+    private boolean isAddingDevice = false;
+    private boolean isTogglingLambdaTest = false;
+    private boolean isLoadingDevice = false;
+
+    // Holds the unmasked Remote URL for the currently displayed device. The
+    // text field shows a masked version (credentials replaced with ****) while
+    // this variable preserves the real value for persistence.
+    private String actualRemoteUrl = com.ing.datalib.settings.emulators.Device.DEFAULT_REMOTE_URL;
+    private boolean isMaskingRemoteUrl = false;
+
+    private static final Pattern REMOTE_URL_CRED_PATTERN = Pattern.compile(
+        "^([a-zA-Z][a-zA-Z0-9+.-]*://)([^:/@\\s]+):([^@/\\s]+)@(.*)$"
+    );
+
+    private static boolean hasCredentials(String url) {
+        return url != null && REMOTE_URL_CRED_PATTERN.matcher(url).matches();
+    }
+
+    private static String maskRemoteUrl(String url) {
+        if (url == null) {
+            return null;
+        }
+        Matcher m = REMOTE_URL_CRED_PATTERN.matcher(url);
+        if (m.matches()) {
+            return m.group(1) + "****:****@" + m.group(4);
+        }
+        return url;
+    }
+
+    private void setRemoteUrlValue(String url) {
+        actualRemoteUrl = url == null ? "" : url;
+        isLoadingDevice = true;
+        isMaskingRemoteUrl = true;
+        try {
+            deviceRemoteUrlField.setText(maskRemoteUrl(actualRemoteUrl));
+            deviceRemoteUrlField.setCaretPosition(0);
+        } finally {
+            isMaskingRemoteUrl = false;
+            isLoadingDevice = false;
+        }
+    }
+
+    /**
+     * Reads the current text field value and, if it contains credentials,
+     * captures the unmasked value and re-displays it as masked. Should be
+     * invoked after the user finishes editing (focus lost / save).
+     *
+     * IMPORTANT: the masked rendering itself (e.g. {@code https://****:****@host})
+     * also matches the credentials regex (since {@code ****} contains no
+     * reserved chars). So we must FIRST compare the field text against the
+     * masked form of the stored URL — if it matches, the user hasn't edited
+     * anything and we must NOT overwrite {@code actualRemoteUrl} with the
+     * masked string. Only if the text differs from the current masked
+     * rendering do we treat it as a new user-supplied value.
+     */
+    private void syncAndMaskRemoteUrlField() {
+        if (deviceRemoteUrlField == null) {
+            return;
+        }
+        String text = deviceRemoteUrlField.getText();
+        String maskedActual = maskRemoteUrl(actualRemoteUrl);
+        if (text.equals(maskedActual)) {
+            // Field still shows the masked form of the stored URL — nothing
+            // to capture. Leave actualRemoteUrl untouched.
+            return;
+        }
+        // User has edited the field (or just pasted a fresh URL). Adopt the
+        // new value as the canonical URL, then mask if needed.
+        actualRemoteUrl = text;
+        if (hasCredentials(text)) {
+            isMaskingRemoteUrl = true;
+            try {
+                deviceRemoteUrlField.setText(maskRemoteUrl(text));
+                deviceRemoteUrlField.setCaretPosition(0);
+            } finally {
+                isMaskingRemoteUrl = false;
+            }
+        }
+    }
+
+    private void buildDevicesTab() {
+        devicePanel = new javax.swing.JPanel(new java.awt.BorderLayout());
+
+        // --- Top toolbar: Device label + combo + LambdaTest checkbox + edit/delete ---
+        deviceToolBar = new javax.swing.JToolBar();
+        deviceToolBar.setBorder(BorderFactory.createEtchedBorder());
+        deviceToolBar.setRollover(true);
+        deviceToolBar.setFloatable(false);
+        deviceToolBar.setPreferredSize(new java.awt.Dimension(100, 50));
+
+        deviceToolBar.add(javax.swing.Box.createHorizontalStrut(10));
+        deviceLabel = new javax.swing.JLabel("Device");
+        deviceToolBar.add(deviceLabel);
+        deviceToolBar.add(javax.swing.Box.createHorizontalStrut(10));
+
+        deviceCombo = new javax.swing.JComboBox<>();
+        deviceCombo.setEditable(false);
+        deviceCombo.setMinimumSize(new java.awt.Dimension(150, 26));
+        deviceCombo.setPreferredSize(new java.awt.Dimension(150, 26));
+        deviceCombo.setMaximumSize(new java.awt.Dimension(220, 26));
+        deviceCombo.setToolTipText("Select an existing device. Click + to add a new one.");
+        deviceToolBar.add(deviceCombo);
+
+        deviceToolBar.add(javax.swing.Box.createHorizontalStrut(6));
+
+        addDevice = new javax.swing.JButton();
+        addDevice.setIcon(INGIcons.swingColored("icon.add", 16));
+        addDevice.setToolTipText("Add New Device");
+        addDevice.setContentAreaFilled(false);
+        addDevice.setFocusable(false);
+        deviceToolBar.add(addDevice);
+
+        deviceToolBar.add(javax.swing.Box.createHorizontalStrut(15));
+
+        lambdaTestCheckBox = new javax.swing.JCheckBox("LambdaTest Device");
+        lambdaTestCheckBox.setFocusable(false);
+        deviceToolBar.add(lambdaTestCheckBox);
+
+        deviceToolBar.add(javax.swing.Box.createHorizontalGlue());
+
+        editDevice = new javax.swing.JButton();
+        editDevice.setIcon(INGIcons.swingColored("icon.edit", 16));
+        editDevice.setToolTipText("Rename Device");
+        editDevice.setContentAreaFilled(false);
+        editDevice.setFocusable(false);
+        deviceToolBar.add(editDevice);
+
+        deleteDevice = new javax.swing.JButton();
+        deleteDevice.setIcon(INGIcons.swingColored("icon.deleteIcon", 16));
+        deleteDevice.setToolTipText("Remove Device");
+        deleteDevice.setContentAreaFilled(false);
+        deleteDevice.setFocusable(false);
+        deviceToolBar.add(deleteDevice);
+
+        devicePanel.add(deviceToolBar, java.awt.BorderLayout.PAGE_START);
+
+        // --- Remote URL / Appium endpoint panel (between toolbar and capability table) ---
+        javax.swing.JPanel remoteUrlPanel = new javax.swing.JPanel();
+        remoteUrlPanel.setBorder(BorderFactory.createEtchedBorder());
+        remoteUrlPanel.setLayout(new java.awt.FlowLayout(java.awt.FlowLayout.LEFT, 10, 8));
+        deviceRemoteUrlLabel = new javax.swing.JLabel("Remote URL/Appium");
+        deviceRemoteUrlField =
+            new javax.swing.JTextField(
+                com.ing.datalib.settings.emulators.Device.DEFAULT_REMOTE_URL,
+                40
+            );
+        remoteUrlPanel.add(deviceRemoteUrlLabel);
+        remoteUrlPanel.add(deviceRemoteUrlField);
+
+        // --- Capability table ---
+        deviceCapTable = new XTable();
+        deviceCapTable.setModel(
+            new DefaultTableModel(new Object[][] {}, new String[] { "Property", "Value" }) {
+
+                @Override
+                public boolean isCellEditable(int rowIndex, int columnIndex) {
+                    Object prop = getValueAt(rowIndex, 0);
+                    if (prop != null && Devices.isSectionHeader(prop.toString())) {
+                        return false;
+                    }
+                    return true;
+                }
+            }
+        );
+
+        deviceScrollPane = new javax.swing.JScrollPane(deviceCapTable);
+        javax.swing.JPanel centerPanel = new javax.swing.JPanel(new java.awt.BorderLayout());
+
+        // Capability add/remove toolbar (only used in the flat / non-LambdaTest view)
+        deviceCapToolBar = new javax.swing.JToolBar();
+        deviceCapToolBar.setBorder(BorderFactory.createEtchedBorder());
+        deviceCapToolBar.setRollover(true);
+        deviceCapToolBar.setFloatable(false);
+        deviceCapToolBar.add(javax.swing.Box.createHorizontalGlue());
+
+        addDeviceCap = new javax.swing.JButton();
+        addDeviceCap.setIcon(INGIcons.swingColored("icon.add", 16));
+        addDeviceCap.setToolTipText("Add Capability");
+        addDeviceCap.setFocusable(false);
+        deviceCapToolBar.add(addDeviceCap);
+
+        removeDeviceCap = new javax.swing.JButton();
+        removeDeviceCap.setIcon(INGIcons.swingColored("icon.remove", 16));
+        removeDeviceCap.setToolTipText("Remove Capability");
+        removeDeviceCap.setFocusable(false);
+        deviceCapToolBar.add(removeDeviceCap);
+
+        centerPanel.add(deviceCapToolBar, java.awt.BorderLayout.PAGE_START);
+        centerPanel.add(deviceScrollPane, java.awt.BorderLayout.CENTER);
+
+        // Grouped / collapsible view used when LambdaTest is enabled.
+        // Created lazily on first use — `settings` is not yet wired up at
+        // the time this method runs (it's set later in setProject()).
+
+        // Card switcher between flat-table view and grouped collapsible view.
+        deviceCapsLayout = new java.awt.CardLayout();
+        deviceCapsCards = new javax.swing.JPanel(deviceCapsLayout);
+        deviceCapsCards.add(centerPanel, CAP_CARD_FLAT);
+
+        // Stack remote URL panel above the capability area
+        javax.swing.JPanel devBody = new javax.swing.JPanel(new java.awt.BorderLayout());
+        devBody.add(remoteUrlPanel, java.awt.BorderLayout.PAGE_START);
+        devBody.add(deviceCapsCards, java.awt.BorderLayout.CENTER);
+        devicePanel.add(devBody, java.awt.BorderLayout.CENTER);
+
+        // Register the tab
+        mainTab.addTab("Manage Devices", devicePanel);
+
+        // --- Listeners ---
+        addDevice.addActionListener(
+            new ActionListener() {
+
+                @Override
+                public void actionPerformed(ActionEvent ae) {
+                    promptAndAddNewDevice();
+                }
+            }
+        );
+
+        deviceCombo.addItemListener(
+            new java.awt.event.ItemListener() {
+
+                @Override
+                public void itemStateChanged(java.awt.event.ItemEvent evt) {
+                    if (evt.getStateChange() == ItemEvent.SELECTED && !isAddingDevice) {
+                        SwingUtilities.invokeLater(() -> checkAndLoadDeviceCapabilities());
+                    }
+                }
+            }
+        );
+
+        lambdaTestCheckBox.addItemListener(
+            new java.awt.event.ItemListener() {
+
+                @Override
+                public void itemStateChanged(java.awt.event.ItemEvent evt) {
+                    if (isTogglingLambdaTest) {
+                        return;
+                    }
+                    onLambdaTestToggle();
+                }
+            }
+        );
+
+        editDevice.addActionListener(
+            new ActionListener() {
+
+                @Override
+                public void actionPerformed(ActionEvent ae) {
+                    renameDevice();
+                }
+            }
+        );
+
+        deleteDevice.addActionListener(
+            new ActionListener() {
+
+                @Override
+                public void actionPerformed(ActionEvent ae) {
+                    deleteSelectedDevice();
+                }
+            }
+        );
+
+        addDeviceCap.addActionListener(
+            new ActionListener() {
+
+                @Override
+                public void actionPerformed(ActionEvent ae) {
+                    DefaultTableModel m = (DefaultTableModel) deviceCapTable.getModel();
+                    m.addRow(new Object[] {});
+                }
+            }
+        );
+
+        removeDeviceCap.addActionListener(
+            new ActionListener() {
+
+                @Override
+                public void actionPerformed(ActionEvent ae) {
+                    int[] rows = deviceCapTable.getSelectedRows();
+                    if (rows != null) {
+                        DefaultTableModel m = (DefaultTableModel) deviceCapTable.getModel();
+                        for (int i = rows.length - 1; i >= 0; i--) {
+                            int r = rows[i];
+                            Object prop = m.getValueAt(r, 0);
+                            if (prop == null || !Devices.isSectionHeader(prop.toString())) {
+                                m.removeRow(r);
+                            }
+                        }
+                    }
+                }
+            }
+        );
+
+        deviceRemoteUrlField
+            .getDocument()
+            .addDocumentListener(
+                new javax.swing.event.DocumentListener() {
+
+                    private void changed() {
+                        if (isLoadingDevice || isMaskingRemoteUrl) {
+                            return;
+                        }
+                        saveSettings.setEnabled(true);
+                        // If credentials are visible in the field (e.g. just pasted or
+                        // typed in full), mask them right away. Defer the mutation so
+                        // we don't modify the document from inside its own listener.
+                        final String text = deviceRemoteUrlField.getText();
+                        if (hasCredentials(text)) {
+                            SwingUtilities.invokeLater(
+                                () -> {
+                                    // Re-check inside the EDT runnable in case the value
+                                    // changed again before we got here.
+                                    if (hasCredentials(deviceRemoteUrlField.getText())) {
+                                        syncAndMaskRemoteUrlField();
+                                    }
+                                }
+                            );
+                        }
+                    }
+
+                    @Override
+                    public void insertUpdate(javax.swing.event.DocumentEvent e) {
+                        changed();
+                    }
+
+                    @Override
+                    public void removeUpdate(javax.swing.event.DocumentEvent e) {
+                        changed();
+                    }
+
+                    @Override
+                    public void changedUpdate(javax.swing.event.DocumentEvent e) {
+                        changed();
+                    }
+                }
+            );
+
+        // When the user focuses the field, reveal the real URL for editing;
+        // when focus is lost, re-mask any credentials.
+        deviceRemoteUrlField.addFocusListener(
+            new java.awt.event.FocusAdapter() {
+
+                @Override
+                public void focusGained(java.awt.event.FocusEvent e) {
+                    if (!deviceRemoteUrlField.isEnabled()) {
+                        return;
+                    }
+                    String masked = maskRemoteUrl(actualRemoteUrl);
+                    if (
+                        masked != null &&
+                        !masked.equals(actualRemoteUrl) &&
+                        deviceRemoteUrlField.getText().equals(masked)
+                    ) {
+                        isMaskingRemoteUrl = true;
+                        try {
+                            deviceRemoteUrlField.setText(actualRemoteUrl);
+                            deviceRemoteUrlField.selectAll();
+                        } finally {
+                            isMaskingRemoteUrl = false;
+                        }
+                    }
+                }
+
+                @Override
+                public void focusLost(java.awt.event.FocusEvent e) {
+                    syncAndMaskRemoteUrlField();
+                }
+            }
+        );
+    }
+
+    private void loadDevices() {
+        if (deviceCombo == null) {
+            return;
+        }
+        List<String> names = new ArrayList<>(settings.getDevices().getDeviceNames());
+        deviceCombo.setModel(new DefaultComboBoxModel<>(names.toArray(new String[0])));
+        if (!names.isEmpty()) {
+            deviceCombo.setSelectedIndex(0);
+            checkAndLoadDeviceCapabilities();
+        } else {
+            ((DefaultTableModel) deviceCapTable.getModel()).setRowCount(0);
+            isTogglingLambdaTest = true;
+            lambdaTestCheckBox.setSelected(false);
+            isTogglingLambdaTest = false;
+            editDevice.setEnabled(false);
+            deleteDevice.setEnabled(false);
+            lambdaTestCheckBox.setEnabled(false);
+            deviceRemoteUrlField.setEnabled(false);
+            setRemoteUrlValue(Device.DEFAULT_REMOTE_URL);
+        }
+    }
+
+    private void promptAndAddNewDevice() {
+        String input = (String) javax.swing.JOptionPane.showInputDialog(
+            devicePanel,
+            "Enter a name for the new device:",
+            "Add New Device",
+            javax.swing.JOptionPane.PLAIN_MESSAGE,
+            null,
+            null,
+            ""
+        );
+        if (input == null) {
+            return; // cancelled
+        }
+        String newName = input.trim();
+        if (newName.isEmpty()) {
+            javax.swing.JOptionPane.showMessageDialog(
+                devicePanel,
+                "Device name cannot be empty.",
+                "Add New Device",
+                javax.swing.JOptionPane.WARNING_MESSAGE
+            );
+            return;
+        }
+        if (settings.getDevices().getDevice(newName) != null) {
+            javax.swing.JOptionPane.showMessageDialog(
+                devicePanel,
+                "A device named \"" + newName + "\" already exists.",
+                "Add New Device",
+                javax.swing.JOptionPane.WARNING_MESSAGE
+            );
+            return;
+        }
+        addNewDevice(newName);
+        saveSettings.setEnabled(true);
+    }
+
+    private void addNewDevice(String newName) {
+        if (newName == null || newName.isEmpty()) {
+            return;
+        }
+        if (settings.getDevices().getDevice(newName) != null) {
+            Notification.show("Device [" + newName + "] already Present");
+            return;
+        }
+        isAddingDevice = true;
+        try {
+            settings.getDevices().addDevice(newName);
+            deviceCombo.addItem(newName);
+            deviceCombo.setSelectedItem(newName);
+            editDevice.setEnabled(true);
+            deleteDevice.setEnabled(true);
+            lambdaTestCheckBox.setEnabled(true);
+            deviceRemoteUrlField.setEnabled(true);
+            setRemoteUrlValue(Device.DEFAULT_REMOTE_URL);
+            // Populate default (non-LambdaTest) capabilities
+            isTogglingLambdaTest = true;
+            lambdaTestCheckBox.setSelected(false);
+            isTogglingLambdaTest = false;
+            showFlatCapsView(settings.getDevices().defaultDeviceCap());
+            // Persist the empty capability set under this device name
+            settings
+                .getCapabilities()
+                .addCapability(newName, settings.getDevices().defaultDeviceCap());
+        } finally {
+            isAddingDevice = false;
+        }
+    }
+
+    private void renameDevice() {
+        if (deviceCombo.getSelectedIndex() < 0) {
+            return;
+        }
+        String oldName = deviceCombo.getSelectedItem().toString();
+        String input = (String) javax.swing.JOptionPane.showInputDialog(
+            devicePanel,
+            "Enter the new name for device:",
+            "Rename Device",
+            javax.swing.JOptionPane.PLAIN_MESSAGE,
+            null,
+            null,
+            oldName
+        );
+        if (input == null) {
+            return; // cancelled
+        }
+        String newName = input.trim();
+        if (newName.isEmpty() || oldName.equals(newName)) {
+            return;
+        }
+        if (settings.getDevices().getDevice(newName) != null) {
+            javax.swing.JOptionPane.showMessageDialog(
+                devicePanel,
+                "A device named \"" + newName + "\" already exists.",
+                "Rename Device",
+                javax.swing.JOptionPane.WARNING_MESSAGE
+            );
+            return;
+        }
+        if (Boolean.TRUE.equals(settings.getDevices().renameDevice(oldName, newName))) {
+            // Move capability properties as well
+            LinkedProperties existing = settings.getCapabilities().getCapabiltiesFor(oldName);
+            if (existing != null) {
+                settings.getCapabilities().addCapability(newName, existing);
+                settings.getCapabilities().getBrowserCapabilties().remove(oldName);
+            }
+            DefaultComboBoxModel<String> m = (DefaultComboBoxModel<String>) deviceCombo.getModel();
+            int idx = deviceCombo.getSelectedIndex();
+            m.removeElement(oldName);
+            m.insertElementAt(newName, idx);
+            deviceCombo.setSelectedIndex(idx);
+            saveSettings.setEnabled(true);
+        }
+    }
+
+    private void deleteSelectedDevice() {
+        if (deviceCombo.getSelectedIndex() < 0) {
+            return;
+        }
+        String name = deviceCombo.getSelectedItem().toString();
+        settings.getDevices().deleteDevice(name);
+        settings.getCapabilities().getBrowserCapabilties().remove(name);
+        deviceCombo.removeItem(name);
+        if (deviceCombo.getItemCount() == 0) {
+            ((DefaultTableModel) deviceCapTable.getModel()).setRowCount(0);
+            editDevice.setEnabled(false);
+            deleteDevice.setEnabled(false);
+            lambdaTestCheckBox.setEnabled(false);
+        }
+    }
+
+    private void checkAndLoadDeviceCapabilities() {
+        Object sel = deviceCombo.getSelectedItem();
+        if (sel == null) {
+            return;
+        }
+        String name = sel.toString();
+        Device d = settings.getDevices().getDevice(name);
+        if (d == null) {
+            return;
+        }
+        editDevice.setEnabled(true);
+        deleteDevice.setEnabled(true);
+        lambdaTestCheckBox.setEnabled(true);
+
+        deviceRemoteUrlField.setEnabled(true);
+        String url = d.getRemoteUrl();
+        setRemoteUrlValue(url == null || url.isEmpty() ? Device.DEFAULT_REMOTE_URL : url);
+
+        isTogglingLambdaTest = true;
+        lambdaTestCheckBox.setSelected(d.isLambdaTest());
+        isTogglingLambdaTest = false;
+
+        LinkedProperties saved = settings.getCapabilities().getCapabiltiesFor(name);
+        if (saved != null && !saved.isEmpty()) {
+            // If LambdaTest, re-display with category headers around recognised keys
+            if (d.isLambdaTest()) {
+                showLambdaCapsView(saved);
+            } else {
+                showFlatCapsView(saved);
+            }
+        } else {
+            // No saved caps yet — populate from defaults
+            if (d.isLambdaTest()) {
+                showLambdaCapsView(null);
+            } else {
+                showFlatCapsView(settings.getDevices().defaultDeviceCap());
+            }
+        }
+    }
+
+    private void onLambdaTestToggle() {
+        Object sel = deviceCombo.getSelectedItem();
+        if (sel == null) {
+            return;
+        }
+        String name = sel.toString();
+        Device d = settings.getDevices().getDevice(name);
+        if (d == null) {
+            return;
+        }
+        boolean enabled = lambdaTestCheckBox.isSelected();
+        d.setLambdaTest(enabled);
+        // Preserve whatever the user has already typed in the visible view
+        LinkedProperties current = readActiveCaps();
+        if (enabled) {
+            showLambdaCapsView(current.isEmpty() ? null : current);
+        } else {
+            // Show the simple default set but keep existing values for matching keys
+            LinkedProperties defaults = settings.getDevices().defaultDeviceCap();
+            LinkedProperties merged = new LinkedProperties();
+            for (Object key : defaults.orderedKeys()) {
+                String k = key.toString();
+                merged.setProperty(
+                    k,
+                    Objects.toString(current.containsKey(k) ? current.get(k) : defaults.get(k), "")
+                );
+            }
+            showFlatCapsView(merged);
+        }
+        saveSettings.setEnabled(true);
+    }
+
+    private LinkedProperties readDeviceCapTable() {
+        LinkedProperties props = new LinkedProperties();
+        if (deviceCapTable.isEditing()) {
+            deviceCapTable.getCellEditor().stopCellEditing();
+        }
+        DefaultTableModel model = (DefaultTableModel) deviceCapTable.getModel();
+        for (int i = 0; i < model.getRowCount(); i++) {
+            String prop = Objects.toString(model.getValueAt(i, 0), "").trim();
+            if (prop.isEmpty() || Devices.isSectionHeader(prop)) {
+                continue;
+            }
+            props.setProperty(prop, Objects.toString(model.getValueAt(i, 1), ""));
+        }
+        return props;
+    }
+
+    /**
+     * Returns the capabilities from whichever view is currently active
+     * (flat table or grouped LambdaTest panel).
+     */
+    private LinkedProperties readActiveCaps() {
+        if (
+            lambdaTestCheckBox != null && lambdaTestCheckBox.isSelected() && lambdaCapsPanel != null
+        ) {
+            return lambdaCapsPanel.getProperties();
+        }
+        return readDeviceCapTable();
+    }
+
+    /**
+     * Lazily build the grouped LambdaTest capability panel. Must not be called
+     * before {@code settings} has been initialised (i.e. after setProject()).
+     */
+    private void ensureLambdaCapsPanel() {
+        if (lambdaCapsPanel != null) {
+            return;
+        }
+        lambdaCapsPanel =
+            new com.ing.ide.main.settings.devices.LambdaTestCapsPanel(
+                settings.getDevices().defaultLambdaTestCaps()
+            );
+        if (saveSettingsListeners != null) {
+            lambdaCapsPanel.addTableChangeListener(
+                saveSettingsListeners.new SaveTableModelListener()
+            );
+        }
+        deviceCapsCards.add(lambdaCapsPanel, CAP_CARD_GROUPED);
+    }
+
+    /** Swap to the flat-table view and load {@code props} into it. */
+    private void showFlatCapsView(LinkedProperties props) {
+        if (deviceCapsLayout != null) {
+            deviceCapsLayout.show(deviceCapsCards, CAP_CARD_FLAT);
+        }
+        populateDeviceCapTable(props);
+    }
+
+    /** Swap to the grouped collapsible view and load {@code props} into it. */
+    private void showLambdaCapsView(LinkedProperties existing) {
+        ensureLambdaCapsPanel();
+        // Clear the flat table to avoid stale rows leaking into save / listeners.
+        ((DefaultTableModel) deviceCapTable.getModel()).setRowCount(0);
+        lambdaCapsPanel.setProperties(existing);
+        if (deviceCapsLayout != null) {
+            deviceCapsLayout.show(deviceCapsCards, CAP_CARD_GROUPED);
+        }
+    }
+
+    private void populateDeviceCapTable(LinkedProperties props) {
+        DefaultTableModel model = (DefaultTableModel) deviceCapTable.getModel();
+        model.setRowCount(0);
+        if (props != null) {
+            for (Object key : props.orderedKeys()) {
+                model.addRow(new Object[] { key, props.get(key) });
+            }
+        }
+    }
+
+    private void saveDeviceCapabilities() {
+        if (deviceCombo == null || deviceCombo.getSelectedIndex() < 0) {
+            return;
+        }
+        if (deviceCapTable.isEditing()) {
+            deviceCapTable.getCellEditor().stopCellEditing();
+        }
+        String name = deviceCombo.getSelectedItem().toString();
+        Device d = settings.getDevices().getDevice(name);
+        if (d == null) {
+            return;
+        }
+        d.setLambdaTest(lambdaTestCheckBox.isSelected());
+        // Make sure any visible credentials are captured before saving.
+        syncAndMaskRemoteUrlField();
+        d.setRemoteUrl(actualRemoteUrl);
+
+        LinkedProperties properties = readActiveCaps();
+        settings.getCapabilities().addCapability(name, properties);
+    }
+
+    /**
+     * Builds the "Kafka SSL Configurations" tab. The tab is appended to
+     * {@link #mainTab} after the generated initComponents() runs so that it
+     * coexists cleanly with the form-designer-managed tabs.
+     */
+    private void buildKafkaSSLTab() {
+        kafkaSSLPanel = new com.ing.ide.main.utils.table.XTablePanel(true);
+        mainTab.addTab("Kafka SSL Configurations", kafkaSSLPanel);
+    }
+
+    private void loadKafkaSSLConfigurations() {
+        if (kafkaSSLPanel == null || settings == null) {
+            return;
+        }
+        PropUtils.loadPropertiesInTable(settings.getKafkaSSLConfigurations(), kafkaSSLPanel.table);
+    }
+
+    private void saveKafkaSSLConfigurations() {
+        if (kafkaSSLPanel == null || settings == null) {
+            return;
+        }
+        if (kafkaSSLPanel.table.isEditing()) {
+            kafkaSSLPanel.table.getCellEditor().stopCellEditing();
+        }
+        Properties properties = PropUtils.getPropertiesFromTable(kafkaSSLPanel.table);
+        settings.getKafkaSSLConfigurations().set(properties);
+        settings.getKafkaSSLConfigurations().save();
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables

@@ -262,6 +262,11 @@ public class Control {
                 .log(System.Logger.Level.ERROR, (String) null, ex);
         }
         Encryption.getInstance();
+        // When the engine is launched directly (CLI / Picocli or legacy bridge) the
+        // commands packages live inside the engine jar on the classpath, so the
+        // package-scanner must read class entries from the jar (same path the IDE
+        // launcher takes via com.ing.ide.main.Main).
+        SystemDefaults.getClassesFromJar.set(true);
     }
 
     /**
@@ -274,11 +279,16 @@ public class Control {
 
         String firstArg = args[0].toLowerCase();
 
-        // New CLI subcommands
+        // New CLI subcommands & global flags
         String[] newCommands = {
             "project",
             "scenario",
             "testcase",
+            "testset",
+            "object",
+            "objects",
+            "or",
+            "data",
             "action",
             "actions",
             "run",
@@ -291,7 +301,9 @@ public class Control {
             "help",
             "--help",
             "-h",
-            "--version"
+            "--version",
+            "-v",
+            "-V"
         };
 
         for (String cmd : newCommands) {
@@ -365,7 +377,10 @@ public class Control {
             "║                                                                              ║"
         );
         System.out.println(
-            "║                    🚀 Test Automation Framework v2.3.1                       ║"
+            formatVersionBannerLine(
+                "🚀 Test Automation Framework v" +
+                com.ing.engine.constants.SystemDefaults.getBuildVersion()
+            )
         );
         System.out.println(
             "║                                                                              ║"
@@ -384,5 +399,28 @@ public class Control {
             "══════════════════════════════════════════════════════════════════════════════"
         );
         System.out.println();
+    }
+
+    /**
+     * Center the given content within the execution-banner box (inner width
+     * 78). Used so the dynamic Maven version always fits between the
+     * ║ ║ borders regardless of length.
+     *
+     * <p>Note: the rocket emoji 🚀 (U+1F680) is a surrogate pair, so
+     * {@code String.length()} returns 2, which conveniently matches its
+     * visual width on most terminals.</p>
+     */
+    private static String formatVersionBannerLine(String content) {
+        final int innerWidth = 78;
+        int pad = Math.max(0, innerWidth - content.length());
+        int left = pad / 2;
+        int right = pad - left;
+        StringBuilder sb = new StringBuilder(innerWidth + 2);
+        sb.append('║');
+        for (int i = 0; i < left; i++) sb.append(' ');
+        sb.append(content);
+        for (int i = 0; i < right; i++) sb.append(' ');
+        sb.append('║');
+        return sb.toString();
     }
 }

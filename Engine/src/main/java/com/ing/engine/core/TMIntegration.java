@@ -5,6 +5,7 @@ import com.ing.engine.reporting.SummaryReport;
 import com.ing.engine.reporting.sync.Sync;
 import com.ing.engine.reporting.sync.Unknown;
 import com.ing.engine.reporting.sync.azure.AzureSync;
+import com.ing.engine.reporting.sync.testmanager.TestManagerSync;
 import com.ing.util.encryption.Encryption;
 import java.util.Properties;
 import org.apache.commons.codec.binary.Base64;
@@ -41,6 +42,8 @@ public class TMIntegration {
                     return new QCRestSync(decryptValues(testMgmgtSettings)); */
                 case "AzureDevOps TestPlan":
                     return new AzureSync(decryptValues(testMgmgtSettings));
+                case "Test Manager":
+                    return new TestManagerSync(decryptValues(testMgmgtSettings));
                 /*  case "Zephyr":
                     return new ZephyrSync(decryptValues(testMgmgtSettings));
                 case "qTestManager":

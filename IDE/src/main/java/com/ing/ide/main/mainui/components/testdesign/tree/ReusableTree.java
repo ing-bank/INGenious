@@ -93,7 +93,7 @@ public class ReusableTree extends ProjectTree {
     protected void onNewAction() {
         if (isRootSelected()) {
             // addGroup();
-        } else if (getSelectedScenarioNodeSafe() != null) {
+        } else if (getSelectedScenarioNodeSafe() != null || getSelectedTestCaseNode() != null) {
             addReusableTestCase();
         } else if (getSelectedGroupNode() != null) {
             addReusableScenario();
@@ -272,6 +272,12 @@ public class ReusableTree extends ProjectTree {
      */
     private void addReusableTestCase() {
         ScenarioNode scenarioNode = getSelectedScenarioNodeSafe();
+        if (scenarioNode == null) {
+            TestCaseNode tcNode = getSelectedTestCaseNode();
+            if (tcNode != null && tcNode.getParent() instanceof ScenarioNode) {
+                scenarioNode = (ScenarioNode) tcNode.getParent();
+            }
+        }
         if (scenarioNode != null) {
             String testCaseName = fetchNewReusableTestCaseName(scenarioNode.getScenario());
             TestCase testcase = scenarioNode.getScenario().addTestCase(testCaseName);

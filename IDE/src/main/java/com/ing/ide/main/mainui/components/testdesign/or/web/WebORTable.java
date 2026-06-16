@@ -116,6 +116,9 @@ public class WebORTable extends JPanel implements ActionListener, ItemListener {
     }
 
     public void loadObject(WebORObject object) {
+        if (table.isEditing()) {
+            table.getCellEditor().stopCellEditing();
+        }
         table.setModel(object);
         configureColumns();
         monitorFrameChange = false;

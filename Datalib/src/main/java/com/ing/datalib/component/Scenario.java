@@ -1,6 +1,9 @@
 package com.ing.datalib.component;
 
+import com.ing.datalib.component.io.TestCaseStoreFactory;
 import com.ing.datalib.component.utils.FileUtils;
+import com.ing.datalib.component.utils.FileUtils;
+import com.ing.datalib.or.web.WebOR.ORScope;
 import com.ing.datalib.or.web.WebOR.ORScope;
 import java.io.File;
 import java.util.ArrayList;
@@ -127,17 +130,16 @@ public class Scenario extends DataModel {
     }
 
     /**
-     * Finds a test case by name.
+     * Finds a Test Plan test case by name.
      * @param scenarioName scenario name (case-insensitive)
      * @param testCaseName test case name (case-insensitive)
-     * @return the reusable test case if found, null otherwise
+     * @return the Test Plan test case if found, null otherwise
      */
     public TestCase getTestCaseByName(String scenarioName, String testCaseName) {
-        Scenario sc = project.getScenarioByName(scenarioName);
+        Scenario sc = project.getTestPlanScenarioByName(scenarioName);
         if (sc == null) {
             return null;
         }
-
         List<TestCase> tc = sc.getTestCases();
         String tc_name;
         for (TestCase testcase : tc) {
@@ -160,7 +162,6 @@ public class Scenario extends DataModel {
         if (sc == null) {
             return null;
         }
-
         List<TestCase> reusables = sc.getTestCases();
         String tc_name;
         for (TestCase testcase : reusables) {
@@ -187,13 +188,15 @@ public class Scenario extends DataModel {
     }
 
     /**
-     * Loads all test case CSV files from the scenario directory.
+     * Loads test case files from the scenario directory. Enumerates both CSV
+     * and YAML files, deduplicating by base name (YAML wins when both formats
+     * exist for the same name).
      */
     private void loadTestcases() {
         File scenDir = new File(getLocation());
         if (scenDir.exists()) {
-            for (String testCase : scenDir.list(FileUtils.CSV_FILTER)) {
-                testCases.add(new TestCase(this, testCase));
+            for (String baseName : TestCaseStoreFactory.listLogicalFiles(scenDir).keySet()) {
+                testCases.add(new TestCase(this, baseName));
             }
         }
     }
@@ -635,7 +638,8 @@ public class Scenario extends DataModel {
      */
     @Override
     public Boolean rename(String newName) {
-        if (getProject().getTestPlanScenarioByName(newName) == null) {
+        Scenario existing = getProject().getTestPlanScenarioByName(newName);
+        if (existing == null || existing == this) {
             if (FileUtils.renameFile(getLocation(), newName)) {
                 getProject().refactorScenario(name, newName);
                 name = newName;
@@ -652,7 +656,8 @@ public class Scenario extends DataModel {
      */
 
     public Boolean renameReusable(String newName) {
-        if (getProject().getReusableScenarioByName(newName) == null) {
+        Scenario existing = getProject().getReusableScenarioByName(newName);
+        if (existing == null || existing == this) {
             if (FileUtils.renameFile(getLocation(), newName)) {
                 getProject().refactorScenario(name, newName);
                 name = newName;

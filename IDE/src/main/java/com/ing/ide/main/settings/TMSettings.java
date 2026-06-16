@@ -280,7 +280,7 @@ public class TMSettings extends javax.swing.JFrame {
 
         // Style buttons
         styleButton(save, true);
-        styleButton(checkConnection, true);
+        styleConnectionButton(checkConnection);
         styleButton(reset, false);
 
         // Recursively style all components
@@ -301,6 +301,30 @@ public class TMSettings extends javax.swing.JFrame {
             BorderFactory.createCompoundBorder(
                 BorderFactory.createLineBorder(getAccentColor(), 1),
                 new EmptyBorder(8, 20, 8, 20)
+            )
+        );
+    }
+
+    /**
+     * The Test Connection button shows a colored bulb (yellow/green/red) as its icon.
+     * A vivid accent background would wash those colors out, so we give it a subtle
+     * neutral chip — surface tone with an accent outline — keeping the theme but
+     * letting the status bulb pop.
+     */
+    private void styleConnectionButton(javax.swing.JButton button) {
+        if (button == null) return;
+        Color chipBg = getInputBgColor();
+        Color textFg = getTextColor();
+        Color outline = getBorderColor();
+        button.setOpaque(true);
+        button.setContentAreaFilled(true);
+        button.setBackground(chipBg);
+        button.setForeground(textFg);
+        button.setFocusPainted(false);
+        button.setBorder(
+            BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(outline, 1),
+                new EmptyBorder(6, 14, 6, 14)
             )
         );
     }

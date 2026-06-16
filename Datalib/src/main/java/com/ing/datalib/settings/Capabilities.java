@@ -30,6 +30,22 @@ public class Capabilities {
         return browserCapabilties.get(browserName);
     }
 
+    /**
+     * Returns the capability bag for {@code browserName}, creating an empty
+     * one (and registering it under the supplied name) if it is missing.
+     * Used by the CLI override dispatcher so that
+     * {@code -setEnv "browser.<name>.<key>=<value>"} works even when the
+     * browser/device entry doesn't pre-exist in the project.
+     */
+    public LinkedProperties getOrCreateCapabiltiesFor(String browserName) {
+        LinkedProperties props = browserCapabilties.get(browserName);
+        if (props == null) {
+            props = new LinkedProperties();
+            browserCapabilties.put(browserName, props);
+        }
+        return props;
+    }
+
     private void load() {
         File caps = new File(getLocation());
         if (caps.exists()) {

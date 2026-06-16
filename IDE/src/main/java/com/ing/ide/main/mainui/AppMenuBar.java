@@ -60,7 +60,7 @@ public class AppMenuBar extends JMenuBar {
         shortcuts.put("Quit", KeyStroke.getKeyStroke(KeyEvent.VK_X, KeyEvent.ALT_MASK));
 
         shortcuts.put(
-            "Run Settings",
+            "Settings",
             KeyStroke.getKeyStroke(KeyEvent.VK_S, SHORTCUT | KeyEvent.ALT_DOWN_MASK)
         );
 
@@ -179,14 +179,14 @@ public class AppMenuBar extends JMenuBar {
 
         configure.add(
             withMnemonics(
-                withShortCut(withIcon(Utils.createMenuItem("Run Settings", sActionListener))),
-                'R'
+                withShortCut(withIcon(Utils.createMenuItem("Settings", sActionListener))),
+                'S'
             )
         );
         configure.add(
             withMnemonics(
-                withIcon(Utils.createMenuItem("Browser Configuration", sActionListener)),
-                'B'
+                withIcon(Utils.createMenuItem("Archetype Configurations", sActionListener)),
+                'A'
             )
         );
         //   configure.add(
@@ -261,6 +261,15 @@ public class AppMenuBar extends JMenuBar {
             Utils.createMenuItem("Java (.java, .jsh)", sActionListener, "Import SAP Recording:Java")
         );
         tools.add(sapOptionsMenu);
+
+        JMenu importCollectionMenu = new JMenu("Import Collection");
+        importCollectionMenu.add(
+            Utils.createMenuItem("Postman", sActionListener, "Import Collection:Postman")
+        );
+        importCollectionMenu.add(
+            Utils.createMenuItem("Bruno", sActionListener, "Import Collection:Bruno")
+        );
+        tools.add(importCollectionMenu);
 
         tools.add(
             withMnemonics(withShortCut(Utils.createMenuItem("Har Compare", sActionListener)), 'H')

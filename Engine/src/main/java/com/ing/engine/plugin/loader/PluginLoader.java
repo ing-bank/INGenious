@@ -79,7 +79,6 @@ public class PluginLoader {
                     .log(System.Logger.Level.ERROR, (String) null, ex);
             }
         }
-        System.out.println(classes);
         return classes;
     }
 
@@ -137,6 +136,6 @@ public class PluginLoader {
                 }
             }
         }
-        throw new IllegalStateException("No Plugin-Entry-Classes attribute found in manifest");
+        throw new IllegalStateException("No pluginEntryClasses attribute found in manifest");
     }
 }

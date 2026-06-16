@@ -92,9 +92,10 @@ public class RequestPanel extends JPanel {
         urlField.setFont(new Font(Font.MONOSPACED, Font.PLAIN, 13));
         urlField.putClientProperty(
             "JTextField.placeholderText",
-            "Enter request URL (e.g., https://api.example.com/users)"
+            "Enter request URL or paste a curl command"
         );
         urlField.setPreferredSize(new Dimension(100, 36));
+        installCurlPasteHandler(urlField);
 
         // Send button
         sendButton = new JButton("Send");
@@ -377,6 +378,102 @@ public class RequestPanel extends JPanel {
         } catch (Exception e) {
             return "Request";
         }
+    }
+
+    // ═══════════════════════════════════════════════════════════════════
+    // Curl paste support
+    // ═══════════════════════════════════════════════════════════════════
+
+    /**
+     * Installs a {@link TransferHandler} on the URL field that intercepts paste
+     * (and drag-and-drop) of text that looks like a {@code curl} command. When
+     * detected, the entire request is rebuilt from the curl command — mirroring
+     * the behaviour of Postman's URL bar. Non-curl text falls through to the
+     * default text-field paste behaviour.
+     */
+    private void installCurlPasteHandler(JTextField field) {
+        final TransferHandler delegate = field.getTransferHandler();
+        field.setTransferHandler(
+            new TransferHandler() {
+
+                @Override
+                public boolean canImport(TransferSupport support) {
+                    return (
+                        support.isDataFlavorSupported(
+                            java.awt.datatransfer.DataFlavor.stringFlavor
+                        ) ||
+                        (delegate != null && delegate.canImport(support))
+                    );
+                }
+
+                @Override
+                public boolean importData(TransferSupport support) {
+                    if (
+                        support.isDataFlavorSupported(java.awt.datatransfer.DataFlavor.stringFlavor)
+                    ) {
+                        try {
+                            String text = (String) support
+                                .getTransferable()
+                                .getTransferData(java.awt.datatransfer.DataFlavor.stringFlavor);
+                            if (com.ing.datalib.api.CurlParser.looksLikeCurl(text)) {
+                                applyCurlCommand(text);
+                                return true;
+                            }
+                        } catch (Exception ignore) {
+                            // Fall through to default handler below.
+                        }
+                    }
+                    return delegate != null && delegate.importData(support);
+                }
+
+                @Override
+                public int getSourceActions(JComponent c) {
+                    return delegate != null ? delegate.getSourceActions(c) : COPY;
+                }
+            }
+        );
+    }
+
+    /**
+     * Parses {@code curlCommand} and applies the resulting request to the form
+     * and the underlying current request model.
+     */
+    private void applyCurlCommand(String curlCommand) {
+        try {
+            APIRequest parsed = com.ing.datalib.api.CurlParser.parse(curlCommand);
+            APIRequest current = parent.getCurrentRequest();
+            if (current != null) {
+                // Preserve identity/name so the user doesn't lose their saved request entry.
+                parsed.setId(current.getId());
+                if (current.getName() != null && !current.getName().isEmpty()) {
+                    parsed.setName(current.getName());
+                }
+                copyRequestFields(parsed, current);
+            }
+            loadRequest(parsed);
+        } catch (Exception ex) {
+            JOptionPane.showMessageDialog(
+                this,
+                "Could not parse curl command: " + ex.getMessage(),
+                "Invalid curl",
+                JOptionPane.WARNING_MESSAGE
+            );
+        }
+    }
+
+    /**
+     * Copies parsed fields onto the existing current-request instance so any
+     * listeners holding the original reference observe the change.
+     */
+    private void copyRequestFields(APIRequest src, APIRequest dst) {
+        dst.setMethod(src.getMethod());
+        dst.setUrl(src.getUrl());
+        dst.setHeaders(src.getHeaders());
+        dst.setQueryParams(src.getQueryParams());
+        dst.setBody(src.getBody());
+        dst.setAuth(src.getAuth());
+        dst.setFollowRedirects(src.isFollowRedirects());
+        dst.setSslVerificationEnabled(src.isSslVerificationEnabled());
     }
 
     /**

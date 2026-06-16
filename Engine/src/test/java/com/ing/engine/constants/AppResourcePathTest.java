@@ -80,13 +80,6 @@ public class AppResourcePathTest {
         assertThat(path).contains("Configuration");
     }
 
-    @Test
-    public void testGetChromeEmulatorsFile() {
-        String path = AppResourcePath.getChromeEmulatorsFile();
-        assertThat(path).endsWith("chrome-emulators.json");
-        assertThat(path).contains("Configuration");
-    }
-
     // ── Report template paths ───────────────────────────────────────────
 
     @Test

@@ -43,10 +43,15 @@ import com.ing.ide.main.utils.tree.TreeSelectionRenderer;
 import com.ing.ide.settings.IconSettings;
 import com.ing.ide.util.Notification;
 import com.ing.ide.util.Validator;
+import java.awt.Color;
 import java.awt.Component;
 import java.awt.Font;
 import java.awt.FontFormatException;
+import java.awt.FontMetrics;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
 import java.awt.GraphicsEnvironment;
+import java.awt.RenderingHints;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -73,6 +78,7 @@ import javax.swing.JOptionPane;
 import javax.swing.JTree;
 import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
+import javax.swing.UIManager;
 import javax.swing.event.CellEditorListener;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.PopupMenuEvent;
@@ -287,6 +293,11 @@ public abstract class ObjectTree implements ActionListener {
         }
         tree.setFont(new Font("ING Me", Font.PLAIN, 11));
         new TreeSelectionRenderer(tree) {
+            // State for the pill — updated on each getTreeCellRendererComponent call
+            private int pillCount = 0;
+            private boolean showPill = false;
+            private String pageNameForPill = "";
+            private int pillWidth = 0; // computed in getTreeCellRendererComponent, used in getPreferredSize
 
             @Override
             public Component getTreeCellRendererComponent(
@@ -308,15 +319,87 @@ public abstract class ObjectTree implements ActionListener {
                     focused
                 );
                 if (value instanceof ORPageInf) {
+                    ORPageInf page = (ORPageInf) value;
+                    int objCount = 0;
+                    for (Object g : page.getObjectGroups()) {
+                        objCount += ((ObjectGroup) g).getObjects().size();
+                    }
+                    pillCount = objCount;
+                    pageNameForPill = page.getName();
+                    showPill = true;
+                    // Pre-compute pill width so getPreferredSize can reserve room for it
+                    FontMetrics fm = getFontMetrics(getFont().deriveFont(Font.BOLD, 9.5f));
+                    pillWidth = Math.max(fm.stringWidth(String.valueOf(objCount)) + 12, 20);
+                    setText(page.getName());
                     setIcons(IconSettings.getIconSettings().getORPage());
                 } else if (value instanceof ObjectGroup) {
+                    showPill = false;
+                    pillWidth = 0;
                     setIcons(IconSettings.getIconSettings().getIORGroup());
                 } else if (value instanceof ORObjectInf) {
+                    showPill = false;
+                    pillWidth = 0;
                     setIcons(IconSettings.getIconSettings().getORObject());
                 } else {
+                    showPill = false;
+                    pillWidth = 0;
                     setIcons(IconSettings.getIconSettings().getORRoot());
                 }
                 return c;
+            }
+
+            @Override
+            public java.awt.Dimension getPreferredSize() {
+                java.awt.Dimension d = super.getPreferredSize();
+                if (showPill && pillWidth > 0) {
+                    // Grow only by what the pill actually needs (gap + pill + right padding)
+                    return new java.awt.Dimension(d.width + 8 + pillWidth + 4, d.height);
+                }
+                return d;
+            }
+
+            @Override
+            protected void paintComponent(Graphics g) {
+                super.paintComponent(g);
+                if (!showPill) return;
+
+                Graphics2D g2 = (Graphics2D) g.create();
+                g2.setRenderingHint(
+                    RenderingHints.KEY_ANTIALIASING,
+                    RenderingHints.VALUE_ANTIALIAS_ON
+                );
+                g2.setRenderingHint(
+                    RenderingHints.KEY_TEXT_ANTIALIASING,
+                    RenderingHints.VALUE_TEXT_ANTIALIAS_ON
+                );
+
+                String countStr = String.valueOf(pillCount);
+                Font pillFont = getFont().deriveFont(Font.BOLD, 9.5f);
+                FontMetrics pillFm = g2.getFontMetrics(pillFont);
+                int textW = pillFm.stringWidth(countStr);
+                int pillH = 14;
+                int pillW = Math.max(textW + 12, 20);
+
+                // Place pill immediately after the page-name label text with a small gap
+                int iconW = (getIcon() != null) ? getIcon().getIconWidth() + getIconTextGap() : 4;
+                FontMetrics nameFm = g2.getFontMetrics(getFont());
+                int nameW = nameFm.stringWidth(pageNameForPill);
+                int pillX = getInsets().left + iconW + nameW + 8;
+                int pillY = (getHeight() - pillH) / 2;
+
+                // Fixed subtle lavender pill, black text
+                Color pillBg = new Color(0xF1, 0xE9, 0xFF);
+
+                g2.setColor(pillBg);
+                g2.fillRoundRect(pillX, pillY, pillW, pillH, pillH, pillH);
+
+                g2.setFont(pillFont);
+                g2.setColor(Color.BLACK);
+                int textX = pillX + (pillW - textW) / 2;
+                int textY = pillY + (pillH - pillFm.getHeight()) / 2 + pillFm.getAscent();
+                g2.drawString(countStr, textX, textY);
+
+                g2.dispose();
             }
 
             void setIcons(Icon icon) {
@@ -1083,7 +1166,23 @@ public abstract class ObjectTree implements ActionListener {
     }
 
     public void reload() {
+        // Preserve expanded pages so that reload() does not collapse the whole tree
+        Set<ORPageInf> expandedPages = new HashSet<>();
+        ORRootInf root = getOR();
+        Enumeration<TreePath> expanded = tree.getExpandedDescendants(new TreePath(root));
+        if (expanded != null) {
+            while (expanded.hasMoreElements()) {
+                TreePath path = expanded.nextElement();
+                Object node = path.getLastPathComponent();
+                if (node instanceof ORPageInf) {
+                    expandedPages.add((ORPageInf) node);
+                }
+            }
+        }
         ((DefaultTreeModel) tree.getModel()).reload();
+        for (ORPageInf page : expandedPages) {
+            tree.expandPath(page.getTreePath());
+        }
     }
 
     public abstract ORRootInf getOR();
@@ -1492,8 +1591,6 @@ public abstract class ObjectTree implements ActionListener {
                     tree.setSelectionPath(path);
                     tree.scrollPathToVisible(path);
                     loadTableModelForSelection();
-                    tree.removeSelectionPath(path);
-                    tree.addSelectionPaths(new TreePath[] { path.getParentPath(), path });
                 }
             }
         );
@@ -1780,6 +1877,7 @@ public abstract class ObjectTree implements ActionListener {
                     cloned.setParent(newGroup);
                     srcObj.clone(cloned);
                     newGroup.getObjects().add(cloned);
+                    pastedObject = cloned;
                 }
                 targetPage.getObjectGroups().add(newGroup);
                 ((WebOR) currentOR).setSaved(false);
@@ -1802,6 +1900,7 @@ public abstract class ObjectTree implements ActionListener {
                     cloned.setParent(newGroup);
                     srcObj.clone(cloned);
                     newGroup.getObjects().add(cloned);
+                    pastedObject = cloned;
                 }
                 targetPage.getObjectGroups().add(newGroup);
                 ((MobileOR) currentOR).setSaved(false);
@@ -1847,6 +1946,7 @@ public abstract class ObjectTree implements ActionListener {
                     cloned.setParent(newGroup);
                     srcObj.clone(cloned);
                     newGroup.getObjects().add(cloned);
+                    pastedObject = cloned;
                 }
                 targetPage.getObjectGroups().add(newGroup);
                 ((SapOR) currentOR).setSaved(false);
@@ -1872,6 +1972,10 @@ public abstract class ObjectTree implements ActionListener {
                 }
             }
             reload();
+            if (pastedObject != null) {
+                final ORObjectInf highlight = pastedObject;
+                SwingUtilities.invokeLater(() -> selectAndSrollTo(highlight.getTreePath()));
+            }
             return;
         }
         if (

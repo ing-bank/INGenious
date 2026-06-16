@@ -44,8 +44,6 @@ public class AppResourcePath {
 
     private static final String ENC = ".enc";
 
-    private static final String CHROME_EMULATOR_FILE = "chrome-emulators.json";
-
     private static final String ADDON_LOCATION = "Extensions";
 
     private static final String FF_ADDON = "FireFox" + File.separator + "ingenious.xpi";
@@ -86,10 +84,6 @@ public class AppResourcePath {
 
     public static String getExplorerConfig() {
         return getConfigurationPath() + File.separator + EXPLORER_CONFIG;
-    }
-
-    public static String getChromeEmulatorsFile() {
-        return getConfigurationPath() + File.separator + CHROME_EMULATOR_FILE;
     }
 
     public static String getReportThemePreviewPath() {

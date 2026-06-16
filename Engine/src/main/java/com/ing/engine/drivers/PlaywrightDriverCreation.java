@@ -1,6 +1,5 @@
 package com.ing.engine.drivers;
 
-import com.ing.datalib.settings.emulators.Emulator;
 import com.ing.engine.constants.FilePath;
 import com.ing.engine.core.Control;
 import com.ing.engine.core.RunContext;
@@ -180,18 +179,8 @@ public class PlaywrightDriverCreation implements PlaywrightDriverCreationApi {
     }
 
     public String getDriverName(String browserName) {
-        try {
-            Emulator emulator = Control
-                .getCurrentProject()
-                .getProjectSettings()
-                .getEmulators()
-                .getEmulator(browserName);
-            if (emulator != null) {
-                return emulator.getDriver();
-            }
-        } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.OFF, null, ex);
-        }
+        // Devices no longer carry a separate "Driver" field; the browser/device
+        // name is sufficient for downstream lookups.
         return browserName;
     }
 

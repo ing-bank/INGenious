@@ -58,6 +58,9 @@ public class StructuredDataORTable extends JPanel implements ActionListener {
     }
 
     public void loadObject(StructuredDataORObject object) {
+        if (table.isEditing()) {
+            table.getCellEditor().stopCellEditing();
+        }
         table.setModel(object);
         configureColumns();
 

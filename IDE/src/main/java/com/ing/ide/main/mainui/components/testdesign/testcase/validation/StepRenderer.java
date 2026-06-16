@@ -21,7 +21,10 @@ public class StepRenderer extends AbstractRenderer {
     }
 
     private Color getColor(TestStep step) {
-        if (step.isCommented()) {
+        if (step.isNewlyRecorded()) {
+            Color c = UIManager.getColor("ing.newlyRecordedForeground");
+            return c != null ? c : new Color(0, 153, 51);
+        } else if (step.isCommented()) {
             Color c = UIManager.getColor("ing.commentedForeground");
             return c != null ? c : Color.lightGray;
         } else if (step.hasBreakPoint()) {
@@ -29,5 +32,11 @@ public class StepRenderer extends AbstractRenderer {
             return c != null ? c : Color.BLUE;
         }
         return UIManager.getColor("text");
+    }
+
+    @Override
+    protected Object getColumnValue(TestStep step) {
+        // StepRenderer never flags a validation error; value is unused.
+        return step.getObject();
     }
 }

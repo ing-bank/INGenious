@@ -52,4 +52,9 @@ public class ConditionRenderer extends AbstractRenderer {
                 return wsColor != null ? wsColor : new Color(204, 0, 255);
         }
     }
+
+    @Override
+    protected Object getColumnValue(TestStep step) {
+        return step.getCondition();
+    }
 }

@@ -46,7 +46,7 @@ public class TestDataNotFoundException extends DataNotFoundException {
     public static String getTemplate(Boolean isReusable) {
         return (
             "{0} \n[Env : {1} | Sheet : {2} | Field : {3} | TestCase : {4}/{5}" +
-            (isReusable ? " | Reusabe : {6}/{7} ]" : " ]")
+            (isReusable ? " | Reusable : {6}/{7} ]" : " ]")
         );
     }
 }

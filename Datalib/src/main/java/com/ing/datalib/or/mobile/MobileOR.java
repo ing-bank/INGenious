@@ -24,6 +24,45 @@ import javax.swing.tree.TreeNode;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JacksonXmlRootElement(localName = "Root")
 public class MobileOR implements ORRootInf<MobileORPage> {
+    /**
+     * Default locator properties shown in the Android Properties view.
+     */
+    public static final List<String> ANDROID_PROPS = Collections.unmodifiableList(
+        Arrays.asList(
+            "UiAutomator",
+            "id",
+            "Accessibility",
+            "xpath",
+            "css",
+            "name",
+            "tagName",
+            "link_text",
+            "class"
+        )
+    );
+
+    /**
+     * Default locator properties shown in the iOS Properties view.
+     */
+    public static final List<String> IOS_PROPS = Collections.unmodifiableList(
+        Arrays.asList(
+            "UiAutomation",
+            "id",
+            "Accessibility",
+            "xpath",
+            "css",
+            "name",
+            "tagName",
+            "link_text",
+            "class"
+        )
+    );
+
+    /**
+     * Union of all default locator properties across platforms.
+     * Retained for backward compatibility (used as a guard against accidental
+     * removal of seeded attributes).
+     */
     public static final List<String> OBJECT_PROPS = new ArrayList<>(
         Arrays.asList(
             "UiAutomator",
@@ -38,6 +77,10 @@ public class MobileOR implements ORRootInf<MobileORPage> {
             "class"
         )
     );
+
+    public static List<String> defaultPropsFor(MobilePlatform platform) {
+        return platform == MobilePlatform.IOS ? IOS_PROPS : ANDROID_PROPS;
+    }
 
     @JacksonXmlProperty(isAttribute = true, localName = "ref")
     private String name;

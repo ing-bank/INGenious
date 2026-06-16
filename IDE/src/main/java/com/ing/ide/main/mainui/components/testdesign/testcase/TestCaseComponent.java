@@ -7,15 +7,20 @@ import com.ing.datalib.component.TestCase;
 import com.ing.datalib.component.TestStep;
 import com.ing.datalib.component.TestStep.HEADERS;
 import com.ing.datalib.component.utils.SaveListener;
+import com.ing.datalib.or.web.WebORPage;
 import com.ing.engine.constants.SystemDefaults;
+import com.ing.engine.core.LiveRecordingHook;
+import com.ing.engine.core.LiveRecordingService;
 import com.ing.engine.core.RunManager;
 import com.ing.engine.support.methodInf.MethodInfoManager;
 import com.ing.ide.main.mainui.AppMainFrame;
 import com.ing.ide.main.mainui.EngineConfig;
+import com.ing.ide.main.mainui.components.testdesign.ReusableComponentDialog;
 import com.ing.ide.main.mainui.components.testdesign.TestDesign;
-import com.ing.ide.main.playwrightrecording.ClipboardMonitor;
-import com.ing.ide.main.playwrightrecording.PlaywrightSpinner;
-import com.ing.ide.main.playwrightrecording.RecordedStepsImportDialog;
+import com.ing.ide.main.playwrightrecording.InspectorWindowController;
+import com.ing.ide.main.playwrightrecording.LiveRecordingParser;
+import com.ing.ide.main.playwrightrecording.PlaywrightRecordingParser;
+import com.ing.ide.main.playwrightrecording.RecordingTargetDialog;
 import com.ing.ide.main.utils.AppIcon;
 import com.ing.ide.main.utils.ConsolePanel;
 import com.ing.ide.main.utils.MenuScroller;
@@ -47,15 +52,12 @@ import java.io.InputStreamReader;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
-import java.util.Arrays;
-import java.util.Comparator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Objects;
 import java.util.concurrent.CompletableFuture;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.stream.Collectors;
 import javax.swing.AbstractAction;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
@@ -96,6 +98,9 @@ import javax.swing.table.TableCellRenderer;
  * </p>
  */
 public class TestCaseComponent extends JPanel implements ActionListener {
+    private static final String PLAYWRIGHT_INSTALL_HINT =
+        "mvn exec:java -e -D exec.mainClass=com.microsoft.playwright.CLI -D exec.args=\"install\"";
+
     private final TestDesign testDesign;
 
     private final TestCaseToolBar toolBar;
@@ -124,11 +129,26 @@ public class TestCaseComponent extends JPanel implements ActionListener {
 
     private final AppMainFrame sMainFrame;
 
-    private ClipboardMonitor monitor;
-
     private CompletableFuture<Void> launchPlaywrightTask;
 
     private boolean globalShortcutsRegistered = false;
+    private volatile Process activePlaywrightProcess;
+
+    private volatile Thread liveRecordingWatcherThread;
+
+    private volatile boolean recorderReadySignaled;
+
+    private volatile boolean liveRecordingFinalized;
+
+    private volatile boolean stopRequested;
+
+    private volatile File liveRecordingOutputFile;
+
+    private volatile LiveRecordingParser liveRecordingParser;
+
+    private volatile TestCase liveRecordingTarget;
+
+    private volatile String liveRecordingPageName;
 
     public static long INSTANCE_START_TIME;
 
@@ -145,6 +165,7 @@ public class TestCaseComponent extends JPanel implements ActionListener {
         testCaseHistory = new TCHistory();
         validator = new TestCaseValidator(testCaseTable);
         init();
+        LiveRecordingService.setHook(new RecordFromHereHook());
     }
 
     private void init() {
@@ -330,9 +351,17 @@ public class TestCaseComponent extends JPanel implements ActionListener {
     }
 
     public void loadBrowsers() {
-        toolBar.loadBrowsers(
+        java.util.List<String> names = new java.util.ArrayList<>(
             testDesign.getProject().getProjectSettings().getEmulators().getEmulatorNames()
         );
+        for (String d : testDesign
+            .getProject()
+            .getProjectSettings()
+            .getDevices()
+            .getDeviceNames()) {
+            if (!names.contains(d)) names.add(d);
+        }
+        toolBar.loadBrowsers(names);
     }
 
     private void initTableListeners() {
@@ -489,6 +518,7 @@ public class TestCaseComponent extends JPanel implements ActionListener {
                 @Override
                 public void onSave(Boolean bln) {
                     changeSave(bln);
+                    refreshTreeValidation();
                 }
             };
 
@@ -613,6 +643,12 @@ public class TestCaseComponent extends JPanel implements ActionListener {
             case "Parameterize":
                 parameterizeSelectedSteps();
                 break;
+            case "Hard Assertion":
+                setHardAssertion(true);
+                break;
+            case "Soft Assertion":
+                setHardAssertion(false);
+                break;
             case "Up One Level":
                 loadTableModelForSelection(testCaseHistory.visit());
                 break;
@@ -629,57 +665,200 @@ public class TestCaseComponent extends JPanel implements ActionListener {
     }
 
     public void record() throws IOException {
-        String projectLocation = sMainFrame.getProject().getLocation();
+        if (toolBar.isRecording()) {
+            stopPlaywrightRecording();
+            return;
+        }
+
+        if (launchPlaywrightTask != null && !launchPlaywrightTask.isDone()) {
+            logPlaywright("Playwright recorder is already running.");
+            SwingUtilities.invokeLater(() -> toolBar.enableRecordButton());
+            return;
+        }
+
+        RecordingTargetDialog.Selection selection = RecordingTargetDialog.showDialog(
+            this,
+            testDesign.getProject(),
+            getCurrentTestCase()
+        );
+        if (selection == null) {
+            SwingUtilities.invokeLater(() -> toolBar.enableRecordButton());
+            return;
+        }
+
+        TestCase target = resolveRecordingTarget(selection);
+        if (target == null) {
+            JOptionPane.showMessageDialog(
+                this,
+                "Unable to resolve recording target.",
+                "Playwright Recorder",
+                JOptionPane.WARNING_MESSAGE
+            );
+            SwingUtilities.invokeLater(() -> toolBar.enableRecordButton());
+            return;
+        }
+
+        loadTableModelForSelection(target);
+        liveRecordingTarget = target;
+        liveRecordingFinalized = false;
+        stopRequested = false;
+        recorderReadySignaled = false;
         INSTANCE_START_TIME = System.currentTimeMillis();
-        if (launchPlaywrightTask == null || launchPlaywrightTask.isDone()) {
-            PlaywrightSpinner playwrightSpinnerGUI = new PlaywrightSpinner();
 
-            launchPlaywrightTask =
-                CompletableFuture.runAsync(
-                    () -> {
-                        try {
-                            launchPlaywright(playwrightSpinnerGUI);
-                        } catch (IOException ex) {
-                            Logger
-                                .getLogger(TestCaseComponent.class.getName())
-                                .log(Level.SEVERE, "Error launching Playwright", ex);
-                        }
-                    }
-                );
+        int firstInsertIndex = firstEmptyRowIndex(target);
+        PlaywrightRecordingParser baseParser = new PlaywrightRecordingParser(sMainFrame);
+        WebORPage objectPage = baseParser.createLiveRecordingPage(target.getName());
+        liveRecordingPageName = baseParser.getLiveRecordingPageName();
+        String reference = "[Project] " + liveRecordingPageName;
+        liveRecordingParser =
+            new LiveRecordingParser(baseParser, target, firstInsertIndex, reference, objectPage);
 
-            CompletableFuture<Void> playwrightLoading = CompletableFuture.runAsync(
+        liveRecordingOutputFile = prepareLiveRecordingOutputFile();
+
+        toolBar.setConsoleVisible(true);
+        consoleDialog.clear();
+        consoleDialog.showConsole();
+        logPlaywright("🎬 Playwright Recording is being initiated...");
+        logPlaywright(
+            "============================== Playwright Log Started =============================="
+        );
+
+        startLiveRecordingWatcher();
+
+        launchPlaywrightTask =
+            CompletableFuture.runAsync(
                 () -> {
                     try {
-                        playwrightLoading(playwrightSpinnerGUI);
-                    } catch (Exception ex) {
+                        launchPlaywright(liveRecordingOutputFile);
+                    } catch (IOException ex) {
+                        logPlaywrightError("Error launching Playwright: " + ex.getMessage());
                         Logger
                             .getLogger(TestCaseComponent.class.getName())
-                            .log(Level.WARNING, "Error in playwright loading UI", ex);
+                            .log(Level.SEVERE, "Error launching Playwright", ex);
+                    } finally {
+                        finalizeLiveRecording();
                     }
                 }
             );
-            CompletableFuture
-                .allOf(launchPlaywrightTask, playwrightLoading)
-                .whenComplete(
-                    (result, throwable) -> {
-                        if (throwable != null) {
-                            Logger
-                                .getLogger(TestCaseComponent.class.getName())
-                                .log(Level.SEVERE, "Playwright tasks failed", throwable);
-                        }
-                        SwingUtilities.invokeLater(() -> toolBar.enableRecordButton());
-                    }
-                );
-        } else {
-            System.out.println("Playwright is already running. Skipping duplicate launch.");
-            SwingUtilities.invokeLater(() -> toolBar.enableRecordButton());
+    }
+
+    /**
+     * Live recording hook used by the Engine's {@code RecordFromHere} action. When a running test
+     * case reaches a {@code RecordFromHere} step, the Engine enables the Playwright recorder on the
+     * live browser context and notifies this hook so the recorded steps are appended into the
+     * editor in real time (highlighted green) from the current step onwards.
+     */
+    private class RecordFromHereHook implements LiveRecordingHook {
+
+        @Override
+        public String onRecordingStarted(TestCase engineTestCase, int insertAfterStepIndex) {
+            final TestCase target = resolveHookTarget(engineTestCase);
+            if (target == null) {
+                Logger
+                    .getLogger(TestCaseComponent.class.getName())
+                    .log(Level.WARNING, "RecordFromHere: unable to resolve editable test case.");
+                return null;
+            }
+
+            final int firstInsertIndex = Math.max(insertAfterStepIndex + 1, 0);
+            final java.util.concurrent.atomic.AtomicReference<File> fileRef = new java.util.concurrent.atomic.AtomicReference<>();
+
+            Runnable setup = () -> {
+                try {
+                    loadTableModelForSelection(target);
+                    liveRecordingTarget = target;
+                    liveRecordingFinalized = false;
+                    stopRequested = false;
+                    recorderReadySignaled = false;
+                    INSTANCE_START_TIME = System.currentTimeMillis();
+
+                    PlaywrightRecordingParser baseParser = new PlaywrightRecordingParser(
+                        sMainFrame
+                    );
+                    WebORPage objectPage = baseParser.createLiveRecordingPage(target.getName());
+                    liveRecordingPageName = baseParser.getLiveRecordingPageName();
+                    String reference = "[Project] " + liveRecordingPageName;
+                    liveRecordingParser =
+                        new LiveRecordingParser(
+                            baseParser,
+                            target,
+                            firstInsertIndex,
+                            reference,
+                            objectPage
+                        );
+
+                    liveRecordingOutputFile = prepareLiveRecordingOutputFile();
+
+                    toolBar.setConsoleVisible(true);
+                    consoleDialog.clear();
+                    consoleDialog.showConsole();
+                    logPlaywright("🎬 Recording from current step...");
+                    startLiveRecordingWatcher();
+                    fileRef.set(liveRecordingOutputFile);
+                } catch (Exception ex) {
+                    Logger
+                        .getLogger(TestCaseComponent.class.getName())
+                        .log(Level.SEVERE, "Unable to start live recording for RecordFromHere", ex);
+                }
+            };
+
+            try {
+                if (SwingUtilities.isEventDispatchThread()) {
+                    setup.run();
+                } else {
+                    SwingUtilities.invokeAndWait(setup);
+                }
+            } catch (Exception ex) {
+                Logger
+                    .getLogger(TestCaseComponent.class.getName())
+                    .log(Level.WARNING, "RecordFromHere setup failed", ex);
+                return null;
+            }
+
+            File file = fileRef.get();
+            return file == null ? null : file.getAbsolutePath();
+        }
+
+        @Override
+        public void onRecordingReady() {
+            if (!recorderReadySignaled) {
+                onRecorderReady();
+            }
+        }
+
+        @Override
+        public void onRecordingStopped() {
+            finalizeLiveRecording();
         }
     }
 
-    public Process startPlaywrightProcess(
-        String processName,
-        PlaywrightSpinner playwrightSpinnerGUI
-    ) {
+    /**
+     * Maps the Engine's (copied) running test case back to the editable project test case so
+     * recorded steps and saves apply to the persistent model shown in the editor.
+     */
+    private TestCase resolveHookTarget(TestCase engineTestCase) {
+        if (engineTestCase == null) {
+            return null;
+        }
+
+        Scenario engineScenario = engineTestCase.getScenario();
+        String scenarioName = engineScenario != null ? engineScenario.getName() : null;
+        String testCaseName = engineTestCase.getName();
+        if (scenarioName == null || testCaseName == null) {
+            return null;
+        }
+
+        boolean reusable = engineScenario.isReusableScenario();
+        Scenario scenario = reusable
+            ? testDesign.getProject().getReusableScenarioByName(scenarioName)
+            : testDesign.getProject().getScenarioByName(scenarioName);
+        if (scenario == null) {
+            return null;
+        }
+        return scenario.getTestCaseByName(testCaseName);
+    }
+
+    public Process startPlaywrightProcess(String processArgs) {
         try {
             String osName = System.getProperty("os.name").toLowerCase();
             String classpath;
@@ -710,7 +889,7 @@ public class TestCaseComponent extends JPanel implements ActionListener {
             String javaCommand = String.format(
                 "java -cp \"%s\" com.microsoft.playwright.CLI %s",
                 classpath,
-                processName
+                processArgs
             );
             String[] command = osName.contains("windows")
                 ? new String[] { "cmd", "/c", javaCommand }
@@ -719,6 +898,9 @@ public class TestCaseComponent extends JPanel implements ActionListener {
             return Runtime.getRuntime().exec(command);
         } catch (Exception ex) {
             System.out.println("Error starting Playwright process: " + ex.getMessage());
+            return new ProcessBuilder(command).redirectErrorStream(true).start();
+        } catch (Exception ex) {
+            logPlaywrightError("Error starting Playwright process: " + ex.getMessage());
         }
         return null;
     }
@@ -780,25 +962,143 @@ public class TestCaseComponent extends JPanel implements ActionListener {
                     playwrightInstall.waitFor();
                 } catch (InterruptedException ex) {
                     Logger.getLogger(TestCaseComponent.class.getName()).log(Level.SEVERE, null, ex);
+    //    public void initialization(PlaywrightSpinner playwrightSpinnerGUI){
+    //        try{
+    //            String[] command = new String[0];
+    //            String osName = System.getProperty("os.name").toLowerCase();
+    //            if (osName.contains("windows")) {
+    //                // Windows command
+    //
+    //                command = new String[]{"cmd", "/c", "mvn initialize -f engine/pom.xml"};
+    //            } else if (osName.contains("mac")) {
+    //                // Mac command
+    //                command = new String[]{"bash", "-l", "-c", "mvn initialize -f engine/pom.xml"};
+    //            }
+    //           Runtime.getRuntime().exec(command);
+    //       }catch (Exception ex){
+    //         System.out.println(ex.getMessage());
+    //         //playwrightSpinnerGUI.appendLog(ex.getMessage());
+    //       }
+    //    }
+
+    public void launchPlaywright(File outputFile) throws IOException {
+        String escapedPath = outputFile
+            .getAbsolutePath()
+            .replace("\\", "\\\\")
+            .replace("\"", "\\\"");
+        String processArgs = "codegen --target java --output \"" + escapedPath + "\"";
+        runPlaywrightProcess(processArgs);
+        logPlaywright(
+            "============================== Playwright Log Ended =============================="
+        );
+    }
+
+    private Process runPlaywrightProcess(String processArgs) throws IOException {
+        Process process = startPlaywrightProcess(processArgs);
+        if (process == null) {
+            return null;
+        }
+
+        activePlaywrightProcess = process;
+
+        boolean codegenCommand = processArgs.trim().startsWith("codegen");
+
+        try (
+            BufferedReader processOutput = new BufferedReader(
+                new InputStreamReader(process.getInputStream())
+            )
+        ) {
+            String line;
+            while ((line = processOutput.readLine()) != null) {
+                logPlaywright(line);
+                if (codegenCommand && !recorderReadySignaled) {
+                    onRecorderReady();
                 }
-                startPlaywrightProcess("codegen", playwrightSpinnerGUI);
-                break;
+                if (codegenCommand && line.contains(PLAYWRIGHT_INSTALL_HINT)) {
+                    waitForProcess(process, "Playwright codegen");
+                    logPlaywright("Playwright browser binaries are missing. Starting install...");
+                    Process installProcess = runPlaywrightProcess("install");
+                    waitForProcess(installProcess, "Playwright install");
+                    logPlaywright("Playwright install completed. Restarting recorder...");
+                    return runPlaywrightProcess(processArgs);
+                }
             }
         }
         System.out.println(
             "============================== Playwright Log Ended =============================="
         );
 
-        new Thread(
-            () -> {
-                try {
-                    String projectLocation = sMainFrame.getProject().getLocation();
-                    launchRecorder.waitFor();
+        return process;
+    }
 
-                    File recordingDir = new File(projectLocation + File.separator + "Recording");
-                    File[] recordingFiles = recordingDir.listFiles(
-                        (dir, name) -> name.startsWith("recording_") && name.endsWith(".txt")
-                    );
+    private void waitForProcess(Process process, String processName) {
+        if (process == null) {
+            return;
+        }
+
+        try {
+            process.waitFor();
+        } catch (InterruptedException ex) {
+            Thread.currentThread().interrupt();
+            logPlaywrightError(processName + " wait interrupted: " + ex.getMessage());
+        }
+    }
+
+    private void logPlaywright(String message) {
+        System.out.println(message);
+        consoleDialog.appendLine(message);
+    }
+
+    private void logPlaywrightError(String message) {
+        System.err.println(message);
+        consoleDialog.appendErrorLine(message);
+    }
+
+    private void onRecorderReady() {
+        recorderReadySignaled = true;
+        SwingUtilities.invokeLater(
+            () -> {
+                consoleDialog.setVisible(false);
+                toolBar.setRecordingState(true);
+                toolBar.enableRecordButton();
+            }
+        );
+        CompletableFuture.runAsync(() -> InspectorWindowController.minimizeInspectorBestEffort());
+    }
+
+    private void stopPlaywrightRecording() {
+        stopRequested = true;
+        Process process = activePlaywrightProcess;
+        if (process != null && process.isAlive()) {
+            destroyProcessTree(process);
+        }
+        finalizeLiveRecording();
+    }
+
+    /**
+     * Forcibly terminates the Playwright process and all of its descendants. The codegen CLI
+     * spawns the "Google Chrome for Testing" browser as a child process, so destroying only the
+     * parent wrapper would leave that browser window open. Collecting descendants before
+     * destroying the parent ensures the browser window is closed too.
+     */
+    private void destroyProcessTree(Process process) {
+        if (process == null) {
+            return;
+        }
+        try {
+            List<ProcessHandle> descendants = process
+                .descendants()
+                .collect(java.util.stream.Collectors.toList());
+            process.destroyForcibly();
+            for (ProcessHandle handle : descendants) {
+                handle.destroyForcibly();
+            }
+        } catch (Exception ex) {
+            Logger
+                .getLogger(TestCaseComponent.class.getName())
+                .log(Level.WARNING, "Unable to terminate Playwright browser process tree", ex);
+        }
+    }
 
                     File latestFile = null;
                     if (recordingFiles != null && recordingFiles.length > 0) {
@@ -810,7 +1110,30 @@ public class TestCaseComponent extends JPanel implements ActionListener {
                         if (!filteredFiles.isEmpty()) {
                             latestFile = filteredFiles.get(0);
                         }
+    private void finalizeLiveRecording() {
+        synchronized (this) {
+            if (liveRecordingFinalized) {
+                return;
+            }
+            liveRecordingFinalized = true;
+        }
+
+        // Parse any remaining recorder output before shutting down watcher/parser state.
+        flushPendingLiveRecordingLines();
+
+        stopLiveRecordingWatcher();
+
+        if (liveRecordingParser != null && liveRecordingTarget != null) {
+            try {
+                Runnable finalizeTask = () -> {
+                    int updates = liveRecordingParser.finalizeDeferredInputs();
+                    liveRecordingTarget.save();
+                    testCaseTable.revalidate();
+                    testCaseTable.repaint();
+                    if (updates > 0) {
+                        logPlaywright("Updated " + updates + " deferred text input step(s).");
                     }
+                };
 
                     final File recordedFile = latestFile;
                     SwingUtilities.invokeLater(
@@ -827,22 +1150,269 @@ public class TestCaseComponent extends JPanel implements ActionListener {
                                     "You have closed the Playwright Recorder without copying the recorded steps. No recording has been saved for import.",
                                     "Playwright Recorder",
                                     JOptionPane.WARNING_MESSAGE
-                                );
-                            }
-                            monitor.stopMonitoring();
-                        }
-                    );
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
+                if (SwingUtilities.isEventDispatchThread()) {
+                    finalizeTask.run();
+                } else {
+                    SwingUtilities.invokeAndWait(finalizeTask);
                 }
+            } catch (Exception ex) {
+                Logger
+                    .getLogger(TestCaseComponent.class.getName())
+                    .log(Level.WARNING, "Unable to finalize live recording", ex);
             }
-        )
-        .start();
+        }
+
+        activePlaywrightProcess = null;
+        liveRecordingParser = null;
+        liveRecordingTarget = null;
+        liveRecordingOutputFile = null;
+        recorderReadySignaled = false;
+
+        SwingUtilities.invokeLater(
+            () -> {
+                toolBar.setRecordingState(false);
+                toolBar.enableRecordButton();
+            }
+        );
     }
 
-    public void playwrightLoading(PlaywrightSpinner playwrightSpinnerGUI) {
-        playwrightSpinnerGUI.setAlwaysOnTop(true);
-        playwrightSpinnerGUI.setVisible(true);
+    private void startLiveRecordingWatcher() {
+        if (liveRecordingOutputFile == null || liveRecordingParser == null) {
+            return;
+        }
+
+        liveRecordingWatcherThread =
+            new Thread(
+                () -> {
+                    while (!liveRecordingFinalized && !Thread.currentThread().isInterrupted()) {
+                        try {
+                            if (liveRecordingOutputFile.exists()) {
+                                List<String> lines = Files.readAllLines(
+                                    liveRecordingOutputFile.toPath()
+                                );
+                                if (!recorderReadySignaled && lines.size() > 0) {
+                                    onRecorderReady();
+                                }
+                                syncLiveRecording(lines);
+                            }
+                            Thread.sleep(300);
+                        } catch (InterruptedException ex) {
+                            Thread.currentThread().interrupt();
+                            break;
+                        } catch (Exception ex) {
+                            Logger
+                                .getLogger(TestCaseComponent.class.getName())
+                                .log(Level.WARNING, "Live recording watcher iteration failed", ex);
+                        }
+                    }
+                },
+                "playwright-live-recording-watcher"
+            );
+        liveRecordingWatcherThread.setDaemon(true);
+        liveRecordingWatcherThread.start();
+    }
+
+    private void stopLiveRecordingWatcher() {
+        Thread watcher = liveRecordingWatcherThread;
+        if (watcher != null) {
+            watcher.interrupt();
+        }
+        liveRecordingWatcherThread = null;
+    }
+
+    private void flushPendingLiveRecordingLines() {
+        if (liveRecordingOutputFile == null || !liveRecordingOutputFile.exists()) {
+            return;
+        }
+
+        try {
+            List<String> lines = Files.readAllLines(liveRecordingOutputFile.toPath());
+            syncLiveRecording(lines);
+        } catch (Exception ex) {
+            Logger
+                .getLogger(TestCaseComponent.class.getName())
+                .log(Level.WARNING, "Unable to flush pending live recording lines", ex);
+        }
+    }
+
+    private void syncLiveRecording(List<String> lines) {
+        if (liveRecordingParser == null || lines == null) {
+            return;
+        }
+
+        Runnable parserTask = () -> {
+            if (liveRecordingParser != null && liveRecordingTarget != null) {
+                boolean changed = liveRecordingParser.syncFromLines(lines, this::logPlaywright);
+                if (changed) {
+                    liveRecordingTarget.save();
+                    testCaseTable.revalidate();
+                    testCaseTable.repaint();
+                    testDesign.getObjectRepo().refreshWebOR(liveRecordingPageName);
+                }
+            }
+        };
+
+        try {
+            if (SwingUtilities.isEventDispatchThread()) {
+                parserTask.run();
+            } else {
+                SwingUtilities.invokeAndWait(parserTask);
+            }
+        } catch (Exception ex) {
+            Logger
+                .getLogger(TestCaseComponent.class.getName())
+                .log(Level.WARNING, "Unable to sync live recording", ex);
+        }
+    }
+
+    private TestCase resolveRecordingTarget(RecordingTargetDialog.Selection selection) {
+        if (selection == null) {
+            return null;
+        }
+
+        switch (selection.getMode()) {
+            case CURRENT_OPEN_TEST_CASE:
+                return getCurrentTestCase();
+            case NEW_TEST_SCENARIO:
+                return createOrResolveTarget(
+                    selection.getScenarioName(),
+                    selection.getTestCaseName(),
+                    false
+                );
+            case NEW_REUSABLE_SCENARIO:
+                return createOrResolveTarget(
+                    selection.getScenarioName(),
+                    selection.getTestCaseName(),
+                    true
+                );
+            case EXISTING_TEST_CASE:
+                return findExistingTarget(
+                    selection.getExistingScenarioName(),
+                    selection.getTestCaseName(),
+                    selection.isExistingReusable()
+                );
+            default:
+                return null;
+        }
+    }
+
+    private TestCase createOrResolveTarget(
+        String scenarioName,
+        String testCaseName,
+        boolean reusable
+    ) {
+        Scenario scenario = findScenarioByName(scenarioName, reusable);
+        if (scenario == null) {
+            scenario =
+                reusable
+                    ? testDesign.getProject().addReusableScenario(scenarioName)
+                    : testDesign.getProject().addScenario(scenarioName);
+        }
+        if (scenario == null) {
+            return null;
+        }
+
+        TestCase testCase = scenario.getTestCaseByName(testCaseName);
+        if (testCase == null) {
+            testCase = scenario.addTestCase(testCaseName);
+        }
+
+        registerTargetInTree(testCase, reusable);
+        return testCase;
+    }
+
+    /**
+     * Registers a newly created/resolved recording target in the project tree so it becomes
+     * visible immediately without requiring a full project reload.
+     */
+    private void registerTargetInTree(TestCase testCase, boolean reusable) {
+        if (testCase == null) {
+            return;
+        }
+        SwingUtilities.invokeLater(
+            () -> {
+                try {
+                    if (reusable) {
+                        testDesign.getReusableTree().getTreeModel().addTestCase(testCase);
+                    } else {
+                        testDesign.getProjectTree().getTreeModel().addTestCase(testCase);
+                    }
+                } catch (Exception ex) {
+                    Logger
+                        .getLogger(TestCaseComponent.class.getName())
+                        .log(Level.WARNING, "Unable to register recording target in tree", ex);
+                }
+            }
+        );
+    }
+
+    private TestCase findExistingTarget(
+        String scenarioName,
+        String testCaseName,
+        boolean reusable
+    ) {
+        Scenario scenario = findScenarioByName(scenarioName, reusable);
+        return scenario == null ? null : scenario.getTestCaseByName(testCaseName);
+    }
+
+    private Scenario findScenarioByName(String scenarioName, boolean reusable) {
+        List<Scenario> scenarios = reusable
+            ? testDesign.getProject().getReusableScenarios()
+            : testDesign.getProject().getScenarios();
+
+        for (Scenario scenario : scenarios) {
+            if (scenario.getName().equalsIgnoreCase(scenarioName)) {
+                return scenario;
+            }
+        }
+        return null;
+    }
+
+    private int firstEmptyRowIndex(TestCase testCase) {
+        if (testCase == null) {
+            return 0;
+        }
+
+        List<TestStep> steps = testCase.getTestSteps();
+        for (int i = 0; i < steps.size(); i++) {
+            TestStep step = steps.get(i);
+            if (isStepBlank(step)) {
+                return i;
+            }
+        }
+        return steps.size();
+    }
+
+    private boolean isStepBlank(TestStep step) {
+        return (
+            step == null ||
+            (
+                isBlank(step.getObject()) &&
+                isBlank(step.getAction()) &&
+                isBlank(step.getInput()) &&
+                isBlank(step.getCondition()) &&
+                isBlank(step.getReference()) &&
+                isBlank(step.getDescription())
+            )
+        );
+    }
+
+    private boolean isBlank(String value) {
+        return value == null || value.trim().isEmpty();
+    }
+
+    private File prepareLiveRecordingOutputFile() throws IOException {
+        File recordingDir = new File(
+            sMainFrame.getProject().getLocation() + File.separator + "Recording"
+        );
+        if (!recordingDir.exists()) {
+            recordingDir.mkdirs();
+        }
+        File output = new File(recordingDir, "live_recording_" + INSTANCE_START_TIME + ".java");
+        if (!output.exists()) {
+            output.createNewFile();
+        }
+        return output;
     }
 
     private void stopCellEditing() {
@@ -1000,6 +1570,13 @@ public class TestCaseComponent extends JPanel implements ActionListener {
         }
     }
 
+    private void setHardAssertion(boolean hard) {
+        stopCellEditing();
+        if (testCaseTable.getSelectedRows().length > 0) {
+            getCurrentTestCase().setHardAssertion(testCaseTable.getSelectedRows(), hard);
+        }
+    }
+
     private void openWithSystemEditor() {
         save();
         Utils.openWithSystemEditor(getCurrentTestCase().getLocation());
@@ -1008,7 +1585,43 @@ public class TestCaseComponent extends JPanel implements ActionListener {
     private void save() {
         stopCellEditing();
         populateDescription();
-        getCurrentTestCase().save();
+        TestCase current = getCurrentTestCase();
+        clearNewlyRecordedFlags(current);
+        current.save();
+    }
+
+    /**
+     * Repaints the Test Plan and Reusable Component trees so that scenario and
+     * test-case nodes are (re)marked in red whenever their validation state
+     * changes due to an edit or save.
+     */
+    private void refreshTreeValidation() {
+        if (testDesign.getProjectTree() != null) {
+            testDesign.getProjectTree().getTree().repaint();
+        }
+        if (testDesign.getReusableTree() != null) {
+            testDesign.getReusableTree().getTree().repaint();
+        }
+    }
+
+    /**
+     * Clears the transient "newly recorded" highlight so steps captured during live recording
+     * revert to the default colour once the user explicitly saves.
+     */
+    private void clearNewlyRecordedFlags(TestCase testCase) {
+        if (testCase == null) {
+            return;
+        }
+        boolean cleared = false;
+        for (TestStep testStep : testCase.getTestSteps()) {
+            if (testStep.isNewlyRecorded()) {
+                testStep.setNewlyRecorded(false);
+                cleared = true;
+            }
+        }
+        if (cleared) {
+            testCaseTable.repaint();
+        }
     }
 
     private void populateDescription() {
@@ -1048,13 +1661,30 @@ public class TestCaseComponent extends JPanel implements ActionListener {
         if (testCaseTable.getSelectedRowCount() > 0) {
             int from = testCaseTable.getSelectedRows()[0];
             int to = testCaseTable.getSelectedRows()[testCaseTable.getSelectedRowCount() - 1];
-            String name = JOptionPane.showInputDialog("Enter the Reusable Name");
-            if (name != null && !name.trim().isEmpty()) {
-                TestCase reusable = getCurrentTestCase().createAsReusable(name, from, to);
+            TestCase current = getCurrentTestCase();
+            ReusableComponentDialog.Result result = ReusableComponentDialog.prompt(
+                this,
+                current.getProject()
+            );
+            if (result != null) {
+                Scenario targetScenario = current
+                    .getProject()
+                    .getReusableScenarioByName(result.getScenarioName());
+                if (targetScenario == null) {
+                    targetScenario =
+                        current.getProject().addReusableScenario(result.getScenarioName());
+                }
+                TestCase reusable = current.createAsReusable(
+                    targetScenario,
+                    result.getReusableName(),
+                    from,
+                    to
+                );
                 if (reusable != null) {
+                    current.save();
                     testDesign.getReusableTree().getTreeModel().addTestCase(reusable);
                 } else {
-                    Notification.show("Couldn't Create Reusable - " + name);
+                    Notification.show("Couldn't Create Reusable - " + result.getReusableName());
                 }
             }
         }
@@ -1219,7 +1849,7 @@ public class TestCaseComponent extends JPanel implements ActionListener {
         public void showConsole() {
             if (!isVisible()) {
                 pack();
-                setSize(600, 400);
+                setSize(690, 400);
                 setLocationRelativeTo(null);
                 setVisible(true);
             } else {
@@ -1229,6 +1859,18 @@ public class TestCaseComponent extends JPanel implements ActionListener {
 
         public void start() {
             cPanel.start();
+        }
+
+        public void clear() {
+            cPanel.clear();
+        }
+
+        public void appendLine(String message) {
+            cPanel.appendLine(message);
+        }
+
+        public void appendErrorLine(String message) {
+            cPanel.appendErrorLine(message);
         }
     }
 

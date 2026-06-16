@@ -1,6 +1,9 @@
 package com.ing.datalib.component;
 
-import com.ing.datalib.component.TestStep.HEADERS;
+import com.ing.datalib.component.io.TestCaseFormat;
+import com.ing.datalib.component.io.TestCaseStore;
+import com.ing.datalib.component.io.TestCaseStoreFactory;
+import com.ing.datalib.component.io.YamlTestCaseStore;
 import com.ing.datalib.component.utils.FileUtils;
 import com.ing.datalib.component.utils.SaveListener;
 import com.ing.datalib.or.mobile.ResolvedMobileObject;
@@ -9,7 +12,6 @@ import com.ing.datalib.or.structureddata.ResolvedStructuredDataObject;
 import com.ing.datalib.or.web.ResolvedWebObject;
 import com.ing.datalib.or.web.WebOR.ORScope;
 import java.io.File;
-import java.io.FileWriter;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -17,9 +19,6 @@ import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.event.TableModelEvent;
-import org.apache.commons.csv.CSVFormat;
-import org.apache.commons.csv.CSVPrinter;
-import org.apache.commons.csv.CSVRecord;
 
 /**
  * Represents a test case composed of ordered {@link TestStep} entries and implements a table model
@@ -63,11 +62,7 @@ public class TestCase extends DataModel {
 
     public TestCase(Scenario scenario, String name) {
         this.scenario = scenario;
-        if (name.endsWith(".csv")) {
-            this.name = name.substring(0, name.lastIndexOf(".csv"));
-        } else {
-            this.name = name;
-        }
+        this.name = TestCaseFormat.stripExtension(name);
     }
 
     public Project getProject() {
@@ -215,6 +210,24 @@ public class TestCase extends DataModel {
         stopGroupEdit();
     }
 
+    /**
+     * Marks the assertion steps at the given row indices as hard or soft
+     * assertions. Non-assertion steps are ignored.
+     *
+     * @param indices the selected row indices
+     * @param hard    {@code true} for hard assertion, {@code false} for soft
+     */
+    public void setHardAssertion(int[] indices, boolean hard) {
+        startGroupEdit();
+        for (int index : indices) {
+            TestStep step = testSteps.get(index);
+            if (step.isAssertStep()) {
+                step.setHardAssertion(hard);
+            }
+        }
+        stopGroupEdit();
+    }
+
     public void addReusableStep(String reusable) {
         TestStep step = new TestStep(this);
         step.setObject("Execute");
@@ -252,13 +265,39 @@ public class TestCase extends DataModel {
     }
 
     public TestCase createAsReusable(String reusableName, int fromStep, int toStep) {
-        TestCase newTestcase = getScenario().addTestCase(reusableName);
+        return createAsReusable(getScenario(), reusableName, fromStep, toStep);
+    }
+
+    /**
+     * Extracts the selected steps into a new reusable test case under the given
+     * target scenario, replacing them in this test case with a single step that
+     * invokes the newly created reusable.
+     *
+     * @param targetScenario scenario (typically under Reusable Components) that
+     *                       will hold the new reusable test case
+     * @param reusableName   name of the reusable test case to create
+     * @param fromStep       index of the first selected step (inclusive)
+     * @param toStep         index of the last selected step (inclusive)
+     * @return the created reusable test case, or {@code null} if it could not be
+     *         created
+     */
+    public TestCase createAsReusable(
+        Scenario targetScenario,
+        String reusableName,
+        int fromStep,
+        int toStep
+    ) {
+        if (targetScenario == null) {
+            return null;
+        }
+        TestCase newTestcase = targetScenario.addTestCase(reusableName);
         if (newTestcase != null) {
             for (int i = fromStep; i <= toStep; i++) {
                 testSteps.get(i).copyValuesTo(newTestcase.addNewStep());
             }
+            newTestcase.save();
             startGroupEdit();
-            addReusableStep(fromStep, getScenario().getName() + ":" + reusableName);
+            addReusableStep(fromStep, targetScenario.getName() + ":" + reusableName);
             for (int i = toStep + 1; i >= fromStep + 1; i--) {
                 rowDeleted(i);
                 testSteps.remove(i);
@@ -289,7 +328,32 @@ public class TestCase extends DataModel {
     }
 
     public String getLocation() {
-        return scenario.getLocation() + File.separator + name + ".csv";
+        File dir = new File(scenario.getLocation());
+        TestCaseFormat fmt = TestCaseStoreFactory.resolveFormat(dir, name, projectDefaultFormat());
+        return dir.getPath() + File.separator + name + fmt.extension();
+    }
+
+    /**
+     * Returns the on-disk format currently used by this test case
+     * (resolved from existing files; falls back to the project default).
+     */
+    public TestCaseFormat getFormat() {
+        File dir = new File(scenario.getLocation());
+        return TestCaseStoreFactory.resolveFormat(dir, name, projectDefaultFormat());
+    }
+
+    private TestCaseFormat projectDefaultFormat() {
+        try {
+            if (getProject() != null && getProject().getInfo() != null) {
+                return TestCaseFormat.parse(
+                    getProject().getInfo().getTestCaseFormat(),
+                    TestCaseFormat.YAML
+                );
+            }
+        } catch (Exception ignored) {
+            // Project info may be unavailable in unit-test contexts; fall through.
+        }
+        return TestCaseFormat.YAML;
     }
 
     public void loadTestCaseTableModel() {
@@ -315,12 +379,27 @@ public class TestCase extends DataModel {
     }
 
     private void loadSteps() {
-        List<CSVRecord> records = FileUtils.getRecords(new File(getLocation()));
+        File file = new File(getLocation());
+        TestCaseFormat fmt = TestCaseFormat.fromFile(file);
+        if (fmt == null) {
+            fmt = projectDefaultFormat();
+        }
+        TestCaseStore store = TestCaseStoreFactory.testCaseStore(fmt);
+        List<List<String>> rows;
+        try {
+            rows = store.load(file);
+        } catch (Exception ex) {
+            Logger
+                .getLogger(TestCase.class.getName())
+                .log(Level.SEVERE, "Error loading test case from " + file.getPath(), ex);
+            rows = new ArrayList<>();
+        }
+        syncTagsFromStore(store, file);
         migratedReferencesCount = 0;
 
-        if (!records.isEmpty()) {
-            for (CSVRecord record : records) {
-                TestStep step = new TestStep(this, record);
+        if (!rows.isEmpty()) {
+            for (List<String> row : rows) {
+                TestStep step = new TestStep(this, row);
 
                 // Auto-migrate unprefixed references to explicit [Project]/[Shared] format
                 String ref = step.getReference();
@@ -475,16 +554,27 @@ public class TestCase extends DataModel {
     public void save() {
         if (!isSaved()) {
             createIfNotExists();
-            try (
-                FileWriter out = new FileWriter(new File(getLocation()));
-                CSVPrinter printer = new CSVPrinter(out, CSVFormat.EXCEL.withIgnoreEmptyLines());
-            ) {
-                printer.printRecord(HEADERS.getValues());
+            File file = new File(getLocation());
+            TestCaseFormat fmt = TestCaseFormat.fromFile(file);
+            if (fmt == null) {
+                fmt = projectDefaultFormat();
+            }
+            TestCaseStore store = TestCaseStoreFactory.testCaseStore(fmt);
+            try {
                 removeEmptySteps();
                 autoNumber();
+                List<List<String>> rows = new ArrayList<>(testSteps.size());
                 for (TestStep testStep : testSteps) {
-                    printer.printRecord(testStep.stepDetails);
+                    rows.add(new ArrayList<>(testStep.stepDetails));
                 }
+                store.save(
+                    file,
+                    name,
+                    scenario == null ? null : scenario.getName(),
+                    reusable != null,
+                    collectTags(),
+                    rows
+                );
                 setSaved(true);
             } catch (Exception ex) {
                 Logger
@@ -497,6 +587,99 @@ public class TestCase extends DataModel {
     private void createIfNotExists() {
         File file = new File(getLocation()).getParentFile();
         file.mkdirs();
+    }
+
+    /**
+     * Re-writes this test case's YAML file to capture metadata-only changes
+     * (such as tags added/removed via the tag editor) without requiring the
+     * user to edit a step first. Loads steps from disk if not already loaded,
+     * then clears them again so the in-memory model is unaffected.
+     */
+    public void saveMetadata() {
+        boolean wasEmpty = testSteps.isEmpty();
+        if (wasEmpty) {
+            loadSteps();
+        }
+        setSaved(false);
+        save();
+        if (wasEmpty) {
+            testSteps.clear();
+        }
+    }
+
+    /**
+     * Mirrors tags found in the on-disk YAML into the project's
+     * {@code DataItem} so the YAML remains the source of truth when present.
+     */
+    private void syncTagsFromStore(TestCaseStore store, File file) {
+        if (!(store instanceof YamlTestCaseStore) || scenario == null) {
+            return;
+        }
+        try {
+            if (
+                getProject() == null ||
+                getProject().getInfo() == null ||
+                getProject().getInfo().getData() == null
+            ) {
+                return;
+            }
+            List<String> diskTags = ((YamlTestCaseStore) store).loadTags(file);
+            if (diskTags == null || diskTags.isEmpty()) {
+                return;
+            }
+            com.ing.datalib.model.DataItem di = getProject()
+                .getInfo()
+                .getData()
+                .findOrCreate(name, scenario.getName());
+            for (String t : diskTags) {
+                if (t == null || t.isEmpty()) continue;
+                boolean exists = di
+                    .getTags()
+                    .stream()
+                    .anyMatch(x -> x != null && t.equals(x.getValue()));
+                if (!exists) {
+                    di.getTags().add(com.ing.datalib.model.Tag.create(t));
+                }
+            }
+        } catch (Exception ignored) {
+            // Tag sync is best-effort and must not break step loading.
+        }
+    }
+
+    /**
+     * Returns the tag values associated with this test case in {@code ProjectInfo.data},
+     * or an empty list when no tags / no project context are available.
+     */
+    private List<String> collectTags() {
+        try {
+            if (
+                scenario == null ||
+                getProject() == null ||
+                getProject().getInfo() == null ||
+                getProject().getInfo().getData() == null
+            ) {
+                return Collections.emptyList();
+            }
+            return getProject()
+                .getInfo()
+                .getData()
+                .find(name, scenario.getName())
+                .map(
+                    di ->
+                        di.getTags() == null
+                            ? Collections.<String>emptyList()
+                            : di
+                                .getTags()
+                                .stream()
+                                .filter(Objects::nonNull)
+                                .map(t -> t.getValue())
+                                .filter(v -> v != null && !v.isEmpty())
+                                .collect(java.util.stream.Collectors.toList())
+                )
+                .orElse(Collections.emptyList());
+        } catch (Exception ignored) {
+            return Collections.emptyList();
+        }
     }
 
     private void removeEmptySteps() {
@@ -957,11 +1140,12 @@ public class TestCase extends DataModel {
 
     @Override
     public Boolean rename(String newName) {
+        TestCase existing = getScenario().getTestCaseByName(newName);
         if (
-            getScenario().getTestCaseByName(newName) == null &&
+            (existing == null || existing == this) &&
             getScenario().getReusableTestCaseByName(getScenario().getName(), newName) == null
         ) {
-            if (FileUtils.renameFile(getLocation(), newName + ".csv")) {
+            if (FileUtils.renameFile(getLocation(), newName + getFormat().extension())) {
                 getProject().refactorTestCase(getScenario().getName(), name, newName);
                 name = newName;
                 return true;
@@ -971,11 +1155,13 @@ public class TestCase extends DataModel {
     }
 
     public Boolean renameReusable(String newName) {
+        TestCase existingReusable = getScenario()
+            .getReusableTestCaseByName(getScenario().getName(), newName);
         if (
             getScenario().getTestCaseByName(getScenario().getName(), newName) == null &&
-            getScenario().getReusableTestCaseByName(getScenario().getName(), newName) == null
+            (existingReusable == null || existingReusable == this)
         ) {
-            if (FileUtils.renameFile(getLocation(), newName + ".csv")) {
+            if (FileUtils.renameFile(getLocation(), newName + getFormat().extension())) {
                 getProject().refactorTestCase(getScenario().getName(), name, newName);
                 name = newName;
                 return true;

@@ -79,7 +79,7 @@ public class TestSetTest {
 
     @Test
     public void testGetLocation() {
-        String expected = release.getLocation() + File.separator + "TS_Smoke.csv";
+        String expected = release.getLocation() + File.separator + "TS_Smoke.yaml";
         assertThat(testSet.getLocation()).isEqualTo(expected);
     }
 
