@@ -176,10 +176,14 @@ public class CollectionTree extends JPanel {
     }
 
     private void showContextMenu(MouseEvent e) {
-        TreePath path = tree.getPathForLocation(e.getX(), e.getY());
-        if (path == null) return;
+        TreePath path = getPathForFullRow(e.getX(), e.getY());
+
+        if (path == null) {
+            return;
+        }
 
         tree.setSelectionPath(path);
+
         DefaultMutableTreeNode node = (DefaultMutableTreeNode) path.getLastPathComponent();
         Object userObject = node.getUserObject();
 
@@ -190,6 +194,26 @@ public class CollectionTree extends JPanel {
         } else if (userObject instanceof RequestNode) {
             requestMenu.show(tree, e.getX(), e.getY());
         }
+    }
+
+    private TreePath getPathForFullRow(int x, int y) {
+        int row = tree.getClosestRowForLocation(x, y);
+
+        if (row < 0) {
+            return null;
+        }
+
+        Rectangle rowBounds = tree.getRowBounds(row);
+
+        if (rowBounds == null) {
+            return null;
+        }
+
+        if (y < rowBounds.y || y >= rowBounds.y + rowBounds.height) {
+            return null;
+        }
+
+        return tree.getPathForRow(row);
     }
 
     private void handleDoubleClick() {
