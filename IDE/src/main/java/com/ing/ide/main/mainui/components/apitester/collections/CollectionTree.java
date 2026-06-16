@@ -7,6 +7,7 @@ import com.ing.ide.main.mainui.components.apitester.APITesterUI;
 import com.ing.ide.main.mainui.components.apitester.util.APITesterColors;
 import java.awt.*;
 import java.awt.event.*;
+import java.util.List;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import javax.swing.tree.*;
@@ -107,9 +108,9 @@ public class CollectionTree extends JPanel {
         addRequest.addActionListener(e -> addRequestToCollection());
         collectionMenu.add(addRequest);
 
-        // JMenuItem addFolder = new JMenuItem("Add Folder");
-        // addFolder.addActionListener(e -> addFolderToCollection());
-        // collectionMenu.add(addFolder);
+        JMenuItem addFolder = new JMenuItem("Add Folder");
+        addFolder.addActionListener(e -> addFolderToCollection());
+        collectionMenu.add(addFolder);
 
         collectionMenu.addSeparator();
 
@@ -163,9 +164,9 @@ public class CollectionTree extends JPanel {
         renameRequest.addActionListener(e -> renameSelected());
         requestMenu.add(renameRequest);
 
-        // JMenuItem moveRequest = new JMenuItem("Move...");
-        // moveRequest.addActionListener(e -> moveRequest());
-        // requestMenu.add(moveRequest);
+        JMenuItem moveRequest = new JMenuItem("Move...");
+        moveRequest.addActionListener(e -> moveRequest());
+        requestMenu.add(moveRequest);
 
         requestMenu.addSeparator();
 
@@ -251,26 +252,30 @@ public class CollectionTree extends JPanel {
         }
     }
 
-    //    private void addFolderToCollection() {
-    //        DefaultMutableTreeNode node = getSelectedNode();
-    //        if (node == null) return;
-    //
-    //        CollectionNode colNode = (CollectionNode) node.getUserObject();
-    //
-    //        String name = JOptionPane.showInputDialog(this,
-    //            "Enter folder name:", "New Folder", JOptionPane.PLAIN_MESSAGE);
-    //
-    //        if (name != null && !name.trim().isEmpty()) {
-    //            APICollection folder = new APICollection(name.trim());
-    //            colNode.collection.addFolder(folder);
-    //            controller.saveCollection(colNode.collection);
-    //            refreshTree();
-    //
-    //            // Expand the collection node to show the newly added folder
-    //            TreePath collectionPath = new TreePath(node.getPath());
-    //            tree.expandPath(collectionPath);
-    //        }
-    //    }
+    private void addFolderToCollection() {
+        DefaultMutableTreeNode node = getSelectedNode();
+        if (node == null) return;
+
+        CollectionNode colNode = (CollectionNode) node.getUserObject();
+
+        String name = JOptionPane.showInputDialog(
+            this,
+            "Enter folder name:",
+            "New Folder",
+            JOptionPane.PLAIN_MESSAGE
+        );
+
+        if (name != null && !name.trim().isEmpty()) {
+            APICollection folder = new APICollection(name.trim());
+            colNode.collection.addFolder(folder);
+            controller.saveCollection(colNode.collection);
+            refreshTree();
+
+            // Expand the collection node to show the newly added folder
+            TreePath collectionPath = new TreePath(node.getPath());
+            tree.expandPath(collectionPath);
+        }
+    }
 
     private void addRequestToFolder() {
         DefaultMutableTreeNode node = getSelectedNode();
@@ -287,6 +292,7 @@ public class CollectionTree extends JPanel {
 
         if (name != null && !name.trim().isEmpty()) {
             APIRequest request = new APIRequest(name.trim());
+            request.setId(java.util.UUID.randomUUID().toString());
             request.setUrl("https://api.example.com");
             folderNode.folder.addRequest(request);
             controller.saveCollection(folderNode.parentCollection);
@@ -339,44 +345,50 @@ public class CollectionTree extends JPanel {
         refreshTree();
     }
 
-    //    private void moveRequest() {
-    //        // Simple move dialog - show list of collections
-    //        DefaultMutableTreeNode node = getSelectedNode();
-    //        if (node == null) return;
-    //
-    //        RequestNode reqNode = (RequestNode) node.getUserObject();
-    //        List<APICollection> collections = controller.getCollections();
-    //
-    //        if (collections.isEmpty()) {
-    //            JOptionPane.showMessageDialog(this, "No other collections available.");
-    //            return;
-    //        }
-    //
-    //        String[] names = collections.stream()
-    //            .map(APICollection::getName)
-    //            .toArray(String[]::new);
-    //
-    //        String selected = (String) JOptionPane.showInputDialog(this,
-    //            "Move to collection:", "Move Request",
-    //            JOptionPane.PLAIN_MESSAGE, null, names, names[0]);
-    //
-    //        if (selected != null) {
-    //            APICollection target = collections.stream()
-    //                .filter(c -> c.getName().equals(selected))
-    //                .findFirst().orElse(null);
-    //
-    //            if (target != null && target != reqNode.parentCollection) {
-    //                // Remove from current collection
-    //                reqNode.parentCollection.getRequests().remove(reqNode.request);
-    //                controller.saveCollection(reqNode.parentCollection);
-    //
-    //                // Add to target
-    //                target.addRequest(reqNode.request);
-    //                controller.saveCollection(target);
-    //                refreshTree();
-    //            }
-    //        }
-    //    }
+    private void moveRequest() {
+        // Simple move dialog - show list of collections
+        DefaultMutableTreeNode node = getSelectedNode();
+        if (node == null) return;
+
+        RequestNode reqNode = (RequestNode) node.getUserObject();
+        List<APICollection> collections = controller.getCollections();
+
+        if (collections.isEmpty()) {
+            JOptionPane.showMessageDialog(this, "No other collections available.");
+            return;
+        }
+
+        String[] names = collections.stream().map(APICollection::getName).toArray(String[]::new);
+
+        String selected = (String) JOptionPane.showInputDialog(
+            this,
+            "Move to collection:",
+            "Move Request",
+            JOptionPane.PLAIN_MESSAGE,
+            null,
+            names,
+            names[0]
+        );
+
+        if (selected != null) {
+            APICollection target = collections
+                .stream()
+                .filter(c -> c.getName().equals(selected))
+                .findFirst()
+                .orElse(null);
+
+            if (target != null && target != reqNode.parentCollection) {
+                // Remove from current collection
+                reqNode.parentCollection.getRequests().remove(reqNode.request);
+                controller.saveCollection(reqNode.parentCollection);
+
+                // Add to target
+                target.addRequest(reqNode.request);
+                controller.saveCollection(target);
+                refreshTree();
+            }
+        }
+    }
 
     private void renameSelected() {
         DefaultMutableTreeNode node = getSelectedNode();
