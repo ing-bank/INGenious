@@ -37,9 +37,12 @@ import java.awt.Component;
 import java.awt.Cursor;
 import java.awt.GraphicsDevice;
 import java.awt.GraphicsEnvironment;
+import java.awt.KeyEventPostProcessor;
+import java.awt.KeyboardFocusManager;
 import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.BufferedReader;
@@ -60,6 +63,7 @@ import java.util.logging.Logger;
 import javax.swing.AbstractAction;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
+import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -148,6 +152,8 @@ public class TestCaseComponent extends JPanel implements ActionListener {
 
     public static long INSTANCE_START_TIME;
 
+    private boolean globalShortcutsRegistered = false;
+
     public TestCaseComponent(TestDesign testDesign, AppMainFrame sMainFrame) {
         this.testDesign = testDesign;
         this.sMainFrame = sMainFrame;
@@ -171,6 +177,117 @@ public class TestCaseComponent extends JPanel implements ActionListener {
         testCaseTable.setComponentPopupMenu(popupMenu);
         initTableListeners();
         initRunner();
+        initTestCaseAccelerators();
+    }
+
+    /**
+     * Registers keyboard shortcuts for the TestCase panel.
+     * <p>
+     * Global shortcuts (Record, Run, Debug) use a keyboard focus manager key event
+     * post-processor that fires regardless of focused child component.
+     * Focus-dependent shortcuts use WHEN_ANCESTOR_OF_FOCUSED_COMPONENT so they only
+     * fire when focus is inside this panel.
+     */
+    private void initTestCaseAccelerators() {
+        registerGlobalShortcuts();
+
+        getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(Keystroke.SAVE, "Save");
+        getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(Keystroke.F5, "Reload");
+        getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(Keystroke.UP, "MoveUp");
+        getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(Keystroke.DOWN, "MoveDown");
+        getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(Keystroke.OPEN, "Open");
+        getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(Keystroke.FIND, "Search");
+
+        getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT)
+            .put(Keystroke.COMMENT, "Comment");
+        getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT)
+            .put(Keystroke.BREAKPOINT, "BreakPoint");
+        getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT)
+            .put(Keystroke.INSERT_ROW, "Insert");
+        getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(Keystroke.ADD_ROW, "Add");
+        getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(Keystroke.ADD_ROWX, "Add");
+        getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT)
+            .put(Keystroke.REMOVE_ROW, "Delete");
+        getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT)
+            .put(Keystroke.REMOVE_ROWX, "Delete");
+        getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT)
+            .put(Keystroke.REPLICATE_ROW, "Replicate");
+        getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT)
+            .put(Keystroke.COPY_ABOVE, "Copy Above");
+    }
+
+    /**
+     * Registers global shortcuts for Record, Run, and Debug.
+     * These are intentionally not table-bound so they work even when focus is in
+     * toolbar/search/other child components inside the main frame.
+     */
+    private void registerGlobalShortcuts() {
+        if (globalShortcutsRegistered) {
+            return;
+        }
+        globalShortcutsRegistered = true;
+
+        KeyEventPostProcessor processor = e -> {
+            if (e.getID() != KeyEvent.KEY_PRESSED) {
+                return false;
+            }
+            if (!isMainFrameFocused()) {
+                return false;
+            }
+            if (!sMainFrame.isTestDesign()) {
+                return false;
+            }
+
+            int code = e.getKeyCode();
+            int mods = e.getModifiersEx();
+
+            boolean isCtrlF6 = code == KeyEvent.VK_F6 && (mods & KeyEvent.CTRL_DOWN_MASK) != 0;
+            boolean isCmdF6 = code == KeyEvent.VK_F6 && (mods & KeyEvent.META_DOWN_MASK) != 0;
+
+            if (isCtrlF6 || isCmdF6) {
+                debug();
+                return true;
+            }
+
+            if (code == KeyEvent.VK_F6 && mods == 0) {
+                run();
+                return true;
+            }
+
+            boolean isCtrlAltR =
+                code == KeyEvent.VK_R &&
+                (mods & KeyEvent.CTRL_DOWN_MASK) != 0 &&
+                (mods & KeyEvent.ALT_DOWN_MASK) != 0;
+
+            boolean isCmdAltR =
+                code == KeyEvent.VK_R &&
+                (mods & KeyEvent.META_DOWN_MASK) != 0 &&
+                (mods & KeyEvent.ALT_DOWN_MASK) != 0;
+
+            if (isCtrlAltR || isCmdAltR) {
+                try {
+                    record();
+                } catch (IOException ex) {
+                    Logger.getLogger(TestCaseComponent.class.getName()).log(Level.SEVERE, null, ex);
+                }
+                return true;
+            }
+
+            return false;
+        };
+
+        KeyboardFocusManager.getCurrentKeyboardFocusManager().addKeyEventPostProcessor(processor);
+    }
+
+    /** @return true if the main frame or one of its children currently has focus */
+    private boolean isMainFrameFocused() {
+        KeyboardFocusManager kfm = KeyboardFocusManager.getCurrentKeyboardFocusManager();
+        java.awt.Component focusOwner = kfm.getFocusOwner();
+
+        return (
+            kfm.getFocusedWindow() == sMainFrame ||
+            (focusOwner != null && SwingUtilities.isDescendingFrom(focusOwner, sMainFrame))
+        );
     }
 
     public void loadTableModelForSelection(Object obj) {
@@ -391,29 +508,6 @@ public class TestCaseComponent extends JPanel implements ActionListener {
                 @Override
                 public void actionPerformed(ActionEvent e) {
                     moveRowDown();
-                }
-            }
-        );
-
-        testCaseTable.setKeyStrokeFor("RunTestCase", Keystroke.F6);
-        testCaseTable.setActionFor(
-            "RunTestCase",
-            new AbstractAction() {
-
-                @Override
-                public void actionPerformed(ActionEvent e) {
-                    run();
-                }
-            }
-        );
-        testCaseTable.setKeyStrokeFor("DebugTestCase", Keystroke.CTRLF6);
-        testCaseTable.setActionFor(
-            "DebugTestCase",
-            new AbstractAction() {
-
-                @Override
-                public void actionPerformed(ActionEvent e) {
-                    debug();
                 }
             }
         );
