@@ -413,6 +413,36 @@ public class APITesterUI extends JPanel implements PropertyChangeListener {
         return false;
     }
 
+    public void notifyRequestDeleted(APIRequest deletedRequest) {
+        if (deletedRequest == null || sourceRequest == null) {
+            return;
+        }
+
+        if (sameRequest(sourceRequest, deletedRequest)) {
+            clearSourceTracking();
+
+            currentRequest = new APIRequest();
+            requestPanel.loadRequest(currentRequest);
+            responsePanel.clear();
+            updateEditingHeader();
+        }
+    }
+
+    private boolean sameRequest(APIRequest a, APIRequest b) {
+        if (a == null || b == null) {
+            return false;
+        }
+
+        String aId = a.getId();
+        String bId = b.getId();
+
+        if (aId != null && bId != null) {
+            return aId.equals(bId);
+        }
+
+        return a == b;
+    }
+
     /**
      * Force saves the current request to backend file if it's from a collection.
      * Called by IDE's save/autosave to persist all edited requests to disk.
@@ -420,12 +450,63 @@ public class APITesterUI extends JPanel implements PropertyChangeListener {
      */
     public void forceSaveCurrentRequest() {
         if (sourceCollection != null && sourceRequest != null && currentRequest != null) {
+            // Do not resurrect a request that was deleted from its collection/folder.
+            if (!sourceRequestStillExists()) {
+                clearSourceTracking();
+                return;
+            }
+
             // Update the request with current UI values
             requestPanel.updateRequest(currentRequest);
 
             // Always save to ensure all changes are persisted to backend
             apiTester.saveRequestToCollection(currentRequest, sourceCollection);
         }
+    }
+
+    private boolean sourceRequestStillExists() {
+        if (sourceCollection == null || sourceRequest == null) {
+            return false;
+        }
+
+        if (sourceFolder != null) {
+            return containsRequest(sourceFolder.getRequests(), sourceRequest);
+        }
+
+        return containsRequest(sourceCollection.getRequests(), sourceRequest);
+    }
+
+    private boolean containsRequest(List<APIRequest> requests, APIRequest target) {
+        if (requests == null || target == null) {
+            return false;
+        }
+
+        String targetId = target.getId();
+
+        for (APIRequest request : requests) {
+            if (request == null) {
+                continue;
+            }
+
+            String requestId = request.getId();
+
+            if (targetId != null && requestId != null) {
+                if (targetId.equals(requestId)) {
+                    return true;
+                }
+            } else if (request == target) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private void clearSourceTracking() {
+        this.sourceRequest = null;
+        this.sourceCollection = null;
+        this.sourceFolder = null;
+        this.sourceHistory = false;
     }
 
     public void setCurrentRequest(APIRequest request) {

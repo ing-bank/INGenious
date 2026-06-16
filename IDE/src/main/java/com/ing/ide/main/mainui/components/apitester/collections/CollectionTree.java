@@ -449,15 +449,58 @@ public class CollectionTree extends JPanel {
                 controller.saveCollection(fn.parentCollection);
             } else if (userObject instanceof RequestNode) {
                 RequestNode rn = (RequestNode) userObject;
-                rn.parentCollection.getRequests().remove(rn.request);
-                // Also check folders
-                for (APICollection f : rn.parentCollection.getFolders()) {
-                    f.getRequests().remove(rn.request);
+
+                boolean removed = removeRequestFromCollection(rn.parentCollection, rn.request);
+
+                if (removed) {
+                    controller.saveCollection(rn.parentCollection);
+                    parentUI.notifyRequestDeleted(rn.request);
                 }
-                controller.saveCollection(rn.parentCollection);
             }
             refreshTree();
         }
+    }
+
+    private boolean removeRequestFromCollection(
+        APICollection collection,
+        APIRequest requestToDelete
+    ) {
+        boolean removed = false;
+
+        removed |= removeRequestFromList(collection.getRequests(), requestToDelete);
+
+        for (APICollection folder : collection.getFolders()) {
+            removed |= removeRequestFromList(folder.getRequests(), requestToDelete);
+        }
+
+        return removed;
+    }
+
+    private boolean removeRequestFromList(
+        java.util.List<APIRequest> requests,
+        APIRequest requestToDelete
+    ) {
+        if (requests == null || requestToDelete == null) {
+            return false;
+        }
+
+        String targetId = requestToDelete.getId();
+
+        return requests.removeIf(
+            request -> {
+                if (request == null) {
+                    return false;
+                }
+
+                String requestId = request.getId();
+
+                if (targetId != null && requestId != null) {
+                    return targetId.equals(requestId);
+                }
+
+                return request == requestToDelete;
+            }
+        );
     }
 
     private void exportCollection() {
