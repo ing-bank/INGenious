@@ -320,11 +320,21 @@ public class CollectionTree extends JPanel {
         if (node == null) return;
 
         RequestNode reqNode = (RequestNode) node.getUserObject();
+
+        String originalName = reqNode.request.getName();
+
         APIRequest copy = reqNode.request.copy();
-        copy.setName(copy.getName() + " (Copy)");
+
+        copy.setName(originalName + " (Copy)");
+
         copy.setId(java.util.UUID.randomUUID().toString());
 
-        reqNode.parentCollection.addRequest(copy);
+        if (reqNode.parentFolder != null) {
+            reqNode.parentFolder.addRequest(copy);
+        } else {
+            reqNode.parentCollection.addRequest(copy);
+        }
+
         controller.saveCollection(reqNode.parentCollection);
         refreshTree();
     }
