@@ -447,7 +447,7 @@ public class GeneralWebservice extends Command implements WebservicePluginApi {
                 } else {
                     sc.init(null, trustAllCerts, new SecureRandom());
                 }
-                httpClientBuilder.put(key, httpClientBuilder.get(key)).sslContext(sc);
+                httpClientBuilder.put(key, httpClientBuilder.get(key).sslContext(sc));
             }
         } catch (Exception ex) {
             Logger.getLogger(this.getClass().getName()).log(Level.OFF, ex.getMessage(), ex);

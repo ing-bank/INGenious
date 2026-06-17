@@ -1201,8 +1201,9 @@ public class Webservice extends GeneralWebservice {
                 toBeAdded.add(Data);
                 headers.put(key, toBeAdded);
             }
-
-            Report.updateTestLog(Action, "Header added [" + Data + "]", Status.DONE);
+            if (!Data.toLowerCase().contains("bearer")) {
+                Report.updateTestLog(Action, "Header added [" + Data + "]", Status.DONE);
+            }
         } catch (Exception ex) {
             Logger.getLogger(this.getClass().getName()).log(Level.OFF, null, ex);
             Report.updateTestLog(
