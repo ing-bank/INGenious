@@ -38,7 +38,6 @@ public class TestCaseTableDnD extends TransferHandler {
     private final int actionColumn = 3;
     private final int inputColumn = 4;
     private final int conditionColumn = 5;
-    private final int referenceColumn = 6;
 
     @Override
     public boolean canImport(TransferHandler.TransferSupport support) {
@@ -178,13 +177,32 @@ public class TestCaseTableDnD extends TransferHandler {
             TestCase testCase = (TestCase) table.getModel();
             testCase.startGroupEdit();
             testCase.removeSteps(new int[] { row });
+            int insertRow = row;
             for (TestCaseNode testCaseNode : testCaseDnD.getTestCaseList()) {
+                String scopeToken = getReusableScopeToken(testCaseNode);
                 String reusable =
                     testCaseNode.getParent().toString() + ":" + testCaseNode.toString();
-                testCase.addReusableStep(row, reusable);
+                testCase.addReusableStep(insertRow, reusable);
+                testCase.setValueAt(scopeToken, insertRow, HEADERS.Reference.getIndex());
+                insertRow++;
             }
             testCase.stopGroupEdit();
         }
+    }
+
+    private String getReusableScopeToken(TestCaseNode testCaseNode) {
+        if (
+            testCaseNode == null ||
+            testCaseNode.getTestCase() == null ||
+            testCaseNode.getTestCase().getScenario() == null
+        ) {
+            return "[Project]";
+        }
+
+        if (testCaseNode.getTestCase().getScenario().isSharedReusableScenario()) {
+            return "[Shared]";
+        }
+        return "[Project]";
     }
 
     private void putTestData(JTable table, int row) {

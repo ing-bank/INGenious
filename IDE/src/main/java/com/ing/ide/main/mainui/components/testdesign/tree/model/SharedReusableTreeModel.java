@@ -8,17 +8,17 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
- *
- *
+ * Tree model for displaying and managing Shared Reusable Components.
+ * Mirrors ReusableTreeModel but loads from shared reusable components directory.
  */
-public class ReusableTreeModel extends ProjectTreeModel {
-    private static final Logger LOGGER = Logger.getLogger(ReusableTreeModel.class.getName());
-    private static final String DEFAULT_GROUP = "Reusable Components";
+public class SharedReusableTreeModel extends ProjectTreeModel {
+    private static final Logger LOGGER = Logger.getLogger(SharedReusableTreeModel.class.getName());
+    private static final String DEFAULT_GROUP = "Shared Components";
 
     Project project;
 
-    public ReusableTreeModel() {
-        super(new ReusableNode());
+    public SharedReusableTreeModel() {
+        super(new SharedReusableNode());
     }
 
     @Override
@@ -28,8 +28,8 @@ public class ReusableTreeModel extends ProjectTreeModel {
     }
 
     @Override
-    public ReusableNode getRoot() {
-        return (ReusableNode) super.getRoot();
+    public SharedReusableNode getRoot() {
+        return (SharedReusableNode) super.getRoot();
     }
 
     public GroupNode addGroup(String name) {
@@ -96,6 +96,6 @@ public class ReusableTreeModel extends ProjectTreeModel {
     }
 
     public void save() {
-        // No-op: reusable components are now inferred from directory placement.
+        // No-op: shared reusable components are now inferred from directory placement.
     }
 }

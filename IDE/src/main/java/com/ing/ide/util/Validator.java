@@ -6,6 +6,9 @@ import java.util.regex.Pattern;
 public class Validator {
     private static final String EXCLUDE_LIST = "\\S*[,|#|$|{|}|^|\\[|\\]|%]\\S*";
 
+    // Stricter list for reusable component names: blocks comma, dot, colon, brackets, percent, hash
+    private static final String REUSABLE_EXCLUDE_LIST = "\\S*[,|\\.|:|\\[|\\]|%|#]\\S*";
+
     public static boolean isValidName(String text) {
         Pattern pattern = Pattern.compile(
             "# Match a valid Windows filename (unspecified file system).          \n" +
@@ -25,5 +28,22 @@ public class Validator {
         );
         Matcher matcher = pattern.matcher(text);
         return matcher.matches() && !text.matches(EXCLUDE_LIST);
+    }
+
+    /**
+     * Validates a reusable scenario or test case name.
+     * Enforces stricter character restrictions than regular names:
+     * Blocks comma, dot, colon, brackets, percent, and hash to avoid conflicts with
+     * scoped reference syntax ([Project]/[Shared] Scenario:TestCase).
+     *
+     * @param text the name to validate
+     * @return true if the name is valid for reusable components, false otherwise
+     */
+    public static boolean isValidReusableName(String text) {
+        if (text == null || text.isEmpty()) {
+            return false;
+        }
+        // Must pass basic name validation AND additional reusable-specific restrictions
+        return isValidName(text) && !text.matches(REUSABLE_EXCLUDE_LIST);
     }
 }

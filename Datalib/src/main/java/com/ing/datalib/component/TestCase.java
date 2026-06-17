@@ -59,6 +59,8 @@ public class TestCase extends DataModel {
     private Integer dynamicMaxInt = null;
 
     private int migratedReferencesCount = 0;
+    private int migratedReusableActionCount = 0;
+    private int migratedResolvedReusableActionCount = 0;
 
     private boolean migrationChecked = false;
 
@@ -398,6 +400,8 @@ public class TestCase extends DataModel {
         }
         syncTagsFromStore(store, file);
         migratedReferencesCount = 0;
+        migratedReusableActionCount = 0;
+        migratedResolvedReusableActionCount = 0;
 
         if (!rows.isEmpty()) {
             for (List<String> row : rows) {
@@ -419,20 +423,49 @@ public class TestCase extends DataModel {
                     }
                 }
 
+                // Auto-migrate unscoped Execute reusable references.
+                // Current model: keep Action unscoped and store scope in Reference column.
+                if (step.isReusableStep()) {
+                    ScopedReusableMigrationResult result = migrateReusableScopeToReference(step);
+                    if (result != null && result.changed) {
+                        migratedReusableActionCount++;
+                        if (result.successfullyResolved) {
+                            migratedResolvedReusableActionCount++;
+                        }
+                    }
+                }
+
                 testSteps.add(step);
             }
             setSaved(true);
 
-            // Auto-save if migration happened to persist explicit prefixes to CSV
-            if (migratedReferencesCount > 0) {
+            boolean hasReusableScopeMigration = migratedReusableActionCount > 0;
+            if (migratedReferencesCount > 0 || hasReusableScopeMigration) {
                 setSaved(false);
                 save();
+            }
+
+            if (migratedReferencesCount > 0) {
                 Logger
                     .getLogger(TestCase.class.getName())
                     .log(
                         Level.INFO,
                         "Migrated {0} object reference(s) to explicit scope prefixes in: {1}",
                         new Object[] { migratedReferencesCount, getName() }
+                    );
+            }
+
+            if (migratedReusableActionCount > 0) {
+                Logger
+                    .getLogger(TestCase.class.getName())
+                    .log(
+                        Level.INFO,
+                        "Migrated {0} Execute reusable reference(s) to Reference scope column in: {1} (resolved={2})",
+                        new Object[] {
+                            migratedReusableActionCount,
+                            getName(),
+                            migratedResolvedReusableActionCount
+                        }
                     );
             }
         } else {
@@ -448,6 +481,8 @@ public class TestCase extends DataModel {
      */
     private void checkAndMigrateReferences() {
         migratedReferencesCount = 0;
+        migratedReusableActionCount = 0;
+        migratedResolvedReusableActionCount = 0;
 
         for (TestStep step : testSteps) {
             String ref = step.getReference();
@@ -464,12 +499,25 @@ public class TestCase extends DataModel {
                     migratedReferencesCount++;
                 }
             }
+
+            if (step.isReusableStep()) {
+                ScopedReusableMigrationResult result = migrateReusableScopeToReference(step);
+                if (result != null && result.changed) {
+                    migratedReusableActionCount++;
+                    if (result.successfullyResolved) {
+                        migratedResolvedReusableActionCount++;
+                    }
+                }
+            }
         }
 
-        // Auto-save if migration happened
-        if (migratedReferencesCount > 0) {
+        boolean hasReusableScopeMigration = migratedReusableActionCount > 0;
+        if (migratedReferencesCount > 0 || hasReusableScopeMigration) {
             setSaved(false);
             save();
+        }
+
+        if (migratedReferencesCount > 0) {
             Logger
                 .getLogger(TestCase.class.getName())
                 .log(
@@ -477,6 +525,104 @@ public class TestCase extends DataModel {
                     "Migrated {0} object reference(s) to explicit scope prefixes in: {1}",
                     new Object[] { migratedReferencesCount, getName() }
                 );
+        }
+
+        if (migratedReusableActionCount > 0) {
+            Logger
+                .getLogger(TestCase.class.getName())
+                .log(
+                    Level.INFO,
+                    "Migrated {0} Execute reusable reference(s) to Reference scope column in: {1} (resolved={2})",
+                    new Object[] {
+                        migratedReusableActionCount,
+                        getName(),
+                        migratedResolvedReusableActionCount
+                    }
+                );
+        }
+    }
+
+    private ScopedReusableMigrationResult migrateReusableScopeToReference(TestStep step) {
+        String action = step.getAction();
+        if (action == null || action.trim().isEmpty()) {
+            return null;
+        }
+
+        try {
+            ReusableRef ref = ReusableRef.parse(action);
+
+            ReusableRef.Scope resolvedScope = ref.getScope();
+            boolean resolved = true;
+
+            if (resolvedScope == ReusableRef.Scope.UNSCOPED) {
+                resolvedScope = scopeFromReference(step.getReference());
+                if (resolvedScope == ReusableRef.Scope.UNSCOPED) {
+                    Scenario projectReusable = getProject()
+                        .getReusableScenarioByName(ref.getScenarioName());
+                    if (
+                        projectReusable != null &&
+                        projectReusable.getTestCaseByName(ref.getTestCaseName()) != null
+                    ) {
+                        resolvedScope = ReusableRef.Scope.PROJECT;
+                    } else {
+                        Scenario sharedReusable = getProject()
+                            .getSharedReusableScenarioByName(ref.getScenarioName());
+                        if (
+                            sharedReusable != null &&
+                            sharedReusable.getTestCaseByName(ref.getTestCaseName()) != null
+                        ) {
+                            resolvedScope = ReusableRef.Scope.SHARED;
+                        } else {
+                            // Mandatory fallback for legacy refs without explicit scope.
+                            resolvedScope = ReusableRef.Scope.PROJECT;
+                            resolved = false;
+                        }
+                    }
+                }
+            }
+
+            String normalizedAction = new ReusableRef(
+                ReusableRef.Scope.UNSCOPED,
+                ref.getScenarioName(),
+                ref.getTestCaseName()
+            )
+            .format();
+            String scopeRef = resolvedScope == ReusableRef.Scope.SHARED ? "[Shared]" : "[Project]";
+
+            boolean changed = false;
+            if (!normalizedAction.equals(action)) {
+                step.setAction(normalizedAction);
+                changed = true;
+            }
+            if (!scopeRef.equals(step.getReference())) {
+                step.setReference(scopeRef);
+                changed = true;
+            }
+
+            return new ScopedReusableMigrationResult(changed, resolved);
+        } catch (IllegalArgumentException ex) {
+            return null;
+        }
+    }
+
+    private ReusableRef.Scope scopeFromReference(String reference) {
+        String ref = Objects.toString(reference, "").trim();
+        if (ref.startsWith("[Project]")) {
+            return ReusableRef.Scope.PROJECT;
+        }
+        if (ref.startsWith("[Shared]")) {
+            return ReusableRef.Scope.SHARED;
+        }
+        return ReusableRef.Scope.UNSCOPED;
+    }
+
+    private static final class ScopedReusableMigrationResult {
+        private final boolean changed;
+        private final boolean successfullyResolved;
+
+        private ScopedReusableMigrationResult(boolean changed, boolean successfullyResolved) {
+            this.changed = changed;
+            this.successfullyResolved = successfullyResolved;
         }
     }
 
@@ -930,6 +1076,110 @@ public class TestCase extends DataModel {
         }
     }
 
+    /**
+     * Refactors Execute reusable references across scope transitions and returns whether any step changed.
+     * Supports scoped tokens ([Project]/[Shared]) and legacy unscoped tokens.
+     */
+    public boolean refactorReusableReferenceAcrossScope(
+        String oldScenarioName,
+        String oldTestCaseName,
+        Scenario.Source oldSource,
+        String newScenarioName,
+        String newTestCaseName,
+        Scenario.Source newSource
+    ) {
+        Boolean clearOnExit = getTestSteps().isEmpty();
+        loadTableModel();
+
+        boolean changesMade = false;
+        for (TestStep testStep : testSteps) {
+            if (!testStep.isReusableStep()) {
+                continue;
+            }
+
+            String action = Objects.toString(testStep.getAction(), "");
+            if (action.isEmpty()) {
+                continue;
+            }
+
+            ReusableRef parsed;
+            try {
+                parsed = testStep.getEffectiveReusableRef();
+            } catch (IllegalArgumentException ex) {
+                continue;
+            }
+            if (parsed == null) {
+                continue;
+            }
+
+            if (
+                !parsed.getScenarioName().equalsIgnoreCase(oldScenarioName) ||
+                !parsed.getTestCaseName().equalsIgnoreCase(oldTestCaseName) ||
+                !matchesReusableSource(parsed.getScope(), oldSource)
+            ) {
+                continue;
+            }
+
+            ReusableRef.Scope targetScope = toReusableRefScope(newSource);
+            String updatedAction = new ReusableRef(
+                ReusableRef.Scope.UNSCOPED,
+                newScenarioName,
+                newTestCaseName
+            )
+            .format();
+            if (!updatedAction.equals(action)) {
+                testStep.setAction(updatedAction);
+                changesMade = true;
+            }
+            String newReferenceScope = toReferenceScopeToken(targetScope);
+            if (!Objects.equals(newReferenceScope, testStep.getReference())) {
+                testStep.setReference(newReferenceScope);
+                changesMade = true;
+            }
+        }
+
+        if (changesMade) {
+            save();
+        }
+        if (clearOnExit) {
+            getTestSteps().clear();
+        }
+        return changesMade;
+    }
+
+    private boolean matchesReusableSource(ReusableRef.Scope scope, Scenario.Source source) {
+        if (scope == ReusableRef.Scope.PROJECT) {
+            return source == Scenario.Source.REUSABLE_COMPONENTS;
+        }
+        if (scope == ReusableRef.Scope.SHARED) {
+            return source == Scenario.Source.SHARED_REUSABLE_COMPONENTS;
+        }
+        return (
+            scope == ReusableRef.Scope.UNSCOPED &&
+            source != Scenario.Source.SHARED_REUSABLE_COMPONENTS
+        );
+    }
+
+    private ReusableRef.Scope toReusableRefScope(Scenario.Source source) {
+        if (source == Scenario.Source.REUSABLE_COMPONENTS) {
+            return ReusableRef.Scope.PROJECT;
+        }
+        if (source == Scenario.Source.SHARED_REUSABLE_COMPONENTS) {
+            return ReusableRef.Scope.SHARED;
+        }
+        return ReusableRef.Scope.UNSCOPED;
+    }
+
+    private String toReferenceScopeToken(ReusableRef.Scope scope) {
+        if (scope == ReusableRef.Scope.PROJECT) {
+            return "[Project]";
+        }
+        if (scope == ReusableRef.Scope.SHARED) {
+            return "[Shared]";
+        }
+        return "";
+    }
+
     public void refactorTestData(String oldTDName, String newTDName) {
         Boolean clearOnExit = getTestSteps().isEmpty();
         loadTableModel();
@@ -1171,6 +1421,22 @@ public class TestCase extends DataModel {
             getScenario().getTestCaseByName(getScenario().getName(), newName) == null &&
             (existingReusable == null || existingReusable == this)
         ) {
+            if (FileUtils.renameFile(getLocation(), newName + getFormat().extension())) {
+                getProject().refactorTestCase(getScenario().getName(), name, newName);
+                name = newName;
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Renames this shared reusable test case.
+     * @param newName new test case name
+     * @return true if successful, false if a test case with the new name already exists
+     */
+    public Boolean renameSharedReusable(String newName) {
+        if (getScenario().getTestCaseByName(newName) == null) {
             if (FileUtils.renameFile(getLocation(), newName + getFormat().extension())) {
                 getProject().refactorTestCase(getScenario().getName(), name, newName);
                 name = newName;

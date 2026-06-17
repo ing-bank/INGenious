@@ -2,6 +2,7 @@ package com.ing.ide.main.mainui.components.testdesign.testcase;
 
 import static com.ing.datalib.component.TestStep.HEADERS.Description;
 
+import com.ing.datalib.component.ReusableRef;
 import com.ing.datalib.component.Scenario;
 import com.ing.datalib.component.TestCase;
 import com.ing.datalib.component.TestStep;
@@ -345,7 +346,7 @@ public class TestCaseComponent extends JPanel implements ActionListener {
     }
 
     public void load() {
-        tcAutoSuggest = new TestCaseAutoSuggest(testDesign.getProject(), testCaseTable);
+        tcAutoSuggest = new TestCaseAutoSuggest(testDesign.getProject(), testCaseTable, testDesign);
         testCaseHistory.clear();
         loadBrowsers();
     }
@@ -1668,32 +1669,74 @@ public class TestCaseComponent extends JPanel implements ActionListener {
             TestStep tStep = getCurrentTestCase()
                 .getTestSteps()
                 .get(testCaseTable.getSelectedRow());
+
+            // Go To Reusable is only available for PROJECT and SHARED scope reusables
+            if (!tStep.isReusableStep()) {
+                Notification.showWarning("Selected step is not a reusable step.");
+                return;
+            }
+
             String[] reusableData = tStep.getReusableData();
             if (reusableData != null) {
-                // Try reusable scenarios first, then fall back to regular scenarios
-                Scenario scenario = testDesign
-                    .getProject()
-                    .getReusableScenarioByName(reusableData[0]);
-                if (scenario == null) {
-                    scenario = testDesign.getProject().getScenarioByName(reusableData[0]);
+                ReusableRef ref;
+                try {
+                    ref = tStep.getEffectiveReusableRef();
+                } catch (IllegalArgumentException ex) {
+                    ref =
+                        new ReusableRef(
+                            ReusableRef.Scope.UNSCOPED,
+                            reusableData[0],
+                            reusableData[1]
+                        );
+                }
+                if (ref == null) {
+                    ref =
+                        new ReusableRef(
+                            ReusableRef.Scope.UNSCOPED,
+                            reusableData[0],
+                            reusableData[1]
+                        );
+                }
+
+                // Only allow navigation for PROJECT and SHARED scoped reusables
+                if (ref.getScope() == ReusableRef.Scope.UNSCOPED) {
+                    Notification.showWarning(
+                        "Cannot navigate to unscoped reusable. Please explicitly scope the reference as [Project] or [Shared] in the Action column."
+                    );
+                    return;
+                }
+
+                Scenario scenario = null;
+                if (ref.getScope() == ReusableRef.Scope.PROJECT) {
+                    scenario =
+                        testDesign.getProject().getReusableScenarioByName(ref.getScenarioName());
+                } else if (ref.getScope() == ReusableRef.Scope.SHARED) {
+                    scenario =
+                        testDesign
+                            .getProject()
+                            .getSharedReusableScenarioByName(ref.getScenarioName());
                 }
 
                 if (scenario != null) {
-                    TestCase testCase = scenario.getTestCaseByName(reusableData[1]);
+                    TestCase testCase = scenario.getTestCaseByName(ref.getTestCaseName());
                     if (testCase != null) {
                         testDesign.loadTableModelForSelection(testCase);
                     } else {
                         Notification.show(
                             "TestCase [" +
-                            reusableData[1] +
+                            ref.getTestCaseName() +
                             "] not present in the Scenario [" +
-                            reusableData[0] +
+                            ref.getScenarioName() +
                             "]"
                         );
                     }
                 } else {
                     Notification.show(
-                        "Scenario [" + reusableData[0] + "] not present in the project"
+                        "Scenario [" +
+                        ref.getScenarioName() +
+                        "] not present in " +
+                        ref.getScope() +
+                        " reusable scope"
                     );
                 }
             }
