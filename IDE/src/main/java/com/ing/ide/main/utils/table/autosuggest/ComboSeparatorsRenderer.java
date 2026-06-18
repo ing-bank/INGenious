@@ -35,17 +35,31 @@ public abstract class ComboSeparatorsRenderer implements ListCellRenderer {
         if (index != -1) {
             boolean addHeader = addHeaderBefore(list, value, index);
             boolean addSeparator = addSeparatorAfter(list, value, index);
+            boolean addSeparatorBefore = addSeparatorBefore(list, value, index);
 
-            if (addHeader || addSeparator) {
+            if (addHeader || addSeparator || addSeparatorBefore) {
                 separatorPanel.removeAll();
                 if (addHeader) {
-                    separatorPanel.add(
-                        createHeaderLabel(
-                            getHeaderLabel(list, value, index),
-                            getHeaderForeground(list, value, index, comp)
-                        ),
-                        BorderLayout.NORTH
-                    );
+                    if (addSeparatorBefore) {
+                        JPanel headerWrapper = new JPanel(new BorderLayout());
+                        headerWrapper.add(new JSeparator(), BorderLayout.NORTH);
+                        headerWrapper.add(
+                            createHeaderLabel(
+                                getHeaderLabel(list, value, index),
+                                getHeaderForeground(list, value, index, comp)
+                            ),
+                            BorderLayout.CENTER
+                        );
+                        separatorPanel.add(headerWrapper, BorderLayout.NORTH);
+                    } else {
+                        separatorPanel.add(
+                            createHeaderLabel(
+                                getHeaderLabel(list, value, index),
+                                getHeaderForeground(list, value, index, comp)
+                            ),
+                            BorderLayout.NORTH
+                        );
+                    }
                 }
                 separatorPanel.add(comp, BorderLayout.CENTER);
                 if (addSeparator) {
@@ -63,6 +77,10 @@ public abstract class ComboSeparatorsRenderer implements ListCellRenderer {
 
     protected String getHeaderLabel(JList list, Object value, int index) {
         return "";
+    }
+
+    protected boolean addSeparatorBefore(JList list, Object value, int index) {
+        return false;
     }
 
     protected void customizeListItemComponent(

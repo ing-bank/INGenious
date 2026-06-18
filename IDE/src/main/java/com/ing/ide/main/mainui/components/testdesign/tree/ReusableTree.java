@@ -16,7 +16,6 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JCheckBox;
-import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.tree.TreePath;
 
@@ -451,6 +450,10 @@ public class ReusableTree extends ProjectTree {
             return;
         }
 
+        int success = 0;
+        int impactedUpdates = 0;
+
+        // First confirm the high-level intent to make selected reusables Shared
         int option = JOptionPane.showConfirmDialog(
             null,
             "Move selected reusable test case(s) to Shared Reusable Components?",
@@ -461,8 +464,11 @@ public class ReusableTree extends ProjectTree {
             return;
         }
 
-        int success = 0;
-        int impactedUpdates = 0;
+        // Ask project tree helper to detect/move project objects for all selected testcases
+        if (!getTestDesign().getProjectTree().confirmAndMoveProjectObjectsForTestCases(selected)) {
+            return; // user cancelled in helper
+        }
+
         for (TestCase tc : selected) {
             try {
                 getProject().moveTestCaseToSharedReusable(tc);

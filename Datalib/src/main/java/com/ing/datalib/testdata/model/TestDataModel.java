@@ -27,7 +27,8 @@ public abstract class TestDataModel extends AbstractDataModel<Record> {
 
     @Override
     public boolean canEditOnExecution(int columnIndex) {
-        return columnIndex > 3;
+        // With new Scope column inserted at index 2, editable columns during execution are after SubIteration (now index 4)
+        return columnIndex > 4;
     }
 
     public Queue<Integer> getDataIteration(

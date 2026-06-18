@@ -10,9 +10,18 @@ public class Record extends ArrayList<String> {
     public static final String[] HEADERS = new String[] {
         "Scenario",
         "Flow",
+        "Scope",
         "Iteration",
         "SubIteration"
     };
+
+    public Record() {
+        super();
+        // initialize with empty strings for each header to avoid index errors when CSVs are missing columns
+        for (int i = 0; i < HEADERS.length; i++) {
+            super.add("");
+        }
+    }
 
     @Override
     public String remove(int i) {
@@ -31,11 +40,11 @@ public class Record extends ArrayList<String> {
     }
 
     public String getIteration() {
-        return get(2);
+        return get(3);
     }
 
     public String getSubIteration() {
-        return get(3);
+        return get(4);
     }
 
     public void setScenario(String scenario) {
@@ -47,18 +56,18 @@ public class Record extends ArrayList<String> {
     }
 
     public void setIteration(String iteration) {
-        set(2, iteration);
+        set(3, iteration);
     }
 
     public void setSubIteration(String subIteration) {
-        set(3, subIteration);
+        set(4, subIteration);
     }
 
     @Override
     public String set(int i, String e) {
         switch (i) {
-            case 2:
             case 3:
+            case 4:
                 if (!validIterRSubIteration(e)) {
                     if (!validIterRSubIteration(get(i))) {
                         e = "1";

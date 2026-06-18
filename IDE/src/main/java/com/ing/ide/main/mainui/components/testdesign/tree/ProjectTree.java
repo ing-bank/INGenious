@@ -3,10 +3,15 @@ package com.ing.ide.main.mainui.components.testdesign.tree;
 import com.ing.datalib.component.Project;
 import com.ing.datalib.component.Scenario;
 import com.ing.datalib.component.TestCase;
+import com.ing.datalib.component.TestStep;
 import com.ing.datalib.exception.TestCaseConversionException;
 import com.ing.datalib.model.DataItem;
 import com.ing.datalib.model.Meta;
 import com.ing.datalib.model.Tag;
+import com.ing.datalib.or.mobile.ResolvedMobileObject;
+import com.ing.datalib.or.sap.ResolvedSapObject;
+import com.ing.datalib.or.structureddata.ResolvedStructuredDataObject;
+import com.ing.datalib.or.web.ResolvedWebObject;
 import com.ing.ide.main.mainui.components.testdesign.TestDesign;
 import com.ing.ide.main.mainui.components.testdesign.testcase.validation.TestCaseValidation;
 import com.ing.ide.main.mainui.components.testdesign.tree.model.GroupNode;
@@ -38,8 +43,12 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.AbstractAction;
@@ -904,19 +913,46 @@ public class ProjectTree implements ActionListener {
             return;
         }
         if (!getSelectedTestCaseNodes().isEmpty()) {
+            int option = JOptionPane.showConfirmDialog(
+                null,
+                "Move selected test case(s) to Shared Reusable Components?",
+                "Make As Shared Reusable",
+                JOptionPane.YES_NO_OPTION
+            );
+            if (option != JOptionPane.YES_OPTION) {
+                return;
+            }
             // Save ALL test cases to prevent data loss on reload
             getProject().save();
 
             boolean anySuccess = false;
             int impactedUpdates = 0;
+
+            // Move test cases first and record which ones moved successfully.
+            List<TestCase> movedSuccessfully = new ArrayList<>();
             for (TestCaseNode testCaseNode : getSelectedTestCaseNodes()) {
                 try {
                     getProject().moveTestCaseToSharedReusable(testCaseNode.getTestCase());
                     impactedUpdates +=
                         getProject().getAndResetLastImpactedReusableReferenceUpdates();
                     anySuccess = true;
+                    movedSuccessfully.add(testCaseNode.getTestCase());
                 } catch (TestCaseConversionException e) {
                     Notification.show(e.getMessage());
+                }
+            }
+
+            // Only after test cases have been moved successfully, detect and optionally move project-scoped objects
+            if (!movedSuccessfully.isEmpty()) {
+                // If the user cancels the second confirmation, we simply skip moving objects but do not revert moved test cases.
+                try {
+                    confirmAndMoveProjectObjectsForTestCases(movedSuccessfully);
+                } catch (Exception ex) {
+                    LOGGER.log(
+                        Level.WARNING,
+                        "Error during optional object move after test case migration",
+                        ex
+                    );
                 }
             }
             if (anySuccess) {
@@ -943,6 +979,162 @@ public class ProjectTree implements ActionListener {
             Notification.showSuccess(
                 operationName + " completed. No impacted test case references required updates."
             );
+        }
+    }
+
+    /**
+     * Detects project-scoped object references used by the provided test cases.
+     * If any project-only objects are found, prompts the user whether to move those
+     * objects/pages to Shared OR. If the user agrees, moves objects/pages to Shared.
+     * Returns true when the caller should proceed with moving test cases to Shared; false if cancelled.
+     */
+    public boolean confirmAndMoveProjectObjectsForTestCases(List<TestCase> testCases) {
+        try {
+            var repo = getProject().getObjectRepository();
+            if (repo == null) return true; // nothing to do
+
+            // Collect project-only references as pairs of pageName -> set(objectName)
+            Map<String, Set<String>> projectRefs = new HashMap<>();
+
+            for (TestCase tc : testCases) {
+                tc.loadTableModel();
+                for (TestStep step : tc.getTestSteps()) {
+                    if (!step.isPageObjectStep()) continue;
+                    String ref = step.getReference();
+                    String obj = step.getObject();
+                    if (ref == null || ref.isBlank() || obj == null || obj.isBlank()) continue;
+
+                    // Parse the page reference first to handle scoped tokens like "[Project] Home"
+                    ResolvedWebObject.PageRef wref = ResolvedWebObject.PageRef.parse(ref);
+                    var wres = repo.resolveWebObject(wref, obj);
+                    if (wres != null) {
+                        if (wres.isFromProject()) {
+                            projectRefs
+                                .computeIfAbsent(wres.getPageName(), k -> new HashSet<>())
+                                .add(obj);
+                        }
+                        continue;
+                    }
+
+                    ResolvedMobileObject.PageRef mref = ResolvedMobileObject.PageRef.parse(ref);
+                    var mres = repo.resolveMobileObject(mref, obj);
+                    if (mres != null) {
+                        if (mres.isFromProject()) {
+                            projectRefs
+                                .computeIfAbsent(mres.getPageName(), k -> new HashSet<>())
+                                .add(obj);
+                        }
+                        continue;
+                    }
+
+                    ResolvedStructuredDataObject.PageRef sref = ResolvedStructuredDataObject.PageRef.parse(
+                        ref
+                    );
+                    var sres = repo.resolveStructuredDataObject(sref, obj);
+                    if (sres != null) {
+                        if (sres.isFromProject()) {
+                            projectRefs
+                                .computeIfAbsent(sres.getPageName(), k -> new HashSet<>())
+                                .add(obj);
+                        }
+                        continue;
+                    }
+
+                    ResolvedSapObject.PageRef sapref = ResolvedSapObject.PageRef.parse(ref);
+                    var sapres = repo.resolveSapObject(sapref, obj);
+                    if (sapres != null) {
+                        if (sapres.isFromProject()) {
+                            projectRefs
+                                .computeIfAbsent(sapres.getPageName(), k -> new HashSet<>())
+                                .add(obj);
+                        }
+                        continue;
+                    }
+                }
+            }
+
+            if (projectRefs.isEmpty()) return true; // no project-only objects found
+
+            // Build confirmation message
+            StringBuilder sb = new StringBuilder();
+            sb.append(
+                "The selected test case(s) reference project-scoped Object Repository items:\n\n"
+            );
+            for (var e : projectRefs.entrySet()) {
+                sb
+                    .append("Page: ")
+                    .append(e.getKey())
+                    .append(" -> Objects: ")
+                    .append(e.getValue())
+                    .append("\n");
+            }
+            sb.append(
+                "\nDo you want to move these objects/pages to Shared Object Repository as well?\n"
+            );
+
+            int opt = JOptionPane.showConfirmDialog(
+                null,
+                sb.toString(),
+                "Move referenced Project Objects to Shared?",
+                JOptionPane.YES_NO_CANCEL_OPTION
+            );
+
+            if (opt == JOptionPane.CANCEL_OPTION || opt == JOptionPane.CLOSED_OPTION) return false;
+            if (opt == JOptionPane.NO_OPTION) return true; // proceed without moving objects
+
+            // User agreed to move objects/pages to Shared OR. Attempt to move at page-level first.
+            for (String pageName : projectRefs.keySet()) {
+                // Try to move page; ObjectRepository.moveXxxPage returns non-null if moved
+                try {
+                    String moved = repo.moveWebPage(pageName, pageName);
+                    if (moved == null) {
+                        // Try mobile
+                        moved = repo.moveMobilePage(pageName, pageName);
+                    }
+                    if (moved == null) {
+                        moved = repo.moveSapPage(pageName, pageName);
+                    }
+                    if (moved == null) {
+                        moved = repo.moveStructuredDataPage(pageName, pageName);
+                    }
+                    // If none returned non-null, move individual objects instead
+                    if (moved == null) {
+                        for (String obj : projectRefs.get(pageName)) {
+                            // try web
+                            var r = repo.resolveWebObjectWithScope(pageName, obj);
+                            if (r != null && r.isFromProject()) {
+                                repo.moveWebObject(r, pageName);
+                                continue;
+                            }
+                            var rm = repo.resolveMobileObjectWithScope(pageName, obj);
+                            if (rm != null && rm.isFromProject()) {
+                                repo.moveMobileObject(rm, pageName);
+                                continue;
+                            }
+                            var rs = repo.resolveStructuredDataObjectWithScope(pageName, obj);
+                            if (rs != null && rs.isFromProject()) {
+                                repo.moveStructuredDataObject(rs, pageName);
+                                continue;
+                            }
+                            var rsp = repo.resolveSapObjectWithScope(pageName, obj);
+                            if (rsp != null && rsp.isFromProject()) {
+                                repo.moveSapObject(rsp, pageName);
+                                continue;
+                            }
+                        }
+                    }
+                } catch (Exception ex) {
+                    // ignore individual failures and continue
+                }
+            }
+
+            // Save repository and refresh UI
+            repo.save();
+            getTestDesign().getObjectRepo().load();
+            return true;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return true; // allow proceed on error
         }
     }
 
