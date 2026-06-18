@@ -33,6 +33,7 @@ import javax.swing.JTextField;
 import javax.swing.JToggleButton;
 import javax.swing.JToolBar;
 import javax.swing.SwingConstants;
+import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
@@ -121,6 +122,7 @@ public class WebORTable extends JPanel implements ActionListener, ItemListener {
         }
         table.setModel(object);
         configureColumns();
+        SwingUtilities.invokeLater(this::adjustColumnsToViewport);
         monitorFrameChange = false;
         frameToolbar.frameText.setText(object.getFrame());
         toolBar.frameToggle.setSelected(!frameToolbar.frameText.getText().isEmpty());
@@ -201,6 +203,7 @@ public class WebORTable extends JPanel implements ActionListener, ItemListener {
     }
 
     public void reset() {
+        stopCellEditing();
         table.setModel(new DefaultTableModel());
     }
 

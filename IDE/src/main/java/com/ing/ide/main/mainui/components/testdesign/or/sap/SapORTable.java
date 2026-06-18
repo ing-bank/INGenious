@@ -58,6 +58,7 @@ public class SapORTable extends JPanel implements ActionListener {
     }
 
     public void reset() {
+        stopCellEditing();
         table.setModel(new DefaultTableModel());
     }
 

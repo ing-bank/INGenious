@@ -84,6 +84,7 @@ public class StructuredDataORTable extends JPanel implements ActionListener {
     }
 
     public void reset() {
+        stopCellEditing();
         table.setModel(new DefaultTableModel());
     }
 

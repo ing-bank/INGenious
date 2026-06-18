@@ -121,6 +121,7 @@ public class MobileORTable extends JPanel implements ActionListener {
     }
 
     public void reset() {
+        stopCellEditing();
         table.setModel(new DefaultTableModel());
         toolBar.setTitleSuffix("");
     }
