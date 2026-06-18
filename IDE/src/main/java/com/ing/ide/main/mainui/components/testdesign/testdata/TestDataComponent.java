@@ -27,12 +27,10 @@ import java.awt.event.MouseEvent;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Collectors;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.ImageIcon;
@@ -178,7 +176,12 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
         testdataTab.setTabPlacement(JTabbedPane.BOTTOM);
         testdataTab.setBackground(UIManager.getColor("Panel.background"));
         addToTab(testdataTab, sTestData.getGlobalData(), true);
-        for (AbstractDataModel std : sTestData.getTestDataList()) {
+
+        List<TestDataModel> testDataList = sTestData.getTestDataList().stream()
+                .sorted(Comparator.comparing(AbstractDataModel::getName))
+                .collect(Collectors.toList());
+
+        for (AbstractDataModel std : testDataList) {
             addToTab(testdataTab, std, false);
         }
 

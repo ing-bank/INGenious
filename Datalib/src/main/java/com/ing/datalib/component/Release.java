@@ -4,6 +4,7 @@ package com.ing.datalib.component;
 import com.ing.datalib.component.utils.FileUtils;
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 
 /**
@@ -75,6 +76,7 @@ public class Release extends DataModel {
             for (String testSet : relDir.list(FileUtils.CSV_FILTER)) {
                 testSets.add(new TestSet(this, testSet));
             }
+            testSets.sort(Comparator.comparing(TestSet::getName));
         }
     }
 

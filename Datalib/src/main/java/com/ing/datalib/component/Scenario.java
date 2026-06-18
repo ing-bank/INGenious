@@ -2,6 +2,7 @@ package com.ing.datalib.component;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 
 import com.ing.datalib.component.utils.FileUtils;
@@ -195,6 +196,7 @@ public class Scenario extends DataModel {
             for (String testCase : scenDir.list(FileUtils.CSV_FILTER)) {
                 testCases.add(new TestCase(this, testCase));
             }
+            testCases.sort(Comparator.comparing(TestCase::getName));
         }
     }
 
