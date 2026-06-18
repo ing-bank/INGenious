@@ -150,6 +150,15 @@ public class Project {
         objectRepository = new ObjectRepository(this);
         projectInfo = loadProjectInfo(getProjectFile());
         migrateLegacyReusableExecuteReferencesOnLoad();
+
+        // Reconcile shared reusable project tracking on load to clean stale entries
+        try {
+            reconcileSharedReusableProjectsItems();
+        } catch (Exception ex) {
+            Logger
+                .getLogger(Project.class.getName())
+                .log(Level.WARNING, "Failed to reconcile shared reusable projects items", ex);
+        }
     }
 
     /**
@@ -172,6 +181,74 @@ public class Project {
             "Legacy Execute reference migration check completed for {0} test case(s)",
             testCasesScanned
         );
+    }
+
+    /**
+     * Reconciles the shared reusable projects.items file by removing stale project entries.
+     * Validates that all projects in the file still exist at their recorded paths.
+     */
+    private void reconcileSharedReusableProjectsItems() {
+        try {
+            File sharedRoot = new File(getSharedReusableComponentsPath());
+            File projectsFile = new File(sharedRoot, "projects.items");
+
+            if (!projectsFile.exists()) {
+                return; // No projects.items file to reconcile
+            }
+
+            try {
+                String content = FileScanner.readFile(projectsFile);
+                if (content == null || content.isEmpty()) {
+                    return; // Empty file, nothing to reconcile
+                }
+
+                com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
+                java.util.List<java.util.Map<String, String>> projects = mapper.readValue(
+                    content,
+                    mapper
+                        .getTypeFactory()
+                        .constructCollectionType(java.util.List.class, java.util.Map.class)
+                );
+
+                // Filter out stale entries - keep only projects that still exist on disk
+                java.util.List<java.util.Map<String, String>> validProjects = new java.util.ArrayList<>();
+                for (java.util.Map<String, String> proj : projects) {
+                    String projectPath = proj.get("path");
+                    if (projectPath != null && !projectPath.isEmpty()) {
+                        File projectDir = new File(projectPath);
+                        // Keep entry if the project directory exists
+                        if (projectDir.exists() && projectDir.isDirectory()) {
+                            validProjects.add(proj);
+                        }
+                    }
+                }
+
+                // Write reconciled list back only if changes were made
+                if (validProjects.size() != projects.size()) {
+                    String jsonOutput = mapper
+                        .writerWithDefaultPrettyPrinter()
+                        .writeValueAsString(validProjects);
+
+                    // Atomic write: write to temp and rename
+                    File tmp = new File(projectsFile.getPath() + ".tmp");
+                    FileScanner.writeFile(tmp, jsonOutput);
+                    if (tmp.exists()) {
+                        if (!tmp.renameTo(projectsFile)) {
+                            // Fallback if rename fails
+                            FileScanner.writeFile(projectsFile, jsonOutput);
+                        }
+                    }
+                }
+            } catch (Exception ex) {
+                Logger
+                    .getLogger(Project.class.getName())
+                    .log(Level.WARNING, "Failed to read projects.items during reconciliation", ex);
+            }
+        } catch (Exception ex) {
+            Logger
+                .getLogger(Project.class.getName())
+                .log(Level.WARNING, "Error reconciling shared reusable projects.items", ex);
+        }
     }
 
     /**

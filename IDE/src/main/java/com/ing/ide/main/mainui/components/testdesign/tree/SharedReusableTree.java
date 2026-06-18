@@ -1,5 +1,6 @@
 package com.ing.ide.main.mainui.components.testdesign.tree;
 
+import com.ing.datalib.component.Project;
 import com.ing.datalib.component.Scenario;
 import com.ing.datalib.component.TestCase;
 import com.ing.datalib.exception.TestCaseConversionException;
@@ -11,6 +12,10 @@ import com.ing.ide.main.mainui.components.testdesign.tree.model.TestCaseNode;
 import com.ing.ide.util.Notification;
 import com.ing.ide.util.Validator;
 import java.awt.event.ActionEvent;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
@@ -109,9 +114,37 @@ public class SharedReusableTree extends ProjectTree {
     protected void onDeleteAction() {
         deleteGroups();
         if (!getSelectedTestCaseNodes().isEmpty() || !getSelectedScenarioNodes().isEmpty()) {
+            // collect scenario names referenced by the selection
+            List<String> selectedScenarioNames = new ArrayList<>();
+            for (ScenarioNode sn : getSelectedScenarioNodes()) {
+                selectedScenarioNames.add(sn.getScenario().getName());
+            }
+            for (TestCaseNode tcn : getSelectedTestCaseNodes()) {
+                selectedScenarioNames.add(tcn.getTestCase().getScenario().getName());
+            }
+
+            // find projects that reference any of the selected shared scenarios
+            List<String> referencingProjects = new ArrayList<>();
+            for (String scnName : selectedScenarioNames) {
+                List<String> projs = findProjectsUsingSharedScenario(scnName);
+                for (String p : projs) {
+                    if (!referencingProjects.contains(p)) referencingProjects.add(p);
+                }
+            }
+
+            String message;
+            if (!referencingProjects.isEmpty()) {
+                message =
+                    "The selected shared reusable components are referenced by the following projects:\n\n" +
+                    String.join("\n", referencingProjects) +
+                    "\n\nAre you sure you want to delete the selected shared reusable(s)?";
+            } else {
+                message = "Warning: You are deleting Shared Reusable component(s). Continue?";
+            }
+
             int warning = JOptionPane.showConfirmDialog(
                 null,
-                "Warning: You are deleting Shared Reusable component(s). Continue?",
+                message,
                 "Shared Reusable Delete Warning",
                 JOptionPane.YES_NO_OPTION,
                 JOptionPane.WARNING_MESSAGE
@@ -164,6 +197,31 @@ public class SharedReusableTree extends ProjectTree {
             }
             ScenarioNode scenarioNode = super.getSelectedScenarioNode();
             if (scenarioNode != null && !scenarioNode.toString().equals(name)) {
+                // Warn about projects that reference this shared reusable scenario
+                var projects = findProjectsUsingSharedScenario(
+                    scenarioNode.getScenario().getName()
+                );
+                if (!projects.isEmpty()) {
+                    String msg =
+                        "The shared reusable scenario '" +
+                        scenarioNode.getScenario().getName() +
+                        "'\n" +
+                        "is referenced by the following projects:\n\n" +
+                        String.join("\n", projects) +
+                        "\n\nDo you want to continue renaming it to '" +
+                        name +
+                        "'?";
+                    int opt = javax.swing.JOptionPane.showConfirmDialog(
+                        null,
+                        msg,
+                        "Rename Shared Reusable - References Found",
+                        javax.swing.JOptionPane.YES_NO_OPTION,
+                        javax.swing.JOptionPane.WARNING_MESSAGE
+                    );
+                    if (opt != javax.swing.JOptionPane.YES_OPTION) {
+                        return false;
+                    }
+                }
                 if (scenarioNode.getScenario().renameSharedReusable(name)) {
                     getTreeModel().reload(scenarioNode);
                     renameScenario(scenarioNode.getScenario());
@@ -176,6 +234,33 @@ public class SharedReusableTree extends ProjectTree {
             }
             TestCaseNode testCaseNode = super.getSelectedTestCaseNode();
             if (testCaseNode != null && !testCaseNode.toString().equals(name)) {
+                // Warn about projects that reference this shared reusable test case's scenario
+                var projects = findProjectsUsingSharedScenario(
+                    testCaseNode.getTestCase().getScenario().getName()
+                );
+                if (!projects.isEmpty()) {
+                    String msg =
+                        "The shared reusable test case '" +
+                        testCaseNode.getTestCase().getName() +
+                        "'\n" +
+                        "(scenario: '" +
+                        testCaseNode.getTestCase().getScenario().getName() +
+                        "') is referenced by the following projects:\n\n" +
+                        String.join("\n", projects) +
+                        "\n\nDo you want to continue renaming it to '" +
+                        name +
+                        "'?";
+                    int opt = javax.swing.JOptionPane.showConfirmDialog(
+                        null,
+                        msg,
+                        "Rename Shared Reusable - References Found",
+                        javax.swing.JOptionPane.YES_NO_OPTION,
+                        javax.swing.JOptionPane.WARNING_MESSAGE
+                    );
+                    if (opt != javax.swing.JOptionPane.YES_OPTION) {
+                        return false;
+                    }
+                }
                 if (testCaseNode.getTestCase().renameSharedReusable(name)) {
                     getTreeModel().reload(testCaseNode);
                     super.getTestDesign().getTestCaseComp().refreshTitle();
@@ -191,6 +276,71 @@ public class SharedReusableTree extends ProjectTree {
             }
         }
         return false;
+    }
+
+    /**
+     * Reads the projects.items JSON file from SharedReusableComponents and returns a list of
+     * projects that use any shared reusable, excluding the currently loaded project.
+     * Format: JSON array of objects with "name" and "path" fields.
+     *
+     * @param scenarioName shared reusable scenario name (not used for filtering, kept for compatibility)
+     * @return list of project display names (excluding current project) that reference shared reusables
+     */
+    private List<String> findProjectsUsingSharedScenario(String scenarioName) {
+        List<String> result = new ArrayList<>();
+        try {
+            // Get current loaded project to exclude it from display
+            Project currentProject = getTestDesign().getProject();
+            String currentProjectName = currentProject != null ? currentProject.getName() : null;
+            String currentProjectPath = currentProject != null
+                ? currentProject.getLocation()
+                : null;
+
+            Path projectsFile = Paths.get(
+                Project.getSharedReusableComponentsPath(),
+                "projects.items"
+            );
+            if (!Files.exists(projectsFile)) return result;
+
+            String content = new String(Files.readAllBytes(projectsFile), StandardCharsets.UTF_8);
+            if (content == null || content.trim().isEmpty()) return result;
+
+            // Parse JSON array
+            com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
+            java.util.List<java.util.Map<String, String>> projects = mapper.readValue(
+                content,
+                mapper
+                    .getTypeFactory()
+                    .constructCollectionType(java.util.List.class, java.util.Map.class)
+            );
+
+            // Format and display all projects EXCEPT the currently loaded one
+            for (java.util.Map<String, String> proj : projects) {
+                String projName = proj.get("name");
+                String projPath = proj.get("path");
+                if (projName == null || projName.isEmpty()) continue;
+
+                // Skip if this is the currently loaded project
+                if (
+                    projName.equals(currentProjectName) &&
+                    projPath != null &&
+                    projPath.equals(currentProjectPath)
+                ) {
+                    continue;
+                }
+
+                // Add to results
+                if (projPath != null && !projPath.isEmpty()) {
+                    result.add(projName + " | " + projPath);
+                } else {
+                    result.add(projName);
+                }
+            }
+        } catch (Exception e) {
+            // best-effort: ignore and return empty list
+            LOGGER.log(Level.FINE, "Failed to read Shared projects.items JSON", e);
+        }
+        return result;
     }
 
     /**

@@ -11,6 +11,7 @@ import com.ing.datalib.or.sap.ResolvedSapObject;
 import com.ing.datalib.or.structureddata.ResolvedStructuredDataObject;
 import com.ing.datalib.or.web.ResolvedWebObject;
 import com.ing.datalib.or.web.WebOR.ORScope;
+import com.ing.datalib.util.data.FileScanner;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -724,11 +725,140 @@ public class TestCase extends DataModel {
                     rows
                 );
                 setSaved(true);
+                // After successful save, register any shared reusable references from this test case
+                try {
+                    updateSharedReusableProjectsItems();
+                } catch (Exception ex) {
+                    Logger
+                        .getLogger(TestCase.class.getName())
+                        .log(Level.FINE, "Failed to update shared reusable projects.items", ex);
+                }
             } catch (Exception ex) {
                 Logger
                     .getLogger(TestCase.class.getName())
                     .log(Level.SEVERE, "Error while saving", ex);
             }
+        }
+    }
+
+    /**
+     * Scans this test case for Execute/reusable steps that reference shared reusables
+     * and records the current project name and path into SharedReusableComponents/projects.items
+     * as a JSON array so the IDE can later look up which projects reference shared reusables.
+     */
+    private void updateSharedReusableProjectsItems() {
+        // Check whether this test case actually references any SHARED reusables
+        java.util.Set<String> sharedReusableNames = new java.util.HashSet<>();
+        for (TestStep step : testSteps) {
+            if (!step.isReusableStep()) continue;
+            ReusableRef ref;
+            try {
+                ref = step.getEffectiveReusableRef();
+            } catch (Exception e) {
+                continue;
+            }
+            if (ref != null && ref.getScope() == ReusableRef.Scope.SHARED) {
+                sharedReusableNames.add(ref.getScenarioName());
+            }
+        }
+
+        if (!sharedReusableNames.isEmpty()) {
+            updateSharedReusableProjectsItems(getProject(), sharedReusableNames);
+        }
+    }
+
+    /**
+     * Static helper method to update projects.items with project information.
+     * Called when a test case or test data is saved with shared reusable references.
+     */
+    public static void updateSharedReusableProjectsItems(
+        Project project,
+        java.util.Set<String> sharedReusableNames
+    ) {
+        try {
+            if (
+                project == null ||
+                project.getName() == null ||
+                sharedReusableNames == null ||
+                sharedReusableNames.isEmpty()
+            ) return;
+            String projectName = project.getName();
+            String projectPath = project.getLocation();
+
+            // Ensure SharedReusableComponents directory exists
+            File sharedRoot = new File(Project.getSharedReusableComponentsPath());
+            if (!sharedRoot.exists()) sharedRoot.mkdirs();
+            File projectsFile = new File(sharedRoot, "projects.items");
+
+            // Read existing entries as JSON array
+            java.util.List<java.util.Map<String, String>> projects = new java.util.ArrayList<>();
+            if (projectsFile.exists()) {
+                try {
+                    String content = FileScanner.readFile(projectsFile);
+                    if (content != null && !content.isEmpty()) {
+                        com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
+                        projects =
+                            mapper.readValue(
+                                content,
+                                mapper
+                                    .getTypeFactory()
+                                    .constructCollectionType(
+                                        java.util.List.class,
+                                        java.util.Map.class
+                                    )
+                            );
+                    }
+                } catch (Exception ex) {
+                    // best effort - ignore read problems, start fresh
+                    projects = new java.util.ArrayList<>();
+                }
+            }
+
+            // Build entry map for other projects only (exclude the current project being saved)
+            java.util.Map<String, String> entry = new java.util.LinkedHashMap<>();
+            entry.put("name", projectName);
+            entry.put("path", projectPath);
+
+            // Check if entry already exists (by name and path)
+            boolean found = false;
+            for (java.util.Map<String, String> proj : projects) {
+                if (projectName.equals(proj.get("name")) && projectPath.equals(proj.get("path"))) {
+                    found = true;
+                    break;
+                }
+            }
+
+            // Add current project if not already in the list
+            if (!found) {
+                projects.add(entry);
+                try {
+                    com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
+                    String jsonOutput = mapper
+                        .writerWithDefaultPrettyPrinter()
+                        .writeValueAsString(projects);
+
+                    // Atomic write: write to temp and rename
+                    File tmp = new File(projectsFile.getPath() + ".tmp");
+                    FileScanner.writeFile(tmp, jsonOutput);
+                    if (tmp.exists()) {
+                        if (!tmp.renameTo(projectsFile)) {
+                            // Fallback if rename fails
+                            FileScanner.writeFile(projectsFile, jsonOutput);
+                        }
+                    } else {
+                        // If tmp wasn't created, attempt direct write
+                        FileScanner.writeFile(projectsFile, jsonOutput);
+                    }
+                } catch (Exception ex) {
+                    Logger
+                        .getLogger(TestCase.class.getName())
+                        .log(Level.SEVERE, "Error serializing projects.items JSON", ex);
+                }
+            }
+        } catch (Exception ex) {
+            Logger
+                .getLogger(TestCase.class.getName())
+                .log(Level.SEVERE, "Error updating shared reusable projects.items", ex);
         }
     }
 
