@@ -80,6 +80,8 @@ public class CollectionTree extends JPanel {
         tree.setFocusable(true);
         tree.getSelectionModel().setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);
 
+        disableTreeArrowKeys();
+
         // Single-click to select and open request
         tree.addMouseListener(
             new MouseAdapter() {
@@ -138,6 +140,46 @@ public class CollectionTree extends JPanel {
         JScrollPane scrollPane = new JScrollPane(tree);
         scrollPane.setBorder(BorderFactory.createEmptyBorder());
         add(scrollPane, BorderLayout.CENTER);
+    }
+
+    private void disableTreeArrowKeys() {
+        InputMap focusedInputMap = tree.getInputMap(JComponent.WHEN_FOCUSED);
+        InputMap ancestorInputMap = tree.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT);
+        ActionMap actionMap = tree.getActionMap();
+
+        String disabledActionKey = "disableArrowKeys";
+
+        Action doNothing = new AbstractAction() {
+
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                // Intentionally do nothing.
+            }
+        };
+
+        actionMap.put(disabledActionKey, doNothing);
+
+        int[] arrowKeys = { KeyEvent.VK_UP, KeyEvent.VK_DOWN, KeyEvent.VK_LEFT, KeyEvent.VK_RIGHT };
+
+        int[] modifiers = {
+            0,
+            InputEvent.SHIFT_DOWN_MASK,
+            InputEvent.CTRL_DOWN_MASK,
+            InputEvent.ALT_DOWN_MASK,
+            InputEvent.META_DOWN_MASK,
+            InputEvent.SHIFT_DOWN_MASK | InputEvent.CTRL_DOWN_MASK,
+            InputEvent.SHIFT_DOWN_MASK | InputEvent.ALT_DOWN_MASK,
+            InputEvent.CTRL_DOWN_MASK | InputEvent.ALT_DOWN_MASK
+        };
+
+        for (int key : arrowKeys) {
+            for (int modifier : modifiers) {
+                KeyStroke keyStroke = KeyStroke.getKeyStroke(key, modifier);
+
+                focusedInputMap.put(keyStroke, disabledActionKey);
+                ancestorInputMap.put(keyStroke, disabledActionKey);
+            }
+        }
     }
 
     private void paintContextOutline(Graphics g) {
