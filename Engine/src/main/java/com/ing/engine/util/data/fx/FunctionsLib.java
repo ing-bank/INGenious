@@ -11,6 +11,8 @@ import java.util.Random;
  */
 public class FunctionsLib {
 
+    private final Random rn = new Random(System.currentTimeMillis());
+
     public Object getDate(int dx) {
         return getDate(dx, "dd/MM/yyyy");
     }
@@ -27,7 +29,6 @@ public class FunctionsLib {
     }
 
     public Object getRandom(Double from, Double to) {
-        Random rn = new Random(System.currentTimeMillis());
         return from + (rn.nextDouble() * (to - from));
     }
 
