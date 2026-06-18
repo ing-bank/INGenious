@@ -141,7 +141,7 @@ public class KafkaPlugin {
         System.out.println("KafkaPlugin context key set to: " + this.key);
     }
 
-    @Action(object = ObjectType.KAFKA, desc = "Add Kafka Header", input = InputType.YES)
+    @Action(object = "Kafka", desc = "Add Kafka Header", input = InputType.YES)
     public void addKafkaHeader() {
         try {
             // Resolve all runtime variables (datasheet, user-defined, runtime vars)
@@ -165,7 +165,7 @@ public class KafkaPlugin {
         }
     }
 
-    @Action(object = ObjectType.KAFKA, desc = "Set Producer Topic", input = InputType.YES, condition = InputType.NO)
+    @Action(object = "Kafka", desc = "Set Producer Topic", input = InputType.YES, condition = InputType.NO)
     public void setProducerTopic() {
         try {
             kafkaProducerTopic.put(key, Data);
@@ -176,7 +176,7 @@ public class KafkaPlugin {
         }
     }
 
-    @Action(object = ObjectType.KAFKA, desc = "Set Auto Register Schemas", input = InputType.YES, condition = InputType.NO)
+    @Action(object = "Kafka", desc = "Set Auto Register Schemas", input = InputType.YES, condition = InputType.NO)
     public void setAutoRegisterSchemas() {
         try {
             kafkaAutoRegisterSchemas.put(key, Boolean.valueOf(Data.toLowerCase().trim()));
@@ -187,7 +187,7 @@ public class KafkaPlugin {
         }
     }
 
-    @Action(object = ObjectType.KAFKA, desc = "Set Consumer Topic", input = InputType.YES, condition = InputType.NO)
+    @Action(object = "Kafka", desc = "Set Consumer Topic", input = InputType.YES, condition = InputType.NO)
     public void setConsumerTopic() {
         try {
             kafkaConsumerTopic.put(key, Data);
@@ -198,7 +198,7 @@ public class KafkaPlugin {
         }
     }
 
-    @Action(object = ObjectType.KAFKA, desc = "Set Consumer Retries", input = InputType.YES, condition = InputType.NO)
+    @Action(object = "Kafka", desc = "Set Consumer Retries", input = InputType.YES, condition = InputType.NO)
     public void setConsumerPollRetries() {
         try {
             kafkaConsumerPollRetries.put(key, Integer.parseInt(Data));
@@ -209,7 +209,7 @@ public class KafkaPlugin {
         }
     }
 
-    @Action(object = ObjectType.KAFKA, desc = "Set Consumer Retries", input = InputType.YES, condition = InputType.NO)
+    @Action(object = "Kafka", desc = "Set Consumer Retries", input = InputType.YES, condition = InputType.NO)
     public void setConsumerPollInterval() {
         try {
             kafkaConsumerPollDuration.put(key, Long.valueOf(Data));
@@ -220,7 +220,7 @@ public class KafkaPlugin {
         }
     }
 
-    @Action(object = ObjectType.KAFKA, desc = "Set Consumer Max Poll Records", input = InputType.YES, condition = InputType.NO)
+    @Action(object = "Kafka", desc = "Set Consumer Max Poll Records", input = InputType.YES, condition = InputType.NO)
     public void setConsumerMaxPollRecords() {
         try {
             kafkaConsumerMaxPollRecords.put(key, Integer.valueOf(Data));
@@ -231,7 +231,7 @@ public class KafkaPlugin {
         }
     }
 
-    @Action(object = ObjectType.KAFKA, desc = "Set Bootstrap Servers", input = InputType.YES, condition = InputType.NO)
+    @Action(object = "Kafka", desc = "Set Bootstrap Servers", input = InputType.YES, condition = InputType.NO)
     public void setBootstrapServers() {
         try {
             kafkaServers.put(key, Data);
@@ -243,7 +243,7 @@ public class KafkaPlugin {
         }
     }
 
-    @Action(object = ObjectType.KAFKA, desc = "Set Schema Registry URL", input = InputType.YES, condition = InputType.NO)
+    @Action(object = "Kafka", desc = "Set Schema Registry URL", input = InputType.YES, condition = InputType.NO)
     public void setSchemaRegistryURL() {
         try {
             kafkaSchemaRegistryURL.put(key, Data);
@@ -256,7 +256,7 @@ public class KafkaPlugin {
         }
     }
 
-    @Action(object = ObjectType.KAFKA, desc = "Set Shared Secret", input = InputType.YES, condition = InputType.NO)
+    @Action(object = "Kafka", desc = "Set Shared Secret", input = InputType.YES, condition = InputType.NO)
     public void setSharedSecret() {
         try {
             kafkaSharedSecret.put(key, Data);
@@ -267,7 +267,7 @@ public class KafkaPlugin {
         }
     }
 
-    @Action(object = ObjectType.KAFKA, desc = "Set Key", input = InputType.YES, condition = InputType.NO)
+    @Action(object = "Kafka", desc = "Set Key", input = InputType.YES, condition = InputType.NO)
     public void setKey() {
         try {
             kafkaKey.put(key, Data);
@@ -278,7 +278,7 @@ public class KafkaPlugin {
         }
     }
 
-    @Action(object = ObjectType.KAFKA, desc = "Set Consumer GroupId", input = InputType.YES, condition = InputType.NO)
+    @Action(object = "Kafka", desc = "Set Consumer GroupId", input = InputType.YES, condition = InputType.NO)
     public void setConsumerGroupId() {
         try {
             kafkaConsumerGroupId.put(key, Data);
@@ -290,7 +290,7 @@ public class KafkaPlugin {
         }
     }
 
-    @Action(object = ObjectType.KAFKA, desc = "Set Partition", input = InputType.YES, condition = InputType.NO)
+    @Action(object = "Kafka", desc = "Set Partition", input = InputType.YES, condition = InputType.NO)
     public void setPartition() {
         try {
             if (Data.toLowerCase().equals("null")) {
@@ -305,7 +305,7 @@ public class KafkaPlugin {
         }
     }
 
-    @Action(object = ObjectType.KAFKA, desc = "Set TimeStamp", input = InputType.NO, condition = InputType.NO)
+    @Action(object = "Kafka", desc = "Set TimeStamp", input = InputType.NO, condition = InputType.NO)
     public void setTimeStamp() {
         try {
             kafkaTimeStamp.put(key, System.currentTimeMillis());
@@ -316,7 +316,7 @@ public class KafkaPlugin {
         }
     }
 
-    @Action(object = ObjectType.KAFKA, desc = "Set Key Serializer", input = InputType.YES, condition = InputType.NO)
+    @Action(object = "Kafka", desc = "Set Key Serializer", input = InputType.YES, condition = InputType.NO)
     public void setKeySerializer() {
         try {
             kafkaKeySerializer.put(key, Data);
@@ -327,7 +327,7 @@ public class KafkaPlugin {
         }
     }
 
-    @Action(object = ObjectType.KAFKA, desc = "Set Value Serializer", input = InputType.YES, condition = InputType.NO)
+    @Action(object = "Kafka", desc = "Set Value Serializer", input = InputType.YES, condition = InputType.NO)
     public void setValueSerializer() {
         try {
             kafkaValueSerializer.put(key, Data);
@@ -339,7 +339,7 @@ public class KafkaPlugin {
         }
     }
 
-    @Action(object = ObjectType.KAFKA, desc = "Set Value Deserializer", input = InputType.YES, condition = InputType.NO)
+    @Action(object = "Kafka", desc = "Set Value Deserializer", input = InputType.YES, condition = InputType.NO)
     public void setValueDeserializer() {
         try {
             kafkaValueDeserializer.put(key, Data);
@@ -352,7 +352,7 @@ public class KafkaPlugin {
         }
     }
 
-    @Action(object = ObjectType.KAFKA, desc = "Add Avro Schema", input = InputType.YES, condition = InputType.NO)
+    @Action(object = "Kafka", desc = "Add Avro Schema", input = InputType.YES, condition = InputType.NO)
     public void addSchema() throws IOException {
         try {
             Schema mainSchema = null;
@@ -376,7 +376,7 @@ public class KafkaPlugin {
 
     }
 
-    @Action(object = ObjectType.KAFKA, desc = "Produce Kafka Message", input = InputType.YES, condition = InputType.NO)
+    @Action(object = "Kafka", desc = "Produce Kafka Message", input = InputType.YES, condition = InputType.NO)
     public void produceMessage() {
         try {
             String value = Data;
@@ -428,7 +428,7 @@ public class KafkaPlugin {
 
     }
 
-    @Action(object = ObjectType.KAFKA, desc = "Send Message", input = InputType.NO, condition = InputType.NO)
+    @Action(object = "Kafka", desc = "Send Message", input = InputType.NO, condition = InputType.NO)
     public void sendKafkaMessage() {
         try {
             createProducer(kafkaValueSerializer.get(key));
@@ -570,7 +570,7 @@ public class KafkaPlugin {
         }
     }
 
-    @Action(object = ObjectType.KAFKA, desc = "Consume Kafka Message", input = InputType.NO)
+    @Action(object = "Kafka", desc = "Consume Kafka Message", input = InputType.NO)
     public void consumeKafkaMessage() {
         try {
             createConsumer(kafkaValueDeserializer.get(key));
@@ -651,7 +651,7 @@ public class KafkaPlugin {
         return null;
     }
 
-    @Action(object = ObjectType.KAFKA, desc = "Identify target message", input = InputType.YES, condition = InputType.YES)
+    @Action(object = "Kafka", desc = "Identify target message", input = InputType.YES, condition = InputType.YES)
     public void identifyTargetMessage() {
         try {
             // --- Multi-condition support: append (path -> value) per key ---
@@ -802,7 +802,7 @@ public class KafkaPlugin {
         }
     }
 
-    @Action(object = ObjectType.KAFKA, desc = "Close Consumer", input = InputType.NO, condition = InputType.NO)
+    @Action(object = "Kafka", desc = "Close Consumer", input = InputType.NO, condition = InputType.NO)
     public void closeConsumer() {
         try {
             kafkaConsumerRecords.remove(key);
@@ -826,7 +826,7 @@ public class KafkaPlugin {
 
     }
 
-    @Action(object = ObjectType.KAFKA, desc = "Store XML tag In DataSheet ", input = InputType.YES, condition = InputType.NO)
+    @Action(object = "Kafka", desc = "Store XML tag In DataSheet ", input = InputType.YES, condition = InputType.NO)
     public void storeKafkaXMLtagInDataSheet() {
 
         try {
@@ -867,7 +867,7 @@ public class KafkaPlugin {
         }
     }
 
-    @Action(object = ObjectType.KAFKA, desc = "Assert XML Tag Equals ", input = InputType.YES, condition = InputType.YES)
+    @Action(object = "Kafka", desc = "Assert XML Tag Equals ", input = InputType.YES, condition = InputType.YES)
     public void assertKafkaXMLtagEquals() {
         try {
             DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
@@ -892,7 +892,7 @@ public class KafkaPlugin {
         }
     }
 
-    @Action(object = ObjectType.KAFKA, desc = "Assert XML Tag Contains ", input = InputType.YES, condition = InputType.YES)
+    @Action(object = "Kafka", desc = "Assert XML Tag Contains ", input = InputType.YES, condition = InputType.YES)
     public void assertKafkaXMLtagContains() {
         try {
             DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
@@ -918,7 +918,7 @@ public class KafkaPlugin {
         }
     }
 
-    @Action(object = ObjectType.KAFKA, desc = "Assert Response Message contains ", input = InputType.YES)
+    @Action(object = "Kafka", desc = "Assert Response Message contains ", input = InputType.YES)
     public void assertKafkaResponseMessageContains() {
         try {
             if (kafkaConsumeRecordValue.get(key).contains(Data)) {
@@ -932,7 +932,7 @@ public class KafkaPlugin {
         }
     }
 
-    @Action(object = ObjectType.KAFKA, desc = "Assert JSON Tag Equals ", input = InputType.YES, condition = InputType.YES)
+    @Action(object = "Kafka", desc = "Assert JSON Tag Equals ", input = InputType.YES, condition = InputType.YES)
     public void assertKafkaJSONtagEquals() {
         try {
             String response = kafkaConsumeRecordValue.get(key);
@@ -950,7 +950,7 @@ public class KafkaPlugin {
         }
     }
 
-    @Action(object = ObjectType.KAFKA, desc = "Assert JSON Tag Contains ", input = InputType.YES, condition = InputType.YES)
+    @Action(object = "Kafka", desc = "Assert JSON Tag Contains ", input = InputType.YES, condition = InputType.YES)
     public void assertKafkaJSONtagContains() {
         try {
             String response = kafkaConsumeRecordValue.get(key);
@@ -968,7 +968,7 @@ public class KafkaPlugin {
         }
     }
 
-    @Action(object = ObjectType.KAFKA, desc = "Store JSON Tag In DataSheet ", input = InputType.YES, condition = InputType.YES)
+    @Action(object = "Kafka", desc = "Store JSON Tag In DataSheet ", input = InputType.YES, condition = InputType.YES)
     public void storeKafkaJSONtagInDataSheet() {
 
         try {
@@ -1000,7 +1000,7 @@ public class KafkaPlugin {
         }
     }
 
-    @Action(object = ObjectType.KAFKA, desc = "Store Response In DataSheet ", input = InputType.YES, condition = InputType.NO)
+    @Action(object = "Kafka", desc = "Store Response In DataSheet ", input = InputType.YES, condition = InputType.NO)
     public void storeKafkaResponseInDataSheet() {
 
         try {

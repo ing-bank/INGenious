@@ -137,23 +137,18 @@
                         </goals>
                         <configuration>
                              <target>
-                                <!-- Destination directories -->
-                                <property name="deploy.dir" value="{Insert directory path of INGenious}"/>
-                                <property name="framework.lib.dir" value="{Insert directory path of INGenious}/lib"/>
+                                <!-- Destination directory -->
+                                <property name="deploy.dir" value="{Insert directory path of INGenious}/plugins/${project.artifactId}"/>
                                 
                                 <!-- Copy and rename plugin JAR -->
                                 <copy file="${project.build.directory}/${project.build.finalName}.jar"
-                                      tofile="${deploy.dir}/plugins/${project.artifactId}/${project.artifactId}.jar"/>
+                                      tofile="${deploy.dir}/${project.artifactId}.jar"/>
 
-                                <!-- DO NOT copy dependencies to plugin lib folder - this causes classloader conflicts -->
-                                <!-- Only deploy to framework lib folder below -->
-
-                                <!-- IMPORTANT: Copy Kafka dependencies to main framework lib folder ONLY -->
-                                <!-- This ensures all Kafka classes are loaded by a single classloader -->
-                                <copy todir="${framework.lib.dir}" failonerror="false" overwrite="true">
+                                <!-- Copy lib folder only if it exists -->
+                                <mkdir dir="${deploy.dir}/lib"/>
+                                <copy todir="${deploy.dir}/lib" failonerror="false" overwrite="true">
                                     <fileset dir="${project.build.directory}/lib" erroronmissingdir="false"/>
                                 </copy>
-                                <echo message="Deployed Kafka dependencies to framework lib folder: ${framework.lib.dir}"/>
 
                             </target>
                         </configuration>
