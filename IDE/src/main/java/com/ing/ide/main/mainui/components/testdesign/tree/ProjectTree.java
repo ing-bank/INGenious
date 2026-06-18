@@ -1076,11 +1076,11 @@ public class ProjectTree implements ActionListener {
                 null,
                 sb.toString(),
                 "Move referenced Project Objects to Shared?",
-                JOptionPane.YES_NO_CANCEL_OPTION
+                JOptionPane.YES_NO_OPTION
             );
 
-            if (opt == JOptionPane.CANCEL_OPTION || opt == JOptionPane.CLOSED_OPTION) return false;
-            if (opt == JOptionPane.NO_OPTION) return true; // proceed without moving objects
+            // if (opt == JOptionPane.CANCEL_OPTION || opt == JOptionPane.CLOSED_OPTION) return false;
+            if (opt != JOptionPane.YES_OPTION) return true; // proceed without moving objects
 
             // User agreed to move objects/pages to Shared OR. Attempt to move at page-level first.
             for (String pageName : projectRefs.keySet()) {
