@@ -1201,7 +1201,13 @@ public class Webservice extends GeneralWebservice {
                 toBeAdded.add(Data);
                 headers.put(key, toBeAdded);
             }
-            if (!Data.toLowerCase().contains("bearer")) {
+            if (Data.toLowerCase().contains("bearer")) {
+                Report.updateTestLog(
+                    Action,
+                    "Header added [Authorization: Bearer *****]",
+                    Status.DONE
+                );
+            } else {
                 Report.updateTestLog(Action, "Header added [" + Data + "]", Status.DONE);
             }
         } catch (Exception ex) {
