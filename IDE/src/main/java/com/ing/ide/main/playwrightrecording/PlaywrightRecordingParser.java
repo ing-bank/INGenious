@@ -144,10 +144,7 @@ public class PlaywrightRecordingParser {
         if (!"Refactor_Object".equals(objectName)) {
             return objectName;
         }
-        if (!usedLiveObjectNames.contains(objectName)) {
-            usedLiveObjectNames.add(objectName);
-            return objectName;
-        }
+        // Always append suffix starting from _1 for Refactor_Object
         int counter = 1;
         while (usedLiveObjectNames.contains(objectName + "_" + counter)) {
             counter++;
@@ -210,6 +207,7 @@ public class PlaywrightRecordingParser {
         StringBuilder stepBuilder = new StringBuilder();
         testCaseParameter();
         attributeDeclaration();
+        usedLiveObjectNames.clear(); // Reset for consistent numbering in file import
         int stepNumber = 1;
         int playwrightSteps = 0;
         stepBuilder.append("Step,ObjectName,Description,Action,Input,Condition,Reference\n");
@@ -233,14 +231,15 @@ public class PlaywrightRecordingParser {
                 if (playwrightSteps >= 1 && !line.contains("}")) {
                     testCaseMap(getAction(line), getInput(line));
                     attributeInitialization(line);
+                    String resolvedObjectName = testCase.get("ObjectName");
                     if (!"Browser".equals(testCase.get("ObjectName"))) {
-                        String objectName = testCase.get("ObjectName");
-                        ObjectGroup group = page.getObjectGroupByName(objectName);
+                        resolvedObjectName = resolveUniqueObjectName(testCase.get("ObjectName"));
+                        ObjectGroup group = page.getObjectGroupByName(resolvedObjectName);
                         if (group == null) {
-                            group = new ObjectGroup(objectName, page);
+                            group = new ObjectGroup(resolvedObjectName, page);
                             page.getObjectGroups().add(group);
                         }
-                        WebORObject obj = new WebORObject(objectName, group);
+                        WebORObject obj = new WebORObject(resolvedObjectName, group);
                         for (Map.Entry<String, String> entry : attribute.entrySet()) {
                             String key = entry.getKey();
                             String value = entry.getValue();
@@ -256,14 +255,16 @@ public class PlaywrightRecordingParser {
                     }
                     testCase.put("step", String.valueOf(stepNumber));
                     // Only add [Project] reference for object-based actions, not for Browser actions
-                    String objectName = testCase.get("ObjectName");
-                    String reference = (objectName != null && objectName.trim().equals("Browser"))
+                    String reference = (
+                            resolvedObjectName != null &&
+                            resolvedObjectName.trim().equals("Browser")
+                        )
                         ? ""
                         : "[Project] " + testCase.get("pageName");
                     String stepAppender =
                         testCase.get("step") +
                         "," +
-                        testCase.get("ObjectName") +
+                        resolvedObjectName +
                         "," +
                         "" +
                         "," +
