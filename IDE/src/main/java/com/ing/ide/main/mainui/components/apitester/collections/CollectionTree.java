@@ -26,6 +26,8 @@ public class CollectionTree extends JPanel {
     private JPopupMenu collectionMenu;
     private JPopupMenu folderMenu;
     private JPopupMenu requestMenu;
+    // Path used for context actions (right-click) - does not change selection
+    private TreePath contextMenuPath;
 
     public CollectionTree(APITesterUI parentUI, APITester controller) {
         this.parentUI = parentUI;
@@ -66,21 +68,34 @@ public class CollectionTree extends JPanel {
         tree.setRowHeight(24); // Increased row height for better readability
         ToolTipManager.sharedInstance().registerComponent(tree);
         tree.setRowHeight(24); // Increased row height for better readability
+        tree.setFocusable(true);
         tree.getSelectionModel().setSelectionMode(TreeSelectionModel.SINGLE_TREE_SELECTION);
 
-        // Double-click to open request
+        // Single-click to open request
         tree.addMouseListener(
             new MouseAdapter() {
 
                 @Override
                 public void mouseClicked(MouseEvent e) {
-                    if (e.getClickCount() == 2) {
-                        handleDoubleClick();
+                    // Single-click to open request (left button)
+                    if (SwingUtilities.isLeftMouseButton(e) && e.getClickCount() == 1) {
+                        handleSingleClick(); // Be sure to rename your method to match this!
                     }
                 }
 
                 @Override
                 public void mousePressed(MouseEvent e) {
+                    // Single left-press selects and focuses the clicked row
+                    if (SwingUtilities.isLeftMouseButton(e) && !e.isPopupTrigger()) {
+                        TreePath path = getPathForFullRow(e.getX(), e.getY());
+                        if (path != null) {
+                            tree.setSelectionPath(path);
+                            tree.requestFocusInWindow();
+                            contextMenuPath = null;
+                            tree.repaint();
+                        }
+                    }
+
                     if (e.isPopupTrigger()) {
                         showContextMenu(e);
                     }
@@ -177,6 +192,39 @@ public class CollectionTree extends JPanel {
         JMenuItem deleteRequest = new JMenuItem("Delete");
         deleteRequest.addActionListener(e -> deleteSelected());
         requestMenu.add(deleteRequest);
+
+        // Clear context outline when popup closes
+        attachContextMenuClearer(collectionMenu);
+        attachContextMenuClearer(folderMenu);
+        attachContextMenuClearer(requestMenu);
+    }
+
+    private void attachContextMenuClearer(JPopupMenu menu) {
+        if (menu == null) return;
+        menu.addPopupMenuListener(
+            new javax.swing.event.PopupMenuListener() {
+
+                @Override
+                public void popupMenuWillBecomeVisible(javax.swing.event.PopupMenuEvent e) {}
+
+                @Override
+                public void popupMenuWillBecomeInvisible(javax.swing.event.PopupMenuEvent e) {
+                    // Delay clearing so action listeners triggered by menu items can access contextMenuPath.
+                    SwingUtilities.invokeLater(
+                        () -> {
+                            contextMenuPath = null;
+                            if (tree != null) tree.repaint();
+                        }
+                    );
+                }
+
+                @Override
+                public void popupMenuCanceled(javax.swing.event.PopupMenuEvent e) {
+                    contextMenuPath = null;
+                    if (tree != null) tree.repaint();
+                }
+            }
+        );
     }
 
     private void showContextMenu(MouseEvent e) {
@@ -186,7 +234,9 @@ public class CollectionTree extends JPanel {
             return;
         }
 
-        tree.setSelectionPath(path);
+        // Do NOT change the tree selection on right-click; use contextMenuPath
+        contextMenuPath = path;
+        tree.repaint();
 
         DefaultMutableTreeNode node = (DefaultMutableTreeNode) path.getLastPathComponent();
         Object userObject = node.getUserObject();
@@ -198,6 +248,17 @@ public class CollectionTree extends JPanel {
         } else if (userObject instanceof RequestNode) {
             requestMenu.show(tree, e.getX(), e.getY());
         }
+    }
+
+    /**
+     * Returns the node that actions should operate on: the context node (right-clicked)
+     * if present, otherwise the currently selected node.
+     */
+    private DefaultMutableTreeNode getActionNode() {
+        if (contextMenuPath != null) {
+            return (DefaultMutableTreeNode) contextMenuPath.getLastPathComponent();
+        }
+        return getSelectedNode();
     }
 
     private TreePath getPathForFullRow(int x, int y) {
@@ -220,7 +281,7 @@ public class CollectionTree extends JPanel {
         return tree.getPathForRow(row);
     }
 
-    private void handleDoubleClick() {
+    private void handleSingleClick() {
         TreePath path = tree.getSelectionPath();
         if (path == null) return;
 
@@ -252,7 +313,7 @@ public class CollectionTree extends JPanel {
     }
 
     private void addRequestToCollection() {
-        DefaultMutableTreeNode node = getSelectedNode();
+        DefaultMutableTreeNode node = getActionNode();
         if (node == null) return;
 
         CollectionNode colNode = (CollectionNode) node.getUserObject();
@@ -281,7 +342,7 @@ public class CollectionTree extends JPanel {
     }
 
     private void addFolderToCollection() {
-        DefaultMutableTreeNode node = getSelectedNode();
+        DefaultMutableTreeNode node = getActionNode();
         if (node == null) return;
 
         CollectionNode colNode = (CollectionNode) node.getUserObject();
@@ -306,7 +367,7 @@ public class CollectionTree extends JPanel {
     }
 
     private void addRequestToFolder() {
-        DefaultMutableTreeNode node = getSelectedNode();
+        DefaultMutableTreeNode node = getActionNode();
         if (node == null) return;
 
         FolderNode folderNode = (FolderNode) node.getUserObject();
@@ -336,7 +397,7 @@ public class CollectionTree extends JPanel {
     }
 
     private void addFolderToFolder() {
-        DefaultMutableTreeNode node = getSelectedNode();
+        DefaultMutableTreeNode node = getActionNode();
         if (node == null) return;
 
         FolderNode folderNode = (FolderNode) node.getUserObject();
@@ -361,7 +422,7 @@ public class CollectionTree extends JPanel {
     }
 
     private void openSelectedRequest() {
-        DefaultMutableTreeNode node = getSelectedNode();
+        DefaultMutableTreeNode node = getActionNode();
         if (node == null) return;
 
         RequestNode reqNode = (RequestNode) node.getUserObject();
@@ -375,7 +436,7 @@ public class CollectionTree extends JPanel {
     }
 
     private void duplicateRequest() {
-        DefaultMutableTreeNode node = getSelectedNode();
+        DefaultMutableTreeNode node = getActionNode();
         if (node == null) return;
 
         RequestNode reqNode = (RequestNode) node.getUserObject();
@@ -399,7 +460,7 @@ public class CollectionTree extends JPanel {
     }
 
     private void moveRequest() {
-        DefaultMutableTreeNode node = getSelectedNode();
+        DefaultMutableTreeNode node = getActionNode();
         if (node == null) return;
 
         RequestNode reqNode = (RequestNode) node.getUserObject();
@@ -530,7 +591,7 @@ public class CollectionTree extends JPanel {
     }
 
     private void renameSelected() {
-        DefaultMutableTreeNode node = getSelectedNode();
+        DefaultMutableTreeNode node = getActionNode();
         if (node == null) return;
 
         Object userObject = node.getUserObject();
@@ -565,7 +626,7 @@ public class CollectionTree extends JPanel {
     }
 
     private void deleteSelected() {
-        DefaultMutableTreeNode node = getSelectedNode();
+        DefaultMutableTreeNode node = getActionNode();
         if (node == null) return;
 
         Object userObject = node.getUserObject();
@@ -731,7 +792,7 @@ public class CollectionTree extends JPanel {
     }
 
     private void exportCollection() {
-        DefaultMutableTreeNode node = getSelectedNode();
+        DefaultMutableTreeNode node = getActionNode();
         if (node == null) return;
 
         CollectionNode colNode = (CollectionNode) node.getUserObject();
@@ -891,7 +952,7 @@ public class CollectionTree extends JPanel {
     // Tree Cell Renderer
     // ═══════════════════════════════════════════════════════════════════
 
-    private static class CollectionTreeCellRenderer extends DefaultTreeCellRenderer {
+    private class CollectionTreeCellRenderer extends DefaultTreeCellRenderer {
         private JLabel label;
 
         public CollectionTreeCellRenderer() {
@@ -942,6 +1003,14 @@ public class CollectionTree extends JPanel {
                     "</html>"
                 );
                 tooltipText = "Request: " + methodStr + " " + requestName;
+            }
+
+            // Draw an outline when this row is the context (right-click) path
+            TreePath rowPath = tree.getPathForRow(row);
+            if (contextMenuPath != null && rowPath != null && contextMenuPath.equals(rowPath)) {
+                setBorder(BorderFactory.createLineBorder(Color.GRAY, 1, true));
+            } else {
+                setBorder(null);
             }
 
             // Set tooltip for long names
