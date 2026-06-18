@@ -1,21 +1,20 @@
 package com.ing.engine.commands.MFA;
 
-import com.ing.engine.commands.browser.General;
-import com.ing.engine.core.CommandControl;
-import com.ing.ingenious.api.status.Status;
-import com.ing.ingenious.api.annotation.Action;
-import com.ing.ingenious.api.types.ObjectType;
-import com.ing.ingenious.api.types.InputType;
-import com.ing.engine.execution.exception.ActionException;
 import com.azure.identity.DefaultAzureCredentialBuilder;
 import com.azure.security.keyvault.secrets.SecretClient;
 import com.azure.security.keyvault.secrets.SecretClientBuilder;
+import com.ing.engine.commands.browser.General;
+import com.ing.engine.core.CommandControl;
+import com.ing.engine.execution.exception.ActionException;
+import com.ing.ingenious.api.annotation.Action;
+import com.ing.ingenious.api.status.Status;
+import com.ing.ingenious.api.types.InputType;
+import com.ing.ingenious.api.types.ObjectType;
 import java.time.Instant;
+import java.util.Arrays;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.Arrays;
-
 
 /**
  * Generates and fills Time-based One-Time Passwords (TOTP) in UI fields,
@@ -59,7 +58,6 @@ public class TOTPGenerator extends General {
 
     /** Last generated TOTP value (if you need to reference it externally). */
     private static String totp;
-
 
     /**
      * Constructs a new {@code TOTPGenerator}.
@@ -123,20 +121,30 @@ public class TOTPGenerator extends General {
      *
      * @implNote This action reads <code>.env</code> from the current working directory.
      */
-    @Action(object = ObjectType.PLAYWRIGHT, desc = "Enter the value [<Data>] in the Field [<Object>]", input = InputType.YES)
+    @Action(
+        object = ObjectType.PLAYWRIGHT,
+        desc = "Enter the value [<Data>] in the Field [<Object>]",
+        input = InputType.YES
+    )
     public void FillPasswordFromEnv() {
         try {
-
             Map<String, String> env = EnvLoader.loadEnv(".env");
             String secret = env.get(Data);
 
             Locator.clear();
             Locator.fill(secret);
-            Report.updateTestLog(Action, "Entered Password ' ********** ' on '"
-                    + "[" + ObjectName + "]" + "'", Status.DONE);
+            Report.updateTestLog(
+                Action,
+                "Entered Password ' ********** ' on '" + "[" + ObjectName + "]" + "'",
+                Status.DONE
+            );
         } catch (Exception e) {
             Logger.getLogger(this.getClass().getName()).log(Level.OFF, null, e);
-            Report.updateTestLog("Could not perfom [" + Action + "] action", "Error: " + e.getMessage(), Status.FAIL);
+            Report.updateTestLog(
+                "Could not perfom [" + Action + "] action",
+                "Error: " + e.getMessage(),
+                Status.FAIL
+            );
             throw new ActionException(e);
         }
     }
@@ -159,10 +167,13 @@ public class TOTPGenerator extends General {
      * @implNote Azure Key Vault access requires valid environment configuration and credentials discoverable
      *           by {@link DefaultAzureCredentialBuilder}.
      */
-    @Action(object = ObjectType.PLAYWRIGHT, desc = "Generate and enter TOTP into field [&lt;Object&gt;]", input = InputType.NO)
+    @Action(
+        object = ObjectType.PLAYWRIGHT,
+        desc = "Generate and enter TOTP into field [&lt;Object&gt;]",
+        input = InputType.NO
+    )
     public void generateAndFillTOTP() {
         try {
-
             String secret = System.getenv("totpSecret");
 
             if (secret == null || secret.isEmpty()) {
@@ -171,9 +182,9 @@ public class TOTPGenerator extends General {
 
                 if ("true".equalsIgnoreCase(env.get("useAzureKeyVault"))) {
                     SecretClient secretClient = new SecretClientBuilder()
-                            .vaultUrl(env.get("azureKeyVaultUrl"))
-                            .credential(new DefaultAzureCredentialBuilder().build())
-                            .buildClient();
+                        .vaultUrl(env.get("azureKeyVaultUrl"))
+                        .credential(new DefaultAzureCredentialBuilder().build())
+                        .buildClient();
                     secret = secretClient.getSecret(env.get("azureSecretName")).getValue();
                 }
             }
@@ -182,10 +193,18 @@ public class TOTPGenerator extends General {
             Locator.clear();
             Locator.fill(totp);
 
-            Report.updateTestLog(Action, "Entered TOTP [" + totp + "] into field [" + ObjectName + "]", Status.DONE);
+            Report.updateTestLog(
+                Action,
+                "Entered TOTP [" + totp + "] into field [" + ObjectName + "]",
+                Status.DONE
+            );
         } catch (Exception ex) {
             Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, null, ex);
-            Report.updateTestLog(Action, "Error generating or entering TOTP: " + ex.getMessage(), Status.FAIL);
+            Report.updateTestLog(
+                Action,
+                "Error generating or entering TOTP: " + ex.getMessage(),
+                Status.FAIL
+            );
             throw new ActionException(ex);
         }
     }
@@ -215,11 +234,10 @@ public class TOTPGenerator extends General {
      * @throws RuntimeException if the Mac instance cannot be initialized or executed
      */
     private static byte[] hmacSHA1(byte[] key, byte[] data) {
-        try{
+        try {
             javax.crypto.Mac mac = javax.crypto.Mac.getInstance("HmacSHA1");
             mac.init(new javax.crypto.spec.SecretKeySpec(key, "HmacSHA1"));
             return mac.doFinal(data);
-
         } catch (Exception e) {
             throw new RuntimeException("Error in HMAC SHA1", e);
         }
@@ -249,12 +267,12 @@ public class TOTPGenerator extends General {
      */
     private static String truncate(byte[] hmac) {
         int offset = hmac[hmac.length - 1] & 0x0F;
-        int binary = ((hmac[offset] & 0x7F) << 24) |
-                ((hmac[offset + 1] & 0xFF) << 16) |
-                ((hmac[offset + 2] & 0xFF) << 8) |
-                (hmac[offset + 3] & 0xFF);
+        int binary =
+            ((hmac[offset] & 0x7F) << 24) |
+            ((hmac[offset + 1] & 0xFF) << 16) |
+            ((hmac[offset + 2] & 0xFF) << 8) |
+            (hmac[offset + 3] & 0xFF);
         int otp = binary % (int) Math.pow(10, DIGITS);
         return String.format("%06d", otp);
     }
-
 }

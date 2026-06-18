@@ -1,12 +1,10 @@
 package com.ing.engine.commands.MFA;
 
-
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
-
 
 /**
  * Utility class for loading environment variables from a file.
@@ -44,5 +42,4 @@ public class EnvLoader {
         }
         return env;
     }
-
 }
