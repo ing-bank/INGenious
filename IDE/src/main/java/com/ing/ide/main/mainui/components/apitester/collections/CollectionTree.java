@@ -11,7 +11,6 @@ import java.util.List;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import javax.swing.tree.*;
-
 import org.checkerframework.checker.guieffect.qual.UI;
 
 /**
@@ -72,6 +71,16 @@ public class CollectionTree extends JPanel {
                     super.paintComponent(g);
                     paintContextOutline(g);
                 }
+
+                @Override
+                protected void processKeyEvent(KeyEvent e) {
+                    if (shouldSuppressTreeTypeAhead(e)) {
+                        e.consume();
+                        return;
+                    }
+
+                    super.processKeyEvent(e);
+                }
             };
         tree.setRootVisible(false);
         tree.setShowsRootHandles(true);
@@ -90,7 +99,6 @@ public class CollectionTree extends JPanel {
         add(scrollPane, BorderLayout.CENTER);
     }
 
-    
     /**
      * Registers mouse handling for the collection tree.
      *
@@ -123,7 +131,7 @@ public class CollectionTree extends JPanel {
             }
         );
     }
-    
+
     /**
      * Handles left-click behavior for the collection tree.
      *
@@ -167,7 +175,6 @@ public class CollectionTree extends JPanel {
         }
     }
 
-    
     /**
      * Disables arrow-key navigation and expand/collapse behavior for the collection tree.
      *
@@ -212,6 +219,34 @@ public class CollectionTree extends JPanel {
                 ancestorInputMap.put(keyStroke, disabledActionKey);
             }
         }
+    }
+
+    /**
+     * Determines whether a tree key event should be suppressed to disable type-ahead selection.
+     *
+     * Returns true only for printable typed characters, such as letters, numbers,
+     * punctuation, symbols, and spaces. Control keys are allowed through so normal
+     * non-printable keyboard behavior such as Tab, Escape, Enter, and Backspace is not blocked.
+     *
+     * @param e the key event to inspect
+     * @return true if the key event should be consumed, otherwise false
+     */
+    private boolean shouldSuppressTreeTypeAhead(KeyEvent e) {
+        if (e.getID() != KeyEvent.KEY_TYPED) {
+            return false;
+        }
+
+        char keyChar = e.getKeyChar();
+
+        // Let control characters pass through.
+        // This avoids blocking Tab, Escape, Enter, Backspace, etc.
+        if (keyChar == KeyEvent.CHAR_UNDEFINED || Character.isISOControl(keyChar)) {
+            return false;
+        }
+
+        // Suppress printable typing:
+        // letters, numbers, punctuation, symbols, spaces.
+        return true;
     }
 
     /**
@@ -349,7 +384,6 @@ public class CollectionTree extends JPanel {
         attachContextMenuClearer(requestMenu);
     }
 
-    
     /**
      * Attaches cleanup behavior to a context menu when it closes or is canceled.
      *
@@ -439,7 +473,6 @@ public class CollectionTree extends JPanel {
         return getSelectedNode();
     }
 
-    
     /**
      * Returns the tree path for the row at the given mouse coordinates.
      *
@@ -574,7 +607,6 @@ public class CollectionTree extends JPanel {
 
         return null;
     }
-
 
     /**
      * Checks whether two request objects represent the same request.
