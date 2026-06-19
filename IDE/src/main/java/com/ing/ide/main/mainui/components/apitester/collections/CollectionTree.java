@@ -98,7 +98,6 @@ public class CollectionTree extends JPanel {
         add(scrollPane, BorderLayout.CENTER);
     }
 
-    
     /**
      * Registers left-click selection/opening and right-click context menu handling.
      */
@@ -128,7 +127,6 @@ public class CollectionTree extends JPanel {
         );
     }
 
-    
     /**
      * Handles full-row left-click selection and opens request rows.
      *
@@ -168,7 +166,6 @@ public class CollectionTree extends JPanel {
         }
     }
 
-    
     /**
      * Disables arrow-key navigation and expand/collapse behavior on the tree.
      */
@@ -212,7 +209,6 @@ public class CollectionTree extends JPanel {
         }
     }
 
-    
     /**
      * Suppresses printable typing to disable JTree type-ahead selection.
      *
@@ -233,7 +229,6 @@ public class CollectionTree extends JPanel {
         return true;
     }
 
-    
     /**
      * Draws the persistent right-click outline across the full tree row.
      *
@@ -365,7 +360,6 @@ public class CollectionTree extends JPanel {
         attachContextMenuClearer(requestMenu);
     }
 
-    
     /**
      * Clears context action state after popup menus close while keeping the outline stable.
      *
@@ -403,7 +397,7 @@ public class CollectionTree extends JPanel {
             }
         );
     }
-    
+
     /**
      * Shows the context menu for the row under the mouse.
      *
@@ -436,18 +430,21 @@ public class CollectionTree extends JPanel {
         }
     }
 
-    
     /**
-     * Returns the context-clicked node when available, otherwise the selected node.
+     * Returns the context-targeted node when available, otherwise the selected node.
      */
     private DefaultMutableTreeNode getActionNode() {
         if (contextMenuPath != null) {
             return (DefaultMutableTreeNode) contextMenuPath.getLastPathComponent();
         }
+
+        if (contextOutlinePath != null) {
+            return (DefaultMutableTreeNode) contextOutlinePath.getLastPathComponent();
+        }
+
         return getSelectedNode();
     }
 
-    
     /**
      * Resolves a tree path using full-row hit detection.
      *
@@ -483,7 +480,6 @@ public class CollectionTree extends JPanel {
         return tree.getPathForRow(row);
     }
 
-    
     /**
      * Checks whether a path points to a request row.
      *
@@ -497,7 +493,6 @@ public class CollectionTree extends JPanel {
         return node.getUserObject() instanceof RequestNode;
     }
 
-    
     /**
      * Opens the request represented by the given tree path.
      *
@@ -522,7 +517,6 @@ public class CollectionTree extends JPanel {
         }
     }
 
-    
     /**
      * Finds the current tree path for the request from an existing path.
      *
@@ -543,7 +537,6 @@ public class CollectionTree extends JPanel {
         return findPathForRequest(originalRequestNode.request);
     }
 
-    
     /**
      * Finds the tree path for a request in the current tree.
      *
@@ -571,7 +564,6 @@ public class CollectionTree extends JPanel {
         return null;
     }
 
-    
     /**
      * Compares requests by ID, falling back to object reference.
      *
