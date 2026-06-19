@@ -11,7 +11,6 @@ import java.util.List;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import javax.swing.tree.*;
-import org.checkerframework.checker.guieffect.qual.UI;
 
 /**
  * Tree panel for displaying and managing API collections.
@@ -99,12 +98,9 @@ public class CollectionTree extends JPanel {
         add(scrollPane, BorderLayout.CENTER);
     }
 
+    
     /**
-     * Registers mouse handling for the collection tree.
-     *
-     * Left-click delegates row selection and request opening to handleTreeLeftMousePress.
-     * Right-click shows the context menu on both press and release for cross-platform support.
-     * This method only affects UI mouse behavior.
+     * Registers left-click selection/opening and right-click context menu handling.
      */
     private void setTreeMouseListener() {
         tree.addMouseListener(
@@ -132,14 +128,11 @@ public class CollectionTree extends JPanel {
         );
     }
 
+    
     /**
-     * Handles left-click behavior for the collection tree.
+     * Handles full-row left-click selection and opens request rows.
      *
-     * Selects the clicked full-row path, clears any right-click context state,
-     * and opens the request when the clicked row represents a request node.
-     * If the click is outside a valid row, the current tree selection is cleared.
-     *
-     * @param e the mouse event triggered by the left-click press
+     * @param e the left-click mouse event
      */
     private void handleTreeLeftMousePress(MouseEvent e) {
         TreePath path = getPathForFullRow(e.getX(), e.getY());
@@ -175,11 +168,9 @@ public class CollectionTree extends JPanel {
         }
     }
 
+    
     /**
-     * Disables arrow-key navigation and expand/collapse behavior for the collection tree.
-     *
-     * Maps arrow-key shortcuts to a no-op action so Up, Down, Left, and Right do not
-     * change selection or expand/collapse tree nodes. Mouse interaction remains unchanged.
+     * Disables arrow-key navigation and expand/collapse behavior on the tree.
      */
     private void disableTreeArrowKeys() {
         InputMap focusedInputMap = tree.getInputMap(JComponent.WHEN_FOCUSED);
@@ -221,15 +212,12 @@ public class CollectionTree extends JPanel {
         }
     }
 
+    
     /**
-     * Determines whether a tree key event should be suppressed to disable type-ahead selection.
+     * Suppresses printable typing to disable JTree type-ahead selection.
      *
-     * Returns true only for printable typed characters, such as letters, numbers,
-     * punctuation, symbols, and spaces. Control keys are allowed through so normal
-     * non-printable keyboard behavior such as Tab, Escape, Enter, and Backspace is not blocked.
-     *
-     * @param e the key event to inspect
-     * @return true if the key event should be consumed, otherwise false
+     * @param e the key event to check
+     * @return true when the event should be consumed
      */
     private boolean shouldSuppressTreeTypeAhead(KeyEvent e) {
         if (e.getID() != KeyEvent.KEY_TYPED) {
@@ -238,25 +226,18 @@ public class CollectionTree extends JPanel {
 
         char keyChar = e.getKeyChar();
 
-        // Let control characters pass through.
-        // This avoids blocking Tab, Escape, Enter, Backspace, etc.
         if (keyChar == KeyEvent.CHAR_UNDEFINED || Character.isISOControl(keyChar)) {
             return false;
         }
 
-        // Suppress printable typing:
-        // letters, numbers, punctuation, symbols, spaces.
         return true;
     }
 
+    
     /**
-     * Paints the persistent right-click context outline across the full tree row.
+     * Draws the persistent right-click outline across the full tree row.
      *
-     * Uses contextOutlinePath to find the target row and draws a rounded outline
-     * spanning the visible width of the tree. This is visual-only and does not
-     * affect tree selection or context-menu action state.
-     *
-     * @param g the graphics context used to paint the tree
+     * @param g the graphics context
      */
     private void paintContextOutline(Graphics g) {
         if (tree == null || contextOutlinePath == null) {
@@ -384,14 +365,11 @@ public class CollectionTree extends JPanel {
         attachContextMenuClearer(requestMenu);
     }
 
+    
     /**
-     * Attaches cleanup behavior to a context menu when it closes or is canceled.
+     * Clears context action state after popup menus close while keeping the outline stable.
      *
-     * Clears the context action path after menu actions can run, but keeps the
-     * visual outline stable so the right-clicked row remains visibly marked until
-     * the user clicks another row or right-clicks elsewhere.
-     *
-     * @param menu the popup menu to attach the cleanup listener to
+     * @param menu the popup menu to attach the listener to
      */
     private void attachContextMenuClearer(JPopupMenu menu) {
         if (menu == null) return;
@@ -425,15 +403,11 @@ public class CollectionTree extends JPanel {
             }
         );
     }
-
+    
     /**
-     * Shows the appropriate context menu for the row under the mouse event.
+     * Shows the context menu for the row under the mouse.
      *
-     * Uses full-row hit detection to resolve the clicked path, stores that path for
-     * context-menu actions and visual outlining, then displays the menu matching
-     * the node type. If no valid row is clicked, context state is cleared.
-     *
-     * @param e the mouse event that triggered the context menu
+     * @param e the popup-trigger mouse event
      */
     private void showContextMenu(MouseEvent e) {
         TreePath path = getPathForFullRow(e.getX(), e.getY());
@@ -462,9 +436,9 @@ public class CollectionTree extends JPanel {
         }
     }
 
+    
     /**
-     * Returns the node that actions should operate on: the context node (right-clicked)
-     * if present, otherwise the currently selected node.
+     * Returns the context-clicked node when available, otherwise the selected node.
      */
     private DefaultMutableTreeNode getActionNode() {
         if (contextMenuPath != null) {
@@ -473,16 +447,13 @@ public class CollectionTree extends JPanel {
         return getSelectedNode();
     }
 
+    
     /**
-     * Returns the tree path for the row at the given mouse coordinates.
+     * Resolves a tree path using full-row hit detection.
      *
-     * Uses the y-coordinate to resolve the row and intentionally ignores the
-     * x-coordinate so the full horizontal row acts as the hitbox. Returns null
-     * when the coordinates are outside a valid tree row.
-     *
-     * @param x the mouse x-coordinate, ignored for full-row hit detection
-     * @param y the mouse y-coordinate used to locate the row
-     * @return the tree path for the row at the given y-coordinate, or null if none exists
+     * @param x the mouse x-coordinate
+     * @param y the mouse y-coordinate
+     * @return the tree path at the row, or null if none
      */
     private TreePath getPathForFullRow(int x, int y) {
         if (tree == null) {
@@ -512,11 +483,12 @@ public class CollectionTree extends JPanel {
         return tree.getPathForRow(row);
     }
 
+    
     /**
-     * Checks whether the given tree path points to a request node.
+     * Checks whether a path points to a request row.
      *
-     * @param path the tree path to inspect
-     * @return true if the path points to a RequestNode, otherwise false
+     * @param path the tree path to check
+     * @return true if the path contains a request node
      */
     private boolean isRequestPath(TreePath path) {
         if (path == null) return false;
@@ -525,14 +497,11 @@ public class CollectionTree extends JPanel {
         return node.getUserObject() instanceof RequestNode;
     }
 
+    
     /**
      * Opens the request represented by the given tree path.
      *
-     * Loads the request with folder context when the request belongs to a folder,
-     * otherwise loads it directly under its parent collection. Non-request paths
-     * are ignored.
-     *
-     * @param path the tree path expected to point to a request node
+     * @param path the request tree path
      */
     private void openRequestAtPath(TreePath path) {
         if (path == null) return;
@@ -553,16 +522,12 @@ public class CollectionTree extends JPanel {
         }
     }
 
+    
     /**
-     * Finds the current tree path for the request represented by the original path.
+     * Finds the current tree path for the request from an existing path.
      *
-     * If the original path does not point to a request node, the original path is
-     * returned unchanged. This is used to restore selection after UI updates that
-     * may repaint or reload parts of the tree.
-     *
-     * @param originalPath the original tree path before the request was opened
-     * @return the current tree path for the same request, the original path for
-     *         non-request nodes, or null if no matching request path is found
+     * @param originalPath the original tree path
+     * @return the current matching path, original path, or null
      */
     private TreePath findPathForRequestFromPath(TreePath originalPath) {
         if (originalPath == null) return null;
@@ -578,14 +543,12 @@ public class CollectionTree extends JPanel {
         return findPathForRequest(originalRequestNode.request);
     }
 
+    
     /**
-     * Searches the tree for the path belonging to the given request.
+     * Finds the tree path for a request in the current tree.
      *
-     * Traverses all nodes under the root and returns the first RequestNode whose
-     * request matches the target request by ID or object reference.
-     *
-     * @param targetRequest the request to locate in the tree
-     * @return the tree path for the matching request, or null if no match is found
+     * @param targetRequest the request to locate
+     * @return the matching tree path, or null
      */
     private TreePath findPathForRequest(APIRequest targetRequest) {
         if (targetRequest == null || rootNode == null) return null;
@@ -608,15 +571,13 @@ public class CollectionTree extends JPanel {
         return null;
     }
 
+    
     /**
-     * Checks whether two request objects represent the same request.
+     * Compares requests by ID, falling back to object reference.
      *
-     * Requests are matched by ID when both IDs are available. If either ID is
-     * missing, the comparison falls back to object reference equality.
-     *
-     * @param a the first request to compare
-     * @param b the second request to compare
-     * @return true if both requests have the same ID or are the same object instance
+     * @param a the first request
+     * @param b the second request
+     * @return true if both represent the same request
      */
     private boolean sameRequest(APIRequest a, APIRequest b) {
         if (a == null || b == null) return false;
@@ -679,6 +640,9 @@ public class CollectionTree extends JPanel {
         }
     }
 
+    /**
+     * Adds a new folder under the selected or context-clicked collection.
+     */
     private void addFolderToCollection() {
         DefaultMutableTreeNode node = getActionNode();
         if (node == null) return;
