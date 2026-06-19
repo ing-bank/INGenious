@@ -1,4 +1,3 @@
-
 package com.ing.testdata.csv;
 
 import com.ing.datalib.component.utils.CSVHParser;
@@ -48,8 +47,10 @@ public class CSVUtils {
 
     public static void saveChanges(GlobalDataModel globalData) {
         createIfNotExists(globalData.getLocation());
-        try (FileWriter out = new FileWriter(new File(globalData.getLocation()));
-                CSVPrinter printer = new CSVPrinter(out, CSVFormat.EXCEL.withIgnoreEmptyLines());) {
+        try (
+            FileWriter out = new FileWriter(new File(globalData.getLocation()));
+            CSVPrinter printer = new CSVPrinter(out, CSVFormat.EXCEL.withIgnoreEmptyLines());
+        ) {
             for (String header : globalData.getColumns()) {
                 printer.print(header);
             }
@@ -68,8 +69,10 @@ public class CSVUtils {
 
     public static void saveChanges(TestDataModel testData) {
         createIfNotExists(testData.getLocation());
-        try (FileWriter out = new FileWriter(new File(testData.getLocation()));
-                CSVPrinter printer = new CSVPrinter(out, CSVFormat.EXCEL.withIgnoreEmptyLines());) {
+        try (
+            FileWriter out = new FileWriter(new File(testData.getLocation()));
+            CSVPrinter printer = new CSVPrinter(out, CSVFormat.EXCEL.withIgnoreEmptyLines());
+        ) {
             for (String header : testData.getColumns()) {
                 printer.print(header);
             }

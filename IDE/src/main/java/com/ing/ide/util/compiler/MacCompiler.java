@@ -1,4 +1,3 @@
-
 package com.ing.ide.util.compiler;
 
 import java.io.BufferedWriter;
@@ -21,7 +20,6 @@ public class MacCompiler extends Compiler {
 
     @Override
     public File createScript() {
-
         String script = getScriptFile();
 
         try (BufferedWriter out = new BufferedWriter(new FileWriter(script))) {
@@ -35,7 +33,6 @@ public class MacCompiler extends Compiler {
             out.newLine();
         } catch (Exception ex) {
             Logger.getLogger(MacCompiler.class.getName()).log(Level.SEVERE, null, ex);
-
         }
         return new File(script);
     }
@@ -59,7 +56,6 @@ public class MacCompiler extends Compiler {
     @Override
     public String compile() {
         try {
-
             final ProcessBuilder pb = new ProcessBuilder("/bin/sh", getScriptFile());
             pb.directory(new File(new File(System.getProperty("user.dir")).getCanonicalPath()));
             final Process p = pb.start();
@@ -73,7 +69,6 @@ public class MacCompiler extends Compiler {
             Logger.getLogger(MacCompiler.class.getName()).log(Level.SEVERE, null, ex);
             return ex.getMessage();
         }
-
     }
 
     @Override

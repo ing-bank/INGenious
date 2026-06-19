@@ -1,4 +1,3 @@
-
 package com.ing.ide.main.ui;
 
 import com.ing.datalib.testdata.TestDataFactory;
@@ -13,7 +12,6 @@ import javax.swing.DefaultComboBoxModel;
 import javax.swing.ImageIcon;
 
 public class NewProject extends javax.swing.JDialog {
-
     private final AppMainFrame sMainFrame;
 
     private Boolean created = false;
@@ -22,8 +20,14 @@ public class NewProject extends javax.swing.JDialog {
         this.sMainFrame = sMainFrame;
         initComponents();
 
-        setIconImage(((ImageIcon) Utils.getIconByResourceName("/ui/resources/main/NewProject")).getImage());
-        String currDirectory = new File(System.getProperty("user.dir")).getCanonicalPath() + File.separator + "Projects";
+        setIconImage(
+            com.ing.ide.main.fx.INGIcons.toImage(
+                Utils.getIconByResourceName("/ui/resources/main/NewProject")
+            )
+        );
+        String currDirectory = new File(System.getProperty("user.dir")).getCanonicalPath() +
+        File.separator +
+        "Projects";
         fileChooser.setCurrentDirectory(new File(currDirectory));
         projLocation.setText(fileChooser.getCurrentDirectory().getAbsolutePath());
     }
@@ -33,7 +37,9 @@ public class NewProject extends javax.swing.JDialog {
         setSize(480, 270);
         error.setText("  ");
         setLocationRelativeTo(null);
-        testDataType.setModel(new DefaultComboBoxModel(TestDataFactory.getDATA_PROVIDER_NAMES().toArray()));
+        testDataType.setModel(
+            new DefaultComboBoxModel(TestDataFactory.getDATA_PROVIDER_NAMES().toArray())
+        );
         setVisible(true);
     }
 
@@ -49,114 +55,149 @@ public class NewProject extends javax.swing.JDialog {
     @SuppressWarnings("unchecked")
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
-
         fileChooser = new javax.swing.JFileChooser();
         testDataType = new javax.swing.JComboBox<>();
         jLabel5 = new javax.swing.JLabel();
-        jLabel3 = new javax.swing.JLabel();
-        jLabel4 = new javax.swing.JLabel();
-        projName = new javax.swing.JTextField();
-        projLocation = new javax.swing.JTextField();
-        createProject = new javax.swing.JButton();
+        jPanel3 = new javax.swing.JPanel();
+        jPanel1 = new javax.swing.JPanel();
         error = new javax.swing.JLabel();
+        jPanel5 = new javax.swing.JPanel();
+        jLabel3 = new javax.swing.JLabel();
+        jPanel6 = new javax.swing.JPanel();
+        projName = new javax.swing.JTextField();
+        jPanel4 = new javax.swing.JPanel();
+        jPanel7 = new javax.swing.JPanel();
+        jLabel4 = new javax.swing.JLabel();
+        jPanel8 = new javax.swing.JPanel();
+        projLocation = new javax.swing.JTextField();
+        jPanel2 = new javax.swing.JPanel();
+        createProject = new javax.swing.JButton();
 
         fileChooser.setDialogTitle("Select Project Location");
         fileChooser.setFileSelectionMode(javax.swing.JFileChooser.DIRECTORIES_ONLY);
 
-        testDataType.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Item 1", "Item 2", "Item 3", "Item 4" }));
+        testDataType.setModel(
+            new javax.swing.DefaultComboBoxModel<>(
+                new String[] { "Item 1", "Item 2", "Item 3", "Item 4" }
+            )
+        );
 
         jLabel5.setText("Testdata Type");
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
-        setTitle("Create new Project");
+        setTitle("Create New Project");
+        setMinimumSize(new java.awt.Dimension(120, 300));
         setModal(true);
+        setPreferredSize(new java.awt.Dimension(602, 320));
+        getContentPane()
+            .setLayout(new javax.swing.BoxLayout(getContentPane(), javax.swing.BoxLayout.Y_AXIS));
 
-        jLabel3.setText("Project Name");
+        jPanel3.setBorder(javax.swing.BorderFactory.createEmptyBorder(20, 20, 20, 20));
+        jPanel3.setMinimumSize(new java.awt.Dimension(120, 100));
+        jPanel3.setLayout(new javax.swing.BoxLayout(jPanel3, javax.swing.BoxLayout.Y_AXIS));
 
-        jLabel4.setText("Project Location");
-
-        projName.setText("NewProject");
-        projName.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                projNameActionPerformed(evt);
-            }
-        });
-
-        projLocation.setEditable(false);
-        projLocation.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                projLocationActionPerformed(evt);
-            }
-        });
-
-        createProject.setText("Create Project");
-        createProject.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                createProjectActionPerformed(evt);
-            }
-        });
+        jPanel1.setBorder(javax.swing.BorderFactory.createEmptyBorder(5, 0, 5, 0));
+        jPanel1.setLayout(new java.awt.GridLayout(1, 1));
 
         error.setForeground(java.awt.Color.red);
+        error.setHorizontalAlignment(javax.swing.SwingConstants.LEFT);
         error.setText(" ");
+        jPanel1.add(error);
 
-        javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
-        getContentPane().setLayout(layout);
-        layout.setHorizontalGroup(
-            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                .addGap(16, 16, 16)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                    .addComponent(projName)
-                    .addComponent(projLocation))
-                .addGap(59, 59, 59))
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                .addGap(217, 217, 217)
-                .addComponent(createProject)
-                .addGap(180, 180, 180))
-            .addGroup(layout.createSequentialGroup()
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(error)
-                    .addComponent(jLabel4)
-                    .addComponent(jLabel3))
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+        jPanel3.add(jPanel1);
+
+        jPanel5.setBorder(javax.swing.BorderFactory.createEmptyBorder(5, 0, 5, 0));
+        jPanel5.setLayout(new java.awt.GridLayout());
+
+        jLabel3.setHorizontalAlignment(javax.swing.SwingConstants.LEFT);
+        jLabel3.setText("Project Name");
+        jLabel3.setAlignmentX(-0.05F);
+        jPanel5.add(jLabel3);
+
+        jPanel3.add(jPanel5);
+
+        jPanel6.setBorder(javax.swing.BorderFactory.createEmptyBorder(5, 0, 5, 0));
+        jPanel6.setLayout(new java.awt.GridLayout());
+
+        projName.setText("NewProject");
+        projName.addActionListener(
+            new java.awt.event.ActionListener() {
+
+                public void actionPerformed(java.awt.event.ActionEvent evt) {
+                    projNameActionPerformed(evt);
+                }
+            }
         );
-        layout.setVerticalGroup(
-            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, layout.createSequentialGroup()
-                .addGap(12, 12, 12)
-                .addComponent(error)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jLabel3)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addComponent(projName, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(18, 18, 18)
-                .addComponent(jLabel4)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(projLocation, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(36, 36, 36)
-                .addComponent(createProject)
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+        jPanel6.add(projName);
+
+        jPanel3.add(jPanel6);
+
+        getContentPane().add(jPanel3);
+
+        jPanel4.setBorder(javax.swing.BorderFactory.createEmptyBorder(20, 20, 20, 20));
+        jPanel4.setLayout(new javax.swing.BoxLayout(jPanel4, javax.swing.BoxLayout.Y_AXIS));
+
+        jPanel7.setBorder(javax.swing.BorderFactory.createEmptyBorder(5, 0, 5, 0));
+        jPanel7.setLayout(new java.awt.GridLayout());
+
+        jLabel4.setText("Project Location");
+        jPanel7.add(jLabel4);
+
+        jPanel4.add(jPanel7);
+
+        jPanel8.setBorder(javax.swing.BorderFactory.createEmptyBorder(5, 0, 5, 0));
+        jPanel8.setLayout(new java.awt.GridLayout());
+
+        projLocation.setEditable(false);
+        projLocation.addActionListener(
+            new java.awt.event.ActionListener() {
+
+                public void actionPerformed(java.awt.event.ActionEvent evt) {
+                    projLocationActionPerformed(evt);
+                }
+            }
         );
+        jPanel8.add(projLocation);
+
+        jPanel4.add(jPanel8);
+
+        getContentPane().add(jPanel4);
+
+        jPanel2.setBorder(javax.swing.BorderFactory.createEmptyBorder(20, 0, 20, 0));
+        jPanel2.setLayout(new java.awt.GridBagLayout());
+
+        createProject.setText("Create Project");
+        createProject.addActionListener(
+            new java.awt.event.ActionListener() {
+
+                public void actionPerformed(java.awt.event.ActionEvent evt) {
+                    createProjectActionPerformed(evt);
+                }
+            }
+        );
+        jPanel2.add(createProject, new java.awt.GridBagConstraints());
+
+        getContentPane().add(jPanel2);
 
         pack();
-    }// </editor-fold>//GEN-END:initComponents
+    } // </editor-fold>//GEN-END:initComponents
 
-    private void createProjectActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_createProjectActionPerformed
+    private void createProjectActionPerformed(java.awt.event.ActionEvent evt) { //GEN-FIRST:event_createProjectActionPerformed
         createProject();
-    }//GEN-LAST:event_createProjectActionPerformed
+    } //GEN-LAST:event_createProjectActionPerformed
 
-    private void projNameActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_projNameActionPerformed
+    private void projNameActionPerformed(java.awt.event.ActionEvent evt) { //GEN-FIRST:event_projNameActionPerformed
         createProject.doClick();
-    }//GEN-LAST:event_projNameActionPerformed
+    } //GEN-LAST:event_projNameActionPerformed
 
-    private void projLocationActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_projLocationActionPerformed
+    private void projLocationActionPerformed(java.awt.event.ActionEvent evt) { //GEN-FIRST:event_projLocationActionPerformed
         projLocation.setText(System.getProperty("user.dir") + File.separator + "Projects");
-    }//GEN-LAST:event_projLocationActionPerformed
+    } //GEN-LAST:event_projLocationActionPerformed
 
     private void createProject() {
         if (Validator.isValidName(projName.getText().trim())) {
             String location = System.getProperty("user.dir") + File.separator + "Projects";
-           /* if (projLocation.getText().trim().isEmpty()) {
+            /* if (projLocation.getText().trim().isEmpty()) {
                 location = System.getProperty("user.dir") + File.separator + "Projects";
             } else {
                 location = FilenameUtils.getFullPath(projLocation.getText().trim());
@@ -170,19 +211,30 @@ public class NewProject extends javax.swing.JDialog {
     private void createProject(String location) {
         File file = null;
         try {
-            String fileloc = new File(location + File.separator + projName.getText()).getCanonicalPath();
+            String fileloc = new File(location + File.separator + projName.getText())
+            .getCanonicalPath();
             file = new File(fileloc);
         } catch (IOException ex) {
             Logger.getLogger(NewProject.class.getName()).log(Level.SEVERE, null, ex);
         }
-        if (!file.exists()
-                && (sMainFrame.getProject() == null
-                || !sMainFrame.getProject().getLocation().equals(file.getAbsolutePath()))) {
-            sMainFrame.createProject(projName.getText().trim(), location, testDataType.getSelectedItem().toString());
+        if (
+            !file.exists() &&
+            (
+                sMainFrame.getProject() == null ||
+                !sMainFrame.getProject().getLocation().equals(file.getAbsolutePath())
+            )
+        ) {
+            sMainFrame.createProject(
+                projName.getText().trim(),
+                location,
+                testDataType.getSelectedItem().toString()
+            );
             created = true;
             dispose();
         } else {
-            error.setText("Project Location is not Empty / Project already present in the location");
+            error.setText(
+                "Project Location is not Empty / Project already present in the location"
+            );
         }
     }
 
@@ -193,6 +245,14 @@ public class NewProject extends javax.swing.JDialog {
     private javax.swing.JLabel jLabel3;
     private javax.swing.JLabel jLabel4;
     private javax.swing.JLabel jLabel5;
+    private javax.swing.JPanel jPanel1;
+    private javax.swing.JPanel jPanel2;
+    private javax.swing.JPanel jPanel3;
+    private javax.swing.JPanel jPanel4;
+    private javax.swing.JPanel jPanel5;
+    private javax.swing.JPanel jPanel6;
+    private javax.swing.JPanel jPanel7;
+    private javax.swing.JPanel jPanel8;
     private javax.swing.JTextField projLocation;
     private javax.swing.JTextField projName;
     private javax.swing.JComboBox<String> testDataType;

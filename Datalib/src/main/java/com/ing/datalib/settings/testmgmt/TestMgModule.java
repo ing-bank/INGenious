@@ -1,4 +1,3 @@
-
 package com.ing.datalib.settings.testmgmt;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -10,19 +9,15 @@ import javax.annotation.processing.Generated;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @Generated("org.jsonschema2pojo")
-@JsonPropertyOrder({
-    "module",
-    "options"
-})
+@JsonPropertyOrder({ "module", "options" })
 public class TestMgModule {
-
     @JsonProperty("module")
     private String module;
+
     @JsonProperty("options")
     private List<Option> options = new ArrayList<Option>();
 
-    public TestMgModule() {
-    }
+    public TestMgModule() {}
 
     public TestMgModule(String module) {
         this.module = module;
@@ -63,5 +58,4 @@ public class TestMgModule {
     public void setOptions(List<Option> options) {
         this.options = options;
     }
-
 }

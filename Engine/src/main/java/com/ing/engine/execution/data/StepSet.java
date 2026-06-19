@@ -1,12 +1,10 @@
-
 package com.ing.engine.execution.data;
 
 /**
  *
- * 
+ *
  */
 public class StepSet {
-
     public final int from;
     public int to;
     private int times;
@@ -47,5 +45,4 @@ public class StepSet {
             times = Integer.MAX_VALUE;
         }
     }
-
 }

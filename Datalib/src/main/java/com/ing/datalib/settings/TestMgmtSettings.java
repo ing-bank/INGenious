@@ -1,9 +1,8 @@
-
 package com.ing.datalib.settings;
 
 /**
  *
- * 
+ *
  */
 public class TestMgmtSettings extends AbstractPropSettings {
 

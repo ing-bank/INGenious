@@ -1,16 +1,16 @@
 Step,ObjectName,Description,Action,Input,Condition,Reference
-1,Username,Enter the value [<Data>] in the Field [<Object>],Set,Data:Uname,,swaglabsmobileapp
-2,Password,Enter the value [<Data>] in the Field [<Object>],Set,Data:Pwd,,swaglabsmobileapp
-3,Login Button,"Click the [<Object>] ",Tap,,,swaglabsmobileapp
-4,ADD TO CART,"Click the [<Object>] ",Tap,,,swaglabsmobileapp
-5,Cart1,"Click the [<Object>] ",Tap,,,swaglabsmobileapp
-6,CHECKOUT,"Click the [<Object>] ",Tap,,,swaglabsmobileapp
-7,First Name,Enter the value [<Data>] in the Field [<Object>],Set,Data:Fname,,swaglabsmobileapp
-8,Last Name,Enter the value [<Data>] in the Field [<Object>],Set,Data:Lname,,swaglabsmobileapp
-9,ZipPostal Code,Enter the value [<Data>] in the Field [<Object>],Set,Data:Zip,,swaglabsmobileapp
-10,CONTINUE,"Click the [<Object>] ",Tap,,,swaglabsmobileapp
-11,Sauce Labs Backpack,Assert if [<Object>] element is displayed,assertElementDisplayed,,,swaglabsmobileapp
-12,Amount,Assert if [<Object>] element is displayed,assertElementDisplayed,,,swaglabsmobileapp
+1,Username,Enter the value [<Data>] in the Field [<Object>],Set,Data:Uname,,[Project] swaglabsmobileapp
+2,Password,Enter the value [<Data>] in the Field [<Object>],Set,Data:Pwd,,[Project] swaglabsmobileapp
+3,Login Button,"Click the [<Object>] ",Tap,,,[Project] swaglabsmobileapp
+4,ADD TO CART,"Click the [<Object>] ",Tap,,,[Project] swaglabsmobileapp
+5,Cart1,"Click the [<Object>] ",Tap,,,[Project] swaglabsmobileapp
+6,CHECKOUT,"Click the [<Object>] ",Tap,,,[Project] swaglabsmobileapp
+7,First Name,Enter the value [<Data>] in the Field [<Object>],Set,Data:Fname,,[Project] swaglabsmobileapp
+8,Last Name,Enter the value [<Data>] in the Field [<Object>],Set,Data:Lname,,[Project] swaglabsmobileapp
+9,ZipPostal Code,Enter the value [<Data>] in the Field [<Object>],Set,Data:Zip,,[Project] swaglabsmobileapp
+10,CONTINUE,"Click the [<Object>] ",Tap,,,[Project] swaglabsmobileapp
+11,Sauce Labs Backpack,Assert if [<Object>] element is displayed,assertElementDisplayed,,,[Project] swaglabsmobileapp
+12,Amount,Assert if [<Object>] element is displayed,assertElementDisplayed,,,[Project] swaglabsmobileapp
 13,Mobile,Scroll to Element in iOS,scrollInIOS,@selector=//*[@text='FINISH'],down,
-14,FINISH,"Click the [<Object>] ",Tap,,,swaglabsmobileapp
-15,Success Message,Assert if [<Object>] element is displayed,assertElementDisplayed,,,swaglabsmobileapp
+14,FINISH,"Click the [<Object>] ",Tap,,,[Project] swaglabsmobileapp
+15,Success Message,Assert if [<Object>] element is displayed,assertElementDisplayed,,,[Project] swaglabsmobileapp

@@ -1,4 +1,3 @@
-
 package com.ing.engine.reporting.sync.sapi;
 
 import com.ing.engine.reporting.sync.BasicHttpClient;
@@ -12,10 +11,9 @@ import org.apache.http.message.BasicHeader;
 
 /**
  *
- * 
+ *
  */
 public class SAPIClient extends BasicHttpClient {
-
     Header auth;
 
     public SAPIClient(String url, String userName, String password) throws MalformedURLException {
@@ -24,8 +22,11 @@ public class SAPIClient extends BasicHttpClient {
 
     public SAPIClient(Map<String, String> op) throws MalformedURLException {
         this(op.get("api.status.link"), "", "");
-        auth = new BasicHeader(HttpHeaders.AUTHORIZATION,
-                op.get("api.status.auth").replaceAll(",$", ""));
+        auth =
+            new BasicHeader(
+                HttpHeaders.AUTHORIZATION,
+                op.get("api.status.auth").replaceAll(",$", "")
+            );
     }
 
     @Override
@@ -33,9 +34,7 @@ public class SAPIClient extends BasicHttpClient {
         req.addHeader(auth);
     }
 
-    
     public boolean hasProxy() {
         return false;
     }
-
 }

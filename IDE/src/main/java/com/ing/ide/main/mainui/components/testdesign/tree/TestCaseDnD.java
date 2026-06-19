@@ -1,4 +1,3 @@
-
 package com.ing.ide.main.mainui.components.testdesign.tree;
 
 import com.ing.ide.main.mainui.components.testdesign.tree.model.ProjectTreeModel;
@@ -9,12 +8,11 @@ import java.util.List;
 
 /**
  *
- * 
+ *
  */
 public class TestCaseDnD {
-
     final ProjectTreeModel model;
-    
+
     private List<TestCaseNode> testCaseList = new ArrayList<>();
 
     private List<ScenarioNode> scenarioList = new ArrayList<>();
@@ -44,5 +42,4 @@ public class TestCaseDnD {
     public Boolean isTestCases() {
         return !testCaseList.isEmpty();
     }
-
 }

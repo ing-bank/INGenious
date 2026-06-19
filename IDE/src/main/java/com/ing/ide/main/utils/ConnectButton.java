@@ -1,6 +1,6 @@
-
 package com.ing.ide.main.utils;
 
+import com.ing.ide.main.fx.INGIcons;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import javax.swing.ImageIcon;
@@ -8,16 +8,15 @@ import javax.swing.JButton;
 
 /**
  *
- * 
+ *
  */
-public class ConnectButton extends JButton implements ActionListener{
-
-    private static final ImageIcon DEFAULT_ICON
-            = new ImageIcon(ConnectButton.class.getResource("/ui/resources/toolbar/bulb_yellow.png"));
-    private static final ImageIcon PASS_ICON
-            = new ImageIcon(ConnectButton.class.getResource("/ui/resources/toolbar/bulb_green.png"));
-    private static final ImageIcon FAIL_ICON
-            = new ImageIcon(ConnectButton.class.getResource("/ui/resources/toolbar/bulb_red.png"));
+public class ConnectButton extends JButton implements ActionListener {
+    private static final javax.swing.Icon DEFAULT_ICON = INGIcons.swingColored(
+        "icon.bulb_yellow",
+        16
+    );
+    private static final javax.swing.Icon PASS_ICON = INGIcons.swingColored("icon.bulb_green", 16);
+    private static final javax.swing.Icon FAIL_ICON = INGIcons.swingColored("icon.bulb_red", 16);
 
     public ConnectButton() {
         super("Test Connection");
@@ -25,8 +24,8 @@ public class ConnectButton extends JButton implements ActionListener{
         setHorizontalTextPosition(JButton.RIGHT);
         addActionLis();
     }
-    
-    private void addActionLis(){
+
+    private void addActionLis() {
         addActionListener(this);
     }
 
@@ -43,8 +42,5 @@ public class ConnectButton extends JButton implements ActionListener{
     }
 
     @Override
-    public void actionPerformed(ActionEvent ae) {
-        
-    }
-
+    public void actionPerformed(ActionEvent ae) {}
 }

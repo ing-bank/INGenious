@@ -1,4 +1,3 @@
-
 package com.ing.datalib.testdata;
 
 import com.ing.datalib.component.Project;
@@ -21,10 +20,9 @@ import java.util.logging.Logger;
  *
  */
 public class TestDataFactory {
+    private static final List<String> DATA_PROVIDER_CLASSES = new ArrayList<>();
 
-    private final static List<String> DATA_PROVIDER_CLASSES = new ArrayList<>();
-
-    private final static List<String> DATA_PROVIDER_NAMES = new ArrayList<>();
+    private static final List<String> DATA_PROVIDER_NAMES = new ArrayList<>();
 
     private static final AnnotationDetector.TypeReporter ANNOTATION_REPORTER = new AnnotationDetector.TypeReporter() {
 
@@ -36,12 +34,13 @@ public class TestDataFactory {
 
         @Override
         public Class<? extends Annotation>[] annotations() {
-            return new Class[]{DataProvider.class};
+            return new Class[] { DataProvider.class };
         }
-
     };
 
-    private static final AnnotationDetector ANNOTATION_DETECTER = new AnnotationDetector(ANNOTATION_REPORTER);
+    private static final AnnotationDetector ANNOTATION_DETECTER = new AnnotationDetector(
+        ANNOTATION_REPORTER
+    );
 
     public static void load() {
         try {
@@ -54,13 +53,21 @@ public class TestDataFactory {
     }
 
     public static TestData get(String testdataType, Project sProject, String env) {
-        Object testdata = getTestDataFromClassLoader(getTypeFromAnnotation(testdataType), sProject, env);
+        Object testdata = getTestDataFromClassLoader(
+            getTypeFromAnnotation(testdataType),
+            sProject,
+            env
+        );
         if (testdata != null) {
             return (TestData) testdata;
         }
-        throw new IllegalArgumentException("Testdata Provider " + testdataType + " not available."
-                + "Please give any of the following " + DATA_PROVIDER_CLASSES);
-
+        throw new IllegalArgumentException(
+            "Testdata Provider " +
+            testdataType +
+            " not available." +
+            "Please give any of the following " +
+            DATA_PROVIDER_CLASSES
+        );
     }
 
     private static String getTypeFromClass(String clazz) {
@@ -91,11 +98,18 @@ public class TestDataFactory {
     private static Object getTestDataFromClassLoader(Class dpClass, Project sProject, String env) {
         if (dpClass != null) {
             try {
-                Class[] types = {Project.class, String.class};
+                Class[] types = { Project.class, String.class };
                 Constructor constructor = dpClass.getConstructor(types);
-                Object[] parameters = {sProject, env};
+                Object[] parameters = { sProject, env };
                 return constructor.newInstance(parameters);
-            } catch (NoSuchMethodException | SecurityException | InstantiationException | IllegalAccessException | IllegalArgumentException | InvocationTargetException ex) {
+            } catch (
+                NoSuchMethodException
+                | SecurityException
+                | InstantiationException
+                | IllegalAccessException
+                | IllegalArgumentException
+                | InvocationTargetException ex
+            ) {
                 Logger.getLogger(TestDataFactory.class.getName()).log(Level.SEVERE, null, ex);
             }
         }
@@ -117,7 +131,7 @@ public class TestDataFactory {
             Logger.getLogger(TestDataFactory.class.getName()).log(Level.SEVERE, null, ex);
         }
         if (packages == null) {
-            packages = new String[]{"com.ing.testdata.csv"};
+            packages = new String[] { "com.ing.testdata.csv" };
         }
         return packages;
     }
@@ -125,5 +139,4 @@ public class TestDataFactory {
     public static List<String> getDATA_PROVIDER_NAMES() {
         return DATA_PROVIDER_NAMES;
     }
-
 }

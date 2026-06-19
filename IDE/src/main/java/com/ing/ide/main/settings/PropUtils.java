@@ -1,8 +1,7 @@
-
 package com.ing.ide.main.settings;
 
 import com.ing.datalib.util.data.LinkedProperties;
-import com.ing.ide.main.utils.table.JtableUtils;
+import com.ing.ide.main.utils.table.JTableUtils;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
@@ -15,7 +14,7 @@ import javax.swing.table.DefaultTableModel;
 
 /**
  *
- * 
+ *
  */
 public class PropUtils {
 
@@ -40,7 +39,7 @@ public class PropUtils {
     }
 
     public static void addValueinTable(JTable table, Object value1, String value2) {
-        ((DefaultTableModel) table.getModel()).addRow(new Object[]{value1, value2});
+        ((DefaultTableModel) table.getModel()).addRow(new Object[] { value1, value2 });
     }
 
     public static Properties getPropertiesFromTable(JTable table) {
@@ -48,7 +47,7 @@ public class PropUtils {
     }
 
     public static Properties getPropertiesFromTable(Properties x, JTable table) {
-        JtableUtils.stopEditing(table);
+        JTableUtils.stopEditing(table);
         int rowcount = table.getRowCount();
         for (int i = 0; i < rowcount; i++) {
             String prop = getString(table.getValueAt(i, 0));
@@ -87,20 +86,20 @@ public class PropUtils {
         try (FileOutputStream fout = new FileOutputStream(location)) {
             prop.store(fout, null);
             /*********************************/
-//                Scanner sc = new Scanner(new File(location));
-//		String firstline = sc.nextLine();
-//		System.out.println(firstline);
-//		String content="";
-//		if(firstline.startsWith("#")) 
-//		{
-//			while (sc.hasNextLine()) {
-//				content+=sc.nextLine()+"\n";
-//			}
-//		}	
-//		System.out.println(content);
-//		PrintWriter prw= new PrintWriter(new File(location)); 
-//		prw.println(content);
-//		prw.close();
+            //                Scanner sc = new Scanner(new File(location));
+            //		String firstline = sc.nextLine();
+            //		System.out.println(firstline);
+            //		String content="";
+            //		if(firstline.startsWith("#"))
+            //		{
+            //			while (sc.hasNextLine()) {
+            //				content+=sc.nextLine()+"\n";
+            //			}
+            //		}
+            //		System.out.println(content);
+            //		PrintWriter prw= new PrintWriter(new File(location));
+            //		prw.println(content);
+            //		prw.close();
             /*********************************/
         } catch (IOException ex) {
             Logger.getLogger(PropUtils.class.getName()).log(Level.SEVERE, null, ex);

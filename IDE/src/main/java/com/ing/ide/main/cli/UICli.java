@@ -1,8 +1,8 @@
-
 package com.ing.ide.main.cli;
 
-import com.ing.engine.cli.CLI.Op;
 import static com.ing.engine.cli.LookUp.OPTIONS;
+
+import com.ing.engine.cli.CLI.Op;
 import com.ing.ide.main.ui.About;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -14,7 +14,7 @@ import org.apache.commons.cli.ParseException;
 
 /**
  *
- * 
+ *
  */
 public class UICli {
 
@@ -34,14 +34,14 @@ public class UICli {
                         break;
                     case Op.V:
                     case Op.VERSION:
-                        System.out.println(String.format("%s %s",
-                                About.getBuildVersion(), About.getBuildDate()));
+                        System.out.println(
+                            String.format("%s %s", About.getBuildVersion(), About.getBuildDate())
+                        );
                         break;
                     default:
                         handled = false;
                 }
             }
-
         } catch (ParseException ex) {
             Logger.getLogger(UICli.class.getName()).log(Level.SEVERE, null, ex);
         } catch (Exception ex) {
@@ -49,5 +49,4 @@ public class UICli {
         }
         return handled;
     }
-
 }

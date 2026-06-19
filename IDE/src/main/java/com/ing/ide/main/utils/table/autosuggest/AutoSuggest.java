@@ -1,7 +1,6 @@
 package com.ing.ide.main.utils.table.autosuggest;
 
 import java.awt.Color;
-import java.awt.Graphics2D;
 import java.awt.Insets;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
@@ -10,6 +9,7 @@ import java.awt.event.FocusEvent;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Objects;
 import javax.swing.AbstractAction;
@@ -22,16 +22,14 @@ import javax.swing.JComboBox;
 import javax.swing.JComponent;
 import javax.swing.JTextField;
 import javax.swing.KeyStroke;
-import javax.swing.Painter;
 import javax.swing.SwingUtilities;
-import javax.swing.UIDefaults;
+import javax.swing.plaf.basic.BasicComboBoxUI;
 
 /**
  *
  *
  */
 public class AutoSuggest extends JComboBox<String> {
-
     private final List<String> searchList = new ArrayList<>();
 
     JTextField textField;
@@ -51,24 +49,26 @@ public class AutoSuggest extends JComboBox<String> {
         textField.setText("");
         handler = new AutoSuggestKeyHandler();
         textField.addKeyListener(handler);
-        textField.addFocusListener(new FocusAdapter() {
-            @Override
-            public void focusGained(FocusEvent fe) {
-                beforeShow();
-                if (!searchList.isEmpty()) {
-                    showPopup();
+        textField.addFocusListener(
+            new FocusAdapter() {
+
+                @Override
+                public void focusGained(FocusEvent fe) {
+                    beforeShow();
+                    if (!searchList.isEmpty()) {
+                        showPopup();
+                    }
+                }
+
+                @Override
+                public void focusLost(FocusEvent fe) {
+                    handler.shouldHide = true;
+                    if (onHide != null) {
+                        onHide.actionPerformed(null);
+                    }
                 }
             }
-
-            @Override
-            public void focusLost(FocusEvent fe) {
-                handler.shouldHide = true;
-                if (onHide != null) {
-                    onHide.actionPerformed(null);
-                }
-            }
-
-        });
+        );
         setSelectedIndex(-1);
     }
 
@@ -77,42 +77,29 @@ public class AutoSuggest extends JComboBox<String> {
      */
     @Override
     public void updateUI() {
-        //super.updateUI();
-        setUI(new javax.swing.plaf.synth.SynthComboBoxUI() {
-            @Override
-            protected JButton createArrowButton() {
-                JButton button = new JButton() {
-                    @Override
-                    public int getWidth() {
-                        return 0;
-                    }
-                };
-                button.setBorder(BorderFactory.createEmptyBorder());
-                button.setVisible(false);
-                return button;
-            }
+        setUI(
+            new BasicComboBoxUI() {
 
-            @Override
-            public void configureArrowButton() {
-            }
-        });
-        UIDefaults d = new UIDefaults();
+                @Override
+                protected JButton createArrowButton() {
+                    JButton button = new JButton() {
 
-        Painter<JComponent> emptyPainter = new Painter<JComponent>() {
-            @Override
-            public void paint(Graphics2D g, JComponent c, int w, int h) {
-                /* Empty painter */
+                        @Override
+                        public int getWidth() {
+                            return 0;
+                        }
+                    };
+                    button.setBorder(BorderFactory.createEmptyBorder());
+                    button.setVisible(false);
+                    return button;
+                }
+
+                @Override
+                public void configureArrowButton() {}
             }
-        };
-        d.put("TextField.borderPainter", emptyPainter);
-        d.put("TextField[Enabled].borderPainter", emptyPainter);
-        d.put("TextField[Focused].borderPainter", emptyPainter);
-        d.put("ComboBox:\"ComboBox.textField\"[Enabled].backgroundPainter", emptyPainter);
-        d.put("ComboBox:\"ComboBox.textField\"[Selected].backgroundPainter", emptyPainter);
-        d.put("ComboBox[Editable+Focused].backgroundPainter", emptyPainter);
-        putClientProperty("Nimbus.Overrides", d);
+        );
+        setBorder(BorderFactory.createEmptyBorder());
         JComponent c = (JComponent) getEditor().getEditorComponent();
-        c.putClientProperty("Nimbus.Overrides", d);
         c.setBorder(BorderFactory.createLineBorder(Color.BLACK));
     }
 
@@ -135,6 +122,7 @@ public class AutoSuggest extends JComboBox<String> {
 
     public final void setSearchList(List<String> items) {
         searchList.clear();
+        Collections.sort(items, String.CASE_INSENSITIVE_ORDER);
         searchList.addAll(items);
     }
 
@@ -167,12 +155,9 @@ public class AutoSuggest extends JComboBox<String> {
         return this;
     }
 
-    public void beforeShow() {
+    public void beforeShow() {}
 
-    }
-
-    public void afterReset() {
-    }
+    public void afterReset() {}
 
     public final String getText() {
         return textField.getText();
@@ -195,12 +180,9 @@ public class AutoSuggest extends JComboBox<String> {
         return !handler.shouldHide;
     }
 
-    public void beforeSearch(String text) {
-
-    }
+    public void beforeSearch(String text) {}
 
     class AutoSuggestKeyHandler extends KeyAdapter {
-
         private boolean shouldHide = true;
 
         protected AutoSuggestKeyHandler() {
@@ -209,25 +191,27 @@ public class AutoSuggest extends JComboBox<String> {
 
         @Override
         public void keyTyped(final KeyEvent e) {
-            SwingUtilities.invokeLater(new Runnable() {
-                @Override
-                public void run() {
-                    String text = textField.getText();
-                    beforeSearch(text);
-                    if (!searchList.isEmpty()) {
-                        if (shouldHide) {
-                            hidePopup();
-                        } else {
-                            setSuggestionModel(getSuggestedModel(), text);
-                            if (isShowing()) {
-                                showPopup();
+            SwingUtilities.invokeLater(
+                new Runnable() {
+
+                    @Override
+                    public void run() {
+                        String text = textField.getText();
+                        beforeSearch(text);
+                        if (!searchList.isEmpty()) {
+                            if (shouldHide) {
+                                hidePopup();
+                            } else {
+                                setSuggestionModel(getSuggestedModel(), text);
+                                if (isShowing()) {
+                                    showPopup();
+                                }
                             }
+                        } else {
+                            hidePopup();
                         }
-                    } else {
-                        hidePopup();
                     }
                 }
-            }
             );
         }
 
@@ -235,6 +219,36 @@ public class AutoSuggest extends JComboBox<String> {
         public void keyPressed(KeyEvent e) {
             shouldHide = false;
             switch (e.getKeyCode()) {
+                case KeyEvent.VK_DOWN:
+                    if (!isPopupVisible() && !searchList.isEmpty()) {
+                        setSuggestionModel(getSuggestedModel(), getSearchString());
+                        showPopup();
+                        e.consume();
+                    } else if (isPopupVisible()) {
+                        // Allow the combo box to handle navigation when popup is visible
+                        int currentIndex = getSelectedIndex();
+                        if (currentIndex < getItemCount() - 1) {
+                            setSelectedIndex(currentIndex + 1);
+                        }
+                        e.consume();
+                    }
+                    break;
+                case KeyEvent.VK_UP:
+                    if (!isPopupVisible() && !searchList.isEmpty()) {
+                        setSuggestionModel(getSuggestedModel(), getSearchString());
+                        showPopup();
+                        e.consume();
+                    } else if (isPopupVisible()) {
+                        // Allow the combo box to handle navigation when popup is visible
+                        int currentIndex = getSelectedIndex();
+                        if (currentIndex > 0) {
+                            setSelectedIndex(currentIndex - 1);
+                        } else if (currentIndex == -1 && getItemCount() > 0) {
+                            setSelectedIndex(0);
+                        }
+                        e.consume();
+                    }
+                    break;
                 case KeyEvent.VK_ENTER:
                     shouldHide = true;
                     break;
@@ -248,7 +262,6 @@ public class AutoSuggest extends JComboBox<String> {
                     break;
             }
         }
-
     }
 
     private void setSuggestionModel(ComboBoxModel<String> mdl, String str) {
@@ -275,22 +288,43 @@ public class AutoSuggest extends JComboBox<String> {
         int menuShortcutKeyMask = Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx();
 
         // Remove default Ctrl key bindings
-        textField.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_X, menuShortcutKeyMask), "none");
-        textField.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_C, menuShortcutKeyMask), "none");
-        textField.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_V, menuShortcutKeyMask), "none");
-        textField.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_A, menuShortcutKeyMask), "none");
+        textField
+            .getInputMap()
+            .put(KeyStroke.getKeyStroke(KeyEvent.VK_X, menuShortcutKeyMask), "none");
+        textField
+            .getInputMap()
+            .put(KeyStroke.getKeyStroke(KeyEvent.VK_C, menuShortcutKeyMask), "none");
+        textField
+            .getInputMap()
+            .put(KeyStroke.getKeyStroke(KeyEvent.VK_V, menuShortcutKeyMask), "none");
+        textField
+            .getInputMap()
+            .put(KeyStroke.getKeyStroke(KeyEvent.VK_A, menuShortcutKeyMask), "none");
 
         // Add Cmd key bindings
-        textField.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_X, menuShortcutKeyMask), "cut");
-        textField.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_C, menuShortcutKeyMask), "copy");
-        textField.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_V, menuShortcutKeyMask), "paste");
-        textField.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_A, menuShortcutKeyMask), "selectAll");
-        textField.getActionMap().put("selectAll", new AbstractAction() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                textField.selectAll();
-            }
-        });
+        textField
+            .getInputMap()
+            .put(KeyStroke.getKeyStroke(KeyEvent.VK_X, menuShortcutKeyMask), "cut");
+        textField
+            .getInputMap()
+            .put(KeyStroke.getKeyStroke(KeyEvent.VK_C, menuShortcutKeyMask), "copy");
+        textField
+            .getInputMap()
+            .put(KeyStroke.getKeyStroke(KeyEvent.VK_V, menuShortcutKeyMask), "paste");
+        textField
+            .getInputMap()
+            .put(KeyStroke.getKeyStroke(KeyEvent.VK_A, menuShortcutKeyMask), "selectAll");
+        textField
+            .getActionMap()
+            .put(
+                "selectAll",
+                new AbstractAction() {
 
+                    @Override
+                    public void actionPerformed(ActionEvent e) {
+                        textField.selectAll();
+                    }
+                }
+            );
     }
 }

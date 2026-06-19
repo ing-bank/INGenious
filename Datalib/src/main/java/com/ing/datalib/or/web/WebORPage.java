@@ -1,15 +1,14 @@
-
 package com.ing.datalib.or.web;
 
-import com.ing.datalib.component.utils.FileUtils;
-import com.ing.datalib.or.common.ORPageInf;
-import com.ing.datalib.or.common.ORUtils;
-import com.ing.datalib.or.common.ObjectGroup;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.ing.datalib.component.utils.FileUtils;
+import com.ing.datalib.or.common.ORPageInf;
+import com.ing.datalib.or.common.ORUtils;
+import com.ing.datalib.or.common.ObjectGroup;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -18,10 +17,14 @@ import java.util.List;
 import javax.swing.tree.TreeNode;
 import javax.swing.tree.TreePath;
 
+/**
+ * Represents a page in the Web Object Repository (WebOR), containing object groups
+ * and metadata such as title, source, and its parent WebOR root. Supports object
+ * group management, tree navigation, renaming, and persistence utilities.
+ */
 @JsonInclude(JsonInclude.Include.NON_NULL)
-@JsonIgnoreProperties({"root"})
+@JsonIgnoreProperties({ "root" })
 public class WebORPage implements ORPageInf<WebORObject, WebOR> {
-
     @JacksonXmlProperty(isAttribute = true, localName = "ref")
     private String name;
 
@@ -34,6 +37,9 @@ public class WebORPage implements ORPageInf<WebORObject, WebOR> {
 
     @JsonIgnore
     private WebOR root;
+
+    @JacksonXmlProperty(isAttribute = true)
+    private String source;
 
     public WebORPage() {
         this.objectGroups = new ArrayList<>();
@@ -82,7 +88,7 @@ public class WebORPage implements ORPageInf<WebORObject, WebOR> {
     public void removeFromParent() {
         root.setSaved(false);
         root.getPages().remove(this);
-        FileUtils.deleteFile(getRepLocation());
+        root.getObjectRepository().deleteWebPageYaml(getName(), root.getScope());
     }
 
     @JsonIgnore
@@ -115,9 +121,22 @@ public class WebORPage implements ORPageInf<WebORObject, WebOR> {
         if (getObjectGroupByName(groupName) == null) {
             ObjectGroup<WebORObject> group = new ObjectGroup<>(groupName, this);
             objectGroups.add(group);
-            new File(group.getRepLocation()).mkdirs();
+            // Only create folder for non-YAML formats
+            if (
+                root.getObjectRepository() == null ||
+                !root.getObjectRepository().isUsingYamlFormat()
+            ) {
+                new File(group.getRepLocation()).mkdirs();
+            }
             group.addObject(groupName);
             root.setSaved(false);
+
+            // Auto-save for YAML format
+            if (
+                root.getObjectRepository() != null && root.getObjectRepository().isUsingYamlFormat()
+            ) {
+                root.getObjectRepository().saveWebPageNow(this);
+            }
             return group;
         }
         return null;
@@ -173,8 +192,7 @@ public class WebORPage implements ORPageInf<WebORObject, WebOR> {
     @JsonIgnore
     @Override
     public int getChildCount() {
-        return objectGroups == null ? 0
-                : objectGroups.size();
+        return objectGroups == null ? 0 : objectGroups.size();
     }
 
     @JsonIgnore
@@ -238,15 +256,8 @@ public class WebORPage implements ORPageInf<WebORObject, WebOR> {
 
     @Override
     public Boolean rename(String newName) {
-        if (getParent().getPageByName(newName) == null) {
-            if (FileUtils.renameFile(getRepLocation(), newName)) {
-                getRoot().getObjectRepository().renamePage(this, newName);
-                setName(newName);
-                getParent().setSaved(false);
-                return true;
-            }
-        }
-        return false;
+        getRoot().getObjectRepository().renamePage(this, newName);
+        return true;
     }
 
     @JsonIgnore
@@ -259,5 +270,13 @@ public class WebORPage implements ORPageInf<WebORObject, WebOR> {
     @Override
     public void sort() {
         ORUtils.sort(this);
+    }
+
+    public String getSource() {
+        return source;
+    }
+
+    public void setSource(String source) {
+        this.source = source;
     }
 }

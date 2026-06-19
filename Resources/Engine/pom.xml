@@ -2,37 +2,36 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>ingenious-playwright</groupId>
     <artifactId>ingenious-engine</artifactId>
-    <version>2.3</version>
+    <version>3.1.0</version>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <playwright.version>LATEST</playwright.version>
+        <playwright.version>1.58.0</playwright.version>
         <commons-cli.version>1.4</commons-cli.version>
         <javamail.version>1.4.7</javamail.version>
         <json-simple.version>1.1.1</json-simple.version>
         <jcsv.version>1.4.0</jcsv.version>
-        <javafx.version>17.0.2</javafx.version>
+        <javafx.version>17.0.14</javafx.version>
         <jackson.version>2.15.2</jackson.version>
         <commonscsv.version>1.10.0</commonscsv.version>
         <commons-codec.version>1.16.0</commons-codec.version>
         <commons-io.version>2.15.0</commons-io.version>
         <commons-lang3.version>3.12.0</commons-lang3.version>
         <annon.detect>3.0.5</annon.detect>
-        <jetty.version>9.4.43.v20210629</jetty.version>
+        <jetty.version>9.4.57.v20241219</jetty.version>
         <gherkin.version>5.0.0</gherkin.version>
         <autocomplete.version>3.0.0</autocomplete.version>
         <apache.poi.version>5.2.5</apache.poi.version>
         <apache.poi.schemas.version>4.1.2</apache.poi.schemas.version>
         <httpclient.version>4.5.14</httpclient.version>
-        <extentreport.version>LATEST</extentreport.version>
-        <playwright.axe.version>LATEST</playwright.axe.version>
+        <extentreport.version>5.1.2</extentreport.version>
+        <playwright.axe.version>4.11.1</playwright.axe.version>
         <testng.version>7.7.1</testng.version>
         <freemarker.version>2.3.32</freemarker.version>
         <stax-api.version>1.0.1</stax-api.version>
         <xmlbeans.version>3.0.2</xmlbeans.version>
-        <json-path.version>2.4.0</json-path.version>
+        <json-path.version>2.9.0</json-path.version>
         <checker-compat-qual.version>2.0.0</checker-compat-qual.version>
         <java-string-similarity.version>2.0.0</java-string-similarity.version>
-        <log4j.version>2.17.2</log4j.version>
         <checker-qual.version>3.33.0</checker-qual.version>
         <error_prone_annotations.version>2.18.0</error_prone_annotations.version>
         <gson.version>2.10.1</gson.version>
@@ -41,17 +40,24 @@
         <commons-lang.version>2.6</commons-lang.version>
         <httpcore.version>4.4.16</httpcore.version>
         <guava.version>32.0.1-jre</guava.version>
-        <appium.version>LATEST</appium.version>
-        <javafaker.version>LATEST</javafaker.version>
-        <kafka-clients.version>LATEST</kafka-clients.version>
-        <avro.version>LATEST</avro.version>
-        <kafka-avro-serializer.version>LATEST</kafka-avro-serializer.version>
-        <ibmmq.version>LATEST</ibmmq.version>
+        <appium.version>10.0.0</appium.version>
+        <javafaker.version>1.0.2</javafaker.version>
+        <kafka-clients.version>3.9.0</kafka-clients.version>
+        <avro.version>1.12.0</avro.version>
+        <kafka-avro-serializer.version>7.8.0</kafka-avro-serializer.version>
+        <ibmmq.version>9.4.5.0</ibmmq.version>
         <mac.version>mac-aarch64</mac.version>
         <setupDir>../Dist/release</setupDir>
         <resourceDir>../Resources</resourceDir>
+        <ingenious-api.version>3.0</ingenious-api.version>
 
-        <java.version>11</java.version>
+        <flatlaf.version>3.5.4</flatlaf.version>
+        <ikonli.version>12.3.1</ikonli.version>
+
+        <mockito.version>5.14.2</mockito.version>
+        <assertj.version>3.26.3</assertj.version>
+
+        <java.version>17</java.version>
         <maven.compiler.source>${java.version}</maven.compiler.source>
         <maven.compiler.target>${java.version}</maven.compiler.target>
 
@@ -156,13 +162,16 @@
         </plugins>
     </build>
     <repositories>
-      <repository>
+      <!-- <repository>
             <id>confluent</id>
             <url>https://packages.confluent.io/maven/</url>
-        </repository>
+        </repository> -->
     </repositories>
     <pluginRepositories/>
     <dependencies>
+        
+        
+        
         
         
         
@@ -173,11 +182,13 @@
         </dependency> 
            
     
+        
         <dependency>
             <groupId>org.apache.commons</groupId>
             <artifactId>commons-csv</artifactId>
             <version>${commonscsv.version}</version>
         </dependency>
+        
         
         
         <dependency>
@@ -187,10 +198,15 @@
         </dependency>
         <!-- https://mvnrepository.com/artifact/org.testng/testng -->
         
+        
+        
     
-           
+        
+        
+        
+        
      
-        <dependency>
+        <!-- <dependency>
             <groupId>org.apache.kafka</groupId>
             <artifactId>kafka-clients</artifactId>
             <version>${kafka-clients.version}</version>
@@ -199,6 +215,11 @@
             <groupId>io.confluent</groupId>
             <artifactId>kafka-avro-serializer</artifactId>
             <version>${kafka-avro-serializer.version}</version>
+        </dependency> -->
+        <dependency>
+            <groupId>io.github.osobolev</groupId>
+            <artifactId>jacob</artifactId>
+            <version>1.21</version>
         </dependency>
         <dependency>
             <groupId>com.ing</groupId>
@@ -206,10 +227,20 @@
             <version>${project.version}</version>
         </dependency>
         
-        
+        <dependency>
+            <groupId>com.ing</groupId>
+            <artifactId>ingenious-api</artifactId>
+            <version>${ingenious-api.version}</version>
+            <type>jar</type>
+        </dependency>        
         <dependency>
             <groupId>com.fasterxml.jackson.dataformat</groupId>
             <artifactId>jackson-dataformat-xml</artifactId>
+            <version>${jackson.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.dataformat</groupId>
+            <artifactId>jackson-dataformat-yaml</artifactId>
             <version>${jackson.version}</version>
         </dependency>
                  
@@ -224,18 +255,60 @@
             <groupId>org.apache.poi</groupId>
             <artifactId>poi</artifactId>
             <version>${apache.poi.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.apache.logging.log4j</groupId>
+                    <artifactId>log4j-core</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.apache.logging.log4j</groupId>
+                    <artifactId>log4j-api</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>log4j</groupId>
+                    <artifactId>log4j</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
 
         <dependency>
             <groupId>org.apache.poi</groupId>
             <artifactId>poi-ooxml</artifactId>
             <version>${apache.poi.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.apache.logging.log4j</groupId>
+                    <artifactId>log4j-core</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.apache.logging.log4j</groupId>
+                    <artifactId>log4j-api</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>log4j</groupId>
+                    <artifactId>log4j</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
 
         <dependency>
             <groupId>org.apache.poi</groupId>
             <artifactId>poi-ooxml-schemas</artifactId>
             <version>${apache.poi.schemas.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.apache.logging.log4j</groupId>
+                    <artifactId>log4j-core</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.apache.logging.log4j</groupId>
+                    <artifactId>log4j-api</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>log4j</groupId>
+                    <artifactId>log4j</artifactId>
+                </exclusion>
+            </exclusions>
         </dependency>
 
 
@@ -283,11 +356,34 @@
             <version>${testng.version}</version>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>org.mockito</groupId>
+            <artifactId>mockito-core</artifactId>
+            <version>${mockito.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.assertj</groupId>
+            <artifactId>assertj-core</artifactId>
+            <version>${assertj.version}</version>
+            <scope>test</scope>
+        </dependency>
   
         <dependency>
             <groupId>com.jayway.jsonpath</groupId>
             <artifactId>json-path</artifactId>
             <version>${json-path.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>net.minidev</groupId>
+                    <artifactId>json-smart</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>net.minidev</groupId>
+            <artifactId>json-smart</artifactId>
+            <version>2.4.9</version>
         </dependency>
         
         <dependency>
@@ -307,18 +403,6 @@
             <artifactId>java-string-similarity</artifactId>
             <version>${java-string-similarity.version}</version>
         </dependency>
-
-        <dependency>
-            <groupId>org.apache.logging.log4j</groupId>
-            <artifactId>log4j-core</artifactId>
-            <version>${log4j.version}</version>
-        </dependency>
-        
-        <dependency>
-            <groupId>org.apache.logging.log4j</groupId>
-            <artifactId>log4j-api</artifactId>
-            <version>${log4j.version}</version>
-        </dependency>       
 
         <dependency>
             <groupId>org.checkerframework</groupId>
@@ -365,12 +449,28 @@
         </dependency>
         
         
-        
+        <dependency>
+            <groupId>io.appium</groupId>
+            <artifactId>java-client</artifactId>
+            <version>${appium.version}</version>
+            <type>jar</type>
+        </dependency>
         <dependency>
             <groupId>com.galenframework</groupId>
             <artifactId>galen-core</artifactId>
             <version>2.4.4</version>
             <type>jar</type>
+            <exclusions>
+                <exclusion>
+                    <groupId>com.squareup.okhttp3</groupId>
+                    <artifactId>okhttp</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>com.squareup.okhttp3</groupId>
+            <artifactId>okhttp</artifactId>
+            <version>5.0.0</version>
         </dependency>
         <dependency>
             <groupId>ru.yandex.qatools.ashot</groupId>
@@ -379,22 +479,31 @@
             <type>jar</type>
         </dependency>
         <dependency>
+            <groupId>org.yaml</groupId>
+            <artifactId>snakeyaml</artifactId>
+            <version>2.0</version>
+        </dependency>
+        <dependency>
             <groupId>com.github.javafaker</groupId>
             <artifactId>javafaker</artifactId>
             <version>${javafaker.version}</version>
-        </dependency>       
+            <exclusions>
+                <exclusion>
+                    <groupId>org.yaml</groupId>
+                    <artifactId>snakeyaml</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>        
         <!-- add your respective jms dependency here -->
         <dependency>
             <groupId>com.ibm.mq</groupId>
             <artifactId>com.ibm.mq.allclient</artifactId>
             <version>${ibmmq.version}</version>
         </dependency>
-
         <dependency>
-            <groupId>io.appium</groupId>
-            <artifactId>java-client</artifactId>
-            <version>${appium.version}</version>
-            <type>jar</type>
+            <groupId>com.microsoft.sqlserver</groupId>
+            <artifactId>mssql-jdbc</artifactId>
+            <version>13.2.1.jre11</version>
         </dependency>
         <dependency>
             <groupId>com.mysql</groupId>
@@ -404,15 +513,76 @@
         <dependency>
           <groupId>com.oracle.database.jdbc</groupId>
           <artifactId>ojdbc11</artifactId>
-          <version>LATEST</version>
+          <version>23.26.1.0.0</version>
+        </dependency>
+        
+        <!-- Enhanced CLI Framework -->
+        <dependency>
+            <groupId>info.picocli</groupId>
+            <artifactId>picocli</artifactId>
+            <version>4.7.5</version>
+        </dependency>
+        
+        <!-- Interactive Shell -->
+        <dependency>
+            <groupId>org.jline</groupId>
+            <artifactId>jline</artifactId>
+            <version>3.25.0</version>
+        </dependency>
+        
+        <!-- Progress Bars -->
+        <dependency>
+            <groupId>me.tongfei</groupId>
+            <artifactId>progressbar</artifactId>
+            <version>0.10.0</version>
+        </dependency>
+        
+        <!-- ASCII Tables -->
+        <dependency>
+            <groupId>de.vandermeer</groupId>
+            <artifactId>asciitable</artifactId>
+            <version>0.3.2</version>
         </dependency>
     
+		<dependency>
+			<groupId>com.formdev</groupId>
+			<artifactId>flatlaf</artifactId>
+			<version>${flatlaf.version}</version>
+		</dependency>
+		<!-- Ikonli icon fonts (web icons) -->
+		<dependency>
+			<groupId>org.kordamp.ikonli</groupId>
+			<artifactId>ikonli-javafx</artifactId>
+			<version>${ikonli.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.kordamp.ikonli</groupId>
+			<artifactId>ikonli-swing</artifactId>
+			<version>${ikonli.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.kordamp.ikonli</groupId>
+			<artifactId>ikonli-materialdesign2-pack</artifactId>
+			<version>${ikonli.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.kordamp.ikonli</groupId>
+			<artifactId>ikonli-fontawesome5-pack</artifactId>
+			<version>${ikonli.version}</version>
+		</dependency>
 		
 		<dependency>
 			<groupId>com.ing</groupId>
 			<artifactId>ingenious-datalib</artifactId>
 			<version>${project.version}</version>
                         <type>jar</type>
+		</dependency>
+		
+		<!-- SLF4J Simple binding for clean logging -->
+		<dependency>
+			<groupId>org.slf4j</groupId>
+			<artifactId>slf4j-simple</artifactId>
+			<version>${slf4j-api.version}</version>
 		</dependency>
 		
 		<dependency>
@@ -596,5 +766,37 @@
 			<version>${javafx.version}</version>
 			<classifier>${mac.version}</classifier>
 		</dependency>
-	</dependencies>
+    </dependencies>
+    
+    <profiles>
+        <!-- Optional npm install - activate with -Pnpm-install when needed -->
+        <profile>
+            <id>npm-install</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.codehaus.mojo</groupId>
+                        <artifactId>exec-maven-plugin</artifactId>
+                        <version>3.1.0</version>
+                        <executions>
+                            <execution>
+                                <id>npm-install</id>
+                                <phase>install</phase>
+                                <goals>
+                                    <goal>exec</goal>
+                                </goals>
+                                <configuration>
+                                    <executable>npm</executable>
+                                    <arguments>
+                                        <argument>install</argument>
+                                    </arguments>
+                                    <workingDirectory>../</workingDirectory>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
 </project>

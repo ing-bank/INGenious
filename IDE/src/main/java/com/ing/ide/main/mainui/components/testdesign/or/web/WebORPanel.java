@@ -1,49 +1,141 @@
-
 package com.ing.ide.main.mainui.components.testdesign.or.web;
 
 import com.ing.datalib.component.Project;
+import com.ing.datalib.or.common.ORObjectInf;
 import com.ing.datalib.or.common.ObjectGroup;
 import com.ing.datalib.or.web.WebORObject;
 import com.ing.ide.main.mainui.components.testdesign.TestDesign;
+import com.ing.ide.main.mainui.components.testdesign.or.web.WebObjectTree.ORSource;
 import com.ing.ide.main.utils.tree.TreeSearch;
 import java.awt.BorderLayout;
 import java.awt.Toolkit;
 import java.awt.event.KeyEvent;
+import java.util.List;
+import javax.swing.JComponent;
 import javax.swing.JPanel;
 import javax.swing.JSplitPane;
+import javax.swing.JTabbedPane;
 import javax.swing.KeyStroke;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
+import javax.swing.tree.TreePath;
 
 /**
+ * Main UI panel for managing Web Object Repository (OR) entries in Test Design.
+ * <p>
+ * This panel provides two tabbed OR trees (Project and Shared) and a details table below.
+ * It synchronizes tree selection with the {@link WebORTable} so that selecting an OR node
+ * loads the corresponding {@link WebORObject} into the table, and switching tabs refreshes
+ * the table based on the active tree selection.
+ * </p>
  *
- * 
+ * <h2>Key Features</h2>
+ * <ul>
+ *   <li><b>Tabbed OR Trees:</b> Displays {@link WebObjectTree} instances for project and shared repositories.</li>
+ *   <li><b>Search Integration:</b> Installs tree search UI on each OR tree.</li>
+ *   <li><b>Selection → Details:</b> Loads/reset the {@link WebORTable} depending on what is selected.</li>
+ *   <li><b>Navigation:</b> Can navigate to an object/page in the active tree, falling back to the other tree.</li>
+ *   <li><b>Delegation:</b> Exposes access to {@link TestDesign} and {@link Project} for child components.</li>
+ * </ul>
  */
 public class WebORPanel extends JPanel {
-
-    private final WebObjectTree objectTree;
+    private final WebObjectTree projectTree;
+    private final WebObjectTree sharedTree;
     private final WebORTable objectTable;
-
     private final TestDesign testDesign;
-
     private JSplitPane splitPane;
+    private JTabbedPane tabs;
 
     public WebORPanel(TestDesign testDesign) {
         this.testDesign = testDesign;
-        this.objectTree = new WebObjectTree(this);
+        this.projectTree = new WebObjectTree(this, ORSource.PROJECT);
+        this.sharedTree = new WebObjectTree(this, ORSource.SHARED);
         this.objectTable = new WebORTable(this);
         init();
     }
 
     private void init() {
         setLayout(new BorderLayout());
+        tabs = new JTabbedPane();
+
+        JComponent projectTreeWithSearch = TreeSearch.installForOR(projectTree.getTree());
+        tabs.addTab("Project", projectTreeWithSearch);
+
+        JComponent sharedTreeWithSearch = TreeSearch.installForOR(sharedTree.getTree());
+        tabs.addTab("Shared", sharedTreeWithSearch);
+
+        tabs.addChangeListener(
+            new ChangeListener() {
+
+                @Override
+                public void stateChanged(ChangeEvent e) {
+                    updateTableForCurrentSelection();
+                }
+            }
+        );
+
         splitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT);
         splitPane.setOneTouchExpandable(true);
+        splitPane.setTopComponent(tabs);
         splitPane.setBottomComponent(objectTable);
-        TreeSearch tSearch = TreeSearch.installForOR(objectTree.getTree());
-        splitPane.setTopComponent(tSearch);
-        splitPane.setResizeWeight(.5);
-        splitPane.setDividerLocation(.5);
-        add(splitPane);
-       
+        splitPane.setResizeWeight(0.5);
+        add(splitPane, BorderLayout.CENTER);
+
+        javax.swing.SwingUtilities.invokeLater(
+            () -> {
+                splitPane.setDividerLocation(0.5);
+            }
+        );
+
+        hookSelectionToTable(projectTree);
+        hookSelectionToTable(sharedTree);
+    }
+
+    private void hookSelectionToTable(WebObjectTree tree) {
+        tree
+            .getTree()
+            .addTreeSelectionListener(
+                e -> {
+                    if (isTreeOnCurrentTab(tree)) {
+                        loadTableModelForSelection(getSelectedNodeUserObject(tree));
+                    }
+                }
+            );
+    }
+
+    private boolean isTreeOnCurrentTab(WebObjectTree tree) {
+        int idx = tabs.getSelectedIndex();
+        String title = (idx >= 0) ? tabs.getTitleAt(idx) : "";
+        return (
+            (tree == projectTree && "Project".equals(title)) ||
+            (tree == sharedTree && "Shared".equals(title))
+        );
+    }
+
+    private Object getSelectedNodeUserObject(WebObjectTree tree) {
+        TreePath path = tree.getTree().getSelectionPath();
+        if (path == null) return null;
+        Object node = path.getLastPathComponent();
+        if (node instanceof javax.swing.tree.DefaultMutableTreeNode) {
+            return ((javax.swing.tree.DefaultMutableTreeNode) node).getUserObject();
+        }
+        return node;
+    }
+
+    private void updateTableForCurrentSelection() {
+        WebObjectTree activeTree = getActiveTree();
+        Object selected = (activeTree != null) ? getSelectedNodeUserObject(activeTree) : null;
+        loadTableModelForSelection(selected);
+    }
+
+    public WebObjectTree getActiveTree() {
+        int idx = tabs.getSelectedIndex();
+        if (idx == 0) {
+            return projectTree;
+        } else if (idx == 1) {
+            return sharedTree;
+        }
+        return null;
     }
 
     void loadTableModelForSelection(Object object) {
@@ -57,7 +149,10 @@ public class WebORPanel extends JPanel {
     }
 
     void changeFrameData(String frameText) {
-        objectTree.changeFrameData(frameText);
+        WebObjectTree activeTree = getActiveTree();
+        if (activeTree != null) {
+            activeTree.changeFrameData(frameText);
+        }
     }
 
     public TestDesign getTestDesign() {
@@ -70,26 +165,97 @@ public class WebORPanel extends JPanel {
 
     public void load() {
         objectTable.reset();
-        objectTree.load();
-        splitPane.setDividerLocation(.5);
+        sharedTree.load();
+        projectTree.load();
+    }
+
+    /**
+     * Reloads the project Web OR tree so newly added pages/objects appear immediately
+     * without requiring a full project refresh, keeping the given page expanded.
+     *
+     * @param pageName the page to keep expanded after reload
+     */
+    public void reloadProjectTree(String pageName) {
+        projectTree.reloadAndExpandPage(pageName);
     }
 
     public void adjustUI() {
-        splitPane.setDividerLocation(0.5);
+        int height = splitPane.getHeight();
+        if (height > 0) {
+            splitPane.setDividerLocation(height / 2);
+        } else {
+            splitPane.setDividerLocation(0.5);
+        }
     }
 
     public Boolean navigateToObject(String objectName, String pageName) {
-        return objectTree.navigateToObject(objectName, pageName);
+        // Extract scope from pageName (e.g., "[Shared] PageName" or "[Project] PageName")
+        String scope = extractScope(pageName);
+
+        // If scope is explicitly specified in the reference, use only that tree
+        if (scope != null) {
+            if ("SHARED".equalsIgnoreCase(scope)) {
+                if (sharedTree != null && sharedTree.navigateToObject(objectName, pageName)) {
+                    tabs.setSelectedIndex(1); // Switch to Shared tab
+                    return true;
+                }
+                return false;
+            } else if ("PROJECT".equalsIgnoreCase(scope)) {
+                if (projectTree != null && projectTree.navigateToObject(objectName, pageName)) {
+                    tabs.setSelectedIndex(0); // Switch to Project tab
+                    return true;
+                }
+                return false;
+            }
+        }
+
+        // If no scope specified, try shared first, then project as fallback
+        if (sharedTree != null && sharedTree.navigateToObject(objectName, pageName)) {
+            tabs.setSelectedIndex(1); // Switch to Shared tab
+            return true;
+        }
+        if (projectTree != null && projectTree.navigateToObject(objectName, pageName)) {
+            tabs.setSelectedIndex(0); // Switch to Project tab
+            return true;
+        }
+        return false;
     }
 
-    public WebObjectTree getObjectTree() {
-        return objectTree;
+    /**
+     * Extracts the scope prefix from a page reference.
+     * Format: "[Scope] PageName" where Scope is either "Shared" or "Project"
+     *
+     * @param pageReference the page reference that may contain scope prefix
+     * @return the scope ("SHARED" or "PROJECT") or null if no scope prefix
+     */
+    private String extractScope(String pageReference) {
+        if (pageReference == null || pageReference.trim().isEmpty()) {
+            return null;
+        }
+
+        String trimmed = pageReference.trim();
+        if (trimmed.startsWith("[") && trimmed.contains("]")) {
+            int endBracket = trimmed.indexOf(']');
+            String scope = trimmed.substring(1, endBracket).trim();
+            return scope.isEmpty() ? null : scope.toUpperCase();
+        }
+        return null;
+    }
+
+    public WebObjectTree getProjectTree() {
+        return projectTree;
+    }
+
+    public WebObjectTree getSharedTree() {
+        return sharedTree;
     }
 
     public WebORTable getObjectTable() {
         return objectTable;
     }
-    
-    
 
+    public List<com.ing.datalib.or.common.ORObjectInf> getSelectedObjectsFromActiveTab() {
+        WebObjectTree active = getActiveTree();
+        return (active != null) ? active.getSelectedObjects() : java.util.Collections.emptyList();
+    }
 }

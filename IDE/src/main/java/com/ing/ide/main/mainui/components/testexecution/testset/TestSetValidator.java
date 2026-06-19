@@ -1,4 +1,3 @@
-
 package com.ing.ide.main.mainui.components.testexecution.testset;
 
 import com.ing.datalib.component.ExecutionStep;
@@ -17,10 +16,9 @@ import javax.swing.table.DefaultTableCellRenderer;
 
 /**
  *
- * 
+ *
  */
 public class TestSetValidator extends DefaultTableCellRenderer {
-
     private final Color errorColor = Color.RED.darker();
 
     XTable testSetTable;
@@ -38,9 +36,22 @@ public class TestSetValidator extends DefaultTableCellRenderer {
     }
 
     @Override
-    public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int col) {
+    public Component getTableCellRendererComponent(
+        JTable table,
+        Object value,
+        boolean isSelected,
+        boolean hasFocus,
+        int row,
+        int col
+    ) {
         JComponent comp = (JComponent) super.getTableCellRendererComponent(
-                table, value, isSelected, hasFocus, row, col);
+            table,
+            value,
+            isSelected,
+            hasFocus,
+            row,
+            col
+        );
         List<Integer> dupList = getDuplicate(row);
         if (!dupList.isEmpty()) {
             comp.setForeground(errorColor);
@@ -60,9 +71,7 @@ public class TestSetValidator extends DefaultTableCellRenderer {
         return comp;
     }
 
-    private void checkForStatus() {
-
-    }
+    private void checkForStatus() {}
 
     private List<Integer> getDuplicate(int index) {
         ExecutionStep compareStep = getCurrentTestSet().getTestSteps().get(index);
@@ -82,12 +91,14 @@ public class TestSetValidator extends DefaultTableCellRenderer {
     private Boolean isDuplicate(ExecutionStep testStep1, ExecutionStep testStep2) {
         Boolean flag = testStep1.isDuplicate(testStep2);
         if (!flag) {
-            return Objects.equals(testStep1.getTestScenarioName(), testStep2.getTestScenarioName())
-                    && Objects.equals(testStep1.getTestCaseName(), testStep2.getTestCaseName())
-                    && Objects.equals(testStep1.getBrowser(), testStep2.getBrowser())
-                    && Objects.equals(testStep1.getIteration(), testStep2.getIteration())
-                    && Objects.equals(testStep1.getBrowserVersion(), testStep2.getBrowserVersion())
-                    && Objects.equals(testStep1.getPlatform(), testStep2.getPlatform());
+            return (
+                Objects.equals(testStep1.getTestScenarioName(), testStep2.getTestScenarioName()) &&
+                Objects.equals(testStep1.getTestCaseName(), testStep2.getTestCaseName()) &&
+                Objects.equals(testStep1.getBrowser(), testStep2.getBrowser()) &&
+                Objects.equals(testStep1.getIteration(), testStep2.getIteration()) &&
+                Objects.equals(testStep1.getBrowserVersion(), testStep2.getBrowserVersion()) &&
+                Objects.equals(testStep1.getPlatform(), testStep2.getPlatform())
+            );
         }
         return true;
     }
@@ -96,23 +107,25 @@ public class TestSetValidator extends DefaultTableCellRenderer {
         int i = 0;
         List<Integer> steps = new ArrayList<>();
         for (ExecutionStep testStep1 : getCurrentTestSet().getTestSteps()) {
-            Boolean isFull = !Objects.toString(testStep1.getTestScenarioName(), "").isEmpty()
-                    && !Objects.toString(testStep1.getTestCaseName(), "").isEmpty()
-                    && !Objects.toString(testStep1.getBrowser(), "").isEmpty()
-                    && !Objects.toString(testStep1.getIteration(), "").isEmpty()
-                    && !Objects.toString(testStep1.getBrowserVersion(), "").isEmpty()
-                    && !Objects.toString(testStep1.getPlatform(), "").isEmpty();
+            Boolean isFull =
+                !Objects.toString(testStep1.getTestScenarioName(), "").isEmpty() &&
+                !Objects.toString(testStep1.getTestCaseName(), "").isEmpty() &&
+                !Objects.toString(testStep1.getBrowser(), "").isEmpty() &&
+                !Objects.toString(testStep1.getIteration(), "").isEmpty() &&
+                !Objects.toString(testStep1.getBrowserVersion(), "").isEmpty() &&
+                !Objects.toString(testStep1.getPlatform(), "").isEmpty();
             if (!isFull) {
                 steps.add(i);
             }
             i++;
         }
         if (!steps.isEmpty()) {
-            int val = JOptionPane.showConfirmDialog(null,
-                    "The TestSet has Invalid entries."
-                    + steps
-                    + ". Do you want to remove them?",
-                    "Remove Invalid Entries", JOptionPane.YES_NO_CANCEL_OPTION);
+            int val = JOptionPane.showConfirmDialog(
+                null,
+                "The TestSet has Invalid entries." + steps + ". Do you want to remove them?",
+                "Remove Invalid Entries",
+                JOptionPane.YES_NO_CANCEL_OPTION
+            );
             if (val == JOptionPane.CANCEL_OPTION) {
                 return false;
             } else if (val == JOptionPane.YES_OPTION) {
@@ -142,11 +155,12 @@ public class TestSetValidator extends DefaultTableCellRenderer {
         if (flag) {
             List<CustomCompareStep> dupls = getDuplicates();
             if (!dupls.isEmpty()) {
-                int val = JOptionPane.showConfirmDialog(null,
-                        "The TestSet has duplicate entries."
-                        + dupls
-                        + ". Do you want to remove them?",
-                        "Remove Duplicates", JOptionPane.YES_NO_CANCEL_OPTION);
+                int val = JOptionPane.showConfirmDialog(
+                    null,
+                    "The TestSet has duplicate entries." + dupls + ". Do you want to remove them?",
+                    "Remove Duplicates",
+                    JOptionPane.YES_NO_CANCEL_OPTION
+                );
                 if (val == JOptionPane.CANCEL_OPTION) {
                     return false;
                 }
@@ -166,7 +180,6 @@ public class TestSetValidator extends DefaultTableCellRenderer {
     }
 
     class CustomCompareStep {
-
         ExecutionStep step;
 
         public CustomCompareStep(ExecutionStep step) {
@@ -198,7 +211,5 @@ public class TestSetValidator extends DefaultTableCellRenderer {
         public String toString() {
             return getCurrentTestSet().getTestSteps().indexOf(step) + 1 + "";
         }
-
     }
-
 }

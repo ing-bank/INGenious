@@ -1,5 +1,7 @@
-
 package com.ing.ide.main.mainui.components.testdesign.tree;
+
+import static javax.swing.TransferHandler.COPY_OR_MOVE;
+import static javax.swing.TransferHandler.MOVE;
 
 import com.ing.datalib.component.Scenario;
 import com.ing.datalib.component.TestCase;
@@ -19,18 +21,17 @@ import java.util.logging.Logger;
 import javax.swing.JComponent;
 import javax.swing.JTree;
 import javax.swing.TransferHandler;
-import static javax.swing.TransferHandler.COPY_OR_MOVE;
-import static javax.swing.TransferHandler.MOVE;
 import javax.swing.tree.TreePath;
 
 /**
  *
- * 
+ *
  */
 public class ProjectDnD extends TransferHandler {
-
-    public static final DataFlavor TESTCASE_FLAVOR = new DataFlavor(TestCaseDnD.class,
-            TestCaseDnD.class.getSimpleName());
+    public static final DataFlavor TESTCASE_FLAVOR = new DataFlavor(
+        TestCaseDnD.class,
+        TestCaseDnD.class.getSimpleName()
+    );
 
     private final ProjectTree pTree;
 
@@ -51,49 +52,51 @@ public class ProjectDnD extends TransferHandler {
     protected Transferable createTransferable(JComponent source) {
         List<ScenarioNode> scenarios = pTree.getSelectedScenarioNodes();
         if (!scenarios.isEmpty()) {
-            return new TransferableNode(new TestCaseDnD(pTree.getTreeModel()).
-                    withScenarioList(scenarios), TESTCASE_FLAVOR);
+            return new TransferableNode(
+                new TestCaseDnD(pTree.getTreeModel()).withScenarioList(scenarios),
+                TESTCASE_FLAVOR
+            );
         }
         List<TestCaseNode> testcases = pTree.getSelectedTestCaseNodes();
         if (!testcases.isEmpty()) {
-            return new TransferableNode(new TestCaseDnD(pTree.getTreeModel()).
-                    withTestCaseList(testcases), TESTCASE_FLAVOR);
+            return new TransferableNode(
+                new TestCaseDnD(pTree.getTreeModel()).withTestCaseList(testcases),
+                TESTCASE_FLAVOR
+            );
         }
         return null;
     }
 
     @Override
     public boolean canImport(TransferHandler.TransferSupport ts) {
-        return getDestinationObject(ts) != null
-                && ts.isDataFlavorSupported(TESTCASE_FLAVOR);
+        return getDestinationObject(ts) != null && ts.isDataFlavorSupported(TESTCASE_FLAVOR);
     }
 
     @Override
     public boolean importData(TransferHandler.TransferSupport ts) {
         if (ts.isDataFlavorSupported(TESTCASE_FLAVOR)) {
             try {
-                TestCaseDnD testCaseDnD
-                        = (TestCaseDnD) ts.getTransferable()
-                        .getTransferData(TESTCASE_FLAVOR);
+                TestCaseDnD testCaseDnD = (TestCaseDnD) ts
+                    .getTransferable()
+                    .getTransferData(TESTCASE_FLAVOR);
                 sourceTreeModel = testCaseDnD.model;
                 if (testCaseDnD.isTestCases()) {
                     return importTestCases(testCaseDnD.getTestCaseList(), ts);
                 } else {
                     return importScenarios(testCaseDnD.getScenarioList(), ts);
                 }
-
             } catch (UnsupportedFlavorException | IOException ex) {
-                Logger.getLogger(ProjectDnD.class
-                        .getName()).log(Level.SEVERE, null, ex);
+                Logger.getLogger(ProjectDnD.class.getName()).log(Level.SEVERE, null, ex);
                 return false;
             }
-
         }
         return false;
     }
 
-    private Boolean importTestCases(List<TestCaseNode> testCaseNodes,
-            TransferHandler.TransferSupport ts) {
+    private Boolean importTestCases(
+        List<TestCaseNode> testCaseNodes,
+        TransferHandler.TransferSupport ts
+    ) {
         Boolean shouldCut = ts.isDrop() ? ts.getDropAction() == MOVE : isCut;
         Object destObject = getDestinationObject(ts);
         ScenarioNode scNode = getScenarioNode(destObject);
@@ -101,8 +104,7 @@ public class ProjectDnD extends TransferHandler {
             copySelectedTestCases(testCaseNodes, scNode, shouldCut);
             return true;
         }
-        if (!(destObject instanceof TestPlanNode)
-                && destObject instanceof GroupNode) {
+        if (!(destObject instanceof TestPlanNode) && destObject instanceof GroupNode) {
             copySelectedTestCases(testCaseNodes, (GroupNode) destObject, shouldCut);
             return true;
         }
@@ -119,8 +121,10 @@ public class ProjectDnD extends TransferHandler {
         return null;
     }
 
-    private Boolean importScenarios(List<ScenarioNode> scenarioNodes,
-            TransferHandler.TransferSupport ts) {
+    private Boolean importScenarios(
+        List<ScenarioNode> scenarioNodes,
+        TransferHandler.TransferSupport ts
+    ) {
         Boolean shouldCut = ts.isDrop() ? ts.getDropAction() == MOVE : isCut;
         if (shouldCut) {
             return false;
@@ -154,35 +158,49 @@ public class ProjectDnD extends TransferHandler {
         super.exportDone(source, data, action);
     }
 
-    private void copySelectedTestCases(List<TestCaseNode> testCaseNodes,
-            ScenarioNode dropscenario, Boolean isCut) {
+    private void copySelectedTestCases(
+        List<TestCaseNode> testCaseNodes,
+        ScenarioNode dropscenario,
+        Boolean isCut
+    ) {
         for (TestCaseNode testCaseNode : testCaseNodes) {
             Scenario scenario = testCaseNode.getTestCase().getScenario();
             TestCase testCase = testCaseNode.getTestCase();
             testCase.loadTableModel();
             if (isCut) {
-                if (testCase.equals(dropscenario.getScenario()
-                        .getTestCaseByName(testCaseNode.toString()))) {
+                if (
+                    testCase.equals(
+                        dropscenario.getScenario().getTestCaseByName(testCaseNode.toString())
+                    )
+                ) {
                     continue;
                 }
             }
-            TestCaseNode newTestCaseNode
-                    = addTestCase(dropscenario.getScenario(), testCaseNode.toString());
+            TestCaseNode newTestCaseNode = addTestCase(
+                dropscenario.getScenario(),
+                testCaseNode.toString()
+            );
             testCase.copyValuesTo(newTestCaseNode.getTestCase());
             newTestCaseNode.getTestCase().setReusable(testCase.getReusable());
             if (isCut) {
                 scenario.removeTestCase(testCase);
                 sourceTreeModel.removeNodeFromParent(testCaseNode);
-                pTree.getProject().refactorTestCaseScenario(
+                pTree
+                    .getProject()
+                    .refactorTestCaseScenario(
                         testCaseNode.toString(),
                         scenario.getName(),
-                        dropscenario.toString());
+                        dropscenario.toString()
+                    );
             }
         }
     }
 
-    private void copySelectedTestCases(List<TestCaseNode> testCaseNodes,
-            GroupNode dropGroup, Boolean isCut) {
+    private void copySelectedTestCases(
+        List<TestCaseNode> testCaseNodes,
+        GroupNode dropGroup,
+        Boolean isCut
+    ) {
         for (TestCaseNode testCaseNode : testCaseNodes) {
             Scenario scenario = testCaseNode.getTestCase().getScenario();
             TestCase testCase = testCaseNode.getTestCase();
@@ -207,24 +225,37 @@ public class ProjectDnD extends TransferHandler {
     private void addScenario(Scenario scenario, GroupNode gNode) {
         String newName = scenario.getName();
         int i = 1;
-        while (scenario.getProject().getScenarioByName(newName) != null) {
-            newName = scenario.getName() + " Copy(" + i++ + ")";
-        }
-        ScenarioNode sNode = pTree.getTreeModel().addScenario(gNode,
-                scenario.getProject().addScenario(newName));
-        List<TestCase> testcases;
         if (pTree.getTreeModel().getRoot() instanceof TestPlanNode) {
+            while (scenario.getProject().getScenarioByName(newName) != null) {
+                newName = scenario.getName() + " Copy(" + i++ + ")";
+            }
+            ScenarioNode sNode = pTree
+                .getTreeModel()
+                .addScenario(gNode, scenario.getProject().addScenario(newName));
+            copyTestCases(sNode, scenario, true);
+        } else {
+            while (scenario.getProject().getReusableScenarioByName(newName) != null) {
+                newName = scenario.getName() + " Copy(" + i++ + ")";
+            }
+            ScenarioNode sNode = pTree
+                .getTreeModel()
+                .addScenario(gNode, scenario.getProject().addReusableScenario(newName));
+            copyTestCases(sNode, scenario, false);
+        }
+    }
+
+    private void copyTestCases(ScenarioNode sNode, Scenario scenario, boolean useTestPlan) {
+        List<TestCase> testcases;
+        if (useTestPlan) {
             testcases = scenario.getTestcasesAlone();
         } else {
             testcases = scenario.getReusables();
         }
         for (TestCase testcase : testcases) {
             testcase.loadTableModel();
-            TestCase newTestCase = sNode.getScenario().
-                    addTestCase(testcase.getName());
+            TestCase newTestCase = sNode.getScenario().addTestCase(testcase.getName());
             testcase.copyValuesTo(newTestCase);
             sNode.addTestCase(newTestCase);
         }
     }
-
 }

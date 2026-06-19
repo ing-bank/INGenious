@@ -1,0 +1,3 @@
+Scenario,Flow,Iteration,SubIteration,CustomerID,PostID
+APIBasics,GetUsers,1,1,,
+APIBasics,CreatePost,1,1,,

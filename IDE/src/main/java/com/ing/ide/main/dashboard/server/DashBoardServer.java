@@ -1,4 +1,3 @@
-
 package com.ing.ide.main.dashboard.server;
 
 import com.ing.ide.main.dashboard.server.websocket.HarServlet;
@@ -19,9 +18,8 @@ import org.eclipse.jetty.websocket.api.StatusCode;
 
 @SuppressWarnings("unchecked")
 public class DashBoardServer extends Thread {
-
     private static final Logger LOG = Logger.getLogger(DashBoardServer.class.getName());
-    
+
     public Server server;
     private static final String HOME = "/home.html";
     private static final String R_BASE = "./web";
@@ -40,17 +38,20 @@ public class DashBoardServer extends Thread {
             server = new Server();
             DefaultHandler webHandler = new DefaultHandler();
             HandlerList handlers = new HandlerList();
-            handlers.setHandlers(new Handler[]{getResourceHandler(),
-                getUIWSHandler(), webHandler});
+            handlers.setHandlers(
+                new Handler[] { getResourceHandler(), getUIWSHandler(), webHandler }
+            );
 
             ServerConnector connector = new ServerConnector(server);
             connector.setPort(port());
-            server.setConnectors(new Connector[]{connector});
+            server.setConnectors(new Connector[] { connector });
             server.setHandler(handlers);
 
-            LOG.log(Level.INFO, "DB Server on : http://{0}:{1}",
-                    new Object[]{Tools.IP(), port() + ""});
-
+            LOG.log(
+                Level.INFO,
+                "DB Server on : http://{0}:{1}",
+                new Object[] { Tools.IP(), port() + "" }
+            );
         } catch (Exception ex) {
             LOG.log(Level.SEVERE, ex.getMessage(), ex);
         }
@@ -80,13 +81,12 @@ public class DashBoardServer extends Thread {
         ResourceHandler resourceHandler = new ResourceHandler();
         resourceHandler.setDirectoriesListed(true);
 
-        resourceHandler.setWelcomeFiles(new String[]{HOME});
+        resourceHandler.setWelcomeFiles(new String[] { HOME });
         resourceHandler.setResourceBase(R_BASE);
 
         root.setHandler(resourceHandler);
 
         return root;
-
     }
 
     protected ContextHandler getUIWSHandler() {
@@ -94,8 +94,7 @@ public class DashBoardServer extends Thread {
         context.setContextPath("/");
 
         ServletHolder holderEvents = getServlet();
-        context.addServlet(holderEvents,
-                "/dashboard/har");
+        context.addServlet(holderEvents, "/dashboard/har");
         return context;
     }
 

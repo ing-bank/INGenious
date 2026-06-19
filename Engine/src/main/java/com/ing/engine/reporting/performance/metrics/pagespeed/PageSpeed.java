@@ -1,4 +1,3 @@
-
 package com.ing.engine.reporting.performance.metrics.pagespeed;
 
 import com.ing.engine.reporting.performance.metrics.PageMetrics;
@@ -19,12 +18,11 @@ import org.json.simple.JSONObject;
  *
  * page speed metrics api
  *
- * 
- * 
+ *
+ *
  */
 @SuppressWarnings("unchecked")
 public class PageSpeed extends PageMetrics {
-
     int score = -1;
     JSONArray insights;
     String url;
@@ -68,7 +66,6 @@ public class PageSpeed extends PageMetrics {
      * @param exe
      */
     private void parseHar(File har, File exe) throws Exception {
-
         List<String> command = new ArrayList<>();
         command.add(exe.getAbsolutePath());
         command.add(har.getAbsolutePath());
@@ -76,20 +73,20 @@ public class PageSpeed extends PageMetrics {
         Process p;
         p = pb.start();
         Thread.sleep(2000);
-        BufferedReader reader
-                = new BufferedReader(new InputStreamReader(p.getInputStream()));
+        BufferedReader reader = new BufferedReader(new InputStreamReader(p.getInputStream()));
         String line;
         Pattern insightP = Pattern.compile("_(.*)_ \\(score=(0|[0-9][0-9]|100)\\)");
         Pattern descP = Pattern.compile("  (\\w+.*)");
         Pattern dataP = Pattern.compile("    \\* (\\w+.*)");
-        Pattern includes = Pattern.compile("Combine external CSS|Combine external JavaScript|Leverage browser caching|Minimize DNS lookups");
+        Pattern includes = Pattern.compile(
+            "Combine external CSS|Combine external JavaScript|Leverage browser caching|Minimize DNS lookups"
+        );
         Insight<String, Object> in = null;
         score = -1;
         while ((line = reader.readLine()) != null) {
             //parse each line
             Matcher m = insightP.matcher(line);
             if (m.matches()) {
-
                 int sc = -1;
                 if (includes.matcher(m.group(1)).matches()) {
                     sc = Integer.parseInt(m.group(2));
@@ -121,5 +118,4 @@ public class PageSpeed extends PageMetrics {
         data.put("logs", insights);
         return data;
     }
-
 }

@@ -1,4 +1,3 @@
-
 package com.ing.ide.main.utils.table;
 
 import com.ing.datalib.component.DataModel;
@@ -14,26 +13,30 @@ import javax.swing.JTable;
 
 /**
  *
- * 
+ *
  */
 public class XTableUtils {
-
     private static final String LINE_BREAK = "\n";
     private static final String CELL_BREAK = "\t";
     private static final Clipboard CLIPBOARD = Toolkit.getDefaultToolkit().getSystemClipboard();
 
     public static void copyToClipboard(JTable table, boolean isCut) {
-        
         int numCols = table.getSelectedColumnCount();
         int numRows = table.getSelectedRowCount();
         int[] rowsSelected = table.getSelectedRows();
         int[] colsSelected = table.getSelectedColumns();
-        if (numRows != rowsSelected[rowsSelected.length - 1] - rowsSelected[0] + 1 || numRows != rowsSelected.length
-                || numCols != colsSelected[colsSelected.length - 1] - colsSelected[0] + 1 || numCols != colsSelected.length) {
 
-            Logger.getLogger(XTableUtils.class.getName()).info("Invalid Copy Selection");
-            return;
-        }
+        // Temporarily disabled as frozen columns are always selected by default thus
+        // completely blocking the copy functionality even when only ediable data
+        // cells are selected via mouseClick actions.
+        //
+        // if (numRows != rowsSelected[rowsSelected.length - 1] - rowsSelected[0] + 1 || numRows != rowsSelected.length
+        //         || numCols != colsSelected[colsSelected.length - 1] - colsSelected[0] + 1 || numCols != colsSelected.length) {
+
+        //     Logger.getLogger(XTableUtils.class.getName()).info("Invalid Copy Selection");
+        //     return;
+        // }
+
         if (table.getModel() instanceof UndoRedoModel) {
             ((UndoRedoModel) table.getModel()).startGroupEdit();
         }
@@ -72,9 +75,12 @@ public class XTableUtils {
 
         String pasteString;
         try {
-            pasteString = (String) (CLIPBOARD.getContents(null).getTransferData(DataFlavor.stringFlavor));
+            pasteString =
+                (String) (CLIPBOARD.getContents(null).getTransferData(DataFlavor.stringFlavor));
         } catch (Exception e) {
-            Logger.getLogger(XTableUtils.class.getName()).log(Level.WARNING, "Invalid Paste Type", e);
+            Logger
+                .getLogger(XTableUtils.class.getName())
+                .log(Level.WARNING, "Invalid Paste Type", e);
             return;
         }
         if (table.getModel() instanceof UndoRedoModel) {
@@ -101,5 +107,4 @@ public class XTableUtils {
             ((UndoRedoModel) table.getModel()).stopGroupEdit();
         }
     }
-    
 }

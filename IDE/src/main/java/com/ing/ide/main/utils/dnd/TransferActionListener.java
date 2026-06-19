@@ -1,4 +1,3 @@
-
 package com.ing.ide.main.utils.dnd;
 
 /*
@@ -15,14 +14,11 @@ import javax.swing.*;
  * class is listening and when the user fires one of these commands, it calls
  * the appropriate action on the currently focused component.
  */
-public class TransferActionListener implements ActionListener,
-        PropertyChangeListener {
-
+public class TransferActionListener implements ActionListener, PropertyChangeListener {
     private JComponent focusOwner = null;
 
     public TransferActionListener() {
-        KeyboardFocusManager manager = KeyboardFocusManager.
-                getCurrentKeyboardFocusManager();
+        KeyboardFocusManager manager = KeyboardFocusManager.getCurrentKeyboardFocusManager();
         manager.addPropertyChangeListener("permanentFocusOwner", this);
     }
 
@@ -41,14 +37,11 @@ public class TransferActionListener implements ActionListener,
         if (focusOwner == null) {
             return;
         }
-        
-        
+
         String action = (String) e.getActionCommand();
         Action a = focusOwner.getActionMap().get(action);
         if (a != null) {
-            a.actionPerformed(new ActionEvent(focusOwner,
-                    ActionEvent.ACTION_PERFORMED,
-                    null));
+            a.actionPerformed(new ActionEvent(focusOwner, ActionEvent.ACTION_PERFORMED, null));
         }
     }
 }

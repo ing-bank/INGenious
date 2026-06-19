@@ -1,4 +1,3 @@
-
 package com.ing.ide.main.mainui.components.testdesign.testdata;
 
 import com.ing.ide.main.mainui.AppMainFrame;
@@ -9,17 +8,17 @@ import javax.swing.filechooser.FileNameExtensionFilter;
 
 /**
  *
- * 
+ *
  */
 public class ImportTestData {
-
     private final AppMainFrame sMainFrame;
 
     JFileChooser tdFileChooser;
 
     public ImportTestData(AppMainFrame sMainFrame) throws IOException {
         this.sMainFrame = sMainFrame;
-        tdFileChooser = new JFileChooser(new File(new File(System.getProperty("user.dir")).getCanonicalPath()));
+        tdFileChooser =
+            new JFileChooser(new File(new File(System.getProperty("user.dir")).getCanonicalPath()));
         tdFileChooser.setFileSelectionMode(JFileChooser.FILES_ONLY);
         tdFileChooser.setFileFilter(new FileNameExtensionFilter("TestData Files", "csv"));
     }

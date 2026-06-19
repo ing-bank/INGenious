@@ -1,4 +1,3 @@
-
 package com.ing.engine.util.data.fx;
 
 import java.text.SimpleDateFormat;
@@ -7,7 +6,7 @@ import java.util.Random;
 
 /**
  *
- * 
+ *
  */
 public class FunctionsLib {
 
@@ -46,5 +45,4 @@ public class FunctionsLib {
     public Object getMax(Double a, Double b) {
         return Math.max(a, b);
     }
-
 }

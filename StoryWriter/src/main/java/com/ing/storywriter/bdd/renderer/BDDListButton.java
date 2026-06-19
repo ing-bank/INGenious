@@ -1,4 +1,3 @@
-
 package com.ing.storywriter.bdd.renderer;
 
 import java.awt.BorderLayout;
@@ -13,24 +12,24 @@ import javax.swing.border.EmptyBorder;
  *
  */
 public class BDDListButton extends JButton {
-    
-    public static String Template = "<html><div align=left width=200px>"
-            + "<font size=-2>[-NAME-]</font><br>"
-            + "<em>[-DESC-]</em>"
-            + "</div></html>";
+    public static String Template =
+        "<html><div align=left width=200px>" +
+        "<font size=-2>[-NAME-]</font><br>" +
+        "<em>[-DESC-]</em>" +
+        "</div></html>";
     public int pixels = 2;
-    
+
     public BDDListButton() {
-        initDropShadow();    
+        initDropShadow();
         this.setHorizontalAlignment(LEFT);
     }
-    
+
     public final void initDropShadow() {
         Border border = BorderFactory.createEmptyBorder(pixels, 1, pixels, 1);
         this.setBorder(BorderFactory.createCompoundBorder(new EmptyBorder(1, 1, 1, 0), border));
         this.setLayout(new BorderLayout());
     }
-    
+
     @Override
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);

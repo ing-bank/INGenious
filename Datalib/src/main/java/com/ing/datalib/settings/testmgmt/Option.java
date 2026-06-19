@@ -1,4 +1,3 @@
-
 package com.ing.datalib.settings.testmgmt;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -8,19 +7,15 @@ import javax.annotation.processing.Generated;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @Generated("org.jsonschema2pojo")
-@JsonPropertyOrder({
-    "name",
-    "value"
-})
+@JsonPropertyOrder({ "name", "value" })
 public class Option {
-
     @JsonProperty("name")
     private String name;
+
     @JsonProperty("value")
     private String value;
 
-    public Option() {
-    }
+    public Option() {}
 
     public Option(String name, String value) {
         this.name = name;
@@ -62,5 +57,4 @@ public class Option {
     public void setValue(String value) {
         this.value = value;
     }
-
 }

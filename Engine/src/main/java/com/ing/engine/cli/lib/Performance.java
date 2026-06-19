@@ -1,4 +1,3 @@
-
 package com.ing.engine.cli.lib;
 
 import java.util.regex.Matcher;
@@ -9,7 +8,7 @@ import org.json.simple.JSONValue;
 
 /**
  *
- * 
+ *
  */
 @SuppressWarnings("unchecked")
 public class Performance {
@@ -51,7 +50,7 @@ public class Performance {
             JSONArray pageEntries = (JSONArray) pageMap.get(page);
             JSONObject refEntry = (JSONObject) refMap.get(page);
             if (refEntry == null) {
-                pageMap.put(page,"NO_REF");
+                pageMap.put(page, "NO_REF");
                 continue;
             }
             if (tolerance == null) {
@@ -81,8 +80,7 @@ public class Performance {
                     entry.put("status", entryStat);
                     entry.put("onLoad", pLoad);
                     entry.put("onContentLoad", cload);
-                } catch (Exception ex) {
-                }
+                } catch (Exception ex) {}
             }
         }
 
@@ -109,15 +107,17 @@ public class Performance {
      * @param data json data
      * @return json map
      */
-   
-	private static JSONObject getPageMap(String data) {
+
+    private static JSONObject getPageMap(String data) {
         JSONObject pageMap = new JSONObject();
         JSONObject ob = (JSONObject) JSONValue.parse(data);
         for (Object tc : ob.keySet()) {
             JSONArray hars = (JSONArray) ((JSONObject) ob.get(tc)).get("har");
             for (Object e : hars) {
                 JSONObject har = (JSONObject) ((JSONObject) e).get("har");
-                JSONObject page = (JSONObject) ((JSONArray) (((JSONObject) har.get("log")).get("pages"))).get(0);
+                JSONObject page = (JSONObject) (
+                    (JSONArray) (((JSONObject) har.get("log")).get("pages"))
+                ).get(0);
                 Object pagename = ((JSONObject) har.get("config")).get("name");
                 if (!pageMap.containsKey(pagename)) {
                     pageMap.put(pagename, new JSONArray());
@@ -138,18 +138,17 @@ public class Performance {
      */
     private static JSONObject getRefPageTimings() {
         JSONObject ref = new JSONObject();
-//        for (Object o : HarCompareHandler.getRefHars()) {
-//            JSONObject refReq = (JSONObject) o;
-//            JSONObject refHar = HarCompareHandler.getRefData(refReq);
-//            JSONObject page = (JSONObject) ((JSONArray) (((JSONObject) refHar.get("log")).get("pages"))).get(0);
-//            JSONObject refdata = (JSONObject) page.get("pageTimings");
-//            JSONObject config = (JSONObject) refHar.get("config");
-//            if (config.containsKey("tolerance")) {
-//                refdata.put("tolerance", config.get("tolerance"));
-//            }
-//            ref.put(refReq.get("name"), refdata);
-//        }
+        //        for (Object o : HarCompareHandler.getRefHars()) {
+        //            JSONObject refReq = (JSONObject) o;
+        //            JSONObject refHar = HarCompareHandler.getRefData(refReq);
+        //            JSONObject page = (JSONObject) ((JSONArray) (((JSONObject) refHar.get("log")).get("pages"))).get(0);
+        //            JSONObject refdata = (JSONObject) page.get("pageTimings");
+        //            JSONObject config = (JSONObject) refHar.get("config");
+        //            if (config.containsKey("tolerance")) {
+        //                refdata.put("tolerance", config.get("tolerance"));
+        //            }
+        //            ref.put(refReq.get("name"), refdata);
+        //        }
         return ref;
     }
-
 }

@@ -1,9 +1,11 @@
 package com.ing.ide.main.playwrightrecording;
 
+import com.ing.datalib.or.common.ObjectGroup;
+import com.ing.datalib.or.web.WebOR;
+import com.ing.datalib.or.web.WebORObject;
+import com.ing.datalib.or.web.WebORPage;
 import com.ing.ide.main.mainui.AppMainFrame;
-import com.ing.ide.util.logging.UILogger;
 import java.io.File;
-import java.io.IOException;
 import java.io.PrintWriter;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -11,6 +13,7 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -18,26 +21,10 @@ import java.util.Map;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.ParserConfigurationException;
-import javax.xml.transform.Transformer;
-import javax.xml.transform.TransformerException;
-import javax.xml.transform.TransformerFactory;
-import javax.xml.transform.dom.DOMSource;
-import javax.xml.transform.stream.StreamResult;
-
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.w3c.dom.DOMException;
-import org.w3c.dom.Document;
-import org.w3c.dom.Element;
-import org.xml.sax.SAXException;
 
 public class PlaywrightRecordingParser {
-
     private final AppMainFrame sMainFrame;
     Map<String, String> attribute = new LinkedHashMap<>();
     Map<String, String> filePath = new HashMap<>();
@@ -48,230 +35,271 @@ public class PlaywrightRecordingParser {
     Map<String, String> pageMapping = new HashMap<>();
     boolean pageSwitchOnClick = false;
 
+    /** Tracks object names already used during the current live-recording rebuild cycle. */
+    private final Set<String> usedLiveObjectNames = new HashSet<>();
+
     public PlaywrightRecordingParser(AppMainFrame sMainFrame) {
         this.sMainFrame = sMainFrame;
     }
 
-    public void playwrightParser(File file) throws ParserConfigurationException, TransformerException, SAXException, IOException {
-        if (file != null && file.exists()) {
-            try {
-                filePath.put("projectPath", sMainFrame.getProject().getLocation());
-                filePath.put("importPlaywrightRecordingFilePath", file.getAbsolutePath());
-                File PlaywrightRecordingfile = new File(filePath.get("importPlaywrightRecordingFilePath"));
-                filePath.put("orFilePath", (filePath.get("projectPath") + "/OR.object"));
-                String baseName = FilenameUtils.getBaseName(filePath.get("importPlaywrightRecordingFilePath"));
-                testCase.put("fileName", StringUtils.capitalize(baseName));
-                File OrFile = new File(filePath.get("orFilePath"));
-                Element objectFrame = null;
-                testCase.put("pageName", testCase.get("fileName"));
-                testCase.put("testScenarioName", (filePath.get("projectPath") + "/TestPlan/" + testCase.get("fileName")).replace("\\", "/"));
-                File testScenario = new File(testCase.get("testScenarioName"));
-                if (!testScenario.exists()) {
-                    testScenario.mkdirs();
-                }
-                testCase.put("pageName", getPageName(testScenario, testCase.get("pageName")));
-
-                if (!OrFile.exists()) {
-                    boolean orExistFlag = false;
-                    DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
-                    DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
-                    Document doc = dBuilder.newDocument();
-                    Element rootElement = doc.createElement("Root");
-                    doc.appendChild(rootElement);
-                    rootElement.setAttribute("ref", testCase.get("fileName"));
-                    rootElement.setAttribute("type", "OR");
-                    Element page = doc.createElement("Page");
-                    rootElement.appendChild(page);
-
-                    List l = readFileInList(
-                            filePath.get("importPlaywrightRecordingFilePath"));
-
-                    Iterator<String> iterator = l.iterator();
-                    executeParse(iterator, objectFrame, testCase.get("testScenarioName"), filePath.get("orFilePath"), page, doc, orExistFlag, rootElement);
-                    allObjectMaping.clear();
-                } else {
-                    boolean orExistFlag = true;
-                    DocumentBuilderFactory documentBuilderFactory = DocumentBuilderFactory.newInstance();
-                    DocumentBuilder documentBuilder = documentBuilderFactory.newDocumentBuilder();
-                    Document doc = documentBuilder.parse(new File(filePath.get("orFilePath")));
-                    doc.getDocumentElement().normalize();
-                    Element root = doc.getDocumentElement();
-                    Element page = doc.createElement("Page");
-                    List l = readFileInList(
-                            filePath.get("importPlaywrightRecordingFilePath"));
-
-                    Iterator<String> iterator = l.iterator();
-                    executeParse(iterator, objectFrame, testCase.get("testScenarioName"), filePath.get("orFilePath"), page, doc, orExistFlag, root);
-                    allObjectMaping.clear();
-                }
-                testCase.clear();
-                attribute.clear();
-                filePath.clear();
-                ObjectNameList.clear();
-            } catch (Exception ex) {
-                Logger.getLogger(PlaywrightRecordingParser.class.getName()).log(Level.SEVERE, null, ex);
+    /**
+     * Creates a new, uniquely named Web OR page for a live recording session.
+     *
+     * @param basePageName the desired page name (typically the test case name)
+     * @return the newly created Web OR page
+     */
+    public WebORPage createLiveRecordingPage(String basePageName) {
+        WebOR webOR = sMainFrame.getProject().getObjectRepository().getWebOR();
+        String pageName = basePageName;
+        if (webOR.getPageByName(pageName) != null) {
+            int counter = 1;
+            while (webOR.getPageByName(basePageName + "_" + counter) != null) {
+                counter++;
             }
+            pageName = basePageName + "_" + counter;
+        }
+        testCase.put("pageName", pageName);
+        return webOR.addPage(pageName);
+    }
+
+    /**
+     * Returns the resolved page name for the current live recording session.
+     */
+    public String getLiveRecordingPageName() {
+        return testCase.get("pageName");
+    }
+
+    /**
+     * Resets the live-recording object registry and clears the given page's object groups so a
+     * fresh rebuild from the full recorder output produces deterministic, incrementally numbered
+     * object names (e.g. {@code Refactor_Object}, {@code Refactor_Object_1}, ...).
+     *
+     * @param page the Web OR page being rebuilt
+     */
+    public void resetLiveObjectRegistry(WebORPage page) {
+        usedLiveObjectNames.clear();
+        if (page != null) {
+            page.getObjectGroups().clear();
         }
     }
 
-    private void executeParse(Iterator iterator, Element objectFrame, String testScenarioName, String orFilePath, Element page, Document doc, boolean orExistFlag, Element root) throws TransformerException {
+    /**
+     * Extracts the web object for a single recorder line and registers it into the given Web OR
+     * page. Distinct objects that resolve to the same name are uniquely numbered so each detected
+     * element gets its own OR object. Navigation/dialog lines resolve to {@code "Browser"} and do
+     * not create an OR object.
+     *
+     * @param line the recorder output line
+     * @param page the Web OR page to populate
+     * @return the resolved object name to be used in the test step
+     */
+    public String registerLiveObject(String line, WebORPage page) {
+        attributeDeclaration();
+        testCaseParameter();
+        if (line.trim().startsWith("page")) {
+            pageMapping.put("currentPage", line.trim().split("\\.")[0]);
+        }
+        attributeInitialization(line);
 
+        String objectName = testCase.get("ObjectName");
+        if (objectName == null || objectName.isEmpty()) {
+            objectName = "Refactor_Object";
+        }
+
+        if (!"Browser".equals(objectName) && page != null) {
+            objectName = resolveUniqueObjectName(objectName);
+            ObjectGroup group = page.getObjectGroupByName(objectName);
+            if (group == null) {
+                group = new ObjectGroup(objectName, page);
+                page.getObjectGroups().add(group);
+            }
+            WebORObject obj = new WebORObject(objectName, group);
+            for (Map.Entry<String, String> entry : attribute.entrySet()) {
+                String key = entry.getKey();
+                String value = entry.getValue();
+                if (value != null && !value.isEmpty()) {
+                    obj.setAttributeByName(key, value);
+                }
+            }
+            String frame = testCase.get("frame");
+            if (frame != null && !frame.isEmpty()) {
+                obj.setFrame(frame);
+            }
+            group.getObjects().clear();
+            group.getObjects().add(obj);
+        }
+        return objectName;
+    }
+
+    /**
+     * Returns the object name to use for the current rebuild cycle.
+     * <p>
+     * Named objects (e.g. {@code username}) are returned as-is so that repeated interactions with
+     * the same element (a click then a fill) reuse the same OR object. Only the generic
+     * {@code Refactor_Object} fallback is incrementally numbered ({@code Refactor_Object_1},
+     * {@code Refactor_Object_2}, ...) since each unnamed element is a distinct object.
+     * </p>
+     */
+    private String resolveUniqueObjectName(String objectName) {
+        if (!"Refactor_Object".equals(objectName)) {
+            return objectName;
+        }
+        // Always append suffix starting from _1 for Refactor_Object
+        int counter = 1;
+        while (usedLiveObjectNames.contains(objectName + "_" + counter)) {
+            counter++;
+        }
+        String uniqueName = objectName + "_" + counter;
+        usedLiveObjectNames.add(uniqueName);
+        return uniqueName;
+    }
+
+    /**
+     * Persists the given Web OR page to disk.
+     */
+    public void saveLiveRecordingPage(WebORPage page) {
+        if (page != null) {
+            page.getRoot().getObjectRepository().saveWebPageNow(page);
+        }
+    }
+
+    public void playwrightParser(File file) {
+        if (file == null || !file.exists()) {
+            return;
+        }
+        try {
+            filePath.put("projectPath", sMainFrame.getProject().getLocation());
+            filePath.put("importPlaywrightRecordingFilePath", file.getAbsolutePath());
+            String baseName = FilenameUtils.getBaseName(file.getAbsolutePath());
+            // Use the basename as-is since sanitization is handled in the UI dialog
+            testCase.put("fileName", StringUtils.capitalize(baseName));
+            testCase.put("pageName", testCase.get("fileName"));
+            String testScenarioName =
+                filePath.get("projectPath") + "/TestPlan/" + testCase.get("fileName");
+            testScenarioName = testScenarioName.replace("\\", "/");
+            testCase.put("testScenarioName", testScenarioName);
+            File testScenario = new File(testScenarioName);
+            if (!testScenario.exists()) {
+                testScenario.mkdirs();
+            }
+            WebOR webOR = sMainFrame.getProject().getObjectRepository().getWebOR();
+            String basePageName = testCase.get("pageName");
+            String pageName = basePageName;
+            if (webOR.getPageByName(pageName) != null) {
+                int counter = 1;
+                while (webOR.getPageByName(basePageName + "_" + counter) != null) {
+                    counter++;
+                }
+                pageName = basePageName + "_" + counter;
+            }
+            testCase.put("pageName", pageName);
+            WebORPage page = webOR.addPage(pageName);
+            List<String> lines = readFileInList(filePath.get("importPlaywrightRecordingFilePath"));
+            Iterator<String> iterator = lines.iterator();
+            executeParse(iterator, page, testScenarioName);
+            page.getRoot().getObjectRepository().saveWebPageNow(page);
+        } catch (Exception ex) {
+            Logger.getLogger(PlaywrightRecordingParser.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+
+    private void executeParse(Iterator<String> iterator, WebORPage page, String testScenarioName) {
         StringBuilder stepBuilder = new StringBuilder();
         testCaseParameter();
         attributeDeclaration();
+        usedLiveObjectNames.clear(); // Reset for consistent numbering in file import
         int stepNumber = 1;
-        stepBuilder.append("Step" + "," + "ObjectName" + "," + "Description" + "," + "Action" + "," + "Input" + ","
-                + "Condition" + "," + "Reference");
-        stepBuilder.append("\n");
-        page.setAttribute("ref", testCase.get("pageName"));
-        page.setAttribute("title", "");
         int playwrightSteps = 0;
+        stepBuilder.append("Step,ObjectName,Description,Action,Input,Condition,Reference\n");
         while (iterator.hasNext()) {
             attributeDeclaration();
             testCaseParameter();
-            String line = (String) iterator.next();
+            String line = iterator.next();
             checkPageSwitch(line);
             storePageIndex(line);
             if (line.trim().startsWith("page")) {
                 pageMapping.put("currentPage", line.trim().split("\\.")[0]);
             }
-            if (!line.contains("System.out.println(") && !line.contains(pageMapping.get("currentPage") + ".onceDialog(dialog") && !line.contains(".waitForPopup(() ->")) {
-
+            if (
+                !line.contains("System.out.println(") &&
+                !line.contains(pageMapping.get("currentPage") + ".onceDialog(dialog") &&
+                !line.contains(".waitForPopup(() ->")
+            ) {
                 if (line.trim().startsWith("page")) {
-                    playwrightSteps = playwrightSteps + 1;
+                    playwrightSteps++;
                 }
-
-                if (playwrightSteps >= 1) {
-                    if (!line.contains("}")) {
-                        int matchingAttribute = 0;
-                        testCaseMap(getAction(line), getInput(line));
-                        attributeInitialization(line);
-                        if (!testCase.get("ObjectName").equals("Browser")) {
-                            if (!allObjectMaping.isEmpty() && allObjectMaping.containsKey(testCase.get("ObjectName"))) {
-                                if (objectFrameMap.get(testCase.get("ObjectName")).equals(testCase.get("frame"))) {
-                                    HashMap<String, String> objectAttributeMap = allObjectMaping.get(testCase.get("ObjectName"));
-
-                                    Set<String> attributesKey = objectAttributeMap.keySet();
-                                    for (String allObjectAttributeKey : attributesKey) {
-                                        if (objectAttributeMap.get(allObjectAttributeKey).equals(attribute.get(allObjectAttributeKey))) {
-                                            matchingAttribute = matchingAttribute + 1;
-                                        }
-                                    }
-                                }
-                            }
-
-                            if (!testCase.get("ObjectName").equals("Browser")) {
-                                ObjectNameList.add(testCase.get("ObjectName"));
-                                int j = 0;
-                                int k = 0;
-                                for (String Locator : ObjectNameList) {
-                                    if ((Locator.trim()).equals(testCase.get("ObjectName").trim())) {
-                                        j++;
-                                    }
-                                    if (j > 1) {
-                                        k = (j - 1);
-                                    }
-                                }
-                                String locatorNumber = Integer.toString(k);
-                                if (attribute.size() != matchingAttribute || testCase.get("ObjectName").contains("Refactor_Object")) {
-                                    if (!locatorNumber.equals("0")) {
-                                        testCase.put("ObjectName", testCase.get("ObjectName") + "_" + locatorNumber);
-                                    }
-                                }
-
-                            }
-                            Map<String, String> objectAttribute = new HashMap<>();
-                            Set a = attribute.keySet();
-                            for (Object key : a) {
-                                String newKey = key.toString();
-                                objectAttribute.put(newKey, attribute.get(newKey));
-                            }
-                            objectFrameMap.put(testCase.get("ObjectName"), testCase.get("frame"));
-
-                            allObjectMaping.put(testCase.get("ObjectName"), (HashMap) objectAttribute);
-                            if (attribute.size() != matchingAttribute || testCase.get("ObjectName").contains("Refactor_Object")) {
-                                if (!testCase.get("ObjectName").equals("Browser")) {
-                                    Element objectGroup = doc.createElement("ObjectGroup");
-                                    page.appendChild(objectGroup);
-                                    objectGroup.setAttribute("ref", testCase.get("ObjectName"));
-                                    objectFrame = doc.createElement("Object");
-                                    objectGroup.appendChild(objectFrame);
-                                    objectFrame.setAttribute("frame", testCase.get("frame"));
-                                    objectFrame.setAttribute("ref", testCase.get("ObjectName"));
-
-                                    for (int p = 0; p < attribute.size(); p++) {
-                                        Element Property = doc.createElement("Property");
-                                        objectFrame.appendChild(Property);
-                                        String key = (String) attribute.keySet().toArray()[p];
-                                        Property.setAttribute("ref", key);
-                                        Property.setAttribute("value", attribute.get(key));
-                                        String prefNumber = Integer.toString(p + 1);
-                                        Property.setAttribute("pref", prefNumber);
-                                    }
-                                }
-
+                if (playwrightSteps >= 1 && !line.contains("}")) {
+                    testCaseMap(getAction(line), getInput(line));
+                    attributeInitialization(line);
+                    String resolvedObjectName = testCase.get("ObjectName");
+                    if (!"Browser".equals(testCase.get("ObjectName"))) {
+                        resolvedObjectName = resolveUniqueObjectName(testCase.get("ObjectName"));
+                        ObjectGroup group = page.getObjectGroupByName(resolvedObjectName);
+                        if (group == null) {
+                            group = new ObjectGroup(resolvedObjectName, page);
+                            page.getObjectGroups().add(group);
+                        }
+                        WebORObject obj = new WebORObject(resolvedObjectName, group);
+                        for (Map.Entry<String, String> entry : attribute.entrySet()) {
+                            String key = entry.getKey();
+                            String value = entry.getValue();
+                            if (value != null && !value.isEmpty()) {
+                                obj.setAttributeByName(key, value);
                             }
                         }
-                        if (stepNumber > 1) {
-                            if (!pageMapping.get("currentPage").equals(pageMapping.get("previousPage")) && !pageMapping.get("switchedPageName").equals(pageMapping.get("currentPage"))) {
-                                testCase.put("step", String.valueOf(stepNumber));
-                                String pageIndex = "@" + pageMapping.get(pageMapping.get("currentPage"));
-                                String stepAppenderString = testCase.get("step") + "," + "Browser" + "," + "" + "," + "switchToPageByIndex" + "," + pageIndex + ","
-                                        + "" + "," + "";
-                                testCase.put("stepAppender", stepAppenderString);
-                                stepBuilder.append(testCase.get("stepAppender"));
-                                stepBuilder.append("\n");
-                                testCase.put("input", "");
-                                stepNumber++;
-                            }
+                        if (!testCase.get("frame").isEmpty()) {
+                            obj.setFrame(testCase.get("frame"));
                         }
-                        if (line.trim().startsWith("page")) {
-                            pageMapping.put("previousPage", line.trim().split("\\.")[0]);
-                        }
-                        attributeDeclaration();
-                        if (!testCase.get("action").equals("Open")) {
-                            testCase.put("step", String.valueOf(stepNumber));
-
-                            String stepAppenderString = testCase.get("step") + "," + testCase.get("ObjectName") + "," + "" + "," + testCase.get("action") + "," + testCase.get("input") + ","
-                                    + testCase.get("Condition") + "," + testCase.get("pageName");
-                            testCase.put("stepAppender", stepAppenderString);
-                            stepBuilder.append(testCase.get("stepAppender"));
-                            stepBuilder.append("\n");
-                            testCase.put("input", "");
-                            stepNumber++;
-                        }
-
-                        if (testCase.get("action").equals("Open")) {
-                            testCase.put("step", String.valueOf(stepNumber));
-                            String stepAppenderValue = testCase.get("step") + "," + testCase.get("ObjectName") + "," + "" + "," + testCase.get("action") + "," + testCase.get("input") + ","
-                                    + testCase.get("Condition") + "," + "";
-                            testCase.put("stepAppender", stepAppenderValue);
-                            stepBuilder.append(testCase.get("stepAppender"));
-                            stepBuilder.append("\n");
-                            testCase.put("input", "");
-                            stepNumber++;
-                        }
-                        testCase.put("csvFileName", testCase.get("pageName"));
-                        filePath.put("csvFilePath", (testScenarioName + "/" + testCase.get("csvFileName") + ".csv"));
-                        File file = new File(filePath.get("csvFilePath"));
-                        try (PrintWriter printWriter = new PrintWriter(file)) {
-                            printWriter.write(stepBuilder.toString());
-                            printWriter.flush();
-                        } catch (Exception ex) {
-
-                        }
+                        group.getObjects().clear();
+                        group.getObjects().add(obj);
                     }
+                    testCase.put("step", String.valueOf(stepNumber));
+                    // Only add [Project] reference for object-based actions, not for Browser actions
+                    String reference = (
+                            resolvedObjectName != null &&
+                            resolvedObjectName.trim().equals("Browser")
+                        )
+                        ? ""
+                        : "[Project] " + testCase.get("pageName");
+                    String stepAppender =
+                        testCase.get("step") +
+                        "," +
+                        resolvedObjectName +
+                        "," +
+                        "" +
+                        "," +
+                        testCase.get("action") +
+                        "," +
+                        testCase.get("input") +
+                        "," +
+                        testCase.get("Condition") +
+                        "," +
+                        reference;
+                    stepBuilder.append(stepAppender).append("\n");
+                    stepNumber++;
+                    testCase.put("input", "");
                 }
             }
+            if (line.trim().startsWith("page")) {
+                pageMapping.put("previousPage", line.trim().split("\\.")[0]);
+            }
         }
-        if (orExistFlag) {
-            root.appendChild(page);
+        try {
+            testCase.put("csvFileName", testCase.get("pageName"));
+            filePath.put(
+                "csvFilePath",
+                testScenarioName + "/" + testCase.get("csvFileName") + ".csv"
+            );
+            File csvFile = new File(filePath.get("csvFilePath"));
+            try (PrintWriter printWriter = new PrintWriter(csvFile)) {
+                printWriter.write(stepBuilder.toString());
+                printWriter.flush();
+            }
+        } catch (Exception e) {
+            Logger
+                .getLogger(PlaywrightRecordingParser.class.getName())
+                .log(Level.WARNING, "Failed to write CSV", e);
         }
-        TransformerFactory transformerFactory = TransformerFactory.newInstance();
-        Transformer transformer = transformerFactory.newTransformer();
-        DOMSource source = new DOMSource(doc);
-        StreamResult result = new StreamResult(new File(orFilePath));
-        transformer.transform(source, result);
     }
 
     public void attributeDeclaration() {
@@ -285,7 +313,6 @@ public class PlaywrightRecordingParser {
         attribute.put("Title", "");
         attribute.put("TestId", "");
         attribute.put("ChainedLocator", "");
-
     }
 
     public void testCaseParameter() {
@@ -318,12 +345,9 @@ public class PlaywrightRecordingParser {
     }
 
     public static List<String> readFileInList(String fileName) {
-
         List<String> lines = Collections.emptyList();
         try {
-            lines = Files.readAllLines(
-                    Paths.get(fileName),
-                    StandardCharsets.UTF_8);
+            lines = Files.readAllLines(Paths.get(fileName), StandardCharsets.UTF_8);
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -331,18 +355,20 @@ public class PlaywrightRecordingParser {
     }
 
     public void testCaseMap(String action, String input) {
-
         testCase.put("action", action);
         testCase.put("input", input);
     }
 
     public String getAction(String line) {
         String actionType = "";
-        if (!line.contains(".navigate(") && !line.contains("dialog.dismiss()") && !line.contains("dialog.accept()")) {
+        if (
+            !line.contains(".navigate(") &&
+            !line.contains("dialog.dismiss()") &&
+            !line.contains("dialog.accept()")
+        ) {
             int length = line.split("\\)\\.").length;
             String action = ((line.split("\\)\\.")[length - 1])).split("\\(")[0];
             switch (action) {
-
                 case "click":
                     actionType = "Click";
                     break;
@@ -370,8 +396,6 @@ public class PlaywrightRecordingParser {
                 case "hasValue":
                     actionType = "assertElementValueMatches";
                     break;
-    
-
             }
         } else {
             if (line.contains(".navigate(")) {
@@ -384,14 +408,12 @@ public class PlaywrightRecordingParser {
             if (line.contains("dialog.dismiss()")) {
                 actionType = "dismissNextAlert";
             }
-
         }
         if (pageSwitchOnClick) {
             actionType = "clickAndSwitchToNewPage";
             pageSwitchOnClick = false;
         }
         return actionType;
-
     }
 
     public String getInput(String line) {
@@ -401,21 +423,19 @@ public class PlaywrightRecordingParser {
             String action = ((line.split("\\)\\.")[length - 1])).split("\\(")[0];
             switch (action) {
                 case "click":
-                case "check": 
+                case "check":
                 case "isEmpty":
-                case "isVisible":    
+                case "isVisible":
                     input = "";
                     break;
- 
-                case "press":    
-                case "selectOption":    
-                case "fill":    
-                case "hasValue":    
+                case "press":
+                case "selectOption":
+                case "fill":
+                case "hasValue":
                 case "containsText":
-                    input = "@" + ((line.split("\\)\\.")[length - 1])).split("\\(")[1].split("\"")[1];
+                    input =
+                        "@" + ((line.split("\\)\\.")[length - 1])).split("\\(")[1].split("\"")[1];
                     break;
-                
-        
             }
         }
         if (line.contains(".navigate(")) {
@@ -425,7 +445,6 @@ public class PlaywrightRecordingParser {
             input = "\"" + input + "\"";
         }
         return input;
-
     }
 
     public void attributeInitialization(String stringLine) {
@@ -448,10 +467,10 @@ public class PlaywrightRecordingParser {
                     stringLine = stringLine.replace("\\)\\)\\.isEmpty(", "\\)\\.isEmpty\\(");
                     line = stringLine.split("\\.isEmpty\\(")[0];
                 } else if (stringLine.contains(")).containsText(")) {
-                    stringLine = stringLine.replace("\\)\\)\\.containsText(", "\\)\\.containsText\\(");
+                    stringLine =
+                        stringLine.replace("\\)\\)\\.containsText(", "\\)\\.containsText\\(");
                     line = stringLine.split("\\.containsText\\(")[0];
-                }
-                else if (stringLine.contains(")).hasValue(")) {
+                } else if (stringLine.contains(")).hasValue(")) {
                     stringLine = stringLine.replace("\\)\\)\\.hasValue(", "\\)\\.hasValue\\(");
                     line = stringLine.split("\\.hasValue\\(")[0];
                 }
@@ -461,10 +480,12 @@ public class PlaywrightRecordingParser {
                 testCase.put("frame", frame.replace("\\", ""));
                 testCase.put("ObjectName", "Refactor_Object");
                 stringLine = line.split("]\"\\)")[1];
-                //code to handle chain locator                       
+                //code to handle chain locator
                 if (stringLine.contains("frameLocator(\"")) {
-                    String frameLocator2 = stringLine.split("frameLocator\\(\"", 2)[1].split("\"\\)\\.", 2)[0];
-                    stringLine = "." + stringLine.split("frameLocator\\(\"", 2)[1].split("\"\\)\\.")[1];
+                    String frameLocator2 = stringLine
+                        .split("frameLocator\\(\"", 2)[1].split("\"\\)\\.", 2)[0];
+                    stringLine =
+                        "." + stringLine.split("frameLocator\\(\"", 2)[1].split("\"\\)\\.")[1];
                     String chainedFrameLocator = testCase.get("frame") + ";" + frameLocator2;
                     testCase.put("frame", chainedFrameLocator);
                 }
@@ -474,20 +495,20 @@ public class PlaywrightRecordingParser {
                     case "navigate":
                         testCase.put("ObjectName", "Browser");
                         break;
-
                     case "dismiss":
                         testCase.put("ObjectName", "Browser");
                         break;
-
                     case "accept":
                         testCase.put("ObjectName", "Browser");
                         break;
-
                     case "locator":
                         String css = "";
                         String objectName = "";
                         if (!line.contains(").filter(")) {
-                            css = line.split("locator\\(\"")[1].split("\"\\)")[0].replace("\\", "").trim();
+                            css =
+                                line
+                                    .split("locator\\(\"")[1].split("\"\\)")[0].replace("\\", "")
+                                    .trim();
                             if (css.contains("[")) {
                                 objectName = css.split("\"")[1].replace("\\", "");
                             } else if (css.contains("#")) {
@@ -506,7 +527,6 @@ public class PlaywrightRecordingParser {
                             testCase.put("ObjectName", "Refactor_Object");
                         }
                         break;
-
                     case "getByRole":
                         String role = "";
                         String roleValue = "";
@@ -523,7 +543,6 @@ public class PlaywrightRecordingParser {
                         attribute.put("Role", roleValue);
                         testCase.put("ObjectName", value);
                         break;
-
                     case "getByPlaceholder":
                         String placeholderSetExact = "";
                         if (line.contains(".setExact(true))")) {
@@ -535,7 +554,6 @@ public class PlaywrightRecordingParser {
                         testCase.put("ObjectName", placeholder);
                         attribute.put("Placeholder", placeholder + placeholderSetExact);
                         break;
-
                     case "getByLabel":
                         String lableSetExact = "";
                         if (line.contains(".setExact(true))")) {
@@ -548,7 +566,6 @@ public class PlaywrightRecordingParser {
                         attribute.put("Label", Label + lableSetExact);
                         testCase.put("ObjectName", Label);
                         break;
-
                     case "getByText":
                         String textSetExact = "";
                         if (line.contains(".setExact(true))")) {
@@ -560,13 +577,11 @@ public class PlaywrightRecordingParser {
                         attribute.put("Text", text + textSetExact);
                         testCase.put("ObjectName", text);
                         break;
-
                     case "getByTestId":
                         String testId = line.split("getByTestId\\(\"")[1].split("\"")[0];
                         attribute.put("TestId", testId);
                         testCase.put("ObjectName", testId);
                         break;
-
                     case "getByTitle":
                         String title = line.split("getByTitle\\(\"")[1].split("\"")[0];
                         attribute.put("Title", title);
@@ -577,11 +592,23 @@ public class PlaywrightRecordingParser {
                         attribute.put("AltText", altText);
                         testCase.put("ObjectName", altText);
                         break;
-
                 }
             }
             if (!line.contains("frameLocator")) {
-                if (testCase.get("ObjectName").equals("Refactor_Object") || testCase.get("ObjectName").equals("") && !testCase.get("ObjectName").equals("Browser")) {
+                // A simple single locator (e.g. page.locator(".a.b.c")) already captured the
+                // selector into the css attribute; in that case we must NOT also build a
+                // ChainedLocator. Chained locators (.first()/.nth()/multiple parts) skip the
+                // switch above via chainAttributeExist(), leaving css empty, so they still chain.
+                boolean cssCaptured =
+                    attribute.get("css") != null && !attribute.get("css").isEmpty();
+                if (
+                    !cssCaptured &&
+                    (
+                        testCase.get("ObjectName").equals("Refactor_Object") ||
+                        testCase.get("ObjectName").equals("") &&
+                        !testCase.get("ObjectName").equals("Browser")
+                    )
+                ) {
                     chainAttributeInitialization(line);
                 }
             }
@@ -598,13 +625,25 @@ public class PlaywrightRecordingParser {
         boolean chainAttribute = false;
         if (!line.contains("frameLocator") || !line.contains("dialog.")) {
             line = line.split("[.]", 2)[1];
-            String[] locatorList = {".getByAltText", ".getByTitle", ".getByTestId", ".getByText", ".getByLabel", ".getByPlaceholder", ".getByRole", ".locator", ".first()", ".last()", ".filter", ".nth("};
+            String[] locatorList = {
+                ".getByAltText",
+                ".getByTitle",
+                ".getByTestId",
+                ".getByText",
+                ".getByLabel",
+                ".getByPlaceholder",
+                ".getByRole",
+                ".locator",
+                ".first()",
+                ".last()",
+                ".filter",
+                ".nth("
+            };
             for (String locator : locatorList) {
                 if (line.contains(locator)) {
                     chainAttribute = true;
                     break;
                 }
-
             }
         }
         return chainAttribute;
@@ -626,7 +665,6 @@ public class PlaywrightRecordingParser {
                 c = b[i] + ")";
             }
             p.add(c);
-
         }
         for (int j = 0; j < p.size(); j++) {
             if (p.get(j).contains("()") && j != p.size() - 1) {
@@ -638,17 +676,14 @@ public class PlaywrightRecordingParser {
             } else {
                 usedObject.add(p.get(j));
             }
-
         }
 
         for (int k = 0; k < usedObject.size(); k++) {
-
             if (k == usedObject.size() - 1) {
                 chainLocator = chainLocator + usedObject.get(k);
             } else {
                 chainLocator = chainLocator + usedObject.get(k) + ";";
             }
-
         }
         chainLocator = chainLocator.replace(pageMapping.get("currentPage") + ".", "");
         attribute.put("ChainedLocator", chainLocator.trim());
@@ -668,13 +703,10 @@ public class PlaywrightRecordingParser {
                 String page = line.split("=", 2)[0].trim().substring(5).trim();
                 pageMapping.put(page, index);
                 pageMapping.put("switchedPageName", page);
-
             }
             if (pageSideLength == 9) {
                 pageMapping.put("page", "0");
             }
-
         }
     }
-
 }

@@ -1,8 +1,6 @@
-
 package com.ing.datalib.undoredo;
 
 public class UndoRedoProgress {
-
     private boolean progress = false;
 
     public void start() {

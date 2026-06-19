@@ -1,4 +1,3 @@
-
 package com.ing.ide.main.mainui.components.testdesign.tree.model;
 
 import com.ing.datalib.component.Project;
@@ -7,10 +6,9 @@ import com.ing.datalib.component.TestCase;
 
 /**
  *
- * 
+ *
  */
 public class TestPlanNode extends GroupNode {
-
     public Project project;
 
     public TestPlanNode() {
@@ -40,5 +38,4 @@ public class TestPlanNode extends GroupNode {
     public boolean rename(String name) {
         throw new UnsupportedOperationException("Not supported yet.");
     }
-
 }

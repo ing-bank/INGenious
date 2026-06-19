@@ -1,4 +1,3 @@
-
 package com.ing.engine.support;
 
 import com.ing.datalib.component.TestStep;
@@ -6,7 +5,6 @@ import com.ing.engine.execution.run.TestCaseRunner;
 import com.ing.engine.reporting.util.DateTimeUtils;
 
 public class Step {
-
     public int StepNum;
     public String ObjectName;
     public String Action;
@@ -43,8 +41,21 @@ public class Step {
 
     public Step printStep() {
         System.out.println(
-                String.format("Step:%-4s| Object: %s | Action: %s | Input: %s | Conditon: %s | @%s",
-                        new Object[]{StepNum, ObjectName, Action, Input, Condition, DateTimeUtils.DateTimeNow()}));
+            "\n══════════════════════════════════════════════════════════════════════════════\n"
+        );
+        System.out.println(
+            String.format(
+                "🔵 Step:%-4s| Object: %s | Action: %s | Input: %s | Condition: %s | @%s",
+                new Object[] {
+                    StepNum,
+                    ObjectName,
+                    Action,
+                    Input,
+                    Condition,
+                    DateTimeUtils.DateTimeNow()
+                }
+            )
+        );
         return this;
     }
 
@@ -140,5 +151,4 @@ public class Step {
         s.setObject(ObjectName);
         return s;
     }
-
 }

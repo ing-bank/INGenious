@@ -41,7 +41,11 @@ public class PropUtils {
 
     private static void saveProperties(Properties prop, String filename) {
         File file = new File(filename);
-        try (BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file), "ISO_8859_1"))) {
+        try (
+            BufferedWriter bw = new BufferedWriter(
+                new OutputStreamWriter(new FileOutputStream(file), "ISO_8859_1")
+            )
+        ) {
             synchronized (prop) {
                 for (Map.Entry<Object, Object> e : prop.entrySet()) {
                     String key = (String) e.getKey();
@@ -55,9 +59,8 @@ public class PropUtils {
         } catch (IOException ex) {
             Logger.getLogger(PropUtils.class.getName()).log(Level.SEVERE, filename, ex);
         }
-
     }
-    
+
     private static String escapeSpecialCharacters(String input) {
         StringBuilder sb = new StringBuilder();
         for (char c : input.toCharArray()) {
@@ -76,6 +79,9 @@ public class PropUtils {
                     break;
                 case ' ':
                     sb.append("\\ ");
+                    break;
+                case ':':
+                    sb.append("\\:");
                     break;
                 default:
                     if (c > 127) {

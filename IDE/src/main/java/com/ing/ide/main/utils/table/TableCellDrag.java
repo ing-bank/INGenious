@@ -1,4 +1,3 @@
-
 package com.ing.ide.main.utils.table;
 
 import java.awt.event.MouseAdapter;
@@ -10,7 +9,6 @@ import java.util.Objects;
 import javax.swing.JTable;
 
 public class TableCellDrag extends MouseAdapter implements MouseMotionListener {
-
     Cell startLocation = null;
 
     List<Integer[]> rowsRColumns = new ArrayList<>();
@@ -59,7 +57,7 @@ public class TableCellDrag extends MouseAdapter implements MouseMotionListener {
             int selRow = t.rowAtPoint(e.getPoint());
             int selColumn = t.columnAtPoint(e.getPoint());
             if (selRow != -1 && selColumn != -1) {
-                rowsRColumns.add(new Integer[]{selRow, selColumn});
+                rowsRColumns.add(new Integer[] { selRow, selColumn });
             }
         } else {
             isInDragOperation = false;
@@ -72,7 +70,6 @@ public class TableCellDrag extends MouseAdapter implements MouseMotionListener {
     }
 
     class Cell {
-
         int x = 0;
         int y = 0;
         Object data = null;

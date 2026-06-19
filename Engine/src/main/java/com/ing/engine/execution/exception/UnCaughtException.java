@@ -1,8 +1,6 @@
-
 package com.ing.engine.execution.exception;
 
 public class UnCaughtException extends RuntimeException {
-
     public String errorName = "UnCaughtException";
 
     public UnCaughtException(String errorDescription) {

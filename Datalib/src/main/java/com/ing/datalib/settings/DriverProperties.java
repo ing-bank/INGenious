@@ -1,18 +1,15 @@
-
 package com.ing.datalib.settings;
 
+import com.ing.datalib.util.data.LinkedProperties;
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
-
-import com.ing.datalib.util.data.LinkedProperties;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-
 
 /**
  * Manages API configuration files stored in a designated directory.
@@ -36,7 +33,6 @@ import java.nio.file.Paths;
  * @author Renz Jephte Moreno
  */
 public class DriverProperties extends LinkedProperties {
-    
     private static String geckoDriverPath, chromeDriverPath;
     private static ArrayList<String> apiConfigList = new ArrayList<>();
     private final Map<String, Properties> apiConfigFilePropMap = new HashMap<>();
@@ -52,7 +48,7 @@ public class DriverProperties extends LinkedProperties {
         createAPIFolder();
         load();
         currLoadedAPIConfig = "default";
-   }
+    }
 
     /**
      * Loads API configuration properties from files located at the specified location.
@@ -94,20 +90,18 @@ public class DriverProperties extends LinkedProperties {
     private File[] getPropertiesFiles(File directory) {
         return directory.listFiles((dir, name) -> name.endsWith(".properties"));
     }
-    
-    
-//    private void loadDefault() {
-//        setSSLCertificateVerification(getSSLCertificateVerification());
-//        setUseProxy(getUseProxy());
-//        setProxyHost(getProxyHost());
-//        setProxyPort(getProxyPort());
-//        
-//        setSelfSigned(getSelfSigned());
-//        setKeyStorePath(getKeyStorePath());
-//        setKeyStorePassword(getKeyStorePassword());
-//        
-//    }
 
+    //    private void loadDefault() {
+    //        setSSLCertificateVerification(getSSLCertificateVerification());
+    //        setUseProxy(getUseProxy());
+    //        setProxyHost(getProxyHost());
+    //        setProxyPort(getProxyPort());
+    //
+    //        setSelfSigned(getSelfSigned());
+    //        setKeyStorePath(getKeyStorePath());
+    //        setKeyStorePassword(getKeyStorePassword());
+    //
+    //    }
 
     /**
      * Creates the API configuration folder if it does not exist, and initializes it with a default configuration file.
@@ -120,7 +114,6 @@ public class DriverProperties extends LinkedProperties {
         }
     }
 
-    
     /**
      * Creates a default API configuration file in the specified location.
      * <p>
@@ -135,25 +128,29 @@ public class DriverProperties extends LinkedProperties {
      */
     private void createDefaultFile(String location) {
         System.out.println("creating properties : " + location);
-        Path driverSettingProperties = Paths.get(location).getParent().resolve("DriverSettings.Properties");
+        Path driverSettingProperties = Paths
+            .get(location)
+            .getParent()
+            .resolve("DriverSettings.Properties");
         Path apiDefaultFile = Paths.get(location, "default.properties");
-        
+
         try {
-            if (Files.exists(driverSettingProperties)){
+            if (Files.exists(driverSettingProperties)) {
                 Files.copy(driverSettingProperties, apiDefaultFile);
                 Properties prop = PropUtils.load(new File(driverSettingProperties.toString()));
                 prop.setProperty("api.alias", "default");
                 PropUtils.save(prop, apiDefaultFile.toString());
-            } else  {             
+            } else {
                 Properties prop = setAPIProperties(new Properties());
                 PropUtils.save(prop, apiDefaultFile.toString());
-            } 
+            }
         } catch (IOException ex) {
-                System.getLogger(DriverProperties.class.getName()).log(System.Logger.Level.ERROR, (String) null, ex);
+            System
+                .getLogger(DriverProperties.class.getName())
+                .log(System.Logger.Level.ERROR, (String) null, ex);
         }
     }
 
-    
     /**
      * Sets default API properties on the given {@link Properties} object.
      * <p>
@@ -169,7 +166,6 @@ public class DriverProperties extends LinkedProperties {
         return prop;
     }
 
-        
     /**
      * Sets API properties on the given {@link Properties} object using a specified alias.
      * <p>
@@ -188,14 +184,13 @@ public class DriverProperties extends LinkedProperties {
         return prop;
     }
 
-    
     /**
      * Sets default properties on the given {@link Properties} properties.
      * <p>
      * This method initializes the following keys with default values:
      * <ul>
      *     <li>{@code proxyPort} – empty string</li>
-     *     <li>{@code setSSLCertVerification} – {@code false}</li>
+     *     <li>{@code sslCertificateVerification} – {@code false}</li>
      *     <li>{@code useProxy} – {@code false}</li>
      *     <li>{@code proxyHost} – empty string</li>
      * </ul>
@@ -204,24 +199,23 @@ public class DriverProperties extends LinkedProperties {
      */
     private void setDefaultProperties(Properties prop) {
         prop.setProperty("proxyPort", "");
-        prop.setProperty("setSSLCertVerification", "false");
+        prop.setProperty("sslCertificateVerification", "false");
         prop.setProperty("useProxy", "false");
         prop.setProperty("proxyHost", "");
+        prop.setProperty("httpClientRedirect", "NEVER");
     }
-    
-    
+
     /**
      * Constructs the full file path for the specified API configuration file.
-     * 
+     *
      * @param apiName the name of the API
      * @return the full path to the API's properties file
-     * 
+     *
      */
     public String getAPILocation(String apiName) {
         return getLocation() + File.separator + apiName + ".properties";
     }
 
-    
     /**
      * Returns the path to the API configuration directory.
      *
@@ -230,8 +224,7 @@ public class DriverProperties extends LinkedProperties {
     public static String getLocation() {
         return location + File.separator + "API";
     }
-    
-    
+
     /**
      * Sets the base location for storing API configuration files.
      *
@@ -241,7 +234,6 @@ public class DriverProperties extends LinkedProperties {
         this.location = location;
     }
 
-    
     /**
      * Loads and returns the list of available API aliases.
      * <p>
@@ -254,7 +246,6 @@ public class DriverProperties extends LinkedProperties {
         return apiConfigList;
     }
 
-    
     /**
      * Retrieves the properties associated with the specified API alias.
      *
@@ -265,7 +256,6 @@ public class DriverProperties extends LinkedProperties {
         return apiConfigFilePropMap.get(apiName);
     }
 
-    
     /**
      * Adds a new API alias to the list of known APIs.
      *
@@ -275,7 +265,6 @@ public class DriverProperties extends LinkedProperties {
         apiConfigList.add(apiName);
     }
 
-    
     /**
      * Creates and adds a new API configuration using the specified alias.
      * <p>
@@ -293,7 +282,6 @@ public class DriverProperties extends LinkedProperties {
         addAPI(apiName, prop);
     }
 
-    
     /**
      * Adds a new API configuration to the internal map and persists the changes.
      * <p>
@@ -310,8 +298,7 @@ public class DriverProperties extends LinkedProperties {
         apiConfigFilePropMap.put(apiName, prop);
         save();
     }
-    
-    
+
     /**
      * Saves all API configuration properties to their respective files.
      * <p>
@@ -328,8 +315,7 @@ public class DriverProperties extends LinkedProperties {
             PropUtils.save(apiProp, getAPILocation(apiName));
         }
     }
-    
-    
+
     /**
      * Deletes the API configuration associated with the specified alias.
      * <p>
@@ -354,7 +340,7 @@ public class DriverProperties extends LinkedProperties {
             apiConfigList.remove(apiName);
         }
     }
-    
+
     /**
      * Sets the currently loaded API configuration alias.
      * <p>
@@ -365,7 +351,7 @@ public class DriverProperties extends LinkedProperties {
     public void setCurrLoadedAPIConfig(String currLoadedAPIConfig) {
         this.currLoadedAPIConfig = currLoadedAPIConfig;
     }
-    
+
     /**
      * Checks whether an API configuration with the specified alias exists.
      *
@@ -378,8 +364,7 @@ public class DriverProperties extends LinkedProperties {
 
     // Driverpath related methods
     private static void setDriverPath() {
-        if (System.getProperty("os.name", "")
-                .toLowerCase().contains("win")) {
+        if (System.getProperty("os.name", "").toLowerCase().contains("win")) {
             geckoDriverPath = "./lib/Drivers/geckodriver.exe";
             chromeDriverPath = "./lib/Drivers/chromedriver.exe";
         } else {
@@ -387,7 +372,7 @@ public class DriverProperties extends LinkedProperties {
             chromeDriverPath = "./lib/Drivers/chromedriver";
         }
     }
-    
+
     public void setFirefoxBinaryPath(String path) {
         setProperty("FirefoxBinaryPath", path);
     }
@@ -427,6 +412,7 @@ public class DriverProperties extends LinkedProperties {
     public String getEdgeDriverPath() {
         return getProperty("EdgeDriverPath", "./lib/Drivers/MicrosoftWebDriver.exe");
     }
+
     // End of driverpath related methods
 
     //Getters for some specific Properties. These methods extracts the properties based
@@ -434,7 +420,7 @@ public class DriverProperties extends LinkedProperties {
     public Boolean useProxy() {
         return Boolean.valueOf(getUseProxy());
     }
-    
+
     public String getUseProxy() {
         return apiConfigFilePropMap.get(currLoadedAPIConfig).getProperty("useProxy", "false");
     }
@@ -446,23 +432,25 @@ public class DriverProperties extends LinkedProperties {
     public String getProxyPort() {
         return apiConfigFilePropMap.get(currLoadedAPIConfig).getProperty("proxyPort", "");
     }
-   
+
     public String getSSLCertificateVerification() {
-        return apiConfigFilePropMap.get(currLoadedAPIConfig).getProperty("sslCertificateVerification", "false");
+        return apiConfigFilePropMap
+            .get(currLoadedAPIConfig)
+            .getProperty("sslCertificateVerification", "false");
     }
-    
+
     public Boolean sslCertificateVerification() {
         return Boolean.valueOf(getSSLCertificateVerification());
-    }  
+    }
 
     public String getSelfSigned() {
         return apiConfigFilePropMap.get(currLoadedAPIConfig).getProperty("selfSigned", "false");
     }
-    
+
     public Boolean selfSigned() {
         return Boolean.valueOf(getSelfSigned());
-    }  
- 
+    }
+
     public String getKeyStorePath() {
         return apiConfigFilePropMap.get(currLoadedAPIConfig).getProperty("keyStorePath", "");
     }
@@ -471,34 +459,74 @@ public class DriverProperties extends LinkedProperties {
         return apiConfigFilePropMap.get(currLoadedAPIConfig).getProperty("keyStorePassword", "");
     }
 
-      //Setters for some specific properties.
-      //Commented out as these are not set programmatically but are extracted from
-      //configurations files.
-//    public void setKeyStorePassword(String value) {
-//        setProperty("keyStorePassword", value);
-//    }
-//    
-//    public void setKeyStorePath(String path) {
-//        setProperty("keyStorePath", path);
-//    }
-//    
-//    public void setSelfSigned(String value) {
-//        setProperty("selfSigned", value);
-//    }
-//
-//    public void setSSLCertificateVerification(String value) {
-//        setProperty("sslCertificateVerification", value);
-//    }
-//
-//    public void setProxyPort(String value) {
-//        setProperty("proxyPort", value);
-//    }
-//
-//    public void setProxyHost(String value) {
-//        setProperty("proxyHost", value);
-//    }
-//
-//    public void setUseProxy(String value) {
-//        setProperty("useProxy", value);
-//    }
+    /**
+     * Retrieves a property value from the currently loaded API configuration.
+     * <p>
+     * This method dynamically retrieves properties based on the current API config context
+     * that was set by calling {@code setCurrLoadedAPIConfig()}. This is typically set when
+     * {@code setEndPoint} is called with an API config alias.
+     * <p>
+     * If no API configuration is currently loaded (e.g., during browser testing),
+     * this method falls back to standard property access from the parent class.
+     * <p>
+     * If the property is not found, an empty string is returned.
+     *
+     * @param propertyKey the key of the property to retrieve (e.g., "keyStorePath", "customProperty")
+     * @return the property value from the current API config, or from standard properties if no API config is loaded
+     */
+    public String getAPIConfigProperty(String propertyKey) {
+        // If API config context is set, use it (for webservice testing)
+        if (currLoadedAPIConfig != null && apiConfigFilePropMap.containsKey(currLoadedAPIConfig)) {
+            return apiConfigFilePropMap.get(currLoadedAPIConfig).getProperty(propertyKey, "");
+        }
+        // Otherwise fall back to standard property access (for browser testing, etc.)
+        return super.getProperty(propertyKey, "");
+    }
+
+    /**
+     * Retrieves the configured HTTP redirect policy for the currently loaded API configuration.
+     * <p>
+     * This method looks up the property <code>httpClientRedirect</code> inside the API configuration
+     * identified by {@code currLoadedAPIConfig}. If the property is not defined, the method returns the
+     * default value <code>"NEVER"</code>.
+     * </p>
+     *
+     * @return the redirect policy defined for the current API configuration, or <code>"NEVER"</code>
+     *         if the property is missing
+     */
+    public String getHttpClientRedirect() {
+        return apiConfigFilePropMap
+            .get(currLoadedAPIConfig)
+            .getProperty("httpClientRedirect", "NEVER");
+    }
+    //Setters for some specific properties.
+    //Commented out as these are not set programmatically but are extracted from
+    //configurations files.
+    //    public void setKeyStorePassword(String value) {
+    //        setProperty("keyStorePassword", value);
+    //    }
+    //
+    //    public void setKeyStorePath(String path) {
+    //        setProperty("keyStorePath", path);
+    //    }
+    //
+    //    public void setSelfSigned(String value) {
+    //        setProperty("selfSigned", value);
+    //    }
+    //
+    //    public void setSSLCertificateVerification(String value) {
+    //        setProperty("sslCertificateVerification", value);
+    //    }
+    //
+    //    public void setProxyPort(String value) {
+    //        setProperty("proxyPort", value);
+    //    }
+    //
+    //    public void setProxyHost(String value) {
+    //        setProperty("proxyHost", value);
+    //    }
+    //
+    //    public void setUseProxy(String value) {
+    //        setProperty("useProxy", value);
+    //    }
 }

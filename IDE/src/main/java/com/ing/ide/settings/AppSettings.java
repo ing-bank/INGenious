@@ -1,4 +1,3 @@
-
 package com.ing.ide.settings;
 
 import java.io.File;
@@ -14,7 +13,6 @@ import java.util.logging.Logger;
  *
  */
 public class AppSettings {
-
     private static final File APPSETT = new File("Configuration" + File.separator + "app.settings");
     private static Properties settings;
 
@@ -59,7 +57,6 @@ public class AppSettings {
             }
             return "";
         }
-
     }
 
     public static void load() {
@@ -123,5 +120,4 @@ public class AppSettings {
             load();
         }
     }
-
 }

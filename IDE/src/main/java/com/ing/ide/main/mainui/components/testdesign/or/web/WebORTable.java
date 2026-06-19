@@ -1,4 +1,3 @@
-
 package com.ing.ide.main.mainui.components.testdesign.or.web;
 
 import com.ing.datalib.or.common.ORAttribute;
@@ -6,53 +5,95 @@ import com.ing.datalib.or.common.ORObjectInf;
 import com.ing.datalib.or.common.ObjectGroup;
 import com.ing.datalib.or.web.WebORObject;
 import com.ing.datalib.or.web.WebORPage;
+import com.ing.ide.main.fx.INGIcons;
 import com.ing.ide.main.utils.Utils;
+import com.ing.ide.main.utils.table.PropertyAttributeRenderer;
+import com.ing.ide.main.utils.table.RoleCellEditor;
 import com.ing.ide.main.utils.table.XTable;
 import java.awt.BorderLayout;
+import java.awt.Component;
 import java.awt.Font;
-import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentEvent;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
-import java.awt.event.KeyEvent;
 import java.util.Collections;
 import java.util.List;
 import javax.swing.BorderFactory;
+import javax.swing.JCheckBox;
 import javax.swing.JLabel;
 import javax.swing.JMenu;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
+import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.JToggleButton;
 import javax.swing.JToolBar;
-import javax.swing.KeyStroke;
+import javax.swing.SwingConstants;
+import javax.swing.UIManager;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
+import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
+import javax.swing.table.TableCellEditor;
+import javax.swing.table.TableColumn;
+import javax.swing.table.TableColumnModel;
 
 /**
+ * UI component for viewing and editing Web Object Repository (WebOR) object properties.
+ * <p>
+ * The {@code WebORTable} displays a {@link WebORObject}'s attributes in a table and provides
+ * tools for adding, removing, reordering, and bulk-modifying properties across pages or selected items.
+ * It integrates with {@link WebORPanel} and responds to tree selections, context menu actions,
+ * and toolbar commands. Frame values can also be viewed and edited using a dedicated frame toolbar.
+ * </p>
  *
- * 
+ * <p>
+ * Core features include:
+ * <ul>
+ *   <li>Loading and displaying OR attributes for the selected {@code WebORObject}.</li>
+ *   <li>Editing operations such as add/delete property, reorder rows, and bulk updates across pages.</li>
+ *   <li>Frame metadata editing with automatic propagation to selected or related objects.</li>
+ *   <li>Context menu and toolbar integration for fast OR maintenance actions.</li>
+ * </ul>
+ * </p>
  */
 public class WebORTable extends JPanel implements ActionListener, ItemListener {
-
     private final XTable table;
-
     private final FrameToolBar frameToolbar;
-
     private final ToolBar toolBar;
-
     private final PopupMenu popupMenu;
-
     private final WebORPanel webOR;
 
     private Boolean monitorFrameChange = true;
 
+    private final RoleCellEditor roleCellEditor;
+
     public WebORTable(WebORPanel webOR) {
         this.webOR = webOR;
-        table = new XTable();
+
+        // Create the role cell editor with dropdown + name field
+        roleCellEditor = new RoleCellEditor();
+
+        // Create custom XTable that returns role editor for Role attribute
+        table =
+            new XTable() {
+
+                @Override
+                public TableCellEditor getCellEditor(int row, int column) {
+                    // Column 1 is the Value column, Column 0 is the Attribute name
+                    if (column == 1 && row >= 0 && row < getRowCount()) {
+                        Object attrName = getValueAt(row, 0);
+                        if ("Role".equalsIgnoreCase(String.valueOf(attrName))) {
+                            return roleCellEditor;
+                        }
+                    }
+                    return super.getCellEditor(row, column);
+                }
+            };
         frameToolbar = new FrameToolBar();
         toolBar = new ToolBar();
         popupMenu = new PopupMenu();
@@ -75,11 +116,82 @@ public class WebORTable extends JPanel implements ActionListener, ItemListener {
     }
 
     public void loadObject(WebORObject object) {
+        if (table.isEditing()) {
+            table.getCellEditor().stopCellEditing();
+        }
         table.setModel(object);
+        configureColumns();
         monitorFrameChange = false;
         frameToolbar.frameText.setText(object.getFrame());
         toolBar.frameToggle.setSelected(!frameToolbar.frameText.getText().isEmpty());
         monitorFrameChange = true;
+        String source = object.getPage().getRoot().isShared() ? "Shared" : "Project";
+        toolBar.setTitleSuffix("[" + source + "]");
+    }
+
+    private void configureColumns() {
+        if (table.getColumnCount() >= 3) {
+            table.setAutoResizeMode(JTable.AUTO_RESIZE_LAST_COLUMN);
+
+            // Column 0: Attribute - narrow width
+            TableColumn attrCol = table.getColumnModel().getColumn(0);
+            attrCol.setCellRenderer(new PropertyAttributeRenderer());
+            attrCol.setPreferredWidth(100);
+            attrCol.setMinWidth(60);
+            attrCol.setMaxWidth(150);
+
+            // Column 1: Value - takes remaining space (flexible)
+            TableColumn valueCol = table.getColumnModel().getColumn(1);
+            valueCol.setPreferredWidth(150);
+            valueCol.setMinWidth(50);
+            valueCol.setMaxWidth(350);
+
+            // Column 2: Exact - fixed width, centered
+            TableColumn exactCol = table.getColumnModel().getColumn(2);
+            exactCol.setPreferredWidth(50);
+            exactCol.setMinWidth(50);
+            exactCol.setMaxWidth(50);
+            exactCol.setResizable(false);
+
+            // Center-aligned header for Exact column
+            DefaultTableCellRenderer headerRenderer = new DefaultTableCellRenderer();
+            headerRenderer.setHorizontalAlignment(SwingConstants.CENTER);
+            exactCol.setHeaderRenderer(headerRenderer);
+
+            // Center-aligned checkbox renderer for Exact column
+            exactCol.setCellRenderer(
+                new DefaultTableCellRenderer() {
+                    private final JCheckBox checkBox = new JCheckBox();
+
+                    {
+                        checkBox.setHorizontalAlignment(SwingConstants.CENTER);
+                        checkBox.setOpaque(true);
+                    }
+
+                    @Override
+                    public Component getTableCellRendererComponent(
+                        JTable table,
+                        Object value,
+                        boolean isSelected,
+                        boolean hasFocus,
+                        int row,
+                        int column
+                    ) {
+                        // Check if cell is editable (not xpath, css, TestId)
+                        boolean editable = table.getModel().isCellEditable(row, column);
+                        checkBox.setSelected(value != null && (Boolean) value);
+                        checkBox.setEnabled(editable);
+
+                        if (isSelected) {
+                            checkBox.setBackground(table.getSelectionBackground());
+                        } else {
+                            checkBox.setBackground(table.getBackground());
+                        }
+                        return checkBox;
+                    }
+                }
+            );
+        }
     }
 
     private void changeFrameText() {
@@ -152,6 +264,7 @@ public class WebORTable extends JPanel implements ActionListener, ItemListener {
                     break;
                 case "From Selected":
                     clearFrameFromSelected();
+                    break;
             }
         }
     }
@@ -201,15 +314,16 @@ public class WebORTable extends JPanel implements ActionListener, ItemListener {
         }
     }
 
-    private List<ORObjectInf> getSelectedObjects() {
-        return webOR.getObjectTree().getSelectedObjects();
-    }
-
     private void clearFrameFromSelected() {
         frameToolbar.frameText.setText("");
-        getSelectedObjects().stream().forEach((object) -> {
-            ((WebORObject) object).setFrame("");
-        });
+        webOR
+            .getSelectedObjectsFromActiveTab()
+            .stream()
+            .forEach(
+                object -> {
+                    ((WebORObject) object).setFrame("");
+                }
+            );
     }
 
     private void clearFrameFromAll() {
@@ -235,10 +349,12 @@ public class WebORTable extends JPanel implements ActionListener, ItemListener {
     private void clearFromSelected() {
         if (table.getSelectedRowCount() > 0) {
             String[] attrs = getSelectedAttrs();
-            for (String attr : attrs) {
-                getSelectedObjects().stream().forEach((object) -> {
-                    ((WebORObject) object).setAttributeByName(attr, "");
-                });
+            for (ORObjectInf object : webOR.getSelectedObjectsFromActiveTab()) {
+                for (String attr : attrs) {
+                    if (object instanceof WebORObject) {
+                        ((WebORObject) object).setAttributeByName(attr, "");
+                    }
+                }
             }
         }
     }
@@ -271,11 +387,16 @@ public class WebORTable extends JPanel implements ActionListener, ItemListener {
     private void removeFromSelected() {
         if (table.getSelectedRowCount() > 0) {
             String[] attrs = getSelectedAttrs();
-            for (String attr : attrs) {
-                getSelectedObjects().stream().forEach((object) -> {
-                    ((WebORObject) object).removeAttribute(attr);
-                });
+            List<ORObjectInf> selected = webOR.getSelectedObjectsFromActiveTab();
+            for (ORObjectInf object : selected) {
+                for (String attr : attrs) {
+                    if (object instanceof WebORObject) {
+                        ((WebORObject) object).removeAttribute(attr);
+                    }
+                }
             }
+            webOR.getObjectTable().revalidate();
+            webOR.getObjectTable().repaint();
         }
     }
 
@@ -307,11 +428,16 @@ public class WebORTable extends JPanel implements ActionListener, ItemListener {
     private void addToSelected() {
         if (table.getSelectedRowCount() > 0) {
             String[] attrs = getSelectedAttrs();
-            for (String attr : attrs) {
-                getSelectedObjects().stream().forEach((object) -> {
-                    ((WebORObject) object).addNewAttribute(attr);
-                });
+            List<ORObjectInf> selected = webOR.getSelectedObjectsFromActiveTab();
+            for (ORObjectInf object : selected) {
+                for (String attr : attrs) {
+                    if (object instanceof WebORObject) {
+                        ((WebORObject) object).addNewAttribute(attr);
+                    }
+                }
             }
+            webOR.getObjectTable().revalidate();
+            webOR.getObjectTable().repaint();
         }
     }
 
@@ -343,9 +469,19 @@ public class WebORTable extends JPanel implements ActionListener, ItemListener {
     private void setPriorityToSelected() {
         stopCellEditing();
         WebORObject currObj = getObject();
-        getSelectedObjects().stream().forEach((object) -> {
-            reorderAttributes(currObj.getAttributes(), ((WebORObject) object).getAttributes());
-        });
+        List<ORObjectInf> selected = webOR.getSelectedObjectsFromActiveTab();
+        for (ORObjectInf object : selected) {
+            if (object instanceof WebORObject) {
+                if (currObj != null) {
+                    reorderAttributes(
+                        currObj.getAttributes(),
+                        ((WebORObject) object).getAttributes()
+                    );
+                }
+            }
+        }
+        webOR.getObjectTable().revalidate();
+        webOR.getObjectTable().repaint();
     }
 
     private void setPriorityToAll() {
@@ -401,7 +537,6 @@ public class WebORTable extends JPanel implements ActionListener, ItemListener {
     }
 
     class FrameToolBar extends JToolBar implements DocumentListener {
-
         private JTextField frameText;
 
         public FrameToolBar() {
@@ -411,13 +546,34 @@ public class WebORTable extends JPanel implements ActionListener, ItemListener {
         private void init() {
             setLayout(new javax.swing.BoxLayout(this, javax.swing.BoxLayout.X_AXIS));
             setFloatable(false);
+            setOpaque(false);
             frameText = new JTextField();
-            add(new javax.swing.Box.Filler(new java.awt.Dimension(10, 0), new java.awt.Dimension(10, 0), new java.awt.Dimension(10, 32767)));
+            add(
+                new javax.swing.Box.Filler(
+                    new java.awt.Dimension(10, 0),
+                    new java.awt.Dimension(10, 0),
+                    new java.awt.Dimension(10, 32767)
+                )
+            );
             add(new JLabel("Frame"));
-            add(new javax.swing.Box.Filler(new java.awt.Dimension(10, 0), new java.awt.Dimension(10, 0), new java.awt.Dimension(10, 32767)));
+            add(
+                new javax.swing.Box.Filler(
+                    new java.awt.Dimension(10, 0),
+                    new java.awt.Dimension(10, 0),
+                    new java.awt.Dimension(10, 32767)
+                )
+            );
             add(frameText);
-
             frameText.getDocument().addDocumentListener(this);
+            table.addComponentListener(
+                new ComponentAdapter() {
+
+                    @Override
+                    public void componentResized(ComponentEvent e) {
+                        adjustColumnsToViewport();
+                    }
+                }
+            );
         }
 
         @Override
@@ -436,41 +592,88 @@ public class WebORTable extends JPanel implements ActionListener, ItemListener {
         }
     }
 
-    class ToolBar extends JToolBar {
+    private void adjustColumnsToViewport() {
+        if (table.getColumnCount() < 3) return;
 
+        TableColumnModel m = table.getColumnModel();
+
+        TableColumn attr = m.getColumn(0);
+        TableColumn value = m.getColumn(1);
+        TableColumn exact = m.getColumn(2);
+
+        int exactWidth = exact.getMinWidth();
+        int attrMin = attr.getMinWidth();
+        int valueMin = value.getMinWidth();
+
+        int viewportWidth = table.getParent().getWidth();
+        int available = viewportWidth - exactWidth;
+
+        if (available > (attrMin + valueMin)) {
+            int attrWidth = Math.min(150, available / 3);
+            int valueWidth = available - attrWidth;
+
+            attr.setPreferredWidth(attrWidth);
+            value.setPreferredWidth(valueWidth);
+        } else {
+            attr.setPreferredWidth(attrMin);
+            value.setPreferredWidth(Math.max(0, available - attrMin));
+        }
+    }
+
+    class ToolBar extends JToolBar {
         JToggleButton frameToggle;
+        private JLabel titleLabel;
 
         public ToolBar() {
             init();
-            setBorder(BorderFactory.createEtchedBorder());
+            setOpaque(false);
+            setBorder(
+                BorderFactory.createMatteBorder(
+                    0,
+                    0,
+                    1,
+                    0,
+                    UIManager.getColor("Separator.foreground")
+                )
+            );
         }
 
         private void init() {
             setLayout(new javax.swing.BoxLayout(this, javax.swing.BoxLayout.X_AXIS));
             setFloatable(false);
-
-            add(new javax.swing.Box.Filler(new java.awt.Dimension(10, 0),
+            add(
+                new javax.swing.Box.Filler(
                     new java.awt.Dimension(10, 0),
-                    new java.awt.Dimension(10, 32767)));
-            JLabel label = new JLabel("Properties");
-            label.setFont(new Font("Default", Font.BOLD, 12));
-            add(label);
-
-            add(new javax.swing.Box.Filler(new java.awt.Dimension(0, 0), new java.awt.Dimension(0, 0), new java.awt.Dimension(32767, 32767)));
-
-            add(Utils.createLRButton("Add Row", "add",  WebORTable.this));
-            add(Utils.createLRButton("Delete Rows", "remove",  WebORTable.this));
+                    new java.awt.Dimension(10, 0),
+                    new java.awt.Dimension(10, 32767)
+                )
+            );
+            titleLabel = new JLabel("Properties");
+            titleLabel.setFont(new Font("Default", Font.BOLD, 12));
+            add(titleLabel);
+            add(
+                new javax.swing.Box.Filler(
+                    new java.awt.Dimension(0, 0),
+                    new java.awt.Dimension(0, 0),
+                    new java.awt.Dimension(32767, 32767)
+                )
+            );
+            add(Utils.createLRButton("Add Row", "add", WebORTable.this));
+            add(Utils.createLRButton("Delete Rows", "remove", WebORTable.this));
             addSeparator();
-            add(Utils.createLRButton("Move Rows Up", "up",  WebORTable.this));
-            add(Utils.createLRButton("Move Rows Down", "down",  WebORTable.this));
+            add(Utils.createLRButton("Move Rows Up", "up", WebORTable.this));
+            add(Utils.createLRButton("Move Rows Down", "down", WebORTable.this));
             addSeparator();
-            frameToggle = new JToggleButton(Utils.getIconByResourceName("/ui/resources/or/web/propViewer"));
+            frameToggle = new JToggleButton(INGIcons.swingColored("or.propViewer", 16));
             frameToggle.addItemListener(WebORTable.this);
             frameToggle.setToolTipText("Show/Hide Frame Property");
             frameToggle.setActionCommand("Toggle Frame");
             add(frameToggle);
         }
 
+        public void setTitleSuffix(String suffix) {
+            titleLabel.setText("Properties " + suffix);
+        }
     }
 
     class PopupMenu extends JPopupMenu {
@@ -490,25 +693,28 @@ public class WebORTable extends JPanel implements ActionListener, ItemListener {
             setPriority.add(Utils.createMenuItem("Set Priority to All", WebORTable.this));
             setPriority.add(Utils.createMenuItem("Set Priority to Selected", WebORTable.this));
             add(setPriority);
+
             clearProp.add(Utils.createMenuItem("Clear from Page", WebORTable.this));
             clearProp.add(Utils.createMenuItem("Clear from All", WebORTable.this));
             clearProp.add(Utils.createMenuItem("Clear from Selected", WebORTable.this));
             add(clearProp);
+
             deleteProp.add(Utils.createMenuItem("Remove from Page", WebORTable.this));
             deleteProp.add(Utils.createMenuItem("Remove from All", WebORTable.this));
             deleteProp.add(Utils.createMenuItem("Remove from Selected", WebORTable.this));
             add(deleteProp);
+
             addProp.add(Utils.createMenuItem("Add to Page", WebORTable.this));
             addProp.add(Utils.createMenuItem("Add to All", WebORTable.this));
             addProp.add(Utils.createMenuItem("Add to Selected", WebORTable.this));
             add(addProp);
+
             addSeparator();
+
             clearFrame.add(Utils.createMenuItem("From Page", WebORTable.this));
             clearFrame.add(Utils.createMenuItem("From All", WebORTable.this));
             clearFrame.add(Utils.createMenuItem("From Selected", WebORTable.this));
             add(clearFrame);
         }
-
     }
-
 }

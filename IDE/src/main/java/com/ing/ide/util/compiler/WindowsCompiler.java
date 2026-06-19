@@ -1,4 +1,3 @@
-
 package com.ing.ide.util.compiler;
 
 import com.ing.engine.support.DesktopApi;
@@ -11,7 +10,7 @@ import java.util.logging.Logger;
 
 /**
  *
- * 
+ *
  */
 public class WindowsCompiler extends Compiler {
 
@@ -21,7 +20,6 @@ public class WindowsCompiler extends Compiler {
 
     @Override
     public File createScript() {
-
         String script = getScriptFile();
 
         try (BufferedWriter out = new BufferedWriter(new FileWriter(script))) {
@@ -43,7 +41,6 @@ public class WindowsCompiler extends Compiler {
 
     @Override
     public String getScriptFile() {
-        
         String userDirlocation;
         try {
             userDirlocation = new File(System.getProperty("user.dir")).getCanonicalPath();
@@ -52,7 +49,6 @@ public class WindowsCompiler extends Compiler {
             Logger.getLogger(WindowsCompiler.class.getName()).log(Level.SEVERE, null, ex);
         }
         return null;
-        
     }
 
     @Override
@@ -67,5 +63,4 @@ public class WindowsCompiler extends Compiler {
         }
         return "false";
     }
-
 }

@@ -1,4 +1,3 @@
-
 package com.ing.ide.main.mainui.components.testdesign.or.mobile;
 
 import com.ing.datalib.or.common.ORAttribute;
@@ -6,7 +5,9 @@ import com.ing.datalib.or.common.ORObjectInf;
 import com.ing.datalib.or.common.ObjectGroup;
 import com.ing.datalib.or.mobile.MobileORObject;
 import com.ing.datalib.or.mobile.MobileORPage;
+import com.ing.datalib.or.mobile.MobilePlatform;
 import com.ing.ide.main.utils.Utils;
+import com.ing.ide.main.utils.table.PropertyAttributeRenderer;
 import com.ing.ide.main.utils.table.XTable;
 import java.awt.BorderLayout;
 import java.awt.Font;
@@ -15,21 +16,38 @@ import java.awt.event.ActionListener;
 import java.util.Collections;
 import java.util.List;
 import javax.swing.BorderFactory;
+import javax.swing.ButtonGroup;
 import javax.swing.JLabel;
 import javax.swing.JMenu;
 import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
+import javax.swing.JToggleButton;
 import javax.swing.JToolBar;
+import javax.swing.UIManager;
 import javax.swing.table.DefaultTableModel;
+import javax.swing.table.TableColumn;
 
+/**
+ * Displays and edits properties of a selected {@link MobileORObject} in table form.
+ * <p>
+ * Supports a wide range of attribute operations, including:
+ * <ul>
+ *   <li>adding, removing, and clearing attributes</li>
+ *   <li>bulk operations across pages or selected objects</li>
+ *   <li>reordering attributes and setting priority</li>
+ *   <li>context menu and toolbar actions</li>
+ * </ul>
+ * This component acts as the editable detail view within the Mobile OR panel.
+ */
 public class MobileORTable extends JPanel implements ActionListener {
-
     private final XTable table;
 
     private final MobileORPanel mobileOR;
     private final ToolBar toolBar;
     private final PopupMenu popupMenu;
+
+    private MobilePlatform activePlatform = MobilePlatform.ANDROID;
 
     public MobileORTable(MobileORPanel mobileOR) {
         this.mobileOR = mobileOR;
@@ -53,11 +71,58 @@ public class MobileORTable extends JPanel implements ActionListener {
     }
 
     public void loadObject(MobileORObject object) {
+        if (table.isEditing()) {
+            table.getCellEditor().stopCellEditing();
+        }
+        object.setActivePlatform(activePlatform);
         table.setModel(object);
+        configureColumns();
+
+        String source = object.getPage().getRoot().isShared() ? "Shared" : "Project";
+        toolBar.setTitleSuffix("[" + source + "]");
+    }
+
+    /**
+     * Switches the Properties view between Android and iOS.
+     * The underlying {@link MobileORObject} is updated so the bound table
+     * reflects the selected platform's attribute list.
+     */
+    public void setActivePlatform(MobilePlatform platform) {
+        if (platform == null || platform == this.activePlatform) {
+            return;
+        }
+        this.activePlatform = platform;
+        MobileORObject current = getObject();
+        if (current != null) {
+            current.setActivePlatform(platform);
+            // Re-bind to refresh the table view.
+            table.setModel(current);
+            configureColumns();
+        }
+    }
+
+    public MobilePlatform getActivePlatform() {
+        return activePlatform;
+    }
+
+    private void configureColumns() {
+        if (table.getColumnCount() >= 2) {
+            // Column 0: Attribute - narrow width
+            TableColumn attrCol = table.getColumnModel().getColumn(0);
+            attrCol.setCellRenderer(new PropertyAttributeRenderer());
+            attrCol.setPreferredWidth(100);
+            attrCol.setMinWidth(80);
+            attrCol.setMaxWidth(150);
+
+            // Column 1: Value - takes remaining space
+            TableColumn valueCol = table.getColumnModel().getColumn(1);
+            valueCol.setPreferredWidth(300);
+        }
     }
 
     public void reset() {
         table.setModel(new DefaultTableModel());
+        toolBar.setTitleSuffix("");
     }
 
     @Override
@@ -125,7 +190,7 @@ public class MobileORTable extends JPanel implements ActionListener {
         if (table.getSelectedRows().length > 0) {
             String[] attrs = getSelectedAttrs();
             for (String attr : attrs) {
-                getObject().removeAttribute(attr);
+                getObject().removeAttribute(activePlatform, attr);
             }
         }
     }
@@ -161,17 +226,15 @@ public class MobileORTable extends JPanel implements ActionListener {
         }
     }
 
-    private List<ORObjectInf> getSelectedObjects() {
-        return mobileOR.getObjectTree().getSelectedObjects();
-    }
-
     private void clearFromSelected() {
         if (table.getSelectedRowCount() > 0) {
             String[] attrs = getSelectedAttrs();
-            for (String attr : attrs) {
-                getSelectedObjects().stream().forEach((object) -> {
-                    ((MobileORObject) object).setAttributeByName(attr, "");
-                });
+            for (ORObjectInf object : mobileOR.getSelectedObjectsFromActiveTab()) {
+                for (String attr : attrs) {
+                    if (object instanceof MobileORObject) {
+                        ((MobileORObject) object).setAttributeByName(activePlatform, attr, "");
+                    }
+                }
             }
         }
     }
@@ -195,7 +258,7 @@ public class MobileORTable extends JPanel implements ActionListener {
         for (ObjectGroup<MobileORObject> objectGroup : page.getObjectGroups()) {
             for (MobileORObject object : objectGroup.getObjects()) {
                 for (String attr : attrs) {
-                    object.setAttributeByName(attr, "");
+                    object.setAttributeByName(activePlatform, attr, "");
                 }
             }
         }
@@ -213,11 +276,16 @@ public class MobileORTable extends JPanel implements ActionListener {
     private void removeFromSelected() {
         if (table.getSelectedRowCount() > 0) {
             String[] attrs = getSelectedAttrs();
-            for (String attr : attrs) {
-                getSelectedObjects().stream().forEach((object) -> {
-                    ((MobileORObject) object).removeAttribute(attr);
-                });
+            List<ORObjectInf> selected = mobileOR.getSelectedObjectsFromActiveTab();
+            for (ORObjectInf object : selected) {
+                for (String attr : attrs) {
+                    if (object instanceof MobileORObject) {
+                        ((MobileORObject) object).removeAttribute(activePlatform, attr);
+                    }
+                }
             }
+            mobileOR.getObjectTable().revalidate();
+            mobileOR.getObjectTable().repaint();
         }
     }
 
@@ -231,7 +299,7 @@ public class MobileORTable extends JPanel implements ActionListener {
         for (ObjectGroup<MobileORObject> objectGroup : page.getObjectGroups()) {
             for (MobileORObject object : objectGroup.getObjects()) {
                 for (String attr : attrs) {
-                    object.removeAttribute(attr);
+                    object.removeAttribute(activePlatform, attr);
                 }
             }
         }
@@ -240,11 +308,16 @@ public class MobileORTable extends JPanel implements ActionListener {
     private void addToSelected() {
         if (table.getSelectedRowCount() > 0) {
             String[] attrs = getSelectedAttrs();
-            for (String attr : attrs) {
-                getSelectedObjects().stream().forEach((object) -> {
-                    ((MobileORObject) object).addNewAttribute(attr);
-                });
+            List<ORObjectInf> selected = mobileOR.getSelectedObjectsFromActiveTab();
+            for (ORObjectInf object : selected) {
+                for (String attr : attrs) {
+                    if (object instanceof MobileORObject) {
+                        ((MobileORObject) object).addNewAttribute(activePlatform, attr);
+                    }
+                }
             }
+            mobileOR.getObjectTable().revalidate();
+            mobileOR.getObjectTable().repaint();
         }
     }
 
@@ -267,7 +340,7 @@ public class MobileORTable extends JPanel implements ActionListener {
         for (ObjectGroup<MobileORObject> objectGroup : page.getObjectGroups()) {
             for (MobileORObject object : objectGroup.getObjects()) {
                 for (String attr : attrs) {
-                    object.addNewAttribute(attr);
+                    object.addNewAttribute(activePlatform, attr);
                 }
             }
         }
@@ -284,9 +357,19 @@ public class MobileORTable extends JPanel implements ActionListener {
     private void setPriorityToSelected() {
         stopCellEditing();
         MobileORObject currObj = getObject();
-        getSelectedObjects().stream().forEach((object) -> {
-            reorderAttributes(currObj.getAttributes(), ((MobileORObject) object).getAttributes());
-        });
+        List<ORObjectInf> selected = mobileOR.getSelectedObjectsFromActiveTab();
+        for (ORObjectInf object : selected) {
+            if (object instanceof MobileORObject) {
+                if (currObj != null) {
+                    reorderAttributes(
+                        currObj.getAttributes(activePlatform),
+                        ((MobileORObject) object).getAttributes(activePlatform)
+                    );
+                }
+            }
+        }
+        mobileOR.getObjectTable().revalidate();
+        mobileOR.getObjectTable().repaint();
     }
 
     private void setPriorityToPage() {
@@ -298,7 +381,10 @@ public class MobileORTable extends JPanel implements ActionListener {
     private void setPriorityToPage(MobileORPage page, MobileORObject currObj) {
         for (ObjectGroup<MobileORObject> objectGroup : page.getObjectGroups()) {
             for (MobileORObject object : objectGroup.getObjects()) {
-                reorderAttributes(currObj.getAttributes(), object.getAttributes());
+                reorderAttributes(
+                    currObj.getAttributes(activePlatform),
+                    object.getAttributes(activePlatform)
+                );
             }
         }
     }
@@ -329,24 +415,60 @@ public class MobileORTable extends JPanel implements ActionListener {
     }
 
     class ToolBar extends JToolBar {
+        private JLabel titleLabel;
 
         public ToolBar() {
             init();
-            setBorder(BorderFactory.createEtchedBorder());
+            setBorder(
+                BorderFactory.createMatteBorder(
+                    0,
+                    0,
+                    1,
+                    0,
+                    UIManager.getColor("Separator.foreground")
+                )
+            );
         }
 
         private void init() {
             setLayout(new javax.swing.BoxLayout(this, javax.swing.BoxLayout.X_AXIS));
             setFloatable(false);
+            setOpaque(false);
 
-            add(new javax.swing.Box.Filler(new java.awt.Dimension(10, 0),
+            add(
+                new javax.swing.Box.Filler(
                     new java.awt.Dimension(10, 0),
-                    new java.awt.Dimension(10, 32767)));
-            JLabel label = new JLabel("Properties");
-            label.setFont(new Font("Default", Font.BOLD, 12));
-            add(label);
+                    new java.awt.Dimension(10, 0),
+                    new java.awt.Dimension(10, 32767)
+                )
+            );
+            titleLabel = new JLabel("Properties");
+            titleLabel.setFont(new Font("Default", Font.BOLD, 12));
+            add(titleLabel);
 
-            add(new javax.swing.Box.Filler(new java.awt.Dimension(0, 0), new java.awt.Dimension(0, 0), new java.awt.Dimension(32767, 32767)));
+            add(
+                new javax.swing.Box.Filler(
+                    new java.awt.Dimension(0, 0),
+                    new java.awt.Dimension(0, 0),
+                    new java.awt.Dimension(32767, 32767)
+                )
+            );
+
+            // Platform toggle – choose Android vs iOS attributes view.
+            JToggleButton androidBtn = new JToggleButton("Android", true);
+            JToggleButton iosBtn = new JToggleButton("iOS");
+            androidBtn.setFocusable(false);
+            iosBtn.setFocusable(false);
+            androidBtn.setToolTipText("Show Android object properties");
+            iosBtn.setToolTipText("Show iOS object properties");
+            ButtonGroup platformGroup = new ButtonGroup();
+            platformGroup.add(androidBtn);
+            platformGroup.add(iosBtn);
+            androidBtn.addActionListener(e -> setActivePlatform(MobilePlatform.ANDROID));
+            iosBtn.addActionListener(e -> setActivePlatform(MobilePlatform.IOS));
+            add(androidBtn);
+            add(iosBtn);
+            addSeparator();
 
             add(Utils.createButton("Add Row", "add", "Ctrl+Plus", MobileORTable.this));
             add(Utils.createButton("Delete Rows", "remove", "Ctrl+Minus", MobileORTable.this));
@@ -355,6 +477,9 @@ public class MobileORTable extends JPanel implements ActionListener {
             add(Utils.createButton("Move Rows Down", "down", "Ctrl+Down", MobileORTable.this));
         }
 
+        public void setTitleSuffix(String suffix) {
+            titleLabel.setText("Properties " + suffix);
+        }
     }
 
     class PopupMenu extends JPopupMenu {
@@ -386,6 +511,5 @@ public class MobileORTable extends JPanel implements ActionListener {
             addProp.add(Utils.createMenuItem("Add to Selected", MobileORTable.this));
             add(addProp);
         }
-
     }
 }

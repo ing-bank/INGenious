@@ -1,4 +1,3 @@
-
 package com.ing.ide.main.utils.table;
 
 import java.awt.Component;
@@ -44,8 +43,7 @@ public class TableCheckBoxColumn {
     }
 
     private static void removeOldHeaderMouseListener(JTable table) {
-        for (MouseListener listener
-                : table.getTableHeader().getMouseListeners()) {
+        for (MouseListener listener : table.getTableHeader().getMouseListeners()) {
             if (listener instanceof HeaderMouseListener) {
                 table.getTableHeader().removeMouseListener(listener);
             }
@@ -54,12 +52,10 @@ public class TableCheckBoxColumn {
 }
 
 class HeaderMouseListener extends MouseAdapter {
-
     private JPopupMenu popupMenu;
     int targetColumnIndex;
 
-    public HeaderMouseListener(JPopupMenu popupMenu,
-            int targetColumnIndex) {
+    public HeaderMouseListener(JPopupMenu popupMenu, int targetColumnIndex) {
         this.popupMenu = popupMenu;
         this.targetColumnIndex = targetColumnIndex;
     }
@@ -92,17 +88,20 @@ class HeaderMouseListener extends MouseAdapter {
 
 /**
  *
- * 
+ *
  */
 class HeaderRenderer extends JCheckBox implements TableCellRenderer {
-
     MouseAdapter adapter;
 
     public HeaderRenderer(JTableHeader header, final int targetColumnIndex) {
         this(header, null, targetColumnIndex);
     }
 
-    public HeaderRenderer(JTableHeader header, final JPopupMenu popupMenu, final int targetColumnIndex) {
+    public HeaderRenderer(
+        JTableHeader header,
+        final JPopupMenu popupMenu,
+        final int targetColumnIndex
+    ) {
         super((String) null);
         setOpaque(false);
         setFont(header.getFont());
@@ -110,7 +109,13 @@ class HeaderRenderer extends JCheckBox implements TableCellRenderer {
 
     @Override
     public Component getTableCellRendererComponent(
-            JTable tbl, Object val, boolean isS, boolean hasF, int row, int col) {
+        JTable tbl,
+        Object val,
+        boolean isS,
+        boolean hasF,
+        int row,
+        int col
+    ) {
         if (val instanceof Status) {
             switch ((Status) val) {
                 case SELECTED:
@@ -136,7 +141,7 @@ class HeaderRenderer extends JCheckBox implements TableCellRenderer {
         l.setIcon(new CheckBoxIcon(this));
         l.setText(null);
         l.setHorizontalAlignment(SwingConstants.CENTER);
-//        l.setComponentPopupMenu(popupMenu);
+        //        l.setComponentPopupMenu(popupMenu);
 
         return l;
     }
@@ -146,21 +151,29 @@ class LeftAlignHeaderRenderer implements TableCellRenderer {
 
     @Override
     public Component getTableCellRendererComponent(
-            JTable t, Object v, boolean isS, boolean hasF, int row, int col) {
+        JTable t,
+        Object v,
+        boolean isS,
+        boolean hasF,
+        int row,
+        int col
+    ) {
         TableCellRenderer r = t.getTableHeader().getDefaultRenderer();
         JLabel l = (JLabel) r.getTableCellRendererComponent(t, v, isS, hasF, row, col);
         l.setHorizontalAlignment(SwingConstants.LEFT);
         return l;
     }
 }
+
 //</ins>
 
 enum Status {
-    SELECTED, DESELECTED, INDETERMINATE
+    SELECTED,
+    DESELECTED,
+    INDETERMINATE
 }
 
 class CheckBoxIcon implements Icon {
-
     private final JCheckBox check;
 
     public CheckBoxIcon(JCheckBox check) {
@@ -180,12 +193,18 @@ class CheckBoxIcon implements Icon {
     @Override
     public void paintIcon(Component c, Graphics g, int x, int y) {
         SwingUtilities.paintComponent(
-                g, check, (Container) c, x, y, getIconWidth(), getIconHeight());
+            g,
+            check,
+            (Container) c,
+            x,
+            y,
+            getIconWidth(),
+            getIconHeight()
+        );
     }
 }
 
 class HeaderCheckBoxHandler implements TableModelListener {
-
     private final JTable table;
 
     public HeaderCheckBoxHandler(JTable table) {

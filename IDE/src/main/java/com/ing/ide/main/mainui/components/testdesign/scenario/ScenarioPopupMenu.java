@@ -1,4 +1,3 @@
-
 package com.ing.ide.main.mainui.components.testdesign.scenario;
 
 import com.ing.ide.main.utils.Utils;
@@ -10,10 +9,9 @@ import javax.swing.JPopupMenu;
 
 /**
  *
- * 
+ *
  */
 public class ScenarioPopupMenu extends JPopupMenu {
-
     private final ActionListener actionListener;
     private JMenuItem saveMenuItem;
 
@@ -27,14 +25,22 @@ public class ScenarioPopupMenu extends JPopupMenu {
     }
 
     private void init() {
-        JMenuItem addRowButton = Utils.createMenuItem("Add Component", ""
-                + "Ctrl+Plus to add a component at last"
-                + "<br>"
-                + "Ctrl+I to insert a component before the selected row", Keystroke.ADD_ROWP, actionListener);
+        JMenuItem addRowButton = Utils.createMenuItem(
+            "Add Component",
+            "" +
+            "Ctrl+Plus to add a component at last" +
+            "<br>" +
+            "Ctrl+I to insert a component before the selected row",
+            Keystroke.ADD_ROWP,
+            actionListener
+        );
         add(addRowButton);
-        JMenuItem removeComp = Utils.createMenuItem("Remove Component",
-                "Ctrl+Minus to Remove selected components",
-                Keystroke.REMOVE_ROW, actionListener);
+        JMenuItem removeComp = Utils.createMenuItem(
+            "Remove Component",
+            "Ctrl+Minus to Remove selected components",
+            Keystroke.REMOVE_ROW,
+            actionListener
+        );
         add(removeComp);
         addSeparator();
         add(Utils.createMenuItem("Create Reusable", actionListener));

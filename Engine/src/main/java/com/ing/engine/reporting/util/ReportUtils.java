@@ -1,4 +1,3 @@
-
 package com.ing.engine.reporting.util;
 
 import com.ing.datalib.component.ExecutionStep;
@@ -7,8 +6,8 @@ import com.ing.engine.constants.FilePath;
 import com.ing.engine.core.Control;
 import com.ing.engine.core.RunContext;
 import com.ing.engine.core.RunManager;
-import com.ing.engine.drivers.WebDriverCreation;
 import com.ing.engine.drivers.PlaywrightDriverCreation;
+import com.ing.engine.drivers.WebDriverCreation;
 import java.io.File;
 import java.util.Arrays;
 import java.util.Objects;
@@ -21,11 +20,10 @@ import org.json.simple.JSONObject;
 
 /**
  *
- * 
+ *
  */
-@SuppressWarnings({"unchecked"})
+@SuppressWarnings({ "unchecked" })
 public class ReportUtils {
-
     public static Properties appSett = new Properties();
 
     public static void loadDefaultTheme(JSONObject obj) {
@@ -68,27 +66,28 @@ public class ReportUtils {
         return val;
     }
 
-    public static Boolean takeScreenshot(PlaywrightDriverCreation playwrightdriver,WebDriverCreation mobileDriver, String imgSrc) {
+    public static Boolean takeScreenshot(
+        PlaywrightDriverCreation playwrightdriver,
+        WebDriverCreation mobileDriver,
+        String imgSrc
+    ) {
         try {
-            if(playwrightdriver!=null)
-           {
-            File scrFile = playwrightdriver.createScreenShot();
-            if (scrFile != null) {
-                File imgFile = new File(FilePath.getCurrentResultsPath() + imgSrc);
-                FileUtils.copyFile(scrFile, imgFile, true);
-                scrFile.delete();
-                return true;
-            }
-           }
-            else if(mobileDriver!=null)
-            {
+            if (playwrightdriver != null) {
+                File scrFile = playwrightdriver.createScreenShot();
+                if (scrFile != null) {
+                    File imgFile = new File(FilePath.getCurrentResultsPath() + imgSrc);
+                    FileUtils.copyFile(scrFile, imgFile, true);
+                    scrFile.delete();
+                    return true;
+                }
+            } else if (mobileDriver != null) {
                 File scrFile = mobileDriver.createScreenShot();
-            if (scrFile != null) {
-                File imgFile = new File(FilePath.getCurrentResultsPath() + imgSrc);
-                FileUtils.copyFile(scrFile, imgFile, true);
-                scrFile.delete();
-                return true;
-            }
+                if (scrFile != null) {
+                    File imgFile = new File(FilePath.getCurrentResultsPath() + imgSrc);
+                    FileUtils.copyFile(scrFile, imgFile, true);
+                    scrFile.delete();
+                    return true;
+                }
             }
         } catch (Exception ex) {
             Logger.getLogger(ReportUtils.class.getName()).log(Level.SEVERE, null, ex);
@@ -107,13 +106,15 @@ public class ReportUtils {
             TestSet testSet = Control.exe.getTestSet();
             testSet.loadTableModel();
             for (ExecutionStep step : testSet.getTestSteps()) {
-                if (Boolean.valueOf(step.getExecute())
-                        && runContext.Scenario.equalsIgnoreCase(step.getTestScenarioName())
-                        && runContext.TestCase.equalsIgnoreCase(step.getTestCaseName())
-                        && runContext.Iteration.equalsIgnoreCase(step.getIteration())
-                        && runContext.BrowserName.equalsIgnoreCase(step.getBrowser())
-                        && runContext.BrowserVersionValue.equalsIgnoreCase(step.getBrowserVersion())
-                        && runContext.PlatformValue.equalsIgnoreCase(step.getPlatform())) {
+                if (
+                    Boolean.valueOf(step.getExecute()) &&
+                    runContext.Scenario.equalsIgnoreCase(step.getTestScenarioName()) &&
+                    runContext.TestCase.equalsIgnoreCase(step.getTestCaseName()) &&
+                    runContext.Iteration.equalsIgnoreCase(step.getIteration()) &&
+                    runContext.BrowserName.equalsIgnoreCase(step.getBrowser()) &&
+                    runContext.BrowserVersionValue.equalsIgnoreCase(step.getBrowserVersion()) &&
+                    runContext.PlatformValue.equalsIgnoreCase(step.getPlatform())
+                ) {
                     step.setStatus(status);
                 }
             }
@@ -123,5 +124,4 @@ public class ReportUtils {
             Logger.getLogger(ReportUtils.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
-
 }

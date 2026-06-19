@@ -1,11 +1,20 @@
-
 package com.ing.storywriter.bdd.ui;
 
+import com.ing.storywriter.bdd.data.Story;
+import com.ing.storywriter.bdd.editor.StyledEditor;
+import com.ing.storywriter.util.Notification.Msg;
+import com.ing.storywriter.util.Validator;
 import java.awt.Color;
 import java.awt.Component;
+import java.awt.Font;
+import java.awt.FontFormatException;
+import java.awt.GraphicsEnvironment;
 import java.awt.Image;
 import java.awt.event.KeyEvent;
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -13,26 +22,15 @@ import javax.swing.DefaultListModel;
 import javax.swing.ImageIcon;
 import javax.swing.JPopupMenu;
 import javax.swing.JToolBar;
+import javax.swing.UIManager;
 import javax.swing.border.LineBorder;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
-import com.ing.storywriter.bdd.data.Story;
-import com.ing.storywriter.bdd.editor.StyledEditor;
-import com.ing.storywriter.util.Notification.Msg;
-import com.ing.storywriter.util.Validator;
-import java.awt.Font;
-import java.awt.FontFormatException;
-import java.awt.GraphicsEnvironment;
-import java.io.IOException;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import javax.swing.UIManager;
 
 /**
  *
  */
 public final class UI2 extends javax.swing.JFrame {
-
     private static final long serialVersionUID = 1L;
 
     DefaultListModel<Story> storydata;
@@ -47,7 +45,6 @@ public final class UI2 extends javax.swing.JFrame {
      * @param uic
      */
     public UI2(UIControl uic) {
-
         this.uic = uic;
         storydata = new DefaultListModel();
         initComponents();
@@ -57,29 +54,34 @@ public final class UI2 extends javax.swing.JFrame {
         newProj.setIconImage(img);
         addPop = new JPopupMenu();
         remPopup = new JPopupMenu();
-        textArea = new StyledEditor() {
-            @Override
-            public void onSave() {
-                uic.saveFeature(textArea.getText());
-            }
-        };
+        textArea =
+            new StyledEditor() {
+
+                @Override
+                public void onSave() {
+                    uic.saveFeature(textArea.getText());
+                }
+            };
         editorPanel.add(textArea.setup().getScrollView());
-        npName.getDocument().addDocumentListener(new DocumentListener() {
+        npName
+            .getDocument()
+            .addDocumentListener(
+                new DocumentListener() {
 
-            @Override
-            public void insertUpdate(DocumentEvent de) {
-                validate(npName.getText());
-            }
+                    @Override
+                    public void insertUpdate(DocumentEvent de) {
+                        validate(npName.getText());
+                    }
 
-            @Override
-            public void removeUpdate(DocumentEvent de) {
-                validate(npName.getText());
-            }
+                    @Override
+                    public void removeUpdate(DocumentEvent de) {
+                        validate(npName.getText());
+                    }
 
-            @Override
-            public void changedUpdate(DocumentEvent de) {
-            }
-        });
+                    @Override
+                    public void changedUpdate(DocumentEvent de) {}
+                }
+            );
         featureList.setTransferHandler(uic.featureTransferHandler);
         this.setLocationRelativeTo(null);
         eTools(false);
@@ -160,7 +162,7 @@ public final class UI2 extends javax.swing.JFrame {
     public String getStoryText() {
         return textArea.getText();
     }
-    
+
     private static String sanitizePathTraversal(String filename) {
         Path p = Paths.get(filename);
         return p.getFileName().toString();
@@ -195,16 +197,16 @@ public final class UI2 extends javax.swing.JFrame {
     @SuppressWarnings("unchecked")
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
+        addStory =
+            new javax.swing.JDialog() {
 
-        addStory = new javax.swing.JDialog(){
-
-            public void setVisible(boolean b){
-                if(b){
-                    initiateAddStory();
+                public void setVisible(boolean b) {
+                    if (b) {
+                        initiateAddStory();
+                    }
+                    super.setVisible(b);
                 }
-                super.setVisible(b);
-            }
-        };
+            };
         addFeature_controls = new javax.swing.JPanel();
         jLabel3 = new javax.swing.JLabel();
         jScrollPane1 = new javax.swing.JScrollPane();
@@ -229,7 +231,10 @@ public final class UI2 extends javax.swing.JFrame {
         name = new javax.swing.JLabel();
         try {
             //create the font to use. Specify the size!
-            Font customFont = Font.createFont(Font.TRUETYPE_FONT, new File("resources/fonts/ingme_regular.ttf"));//.deriveFont(12f);
+            Font customFont = Font.createFont(
+                Font.TRUETYPE_FONT,
+                new File("resources/fonts/ingme_regular.ttf")
+            ); //.deriveFont(12f);
             GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
             //register the font
             ge.registerFont(customFont);
@@ -244,7 +249,12 @@ public final class UI2 extends javax.swing.JFrame {
         remStortBtn = new javax.swing.JButton();
         jToolBar5 = new javax.swing.JToolBar();
         jLabel1 = new javax.swing.JLabel();
-        filler1 = new javax.swing.Box.Filler(new java.awt.Dimension(20, 0), new java.awt.Dimension(20, 0), new java.awt.Dimension(20, 110));
+        filler1 =
+            new javax.swing.Box.Filler(
+                new java.awt.Dimension(20, 0),
+                new java.awt.Dimension(20, 0),
+                new java.awt.Dimension(20, 110)
+            );
         newProjBtn = new javax.swing.JButton();
         openProjBtn = new javax.swing.JButton();
         saveProjBtn = new javax.swing.JButton();
@@ -268,7 +278,9 @@ public final class UI2 extends javax.swing.JFrame {
 
         jLabel3.setText("Description :");
 
-        jScrollPane1.setHorizontalScrollBarPolicy(javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+        jScrollPane1.setHorizontalScrollBarPolicy(
+            javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER
+        );
 
         storyName.setColumns(20);
         storyName.setRows(5);
@@ -280,62 +292,125 @@ public final class UI2 extends javax.swing.JFrame {
         storyDesc.setRows(5);
         jScrollPane2.setViewportView(storyDesc);
 
-        javax.swing.GroupLayout addFeature_controlsLayout = new javax.swing.GroupLayout(addFeature_controls);
+        javax.swing.GroupLayout addFeature_controlsLayout = new javax.swing.GroupLayout(
+            addFeature_controls
+        );
         addFeature_controls.setLayout(addFeature_controlsLayout);
         addFeature_controlsLayout.setHorizontalGroup(
-            addFeature_controlsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(addFeature_controlsLayout.createSequentialGroup()
-                .addContainerGap()
-                .addGroup(addFeature_controlsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                    .addComponent(jLabel3)
-                    .addComponent(jLabel2, javax.swing.GroupLayout.PREFERRED_SIZE, 137, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jScrollPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 325, Short.MAX_VALUE)
-                    .addComponent(jScrollPane1))
-                .addContainerGap(65, Short.MAX_VALUE))
+            addFeature_controlsLayout
+                .createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                .addGroup(
+                    addFeature_controlsLayout
+                        .createSequentialGroup()
+                        .addContainerGap()
+                        .addGroup(
+                            addFeature_controlsLayout
+                                .createParallelGroup(
+                                    javax.swing.GroupLayout.Alignment.LEADING,
+                                    false
+                                )
+                                .addComponent(jLabel3)
+                                .addComponent(
+                                    jLabel2,
+                                    javax.swing.GroupLayout.PREFERRED_SIZE,
+                                    137,
+                                    javax.swing.GroupLayout.PREFERRED_SIZE
+                                )
+                                .addComponent(
+                                    jScrollPane2,
+                                    javax.swing.GroupLayout.DEFAULT_SIZE,
+                                    325,
+                                    Short.MAX_VALUE
+                                )
+                                .addComponent(jScrollPane1)
+                        )
+                        .addContainerGap(65, Short.MAX_VALUE)
+                )
         );
         addFeature_controlsLayout.setVerticalGroup(
-            addFeature_controlsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(addFeature_controlsLayout.createSequentialGroup()
-                .addComponent(jLabel2, javax.swing.GroupLayout.PREFERRED_SIZE, 20, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.DEFAULT_SIZE, 28, Short.MAX_VALUE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jLabel3, javax.swing.GroupLayout.PREFERRED_SIZE, 14, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, 38, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(0, 0, 0))
+            addFeature_controlsLayout
+                .createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                .addGroup(
+                    addFeature_controlsLayout
+                        .createSequentialGroup()
+                        .addComponent(
+                            jLabel2,
+                            javax.swing.GroupLayout.PREFERRED_SIZE,
+                            20,
+                            javax.swing.GroupLayout.PREFERRED_SIZE
+                        )
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(
+                            jScrollPane1,
+                            javax.swing.GroupLayout.DEFAULT_SIZE,
+                            28,
+                            Short.MAX_VALUE
+                        )
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(
+                            jLabel3,
+                            javax.swing.GroupLayout.PREFERRED_SIZE,
+                            14,
+                            javax.swing.GroupLayout.PREFERRED_SIZE
+                        )
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(
+                            jScrollPane2,
+                            javax.swing.GroupLayout.PREFERRED_SIZE,
+                            38,
+                            javax.swing.GroupLayout.PREFERRED_SIZE
+                        )
+                        .addGap(0, 0, 0)
+                )
         );
 
         addStory.getContentPane().add(addFeature_controls, java.awt.BorderLayout.NORTH);
 
         upStory.setText("Add");
         upStory.setSelected(true);
-        upStory.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                upStoryActionPerformed(evt);
-            }
-        });
-        upStory.addKeyListener(new java.awt.event.KeyAdapter() {
-            public void keyPressed(java.awt.event.KeyEvent evt) {
-                upStoryKeyPressed(evt);
-            }
-        });
+        upStory.addActionListener(
+            new java.awt.event.ActionListener() {
 
-        javax.swing.GroupLayout addFeature_inputsLayout = new javax.swing.GroupLayout(addFeature_inputs);
+                public void actionPerformed(java.awt.event.ActionEvent evt) {
+                    upStoryActionPerformed(evt);
+                }
+            }
+        );
+        upStory.addKeyListener(
+            new java.awt.event.KeyAdapter() {
+
+                public void keyPressed(java.awt.event.KeyEvent evt) {
+                    upStoryKeyPressed(evt);
+                }
+            }
+        );
+
+        javax.swing.GroupLayout addFeature_inputsLayout = new javax.swing.GroupLayout(
+            addFeature_inputs
+        );
         addFeature_inputs.setLayout(addFeature_inputsLayout);
         addFeature_inputsLayout.setHorizontalGroup(
-            addFeature_inputsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, addFeature_inputsLayout.createSequentialGroup()
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                .addComponent(upStory)
-                .addContainerGap())
+            addFeature_inputsLayout
+                .createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                .addGroup(
+                    javax.swing.GroupLayout.Alignment.TRAILING,
+                    addFeature_inputsLayout
+                        .createSequentialGroup()
+                        .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addComponent(upStory)
+                        .addContainerGap()
+                )
         );
         addFeature_inputsLayout.setVerticalGroup(
-            addFeature_inputsLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(addFeature_inputsLayout.createSequentialGroup()
-                .addContainerGap()
-                .addComponent(upStory)
-                .addContainerGap())
+            addFeature_inputsLayout
+                .createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                .addGroup(
+                    addFeature_inputsLayout
+                        .createSequentialGroup()
+                        .addContainerGap()
+                        .addComponent(upStory)
+                        .addContainerGap()
+                )
         );
 
         addStory.getContentPane().add(addFeature_inputs, java.awt.BorderLayout.SOUTH);
@@ -354,75 +429,137 @@ public final class UI2 extends javax.swing.JFrame {
         jScrollPane3.setViewportView(npDesc);
 
         createP.setText("Create");
-        createP.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                createPActionPerformed(evt);
-            }
-        });
-        createP.addKeyListener(new java.awt.event.KeyAdapter() {
-            public void keyPressed(java.awt.event.KeyEvent evt) {
-                createPKeyPressed(evt);
-            }
-        });
+        createP.addActionListener(
+            new java.awt.event.ActionListener() {
 
-        javax.swing.GroupLayout newProjLayout = new javax.swing.GroupLayout(newProj.getContentPane());
+                public void actionPerformed(java.awt.event.ActionEvent evt) {
+                    createPActionPerformed(evt);
+                }
+            }
+        );
+        createP.addKeyListener(
+            new java.awt.event.KeyAdapter() {
+
+                public void keyPressed(java.awt.event.KeyEvent evt) {
+                    createPKeyPressed(evt);
+                }
+            }
+        );
+
+        javax.swing.GroupLayout newProjLayout = new javax.swing.GroupLayout(
+            newProj.getContentPane()
+        );
         newProj.getContentPane().setLayout(newProjLayout);
         newProjLayout.setHorizontalGroup(
-            newProjLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(newProjLayout.createSequentialGroup()
-                .addGroup(newProjLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
-                    .addComponent(createP)
-                    .addComponent(jScrollPane3, javax.swing.GroupLayout.PREFERRED_SIZE, 264, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addGroup(newProjLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                        .addGroup(newProjLayout.createSequentialGroup()
-                            .addContainerGap()
-                            .addComponent(jLabel5))
-                        .addGroup(newProjLayout.createSequentialGroup()
-                            .addGap(47, 47, 47)
-                            .addComponent(npName, javax.swing.GroupLayout.PREFERRED_SIZE, 263, javax.swing.GroupLayout.PREFERRED_SIZE))
-                        .addGroup(newProjLayout.createSequentialGroup()
-                            .addContainerGap()
-                            .addComponent(jLabel6))))
-                .addContainerGap(38, Short.MAX_VALUE))
+            newProjLayout
+                .createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                .addGroup(
+                    newProjLayout
+                        .createSequentialGroup()
+                        .addGroup(
+                            newProjLayout
+                                .createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING)
+                                .addComponent(createP)
+                                .addComponent(
+                                    jScrollPane3,
+                                    javax.swing.GroupLayout.PREFERRED_SIZE,
+                                    264,
+                                    javax.swing.GroupLayout.PREFERRED_SIZE
+                                )
+                                .addGroup(
+                                    newProjLayout
+                                        .createParallelGroup(
+                                            javax.swing.GroupLayout.Alignment.LEADING
+                                        )
+                                        .addGroup(
+                                            newProjLayout
+                                                .createSequentialGroup()
+                                                .addContainerGap()
+                                                .addComponent(jLabel5)
+                                        )
+                                        .addGroup(
+                                            newProjLayout
+                                                .createSequentialGroup()
+                                                .addGap(47, 47, 47)
+                                                .addComponent(
+                                                    npName,
+                                                    javax.swing.GroupLayout.PREFERRED_SIZE,
+                                                    263,
+                                                    javax.swing.GroupLayout.PREFERRED_SIZE
+                                                )
+                                        )
+                                        .addGroup(
+                                            newProjLayout
+                                                .createSequentialGroup()
+                                                .addContainerGap()
+                                                .addComponent(jLabel6)
+                                        )
+                                )
+                        )
+                        .addContainerGap(38, Short.MAX_VALUE)
+                )
         );
         newProjLayout.setVerticalGroup(
-            newProjLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(newProjLayout.createSequentialGroup()
-                .addGap(0, 0, 0)
-                .addComponent(jLabel5)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(npName, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jLabel6)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(jScrollPane3, javax.swing.GroupLayout.PREFERRED_SIZE, 59, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addComponent(createP)
-                .addContainerGap(31, Short.MAX_VALUE))
+            newProjLayout
+                .createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                .addGroup(
+                    newProjLayout
+                        .createSequentialGroup()
+                        .addGap(0, 0, 0)
+                        .addComponent(jLabel5)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(
+                            npName,
+                            javax.swing.GroupLayout.PREFERRED_SIZE,
+                            javax.swing.GroupLayout.DEFAULT_SIZE,
+                            javax.swing.GroupLayout.PREFERRED_SIZE
+                        )
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(jLabel6)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(
+                            jScrollPane3,
+                            javax.swing.GroupLayout.PREFERRED_SIZE,
+                            59,
+                            javax.swing.GroupLayout.PREFERRED_SIZE
+                        )
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addComponent(createP)
+                        .addContainerGap(31, Short.MAX_VALUE)
+                )
         );
 
         newProj.setLocationRelativeTo(null);
 
         metaCheckStory.setText("Given Stories");
-        metaCheckStory.addChangeListener(new javax.swing.event.ChangeListener() {
-            public void stateChanged(javax.swing.event.ChangeEvent evt) {
-                metaCheckStoryStateChanged(evt);
+        metaCheckStory.addChangeListener(
+            new javax.swing.event.ChangeListener() {
+
+                public void stateChanged(javax.swing.event.ChangeEvent evt) {
+                    metaCheckStoryStateChanged(evt);
+                }
             }
-        });
-        metaCheckStory.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                metaCheckStoryActionPerformed(evt);
+        );
+        metaCheckStory.addActionListener(
+            new java.awt.event.ActionListener() {
+
+                public void actionPerformed(java.awt.event.ActionEvent evt) {
+                    metaCheckStoryActionPerformed(evt);
+                }
             }
-        });
+        );
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setTitle("FeatureEditor");
         setMinimumSize(new java.awt.Dimension(782, 494));
-        addMouseListener(new java.awt.event.MouseAdapter() {
-            public void mouseClicked(java.awt.event.MouseEvent evt) {
-                formMouseClicked(evt);
+        addMouseListener(
+            new java.awt.event.MouseAdapter() {
+
+                public void mouseClicked(java.awt.event.MouseEvent evt) {
+                    formMouseClicked(evt);
+                }
             }
-        });
+        );
         getContentPane().setLayout(new java.awt.GridLayout(1, 0));
 
         featurePanel.setBackground(new java.awt.Color(224, 207, 156));
@@ -435,18 +572,31 @@ public final class UI2 extends javax.swing.JFrame {
         javax.swing.GroupLayout editorHeaderLayout = new javax.swing.GroupLayout(editorHeader);
         editorHeader.setLayout(editorHeaderLayout);
         editorHeaderLayout.setHorizontalGroup(
-            editorHeaderLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(editorHeaderLayout.createSequentialGroup()
-                .addContainerGap(24, Short.MAX_VALUE)
-                .addComponent(name, javax.swing.GroupLayout.PREFERRED_SIZE, 516, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(34, 34, 34))
+            editorHeaderLayout
+                .createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                .addGroup(
+                    editorHeaderLayout
+                        .createSequentialGroup()
+                        .addContainerGap(24, Short.MAX_VALUE)
+                        .addComponent(
+                            name,
+                            javax.swing.GroupLayout.PREFERRED_SIZE,
+                            516,
+                            javax.swing.GroupLayout.PREFERRED_SIZE
+                        )
+                        .addGap(34, 34, 34)
+                )
         );
         editorHeaderLayout.setVerticalGroup(
-            editorHeaderLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(editorHeaderLayout.createSequentialGroup()
-                .addContainerGap()
-                .addComponent(name)
-                .addContainerGap(12, Short.MAX_VALUE))
+            editorHeaderLayout
+                .createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                .addGroup(
+                    editorHeaderLayout
+                        .createSequentialGroup()
+                        .addContainerGap()
+                        .addComponent(name)
+                        .addContainerGap(12, Short.MAX_VALUE)
+                )
         );
 
         editorPanel.setBackground(new java.awt.Color(224, 207, 156));
@@ -456,16 +606,41 @@ public final class UI2 extends javax.swing.JFrame {
         javax.swing.GroupLayout featurePanelLayout = new javax.swing.GroupLayout(featurePanel);
         featurePanel.setLayout(featurePanelLayout);
         featurePanelLayout.setHorizontalGroup(
-            featurePanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(editorHeader, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-            .addComponent(editorPanel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+            featurePanelLayout
+                .createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                .addComponent(
+                    editorHeader,
+                    javax.swing.GroupLayout.DEFAULT_SIZE,
+                    javax.swing.GroupLayout.DEFAULT_SIZE,
+                    Short.MAX_VALUE
+                )
+                .addComponent(
+                    editorPanel,
+                    javax.swing.GroupLayout.DEFAULT_SIZE,
+                    javax.swing.GroupLayout.DEFAULT_SIZE,
+                    Short.MAX_VALUE
+                )
         );
         featurePanelLayout.setVerticalGroup(
-            featurePanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(featurePanelLayout.createSequentialGroup()
-                .addComponent(editorHeader, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(editorPanel, javax.swing.GroupLayout.DEFAULT_SIZE, 440, Short.MAX_VALUE))
+            featurePanelLayout
+                .createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                .addGroup(
+                    featurePanelLayout
+                        .createSequentialGroup()
+                        .addComponent(
+                            editorHeader,
+                            javax.swing.GroupLayout.PREFERRED_SIZE,
+                            javax.swing.GroupLayout.DEFAULT_SIZE,
+                            javax.swing.GroupLayout.PREFERRED_SIZE
+                        )
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(
+                            editorPanel,
+                            javax.swing.GroupLayout.DEFAULT_SIZE,
+                            440,
+                            Short.MAX_VALUE
+                        )
+                )
         );
 
         contentSplit.setRightComponent(featurePanel);
@@ -483,11 +658,14 @@ public final class UI2 extends javax.swing.JFrame {
         addStoryBtn.setFocusable(false);
         addStoryBtn.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
         addStoryBtn.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
-        addStoryBtn.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                addStoryBtnActionPerformed(evt);
+        addStoryBtn.addActionListener(
+            new java.awt.event.ActionListener() {
+
+                public void actionPerformed(java.awt.event.ActionEvent evt) {
+                    addStoryBtnActionPerformed(evt);
+                }
             }
-        });
+        );
         jToolBar1.add(addStoryBtn);
 
         remStortBtn.setIcon(new javax.swing.ImageIcon(getClass().getResource("/rem.png"))); // NOI18N
@@ -495,11 +673,14 @@ public final class UI2 extends javax.swing.JFrame {
         remStortBtn.setFocusable(false);
         remStortBtn.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
         remStortBtn.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
-        remStortBtn.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                remStortBtnActionPerformed(evt);
+        remStortBtn.addActionListener(
+            new java.awt.event.ActionListener() {
+
+                public void actionPerformed(java.awt.event.ActionEvent evt) {
+                    remStortBtnActionPerformed(evt);
+                }
             }
-        });
+        );
         jToolBar1.add(remStortBtn);
 
         storytoolPanel.add(jToolBar1, java.awt.BorderLayout.EAST);
@@ -519,11 +700,14 @@ public final class UI2 extends javax.swing.JFrame {
         newProjBtn.setFocusable(false);
         newProjBtn.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
         newProjBtn.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
-        newProjBtn.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                newProjBtnActionPerformed(evt);
+        newProjBtn.addActionListener(
+            new java.awt.event.ActionListener() {
+
+                public void actionPerformed(java.awt.event.ActionEvent evt) {
+                    newProjBtnActionPerformed(evt);
+                }
             }
-        });
+        );
         jToolBar5.add(newProjBtn);
 
         openProjBtn.setIcon(new javax.swing.ImageIcon(getClass().getResource("/open-project.png"))); // NOI18N
@@ -531,11 +715,14 @@ public final class UI2 extends javax.swing.JFrame {
         openProjBtn.setFocusable(false);
         openProjBtn.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
         openProjBtn.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
-        openProjBtn.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                openProjBtnActionPerformed(evt);
+        openProjBtn.addActionListener(
+            new java.awt.event.ActionListener() {
+
+                public void actionPerformed(java.awt.event.ActionEvent evt) {
+                    openProjBtnActionPerformed(evt);
+                }
             }
-        });
+        );
         jToolBar5.add(openProjBtn);
 
         saveProjBtn.setIcon(new javax.swing.ImageIcon(getClass().getResource("/saveall.png"))); // NOI18N
@@ -543,33 +730,46 @@ public final class UI2 extends javax.swing.JFrame {
         saveProjBtn.setFocusable(false);
         saveProjBtn.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
         saveProjBtn.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
-        saveProjBtn.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                saveProjBtnActionPerformed(evt);
+        saveProjBtn.addActionListener(
+            new java.awt.event.ActionListener() {
+
+                public void actionPerformed(java.awt.event.ActionEvent evt) {
+                    saveProjBtnActionPerformed(evt);
+                }
             }
-        });
+        );
         jToolBar5.add(saveProjBtn);
 
-        importStoryBtn.setIcon(new javax.swing.ImageIcon(getClass().getResource("/001-import.png"))); // NOI18N
+        importStoryBtn.setIcon(
+            new javax.swing.ImageIcon(getClass().getResource("/001-import.png"))
+        ); // NOI18N
         importStoryBtn.setToolTipText("Import  Feature");
         importStoryBtn.setFocusPainted(false);
-        importStoryBtn.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                importStoryBtnActionPerformed(evt);
+        importStoryBtn.addActionListener(
+            new java.awt.event.ActionListener() {
+
+                public void actionPerformed(java.awt.event.ActionEvent evt) {
+                    importStoryBtnActionPerformed(evt);
+                }
             }
-        });
+        );
         jToolBar5.add(importStoryBtn);
 
-        exportStoryBtn.setIcon(new javax.swing.ImageIcon(getClass().getResource("/002-export.png"))); // NOI18N
+        exportStoryBtn.setIcon(
+            new javax.swing.ImageIcon(getClass().getResource("/002-export.png"))
+        ); // NOI18N
         exportStoryBtn.setToolTipText("Export as Feature File");
         exportStoryBtn.setFocusable(false);
         exportStoryBtn.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
         exportStoryBtn.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
-        exportStoryBtn.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                exportStoryBtnActionPerformed(evt);
+        exportStoryBtn.addActionListener(
+            new java.awt.event.ActionListener() {
+
+                public void actionPerformed(java.awt.event.ActionEvent evt) {
+                    exportStoryBtnActionPerformed(evt);
+                }
             }
-        });
+        );
         jToolBar5.add(exportStoryBtn);
 
         storytoolPanel.add(jToolBar5, java.awt.BorderLayout.WEST);
@@ -584,16 +784,22 @@ public final class UI2 extends javax.swing.JFrame {
         sScroll.setBorder(javax.swing.BorderFactory.createEmptyBorder(1, 1, 1, 1));
 
         featureList.setModel(new DefaultListModel<Story>());
-        featureList.addMouseListener(new java.awt.event.MouseAdapter() {
-            public void mousePressed(java.awt.event.MouseEvent evt) {
-                featureListMousePressed(evt);
+        featureList.addMouseListener(
+            new java.awt.event.MouseAdapter() {
+
+                public void mousePressed(java.awt.event.MouseEvent evt) {
+                    featureListMousePressed(evt);
+                }
             }
-        });
-        featureList.addKeyListener(new java.awt.event.KeyAdapter() {
-            public void keyPressed(java.awt.event.KeyEvent evt) {
-                featureListKeyPressed(evt);
+        );
+        featureList.addKeyListener(
+            new java.awt.event.KeyAdapter() {
+
+                public void keyPressed(java.awt.event.KeyEvent evt) {
+                    featureListKeyPressed(evt);
+                }
             }
-        });
+        );
         sScroll.setViewportView(featureList);
         featureList.setCellRenderer(new com.ing.storywriter.bdd.renderer.StoryListRenderer());
 
@@ -606,16 +812,29 @@ public final class UI2 extends javax.swing.JFrame {
         javax.swing.GroupLayout contentPanelLayout = new javax.swing.GroupLayout(contentPanel);
         contentPanel.setLayout(contentPanelLayout);
         contentPanelLayout.setHorizontalGroup(
-            contentPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 829, Short.MAX_VALUE)
-            .addGroup(contentPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                .addComponent(contentSplit, javax.swing.GroupLayout.DEFAULT_SIZE, 829, Short.MAX_VALUE))
+            contentPanelLayout
+                .createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                .addGap(0, 829, Short.MAX_VALUE)
+                .addGroup(
+                    contentPanelLayout
+                        .createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                        .addComponent(
+                            contentSplit,
+                            javax.swing.GroupLayout.DEFAULT_SIZE,
+                            829,
+                            Short.MAX_VALUE
+                        )
+                )
         );
         contentPanelLayout.setVerticalGroup(
-            contentPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 484, Short.MAX_VALUE)
-            .addGroup(contentPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                .addComponent(contentSplit))
+            contentPanelLayout
+                .createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                .addGap(0, 484, Short.MAX_VALUE)
+                .addGroup(
+                    contentPanelLayout
+                        .createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                        .addComponent(contentSplit)
+                )
         );
 
         getContentPane().add(contentPanel);
@@ -623,34 +842,58 @@ public final class UI2 extends javax.swing.JFrame {
         jMenu3.setText("File");
         jMenu3.setFont(UIManager.getFont("Table.font"));
 
-        newProjMenu.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_N, java.awt.event.InputEvent.SHIFT_DOWN_MASK | java.awt.event.InputEvent.CTRL_DOWN_MASK));
+        newProjMenu.setAccelerator(
+            javax.swing.KeyStroke.getKeyStroke(
+                java.awt.event.KeyEvent.VK_N,
+                java.awt.event.InputEvent.SHIFT_DOWN_MASK | java.awt.event.InputEvent.CTRL_DOWN_MASK
+            )
+        );
         newProjMenu.setMnemonic('N');
         newProjMenu.setText("New Project");
-        newProjMenu.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                newProjMenuActionPerformed(evt);
+        newProjMenu.addActionListener(
+            new java.awt.event.ActionListener() {
+
+                public void actionPerformed(java.awt.event.ActionEvent evt) {
+                    newProjMenuActionPerformed(evt);
+                }
             }
-        });
+        );
         jMenu3.add(newProjMenu);
 
-        openProjMenu.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_O, java.awt.event.InputEvent.SHIFT_DOWN_MASK | java.awt.event.InputEvent.CTRL_DOWN_MASK));
+        openProjMenu.setAccelerator(
+            javax.swing.KeyStroke.getKeyStroke(
+                java.awt.event.KeyEvent.VK_O,
+                java.awt.event.InputEvent.SHIFT_DOWN_MASK | java.awt.event.InputEvent.CTRL_DOWN_MASK
+            )
+        );
         openProjMenu.setMnemonic('O');
         openProjMenu.setText("Open Project");
-        openProjMenu.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                openProjMenuActionPerformed(evt);
+        openProjMenu.addActionListener(
+            new java.awt.event.ActionListener() {
+
+                public void actionPerformed(java.awt.event.ActionEvent evt) {
+                    openProjMenuActionPerformed(evt);
+                }
             }
-        });
+        );
         jMenu3.add(openProjMenu);
 
-        saveProjMenu.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_S, java.awt.event.InputEvent.CTRL_DOWN_MASK));
+        saveProjMenu.setAccelerator(
+            javax.swing.KeyStroke.getKeyStroke(
+                java.awt.event.KeyEvent.VK_S,
+                java.awt.event.InputEvent.CTRL_DOWN_MASK
+            )
+        );
         saveProjMenu.setMnemonic('S');
         saveProjMenu.setText("Save");
-        saveProjMenu.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                saveProjMenuActionPerformed(evt);
+        saveProjMenu.addActionListener(
+            new java.awt.event.ActionListener() {
+
+                public void actionPerformed(java.awt.event.ActionEvent evt) {
+                    saveProjMenuActionPerformed(evt);
+                }
             }
-        });
+        );
         jMenu3.add(saveProjMenu);
 
         recentsMenu.setText("Recent Projects");
@@ -661,105 +904,98 @@ public final class UI2 extends javax.swing.JFrame {
         setJMenuBar(jMenuBar2);
 
         pack();
-    }// </editor-fold>//GEN-END:initComponents
+    } // </editor-fold>//GEN-END:initComponents
 
-    private void formMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_formMouseClicked
+    private void formMouseClicked(java.awt.event.MouseEvent evt) {} //GEN-FIRST:event_formMouseClicked //GEN-LAST:event_formMouseClicked
 
-
-    }//GEN-LAST:event_formMouseClicked
-
-    private void remStortBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_remStortBtnActionPerformed
+    private void remStortBtnActionPerformed(java.awt.event.ActionEvent evt) { //GEN-FIRST:event_remStortBtnActionPerformed
         uic.removeStory();
-    }//GEN-LAST:event_remStortBtnActionPerformed
+    } //GEN-LAST:event_remStortBtnActionPerformed
 
-    private void saveProjBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_saveProjBtnActionPerformed
-
+    private void saveProjBtnActionPerformed(java.awt.event.ActionEvent evt) { //GEN-FIRST:event_saveProjBtnActionPerformed
         uic.saveAll();
-    }//GEN-LAST:event_saveProjBtnActionPerformed
+    } //GEN-LAST:event_saveProjBtnActionPerformed
 
-    private void exportStoryBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_exportStoryBtnActionPerformed
+    private void exportStoryBtnActionPerformed(java.awt.event.ActionEvent evt) { //GEN-FIRST:event_exportStoryBtnActionPerformed
         uic.export();
-    }//GEN-LAST:event_exportStoryBtnActionPerformed
+    } //GEN-LAST:event_exportStoryBtnActionPerformed
 
-    private void openProjBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_openProjBtnActionPerformed
+    private void openProjBtnActionPerformed(java.awt.event.ActionEvent evt) { //GEN-FIRST:event_openProjBtnActionPerformed
         uic.openProj();
-    }//GEN-LAST:event_openProjBtnActionPerformed
+    } //GEN-LAST:event_openProjBtnActionPerformed
 
-    private void metaCheckStoryStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_metaCheckStoryStateChanged
+    private void metaCheckStoryStateChanged(javax.swing.event.ChangeEvent evt) { //GEN-FIRST:event_metaCheckStoryStateChanged
+        // addStory.pack();
+    } //GEN-LAST:event_metaCheckStoryStateChanged
 
-// addStory.pack();
-    }//GEN-LAST:event_metaCheckStoryStateChanged
-
-    private void upStoryActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_upStoryActionPerformed
+    private void upStoryActionPerformed(java.awt.event.ActionEvent evt) { //GEN-FIRST:event_upStoryActionPerformed
         uic.addStory();
         addStory.setVisible(false);
-    }//GEN-LAST:event_upStoryActionPerformed
+    } //GEN-LAST:event_upStoryActionPerformed
 
-    private void addStoryBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_addStoryBtnActionPerformed
+    private void addStoryBtnActionPerformed(java.awt.event.ActionEvent evt) { //GEN-FIRST:event_addStoryBtnActionPerformed
         uic.editStory = false;
         addStory.setVisible(true);
-    }//GEN-LAST:event_addStoryBtnActionPerformed
+    } //GEN-LAST:event_addStoryBtnActionPerformed
 
-    private void newProjBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_newProjBtnActionPerformed
+    private void newProjBtnActionPerformed(java.awt.event.ActionEvent evt) { //GEN-FIRST:event_newProjBtnActionPerformed
         npName.setText("");
         npDesc.setText("");
         newProj.setVisible(true);
-    }//GEN-LAST:event_newProjBtnActionPerformed
+    } //GEN-LAST:event_newProjBtnActionPerformed
 
-    private void createPActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_createPActionPerformed
+    private void createPActionPerformed(java.awt.event.ActionEvent evt) { //GEN-FIRST:event_createPActionPerformed
         uic.createNewProject();
         newProj.setVisible(false);
-    }//GEN-LAST:event_createPActionPerformed
+    } //GEN-LAST:event_createPActionPerformed
 
-    private void metaCheckStoryActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_metaCheckStoryActionPerformed
+    private void metaCheckStoryActionPerformed(java.awt.event.ActionEvent evt) {} //GEN-FIRST:event_metaCheckStoryActionPerformed //GEN-LAST:event_metaCheckStoryActionPerformed
 
-    }//GEN-LAST:event_metaCheckStoryActionPerformed
-
-    private void featureListMousePressed(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_featureListMousePressed
+    private void featureListMousePressed(java.awt.event.MouseEvent evt) { //GEN-FIRST:event_featureListMousePressed
         if (evt.isAltDown()) {
             uic.startEdit((Story) featureList.getSelectedValue());
         }
-    }//GEN-LAST:event_featureListMousePressed
+    } //GEN-LAST:event_featureListMousePressed
 
-    private void importStoryBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_importStoryBtnActionPerformed
+    private void importStoryBtnActionPerformed(java.awt.event.ActionEvent evt) { //GEN-FIRST:event_importStoryBtnActionPerformed
         uic.importFeature();
-    }//GEN-LAST:event_importStoryBtnActionPerformed
+    } //GEN-LAST:event_importStoryBtnActionPerformed
 
-    private void featureListKeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_featureListKeyPressed
+    private void featureListKeyPressed(java.awt.event.KeyEvent evt) { //GEN-FIRST:event_featureListKeyPressed
         if (evt.getKeyCode() == KeyEvent.VK_F2) {
             if (featureList.getSelectedValue() != null) {
                 uic.startEdit((Story) featureList.getSelectedValue());
             }
         }
-    }//GEN-LAST:event_featureListKeyPressed
+    } //GEN-LAST:event_featureListKeyPressed
 
-    private void upStoryKeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_upStoryKeyPressed
+    private void upStoryKeyPressed(java.awt.event.KeyEvent evt) { //GEN-FIRST:event_upStoryKeyPressed
         if (evt.getKeyCode() == KeyEvent.VK_ENTER) {
             uic.addStory();
             addStory.setVisible(false);
         }
-    }//GEN-LAST:event_upStoryKeyPressed
+    } //GEN-LAST:event_upStoryKeyPressed
 
-    private void createPKeyPressed(java.awt.event.KeyEvent evt) {//GEN-FIRST:event_createPKeyPressed
+    private void createPKeyPressed(java.awt.event.KeyEvent evt) { //GEN-FIRST:event_createPKeyPressed
         if (evt.getKeyCode() == KeyEvent.VK_ENTER) {
             uic.createNewProject();
             newProj.setVisible(false);
         }
-    }//GEN-LAST:event_createPKeyPressed
+    } //GEN-LAST:event_createPKeyPressed
 
-    private void saveProjMenuActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_saveProjMenuActionPerformed
+    private void saveProjMenuActionPerformed(java.awt.event.ActionEvent evt) { //GEN-FIRST:event_saveProjMenuActionPerformed
         uic.saveAll();
-    }//GEN-LAST:event_saveProjMenuActionPerformed
+    } //GEN-LAST:event_saveProjMenuActionPerformed
 
-    private void openProjMenuActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_openProjMenuActionPerformed
+    private void openProjMenuActionPerformed(java.awt.event.ActionEvent evt) { //GEN-FIRST:event_openProjMenuActionPerformed
         uic.openProj();
-    }//GEN-LAST:event_openProjMenuActionPerformed
+    } //GEN-LAST:event_openProjMenuActionPerformed
 
-    private void newProjMenuActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_newProjMenuActionPerformed
+    private void newProjMenuActionPerformed(java.awt.event.ActionEvent evt) { //GEN-FIRST:event_newProjMenuActionPerformed
         npName.setText("");
         npDesc.setText("");
         newProj.setVisible(true);
-    }//GEN-LAST:event_newProjMenuActionPerformed
+    } //GEN-LAST:event_newProjMenuActionPerformed
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JPanel addFeature_controls;

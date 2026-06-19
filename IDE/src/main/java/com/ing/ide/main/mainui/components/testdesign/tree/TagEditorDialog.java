@@ -1,4 +1,3 @@
-
 package com.ing.ide.main.mainui.components.testdesign.tree;
 
 import com.ing.datalib.model.Tag;
@@ -10,10 +9,9 @@ import javax.swing.JFrame;
 
 /**
  *
- * 
+ *
  */
 public class TagEditorDialog extends javax.swing.JDialog {
-
     /**
      * Creates new form NewJDialog
      *
@@ -23,23 +21,34 @@ public class TagEditorDialog extends javax.swing.JDialog {
      */
     JSList<Tag> jslist;
 
-    public TagEditorDialog(JFrame parent, boolean modal, List<Tag> model, Function<String, Tag> onAdd) {
+    public TagEditorDialog(
+        JFrame parent,
+        boolean modal,
+        List<Tag> model,
+        Function<String, Tag> onAdd
+    ) {
         super(parent, modal);
         initComponents();
         jslist = new JSList(model, t -> ((Tag) t).getValue(), onAdd);
         panel.add(jslist);
     }
+
     public void show(Consumer<List<Tag>> onsel) {
         setOnSelection(onsel);
         setVisible(true);
     }
 
-    public static TagEditorDialog build(JFrame parent, List<Tag> model, 
-            List<Tag> selected, Consumer<Tag> onRemove, Function<String, Tag> onAdd) {
+    public static TagEditorDialog build(
+        JFrame parent,
+        List<Tag> model,
+        List<Tag> selected,
+        Consumer<Tag> onRemove,
+        Function<String, Tag> onAdd
+    ) {
         TagEditorDialog dialog = new TagEditorDialog(parent, true, model, onAdd);
         dialog.jslist.withOnRemove(onRemove);
         dialog.jslist.setSelected(selected);
-        dialog.setLocationRelativeTo(parent); 
+        dialog.setLocationRelativeTo(parent);
         return dialog;
     }
 
@@ -64,7 +73,6 @@ public class TagEditorDialog extends javax.swing.JDialog {
     @SuppressWarnings("unchecked")
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
-
         panel = new javax.swing.JPanel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
@@ -74,19 +82,20 @@ public class TagEditorDialog extends javax.swing.JDialog {
         javax.swing.GroupLayout panelLayout = new javax.swing.GroupLayout(panel);
         panel.setLayout(panelLayout);
         panelLayout.setHorizontalGroup(
-            panelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 302, Short.MAX_VALUE)
+            panelLayout
+                .createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                .addGap(0, 302, Short.MAX_VALUE)
         );
         panelLayout.setVerticalGroup(
-            panelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGap(0, 373, Short.MAX_VALUE)
+            panelLayout
+                .createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                .addGap(0, 373, Short.MAX_VALUE)
         );
 
         getContentPane().add(panel, java.awt.BorderLayout.CENTER);
 
         pack();
-    }// </editor-fold>//GEN-END:initComponents
-
+    } // </editor-fold>//GEN-END:initComponents
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JPanel panel;

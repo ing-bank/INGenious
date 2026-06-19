@@ -1,14 +1,12 @@
-
 package com.ing.ide.main.dashboard.server;
 
 import java.io.File;
 
 /**
  *
- * 
+ *
  */
 public class DashBoardData {
-
     public static final File REPORT = new File("web");
     public static final File DASH_BOARD = new File(REPORT, "dashboard");
     public static final File HAR_COMPARE = new File(DASH_BOARD, "harCompare");

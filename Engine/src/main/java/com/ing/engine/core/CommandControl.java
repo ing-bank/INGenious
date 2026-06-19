@@ -1,45 +1,48 @@
-
 package com.ing.engine.core;
 
 import com.ing.datalib.or.common.ObjectGroup;
 import com.ing.datalib.or.image.ImageORObject;
+import com.ing.datalib.settings.DriverProperties;
 import com.ing.datalib.settings.DriverSettings;
 import com.ing.datalib.util.data.LinkedProperties;
-import com.ing.datalib.settings.DriverProperties;
 import com.ing.engine.drivers.AutomationObject;
-import com.ing.engine.drivers.AutomationObject.FindType;
+import com.ing.engine.drivers.MobileObject;
 import com.ing.engine.drivers.PlaywrightDriverCreation;
+import com.ing.engine.drivers.SAPObject;
+import com.ing.engine.drivers.SAPObject.SAPFindType;
+import com.ing.engine.drivers.SAPSessionCreation;
+import com.ing.engine.drivers.StructuredDataObject;
+//Added For Mobile
+import com.ing.engine.drivers.WebDriverCreation;
 import com.ing.engine.execution.data.DataProcessor;
 import com.ing.engine.execution.data.UserDataAccess;
 import com.ing.engine.execution.exception.UnCaughtException;
 import com.ing.engine.execution.run.TestCaseRunner;
 import com.ing.engine.reporting.TestCaseReport;
-import com.ing.engine.support.Status;
 import com.ing.engine.support.Step;
+import com.ing.ingenious.api.contract.drivers.AutomationObjectApi;
+import com.ing.ingenious.api.contract.drivers.MobileObjectApi;
+import com.ing.ingenious.api.status.Status;
+import com.jacob.com.Dispatch;
 import com.microsoft.playwright.Locator;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Stack;
-
-//Added For Mobile
-import com.ing.engine.drivers.WebDriverCreation;
-import com.ing.engine.drivers.MobileObject;
-import com.ing.engine.drivers.MobileObject.FindmType;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
+import java.util.Stack;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.openqa.selenium.WebElement;
 
 public abstract class CommandControl {
-
     public PlaywrightDriverCreation Playwright;
     public PlaywrightDriverCreation Page;
     public PlaywrightDriverCreation BrowserContext;
     public AutomationObject AObject;
+
     public String Data;
     public String Action;
     public String ObjectName;
@@ -55,85 +58,76 @@ public abstract class CommandControl {
     public UserDataAccess userData;
     private HashMap<String, String> runTimeVars = new HashMap<>();
     private Stack<Locator> runTimeElement = new Stack<>();
-    
+
     public MobileObject MObject;
+    public StructuredDataObject SObject;
     public WebDriverCreation webDriver;
     public WebElement Element;
+    public String structuredData;
 
-    public CommandControl(PlaywrightDriverCreation playwright, PlaywrightDriverCreation page, PlaywrightDriverCreation browserContext ,WebDriverCreation driver,TestCaseReport report) {
+    //For SAPTesting
+    public SAPObject SAPObject;
+    public Dispatch SAPElement;
+    public SAPSessionCreation SAPsession;
+    public Process SAPProcess;
+
+    public CommandControl(
+        PlaywrightDriverCreation playwright,
+        PlaywrightDriverCreation page,
+        PlaywrightDriverCreation browserContext,
+        WebDriverCreation driver,
+        SAPSessionCreation session,
+        TestCaseReport report
+    ) {
         Playwright = playwright;
         BrowserContext = browserContext;
         Page = page;
         webDriver = driver;
-        userData = new UserDataAccess() {
-            @Override
-            public TestCaseRunner context() {
-                return (TestCaseRunner) CommandControl.this.context();
+        SAPsession = session;
+        userData =
+            new UserDataAccess() {
+
+                @Override
+                public TestCaseRunner context() {
+                    return (TestCaseRunner) CommandControl.this.context();
+                }
+            };
+
+        if (webDriver == null && SAPsession == null) {
+            if (Page != null && Page.page != null) {
+                AObject = new AutomationObject(Page.page);
+                SObject = new StructuredDataObject(Page.page);
             }
-        };
-        if(webDriver==null)
-        {
-           AObject = new AutomationObject(Page.page); 
+        } else if (SAPsession != null && SAPsession.session != null) {
+            SAPObject = new SAPObject(SAPsession.session);
+        } else if (webDriver != null && webDriver.driver != null) {
+            MObject = new MobileObject(webDriver.driver);
         }
-        else if(webDriver!=null)
-        {
-           MObject=new MobileObject(webDriver.driver); 
+        // STRUCTUREDDATA actions (JSON/XML path assertions on Webservice responses)
+        // are driver-agnostic. Ensure SObject is always initialized so OR references
+        // can be resolved regardless of execution mode (Playwright, WebDriver, SAP,
+        // or API-only where a WebDriverCreation wrapper exists but no browser was
+        // launched).
+        if (SObject == null) {
+            SObject = new StructuredDataObject();
         }
         Report = (TestCaseReport) report;
-
     }
 
     public void refresh() {
         Data = ObjectName = Condition = Description = Input = Reference = Action = "";
         Locator = null;
         imageObjectGroup = null;
+        //For SAPTesting
+        SAPElement = null;
     }
 
     public void sync(Step curr) throws UnCaughtException {
-        if(webDriver==null)
-        {
         refresh();
-        //AObject.setDriver(seDriver.driver);
         this.Description = curr.Description;
         this.Action = curr.Action;
         this.Input = curr.Input;
         this.Data = curr.Data;
-
-        /********** Updates the Action for NLP_locator****************/
-        AutomationObject.Action = this.Action;
-        /**************************************************************/
-        
-        if (curr.Condition != null && curr.Condition.length() > 0) {
-            this.Condition = curr.Condition;
-        }
-
-        if (curr.ObjectName != null && curr.ObjectName.length() > 0) {
-            this.ObjectName = curr.ObjectName.trim();
-
-            if (!(ObjectName.matches("(?i:app|browser|execute|executeclass)"))) {
-                this.Reference = curr.Reference;
-                if (!curr.Action.startsWith("img")) {
-                    if (canIFindElement()) {
-                        
-                        Locator = AObject.findElement(ObjectName, Reference, FindType.fromString(Condition));
-                        
-                    }
-                }
-            }
-        }
-    }
-         else
-    { 
-       refresh();
-//        mobileObject.setDriver(mobileDriver.driver);
-        this.Description = curr.Description;
-        this.Action = curr.Action;
-        this.Input = curr.Input;
-        this.Data = curr.Data;
-
-        /********** Updates the Action for NLP_locator****************/
-        MobileObject.Action = this.Action;
-        /**************************************************************/
 
         if (curr.Condition != null && curr.Condition.length() > 0) {
             this.Condition = curr.Condition;
@@ -145,90 +139,185 @@ public abstract class CommandControl {
             if (!(ObjectName.matches("(?i:app|browser|execute|executeclass)"))) {
                 this.Reference = curr.Reference;
                 if (!curr.Action.startsWith("img")) {
+                    // Skip object finding for non-SAP actions when in SAP mode
+                    if (SAPsession != null && !isSAPAction()) {
+                        // Non-SAP action in SAP test case - don't try to find SAP objects
+                        // The action handler will proceed without an object
+                        return;
+                    }
+
                     if (canIFindElement()) {
-                        Element = MObject.findElement(ObjectName, Reference, FindmType.fromString(Condition));
+                        if (SObject != null) {
+                            structuredData = SObject.findElement(ObjectName, Reference);
+                        }
+                        if (structuredData != null) {
+                            StructuredDataObject.Action = this.Action;
 
+                            Data = structuredData;
+                        } else if (webDriver == null && AObject != null) {
+                            /********** Updates the Action for NLP_locator****************/
+                            AutomationObject.Action = this.Action;
+                            /**************************************************************/
 
+                            Locator =
+                                AObject.findElement(
+                                    ObjectName,
+                                    Reference,
+                                    AutomationObjectApi.FindType.fromString(Condition)
+                                );
+                        } else if (SAPsession != null && SAPObject != null && isSAPAction()) {
+                            /********** Updates the Action for NLP_locator****************/
+                            SAPObject.Action = this.Action;
+                            /**************************************************************/
+
+                            SAPElement =
+                                SAPObject.findSAPElement(
+                                    ObjectName,
+                                    Reference,
+                                    SAPFindType.fromString(Condition)
+                                );
+                        } else if (webDriver != null && MObject != null) {
+                            /********** Updates the Action for NLP_locator****************/
+                            MobileObject.Action = this.Action;
+                            /**************************************************************/
+
+                            Element =
+                                MObject.findElement(
+                                    ObjectName,
+                                    Reference,
+                                    MobileObjectApi.FindmType.fromString(Condition)
+                                );
+                        }
                     }
                 }
             }
-        } 
+        }
     }
+
+    /**
+     * Checks if the current step requires SAP object finding.
+     * A step is SAP-specific if the ObjectName exists in the SAP Object Repository.
+     *
+     * <p>This is used when in SAP mode (SAPsession != null) to determine whether
+     * to attempt finding a SAP object. If the object doesn't exist in SAP OR,
+     * it's a non-SAP action (General, Database, etc.) and should skip object finding.</p>
+     *
+     * @return true if ObjectName exists in SAP OR, false otherwise
+     */
+    private boolean isSAPAction() {
+        // If no ObjectName, it's not a SAP action
+        if (ObjectName == null || ObjectName.isEmpty()) {
+            return false;
+        }
+
+        // If no Reference (page name), it's not a SAP action
+        if (Reference == null || Reference.isEmpty()) {
+            return false;
+        }
+
+        // Check if this object exists in the SAP Object Repository
+        if (SAPObject != null) {
+            return SAPObject.getSapObject(Reference, ObjectName) != null;
+        }
+
+        return false;
     }
 
     private Boolean canIFindElement() {
-        if(webDriver!=null)
-        {
-        if(webDriver.isAlive())
-        {
-            if (webDriver.getCurrentBrowser().equalsIgnoreCase("ProtractorJS")) {
+        if (webDriver != null) {
+            if (webDriver.isAlive()) {
+                if (webDriver.getCurrentBrowser().equalsIgnoreCase("ProtractorJS")) {
+                    return false;
+                } else {
+                    switch (Action) {
+                        case "waitForElementToBePresent":
+                        case "setObjectProperty":
+                        case "setMobileObjectProperty":
+                        case "setMobileGlobalProperty":
+                            return false;
+                        default:
+                            return true;
+                    }
+                }
+            }
+        } else if (SAPsession != null) {
+            // For SAP, only find objects if it's a SAP action
+            if (!isSAPAction()) {
                 return false;
-            } else {
+            }
+            // Check if we have an ObjectName to find
+            if (ObjectName == null || ObjectName.isEmpty()) {
+                return false;
+            }
+            return true;
+        } else {
+            if (Page != null && Page.isAlive()) {
                 switch (Action) {
                     case "waitForElementToBePresent":
                     case "setObjectProperty":
+                    case "setMobileObjectProperty":
+                    case "setMobileGlobalProperty":
                         return false;
                     default:
                         return true;
                 }
             }
-        }
-        }
-        else
-        {
-        if (Page.isAlive()) {
-                switch (Action) {
-                    case "waitForElementToBePresent":
-                    case "setObjectProperty":
-                        return false;
-                    default:
-                        return true;
-                }
-            
-        }
+            // API / Structured-Data flows have no browser, no SAP session and no
+            // Playwright page, but the test step may still reference a Structured
+            // Data OR object (e.g. JsonPath / XPath assertions on a REST response).
+            // Allow the OR lookup when an SD reference is present so the engine
+            // resolves Object/Reference -> JsonPath/Xpath into `Data` for the
+            // STRUCTUREDDATA actions.
+            if (
+                SObject != null &&
+                ObjectName != null &&
+                !ObjectName.isEmpty() &&
+                Reference != null &&
+                !Reference.isEmpty()
+            ) {
+                return true;
+            }
         }
         return false;
     }
 
-    abstract public void execute(String com, int sub);
+    public abstract void execute(String com, int sub);
 
-    abstract public void executeAction(String Action);
+    public abstract void executeAction(String Action);
 
-    abstract public Object context();
+    public abstract Object context();
 
     public void addVar(String key, String val) {
-
         if (runTimeVars.containsKey(key)) {
             System.err.println("runTimeVars already contains " + key + ".Forcing change to " + val);
             System.out.println("Already contains " + key);
-
         }
         System.out.println("Adding to runTimeVars " + key + ":" + val);
         runTimeVars.put(key, val);
-
     }
-    
-    public String getRuntimeVar(String key) {
 
+    public String getRuntimeVar(String key) {
         if (runTimeVars.containsKey(key)) {
-             return getDynamicValue(key);
+            return getDynamicValue(key);
         }
-        
+
         return null;
     }
-    
-    public String getVar(String key) {
 
+    public String getVar(String key) {
         System.out.println("Getting runTimeVar " + key);
         String val = getDynamicValue(key);
         if (val == null) {
             System.err.println("runTimeVars does not contain " + key + ". Returning Empty");
-            Report.updateTestLog("Get Var", "Getting From runTimeVars " + key + " Failed", Status.WARNING);
+            Report.updateTestLog(
+                "Get Var",
+                "Getting From runTimeVars " + key + " Failed",
+                Status.WARNING
+            );
             return "";
         } else {
             return val;
         }
-
     }
 
     public String getDynamicValue(String key) {
@@ -238,33 +327,41 @@ public abstract class CommandControl {
         }
         return runTimeVars.get(key);
     }
-    
-    public String getDatasheet(String key) {
 
+    public String getDatasheet(String key) {
         System.out.println("Getting Datasheet " + key);
         String val = getDataSheetValue(key);
         if (val == null) {
             System.err.println("Datasheet does not contain " + key + ". Returning Empty");
-            Report.updateTestLog("Get Datasheet", "Getting From Datasheet " + key + " Failed", Status.WARNING);
+            Report.updateTestLog(
+                "Get Datasheet",
+                "Getting From Datasheet " + key + " Failed",
+                Status.WARNING
+            );
             return "";
         } else {
             return val;
         }
     }
-    
-    public String getDataSheetValue(String key){
+
+    public String getDataSheetValue(String key) {
         String val = null;
         key = key.matches("\\{(\\S)+\\}") ? key.substring(1, key.length() - 1) : key;
-        List<String> sheetlist = Control.getCurrentProject().getTestData().getTestDataFor(Control.exe.runEnv())
-                .getTestDataNames();
+        List<String> sheetlist = Control
+            .getCurrentProject()
+            .getTestData()
+            .getTestDataFor(Control.exe.runEnv())
+            .getTestDataNames();
         for (int sheet = 0; sheet < sheetlist.size(); sheet++) {
             if (key.contains(sheetlist.get(sheet) + ":")) {
-                com.ing.datalib.testdata.model.TestDataModel tdModel = Control.getCurrentProject()
-                        .getTestData().getTestDataByName(sheetlist.get(sheet));
+                com.ing.datalib.testdata.model.TestDataModel tdModel = Control
+                    .getCurrentProject()
+                    .getTestData()
+                    .getTestDataByName(sheetlist.get(sheet));
                 List<String> columns = tdModel.getColumns();
                 for (int col = 0; col < columns.size(); col++) {
                     if (key.contains(sheetlist.get(sheet) + ":" + columns.get(col))) {
-                    	val = userData.getData(sheetlist.get(sheet), columns.get(col));
+                        val = userData.getData(sheetlist.get(sheet), columns.get(col));
                     }
                 }
             }
@@ -273,11 +370,16 @@ public abstract class CommandControl {
     }
 
     public String getUserDefinedData(String key) {
-        return Control.getCurrentProject().getProjectSettings().getUserDefinedSettings().getProperty(key);
+        return Control
+            .getCurrentProject()
+            .getProjectSettings()
+            .getUserDefinedSettings()
+            .getProperty(key);
     }
 
     public void putUserDefinedData(String key, String value) {
         Control.getCurrentProject().getProjectSettings().getUserDefinedSettings().put(key, value);
+        Control.getCurrentProject().getProjectSettings().getUserDefinedSettings().save();
     }
 
     public Stack<Locator> getRunTimeElement() {
@@ -293,67 +395,77 @@ public abstract class CommandControl {
         return runTimeVars;
     }
 
-    public String getDBFile(String value){
-        return Control.getCurrentProject().getProjectSettings().getDatabaseSettings().getDBLocation(value);
+    public String getDBFile(String value) {
+        return Control
+            .getCurrentProject()
+            .getProjectSettings()
+            .getDatabaseSettings()
+            .getDBLocation(value);
     }
 
     public Properties getDataBaseProperty(String key) {
-        return Control.getCurrentProject().getProjectSettings().getDatabaseSettings().getDBPropertiesFor(key);
+        return Control
+            .getCurrentProject()
+            .getProjectSettings()
+            .getDatabaseSettings()
+            .getDBPropertiesFor(key);
     }
-    
+
     public Map<String, String> getProxySettings() {
         Map<String, String> systemSettings = new HashMap<>();
         // DriverSettings settings = Control.getCurrentProject().getProjectSettings().getDriverSettings();
-        DriverProperties settings = Control.getCurrentProject().getProjectSettings().getDriverSettings();
-        systemSettings.put("proxySet", "true");            
-        systemSettings.put("http.proxyHost", settings.getProperty("proxyHost"));            
+        DriverProperties settings = Control
+            .getCurrentProject()
+            .getProjectSettings()
+            .getDriverSettings();
+        systemSettings.put("proxySet", "true");
+        systemSettings.put("http.proxyHost", settings.getProperty("proxyHost"));
         systemSettings.put("http.proxyPort", settings.getProperty("proxyPort"));
         systemSettings.put("http.proxyUser", settings.getProperty("proxyUser"));
         systemSettings.put("http.proxyPassword", settings.getProperty("proxyPassword"));
         return systemSettings;
     }
-    
-    public static List<String> smartCommaSplitter(String strInput){
+
+    public static List<String> smartCommaSplitter(String strInput) {
         List<String> result = new ArrayList();
         StringBuilder currentStr = new StringBuilder();
-        
+
         boolean inQuotes = false;
         boolean inBraces = false;
         boolean inPercent = false;
-        
-        for(int i = 0; i < strInput.length(); i++){
+
+        for (int i = 0; i < strInput.length(); i++) {
             char c = strInput.charAt(i);
-            
-            if(c == '%' && !inQuotes && !inBraces){
+
+            if (c == '%' && !inQuotes && !inBraces) {
                 inPercent = !inPercent;
             }
-            
-            if(c == '"' && !inPercent && !inBraces){
+
+            if (c == '"' && !inPercent && !inBraces) {
                 inQuotes = !inQuotes;
             }
-            
-            if(c == '{' && !inQuotes && !inPercent){
+
+            if (c == '{' && !inQuotes && !inPercent) {
                 inBraces = true;
-            } else if(c == '}' && !inQuotes && !inPercent){
+            } else if (c == '}' && !inQuotes && !inPercent) {
                 inBraces = false;
             }
-            
-            if(c == ',' && !inQuotes && !inPercent&& !inBraces){
+
+            if (c == ',' && !inQuotes && !inPercent && !inBraces) {
                 result.add(currentStr.toString());
                 currentStr.setLength(0);
             } else {
                 currentStr.append(c);
             }
         }
-        
+
         if (currentStr.length() > 0) {
             result.add(currentStr.toString());
         }
-        
+
         return result;
     }
-    
-    
+
     /**
      * Detects all runtime variable keys marked with percent signs (%) in the input string
      * and returns them as a set.
@@ -363,11 +475,11 @@ public abstract class CommandControl {
      * @param str the input string to be evaluated
      * @return a set containing all detected runtime variable keys, including the percent signs
      */
-    public static HashSet<String> getAllRuntimeNameVars(String str){
+    public static HashSet<String> getAllRuntimeNameVars(String str) {
         Pattern pattern = Pattern.compile("%(\\S+?)%");
         Matcher matcher = pattern.matcher(str);
         HashSet<String> runtimeVars = new HashSet<>();
-         
+
         int searchStart = 0;
 
         while (searchStart < str.length()) {
@@ -375,7 +487,7 @@ public abstract class CommandControl {
             if (matcher.find()) {
                 int startIndex = matcher.start();
                 int endIndex = matcher.end();
-                
+
                 // Move searchStart past the current match
                 searchStart = matcher.end();
                 runtimeVars.add(str.substring(startIndex, endIndex));
@@ -383,11 +495,10 @@ public abstract class CommandControl {
                 break;
             }
         }
-        
+
         return runtimeVars;
     }
-    
-    
+
     /**
      * Resolves all runtime variables marked with percent signs (%) in the input string,
      * including user-defined variables.
@@ -397,13 +508,42 @@ public abstract class CommandControl {
      * @param str the input string to evaluate; may or may not contain runtime variables
      * @return a string with all detected runtime variables replaced by their resolved values,
      *         or the original string if none are found
-     */ 
+     */
     public String resolveAllRuntimeVars(String str) {
         HashSet<String> keys = getAllRuntimeNameVars(str);
         for (String key : keys) {
             String runtimeValue = getVar(key);
-            str=str.replace(key, runtimeValue);
+            str = str.replace(key, runtimeValue);
         }
         return str;
+    }
+
+    /**
+     * Checks if a runtime or user-defined variable exists.
+     *
+     * <p>This method verifies whether a variable is defined in either the runtime variables map
+     * or the user-defined settings. The key can be provided with or without percent signs.</p>
+     *
+     * <p>Variable resolution order:
+     * <ol>
+     *   <li>Runtime variables (set during test execution via addVar)</li>
+     *   <li>User-defined variables (configured in project settings)</li>
+     * </ol>
+     *
+     * <p>Example usage:
+     * <ul>
+     *   <li>isVarExist("%filePath%") - checks if filePath variable exists</li>
+     *   <li>isVarExist("filePath") - equivalent to above</li>
+     * </ul>
+     *
+     * @param key the variable key to check, with or without percent signs (e.g., "%varName%" or "varName")
+     * @return true if the variable exists and has a non-null value, false otherwise
+     */
+    public boolean isVarExist(String key) {
+        String val = getDynamicValue(key);
+        if (val == null) {
+            return false;
+        }
+        return true;
     }
 }

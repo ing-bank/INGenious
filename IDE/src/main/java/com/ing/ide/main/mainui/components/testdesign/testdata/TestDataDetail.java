@@ -1,4 +1,3 @@
-
 package com.ing.ide.main.mainui.components.testdesign.testdata;
 
 import java.util.ArrayList;
@@ -6,10 +5,9 @@ import java.util.List;
 
 /**
  *
- * 
+ *
  */
 public class TestDataDetail {
-
     private String sheetName;
     private List<String> columnNames = new ArrayList<>();
 

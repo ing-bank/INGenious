@@ -1,4 +1,3 @@
-
 package com.ing.ide.main.shr.image.crop;
 
 import java.awt.AWTException;
@@ -23,7 +22,6 @@ import javax.swing.JFrame;
  *
  */
 public class CropUIController {
-
     static CropUIController ctrlr;
 
     public Cropper cropper;
@@ -110,7 +108,9 @@ public class CropUIController {
 
     public BufferedImage getScreen() {
         cropVisible(false);
-        BufferedImage currimg = robot.createScreenCapture(new Rectangle(0, 0, dim.width, dim.height));
+        BufferedImage currimg = robot.createScreenCapture(
+            new Rectangle(0, 0, dim.width, dim.height)
+        );
         cropVisible(true);
         return currimg;
     }
@@ -131,7 +131,11 @@ public class CropUIController {
         if (img instanceof BufferedImage) {
             return (BufferedImage) img;
         }
-        BufferedImage bimage = new BufferedImage(img.getWidth(null), img.getHeight(null), BufferedImage.TYPE_INT_ARGB);
+        BufferedImage bimage = new BufferedImage(
+            img.getWidth(null),
+            img.getHeight(null),
+            BufferedImage.TYPE_INT_ARGB
+        );
         Graphics2D bGr = bimage.createGraphics();
         bGr.drawImage(img, 0, 0, null);
         bGr.dispose();
@@ -169,5 +173,4 @@ public class CropUIController {
     public void refresh() {
         cropper.repaint();
     }
-
 }

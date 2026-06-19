@@ -1,4 +1,3 @@
-
 package com.ing.ide.main.shr.mobile.android;
 
 import com.ing.ide.main.shr.mobile.MobileTreeNode;
@@ -6,12 +5,11 @@ import com.ing.ide.main.shr.mobile.Rect;
 
 /**
  *
- * 
+ *
  */
 public class AndroidTreeNode extends MobileTreeNode {
 
-    public AndroidTreeNode() {
-    }
+    public AndroidTreeNode() {}
 
     public AndroidTreeNode(String text) {
         setUserObject(text);
@@ -71,5 +69,4 @@ public class AndroidTreeNode extends MobileTreeNode {
         name = getClassName();
         return name.replaceFirst("(android.(widget|view).)?", "") + " " + getAttribute("index");
     }
-
 }

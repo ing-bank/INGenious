@@ -1,12 +1,5 @@
-
 package com.ing.engine.galenWrapper;
 
-import com.ing.engine.galenWrapper.SpecValidation.SpecAttribute;
-import com.ing.engine.galenWrapper.SpecValidation.SpecTitle;
-import com.ing.engine.galenWrapper.SpecValidation.SpecUrl;
-import com.ing.engine.galenWrapper.SpecValidation.SpecValidationAttribute;
-import com.ing.engine.galenWrapper.SpecValidation.SpecValidationTitle;
-import com.ing.engine.galenWrapper.SpecValidation.SpecValidationUrl;
 import com.galenframework.browser.SeleniumBrowser;
 import com.galenframework.page.PageElement;
 import com.galenframework.page.selenium.WebPageElement;
@@ -16,16 +9,21 @@ import com.galenframework.validation.SpecValidation;
 import com.galenframework.validation.ValidationErrorException;
 import com.galenframework.validation.ValidationFactory;
 import com.galenframework.validation.ValidationResult;
+import com.ing.engine.galenWrapper.SpecValidation.SpecAttribute;
+import com.ing.engine.galenWrapper.SpecValidation.SpecTitle;
+import com.ing.engine.galenWrapper.SpecValidation.SpecUrl;
+import com.ing.engine.galenWrapper.SpecValidation.SpecValidationAttribute;
+import com.ing.engine.galenWrapper.SpecValidation.SpecValidationTitle;
+import com.ing.engine.galenWrapper.SpecValidation.SpecValidationUrl;
 import java.util.HashMap;
 import java.util.Map;
 import org.openqa.selenium.WebElement;
 
 /**
  *
- * 
+ *
  */
 public class PageValidationWrapper extends PageValidation {
-
     Map<String, WebElement> elementMap = new HashMap<>();
 
     public PageValidationWrapper(PageWrapper page) {
@@ -57,7 +55,7 @@ public class PageValidationWrapper extends PageValidation {
         return result;
     }
 
-    @SuppressWarnings({"rawtypes", "unchecked"})
+    @SuppressWarnings({ "rawtypes", "unchecked" })
     private ValidationResult check(SpecValidation specValidation, String objectName, Spec spec) {
         try {
             return specValidation.check(this, objectName, spec);
@@ -69,17 +67,24 @@ public class PageValidationWrapper extends PageValidation {
     @Override
     public PageElement findPageElement(String objectName) {
         if (elementMap.get(objectName) != null) {
-            return new WebPageElement(((PageWrapper) getPage()).getDriver(), objectName, elementMap.get(objectName), null);
+            return new WebPageElement(
+                ((PageWrapper) getPage()).getDriver(),
+                objectName,
+                elementMap.get(objectName),
+                null
+            );
         } else {
             return super.findPageElement(objectName);
         }
     }
-
 }
 
 class ValidationFactoryWrapper {
 
-    public static SpecValidation<? extends Spec> getValidation(Spec spec, PageValidation pageValidation) {
+    public static SpecValidation<? extends Spec> getValidation(
+        Spec spec,
+        PageValidation pageValidation
+    ) {
         try {
             return ValidationFactory.getValidation(spec, pageValidation);
         } catch (Exception ex) {

@@ -1,15 +1,14 @@
-
 package com.ing.datalib.settings;
+
+import static org.testng.Assert.assertEquals;
 
 import com.ing.datalib.settings.DriverSettings;
 import java.lang.reflect.Method;
-import static org.testng.Assert.assertEquals;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 public class DriverSettingsTest {
-
     private static boolean isWin;
 
     private DriverSettings ds;
@@ -114,5 +113,4 @@ public class DriverSettingsTest {
         ds.setEdgeDriverPath(path);
         assertEquals(ds.getEdgeDriverPath(), path);
     }
-
 }

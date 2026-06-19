@@ -1,4 +1,3 @@
-
 package com.ing.ide.main.dashboard.server;
 
 import com.ing.ide.main.mainui.AppMainFrame;
@@ -11,10 +10,9 @@ import java.util.logging.Logger;
 
 /**
  *
- * 
+ *
  */
 public class DashBoardManager {
-
     public DashBoardServer server;
 
     AppMainFrame sMainFrame;
@@ -43,17 +41,23 @@ public class DashBoardManager {
             DashBoardData.setProjLocation(sMainFrame.getProject().getLocation());
             HarCompareHandler.init();
         } catch (Exception ex) {
-            Logger.getLogger(DashBoardManager.class.getName()).log(Level.SEVERE, ex.getMessage(), ex);
+            Logger
+                .getLogger(DashBoardManager.class.getName())
+                .log(Level.SEVERE, ex.getMessage(), ex);
         }
     }
 
     public void openHarComapareInBrowser() {
         String add = server().url() + "/dashboard/harCompare/home.html";
-        if (Desktop.isDesktopSupported() && Desktop.getDesktop().isSupported(Desktop.Action.BROWSE)) {
+        if (
+            Desktop.isDesktopSupported() && Desktop.getDesktop().isSupported(Desktop.Action.BROWSE)
+        ) {
             try {
                 Desktop.getDesktop().browse(new URL(add).toURI());
             } catch (URISyntaxException | IOException ex) {
-                Logger.getLogger(DashBoardManager.class.getName()).log(Level.SEVERE, ex.getMessage(), ex);
+                Logger
+                    .getLogger(DashBoardManager.class.getName())
+                    .log(Level.SEVERE, ex.getMessage(), ex);
             }
         }
     }

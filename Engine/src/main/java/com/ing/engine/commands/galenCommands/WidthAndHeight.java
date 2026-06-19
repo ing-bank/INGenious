@@ -1,24 +1,23 @@
-
 package com.ing.engine.commands.galenCommands;
 
-import com.ing.engine.core.CommandControl;
-import com.ing.engine.galenWrapper.SpecValidation.SpecReader;
-import com.ing.engine.support.methodInf.Action;
-import com.ing.engine.support.methodInf.InputType;
-import com.ing.engine.support.methodInf.ObjectType;
 import com.galenframework.specs.SpecHeight;
 import com.galenframework.specs.SpecWidth;
+import com.ing.engine.core.CommandControl;
+import com.ing.engine.galenWrapper.SpecValidation.SpecReader;
+import com.ing.ingenious.api.annotation.Action;
+import com.ing.ingenious.api.types.InputType;
+import com.ing.ingenious.api.types.ObjectType;
 
 /**
  *
- * 
+ *
  */
 public class WidthAndHeight extends General {
 
     public WidthAndHeight(CommandControl cc) {
         super(cc);
     }
-/*
+    /*
     private void assertWidth(RelativeElement rElement) {
         SpecWidth spec = SpecReader.reader().getSpecWidth(rElement, Data, Condition);
         spec.setOriginalText(getMessage("width", rElement));

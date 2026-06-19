@@ -24,7 +24,6 @@ import java.util.logging.Logger;
  *
  */
 public class EnvTestData {
-
     private final Map<String, TestData> environmentTestData = new LinkedHashMap<>();
     private final Project sProject;
     private TestData defData;
@@ -75,8 +74,12 @@ public class EnvTestData {
         loadForEnv(envName);
     }
 
-    public void createNewEnvironment(String envName, String duplicateDataFromEnv,
-            List<String> duplicateSheets, Boolean globalDataAsWell) {
+    public void createNewEnvironment(
+        String envName,
+        String duplicateDataFromEnv,
+        List<String> duplicateSheets,
+        Boolean globalDataAsWell
+    ) {
         loadForEnv(envName);
         TestData newEnvTestData = getTestDataFor(envName);
         TestData dupEnvTestData = getTestDataFor(duplicateDataFromEnv);
@@ -86,7 +89,9 @@ public class EnvTestData {
             }
             for (String duplicateSheet : duplicateSheets) {
                 TestDataModel dupTestDataModel = dupEnvTestData.getByName(duplicateSheet);
-                TestDataModel newTestDataModel = newEnvTestData.addTestData(newEnvTestData.getNewTestData(duplicateSheet));
+                TestDataModel newTestDataModel = newEnvTestData.addTestData(
+                    newEnvTestData.getNewTestData(duplicateSheet)
+                );
                 dupTestDataModel.cloneAs(newTestDataModel);
             }
         }
@@ -117,14 +122,20 @@ public class EnvTestData {
             TestData sTestData = entry.getValue();
             if (!key.equals(envName)) {
                 if (sTestData.getByName(model.getName()) == null) {
-                    TestDataModel newModel = sTestData.addTestData(sTestData.getNewTestData(model.getName()));
+                    TestDataModel newModel = sTestData.addTestData(
+                        sTestData.getNewTestData(model.getName())
+                    );
                     model.cloneAs(newModel);
                 }
             }
         }
     }
 
-    public void duplicateColumnInOtherEnv(String envName, TestDataModel model, List<String> columns) {
+    public void duplicateColumnInOtherEnv(
+        String envName,
+        TestDataModel model,
+        List<String> columns
+    ) {
         for (Map.Entry<String, TestData> entry : environmentTestData.entrySet()) {
             String key = entry.getKey();
             TestData sTestData = entry.getValue();
@@ -150,9 +161,7 @@ public class EnvTestData {
                         tdModel.addRecord();
                         int tdRow = tdModel.getRowCount() - 1;
                         for (int i = 0; i < tdModel.getColumnCount(); i++) {
-                            tdModel.setValueAt(
-                                    model.getValueAt(row, i),
-                                    tdRow, i);
+                            tdModel.setValueAt(model.getValueAt(row, i), tdRow, i);
                         }
                     }
                 }
@@ -207,7 +216,11 @@ public class EnvTestData {
 
     private static void saveProperties(Properties prop, String filename) {
         File file = new File(filename);
-        try (BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file), "ISO_8859_1"))) {
+        try (
+            BufferedWriter bw = new BufferedWriter(
+                new OutputStreamWriter(new FileOutputStream(file), "ISO_8859_1")
+            )
+        ) {
             synchronized (prop) {
                 for (Map.Entry<Object, Object> e : prop.entrySet()) {
                     String key = (String) e.getKey();
@@ -219,7 +232,6 @@ public class EnvTestData {
         } catch (IOException ex) {
             Logger.getLogger(EnvTestData.class.getName()).log(Level.SEVERE, null, ex);
         }
-
     }
 
     private String getEnvironmentsAsString() {
@@ -247,13 +259,21 @@ public class EnvTestData {
         }
     }
 
-    public void refactorTestCase(String scenarioName, String oldTestCaseName, String newTestCaseName) {
+    public void refactorTestCase(
+        String scenarioName,
+        String oldTestCaseName,
+        String newTestCaseName
+    ) {
         for (TestData testData : getAllEnvironments()) {
             testData.refactorTestCase(scenarioName, oldTestCaseName, newTestCaseName);
         }
     }
 
-    public void refactorTestCaseScenario(String testCaseName, String oldScenarioName, String newScenarioName) {
+    public void refactorTestCaseScenario(
+        String testCaseName,
+        String oldScenarioName,
+        String newScenarioName
+    ) {
         for (TestData testData : getAllEnvironments()) {
             testData.refactorTestCaseScenario(testCaseName, oldScenarioName, newScenarioName);
         }
@@ -300,5 +320,4 @@ public class EnvTestData {
         sProject.refactorTestDataColumn(tdName, oldColName, newColName);
         return true;
     }
-
 }

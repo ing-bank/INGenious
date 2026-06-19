@@ -1,12 +1,10 @@
-
 package com.ing.engine.constants;
 
 /**
  *
- * 
+ *
  */
 public final class ObjectProperty {
-
     public static final String Name = "name";
     public static final String Id = "id";
     public static final String ClassName = "class";
@@ -17,4 +15,5 @@ public final class ObjectProperty {
     public static final String Type = "type";
     public static final String UiAutomator = "UiAutomator";
     public static final String Accessibility = "Accessibility";
+    public static final String Text = "Text";
 }

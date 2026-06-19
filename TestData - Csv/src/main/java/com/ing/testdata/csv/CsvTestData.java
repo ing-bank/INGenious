@@ -1,4 +1,3 @@
-
 package com.ing.testdata.csv;
 
 import com.ing.datalib.testdata.model.AbstractDataModel;
@@ -78,5 +77,4 @@ public class CsvTestData extends TestDataModel {
         }
         return true;
     }
-
 }

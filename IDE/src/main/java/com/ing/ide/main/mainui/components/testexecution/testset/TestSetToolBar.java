@@ -1,4 +1,3 @@
-
 package com.ing.ide.main.mainui.components.testexecution.testset;
 
 import com.ing.ide.main.utils.SearchBox;
@@ -7,13 +6,13 @@ import java.awt.event.ActionListener;
 import javax.swing.JButton;
 import javax.swing.JToggleButton;
 import javax.swing.JToolBar;
+import javax.swing.UIManager;
 
 /**
  *
- * 
+ *
  */
 public class TestSetToolBar extends JToolBar {
-
     private final ActionListener actionListener;
 
     private JButton runButton;
@@ -23,7 +22,16 @@ public class TestSetToolBar extends JToolBar {
     public TestSetToolBar(ActionListener tdProxy) {
         this.actionListener = tdProxy;
         setFloatable(false);
-        setBorder(javax.swing.BorderFactory.createEtchedBorder());
+        setOpaque(false);
+        setBorder(
+            javax.swing.BorderFactory.createMatteBorder(
+                0,
+                0,
+                1,
+                0,
+                UIManager.getColor("Separator.foreground")
+            )
+        );
         setLayout(new javax.swing.BoxLayout(this, javax.swing.BoxLayout.X_AXIS));
         init();
     }
@@ -44,14 +52,24 @@ public class TestSetToolBar extends JToolBar {
         add(createToggleButton());
         add(runButton = Utils.createButton("Run", "run", "F6", actionListener));
         addSeparator();
-        JButton addRowButton = Utils.createButton("Add Row", "add", ""
-                + "Ctrl+Plus to add a row at last"
-                + "<br>"
-                + "Ctrl+I to insert a row before the selected row"
-                + "<br>"
-                + "Ctrl+R to replicate the row", actionListener);
+        JButton addRowButton = Utils.createButton(
+            "Add Row",
+            "add",
+            "" +
+            "Ctrl+Plus to add a row at last" +
+            "<br>" +
+            "Ctrl+I to insert a row before the selected row" +
+            "<br>" +
+            "Ctrl+R to replicate the row",
+            actionListener
+        );
         add(addRowButton);
-        JButton removeRow = Utils.createButton("Delete Rows", "remove", "Ctrl+Minus", actionListener);
+        JButton removeRow = Utils.createButton(
+            "Delete Rows",
+            "remove",
+            "Ctrl+Minus",
+            actionListener
+        );
         add(removeRow);
         addSeparator();
         add(Utils.createButton("Move Rows Up", "up", "Ctrl+Up", actionListener));
@@ -59,12 +77,21 @@ public class TestSetToolBar extends JToolBar {
         addSeparator();
         add(saveButton = Utils.createButton("Save", "save", "Ctrl+S", actionListener));
         add(Utils.createButton("Reload", "reload", "F5", actionListener));
-        add(Utils.createButton("Open with System Editor", "openwithsystemeditor", "Ctrl+Alt+O", actionListener));
+        add(
+            Utils.createButton(
+                "Open with System Editor",
+                "openwithsystemeditor",
+                "Ctrl+Alt+O",
+                actionListener
+            )
+        );
         saveButton.setEnabled(false);
     }
 
     private JToggleButton createToggleButton() {
-        JToggleButton console = new JToggleButton(Utils.getIconByResourceName("/ui/resources/toolbar/console"));
+        JToggleButton console = new JToggleButton(
+            Utils.getIconByResourceName("/ui/resources/toolbar/console")
+        );
         console.setActionCommand("Console");
         console.setToolTipText("Show/Hide Console Box");
         console.addActionListener(actionListener);

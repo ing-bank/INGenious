@@ -1,4 +1,3 @@
-
 package com.ing.engine.galenWrapper;
 
 import com.galenframework.parser.ExpectRange;
@@ -12,18 +11,18 @@ import java.util.List;
 
 /**
  *
- * 
+ *
  */
 public class Parser {
 
     public static Range parseRange(String Data) {
-        return Data == null || Data.trim().isEmpty() ? Range.greaterThan(-1)
-                : Expectations.range().read(new StringCharReader(Data));
+        return Data == null || Data.trim().isEmpty()
+            ? Range.greaterThan(-1)
+            : Expectations.range().read(new StringCharReader(Data));
     }
 
     public static Range parseRangePercent(String Data) {
-        return Data == null || Data.trim().isEmpty() ? Range.greaterThan(-1)
-                : getRange(Data);
+        return Data == null || Data.trim().isEmpty() ? Range.greaterThan(-1) : getRange(Data);
     }
 
     private static Range getRange(String Data) {
@@ -33,11 +32,15 @@ public class Parser {
     }
 
     public static List<Location> parseLocation(String Data) {
-        return Data == null || Data.trim().isEmpty() ? new ArrayList<Location>() : Expectations.locations().read(new StringCharReader(Data));
+        return Data == null || Data.trim().isEmpty()
+            ? new ArrayList<Location>()
+            : Expectations.locations().read(new StringCharReader(Data));
     }
 
     public static List<ColorRange> parseColorRanges(String Data) {
-        return Data == null || Data.trim().isEmpty() ? new ArrayList<ColorRange>() : Expectations.colorRanges().read(new StringCharReader(Data));
+        return Data == null || Data.trim().isEmpty()
+            ? new ArrayList<ColorRange>()
+            : Expectations.colorRanges().read(new StringCharReader(Data));
     }
 
     public static int parseInt(String Data) {
@@ -55,5 +58,4 @@ public class Parser {
             return 0;
         }
     }
-
 }

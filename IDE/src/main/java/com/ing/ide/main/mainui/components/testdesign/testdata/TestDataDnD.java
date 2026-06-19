@@ -1,4 +1,3 @@
-
 package com.ing.ide.main.mainui.components.testdesign.testdata;
 
 import com.ing.datalib.testdata.model.TestDataModel;
@@ -19,7 +18,7 @@ import javax.swing.TransferHandler;
 
 /**
  *
- * 
+ *
  */
 public class TestDataDnD extends TransferHandler {
 
@@ -35,16 +34,14 @@ public class TestDataDnD extends TransferHandler {
             TestDataModel tdm = (TestDataModel) table.getModel();
             TestDataDetail td = new TestDataDetail();
             td.setSheetName(tdm.getName());
-            for (int col : table.getSelectedColumns()) {
-                if (col > 3) {
-                    td.getColumnNames().add(table.getColumnName(col));
+            for (int viewCol : table.getSelectedColumns()) {
+                int modelCol = table.convertColumnIndexToModel(viewCol);
+                if (modelCol > 3) {
+                    td.getColumnNames().add(table.getModel().getColumnName(modelCol));
                 }
             }
             return new TransferableNode(td, DataFlavors.TESTDATA_FLAVOR);
         }
         return null;
     }
-    
 }
-
-   

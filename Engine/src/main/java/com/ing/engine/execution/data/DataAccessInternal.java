@@ -1,8 +1,8 @@
-
 package com.ing.engine.execution.data;
 
 import com.ing.datalib.testdata.model.GlobalDataModel;
 import com.ing.datalib.testdata.model.TestDataModel;
+import com.ing.engine.execution.exception.data.DataNotFoundException;
 import com.ing.engine.execution.exception.data.DataNotFoundException.Cause;
 import com.ing.engine.execution.exception.data.TestDataNotFoundException;
 import com.ing.engine.execution.run.TestCaseRunner;
@@ -12,7 +12,7 @@ import java.util.logging.Logger;
 
 /**
  *
- * 
+ *
  */
 public class DataAccessInternal {
 
@@ -27,8 +27,7 @@ public class DataAccessInternal {
      */
     public static Set<String> getIterations(TestCaseRunner context, String sheet) {
         if (validEnv(context)) {
-            return getIter(context, getModel(context, sheet),
-                    getDefModel(context, sheet));
+            return getIter(context, getModel(context, sheet), getDefModel(context, sheet));
         } else {
             return getIter(context, getDefModel(context, sheet));
         }
@@ -51,12 +50,17 @@ public class DataAccessInternal {
         }
     }
 
-    protected static String getDataFromModel(TestDataModel model, String field,
-            String scn, String tc, String iter, String subIter) {
+    protected static String getDataFromModel(
+        TestDataModel model,
+        String field,
+        String scn,
+        String tc,
+        String iter,
+        String subIter
+    ) {
         try {
             if (notNull(model)) {
-                return model.view().withSubIter(scn, tc, iter, subIter)
-                        .getField(field);
+                return model.view().withSubIter(scn, tc, iter, subIter).getField(field);
             }
         } catch (Exception ex) {
             LOG.log(Level.WARNING, ex.getMessage(), ex);
@@ -64,11 +68,20 @@ public class DataAccessInternal {
         return null;
     }
 
-    protected static boolean putDataToModel(TestDataModel model, String field, String newVal,
-            String scn, String tc, String iter, String subIter) {
+    protected static boolean putDataToModel(
+        TestDataModel model,
+        String field,
+        String newVal,
+        String scn,
+        String tc,
+        String iter,
+        String subIter
+    ) {
         try {
-            if (notNull(model) && model.view().withSubIter(scn, tc, iter, subIter, true)
-                    .update(field, newVal)) {
+            if (
+                notNull(model) &&
+                model.view().withSubIter(scn, tc, iter, subIter, true).update(field, newVal)
+            ) {
                 model.saveChanges();
                 return true;
             }
@@ -77,12 +90,23 @@ public class DataAccessInternal {
         }
         return false;
     }
+
     private static final Logger LOG = Logger.getLogger(DataAccessInternal.class.getName());
 
-    protected static boolean putDataToModel(TestDataModel env, TestDataModel def, String field, String newVal,
-            String scn, String tc, String iter, String subIter) {
-        return putDataToModel(env, field, newVal, scn, tc, iter, subIter)
-                || putDataToModel(def, field, newVal, scn, tc, iter, subIter);
+    protected static boolean putDataToModel(
+        TestDataModel env,
+        TestDataModel def,
+        String field,
+        String newVal,
+        String scn,
+        String tc,
+        String iter,
+        String subIter
+    ) {
+        return (
+            putDataToModel(env, field, newVal, scn, tc, iter, subIter) ||
+            putDataToModel(def, field, newVal, scn, tc, iter, subIter)
+        );
     }
 
     /**
@@ -94,8 +118,12 @@ public class DataAccessInternal {
      * @param field the column/field name
      * @return the data value
      */
-    protected static Object getGlobal(GlobalDataModel env, GlobalDataModel def,
-            String gid, String field) {
+    protected static Object getGlobal(
+        GlobalDataModel env,
+        GlobalDataModel def,
+        String gid,
+        String field
+    ) {
         Object val = getGlobal(env, gid, field);
         if (isNull(val)) {
             val = getGlobal(def, gid, field);
@@ -128,8 +156,11 @@ public class DataAccessInternal {
      * @param env environment data model
      * @return the iteration set
      */
-    protected static Set<String> getIter(TestCaseRunner context,
-            TestDataModel env, TestDataModel def) {
+    protected static Set<String> getIter(
+        TestCaseRunner context,
+        TestDataModel env,
+        TestDataModel def
+    ) {
         Set<String> val = getIterForRootTestCase(env, context, def);
         if (isNullOrEmpty(val)) {
             val = getIterForReusable(env, context, def);
@@ -137,16 +168,25 @@ public class DataAccessInternal {
         return val;
     }
 
-    private static Set<String> getIterForRootTestCase(TestDataModel env,
-            TestCaseRunner context, TestDataModel def) {
+    private static Set<String> getIterForRootTestCase(
+        TestDataModel env,
+        TestCaseRunner context,
+        TestDataModel def
+    ) {
         Set<String> val = null;
         if (notNull(env)) {
-            val = env.view().withTestcase(context.getRoot().scenario(),
-                    context.getRoot().testcase()).getIterations();
+            val =
+                env
+                    .view()
+                    .withTestcase(context.getRoot().scenario(), context.getRoot().testcase())
+                    .getIterations();
         }
         if (isNullOrEmpty(val) && notNull(def)) {
-            val = def.view().withTestcase(context.getRoot().scenario(),
-                    context.getRoot().testcase()).getIterations();
+            val =
+                def
+                    .view()
+                    .withTestcase(context.getRoot().scenario(), context.getRoot().testcase())
+                    .getIterations();
         }
         return val;
     }
@@ -155,16 +195,17 @@ public class DataAccessInternal {
         return isNull(val) || val.isEmpty();
     }
 
-    private static Set<String> getIterForReusable(TestDataModel env,
-            TestCaseRunner context, TestDataModel def) {
+    private static Set<String> getIterForReusable(
+        TestDataModel env,
+        TestCaseRunner context,
+        TestDataModel def
+    ) {
         Set<String> val = null;
         if (notNull(env)) {
-            val = env.view().withTestcase(context.scenario(),
-                    context.testcase()).getIterations();
+            val = env.view().withTestcase(context.scenario(), context.testcase()).getIterations();
         }
         if (isNullOrEmpty(val) && notNull(def)) {
-            val = def.view().withTestcase(context.scenario(),
-                    context.testcase()).getIterations();
+            val = def.view().withTestcase(context.scenario(), context.testcase()).getIterations();
         }
         return val;
     }
@@ -178,10 +219,13 @@ public class DataAccessInternal {
      */
     protected static Set<String> getIter(TestCaseRunner context, TestDataModel def) {
         if (notNull(def)) {
-            Set<String> val = def.view().withTestcase(context.getRoot().scenario(),
-                    context.getRoot().testcase()).getIterations();
+            Set<String> val = def
+                .view()
+                .withTestcase(context.getRoot().scenario(), context.getRoot().testcase())
+                .getIterations();
             if (isNullOrEmpty(val)) {
-                val = def.view().withTestcase(context.scenario(), context.testcase()).getIterations();
+                val =
+                    def.view().withTestcase(context.scenario(), context.testcase()).getIterations();
             }
             return val;
         }
@@ -198,7 +242,11 @@ public class DataAccessInternal {
      * @param env environment data model
      * @return the sub iteration set
      */
-    protected static Set<String> getSubIter(TestCaseRunner context, TestDataModel env, TestDataModel def) {
+    protected static Set<String> getSubIter(
+        TestCaseRunner context,
+        TestDataModel env,
+        TestDataModel def
+    ) {
         Set<String> val = getSubIterForRootTestCase(env, context, def);
         if (isNullOrEmpty(val)) {
             val = getSubIterForReusable(env, context, def);
@@ -206,28 +254,56 @@ public class DataAccessInternal {
         return val;
     }
 
-    private static Set<String> getSubIterForRootTestCase(TestDataModel env, TestCaseRunner context, TestDataModel def) {
+    private static Set<String> getSubIterForRootTestCase(
+        TestDataModel env,
+        TestCaseRunner context,
+        TestDataModel def
+    ) {
         Set<String> val = null;
         if (notNull(env)) {
-            val = env.view().withIter(context.getRoot().scenario(), context.getRoot().testcase(), context.iteration())
+            val =
+                env
+                    .view()
+                    .withIter(
+                        context.getRoot().scenario(),
+                        context.getRoot().testcase(),
+                        context.iteration()
+                    )
                     .getSubIterations();
         }
         if (isNullOrEmpty(val) && notNull(def)) {
-            val = def.view().withIter(context.getRoot().scenario(), context.getRoot().testcase(), context.iteration())
+            val =
+                def
+                    .view()
+                    .withIter(
+                        context.getRoot().scenario(),
+                        context.getRoot().testcase(),
+                        context.iteration()
+                    )
                     .getSubIterations();
         }
         return val;
     }
 
-    private static Set<String> getSubIterForReusable(TestDataModel env, TestCaseRunner context, TestDataModel def) {
+    private static Set<String> getSubIterForReusable(
+        TestDataModel env,
+        TestCaseRunner context,
+        TestDataModel def
+    ) {
         Set<String> val = null;
         if (notNull(env)) {
-            val = env.view().withIter(context.scenario(), context.testcase(),
-                    context.iteration()).getSubIterations();
+            val =
+                env
+                    .view()
+                    .withIter(context.scenario(), context.testcase(), context.iteration())
+                    .getSubIterations();
         }
         if (isNullOrEmpty(val) && notNull(def)) {
-            val = def.view().withIter(context.scenario(), context.testcase(),
-                    context.iteration()).getSubIterations();
+            val =
+                def
+                    .view()
+                    .withIter(context.scenario(), context.testcase(), context.iteration())
+                    .getSubIterations();
         }
         return val;
     }
@@ -242,11 +318,18 @@ public class DataAccessInternal {
      */
     protected static Set<String> getSubIter(TestCaseRunner context, TestDataModel def) {
         if (notNull(def)) {
-            Set<String> val = def.view()
-                    .withIter(context.getRoot().scenario(), context.getRoot().testcase(), context.iteration())
-                    .getSubIterations();
+            Set<String> val = def
+                .view()
+                .withIter(
+                    context.getRoot().scenario(),
+                    context.getRoot().testcase(),
+                    context.iteration()
+                )
+                .getSubIterations();
             if (isNullOrEmpty(val)) {
-                val = def.view()
+                val =
+                    def
+                        .view()
                         .withIter(context.scenario(), context.testcase(), context.iteration())
                         .getSubIterations();
             }
@@ -266,16 +349,32 @@ public class DataAccessInternal {
      * @param subIter sub-iteration no
      * @throws TestDataNotFoundException detailed exception with cause
      */
-    protected static void throwErrorWithCause(TestCaseRunner context,
-            String sheet, String field, String subIter) throws TestDataNotFoundException {
+    protected static void throwErrorWithCause(
+        TestCaseRunner context,
+        String sheet,
+        String field,
+        String subIter
+    )
+        throws TestDataNotFoundException, DataNotFoundException {
         Set<String> iterSet = getIterations(context, sheet);
         if (isNull(iterSet) || !iterSet.contains(context.iteration())) {
-            throw new TestDataNotFoundException(context, sheet, field, Cause.Iteration, context.iteration());
+            throw new TestDataNotFoundException(
+                context,
+                sheet,
+                field,
+                Cause.Iteration,
+                context.iteration()
+            );
         } else {
             Set<String> subIterSet = getSubIterations(context, sheet);
             if (isNull(subIterSet) || !subIterSet.contains(subIter)) {
-                throw new TestDataNotFoundException(context, sheet, field, Cause.SubIteration,
-                        String.format("%s:%s", context.iteration(), subIter));
+                DataNotFoundException dnfe = new DataNotFoundException(
+                    "Reached the end of data sheet."
+                );
+                DataNotFoundException.CauseInfo causeInfo =
+                    dnfe.new CauseInfo(Cause.EndOfDataSheet, "Reached the end of data sheet.");
+                dnfe.cause = causeInfo;
+                throw dnfe;
             } else {
                 throw new TestDataNotFoundException(context, sheet, field, Cause.Data, field);
             }
@@ -283,8 +382,11 @@ public class DataAccessInternal {
     }
 
     protected static TestDataModel getModel(TestCaseRunner context, String sheet) {
-        return context.executor().dataProvider().getTestDataFor(
-                context.executor().runEnv()).getByName(sheet);
+        return context
+            .executor()
+            .dataProvider()
+            .getTestDataFor(context.executor().runEnv())
+            .getByName(sheet);
     }
 
     protected static TestDataModel getDefModel(TestCaseRunner context, String sheet) {
@@ -292,8 +394,14 @@ public class DataAccessInternal {
     }
 
     protected static boolean validEnv(TestCaseRunner context) {
-        return !context.executor().dataProvider().defEnv().equals(context.executor().runEnv())
-                && context.executor().dataProvider().getEnvironments().contains(context.executor().runEnv());
+        return (
+            !context.executor().dataProvider().defEnv().equals(context.executor().runEnv()) &&
+            context
+                .executor()
+                .dataProvider()
+                .getEnvironments()
+                .contains(context.executor().runEnv())
+        );
     }
 
     public static boolean notNull(Object ins) {

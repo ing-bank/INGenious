@@ -1,0 +1,92 @@
+/**
+ * INGenious Modern Report - Sky Theme
+ * Blue/Cyan accent color scheme
+ * Version: 1.0.0
+ */
+
+[data-theme="sky"],
+[data-accent="sky"] {
+  /* Primary Palette - Sky/Cyan */
+  --color-primary: 14 165 233; /* Sky-500 */
+  --color-primary-50: 240 249 255;
+  --color-primary-100: 224 242 254;
+  --color-primary-200: 186 230 253;
+  --color-primary-300: 125 211 252;
+  --color-primary-400: 56 189 248;
+  --color-primary-500: 14 165 233;
+  --color-primary-600: 2 132 199;
+  --color-primary-700: 3 105 161;
+  --color-primary-800: 7 89 133;
+  --color-primary-900: 12 74 110;
+  --color-primary-dark: 2 132 199;
+  --color-primary-light: 125 211 252;
+
+  /* Gradient adjustments */
+  --gradient-primary: linear-gradient(135deg, rgb(14 165 233) 0%, rgb(56 189 248) 100%);
+
+  /* Focus ring */
+  --tw-ring-color: rgb(14 165 233 / 0.3);
+}
+
+/* Sky theme header accent */
+[data-theme="sky"] .app-header,
+[data-accent="sky"] .app-header {
+  border-bottom-color: rgb(var(--color-primary));
+  border-bottom-width: 2px;
+}
+
+/* Sky theme stat card accents */
+[data-theme="sky"] .stat-card--info::before,
+[data-accent="sky"] .stat-card--info::before {
+  background: linear-gradient(to right, rgb(14 165 233), rgb(125 211 252));
+}
+
+/* Button primary color */
+[data-theme="sky"] .btn--primary,
+[data-accent="sky"] .btn--primary {
+  background-color: rgb(14 165 233);
+}
+
+[data-theme="sky"] .btn--primary:hover,
+[data-accent="sky"] .btn--primary:hover {
+  background-color: rgb(2 132 199);
+}
+
+/* Active tab indicator */
+[data-theme="sky"] .tabs--underline .tabs__tab[aria-selected="true"]::after,
+[data-accent="sky"] .tabs--underline .tabs__tab[aria-selected="true"]::after {
+  background-color: rgb(14 165 233);
+}
+
+[data-theme="sky"] .tabs--underline .tabs__tab[aria-selected="true"],
+[data-accent="sky"] .tabs--underline .tabs__tab[aria-selected="true"] {
+  color: rgb(14 165 233);
+}
+
+/* Links */
+[data-theme="sky"] a:hover,
+[data-accent="sky"] a:hover {
+  color: rgb(14 165 233);
+}
+
+/* Focus states */
+[data-theme="sky"] .search-input__field:focus,
+[data-accent="sky"] .search-input__field:focus {
+  border-color: rgb(14 165 233);
+  box-shadow: 0 0 0 3px rgba(14, 165, 233, 0.1);
+}
+
+/* Filter pill active */
+[data-theme="sky"] .filter-pill[aria-pressed="true"],
+[data-theme="sky"] .filter-pill--active,
+[data-accent="sky"] .filter-pill[aria-pressed="true"],
+[data-accent="sky"] .filter-pill--active {
+  background-color: rgb(14 165 233);
+  border-color: rgb(14 165 233);
+}
+
+/* Progress bar info variant */
+[data-theme="sky"] .progress-bar__fill--info,
+[data-accent="sky"] .progress-bar__fill--info {
+  background: linear-gradient(90deg, rgb(14 165 233) 0%, rgb(56 189 248) 100%);
+}

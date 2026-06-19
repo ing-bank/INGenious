@@ -1,0 +1,39 @@
+page: swaglabsmobileapp
+scope: PROJECT
+elements:
+  Username:
+    accessibility: test-Username
+  Password:
+    accessibility: test-Password
+  Login Button:
+    accessibility: test-LOGIN
+  ADD TO CART:
+    xpath: "(//*[@content-desc='test-ADD TO CART'])[1] | (//*[@name=\"test-ADD TO\
+      \ CART\"])[1]"
+  Cart1:
+    xpath: "(//*[@name=\"1\"])[4] | //android.view.ViewGroup[@content-desc=\"test-Cart\"\
+      ]/android.view.ViewGroup/android.widget.ImageView | (//XCUIElementTypeOther[@name=\"\
+      1\"])[4]"
+  CHECKOUT:
+    xpath: "//*[@name=\"test-CHECKOUT\"] | //*[@content-desc=\"test-CHECKOUT\"]"
+  First Name:
+    xpath: "//*[@content-desc='test-First Name'] | //*[@name=\"test-First Name\"]"
+  Last Name:
+    xpath: "//*[@content-desc='test-Last Name'] | //*[@name=\"test-Last Name\"]"
+  ZipPostal Code:
+    xpath: "//*[@content-desc='test-Zip/Postal Code'] | //*[@name=\"test-Zip/Postal\
+      \ Code\"]"
+  CONTINUE:
+    xpath: "//*[@name=\"test-CONTINUE\"] | //*[@content-desc=\"test-CONTINUE\"]"
+  Sauce Labs Backpack:
+    xpath: "//*[@name=\"Sauce Labs Backpack\"] | //*[@text=\"Sauce Labs Backpack\"\
+      ]"
+  Amount:
+    xpath: "//*[@name=\"$29.99\"] | //*[@text=\"$29.99\"]"
+  FINISH:
+    xpath: "//*[@content-desc='test-FINISH'] | //*[@name=\"test-FINISH\"]"
+  Success Message:
+    xpath: "//*[@text=\"THANK YOU FOR YOU ORDER\"] | //*[@name=\"THANK YOU FOR YOU\
+      \ ORDER\"] "
+  Cart1_iOS:
+    xpath: "(//XCUIElementTypeOther[@name=\"1\"])[4]"

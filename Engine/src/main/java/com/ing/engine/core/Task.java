@@ -1,33 +1,34 @@
 package com.ing.engine.core;
 
+import static com.ing.engine.commands.browser.Command.faker;
+
 import com.github.javafaker.Faker;
 import com.ing.datalib.component.Project;
 import com.ing.datalib.component.Scenario;
 import com.ing.datalib.component.TestCase;
 import com.ing.datalib.settings.RunSettings;
-import static com.ing.engine.commands.browser.Command.faker;
 import com.ing.engine.constants.SystemDefaults;
 import com.ing.engine.drivers.PlaywrightDriverCreation;
+import com.ing.engine.drivers.SAPSessionCreation;
+import com.ing.engine.drivers.WebDriverCreation;
 import com.ing.engine.execution.data.Parameter;
 import com.ing.engine.execution.data.UserDataAccess;
 import com.ing.engine.execution.exception.DriverClosedException;
 import com.ing.engine.execution.exception.TestFailedException;
 import com.ing.engine.execution.exception.UnCaughtException;
+import com.ing.engine.execution.exception.data.DataNotFoundException;
 import com.ing.engine.execution.run.TestCaseRunner;
 import com.ing.engine.reporting.TestCaseReport;
 import com.ing.engine.reporting.util.DateTimeUtils;
-import com.ing.engine.support.Status;
-
+import com.ing.ingenious.api.status.Status;
+import java.io.UnsupportedEncodingException;
 import java.util.Date;
+import java.util.Locale;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
-import com.ing.engine.drivers.WebDriverCreation;
-import java.util.Locale;
 import org.openqa.selenium.JavascriptExecutor;
 
 public class Task implements Runnable {
-
     TestCaseReport report;
     RunContext runContext;
     PlaywrightDriverCreation playwrightDriver;
@@ -35,6 +36,7 @@ public class Task implements Runnable {
     UserDataAccess userData;
     TestCaseRunner runner;
     WebDriverCreation webDriver;
+    SAPSessionCreation session;
 
     public Task(RunContext RC) {
         runContext = RC;
@@ -56,10 +58,10 @@ public class Task implements Runnable {
         if (stc != null) {
             runner = new TestCaseRunner(Control.exe, stc);
         } else {
-            runner = new TestCaseRunner(Control.exe, runContext.Scenario,
-                    runContext.TestCase);
+            runner = new TestCaseRunner(Control.exe, runContext.Scenario, runContext.TestCase);
         }
         report.createReport(runContext, DateTimeUtils.DateTimeNow());
+
         int iter = 1;
         Date startexecDate = new Date();
         if (RunManager.getGlobalSettings().isTestRun()) {
@@ -71,9 +73,8 @@ public class Task implements Runnable {
 
         while (!SystemDefaults.stopExecution.get() && iter <= runner.getMaxIter()) {
             try {
-                System.out.println("👉 Running Iteration " + iter);
                 runIteration(iter++);
-                if (isPlaywrightExecution()) {
+                if (isPlaywrightExecution() && isLocalExecution()) {
                     closePlaywrightInstance(iter - 1);
                 }
             } catch (Exception ex) {
@@ -84,6 +85,13 @@ public class Task implements Runnable {
 
         if (report != null) {
             Status s = report.finalizeReport();
+            //setLambdaTags();
+            if (!isLocalExecution()) {
+                if (s.toString().equals("PASS")) setLambdaStatus(
+                    "passed",
+                    ""
+                ); else setLambdaStatus("failed", "");
+            }
             Control.ReportManager.startDate = startexecDate;
             Control.ReportManager.endDate = endEexcDate;
             Control.ReportManager.updateTestCaseResults(runContext, report, s, runTime.timeRun());
@@ -97,37 +105,48 @@ public class Task implements Runnable {
             playwrightDriver.closeBrowser();
             playwrightDriver.playwright.close();
         }
-        String closureConfirmationText = "Playwright instance with [" + browserName + "] has been closed for Iteration : " + iter;
-        System.out.println("\n");
-        for (int i = 0; i < closureConfirmationText.length() + 7; i++) {
-            System.out.print("-");
-        }
-        System.out.println();
-        System.out.println("| " + closureConfirmationText + " |");
-        for (int i = 0; i < closureConfirmationText.length() + 7; i++) {
-            System.out.print("-");
-        }
-        System.out.println("\n");
+        System.out.println("Playwright [" + browserName + "] closed for Iteration " + iter);
     }
 
     private TestCase getTestCase() {
         try {
             Scenario scn = project().getScenarioByName(runContext.Scenario);
-            if (scn != null) {
-                TestCase stc = scn.getTestCaseByName(runContext.TestCase);
-                if (stc != null) {
-                    return stc;
-                } else {
-                    LOG.log(Level.WARNING, "Testcase [{0}] not found", runContext.Scenario);
-                }
-            } else {
+            if (scn == null) {
                 LOG.log(Level.WARNING, "Scenario [{0}] not found", runContext.Scenario);
+                return null;
             }
+
+            TestCase stc = scn.getTestCaseByName(runContext.TestCase);
+            if (stc == null) {
+                // Try reusable scenario as fallback
+                Scenario scnR = project().getReusableScenarioByName(runContext.Scenario);
+                if (scnR == null) {
+                    LOG.log(
+                        Level.WARNING,
+                        "Reusable scenario [{0}] not found",
+                        runContext.Scenario
+                    );
+                    return null;
+                }
+
+                TestCase stcR = scnR.getTestCaseByName(runContext.TestCase);
+                if (stcR == null) {
+                    LOG.log(
+                        Level.WARNING,
+                        "Testcase [{0}] not found in scenario [{1}]",
+                        new Object[] { runContext.TestCase, scn.getName() }
+                    );
+                    return null;
+                }
+                return stcR;
+            }
+            return stc;
         } catch (Exception ex) {
-            LOG.log(Level.WARNING, "Unable to load TestaCase", ex);
+            LOG.log(Level.WARNING, "Unable to load TestCase", ex);
+            return null;
         }
-        return null;
     }
+
     private static final Logger LOG = Logger.getLogger(Task.class.getName());
 
     public boolean runIteration(int iter) {
@@ -139,13 +158,21 @@ public class Task implements Runnable {
             if (isPlaywrightExecution()) {
                 playwrightDriver = getPlaywrightDriver();
                 launchPlaywright();
-            } else  {
+            } else if (isSAPExecution()) {
+                session = getSAPSession();
+                launchSap();
+            } else {
                 webDriver = getWebDriver();
                 launchWebDriver();
             }
             SystemDefaults.stopCurrentIteration.set(false);
             runner.run(createControl(), iter);
             success = true;
+        } catch (DataNotFoundException ex) {
+            if (!ex.cause.isEndData()) {
+                LOG.log(Level.SEVERE, ex.getMessage(), ex);
+                report.updateTestLog("DataNotFoundException", ex.getMessage(), Status.DEBUG);
+            }
         } catch (DriverClosedException ex) {
             LOG.log(Level.SEVERE, ex.getMessage(), ex);
             report.updateTestLog("DriverClosedException", ex.getMessage(), Status.FAILNS);
@@ -157,10 +184,11 @@ public class Task implements Runnable {
             onError(ex, "Error", ex.getMessage());
         } finally {
             if (isPlaywrightExecution()) {
-              closePlaywrightDriver();
-            }
-            else {
-                    if (webDriver.isLambdaTestExecutionPlatform()) {
+                closePlaywrightDriver();
+            } else if (isSAPExecution()) {
+                // Do nothing
+            } else {
+                if (webDriver.isLambdaTestExecutionPlatform()) {
                     JavascriptExecutor js = (JavascriptExecutor) webDriver.driver;
                     if (report.finalizeReport().toString().equalsIgnoreCase("PASS")) {
                         js.executeScript("lambda-status=passed");
@@ -170,7 +198,7 @@ public class Task implements Runnable {
                 }
                 closeWebDriver();
             }
-                
+
             report.endIteration(iter);
         }
 
@@ -178,7 +206,9 @@ public class Task implements Runnable {
     }
 
     private void closePlaywrightDriver() {
-        if (playwrightDriver != null && !getRunSettings().useExistingDriver()) {
+        if (
+            playwrightDriver != null && !getRunSettings().useExistingDriver() && isLocalExecution()
+        ) {
             try {
                 playwrightDriver.closeBrowser();
             } catch (Exception ex) {
@@ -188,7 +218,7 @@ public class Task implements Runnable {
             }
         }
     }
-    
+
     private void closeWebDriver() {
         if (webDriver.driver != null && !getRunSettings().useExistingDriver()) {
             try {
@@ -201,7 +231,7 @@ public class Task implements Runnable {
         }
     }
 
-    private void launchPlaywright() throws UnCaughtException {
+    private void launchPlaywright() throws UnCaughtException, UnsupportedEncodingException {
         if (!getRunSettings().useExistingDriver() || playwrightDriver.page == null) {
             playwrightDriver.launchDriver(runContext);
         }
@@ -215,8 +245,23 @@ public class Task implements Runnable {
         report.setWebDriver(webDriver);
     }
 
+    private void launchSap() throws UnCaughtException {
+        if (!getRunSettings().useExistingDriver() || session.session == null) {
+            session.launchSession(runContext);
+        }
+        report.setSapSession(session);
+    }
+
     private CommandControl createControl() {
-        return new CommandControl(playwrightDriver, playwrightDriver, playwrightDriver, webDriver, report) {
+        return new CommandControl(
+            playwrightDriver,
+            playwrightDriver,
+            playwrightDriver,
+            webDriver,
+            session,
+            report
+        ) {
+
             @Override
             public void execute(String com, int sub) {
                 runner.runTestCase(com, sub);
@@ -253,8 +298,7 @@ public class Task implements Runnable {
 
     private PlaywrightDriverCreation getPlaywrightDriver() {
         PlaywrightDriverCreation playwrightDriver;
-        if (!getRunSettings().useExistingDriver()
-                || Control.getPlaywrightDriver() == null) {
+        if (!getRunSettings().useExistingDriver() || Control.getPlaywrightDriver() == null) {
             playwrightDriver = new PlaywrightDriverCreation();
             Control.setPlaywrightDriver(playwrightDriver);
         } else {
@@ -265,8 +309,7 @@ public class Task implements Runnable {
 
     private WebDriverCreation getWebDriver() {
         WebDriverCreation webDriver;
-        if (!getRunSettings().useExistingDriver()
-                || Control.getWebDriver() == null) {
+        if (!getRunSettings().useExistingDriver() || Control.getWebDriver() == null) {
             webDriver = new WebDriverCreation();
             Control.setWebDriver(webDriver);
         } else {
@@ -275,11 +318,30 @@ public class Task implements Runnable {
         return webDriver;
     }
 
+    private SAPSessionCreation getSAPSession() {
+        SAPSessionCreation sapSession;
+        if (!getRunSettings().useExistingDriver() || Control.getSapSession() == null) {
+            session = new SAPSessionCreation();
+            Control.setSapSession(session);
+        } else {
+            session = Control.getSapSession();
+        }
+        return session;
+    }
+
+    public boolean isLocalExecution() {
+        return !Control.exe.getExecSettings().getRunSettings().isGridExecution();
+    }
+
     public boolean isPlaywrightExecution() {
         boolean isBrowserExecution = false;
         try {
             String browserName = runContext.BrowserName;
-            if (browserName.equals("Chromium") || browserName.equals("WebKit") || browserName.equals("Firefox")) {
+            if (
+                browserName.equals("Chromium") ||
+                browserName.equals("WebKit") ||
+                browserName.equals("Firefox")
+            ) {
                 isBrowserExecution = true;
             }
         } catch (Exception ex) {
@@ -288,9 +350,31 @@ public class Task implements Runnable {
         return isBrowserExecution;
     }
 
-
-    public boolean isWebDriverExecution() {
-         return !isPlaywrightExecution();
+    public boolean isSAPExecution() {
+        boolean isSAPExecution = false;
+        try {
+            String browserName = runContext.BrowserName;
+            if (browserName.equals("SAP")) {
+                isSAPExecution = true;
+            }
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+        return isSAPExecution;
     }
 
+    public boolean isWebDriverExecution() {
+        return !isPlaywrightExecution();
+    }
+
+    public void setLambdaStatus(String status, String remark) {
+        playwrightDriver.page.evaluate(
+            "_ => {}",
+            "lambdatest_action: { \"action\": \"setTestStatus\", \"arguments\": { \"status\": \"" +
+            status +
+            "\", \"remark\": \"" +
+            remark +
+            "\"}}"
+        );
+    }
 }

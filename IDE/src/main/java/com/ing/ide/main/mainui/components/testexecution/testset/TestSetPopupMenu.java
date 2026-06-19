@@ -1,4 +1,3 @@
-
 package com.ing.ide.main.mainui.components.testexecution.testset;
 
 import com.ing.engine.drivers.PlaywrightDriverFactory;
@@ -6,6 +5,7 @@ import com.ing.ide.main.utils.Utils;
 import com.ing.ide.main.utils.keys.Keystroke;
 import com.ing.ide.util.Canvas;
 import java.awt.event.ActionListener;
+import java.util.ArrayList;
 import java.util.List;
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
@@ -13,10 +13,9 @@ import javax.swing.JPopupMenu;
 
 /**
  *
- * 
+ *
  */
 public class TestSetPopupMenu extends JPopupMenu {
-
     private final ActionListener actionListener;
     private JMenuItem saveMenuItem;
     private JMenu changeBrowser;
@@ -31,14 +30,21 @@ public class TestSetPopupMenu extends JPopupMenu {
     }
 
     private void init() {
-        JMenuItem addRowButton = Utils.createMenuItem("Add Row", ""
-                + "Ctrl+Plus to add a row at last"
-                + "<br>"
-                + "Ctrl+I to insert a row before the selected row"
-                + "<br>"
-                + "Ctrl+R to replicate the row", Keystroke.ADD_ROWP, actionListener);
+        JMenuItem addRowButton = Utils.createMenuItem(
+            "Add Row",
+            "" +
+            "Ctrl+Plus to add a row at last" +
+            "<br>" +
+            "Ctrl+I to insert a row before the selected row" +
+            "<br>" +
+            "Ctrl+R to replicate the row",
+            Keystroke.ADD_ROWP,
+            actionListener
+        );
         add(addRowButton);
-        add(Utils.createMenuItem("Delete Rows", "Ctrl+Minus", Keystroke.REMOVE_ROW, actionListener));
+        add(
+            Utils.createMenuItem("Delete Rows", "Ctrl+Minus", Keystroke.REMOVE_ROW, actionListener)
+        );
 
         addSeparator();
 
@@ -77,10 +83,23 @@ public class TestSetPopupMenu extends JPopupMenu {
 
     void loadBrowsers(List<String> emulators) {
         changeBrowser.removeAll();
+
+        // Add Playwright browsers first
         loadBrowsersToMenu(PlaywrightDriverFactory.Browser.getValuesAsList());
-        if (!emulators.isEmpty()) {
+
+        // Extract SAP and add it with separator
+        List<String> emulatorsCopy = new ArrayList<>(emulators);
+        boolean hasSAP = emulatorsCopy.remove("SAP");
+
+        if (hasSAP) {
             changeBrowser.addSeparator();
-            loadBrowsersToMenu(emulators);
+            loadBrowsersToMenu(List.of("SAP"));
+        }
+
+        // Add remaining emulators
+        if (!emulatorsCopy.isEmpty()) {
+            changeBrowser.addSeparator();
+            loadBrowsersToMenu(emulatorsCopy);
         }
     }
 
@@ -93,5 +112,4 @@ public class TestSetPopupMenu extends JPopupMenu {
             menuItem.setIcon(Canvas.EmptyIcon);
         }
     }
-
 }

@@ -1,8 +1,8 @@
-
 package com.ing.ide.main.utils;
 
-import com.ing.engine.support.DesktopApi;
 import static com.ing.ide.main.utils.INGeniousFileChooser.OPEN_PROJECT;
+
+import com.ing.engine.support.DesktopApi;
 import com.ing.ide.main.utils.filters.JavaCFilter;
 import java.awt.Component;
 import java.awt.HeadlessException;
@@ -39,8 +39,14 @@ import javax.swing.filechooser.FileNameExtensionFilter;
  *
  */
 public class Utils {
-
-    public static final Image FAVICON = new ImageIcon(Utils.class.getResource("/ui/resources/favicon.png")).getImage();
+    public static final Image FAVICON = new ImageIcon(
+        Utils.class.getResource("/ui/resources/favicon.png")
+    )
+    .getImage();
+    public static final Image FAVICON_OUTLINE = new ImageIcon(
+        Utils.class.getResource("/ui/resources/favicon-outline.png")
+    )
+    .getImage();
     private static final FileFilter JAVAC_FILTER = new JavaCFilter();
 
     public static List<Integer> getReverseSorted(int[] array) {
@@ -73,13 +79,49 @@ public class Utils {
     }
 
     public static Icon getIconByResourceName(String name) {
+        // Try INGIcons (web font icon) first — with semantic color
+        String iconKey = extractIconKey(name);
+        if (iconKey != null) {
+            Icon webIcon = com.ing.ide.main.fx.INGIcons.swingColored(iconKey, 16);
+            if (webIcon != null) {
+                return webIcon;
+            }
+        }
+        // Fallback to PNG resource
         URL url = Utils.class.getResource(name + ".png");
         if (url != null) {
             return new ImageIcon(url);
-        } else {
-            //Logger.getLogger(Utils.class.getName()).log(Level.WARNING, "{0}.png Icon - not available", name);
         }
         return null;
+    }
+
+    /**
+     * Extracts a logical icon key from a resource path.
+     * E.g. "/ui/resources/toolbar/add" → "add",
+     *      "/ui/resources/main/NewProject" → "NewProject",
+     *      "/ui/resources/testdesign/debug/stepover" → "debug.stepover"
+     */
+    private static String extractIconKey(String resourcePath) {
+        if (resourcePath == null) return null;
+        String path = resourcePath.replace('\\', '/');
+        // Try direct filename first
+        int lastSlash = path.lastIndexOf('/');
+        String filename = lastSlash >= 0 ? path.substring(lastSlash + 1) : path;
+        if (com.ing.ide.main.fx.INGIcons.has(filename)) {
+            return filename;
+        }
+        // Try parent.filename pattern (e.g. debug.stepover)
+        if (lastSlash > 0) {
+            int prevSlash = path.lastIndexOf('/', lastSlash - 1);
+            if (prevSlash >= 0) {
+                String parent = path.substring(prevSlash + 1, lastSlash);
+                String compound = parent + "." + filename;
+                if (com.ing.ide.main.fx.INGIcons.has(compound)) {
+                    return compound;
+                }
+            }
+        }
+        return filename; // Return filename — INGIcons.swing will return null if not mapped
     }
 
     public static JButton createButton(String action, ActionListener actionlistener) {
@@ -89,19 +131,30 @@ public class Utils {
         return btn;
     }
 
-    public static JButton createButton(String action, String icon, String tooltip, ActionListener actionlistener) {
+    public static JButton createButton(
+        String action,
+        String icon,
+        String tooltip,
+        ActionListener actionlistener
+    ) {
         JButton btn = new JButton();
         btn.setActionCommand(action);
         btn.setIcon(getIconByResourceName("/ui/resources/toolbar/" + icon));
         if (btn.getIcon() == null) {
             btn.setText(action);
         }
-        btn.setToolTipText("<html>" + action + (tooltip != null ? (" [" + tooltip + "]") : "") + "</html>");
+        btn.setToolTipText(
+            "<html>" + action + (tooltip != null ? (" [" + tooltip + "]") : "") + "</html>"
+        );
         btn.addActionListener(actionlistener);
         return btn;
     }
-    
-    public static JButton createLRButton(String action, String icon, ActionListener actionlistener) {
+
+    public static JButton createLRButton(
+        String action,
+        String icon,
+        ActionListener actionlistener
+    ) {
         JButton btn = new JButton();
         btn.setActionCommand(action);
         btn.setIcon(getIconByResourceName("/ui/resources/toolbar/" + icon));
@@ -112,11 +165,18 @@ public class Utils {
         return btn;
     }
 
-    public static JMenuItem createMenuItem(String action, String tooltip, KeyStroke keyStroke, ActionListener actionlistener) {
+    public static JMenuItem createMenuItem(
+        String action,
+        String tooltip,
+        KeyStroke keyStroke,
+        ActionListener actionlistener
+    ) {
         JMenuItem btn = new JMenuItem();
         btn.setActionCommand(action);
         btn.setText(action);
-        btn.setToolTipText("<html>" + action + (tooltip != null ? (" [" + tooltip + "]") : "") + "</html>");
+        btn.setToolTipText(
+            "<html>" + action + (tooltip != null ? (" [" + tooltip + "]") : "") + "</html>"
+        );
         btn.setAccelerator(keyStroke);
         btn.addActionListener(actionlistener);
         btn.setFont(UIManager.getFont("TableMenu.font"));
@@ -127,6 +187,26 @@ public class Utils {
         JMenuItem btn = new JMenuItem();
         btn.setActionCommand(action);
         btn.setText(action);
+        btn.addActionListener(actionlistener);
+        btn.setFont(UIManager.getFont("TableMenu.font"));
+        return btn;
+    }
+
+    /**
+     * Creates a menu item with separate text and action command.
+     * @param text Display text for the menu item
+     * @param actionlistener Action listener
+     * @param actionCommand Action command to be sent when clicked
+     * @return JMenuItem
+     */
+    public static JMenuItem createMenuItem(
+        String text,
+        ActionListener actionlistener,
+        String actionCommand
+    ) {
+        JMenuItem btn = new JMenuItem();
+        btn.setActionCommand(actionCommand);
+        btn.setText(text);
         btn.addActionListener(actionlistener);
         btn.setFont(UIManager.getFont("TableMenu.font"));
         return btn;
@@ -146,7 +226,9 @@ public class Utils {
 
     public static File saveDialog(String fileName) throws IOException {
         JFileChooser fileChooser = createFileChooser();
-        fileChooser.setCurrentDirectory(new File(new File(System.getProperty("user.dir")).getCanonicalPath()));
+        fileChooser.setCurrentDirectory(
+            new File(new File(System.getProperty("user.dir")).getCanonicalPath())
+        );
         fileChooser.setSelectedFile(new File(fileName));
         int option = fileChooser.showSaveDialog(null);
         if (option == JFileChooser.APPROVE_OPTION) {
@@ -161,7 +243,9 @@ public class Utils {
 
     public static File openDialog(String desc, String... fileFormat) throws IOException {
         JFileChooser fileChooser = createFileChooser();
-        fileChooser.setCurrentDirectory(new File(new File(System.getProperty("user.dir")).getCanonicalPath()));
+        fileChooser.setCurrentDirectory(
+            new File(new File(System.getProperty("user.dir")).getCanonicalPath())
+        );
         if (fileFormat != null && fileFormat.length > 0) {
             fileChooser.setFileFilter(new FileNameExtensionFilter(desc, fileFormat));
         }
@@ -173,15 +257,16 @@ public class Utils {
     }
 
     public static Image getFavIcon() {
-        return FAVICON;
+        return AppIcon.getAppIcon();
     }
 
     private static JFileChooser createFileChooser() {
         JFileChooser jf = new JFileChooser() {
+
             @Override
             protected JDialog createDialog(Component parent) throws HeadlessException {
                 JDialog dialog = super.createDialog(parent);
-                dialog.setIconImage(getFavIcon());
+                AppIcon.applyTo(dialog);
                 return dialog;
             }
         };
@@ -207,23 +292,21 @@ public class Utils {
             Process proc = Runtime.getRuntime().exec("where javac");
             proc.waitFor();
             BufferedReader stdInput = new BufferedReader(
-                    new InputStreamReader(proc.getInputStream()));
+                new InputStreamReader(proc.getInputStream())
+            );
 
             List<String> jdkPaths = new ArrayList<>();
             String s;
             while ((s = stdInput.readLine()) != null) {
-                if (!s.trim().isEmpty()
-                        && s.contains("1.8")) {
+                if (!s.trim().isEmpty() && s.contains("1.8")) {
                     jdkPaths.add(s);
                 }
             }
             if (!jdkPaths.isEmpty()) {
                 return jdkPaths.get(0);
-
             }
         } catch (IOException | InterruptedException ex) {
-            Logger.getLogger(Utils.class
-                    .getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(Utils.class.getName()).log(Level.SEVERE, null, ex);
         }
         return null;
     }

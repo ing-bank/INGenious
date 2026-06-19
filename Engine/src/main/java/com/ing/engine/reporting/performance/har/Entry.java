@@ -1,9 +1,8 @@
-
 package com.ing.engine.reporting.performance.har;
 
+import com.google.gson.Gson;
 import com.ing.engine.reporting.performance.PerformanceTimings;
 import com.ing.engine.reporting.performance.ResourceTimings;
-import com.google.gson.Gson;
 import java.net.URI;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -18,15 +17,16 @@ import org.json.simple.JSONObject;
 /**
  * helper class for har resource entry
  *
- * 
- * 
+ *
+ *
  * @see
  * https://dvcs.w3.org/hg/webperf/raw-file/tip/specs/HAR/Overview.html#sec-object-types-entries
  */
 @SuppressWarnings("unchecked")
 public final class Entry extends JSONObject {
-
-    private static final Logger LOG = Logger.getLogger(com.ing.engine.reporting.performance.har.Entry.class.getName());
+    private static final Logger LOG = Logger.getLogger(
+        com.ing.engine.reporting.performance.har.Entry.class.getName()
+    );
     private static final long serialVersionUID = 1L;
     private static final String DF = "yyyy-MM-dd'T'HH:mm:ss.SSSXXX";
     ResourceTimings e;
@@ -40,7 +40,7 @@ public final class Entry extends JSONObject {
         e = gson.fromJson(resourceTimings, ResourceTimings.class);
         create(p);
     }
-   
+
     public Entry(Page p) {
         super();
         e = p.pt.toResourceTimings();
@@ -81,9 +81,7 @@ public final class Entry extends JSONObject {
         obj.put("bodySize", -1);
     }
 
-    
-	public JSONArray getHeaders(boolean isReq) {
-
+    public JSONArray getHeaders(boolean isReq) {
         JSONArray hs = Prop.getEmptyArray();
         if (!isReq) {
             hs.add(getHeader("Content-Type", e.mimeType()));
@@ -99,14 +97,12 @@ public final class Entry extends JSONObject {
     }
 
     final class Request extends JSONObject {
-
         private static final long serialVersionUID = 1L;
 
-        
         public Request(ResourceTimings e) {
             put("method", "GET");
             put("url", e.name);
-            addDef((JSONObject)this, true);
+            addDef((JSONObject) this, true);
             put("queryString", getParams(e));
         }
 
@@ -120,7 +116,6 @@ public final class Entry extends JSONObject {
                     jsonPair.put("value", pair.getValue());
                     paramList.add(jsonPair);
                 }
-
             } catch (Exception ex) {
                 return paramList;
             }
@@ -129,21 +124,18 @@ public final class Entry extends JSONObject {
     }
 
     class Response extends JSONObject {
-
         private static final long serialVersionUID = 1L;
 
-        
         private Response(ResourceTimings e) {
             put("status", 200);
             put("statusText", "OK");
             put("_transferSize", -1);
             put("redirectURL", "");
             put("content", new Content(e));
-            addDef((JSONObject)this, false);
+            addDef((JSONObject) this, false);
         }
 
         class Content extends JSONObject {
-
             private static final long serialVersionUID = 1L;
 
             /**
@@ -151,31 +143,30 @@ public final class Entry extends JSONObject {
              *
              * @param e
              */
-           
+
             public Content(ResourceTimings e) {
                 put("size", 0);
                 put("mimeType", e.mimeType());
                 put("compression", 0);
             }
         }
-
     }
 
     final class Timings extends JSONObject {
-
         private static final long serialVersionUID = 1L;
         public Double duration;
 
-       
         public Timings(PerformanceTimings pt, ResourceTimings e) {
             Integer na = -1;
             Double blocked = Math.max(0, e.connectStart - e.startTime);
-            
-            Double dns = (e.domainLookupEnd - e.domainLookupStart) == 0 ? na
-                    : (e.domainLookupEnd - e.domainLookupStart);
 
-            Double connect = (e.connectEnd - e.connectStart) == 0 ? na
-                    : (e.connectEnd - e.connectStart);
+            Double dns = (e.domainLookupEnd - e.domainLookupStart) == 0
+                ? na
+                : (e.domainLookupEnd - e.domainLookupStart);
+
+            Double connect = (e.connectEnd - e.connectStart) == 0
+                ? na
+                : (e.connectEnd - e.connectStart);
 
             Double send = Math.max(0, e.responseStart - e.requestStart);
 
@@ -184,15 +175,22 @@ public final class Entry extends JSONObject {
             try {
                 // calc ssl only if req is secure connection
                 if (e.name != null && e.name.toLowerCase().startsWith("https:")) {
-                    ssl = Math.round(e.secureConnectionStart) == 0 ? na
+                    ssl =
+                        Math.round(e.secureConnectionStart) == 0
+                            ? na
                             : (e.connectEnd - e.secureConnectionStart);
                 }
-            } catch (Exception ex) {
-            }
+            } catch (Exception ex) {}
             Double time = e.duration;
             //calculate wait time from time unaccunted (avoids bizzare graph)
-            long wait = rnd(time) - rnd(nonNtve(dns)) - rnd(nonNtve(connect)) - rnd(nonNtve(ssl))
-                    - rnd(send) - rnd(receive) - rnd(blocked);
+            long wait =
+                rnd(time) -
+                rnd(nonNtve(dns)) -
+                rnd(nonNtve(connect)) -
+                rnd(nonNtve(ssl)) -
+                rnd(send) -
+                rnd(receive) -
+                rnd(blocked);
             if (wait < 0) {
                 time -= wait;
                 wait = 0;
@@ -207,7 +205,6 @@ public final class Entry extends JSONObject {
             put("wait", wait);
             put("receive", rnd(receive));
             put("ssl", rnd(ssl));
-
         }
 
         protected double nonNtve(Double d) {

@@ -1,9 +1,11 @@
-
 package com.ing.ide.main.mainui.components.testdesign.testcase;
 
 import com.ing.datalib.component.TestCase;
+import com.ing.datalib.component.TestStep;
 import com.ing.datalib.component.TestStep.HEADERS;
+import com.ing.datalib.or.ObjectRepository;
 import com.ing.datalib.or.common.ORPageInf;
+import com.ing.datalib.or.web.ResolvedWebObject;
 import com.ing.ide.main.mainui.components.testdesign.or.ObjectDnD;
 import com.ing.ide.main.mainui.components.testdesign.or.ObjectRepDnD;
 import com.ing.ide.main.mainui.components.testdesign.testdata.TestDataDetail;
@@ -19,11 +21,18 @@ import javax.swing.JTable;
 import javax.swing.TransferHandler;
 
 /**
- *
- * 
+ * Drag‑and‑drop handler for the Test Case table, enabling users to drop
+ * Object Repository items, Test Data references, or reusable test cases
+ * directly into step rows.
+ * <p>
+ * The handler interprets dropped payloads from multiple DnD flavors
+ * (objects, test data, test cases) and updates the appropriate TestStep
+ * fields such as Object, Reference, Input, or Reusable. It also supports
+ * expanding page-level drops into multiple steps and correctly manages
+ * grouped edits within a TestCase model.
+ * </p>
  */
 public class TestCaseTableDnD extends TransferHandler {
-
     private transient Object dropObject;
     private final int objectColumn = 1;
     private final int actionColumn = 3;
@@ -38,11 +47,15 @@ public class TestCaseTableDnD extends TransferHandler {
         }
         try {
             if (support.isDataFlavorSupported(ObjectDnD.OBJECT_FLAVOR)) {
-                ObjectRepDnD dropNode = (ObjectRepDnD) support.getTransferable().getTransferData(ObjectDnD.OBJECT_FLAVOR);
+                ObjectRepDnD dropNode = (ObjectRepDnD) support
+                    .getTransferable()
+                    .getTransferData(ObjectDnD.OBJECT_FLAVOR);
                 dropObject = dropNode;
                 return true;
             } else if (support.isDataFlavorSupported(DataFlavors.TESTDATA_FLAVOR)) {
-                TestDataDetail dropNode = (TestDataDetail) support.getTransferable().getTransferData(DataFlavors.TESTDATA_FLAVOR);
+                TestDataDetail dropNode = (TestDataDetail) support
+                    .getTransferable()
+                    .getTransferData(DataFlavors.TESTDATA_FLAVOR);
                 dropObject = dropNode;
                 return true;
             } else if (support.isDataFlavorSupported(ProjectDnD.TESTCASE_FLAVOR)) {
@@ -83,7 +96,6 @@ public class TestCaseTableDnD extends TransferHandler {
                     putWebObjects(table, row);
                     break;
             }
-
         } else if (dropObject instanceof TestDataDetail) {
             putTestData(table, row);
         } else if (dropObject instanceof TestCaseDnD) {
@@ -105,17 +117,34 @@ public class TestCaseTableDnD extends TransferHandler {
         if (objs.isPage()) {
             for (Object page : objs.getComponents()) {
                 ORPageInf pageInf = (ORPageInf) page;
-                putWebObjects(new ObjectRepDnD().withObjectGroups(pageInf.getObjectGroups()), row, testCase);
+                putWebObjects(
+                    new ObjectRepDnD().withObjectGroups(pageInf.getObjectGroups()),
+                    row,
+                    testCase
+                );
                 row += pageInf.getChildCount();
             }
         } else {
             for (String val : objs.getValues()) {
                 if (row < testCase.getRowCount()) {
-                    testCase.setValueAt(objs.getObjectName(val), row, HEADERS.ObjectName.getIndex());
+                    testCase.setValueAt(
+                        objs.getObjectName(val),
+                        row,
+                        HEADERS.ObjectName.getIndex()
+                    );
                     testCase.setValueAt(objs.getPageName(val), row, HEADERS.Reference.getIndex());
                     testCase.fireTableRowsUpdated(row, row);
                 } else {
-                    testCase.addObjectStep(row, objs.getObjectName(val), objs.getPageName(val));
+                    ObjectRepository or = testCase.getProject().getObjectRepository();
+                    TestStep tempStep = new TestStep(testCase);
+                    ResolvedWebObject rwo = or.resolveWebObjectWithScope(
+                        objs.getPageName(val),
+                        objs.getObjectName(val),
+                        tempStep
+                    );
+                    if (rwo != null) {
+                        testCase.addObjectStep(row, rwo);
+                    }
                 }
                 row++;
             }
@@ -123,14 +152,24 @@ public class TestCaseTableDnD extends TransferHandler {
     }
 
     private void putRelativeObject(JTable table, int row) {
-        String val = ((ObjectRepDnD) dropObject).getObjectName(((ObjectRepDnD) dropObject).getValues().get(0));
+        String val =
+            ((ObjectRepDnD) dropObject).getObjectName(
+                    ((ObjectRepDnD) dropObject).getValues().get(0)
+                );
         if (val != null) {
             table.setValueAt(val, row, conditionColumn);
         }
     }
 
+    private String basePage(String pageToken) {
+        int at = pageToken.lastIndexOf('@');
+        return (at > 0) ? pageToken.substring(0, at) : pageToken;
+    }
+
     private void putInput(JTable table, int row) {
-        table.setValueAt("@" + ((ObjectRepDnD) dropObject).getPageName(((ObjectRepDnD) dropObject).getValues().get(0)), row, inputColumn);
+        String token =
+            ((ObjectRepDnD) dropObject).getPageName(((ObjectRepDnD) dropObject).getValues().get(0));
+        table.setValueAt("@" + basePage(token), row, inputColumn);
     }
 
     private void putReusables(JTable table, int row) {
@@ -138,10 +177,10 @@ public class TestCaseTableDnD extends TransferHandler {
         if (!testCaseDnD.getTestCaseList().isEmpty()) {
             TestCase testCase = (TestCase) table.getModel();
             testCase.startGroupEdit();
-            testCase.removeSteps(new int[]{row});
+            testCase.removeSteps(new int[] { row });
             for (TestCaseNode testCaseNode : testCaseDnD.getTestCaseList()) {
-                String reusable = testCaseNode.getParent().toString() + ":"
-                        + testCaseNode.toString();
+                String reusable =
+                    testCaseNode.getParent().toString() + ":" + testCaseNode.toString();
                 testCase.addReusableStep(row, reusable);
             }
             testCase.stopGroupEdit();

@@ -1,4 +1,3 @@
-
 package com.ing.ide.main.dashboard.server;
 
 import com.ing.ide.main.dashboard.server.websocket.HarAdapter;
@@ -15,10 +14,9 @@ import org.json.simple.JSONValue;
 
 /**
  *
- * 
+ *
  */
 public class HarCompareHandler implements Handler {
-
     private static final Logger LOG = Logger.getLogger(HarCompareHandler.class.getName());
 
     static JSONObject conf;
@@ -113,7 +111,9 @@ public class HarCompareHandler implements Handler {
                 refhars.mkdirs();
                 return refHarList;
             }
-            File[] list = refhars.listFiles((File pathname) -> pathname.getName().endsWith(".har.ref"));
+            File[] list = refhars.listFiles(
+                (File pathname) -> pathname.getName().endsWith(".har.ref")
+            );
             if (list != null) {
                 for (File f : list) {
                     JSONObject har = new JSONObject();
@@ -130,7 +130,9 @@ public class HarCompareHandler implements Handler {
 
     public static JSONObject getRefData(JSONObject req) {
         try {
-            String data = Tools.readFile(new File(DashBoardData.refHars(), req.get("name").toString() + ".har.ref"));
+            String data = Tools.readFile(
+                new File(DashBoardData.refHars(), req.get("name").toString() + ".har.ref")
+            );
             return (JSONObject) JSONValue.parse(data);
         } catch (Exception ex) {
             LOG.log(Level.WARNING, "Error while reading har ref file", ex);
@@ -142,21 +144,27 @@ public class HarCompareHandler implements Handler {
         JSONArray dataset = new JSONArray();
         try {
             File rHF = DashBoardData.hars();
-            File[] list = rHF.listFiles(new FileFilter() {
-                @Override
-                public boolean accept(File report) {
-                    if (report.isDirectory()) {
-                        File[] l = report.listFiles(new FileFilter() {
-                            @Override
-                            public boolean accept(File file) {
-                                return file.getName().endsWith(".har");
-                            }
-                        });
-                        return l != null && l.length > 0;
+            File[] list = rHF.listFiles(
+                new FileFilter() {
+
+                    @Override
+                    public boolean accept(File report) {
+                        if (report.isDirectory()) {
+                            File[] l = report.listFiles(
+                                new FileFilter() {
+
+                                    @Override
+                                    public boolean accept(File file) {
+                                        return file.getName().endsWith(".har");
+                                    }
+                                }
+                            );
+                            return l != null && l.length > 0;
+                        }
+                        return false;
                     }
-                    return false;
                 }
-            });
+            );
             if (list != null) {
                 for (File f : list) {
                     JSONObject page = new JSONObject();
@@ -175,12 +183,15 @@ public class HarCompareHandler implements Handler {
     static Object getHars(File p, String page) {
         JSONArray dataset = new JSONArray();
         try {
-            File[] list = p.listFiles(new FileFilter() {
-                @Override
-                public boolean accept(File file) {
-                    return file.getName().endsWith(".har");
+            File[] list = p.listFiles(
+                new FileFilter() {
+
+                    @Override
+                    public boolean accept(File file) {
+                        return file.getName().endsWith(".har");
+                    }
                 }
-            });
+            );
             if (list != null) {
                 for (File f : list) {
                     JSONObject har = new JSONObject();
@@ -204,8 +215,10 @@ public class HarCompareHandler implements Handler {
             for (Object o : sel) {
                 try {
                     JSONObject sHar = (JSONObject) o;
-                    File harF = new File(DashBoardData.hars(), sHar.get("pageName")
-                            + File.separator + sHar.get("name") + ".har");
+                    File harF = new File(
+                        DashBoardData.hars(),
+                        sHar.get("pageName") + File.separator + sHar.get("name") + ".har"
+                    );
                     JSONObject har = new JSONObject();
                     har.put("har", JSONValue.parse(Tools.readFile(harF)));
                     har.put("name", sHar.get("name"));
@@ -225,7 +238,6 @@ public class HarCompareHandler implements Handler {
     }
 
     public static void init() throws Exception {
-
         conf = new JSONObject();
         if (DashBoardData.config().exists()) {
             conf = (JSONObject) JSONValue.parse(Tools.readFile(DashBoardData.config()));
@@ -236,11 +248,13 @@ public class HarCompareHandler implements Handler {
 
     public static void updateConfig() {
         new Thread("server:dashboard:harCompare:updateConfig") {
+
             @Override
             public void run() {
                 Tools.writeFile(DashBoardData.config(), conf.toString());
             }
-        }.start();
+        }
+        .start();
     }
 
     private void saveHarRef(HarAdapter conn, JSONObject msg) {
@@ -287,6 +301,7 @@ public class HarCompareHandler implements Handler {
         }
         conn.send(toMessage(msg, "DELETE.Har"));
     }
+
     private static final List<WebSocketAdapter> CLIENTS = new ArrayList<>();
 
     public static synchronized void onConnect(WebSocketAdapter client) {
@@ -300,13 +315,23 @@ public class HarCompareHandler implements Handler {
 
     public static synchronized void closeAll(int code, String reason) {
         try {
-            CLIENTS.stream().filter((client) -> (client != null && client.getSession() != null
-                    && client.getSession().isOpen())).forEachOrdered((client) -> {
+            CLIENTS
+                .stream()
+                .filter(
+                    client ->
+                        (
+                            client != null &&
+                            client.getSession() != null &&
+                            client.getSession().isOpen()
+                        )
+                )
+                .forEachOrdered(
+                    client -> {
                         client.getSession().close(code, reason);
-            });
+                    }
+                );
         } catch (Exception ex) {
             LOG.log(Level.SEVERE, ex.getMessage(), ex);
         }
     }
-
 }

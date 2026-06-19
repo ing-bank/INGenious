@@ -1,29 +1,28 @@
-
 package com.ing.engine.execution.run;
+
+import static java.lang.String.format;
 
 import com.ing.datalib.component.Scenario;
 import com.ing.datalib.component.TestCase;
 import com.ing.datalib.component.TestStep;
 import com.ing.engine.constants.SystemDefaults;
+import com.ing.engine.core.CommandControl;
 import com.ing.engine.execution.data.DataProcessor;
 import com.ing.engine.execution.data.Parameter;
-import com.ing.engine.core.CommandControl;
 import com.ing.engine.execution.exception.DriverClosedException;
-import com.ing.engine.execution.exception.ForcedException;
 import com.ing.engine.execution.exception.UnKnownError;
 import com.ing.engine.execution.exception.data.DataNotFoundException;
-import com.ing.engine.execution.exception.element.ElementException;
-import com.ing.engine.support.Status;
 import com.ing.engine.support.Step;
 import com.ing.engine.support.reflect.MethodExecutor;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import static java.lang.String.format;
+import com.ing.ingenious.api.exception.ForcedException;
+import com.ing.ingenious.api.exception.mobile.ElementException;
+import com.ing.ingenious.api.status.Status;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class TestStepRunner {
-
     private static final Logger LOG = Logger.getLogger(TestStepRunner.class.getName());
 
     private final TestStep testStep;
@@ -62,10 +61,14 @@ public class TestStepRunner {
 
     private void checkForDebug() {
         SystemDefaults.nextStepflag.set(true);
-        SystemDefaults.pauseExecution.set(getStep().hasBreakPoint()
-                || SystemDefaults.pauseExecution.get());
-        while (SystemDefaults.pauseExecution.get() && SystemDefaults.nextStepflag.get()
-                && !SystemDefaults.stopExecution.get()) {
+        SystemDefaults.pauseExecution.set(
+            getStep().hasBreakPoint() || SystemDefaults.pauseExecution.get()
+        );
+        while (
+            SystemDefaults.pauseExecution.get() &&
+            SystemDefaults.nextStepflag.get() &&
+            !SystemDefaults.stopExecution.get()
+        ) {
             SystemDefaults.pollWait();
         }
     }
@@ -73,8 +76,13 @@ public class TestStepRunner {
     private int getSubIterationFromInput(TestCaseRunner context) {
         if (!getStep().getInput().isEmpty()) {
             try {
-                return Integer.valueOf(DataProcessor.resolve(getStep().getInput(), context,
-                        String.valueOf(parameter.getSubIteration())));
+                return Integer.valueOf(
+                    DataProcessor.resolve(
+                        getStep().getInput(),
+                        context,
+                        String.valueOf(parameter.getSubIteration())
+                    )
+                );
             } catch (Exception ex) {
                 System.err.println("Unable to resolve subIteration for reusable!!");
                 LOG.log(Level.WARNING, ex.getMessage(), ex);
@@ -100,26 +108,32 @@ public class TestStepRunner {
             String[] rData = getStep().getReusableData();
             String scenario = rData[0];
             String testcase = rData[1];
-            Scenario scn = context.project().getScenarioByName(scenario);
+            Scenario scn = context.project().getReusableScenarioByName(scenario);
             if (scn != null) {
                 TestCase stc = scn.getTestCaseByName(testcase);
+                stc.setParentTestCase(context.getTestCase());
                 if (stc != null) {
                     executeTestCase(context, stc);
                     return;
                 } else {
-                    throw new ForcedException(format("reusable testcase [//%s/%s] not found",
-                            scenario, testcase));
+                    throw new ForcedException(
+                        format("reusable testcase [//%s/%s] not found", scenario, testcase)
+                    );
                 }
             } else {
-                throw new ForcedException(format("scenario [%s] not found", scenario));
+                throw new ForcedException(format("reusable scenario [%s] not found", scenario));
             }
         }
         throw new ForcedException(
-                format("invalid reusable [%s], expected format [scenario:reusable]",
-                        getStep().getAction()));
+            format(
+                "invalid reusable [%s], expected format [scenario:reusable]",
+                getStep().getAction()
+            )
+        );
     }
 
-    private void executeTestCase(TestCaseRunner context, TestCase stc) throws DataNotFoundException {
+    private void executeTestCase(TestCaseRunner context, TestCase stc)
+        throws DataNotFoundException {
         try {
             parameter.setSubIteration(getSubIterationFromInput(context));
             context.getReport().startComponent(getStep().getAction(), getStep().getDescription());
@@ -129,14 +143,16 @@ public class TestStepRunner {
         }
     }
 
-    private void executeStep(TestCaseRunner context) throws DataNotFoundException, DriverClosedException {
+    private void executeStep(TestCaseRunner context)
+        throws DataNotFoundException, DriverClosedException {
         try {
             Annotation ann = new Annotation(context.getControl());
             ann.beforeStepExecution();
             executeStep(context, step, parameter);
             ann.afterStepExecution();
-        } catch (DataNotFoundException | DriverClosedException
-                | ForcedException | ElementException ex) {
+        } catch (
+            DataNotFoundException | DriverClosedException | ForcedException | ElementException ex
+        ) {
             throw ex;
         } catch (Throwable ex) {
             throw new UnKnownError(ex);
@@ -144,23 +160,11 @@ public class TestStepRunner {
     }
 
     private void executeStep(TestCaseRunner context, Step step, Parameter parameter)
-            throws Throwable {
+        throws Throwable {
         step.printStep();
         if (step.ObjectName.equals("String Operations")) {
-            List<String> concatList = context.getControl().smartCommaSplitter(getStep().getInput());
-            List<String> result = new ArrayList();
-            for (String part : concatList) {
-                if (part.matches("%.*%")) 
-                    result.add("'"+context.getControl().getVar(part)+"'");
-                else if (part.matches("^\\{.*:.*\\}")) 
-                    result.add("'"+context.getControl().getDatasheet(part)+"'");
-                else if (part.matches("\".*\"")) 
-                    result.add("'"+part.substring( 1, part.length() - 1 )+"'");
-            }
-            step.Data = String.join(",", result);
-            context.getControl().sync(step);
-        }
-        else{
+            executeStringOperation(context);
+        } else {
             context.getControl().sync(step, String.valueOf(parameter.getSubIteration()));
         }
         executeAction(context, step.Action);
@@ -169,9 +173,23 @@ public class TestStepRunner {
     public void executeAction(TestCaseRunner context, String action) throws Throwable {
         if (!MethodExecutor.executeMethod(action, context.getControl())) {
             System.out.println("[ERROR][Could not find Action:" + action + "]");
-            context.getReport().updateTestLog(action, "[Could not find Action]",
-                    Status.DEBUG);
+            context.getReport().updateTestLog(action, "[Could not find Action]", Status.DEBUG);
         }
     }
 
+    private void executeStringOperation(TestCaseRunner context) {
+        List<String> concatList = context.getControl().smartCommaSplitter(getStep().getInput());
+        List<String> result = new ArrayList();
+        for (String part : concatList) {
+            if (part.matches("%.*%")) result.add(
+                "'" + context.getControl().getVar(part) + "'"
+            ); else if (part.matches("^\\{.*:.*\\}")) result.add(
+                "'" + context.getControl().getDatasheet(part) + "'"
+            ); else if (part.matches("\".*\"")) result.add(
+                "'" + part.substring(1, part.length() - 1) + "'"
+            );
+        }
+        step.Data = String.join(",", result);
+        context.getControl().sync(step);
+    }
 }

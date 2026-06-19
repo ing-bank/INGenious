@@ -1,0 +1,992 @@
+package com.ing.ide.main.mainui.components.apitester.response;
+
+import com.ing.datalib.api.APIAssertion;
+import com.ing.datalib.api.APIRequest;
+import com.ing.datalib.api.APIResponse;
+import com.ing.ide.main.mainui.components.apitester.APITesterUI;
+import com.ing.ide.main.mainui.components.apitester.util.APITesterColors;
+import com.ing.ide.main.mainui.components.apitester.util.JsonPathLocator;
+import com.ing.ide.main.mainui.components.apitester.util.XPathLocator;
+import com.ing.ide.util.Notification;
+import java.awt.*;
+import java.awt.*;
+import java.awt.datatransfer.Clipboard;
+import java.awt.datatransfer.StringSelection;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.List;
+import java.util.Map;
+import java.util.Map;
+import javax.swing.*;
+import javax.swing.*;
+import javax.swing.border.EmptyBorder;
+import javax.swing.border.EmptyBorder;
+import javax.swing.table.DefaultTableModel;
+import javax.swing.table.DefaultTableModel;
+import org.fife.ui.rsyntaxtextarea.RSyntaxTextArea;
+import org.fife.ui.rsyntaxtextarea.SyntaxConstants;
+import org.fife.ui.rtextarea.RTextScrollPane;
+import org.kordamp.ikonli.materialdesign2.MaterialDesignC;
+import org.kordamp.ikonli.swing.FontIcon;
+
+/**
+ * Panel for displaying API response.
+ */
+public class ResponsePanel extends JPanel {
+    private final APITesterUI parent;
+
+    // Status bar
+    private JLabel statusLabel;
+    private JLabel timeLabel;
+    private JLabel sizeLabel;
+
+    // Content tabs
+    private JTabbedPane tabPane;
+    private RSyntaxTextArea bodyTextArea;
+    private JTable headersTable;
+    private DefaultTableModel headersModel;
+    private JPanel testResultsPanel;
+    private JLabel testResultsLabel;
+    private JList<String> testResultsList;
+    private DefaultListModel<String> testResultsModel;
+
+    // Card layout for loading/response states
+    private CardLayout cardLayout;
+    private JPanel cardPanel;
+
+    public ResponsePanel(APITesterUI parent) {
+        this.parent = parent;
+        initComponents();
+    }
+
+    private void initComponents() {
+        setLayout(new BorderLayout(0, 0));
+        setBorder(new EmptyBorder(0, 0, 0, 0));
+
+        // Status bar at top
+        JPanel statusBar = createStatusBar();
+        add(statusBar, BorderLayout.NORTH);
+
+        // Card layout for different states
+        cardLayout = new CardLayout();
+        cardPanel = new JPanel(cardLayout);
+
+        // Empty state
+        JLabel emptyLabel = new JLabel("Send a request to see the response", JLabel.CENTER);
+        emptyLabel.setForeground(APITesterColors.textSecondary());
+        emptyLabel.setFont(emptyLabel.getFont().deriveFont(14f));
+        emptyLabel.setName("emptyLabel");
+        cardPanel.add(emptyLabel, "EMPTY");
+
+        // Loading state
+        JPanel loadingPanel = new JPanel(new BorderLayout());
+        loadingPanel.setName("loadingPanel");
+        JLabel loadingLabel = new JLabel("Sending request...", JLabel.CENTER);
+        loadingLabel.setForeground(APITesterColors.textSecondary());
+        loadingLabel.setFont(loadingLabel.getFont().deriveFont(14f));
+        loadingLabel.setName("loadingLabel");
+        JProgressBar progressBar = new JProgressBar();
+        progressBar.setIndeterminate(true);
+        progressBar.setPreferredSize(new Dimension(200, 4));
+        JPanel progressWrapper = new JPanel(new FlowLayout(FlowLayout.CENTER));
+        progressWrapper.add(progressBar);
+        loadingPanel.add(loadingLabel, BorderLayout.CENTER);
+        loadingPanel.add(progressWrapper, BorderLayout.SOUTH);
+        cardPanel.add(loadingPanel, "LOADING");
+
+        // Response content
+        JPanel responseContent = createResponseContent();
+        cardPanel.add(responseContent, "RESPONSE");
+
+        // Error state
+        JTextArea errorArea = new JTextArea();
+        errorArea.setEditable(false);
+        errorArea.setForeground(APITesterColors.statusError());
+        errorArea.setFont(new Font(Font.MONOSPACED, Font.PLAIN, 12));
+        errorArea.setLineWrap(true);
+        errorArea.setWrapStyleWord(true);
+        errorArea.setBackground(APITesterColors.panelBackground());
+        errorArea.setName("errorArea");
+        JScrollPane errorScroll = new JScrollPane(errorArea);
+        errorScroll.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
+        cardPanel.add(errorScroll, "ERROR");
+
+        add(cardPanel, BorderLayout.CENTER);
+
+        cardLayout.show(cardPanel, "EMPTY");
+    }
+
+    private JPanel createStatusBar() {
+        JPanel panel = new JPanel(new FlowLayout(FlowLayout.LEFT, 15, 0));
+        panel.setBorder(new EmptyBorder(10, 12, 10, 12));
+        panel.setBackground(APITesterColors.panelBackground());
+        panel.setName("statusBar");
+
+        JLabel responseLabel = new JLabel("Response");
+        responseLabel.setFont(responseLabel.getFont().deriveFont(Font.BOLD, 13f));
+
+        statusLabel = new JLabel();
+        statusLabel.setFont(statusLabel.getFont().deriveFont(Font.BOLD, 12f));
+        statusLabel.setOpaque(true);
+        statusLabel.setBorder(new EmptyBorder(2, 8, 2, 8));
+
+        timeLabel = new JLabel();
+        timeLabel.setFont(timeLabel.getFont().deriveFont(11f));
+        timeLabel.setForeground(APITesterColors.textSecondary());
+
+        sizeLabel = new JLabel();
+        sizeLabel.setFont(sizeLabel.getFont().deriveFont(11f));
+        sizeLabel.setForeground(APITesterColors.textSecondary());
+
+        panel.add(responseLabel);
+        panel.add(statusLabel);
+        panel.add(timeLabel);
+        panel.add(sizeLabel);
+
+        return panel;
+    }
+
+    private JPanel createResponseContent() {
+        JPanel panel = new JPanel(new BorderLayout());
+
+        tabPane = new JTabbedPane(JTabbedPane.TOP);
+        tabPane.setFont(tabPane.getFont().deriveFont(11f));
+
+        // Body tab
+        bodyTextArea = new RSyntaxTextArea();
+        bodyTextArea.setEditable(false);
+        bodyTextArea.setFont(new Font(Font.MONOSPACED, Font.PLAIN, 12));
+        bodyTextArea.setTabSize(2);
+        bodyTextArea.setCodeFoldingEnabled(true);
+        bodyTextArea.setAntiAliasingEnabled(true);
+        bodyTextArea.setBracketMatchingEnabled(true);
+        bodyTextArea.setMarkOccurrences(true);
+        bodyTextArea.setSyntaxEditingStyle(SyntaxConstants.SYNTAX_STYLE_JSON);
+        installAssertionPopup(bodyTextArea);
+        RTextScrollPane bodyScroll = new RTextScrollPane(bodyTextArea);
+        bodyScroll.setLineNumbersEnabled(true);
+        bodyScroll.setBorder(BorderFactory.createEmptyBorder());
+
+        // Body tab with format options
+        JPanel bodyPanel = new JPanel(new BorderLayout());
+        JPanel bodyToolbar = new JPanel(new FlowLayout(FlowLayout.LEFT, 5, 0));
+        bodyToolbar.setBorder(new EmptyBorder(5, 8, 5, 8));
+
+        JButton prettyBtn = new JButton("Pretty");
+        prettyBtn.setFont(prettyBtn.getFont().deriveFont(10f));
+        prettyBtn.addActionListener(e -> formatBody(true));
+
+        JButton rawBtn = new JButton("Raw");
+        rawBtn.setFont(rawBtn.getFont().deriveFont(10f));
+        rawBtn.addActionListener(e -> formatBody(false));
+
+        JButton copyBtn = new JButton("Copy");
+        copyBtn.setFont(copyBtn.getFont().deriveFont(10f));
+        copyBtn.addActionListener(
+            e -> {
+                bodyTextArea.selectAll();
+                bodyTextArea.copy();
+                bodyTextArea.setCaretPosition(0);
+            }
+        );
+
+        bodyToolbar.add(prettyBtn);
+        bodyToolbar.add(rawBtn);
+        bodyToolbar.add(Box.createHorizontalStrut(20));
+        bodyToolbar.add(copyBtn);
+
+        bodyPanel.add(bodyToolbar, BorderLayout.NORTH);
+        bodyPanel.add(bodyScroll, BorderLayout.CENTER);
+        tabPane.addTab("Body", bodyPanel);
+
+        // Headers tab
+        headersModel =
+            new DefaultTableModel(new String[] { "Header", "Value" }, 0) {
+
+                @Override
+                public boolean isCellEditable(int row, int column) {
+                    return false;
+                }
+            };
+        headersTable = new JTable(headersModel);
+        headersTable.setFont(new Font(Font.MONOSPACED, Font.PLAIN, 12));
+        headersTable.setRowHeight(24);
+        headersTable.getColumnModel().getColumn(0).setPreferredWidth(200);
+        headersTable.getColumnModel().getColumn(1).setPreferredWidth(400);
+        JScrollPane headersScroll = new JScrollPane(headersTable);
+        headersScroll.setBorder(BorderFactory.createEmptyBorder());
+        tabPane.addTab("Headers", headersScroll);
+
+        // Test Results tab
+        testResultsPanel = new JPanel(new BorderLayout());
+        testResultsLabel = new JLabel("", JLabel.LEFT);
+        testResultsLabel.setFont(testResultsLabel.getFont().deriveFont(Font.BOLD, 12f));
+        testResultsLabel.setBorder(new EmptyBorder(10, 10, 10, 10));
+
+        testResultsModel = new DefaultListModel<>();
+        testResultsList = new JList<>(testResultsModel);
+        testResultsList.setFont(new Font(Font.MONOSPACED, Font.PLAIN, 12));
+        testResultsList.setCellRenderer(new TestResultRenderer());
+        JScrollPane testResultsScroll = new JScrollPane(testResultsList);
+        testResultsScroll.setBorder(BorderFactory.createEmptyBorder());
+
+        testResultsPanel.add(testResultsLabel, BorderLayout.NORTH);
+        testResultsPanel.add(testResultsScroll, BorderLayout.CENTER);
+        tabPane.addTab("Test Results", testResultsPanel);
+
+        panel.add(tabPane, BorderLayout.CENTER);
+        return panel;
+    }
+
+    private String rawBody;
+
+    private void formatBody(boolean pretty) {
+        if (rawBody == null) return;
+
+        if (pretty) {
+            String trimmed = rawBody.trim();
+            if (trimmed.startsWith("{") || trimmed.startsWith("[")) {
+                bodyTextArea.setSyntaxEditingStyle(SyntaxConstants.SYNTAX_STYLE_JSON);
+                bodyTextArea.setText(formatJson(rawBody));
+            } else if (trimmed.startsWith("<")) {
+                bodyTextArea.setSyntaxEditingStyle(SyntaxConstants.SYNTAX_STYLE_XML);
+                bodyTextArea.setText(formatXml(rawBody));
+            } else {
+                bodyTextArea.setText(rawBody);
+            }
+        } else {
+            bodyTextArea.setText(rawBody);
+        }
+        bodyTextArea.setCaretPosition(0);
+    }
+
+    private String formatJson(String json) {
+        if (json == null || json.isEmpty()) return json;
+
+        try {
+            // Simple JSON formatting
+            StringBuilder formatted = new StringBuilder();
+            int indent = 0;
+            boolean inString = false;
+
+            for (int i = 0; i < json.length(); i++) {
+                char c = json.charAt(i);
+
+                if (c == '"' && (i == 0 || json.charAt(i - 1) != '\\')) {
+                    inString = !inString;
+                    formatted.append(c);
+                } else if (!inString) {
+                    switch (c) {
+                        case '{':
+                        case '[':
+                            formatted.append(c);
+                            formatted.append('\n');
+                            indent++;
+                            appendIndent(formatted, indent);
+                            break;
+                        case '}':
+                        case ']':
+                            formatted.append('\n');
+                            indent--;
+                            appendIndent(formatted, indent);
+                            formatted.append(c);
+                            break;
+                        case ',':
+                            formatted.append(c);
+                            formatted.append('\n');
+                            appendIndent(formatted, indent);
+                            break;
+                        case ':':
+                            formatted.append(c);
+                            formatted.append(' ');
+                            break;
+                        case ' ':
+                        case '\n':
+                        case '\r':
+                        case '\t':
+                            // Skip whitespace
+                            break;
+                        default:
+                            formatted.append(c);
+                    }
+                } else {
+                    formatted.append(c);
+                }
+            }
+
+            return formatted.toString();
+        } catch (Exception e) {
+            return json;
+        }
+    }
+
+    private void appendIndent(StringBuilder sb, int indent) {
+        for (int i = 0; i < indent; i++) {
+            sb.append("  ");
+        }
+    }
+
+    /**
+     * Simple XML formatter with indentation.
+     */
+    private String formatXml(String xml) {
+        if (xml == null || xml.isEmpty()) return xml;
+        try {
+            StringBuilder formatted = new StringBuilder();
+            int indent = 0;
+            boolean inTag = false;
+            boolean inContent = false;
+            StringBuilder currentToken = new StringBuilder();
+
+            // Remove existing whitespace between tags
+            String cleaned = xml.replaceAll(">\\s+<", "><").trim();
+
+            for (int i = 0; i < cleaned.length(); i++) {
+                char c = cleaned.charAt(i);
+
+                if (c == '<') {
+                    // Flush content before tag
+                    if (currentToken.length() > 0) {
+                        formatted.append(currentToken);
+                        currentToken.setLength(0);
+                    }
+
+                    // Determine tag type by looking ahead
+                    int closeIdx = cleaned.indexOf('>', i);
+                    if (closeIdx < 0) {
+                        currentToken.append(c);
+                        continue;
+                    }
+                    String tag = cleaned.substring(i, closeIdx + 1);
+
+                    if (tag.startsWith("</")) {
+                        // Closing tag
+                        indent--;
+                        appendIndent(formatted, indent);
+                        formatted.append(tag).append('\n');
+                    } else if (tag.endsWith("/>") || tag.startsWith("<?") || tag.startsWith("<!")) {
+                        // Self-closing, processing instruction, or comment
+                        appendIndent(formatted, indent);
+                        formatted.append(tag).append('\n');
+                    } else {
+                        // Opening tag - check if next char is content or another tag
+                        appendIndent(formatted, indent);
+                        formatted.append(tag);
+
+                        // Peek: if next is '</', it's a simple value element
+                        if (
+                            closeIdx + 1 < cleaned.length() && cleaned.charAt(closeIdx + 1) != '<'
+                        ) {
+                            // Content follows — append content and closing tag on same line
+                            int nextTagStart = cleaned.indexOf('<', closeIdx + 1);
+                            if (nextTagStart > 0) {
+                                String content = cleaned.substring(closeIdx + 1, nextTagStart);
+                                int nextClose = cleaned.indexOf('>', nextTagStart);
+                                String closingTag = cleaned.substring(nextTagStart, nextClose + 1);
+                                if (closingTag.startsWith("</")) {
+                                    formatted.append(content).append(closingTag).append('\n');
+                                    i = nextClose;
+                                    continue;
+                                }
+                            }
+                            formatted.append('\n');
+                            indent++;
+                        } else {
+                            formatted.append('\n');
+                            indent++;
+                        }
+                    }
+                    i = closeIdx;
+                } else {
+                    currentToken.append(c);
+                }
+            }
+
+            return formatted.toString().trim();
+        } catch (Exception e) {
+            return xml;
+        }
+    }
+
+    // ═══════════════════════════════════════════════════════════════════
+    // Public API
+    // ═══════════════════════════════════════════════════════════════════
+
+    /**
+     * Shows the loading state.
+     */
+    public void showLoading() {
+        statusLabel.setText("");
+        statusLabel.setBackground(null);
+        timeLabel.setText("");
+        sizeLabel.setText("");
+        cardLayout.show(cardPanel, "LOADING");
+    }
+
+    /**
+     * Shows a response.
+     */
+    public void showResponse(APIResponse response) {
+        if (response.isError()) {
+            showError(response.getErrorMessage());
+            return;
+        }
+
+        // Update status bar
+        int statusCode = response.getStatusCode();
+        statusLabel.setText(statusCode + " " + response.getStatusText());
+        statusLabel.setForeground(APITesterColors.buttonPrimaryText());
+        if (statusCode >= 200 && statusCode < 300) {
+            statusLabel.setBackground(APITesterColors.statusSuccess());
+        } else if (statusCode >= 400 && statusCode < 500) {
+            statusLabel.setBackground(APITesterColors.statusWarning());
+        } else if (statusCode >= 500) {
+            statusLabel.setBackground(APITesterColors.statusError());
+        } else {
+            statusLabel.setBackground(APITesterColors.statusNeutral());
+        }
+
+        timeLabel.setText(response.getFormattedTime());
+        sizeLabel.setText(response.getFormattedSize());
+
+        // Update body
+        rawBody = response.getBody();
+        if (response.isJsonBody()) {
+            bodyTextArea.setSyntaxEditingStyle(SyntaxConstants.SYNTAX_STYLE_JSON);
+            bodyTextArea.setText(formatJson(rawBody));
+        } else if (response.isXmlBody()) {
+            bodyTextArea.setSyntaxEditingStyle(SyntaxConstants.SYNTAX_STYLE_XML);
+            bodyTextArea.setText(formatXml(rawBody));
+        } else if (response.isHtmlBody()) {
+            bodyTextArea.setSyntaxEditingStyle(SyntaxConstants.SYNTAX_STYLE_HTML);
+            bodyTextArea.setText(rawBody != null ? rawBody : "");
+        } else {
+            bodyTextArea.setSyntaxEditingStyle(SyntaxConstants.SYNTAX_STYLE_NONE);
+            bodyTextArea.setText(rawBody != null ? rawBody : "");
+        }
+        bodyTextArea.setCaretPosition(0);
+
+        // Update headers
+        headersModel.setRowCount(0);
+        Map<String, List<String>> headers = response.getHeaders();
+        if (headers != null) {
+            for (Map.Entry<String, List<String>> entry : headers.entrySet()) {
+                String value = String.join(", ", entry.getValue());
+                headersModel.addRow(new Object[] { entry.getKey(), value });
+            }
+        }
+
+        // Update test results
+        testResultsModel.clear();
+        List<APIResponse.AssertionResult> results = response.getAssertionResults();
+        if (results != null && !results.isEmpty()) {
+            int passed = response.getPassedAssertionsCount();
+            int failed = response.getFailedAssertionsCount();
+
+            if (failed == 0) {
+                testResultsLabel.setText(
+                    "All tests passed (" + passed + "/" + results.size() + ")"
+                );
+                testResultsLabel.setForeground(APITesterColors.statusSuccess());
+            } else {
+                testResultsLabel.setText("Tests: " + passed + " passed, " + failed + " failed");
+                testResultsLabel.setForeground(APITesterColors.statusError());
+            }
+
+            for (APIResponse.AssertionResult result : results) {
+                String icon = result.isPassed() ? "✓" : "✗";
+                String msg = icon + " " + result.getAssertionName();
+                if (!result.isPassed() && result.getMessage() != null) {
+                    msg += " - " + result.getMessage();
+                }
+                testResultsModel.addElement((result.isPassed() ? "PASS:" : "FAIL:") + msg);
+            }
+        } else {
+            testResultsLabel.setText("No tests configured");
+            testResultsLabel.setForeground(APITesterColors.textSecondary());
+        }
+
+        cardLayout.show(cardPanel, "RESPONSE");
+    }
+
+    /**
+     * Shows an error message.
+     */
+    public void showError(String message) {
+        statusLabel.setText("Error");
+        statusLabel.setForeground(APITesterColors.buttonPrimaryText());
+        statusLabel.setBackground(APITesterColors.statusError());
+        timeLabel.setText("");
+        sizeLabel.setText("");
+
+        // Find and update the error area
+        for (Component c : cardPanel.getComponents()) {
+            if (c instanceof JScrollPane) {
+                JScrollPane scroll = (JScrollPane) c;
+                Component view = scroll.getViewport().getView();
+                if (view instanceof JTextArea) {
+                    JTextArea errorArea = (JTextArea) view;
+                    if ("errorArea".equals(errorArea.getName())) {
+                        errorArea.setText("Error: " + message);
+                        break;
+                    }
+                }
+            }
+        }
+
+        cardLayout.show(cardPanel, "ERROR");
+    }
+
+    /**
+     * Clears the response panel.
+     */
+    public void clear() {
+        statusLabel.setText("");
+        statusLabel.setBackground(null);
+        timeLabel.setText("");
+        sizeLabel.setText("");
+        bodyTextArea.setText("");
+        rawBody = null;
+        headersModel.setRowCount(0);
+        testResultsModel.clear();
+        testResultsLabel.setText("");
+        cardLayout.show(cardPanel, "EMPTY");
+    }
+
+    /**
+     * Called when theme changes to refresh colors.
+     */
+    @Override
+    public void updateUI() {
+        super.updateUI();
+        // Guard against calls during super constructor before fields are initialized
+        if (cardPanel == null) return;
+
+        // Refresh colors for all dynamically colored components
+        refreshThemeColors();
+    }
+
+    /**
+     * Refresh theme-sensitive colors on all components.
+     * Public so it can be called when theme changes.
+     */
+    public void refreshThemeColors() {
+        if (cardPanel == null) return;
+
+        // Update time/size labels
+        if (timeLabel != null) {
+            timeLabel.setForeground(UIManager.getColor("Label.disabledForeground"));
+        }
+        if (sizeLabel != null) {
+            sizeLabel.setForeground(UIManager.getColor("Label.disabledForeground"));
+        }
+
+        // Update labeled components by name
+        updateComponentColors(cardPanel);
+
+        // Refresh text area colors using UIManager
+        if (bodyTextArea != null) {
+            bodyTextArea.setBackground(UIManager.getColor("TextArea.background"));
+            bodyTextArea.setForeground(UIManager.getColor("TextArea.foreground"));
+        }
+
+        // Refresh headers table
+        if (headersTable != null) {
+            headersTable.setBackground(UIManager.getColor("Table.background"));
+            headersTable.setForeground(UIManager.getColor("Table.foreground"));
+        }
+
+        // Refresh all panels recursively
+        refreshPanelColors(this);
+
+        repaint();
+    }
+
+    /**
+     * Recursively refresh panel backgrounds.
+     */
+    private void refreshPanelColors(Container container) {
+        for (Component c : container.getComponents()) {
+            if (c instanceof JPanel) {
+                c.setBackground(UIManager.getColor("Panel.background"));
+            }
+            if (c instanceof JScrollPane) {
+                JScrollPane sp = (JScrollPane) c;
+                sp.getViewport().setBackground(UIManager.getColor("Panel.background"));
+            }
+            if (c instanceof Container) {
+                refreshPanelColors((Container) c);
+            }
+        }
+    }
+
+    /**
+     * Recursively update colors in component tree.
+     */
+    private void updateComponentColors(Container container) {
+        if (container == null) return;
+
+        for (Component c : container.getComponents()) {
+            if ("emptyLabel".equals(c.getName()) || "loadingLabel".equals(c.getName())) {
+                c.setForeground(APITesterColors.textSecondary());
+            } else if ("errorArea".equals(c.getName()) && c instanceof JTextArea) {
+                JTextArea ta = (JTextArea) c;
+                ta.setForeground(APITesterColors.statusError());
+                ta.setBackground(APITesterColors.panelBackground());
+            } else if ("statusBar".equals(c.getName())) {
+                c.setBackground(APITesterColors.panelBackground());
+            }
+
+            if (c instanceof Container) {
+                updateComponentColors((Container) c);
+            }
+        }
+    }
+
+    // ═══════════════════════════════════════════════════════════════════
+    // Assertion popup — right-click on the response body to add assertions
+    // ═══════════════════════════════════════════════════════════════════
+
+    /**
+     * Installs a right-click context menu on the response body so the user can
+     * generate assertions (JSON path exists / value equals, body contains, ...)
+     * directly from the response they just received.
+     */
+    private void installAssertionPopup(final RSyntaxTextArea area) {
+        area.addMouseListener(
+            new MouseAdapter() {
+
+                @Override
+                public void mousePressed(MouseEvent e) {
+                    maybeShow(e);
+                }
+
+                @Override
+                public void mouseReleased(MouseEvent e) {
+                    maybeShow(e);
+                }
+
+                private void maybeShow(MouseEvent e) {
+                    if (!e.isPopupTrigger()) return;
+                    int offset = area.viewToModel2D(e.getPoint());
+                    if (offset < 0) offset = area.getCaretPosition();
+                    area.setCaretPosition(offset);
+                    JPopupMenu menu = buildAssertionMenu(area, offset);
+                    if (menu.getComponentCount() > 0) {
+                        menu.show(area, e.getX(), e.getY());
+                    }
+                }
+            }
+        );
+    }
+
+    /**
+     * Builds a popup header showing a generated path (JSONPath/XPath) alongside a
+     * small copy-to-clipboard icon button. Clicking the icon copies the raw path
+     * (without the leading "Path:" label) to the system clipboard.
+     */
+    private JComponent buildPathHeader(String label, final String path, final JPopupMenu owner) {
+        JPanel row = new JPanel(new BorderLayout(6, 0));
+        row.setOpaque(false);
+        row.setBorder(new EmptyBorder(2, 8, 2, 4));
+
+        JLabel pathLabel = new JLabel(label + ": " + path);
+        pathLabel.setEnabled(false);
+        row.add(pathLabel, BorderLayout.CENTER);
+
+        FontIcon copyIcon = FontIcon.of(
+            MaterialDesignC.CONTENT_COPY,
+            14,
+            UIManager.getColor("Label.foreground")
+        );
+        JButton copyBtn = new JButton(copyIcon);
+        copyBtn.setToolTipText("Copy path to clipboard");
+        copyBtn.setFocusable(false);
+        copyBtn.setBorderPainted(false);
+        copyBtn.setContentAreaFilled(false);
+        copyBtn.setMargin(new Insets(0, 0, 0, 0));
+        copyBtn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        copyBtn.addActionListener(
+            ev -> {
+                try {
+                    Clipboard cb = Toolkit.getDefaultToolkit().getSystemClipboard();
+                    cb.setContents(new StringSelection(path), null);
+                    Notification.showInfo(this, "Copied to clipboard: " + path);
+                } catch (Exception ex) {
+                    Notification.showWarning(
+                        this,
+                        "Could not copy to clipboard: " + ex.getMessage()
+                    );
+                }
+                if (owner != null) owner.setVisible(false);
+            }
+        );
+        row.add(copyBtn, BorderLayout.EAST);
+
+        return row;
+    }
+
+    private JPopupMenu buildAssertionMenu(RSyntaxTextArea area, int offset) {
+        JPopupMenu menu = new JPopupMenu();
+        String body = rawBody != null ? area.getText() : null;
+        String selection = area.getSelectedText();
+
+        // JSON-specific options
+        if (
+            body != null && SyntaxConstants.SYNTAX_STYLE_JSON.equals(area.getSyntaxEditingStyle())
+        ) {
+            JsonPathLocator.Hit hit = JsonPathLocator.locate(body, offset);
+            if (hit != null && hit.path != null && !"$".equals(hit.path)) {
+                menu.add(buildPathHeader("Path", hit.path, menu));
+                menu.addSeparator();
+
+                final String path = hit.path;
+                JMenuItem exists = new JMenuItem("Assert JSON path exists");
+                exists.addActionListener(ev -> addAssertion(APIAssertion.jsonPathExists(path)));
+                menu.add(exists);
+
+                if (hit.value != null) {
+                    final String value = hit.value;
+                    String preview = value.length() > 40 ? value.substring(0, 37) + "..." : value;
+                    JMenuItem equals = new JMenuItem("Assert value equals: \"" + preview + "\"");
+                    equals.addActionListener(
+                        ev ->
+                            addAssertion(
+                                APIAssertion.jsonPath(path, APIAssertion.Operator.EQUALS, value)
+                            )
+                    );
+                    menu.add(equals);
+
+                    JMenuItem contains = new JMenuItem(
+                        "Assert value contains: \"" + preview + "\""
+                    );
+                    contains.addActionListener(
+                        ev ->
+                            addAssertion(
+                                APIAssertion.jsonPath(path, APIAssertion.Operator.CONTAINS, value)
+                            )
+                    );
+                    menu.add(contains);
+
+                    JMenuItem custom = new JMenuItem("Assert value (custom)...");
+                    custom.addActionListener(ev -> promptCustomJsonAssertion(path, value));
+                    menu.add(custom);
+                } else {
+                    JMenuItem custom = new JMenuItem("Assert value (custom)...");
+                    custom.addActionListener(ev -> promptCustomJsonAssertion(path, ""));
+                    menu.add(custom);
+                }
+                menu.addSeparator();
+            }
+        }
+
+        // XML-specific options
+        if (body != null && SyntaxConstants.SYNTAX_STYLE_XML.equals(area.getSyntaxEditingStyle())) {
+            XPathLocator.Hit hit = XPathLocator.locate(body, offset);
+            if (hit != null && hit.path != null && !"/".equals(hit.path)) {
+                menu.add(buildPathHeader("XPath", hit.path, menu));
+                menu.addSeparator();
+
+                final String path = hit.path;
+                JMenuItem exists = new JMenuItem("Assert XPath exists");
+                exists.addActionListener(ev -> addAssertion(APIAssertion.xPathExists(path)));
+                menu.add(exists);
+
+                if (hit.value != null && !hit.value.isEmpty()) {
+                    final String value = hit.value;
+                    String preview = value.length() > 40 ? value.substring(0, 37) + "..." : value;
+                    JMenuItem equals = new JMenuItem("Assert value equals: \"" + preview + "\"");
+                    equals.addActionListener(
+                        ev ->
+                            addAssertion(
+                                APIAssertion.xPath(path, APIAssertion.Operator.EQUALS, value)
+                            )
+                    );
+                    menu.add(equals);
+
+                    JMenuItem contains = new JMenuItem(
+                        "Assert value contains: \"" + preview + "\""
+                    );
+                    contains.addActionListener(
+                        ev ->
+                            addAssertion(
+                                APIAssertion.xPath(path, APIAssertion.Operator.CONTAINS, value)
+                            )
+                    );
+                    menu.add(contains);
+
+                    JMenuItem custom = new JMenuItem("Assert value (custom)...");
+                    custom.addActionListener(ev -> promptCustomXPathAssertion(path, value));
+                    menu.add(custom);
+                } else {
+                    JMenuItem custom = new JMenuItem("Assert value (custom)...");
+                    custom.addActionListener(ev -> promptCustomXPathAssertion(path, ""));
+                    menu.add(custom);
+                }
+                menu.addSeparator();
+            }
+        }
+
+        // Body-text options (always available when there is a body)
+        if (body != null && !body.isEmpty()) {
+            String snippet = selection;
+            if (snippet == null || snippet.isEmpty()) {
+                snippet = currentLineText(area, offset);
+            }
+            if (snippet != null) snippet = snippet.trim();
+            if (snippet != null && !snippet.isEmpty()) {
+                String preview = snippet.length() > 40 ? snippet.substring(0, 37) + "..." : snippet;
+                JMenuItem contains = new JMenuItem("Assert body contains: \"" + preview + "\"");
+                final String value = snippet;
+                contains.addActionListener(
+                    ev -> {
+                        APIAssertion a = new APIAssertion(
+                            APIAssertion.AssertionType.BODY_CONTAINS,
+                            null,
+                            APIAssertion.Operator.CONTAINS,
+                            value
+                        );
+                        a.setName("Body contains \"" + preview + "\"");
+                        addAssertion(a);
+                    }
+                );
+                menu.add(contains);
+            }
+        }
+
+        return menu;
+    }
+
+    private void promptCustomJsonAssertion(String path, String currentValue) {
+        APIAssertion.Operator[] ops = {
+            APIAssertion.Operator.EQUALS,
+            APIAssertion.Operator.NOT_EQUALS,
+            APIAssertion.Operator.CONTAINS,
+            APIAssertion.Operator.STARTS_WITH,
+            APIAssertion.Operator.ENDS_WITH,
+            APIAssertion.Operator.MATCHES_REGEX,
+            APIAssertion.Operator.GREATER_THAN,
+            APIAssertion.Operator.LESS_THAN,
+            APIAssertion.Operator.EXISTS,
+            APIAssertion.Operator.NOT_EXISTS
+        };
+        JComboBox<APIAssertion.Operator> opCombo = new JComboBox<>(ops);
+        JTextField pathField = new JTextField(path, 24);
+        JTextField valueField = new JTextField(currentValue == null ? "" : currentValue, 24);
+        JPanel form = new JPanel(new GridLayout(0, 1, 4, 4));
+        form.add(new JLabel("JSON path:"));
+        form.add(pathField);
+        form.add(new JLabel("Operator:"));
+        form.add(opCombo);
+        form.add(new JLabel("Expected value:"));
+        form.add(valueField);
+        int res = JOptionPane.showConfirmDialog(
+            this,
+            form,
+            "Add JSON Path Assertion",
+            JOptionPane.OK_CANCEL_OPTION,
+            JOptionPane.PLAIN_MESSAGE
+        );
+        if (res != JOptionPane.OK_OPTION) return;
+        APIAssertion.Operator op = (APIAssertion.Operator) opCombo.getSelectedItem();
+        addAssertion(APIAssertion.jsonPath(pathField.getText().trim(), op, valueField.getText()));
+    }
+
+    private void promptCustomXPathAssertion(String path, String currentValue) {
+        APIAssertion.Operator[] ops = {
+            APIAssertion.Operator.EQUALS,
+            APIAssertion.Operator.NOT_EQUALS,
+            APIAssertion.Operator.CONTAINS,
+            APIAssertion.Operator.STARTS_WITH,
+            APIAssertion.Operator.ENDS_WITH,
+            APIAssertion.Operator.MATCHES_REGEX,
+            APIAssertion.Operator.GREATER_THAN,
+            APIAssertion.Operator.LESS_THAN,
+            APIAssertion.Operator.EXISTS,
+            APIAssertion.Operator.NOT_EXISTS
+        };
+        JComboBox<APIAssertion.Operator> opCombo = new JComboBox<>(ops);
+        JTextField pathField = new JTextField(path, 24);
+        JTextField valueField = new JTextField(currentValue == null ? "" : currentValue, 24);
+        JPanel form = new JPanel(new GridLayout(0, 1, 4, 4));
+        form.add(new JLabel("XPath:"));
+        form.add(pathField);
+        form.add(new JLabel("Operator:"));
+        form.add(opCombo);
+        form.add(new JLabel("Expected value:"));
+        form.add(valueField);
+        int res = JOptionPane.showConfirmDialog(
+            this,
+            form,
+            "Add XPath Assertion",
+            JOptionPane.OK_CANCEL_OPTION,
+            JOptionPane.PLAIN_MESSAGE
+        );
+        if (res != JOptionPane.OK_OPTION) return;
+        APIAssertion.Operator op = (APIAssertion.Operator) opCombo.getSelectedItem();
+        addAssertion(APIAssertion.xPath(pathField.getText().trim(), op, valueField.getText()));
+    }
+
+    private String currentLineText(RSyntaxTextArea area, int offset) {
+        try {
+            int line = area.getLineOfOffset(offset);
+            int start = area.getLineStartOffset(line);
+            int end = area.getLineEndOffset(line);
+            return area.getText(start, end - start);
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    private void addAssertion(APIAssertion assertion) {
+        if (assertion == null || parent == null) return;
+        APIRequest req = parent.getCurrentRequest();
+        if (req == null) {
+            Notification.showWarning(this, "No active request - cannot add assertion.");
+            return;
+        }
+        List<APIAssertion> list = req.getAssertions();
+        if (list == null) {
+            list = new ArrayList<>();
+            req.setAssertions(list);
+        }
+        list.add(assertion);
+        try {
+            parent.forceSaveCurrentRequest();
+        } catch (Exception ignored) {
+            // Non-collection request: held in memory only.
+        }
+        Notification.showSuccess(this, "Assertion added: " + assertion.getName());
+    }
+
+    /**
+     * Custom renderer for test results.
+     */
+    private static class TestResultRenderer extends DefaultListCellRenderer {
+
+        @Override
+        public Component getListCellRendererComponent(
+            JList<?> list,
+            Object value,
+            int index,
+            boolean isSelected,
+            boolean cellHasFocus
+        ) {
+            super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
+
+            String text = (String) value;
+            if (text.startsWith("PASS:")) {
+                setText(text.substring(5));
+                setForeground(APITesterColors.statusSuccess());
+            } else if (text.startsWith("FAIL:")) {
+                setText(text.substring(5));
+                setForeground(APITesterColors.statusError());
+            }
+
+            setBorder(new EmptyBorder(5, 10, 5, 10));
+            return this;
+        }
+    }
+}

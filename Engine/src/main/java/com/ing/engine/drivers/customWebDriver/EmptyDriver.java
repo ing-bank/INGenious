@@ -1,4 +1,3 @@
-
 package com.ing.engine.drivers.customWebDriver;
 
 import java.awt.AWTException;
@@ -21,7 +20,6 @@ import org.openqa.selenium.TakesScreenshot;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebDriverException;
 import org.openqa.selenium.WebElement;
-
 
 public class EmptyDriver implements WebDriver, TakesScreenshot {
 
@@ -105,5 +103,4 @@ public class EmptyDriver implements WebDriver, TakesScreenshot {
         }
         return null;
     }
-
 }

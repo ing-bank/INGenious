@@ -1,7 +1,8 @@
-
 package com.ing.ide.main.mainui.components;
 
+import com.ing.engine.constants.AppResourcePath;
 import com.ing.engine.support.DesktopApi;
+import com.ing.ide.main.fx.INGIcons;
 import com.ing.ide.main.mainui.components.testexecution.TestExecution;
 import com.ing.ide.main.mainui.components.testexecution.tree.model.TestSetNode;
 import com.ing.ide.main.utils.tree.TreeSelectionRenderer;
@@ -20,10 +21,13 @@ import javax.swing.tree.TreePath;
  *
  */
 public class DashBoard extends javax.swing.JPanel {
-
-    private final static String ERR_HTML = "file:///"
-            + System.getProperty("user.dir") + File.separator + "Configuration"
-            + File.separator + "err.html";
+    private static final String ERR_HTML =
+        "file:///" +
+        System.getProperty("user.dir") +
+        File.separator +
+        "Configuration" +
+        File.separator +
+        "err.html";
 
     private Browser browser;
     private String release = "";
@@ -50,14 +54,29 @@ public class DashBoard extends javax.swing.JPanel {
     }
 
     String getDetailedSummary() {
-        return getPrefix() + File.separator + release + File.separator + testSet
-                + File.separator + "Latest"
-                + File.separator + "summary.html";
+        return (
+            getPrefix() +
+            File.separator +
+            release +
+            File.separator +
+            testSet +
+            File.separator +
+            "Latest" +
+            File.separator +
+            AppResourcePath.SUMMARY_HTML_V2
+        );
     }
 
     String getHistory() {
-        return getPrefix() + File.separator + release + File.separator + testSet
-                + File.separator + "ReportHistory.html";
+        return (
+            getPrefix() +
+            File.separator +
+            release +
+            File.separator +
+            testSet +
+            File.separator +
+            "ReportHistory.html"
+        );
     }
 
     void loadPage(Boolean latest) {
@@ -72,12 +91,18 @@ public class DashBoard extends javax.swing.JPanel {
     }
 
     public void selectFirstNode() {
-//        SuperTree.selectFirstLeaf(tree);
+        //        SuperTree.selectFirstLeaf(tree);
     }
 
     private String getPrefix() {
-        return "file:///"
-                + testExecution.getProject().getLocation() + File.separator + "Results" + File.separator + "TestExecution";
+        return (
+            "file:///" +
+            testExecution.getProject().getLocation() +
+            File.separator +
+            "Results" +
+            File.separator +
+            "TestExecution"
+        );
     }
 
     public void closeBrowser() {
@@ -92,22 +117,51 @@ public class DashBoard extends javax.swing.JPanel {
     @SuppressWarnings("unchecked")
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
-
         jSplitPane1 = new javax.swing.JSplitPane();
         browserPanel = new javax.swing.JPanel();
         webPanel = new javax.swing.JPanel();
         jToolBar1 = new javax.swing.JToolBar();
-        filler6 = new javax.swing.Box.Filler(new java.awt.Dimension(0, 0), new java.awt.Dimension(0, 0), new java.awt.Dimension(32767, 32767));
+        filler6 =
+            new javax.swing.Box.Filler(
+                new java.awt.Dimension(0, 0),
+                new java.awt.Dimension(0, 0),
+                new java.awt.Dimension(32767, 32767)
+            );
         back = new javax.swing.JButton();
-        filler1 = new javax.swing.Box.Filler(new java.awt.Dimension(20, 0), new java.awt.Dimension(20, 0), new java.awt.Dimension(20, 32767));
+        filler1 =
+            new javax.swing.Box.Filler(
+                new java.awt.Dimension(20, 0),
+                new java.awt.Dimension(20, 0),
+                new java.awt.Dimension(20, 32767)
+            );
         latestSummary = new javax.swing.JButton();
-        filler2 = new javax.swing.Box.Filler(new java.awt.Dimension(20, 0), new java.awt.Dimension(20, 0), new java.awt.Dimension(20, 32767));
+        filler2 =
+            new javax.swing.Box.Filler(
+                new java.awt.Dimension(20, 0),
+                new java.awt.Dimension(20, 0),
+                new java.awt.Dimension(20, 32767)
+            );
         detailedSummary = new javax.swing.JButton();
-        filler3 = new javax.swing.Box.Filler(new java.awt.Dimension(20, 0), new java.awt.Dimension(20, 0), new java.awt.Dimension(20, 32767));
+        filler3 =
+            new javax.swing.Box.Filler(
+                new java.awt.Dimension(20, 0),
+                new java.awt.Dimension(20, 0),
+                new java.awt.Dimension(20, 32767)
+            );
         forward = new javax.swing.JButton();
-        filler4 = new javax.swing.Box.Filler(new java.awt.Dimension(0, 0), new java.awt.Dimension(0, 0), new java.awt.Dimension(32767, 32767));
+        filler4 =
+            new javax.swing.Box.Filler(
+                new java.awt.Dimension(0, 0),
+                new java.awt.Dimension(0, 0),
+                new java.awt.Dimension(32767, 32767)
+            );
         openInbrowser = new javax.swing.JButton();
-        filler5 = new javax.swing.Box.Filler(new java.awt.Dimension(10, 0), new java.awt.Dimension(10, 0), new java.awt.Dimension(10, 32767));
+        filler5 =
+            new javax.swing.Box.Filler(
+                new java.awt.Dimension(10, 0),
+                new java.awt.Dimension(10, 0),
+                new java.awt.Dimension(10, 32767)
+            );
         jScrollPane3 = new javax.swing.JScrollPane();
         tree = new javax.swing.JTree();
 
@@ -121,8 +175,8 @@ public class DashBoard extends javax.swing.JPanel {
         webPanel.setLayout(new java.awt.BorderLayout());
         browserPanel.add(webPanel, java.awt.BorderLayout.CENTER);
 
-        jToolBar1.setBackground(new java.awt.Color(255, 255, 255));
-        jToolBar1.setForeground(new java.awt.Color(255, 255, 255));
+        // Use UIManager colors for theme support
+        jToolBar1.setForeground(javax.swing.UIManager.getColor("ToolBar.foreground"));
         jToolBar1.setRollover(true);
         jToolBar1.setMaximumSize(new java.awt.Dimension(753, 73));
         jToolBar1.setMinimumSize(new java.awt.Dimension(723, 73));
@@ -130,76 +184,88 @@ public class DashBoard extends javax.swing.JPanel {
         jToolBar1.setPreferredSize(new java.awt.Dimension(723, 73));
         jToolBar1.add(filler6);
 
-        back.setIcon(new javax.swing.ImageIcon(getClass().getResource("/ui/resources/dashboard/backButton.png"))); // NOI18N
+        back.setIcon(INGIcons.swingColored("icon.arrow.left", 16));
         back.setToolTipText("Navigate Back");
         back.setFocusable(false);
         back.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
         back.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
-        back.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                backActionPerformed(evt);
+        back.addActionListener(
+            new java.awt.event.ActionListener() {
+
+                public void actionPerformed(java.awt.event.ActionEvent evt) {
+                    backActionPerformed(evt);
+                }
             }
-        });
+        );
         jToolBar1.add(back);
         jToolBar1.add(filler1);
 
         latestSummary.setForeground(new java.awt.Color(255, 255, 255));
-        latestSummary.setIcon(new javax.swing.ImageIcon(getClass().getResource("/ui/resources/dashboard/latest.png"))); // NOI18N
+        latestSummary.setIcon(INGIcons.swingColored("icon.doc", 16));
         latestSummary.setBorder(null);
         latestSummary.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
         latestSummary.setFocusable(false);
         latestSummary.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
-        latestSummary.setRolloverIcon(new javax.swing.ImageIcon(getClass().getResource("/ui/resources/dashboard/latestbub.png"))); // NOI18N
         latestSummary.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
-        latestSummary.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                latestSummaryActionPerformed(evt);
+        latestSummary.addActionListener(
+            new java.awt.event.ActionListener() {
+
+                public void actionPerformed(java.awt.event.ActionEvent evt) {
+                    latestSummaryActionPerformed(evt);
+                }
             }
-        });
+        );
         jToolBar1.add(latestSummary);
         jToolBar1.add(filler2);
 
-        detailedSummary.setBackground(Color.decode("#153E7E")
-        );
+        detailedSummary.setBackground(Color.decode("#153E7E"));
         detailedSummary.setForeground(new java.awt.Color(255, 255, 255));
-        detailedSummary.setIcon(new javax.swing.ImageIcon(getClass().getResource("/ui/resources/dashboard/detailed.png"))); // NOI18N
+        detailedSummary.setIcon(INGIcons.swingColored("icon.chart", 16));
         detailedSummary.setBorder(null);
         detailedSummary.setCursor(new java.awt.Cursor(java.awt.Cursor.HAND_CURSOR));
         detailedSummary.setFocusable(false);
         detailedSummary.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
-        detailedSummary.setRolloverIcon(new javax.swing.ImageIcon(getClass().getResource("/ui/resources/dashboard/detailedbub.png"))); // NOI18N
         detailedSummary.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
-        detailedSummary.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                detailedSummaryActionPerformed(evt);
+        detailedSummary.addActionListener(
+            new java.awt.event.ActionListener() {
+
+                public void actionPerformed(java.awt.event.ActionEvent evt) {
+                    detailedSummaryActionPerformed(evt);
+                }
             }
-        });
+        );
         jToolBar1.add(detailedSummary);
         jToolBar1.add(filler3);
 
-        forward.setIcon(new javax.swing.ImageIcon(getClass().getResource("/ui/resources/dashboard/forwardButton.png"))); // NOI18N
+        forward.setIcon(INGIcons.swingColored("icon.arrow.right", 16));
         forward.setToolTipText("Navigate Forward");
         forward.setFocusable(false);
         forward.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
         forward.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
-        forward.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                forwardActionPerformed(evt);
+        forward.addActionListener(
+            new java.awt.event.ActionListener() {
+
+                public void actionPerformed(java.awt.event.ActionEvent evt) {
+                    forwardActionPerformed(evt);
+                }
             }
-        });
+        );
         jToolBar1.add(forward);
         jToolBar1.add(filler4);
 
-        openInbrowser.setIcon(new javax.swing.ImageIcon(getClass().getResource("/ui/resources/dashboard/browser.png"))); // NOI18N
+        openInbrowser.setIcon(INGIcons.swingColored("icon.web", 16));
         openInbrowser.setToolTipText("Open in Browser");
         openInbrowser.setFocusable(false);
         openInbrowser.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
         openInbrowser.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
-        openInbrowser.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                openInbrowserActionPerformed(evt);
+        openInbrowser.addActionListener(
+            new java.awt.event.ActionListener() {
+
+                public void actionPerformed(java.awt.event.ActionEvent evt) {
+                    openInbrowserActionPerformed(evt);
+                }
             }
-        });
+        );
         jToolBar1.add(openInbrowser);
         jToolBar1.add(filler5);
 
@@ -210,27 +276,30 @@ public class DashBoard extends javax.swing.JPanel {
         jScrollPane3.setMinimumSize(new java.awt.Dimension(200, 24));
         jScrollPane3.setPreferredSize(new java.awt.Dimension(200, 324));
 
-        tree.addTreeSelectionListener(new javax.swing.event.TreeSelectionListener() {
-            public void valueChanged(javax.swing.event.TreeSelectionEvent evt) {
-                treeValueChanged(evt);
+        tree.addTreeSelectionListener(
+            new javax.swing.event.TreeSelectionListener() {
+
+                public void valueChanged(javax.swing.event.TreeSelectionEvent evt) {
+                    treeValueChanged(evt);
+                }
             }
-        });
+        );
         jScrollPane3.setViewportView(tree);
 
         jSplitPane1.setLeftComponent(jScrollPane3);
 
         add(jSplitPane1, java.awt.BorderLayout.CENTER);
-    }// </editor-fold>//GEN-END:initComponents
+    } // </editor-fold>//GEN-END:initComponents
 
-    private void detailedSummaryActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_detailedSummaryActionPerformed
+    private void detailedSummaryActionPerformed(java.awt.event.ActionEvent evt) { //GEN-FIRST:event_detailedSummaryActionPerformed
         loadPage(false);
-    }//GEN-LAST:event_detailedSummaryActionPerformed
+    } //GEN-LAST:event_detailedSummaryActionPerformed
 
-    private void latestSummaryActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_latestSummaryActionPerformed
+    private void latestSummaryActionPerformed(java.awt.event.ActionEvent evt) { //GEN-FIRST:event_latestSummaryActionPerformed
         loadPage(true);
-    }//GEN-LAST:event_latestSummaryActionPerformed
+    } //GEN-LAST:event_latestSummaryActionPerformed
 
-    private void treeValueChanged(javax.swing.event.TreeSelectionEvent evt) {//GEN-FIRST:event_treeValueChanged
+    private void treeValueChanged(javax.swing.event.TreeSelectionEvent evt) { //GEN-FIRST:event_treeValueChanged
         TreePath path = tree.getSelectionPath();
         if (path != null) {
             Object sel = path.getLastPathComponent();
@@ -244,14 +313,14 @@ public class DashBoard extends javax.swing.JPanel {
         } else {
             browser.setUrl(ERR_HTML);
         }
-    }//GEN-LAST:event_treeValueChanged
+    } //GEN-LAST:event_treeValueChanged
 
-    private void openInbrowserActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_openInbrowserActionPerformed
+    private void openInbrowserActionPerformed(java.awt.event.ActionEvent evt) { //GEN-FIRST:event_openInbrowserActionPerformed
         try {
             String url = browser.getUrl();
             url = url.substring(0, url.indexOf(".html") + 5);
             if (url.endsWith("detailed.html")) {
-                url = url.replace("detailed.html", "summary.html");
+                url = url.replace("detailed.html", AppResourcePath.SUMMARY_HTML_V2);
             }
             if (url.endsWith(".html")) {
                 DesktopApi.browse(new URI(url));
@@ -259,16 +328,15 @@ public class DashBoard extends javax.swing.JPanel {
         } catch (Exception ex) {
             Logger.getLogger(DashBoard.class.getName()).log(Level.SEVERE, null, ex);
         }
-    }//GEN-LAST:event_openInbrowserActionPerformed
+    } //GEN-LAST:event_openInbrowserActionPerformed
 
-    private void backActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_backActionPerformed
+    private void backActionPerformed(java.awt.event.ActionEvent evt) { //GEN-FIRST:event_backActionPerformed
         browser.back();
-    }//GEN-LAST:event_backActionPerformed
+    } //GEN-LAST:event_backActionPerformed
 
-    private void forwardActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_forwardActionPerformed
+    private void forwardActionPerformed(java.awt.event.ActionEvent evt) { //GEN-FIRST:event_forwardActionPerformed
         browser.next();
-    }//GEN-LAST:event_forwardActionPerformed
-
+    } //GEN-LAST:event_forwardActionPerformed
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton back;
@@ -288,6 +356,7 @@ public class DashBoard extends javax.swing.JPanel {
     private javax.swing.JButton openInbrowser;
     private javax.swing.JTree tree;
     private javax.swing.JPanel webPanel;
+
     // End of variables declaration//GEN-END:variables
 
     private boolean checkFile(String url) {
@@ -295,5 +364,4 @@ public class DashBoard extends javax.swing.JPanel {
         File f = new File(fadd);
         return f.exists() && f.isFile();
     }
-
 }

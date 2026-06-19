@@ -1,15 +1,18 @@
-
 package com.ing.datalib.testdata.model;
 
 import java.util.ArrayList;
 
 /**
  *
- * 
+ *
  */
 public class Record extends ArrayList<String> {
-
-    public static final String[] HEADERS = new String[]{"Scenario", "Flow", "Iteration", "SubIteration"};
+    public static final String[] HEADERS = new String[] {
+        "Scenario",
+        "Flow",
+        "Iteration",
+        "SubIteration"
+    };
 
     @Override
     public String remove(int i) {
@@ -64,7 +67,6 @@ public class Record extends ArrayList<String> {
                     }
                 }
                 break;
-
         }
         return super.set(i, e);
     }
@@ -72,5 +74,4 @@ public class Record extends ArrayList<String> {
     private Boolean validIterRSubIteration(String value) {
         return value.isEmpty() || value.matches("[1-9][0-9]*");
     }
-
 }

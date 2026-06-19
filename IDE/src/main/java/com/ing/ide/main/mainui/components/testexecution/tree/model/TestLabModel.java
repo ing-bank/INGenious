@@ -1,4 +1,3 @@
-
 package com.ing.ide.main.mainui.components.testexecution.tree.model;
 
 import com.ing.datalib.component.Project;
@@ -9,10 +8,9 @@ import javax.swing.tree.TreePath;
 
 /**
  *
- * 
+ *
  */
 public class TestLabModel extends CommonTreeModel {
-
     Project project;
 
     public TestLabModel() {
@@ -63,7 +61,4 @@ public class TestLabModel extends CommonTreeModel {
         }
         return addTestSet(addRelease(testset.getRelease()), testset);
     }
-
-    
-
 }

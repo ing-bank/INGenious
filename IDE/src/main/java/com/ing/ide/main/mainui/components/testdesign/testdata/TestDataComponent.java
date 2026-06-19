@@ -1,4 +1,3 @@
-
 package com.ing.ide.main.mainui.components.testdesign.testdata;
 
 import com.ing.datalib.component.Scenario;
@@ -8,11 +7,14 @@ import com.ing.datalib.component.utils.SaveListener;
 import com.ing.datalib.testdata.model.AbstractDataModel;
 import com.ing.datalib.testdata.model.GlobalDataModel;
 import com.ing.datalib.testdata.model.TestDataModel;
+import com.ing.ide.main.fx.INGIcons;
 import com.ing.ide.main.mainui.components.testdesign.TestDesign;
 import com.ing.ide.main.utils.TabTitleEditListener;
 import com.ing.ide.main.utils.Utils;
-import com.ing.ide.main.utils.table.JtableUtils;
+import com.ing.ide.main.utils.table.FrozenColumnScrollPane;
+import com.ing.ide.main.utils.table.JTableUtils;
 import com.ing.ide.main.utils.table.XTable;
+import com.ing.ide.main.utils.table.XTableUtils;
 import com.ing.ide.util.Canvas;
 import com.ing.ide.util.Notification;
 import com.ing.ide.util.Utility;
@@ -43,8 +45,10 @@ import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
 import javax.swing.JTabbedPane;
+import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.SwingUtilities;
+import javax.swing.UIManager;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 import javax.swing.table.AbstractTableModel;
@@ -57,8 +61,7 @@ import javax.swing.table.TableModel;
  *
  */
 public class TestDataComponent extends JPanel implements ChangeListener, ActionListener {
-
-    private static final ImageIcon ADD_NEW_TAB_ICON = new ImageIcon(TestDataComponent.class.getResource("/ui/resources/testdesign/testdata/add.png"));
+    private static final javax.swing.Icon ADD_NEW_TAB_ICON = INGIcons.swingColored("icon.add", 16);
 
     private final TestDesign testDesign;
 
@@ -74,14 +77,14 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
 
     private SaveListener saveListener;
 
-    private final Environment environmentPanel;
+    private final StylizedEnvironment environmentPanel;
 
     public TestDataComponent(TestDesign sProxy) {
         this.testDesign = sProxy;
         envTab = new XJTabbedPane();
         toolBar = new TestDataToolBar(this);
         popupMenu = new TestDataPopupMenu(this);
-        environmentPanel = new Environment(this);
+        environmentPanel = new StylizedEnvironment(this);
         testDataTabPopup = new TestDataTabPopup();
         testDataEnvPopup = new TestDataEnvPopup();
         init();
@@ -90,26 +93,30 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
     private void init() {
         envTab.setTabLayoutPolicy(JTabbedPane.SCROLL_TAB_LAYOUT);
         envTab.setComponentPopupMenu(testDataEnvPopup);
+        envTab.setBackground(UIManager.getColor("Panel.background"));
 
         TabTitleEditListener l = new TabTitleEditListener(envTab, onTestDataEnvRenameAction());
         envTab.addChangeListener(l);
         envTab.addMouseListener(l);
 
         setLayout(new BorderLayout());
+        setBackground(UIManager.getColor("Panel.background"));
         add(toolBar, BorderLayout.NORTH);
         add(envTab, BorderLayout.CENTER);
 
-        saveListener = new SaveListener() {
+        saveListener =
+            new SaveListener() {
 
-            @Override
-            public void onSave(Boolean bln) {
-                changeSave(bln);
-            }
-        };
+                @Override
+                public void onSave(Boolean bln) {
+                    changeSave(bln);
+                }
+            };
     }
 
     private Action onTestDataEnvRenameAction() {
         return new AbstractAction() {
+
             @Override
             public void actionPerformed(ActionEvent ae) {
                 String newName = getValue("newValue").toString();
@@ -124,6 +131,7 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
 
     private Action onTestDataRenameAction() {
         return new AbstractAction() {
+
             @Override
             public void actionPerformed(ActionEvent ae) {
                 String newName = getValue("newValue").toString();
@@ -141,6 +149,7 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
 
     private Action onCloseAction() {
         return new AbstractAction() {
+
             @Override
             public void actionPerformed(ActionEvent ae) {
                 TestDataTablePanel panel = getSelectedData();
@@ -170,12 +179,15 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
         JTabbedPane testdataTab = new JTabbedPane();
         testdataTab.setTabLayoutPolicy(JTabbedPane.SCROLL_TAB_LAYOUT);
         testdataTab.setTabPlacement(JTabbedPane.BOTTOM);
+        testdataTab.setBackground(UIManager.getColor("Panel.background"));
         addToTab(testdataTab, sTestData.getGlobalData(), true);
         for (AbstractDataModel std : sTestData.getTestDataList()) {
             addToTab(testdataTab, std, false);
         }
 
         JLabel label = new JLabel("Click + to Add New TestData");
+        label.setBackground(UIManager.getColor("Panel.background"));
+        label.setOpaque(true);
         testdataTab.addTab("", ADD_NEW_TAB_ICON, label);
         label.setHorizontalAlignment(JLabel.CENTER);
         TabTitleEditListener l = new TabTitleEditListener(testdataTab, onTestDataRenameAction(), 0);
@@ -190,12 +202,14 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
 
     private MouseAdapter onAddNewTDTab() {
         return new MouseAdapter() {
+
             @Override
             public void mouseClicked(MouseEvent me) {
                 JTabbedPane tabbedPane = (JTabbedPane) me.getSource();
                 if (tabbedPane.getSelectedIndex() != -1 && getSelectedData() == null) {
-                    Rectangle rect = tabbedPane.getUI().
-                            getTabBounds(tabbedPane, tabbedPane.getSelectedIndex());
+                    Rectangle rect = tabbedPane
+                        .getUI()
+                        .getTabBounds(tabbedPane, tabbedPane.getSelectedIndex());
                     if (rect.contains(me.getPoint())) {
                         tabbedPane.setSelectedIndex(tabbedPane.getSelectedIndex() - 1);
                         addNewTestData(tabbedPane);
@@ -206,10 +220,18 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
     }
 
     private void addAddNewTab() {
-        envTab.addTab("", ADD_NEW_TAB_ICON, new JScrollPane(environmentPanel));
+        JScrollPane scrollPane = new JScrollPane(environmentPanel);
+        scrollPane.setBorder(null);
+        scrollPane.setBackground(UIManager.getColor("Panel.background"));
+        scrollPane.getViewport().setBackground(UIManager.getColor("Panel.background"));
+        envTab.addTab("", ADD_NEW_TAB_ICON, scrollPane);
     }
 
-    private TestDataTablePanel addToTab(JTabbedPane testdataTab, AbstractDataModel std, Boolean isGlobalData) {
+    private TestDataTablePanel addToTab(
+        JTabbedPane testdataTab,
+        AbstractDataModel std,
+        Boolean isGlobalData
+    ) {
         TestDataTablePanel tdPanel = new TestDataTablePanel(std, isGlobalData);
         testdataTab.addTab(std.getName(), tdPanel);
         return tdPanel;
@@ -243,8 +265,11 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
 
     private void addNewTestData(Object source) {
         JTabbedPane tab = (JTabbedPane) source;
-        TestDataModel model = testDesign.getProject().getTestData()
-                .getTestDataFor(envTab.getTitleAt(envTab.getSelectedIndex())).addTestData();
+        TestDataModel model = testDesign
+            .getProject()
+            .getTestData()
+            .getTestDataFor(envTab.getTitleAt(envTab.getSelectedIndex()))
+            .addTestData();
         TestCase testcase = testDesign.getTestCaseComp().getCurrentTestCase();
         if (testcase != null) {
             model.addRecord();
@@ -272,9 +297,12 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
             tabs.add(tab.getTitleAt(i));
         }
         JComboBox combo = new JComboBox(tabs.toArray());
-        int option = JOptionPane.showConfirmDialog(null, combo,
-                "Go To TestData",
-                JOptionPane.DEFAULT_OPTION);
+        int option = JOptionPane.showConfirmDialog(
+            null,
+            combo,
+            "Go To TestData",
+            JOptionPane.DEFAULT_OPTION
+        );
         if (option == JOptionPane.OK_OPTION) {
             tab.setSelectedIndex(tabs.indexOf(combo.getSelectedItem().toString()));
         }
@@ -296,11 +324,18 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
         if (!panel.isGlobalData) {
             int index = tab.getSelectedIndex();
             String name = tab.getTitleAt(index);
-            int option = JOptionPane.showConfirmDialog(null, "Are you sure want to delete the TestData [" + name + "]", "Delete TestData", JOptionPane.YES_NO_OPTION);
+            int option = JOptionPane.showConfirmDialog(
+                null,
+                "Are you sure want to delete the TestData [" + name + "]",
+                "Delete TestData",
+                JOptionPane.YES_NO_OPTION
+            );
             if (option == JOptionPane.YES_OPTION) {
-                Boolean flag = testDesign.getProject().getTestData()
-                        .getTestDataFor(envTab.getTitleAt(envTab.getSelectedIndex()))
-                        .deleteTestData(name);
+                Boolean flag = testDesign
+                    .getProject()
+                    .getTestData()
+                    .getTestDataFor(envTab.getTitleAt(envTab.getSelectedIndex()))
+                    .deleteTestData(name);
                 if (flag) {
                     tab.setSelectedIndex(index - 1);
                     tab.removeTabAt(index);
@@ -316,15 +351,24 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
         String envName = envTab.getTitleAt(index);
         envTab.removeTabAt(index);
         TestData sTestData = testDesign.getProject().getTestData().getTestDataFor(envName);
-        envTab.insertTab(sTestData.getEnviroment(), null, createNewTestDataTab(sTestData), null, index);
+        envTab.insertTab(
+            sTestData.getEnviroment(),
+            null,
+            createNewTestDataTab(sTestData),
+            null,
+            index
+        );
         envTab.setSelectedIndex(index);
     }
 
     private TestDataTablePanel getSelectedData() {
         if (envTab.getSelectedComponent() instanceof JTabbedPane) {
             JTabbedPane tab = (JTabbedPane) envTab.getSelectedComponent();
-            if (tab.getTabCount() > 0 && tab.getSelectedComponent() != null
-                    && tab.getSelectedComponent() instanceof TestDataTablePanel) {
+            if (
+                tab.getTabCount() > 0 &&
+                tab.getSelectedComponent() != null &&
+                tab.getSelectedComponent() instanceof TestDataTablePanel
+            ) {
                 return (TestDataTablePanel) tab.getSelectedComponent();
             }
         }
@@ -397,12 +441,6 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
                 case "Move Rows Down":
                     tdPanel.moveRowDown();
                     break;
-                case "Move Column Left":
-                    tdPanel.moveColumnLeft();
-                    break;
-                case "Move Column Right":
-                    tdPanel.moveColumnRight();
-                    break;
                 case "Add New TestData":
                     addNewTestData(envTab.getSelectedComponent());
                     break;
@@ -429,7 +467,6 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
                     break;
             }
         }
-
     }
 
     private void changeSave(Boolean saved) {
@@ -439,27 +476,23 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
 
     private void makeAsGlobalData(TestDataTablePanel tdPanel) {
         int[] columns = tdPanel.table.getSelectedColumns();
-        if (columns != null && columns.length > 0) {
+        int[] rows = tdPanel.table.getSelectedRows();
+        if (columns != null && columns.length > 0 && rows != null && rows.length > 0) {
             GlobalDataModel gdModel = getCurrentEnviromentData().getGlobalData();
             Object[] data = addAndGetKeyForGlobalData(gdModel);
-            int row = (int) data[1];
-            String[] columnNames = new String[columns.length];
-            for (int i = 0; i < columns.length; i++) {
-                columnNames[i] = tdPanel.table.getColumnName(columns[i]);
-            }
-            for (String columnName : columnNames) {
+            int globalRow = (int) data[1];
+
+            // Copy values from the first selected row in test data to global data
+            int sourceRow = rows[0];
+            for (int viewCol : columns) {
+                String columnName = tdPanel.table.getColumnName(viewCol);
                 gdModel.addColumn(columnName);
-                if (Objects.toString(gdModel.getValueAt(row,
-                        gdModel.getColumnIndex(columnName)), "").isEmpty()) {
-
-                    gdModel.setValueAt(
-                            tdPanel.table.getValueAt(
-                                    tdPanel.table.getSelectedRow(),
-                                    tdPanel.std.getColumnIndex(columnName)),
-                            row, gdModel.getColumnIndex(columnName));
-
-                }
+                // Get value using VIEW column index (table.getValueAt uses view indices)
+                Object value = tdPanel.table.getValueAt(sourceRow, viewCol);
+                // Copy value from test data to global data, overwriting if necessary
+                gdModel.setValueAt(value, globalRow, gdModel.getColumnIndex(columnName));
             }
+            // Replace all selected cells with global data reference
             tdPanel.makeAsGlobalData(data[0].toString());
         }
     }
@@ -468,7 +501,12 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
         Object[] objects = new Object[2];
         JComboBox jcb = new JComboBox(gdModel.getKeys().toArray());
         jcb.setEditable(true);
-        JOptionPane.showMessageDialog(null, jcb, "Select or Enter a GlobalId", JOptionPane.QUESTION_MESSAGE);
+        JOptionPane.showMessageDialog(
+            null,
+            jcb,
+            "Select or Enter a GlobalId",
+            JOptionPane.QUESTION_MESSAGE
+        );
 
         String key = Objects.toString(jcb.getSelectedItem(), "");
 
@@ -479,8 +517,7 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
         }
         objects[0] = key;
 
-        if (gdModel.getRowCount() == 0
-                || !gdModel.getKeys().contains(key)) {
+        if (gdModel.getRowCount() == 0 || !gdModel.getKeys().contains(key)) {
             gdModel.addRecord();
             gdModel.setValueAt(key, gdModel.getRowCount() - 1, 0);
             objects[1] = gdModel.getRowCount() - 1;
@@ -496,21 +533,34 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
 
     List<String> getListOfTestDatas(String env) {
         List<String> tdL = new ArrayList<>();
-        for (AbstractDataModel std : testDesign.getProject().getTestData().getTestDataFor(env).getTestDataList()) {
+        for (AbstractDataModel std : testDesign
+            .getProject()
+            .getTestData()
+            .getTestDataFor(env)
+            .getTestDataList()) {
             tdL.add(std.getName());
         }
         return tdL;
     }
 
     private void addNewEnvironment(TestData sTestData) {
-        envTab.insertTab(sTestData.getEnviroment(), null, createNewTestDataTab(sTestData), null, envTab.getTabCount() - 1);
+        envTab.insertTab(
+            sTestData.getEnviroment(),
+            null,
+            createNewTestDataTab(sTestData),
+            null,
+            envTab.getTabCount() - 1
+        );
     }
 
     private void addInAllEnvironement() {
         TestDataTablePanel panel = getSelectedData();
         if (!panel.isGlobalData) {
             String envName = envTab.getTitleAt(envTab.getSelectedIndex());
-            testDesign.getProject().getTestData().duplicateSheetsInOtherEnv(envName, (TestDataModel) panel.std);
+            testDesign
+                .getProject()
+                .getTestData()
+                .duplicateSheetsInOtherEnv(envName, (TestDataModel) panel.std);
             reloadAllExcept(envTab.getSelectedIndex());
         }
     }
@@ -527,8 +577,13 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
         if (index != -1) {
             String envName = envTab.getTitleAt(index);
             envTab.removeTabAt(index);
-            envTab.insertTab(envName, null,
-                    createNewTestDataTab(testDesign.getProject().getTestData().getTestDataFor(envName)), null, index);
+            envTab.insertTab(
+                envName,
+                null,
+                createNewTestDataTab(testDesign.getProject().getTestData().getTestDataFor(envName)),
+                null,
+                index
+            );
         }
     }
 
@@ -541,16 +596,25 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
         }
     }
 
-    Boolean addNewEnvironment(String envName, String duplicateDataFromEnv,
-            List<String> duplicateSheets, Boolean globalDataAsWell) {
+    Boolean addNewEnvironment(
+        String envName,
+        String duplicateDataFromEnv,
+        List<String> duplicateSheets,
+        Boolean globalDataAsWell
+    ) {
         if (testDesign.getProject().getTestData().getTestDataFor(envName) == null) {
             if (duplicateDataFromEnv == null) {
-                testDesign.getProject().getTestData().
-                        createNewEnvironment(envName);
+                testDesign.getProject().getTestData().createNewEnvironment(envName);
             } else {
-                testDesign.getProject().getTestData().
-                        createNewEnvironment(envName, duplicateDataFromEnv,
-                                duplicateSheets, globalDataAsWell);
+                testDesign
+                    .getProject()
+                    .getTestData()
+                    .createNewEnvironment(
+                        envName,
+                        duplicateDataFromEnv,
+                        duplicateSheets,
+                        globalDataAsWell
+                    );
             }
             addNewEnvironment(testDesign.getProject().getTestData().getTestDataFor(envName));
             return true;
@@ -564,7 +628,10 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
         if (!tdPanel.isGlobalData) {
             List<String> colList = tdPanel.getSelectedColumns();
             String envName = envTab.getTitleAt(envTab.getSelectedIndex());
-            testDesign.getProject().getTestData().duplicateColumnInOtherEnv(envName, (TestDataModel) tdPanel.std, colList);
+            testDesign
+                .getProject()
+                .getTestData()
+                .duplicateColumnInOtherEnv(envName, (TestDataModel) tdPanel.std, colList);
         }
     }
 
@@ -572,24 +639,30 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
         if (!tdPanel.isGlobalData) {
             int[] rows = tdPanel.table.getSelectedRows();
             String envName = envTab.getTitleAt(envTab.getSelectedIndex());
-            testDesign.getProject().getTestData().duplicateRowsInOtherEnv(envName, (TestDataModel) tdPanel.std, rows);
+            testDesign
+                .getProject()
+                .getTestData()
+                .duplicateRowsInOtherEnv(envName, (TestDataModel) tdPanel.std, rows);
         }
     }
 
     public void switchEnvView() {
-        SwingUtilities.invokeLater(new Runnable() {
-            @Override
-            public void run() {
-                envTab.setShowTabsHeader(!envTab.isShowTabsHeader());
-                for (int i = 0; i < envTab.getTabCount(); i++) {
-                    if (envTab.getTitleAt(i).equals("Default")) {
-                        envTab.setSelectedIndex(i);
+        SwingUtilities.invokeLater(
+            new Runnable() {
+
+                @Override
+                public void run() {
+                    envTab.setShowTabsHeader(!envTab.isShowTabsHeader());
+                    for (int i = 0; i < envTab.getTabCount(); i++) {
+                        if (envTab.getTitleAt(i).equals("Default")) {
+                            envTab.setSelectedIndex(i);
+                        }
                     }
+                    envTab.revalidate();
+                    envTab.repaint();
                 }
-                envTab.revalidate();
-                envTab.repaint();
             }
-        });
+        );
     }
 
     private void renameTestDataTabs(String oldName, String newName) {
@@ -617,9 +690,13 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
     private void deleteEnvironment() {
         String envName = envTab.getTitleAt(envTab.getSelectedIndex());
         if (!envName.equals("Default")) {
-            int option = JOptionPane.showConfirmDialog(null,
-                    "Are you sure want to delete Environment [" + envName + "]", "Delete Environent",
-                    JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
+            int option = JOptionPane.showConfirmDialog(
+                null,
+                "Are you sure want to delete Environment [" + envName + "]",
+                "Delete Environent",
+                JOptionPane.YES_NO_OPTION,
+                JOptionPane.QUESTION_MESSAGE
+            );
             if (option == JOptionPane.YES_OPTION) {
                 envTab.removeTabAt(envTab.getSelectedIndex());
                 testDesign.getProject().getTestData().deleteEnvironment(envName);
@@ -628,8 +705,12 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
     }
 
     private void getImpactedTestCases(TestDataTablePanel tdPanel) {
-        testDesign.getImpactUI().loadForTestData(testDesign.getProject()
-                .getImpactedTestDataTestCases(tdPanel.std.getName()), tdPanel.std.getName());
+        testDesign
+            .getImpactUI()
+            .loadForTestData(
+                testDesign.getProject().getImpactedTestDataTestCases(tdPanel.std.getName()),
+                tdPanel.std.getName()
+            );
     }
 
     public Boolean navigateToTestData(String sheetName, String columnName) {
@@ -667,9 +748,9 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
     }
 
     class TestDataTablePanel extends JPanel {
-
         AbstractDataModel std;
         XTable table;
+        FrozenColumnScrollPane frozenScrollPane;
 
         private final Boolean isGlobalData;
 
@@ -689,39 +770,75 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
         }
 
         private void init() {
-            table = new XTable() {
-                @Override
-                public TableCellEditor getCellEditor(int row, int column) {
-                    if (!isGlobalData) {
-                        return tDAutoSuggest.getCellEditorFor(column, super.getCellEditor(row, column));
-                    }
-                    return super.getCellEditor(row, column);
-                }
+            table =
+                new XTable() {
 
-            };
+                    @Override
+                    public TableCellEditor getCellEditor(int row, int column) {
+                        if (!isGlobalData) {
+                            // When using FrozenColumnScrollPane, columns 0-3 are removed from view
+                            // So view column 0 is model column 4 - need to offset by fixedColumnCount
+                            int modelColumn = column + 4;
+                            return tDAutoSuggest.getCellEditorFor(
+                                modelColumn,
+                                super.getCellEditor(row, column)
+                            );
+                        }
+                        return super.getCellEditor(row, column);
+                    }
+                };
             if (isGlobalData) {
                 table.setColumnRename(onRenameAction(), 0);
                 load();
             } else {
-                table.setColumnRename(onRenameAction(), 0, 1, 2, 3);
+                // For non-global data, enable column renaming for all scrollable columns
+                // (fixed columns 0-3 are in a separate table managed by FrozenColumnScrollPane)
+                // Note: After FrozenColumnScrollPane setup, view column 0 = model column 4
+                table.setColumnRename(onRenameAction());
             }
             tDAutoSuggest = new TestDataAutoSuggest(testDesign.getProject(), table);
             table.setDragEnabled(true);
             table.setTransferHandler(new TestDataDnD());
             table.setComponentPopupMenu(popupMenu);
 
-            table.addMouseListener(new MouseAdapter() {
-                @Override
-                public void mouseClicked(MouseEvent me) {
-                    if (SwingUtilities.isLeftMouseButton(me) && me.isAltDown()) {
-                        goToSelectedTestCase();
-                    } else if (SwingUtilities.isLeftMouseButton(me)) {
-                        addLastRow();
+            table.addMouseListener(
+                new MouseAdapter() {
+
+                    @Override
+                    public void mouseClicked(MouseEvent me) {
+                        if (SwingUtilities.isLeftMouseButton(me) && me.isAltDown()) {
+                            goToSelectedTestCase();
+                        } else if (SwingUtilities.isLeftMouseButton(me)) {
+                            addLastRow();
+                        }
                     }
                 }
-            });
+            );
             setLayout(new BorderLayout());
-            add(new JScrollPane(table));
+            setBackground(UIManager.getColor("Panel.background"));
+
+            if (!isGlobalData) {
+                // Use frozen column scroll pane for test data (but not global data)
+                frozenScrollPane = new FrozenColumnScrollPane(table, 4);
+                frozenScrollPane.setBackground(UIManager.getColor("Panel.background"));
+                frozenScrollPane
+                    .getViewport()
+                    .setBackground(UIManager.getColor("Panel.background"));
+
+                // Apply popup menu to fixed table as well
+                frozenScrollPane.getFixedTable().setComponentPopupMenu(popupMenu);
+                // Set cell editor provider for fixed columns (columns 0-3: Scenario, Flow, Iteration, SubIteration)
+                frozenScrollPane.setCellEditorProvider(
+                    (row, column, defaultEditor) ->
+                        tDAutoSuggest.getCellEditorFor(column, defaultEditor)
+                );
+                add(frozenScrollPane);
+            } else {
+                JScrollPane scrollPane = new JScrollPane(table);
+                scrollPane.setBackground(UIManager.getColor("Panel.background"));
+                scrollPane.getViewport().setBackground(UIManager.getColor("Panel.background"));
+                add(scrollPane);
+            }
             addTableProps();
             std.setSaveListener(saveListener);
         }
@@ -730,6 +847,10 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
             std.loadTableModel();
             table.setModel(std);
             changeSave(std.isSaved());
+            // Update frozen scroll pane after model change
+            if (!isGlobalData && frozenScrollPane != null) {
+                frozenScrollPane.updateModel();
+            }
         }
 
         private Action onRenameAction() {
@@ -738,16 +859,19 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
                 @Override
                 public void actionPerformed(ActionEvent ae) {
                     assignThePreviouslySelected();
-                    Boolean flag = testDesign.getProject().getTestData()
-                            .renameTestDataColumn(std.getName(),
-                                    getValue("oldvalue").toString(),
-                                    getValue("newvalue").toString());
+                    Boolean flag = testDesign
+                        .getProject()
+                        .getTestData()
+                        .renameTestDataColumn(
+                            std.getName(),
+                            getValue("oldvalue").toString(),
+                            getValue("newvalue").toString()
+                        );
                     putValue("rename", flag);
                     if (flag) {
                         selectThePreviouslySelected();
                     }
                 }
-
             };
         }
 
@@ -782,43 +906,6 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
                     }
                 }
             }
-
-        }
-
-        private void moveColumnLeft() {
-            try {
-
-                int sCol = table.getSelectedColumn();
-                if (sCol>=5){
-                    TableModel model = table.getModel();
-                    table.moveColumn(sCol, sCol - 1);
-                    TableModel customModel = createCustomTableModel(model, table.getColumnModel());
-                    saveChanges(customModel);
-                    std.setSaved(true);
-                    }
-                
-            } catch (Exception e) {
-                Logger.getLogger(JtableUtils.class.getName()).log(Level.SEVERE, null, e);
-            }
-
-        }
-
-        private void moveColumnRight() {
-            try {
-
-                int sCol = table.getSelectedColumn();
-                if (sCol>=4){
-                    TableModel model = table.getModel();
-                    TableModel customModel = createCustomTableModel(model, table.getColumnModel());
-                    table.moveColumn(sCol, sCol + 1);
-                    saveChanges(customModel);
-                    std.setSaved(true);
-                }
-
-            } catch (Exception e) {
-                Logger.getLogger(JtableUtils.class.getName()).log(Level.SEVERE, null, e);
-            }
-
         }
 
         private void moveRowUp() {
@@ -881,8 +968,7 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
         private void addLastRow() {
             int row = table.getSelectedRow();
             int column = table.getSelectedColumn();
-            if (row == table.getRowCount() - 1
-                    && column == table.getColumnCount() - 1) {
+            if (row == table.getRowCount() - 1 && column == table.getColumnCount() - 1) {
                 addRow();
             }
         }
@@ -894,8 +980,7 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
 
         private void insertRowBelow() {
             stopCellEditing();
-            if (table.getSelectedRow() != -1
-                    && table.getSelectedRow() + 1 < table.getRowCount()) {
+            if (table.getSelectedRow() != -1 && table.getSelectedRow() + 1 < table.getRowCount()) {
                 std.addRecord(table.getSelectedRow() + 1);
             } else {
                 std.addRecord();
@@ -911,24 +996,59 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
 
         private void replicateRow() {
             stopCellEditing();
-            if (table.getSelectedRow() != -1) {
-                std.replicateRecord(table.getSelectedRow());
+            int[] selectedRows = table.getSelectedRows();
+            int lastIndex = selectedRows[selectedRows.length - 1];
+            int added = 0;
+            for (int row : selectedRows) {
+                std.replicateRecord(row, lastIndex + 1 + added);
+                added++;
             }
         }
 
         private void addColumn() {
             assignThePreviouslySelected();
             stopCellEditing();
-            std.addColumn();
+
+            if (!isGlobalData && frozenScrollPane != null) {
+                // Check if focus is on fixed table - don't allow adding column there
+                JTable fixedTable = frozenScrollPane.getFixedTable();
+                int fixedSelectedCol = fixedTable.getSelectedColumn();
+                if (fixedSelectedCol >= 0) {
+                    // Fixed column selected - do nothing, user cannot add column here
+                    Notification.show(
+                        "Cannot add columns in the fixed area. Select a column in the scrollable area or add at the end."
+                    );
+                    return;
+                }
+
+                // Check if a column is selected in the main (scrollable) table
+                int mainSelectedCol = table.getSelectedColumn();
+                if (mainSelectedCol >= 0) {
+                    // Main table view column needs offset: model = view + 4 (fixed columns)
+                    int insertIndex = mainSelectedCol + 4 + 1;
+                    std.addColumnAt(insertIndex);
+                } else {
+                    // No column selected - add at the end
+                    std.addColumn();
+                }
+            } else {
+                // Global data or no frozen pane
+                int selectedCol = table.getSelectedColumn();
+                if (selectedCol >= 0 && !isGlobalData) {
+                    // For global data, column 0 is protected, so insert after selection
+                    std.addColumnAt(selectedCol + 1);
+                } else {
+                    std.addColumn();
+                }
+            }
+
             selectThePreviouslySelected();
         }
 
         private void clearValues() {
             stopCellEditing();
             if (table.getSelectedRowCount() > 0) {
-                std.clearValues(
-                        table.getSelectedRows(),
-                        table.getSelectedColumns());
+                std.clearValues(table.getSelectedRows(), table.getSelectedColumns());
             }
         }
 
@@ -944,19 +1064,40 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
 
         private void deleteSelectedColumns() {
             stopCellEditing();
-            List<Integer> colList = Utils.getReverseSorted(table.getSelectedColumns());
-            if (!colList.isEmpty()) {
-                if (isGlobalData) {
-                    colList.remove(Integer.valueOf(0));
-                } else {
-                    colList.remove(Integer.valueOf(0));
-                    colList.remove(Integer.valueOf(1));
-                    colList.remove(Integer.valueOf(2));
-                    colList.remove(Integer.valueOf(3));
 
+            if (!isGlobalData && frozenScrollPane != null) {
+                // Get selected columns from the scrollable table
+                // View column indices need to be converted to model indices (add 4)
+                int[] viewCols = table.getSelectedColumns();
+                if (viewCols.length == 0) {
+                    return;
                 }
-                std.removeColumn(colList);
+
+                List<Integer> modelColList = new ArrayList<>();
+                for (int viewCol : viewCols) {
+                    int modelCol = viewCol + 4; // offset by fixed column count
+                    modelColList.add(modelCol);
+                }
+
+                // Sort in reverse order for safe removal
+                modelColList.sort((a, b) -> b - a);
+                std.removeColumn(modelColList);
+            } else {
+                // Global data or no frozen pane - original logic
+                List<Integer> colList = Utils.getReverseSorted(table.getSelectedColumns());
+                if (!colList.isEmpty()) {
+                    if (isGlobalData) {
+                        colList.remove(Integer.valueOf(0));
+                    } else {
+                        colList.remove(Integer.valueOf(0));
+                        colList.remove(Integer.valueOf(1));
+                        colList.remove(Integer.valueOf(2));
+                        colList.remove(Integer.valueOf(3));
+                    }
+                    std.removeColumn(colList);
+                }
             }
+            load();
         }
 
         private List<String> getSelectedColumns() {
@@ -966,144 +1107,188 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
             }
             return colList;
         }
-        
-         private TableModel createCustomTableModel(TableModel originalModel, TableColumnModel columnModel) {
+
+        private TableModel createCustomTableModel(
+            TableModel originalModel,
+            TableColumnModel columnModel
+        ) {
             AbstractTableModel customModel = new AbstractTableModel() {
-            @Override
-            public int getColumnCount() {
-                return columnModel.getColumnCount();
-            }
 
-            @Override
-            public int getRowCount() {
-                return originalModel.getRowCount();
-            }
+                @Override
+                public int getColumnCount() {
+                    return columnModel.getColumnCount();
+                }
 
-            @Override
-            public Object getValueAt(int row, int column) {
-                int originalColumn = columnModel.getColumn(column).getModelIndex();
-                return originalModel.getValueAt(row, originalColumn);
-            }
+                @Override
+                public int getRowCount() {
+                    return originalModel.getRowCount();
+                }
 
-            @Override
-            public String getColumnName(int column) {
-                int originalColumn = columnModel.getColumn(column).getModelIndex();
-                return originalModel.getColumnName(originalColumn);
-            }
+                @Override
+                public Object getValueAt(int row, int column) {
+                    int originalColumn = columnModel.getColumn(column).getModelIndex();
+                    return originalModel.getValueAt(row, originalColumn);
+                }
 
-            @Override
-            public Class<?> getColumnClass(int column) {
-                int originalColumn = columnModel.getColumn(column).getModelIndex();
-                return originalModel.getColumnClass(originalColumn);
-            }
+                @Override
+                public String getColumnName(int column) {
+                    int originalColumn = columnModel.getColumn(column).getModelIndex();
+                    return originalModel.getColumnName(originalColumn);
+                }
 
-            // Override other necessary methods based on your requirements
-        };
+                @Override
+                public Class<?> getColumnClass(int column) {
+                    int originalColumn = columnModel.getColumn(column).getModelIndex();
+                    return originalModel.getColumnClass(originalColumn);
+                }
+                // Override other necessary methods based on your requirements
+            };
 
-        return customModel;
-    }
+            return customModel;
+        }
 
         private void addTableProps() {
+            table.setActionFor(
+                "MoveUp",
+                new AbstractAction() {
 
-            table.setActionFor("MoveUp", new AbstractAction() {
-                @Override
-                public void actionPerformed(ActionEvent e) {
-                    moveRowUp();
+                    @Override
+                    public void actionPerformed(ActionEvent e) {
+                        moveRowUp();
+                    }
                 }
-            });
-            table.setActionFor("MoveDown", new AbstractAction() {
-                @Override
-                public void actionPerformed(ActionEvent e) {
-                    moveRowDown();
-                }
-            });
-            table.setActionFor("MoveRight", new AbstractAction() {
-                @Override
-                public void actionPerformed(ActionEvent e) {
-                    moveColumnRight();
-                }
-            });
-            table.setActionFor("MoveLeft", new AbstractAction() {
-                @Override
-                public void actionPerformed(ActionEvent e) {
-                    moveColumnLeft();
-                }
-            });
-            table.setActionFor("Insert", new AbstractAction() {
-                @Override
-                public void actionPerformed(ActionEvent e) {
-                    insertRow();
-                }
-            });
-            table.setActionFor("Add", new AbstractAction() {
-                @Override
-                public void actionPerformed(ActionEvent e) {
-                    addRow();
-                }
-            });
-            table.setActionFor("Delete", new AbstractAction() {
-                @Override
-                public void actionPerformed(ActionEvent e) {
-                    deleteSelectedRows();
-                }
-            });
-            table.setActionFor("Clear", new AbstractAction() {
-                @Override
-                public void actionPerformed(ActionEvent ae) {
-                    clearValues();
-                }
-            });
-            table.setActionFor("Add Column", new AbstractAction() {
-                @Override
-                public void actionPerformed(ActionEvent e) {
-                    addColumn();
-                }
-            });
-            table.setActionFor("Delete Column", new AbstractAction() {
-                @Override
-                public void actionPerformed(ActionEvent e) {
-                    deleteSelectedColumns();
-                }
-            });
-            table.setActionFor("Replicate", new AbstractAction() {
-                @Override
-                public void actionPerformed(ActionEvent e) {
-                    replicateRow();
-                }
-            });
-            table.setActionFor("Save", new AbstractAction() {
-                @Override
-                public void actionPerformed(ActionEvent e) {
-                    save();
-                }
-            });
-            table.setActionFor("Reload", new AbstractAction() {
-                @Override
-                public void actionPerformed(ActionEvent e) {
-                    reload();
-                }
-            });
-            table.setActionFor("Open", new AbstractAction() {
-                @Override
-                public void actionPerformed(ActionEvent e) {
-                    openWithSystemEditor();
-                }
+            );
+            table.setActionFor(
+                "MoveDown",
+                new AbstractAction() {
 
-            });
-            table.setActionFor("Search", new AbstractAction() {
-                @Override
-                public void actionPerformed(ActionEvent e) {
-                    toolBar.focusSearch();
+                    @Override
+                    public void actionPerformed(ActionEvent e) {
+                        moveRowDown();
+                    }
                 }
-            });
+            );
+            table.setActionFor(
+                "Insert",
+                new AbstractAction() {
 
-            table.setActionFor("Copy Above", new AbstractAction() {
-                @Override
-                public void actionPerformed(ActionEvent e) {
-                    copyAbove();
+                    @Override
+                    public void actionPerformed(ActionEvent e) {
+                        insertRow();
+                    }
                 }
-            });
+            );
+            table.setActionFor(
+                "Add",
+                new AbstractAction() {
 
+                    @Override
+                    public void actionPerformed(ActionEvent e) {
+                        insertRowBelow();
+                    }
+                }
+            );
+            table.setActionFor(
+                "Delete",
+                new AbstractAction() {
+
+                    @Override
+                    public void actionPerformed(ActionEvent e) {
+                        deleteSelectedRows();
+                    }
+                }
+            );
+            table.setActionFor(
+                "Clear",
+                new AbstractAction() {
+
+                    @Override
+                    public void actionPerformed(ActionEvent ae) {
+                        clearValues();
+                    }
+                }
+            );
+            table.setActionFor(
+                "Add Column",
+                new AbstractAction() {
+
+                    @Override
+                    public void actionPerformed(ActionEvent e) {
+                        addColumn();
+                    }
+                }
+            );
+            table.setActionFor(
+                "Delete Column",
+                new AbstractAction() {
+
+                    @Override
+                    public void actionPerformed(ActionEvent e) {
+                        deleteSelectedColumns();
+                    }
+                }
+            );
+            table.setActionFor(
+                "Replicate",
+                new AbstractAction() {
+
+                    @Override
+                    public void actionPerformed(ActionEvent e) {
+                        replicateRow();
+                    }
+                }
+            );
+            table.setActionFor(
+                "Save",
+                new AbstractAction() {
+
+                    @Override
+                    public void actionPerformed(ActionEvent e) {
+                        save();
+                    }
+                }
+            );
+            table.setActionFor(
+                "Reload",
+                new AbstractAction() {
+
+                    @Override
+                    public void actionPerformed(ActionEvent e) {
+                        reload();
+                    }
+                }
+            );
+            table.setActionFor(
+                "Open",
+                new AbstractAction() {
+
+                    @Override
+                    public void actionPerformed(ActionEvent e) {
+                        openWithSystemEditor();
+                    }
+                }
+            );
+            table.setActionFor(
+                "Search",
+                new AbstractAction() {
+
+                    @Override
+                    public void actionPerformed(ActionEvent e) {
+                        toolBar.focusSearch();
+                    }
+                }
+            );
+
+            table.setActionFor(
+                "Copy Above",
+                new AbstractAction() {
+
+                    @Override
+                    public void actionPerformed(ActionEvent e) {
+                        copyAbove();
+                    }
+                }
+            );
         }
 
         private void copyAbove() {
@@ -1126,13 +1311,14 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
             if (!isGlobalData) {
                 if (table.getSelectedRow() != -1) {
                     Boolean invalid = false;
-                    String scenVal = Objects.toString(
-                            table.getValueAt(table.getSelectedRow(), 0), "");
-                    String tcVal = Objects.toString(
-                            table.getValueAt(table.getSelectedRow(), 1), "");
+                    // For test data with FrozenColumnScrollPane, columns 0-3 are in the fixed table
+                    // We need to read Scenario (column 0) and TestCase (column 1) from the fixed table
+                    int selectedRow = table.getSelectedRow();
+                    JTable sourceTable = frozenScrollPane.getFixedTable();
+                    String scenVal = Objects.toString(sourceTable.getValueAt(selectedRow, 0), "");
+                    String tcVal = Objects.toString(sourceTable.getValueAt(selectedRow, 1), "");
                     if (!scenVal.isEmpty() && !tcVal.isEmpty()) {
-                        Scenario scenario = testDesign.getProject()
-                                .getScenarioByName(scenVal);
+                        Scenario scenario = testDesign.getProject().getScenarioByName(scenVal);
                         if (scenario != null) {
                             TestCase testCase = scenario.getTestCaseByName(tcVal);
                             if (testCase != null) {
@@ -1147,9 +1333,15 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
                         invalid = true;
                     }
                     if (invalid) {
-                        Notification.show("Testcase "
-                                + "[" + scenVal + ":" + tcVal + "]"
-                                + " not available in Project");
+                        Notification.show(
+                            "Testcase " +
+                            "[" +
+                            scenVal +
+                            ":" +
+                            tcVal +
+                            "]" +
+                            " not available in Project"
+                        );
                     }
                 }
             }
@@ -1158,6 +1350,11 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
         private void stopCellEditing() {
             if (table.getCellEditor() != null) {
                 table.getCellEditor().stopCellEditing();
+            }
+            if (
+                frozenScrollPane != null && frozenScrollPane.getFixedTable().getCellEditor() != null
+            ) {
+                frozenScrollPane.getFixedTable().getCellEditor().stopCellEditing();
             }
         }
 
@@ -1172,18 +1369,14 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
                 table.setColumnSelectionInterval(previousColumnSelection, previousColumnSelection);
             }
         }
-        
-
-        
 
         private void saveChanges(TableModel model) {
             System.out.println(std.getLocation());
             try (FileWriter writer = new FileWriter(std.getLocation())) {
-
                 // Write the column headers
                 for (int column = 0; column < model.getColumnCount(); column++) {
                     writer.append(model.getColumnName(column));
-                    
+
                     if (column < model.getColumnCount() - 1) {
                         writer.append(',');
                     } else {
@@ -1208,17 +1401,13 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
                 }
 
                 writer.flush();
-               
             } catch (IOException e) {
                 System.err.println("Error exporting table data to CSV: " + e.getMessage());
             }
-
         }
-
     }
 
     class TestDataTabPopup extends JPopupMenu {
-
         JMenuItem addNew;
         JMenuItem addInAll;
         JMenuItem search;
@@ -1273,11 +1462,9 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
 
             add(reopen);
         }
-
     }
 
     class TestDataEnvPopup extends JPopupMenu implements ActionListener {
-
         JMenuItem addNew;
         JMenuItem close;
         JMenuItem delete;
@@ -1336,8 +1523,6 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
                     load();
                     break;
             }
-
         }
     }
-
 }

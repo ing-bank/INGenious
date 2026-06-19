@@ -1,4 +1,3 @@
-
 package com.ing.ide.util;
 
 import com.ing.engine.support.DesktopApi;
@@ -11,10 +10,9 @@ import java.util.logging.Logger;
 
 /**
  *
- * 
+ *
  */
 public abstract class CmdRunner implements CmdSettings {
-
     private String cmdLoc;
 
     @Override
@@ -68,15 +66,16 @@ public abstract class CmdRunner implements CmdSettings {
 
         @Override
         public String getCurrentDir() {
-            return "DIRNAME=\"$( cd \"$( dirname \"${BASH_SOURCE[0]}\" )\" && pwd )\""
-                    + System.lineSeparator()
-                    + "cd \"$DIRNAME\"";
+            return (
+                "DIRNAME=\"$( cd \"$( dirname \"${BASH_SOURCE[0]}\" )\" && pwd )\"" +
+                System.lineSeparator() +
+                "cd \"$DIRNAME\""
+            );
         }
     }
 }
 
 interface CmdSettings {
-
     /**
      * instructions to execute the command line code
      */

@@ -1,4 +1,3 @@
-
 package com.ing.engine.util.data.mime;
 
 import java.io.File;
@@ -10,19 +9,15 @@ import org.apache.commons.io.FilenameUtils;
 
 /**
  *
- * 
+ *
  */
 public class MIME {
-
     private final Properties map = new Properties();
 
     private static MIME mime;
 
     private MIME() throws IOException {
-        map.load(MIME.class.
-                getResourceAsStream(
-                        "/util/mime/mime.types.properties"));
-
+        map.load(MIME.class.getResourceAsStream("/util/mime/mime.types.properties"));
     }
 
     public static String getType(File f) {
@@ -36,7 +31,7 @@ public class MIME {
 
     public static String getType(String fileName) {
         try {
-            fileName = fileName.replace(":","_");
+            fileName = fileName.replace(":", "_");
             return getTypeFor(FilenameUtils.getExtension(fileName));
         } catch (Exception ex) {
             LOG.log(Level.SEVERE, ex.getMessage(), ex);
@@ -55,6 +50,6 @@ public class MIME {
         }
         return null;
     }
-    private static final Logger LOG = Logger.getLogger(MIME.class.getName());
 
+    private static final Logger LOG = Logger.getLogger(MIME.class.getName());
 }

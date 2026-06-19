@@ -1,4 +1,3 @@
-
 package com.ing.ide.main.mainui.components.testdesign.testcase.validation;
 
 import com.ing.datalib.component.TestCase;
@@ -11,32 +10,86 @@ import javax.swing.JComponent;
 import javax.swing.JTable;
 import javax.swing.UIManager;
 import javax.swing.border.Border;
+import javax.swing.border.CompoundBorder;
 import javax.swing.table.DefaultTableCellRenderer;
 
 public abstract class AbstractRenderer extends DefaultTableCellRenderer {
+    private static final String EMPTY_REQUIRED_ERROR_KEY = "ing.emptyRequiredError";
 
     private final Border errorBorder = BorderFactory.createLineBorder(Color.RED, 1);
 
     private final String empty;
 
+    /**
+     * Set to {@code true} whenever a validation error decoration
+     * ({@link #setEmpty} or {@link #setNotPresent}) is applied during a render
+     * pass. Used by {@link #hasError(TestStep)} to report validation state
+     * without inspecting the rendered Swing component.
+     */
+    private boolean errorState;
+
+    /**
+     * Scratch component reused by {@link #hasError(TestStep)} so the existing
+     * render logic can be exercised without touching the live table cell.
+     */
+    private final javax.swing.JLabel scratch = new javax.swing.JLabel();
+
     public AbstractRenderer(String empty) {
         this.empty = empty;
     }
 
+    /**
+     * Runs the same validation logic used for cell rendering against the given
+     * step and reports whether this column would be flagged as a validation
+     * error (red marker).
+     *
+     * @param step the test step to validate
+     * @return {@code true} if this column shows a validation error for the step
+     */
+    public final boolean hasError(TestStep step) {
+        // Save/restore makes this safe under the re-entrant evaluation that
+        // happens when a reusable step triggers validation of its referenced
+        // reusable test case (which uses these same renderer instances).
+        boolean previous = errorState;
+        errorState = false;
+        try {
+            render(scratch, step, getColumnValue(step));
+            return errorState;
+        } finally {
+            errorState = previous;
+        }
+    }
+
+    /**
+     * @param step the test step being validated
+     * @return the value of the column this renderer is responsible for
+     */
+    protected abstract Object getColumnValue(TestStep step);
+
     @Override
-    public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int col) {
+    public Component getTableCellRendererComponent(
+        JTable table,
+        Object value,
+        boolean isSelected,
+        boolean hasFocus,
+        int row,
+        int col
+    ) {
         JComponent comp = (JComponent) super.getTableCellRendererComponent(
-                table, value, isSelected, hasFocus, row, col);
+            table,
+            value,
+            isSelected,
+            hasFocus,
+            row,
+            col
+        );
         if (getTestCase(table) != null) {
             TestStep step = getTestCase(table).getTestSteps().get(row);
             if (!isSelected) {
-                if (step.isEmpty()) {
-                    setDefault(comp);
-                } else {
-                    render(comp, step, value);
-                }
+                render(comp, step, value);
             } else {
-                comp.setForeground(Color.WHITE);
+                Color selFg = UIManager.getColor("ing.selectedCellForeground");
+                comp.setForeground(selFg != null ? selFg : Color.WHITE);
             }
         }
         return comp;
@@ -45,38 +98,70 @@ public abstract class AbstractRenderer extends DefaultTableCellRenderer {
     public abstract void render(JComponent comp, TestStep step, Object value);
 
     protected void setEmpty(JComponent comp) {
-        comp.setBorder(errorBorder);
+        errorState = true;
+        comp.putClientProperty(EMPTY_REQUIRED_ERROR_KEY, Boolean.TRUE);
+        comp.setOpaque(true);
+        comp.setBackground(new Color(255, 200, 200));
+        Border paddingBorder = BorderFactory.createEmptyBorder(2, 8, 2, 4);
+        comp.setBorder(new CompoundBorder(errorBorder, paddingBorder));
         comp.setToolTipText(empty);
     }
 
     protected void setNotPresent(JComponent comp, String notPresent) {
-        comp.setForeground(Color.RED);
+        errorState = true;
+        comp.putClientProperty(EMPTY_REQUIRED_ERROR_KEY, Boolean.FALSE);
+        comp.setBorder(null);
+        Color c = UIManager.getColor("ing.errorForeground");
+        comp.setForeground(c != null ? c : Color.RED);
         comp.setToolTipText(notPresent);
     }
-	
+
     protected void setWebserviceRequest(JComponent comp) {
-        comp.setForeground(new Color(0,204,0));
+        comp.putClientProperty(EMPTY_REQUIRED_ERROR_KEY, Boolean.FALSE);
+        comp.setBorder(null);
+        Color c = UIManager.getColor("ing.webserviceRequestForeground");
+        comp.setForeground(c != null ? c : new Color(0, 204, 0));
     }
-    
+
     protected void setText(JComponent comp) {
-        comp.setForeground(new Color(0,204,0));
+        comp.putClientProperty(EMPTY_REQUIRED_ERROR_KEY, Boolean.FALSE);
+        comp.setBorder(null);
+        Color c = UIManager.getColor("ing.webserviceRequestForeground");
+        comp.setForeground(c != null ? c : new Color(0, 204, 0));
     }
-    
+
     protected void setWebserviceStart(JComponent comp) {
-        comp.setForeground(Color.BLUE);
+        comp.putClientProperty(EMPTY_REQUIRED_ERROR_KEY, Boolean.FALSE);
+        comp.setBorder(null);
+        Color c = UIManager.getColor("ing.webserviceStartForeground");
+        comp.setForeground(c != null ? c : Color.BLUE);
     }
-    
+
     protected void setWebserviceStop(JComponent comp) {
-        comp.setForeground(new Color(153,102,0));
+        comp.putClientProperty(EMPTY_REQUIRED_ERROR_KEY, Boolean.FALSE);
+        comp.setBorder(null);
+        Color c = UIManager.getColor("ing.webserviceStopForeground");
+        comp.setForeground(c != null ? c : new Color(153, 102, 0));
     }
-    
+
     protected void setReusable(JComponent comp) {
-        comp.setForeground(Color.green);
+        comp.putClientProperty(EMPTY_REQUIRED_ERROR_KEY, Boolean.FALSE);
+        comp.setBorder(null);
+        Color c = UIManager.getColor("ing.reusableForeground");
+        comp.setForeground(c != null ? c : new Color(119, 36, 255));
         comp.setToolTipText(null);
     }
-	
+
+    protected void setExecute(JComponent comp) {
+        comp.putClientProperty(EMPTY_REQUIRED_ERROR_KEY, Boolean.FALSE);
+        comp.setBorder(null);
+        comp.setForeground(new Color(119, 36, 255));
+        comp.setToolTipText(null);
+    }
+
     protected void setDefault(JComponent comp) {
-        
+        comp.putClientProperty(EMPTY_REQUIRED_ERROR_KEY, Boolean.FALSE);
+        comp.setBorder(null);
         comp.setForeground(UIManager.getColor("text"));
         comp.setToolTipText(null);
     }
@@ -85,11 +170,16 @@ public abstract class AbstractRenderer extends DefaultTableCellRenderer {
         return Objects.toString(value, "").trim().isEmpty();
     }
 
+    protected boolean isPristineStep(TestStep step) {
+        return (
+            isEmpty(step.getObject()) && isEmpty(step.getAction()) && isEmpty(step.getReference())
+        );
+    }
+
     protected TestCase getTestCase(JTable table) {
         if (table.getModel() instanceof TestCase) {
             return (TestCase) table.getModel();
         }
         return null;
     }
-
 }

@@ -1,4 +1,3 @@
-
 package com.ing.datalib.undoredo;
 
 import java.util.Collections;
@@ -10,14 +9,16 @@ import javax.swing.undo.UndoableEdit;
 
 /**
  *
- * 
+ *
  */
 public class GroupUndoableEdit extends CommonUndoableEdit {
-
     private final List<UndoableEdit> groupEdits;
 
-    public GroupUndoableEdit(AbstractTableModel model, UndoRedoProgress progress,
-            List<UndoableEdit> groupEdits) {
+    public GroupUndoableEdit(
+        AbstractTableModel model,
+        UndoRedoProgress progress,
+        List<UndoableEdit> groupEdits
+    ) {
         super(model, progress);
         Collections.reverse(groupEdits);
         this.groupEdits = groupEdits;
@@ -42,5 +43,4 @@ public class GroupUndoableEdit extends CommonUndoableEdit {
         super.undo();
         stopProgress();
     }
-
 }

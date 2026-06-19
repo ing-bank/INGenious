@@ -1,8 +1,8 @@
-
 package com.ing.ide.main.mainui.components.testdesign.scenario;
 
 import com.ing.datalib.component.Project;
 import com.ing.datalib.component.Scenario;
+import com.ing.datalib.component.TestCase;
 import com.ing.ide.main.utils.table.autosuggest.AutoSuggest;
 import com.ing.ide.main.utils.table.autosuggest.AutoSuggestCellEditor;
 import java.util.ArrayList;
@@ -11,10 +11,9 @@ import javax.swing.JTable;
 
 /**
  *
- * 
+ *
  */
 public class ScenarioAutoSuggest {
-
     private final Project sProject;
 
     private final JTable table;
@@ -28,21 +27,21 @@ public class ScenarioAutoSuggest {
     }
 
     private void initAutoSuggest() {
-        reusableAutoSuggest = new AutoSuggest() {
-            @Override
-            public void beforeSearch(String text) {
-                setSearchList(getReusables());
-            }
+        reusableAutoSuggest =
+            new AutoSuggest() {
 
-        };
+                @Override
+                public void beforeSearch(String text) {
+                    setSearchList(getReusables());
+                }
+            };
     }
 
     private List<String> getReusables() {
         List<String> reusableList = new ArrayList<>();
-        for (Scenario scenario : sProject.getScenarios()) {
-            int rcount = scenario.getReusableCount();
-            for (int i = 0; i < rcount; i++) {
-                reusableList.add(scenario.getName() + ":" + scenario.getReusableAt(i).getName());
+        for (Scenario scenario : sProject.getReusableScenarios()) {
+            for (TestCase testCase : scenario.getTestCases()) {
+                reusableList.add(scenario.getName() + ":" + testCase.getName());
             }
         }
         return reusableList;

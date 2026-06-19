@@ -1,11 +1,13 @@
 package com.ing.datalib.component;
 
 import com.ing.datalib.component.ExecutionStep.HEADERS;
+import com.ing.datalib.component.io.TestCaseFormat;
+import com.ing.datalib.component.io.TestCaseStoreFactory;
+import com.ing.datalib.component.io.TestSetStore;
 import com.ing.datalib.component.utils.FileUtils;
 import com.ing.datalib.component.utils.SaveListener;
 import com.ing.datalib.settings.ExecutionSettings;
 import java.io.File;
-import java.io.FileWriter;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -13,20 +15,19 @@ import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.event.TableModelEvent;
-import org.apache.commons.csv.CSVFormat;
-import org.apache.commons.csv.CSVPrinter;
-import org.apache.commons.csv.CSVRecord;
 
 /**
- *
- *
+ * Represents an execution set containing a list of {@link ExecutionStep} rows,
+ * backed by a CSV file and exposed as a table model for UI editing. Handles
+ * loading, saving, row manipulation, and updating execution entries when
+ * scenarios or test cases are renamed.
  */
 public class TestSet extends DataModel {
-
     private Release release;
 
     private final List<ExecutionStep> testSteps = Collections.synchronizedList(
-            new ArrayList<ExecutionStep>());
+        new ArrayList<ExecutionStep>()
+    );
 
     private String name;
 
@@ -38,21 +39,19 @@ public class TestSet extends DataModel {
 
     public TestSet(Release release, String name) {
         this.release = release;
-        if (name.endsWith(".csv")) {
-            this.name = name.substring(0, name.lastIndexOf(".csv"));
-        } else {
-            this.name = name;
-        }
-        this.execSettings = new ExecutionSettings(getProject().getLocation()
-                + File.separator
-                + "Settings"
-                + File.separator
-                + "TestExecution"
-                + File.separator
-                + getRelease().getName()
-                + File.separator
-                + getName()
-        );
+        this.name = TestCaseFormat.stripExtension(name);
+        this.execSettings =
+            new ExecutionSettings(
+                getProject().getLocation() +
+                File.separator +
+                "Settings" +
+                File.separator +
+                "TestExecution" +
+                File.separator +
+                getRelease().getName() +
+                File.separator +
+                getName()
+            );
     }
 
     public final Project getProject() {
@@ -180,7 +179,29 @@ public class TestSet extends DataModel {
     }
 
     public final String getLocation() {
-        return release.getLocation() + File.separator + name + ".csv";
+        File dir = new File(release.getLocation());
+        TestCaseFormat fmt = TestCaseStoreFactory.resolveFormat(dir, name, projectDefaultFormat());
+        return dir.getPath() + File.separator + name + fmt.extension();
+    }
+
+    /** On-disk format currently used by this test set. */
+    public TestCaseFormat getFormat() {
+        File dir = new File(release.getLocation());
+        return TestCaseStoreFactory.resolveFormat(dir, name, projectDefaultFormat());
+    }
+
+    private TestCaseFormat projectDefaultFormat() {
+        try {
+            if (getProject() != null && getProject().getInfo() != null) {
+                return TestCaseFormat.parse(
+                    getProject().getInfo().getTestCaseFormat(),
+                    TestCaseFormat.YAML
+                );
+            }
+        } catch (Exception ignored) {
+            // Project info may be unavailable in unit-test contexts.
+        }
+        return TestCaseFormat.YAML;
     }
 
     public synchronized void loadTestSetTableModel() {
@@ -207,10 +228,24 @@ public class TestSet extends DataModel {
     }
 
     private void loadSteps() {
-        List<CSVRecord> records = FileUtils.getRecords(new File(getLocation()));
-        if (!records.isEmpty()) {
-            for (CSVRecord record : records) {
-                testSteps.add(new ExecutionStep(this, record));
+        File file = new File(getLocation());
+        TestCaseFormat fmt = TestCaseFormat.fromFile(file);
+        if (fmt == null) {
+            fmt = projectDefaultFormat();
+        }
+        TestSetStore store = TestCaseStoreFactory.testSetStore(fmt);
+        List<List<String>> rows;
+        try {
+            rows = store.load(file);
+        } catch (Exception ex) {
+            Logger
+                .getLogger(TestSet.class.getName())
+                .log(Level.SEVERE, "Error loading test set from " + file.getPath(), ex);
+            rows = new ArrayList<>();
+        }
+        if (!rows.isEmpty()) {
+            for (List<String> row : rows) {
+                testSteps.add(new ExecutionStep(this, row));
             }
             setSaved(true);
         } else {
@@ -221,15 +256,24 @@ public class TestSet extends DataModel {
     public void save() {
         if (!isSaved()) {
             createIfNotExists();
-            try (FileWriter out = new FileWriter(new File(getLocation())); CSVPrinter printer = new CSVPrinter(out, CSVFormat.EXCEL.withIgnoreEmptyLines());) {
-                printer.printRecord(HEADERS.getValues());
+            File file = new File(getLocation());
+            TestCaseFormat fmt = TestCaseFormat.fromFile(file);
+            if (fmt == null) {
+                fmt = projectDefaultFormat();
+            }
+            TestSetStore store = TestCaseStoreFactory.testSetStore(fmt);
+            try {
                 removeEmptySteps();
+                List<List<String>> rows = new ArrayList<>(testSteps.size());
                 for (ExecutionStep testStep : testSteps) {
-                    printer.printRecord(testStep.exeStepDetails);
+                    rows.add(new ArrayList<>(testStep.exeStepDetails));
                 }
+                store.save(file, name, release == null ? null : release.getName(), rows);
                 setSaved(true);
             } catch (Exception ex) {
-                Logger.getLogger(TestSet.class.getName()).log(Level.SEVERE, "Error while saving", ex);
+                Logger
+                    .getLogger(TestSet.class.getName())
+                    .log(Level.SEVERE, "Error while saving", ex);
             }
         }
         execSettings.save();
@@ -247,7 +291,6 @@ public class TestSet extends DataModel {
                 fireTableRowsDeleted(i, i);
             }
         }
-
     }
 
     @Override
@@ -306,21 +349,20 @@ public class TestSet extends DataModel {
     public String printString() {
         StringBuilder builder = new StringBuilder();
         builder
-                .append("\t\t")
-                .append("TestCase - ")
-                .append(name)
-                .append("\n")
-                .append("\t\t")
-                .append("TestSteps - ")
-                .append(testSteps.size())
-                .append("\n");
+            .append("\t\t")
+            .append("TestCase - ")
+            .append(name)
+            .append("\n")
+            .append("\t\t")
+            .append("TestSteps - ")
+            .append(testSteps.size())
+            .append("\n");
         return builder.toString();
     }
 
     @Override
     public String toString() {
         return name;
-
     }
 
     public Boolean isSaved() {
@@ -339,63 +381,93 @@ public class TestSet extends DataModel {
     }
 
     public void refactorScenario(String oldScenarioName, String newScenarioName) {
-        Boolean clearOnExit = getTestSteps().isEmpty();
-        Boolean changesDone = false;
+        boolean wasEmpty = getTestSteps().isEmpty();
+        boolean changesDone = false;
+
         loadTableModel();
+
         for (ExecutionStep testStep : testSteps) {
-            if (testStep.getTestScenarioName().equals(oldScenarioName)) {
+            if (oldScenarioName.equals(testStep.getTestScenarioName())) {
                 testStep.setTestScenario(newScenarioName);
                 changesDone = true;
             }
         }
-        if (clearOnExit) {
-            if (changesDone) {
-                save();
-            }
+
+        if (changesDone) {
+            setSaved(false);
+            save();
+        }
+
+        if (wasEmpty) {
             getTestSteps().clear();
         }
     }
 
-    public void refactorTestCase(String scenarioName, String oldTestCaseName, String newTestCaseName) {
-        Boolean clearOnExit = getTestSteps().isEmpty();
-        Boolean changesDone = false;
+    public void refactorTestCase(
+        String scenarioName,
+        String oldTestCaseName,
+        String newTestCaseName
+    ) {
+        boolean wasEmpty = getTestSteps().isEmpty();
+        boolean changesDone = false;
+
         loadTableModel();
+
         for (ExecutionStep testStep : testSteps) {
-            if (testStep.getTestScenarioName().equals(scenarioName) && testStep.getTestCaseName().equals(oldTestCaseName)) {
+            if (
+                scenarioName.equals(testStep.getTestScenarioName()) &&
+                oldTestCaseName.equals(testStep.getTestCaseName())
+            ) {
                 testStep.setTestCase(newTestCaseName);
                 changesDone = true;
             }
         }
-        if (clearOnExit) {
-            if (changesDone) {
-                save();
-            }
+
+        if (changesDone) {
+            setSaved(false);
+            save();
+        }
+
+        if (wasEmpty) {
             getTestSteps().clear();
         }
     }
 
-    public void refactorTestCaseScenario(String testCaseName, String oldScenarioName, String newScenarioName) {
-        Boolean clearOnExit = getTestSteps().isEmpty();
-        Boolean changesDone = false;
+    public void refactorTestCaseScenario(
+        String testCaseName,
+        String oldScenarioName,
+        String newScenarioName
+    ) {
+        boolean wasEmpty = getTestSteps().isEmpty();
+        boolean changesDone = false;
+
         loadTableModel();
+
         for (ExecutionStep testStep : testSteps) {
-            if (testStep.getTestScenarioName().equals(oldScenarioName) && testStep.getTestCaseName().equals(testCaseName)) {
+            if (
+                oldScenarioName.equals(testStep.getTestScenarioName()) &&
+                testCaseName.equals(testStep.getTestCaseName())
+            ) {
                 testStep.setTestScenario(newScenarioName);
                 changesDone = true;
             }
         }
-        if (clearOnExit) {
-            if (changesDone) {
-                save();
-            }
+
+        if (changesDone) {
+            setSaved(false);
+            save();
+        }
+
+        if (wasEmpty) {
             getTestSteps().clear();
         }
     }
 
     @Override
     public Boolean rename(String newName) {
-        if (getRelease().getTestSetByName(newName) == null) {
-            if (FileUtils.renameFile(getLocation(), newName + ".csv")) {
+        TestSet existing = getRelease().getTestSetByName(newName);
+        if (existing == null || existing == this) {
+            if (FileUtils.renameFile(getLocation(), newName + getFormat().extension())) {
                 name = newName;
                 resetExecSettingsLocation();
                 return true;
@@ -460,15 +532,16 @@ public class TestSet extends DataModel {
     }
 
     public void resetExecSettingsLocation() {
-        execSettings.setLocation(getProject().getLocation()
-                + File.separator
-                + "Settings"
-                + File.separator
-                + "TestExecution"
-                + File.separator
-                + getRelease().getName()
-                + File.separator
-                + getName()
+        execSettings.setLocation(
+            getProject().getLocation() +
+            File.separator +
+            "Settings" +
+            File.separator +
+            "TestExecution" +
+            File.separator +
+            getRelease().getName() +
+            File.separator +
+            getName()
         );
     }
 }

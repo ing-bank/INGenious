@@ -1,0 +1,28 @@
+#!/bin/bash
+# INGenious launcher (Linux / macOS / WSL) — dispatches between IDE and CLI.
+#
+#   No arguments       -> launches the IDE (com.ing.ide.main.Main)
+#   Any arguments      -> invokes the CLI (com.ing.engine.core.Control)
+#
+# Examples:
+#   ./ingenious                                 # opens the GUI
+#   ./ingenious run CLIDemo/APIBasics/GetUsers  # CLI: run a test case
+#   ./ingenious run CLIDemo/R1/Smoke            # CLI: run a test set
+#   ./ingenious --help                          # CLI: top-level help
+
+DIRNAME="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )"
+cd "$DIRNAME"
+
+APP_CLASSPATH="lib/*:lib/clib/*"
+
+if [ "$#" -eq 0 ]; then
+    # No args -> IDE
+    exec java -Xms128m -Xmx1024m -Dfile.encoding=UTF-8 \
+        -cp "ingenious-ide-${project.version}.jar:$APP_CLASSPATH" \
+        com.ing.ide.main.Main
+else
+    # Args -> CLI (routes between new picocli CLI and legacy CLI internally)
+    exec java -Xms128m -Xmx1024m -Dfile.encoding=UTF-8 \
+        -cp "$APP_CLASSPATH" \
+        com.ing.engine.core.Control "$@"
+fi

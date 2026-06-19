@@ -1,4 +1,3 @@
-
 package com.ing.ide.main.mainui.components.testdesign;
 
 import com.ing.datalib.component.Project;
@@ -8,6 +7,7 @@ import com.ing.ide.main.mainui.AppMainFrame;
 import com.ing.ide.main.mainui.components.testdesign.or.ObjectRepo;
 import com.ing.ide.main.mainui.components.testdesign.scenario.ScenarioComponent;
 import com.ing.ide.main.mainui.components.testdesign.testcase.TestCaseComponent;
+import com.ing.ide.main.mainui.components.testdesign.testcase.validation.TestCaseValidation;
 import com.ing.ide.main.mainui.components.testdesign.testdata.TestDataComponent;
 import com.ing.ide.main.mainui.components.testdesign.tree.ProjectTree;
 import com.ing.ide.main.mainui.components.testdesign.tree.ReusableTree;
@@ -17,10 +17,9 @@ import javax.swing.JPanel;
 
 /**
  *
- * 
+ *
  */
 public class TestDesign {
-
     private final TestDesignUI testDesignUI;
 
     private final ScenarioComponent scenarioComp;
@@ -42,7 +41,6 @@ public class TestDesign {
     private CardLayout testCaseScenarioCard;
 
     private final ImpactUI impactUI;
-    
 
     public TestDesign(AppMainFrame sMainFrame) {
         this.sMainFrame = sMainFrame;
@@ -67,6 +65,12 @@ public class TestDesign {
 
     public void loadTableModelForSelection(Object selectedNode) {
         if (selectedNode instanceof Scenario) {
+            // Save current test case before switching to scenario view
+            TestCase currentTestCase = testcaseComp.getCurrentTestCase();
+            if (currentTestCase != null && !currentTestCase.isSaved()) {
+                currentTestCase.save();
+            }
+
             testCaseScenarioCard.show(testcaseMirage, "scenario");
             scenarioComp.loadTableModelForSelection(selectedNode);
         } else if (selectedNode instanceof TestCase) {
@@ -140,6 +144,23 @@ public class TestDesign {
         reusableTree.load();
         projectTree.load();
         objectRepo.load();
+        validateProjectAsync();
+    }
+
+    /**
+     * Kicks off a one-time background validation pass so that scenarios and
+     * test cases with IDE-level validation errors are marked in red as soon as
+     * the project is opened, without the user having to open each test case.
+     */
+    private void validateProjectAsync() {
+        TestCaseValidation.clearCache();
+        TestCaseValidation.validateAllAsync(
+            getProject(),
+            () -> {
+                projectTree.getTree().repaint();
+                reusableTree.getTree().repaint();
+            }
+        );
     }
 
     public final void afterProjectChange() {
@@ -161,5 +182,4 @@ public class TestDesign {
     public String getDefaultBrowser() {
         return testcaseComp.getDefaultBrowser();
     }
-
 }

@@ -7,27 +7,28 @@ import com.ing.engine.core.Control;
 import com.ing.engine.core.RunContext;
 import com.ing.engine.core.RunManager;
 import com.ing.engine.drivers.PlaywrightDriverCreation;
+import com.ing.engine.drivers.SAPSessionCreation;
+import com.ing.engine.drivers.WebDriverCreation;
+import com.ing.engine.reporting.impl.azure.AzureTestCaseHandler;
+import com.ing.engine.reporting.impl.extent.ExtentTestCaseHandler;
 import com.ing.engine.reporting.impl.handlers.PrimaryHandler;
 import com.ing.engine.reporting.impl.handlers.TestCaseHandler;
 import com.ing.engine.reporting.impl.html.HtmlTestCaseHandler;
+import com.ing.engine.reporting.impl.rp.RPTestCaseHandler;
 import com.ing.engine.reporting.intf.Report;
 import com.ing.engine.reporting.util.DateTimeUtils;
-import com.ing.engine.support.Status;
 import com.ing.engine.support.Step;
 import com.ing.engine.support.methodInf.MethodInfoManager;
-import com.ing.engine.reporting.impl.azure.AzureTestCaseHandler;
-import com.ing.engine.reporting.impl.rp.RPTestCaseHandler;
-import com.ing.engine.reporting.impl.extent.ExtentTestCaseHandler;
-import java.util.Date;
+import com.ing.ingenious.api.contract.reports.TestCaseReportApi;
+import com.ing.ingenious.api.status.Status;
 import java.io.File;
-import java.util.ArrayList;
-import java.util.List;
 import java.io.FileWriter;
+import java.util.ArrayList;
+import java.util.Date;
+import java.util.List;
 import org.json.simple.JSONObject;
-import com.ing.engine.drivers.WebDriverCreation;
 
-public final class TestCaseReport implements Report {
-
+public final class TestCaseReport implements Report, TestCaseReportApi {
     public static volatile int tcCount;
 
     public String Scenario;
@@ -48,6 +49,7 @@ public final class TestCaseReport implements Report {
     public final DateTimeUtils startTime;
     PlaywrightDriverCreation playwrightdriver;
     WebDriverCreation webDriver;
+    SAPSessionCreation session;
 
     Step curr;
     Status currentStatus;
@@ -74,24 +76,45 @@ public final class TestCaseReport implements Report {
 
     public boolean isExtentEnabled() {
         if (!RunManager.getGlobalSettings().isTestRun()) {
-            return Control.getCurrentProject().getProjectSettings()
-                    .getExecSettings(RunManager.getGlobalSettings().getRelease(), RunManager.getGlobalSettings().getTestSet()).getRunSettings().isExtentReport();
+            return Control
+                .getCurrentProject()
+                .getProjectSettings()
+                .getExecSettings(
+                    RunManager.getGlobalSettings().getRelease(),
+                    RunManager.getGlobalSettings().getTestSet()
+                )
+                .getRunSettings()
+                .isExtentReport();
         }
         return false;
     }
 
     public boolean isRPEnabled() {
         if (!RunManager.getGlobalSettings().isTestRun()) {
-            return Control.getCurrentProject().getProjectSettings()
-                    .getExecSettings(RunManager.getGlobalSettings().getRelease(), RunManager.getGlobalSettings().getTestSet()).getRunSettings().isRPUpdate();
+            return Control
+                .getCurrentProject()
+                .getProjectSettings()
+                .getExecSettings(
+                    RunManager.getGlobalSettings().getRelease(),
+                    RunManager.getGlobalSettings().getTestSet()
+                )
+                .getRunSettings()
+                .isRPUpdate();
         }
         return false;
     }
 
     public boolean isAzureEnabled() {
         if (!RunManager.getGlobalSettings().isTestRun()) {
-            return Control.getCurrentProject().getProjectSettings()
-                    .getExecSettings(RunManager.getGlobalSettings().getRelease(), RunManager.getGlobalSettings().getTestSet()).getRunSettings().isAzureEnabled();
+            return Control
+                .getCurrentProject()
+                .getProjectSettings()
+                .getExecSettings(
+                    RunManager.getGlobalSettings().getRelease(),
+                    RunManager.getGlobalSettings().getTestSet()
+                )
+                .getRunSettings()
+                .isAzureEnabled();
         }
         return false;
     }
@@ -107,6 +130,13 @@ public final class TestCaseReport implements Report {
         webDriver = driver;
         for (TestCaseHandler handler : handlers) {
             handler.setWebDriver(driver);
+        }
+    }
+
+    public void setSapSession(SAPSessionCreation sapSession) {
+        session = sapSession;
+        for (TestCaseHandler handler : handlers) {
+            handler.setSapSession(session);
         }
     }
 
@@ -135,11 +165,21 @@ public final class TestCaseReport implements Report {
         this.Scenario = runContext.Scenario;
         this.TestCase = runContext.TestCase;
         this.sb = new StringBuilder();
-        this.sb.append(createRunInfoString(runContext.Scenario, runContext.TestCase, runContext.BrowserName, runContext.BrowserVersionValue, runContext.PlatformValue, runContext.Iteration));
+        this.sb.append(
+                createRunInfoString(
+                    runContext.Scenario,
+                    runContext.TestCase,
+                    runContext.BrowserName,
+                    runContext.BrowserVersionValue,
+                    runContext.PlatformValue,
+                    runContext.Iteration
+                )
+            );
         for (TestCaseHandler handler : handlers) {
             handler.createReport(runContext, runTime);
         }
     }
+
     //<editor-fold defaultstate="collapsed" desc="wrapper functions">
 
     public void updateTestLog(String stepName, String stepDescription, Status state) {
@@ -151,7 +191,12 @@ public final class TestCaseReport implements Report {
         }
     }
 
-    public void updateTestLog(String stepName, String stepDescription, Status state, String optionalLink) {
+    public void updateTestLog(
+        String stepName,
+        String stepDescription,
+        Status state,
+        String optionalLink
+    ) {
         updateTestLog(stepName, stepDescription, state, optionalLink, null);
     }
 
@@ -163,31 +208,46 @@ public final class TestCaseReport implements Report {
      * @param state
      * @param optional
      */
-    public void updateTestLog(String stepName, String stepDescription, Status state, List<String> optional) {
+    public void updateTestLog(
+        String stepName,
+        String stepDescription,
+        Status state,
+        List<String> optional
+    ) {
         updateTestLog(stepName, stepDescription, state, null, optional);
     }
-//</editor-fold>
+
+    //</editor-fold>
 
     @Override
-    public void updateTestLog(String stepName, String stepDescription, Status state,
-            String optionalLink, List<String> optional) {
+    public void updateTestLog(
+        String stepName,
+        String stepDescription,
+        Status state,
+        String optionalLink,
+        List<String> optional
+    ) {
         currentStatus = state;
         stepNo++;
         setScreenShotName();
         String emoji = "";
-        if(state.toString().contains("PASS"))
-          emoji = "✅";
-        if(state.toString().contains("FAIL"))
-          emoji = "❌";
-        if(state.toString().contains("DONE"))
-          emoji = "🟢"; 
-        if(state.toString().contains("WARNING"))
-          emoji = "🟡"; 
-        if(state.toString().contains("DEBUG"))
-          emoji = "🔴"; 
+        if (state.toString().contains("PASS")) emoji = "✅";
+        if (state.toString().contains("FAIL")) emoji = "❌";
+        if (state.toString().contains("DONE")) emoji = "🟢";
+        if (state.toString().contains("WARNING")) emoji = "🟡";
+        if (state.toString().contains("DEBUG")) emoji = "🔴";
         System.out.println(String.format("[%s]   | %s " + emoji, state, stepDescription));
         System.out.println(String.format("\n%99s\n", "=").replace(" ", "="));
-        String stepInfo = stepLevelLog(String.valueOf(getStep().StepNum), getStep().ObjectName, getStep().Action, getStep().Input, getStep().Condition, state, stepDescription);
+
+        String stepInfo = stepLevelLog(
+            String.valueOf(getStep().StepNum),
+            getStep().ObjectName,
+            getStep().Action,
+            getStep().Input,
+            getStep().Condition,
+            state,
+            stepDescription
+        );
         this.sb.append(stepInfo).append("\n");
         for (TestCaseHandler handler : handlers) {
             handler.updateTestLog(stepName, stepDescription, state, optionalLink, optional);
@@ -203,10 +263,46 @@ public final class TestCaseReport implements Report {
     @Override
     public Status finalizeReport() {
         runComplete = true;
+        HtmlTestCaseHandler htmlHandler = null;
+
         for (TestCaseHandler handler : handlers) {
             handler.finalizeReport();
+            // Keep reference to HtmlTestCaseHandler if we find it
+            if (handler instanceof HtmlTestCaseHandler) {
+                htmlHandler = (HtmlTestCaseHandler) handler;
+            }
         }
+
         JSONObject testcasedata = (JSONObject) primaryHandler.getData();
+
+        // Merge video/trace paths from HtmlTestCaseHandler into primary handler data
+        // This ensures multi-test execution reports have video/trace paths
+        if (htmlHandler != null && primaryHandler != htmlHandler) {
+            try {
+                Object htmlData = htmlHandler.getData();
+                if (htmlData instanceof JSONObject) {
+                    JSONObject htmlTestData = (JSONObject) htmlData;
+                    Object videoPath = htmlTestData.get("videoPath");
+                    Object tracePath = htmlTestData.get("tracePath");
+                    Object traceData = htmlTestData.get("traceData");
+
+                    if (videoPath != null && testcasedata.get("videoPath") == null) {
+                        testcasedata.put("videoPath", videoPath);
+                    }
+                    if (tracePath != null && testcasedata.get("tracePath") == null) {
+                        testcasedata.put("tracePath", tracePath);
+                    }
+                    if (traceData != null && testcasedata.get("traceData") == null) {
+                        testcasedata.put("traceData", traceData);
+                    }
+                }
+            } catch (Exception ex) {
+                System.out.println(
+                    "[TestCaseReport] Error merging handler data: " + ex.getMessage()
+                );
+            }
+        }
+
         String testcase = testcasedata.get("testcaseName").toString();
         String scenario = testcasedata.get("scenarioName").toString();
         String eSteps = testcasedata.get("noTests").toString();
@@ -214,10 +310,10 @@ public final class TestCaseReport implements Report {
         String fSteps = testcasedata.get("nofailTests").toString();
         String exeTime = testcasedata.get("exeTime").toString();
 
+        Status finalStatus = primaryHandler.getCurrentStatus();
         this.sb.append(closingLog(scenario + ":" + testcase, eSteps, pSteps, fSteps, exeTime));
         log(this.sb.toString());
-        //   log(System.getProperty("line.separator")+"Status:"+primaryHandler.getCurrentStatus());
-        return (currentStatus = primaryHandler.getCurrentStatus());
+        return (currentStatus = finalStatus);
     }
 
     private void setScreenShotName() {
@@ -265,7 +361,8 @@ public final class TestCaseReport implements Report {
             handler.endIteration(iteration);
         }
     }
-//</editor-fold>
+
+    //</editor-fold>
 
     //<editor-fold defaultstate="collapsed" desc="external-API">
     /**
@@ -305,62 +402,74 @@ public final class TestCaseReport implements Report {
 
     @Override
     public String getNewScreenShotName() {
-        return File.separator
-                + "img"
-                + File.separator
-                + Scenario
-                + "_"
-                + TestCase
-                + "_Step-"
-                + stepNo + "_"
-                + DateTimeUtils.TimeNowForFolder()
-                + ".png";
+        return (
+            File.separator +
+            "img" +
+            File.separator +
+            Scenario +
+            "_" +
+            TestCase +
+            "_Step-" +
+            stepNo +
+            "_" +
+            DateTimeUtils.TimeNowForFolder() +
+            ".png"
+        );
+    }
+
+    public String getVideoLinkName() {
+        return File.separator + "video" + File.separator + Scenario + "_" + TestCase + ".webm";
     }
 
     public String getWebserviceResponseFileName() {
         int currentStep = stepNo + 1;
-        return File.separator
-                + "webservice"
-                + File.separator
-                + Scenario
-                + "_"
-                + TestCase
-                + "_Step-"
-                + currentStep + "_"
-                + "Response"
-                + FileExt;
+        return (
+            File.separator +
+            "webservice" +
+            File.separator +
+            Scenario +
+            "_" +
+            TestCase +
+            "_Step-" +
+            currentStep +
+            "_" +
+            "Response" +
+            FileExt
+        );
     }
 
     public String getWebserviceRequestFileName() {
         int currentStep = stepNo + 1;
-        return File.separator
-                + "webservice"
-                + File.separator
-                + Scenario
-                + "_"
-                + TestCase
-                + "_Step-"
-                + currentStep + "_"
-                + "Request"
-                + FileExt;
+        return (
+            File.separator +
+            "webservice" +
+            File.separator +
+            Scenario +
+            "_" +
+            TestCase +
+            "_Step-" +
+            currentStep +
+            "_" +
+            "Request" +
+            FileExt
+        );
     }
 
     public String getPdfResultName() {
-        return Scenario
-                + "_"
-                + TestCase
-                + "_Step-"
-                + stepNo + "_"
-                + DateTimeUtils.TimeNowForFolder()
-                + ".pdf";
+        return (
+            Scenario +
+            "_" +
+            TestCase +
+            "_Step-" +
+            stepNo +
+            "_" +
+            DateTimeUtils.TimeNowForFolder() +
+            ".pdf"
+        );
     }
 
     public String getLogFileName() {
-        return File.separator
-                + Scenario
-                + "_"
-                + TestCase
-                + FileExt;
+        return File.separator + Scenario + "_" + TestCase + FileExt;
     }
 
     @Override
@@ -387,9 +496,13 @@ public final class TestCaseReport implements Report {
 
     public Boolean isStepPassed() {
         if (currentStatus != null) {
-            return currentStatus.equals(Status.PASS) || currentStatus.equals(Status.DONE)
-                    || currentStatus.equals(Status.SCREENSHOT) || currentStatus.equals(Status.WARNING)
-                    || currentStatus.equals(Status.COMPLETE);
+            return (
+                currentStatus.equals(Status.PASS) ||
+                currentStatus.equals(Status.DONE) ||
+                currentStatus.equals(Status.SCREENSHOT) ||
+                currentStatus.equals(Status.WARNING) ||
+                currentStatus.equals(Status.COMPLETE)
+            );
         }
         return false;
     }
@@ -399,7 +512,7 @@ public final class TestCaseReport implements Report {
         return stepNo;
     }
 
-//</editor-fold>
+    //</editor-fold>
     //<editor-fold defaultstate="collapsed" desc="handler-registration">
     public void register(TestCaseHandler testCaseHandler) {
         if (!handlers.contains(testCaseHandler)) {
@@ -413,48 +526,131 @@ public final class TestCaseReport implements Report {
             this.primaryHandler = (PrimaryHandler) testCaseHandler;
         }
     }
-//</editor-fold>
 
-    private String createRunInfoString(String Scenario, String TestCase, String Browser, String BrowserVersion, String Platform, String iteration) {
-        String runInfo = "Run Information" + "\n"
-                + "========================" + "\n"
-                + "INGenious Playwright Studio                :  " + SystemDefaults.getBuildVersion() + "\n"
-                + "java.runtime.name                          :  " + System.getProperty("java.runtime.name") + "\n"
-                + "java.version                               :  " + System.getProperty("java.version") + "\n"
-                + "java.home                                  :  " + System.getProperty("java.home") + "\n"
-                + "os.name                                    :  " + System.getProperty("os.name") + "\n"
-                + "os.arch                                    :  " + System.getProperty("os.arch") + "\n"
-                + "os.version                                 :  " + System.getProperty("os.version") + "\n"
-                + "file.encoding                              :  " + System.getProperty("file.encoding") + "\n"
-                + "========================\n"
-                + "Run Started on " + new Date().toString() + "\n\n"
-                + "Scenario         :  [" + Scenario + "]\n"
-                + "TestCase         :  [" + TestCase + "]\n"
-                + "Browser          :  [" + Browser + "]\n"
-                + "Browser Version  :  [" + BrowserVersion + "]\n"
-                + "Platform         :  [" + Platform + "]\n"
-                + "----------------------------------------------------------\n"
-                + "Initializing Report\n"
-                + "Running Iteration :  [" + iteration + "]\n\n";
+    //</editor-fold>
+
+    private String createRunInfoString(
+        String Scenario,
+        String TestCase,
+        String Browser,
+        String BrowserVersion,
+        String Platform,
+        String iteration
+    ) {
+        String runInfo =
+            "Run Information" +
+            "\n" +
+            "========================" +
+            "\n" +
+            "INGenious Playwright Studio                :  " +
+            SystemDefaults.getBuildVersion() +
+            "\n" +
+            "java.runtime.name                          :  " +
+            System.getProperty("java.runtime.name") +
+            "\n" +
+            "java.version                               :  " +
+            System.getProperty("java.version") +
+            "\n" +
+            "java.home                                  :  " +
+            System.getProperty("java.home") +
+            "\n" +
+            "os.name                                    :  " +
+            System.getProperty("os.name") +
+            "\n" +
+            "os.arch                                    :  " +
+            System.getProperty("os.arch") +
+            "\n" +
+            "os.version                                 :  " +
+            System.getProperty("os.version") +
+            "\n" +
+            "file.encoding                              :  " +
+            System.getProperty("file.encoding") +
+            "\n" +
+            "========================\n" +
+            "Run Started on " +
+            new Date().toString() +
+            "\n\n" +
+            "Scenario         :  [" +
+            Scenario +
+            "]\n" +
+            "TestCase         :  [" +
+            TestCase +
+            "]\n" +
+            "Browser          :  [" +
+            Browser +
+            "]\n" +
+            "Browser Version  :  [" +
+            BrowserVersion +
+            "]\n" +
+            "Platform         :  [" +
+            Platform +
+            "]\n" +
+            "----------------------------------------------------------\n" +
+            "Initializing Report\n" +
+            "Running Iteration :  [" +
+            iteration +
+            "]\n\n";
 
         return runInfo;
     }
 
-    private String stepLevelLog(String Step, String Object, String Action, String Input, String Condition, Status state, String stepDesc) {
-        String stepInfo = String.format("\n%99s\n", "=").replace(" ", "=") + "\n"
-                + "Step:" + String.valueOf(getStep().StepNum) + "  |  Object:" + getStep().ObjectName + "  |  Action:" + getStep().Action + "  |  Input:" + getStep().Input + "  |  Condition:" + getStep().Condition + "  | @" + DateTimeUtils.DateTimeNow() + "\n"
-                + String.format("[%s]   | %s", state, stepDesc) + "\n";
+    private String stepLevelLog(
+        String Step,
+        String Object,
+        String Action,
+        String Input,
+        String Condition,
+        Status state,
+        String stepDesc
+    ) {
+        String stepInfo =
+            String.format("\n%99s\n", "=").replace(" ", "=") +
+            "\n" +
+            "Step:" +
+            String.valueOf(getStep().StepNum) +
+            "  |  Object:" +
+            getStep().ObjectName +
+            "  |  Action:" +
+            getStep().Action +
+            "  |  Input:" +
+            getStep().Input +
+            "  |  Condition:" +
+            getStep().Condition +
+            "  | @" +
+            DateTimeUtils.DateTimeNow() +
+            "\n" +
+            String.format("[%s]   | %s", state, stepDesc) +
+            "\n";
         return stepInfo;
     }
 
-    private String closingLog(String TestCase, String eSteps, String pSteps, String fSteps, String exeTime) {
-        String closeInfo = "---------------------------------------------------" + "\n"
-                + "Testcase Name        : " + TestCase + "\n"
-                + "Executed Steps       : " + eSteps + "\n"
-                + "Passed Steps         : " + pSteps + "\n"
-                + "Failed Steps         : " + fSteps + "\n"
-                + "Time Taken           : " + exeTime + "\n"
-                + "---------------------------------------------------" + "\n";
+    private String closingLog(
+        String TestCase,
+        String eSteps,
+        String pSteps,
+        String fSteps,
+        String exeTime
+    ) {
+        String closeInfo =
+            "---------------------------------------------------" +
+            "\n" +
+            "Testcase Name        : " +
+            TestCase +
+            "\n" +
+            "Executed Steps       : " +
+            eSteps +
+            "\n" +
+            "Passed Steps         : " +
+            pSteps +
+            "\n" +
+            "Failed Steps         : " +
+            fSteps +
+            "\n" +
+            "Time Taken           : " +
+            exeTime +
+            "\n" +
+            "---------------------------------------------------" +
+            "\n";
         return closeInfo;
     }
 
@@ -478,9 +674,7 @@ public final class TestCaseReport implements Report {
         } finally {
             try {
                 fr.close();
-            } catch (Exception e) {
-            }
+            } catch (Exception e) {}
         }
     }
-
 }

@@ -1,4 +1,3 @@
-
 package com.ing.storywriter.bdd.data;
 
 import java.util.Arrays;
@@ -9,8 +8,7 @@ import java.util.Set;
  *
  */
 public class DS {
-
-    public static String[] STEPTYPES = {"Given", "And", "When", "Then","But"};
+    public static String[] STEPTYPES = { "Given", "And", "When", "Then", "But" };
     public static Set<String> STEPDIC = new LinkedHashSet();
     public static Set<String> VARSET = new LinkedHashSet();
     public static String LN = "\n";
@@ -19,10 +17,10 @@ public class DS {
     public static String META = "Meta";
 
     static {
-        STEPDIC.addAll(Arrays.asList(new String[]{}));
+        STEPDIC.addAll(Arrays.asList(new String[] {}));
     }
 
-    public  static synchronized void update(String... vals) {
+    public static synchronized void update(String... vals) {
         if (STEPDIC.size() < 500 && vals != null && vals.length > 0) {
             for (String v : vals) {
                 if (v != null && v.length() > 3) {
@@ -34,7 +32,6 @@ public class DS {
                 }
             }
         }
-
     }
 
     public static synchronized void updateV(String... vals) {
@@ -43,6 +40,5 @@ public class DS {
                 VARSET.add("<" + v + ">");
             }
         }
-
     }
 }

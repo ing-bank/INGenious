@@ -1,4 +1,3 @@
-
 package com.ing.engine.settings;
 
 import com.ing.datalib.component.TestCase;
@@ -7,10 +6,9 @@ import com.ing.datalib.settings.AbstractPropSettings;
 
 /**
  *
- * 
+ *
  */
 public class GlobalSettings extends AbstractPropSettings {
-
     private static final long serialVersionUID = -431006539190776440L;
 
     public GlobalSettings(String location) {
@@ -96,7 +94,7 @@ public class GlobalSettings extends AbstractPropSettings {
     public String getTestSet() {
         return getProperty("TestSet");
     }
-    
+
     public String getTags() {
         return getProperty("Tags");
     }
@@ -104,17 +102,16 @@ public class GlobalSettings extends AbstractPropSettings {
     public void setTestSet(String value) {
         setProperty("TestSet", value);
     }
-    
+
     public Boolean isRPUpdate() {
         return Boolean.valueOf(getProperty("ReportPortal", "false"));
     }
-    
+
     public void setRPUpdate(Boolean value) {
-    	setProperty("ReportPortal", String.valueOf(value));
+        setProperty("ReportPortal", String.valueOf(value));
     }
-    
+
     public void setTags(String value) {
         setProperty("Tags", value);
     }
-
 }

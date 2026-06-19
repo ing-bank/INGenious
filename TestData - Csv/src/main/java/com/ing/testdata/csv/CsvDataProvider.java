@@ -1,12 +1,11 @@
-
 package com.ing.testdata.csv;
 
 import com.ing.datalib.component.Project;
 import com.ing.datalib.component.TestData;
-import java.io.File;
 import com.ing.datalib.component.utils.FileUtils;
 import com.ing.datalib.testdata.DataProvider;
 import com.ing.datalib.testdata.model.Record;
+import java.io.File;
 
 @DataProvider(type = "csv")
 public class CsvDataProvider extends TestData {
@@ -50,5 +49,4 @@ public class CsvDataProvider extends TestData {
         csvData.saveChanges();
         return csvData;
     }
-
 }

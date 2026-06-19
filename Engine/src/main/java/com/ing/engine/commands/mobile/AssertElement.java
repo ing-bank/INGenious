@@ -1,11 +1,11 @@
 package com.ing.engine.commands.mobile;
 
 import com.ing.engine.core.CommandControl;
-import com.ing.engine.execution.exception.ForcedException;
-import com.ing.engine.support.Status;
-import com.ing.engine.support.methodInf.Action;
-import com.ing.engine.support.methodInf.InputType;
-import com.ing.engine.support.methodInf.ObjectType;
+import com.ing.ingenious.api.annotation.Action;
+import com.ing.ingenious.api.exception.ForcedException;
+import com.ing.ingenious.api.status.Status;
+import com.ing.ingenious.api.types.InputType;
+import com.ing.ingenious.api.types.ObjectType;
 import org.openqa.selenium.JavascriptExecutor;
 
 public class AssertElement extends MobileGeneral {
@@ -50,7 +50,6 @@ public class AssertElement extends MobileGeneral {
     }
 
     @Action(object = ObjectType.APP, desc = "Assert if [<Object>] is enabled on the current page")
-
     public void assertElementEnabled() {
         assertElement(elementEnabled());
     }
@@ -60,7 +59,6 @@ public class AssertElement extends MobileGeneral {
         String description = String.format("Element [%s] is %s", ObjectName, value);
         if (status) {
             Report.updateTestLog(Action, description, Status.PASS);
-
         } else {
             throw new ForcedException(Action, description);
         }
@@ -73,7 +71,6 @@ public class AssertElement extends MobileGeneral {
     private void assertNotElement(Boolean status) {
         assertElement(status, status ? "not " : "");
     }
-
     /*
     @Action(object = ObjectType.MOBILE, desc = "Assert if Page source of current page is: [<Data>]", input = InputType.YES)
     public void assertPageSource() {

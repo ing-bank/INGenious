@@ -1,4 +1,3 @@
-
 package com.ing.engine.reporting.sync;
 
 import com.ing.engine.reporting.util.TestInfo;
@@ -15,16 +14,13 @@ public class Unknown implements Sync {
     }
 
     @Override
-    public boolean updateResults(TestInfo TestCase, String status,
-            List<File> attach) {
+    public boolean updateResults(TestInfo TestCase, String status, List<File> attach) {
         System.out.println("UNKNOWN CONNECTION!!");
         return false;
     }
 
     @Override
-    public void disConnect() {
-
-    }
+    public void disConnect() {}
 
     @Override
     public String getModule() {
@@ -35,5 +31,4 @@ public class Unknown implements Sync {
     public String createIssue(JSONObject issue, List<File> attach) {
         return null;
     }
-
 }
