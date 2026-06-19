@@ -39,7 +39,7 @@ public class ObjectType {
     /** File operations object type */
     public static final String FILE = "File";
     /** Kafka messaging object type */
-    public static final String KAFKA = "Kafka";
+    // public static final String KAFKA = "Kafka";
     /** Queue messaging object type */
     public static final String QUEUE = "Queue";
     /** Synthetic data generation object type */
@@ -72,7 +72,7 @@ public class ObjectType {
         add(ANY);
         add(WEBSERVICE);
         add(FILE);
-        add(KAFKA);
+        // add(KAFKA);
         add(QUEUE);
         add(DATA);
         add(GENERAL);
