@@ -33,6 +33,7 @@ public class RequestPanel extends JPanel {
     private BodyPanel bodyPanel;
     private AuthPanel authPanel;
     private SettingsPanel settingsPanel;
+    private ProxyPanel proxyPanel;
 
     public RequestPanel(APITesterUI parent) {
         this.parent = parent;
@@ -71,6 +72,10 @@ public class RequestPanel extends JPanel {
         // Settings tab
         settingsPanel = new SettingsPanel();
         tabPane.addTab("Settings", settingsPanel);
+
+        // Proxy tab
+        proxyPanel = new ProxyPanel();
+        tabPane.addTab("Proxy", proxyPanel);
 
         add(tabPane, BorderLayout.CENTER);
     }
@@ -180,6 +185,9 @@ public class RequestPanel extends JPanel {
 
         // Settings
         settingsPanel.loadSettings(request);
+
+        // Proxy
+        proxyPanel.loadProxy(request.getProxyConfig());
     }
 
     /**
@@ -204,6 +212,9 @@ public class RequestPanel extends JPanel {
 
         // Settings
         settingsPanel.updateRequest(request);
+
+        // Proxy
+        proxyPanel.updateRequest(request);
     }
 
     /**
@@ -326,10 +337,67 @@ public class RequestPanel extends JPanel {
                 return;
             }
 
+            // Proxy handling: if the request uses a proxy, ask where to persist the details
+            String proxyConfigAlias = null;
+            ProxyConfig proxyConfig = request.getProxyConfig();
+            if (proxyConfig != null && proxyConfig.hasValidConfig()) {
+                Object[] options = { "Default API Config", "New API Config", "Cancel" };
+                int proxyChoice = javax.swing.JOptionPane.showOptionDialog(
+                    this,
+                    "This request uses a proxy.\nWhere would you like to save the proxy details?",
+                    "Save Proxy Details",
+                    javax.swing.JOptionPane.YES_NO_CANCEL_OPTION,
+                    javax.swing.JOptionPane.QUESTION_MESSAGE,
+                    null,
+                    options,
+                    options[0]
+                );
+
+                if (proxyChoice == javax.swing.JOptionPane.CLOSED_OPTION || proxyChoice == 2) {
+                    return; // user cancelled
+                }
+
+                if (proxyChoice == 0) {
+                    // Save into the default API config
+                    proxyConfigAlias = "default";
+                } else {
+                    // Create a new API config — prompt for an alias name
+                    String alias = javax.swing.JOptionPane.showInputDialog(
+                        this,
+                        "Enter a name/alias for the new API config:",
+                        "New API Config",
+                        javax.swing.JOptionPane.QUESTION_MESSAGE
+                    );
+                    if (alias == null || alias.trim().isEmpty()) {
+                        return; // user cancelled
+                    }
+                    proxyConfigAlias = alias.trim();
+                }
+
+                // Persist the proxy details into the chosen API config
+                boolean saved = parent
+                    .getApiTester()
+                    .saveProxyToApiConfig(proxyConfig, proxyConfigAlias);
+                if (!saved) {
+                    javax.swing.JOptionPane.showMessageDialog(
+                        this,
+                        "Failed to save proxy details to the API config. Check the logs for details.",
+                        "Proxy Save Failed",
+                        javax.swing.JOptionPane.ERROR_MESSAGE
+                    );
+                    return;
+                }
+            }
+
             // Perform conversion
             com.ing.datalib.component.TestCase testCase = parent
                 .getApiTester()
-                .convertRequestToTestCase(request, selectedScenario, testCaseName);
+                .convertRequestToTestCase(
+                    request,
+                    selectedScenario,
+                    testCaseName,
+                    proxyConfigAlias
+                );
 
             if (testCase != null) {
                 // Ask user if they want to navigate to Test Design
@@ -513,6 +581,11 @@ public class RequestPanel extends JPanel {
         // Refresh settings panel colors
         if (settingsPanel != null) {
             settingsPanel.refreshThemeColors();
+        }
+
+        // Refresh proxy panel colors
+        if (proxyPanel != null) {
+            proxyPanel.refreshThemeColors();
         }
 
         // Refresh params and headers panels
@@ -1511,6 +1584,175 @@ class SettingsPanel extends JPanel {
             }
             if (c instanceof JComboBox) {
                 c.setBackground(UIManager.getColor("ComboBox.background"));
+            }
+            if (c instanceof Container) {
+                refreshChildColors((Container) c);
+            }
+        }
+    }
+}
+
+/**
+ * Panel for configuring an HTTP proxy for the request.
+ * The host and port fields are enabled only when "Use Proxy" is checked.
+ */
+class ProxyPanel extends JPanel {
+    private JCheckBox useProxyCheckbox;
+    private JTextField hostField;
+    private JTextField portField;
+    private JLabel hostLabel;
+    private JLabel portLabel;
+
+    public ProxyPanel() {
+        setLayout(new BorderLayout());
+        setBorder(new EmptyBorder(12, 12, 12, 12));
+        initComponents();
+    }
+
+    private void initComponents() {
+        JPanel grid = new JPanel(new GridBagLayout());
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.anchor = GridBagConstraints.WEST;
+        gbc.insets = new Insets(8, 8, 8, 8);
+
+        // Section header
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        gbc.gridwidth = 2;
+        JLabel header = new JLabel("Proxy");
+        header.setFont(header.getFont().deriveFont(Font.BOLD, 13f));
+        grid.add(header, gbc);
+
+        // Use Proxy checkbox
+        gbc.gridy = 1;
+        gbc.gridwidth = 2;
+        useProxyCheckbox = new JCheckBox("Use Proxy");
+        useProxyCheckbox.setFont(useProxyCheckbox.getFont().deriveFont(12f));
+        useProxyCheckbox.addActionListener(e -> updateFieldsEnabled());
+        grid.add(useProxyCheckbox, gbc);
+
+        // Host
+        gbc.gridx = 0;
+        gbc.gridy = 2;
+        gbc.gridwidth = 1;
+        hostLabel = new JLabel("Host:");
+        hostLabel.setFont(hostLabel.getFont().deriveFont(12f));
+        grid.add(hostLabel, gbc);
+
+        gbc.gridx = 1;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.weightx = 1;
+        hostField = new JTextField(30);
+        hostField.setToolTipText("Proxy host (e.g., proxy.example.com or 127.0.0.1)");
+        grid.add(hostField, gbc);
+        gbc.fill = GridBagConstraints.NONE;
+        gbc.weightx = 0;
+
+        // Port
+        gbc.gridx = 0;
+        gbc.gridy = 3;
+        portLabel = new JLabel("Port:");
+        portLabel.setFont(portLabel.getFont().deriveFont(12f));
+        grid.add(portLabel, gbc);
+
+        gbc.gridx = 1;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.weightx = 1;
+        portField = new JTextField(10);
+        portField.setToolTipText("Proxy port (e.g., 8080)");
+        grid.add(portField, gbc);
+        gbc.fill = GridBagConstraints.NONE;
+        gbc.weightx = 0;
+
+        // Note
+        gbc.gridx = 0;
+        gbc.gridy = 4;
+        gbc.gridwidth = 2;
+        JLabel note = new JLabel(
+            "When enabled, the request is routed through the configured proxy."
+        );
+        note.setFont(note.getFont().deriveFont(Font.ITALIC, 11f));
+        note.setForeground(UIManager.getColor("Label.disabledForeground"));
+        note.setName("proxyNoteLabel");
+        grid.add(note, gbc);
+
+        // Push to top
+        gbc.gridx = 0;
+        gbc.gridy = 5;
+        gbc.weighty = 1;
+        gbc.fill = GridBagConstraints.VERTICAL;
+        grid.add(Box.createVerticalGlue(), gbc);
+
+        add(grid, BorderLayout.CENTER);
+        updateFieldsEnabled();
+    }
+
+    private void updateFieldsEnabled() {
+        boolean enabled = useProxyCheckbox.isSelected();
+        hostField.setEnabled(enabled);
+        portField.setEnabled(enabled);
+        hostLabel.setEnabled(enabled);
+        portLabel.setEnabled(enabled);
+    }
+
+    /**
+     * Loads proxy settings from a ProxyConfig into this panel.
+     */
+    public void loadProxy(ProxyConfig config) {
+        if (config == null) {
+            useProxyCheckbox.setSelected(false);
+            hostField.setText("");
+            portField.setText("");
+        } else {
+            useProxyCheckbox.setSelected(config.isEnabled());
+            hostField.setText(config.getHost() != null ? config.getHost() : "");
+            portField.setText(config.getPort() != null ? config.getPort() : "");
+        }
+        updateFieldsEnabled();
+    }
+
+    /**
+     * Updates an APIRequest with the values from this panel.
+     */
+    public void updateRequest(APIRequest request) {
+        ProxyConfig config = request.getProxyConfig();
+        if (config == null) {
+            config = new ProxyConfig();
+            request.setProxyConfig(config);
+        }
+        config.setEnabled(useProxyCheckbox.isSelected());
+        config.setHost(hostField.getText().trim());
+        config.setPort(portField.getText().trim());
+    }
+
+    /**
+     * Refresh theme colors.
+     */
+    public void refreshThemeColors() {
+        setBackground(UIManager.getColor("Panel.background"));
+        for (Component c : getComponents()) {
+            if (c instanceof JPanel) {
+                c.setBackground(UIManager.getColor("Panel.background"));
+                refreshChildColors((Container) c);
+            }
+        }
+        repaint();
+    }
+
+    private void refreshChildColors(Container container) {
+        for (Component c : container.getComponents()) {
+            if (c instanceof JPanel) {
+                c.setBackground(UIManager.getColor("Panel.background"));
+            }
+            if (c instanceof JCheckBox) {
+                c.setBackground(UIManager.getColor("Panel.background"));
+            }
+            if (c instanceof JLabel && "proxyNoteLabel".equals(c.getName())) {
+                c.setForeground(UIManager.getColor("Label.disabledForeground"));
+            }
+            if (c instanceof JTextField) {
+                c.setBackground(UIManager.getColor("TextField.background"));
+                c.setForeground(UIManager.getColor("TextField.foreground"));
             }
             if (c instanceof Container) {
                 refreshChildColors((Container) c);

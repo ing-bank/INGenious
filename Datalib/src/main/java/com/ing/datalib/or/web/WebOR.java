@@ -36,7 +36,8 @@ public class WebOR implements ORRootInf<WebORPage> {
             "AltText",
             "Title",
             "TestId",
-            "ChainedLocator"
+            "ChainedLocator",
+            "JSPath"
         )
     );
 

@@ -322,6 +322,15 @@ public class AppMenuBar extends JMenuBar {
         );
 
         window.add(
+            withMnemonics(
+                withShortCut(
+                    withCopilotIcon(Utils.createMenuItem("AI Assistant", sActionListener))
+                ),
+                'I'
+            )
+        );
+
+        window.add(
             withMnemonics(withShortCut(Utils.createMenuItem("AdjustUI", sActionListener)), 'A')
         );
 
@@ -339,6 +348,11 @@ public class AppMenuBar extends JMenuBar {
                 "/ui/resources/main/" + menuItem.getText().replace(" ", "") + "Menu"
             )
         );
+        return menuItem;
+    }
+
+    private JMenuItem withCopilotIcon(JMenuItem menuItem) {
+        menuItem.setIcon(com.ing.ide.main.fx.INGIcons.swingColored("AICopilot", 16));
         return menuItem;
     }
 

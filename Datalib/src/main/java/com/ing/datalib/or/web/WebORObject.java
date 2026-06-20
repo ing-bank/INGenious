@@ -227,10 +227,15 @@ public class WebORObject extends UndoRedoModel implements ORObjectInf {
     @JsonIgnore
     @Override
     public boolean isCellEditable(int row, int column) {
-        // Exact column (2) is not editable for xpath, css, TestId
+        // Exact column (2) is not editable for xpath, css, TestId, JSPath
         if (column == 2 && row < attributes.size()) {
             String attrName = attributes.get(row).getName();
-            if ("xpath".equals(attrName) || "css".equals(attrName) || "TestId".equals(attrName)) {
+            if (
+                "xpath".equals(attrName) ||
+                "css".equals(attrName) ||
+                "TestId".equals(attrName) ||
+                "JSPath".equals(attrName)
+            ) {
                 return false;
             }
         }

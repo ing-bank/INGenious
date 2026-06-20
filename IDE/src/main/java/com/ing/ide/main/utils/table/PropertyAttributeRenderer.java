@@ -27,6 +27,7 @@ public class PropertyAttributeRenderer extends DefaultTableCellRenderer {
     private static final Color CLR_TITLE = new Color(0, 134, 114); // Teal - Title
     private static final Color CLR_TESTID = new Color(232, 65, 24); // Orange - TestId
     private static final Color CLR_CHAIN = new Color(130, 80, 223); // Purple variant - ChainedLocator
+    private static final Color CLR_JSPATH = new Color(202, 138, 4); // Amber/Warning - JSPath (discouraged)
     private static final Color CLR_DEFAULT = new Color(100, 100, 100); // Gray - default
 
     // Mobile-specific colors
@@ -45,6 +46,14 @@ public class PropertyAttributeRenderer extends DefaultTableCellRenderer {
     // Icon and color mapping for known attributes
     private static final Map<String, AttributeStyle> ATTRIBUTE_STYLES = new HashMap<>();
 
+    // Attributes that are supported but discouraged in favour of Playwright locators.
+    // See https://playwright.dev/java/docs/api/class-elementhandle (ElementHandle is discouraged).
+    private static final java.util.Set<String> DISCOURAGED_ATTRIBUTES = new java.util.HashSet<>(
+        java.util.Arrays.asList("JSPath")
+    );
+
+    private static final String DISCOURAGED_MARKER = "Discouraged";
+
     static {
         // ===== Web Attributes =====
         ATTRIBUTE_STYLES.put("Role", new AttributeStyle(MaterialDesignA.ACCOUNT_BOX, CLR_ROLE));
@@ -62,6 +71,10 @@ public class PropertyAttributeRenderer extends DefaultTableCellRenderer {
         ATTRIBUTE_STYLES.put(
             "ChainedLocator",
             new AttributeStyle(MaterialDesignL.LINK_VARIANT, CLR_CHAIN)
+        );
+        ATTRIBUTE_STYLES.put(
+            "JSPath",
+            new AttributeStyle(MaterialDesignL.LANGUAGE_JAVASCRIPT, CLR_JSPATH)
         );
 
         // ===== Mobile Attributes =====
@@ -141,10 +154,35 @@ public class PropertyAttributeRenderer extends DefaultTableCellRenderer {
             }
         }
 
+        // Mark discouraged attributes with a clearly identifiable badge and tooltip
+        if (DISCOURAGED_ATTRIBUTES.contains(attrName)) {
+            label.setText(
+                "<html>" +
+                escapeHtml(attrName) +
+                "&nbsp;<span style='color:#B91C1C;font-weight:bold;'>[" +
+                DISCOURAGED_MARKER +
+                "]</span></html>"
+            );
+            FontIcon warnIcon = FontIcon.of(MaterialDesignA.ALERT, ICON_SIZE, CLR_JSPATH);
+            label.setIcon(warnIcon);
+            label.setToolTipText(
+                "<html><b>" +
+                escapeHtml(attrName) +
+                " is discouraged.</b><br/>" +
+                "JSPath relies on Playwright's ElementHandle-style evaluation, which lacks " +
+                "auto-waiting and is brittle.<br/>Prefer Role, Text, Label, css or xpath locators.<br/>" +
+                "See https://playwright.dev/java/docs/api/class-elementhandle</html>"
+            );
+        }
+
         // Add left padding
         label.setBorder(new EmptyBorder(2, 8, 2, 4));
 
         return label;
+    }
+
+    private static String escapeHtml(String s) {
+        return s.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;");
     }
 
     /**
