@@ -380,6 +380,16 @@ public class XTable extends JTable {
         }
     }
 
+    public void setInsertRowPromptEnabled(boolean enabled) {
+        if (insertRowPromptFeature != null) {
+            insertRowPromptFeature.setEnabled(enabled);
+        }
+    }
+
+    public boolean isInsertRowPromptEnabled() {
+        return insertRowPromptFeature != null && insertRowPromptFeature.isEnabled();
+    }
+
     public void setActionFor(String value, Action action) {
         getActionMap().put(value, action);
     }

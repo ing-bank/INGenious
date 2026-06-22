@@ -41,6 +41,8 @@ public class InsertRowPromptFeature {
 
     private IntConsumer insertRowHandler;
 
+    private boolean enabled = true;
+
     public InsertRowPromptFeature(JTable table) {
         this.table = table;
     }
@@ -56,6 +58,11 @@ public class InsertRowPromptFeature {
 
             @Override
             public void mouseMoved(MouseEvent e) {
+                if (!enabled) {
+                    clearHoverState();
+                    return;
+                }
+
                 if (isSuppressingMouseEvents()) {
                     e.consume();
                     return;
@@ -85,17 +92,35 @@ public class InsertRowPromptFeature {
         table.addMouseListener(insertRowMouseAdapter);
     }
 
+    public void setEnabled(boolean enabled) {
+        this.enabled = enabled;
+
+        if (!enabled) {
+            clearHoverState();
+        }
+
+        table.repaint();
+    }
+
+    public boolean isEnabled() {
+        return enabled;
+    }
+
     public void setInsertRowHandler(IntConsumer insertRowHandler) {
         this.insertRowHandler = insertRowHandler;
     }
 
     public void paint(Graphics g) {
-        if (hoverInsertRow != -1) {
+        if (enabled && hoverInsertRow != -1) {
             paintInsertRowIndicator(g);
         }
     }
 
     public boolean processMouseEvent(MouseEvent e) {
+        if (!enabled) {
+            return false;
+        }
+
         if (isSuppressingMouseEvents()) {
             e.consume();
             return true;
@@ -113,6 +138,10 @@ public class InsertRowPromptFeature {
     }
 
     public boolean processMouseMotionEvent(MouseEvent e) {
+        if (!enabled) {
+            return false;
+        }
+
         if (isSuppressingMouseEvents()) {
             e.consume();
             return true;

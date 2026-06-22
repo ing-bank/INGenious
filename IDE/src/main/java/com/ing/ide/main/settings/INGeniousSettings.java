@@ -485,7 +485,7 @@ public class INGeniousSettings extends javax.swing.JFrame {
     }
 
     private void initTabs() {
-        configureSettingsTableInsert(tsTMTable);
+        disableTMSettingsTableInsert();
 
         uDPanel = new XTablePanel(false);
         configureSettingsTableInsert(uDPanel.table);
@@ -595,6 +595,31 @@ public class INGeniousSettings extends javax.swing.JFrame {
 
         mailSettingsPanel.addToolBarComp(mailConnect);
         databaseSettingsPanel.addToolBarComp(dbConnect);
+    }
+
+    private void disableTMSettingsTableInsert() {
+        if (tsTMTable == null) {
+            return;
+        }
+
+        if (tsTMTable instanceof XTable) {
+            XTable xTable = (XTable) tsTMTable;
+
+            xTable.setInsertRowPromptEnabled(false);
+            xTable.setInsertRowHandler(null);
+        }
+
+        AbstractAction blockedInsertAction = new AbstractAction() {
+
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                // TM Settings rows are fixed by the selected TM module.
+                // Row add/insert is intentionally disabled.
+            }
+        };
+
+        tsTMTable.getActionMap().put("Add", blockedInsertAction);
+        tsTMTable.getActionMap().put("Insert", blockedInsertAction);
     }
 
     private void configureSettingsTableInsert(javax.swing.JTable table) {
