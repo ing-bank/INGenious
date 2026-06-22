@@ -70,6 +70,21 @@
                 <version>3.1.1</version>
                 <executions>
                     <execution>
+                        <id>install-ingenious-api</id>
+                        <phase>initialize</phase>
+                        <configuration>
+                            <file>${basedir}/lib/ingenious-api-${ingenious-api.version}.jar</file>
+                            <groupId>com.ing</groupId>
+                            <artifactId>ingenious-api</artifactId>
+                            <version>${ingenious-api.version}</version>
+                            <packaging>jar</packaging>
+                            <generatePom>true</generatePom>
+                        </configuration>
+                        <goals>
+                            <goal>install-file</goal>
+                        </goals>
+                    </execution>
+                    <execution>
                         <id>install-datalib</id>
                         <phase>initialize</phase>
                         <configuration>
