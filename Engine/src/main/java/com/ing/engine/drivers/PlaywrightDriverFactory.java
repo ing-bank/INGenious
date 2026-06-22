@@ -7,10 +7,13 @@ import com.ing.engine.core.Control;
 import com.ing.engine.core.RunContext;
 import com.ing.engine.reporting.util.DateTimeUtils;
 import com.ing.util.encryption.Encryption;
+//import com.ing.engine.reporting.performance.har.Page;
 import com.microsoft.playwright.*;
 import com.microsoft.playwright.Browser.NewContextOptions;
 import com.microsoft.playwright.BrowserType.LaunchOptions;
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.nio.file.Path;
@@ -71,11 +74,89 @@ public class PlaywrightDriverFactory {
         }
     }
 
+    private static boolean looksLikeMissingBrowser(PlaywrightException ex) {
+        if (ex == null || ex.getMessage() == null) {
+            return false;
+        }
+
+        String msg = ex.getMessage().toLowerCase();
+        return (
+            msg.contains("executable doesn't exist") ||
+            msg.contains("browser executable") ||
+            msg.contains("please run the following command") ||
+            msg.contains("playwright install")
+        );
+    }
+
+    private static void runPlaywrightInstall(String processArgs) throws Exception {
+        String osName = System.getProperty("os.name").toLowerCase();
+        String classpath = osName.contains("win") ? "lib/*;." : "lib/*:.";
+
+        String javaCommand = String.format(
+            "java -cp \"%s\" com.microsoft.playwright.CLI %s",
+            classpath,
+            processArgs
+        );
+
+        String[] command = osName.contains("win")
+            ? new String[] { "cmd", "/c", javaCommand }
+            : new String[] { "bash", "-l", "-c", javaCommand };
+
+        LOGGER.info("[PW-RUN-INSTALL] processArgs = " + processArgs);
+        LOGGER.info("[PW-RUN-INSTALL] javaCommand = " + javaCommand);
+
+        Process process = new ProcessBuilder(command).redirectErrorStream(true).start();
+
+        try (
+            BufferedReader reader = new BufferedReader(
+                new InputStreamReader(process.getInputStream())
+            )
+        ) {
+            String line;
+            while ((line = reader.readLine()) != null) {
+                LOGGER.info("[PW-RUN-INSTALL-OUT] " + line);
+            }
+        }
+
+        int exitCode = process.waitFor();
+        LOGGER.info("[PW-RUN-INSTALL] exit code = " + exitCode);
+
+        if (exitCode != 0) {
+            throw new RuntimeException(
+                "Playwright install failed for command: " + processArgs + ", exit code: " + exitCode
+            );
+        }
+    }
+
+    private static void installBrowserForRun(String browserName) {
+        String normalized = browserName == null ? "" : browserName.trim().toLowerCase();
+
+        try {
+            switch (normalized) {
+                case "chromium":
+                    runPlaywrightInstall("install chromium");
+                    break;
+                case "webkit":
+                    runPlaywrightInstall("install webkit");
+                    break;
+                case "firefox":
+                    throw new RuntimeException("Firefox auto-install is disabled in this branch.");
+                default:
+                    throw new IllegalArgumentException("Unsupported browser: " + browserName);
+            }
+        } catch (Exception ex) {
+            throw new RuntimeException(
+                "Unable to install Playwright browser for Run: " + browserName,
+                ex
+            );
+        }
+    }
+
     public static Playwright createPlaywright() {
         Map<String, String> env = new HashMap<>();
 
         //if(Control.exe.getExecSettings().getRunSettings().isGridExecution())
-        //    env.put("PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD", "1");
+        env.put("PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD", "1");
 
         return Playwright.create(new Playwright.CreateOptions().setEnv(env));
     }
@@ -121,19 +202,34 @@ public class PlaywrightDriverFactory {
         BrowserContext browserContext = null;
         if (isGrid) {
             String cdpURL = Control.exe.getExecSettings().getRunSettings().getRemoteGridURL();
-            if (!cdpURL.endsWith("/")) cdpURL = cdpURL + "/";
+            if (!cdpURL.endsWith("/")) {
+                cdpURL = cdpURL + "/";
+            }
             cdpURL =
                 cdpURL + "playwright?capabilities=" + lambdaTestCapabilities(context, capabilities);
             browserContext = browserType.connect(cdpURL).newContext(newContextOptions);
         } else {
-            browserContext = browserType.launch(launchOptions).newContext(newContextOptions);
+            try {
+                browserContext = browserType.launch(launchOptions).newContext(newContextOptions);
+            } catch (PlaywrightException ex) {
+                if (looksLikeMissingBrowser(ex)) {
+                    LOGGER.info("[PW-RUN] Missing browser detected for: " + browserName);
+                    installBrowserForRun(browserName);
+                    LOGGER.info(
+                        "[PW-RUN] Retrying launch after selective install for: " + browserName
+                    );
+                    browserContext =
+                        browserType.launch(launchOptions).newContext(newContextOptions);
+                } else {
+                    throw ex;
+                }
+            }
         }
         return enhanceContext(browserContext);
     }
 
-    public static Page createPage(BrowserContext browserContext) {
-        Page page = browserContext.newPage();
-        return page;
+    public static com.microsoft.playwright.Page createPage(BrowserContext browserContext) {
+        return browserContext.newPage();
     }
 
     private static final Logger LOGGER = Logger.getLogger(PlaywrightDriverFactory.class.getName());

@@ -886,9 +886,9 @@ public class TestCaseComponent extends JPanel implements ActionListener {
                         Files.copy(in, Path.of(printDepsPath), StandardCopyOption.REPLACE_EXISTING);
                     }
                 }
-                classpath = "lib/*;."; // Windows
+                classpath = "lib/*;.";
             } else {
-                classpath = "lib/*:."; // Mac
+                classpath = "lib/*:.";
             }
 
             String javaCommand = String.format(
@@ -900,6 +900,14 @@ public class TestCaseComponent extends JPanel implements ActionListener {
             String[] command = osName.contains("windows")
                 ? new String[] { "cmd", "/c", javaCommand }
                 : new String[] { "bash", "-l", "-c", javaCommand };
+
+            logPlaywright("========== PLAYWRIGHT PROCESS START ==========");
+            logPlaywright("OS          : " + osName);
+            logPlaywright("processArgs : " + processArgs);
+            logPlaywright("javaCommand : " + javaCommand);
+            logPlaywright("command[]   : " + java.util.Arrays.toString(command));
+            logPlaywright("user.dir    : " + System.getProperty("user.dir"));
+            logPlaywright("==============================================");
 
             return new ProcessBuilder(command).redirectErrorStream(true).start();
         } catch (Exception ex) {
@@ -940,6 +948,35 @@ public class TestCaseComponent extends JPanel implements ActionListener {
         );
     }
 
+    private boolean installBrowsers() {
+        try {
+            logPlaywright(
+                "[RECORDER-INSTALL] Missing Playwright browsers detected. " +
+                "Installing only Chromium and WebKit for this branch."
+            );
+
+            Process chromiumInstall = runPlaywrightProcess("install chromium");
+            waitForProcess(chromiumInstall, "Playwright install chromium");
+
+            Process webkitInstall = runPlaywrightProcess("install webkit");
+            waitForProcess(webkitInstall, "Playwright install webkit");
+
+            logPlaywright(
+                "[RECORDER-INSTALL] Chromium and WebKit install completed. Firefox intentionally skipped."
+            );
+            return true;
+        } catch (Exception ex) {
+            logPlaywrightError(
+                "[RECORDER-INSTALL] Failed to install required recorder browsers: " +
+                ex.getMessage()
+            );
+            Logger
+                .getLogger(TestCaseComponent.class.getName())
+                .log(Level.SEVERE, "Unable to install recorder browsers", ex);
+            return false;
+        }
+    }
+
     private Process runPlaywrightProcess(String processArgs) throws IOException {
         Process process = startPlaywrightProcess(processArgs);
         if (process == null) {
@@ -957,16 +994,29 @@ public class TestCaseComponent extends JPanel implements ActionListener {
         ) {
             String line;
             while ((line = processOutput.readLine()) != null) {
-                logPlaywright(line);
-                if (codegenCommand && !recorderReadySignaled) {
+                logPlaywright("[PW-OUT] " + line);
+                if (
+                    codegenCommand &&
+                    !recorderReadySignaled &&
+                    !line.contains(PLAYWRIGHT_INSTALL_HINT) &&
+                    !line.toLowerCase().contains("error")
+                ) {
                     onRecorderReady();
                 }
                 if (codegenCommand && line.contains(PLAYWRIGHT_INSTALL_HINT)) {
                     waitForProcess(process, "Playwright codegen");
-                    logPlaywright("Playwright browser binaries are missing. Starting install...");
-                    Process installProcess = runPlaywrightProcess("install");
-                    waitForProcess(installProcess, "Playwright install");
-                    logPlaywright("Playwright install completed. Restarting recorder...");
+
+                    boolean installed = installBrowsers();
+                    if (!installed) {
+                        logPlaywrightError(
+                            "[RECORDER-INSTALL] Recorder restart aborted because browser installation failed."
+                        );
+                        return process;
+                    }
+
+                    logPlaywright(
+                        "[RECORDER-INSTALL] Restarting recorder after selective install..."
+                    );
                     return runPlaywrightProcess(processArgs);
                 }
             }
@@ -981,7 +1031,8 @@ public class TestCaseComponent extends JPanel implements ActionListener {
         }
 
         try {
-            process.waitFor();
+            int exitCode = process.waitFor();
+            logPlaywright("[" + processName + "] exit code = " + exitCode);
         } catch (InterruptedException ex) {
             Thread.currentThread().interrupt();
             logPlaywrightError(processName + " wait interrupted: " + ex.getMessage());
