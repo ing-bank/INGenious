@@ -1,5 +1,6 @@
 package com.ing.ide.main.mainui.components.testdesign.scenario;
 
+import com.ing.datalib.component.ReusableRef;
 import com.ing.datalib.component.Scenario;
 import com.ing.datalib.component.TestCase;
 import com.ing.datalib.component.TestStep;
@@ -206,30 +207,68 @@ public class ScenarioComponent extends JPanel implements ActionListener {
                 TestStep tStep = testCase.getTestSteps().get(scenarioTable.getSelectedColumn() - 1);
                 String[] reusableData = tStep.getReusableData();
                 if (reusableData != null) {
-                    // Try reusable scenarios first, then fall back to regular scenarios
-                    Scenario scenario = testDesign
-                        .getProject()
-                        .getReusableScenarioByName(reusableData[0]);
-                    if (scenario == null) {
-                        scenario = testDesign.getProject().getScenarioByName(reusableData[0]);
+                    ReusableRef ref;
+                    try {
+                        ref = tStep.getEffectiveReusableRef();
+                    } catch (IllegalArgumentException ex) {
+                        ref =
+                            new ReusableRef(
+                                ReusableRef.Scope.UNSCOPED,
+                                reusableData[0],
+                                reusableData[1]
+                            );
+                    }
+                    if (ref == null) {
+                        ref =
+                            new ReusableRef(
+                                ReusableRef.Scope.UNSCOPED,
+                                reusableData[0],
+                                reusableData[1]
+                            );
+                    }
+
+                    Scenario scenario = null;
+                    if (ref.getScope() == ReusableRef.Scope.PROJECT) {
+                        scenario =
+                            testDesign
+                                .getProject()
+                                .getReusableScenarioByName(ref.getScenarioName());
+                    } else if (ref.getScope() == ReusableRef.Scope.SHARED) {
+                        scenario =
+                            testDesign
+                                .getProject()
+                                .getSharedReusableScenarioByName(ref.getScenarioName());
+                    } else {
+                        scenario =
+                            testDesign
+                                .getProject()
+                                .getReusableScenarioByName(ref.getScenarioName());
+                        if (scenario == null) {
+                            scenario =
+                                testDesign
+                                    .getProject()
+                                    .getSharedReusableScenarioByName(ref.getScenarioName());
+                        }
                     }
 
                     if (scenario != null) {
-                        TestCase rtestCase = scenario.getTestCaseByName(reusableData[1]);
+                        TestCase rtestCase = scenario.getTestCaseByName(ref.getTestCaseName());
                         if (rtestCase != null) {
                             testDesign.loadTableModelForSelection(rtestCase);
                         } else {
                             Notification.show(
                                 "TestCase [" +
-                                reusableData[1] +
+                                ref.getTestCaseName() +
                                 "] not present in the Scenario [" +
-                                reusableData[0] +
+                                ref.getScenarioName() +
                                 "]"
                             );
                         }
                     } else {
                         Notification.show(
-                            "Scenario [" + reusableData[0] + "] not present in the project"
+                            "Scenario [" +
+                            ref.getScenarioName() +
+                            "] not present in selected reusable scope"
                         );
                     }
                 } else {

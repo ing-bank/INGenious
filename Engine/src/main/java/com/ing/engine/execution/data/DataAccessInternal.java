@@ -1,5 +1,6 @@
 package com.ing.engine.execution.data;
 
+import com.ing.datalib.component.ReusableRef;
 import com.ing.datalib.testdata.model.GlobalDataModel;
 import com.ing.datalib.testdata.model.TestDataModel;
 import com.ing.engine.execution.exception.data.DataNotFoundException;
@@ -26,6 +27,18 @@ public class DataAccessInternal {
      * @return the iterations
      */
     public static Set<String> getIterations(TestCaseRunner context, String sheet) {
+        String scopeContext = getScopeContextString(context);
+        LOG.fine(
+            "Fetching iterations for sheet '" +
+            sheet +
+            "'" +
+            scopeContext +
+            " in " +
+            context.scenario() +
+            ":" +
+            context.testcase()
+        );
+
         if (validEnv(context)) {
             return getIter(context, getModel(context, sheet), getDefModel(context, sheet));
         } else {
@@ -357,26 +370,73 @@ public class DataAccessInternal {
     )
         throws TestDataNotFoundException, DataNotFoundException {
         Set<String> iterSet = getIterations(context, sheet);
+        ReusableRef.Scope scope = context.getResolvedReusableScope();
+
         if (isNull(iterSet) || !iterSet.contains(context.iteration())) {
-            throw new TestDataNotFoundException(
+            // Iteration not found - enhanced with scope context
+            String scopedField = buildScopeAwareErrorMessage(
+                context.iteration(),
+                scope,
+                sheet,
+                field
+            );
+            TestDataNotFoundException ex = new TestDataNotFoundException(
                 context,
                 sheet,
                 field,
                 Cause.Iteration,
-                context.iteration()
+                scopedField
             );
+            if (scope != null) {
+                LOG.warning(
+                    "Iteration not found for [" +
+                    scope +
+                    "] reusable: sheet='" +
+                    sheet +
+                    "', iteration='" +
+                    context.iteration() +
+                    "'"
+                );
+            }
+            throw ex;
         } else {
             Set<String> subIterSet = getSubIterations(context, sheet);
             if (isNull(subIterSet) || !subIterSet.contains(subIter)) {
-                DataNotFoundException dnfe = new DataNotFoundException(
-                    "Reached the end of data sheet."
-                );
+                // End of data sheet reached
+                String errorMsg = "Reached the end of data sheet.";
+                if (scope != null) {
+                    errorMsg = "[" + scope + "] " + errorMsg;
+                    LOG.warning(
+                        "End of data sheet for [" + scope + "] reusable: sheet='" + sheet + "'"
+                    );
+                }
+                DataNotFoundException dnfe = new DataNotFoundException(errorMsg);
                 DataNotFoundException.CauseInfo causeInfo =
-                    dnfe.new CauseInfo(Cause.EndOfDataSheet, "Reached the end of data sheet.");
+                    dnfe.new CauseInfo(Cause.EndOfDataSheet, errorMsg);
                 dnfe.cause = causeInfo;
                 throw dnfe;
             } else {
-                throw new TestDataNotFoundException(context, sheet, field, Cause.Data, field);
+                // Data field not found
+                String scopedField = buildScopeAwareErrorMessage(field, scope, sheet, field);
+                TestDataNotFoundException ex = new TestDataNotFoundException(
+                    context,
+                    sheet,
+                    field,
+                    Cause.Data,
+                    scopedField
+                );
+                if (scope != null) {
+                    LOG.warning(
+                        "Data not found for [" +
+                        scope +
+                        "] reusable: sheet='" +
+                        sheet +
+                        "', field='" +
+                        field +
+                        "'"
+                    );
+                }
+                throw ex;
             }
         }
     }
@@ -410,5 +470,40 @@ public class DataAccessInternal {
 
     public static boolean isNull(Object ins) {
         return ins == null;
+    }
+
+    /**
+     * Builds a scoped error message for data access errors.
+     * Prepends scope information for reusable references.
+     *
+     * @param info the base error info (iteration, field name, etc.)
+     * @param scope the resolved reusable scope (PROJECT, SHARED, or null)
+     * @param sheet the datasheet name (for context)
+     * @param field the field/column name (for context)
+     * @return error message info, prefixed with scope if applicable
+     */
+    protected static String buildScopeAwareErrorMessage(
+        String info,
+        ReusableRef.Scope scope,
+        String sheet,
+        String field
+    ) {
+        if (scope == null) {
+            return info;
+        }
+
+        // Return info prefixed with scope for error reporting
+        return "[" + scope + "] " + info;
+    }
+
+    /**
+     * Gets the scope context string for logging and diagnostics.
+     *
+     * @param context the test case execution context
+     * @return scope context string e.g. " (scope: [Shared])" or empty string for non-reusables
+     */
+    protected static String getScopeContextString(TestCaseRunner context) {
+        ReusableRef.Scope scope = context.getResolvedReusableScope();
+        return scope != null ? " (scope: [" + scope + "])" : "";
     }
 }

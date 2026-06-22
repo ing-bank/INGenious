@@ -49,7 +49,7 @@ public class ScenarioNode extends CommonNode {
 
     @Override
     public String toString() {
-        return scenario.getName();
+        return scenario != null ? scenario.getName() : "<invalid-scenario>";
     }
 
     public static List<ScenarioNode> toList(Enumeration<TreeNode> children) {

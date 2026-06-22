@@ -14,6 +14,7 @@ import java.io.IOException;
 import javax.swing.JButton;
 import javax.swing.JPanel;
 import javax.swing.JSplitPane;
+import javax.swing.JTabbedPane;
 import javax.swing.JTree;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
@@ -35,6 +36,7 @@ public class TestDesignUI extends JPanel {
 
     JPanel appReusablePanel;
     JPanel testPlanPanel;
+    JTabbedPane reusableTreeTabbedPane;
 
     JButton reusableSwitch;
 
@@ -52,8 +54,22 @@ public class TestDesignUI extends JPanel {
         testPlanPanel = getTreeInPanel("Test Plan", testDesign.getProjectTree().getTree());
         projectNReusableTreeSplitPane.setTopComponent(testPlanPanel);
 
-        appReusablePanel =
-            getRTreeInPanel("Reusable Component", testDesign.getReusableTree().getTree());
+        // Create tabbed pane for Project and Shared Reusables
+        reusableTreeTabbedPane = new JTabbedPane();
+        JPanel projectReusablesPanel = getRTreeInPanel(
+            "Project Reusables",
+            testDesign.getReusableTree().getTree()
+        );
+        JPanel sharedReusablesPanel = getRTreeInPanel(
+            "Shared Reusables",
+            testDesign.getSharedReusableTree().getTree()
+        );
+        reusableTreeTabbedPane.addTab("Project Reusables", projectReusablesPanel);
+        reusableTreeTabbedPane.addTab("Shared Reusables", sharedReusablesPanel);
+
+        appReusablePanel = new JPanel(new BorderLayout());
+        appReusablePanel.add(reusableTreeTabbedPane, BorderLayout.CENTER);
+
         projectNReusableTreeSplitPane.setBottomComponent(appReusablePanel);
 
         testCaseNTestDataSplitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT);

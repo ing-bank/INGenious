@@ -772,9 +772,9 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
                     @Override
                     public TableCellEditor getCellEditor(int row, int column) {
                         if (!isGlobalData) {
-                            // When using FrozenColumnScrollPane, columns 0-3 are removed from view
-                            // So view column 0 is model column 4 - need to offset by fixedColumnCount
-                            int modelColumn = column + 4;
+                            // When using FrozenColumnScrollPane, columns 0-4 are removed from view
+                            // So view column 0 is model column 5 - need to offset by fixedColumnCount
+                            int modelColumn = column + 5;
                             return tDAutoSuggest.getCellEditorFor(
                                 modelColumn,
                                 super.getCellEditor(row, column)
@@ -816,6 +816,7 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
             if (!isGlobalData) {
                 // Use frozen column scroll pane for test data (but not global data)
                 frozenScrollPane = new FrozenColumnScrollPane(table, 4);
+                frozenScrollPane = new FrozenColumnScrollPane(table, 5);
                 frozenScrollPane.setBackground(UIManager.getColor("Panel.background"));
                 frozenScrollPane
                     .getViewport()
@@ -823,7 +824,7 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
 
                 // Apply popup menu to fixed table as well
                 frozenScrollPane.getFixedTable().setComponentPopupMenu(popupMenu);
-                // Set cell editor provider for fixed columns (columns 0-3: Scenario, Flow, Iteration, SubIteration)
+                // Set cell editor provider for fixed columns (columns 0-4: Scenario, Flow, Scope, Iteration, SubIteration)
                 frozenScrollPane.setCellEditorProvider(
                     (row, column, defaultEditor) ->
                         tDAutoSuggest.getCellEditorFor(column, defaultEditor)

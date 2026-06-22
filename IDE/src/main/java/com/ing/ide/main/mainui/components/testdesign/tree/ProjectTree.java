@@ -3,10 +3,15 @@ package com.ing.ide.main.mainui.components.testdesign.tree;
 import com.ing.datalib.component.Project;
 import com.ing.datalib.component.Scenario;
 import com.ing.datalib.component.TestCase;
+import com.ing.datalib.component.TestStep;
 import com.ing.datalib.exception.TestCaseConversionException;
 import com.ing.datalib.model.DataItem;
 import com.ing.datalib.model.Meta;
 import com.ing.datalib.model.Tag;
+import com.ing.datalib.or.mobile.ResolvedMobileObject;
+import com.ing.datalib.or.sap.ResolvedSapObject;
+import com.ing.datalib.or.structureddata.ResolvedStructuredDataObject;
+import com.ing.datalib.or.web.ResolvedWebObject;
 import com.ing.ide.main.mainui.components.testdesign.TestDesign;
 import com.ing.ide.main.mainui.components.testdesign.testcase.validation.TestCaseValidation;
 import com.ing.ide.main.mainui.components.testdesign.tree.model.GroupNode;
@@ -38,8 +43,12 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.AbstractAction;
@@ -316,12 +325,14 @@ public class ProjectTree implements ActionListener {
                     setIcons(IconSettings.getIconSettings().getReusableFolder());
                 } else if (value instanceof ScenarioNode) {
                     setIcons(IconSettings.getIconSettings().getTestPlanScenario());
+                    // setText(withScopeBadge(value));
                 } else if (value instanceof TestCaseNode) {
                     if (ProjectTree.this instanceof ReusableTree) {
                         setIcons(IconSettings.getIconSettings().getReusableTestCase());
                     } else {
                         setIcons(IconSettings.getIconSettings().getTestPlanTestCase());
                     }
+                    // setText(withScopeBadge(value));
                 } else {
                     setIcons(IconSettings.getIconSettings().getTestPlanRoot());
                 }
@@ -444,8 +455,14 @@ public class ProjectTree implements ActionListener {
             case "Edit Tag":
                 editTag();
                 break;
-            case "Make As Reusable/TestCase":
+            case "Make As TestCase":
                 makeAsReusableRTestCase();
+                break;
+            case "Make As Project Reusable":
+                makeAsReusableRTestCase();
+                break;
+            case "Make As Shared Reusable":
+                moveTestCaseToSharedReusable();
                 break;
             case "Details":
                 showDetails();
@@ -482,21 +499,33 @@ public class ProjectTree implements ActionListener {
      * Adds a new scenario to the project.
      */
     private void addScenario() {
-        ScenarioNode scNode = treeModel.addScenario(
-            getSelectedGroupNode(),
-            testDesign.getProject().addScenario(fetchNewScenarioName())
-        );
+        String scenarioName = fetchNewScenarioName();
+        Scenario scenario = testDesign.getProject().addScenario(scenarioName);
+        if (scenario == null) {
+            Notification.showWarning(
+                "Scenario '" +
+                scenarioName +
+                "' already exists in another scope (Test Plan, Reusable, or Shared Reusable)."
+            );
+            return;
+        }
+        ScenarioNode scNode = treeModel.addScenario(getSelectedGroupNode(), scenario);
         selectAndScrollTo(new TreePath(scNode.getPath()));
     }
 
     /**
-     * Generates a unique name for a new scenario.
+     * Generates a unique name for a new scenario checking all scopes.
      * @return unique scenario name
      */
     private String fetchNewScenarioName() {
         String newScenarioName = "NewScenario";
         for (int i = 0;; i++) {
-            if (testDesign.getProject().getScenarioByName(newScenarioName) == null) {
+            // Check if scenario exists in any scope
+            if (
+                testDesign.getProject().getScenarioByName(newScenarioName) == null &&
+                testDesign.getProject().getReusableScenarioByName(newScenarioName) == null &&
+                testDesign.getProject().getSharedReusableScenarioByName(newScenarioName) == null
+            ) {
                 break;
             }
             newScenarioName = "NewScenario" + i;
@@ -536,7 +565,7 @@ public class ProjectTree implements ActionListener {
         for (int i = 0;; i++) {
             if (
                 scenario.getTestCaseByName(newTestCaseName) == null &&
-                !getProject().hasTestCaseInAnyScenario(scenario.getName(), newTestCaseName)
+                !getProject().testCaseExistsInAnyScope(newTestCaseName)
             ) {
                 break;
             }
@@ -835,14 +864,21 @@ public class ProjectTree implements ActionListener {
      * Shows error notifications for failures and reloads both trees on success.
      */
     protected void makeAsReusableRTestCase() {
+        if (getSelectedTestCaseNodes().isEmpty()) {
+            Notification.showWarning("Select at least one test case to make as Project Reusable.");
+            return;
+        }
         if (!getSelectedTestCaseNodes().isEmpty()) {
             // Save ALL test cases to prevent data loss on reload
             getProject().save();
 
             boolean anySuccess = false;
+            int impactedUpdates = 0;
             for (TestCaseNode testCaseNode : getSelectedTestCaseNodes()) {
                 try {
                     getProject().moveTestCaseToReusable(testCaseNode.getTestCase());
+                    impactedUpdates +=
+                        getProject().getAndResetLastImpactedReusableReferenceUpdates();
                     anySuccess = true;
                 } catch (TestCaseConversionException e) {
                     Notification.show(e.getMessage());
@@ -853,6 +889,9 @@ public class ProjectTree implements ActionListener {
                 getProject().save();
                 load();
                 getTestDesign().getReusableTree().load();
+                showImpactedReferenceNotification("Moved to Project Reusable", impactedUpdates);
+            } else {
+                Notification.showWarning("No test cases were moved to Project Reusable.");
             }
         }
     }
@@ -863,6 +902,244 @@ public class ProjectTree implements ActionListener {
      */
     void makeAsReusableRTestCase(TestCase testCase) {
         getTestDesign().getReusableTree().getTreeModel().addTestCase(testCase);
+    }
+
+    /**
+     * Moves selected test case(s) from Test Plan to Shared Reusable Components.
+     */
+    private void moveTestCaseToSharedReusable() {
+        if (getSelectedTestCaseNodes().isEmpty()) {
+            Notification.showWarning("Select at least one test case to make as Shared Reusable.");
+            return;
+        }
+        if (!getSelectedTestCaseNodes().isEmpty()) {
+            int option = JOptionPane.showConfirmDialog(
+                null,
+                "Move selected test case(s) to Shared Reusable Components?",
+                "Make As Shared Reusable",
+                JOptionPane.YES_NO_OPTION
+            );
+            if (option != JOptionPane.YES_OPTION) {
+                return;
+            }
+            // Save ALL test cases to prevent data loss on reload
+            getProject().save();
+
+            boolean anySuccess = false;
+            int impactedUpdates = 0;
+
+            // Move test cases first and record which ones moved successfully.
+            List<TestCase> movedSuccessfully = new ArrayList<>();
+            for (TestCaseNode testCaseNode : getSelectedTestCaseNodes()) {
+                try {
+                    getProject().moveTestCaseToSharedReusable(testCaseNode.getTestCase());
+                    impactedUpdates +=
+                        getProject().getAndResetLastImpactedReusableReferenceUpdates();
+                    anySuccess = true;
+                    movedSuccessfully.add(testCaseNode.getTestCase());
+                } catch (TestCaseConversionException e) {
+                    Notification.show(e.getMessage());
+                }
+            }
+
+            // Only after test cases have been moved successfully, detect and optionally move project-scoped objects
+            if (!movedSuccessfully.isEmpty()) {
+                // If the user cancels the second confirmation, we simply skip moving objects but do not revert moved test cases.
+                try {
+                    confirmAndMoveProjectObjectsForTestCases(movedSuccessfully);
+                } catch (Exception ex) {
+                    LOGGER.log(
+                        Level.WARNING,
+                        "Error during optional object move after test case migration",
+                        ex
+                    );
+                }
+            }
+            if (anySuccess) {
+                getProject().reload();
+                getProject().save();
+                load();
+                getTestDesign().getSharedReusableTree().load();
+                showImpactedReferenceNotification("Moved to Shared Reusable", impactedUpdates);
+            } else {
+                Notification.showWarning("No test cases were moved to Shared Reusable.");
+            }
+        }
+    }
+
+    protected void showImpactedReferenceNotification(String operationName, int impactedUpdates) {
+        if (impactedUpdates > 0) {
+            Notification.showSuccess(
+                operationName +
+                " completed. All impacted test cases have been updated (" +
+                impactedUpdates +
+                ")."
+            );
+        } else {
+            Notification.showSuccess(
+                operationName + " completed. No impacted test case references required updates."
+            );
+        }
+    }
+
+    /**
+     * Detects project-scoped object references used by the provided test cases.
+     * If any project-only objects are found, prompts the user whether to move those
+     * objects/pages to Shared OR. If the user agrees, moves objects/pages to Shared.
+     * Returns true when the caller should proceed with moving test cases to Shared; false if cancelled.
+     */
+    public boolean confirmAndMoveProjectObjectsForTestCases(List<TestCase> testCases) {
+        try {
+            var repo = getProject().getObjectRepository();
+            if (repo == null) return true; // nothing to do
+
+            // Collect project-only references as pairs of pageName -> set(objectName)
+            Map<String, Set<String>> projectRefs = new HashMap<>();
+
+            for (TestCase tc : testCases) {
+                tc.loadTableModel();
+                for (TestStep step : tc.getTestSteps()) {
+                    if (!step.isPageObjectStep()) continue;
+                    String ref = step.getReference();
+                    String obj = step.getObject();
+                    if (ref == null || ref.isBlank() || obj == null || obj.isBlank()) continue;
+
+                    // Parse the page reference first to handle scoped tokens like "[Project] Home"
+                    ResolvedWebObject.PageRef wref = ResolvedWebObject.PageRef.parse(ref);
+                    var wres = repo.resolveWebObject(wref, obj);
+                    if (wres != null) {
+                        if (wres.isFromProject()) {
+                            projectRefs
+                                .computeIfAbsent(wres.getPageName(), k -> new HashSet<>())
+                                .add(obj);
+                        }
+                        continue;
+                    }
+
+                    ResolvedMobileObject.PageRef mref = ResolvedMobileObject.PageRef.parse(ref);
+                    var mres = repo.resolveMobileObject(mref, obj);
+                    if (mres != null) {
+                        if (mres.isFromProject()) {
+                            projectRefs
+                                .computeIfAbsent(mres.getPageName(), k -> new HashSet<>())
+                                .add(obj);
+                        }
+                        continue;
+                    }
+
+                    ResolvedStructuredDataObject.PageRef sref = ResolvedStructuredDataObject.PageRef.parse(
+                        ref
+                    );
+                    var sres = repo.resolveStructuredDataObject(sref, obj);
+                    if (sres != null) {
+                        if (sres.isFromProject()) {
+                            projectRefs
+                                .computeIfAbsent(sres.getPageName(), k -> new HashSet<>())
+                                .add(obj);
+                        }
+                        continue;
+                    }
+
+                    ResolvedSapObject.PageRef sapref = ResolvedSapObject.PageRef.parse(ref);
+                    var sapres = repo.resolveSapObject(sapref, obj);
+                    if (sapres != null) {
+                        if (sapres.isFromProject()) {
+                            projectRefs
+                                .computeIfAbsent(sapres.getPageName(), k -> new HashSet<>())
+                                .add(obj);
+                        }
+                        continue;
+                    }
+                }
+            }
+
+            if (projectRefs.isEmpty()) return true; // no project-only objects found
+
+            // Build confirmation message
+            StringBuilder sb = new StringBuilder();
+            sb.append(
+                "The selected test case(s) reference project-scoped Object Repository items:\n\n"
+            );
+            for (var e : projectRefs.entrySet()) {
+                sb
+                    .append("Page: ")
+                    .append(e.getKey())
+                    .append(" -> Objects: ")
+                    .append(e.getValue())
+                    .append("\n");
+            }
+            sb.append(
+                "\nDo you want to move these objects/pages to Shared Object Repository as well?\n"
+            );
+
+            int opt = JOptionPane.showConfirmDialog(
+                null,
+                sb.toString(),
+                "Move referenced Project Objects to Shared?",
+                JOptionPane.YES_NO_OPTION
+            );
+
+            // if (opt == JOptionPane.CANCEL_OPTION || opt == JOptionPane.CLOSED_OPTION) return false;
+            if (opt != JOptionPane.YES_OPTION) return true; // proceed without moving objects
+
+            // User agreed to move objects/pages to Shared OR.
+            // Only move the specific objects referenced by the selected test cases.
+            for (String pageName : projectRefs.keySet()) {
+                try {
+                    for (String obj : projectRefs.get(pageName)) {
+                        // try web
+                        var r = repo.resolveWebObjectWithScope(pageName, obj);
+                        if (r != null && r.isFromProject()) {
+                            repo.moveWebObject(r, pageName);
+                            continue;
+                        }
+                        var rm = repo.resolveMobileObjectWithScope(pageName, obj);
+                        if (rm != null && rm.isFromProject()) {
+                            repo.moveMobileObject(rm, pageName);
+                            continue;
+                        }
+                        var rs = repo.resolveStructuredDataObjectWithScope(pageName, obj);
+                        if (rs != null && rs.isFromProject()) {
+                            repo.moveStructuredDataObject(rs, pageName);
+                            continue;
+                        }
+                        var rsp = repo.resolveSapObjectWithScope(pageName, obj);
+                        if (rsp != null && rsp.isFromProject()) {
+                            repo.moveSapObject(rsp, pageName);
+                            continue;
+                        }
+                    }
+                } catch (Exception ex) {
+                    // ignore individual failures and continue
+                }
+            }
+
+            // Save repository and refresh UI.
+            // Remove any now-empty source pages (moved all objects) to keep repository consistent
+            try {
+                com.ing.datalib.or.web.WebOR projectWebOR = repo.getWebOR();
+                if (projectWebOR != null) {
+                    for (String pageName : projectRefs.keySet()) {
+                        com.ing.datalib.or.web.WebORPage sourcePage = projectWebOR.getPageByName(
+                            pageName
+                        );
+                        if (sourcePage != null && sourcePage.getObjectGroups().isEmpty()) {
+                            sourcePage.removeFromParent();
+                        }
+                    }
+                }
+            } catch (Throwable t) {
+                // Ignore - best effort cleanup
+            }
+
+            repo.save();
+            // Ensure UI reload runs on the Swing EDT to avoid potential threading/race issues
+            javax.swing.SwingUtilities.invokeLater(() -> getTestDesign().getObjectRepo().load());
+            return true;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return true; // allow proceed on error
+        }
     }
 
     /**
@@ -1142,7 +1419,9 @@ public class ProjectTree implements ActionListener {
         protected JMenuItem renameTestCase;
         protected JMenuItem deleteTestCase;
 
-        protected JMenuItem toggleReusable;
+        protected JMenuItem toggleTestCase;
+        protected JMenuItem toggleSharedReusable;
+        protected JMenuItem toggleProjectReusable;
 
         protected JMenuItem impactAnalysis;
 
@@ -1178,8 +1457,15 @@ public class ProjectTree implements ActionListener {
             menu.setFont(UIManager.getFont("TableMenu.font"));
             menu.add(create("Manual Testcase", null));
             add(menu);
-            add(toggleReusable = create("Make As Reusable/TestCase", null));
-            toggleReusable.setText("Make As Reusable");
+            add(toggleTestCase = create("Make As TestCase", null));
+            toggleTestCase.setText("Make As TestCase");
+            toggleTestCase.setVisible(false);
+            add(toggleProjectReusable = create("Make As Project Reusable", null));
+            toggleProjectReusable.setText("Make As Project Reusable");
+            toggleProjectReusable.setVisible(true);
+            add(toggleSharedReusable = create("Make As Shared Reusable", null));
+            toggleSharedReusable.setText("Make As Shared Reusable");
+            toggleSharedReusable.setVisible(true);
             addSeparator();
             setCCP();
             addSeparator();
@@ -1204,7 +1490,9 @@ public class ProjectTree implements ActionListener {
             addScenario.setEnabled(false);
             renameTestCase.setEnabled(false);
             deleteTestCase.setEnabled(false);
-            toggleReusable.setEnabled(false);
+            toggleTestCase.setEnabled(false);
+            toggleSharedReusable.setEnabled(false);
+            toggleProjectReusable.setEnabled(false);
 
             impactAnalysis.setEnabled(false);
             getCmdSyntax.setEnabled(false);
@@ -1231,7 +1519,9 @@ public class ProjectTree implements ActionListener {
 
             renameTestCase.setEnabled(true);
             deleteTestCase.setEnabled(true);
-            toggleReusable.setEnabled(true);
+            toggleTestCase.setEnabled(true);
+            toggleSharedReusable.setEnabled(true);
+            toggleProjectReusable.setEnabled(true);
 
             impactAnalysis.setEnabled(true);
 
@@ -1259,7 +1549,9 @@ public class ProjectTree implements ActionListener {
             addTestCase.setEnabled(false);
             renameTestCase.setEnabled(false);
             deleteTestCase.setEnabled(false);
-            toggleReusable.setEnabled(false);
+            toggleTestCase.setEnabled(false);
+            toggleSharedReusable.setEnabled(false);
+            toggleProjectReusable.setEnabled(false);
 
             impactAnalysis.setEnabled(false);
             getCmdSyntax.setEnabled(false);

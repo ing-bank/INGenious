@@ -212,6 +212,19 @@ public class EnvTestData {
         }
         environmentProperties.put("Environment", getEnvironmentsAsString());
         saveProperties(environmentProperties, getPropertiesLocation());
+
+        // Track shared reusables used in test data
+        try {
+            updateSharedReusableProjectsItemsFromTestData(sProject, this);
+        } catch (Exception ex) {
+            Logger
+                .getLogger(EnvTestData.class.getName())
+                .log(
+                    Level.WARNING,
+                    "Failed to update shared reusable projects items from test data",
+                    ex
+                );
+        }
     }
 
     private static void saveProperties(Properties prop, String filename) {
@@ -319,5 +332,38 @@ public class EnvTestData {
         }
         sProject.refactorTestDataColumn(tdName, oldColName, newColName);
         return true;
+    }
+
+    /**
+     * Scans test data for shared reusable scenario references and updates projects.items file.
+     * Collects scenario names from all test data records and checks if they are shared reusables.
+     */
+    private static void updateSharedReusableProjectsItemsFromTestData(
+        Project project,
+        EnvTestData envTestData
+    ) {
+        Set<String> sharedReusableNames = new java.util.HashSet<>();
+
+        // Scan all test data environments and records for scenario names
+        for (TestData testData : envTestData.getAllEnvironments()) {
+            for (TestDataModel model : testData.getTestDataList()) {
+                // Get all records from the model
+                for (com.ing.datalib.testdata.model.Record record : model.getRecords()) {
+                    String scenarioName = record.getScenario();
+                    // Check if this scenario exists and is a shared reusable
+                    if (scenarioName != null && !scenarioName.trim().isEmpty()) {
+                        Scenario scenario = project.getScenarioByName(scenarioName);
+                        if (scenario != null && scenario.isSharedReusableScenario()) {
+                            sharedReusableNames.add(scenarioName);
+                        }
+                    }
+                }
+            }
+        }
+
+        // If shared reusables found in test data, update projects.items
+        if (!sharedReusableNames.isEmpty()) {
+            TestCase.updateSharedReusableProjectsItems(project, sharedReusableNames);
+        }
     }
 }

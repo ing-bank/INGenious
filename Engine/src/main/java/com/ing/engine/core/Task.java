@@ -117,30 +117,35 @@ public class Task implements Runnable {
             }
 
             TestCase stc = scn.getTestCaseByName(runContext.TestCase);
-            if (stc == null) {
-                // Try reusable scenario as fallback
-                Scenario scnR = project().getReusableScenarioByName(runContext.Scenario);
-                if (scnR == null) {
-                    LOG.log(
-                        Level.WARNING,
-                        "Reusable scenario [{0}] not found",
-                        runContext.Scenario
-                    );
-                    return null;
-                }
-
-                TestCase stcR = scnR.getTestCaseByName(runContext.TestCase);
-                if (stcR == null) {
-                    LOG.log(
-                        Level.WARNING,
-                        "Testcase [{0}] not found in scenario [{1}]",
-                        new Object[] { runContext.TestCase, scn.getName() }
-                    );
-                    return null;
-                }
-                return stcR;
+            if (stc != null) {
+                return stc;
             }
-            return stc;
+
+            // If not found in the test plan scenario, try project-scoped reusable scenario
+            Scenario scnR = project().getReusableScenarioByName(runContext.Scenario);
+            if (scnR != null) {
+                TestCase stcR = scnR.getTestCaseByName(runContext.TestCase);
+                if (stcR != null) {
+                    return stcR;
+                }
+            }
+
+            // If not found, try shared-scoped reusable scenario
+            Scenario scnS = project().getSharedReusableScenarioByName(runContext.Scenario);
+            if (scnS != null) {
+                TestCase stcS = scnS.getTestCaseByName(runContext.TestCase);
+                if (stcS != null) {
+                    return stcS;
+                }
+            }
+
+            // Nothing matched — produce a clearer warning listing where we looked
+            LOG.log(
+                Level.WARNING,
+                "Testcase [{0}] not found in scenario [{1}] (searched test plan, project reusable and shared reusable)",
+                new Object[] { runContext.TestCase, runContext.Scenario }
+            );
+            return null;
         } catch (Exception ex) {
             LOG.log(Level.WARNING, "Unable to load TestCase", ex);
             return null;

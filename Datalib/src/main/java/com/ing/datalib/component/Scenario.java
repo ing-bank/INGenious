@@ -28,7 +28,8 @@ public class Scenario extends DataModel {
 
     public enum Source {
         TEST_PLAN,
-        REUSABLE_COMPONENTS
+        REUSABLE_COMPONENTS,
+        SHARED_REUSABLE_COMPONENTS
     }
 
     private final Project project;
@@ -49,10 +50,10 @@ public class Scenario extends DataModel {
     }
 
     /**
-     * Constructs a scenario with specified source (Test Plan or Reusable Components).
+     * Constructs a scenario with specified source (Test Plan, Reusable Components, or Shared Reusable Components).
      * @param project parent project
      * @param name scenario name
-     * @param source scenario source (TEST_PLAN or REUSABLE_COMPONENTS)
+     * @param source scenario source (TEST_PLAN, REUSABLE_COMPONENTS, or SHARED_REUSABLE_COMPONENTS)
      */
     public Scenario(Project project, String name, Source source) {
         this.project = project;
@@ -77,18 +78,36 @@ public class Scenario extends DataModel {
         if (base == null) {
             return "";
         }
-        String dir = source == Source.REUSABLE_COMPONENTS
-            ? Project.REUSABLE_COMPONENTS_DIR
-            : Project.TEST_PLAN_DIR;
+        String dir;
+        if (source == Source.REUSABLE_COMPONENTS) {
+            dir = Project.REUSABLE_COMPONENTS_DIR;
+        } else if (source == Source.SHARED_REUSABLE_COMPONENTS) {
+            dir = Project.SHARED_REUSABLE_COMPONENTS_DIR;
+        } else {
+            dir = Project.TEST_PLAN_DIR;
+        }
         return base + File.separator + dir + File.separator + name;
     }
 
     /**
-     * Checks if this is a reusable scenario.
+     * Checks if this is a reusable scenario (Project-scoped).
      * @return true if this scenario is in Reusable Components, false otherwise
      */
     public boolean isReusableScenario() {
         return source == Source.REUSABLE_COMPONENTS;
+    }
+
+    /**
+     * Checks if this is a shared reusable scenario.
+     * @return true if this scenario is in Shared Reusable Components, false otherwise
+     */
+    public boolean isSharedReusableScenario() {
+        return source == Source.SHARED_REUSABLE_COMPONENTS;
+    }
+
+    /**
+     * Returns the source of this scenario.
+     * @return TEST_PLAN, REUSABLE_COMPONENTS, or SHARED_rce.REUSABLE_COMPONENTS;
     }
 
     /**
@@ -220,12 +239,13 @@ public class Scenario extends DataModel {
 
     /**
      * Adds a new test case to this scenario.
+     * Validates that the test case name is unique across all scopes (Test Plan, Reusable, Shared Reusable).
      * @param testCaseName name of the test case to add
-     * @return the created test case, or null if it already exists
+     * @return the created test case, or null if it already exists in any scope
      */
     public TestCase addTestCase(String testCaseName) {
         if (getTestCaseByName(testCaseName) == null) {
-            if (project.hasTestCaseInAnyScenario(getName(), testCaseName)) {
+            if (project.testCaseExistsInAnyScope(testCaseName)) {
                 return null;
             }
             TestCase tc = new TestCase(this, testCaseName);
@@ -658,6 +678,23 @@ public class Scenario extends DataModel {
     public Boolean renameReusable(String newName) {
         Scenario existing = getProject().getReusableScenarioByName(newName);
         if (existing == null || existing == this) {
+            if (FileUtils.renameFile(getLocation(), newName)) {
+                getProject().refactorScenario(name, newName);
+                name = newName;
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    /**
+     * Renames this shared reusable scenario.
+     * @param newName new scenario name
+     * @return true if successful, false if a scenario with the new name already exists
+     */
+    public Boolean renameSharedReusable(String newName) {
+        if (getProject().getSharedReusableScenarioByName(newName) == null) {
             if (FileUtils.renameFile(getLocation(), newName)) {
                 getProject().refactorScenario(name, newName);
                 name = newName;

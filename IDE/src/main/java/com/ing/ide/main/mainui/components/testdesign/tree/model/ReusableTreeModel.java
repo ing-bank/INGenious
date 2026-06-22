@@ -59,6 +59,9 @@ public class ReusableTreeModel extends ProjectTreeModel {
 
     @Override
     public TestCaseNode addTestCase(TestCase testCase) {
+        if (testCase == null || testCase.getScenario() == null) {
+            return null;
+        }
         GroupNode groupNode;
         if (getRoot().getChildCount() > 0) {
             for (GroupNode group : GroupNode.toList(getRoot().children())) {
