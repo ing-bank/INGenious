@@ -368,13 +368,15 @@ public class Task implements Runnable {
     }
 
     public void setLambdaStatus(String status, String remark) {
-        playwrightDriver.page.evaluate(
-            "_ => {}",
-            "lambdatest_action: { \"action\": \"setTestStatus\", \"arguments\": { \"status\": \"" +
-            status +
-            "\", \"remark\": \"" +
-            remark +
-            "\"}}"
-        );
+        if (playwrightDriver != null && playwrightDriver.page != null) {
+            playwrightDriver.page.evaluate(
+                "_ => {}",
+                "lambdatest_action: { \"action\": \"setTestStatus\", \"arguments\": { \"status\": \"" +
+                status +
+                "\", \"remark\": \"" +
+                remark +
+                "\"}}"
+            );
+        }
     }
 }
