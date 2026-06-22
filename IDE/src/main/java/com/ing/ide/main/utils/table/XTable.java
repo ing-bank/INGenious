@@ -51,6 +51,9 @@ public class XTable extends JTable {
     // Insert row prompt feature
     private InsertRowPromptFeature insertRowPromptFeature;
 
+    // Insert column prompt feature
+    private InsertColumnPromptFeature insertColumnPromptFeature;
+
     public XTable() {
         init();
     }
@@ -170,6 +173,12 @@ public class XTable extends JTable {
         // Insert row prompt feature
         insertRowPromptFeature = new InsertRowPromptFeature(this);
         insertRowPromptFeature.install();
+
+        // Insert column prompt feature.
+        // Disabled by default. Individual tables must opt in explicitly.
+        insertColumnPromptFeature = new InsertColumnPromptFeature(this);
+        insertColumnPromptFeature.install();
+        insertColumnPromptFeature.setEnabled(false);
     }
 
     /**
@@ -380,6 +389,22 @@ public class XTable extends JTable {
         }
     }
 
+    public void setInsertColumnPromptEnabled(boolean enabled) {
+        if (insertColumnPromptFeature != null) {
+            insertColumnPromptFeature.setEnabled(enabled);
+        }
+    }
+
+    public boolean isInsertColumnPromptEnabled() {
+        return insertColumnPromptFeature != null && insertColumnPromptFeature.isEnabled();
+    }
+
+    public void setInsertColumnHandler(java.util.function.IntConsumer insertColumnHandler) {
+        if (insertColumnPromptFeature != null) {
+            insertColumnPromptFeature.setInsertColumnHandler(insertColumnHandler);
+        }
+    }
+
     public void setInsertRowPromptEnabled(boolean enabled) {
         if (insertRowPromptFeature != null) {
             insertRowPromptFeature.setEnabled(enabled);
@@ -400,6 +425,10 @@ public class XTable extends JTable {
 
     public void setColumnRename(Action onColumnRenameAction, Integer... dontEditTheseColumns) {
         editHeader = EditHeader.setEditableHeader(this, onColumnRenameAction, dontEditTheseColumns);
+
+        if (insertColumnPromptFeature != null) {
+            insertColumnPromptFeature.install();
+        }
     }
 
     public void disableColumnRename() {

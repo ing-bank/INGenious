@@ -1034,6 +1034,7 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
                 add(scrollPane);
             }
             addTableProps();
+            configureInsertColumnPrompt();
             std.setSaveListener(saveListener);
         }
 
@@ -1340,6 +1341,72 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
             };
 
             return customModel;
+        }
+
+        private void configureInsertColumnPrompt() {
+            /*
+             * Enable the header + column prompt only for normal TestData sheets.
+             *
+             * Global Data is intentionally left off because column 0 is protected
+             * and the current global-data add-column behavior appends columns.
+             */
+            if (!isGlobalData) {
+                table.setInsertColumnHandler(
+                    insertColumnIndex -> insertColumnFromHeaderPrompt(insertColumnIndex)
+                );
+                table.setInsertColumnPromptEnabled(true);
+            } else {
+                table.setInsertColumnPromptEnabled(false);
+                table.setInsertColumnHandler(null);
+            }
+        }
+
+        private void insertColumnFromHeaderPrompt(int viewInsertIndex) {
+            stopCellEditing();
+
+            if (isGlobalData) {
+                return;
+            }
+
+            /*
+             * For non-global TestData, FrozenColumnScrollPane removes model columns 0-3
+             * from the main scrollable table.
+             *
+             * Therefore:
+             * main table view column 0 == model column 4
+             *
+             * A prompt insert boundary at view index N maps to model index N + 4.
+             */
+            if (frozenScrollPane != null) {
+                JTable fixedTable = frozenScrollPane.getFixedTable();
+
+                if (fixedTable != null) {
+                    fixedTable.clearSelection();
+                }
+
+                int modelColumnCount = std.getColumnCount();
+                int modelInsertIndex = Math.max(4, Math.min(viewInsertIndex + 4, modelColumnCount));
+
+                if (modelInsertIndex >= modelColumnCount) {
+                    std.addColumn();
+                } else {
+                    std.addColumnAt(modelInsertIndex);
+                }
+
+                return;
+            }
+
+            /*
+             * Fallback for non-global data without FrozenColumnScrollPane.
+             */
+            int modelColumnCount = std.getColumnCount();
+            int modelInsertIndex = Math.max(0, Math.min(viewInsertIndex, modelColumnCount));
+
+            if (modelInsertIndex >= modelColumnCount) {
+                std.addColumn();
+            } else {
+                std.addColumnAt(modelInsertIndex);
+            }
         }
 
         private void addTableProps() {
