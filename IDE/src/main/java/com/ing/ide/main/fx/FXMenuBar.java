@@ -158,6 +158,13 @@ public class FXMenuBar extends JFXPanel {
         );
         bindAccelerator(
             KeyStroke.getKeyStroke(
+                KeyEvent.VK_I,
+                InputEvent.SHIFT_DOWN_MASK | InputEvent.ALT_DOWN_MASK
+            ),
+            "AI Assistant"
+        );
+        bindAccelerator(
+            KeyStroke.getKeyStroke(
                 KeyEvent.VK_A,
                 InputEvent.SHIFT_DOWN_MASK | InputEvent.ALT_DOWN_MASK
             ),
@@ -361,6 +368,13 @@ public class FXMenuBar extends JFXPanel {
                     "API Workbench",
                     "APITester",
                     KeyCode.W,
+                    KeyCombination.SHIFT_DOWN,
+                    KeyCombination.ALT_DOWN
+                ),
+                menuItem(
+                    "AI Assistant",
+                    "AICopilot",
+                    KeyCode.I,
                     KeyCombination.SHIFT_DOWN,
                     KeyCombination.ALT_DOWN
                 ),

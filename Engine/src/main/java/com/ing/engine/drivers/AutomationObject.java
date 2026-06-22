@@ -443,6 +443,9 @@ public class AutomationObject implements AutomationObjectApi {
                     case "ChainedLocator":
                         locator = createChainedLocator(value, this.page);
                         break;
+                    case "JSPath":
+                        locator = createJSPathLocator(value, this.page);
+                        break;
                     default:
                         locator = null;
                 }
@@ -516,6 +519,9 @@ public class AutomationObject implements AutomationObjectApi {
                         break;
                     case "ChainedLocator":
                         locator = createChainedLocator(value, framelocator);
+                        break;
+                    case "JSPath":
+                        locator = createJSPathLocator(value, framelocator);
                         break;
                     default:
                         locator = null;
@@ -1168,6 +1174,68 @@ public class AutomationObject implements AutomationObjectApi {
             locator = chainLocators(selectors.get(i), i, framelocator, locator);
         }
         return locator;
+    }
+
+    /**
+     * Pattern matching the inner selector of one or more {@code querySelector(...)} /
+     * {@code querySelectorAll(...)} calls, e.g. the {@code "#main > div.item"} inside a
+     * DevTools "Copy JS path" expression like {@code document.querySelector("#main > div.item")}.
+     */
+    private static final Pattern JS_PATH_QUERY_SELECTOR = Pattern.compile(
+        "querySelector(?:All)?\\(\\s*([\"'`])(.*?)\\1\\s*\\)",
+        Pattern.DOTALL
+    );
+
+    /**
+     * Extracts a CSS selector from a JSPath value.
+     * <p>
+     * Browser DevTools ("Copy &gt; Copy JS path") produce expressions such as
+     * {@code document.querySelector("#app > div > button")} or chained
+     * {@code document.querySelector("a").querySelector("b")}. The selector(s) inside the
+     * {@code querySelector} call(s) are extracted and joined with a descendant combinator so the
+     * result can be used directly by a Playwright CSS locator. If the value does not contain a
+     * {@code querySelector} call it is treated as a raw CSS selector.
+     *
+     * @param value the JSPath expression or raw CSS selector
+     * @return the extracted CSS selector
+     */
+    private static String extractJSPathSelector(String value) {
+        String trimmed = value == null ? "" : value.trim();
+        Matcher matcher = JS_PATH_QUERY_SELECTOR.matcher(trimmed);
+        StringBuilder selector = new StringBuilder();
+        while (matcher.find()) {
+            if (selector.length() > 0) {
+                selector.append(" ");
+            }
+            selector.append(matcher.group(2).trim());
+        }
+        return selector.length() > 0 ? selector.toString() : trimmed;
+    }
+
+    /**
+     * Resolves an element from a JSPath expression.
+     * <p>
+     * <b>Note:</b> JSPath identification is <i>discouraged</i>. It maps to Playwright's
+     * ElementHandle-style evaluation (see
+     * <a href="https://playwright.dev/java/docs/api/class-elementhandle">ElementHandle</a>),
+     * which lacks the auto-waiting and resilience of Locator-based strategies. Prefer Role, Text,
+     * Label, css or xpath where possible. The JSPath CSS selector is extracted and wrapped in a
+     * Playwright CSS locator to retain auto-waiting behaviour.
+     */
+    private Locator createJSPathLocator(String value, Page page) {
+        String selector = extractJSPathSelector(value);
+        if (selector.isEmpty()) {
+            return null;
+        }
+        return page.locator("css=" + selector);
+    }
+
+    private Locator createJSPathLocator(String value, FrameLocator framelocator) {
+        String selector = extractJSPathSelector(value);
+        if (selector.isEmpty()) {
+            return null;
+        }
+        return framelocator.locator("css=" + selector);
     }
 
     public void addFilter(String locatorKey, String filter) {

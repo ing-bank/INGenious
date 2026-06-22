@@ -14,6 +14,7 @@ import com.ing.datalib.or.structureddata.StructuredDataOR;
 import com.ing.datalib.or.structureddata.StructuredDataORObject;
 import com.ing.datalib.or.structureddata.StructuredDataORPage;
 import com.ing.datalib.or.web.WebOR;
+import com.ing.datalib.settings.DriverProperties;
 import com.ing.ide.main.mainui.AppMainFrame;
 import com.ing.ide.main.mainui.SlideShow;
 import com.ing.ide.main.mainui.components.apitester.util.APIHttpClient;
@@ -23,6 +24,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -574,6 +576,27 @@ public class APITester implements SlideShow.SlideChangeListener {
         Scenario scenario,
         String testCaseName
     ) {
+        return convertRequestToTestCase(request, scenario, testCaseName, null);
+    }
+
+    /**
+     * Converts an API request to an INGenious test case with test steps, optionally
+     * binding the {@code setEndPoint} step to a specific API configuration alias so that
+     * proxy (and other) details stored in that config are applied at runtime.
+     *
+     * @param request The API request to convert
+     * @param scenario The target scenario to add the test case to
+     * @param testCaseName The name for the new test case
+     * @param apiConfigAlias The API config alias to reference via the {@code #alias} condition,
+     *                       or {@code null}/"default" to leave the condition empty
+     * @return The created TestCase, or null if conversion failed
+     */
+    public TestCase convertRequestToTestCase(
+        APIRequest request,
+        Scenario scenario,
+        String testCaseName,
+        String apiConfigAlias
+    ) {
         if (request == null || scenario == null || testCaseName == null) {
             return null;
         }
@@ -588,7 +611,7 @@ public class APITester implements SlideShow.SlideChangeListener {
         }
 
         try {
-            buildStepsForRequest(testCase, request);
+            buildStepsForRequest(testCase, request, apiConfigAlias);
 
             // Save the test case
             testCase.save();
@@ -614,6 +637,62 @@ public class APITester implements SlideShow.SlideChangeListener {
             // Remove failed test case
             scenario.removeTestCase(testCase);
             return null;
+        }
+    }
+
+    /**
+     * Persists the given proxy details into an API configuration so the engine can apply them
+     * at runtime. When {@code alias} is "default" (or blank/null), the project's default API
+     * config is updated. Otherwise a new API config with the given alias is created (if it does
+     * not already exist) and updated with the proxy details.
+     *
+     * @param proxyConfig the proxy details to store (must be enabled with a valid host/port)
+     * @param alias       the target API config alias, or "default"/null for the default config
+     * @return {@code true} if the proxy details were saved successfully
+     */
+    public boolean saveProxyToApiConfig(ProxyConfig proxyConfig, String alias) {
+        if (proxyConfig == null || !proxyConfig.hasValidConfig()) {
+            return false;
+        }
+        if (mainFrame.getProject() == null) {
+            LOG.warning("Cannot save proxy details: no project is open");
+            return false;
+        }
+        try {
+            DriverProperties driverProps = mainFrame
+                .getProject()
+                .getProjectSettings()
+                .getDriverSettings();
+
+            String targetAlias = (alias == null || alias.trim().isEmpty())
+                ? "default"
+                : alias.trim();
+
+            // Create the config if it doesn't exist yet (non-default aliases)
+            if (!driverProps.doesAPIconfigExist(targetAlias)) {
+                driverProps.addAPIName(targetAlias);
+                driverProps.addAPIProperty(targetAlias);
+            }
+
+            Properties prop = driverProps.getAPIPropertiesFor(targetAlias);
+            if (prop == null) {
+                LOG.warning(
+                    "Cannot save proxy details: API config '" + targetAlias + "' not found"
+                );
+                return false;
+            }
+
+            prop.setProperty("useProxy", "true");
+            prop.setProperty("proxyHost", proxyConfig.getHost().trim());
+            prop.setProperty("proxyPort", proxyConfig.getPort().trim());
+
+            driverProps.save();
+
+            LOG.info("Saved proxy details to API config '" + targetAlias + "'");
+            return true;
+        } catch (Exception e) {
+            LOG.log(Level.SEVERE, "Failed to save proxy details to API config", e);
+            return false;
         }
     }
 
@@ -685,12 +764,32 @@ public class APITester implements SlideShow.SlideChangeListener {
      * authentication, the HTTP method call, and assertions.
      */
     private void buildStepsForRequest(TestCase testCase, APIRequest request) {
+        buildStepsForRequest(testCase, request, null);
+    }
+
+    /**
+     * Shared step-building logic. When {@code apiConfigAlias} is a non-blank value other than
+     * "default", the {@code setEndPoint} step's Condition column is set to {@code #alias} so the
+     * engine loads that API configuration (including any proxy details) before sending the request.
+     */
+    private void buildStepsForRequest(
+        TestCase testCase,
+        APIRequest request,
+        String apiConfigAlias
+    ) {
         // Step 1: Set the endpoint URL
         TestStep setEndpointStep = testCase.addNewStep();
         setEndpointStep.setObject("Webservice");
         setEndpointStep.setDescription("Set API Endpoint");
         setEndpointStep.setAction("setEndPoint");
         setEndpointStep.setInput("@" + resolveUrl(request));
+        if (
+            apiConfigAlias != null &&
+            !apiConfigAlias.trim().isEmpty() &&
+            !"default".equalsIgnoreCase(apiConfigAlias.trim())
+        ) {
+            setEndpointStep.setCondition("#" + apiConfigAlias.trim());
+        }
 
         // Step 2: Add headers if present
         if (request.getHeaders() != null && !request.getHeaders().isEmpty()) {

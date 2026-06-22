@@ -5,6 +5,7 @@ import java.util.Map;
 import javafx.scene.paint.Color;
 import javax.swing.UIManager;
 import org.kordamp.ikonli.Ikon;
+import org.kordamp.ikonli.fontawesome5.FontAwesomeBrands;
 import org.kordamp.ikonli.fontawesome5.FontAwesomeRegular;
 import org.kordamp.ikonli.fontawesome5.FontAwesomeSolid;
 import org.kordamp.ikonli.materialdesign2.*;
@@ -136,6 +137,7 @@ public final class INGIcons {
         register("BrowserConfiguration", MaterialDesignW.WEB, CLR_TOOL);
         register("ArchetypeConfigurations", MaterialDesignW.WEB, CLR_TOOL);
         register("APITester", MaterialDesignA.API, CLR_DATA);
+        register("AICopilot", FontAwesomeBrands.GITHUB, CLR_DATA);
 
         // ── Common Actions ──
         register("add", MaterialDesignP.PLUS, CLR_CREATE);

@@ -40,6 +40,7 @@ import java.util.Map;
         "altText",
         "title",
         "chainedLocator",
+        "jsPath",
         "frame",
         "description",
         "exact"
@@ -57,6 +58,7 @@ public class YamlElementDefinition {
     private String title;
     private String testId;
     private String chainedLocator;
+    private String jsPath;
 
     // Additional metadata
     private String frame;
@@ -151,6 +153,14 @@ public class YamlElementDefinition {
 
     public void setChainedLocator(String chainedLocator) {
         this.chainedLocator = chainedLocator;
+    }
+
+    public String getJsPath() {
+        return jsPath;
+    }
+
+    public void setJsPath(String jsPath) {
+        this.jsPath = jsPath;
     }
 
     public String getFrame() {
@@ -261,6 +271,9 @@ public class YamlElementDefinition {
                     case "chainedlocator":
                         elem.setChainedLocator(attrValue);
                         break;
+                    case "jspath":
+                        elem.setJsPath(attr.getValue());
+                        break;
                     default:
                         // Store unknown attributes in additionalProperties
                         elem.setAdditionalProperty(attr.getName(), attrValue);
@@ -299,6 +312,7 @@ public class YamlElementDefinition {
         setAttributeIfPresent(obj, "Title", title, isExact("title"));
         setAttributeIfPresent(obj, "TestId", testId, isExact("testid"));
         setAttributeIfPresent(obj, "ChainedLocator", chainedLocator, isExact("chainedlocator"));
+        setAttributeIfPresent(obj, "JSPath", jsPath, isExact("jspath"));
 
         return obj;
     }
@@ -333,7 +347,8 @@ public class YamlElementDefinition {
             isNotEmpty(altText) ||
             isNotEmpty(title) ||
             isNotEmpty(testId) ||
-            isNotEmpty(chainedLocator)
+            isNotEmpty(chainedLocator) ||
+            isNotEmpty(jsPath)
         );
     }
 

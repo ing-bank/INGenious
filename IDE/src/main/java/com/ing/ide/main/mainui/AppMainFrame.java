@@ -21,6 +21,7 @@ import com.ing.ide.main.fx.FXDashBoard;
 import com.ing.ide.main.fx.FXMenuBar;
 import com.ing.ide.main.fx.FXStatusBar;
 import com.ing.ide.main.fx.FXToolBar;
+import com.ing.ide.main.mainui.components.aichat.AICopilot;
 import com.ing.ide.main.mainui.components.apitester.APITester;
 import com.ing.ide.main.mainui.components.testdesign.TestDesign;
 import com.ing.ide.main.mainui.components.testexecution.TestExecution;
@@ -82,6 +83,8 @@ public class AppMainFrame extends JFrame {
 
     private final APITester apiTester;
 
+    private final AICopilot aiCopilot;
+
     private final FXDashBoard dashBoard;
 
     private final DashBoardManager dashBoardManager;
@@ -133,6 +136,7 @@ public class AppMainFrame extends JFrame {
         progressed(50);
         apiTester = new APITester(this);
         progressed(52);
+        aiCopilot = new AICopilot(this);
         dashBoard = new FXDashBoard(testExecution);
         progressed(60);
         dashBoardManager = new DashBoardManager(this);
@@ -163,6 +167,8 @@ public class AppMainFrame extends JFrame {
         slideShow.addSlide("TestExecution", testExecution.getTestExecutionUI());
         slideShow.addSlide("DashBoard", dashBoard);
         slideShow.addSlide("APITester", apiTester.getAPITesterUI());
+        slideShow.addSlide("AICopilot", aiCopilot.getAICopilotUI());
+        slideShow.addSlideChangeListener(aiCopilot);
         progressed(85);
         add(slideShow, BorderLayout.CENTER);
         add(toolBar, BorderLayout.NORTH);
@@ -296,6 +302,12 @@ public class AppMainFrame extends JFrame {
         if (fxStatusBar != null) fxStatusBar.setCurrentView("API Workbench");
     }
 
+    public void showAICopilot() {
+        getGlassPane().setVisible(false);
+        slideShow.showSlide("AICopilot");
+        if (fxStatusBar != null) fxStatusBar.setCurrentView("AI Assistant");
+    }
+
     private String getAppTitle() {
         return "INGenious Playwright Studio " + About.getBuildVersion() + " (Open Source)";
     }
@@ -338,6 +350,10 @@ public class AppMainFrame extends JFrame {
 
     public APITester getAPITester() {
         return apiTester;
+    }
+
+    public AICopilot getAICopilot() {
+        return aiCopilot;
     }
 
     public DashBoardManager getDashBoardManager() {

@@ -31,7 +31,11 @@ public class AppSettings {
         ELEMENT_WAIT_TIME("elementWaitTime", "10"),
         LOAD_RECENT("loadRecentProject", "true"),
         STANDALONE_REPORT("standaloneReport", "false"),
-        HELP_DOC("helpdoc", "https://ing-bank.github.io/ingenious-doc/");
+        HELP_DOC("helpdoc", "https://ing-bank.github.io/ingenious-doc/"),
+        AI_GITHUB_TOKEN("githubModelsToken", ""),
+        AI_GITHUB_LOGIN("githubModelsLogin", ""),
+        AI_SELECTED_MODEL("githubModelsModel", "openai/gpt-4o-mini"),
+        AI_GITHUB_CLIENT_ID("githubOAuthClientId", "");
 
         private final String key;
         private final String val;
