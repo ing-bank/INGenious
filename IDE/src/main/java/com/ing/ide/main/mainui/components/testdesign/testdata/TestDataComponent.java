@@ -667,14 +667,10 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
 
     private void renameTestDataTabs(String oldName, String newName) {
         JTabbedPane selectedTab = (JTabbedPane) envTab.getSelectedComponent();
-        for (Object object : envTab.getComponents()) {
-            if (!object.equals(selectedTab) && object instanceof JTabbedPane) {
-                JTabbedPane env = (JTabbedPane) object;
-                for (int i = 0; i < env.getTabCount(); i++) {
-                    if (env.getTitleAt(i).equals(oldName)) {
-                        env.setTitleAt(i, newName);
-                    }
-                }
+        // Only rename tabs in the selected environment, not in other environments
+        for (int i = 0; i < selectedTab.getTabCount(); i++) {
+            if (selectedTab.getTitleAt(i).equals(oldName)) {
+                selectedTab.setTitleAt(i, newName);
             }
         }
     }
@@ -946,7 +942,8 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
 
         private Boolean rename(String newName) {
             String oldName = std.getName();
-            if (testDesign.getProject().getTestData().renameTestData(oldName, newName)) {
+            String envName = envTab.getTitleAt(envTab.getSelectedIndex());
+            if (testDesign.getProject().getTestData().renameTestData(oldName, newName, envName)) {
                 renameTestDataTabs(oldName, newName);
                 return true;
             } else {

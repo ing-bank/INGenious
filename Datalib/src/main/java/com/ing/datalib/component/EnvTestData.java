@@ -279,14 +279,14 @@ public class EnvTestData {
         }
     }
 
-    public Boolean renameTestData(String oldName, String newName) {
-        for (TestData testData : getAllEnvironments()) {
-            if (testData.getByName(newName) != null) {
-                return false;
-            }
+    public Boolean renameTestData(String oldName, String newName, String envName) {
+        TestData ntestData = sProject.getTestData().getTestDataFor(envName);
+        if (ntestData.getByName(newName) != null) {
+            return false;
         }
+
         for (TestData testData : getAllEnvironments()) {
-            if (testData.getByName(oldName) != null) {
+            if (testData.getByName(oldName) != null && testData.getEnviroment().equals(envName)) {
                 testData.getByName(oldName).rename(newName);
             }
         }

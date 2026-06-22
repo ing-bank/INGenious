@@ -80,7 +80,7 @@ public final class ObjectTypeUtil {
         objectTypesforIDEDropdown.add("Synthetic Data");
         objectTypesforIDEDropdown.add(ObjectType.FILE);
         objectTypesforIDEDropdown.add(ObjectType.GENERAL);
-        objectTypesforIDEDropdown.add("EXECUTE");
+        objectTypesforIDEDropdown.add("Execute");
         objectTypesforIDEDropdown.add(ObjectType.STRINGOPERATIONS);
         objectTypesforIDEDropdown.addAll(pluginObjectTypes);
         return Collections.unmodifiableList(objectTypesforIDEDropdown);
