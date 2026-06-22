@@ -485,15 +485,26 @@ public class INGeniousSettings extends javax.swing.JFrame {
     }
 
     private void initTabs() {
+        configureSettingsTableInsert(tsTMTable);
+
         uDPanel = new XTablePanel(false);
+        configureSettingsTableInsert(uDPanel.table);
+
         runSettingsTab.setFont(UIManager.getFont("Table.font"));
         runSettingsTab.addTab("UserDefined", uDPanel);
+
         mailSettingsPanel = new XTablePanel(true);
+        configureSettingsTableInsert(mailSettingsPanel.table);
         //runSettingsTab.addTab("Mail Settings", mailSettingsPanel);
+
         databaseSettingsPanel = new XTablePanel(true);
+        configureSettingsTableInsert(databaseSettingsPanel.table);
         //runSettingsTab.addTab("Database Settings", databaseSettingsPanel);
+
         rpSettingsPanel = new XTablePanel(true);
+        configureSettingsTableInsert(rpSettingsPanel.table);
         //runSettingsTab.addTab("Report Portal Settings", rpSettingsPanel);
+
         // Extent Report Settings tab removed; the report theme is now hard-coded to "dark"
         // in com.ing.engine.reporting.impl.extent.ExtentSummaryHandler.
 
@@ -503,6 +514,7 @@ public class INGeniousSettings extends javax.swing.JFrame {
 
         //Added for LambdaTest
         lambdatestCapsPanel = new XTablePanel(true);
+        configureSettingsTableInsert(lambdatestCapsPanel.table);
         runSettingsTab.addTab("LambdaTest Grid Capabilities", lambdatestCapsPanel);
 
         mailConnect =
@@ -583,6 +595,125 @@ public class INGeniousSettings extends javax.swing.JFrame {
 
         mailSettingsPanel.addToolBarComp(mailConnect);
         databaseSettingsPanel.addToolBarComp(dbConnect);
+    }
+
+    private void configureSettingsTableInsert(javax.swing.JTable table) {
+        if (table == null) {
+            return;
+        }
+
+        if (table instanceof XTable) {
+            ((XTable) table).setInsertRowHandler(
+                    insertIndex -> insertBlankSettingsRow(table, insertIndex)
+                );
+        }
+
+        table
+            .getActionMap()
+            .put(
+                "Add",
+                new AbstractAction() {
+
+                    @Override
+                    public void actionPerformed(ActionEvent e) {
+                        insertBlankSettingsRow(table, table.getRowCount());
+                    }
+                }
+            );
+
+        table
+            .getActionMap()
+            .put(
+                "Insert",
+                new AbstractAction() {
+
+                    @Override
+                    public void actionPerformed(ActionEvent e) {
+                        int selectedRow = table.getSelectedRow();
+
+                        if (selectedRow < 0) {
+                            selectedRow = table.getRowCount();
+                        }
+
+                        insertBlankSettingsRow(table, selectedRow);
+                    }
+                }
+            );
+    }
+
+    private void insertBlankSettingsRow(javax.swing.JTable table, int viewInsertIndex) {
+        if (!(table.getModel() instanceof DefaultTableModel)) {
+            return;
+        }
+
+        if (table.isEditing() && table.getCellEditor() != null) {
+            boolean stopped = table.getCellEditor().stopCellEditing();
+
+            if (!stopped) {
+                return;
+            }
+        }
+
+        DefaultTableModel model = (DefaultTableModel) table.getModel();
+
+        int modelInsertIndex = getModelInsertIndex(table, viewInsertIndex, model);
+
+        Object[] emptyRow = new Object[model.getColumnCount()];
+
+        for (int i = 0; i < emptyRow.length; i++) {
+            emptyRow[i] = "";
+        }
+
+        model.insertRow(modelInsertIndex, emptyRow);
+
+        selectInsertedSettingsRow(table, modelInsertIndex);
+    }
+
+    private int getModelInsertIndex(
+        javax.swing.JTable table,
+        int viewInsertIndex,
+        DefaultTableModel model
+    ) {
+        int viewRowCount = table.getRowCount();
+
+        if (viewRowCount == 0 || model.getRowCount() == 0) {
+            return 0;
+        }
+
+        if (viewInsertIndex <= 0) {
+            return 0;
+        }
+
+        if (viewInsertIndex >= viewRowCount) {
+            return model.getRowCount();
+        }
+
+        int safeViewIndex = Math.max(0, Math.min(viewInsertIndex, viewRowCount - 1));
+
+        return table.convertRowIndexToModel(safeViewIndex);
+    }
+
+    private void selectInsertedSettingsRow(javax.swing.JTable table, int modelRowIndex) {
+        if (table.getRowCount() == 0 || table.getColumnCount() == 0) {
+            return;
+        }
+
+        int viewRowIndex;
+
+        try {
+            viewRowIndex = table.convertRowIndexToView(modelRowIndex);
+        } catch (Exception ex) {
+            viewRowIndex = Math.max(0, Math.min(modelRowIndex, table.getRowCount() - 1));
+        }
+
+        if (viewRowIndex < 0) {
+            viewRowIndex = Math.max(0, Math.min(table.getRowCount() - 1, table.getRowCount() - 1));
+        }
+
+        table.clearSelection();
+        table.addRowSelectionInterval(viewRowIndex, viewRowIndex);
+        table.addColumnSelectionInterval(0, table.getColumnCount() - 1);
+        table.scrollRectToVisible(table.getCellRect(viewRowIndex, 0, true));
     }
 
     public void afterProjectChange() {
