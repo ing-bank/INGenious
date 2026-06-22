@@ -130,35 +130,69 @@ public class InsertRowPromptFeature {
     }
 
     private int getInsertRowForPoint(Point point) {
-        if (table.getRowCount() == 0) {
+        int rowCount = table.getRowCount();
+
+        if (rowCount == 0) {
+            int emptyInsertLineY = getEmptyTableInsertLineY();
+
+            if (Math.abs(point.y - emptyInsertLineY) <= INSERT_HOVER_ZONE) {
+                return 0;
+            }
+
             return -1;
         }
 
         int row = table.rowAtPoint(point);
 
-        if (row == -1) {
+        if (row != -1) {
+            Rectangle rowBounds = table.getCellRect(row, 0, true);
+
+            int rowTop = rowBounds.y;
+            int rowBottom = rowBounds.y + rowBounds.height;
+
+            if (Math.abs(point.y - rowTop) <= INSERT_HOVER_ZONE) {
+                return row;
+            }
+
+            if (Math.abs(point.y - rowBottom) <= INSERT_HOVER_ZONE) {
+                return row + 1;
+            }
+
             return -1;
         }
 
-        Rectangle rowBounds = table.getCellRect(row, 0, true);
+        return getInsertRowForPointOutsideRows(point);
+    }
 
-        int rowTop = rowBounds.y;
-        int rowBottom = rowBounds.y + rowBounds.height;
+    private int getInsertRowForPointOutsideRows(Point point) {
+        int rowCount = table.getRowCount();
 
-        if (Math.abs(point.y - rowTop) <= INSERT_HOVER_ZONE) {
-            return row;
+        if (rowCount == 0) {
+            return -1;
         }
 
-        if (Math.abs(point.y - rowBottom) <= INSERT_HOVER_ZONE) {
-            return row + 1;
+        Rectangle lastRow = table.getCellRect(rowCount - 1, 0, true);
+        int lastRowBottom = lastRow.y + lastRow.height;
+
+        if (Math.abs(point.y - lastRowBottom) <= INSERT_HOVER_ZONE) {
+            return rowCount;
+        }
+
+        Rectangle firstRow = table.getCellRect(0, 0, true);
+        int firstRowTop = firstRow.y;
+
+        if (Math.abs(point.y - firstRowTop) <= INSERT_HOVER_ZONE) {
+            return 0;
         }
 
         return -1;
     }
 
     private int getInsertLineY(int insertRow) {
-        if (table.getRowCount() == 0) {
-            return 0;
+        int rowCount = table.getRowCount();
+
+        if (rowCount == 0) {
+            return getEmptyTableInsertLineY();
         }
 
         if (insertRow <= 0) {
@@ -166,13 +200,22 @@ public class InsertRowPromptFeature {
             return firstRow.y;
         }
 
-        if (insertRow >= table.getRowCount()) {
-            Rectangle lastRow = table.getCellRect(table.getRowCount() - 1, 0, true);
+        if (insertRow >= rowCount) {
+            Rectangle lastRow = table.getCellRect(rowCount - 1, 0, true);
             return lastRow.y + lastRow.height;
         }
 
         Rectangle targetRow = table.getCellRect(insertRow, 0, true);
         return targetRow.y;
+    }
+
+    private int getEmptyTableInsertLineY() {
+        int halfPlus = INSERT_PLUS_SIZE / 2;
+        int preferredY = Math.max(halfPlus, table.getRowHeight() / 2);
+
+        int maxVisibleY = Math.max(halfPlus, table.getHeight() - halfPlus);
+
+        return Math.min(preferredY, maxVisibleY);
     }
 
     private boolean isPointOnPlus(Point point) {
