@@ -98,10 +98,10 @@ public class InputRenderer extends AbstractRenderer {
         } else {
             if (val.matches("(@.+)|(=.+)|(%.+%)|(#.+)")) return true; else if ( // return Boolean.valueOf(val.matches("(@.+)|(=.+)|(%.+%)"));
                 val.startsWith("<") || val.startsWith("{") || val.startsWith("[")
+            ) return true; else if (
+                val.contains("=") && !val.startsWith("=")
             ) return true; else return false;
         }
-    }
-
     @Override
     protected Object getColumnValue(TestStep step) {
         return step.getInput();
