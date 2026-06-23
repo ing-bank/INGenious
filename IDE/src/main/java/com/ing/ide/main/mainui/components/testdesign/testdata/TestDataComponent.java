@@ -29,7 +29,10 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.logging.Level;
@@ -62,6 +65,9 @@ import javax.swing.table.TableModel;
  */
 public class TestDataComponent extends JPanel implements ChangeListener, ActionListener {
     private static final javax.swing.Icon ADD_NEW_TAB_ICON = INGIcons.swingColored("icon.add", 16);
+    private static final String TAB_ORDER_SEPARATOR = "\u001F";
+    private static final String ENV_TAB_ORDER_KEY = "ui.testdata.env.order";
+    private static final String TESTDATA_TAB_ORDER_PREFIX = "ui.testdata.env.tabs.";
 
     private final TestDesign testDesign;
 
@@ -94,6 +100,11 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
         envTab.setTabLayoutPolicy(JTabbedPane.SCROLL_TAB_LAYOUT);
         envTab.setComponentPopupMenu(testDataEnvPopup);
         envTab.setBackground(UIManager.getColor("Panel.background"));
+        TabReorderSupport.install(
+            envTab,
+            index -> index < envTab.getTabCount() - 1,
+            this::persistEnvironmentTabOrder
+        );
 
         TabTitleEditListener l = new TabTitleEditListener(envTab, onTestDataEnvRenameAction());
         envTab.addChangeListener(l);
@@ -168,11 +179,44 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
 
     private void loadTestData() {
         if (testDesign.getProject() != null) {
-            for (TestData sTestData : testDesign.getProject().getTestData().getAllEnvironments()) {
+            for (TestData sTestData : getEnvironmentsInSavedOrder()) {
                 envTab.addTab(sTestData.getEnviroment(), createNewTestDataTab(sTestData));
             }
             addAddNewTab();
         }
+    }
+
+    /**
+     * Returns environments ordered by the saved UI tab order.
+     *
+     * <p>Environments not present in the saved order are appended in their current natural
+     * iteration order, preserving behavior when environments are added later.</p>
+     *
+     * @return ordered environment test data list
+     */
+    private List<TestData> getEnvironmentsInSavedOrder() {
+        List<TestData> allEnvironments = new ArrayList<>(
+            testDesign.getProject().getTestData().getAllEnvironments()
+        );
+        List<String> savedOrder = getSavedOrder(ENV_TAB_ORDER_KEY);
+        if (savedOrder.isEmpty()) {
+            return allEnvironments;
+        }
+
+        Map<String, TestData> byName = new LinkedHashMap<>();
+        for (TestData env : allEnvironments) {
+            byName.put(env.getEnviroment(), env);
+        }
+
+        List<TestData> ordered = new ArrayList<>();
+        for (String envName : savedOrder) {
+            TestData td = byName.remove(envName);
+            if (td != null) {
+                ordered.add(td);
+            }
+        }
+        ordered.addAll(byName.values());
+        return ordered;
     }
 
     private JTabbedPane createNewTestDataTab(TestData sTestData) {
@@ -180,8 +224,10 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
         testdataTab.setTabLayoutPolicy(JTabbedPane.SCROLL_TAB_LAYOUT);
         testdataTab.setTabPlacement(JTabbedPane.BOTTOM);
         testdataTab.setBackground(UIManager.getColor("Panel.background"));
+
+        List<AbstractDataModel> orderedModels = getTestDataModelsInSavedOrder(sTestData);
         addToTab(testdataTab, sTestData.getGlobalData(), true);
-        for (AbstractDataModel std : sTestData.getTestDataList()) {
+        for (AbstractDataModel std : orderedModels) {
             addToTab(testdataTab, std, false);
         }
 
@@ -190,6 +236,11 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
         label.setOpaque(true);
         testdataTab.addTab("", ADD_NEW_TAB_ICON, label);
         label.setHorizontalAlignment(JLabel.CENTER);
+        TabReorderSupport.install(
+            testdataTab,
+            index -> index > 0 && index < testdataTab.getTabCount() - 1,
+            () -> persistTestDataTabOrder(getEnvironmentNameFor(testdataTab), testdataTab)
+        );
         TabTitleEditListener l = new TabTitleEditListener(testdataTab, onTestDataRenameAction(), 0);
         l.setOnMiddleClickAction(onCloseAction());
         testdataTab.addChangeListener(l);
@@ -198,6 +249,115 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
         testdataTab.addMouseListener(onAddNewTDTab());
         testdataTab.setComponentPopupMenu(testDataTabPopup);
         return testdataTab;
+    }
+
+    /**
+     * Returns test data models for an environment ordered by the saved tab order.
+     *
+     * <p>Saved names that no longer exist are ignored. Models not present in saved order are
+     * appended at the end in current iteration order.</p>
+     *
+     * @param sTestData environment that owns test data models
+     * @return ordered test data models
+     */
+    private List<AbstractDataModel> getTestDataModelsInSavedOrder(TestData sTestData) {
+        List<AbstractDataModel> models = new ArrayList<>(sTestData.getTestDataList());
+        List<String> savedOrder = getSavedOrder(getTestDataTabOrderKey(sTestData.getEnviroment()));
+        if (savedOrder.isEmpty()) {
+            return models;
+        }
+
+        Map<String, AbstractDataModel> byName = new LinkedHashMap<>();
+        for (AbstractDataModel model : models) {
+            byName.put(model.getName(), model);
+        }
+
+        List<AbstractDataModel> ordered = new ArrayList<>();
+        for (String name : savedOrder) {
+            AbstractDataModel model = byName.remove(name);
+            if (model != null) {
+                ordered.add(model);
+            }
+        }
+        ordered.addAll(byName.values());
+        return ordered;
+    }
+
+    private String getEnvironmentNameFor(JTabbedPane testdataTab) {
+        for (int i = 0; i < envTab.getTabCount(); i++) {
+            if (envTab.getComponentAt(i) == testdataTab) {
+                return envTab.getTitleAt(i);
+            }
+        }
+        return null;
+    }
+
+    private void persistEnvironmentTabOrder() {
+        List<String> order = new ArrayList<>();
+        for (int i = 0; i < envTab.getTabCount() - 1; i++) {
+            order.add(envTab.getTitleAt(i));
+        }
+        saveOrder(ENV_TAB_ORDER_KEY, order);
+    }
+
+    private void persistTestDataTabOrder(String envName, JTabbedPane testdataTab) {
+        if (envName == null || testdataTab == null) {
+            return;
+        }
+        List<String> order = new ArrayList<>();
+        for (int i = 0; i < testdataTab.getTabCount() - 1; i++) {
+            // Skip the global data tab from persisted order.
+            if (i == 0) {
+                continue;
+            }
+            order.add(testdataTab.getTitleAt(i));
+        }
+        saveOrder(getTestDataTabOrderKey(envName), order);
+    }
+
+    private String getTestDataTabOrderKey(String envName) {
+        return TESTDATA_TAB_ORDER_PREFIX + envName;
+    }
+
+    /**
+     * Persists tab order to user-defined project settings.
+     *
+     * <p>Order values are stored as a separator-joined string under the provided key and saved
+     * immediately.</p>
+     *
+     * @param key settings key
+     * @param order ordered tab names to persist
+     */
+    private void saveOrder(String key, List<String> order) {
+        if (
+            testDesign.getProject() == null || testDesign.getProject().getProjectSettings() == null
+        ) {
+            return;
+        }
+        String value = String.join(TAB_ORDER_SEPARATOR, order);
+        testDesign
+            .getProject()
+            .getProjectSettings()
+            .getUserDefinedSettings()
+            .setProperty(key, value);
+        testDesign.getProject().getProjectSettings().getUserDefinedSettings().save();
+    }
+
+    private List<String> getSavedOrder(String key) {
+        if (
+            testDesign.getProject() == null || testDesign.getProject().getProjectSettings() == null
+        ) {
+            return new ArrayList<>();
+        }
+        String value = testDesign
+            .getProject()
+            .getProjectSettings()
+            .getUserDefinedSettings()
+            .getProperty(key);
+        if (value == null || value.trim().isEmpty()) {
+            return new ArrayList<>();
+        }
+        return new ArrayList<>(Arrays.asList(value.split(TAB_ORDER_SEPARATOR)));
     }
 
     private MouseAdapter onAddNewTDTab() {
@@ -241,6 +401,7 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
         TestDataTablePanel tdPanel = new TestDataTablePanel(std);
         testdataTab.insertTab(std.getName(), null, tdPanel, null, testdataTab.getTabCount() - 1);
         testdataTab.setSelectedIndex(testdataTab.getTabCount() - 2);
+        persistTestDataTabOrder(getEnvironmentNameFor(testdataTab), testdataTab);
         return tdPanel;
     }
 
@@ -315,6 +476,7 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
             int index = tab.getSelectedIndex();
             tab.setSelectedIndex(index - 1);
             tab.removeTabAt(index);
+            persistTestDataTabOrder(getEnvironmentNameFor(tab), tab);
         }
     }
 
@@ -339,6 +501,7 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
                 if (flag) {
                     tab.setSelectedIndex(index - 1);
                     tab.removeTabAt(index);
+                    persistTestDataTabOrder(getEnvironmentNameFor(tab), tab);
                 } else {
                     Notification.show("Couldn't Delete Testdata - '" + name + "'");
                 }
@@ -678,7 +841,34 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
     private Boolean renameEnvironment(String newName) {
         String envName = envTab.getTitleAt(envTab.getSelectedIndex());
         if (!envName.equals("Default") && !envName.equals(newName.trim())) {
-            return testDesign.getProject().getTestData().renameEnvironment(envName, newName);
+            boolean renamed = testDesign
+                .getProject()
+                .getTestData()
+                .renameEnvironment(envName, newName);
+            if (renamed) {
+                String oldKey = getTestDataTabOrderKey(envName);
+                String newKey = getTestDataTabOrderKey(newName);
+                String oldValue = testDesign
+                    .getProject()
+                    .getProjectSettings()
+                    .getUserDefinedSettings()
+                    .getProperty(oldKey);
+                if (oldValue != null) {
+                    testDesign
+                        .getProject()
+                        .getProjectSettings()
+                        .getUserDefinedSettings()
+                        .setProperty(newKey, oldValue);
+                    testDesign
+                        .getProject()
+                        .getProjectSettings()
+                        .getUserDefinedSettings()
+                        .remove(oldKey);
+                    testDesign.getProject().getProjectSettings().getUserDefinedSettings().save();
+                }
+                persistEnvironmentTabOrder();
+            }
+            return renamed;
         }
         return false;
     }
@@ -696,6 +886,13 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
             if (option == JOptionPane.YES_OPTION) {
                 envTab.removeTabAt(envTab.getSelectedIndex());
                 testDesign.getProject().getTestData().deleteEnvironment(envName);
+                testDesign
+                    .getProject()
+                    .getProjectSettings()
+                    .getUserDefinedSettings()
+                    .remove(getTestDataTabOrderKey(envName));
+                testDesign.getProject().getProjectSettings().getUserDefinedSettings().save();
+                persistEnvironmentTabOrder();
             }
         }
     }
