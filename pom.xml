@@ -74,6 +74,8 @@
         <java.version>17</java.version>
         <maven.compiler.source>${java.version}</maven.compiler.source>
         <maven.compiler.target>${java.version}</maven.compiler.target>
+        <skip.unit.tests>false</skip.unit.tests>
+        <jacoco.skip>true</jacoco.skip>
 
     </properties>
     <name>ingenious</name>
@@ -117,6 +119,7 @@
                 <artifactId>maven-surefire-plugin</artifactId>
                 <version>3.0.0-M7</version>
                 <configuration>
+                    <skipTests>${skip.unit.tests}</skipTests>
                     <systemPropertyVariables>
                         <net.bytebuddy.experimental>true</net.bytebuddy.experimental>
                     </systemPropertyVariables>
@@ -127,6 +130,9 @@
                 <groupId>org.jacoco</groupId>
                 <artifactId>jacoco-maven-plugin</artifactId>
                 <version>0.8.12</version>
+                <configuration>
+                    <skip>${jacoco.skip}</skip>
+                </configuration>
                 <executions>
                     <execution>
                         <goals>
@@ -137,7 +143,7 @@
                         <id>report</id>
                         <phase>test</phase>
                         <goals>
-                            <goal>report</goal>
+                            <goal>report-aggregate</goal>
                         </goals>
                     </execution>
                 </executions>
@@ -157,25 +163,72 @@
                 <artifactId>versions-maven-plugin</artifactId>
                 <version>2.18.0</version>
             </plugin>
-            <plugin>
-                <groupId>com.hubspot.maven.plugins</groupId>
-                <artifactId>prettier-maven-plugin</artifactId>
-                <version>0.22</version> <!-- Check for the latest version on Maven Central -->
-                <configuration>
-                    <!-- Optional: specific Prettier settings -->
-                    <printWidth>100</printWidth>
-                    <tabWidth>4</tabWidth>
-                    <useTabs>false</useTabs>
-                </configuration>
-                <executions>
-                    <execution>
-                    <phase>validate</phase>
-                    <goals>
-                        <goal>write</goal> <!-- Use 'check' in CI environments -->
-                    </goals>
-                    </execution>
-                </executions>
-            </plugin>
         </plugins>
     </build>
+
+    <profiles>
+        <profile>
+            <id>devTest</id>
+            <properties>
+                <skip.unit.tests>false</skip.unit.tests>
+                <jacoco.skip>false</jacoco.skip>
+            </properties>
+        </profile>
+
+        <profile>
+            <id>devPrettier</id>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>com.hubspot.maven.plugins</groupId>
+                        <artifactId>prettier-maven-plugin</artifactId>
+                        <version>0.22</version>
+                        <configuration>
+                            <printWidth>100</printWidth>
+                            <tabWidth>4</tabWidth>
+                            <useTabs>false</useTabs>
+                        </configuration>
+                        <executions>
+                            <execution>
+                                <phase>validate</phase>
+                                <goals>
+                                    <goal>write</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+
+        <profile>
+            <id>devAll</id>
+            <properties>
+                <skip.unit.tests>false</skip.unit.tests>
+                <jacoco.skip>false</jacoco.skip>
+            </properties>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>com.hubspot.maven.plugins</groupId>
+                        <artifactId>prettier-maven-plugin</artifactId>
+                        <version>0.22</version>
+                        <configuration>
+                            <printWidth>100</printWidth>
+                            <tabWidth>4</tabWidth>
+                            <useTabs>false</useTabs>
+                        </configuration>
+                        <executions>
+                            <execution>
+                                <phase>validate</phase>
+                                <goals>
+                                    <goal>write</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+    </profiles>
 </project>
