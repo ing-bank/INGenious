@@ -64,6 +64,14 @@
                                     <overWrite>true</overWrite>
                                     <outputDirectory>${setupDir}/lib</outputDirectory>
                                 </artifactItem>
+                                <artifactItem>
+                                    <groupId>com.ing</groupId>
+                                    <artifactId>ingenious-api</artifactId>
+                                    <version>${ingenious-api.version}</version>
+                                    <type>jar</type>
+                                    <overWrite>true</overWrite>
+                                    <outputDirectory>${setupDir}/Engine/lib</outputDirectory>
+                                </artifactItem>
                             </artifactItems>
                         </configuration>
                     </execution>                    
