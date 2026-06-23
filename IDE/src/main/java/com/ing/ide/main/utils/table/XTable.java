@@ -622,6 +622,11 @@ public class XTable extends JTable {
     // Insert row prompt feature
     // -----------------------------------------------------------------------------
 
+    /**
+     * Paints the table and any active insert-row indicators.
+     *
+     * @param g graphics context
+     */
     @Override
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
@@ -631,6 +636,12 @@ public class XTable extends JTable {
         }
     }
 
+    /**
+     * Allows the insert-row feature to handle mouse events before standard table
+     * processing.
+     *
+     * @param e mouse event
+     */
     @Override
     protected void processMouseEvent(java.awt.event.MouseEvent e) {
         if (insertRowPromptFeature != null && insertRowPromptFeature.processMouseEvent(e)) {
@@ -640,6 +651,12 @@ public class XTable extends JTable {
         super.processMouseEvent(e);
     }
 
+    /**
+     * Allows the insert-row feature to intercept mouse motion events before
+     * standard table processing.
+     *
+     * @param e mouse event
+     */
     @Override
     protected void processMouseMotionEvent(java.awt.event.MouseEvent e) {
         if (insertRowPromptFeature != null && insertRowPromptFeature.processMouseMotionEvent(e)) {
