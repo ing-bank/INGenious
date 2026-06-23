@@ -413,6 +413,78 @@ public class APITesterUI extends JPanel implements PropertyChangeListener {
         return false;
     }
 
+    public void notifyRequestDeleted(APIRequest deletedRequest) {
+        if (deletedRequest == null || sourceRequest == null) {
+            return;
+        }
+
+        if (sameRequest(sourceRequest, deletedRequest)) {
+            clearSourceTracking();
+
+            currentRequest = new APIRequest();
+            requestPanel.loadRequest(currentRequest);
+            responsePanel.clear();
+            updateEditingHeader();
+        }
+    }
+
+    private boolean sameRequest(APIRequest a, APIRequest b) {
+        if (a == null || b == null) {
+            return false;
+        }
+
+        String aId = a.getId();
+        String bId = b.getId();
+
+        if (aId != null && bId != null) {
+            return aId.equals(bId);
+        }
+
+        return a == b;
+    }
+
+    private void removeRequestFromRoot(APICollection collection, APIRequest requestToRemove) {
+        if (collection == null || requestToRemove == null || collection.getRequests() == null) {
+            return;
+        }
+
+        collection.getRequests().removeIf(request -> sameRequest(request, requestToRemove));
+    }
+
+    private void saveRequestToFolder(
+        APIRequest request,
+        APICollection parentCollection,
+        APICollection folder
+    ) {
+        if (request == null || parentCollection == null || folder == null) {
+            return;
+        }
+
+        String requestId = request.getId();
+
+        boolean updated = false;
+
+        for (int i = 0; i < folder.getRequests().size(); i++) {
+            APIRequest existing = folder.getRequests().get(i);
+
+            if (sameRequest(existing, request)) {
+                folder.getRequests().set(i, request);
+                updated = true;
+                break;
+            }
+        }
+
+        if (!updated) {
+            folder.addRequest(request);
+        }
+
+        // Important: remove accidental root-level duplicate
+        removeRequestFromRoot(parentCollection, request);
+
+        apiTester.saveCollection(parentCollection);
+        refreshCollectionsTree();
+    }
+
     /**
      * Force saves the current request to backend file if it's from a collection.
      * Called by IDE's save/autosave to persist all edited requests to disk.
@@ -420,12 +492,67 @@ public class APITesterUI extends JPanel implements PropertyChangeListener {
      */
     public void forceSaveCurrentRequest() {
         if (sourceCollection != null && sourceRequest != null && currentRequest != null) {
+            // Do not resurrect a request that was deleted from its collection/folder.
+            if (!sourceRequestStillExists()) {
+                clearSourceTracking();
+                return;
+            }
+
             // Update the request with current UI values
             requestPanel.updateRequest(currentRequest);
 
-            // Always save to ensure all changes are persisted to backend
-            apiTester.saveRequestToCollection(currentRequest, sourceCollection);
+            // Save to the correct location
+            if (sourceFolder != null) {
+                saveRequestToFolder(currentRequest, sourceCollection, sourceFolder);
+            } else {
+                apiTester.saveRequestToCollection(currentRequest, sourceCollection);
+            }
         }
+    }
+
+    private boolean sourceRequestStillExists() {
+        if (sourceCollection == null || sourceRequest == null) {
+            return false;
+        }
+
+        if (sourceFolder != null) {
+            return containsRequest(sourceFolder.getRequests(), sourceRequest);
+        }
+
+        return containsRequest(sourceCollection.getRequests(), sourceRequest);
+    }
+
+    private boolean containsRequest(List<APIRequest> requests, APIRequest target) {
+        if (requests == null || target == null) {
+            return false;
+        }
+
+        String targetId = target.getId();
+
+        for (APIRequest request : requests) {
+            if (request == null) {
+                continue;
+            }
+
+            String requestId = request.getId();
+
+            if (targetId != null && requestId != null) {
+                if (targetId.equals(requestId)) {
+                    return true;
+                }
+            } else if (request == target) {
+                return true;
+            }
+        }
+
+        return false;
+    }
+
+    private void clearSourceTracking() {
+        this.sourceRequest = null;
+        this.sourceCollection = null;
+        this.sourceFolder = null;
+        this.sourceHistory = false;
     }
 
     public void setCurrentRequest(APIRequest request) {
@@ -590,14 +717,25 @@ public class APITesterUI extends JPanel implements PropertyChangeListener {
 
         // Scenario: Editing an existing request from a collection
         if (sourceRequest != null && sourceCollection != null) {
-            // Update the existing request directly - no prompts needed
-            apiTester.saveRequestToCollection(currentRequest, sourceCollection);
-            Notification.show(
-                "Request \"" +
-                currentRequest.getName() +
-                "\" updated in " +
-                sourceCollection.getName()
-            );
+            if (sourceFolder != null) {
+                saveRequestToFolder(currentRequest, sourceCollection, sourceFolder);
+                Notification.show(
+                    "Request \"" +
+                    currentRequest.getName() +
+                    "\" updated in " +
+                    sourceCollection.getName() +
+                    " / " +
+                    sourceFolder.getName()
+                );
+            } else {
+                apiTester.saveRequestToCollection(currentRequest, sourceCollection);
+                Notification.show(
+                    "Request \"" +
+                    currentRequest.getName() +
+                    "\" updated in " +
+                    sourceCollection.getName()
+                );
+            }
             return;
         }
 
