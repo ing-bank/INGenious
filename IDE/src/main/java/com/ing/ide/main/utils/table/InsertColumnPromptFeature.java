@@ -22,6 +22,11 @@ import javax.swing.JTable;
 import javax.swing.SwingUtilities;
 import javax.swing.table.JTableHeader;
 
+/**
+ * Provides a visual insert-column prompt for a table header, allowing users
+ * to insert columns at specific positions via a hoverable plus icon displayed
+ * between columns.
+ */
 public class InsertColumnPromptFeature {
     private static final Color INSERT_INDICATOR_COLOR = Color.decode("#7724FF");
 
@@ -49,10 +54,19 @@ public class InsertColumnPromptFeature {
     private ComponentAdapter headerComponentAdapter;
     private HeaderOverlay overlay;
 
+    /**
+     * Creates a new insert-column prompt feature for the specified table.
+     *
+     * @param table target table
+     */
     public InsertColumnPromptFeature(JTable table) {
         this.table = table;
     }
 
+    /**
+     * Installs the header overlay and listeners required to support column
+     * insertion prompts.
+     */
     public void install() {
         JTableHeader header = table.getTableHeader();
 
@@ -152,10 +166,19 @@ public class InsertColumnPromptFeature {
         repaintHeader();
     }
 
+    /**
+     * Removes installed listeners and overlay components from the current
+     * table header.
+     */
     public void uninstall() {
         uninstallFromCurrentHeader();
     }
 
+    /**
+     * Enables or disables the feature.
+     *
+     * @param enabled {@code true} to enable column insertion prompts
+     */
     public void setEnabled(boolean enabled) {
         this.enabled = enabled;
 
@@ -168,14 +191,28 @@ public class InsertColumnPromptFeature {
         repaintHeader();
     }
 
+    /**
+     * Returns whether the feature is currently enabled.
+     *
+     * @return {@code true} if enabled
+     */
     public boolean isEnabled() {
         return enabled;
     }
 
+    /**
+     * Sets a custom column insertion handler.
+     *
+     * @param insertColumnHandler callback that receives the insertion index
+     */
     public void setInsertColumnHandler(IntConsumer insertColumnHandler) {
         this.insertColumnHandler = insertColumnHandler;
     }
 
+    /**
+     * Removes listeners and UI artifacts associated with the currently
+     * installed header.
+     */
     private void uninstallFromCurrentHeader() {
         if (installedHeader == null) {
             return;
@@ -208,10 +245,20 @@ public class InsertColumnPromptFeature {
         return System.currentTimeMillis() < suppressMouseEventsUntil;
     }
 
+    /**
+     * Temporarily suppresses mouse events to avoid unintended interactions
+     * immediately after a column insertion.
+     */
     private void suppressMouseEventsBriefly() {
         suppressMouseEventsUntil = System.currentTimeMillis() + INSERT_MOUSE_SUPPRESSION_MS;
     }
 
+    /**
+     * Resolves the column insertion index for the specified point.
+     *
+     * @param point mouse location within the header
+     * @return insertion column index, or {@code -1} if none applies
+     */
     private int getInsertColumnForPoint(Point point) {
         int columnCount = table.getColumnCount();
 
@@ -252,6 +299,13 @@ public class InsertColumnPromptFeature {
         return -1;
     }
 
+    /**
+     * Determines an insertion index when the pointer is outside the bounds of
+     * any visible column.
+     *
+     * @param point mouse location
+     * @return insertion column index, or {@code -1} if none applies
+     */
     private int getInsertColumnForPointOutsideColumns(Point point) {
         int columnCount = table.getColumnCount();
 
@@ -269,6 +323,12 @@ public class InsertColumnPromptFeature {
         return -1;
     }
 
+    /**
+     * Returns the horizontal position of the insertion indicator line.
+     *
+     * @param insertColumn insertion index
+     * @return x-coordinate of the insertion line
+     */
     private int getInsertLineX(int insertColumn) {
         int columnCount = table.getColumnCount();
 
@@ -290,6 +350,12 @@ public class InsertColumnPromptFeature {
         return targetColumn.x;
     }
 
+    /**
+     * Checks whether the specified point intersects the plus icon hit area.
+     *
+     * @param point mouse location
+     * @return {@code true} if the point is on the plus icon
+     */
     private boolean isPointOnPlus(Point point) {
         if (hoverInsertColumn == -1) {
             return false;
@@ -299,6 +365,12 @@ public class InsertColumnPromptFeature {
         return hitBounds.contains(point);
     }
 
+    /**
+     * Returns the visual bounds of the plus icon for an insertion position.
+     *
+     * @param insertColumn insertion index
+     * @return plus icon bounds
+     */
     private Rectangle getPlusBounds(int insertColumn) {
         int x = getInsertLineX(insertColumn);
         int y = installedHeader != null
@@ -310,6 +382,12 @@ public class InsertColumnPromptFeature {
         return new Rectangle(x - half, y - half, INSERT_PLUS_SIZE, INSERT_PLUS_SIZE);
     }
 
+    /**
+     * Returns the clickable hit bounds of the plus icon.
+     *
+     * @param insertColumn insertion index
+     * @return expanded hit area bounds
+     */
     private Rectangle getPlusHitBounds(int insertColumn) {
         Rectangle visual = getPlusBounds(insertColumn);
         int padding = INSERT_PLUS_HIT_PADDING;
@@ -322,6 +400,9 @@ public class InsertColumnPromptFeature {
         );
     }
 
+    /**
+     * Inserts a column at the currently hovered insertion position.
+     */
     private void insertColumnAtHoverPosition() {
         if (insertingColumn) {
             return;
@@ -373,6 +454,11 @@ public class InsertColumnPromptFeature {
         );
     }
 
+    /**
+     * Executes the default table column insertion behavior.
+     *
+     * @param insertIndex desired insertion index
+     */
     private void triggerDefaultInsertColumnAction(int insertIndex) {
         int columnCount = table.getColumnCount();
 
@@ -397,6 +483,11 @@ public class InsertColumnPromptFeature {
         triggerTableAction("Add Column");
     }
 
+    /**
+     * Invokes a named action from the table's action map.
+     *
+     * @param actionName action key
+     */
     private void triggerTableAction(String actionName) {
         Action action = table.getActionMap().get(actionName);
 
@@ -407,6 +498,11 @@ public class InsertColumnPromptFeature {
         }
     }
 
+    /**
+     * Selects the newly inserted column and scrolls it into view when possible.
+     *
+     * @param insertedColumnIndex inserted column index
+     */
     private void selectInsertedColumn(int insertedColumnIndex) {
         int columnCount = table.getColumnCount();
 
@@ -427,6 +523,11 @@ public class InsertColumnPromptFeature {
         }
     }
 
+    /**
+     * Paints the insertion guide line and plus icon in the table header.
+     *
+     * @param g graphics context
+     */
     private void paintInsertColumnIndicator(Graphics g) {
         if (!enabled || hoverInsertColumn == -1 || installedHeader == null) {
             return;
@@ -470,6 +571,9 @@ public class InsertColumnPromptFeature {
         }
     }
 
+    /**
+     * Clears the current hover state and resets the header cursor.
+     */
     private void clearHoverState() {
         if (hoverInsertColumn == -1) {
             resetHeaderCursor();
@@ -481,12 +585,18 @@ public class InsertColumnPromptFeature {
         repaintHeader();
     }
 
+    /**
+     * Restores the default cursor on the installed header.
+     */
     private void resetHeaderCursor() {
         if (installedHeader != null) {
             installedHeader.setCursor(Cursor.getDefaultCursor());
         }
     }
 
+    /**
+     * Repaints the header and overlay components.
+     */
     private void repaintHeader() {
         if (installedHeader != null) {
             installedHeader.repaint();
@@ -497,6 +607,9 @@ public class InsertColumnPromptFeature {
         }
     }
 
+    /**
+     * Synchronizes the overlay bounds with the current header size.
+     */
     private void ensureOverlayBounds() {
         if (installedHeader == null || overlay == null) {
             return;
@@ -508,6 +621,10 @@ public class InsertColumnPromptFeature {
         overlay.repaint();
     }
 
+    /**
+     * Lightweight overlay used to paint insertion indicators on top of the
+     * table header.
+     */
     private class HeaderOverlay extends JComponent {
 
         @Override

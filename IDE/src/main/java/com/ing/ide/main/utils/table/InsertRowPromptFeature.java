@@ -17,6 +17,10 @@ import javax.swing.Action;
 import javax.swing.JTable;
 import javax.swing.SwingUtilities;
 
+/**
+ * Provides a visual insert-row prompt for a table, allowing users to insert
+ * rows at a specific position via a hoverable plus icon displayed between rows.
+ */
 public class InsertRowPromptFeature {
     private static final Color INSERT_INDICATOR_COLOR = Color.decode("#7724FF");
 
@@ -43,10 +47,19 @@ public class InsertRowPromptFeature {
 
     private boolean enabled = true;
 
+    /**
+     * Creates a new insert-row prompt feature for the specified table.
+     *
+     * @param table target table
+     */
     public InsertRowPromptFeature(JTable table) {
         this.table = table;
     }
 
+    /**
+     * Installs the mouse listeners required to support row insertion prompts.
+     * Subsequent calls have no effect.
+     */
     public void install() {
         if (installed) {
             return;
@@ -92,6 +105,11 @@ public class InsertRowPromptFeature {
         table.addMouseListener(insertRowMouseAdapter);
     }
 
+    /**
+     * Enables or disables the feature.
+     *
+     * @param enabled {@code true} to enable row insertion prompts
+     */
     public void setEnabled(boolean enabled) {
         this.enabled = enabled;
 
@@ -102,20 +120,41 @@ public class InsertRowPromptFeature {
         table.repaint();
     }
 
+    /**
+     * Returns whether the feature is currently enabled.
+     *
+     * @return {@code true} if enabled
+     */
     public boolean isEnabled() {
         return enabled;
     }
 
+    /**
+     * Sets a custom row insertion handler.
+     *
+     * @param insertRowHandler callback that receives the insertion index
+     */
     public void setInsertRowHandler(IntConsumer insertRowHandler) {
         this.insertRowHandler = insertRowHandler;
     }
 
+    /**
+     * Paints the insert-row indicator when a valid insertion location is hovered.
+     *
+     * @param g graphics context
+     */
     public void paint(Graphics g) {
         if (enabled && hoverInsertRow != -1) {
             paintInsertRowIndicator(g);
         }
     }
 
+    /**
+     * Processes mouse events that may trigger a row insertion.
+     *
+     * @param e mouse event
+     * @return {@code true} if the event was consumed
+     */
     public boolean processMouseEvent(MouseEvent e) {
         if (!enabled) {
             return false;
@@ -137,6 +176,12 @@ public class InsertRowPromptFeature {
         return false;
     }
 
+    /**
+     * Processes mouse motion events during temporary event suppression periods.
+     *
+     * @param e mouse event
+     * @return {@code true} if the event was consumed
+     */
     public boolean processMouseMotionEvent(MouseEvent e) {
         if (!enabled) {
             return false;
@@ -154,10 +199,20 @@ public class InsertRowPromptFeature {
         return System.currentTimeMillis() < suppressMouseEventsUntil;
     }
 
+    /**
+     * Temporarily suppresses mouse events to avoid unintended interactions
+     * immediately after a row insertion.
+     */
     private void suppressMouseEventsBriefly() {
         suppressMouseEventsUntil = System.currentTimeMillis() + INSERT_MOUSE_SUPPRESSION_MS;
     }
 
+    /**
+     * Resolves the row insertion index for the specified point.
+     *
+     * @param point mouse location
+     * @return insertion row index, or {@code -1} if none applies
+     */
     private int getInsertRowForPoint(Point point) {
         int rowCount = table.getRowCount();
 
@@ -193,6 +248,13 @@ public class InsertRowPromptFeature {
         return getInsertRowForPointOutsideRows(point);
     }
 
+    /**
+     * Determines an insertion index when the pointer is outside the bounds of
+     * any table row.
+     *
+     * @param point mouse location
+     * @return insertion row index, or {@code -1} if none applies
+     */
     private int getInsertRowForPointOutsideRows(Point point) {
         int rowCount = table.getRowCount();
 
@@ -217,6 +279,12 @@ public class InsertRowPromptFeature {
         return -1;
     }
 
+    /**
+     * Returns the vertical position of the insertion indicator line.
+     *
+     * @param insertRow insertion index
+     * @return y-coordinate of the insertion line
+     */
     private int getInsertLineY(int insertRow) {
         int rowCount = table.getRowCount();
 
@@ -238,6 +306,11 @@ public class InsertRowPromptFeature {
         return targetRow.y;
     }
 
+    /**
+     * Computes the insertion line position for an empty table.
+     *
+     * @return y-coordinate of the insertion line
+     */
     private int getEmptyTableInsertLineY() {
         int halfPlus = INSERT_PLUS_SIZE / 2;
         int preferredY = Math.max(halfPlus, table.getRowHeight() / 2);
@@ -247,6 +320,12 @@ public class InsertRowPromptFeature {
         return Math.min(preferredY, maxVisibleY);
     }
 
+    /**
+     * Checks whether the specified point intersects the plus icon hit area.
+     *
+     * @param point mouse location
+     * @return {@code true} if the point is on the plus icon
+     */
     private boolean isPointOnPlus(Point point) {
         if (hoverInsertRow == -1) {
             return false;
@@ -256,6 +335,12 @@ public class InsertRowPromptFeature {
         return hitBounds.contains(point);
     }
 
+    /**
+     * Returns the visual bounds of the plus icon for an insertion position.
+     *
+     * @param insertRow insertion index
+     * @return plus icon bounds
+     */
     private Rectangle getPlusBounds(int insertRow) {
         int y = getInsertLineY(insertRow);
         int x = INSERT_PLUS_X;
@@ -264,6 +349,12 @@ public class InsertRowPromptFeature {
         return new Rectangle(x - half, y - half, INSERT_PLUS_SIZE, INSERT_PLUS_SIZE);
     }
 
+    /**
+     * Returns the clickable hit bounds of the plus icon.
+     *
+     * @param insertRow insertion index
+     * @return expanded hit area bounds
+     */
     private Rectangle getPlusHitBounds(int insertRow) {
         Rectangle visual = getPlusBounds(insertRow);
         int padding = INSERT_PLUS_HIT_PADDING;
@@ -276,6 +367,9 @@ public class InsertRowPromptFeature {
         );
     }
 
+    /**
+     * Inserts a row at the currently hovered insertion position.
+     */
     private void insertRowAtHoverPosition() {
         if (insertingRow) {
             return;
@@ -326,6 +420,11 @@ public class InsertRowPromptFeature {
         );
     }
 
+    /**
+     * Selects the newly inserted row while preserving selection model state.
+     *
+     * @param insertedRowIndex inserted row index
+     */
     private void selectInsertedRow(int insertedRowIndex) {
         if (table.getRowCount() == 0 || table.getColumnCount() == 0) {
             table.clearSelection();
@@ -357,6 +456,11 @@ public class InsertRowPromptFeature {
         }
     }
 
+    /**
+     * Paints the insertion guide line and plus icon.
+     *
+     * @param g graphics context
+     */
     private void paintInsertRowIndicator(Graphics g) {
         Graphics2D g2 = (Graphics2D) g.create();
 
@@ -396,6 +500,9 @@ public class InsertRowPromptFeature {
         }
     }
 
+    /**
+     * Clears the current hover state and resets the cursor.
+     */
     private void clearHoverState() {
         if (hoverInsertRow == -1) {
             table.setCursor(Cursor.getDefaultCursor());
@@ -407,6 +514,11 @@ public class InsertRowPromptFeature {
         table.repaint();
     }
 
+    /**
+     * Executes the default table insert behavior for the specified row index.
+     *
+     * @param rowIndex desired insertion index
+     */
     private void triggerDefaultInsertRowAction(int rowIndex) {
         int rowCount = table.getRowCount();
 
@@ -430,6 +542,11 @@ public class InsertRowPromptFeature {
         triggerTableAction("Insert");
     }
 
+    /**
+     * Invokes a named action from the table's action map.
+     *
+     * @param actionName action key
+     */
     private void triggerTableAction(String actionName) {
         Action action = table.getActionMap().get(actionName);
 
