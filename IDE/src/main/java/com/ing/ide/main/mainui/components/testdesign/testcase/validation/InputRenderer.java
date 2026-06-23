@@ -3,7 +3,6 @@ package com.ing.ide.main.mainui.components.testdesign.testcase.validation;
 import com.ing.datalib.component.TestStep;
 import com.ing.datalib.testdata.model.TestDataModel;
 import com.ing.engine.support.methodInf.MethodInfoManager;
-import com.ing.ingenious.api.annotation.Action;
 import java.awt.Color;
 import java.awt.Font;
 import java.util.Objects;
@@ -88,20 +87,31 @@ public class InputRenderer extends AbstractRenderer {
     }
 
     private boolean hasColumn(TestDataModel tdModel, String column) {
-        return (tdModel != null && tdModel.getColumnIndex(column) >= 0);
+        return tdModel != null && tdModel.getColumnIndex(column) >= 0;
     }
 
     private Boolean isInputValid(Object value, String objectName) {
         String val = Objects.toString(value, "").trim();
+
         if (objectName.matches("String Operations")) {
             return true;
-        } else {
-            if (val.matches("(@.+)|(=.+)|(%.+%)|(#.+)")) return true; else if ( // return Boolean.valueOf(val.matches("(@.+)|(=.+)|(%.+%)"));
-                val.startsWith("<") || val.startsWith("{") || val.startsWith("[")
-            ) return true; else if (
-                val.contains("=") && !val.startsWith("=")
-            ) return true; else return false;
         }
+
+        if (val.matches("(@.+)|(=.+)|(%.+%)|(#.+)")) {
+            return true;
+        }
+
+        if (val.startsWith("<") || val.startsWith("{") || val.startsWith("[")) {
+            return true;
+        }
+
+        if (val.contains("=") && !val.startsWith("=")) {
+            return true;
+        }
+
+        return false;
+    }
+
     @Override
     protected Object getColumnValue(TestStep step) {
         return step.getInput();
