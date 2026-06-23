@@ -60,6 +60,8 @@
         <java.version>17</java.version>
         <maven.compiler.source>${java.version}</maven.compiler.source>
         <maven.compiler.target>${java.version}</maven.compiler.target>
+        <skip.unit.tests>false</skip.unit.tests>
+        <jacoco.skip>true</jacoco.skip>
 
     </properties>
     <build>
