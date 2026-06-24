@@ -27,12 +27,17 @@ import java.util.Objects;
 import java.util.Properties;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import javax.swing.AbstractAction;
+import javax.swing.AbstractAction;
 import javax.swing.AbstractButton;
+import javax.swing.Action;
 import javax.swing.BorderFactory;
 import javax.swing.ButtonGroup;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.ImageIcon;
 import javax.swing.JComponent;
+import javax.swing.JTable;
+import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
@@ -95,6 +100,9 @@ public class DriverSettings extends javax.swing.JFrame {
         // Build the "Kafka SSL Configurations" tab programmatically. Moved here
         // from the legacy "Settings" dialog; same project-side storage backs it.
         buildKafkaSSLTab();
+
+        // Allows InsertRowPromptFeature to work with these DriverSettings tables.
+        registerInsertRowPromptActionsForDriverSettingsTables();
 
         // Legacy emulator-add affordance on "Manage Browsers" is being phased out:
         // emulator entries are now managed exclusively from the "Manage Devices" tab
@@ -305,6 +313,142 @@ public class DriverSettings extends javax.swing.JFrame {
             if (comp instanceof java.awt.Container) {
                 styleComponentsRecursively((java.awt.Container) comp);
             }
+        }
+    }
+
+    /**
+     * Registers table action aliases used by InsertRowPromptFeature for the
+     * configuration tables in this window.
+     *
+     * These tables use toolbar buttons such as "Add Capability", "Add Property",
+     * and "Add Configurations" rather than the generic table actions used
+     * elsewhere in the application. Registering these aliases lets the shared
+     * insert-row prompt work without changing its behavior globally.
+     */
+    private void registerInsertRowPromptActionsForDriverSettingsTables() {
+        registerInsertRowPromptActions(driverPropTable);
+        registerInsertRowPromptActions(capTable);
+        registerInsertRowPromptActions(dbPropTable);
+        registerInsertRowPromptActions(contextPropTable);
+
+        if (deviceCapTable != null) {
+            registerInsertRowPromptActions(deviceCapTable);
+        }
+
+        if (kafkaSSLPanel != null && kafkaSSLPanel.table != null) {
+            registerInsertRowPromptActions(kafkaSSLPanel.table);
+        }
+    }
+
+    /**
+     * Adds Add/Insert action aliases for a table so InsertRowPromptFeature can
+     * insert rows at the hovered position.
+     *
+     * @param table target table
+     */
+    private void registerInsertRowPromptActions(JTable table) {
+        if (table == null) {
+            return;
+        }
+
+        Action addAction = new AbstractAction() {
+
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                appendConfigurationTableRow(table);
+            }
+        };
+
+        Action insertAction = new AbstractAction() {
+
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                insertConfigurationTableRowAtSelection(table);
+            }
+        };
+
+        putActionIfMissing(table, "Add", addAction);
+        putActionIfMissing(table, "Add Row", addAction);
+        putActionIfMissing(table, "Add Property", addAction);
+        putActionIfMissing(table, "Add Capability", addAction);
+        putActionIfMissing(table, "Add Configuration", addAction);
+        putActionIfMissing(table, "Add Configurations", addAction);
+
+        putActionIfMissing(table, "Insert", insertAction);
+        putActionIfMissing(table, "Insert Row", insertAction);
+        putActionIfMissing(table, "Insert Property", insertAction);
+        putActionIfMissing(table, "Insert Capability", insertAction);
+        putActionIfMissing(table, "Insert Configuration", insertAction);
+        putActionIfMissing(table, "Insert Configurations", insertAction);
+    }
+
+    /**
+     * Registers an action only when the table does not already define one.
+     */
+    private void putActionIfMissing(JTable table, String actionName, Action action) {
+        if (table.getActionMap().get(actionName) == null) {
+            table.getActionMap().put(actionName, action);
+        }
+    }
+
+    /**
+     * Appends an empty row to the table.
+     *
+     * @param table target table
+     */
+    private void appendConfigurationTableRow(JTable table) {
+        insertConfigurationTableRow(table, table.getModel().getRowCount());
+    }
+
+    /**
+     * Inserts an empty row at the currently selected row.
+     *
+     * InsertRowPromptFeature selects the row matching the hovered insert location
+     * before firing the "Insert" action, so this method inserts at that selected
+     * row index.
+     *
+     * @param table target table
+     */
+    private void insertConfigurationTableRowAtSelection(JTable table) {
+        int selectedViewRow = table.getSelectedRow();
+
+        if (selectedViewRow < 0) {
+            appendConfigurationTableRow(table);
+            return;
+        }
+
+        int selectedModelRow = table.convertRowIndexToModel(selectedViewRow);
+        insertConfigurationTableRow(table, selectedModelRow);
+    }
+
+    /**
+     * Inserts an empty row into a DefaultTableModel at the requested model index.
+     *
+     * @param table target table
+     * @param modelRow row index in model coordinates
+     */
+    private void insertConfigurationTableRow(JTable table, int modelRow) {
+        if (!(table.getModel() instanceof DefaultTableModel)) {
+            return;
+        }
+
+        if (table.isEditing() && table.getCellEditor() != null) {
+            boolean stopped = table.getCellEditor().stopCellEditing();
+
+            if (!stopped) {
+                return;
+            }
+        }
+
+        DefaultTableModel model = (DefaultTableModel) table.getModel();
+
+        int safeRow = Math.max(0, Math.min(modelRow, model.getRowCount()));
+        Object[] emptyRow = new Object[model.getColumnCount()];
+
+        model.insertRow(safeRow, emptyRow);
+
+        if (saveSettings != null) {
+            saveSettings.setEnabled(true);
         }
     }
 
