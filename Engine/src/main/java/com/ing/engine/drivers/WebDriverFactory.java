@@ -155,6 +155,14 @@ public class WebDriverFactory {
     );
 
     /**
+     * Capability keys that must always stay string-typed even if they look numeric.
+     * Appium validates these as strings (e.g. "platformVersion": "16.0").
+     */
+    private static final java.util.Set<String> STRING_ONLY_CAPABILITIES = new java.util.HashSet<>(
+        java.util.Arrays.asList("platformversion")
+    );
+
+    /**
      * Convert a raw capability string into the most appropriate JSON type.
      * Remote drivers (Appium, LambdaTest) validate types strictly, so
      * {@code "TRUE"} becomes {@link Boolean#TRUE}, {@code "60"} becomes
@@ -175,6 +183,11 @@ public class WebDriverFactory {
         }
         boolean longOnly =
             capability != null && LONG_ONLY_CAPABILITIES.contains(capability.toLowerCase());
+        boolean stringOnly =
+            capability != null && STRING_ONLY_CAPABILITIES.contains(capability.toLowerCase());
+        if (stringOnly) {
+            return v;
+        }
         if (longOnly) {
             if (v.matches("-?\\d+")) {
                 try {
