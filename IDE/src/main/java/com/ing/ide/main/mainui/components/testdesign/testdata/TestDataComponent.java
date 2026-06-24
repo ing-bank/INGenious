@@ -1222,7 +1222,7 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
                 // Check if a column is selected in the main (scrollable) table
                 int mainSelectedCol = table.getSelectedColumn();
                 if (mainSelectedCol >= 0) {
-                    // Main table view column needs offset: model = view + 5 (frozenColumnCount)
+                    // Main table view column needs offset: model = view + frozenColumnCount
                     int insertIndex = mainSelectedCol + frozenColumnCount + 1;
                     std.addColumnAt(insertIndex);
                 } else {
@@ -1273,7 +1273,7 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
 
                 List<Integer> modelColList = new ArrayList<>();
                 for (int viewCol : viewCols) {
-                    int modelCol = viewCol + frozenColumnCount; // offset by fixed column count
+                    int modelCol = viewCol + frozenColumnCount; // offset by frozenColumnCount
                     modelColList.add(modelCol);
                 }
 
