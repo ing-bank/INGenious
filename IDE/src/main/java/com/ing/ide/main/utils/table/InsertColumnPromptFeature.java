@@ -54,6 +54,8 @@ public class InsertColumnPromptFeature {
     private ComponentAdapter headerComponentAdapter;
     private HeaderOverlay overlay;
 
+    private int minimumInsertColumn = 0;
+
     /**
      * Creates a new insert-column prompt feature for the specified table.
      *
@@ -241,6 +243,28 @@ public class InsertColumnPromptFeature {
         hoverInsertColumn = -1;
     }
 
+    /**
+     * Sets the minimum visible/view insertion column boundary.
+     *
+     * For example, GlobalData can set this to 1 so the insert prompt does not
+     * appear before column 0, keeping GlobalDataID fixed as the first column.
+     *
+     * @param minimumInsertColumn minimum allowed insertion boundary
+     */
+    public void setMinimumInsertColumn(int minimumInsertColumn) {
+        this.minimumInsertColumn = Math.max(0, minimumInsertColumn);
+
+        if (hoverInsertColumn != -1 && !isInsertColumnAllowed(hoverInsertColumn)) {
+            clearHoverState();
+        }
+
+        repaintHeader();
+    }
+
+    private boolean isInsertColumnAllowed(int insertColumn) {
+        return insertColumn >= minimumInsertColumn && insertColumn <= table.getColumnCount();
+    }
+
     private boolean isSuppressingMouseEvents() {
         return System.currentTimeMillis() < suppressMouseEventsUntil;
     }
@@ -289,11 +313,19 @@ public class InsertColumnPromptFeature {
             Math.abs(point.x - columnLeft) <= INSERT_HOVER_ZONE &&
             (column > 0 || insertColumnHandler != null)
         ) {
-            return column;
+            int candidateInsertColumn = column;
+
+            if (isInsertColumnAllowed(candidateInsertColumn)) {
+                return candidateInsertColumn;
+            }
         }
 
         if (Math.abs(point.x - columnRight) <= INSERT_HOVER_ZONE) {
-            return column + 1;
+            int candidateInsertColumn = column + 1;
+
+            if (isInsertColumnAllowed(candidateInsertColumn)) {
+                return candidateInsertColumn;
+            }
         }
 
         return -1;
@@ -317,7 +349,11 @@ public class InsertColumnPromptFeature {
         int lastColumnRight = lastColumn.x + lastColumn.width;
 
         if (Math.abs(point.x - lastColumnRight) <= INSERT_HOVER_ZONE) {
-            return columnCount;
+            int candidateInsertColumn = columnCount;
+
+            if (isInsertColumnAllowed(candidateInsertColumn)) {
+                return candidateInsertColumn;
+            }
         }
 
         return -1;
@@ -411,6 +447,10 @@ public class InsertColumnPromptFeature {
         final int insertIndex = hoverInsertColumn;
 
         if (insertIndex < 0) {
+            return;
+        }
+
+        if (!isInsertColumnAllowed(insertIndex)) {
             return;
         }
 

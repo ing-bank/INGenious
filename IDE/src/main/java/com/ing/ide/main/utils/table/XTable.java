@@ -619,7 +619,7 @@ public class XTable extends JTable {
     }
 
     // -----------------------------------------------------------------------------
-    // Insert row prompt feature
+    // Insert row/column prompt feature
     // -----------------------------------------------------------------------------
 
     /**
@@ -666,8 +666,17 @@ public class XTable extends JTable {
         super.processMouseMotionEvent(e);
     }
 
+    /**
+     * Sets the minimum column index where the insert-column prompt can appear.
+     *
+     * @param minimumInsertColumn minimum allowed insertion column index
+     */
+    public void setMinimumInsertColumn(int minimumInsertColumn) {
+        insertColumnPromptFeature.setMinimumInsertColumn(minimumInsertColumn);
+    }
+
     // -----------------------------------------------------------------------------
-    // End of insert row prompt feature
+    // End of insert row/column prompt feature
     // -----------------------------------------------------------------------------
 
     public class CustomTableCellEditor extends DefaultCellEditor {

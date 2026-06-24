@@ -1344,27 +1344,43 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
         }
 
         private void configureInsertColumnPrompt() {
-            /*
-             * Enable the header + column prompt only for normal TestData sheets.
-             *
-             * Global Data is intentionally left off because column 0 is protected
-             * and the current global-data add-column behavior appends columns.
-             */
-            if (!isGlobalData) {
-                table.setInsertColumnHandler(
-                    insertColumnIndex -> insertColumnFromHeaderPrompt(insertColumnIndex)
-                );
-                table.setInsertColumnPromptEnabled(true);
+            table.setInsertColumnHandler(
+                insertColumnIndex -> insertColumnFromHeaderPrompt(insertColumnIndex)
+            );
+
+            if (isGlobalData) {
+                // Do not show the plus button before GlobalDataID.
+                table.setMinimumInsertColumn(1);
             } else {
-                table.setInsertColumnPromptEnabled(false);
-                table.setInsertColumnHandler(null);
+                // Normal TestData can still insert before the first visible scrollable column.
+                table.setMinimumInsertColumn(0);
             }
+
+            table.setInsertColumnPromptEnabled(true);
         }
 
         private void insertColumnFromHeaderPrompt(int viewInsertIndex) {
+            assignThePreviouslySelected();
             stopCellEditing();
 
+            int modelColumnCount = std.getColumnCount();
+
             if (isGlobalData) {
+                /*
+                 * GlobalData column 0 is protected: GlobalDataID.
+                 * Do not allow inserting before it.
+                 *
+                 * Header prompt boundary 0 means "before GlobalDataID", so clamp it to 1.
+                 */
+                int modelInsertIndex = Math.max(1, Math.min(viewInsertIndex, modelColumnCount));
+
+                if (modelInsertIndex >= modelColumnCount) {
+                    std.addColumn();
+                } else {
+                    std.addColumnAt(modelInsertIndex);
+                }
+
+                selectThePreviouslySelected();
                 return;
             }
 
@@ -1384,7 +1400,6 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
                     fixedTable.clearSelection();
                 }
 
-                int modelColumnCount = std.getColumnCount();
                 int modelInsertIndex = Math.max(4, Math.min(viewInsertIndex + 4, modelColumnCount));
 
                 if (modelInsertIndex >= modelColumnCount) {
@@ -1393,13 +1408,13 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
                     std.addColumnAt(modelInsertIndex);
                 }
 
+                selectThePreviouslySelected();
                 return;
             }
 
             /*
              * Fallback for non-global data without FrozenColumnScrollPane.
              */
-            int modelColumnCount = std.getColumnCount();
             int modelInsertIndex = Math.max(0, Math.min(viewInsertIndex, modelColumnCount));
 
             if (modelInsertIndex >= modelColumnCount) {
@@ -1407,6 +1422,8 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
             } else {
                 std.addColumnAt(modelInsertIndex);
             }
+
+            selectThePreviouslySelected();
         }
 
         private void addTableProps() {
