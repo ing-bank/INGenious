@@ -12,6 +12,8 @@ import java.util.List;
 import java.util.Map;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 
 public class APIEnvironmentConfigWindow extends JDialog {
     private static final Color DARK_BACKGROUND = new Color(24, 24, 24);
@@ -28,8 +30,8 @@ public class APIEnvironmentConfigWindow extends JDialog {
     private static final int ROW_HEIGHT = 48;
     private static final int HEADER_HEIGHT = 44;
     private static final int SIDE_PANEL_WIDTH = 255;
-    private static final int SECRET_COLUMN_WIDTH = 100;
-    private static final int ACTION_COLUMN_WIDTH = 64;
+    private static final int SECRET_COLUMN_WIDTH = 110;
+    private static final int ACTION_COLUMN_WIDTH = 90;
 
     private final APITester apiTester;
     private final APITesterUI apiTesterUI;
@@ -37,12 +39,17 @@ public class APIEnvironmentConfigWindow extends JDialog {
     private JTextField searchField;
     private JPanel environmentListPanel;
     private JLabel selectedEnvironmentTitle;
+    private JButton renameButton;
+    private JButton duplicateButton;
+    private JButton deleteEnvironmentButton;
 
+    private JPanel rightContentPanel;
     private JPanel variablesTablePanel;
     private JPanel variableRowsPanel;
     private final List<VariableRowPanel> variableRows = new ArrayList<>();
 
     private APIEnvironment selectedEnvironment;
+    private boolean loadingVariables;
 
     public APIEnvironmentConfigWindow(Window owner, APITester apiTester, APITesterUI apiTesterUI) {
         super(owner, "Environment Configuration", ModalityType.APPLICATION_MODAL);
@@ -51,7 +58,7 @@ public class APIEnvironmentConfigWindow extends JDialog {
 
         if (!apiTester.getEnvironments().isEmpty()) {
             APIEnvironment activeEnvironment = apiTester.getActiveEnvironment();
-            this.selectedEnvironment =
+            selectedEnvironment =
                 activeEnvironment != null ? activeEnvironment : apiTester.getEnvironments().get(0);
         }
 
@@ -127,9 +134,8 @@ public class APIEnvironmentConfigWindow extends JDialog {
         title.setFont(title.getFont().deriveFont(Font.BOLD, 14f));
         title.setForeground(getPrimaryTextColor());
 
-        JButton addButton = createIconButton("+", "New Environment");
-        addButton.setFont(addButton.getFont().deriveFont(Font.PLAIN, 22f));
-        addButton.setPreferredSize(new Dimension(28, 28));
+        JButton addButton = createTextButton("+ New", "New Environment");
+        addButton.setPreferredSize(new Dimension(72, 28));
         addButton.addActionListener(e -> createEnvironment());
 
         panel.add(title, BorderLayout.WEST);
@@ -164,20 +170,20 @@ public class APIEnvironmentConfigWindow extends JDialog {
         searchField
             .getDocument()
             .addDocumentListener(
-                new javax.swing.event.DocumentListener() {
+                new DocumentListener() {
 
                     @Override
-                    public void insertUpdate(javax.swing.event.DocumentEvent e) {
+                    public void insertUpdate(DocumentEvent e) {
                         refreshEnvironmentList();
                     }
 
                     @Override
-                    public void removeUpdate(javax.swing.event.DocumentEvent e) {
+                    public void removeUpdate(DocumentEvent e) {
                         refreshEnvironmentList();
                     }
 
                     @Override
-                    public void changedUpdate(javax.swing.event.DocumentEvent e) {
+                    public void changedUpdate(DocumentEvent e) {
                         refreshEnvironmentList();
                     }
                 }
@@ -195,7 +201,10 @@ public class APIEnvironmentConfigWindow extends JDialog {
         panel.setBorder(new EmptyBorder(18, 24, 18, 24));
 
         panel.add(createRightHeader(), BorderLayout.NORTH);
-        panel.add(createVariablesPanel(), BorderLayout.CENTER);
+
+        rightContentPanel = new JPanel(new BorderLayout());
+        rightContentPanel.setOpaque(false);
+        panel.add(rightContentPanel, BorderLayout.CENTER);
 
         return panel;
     }
@@ -214,7 +223,7 @@ public class APIEnvironmentConfigWindow extends JDialog {
         );
         selectedEnvironmentTitle.setForeground(getPrimaryTextColor());
 
-        JButton renameButton = createIconButton("\u270E", "Rename Environment");
+        renameButton = createTextButton("Rename", "Rename Environment");
         renameButton.addActionListener(e -> renameSelectedEnvironment());
 
         titlePanel.add(selectedEnvironmentTitle);
@@ -223,18 +232,54 @@ public class APIEnvironmentConfigWindow extends JDialog {
         JPanel actionsPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 8, 0));
         actionsPanel.setOpaque(false);
 
-        JButton duplicateButton = createIconButton("\u29C9", "Duplicate Environment");
-        JButton deleteButton = createIconButton("\u00D7", "Delete Environment");
+        duplicateButton = createTextButton("Duplicate", "Duplicate Environment");
+        deleteEnvironmentButton = createTextButton("Delete", "Delete Environment");
 
         duplicateButton.addActionListener(e -> duplicateSelectedEnvironment());
-        deleteButton.addActionListener(e -> deleteSelectedEnvironment());
+        deleteEnvironmentButton.addActionListener(e -> deleteSelectedEnvironment());
 
         actionsPanel.add(duplicateButton);
-        actionsPanel.add(deleteButton);
+        actionsPanel.add(deleteEnvironmentButton);
 
         panel.add(titlePanel, BorderLayout.WEST);
         panel.add(actionsPanel, BorderLayout.EAST);
 
+        return panel;
+    }
+
+    private void rebuildRightContent() {
+        if (rightContentPanel == null) {
+            return;
+        }
+
+        rightContentPanel.removeAll();
+
+        boolean hasEnvironment = selectedEnvironment != null;
+
+        renameButton.setEnabled(hasEnvironment);
+        duplicateButton.setEnabled(hasEnvironment);
+        deleteEnvironmentButton.setEnabled(hasEnvironment);
+
+        if (!hasEnvironment) {
+            rightContentPanel.add(createNoEnvironmentsPanel(), BorderLayout.CENTER);
+        } else {
+            rightContentPanel.add(createVariablesPanel(), BorderLayout.CENTER);
+            loadVariableRowsOnly();
+        }
+
+        rightContentPanel.revalidate();
+        rightContentPanel.repaint();
+    }
+
+    private JPanel createNoEnvironmentsPanel() {
+        JPanel panel = new JPanel(new GridBagLayout());
+        panel.setOpaque(false);
+
+        JLabel label = new JLabel("No Environments");
+        label.setForeground(getSecondaryTextColor());
+        label.setFont(label.getFont().deriveFont(Font.BOLD, 16f));
+
+        panel.add(label);
         return panel;
     }
 
@@ -274,19 +319,16 @@ public class APIEnvironmentConfigWindow extends JDialog {
         header.setPreferredSize(new Dimension(0, HEADER_HEIGHT));
         header.setMaximumSize(new Dimension(Integer.MAX_VALUE, HEADER_HEIGHT));
 
+        header.add(createHeaderCell("Name", true), createCellConstraints(0, 0.38));
+        header.add(createHeaderCell("Value", true), createCellConstraints(1, 0.62));
         header.add(
-            createHeaderCell("Name", true),
-            createCellConstraints(0, 0.34, GridBagConstraints.BOTH)
+            setFixedWidth(createHeaderCell("Secret", true), SECRET_COLUMN_WIDTH),
+            createFixedCellConstraints(2)
         );
         header.add(
-            createHeaderCell("Value", true),
-            createCellConstraints(1, 0.50, GridBagConstraints.BOTH)
+            setFixedWidth(createHeaderCell("", false), ACTION_COLUMN_WIDTH),
+            createFixedCellConstraints(3)
         );
-        header.add(
-            createHeaderCell("Secret", true),
-            createFixedCellConstraints(2, SECRET_COLUMN_WIDTH)
-        );
-        header.add(createHeaderCell("", false), createFixedCellConstraints(3, ACTION_COLUMN_WIDTH));
 
         return header;
     }
@@ -329,54 +371,48 @@ public class APIEnvironmentConfigWindow extends JDialog {
 
         leftActions.add(saveButton);
 
-        JPanel rightActions = new JPanel(new FlowLayout(FlowLayout.RIGHT, 0, 0));
-        rightActions.setOpaque(false);
-
-        JButton addVariableButton = new JButton("+ Add Variable");
-        addVariableButton.setPreferredSize(new Dimension(130, 34));
-        addVariableButton.setFocusPainted(false);
-        addVariableButton.setBorderPainted(false);
-        addVariableButton.setContentAreaFilled(false);
-        addVariableButton.setForeground(ACCENT);
-        addVariableButton.setFont(addVariableButton.getFont().deriveFont(Font.BOLD, 13f));
-        addVariableButton.addActionListener(e -> addVariableRow());
-
-        rightActions.add(addVariableButton);
-
         panel.add(leftActions, BorderLayout.WEST);
-        panel.add(rightActions, BorderLayout.EAST);
 
         return panel;
     }
 
-    private GridBagConstraints createCellConstraints(int gridX, double weightX, int fill) {
+    private GridBagConstraints createCellConstraints(int gridX, double weightX) {
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.gridx = gridX;
         gbc.gridy = 0;
         gbc.weightx = weightX;
         gbc.weighty = 1;
-        gbc.fill = fill;
+        gbc.fill = GridBagConstraints.BOTH;
         return gbc;
     }
 
-    private GridBagConstraints createFixedCellConstraints(int gridX, int width) {
-        GridBagConstraints gbc = createCellConstraints(gridX, 0, GridBagConstraints.BOTH);
+    private GridBagConstraints createFixedCellConstraints(int gridX) {
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.gridx = gridX;
+        gbc.gridy = 0;
         gbc.weightx = 0;
-        gbc.ipadx = 0;
+        gbc.weighty = 1;
         gbc.fill = GridBagConstraints.BOTH;
         gbc.anchor = GridBagConstraints.CENTER;
         return gbc;
     }
 
-    private JButton createIconButton(String text, String tooltip) {
+    private <T extends JComponent> T setFixedWidth(T component, int width) {
+        Dimension size = new Dimension(width, component.getPreferredSize().height);
+        component.setPreferredSize(size);
+        component.setMinimumSize(size);
+        component.setMaximumSize(new Dimension(width, Integer.MAX_VALUE));
+        return component;
+    }
+
+    private JButton createTextButton(String text, String tooltip) {
         JButton button = new JButton(text);
         button.setToolTipText(tooltip);
         button.setFocusPainted(false);
         button.setBorderPainted(false);
         button.setContentAreaFilled(false);
         button.setForeground(getSecondaryTextColor());
-        button.setFont(button.getFont().deriveFont(Font.BOLD, 16f));
-        button.setPreferredSize(new Dimension(30, 30));
+        button.setFont(button.getFont().deriveFont(Font.BOLD, 13f));
         button.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         return button;
     }
@@ -468,20 +504,31 @@ public class APIEnvironmentConfigWindow extends JDialog {
     }
 
     private void loadSelectedEnvironment() {
-        clearVariableRows();
+        if (apiTester.getEnvironments().isEmpty()) {
+            selectedEnvironment = null;
+        }
 
         if (selectedEnvironment == null) {
             selectedEnvironmentTitle.setText("No Environment Selected");
-            addPlaceholderRow();
+        } else {
+            String environmentName = selectedEnvironment.getName();
+            if (environmentName == null || environmentName.trim().isEmpty()) {
+                environmentName = "Unnamed Environment";
+            }
+            selectedEnvironmentTitle.setText(environmentName);
+        }
+
+        rebuildRightContent();
+    }
+
+    private void loadVariableRowsOnly() {
+        clearVariableRows();
+
+        if (selectedEnvironment == null) {
             return;
         }
 
-        String environmentName = selectedEnvironment.getName();
-        if (environmentName == null || environmentName.trim().isEmpty()) {
-            environmentName = "Unnamed Environment";
-        }
-
-        selectedEnvironmentTitle.setText(environmentName);
+        loadingVariables = true;
 
         if (selectedEnvironment.getVariables() != null) {
             for (Map.Entry<String, String> entry : selectedEnvironment.getVariables().entrySet()) {
@@ -495,10 +542,9 @@ public class APIEnvironmentConfigWindow extends JDialog {
             }
         }
 
-        if (variableRows.isEmpty()) {
-            addPlaceholderRow();
-        }
+        loadingVariables = false;
 
+        ensureTrailingEmptyRow();
         refreshVariableRows();
     }
 
@@ -512,21 +558,6 @@ public class APIEnvironmentConfigWindow extends JDialog {
         }
     }
 
-    private void addPlaceholderRow() {
-        addVariableRow("", "", false);
-    }
-
-    private void addVariableRow() {
-        if (selectedEnvironment == null) {
-            Notification.show("Create or select an environment first.");
-            return;
-        }
-
-        VariableRowPanel rowPanel = addVariableRow("", "", false);
-        refreshVariableRows();
-        rowPanel.focusNameField();
-    }
-
     private VariableRowPanel addVariableRow(String name, String value, boolean secret) {
         VariableRowPanel rowPanel = new VariableRowPanel(name, value, secret);
         variableRows.add(rowPanel);
@@ -538,6 +569,57 @@ public class APIEnvironmentConfigWindow extends JDialog {
         }
 
         return rowPanel;
+    }
+
+    private void scheduleNormalizeVariableRows() {
+        if (loadingVariables) {
+            return;
+        }
+
+        SwingUtilities.invokeLater(this::normalizeVariableRows);
+    }
+
+    private void normalizeVariableRows() {
+        if (selectedEnvironment == null || variableRowsPanel == null) {
+            return;
+        }
+
+        boolean changed = false;
+
+        for (int i = variableRows.size() - 1; i >= 0; i--) {
+            VariableRowPanel row = variableRows.get(i);
+
+            if (row.isVacant() && i != variableRows.size() - 1) {
+                variableRows.remove(i);
+                changed = true;
+            }
+        }
+
+        if (variableRows.isEmpty() || !variableRows.get(variableRows.size() - 1).isVacant()) {
+            addVariableRow("", "", false);
+            changed = true;
+        }
+
+        for (VariableRowPanel row : variableRows) {
+            row.updateVacantState();
+        }
+
+        if (changed) {
+            refreshVariableRows();
+        } else {
+            variableRowsPanel.revalidate();
+            variableRowsPanel.repaint();
+        }
+    }
+
+    private void ensureTrailingEmptyRow() {
+        if (variableRows.isEmpty() || !variableRows.get(variableRows.size() - 1).isVacant()) {
+            addVariableRow("", "", false);
+        }
+
+        for (VariableRowPanel row : variableRows) {
+            row.updateVacantState();
+        }
     }
 
     private void refreshVariableRows() {
@@ -557,11 +639,7 @@ public class APIEnvironmentConfigWindow extends JDialog {
 
     private void removeVariableRow(VariableRowPanel rowPanel) {
         variableRows.remove(rowPanel);
-
-        if (variableRows.isEmpty()) {
-            addPlaceholderRow();
-        }
-
+        ensureTrailingEmptyRow();
         refreshVariableRows();
     }
 
@@ -578,8 +656,13 @@ public class APIEnvironmentConfigWindow extends JDialog {
             String name = rowPanel.getVariableName().trim();
             String value = rowPanel.getVariableValue();
 
-            if (name.isEmpty()) {
+            if (rowPanel.isVacant()) {
                 continue;
+            }
+
+            if (name.isEmpty()) {
+                Notification.show("Variable name is required.");
+                return;
             }
 
             if (variables.containsKey(name) || secrets.containsKey(name)) {
@@ -805,6 +888,8 @@ public class APIEnvironmentConfigWindow extends JDialog {
         private final JButton visibilityButton;
         private final JButton deleteButton;
         private JPanel valueCell;
+        private JPanel secretCell;
+        private JPanel deleteCell;
         private boolean valueVisible;
 
         public VariableRowPanel(String name, String value, boolean secret) {
@@ -815,7 +900,7 @@ public class APIEnvironmentConfigWindow extends JDialog {
             setMaximumSize(new Dimension(Integer.MAX_VALUE, ROW_HEIGHT));
             setMinimumSize(new Dimension(0, ROW_HEIGHT));
 
-            this.valueVisible = !secret;
+            valueVisible = !secret;
 
             nameField = createCellTextField("Name", true);
             nameField.setText(name);
@@ -825,6 +910,10 @@ public class APIEnvironmentConfigWindow extends JDialog {
 
             passwordField = createCellPasswordField("Value");
             passwordField.setText(value);
+
+            addTextChangeListener(nameField);
+            addTextChangeListener(valueField);
+            addTextChangeListener(passwordField);
 
             secretCheckBox = new JCheckBox();
             secretCheckBox.setHorizontalAlignment(SwingConstants.CENTER);
@@ -836,10 +925,12 @@ public class APIEnvironmentConfigWindow extends JDialog {
                     boolean isSecret = secretCheckBox.isSelected();
                     valueVisible = !isSecret;
                     updateValueEditor();
+                    updateVacantState();
+                    scheduleNormalizeVariableRows();
                 }
             );
 
-            visibilityButton = createInlineIconButton("");
+            visibilityButton = createSmallTextButton(secret ? "Show" : "");
             visibilityButton.addActionListener(
                 e -> {
                     valueVisible = !valueVisible;
@@ -848,16 +939,44 @@ public class APIEnvironmentConfigWindow extends JDialog {
                 }
             );
 
-            deleteButton = createInlineIconButton("\u232B");
+            deleteButton = createSmallTextButton("Remove");
             deleteButton.setToolTipText("Delete variable");
             deleteButton.addActionListener(e -> removeVariableRow(this));
 
-            add(createNameCell(), createCellConstraints(0, 0.34, GridBagConstraints.BOTH));
-            add(createValueCell(), createCellConstraints(1, 0.50, GridBagConstraints.BOTH));
-            add(createSecretCell(), createFixedCellConstraints(2, SECRET_COLUMN_WIDTH));
-            add(createDeleteCell(), createFixedCellConstraints(3, ACTION_COLUMN_WIDTH));
+            add(createNameCell(), createCellConstraints(0, 0.38));
+            add(createValueCell(), createCellConstraints(1, 0.62));
+            add(createSecretCell(), createFixedCellConstraints(2));
+            add(createDeleteCell(), createFixedCellConstraints(3));
 
             updateValueEditor();
+            updateVacantState();
+        }
+
+        private void addTextChangeListener(JTextField field) {
+            field
+                .getDocument()
+                .addDocumentListener(
+                    new DocumentListener() {
+
+                        @Override
+                        public void insertUpdate(DocumentEvent e) {
+                            updateVacantState();
+                            scheduleNormalizeVariableRows();
+                        }
+
+                        @Override
+                        public void removeUpdate(DocumentEvent e) {
+                            updateVacantState();
+                            scheduleNormalizeVariableRows();
+                        }
+
+                        @Override
+                        public void changedUpdate(DocumentEvent e) {
+                            updateVacantState();
+                            scheduleNormalizeVariableRows();
+                        }
+                    }
+                );
         }
 
         private JPanel createNameCell() {
@@ -872,15 +991,17 @@ public class APIEnvironmentConfigWindow extends JDialog {
         }
 
         private JPanel createSecretCell() {
-            JPanel cell = createBodyCell(true, new Insets(0, 0, 0, 0));
-            cell.add(secretCheckBox, BorderLayout.CENTER);
-            return cell;
+            secretCell = createBodyCell(true, new Insets(0, 0, 0, 0));
+            secretCell = setFixedWidth(secretCell, SECRET_COLUMN_WIDTH);
+            secretCell.add(secretCheckBox, BorderLayout.CENTER);
+            return secretCell;
         }
 
         private JPanel createDeleteCell() {
-            JPanel cell = createBodyCell(false, new Insets(0, 0, 0, 0));
-            cell.add(deleteButton, BorderLayout.CENTER);
-            return cell;
+            deleteCell = createBodyCell(false, new Insets(0, 0, 0, 0));
+            deleteCell = setFixedWidth(deleteCell, ACTION_COLUMN_WIDTH);
+            deleteCell.add(deleteButton, BorderLayout.CENTER);
+            return deleteCell;
         }
 
         private JPanel createBodyCell(boolean rightBorder, Insets padding) {
@@ -929,9 +1050,8 @@ public class APIEnvironmentConfigWindow extends JDialog {
                 valueCell.add(valueField, BorderLayout.CENTER);
             }
 
-            if (isSecret()) {
-                visibilityButton.setText(valueVisible ? "\u25C9" : "\u25CE");
-                visibilityButton.setToolTipText(valueVisible ? "Hide value" : "Show value");
+            if (isSecret() && !isVacant()) {
+                visibilityButton.setText(valueVisible ? "Hide" : "Show");
                 visibilityButton.setVisible(true);
                 valueCell.add(visibilityButton, BorderLayout.EAST);
             } else {
@@ -948,6 +1068,23 @@ public class APIEnvironmentConfigWindow extends JDialog {
             } else {
                 passwordField.setText(valueField.getText());
             }
+        }
+
+        private void updateVacantState() {
+            boolean vacant = isVacant();
+
+            secretCheckBox.setVisible(!vacant);
+            deleteButton.setVisible(!vacant);
+            visibilityButton.setVisible(!vacant && isSecret());
+
+            secretCell.revalidate();
+            secretCell.repaint();
+
+            deleteCell.revalidate();
+            deleteCell.repaint();
+
+            valueCell.revalidate();
+            valueCell.repaint();
         }
 
         public void focusNameField() {
@@ -969,17 +1106,24 @@ public class APIEnvironmentConfigWindow extends JDialog {
         public boolean isSecret() {
             return secretCheckBox.isSelected();
         }
+
+        public boolean isVacant() {
+            String name = getVariableName().trim();
+            String value = getVariableValue().trim();
+
+            return name.isEmpty() && value.isEmpty() && !secretCheckBox.isSelected();
+        }
     }
 
-    private JButton createInlineIconButton(String text) {
+    private JButton createSmallTextButton(String text) {
         JButton button = new JButton(text);
         button.setBorderPainted(false);
         button.setContentAreaFilled(false);
         button.setFocusPainted(false);
         button.setForeground(getSecondaryTextColor());
-        button.setFont(button.getFont().deriveFont(Font.BOLD, 15f));
+        button.setFont(button.getFont().deriveFont(Font.BOLD, 12f));
         button.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-        button.setPreferredSize(new Dimension(34, 30));
+        button.setPreferredSize(new Dimension(72, 30));
         return button;
     }
 }
