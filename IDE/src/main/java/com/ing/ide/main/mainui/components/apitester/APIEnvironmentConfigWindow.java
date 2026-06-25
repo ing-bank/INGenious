@@ -27,11 +27,12 @@ public class APIEnvironmentConfigWindow extends JDialog {
     private static final Color TEXT_SECONDARY = new Color(145, 145, 145);
     private static final Color ACCENT = new Color(225, 180, 72);
 
-    private static final int ROW_HEIGHT = 48;
-    private static final int HEADER_HEIGHT = 44;
+    private static final int ROW_HEIGHT = 35;
+    private static final int HEADER_HEIGHT = 30;
     private static final int SIDE_PANEL_WIDTH = 255;
     private static final int SECRET_COLUMN_WIDTH = 110;
     private static final int ACTION_COLUMN_WIDTH = 90;
+    private static final int ENVIRONMENT_ROW_HEIGHT = 34;
 
     private static final double NAME_COLUMN_RATIO = 0.38;
     private static final double VALUE_COLUMN_RATIO = 0.62;
@@ -222,7 +223,7 @@ public class APIEnvironmentConfigWindow extends JDialog {
 
         selectedEnvironmentTitle = new JLabel("No Environment Selected");
         selectedEnvironmentTitle.setFont(
-            selectedEnvironmentTitle.getFont().deriveFont(Font.BOLD, 18f)
+            selectedEnvironmentTitle.getFont().deriveFont(Font.BOLD, 16f)
         );
         selectedEnvironmentTitle.setForeground(getPrimaryTextColor());
 
@@ -325,13 +326,17 @@ public class APIEnvironmentConfigWindow extends JDialog {
 
         header.add(createHeaderCell("Name", true));
         header.add(createHeaderCell("Value", true));
-        header.add(createHeaderCell("Secret", true));
+        header.add(createHeaderCell("Secret", true, SwingConstants.CENTER));
         header.add(createHeaderCell("", false));
 
         return header;
     }
 
     private JPanel createHeaderCell(String text, boolean rightBorder) {
+        return createHeaderCell(text, rightBorder, SwingConstants.LEFT);
+    }
+
+    private JPanel createHeaderCell(String text, boolean rightBorder, int horizontalAlignment) {
         JPanel cell = new JPanel(new BorderLayout());
         cell.setOpaque(true);
         cell.setBackground(getTableBackground());
@@ -343,6 +348,7 @@ public class APIEnvironmentConfigWindow extends JDialog {
         );
 
         JLabel label = new JLabel(text);
+        label.setHorizontalAlignment(horizontalAlignment);
         label.setFont(label.getFont().deriveFont(Font.BOLD, 13f));
         label.setForeground(getPrimaryTextColor());
 
@@ -439,7 +445,7 @@ public class APIEnvironmentConfigWindow extends JDialog {
             }
 
             environmentListPanel.add(createEnvironmentRow(environment));
-            environmentListPanel.add(Box.createVerticalStrut(6));
+            environmentListPanel.add(Box.createVerticalStrut(4));
         }
 
         environmentListPanel.revalidate();
@@ -450,8 +456,8 @@ public class APIEnvironmentConfigWindow extends JDialog {
         boolean selected = isSelectedEnvironment(environment);
 
         JPanel row = new JPanel(new BorderLayout(8, 0));
-        row.setMaximumSize(new Dimension(Integer.MAX_VALUE, 42));
-        row.setPreferredSize(new Dimension(220, 42));
+        row.setMaximumSize(new Dimension(Integer.MAX_VALUE, ENVIRONMENT_ROW_HEIGHT));
+        row.setPreferredSize(new Dimension(220, ENVIRONMENT_ROW_HEIGHT));
         row.setBorder(new EmptyBorder(0, 14, 0, 12));
         row.setBackground(selected ? getSelectedRowColor() : getWindowBackground());
         row.setOpaque(true);
