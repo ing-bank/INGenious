@@ -85,6 +85,8 @@ public class APITesterUI extends JPanel implements PropertyChangeListener {
         // Recursively refresh all child panels
         refreshColorsRecursive(this);
 
+        updateEnvironmentSelectorButtonStyle();
+
         // Force repaint
         revalidate();
         repaint();
@@ -256,6 +258,7 @@ public class APITesterUI extends JPanel implements PropertyChangeListener {
         environmentSelectorButton.setFocusPainted(false);
         environmentSelectorButton.setText(getEnvironmentSelectorButtonText());
         environmentSelectorButton.addActionListener(e -> showEnvironmentDropdown());
+        updateEnvironmentSelectorButtonStyle();
 
         JPanel leftPart = new JPanel(new FlowLayout(FlowLayout.LEFT, 5, 0));
         leftPart.setOpaque(false);
@@ -817,6 +820,7 @@ public class APITesterUI extends JPanel implements PropertyChangeListener {
             try {
                 environmentSelectorButton.setText(getEnvironmentSelectorButtonText());
                 environmentSelectorButton.setToolTipText(getEnvironmentSelectorToolTipText());
+                updateEnvironmentSelectorButtonStyle();
             } finally {
                 updatingEnvironmentSelector = false;
             }
@@ -940,6 +944,7 @@ public class APITesterUI extends JPanel implements PropertyChangeListener {
             createEnvironmentPopupRow(
                 "No Environment",
                 activeEnvironment == null,
+                true,
                 () -> {
                     apiTester.setActiveEnvironment(null);
                     updateEnvironmentSelector();
@@ -965,6 +970,7 @@ public class APITesterUI extends JPanel implements PropertyChangeListener {
                 createEnvironmentPopupRow(
                     rowText,
                     isActiveEnvironment(envToSelect),
+                    false,
                     () -> {
                         apiTester.setActiveEnvironment(envToSelect);
                         updateEnvironmentSelector();
@@ -994,6 +1000,7 @@ public class APITesterUI extends JPanel implements PropertyChangeListener {
         JPanel configureRow = createEnvironmentPopupRow(
             "\u2699  Configure",
             false,
+            false,
             () -> {
                 popup.setVisible(false);
                 showEnvironmentConfigurationWindow();
@@ -1012,12 +1019,16 @@ public class APITesterUI extends JPanel implements PropertyChangeListener {
         return footerPanel;
     }
 
-    private JPanel createEnvironmentPopupRow(String text, boolean selected, Runnable action) {
+    private JPanel createEnvironmentPopupRow(
+        String text,
+        boolean selected,
+        boolean dottedSelectedOutline,
+        Runnable action
+    ) {
         JPanel row = new JPanel(new BorderLayout());
         row.setOpaque(true);
         row.setMaximumSize(new Dimension(Integer.MAX_VALUE, 34));
         row.setPreferredSize(new Dimension(220, 34));
-        row.setBorder(new EmptyBorder(5, 12, 5, 12));
         row.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 
         Color normalBackground = APITesterColors.panelBackground();
@@ -1027,10 +1038,23 @@ public class APITesterUI extends JPanel implements PropertyChangeListener {
             : new Color(235, 235, 235);
 
         Color selectedBackground = APITesterColors.isDarkMode()
-            ? new Color(110, 64, 201, 90)
-            : new Color(110, 64, 201, 35);
+            ? new Color(110, 64, 201, 70)
+            : new Color(110, 64, 201, 25);
 
         row.setBackground(selected ? selectedBackground : normalBackground);
+
+        javax.swing.border.Border paddingBorder = new EmptyBorder(5, 12, 5, 12);
+
+        if (selected && dottedSelectedOutline) {
+            row.setBorder(
+                BorderFactory.createCompoundBorder(
+                    new DottedBorder(new Color(110, 64, 201, 120), 2, 6),
+                    paddingBorder
+                )
+            );
+        } else {
+            row.setBorder(paddingBorder);
+        }
 
         JLabel label = new JLabel(text);
         label.setFont(label.getFont().deriveFont(Font.BOLD, 12f));
@@ -1095,6 +1119,85 @@ public class APITesterUI extends JPanel implements PropertyChangeListener {
         APIEnvironmentConfigWindow window = new APIEnvironmentConfigWindow(owner, apiTester, this);
 
         window.setVisible(true);
+    }
+
+    private static class DottedBorder implements javax.swing.border.Border {
+        private final Color color;
+        private final int thickness;
+        private final int arc;
+
+        DottedBorder(Color color, int thickness, int arc) {
+            this.color = color;
+            this.thickness = thickness;
+            this.arc = arc;
+        }
+
+        @Override
+        public void paintBorder(Component c, Graphics g, int x, int y, int width, int height) {
+            Graphics2D g2 = (Graphics2D) g.create();
+
+            try {
+                g2.setColor(color);
+                g2.setStroke(
+                    new BasicStroke(
+                        thickness,
+                        BasicStroke.CAP_ROUND,
+                        BasicStroke.JOIN_ROUND,
+                        0,
+                        new float[] { 6f, 4f },
+                        0
+                    )
+                );
+
+                int offset = thickness;
+                g2.drawRoundRect(
+                    x + offset,
+                    y + offset,
+                    width - thickness * 2 - 1,
+                    height - thickness * 2 - 1,
+                    arc,
+                    arc
+                );
+            } finally {
+                g2.dispose();
+            }
+        }
+
+        @Override
+        public Insets getBorderInsets(Component c) {
+            return new Insets(thickness, thickness, thickness, thickness);
+        }
+
+        @Override
+        public boolean isBorderOpaque() {
+            return false;
+        }
+    }
+
+    private void updateEnvironmentSelectorButtonStyle() {
+        if (environmentSelectorButton == null) {
+            return;
+        }
+
+        boolean noActualEnvironmentSelected = apiTester.getActiveEnvironment() == null;
+
+        javax.swing.border.Border paddingBorder = new EmptyBorder(4, 10, 4, 10);
+
+        if (noActualEnvironmentSelected) {
+            environmentSelectorButton.setBorder(
+                BorderFactory.createCompoundBorder(
+                    new DottedBorder(new Color(110, 64, 201, 120), 2, 6),
+                    paddingBorder
+                )
+            );
+        } else {
+            environmentSelectorButton.setBorder(
+                BorderFactory.createCompoundBorder(
+                    UIManager.getBorder("Button.border"),
+                    paddingBorder
+                )
+            );
+        }
     }
 
     // ═══════════════════════════════════════════════════════════════════
