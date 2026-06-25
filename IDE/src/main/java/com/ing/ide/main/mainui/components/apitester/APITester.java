@@ -199,20 +199,92 @@ public class APITester implements SlideShow.SlideChangeListener {
         apiTesterUI.updateEnvironmentSelector();
     }
 
-    public void removeEnvironment(APIEnvironment environment) {
+    public void deleteEnvironment(APIEnvironment environment) {
+        if (environment == null) {
+            return;
+        }
+
         environments.remove(environment);
+
         if (activeEnvironment == environment) {
             activeEnvironment = null;
             httpClient.setEnvironment(null);
         }
+
+        Path apiPath = getApiDataPath();
+        if (apiPath != null) {
+            Path filePath = apiPath
+                .resolve("environments")
+                .resolve(sanitizeFileName(environment.getName()) + ".json");
+
+            try {
+                Files.deleteIfExists(filePath);
+            } catch (IOException e) {
+                LOG.log(Level.WARNING, "Failed to delete environment file: " + filePath, e);
+            }
+        }
+
         saveEnvironments();
         apiTesterUI.updateEnvironmentSelector();
     }
 
     public APIEnvironment createNewEnvironment(String name) {
-        APIEnvironment environment = new APIEnvironment(name);
+        if (name == null || name.trim().isEmpty()) {
+            throw new IllegalArgumentException("Environment name is required.");
+        }
+
+        String trimmedName = name.trim();
+
+        if (environmentNameExists(trimmedName, null)) {
+            throw new IllegalArgumentException("An environment with this name already exists.");
+        }
+
+        APIEnvironment environment = new APIEnvironment(trimmedName);
         addEnvironment(environment);
         return environment;
+    }
+
+    public void renameEnvironment(APIEnvironment environment, String newName) {
+        if (environment == null || newName == null || newName.trim().isEmpty()) {
+            return;
+        }
+
+        String trimmedName = newName.trim();
+
+        if (environmentNameExists(trimmedName, environment)) {
+            throw new IllegalArgumentException("An environment with this name already exists.");
+        }
+
+        String oldName = environment.getName();
+
+        Path apiPath = getApiDataPath();
+        if (apiPath != null && oldName != null) {
+            Path oldFilePath = apiPath
+                .resolve("environments")
+                .resolve(sanitizeFileName(oldName) + ".json");
+
+            try {
+                Files.deleteIfExists(oldFilePath);
+            } catch (IOException e) {
+                LOG.log(Level.WARNING, "Failed to delete old environment file: " + oldFilePath, e);
+            }
+        }
+
+        environment.setName(trimmedName);
+
+        saveEnvironments();
+        apiTesterUI.updateEnvironmentSelector();
+    }
+
+    public void saveEnvironment(APIEnvironment environment) {
+        if (environment == null) {
+            return;
+        }
+
+        environment.setUpdatedAt(System.currentTimeMillis());
+
+        saveEnvironments();
+        apiTesterUI.updateEnvironmentSelector();
     }
 
     // ═══════════════════════════════════════════════════════════════════
@@ -439,6 +511,23 @@ public class APITester implements SlideShow.SlideChangeListener {
         try {
             Files.createDirectories(envsPath);
 
+            Files
+                .list(envsPath)
+                .filter(p -> p.toString().endsWith(".json"))
+                .forEach(
+                    p -> {
+                        try {
+                            Files.deleteIfExists(p);
+                        } catch (IOException e) {
+                            LOG.log(
+                                Level.WARNING,
+                                "Failed to delete old environment file: " + p,
+                                e
+                            );
+                        }
+                    }
+                );
+
             for (APIEnvironment env : environments) {
                 Path filePath = envsPath.resolve(sanitizeFileName(env.getName()) + ".json");
                 objectMapper.writeValue(filePath.toFile(), env);
@@ -485,6 +574,29 @@ public class APITester implements SlideShow.SlideChangeListener {
     private String sanitizeFileName(String name) {
         if (name == null) return "unnamed";
         return name.replaceAll("[^a-zA-Z0-9.-]", "_");
+    }
+
+    public boolean environmentNameExists(String name, APIEnvironment excludedEnvironment) {
+        if (name == null) {
+            return false;
+        }
+
+        String normalizedName = name.trim();
+
+        for (APIEnvironment environment : environments) {
+            if (environment == null || environment == excludedEnvironment) {
+                continue;
+            }
+
+            String environmentName = environment.getName();
+            if (
+                environmentName != null && environmentName.trim().equalsIgnoreCase(normalizedName)
+            ) {
+                return true;
+            }
+        }
+
+        return false;
     }
 
     /**
