@@ -1385,14 +1385,14 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
             }
 
             /*
-             * For non-global TestData, FrozenColumnScrollPane removes model columns 0-3
-             * from the main scrollable table.
-             *
-             * Therefore:
-             * main table view column 0 == model column 4
-             *
-             * A prompt insert boundary at view index N maps to model index N + 4.
-             */
+            * For non-global TestData, FrozenColumnScrollPane removes model columns 0-4
+            * from the main scrollable table.
+            *
+            * Therefore:
+            * main table view column 0 == model column 5
+            *
+            * A prompt insert boundary at view index N maps to model index N + 5.
+            */
             if (frozenScrollPane != null) {
                 JTable fixedTable = frozenScrollPane.getFixedTable();
 
@@ -1400,7 +1400,7 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
                     fixedTable.clearSelection();
                 }
 
-                int modelInsertIndex = Math.max(4, Math.min(viewInsertIndex + 4, modelColumnCount));
+                int modelInsertIndex = Math.max(5, Math.min(viewInsertIndex + 5, modelColumnCount));
 
                 if (modelInsertIndex >= modelColumnCount) {
                     std.addColumn();
