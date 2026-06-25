@@ -584,27 +584,26 @@ public class APIEnvironmentConfigWindow extends JDialog {
             return;
         }
 
-        boolean changed = false;
+        boolean removedRow = false;
 
         for (int i = variableRows.size() - 1; i >= 0; i--) {
             VariableRowPanel row = variableRows.get(i);
 
             if (row.isVacant() && i != variableRows.size() - 1) {
                 variableRows.remove(i);
-                changed = true;
+                removedRow = true;
             }
         }
 
         if (variableRows.isEmpty() || !variableRows.get(variableRows.size() - 1).isVacant()) {
             addVariableRow("", "", false);
-            changed = true;
         }
 
         for (VariableRowPanel row : variableRows) {
             row.updateVacantState();
         }
 
-        if (changed) {
+        if (removedRow) {
             refreshVariableRows();
         } else {
             variableRowsPanel.revalidate();
@@ -887,6 +886,8 @@ public class APIEnvironmentConfigWindow extends JDialog {
         private final JCheckBox secretCheckBox;
         private final JButton visibilityButton;
         private final JButton deleteButton;
+        private final JPanel valueEditorPanel;
+        private final JPanel visibilityButtonWrapper;
         private JPanel valueCell;
         private JPanel secretCell;
         private JPanel deleteCell;
@@ -914,6 +915,13 @@ public class APIEnvironmentConfigWindow extends JDialog {
             addTextChangeListener(nameField);
             addTextChangeListener(valueField);
             addTextChangeListener(passwordField);
+
+            valueEditorPanel = new JPanel(new BorderLayout());
+            valueEditorPanel.setOpaque(false);
+
+            visibilityButtonWrapper = new JPanel(new BorderLayout());
+            visibilityButtonWrapper.setOpaque(false);
+            visibilityButtonWrapper.setPreferredSize(new Dimension(76, 30));
 
             secretCheckBox = new JCheckBox();
             secretCheckBox.setHorizontalAlignment(SwingConstants.CENTER);
@@ -987,6 +995,10 @@ public class APIEnvironmentConfigWindow extends JDialog {
 
         private JPanel createValueCell() {
             valueCell = createBodyCell(true, new Insets(0, 20, 0, 14));
+            valueCell.setLayout(new BorderLayout());
+            valueCell.add(valueEditorPanel, BorderLayout.CENTER);
+            valueCell.add(visibilityButtonWrapper, BorderLayout.EAST);
+            visibilityButtonWrapper.add(visibilityButton, BorderLayout.CENTER);
             return valueCell;
         }
 
@@ -1042,24 +1054,25 @@ public class APIEnvironmentConfigWindow extends JDialog {
         private void updateValueEditor() {
             syncValueFields();
 
-            valueCell.removeAll();
+            valueEditorPanel.removeAll();
 
             if (isSecret() && !valueVisible) {
-                valueCell.add(passwordField, BorderLayout.CENTER);
+                valueEditorPanel.add(passwordField, BorderLayout.CENTER);
             } else {
-                valueCell.add(valueField, BorderLayout.CENTER);
+                valueEditorPanel.add(valueField, BorderLayout.CENTER);
             }
 
             if (isSecret() && !isVacant()) {
                 visibilityButton.setText(valueVisible ? "Hide" : "Show");
                 visibilityButton.setVisible(true);
-                valueCell.add(visibilityButton, BorderLayout.EAST);
             } else {
                 visibilityButton.setVisible(false);
             }
 
-            valueCell.revalidate();
-            valueCell.repaint();
+            valueEditorPanel.revalidate();
+            valueEditorPanel.repaint();
+            visibilityButtonWrapper.revalidate();
+            visibilityButtonWrapper.repaint();
         }
 
         private void syncValueFields() {
