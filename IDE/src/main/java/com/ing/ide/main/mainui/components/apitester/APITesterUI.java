@@ -41,6 +41,8 @@ public class APITesterUI extends JPanel implements PropertyChangeListener {
     private APICollection sourceFolder; // Tracks which folder the request came from (null if in collection root)
     private boolean sourceHistory; // Tracks if request came from history
 
+    private static final Color ENVIRONMENT_PURPLE = new Color(0x6E40C9);
+
     public APITesterUI(APITester apiTester) {
         this.apiTester = apiTester;
         this.currentRequest = new APIRequest();
@@ -917,7 +919,7 @@ public class APITesterUI extends JPanel implements PropertyChangeListener {
         JPanel underlineWrapper = new JPanel(new BorderLayout());
         underlineWrapper.setOpaque(false);
         underlineWrapper.setBorder(
-            BorderFactory.createMatteBorder(0, 0, 2, 0, new Color(224, 196, 116))
+            BorderFactory.createMatteBorder(0, 0, 2, 0, new Color(0x6E40C9))
         );
         underlineWrapper.add(title, BorderLayout.CENTER);
 
@@ -998,9 +1000,14 @@ public class APITesterUI extends JPanel implements PropertyChangeListener {
             }
         );
 
-        configureRow.setBorder(new EmptyBorder(10, 12, 10, 12));
+        configureRow.setBorder(new EmptyBorder(7, 12, 7, 12));
 
-        footerPanel.add(configureRow, BorderLayout.CENTER);
+        JPanel configureWrapper = new JPanel(new BorderLayout());
+        configureWrapper.setOpaque(false);
+        configureWrapper.setBorder(new EmptyBorder(10, 10, 10, 10));
+        configureWrapper.add(configureRow, BorderLayout.CENTER);
+
+        footerPanel.add(configureWrapper, BorderLayout.CENTER);
 
         return footerPanel;
     }
@@ -1008,26 +1015,28 @@ public class APITesterUI extends JPanel implements PropertyChangeListener {
     private JPanel createEnvironmentPopupRow(String text, boolean selected, Runnable action) {
         JPanel row = new JPanel(new BorderLayout());
         row.setOpaque(true);
-        row.setMaximumSize(new Dimension(Integer.MAX_VALUE, 42));
-        row.setPreferredSize(new Dimension(220, 42));
-        row.setBorder(new EmptyBorder(8, 12, 8, 12));
+        row.setMaximumSize(new Dimension(Integer.MAX_VALUE, 34));
+        row.setPreferredSize(new Dimension(220, 34));
+        row.setBorder(new EmptyBorder(5, 12, 5, 12));
         row.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 
         Color normalBackground = APITesterColors.panelBackground();
-        Color hoverBackground = UIManager.getColor("List.selectionBackground") != null
-            ? UIManager.getColor("List.selectionBackground")
-            : new Color(55, 55, 55);
+
+        Color hoverBackground = APITesterColors.isDarkMode()
+            ? new Color(70, 70, 70)
+            : new Color(235, 235, 235);
+
         Color selectedBackground = APITesterColors.isDarkMode()
-            ? new Color(50, 47, 40)
-            : new Color(245, 238, 220);
+            ? new Color(110, 64, 201, 90)
+            : new Color(110, 64, 201, 35);
 
         row.setBackground(selected ? selectedBackground : normalBackground);
 
         JLabel label = new JLabel(text);
-        label.setFont(label.getFont().deriveFont(Font.BOLD, 13f));
+        label.setFont(label.getFont().deriveFont(Font.BOLD, 12f));
 
         if (selected) {
-            label.setForeground(new Color(224, 196, 116));
+            label.setForeground(ENVIRONMENT_PURPLE);
         } else {
             label.setForeground(UIManager.getColor("Label.foreground"));
         }
