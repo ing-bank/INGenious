@@ -33,6 +33,9 @@ public class APIEnvironmentConfigWindow extends JDialog {
     private static final int SECRET_COLUMN_WIDTH = 110;
     private static final int ACTION_COLUMN_WIDTH = 90;
 
+    private static final double NAME_COLUMN_RATIO = 0.38;
+    private static final double VALUE_COLUMN_RATIO = 0.62;
+
     private final APITester apiTester;
     private final APITesterUI apiTesterUI;
 
@@ -313,22 +316,16 @@ public class APIEnvironmentConfigWindow extends JDialog {
     }
 
     private JPanel createVariablesHeaderRow() {
-        JPanel header = new JPanel(new GridBagLayout());
+        JPanel header = new JPanel(new VariableTableRowLayout());
         header.setOpaque(true);
         header.setBackground(getTableBackground());
         header.setPreferredSize(new Dimension(0, HEADER_HEIGHT));
         header.setMaximumSize(new Dimension(Integer.MAX_VALUE, HEADER_HEIGHT));
 
-        header.add(createHeaderCell("Name", true), createCellConstraints(0, 0.38));
-        header.add(createHeaderCell("Value", true), createCellConstraints(1, 0.62));
-        header.add(
-            setFixedWidth(createHeaderCell("Secret", true), SECRET_COLUMN_WIDTH),
-            createFixedCellConstraints(2)
-        );
-        header.add(
-            setFixedWidth(createHeaderCell("", false), ACTION_COLUMN_WIDTH),
-            createFixedCellConstraints(3)
-        );
+        header.add(createHeaderCell("Name", true));
+        header.add(createHeaderCell("Value", true));
+        header.add(createHeaderCell("Secret", true));
+        header.add(createHeaderCell("", false));
 
         return header;
     }
@@ -879,6 +876,62 @@ public class APIEnvironmentConfigWindow extends JDialog {
         return APITesterColors.isDarkMode() ? DARK_ROW_HOVER : new Color(245, 245, 245);
     }
 
+    private class VariableTableRowLayout implements LayoutManager {
+
+        @Override
+        public void addLayoutComponent(String name, Component comp) {
+            // No-op
+        }
+
+        @Override
+        public void removeLayoutComponent(Component comp) {
+            // No-op
+        }
+
+        @Override
+        public Dimension preferredLayoutSize(Container parent) {
+            int height = parent == variablesTablePanel ? HEADER_HEIGHT : ROW_HEIGHT;
+            return new Dimension(SECRET_COLUMN_WIDTH + ACTION_COLUMN_WIDTH + 400, height);
+        }
+
+        @Override
+        public Dimension minimumLayoutSize(Container parent) {
+            int height = parent == variablesTablePanel ? HEADER_HEIGHT : ROW_HEIGHT;
+            return new Dimension(SECRET_COLUMN_WIDTH + ACTION_COLUMN_WIDTH + 120, height);
+        }
+
+        @Override
+        public void layoutContainer(Container parent) {
+            Component[] components = parent.getComponents();
+
+            if (components.length < 4) {
+                return;
+            }
+
+            int width = parent.getWidth();
+            int height = parent.getHeight();
+
+            int fixedWidth = SECRET_COLUMN_WIDTH + ACTION_COLUMN_WIDTH;
+            int flexibleWidth = Math.max(0, width - fixedWidth);
+
+            int nameWidth = (int) Math.round(flexibleWidth * NAME_COLUMN_RATIO);
+            int valueWidth = flexibleWidth - nameWidth;
+
+            int x = 0;
+
+            components[0].setBounds(x, 0, nameWidth, height);
+            x += nameWidth;
+
+            components[1].setBounds(x, 0, valueWidth, height);
+            x += valueWidth;
+
+            components[2].setBounds(x, 0, SECRET_COLUMN_WIDTH, height);
+            x += SECRET_COLUMN_WIDTH;
+
+            components[3].setBounds(x, 0, ACTION_COLUMN_WIDTH, height);
+        }
+    }
+
     private class VariableRowPanel extends JPanel {
         private final JTextField nameField;
         private final JTextField valueField;
@@ -894,7 +947,7 @@ public class APIEnvironmentConfigWindow extends JDialog {
         private boolean valueVisible;
 
         public VariableRowPanel(String name, String value, boolean secret) {
-            setLayout(new GridBagLayout());
+            setLayout(new VariableTableRowLayout());
             setOpaque(true);
             setBackground(getTableBackground());
             setPreferredSize(new Dimension(0, ROW_HEIGHT));
@@ -951,10 +1004,10 @@ public class APIEnvironmentConfigWindow extends JDialog {
             deleteButton.setToolTipText("Delete variable");
             deleteButton.addActionListener(e -> removeVariableRow(this));
 
-            add(createNameCell(), createCellConstraints(0, 0.38));
-            add(createValueCell(), createCellConstraints(1, 0.62));
-            add(createSecretCell(), createFixedCellConstraints(2));
-            add(createDeleteCell(), createFixedCellConstraints(3));
+            add(createNameCell());
+            add(createValueCell());
+            add(createSecretCell());
+            add(createDeleteCell());
 
             updateValueEditor();
             updateVacantState();
@@ -1004,14 +1057,12 @@ public class APIEnvironmentConfigWindow extends JDialog {
 
         private JPanel createSecretCell() {
             secretCell = createBodyCell(true, new Insets(0, 0, 0, 0));
-            secretCell = setFixedWidth(secretCell, SECRET_COLUMN_WIDTH);
             secretCell.add(secretCheckBox, BorderLayout.CENTER);
             return secretCell;
         }
 
         private JPanel createDeleteCell() {
             deleteCell = createBodyCell(false, new Insets(0, 0, 0, 0));
-            deleteCell = setFixedWidth(deleteCell, ACTION_COLUMN_WIDTH);
             deleteCell.add(deleteButton, BorderLayout.CENTER);
             return deleteCell;
         }
