@@ -323,7 +323,7 @@ public class APIEnvironmentConfigWindow extends JDialog {
         variablesTablePanel.setBorder(
             BorderFactory.createCompoundBorder(
                 new RoundedLineBorder(getBorderColor(), TABLE_CORNER_RADIUS),
-                new EmptyBorder(1, 1, 1, 1)
+                new EmptyBorder(1, 1, 0, 1)
             )
         );
 
