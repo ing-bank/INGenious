@@ -49,13 +49,13 @@ import javax.swing.ListCellRenderer;
 import javax.swing.SwingUtilities;
 import javax.swing.text.JTextComponent;
 
-    /**
-     * A checkbox-based list component with support for adding (typing + Enter),
-     * renaming (double-click or ✎ button → popup dialog), and deleting (✕ button with confirmation).
-     *
-     * @param <T> the type of items in the list
-     */
-    public class JSList<T> extends JPanel {
+/**
+ * A checkbox-based list component with support for adding (typing + Enter),
+ * renaming (double-click or ✎ button → popup dialog), and deleting (✕ button with confirmation).
+ *
+ * @param <T> the type of items in the list
+ */
+public class JSList<T> extends JPanel {
     private static final javax.swing.Icon ADD_NEW_ICON = INGIcons.swingColored("icon.addNew", 16);
     private ListPanel listPanel;
     private TopBar topBar;
@@ -183,10 +183,10 @@ import javax.swing.text.JTextComponent;
     }
 
     /**
-     * Refreshes the list display from the current model, preserving the add-field text filter.
+     * Refreshes the list display to show all items from the source model.
      */
     public void reload() {
-        fltrmodel.doFilter(topBar.addField.getText());
+        fltrmodel.doFilter("");
     }
 
     /**
