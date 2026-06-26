@@ -58,7 +58,6 @@ public class APIEnvironmentConfigWindow extends JDialog {
     private JPanel variablesTablePanel;
     private JPanel variableRowsPanel;
     private JScrollPane variablesScrollPane;
-    // CHECKPOINT
     private JPanel variablesOuterPanel;
     private JPanel bottomActionsPanel;
     private final List<VariableRowPanel> variableRows = new ArrayList<>();
