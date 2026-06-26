@@ -7,8 +7,9 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Cursor;
-import java.awt.Dimension;
 import java.awt.Font;
+import java.awt.Point;
+import java.awt.Rectangle;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyAdapter;
@@ -34,8 +35,6 @@ import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
 import javax.swing.DefaultListModel;
 import javax.swing.DefaultListSelectionModel;
-import javax.swing.ImageIcon;
-import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
@@ -48,24 +47,16 @@ import javax.swing.JToolBar;
 import javax.swing.KeyStroke;
 import javax.swing.ListCellRenderer;
 import javax.swing.SwingUtilities;
-import javax.swing.border.Border;
-import javax.swing.border.EmptyBorder;
-import javax.swing.event.DocumentEvent;
-import javax.swing.event.DocumentListener;
-import javax.swing.text.BadLocationException;
-import javax.swing.text.Document;
 import javax.swing.text.JTextComponent;
 
-/**
- * A searchable, checkbox-based list component with support for adding, removing,
- * renaming (double-click), and deleting tags.
- *
- * @param <T>
- */
-public class JSList<T> extends JPanel {
+    /**
+     * A checkbox-based list component with support for adding (typing + Enter),
+     * renaming (double-click or ✎ button → popup dialog), and deleting (✕ button with confirmation).
+     *
+     * @param <T> the type of items in the list
+     */
+    public class JSList<T> extends JPanel {
     private static final javax.swing.Icon ADD_NEW_ICON = INGIcons.swingColored("icon.addNew", 16);
-    private static final javax.swing.Icon DELETE_ICON = INGIcons.swingColored("icon.delete", 12);
-    private static final javax.swing.Icon RENAME_ICON = INGIcons.swingColored("icon.edit", 12);
     private ListPanel listPanel;
     private TopBar topBar;
     private Consumer<List<T>> onSelect;
@@ -77,14 +68,31 @@ public class JSList<T> extends JPanel {
     private boolean isAdjusting = false;
     private FilterModel fltrmodel;
 
+    /**
+     * Creates a JSList with the given model, using toString() for display.
+     * @param srcmodel the initial list of items
+     */
     public JSList(List srcmodel) {
         this(srcmodel, Object::toString, null);
     }
 
+    /**
+     * Creates a JSList with a custom display mapper and an optional add handler.
+     * @param srcmodel the initial list of items
+     * @param mapper   function to convert items to display text
+     * @param onAdd    callback invoked when the user creates a new item via the add field; null to disable adding
+     */
     public JSList(List srcmodel, Function<T, String> mapper, Function<String, T> onAdd) {
         this(srcmodel, mapper, onAdd, (e, k) -> k.isEmpty() || e.contains(k));
     }
 
+    /**
+     * Creates a JSList with full control over display, add, and filtering.
+     * @param srcmodel  the initial list of items
+     * @param mapper    function to convert items to display text
+     * @param onAdd     callback invoked when the user creates a new item; null to disable adding
+     * @param predicate filter predicate: (displayText, searchKeyword) → true if item matches
+     */
     public JSList(
         List srcmodel,
         Function<T, String> mapper,
@@ -95,27 +103,45 @@ public class JSList<T> extends JPanel {
         this.mapper = mapper;
         fltrmodel = new FilterModel(srcmodel, mapper, predicate);
         setLayout(new java.awt.BorderLayout());
-        topBar = new TopBar(fltrmodel::doFilter);
+        topBar = new TopBar();
         add(topBar, java.awt.BorderLayout.NORTH);
         listPanel = new ListPanel(fltrmodel, mapper);
         add(listPanel, java.awt.BorderLayout.CENTER);
         setSize(300, 380);
     }
 
+    /**
+     * Registers a callback fired whenever the set of selected items changes.
+     * @param onSelect consumer receiving the new selection list
+     */
     public void setOnSelect(Consumer<List<T>> onSelect) {
         this.onSelect = onSelect;
     }
 
+    /**
+     * Registers a callback fired when an item is removed (e.g. via the ✕ button).
+     * @param onRemove consumer receiving the removed item
+     * @return this instance for chaining
+     */
     public JSList withOnRemove(Consumer<T> onRemove) {
         this.onRemove = onRemove;
         return this;
     }
 
+    /**
+     * Registers a callback fired when an item is renamed.
+     * @param onUpdate bi-consumer receiving (item, newName)
+     * @return this instance for chaining
+     */
     public JSList withOnUpdate(BiConsumer<T, String> onUpdate) {
         this.onUpdate = onUpdate;
         return this;
     }
 
+    /**
+     * Sets the currently selected items. The checkboxes will reflect this set.
+     * @param selected items to mark as selected; null is treated as empty
+     */
     public void setSelected(List<T> selected) {
         this.selected.clear();
         if (selected != null) {
@@ -124,18 +150,31 @@ public class JSList<T> extends JPanel {
         listPanel.reselect();
     }
 
+    /**
+     * Returns the currently selected items.
+     * @return list of selected items (never null)
+     */
     public List<T> getSelected() {
         return listPanel.getSelected();
     }
 
+    /**
+     * Adds an item to the list model and marks it as selected.
+     * @param t the item to add
+     */
     public void add(T t) {
         fltrmodel.srcmodel.add(t);
         selected.add(t);
-        fltrmodel.doFilter(mapper.apply(t));
+        reload();
     }
 
+    /**
+     * Removes an item from the list and calls the onRemove callback.
+     * If onRemove is null or t is null, this is a no-op.
+     * @param t the item to remove
+     */
     public void remove(T t) {
-        if (onRemove != null) {
+        if (onRemove != null && t != null) {
             onRemove.accept(t);
             fltrmodel.srcmodel.remove(t);
             selected.remove(t);
@@ -143,13 +182,17 @@ public class JSList<T> extends JPanel {
         }
     }
 
+    /**
+     * Refreshes the list display from the current model, preserving the add-field text filter.
+     */
     public void reload() {
-        fltrmodel.doFilter(topBar.searchBox.getText());
+        fltrmodel.doFilter(topBar.addField.getText());
     }
 
     /**
-     * Prompts the user to rename the given tag, calls onUpdate if the name
-     * actually changed, and refreshes the list.
+     * Opens a popup dialog to rename the given tag. Calls onUpdate if the name
+     * actually changed, then refreshes the list. If onUpdate is null this is a no-op.
+     * @param tag the tag to rename
      */
     public void rename(T tag) {
         if (onUpdate == null) {
@@ -198,21 +241,20 @@ public class JSList<T> extends JPanel {
     }
 
     class TopBar extends JPanel {
-        JTextField searchBox = new javax.swing.JTextField(28);
+        JTextField addField = new javax.swing.JTextField(28);
 
-        public TopBar(Consumer<Object> onUpdate) {
+        public TopBar() {
             JToolBar tbar = getToolbar();
-            searchBox.getDocument().addDocumentListener(new SearchFieldListener(onUpdate));
-            searchBox.addKeyListener(onEscape());
+            addField.addActionListener(e -> onAddT(addField.getText()));
             JPanel textfieldWithButton = new JPanel(new BorderLayout());
-            textfieldWithButton.add(withToolbar(searchBox, getClearButton(searchBox)));
-            textfieldWithButton.setBorder(searchBox.getBorder());
+            textfieldWithButton.add(withToolbar(addField, getClearButton(addField)));
+            textfieldWithButton.setBorder(addField.getBorder());
             tbar.add(textfieldWithButton);
             if (onAdd != null) {
-                JButton add = new JButton();
-                add.setIcon(ADD_NEW_ICON);
-                add.addActionListener(anyting -> onAddT(searchBox.getText()));
-                tbar.add(add);
+                javax.swing.JButton addBtn = new javax.swing.JButton();
+                addBtn.setIcon(ADD_NEW_ICON);
+                addBtn.addActionListener(anyting -> onAddT(addField.getText()));
+                tbar.add(addBtn);
             }
             tbar.setLayout(new BoxLayout(tbar, BoxLayout.LINE_AXIS));
             setLayout(new java.awt.BorderLayout());
@@ -237,63 +279,18 @@ public class JSList<T> extends JPanel {
             return tbar;
         }
 
-        private JButton getClearButton(JTextComponent parent) {
-            JButton clear = new JButton(" x ");
+        private javax.swing.JButton getClearButton(JTextComponent parent) {
+            javax.swing.JButton clear = new javax.swing.JButton(" x ");
             clear.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 14));
-            clear.addActionListener(
-                (ActionEvent e) -> {
-                    parent.setText("");
-                }
-            );
+            clear.addActionListener((ActionEvent e) -> parent.setText(""));
             return clear;
         }
 
-        private KeyAdapter onEscape() {
-            return new KeyAdapter() {
-
-                @Override
-                public void keyPressed(KeyEvent ke) {
-                    if (ke.getKeyCode() == KeyEvent.VK_ESCAPE) {
-                        ((JTextComponent) ke.getSource()).setText("");
-                    }
-                }
-            };
-        }
-
         private void onAddT(String txt) {
-            if (!txt.trim().isEmpty()) {
+            if (!txt.trim().isEmpty() && onAdd != null) {
                 JSList.this.add(onAdd.apply(txt));
-            }
-        }
-
-        public class SearchFieldListener implements DocumentListener {
-            Consumer<Object> onUpdate;
-
-            public SearchFieldListener(Consumer<Object> fltrC) {
-                this.onUpdate = fltrC;
-            }
-
-            @Override
-            public void insertUpdate(DocumentEvent de) {
-                updateFilter(de.getDocument());
-            }
-
-            protected void updateFilter(Document doc) {
-                try {
-                    onUpdate.accept(Objects.toString(doc.getText(0, doc.getLength()), ""));
-                } catch (BadLocationException ex) {
-                    Logger.getLogger(JSList.class.getName()).log(Level.SEVERE, null, ex);
-                }
-            }
-
-            @Override
-            public void removeUpdate(DocumentEvent de) {
-                updateFilter(de.getDocument());
-            }
-
-            @Override
-            public void changedUpdate(DocumentEvent de) {
-                updateFilter(de.getDocument());
+                addField.setText("");
+                addField.requestFocus();
             }
         }
     }
@@ -309,8 +306,10 @@ public class JSList<T> extends JPanel {
             list.setCellRenderer(new CheckBoxListRenderer(mapper));
             sp.setViewportView(list);
             add(sp, BorderLayout.CENTER);
-            list.setSelectionModel(new MultiSelectionModel(this::onSelect));
-            list.addKeyListener(onDelete());
+
+            list.setSelectionModel(new ListSelectionModel());
+            list.addMouseListener(new ListMouseHandler());
+
             int SHORTCUT = Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx();
             list
                 .getInputMap(JComponent.WHEN_FOCUSED)
@@ -323,26 +322,89 @@ public class JSList<T> extends JPanel {
 
                         @Override
                         public void actionPerformed(ActionEvent ae) {
-                            list.setSelectionInterval(0, list.getModel().getSize() - 1);
+                            int size = list.getModel().getSize();
+                            for (int i = 0; i < size; i++) {
+                                T item = (T) list.getModel().getElementAt(i);
+                                selected.add(item);
+                            }
+                            list.repaint();
+                            onSelect();
                         }
                     }
                 );
         }
 
-        private KeyAdapter onDelete() {
-            return new KeyAdapter() {
+        /**
+         * Mouse handler on the JList. Routes clicks based on X coordinate.
+         * Zones: [checkbox 0-25] [label 25 ~ width-60] [rename width-60 ~ width-30] [delete width-30 ~ end]
+         */
+        class ListMouseHandler extends MouseAdapter {
+            private static final int CHECKBOX_WIDTH = 25;
+            private static final int BUTTON_WIDTH = 30;
 
-                @Override
-                public void keyPressed(KeyEvent ke) {
-                    if (ke.getKeyCode() == KeyEvent.VK_DELETE) {
-                        onRemove(((CheckBoxListRenderer) list.getCellRenderer()).getFocused());
-                    }
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                if (!SwingUtilities.isLeftMouseButton(e)) {
+                    return;
                 }
-            };
-        }
+                int idx = list.locationToIndex(e.getPoint());
+                if (idx < 0 || idx >= list.getModel().getSize()) {
+                    return;
+                }
+                Rectangle cellBounds = list.getCellBounds(idx, idx);
+                if (cellBounds == null || !cellBounds.contains(e.getPoint())) {
+                    // Click is in empty space, not on a cell
+                    return;
+                }
+                @SuppressWarnings("unchecked")
+                T item = (T) list.getModel().getElementAt(idx);
 
-        private void onRemove(T t) {
-            JSList.this.remove(t);
+                int relativeX = (int) (e.getX() - cellBounds.getX());
+                int cellWidth = (int) cellBounds.getWidth();
+
+                int renameBtnX = Math.max(cellWidth - BUTTON_WIDTH * 2, 0);
+                int deleteBtnX = Math.max(cellWidth - BUTTON_WIDTH, 0);
+
+                if (e.getClickCount() == 2) {
+                    // Double-click on label area → popup rename dialog
+                    if (relativeX > CHECKBOX_WIDTH && relativeX < renameBtnX) {
+                        rename(item);
+                        return;
+                    }
+                } else {
+                    if (relativeX < CHECKBOX_WIDTH) {
+                        toggleSelection(item);
+                        return;
+                    } else if (relativeX >= renameBtnX && relativeX < deleteBtnX) {
+                        rename(item);
+                        return;
+                    } else if (relativeX >= deleteBtnX) {
+                        // Confirm delete
+                        int confirm = JOptionPane.showConfirmDialog(
+                            JSList.this,
+                            "Delete tag \"" + mapper.apply(item) + "\"?",
+                            "Delete Tag",
+                            JOptionPane.YES_NO_OPTION,
+                            JOptionPane.WARNING_MESSAGE
+                        );
+                        if (confirm == JOptionPane.YES_OPTION) {
+                            JSList.this.remove(item);
+                        }
+                        return;
+                    }
+                    // Clicks on label area do nothing (only checkbox toggles)
+                }
+            }
+
+            private void toggleSelection(T item) {
+                if (selected.contains(item)) {
+                    selected.remove(item);
+                } else {
+                    selected.add(item);
+                }
+                list.repaint();
+                onSelect();
+            }
         }
 
         private void onSelect() {
@@ -352,77 +414,45 @@ public class JSList<T> extends JPanel {
         }
 
         public List<T> getSelected() {
-            return list.getSelectedValuesList();
+            return new ArrayList<>(selected);
         }
 
         private void reselect() {
             isAdjusting = true;
-            items().stream().filter(selected::contains).forEach(this::selectIt);
+            int size = list.getModel().getSize();
+            for (int i = 0; i < size; i++) {
+                T item = (T) list.getModel().getElementAt(i);
+                if (selected.contains(item)) {
+                    list.addSelectionInterval(i, i);
+                } else {
+                    list.removeSelectionInterval(i, i);
+                }
+            }
             isAdjusting = false;
         }
 
-        private void selectIt(Object t) {
-            if (!list.isSelectedIndex(items().indexOf(t))) {
-                list.setSelectedValue(t, false);
-            }
-        }
-
-        private List<Object> items() {
-            return ((FilterModel) list.getModel()).items();
-        }
-
-        class MultiSelectionModel extends DefaultListSelectionModel {
-            Runnable r;
-
-            public MultiSelectionModel(Runnable r) {
-                this.r = r;
-            }
+        class ListSelectionModel extends DefaultListSelectionModel {
 
             @Override
             public void setSelectionInterval(int index0, int index1) {
-                // This is called when the user clicks on a row.
-                // We now ONLY toggle the checkbox when the user explicitly clicked on it.
-                // To achieve this, we no longer toggle selection on row click here.
-                // Instead, selection is handled by the CheckBoxListRenderer mouse listener.
-                // For backward compatibility, if the index is invalid, do nothing.
-                if (index0 < 0 || index0 >= items().size()) {
-                    return;
+                if (isAdjusting) {
+                    super.setSelectionInterval(index0, index1);
                 }
-                T item = (T) items().get(index0);
-                if (super.isSelectedIndex(index0)) {
-                    if (selected.contains(item)) {
-                        if (!isAdjusting) {
-                            selected.remove(item);
-                        }
-                    }
-                    super.removeSelectionInterval(index0, index1);
-                } else {
-                    selected.add(item);
-                    super.addSelectionInterval(index0, index1);
-                }
-                r.run();
             }
         }
 
         class CheckBoxListRenderer extends JPanel implements ListCellRenderer<T> {
             private final Function<T, String> mapper;
-            private final int pixels = 1;
             Font font = new Font(Font.SANS_SERIF, Font.PLAIN, 14);
             Font fontSel = new Font(Font.SANS_SERIF, Font.BOLD, 14);
-            private T focused;
-            private JCheckBox checkBox;
-            private JLabel nameLabel;
-            private JButton deleteButton;
-            private JButton renameButton;
 
             public CheckBoxListRenderer(Function<T, String> mapper) {
                 super(new BorderLayout());
                 this.mapper = mapper;
-                init();
-            }
-
-            public T getFocused() {
-                return focused;
+                setLayout(new BorderLayout());
+                setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 14));
+                setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
+                setFocusable(false);
             }
 
             public boolean contains(T v) {
@@ -437,102 +467,47 @@ public class JSList<T> extends JPanel {
                 boolean isSelected,
                 boolean cellHasFocus
             ) {
-                // Reset state
                 removeAll();
-                checkBox = new JCheckBox();
-                nameLabel = new JLabel(mapper.apply(value));
-                deleteButton = new JButton("✕");
-                renameButton = new JButton("✎");
+                setBorder(BorderFactory.createEmptyBorder(2, 2, 2, 2));
 
-                // Style the buttons
-                Font smallFont = new Font(Font.SANS_SERIF, Font.PLAIN, 10);
-                deleteButton.setFont(smallFont);
-                deleteButton.setBorder(BorderFactory.createEmptyBorder(0, 2, 0, 2));
-                deleteButton.setContentAreaFilled(false);
-                deleteButton.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-                deleteButton.setToolTipText("Delete this tag");
-
-                renameButton.setFont(smallFont);
-                renameButton.setBorder(BorderFactory.createEmptyBorder(0, 2, 0, 2));
-                renameButton.setContentAreaFilled(false);
-                renameButton.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-                renameButton.setToolTipText("Rename this tag (double-click label also works)");
-
-                // Set checkbox state based on whether tag is in selected set
                 boolean checked = contains(value);
+
+                // Left: checkbox (disabled, visual only)
+                JCheckBox checkBox = new JCheckBox();
                 checkBox.setSelected(checked);
-
-                // Style the checkbox
                 checkBox.setOpaque(false);
-                checkBox.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+                checkBox.setEnabled(false);
+                add(checkBox, BorderLayout.WEST);
 
-                // Style the label
+                // Label
+                JLabel nameLabel = new JLabel(mapper.apply(value));
                 nameLabel.setFont(checked ? fontSel : font);
                 nameLabel.setOpaque(false);
-                nameLabel.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+                nameLabel.setBorder(BorderFactory.createEmptyBorder(0, 3, 0, 0));
+                add(nameLabel, BorderLayout.CENTER);
 
-                // Add double-click listener on label for rename
-                nameLabel.addMouseListener(
-                    new MouseAdapter() {
-
-                        @Override
-                        public void mouseClicked(MouseEvent e) {
-                            if (e.getClickCount() == 2 && SwingUtilities.isLeftMouseButton(e)) {
-                                JSList.this.rename(value);
-                            }
-                        }
-                    }
-                );
-
-                // Add checkbox toggle listener - only the checkbox toggles selection
-                checkBox.addActionListener(
-                    e -> {
-                        boolean newState = checkBox.isSelected();
-                        if (newState) {
-                            if (!contains(value)) {
-                                selected.add(value);
-                            }
-                            list.getSelectionModel().addSelectionInterval(index, index);
-                        } else {
-                            selected.remove(value);
-                            list.getSelectionModel().removeSelectionInterval(index, index);
-                        }
-                        if (onSelect != null) {
-                            onSelect.accept(new ArrayList(selected));
-                        }
-                        list.repaint();
-                    }
-                );
-
-                // Delete button action
-                deleteButton.addActionListener(
-                    e -> {
-                        onRemove(value);
-                    }
-                );
-
-                // Rename button action
-                renameButton.addActionListener(
-                    e -> {
-                        JSList.this.rename(value);
-                    }
-                );
-
-                // Layout: checkbox on left, label in center, buttons on right
-                JPanel leftPanel = new JPanel(new BorderLayout());
-                leftPanel.setOpaque(false);
-                leftPanel.add(checkBox, BorderLayout.WEST);
-                leftPanel.add(nameLabel, BorderLayout.CENTER);
-
+                // Right: rename ✎ and delete ✕ labels (visual only, click handled by mouse handler)
                 JPanel rightPanel = new JPanel(new BorderLayout());
                 rightPanel.setOpaque(false);
-                rightPanel.add(renameButton, BorderLayout.WEST);
-                rightPanel.add(deleteButton, BorderLayout.EAST);
 
-                add(leftPanel, BorderLayout.CENTER);
+                JLabel renameLabel = new JLabel("✎");
+                renameLabel.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 12));
+                renameLabel.setHorizontalAlignment(JLabel.CENTER);
+                renameLabel.setBorder(BorderFactory.createEmptyBorder(0, 5, 0, 5));
+                renameLabel.setOpaque(false);
+                renameLabel.setToolTipText("Rename");
+
+                JLabel deleteLabel = new JLabel("✕");
+                deleteLabel.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 12));
+                deleteLabel.setHorizontalAlignment(JLabel.CENTER);
+                deleteLabel.setBorder(BorderFactory.createEmptyBorder(0, 5, 0, 5));
+                deleteLabel.setOpaque(false);
+                deleteLabel.setToolTipText("Delete");
+
+                rightPanel.add(renameLabel, BorderLayout.WEST);
+                rightPanel.add(deleteLabel, BorderLayout.EAST);
                 add(rightPanel, BorderLayout.EAST);
 
-                // Set background color for selection highlight
                 if (cellHasFocus || isSelected) {
                     setBackground(new Color(230, 240, 255));
                 } else {
@@ -540,30 +515,7 @@ public class JSList<T> extends JPanel {
                 }
                 setOpaque(true);
 
-                if (cellHasFocus) {
-                    focused = value;
-                }
-
-                this.setForeground(
-                        cellHasFocus
-                            ? javax.swing.UIManager.getColor("ing.focusedForeground") != null
-                                ? javax.swing.UIManager.getColor("ing.focusedForeground")
-                                : Color.BLUE
-                            : javax.swing.UIManager.getColor("text") != null
-                                ? javax.swing.UIManager.getColor("text")
-                                : Color.BLACK
-                    );
-
-                setBorder(BorderFactory.createEmptyBorder(2, 1, 2, 1));
-
                 return this;
-            }
-
-            public final void init() {
-                setLayout(new BorderLayout());
-                setSize(300, 30);
-                setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
-                setFocusable(false);
             }
         }
     }

@@ -14,14 +14,19 @@ import javax.swing.JFrame;
  */
 public class TagEditorDialog extends javax.swing.JDialog {
     /**
-     * Creates new form NewJDialog
-     *
-     * @param parent
-     * @param model
-     * @param modal
+     * The underlying checkbox list of tags.
      */
     JSList<Tag> jslist;
 
+    /**
+     * Constructs a tag editor dialog with add and update capabilities.
+     *
+     * @param parent   the parent frame for modality
+     * @param modal    whether the dialog should be modal
+     * @param model    the full list of available tags to display
+     * @param onAdd    callback invoked when the user creates a new tag; pass null to disable adding
+     * @param onUpdate callback invoked when a tag is renamed; pass null to disable renaming
+     */
     public TagEditorDialog(
         JFrame parent,
         boolean modal,
@@ -31,29 +36,31 @@ public class TagEditorDialog extends javax.swing.JDialog {
     ) {
         super(parent, modal);
         initComponents();
+
+        // Replace GroupLayout on panel with BorderLayout so child components appear
+        panel.setLayout(new java.awt.BorderLayout());
+
         jslist = new JSList(model, t -> ((Tag) t).getValue(), onAdd);
         if (onUpdate != null) {
             jslist.withOnUpdate(onUpdate);
         }
-        // Fix bottom padding issue: wrap the jslist panel so clicking empty space
-        // beneath the list does not interact with the last row
+
+        // Fix bottom padding issue: clicking empty space beneath the list
+        // should not interact with the last row. We add a small bottom filler.
         javax.swing.JPanel wrapper = new javax.swing.JPanel(new java.awt.BorderLayout());
         wrapper.add(jslist, java.awt.BorderLayout.CENTER);
-        // Add a filler at the bottom so the list doesn't stretch to fill empty clickable space
         javax.swing.Box.Filler filler = new javax.swing.Box.Filler(
             new java.awt.Dimension(0, 0),
             new java.awt.Dimension(0, 0),
             new java.awt.Dimension(Short.MAX_VALUE, 0)
         );
         wrapper.add(filler, java.awt.BorderLayout.PAGE_END);
-        panel.add(wrapper);
+        panel.add(wrapper, java.awt.BorderLayout.CENTER);
 
         // Add a confirm/close button at the bottom
         javax.swing.JButton confirmButton = new javax.swing.JButton("Done");
         confirmButton.addActionListener(
             e -> {
-                // Save and close - the onSelect callback already fires on each change,
-                // so we just close the dialog.
                 dispose();
             }
         );

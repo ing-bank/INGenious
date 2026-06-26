@@ -1221,8 +1221,12 @@ public class ProjectTree implements ActionListener {
     }
 
     /**
-     * Renames a tag across the entire project (all test cases and scenarios).
-     * @param tag the tag to rename
+     * Renames a tag across the entire project by delegating to
+     * {@link com.ing.datalib.model.ProjectInfo#renameAll(String, String)}.
+     * This ensures all test cases, scenarios, meta entries, and project-level
+     * references receive the updated name.
+     *
+     * @param tag      the tag to rename (its value is updated in-place)
      * @param newValue the new tag name
      */
     private void onUpdateTag(Tag tag, String newValue) {
