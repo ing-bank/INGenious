@@ -390,6 +390,7 @@ public class TestExecutionUI extends JPanel implements ActionListener {
                     testExecution.getProject().getInfo().getAllTags(null),
                     tags,
                     null,
+                    null,
                     null
                 )
                 .withTitle("Filter Tags")

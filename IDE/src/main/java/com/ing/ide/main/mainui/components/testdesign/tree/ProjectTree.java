@@ -1221,6 +1221,16 @@ public class ProjectTree implements ActionListener {
     }
 
     /**
+     * Renames a tag across the entire project (all test cases and scenarios).
+     * @param tag the tag to rename
+     * @param newValue the new tag name
+     */
+    private void onUpdateTag(Tag tag, String newValue) {
+        getProject().getInfo().renameAll(tag.getValue(), newValue);
+        tag.setValue(newValue);
+    }
+
+    /**
      * Opens the tag editor for a test case data item and, when a corresponding
      * {@link TestCase} is supplied, re-saves its YAML so the new tag set is
      * mirrored on disk.
@@ -1232,7 +1242,8 @@ public class ProjectTree implements ActionListener {
                 getProject().getInfo().getAllTags(tc.getTags()),
                 tc.getTags(),
                 this::onRemoveTag,
-                this::onAddTag
+                this::onAddTag,
+                this::onUpdateTag
             )
             .withTitle(editTagTitle(tc.getName()))
             .show(
@@ -1256,7 +1267,8 @@ public class ProjectTree implements ActionListener {
                 getProject().getInfo().getAllTags(scn.getTags()),
                 scn.getTags(),
                 this::onRemoveTag,
-                this::onAddTag
+                this::onAddTag,
+                this::onUpdateTag
             )
             .withTitle(editTagTitle(scn.getName()))
             .show(scn::setTags);

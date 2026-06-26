@@ -7,17 +7,21 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Cursor;
+import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
+import java.util.function.BiConsumer;
 import java.util.function.BiPredicate;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -34,13 +38,16 @@ import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComponent;
+import javax.swing.JLabel;
 import javax.swing.JList;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTextField;
 import javax.swing.JToolBar;
 import javax.swing.KeyStroke;
 import javax.swing.ListCellRenderer;
+import javax.swing.SwingUtilities;
 import javax.swing.border.Border;
 import javax.swing.border.EmptyBorder;
 import javax.swing.event.DocumentEvent;
@@ -50,16 +57,20 @@ import javax.swing.text.Document;
 import javax.swing.text.JTextComponent;
 
 /**
- *
+ * A searchable, checkbox-based list component with support for adding, removing,
+ * renaming (double-click), and deleting tags.
  *
  * @param <T>
  */
 public class JSList<T> extends JPanel {
     private static final javax.swing.Icon ADD_NEW_ICON = INGIcons.swingColored("icon.addNew", 16);
+    private static final javax.swing.Icon DELETE_ICON = INGIcons.swingColored("icon.delete", 12);
+    private static final javax.swing.Icon RENAME_ICON = INGIcons.swingColored("icon.edit", 12);
     private ListPanel listPanel;
     private TopBar topBar;
     private Consumer<List<T>> onSelect;
     private Consumer<T> onRemove;
+    private BiConsumer<T, String> onUpdate;
     private Function<String, T> onAdd;
     private Function<T, String> mapper;
     private final Set<T> selected = new LinkedHashSet<>();
@@ -100,6 +111,11 @@ public class JSList<T> extends JPanel {
         return this;
     }
 
+    public JSList withOnUpdate(BiConsumer<T, String> onUpdate) {
+        this.onUpdate = onUpdate;
+        return this;
+    }
+
     public void setSelected(List<T> selected) {
         this.selected.clear();
         if (selected != null) {
@@ -129,6 +145,22 @@ public class JSList<T> extends JPanel {
 
     public void reload() {
         fltrmodel.doFilter(topBar.searchBox.getText());
+    }
+
+    /**
+     * Prompts the user to rename the given tag, calls onUpdate if the name
+     * actually changed, and refreshes the list.
+     */
+    public void rename(T tag) {
+        if (onUpdate == null) {
+            return;
+        }
+        String oldName = mapper.apply(tag);
+        String newName = JOptionPane.showInputDialog(this, "Rename tag:", oldName);
+        if (newName != null && !newName.trim().isEmpty() && !newName.trim().equals(oldName)) {
+            onUpdate.accept(tag, newName.trim());
+            reload();
+        }
     }
 
     class FilterModel extends DefaultListModel {
@@ -348,6 +380,14 @@ public class JSList<T> extends JPanel {
 
             @Override
             public void setSelectionInterval(int index0, int index1) {
+                // This is called when the user clicks on a row.
+                // We now ONLY toggle the checkbox when the user explicitly clicked on it.
+                // To achieve this, we no longer toggle selection on row click here.
+                // Instead, selection is handled by the CheckBoxListRenderer mouse listener.
+                // For backward compatibility, if the index is invalid, do nothing.
+                if (index0 < 0 || index0 >= items().size()) {
+                    return;
+                }
                 T item = (T) items().get(index0);
                 if (super.isSelectedIndex(index0)) {
                     if (selected.contains(item)) {
@@ -360,20 +400,23 @@ public class JSList<T> extends JPanel {
                     selected.add(item);
                     super.addSelectionInterval(index0, index1);
                 }
-
                 r.run();
             }
         }
 
-        class CheckBoxListRenderer extends JCheckBox implements ListCellRenderer<T> {
+        class CheckBoxListRenderer extends JPanel implements ListCellRenderer<T> {
             private final Function<T, String> mapper;
             private final int pixels = 1;
             Font font = new Font(Font.SANS_SERIF, Font.PLAIN, 14);
             Font fontSel = new Font(Font.SANS_SERIF, Font.BOLD, 14);
             private T focused;
+            private JCheckBox checkBox;
+            private JLabel nameLabel;
+            private JButton deleteButton;
+            private JButton renameButton;
 
             public CheckBoxListRenderer(Function<T, String> mapper) {
-                super();
+                super(new BorderLayout());
                 this.mapper = mapper;
                 init();
             }
@@ -394,18 +437,113 @@ public class JSList<T> extends JPanel {
                 boolean isSelected,
                 boolean cellHasFocus
             ) {
-                setText(mapper.apply(value));
-                if (isSelected) {
-                    if (!contains(value)) {
-                        selected.add(value);
+                // Reset state
+                removeAll();
+                checkBox = new JCheckBox();
+                nameLabel = new JLabel(mapper.apply(value));
+                deleteButton = new JButton("✕");
+                renameButton = new JButton("✎");
+
+                // Style the buttons
+                Font smallFont = new Font(Font.SANS_SERIF, Font.PLAIN, 10);
+                deleteButton.setFont(smallFont);
+                deleteButton.setBorder(BorderFactory.createEmptyBorder(0, 2, 0, 2));
+                deleteButton.setContentAreaFilled(false);
+                deleteButton.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+                deleteButton.setToolTipText("Delete this tag");
+
+                renameButton.setFont(smallFont);
+                renameButton.setBorder(BorderFactory.createEmptyBorder(0, 2, 0, 2));
+                renameButton.setContentAreaFilled(false);
+                renameButton.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+                renameButton.setToolTipText("Rename this tag (double-click label also works)");
+
+                // Set checkbox state based on whether tag is in selected set
+                boolean checked = contains(value);
+                checkBox.setSelected(checked);
+
+                // Style the checkbox
+                checkBox.setOpaque(false);
+                checkBox.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+
+                // Style the label
+                nameLabel.setFont(checked ? fontSel : font);
+                nameLabel.setOpaque(false);
+                nameLabel.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+
+                // Add double-click listener on label for rename
+                nameLabel.addMouseListener(
+                    new MouseAdapter() {
+
+                        @Override
+                        public void mouseClicked(MouseEvent e) {
+                            if (e.getClickCount() == 2 && SwingUtilities.isLeftMouseButton(e)) {
+                                JSList.this.rename(value);
+                            }
+                        }
                     }
-                    setSelected(true);
+                );
+
+                // Add checkbox toggle listener - only the checkbox toggles selection
+                checkBox.addActionListener(
+                    e -> {
+                        boolean newState = checkBox.isSelected();
+                        if (newState) {
+                            if (!contains(value)) {
+                                selected.add(value);
+                            }
+                            list.getSelectionModel().addSelectionInterval(index, index);
+                        } else {
+                            selected.remove(value);
+                            list.getSelectionModel().removeSelectionInterval(index, index);
+                        }
+                        if (onSelect != null) {
+                            onSelect.accept(new ArrayList(selected));
+                        }
+                        list.repaint();
+                    }
+                );
+
+                // Delete button action
+                deleteButton.addActionListener(
+                    e -> {
+                        onRemove(value);
+                    }
+                );
+
+                // Rename button action
+                renameButton.addActionListener(
+                    e -> {
+                        JSList.this.rename(value);
+                    }
+                );
+
+                // Layout: checkbox on left, label in center, buttons on right
+                JPanel leftPanel = new JPanel(new BorderLayout());
+                leftPanel.setOpaque(false);
+                leftPanel.add(checkBox, BorderLayout.WEST);
+                leftPanel.add(nameLabel, BorderLayout.CENTER);
+
+                JPanel rightPanel = new JPanel(new BorderLayout());
+                rightPanel.setOpaque(false);
+                rightPanel.add(renameButton, BorderLayout.WEST);
+                rightPanel.add(deleteButton, BorderLayout.EAST);
+
+                add(leftPanel, BorderLayout.CENTER);
+                add(rightPanel, BorderLayout.EAST);
+
+                // Set background color for selection highlight
+                if (cellHasFocus || isSelected) {
+                    setBackground(new Color(230, 240, 255));
                 } else {
-                    setSelected(contains(value));
+                    setBackground(Color.WHITE);
                 }
+                setOpaque(true);
+
                 if (cellHasFocus) {
                     focused = value;
                 }
+
                 this.setForeground(
                         cellHasFocus
                             ? javax.swing.UIManager.getColor("ing.focusedForeground") != null
@@ -415,24 +553,17 @@ public class JSList<T> extends JPanel {
                                 ? javax.swing.UIManager.getColor("text")
                                 : Color.BLACK
                     );
+
+                setBorder(BorderFactory.createEmptyBorder(2, 1, 2, 1));
+
                 return this;
             }
 
-            @Override
-            public void setSelected(boolean state) {
-                super.setSelected(state);
-                setFont(state ? fontSel : font);
-            }
-
             public final void init() {
-                Border border = BorderFactory.createEmptyBorder(pixels, 1, pixels, 1);
-                this.setBorder(
-                        BorderFactory.createCompoundBorder(new EmptyBorder(1, 1, 1, 0), border)
-                    );
-                this.setLayout(new BorderLayout());
-                setSize(this.getWidth(), 40);
-                setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-                this.setFocusPainted(true);
+                setLayout(new BorderLayout());
+                setSize(300, 30);
+                setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
+                setFocusable(false);
             }
         }
     }

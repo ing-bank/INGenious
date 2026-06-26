@@ -3,6 +3,7 @@ package com.ing.ide.main.mainui.components.testdesign.tree;
 import com.ing.datalib.model.Tag;
 import com.ing.ide.util.jslist.JSList;
 import java.util.List;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import javax.swing.JFrame;
@@ -25,12 +26,40 @@ public class TagEditorDialog extends javax.swing.JDialog {
         JFrame parent,
         boolean modal,
         List<Tag> model,
-        Function<String, Tag> onAdd
+        Function<String, Tag> onAdd,
+        BiConsumer<Tag, String> onUpdate
     ) {
         super(parent, modal);
         initComponents();
         jslist = new JSList(model, t -> ((Tag) t).getValue(), onAdd);
-        panel.add(jslist);
+        if (onUpdate != null) {
+            jslist.withOnUpdate(onUpdate);
+        }
+        // Fix bottom padding issue: wrap the jslist panel so clicking empty space
+        // beneath the list does not interact with the last row
+        javax.swing.JPanel wrapper = new javax.swing.JPanel(new java.awt.BorderLayout());
+        wrapper.add(jslist, java.awt.BorderLayout.CENTER);
+        // Add a filler at the bottom so the list doesn't stretch to fill empty clickable space
+        javax.swing.Box.Filler filler = new javax.swing.Box.Filler(
+            new java.awt.Dimension(0, 0),
+            new java.awt.Dimension(0, 0),
+            new java.awt.Dimension(Short.MAX_VALUE, 0)
+        );
+        wrapper.add(filler, java.awt.BorderLayout.PAGE_END);
+        panel.add(wrapper);
+
+        // Add a confirm/close button at the bottom
+        javax.swing.JButton confirmButton = new javax.swing.JButton("Done");
+        confirmButton.addActionListener(
+            e -> {
+                // Save and close - the onSelect callback already fires on each change,
+                // so we just close the dialog.
+                dispose();
+            }
+        );
+        javax.swing.JPanel buttonPanel = new javax.swing.JPanel();
+        buttonPanel.add(confirmButton);
+        getContentPane().add(buttonPanel, java.awt.BorderLayout.SOUTH);
     }
 
     public void show(Consumer<List<Tag>> onsel) {
@@ -43,9 +72,10 @@ public class TagEditorDialog extends javax.swing.JDialog {
         List<Tag> model,
         List<Tag> selected,
         Consumer<Tag> onRemove,
-        Function<String, Tag> onAdd
+        Function<String, Tag> onAdd,
+        BiConsumer<Tag, String> onUpdate
     ) {
-        TagEditorDialog dialog = new TagEditorDialog(parent, true, model, onAdd);
+        TagEditorDialog dialog = new TagEditorDialog(parent, true, model, onAdd, onUpdate);
         dialog.jslist.withOnRemove(onRemove);
         dialog.jslist.setSelected(selected);
         dialog.setLocationRelativeTo(parent);
@@ -89,7 +119,7 @@ public class TagEditorDialog extends javax.swing.JDialog {
         panelLayout.setVerticalGroup(
             panelLayout
                 .createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                .addGap(0, 373, Short.MAX_VALUE)
+                .addGap(0, 350, Short.MAX_VALUE)
         );
 
         getContentPane().add(panel, java.awt.BorderLayout.CENTER);
