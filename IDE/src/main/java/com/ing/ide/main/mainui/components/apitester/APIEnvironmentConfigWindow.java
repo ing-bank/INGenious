@@ -28,7 +28,6 @@ public class APIEnvironmentConfigWindow extends JDialog {
 
     private static final Color TEXT_PRIMARY = new Color(215, 215, 215);
     private static final Color TEXT_SECONDARY = new Color(145, 145, 145);
-    private static final Color ACCENT = new Color(225, 180, 72);
 
     private static final int ROW_HEIGHT = 35;
     private static final int HEADER_HEIGHT = 30;
@@ -38,11 +37,9 @@ public class APIEnvironmentConfigWindow extends JDialog {
     private static final int ENVIRONMENT_ROW_HEIGHT = 34;
 
     private static final double NAME_COLUMN_RATIO = 0.38;
-    private static final double VALUE_COLUMN_RATIO = 0.62;
 
     private static final Color PURPLE = new Color(126, 87, 194);
     private static final int TABLE_CORNER_RADIUS = 14;
-    private static final int MAX_VISIBLE_VARIABLE_ROWS = 8;
 
     private final APITester apiTester;
     private final APITesterUI apiTesterUI;
@@ -493,35 +490,6 @@ public class APIEnvironmentConfigWindow extends JDialog {
         panel.add(leftActions, BorderLayout.WEST);
 
         return panel;
-    }
-
-    private GridBagConstraints createCellConstraints(int gridX, double weightX) {
-        GridBagConstraints gbc = new GridBagConstraints();
-        gbc.gridx = gridX;
-        gbc.gridy = 0;
-        gbc.weightx = weightX;
-        gbc.weighty = 1;
-        gbc.fill = GridBagConstraints.BOTH;
-        return gbc;
-    }
-
-    private GridBagConstraints createFixedCellConstraints(int gridX) {
-        GridBagConstraints gbc = new GridBagConstraints();
-        gbc.gridx = gridX;
-        gbc.gridy = 0;
-        gbc.weightx = 0;
-        gbc.weighty = 1;
-        gbc.fill = GridBagConstraints.BOTH;
-        gbc.anchor = GridBagConstraints.CENTER;
-        return gbc;
-    }
-
-    private <T extends JComponent> T setFixedWidth(T component, int width) {
-        Dimension size = new Dimension(width, component.getPreferredSize().height);
-        component.setPreferredSize(size);
-        component.setMinimumSize(size);
-        component.setMaximumSize(new Dimension(width, Integer.MAX_VALUE));
-        return component;
     }
 
     private JButton createTextButton(String text, String tooltip) {
