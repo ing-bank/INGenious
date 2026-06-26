@@ -4,8 +4,11 @@ import com.ing.datalib.api.APIEnvironment;
 import com.ing.ide.main.mainui.components.apitester.util.APITesterColors;
 import com.ing.ide.util.Notification;
 import java.awt.*;
+import java.awt.event.ComponentAdapter;
+import java.awt.event.ComponentEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
+import java.awt.geom.RoundRectangle2D;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -37,6 +40,10 @@ public class APIEnvironmentConfigWindow extends JDialog {
     private static final double NAME_COLUMN_RATIO = 0.38;
     private static final double VALUE_COLUMN_RATIO = 0.62;
 
+    private static final Color PURPLE = new Color(126, 87, 194);
+    private static final int TABLE_CORNER_RADIUS = 14;
+    private static final int MAX_VISIBLE_VARIABLE_ROWS = 8;
+
     private final APITester apiTester;
     private final APITesterUI apiTesterUI;
 
@@ -50,6 +57,10 @@ public class APIEnvironmentConfigWindow extends JDialog {
     private JPanel rightContentPanel;
     private JPanel variablesTablePanel;
     private JPanel variableRowsPanel;
+    private JScrollPane variablesScrollPane;
+    // CHECKPOINT
+    private JPanel variablesOuterPanel;
+    private JPanel bottomActionsPanel;
     private final List<VariableRowPanel> variableRows = new ArrayList<>();
 
     private APIEnvironment selectedEnvironment;
@@ -290,31 +301,134 @@ public class APIEnvironmentConfigWindow extends JDialog {
     private JPanel createVariablesPanel() {
         JPanel panel = new JPanel(new BorderLayout(0, 14));
         panel.setOpaque(false);
+        variablesOuterPanel = panel;
 
-        variablesTablePanel = new JPanel(new BorderLayout());
+        panel.addComponentListener(
+            new ComponentAdapter() {
+
+                @Override
+                public void componentResized(ComponentEvent e) {
+                    updateVariablesTableHeight();
+                }
+
+                @Override
+                public void componentShown(ComponentEvent e) {
+                    updateVariablesTableHeight();
+                }
+            }
+        );
+
+        variablesTablePanel = new RoundedPanel(TABLE_CORNER_RADIUS);
+        variablesTablePanel.setLayout(new BorderLayout());
         variablesTablePanel.setBackground(getTableBackground());
-        variablesTablePanel.setBorder(BorderFactory.createLineBorder(getBorderColor(), 1, true));
+        variablesTablePanel.setBorder(
+            BorderFactory.createCompoundBorder(
+                new RoundedLineBorder(getBorderColor(), TABLE_CORNER_RADIUS),
+                new EmptyBorder(1, 1, 1, 1)
+            )
+        );
 
         variableRowsPanel = new ScrollableRowsPanel();
         variableRowsPanel.setOpaque(true);
         variableRowsPanel.setBackground(getTableBackground());
         variableRowsPanel.setLayout(new BoxLayout(variableRowsPanel, BoxLayout.Y_AXIS));
 
-        JScrollPane scrollPane = new JScrollPane(variableRowsPanel);
-        scrollPane.setBorder(BorderFactory.createEmptyBorder());
-        scrollPane.setOpaque(false);
-        scrollPane.getViewport().setBackground(getTableBackground());
-        scrollPane.getVerticalScrollBar().setUnitIncrement(12);
+        variablesScrollPane = new JScrollPane(variableRowsPanel);
+        variablesScrollPane.setBorder(BorderFactory.createEmptyBorder());
+        variablesScrollPane.setOpaque(false);
+        variablesScrollPane.getViewport().setOpaque(true);
+        variablesScrollPane.getViewport().setBackground(getTableBackground());
+        variablesScrollPane.getVerticalScrollBar().setUnitIncrement(12);
 
-        // Put the header inside the scroll pane so it uses the same viewport width as the rows.
-        scrollPane.setColumnHeaderView(createVariablesHeaderRow());
+        variablesScrollPane.setVerticalScrollBarPolicy(
+            ScrollPaneConstants.VERTICAL_SCROLLBAR_AS_NEEDED
+        );
 
-        variablesTablePanel.add(scrollPane, BorderLayout.CENTER);
+        variablesScrollPane.setColumnHeaderView(createVariablesHeaderRow());
 
-        panel.add(variablesTablePanel, BorderLayout.CENTER);
-        panel.add(createBottomActions(), BorderLayout.SOUTH);
+        variablesTablePanel.add(variablesScrollPane, BorderLayout.CENTER);
+
+        // Important: NORTH prevents the table from stretching vertically.
+        panel.add(variablesTablePanel, BorderLayout.NORTH);
+
+        bottomActionsPanel = createBottomActions();
+        panel.add(bottomActionsPanel, BorderLayout.SOUTH);
+
+        SwingUtilities.invokeLater(this::updateVariablesTableHeight);
 
         return panel;
+    }
+
+    private void updateVariablesTableHeight() {
+        if (variablesTablePanel == null || variablesScrollPane == null) {
+            return;
+        }
+
+        int rowCount = Math.max(1, variableRows.size());
+
+        int rowsHeight = rowCount * ROW_HEIGHT;
+        int headerHeight = HEADER_HEIGHT;
+
+        Insets tableInsets = variablesTablePanel.getInsets();
+        Insets scrollInsets = variablesScrollPane.getInsets();
+
+        int fullContentHeight =
+            tableInsets.top +
+            tableInsets.bottom +
+            scrollInsets.top +
+            scrollInsets.bottom +
+            headerHeight +
+            rowsHeight;
+
+        int availableHeight = getAvailableVariablesTableHeight();
+
+        int tableHeight = availableHeight > 0
+            ? Math.min(fullContentHeight, availableHeight)
+            : fullContentHeight;
+
+        Dimension tableSize = new Dimension(0, tableHeight);
+
+        variablesTablePanel.setPreferredSize(tableSize);
+        variablesTablePanel.setMaximumSize(new Dimension(Integer.MAX_VALUE, tableHeight));
+
+        variablesTablePanel.revalidate();
+        variablesTablePanel.repaint();
+
+        if (variablesScrollPane != null) {
+            variablesScrollPane.revalidate();
+            variablesScrollPane.repaint();
+        }
+
+        if (variablesOuterPanel != null) {
+            variablesOuterPanel.revalidate();
+            variablesOuterPanel.repaint();
+        }
+    }
+
+    private int getAvailableVariablesTableHeight() {
+        if (variablesOuterPanel == null) {
+            return -1;
+        }
+
+        int height = variablesOuterPanel.getHeight();
+
+        if (height <= 0) {
+            return -1;
+        }
+
+        Insets insets = variablesOuterPanel.getInsets();
+        height -= insets.top + insets.bottom;
+
+        if (bottomActionsPanel != null) {
+            height -= bottomActionsPanel.getPreferredSize().height;
+        }
+
+        LayoutManager layout = variablesOuterPanel.getLayout();
+        if (layout instanceof BorderLayout) {
+            height -= ((BorderLayout) layout).getVgap();
+        }
+
+        return Math.max(0, height);
     }
 
     private JPanel createVariablesHeaderRow() {
@@ -368,8 +482,10 @@ public class APIEnvironmentConfigWindow extends JDialog {
         JButton saveButton = new JButton("Save");
         saveButton.setPreferredSize(new Dimension(76, 34));
         saveButton.setFocusPainted(false);
-        saveButton.setBackground(ACCENT);
-        saveButton.setForeground(Color.BLACK);
+        saveButton.setBackground(PURPLE);
+        saveButton.setForeground(Color.WHITE);
+        saveButton.setOpaque(true);
+        saveButton.setBorderPainted(false);
         saveButton.setFont(saveButton.getFont().deriveFont(Font.BOLD, 13f));
         saveButton.addActionListener(e -> saveSelectedEnvironment());
 
@@ -568,6 +684,7 @@ public class APIEnvironmentConfigWindow extends JDialog {
 
         if (variableRowsPanel != null) {
             variableRowsPanel.add(rowPanel);
+            updateVariablesTableHeight();
             variableRowsPanel.revalidate();
             variableRowsPanel.repaint();
         }
@@ -635,6 +752,8 @@ public class APIEnvironmentConfigWindow extends JDialog {
         for (VariableRowPanel row : variableRows) {
             variableRowsPanel.add(row);
         }
+
+        updateVariablesTableHeight();
 
         variableRowsPanel.revalidate();
         variableRowsPanel.repaint();
@@ -883,6 +1002,69 @@ public class APIEnvironmentConfigWindow extends JDialog {
         return APITesterColors.isDarkMode() ? DARK_ROW_HOVER : new Color(245, 245, 245);
     }
 
+    private class RoundedPanel extends JPanel {
+        private final int radius;
+
+        RoundedPanel(int radius) {
+            this.radius = radius;
+            setOpaque(false);
+        }
+
+        @Override
+        protected void paintComponent(Graphics g) {
+            Graphics2D g2 = (Graphics2D) g.create();
+
+            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+            g2.setColor(getBackground());
+            g2.fill(
+                new RoundRectangle2D.Double(0, 0, getWidth() - 1, getHeight() - 1, radius, radius)
+            );
+
+            g2.dispose();
+
+            super.paintComponent(g);
+        }
+    }
+
+    private class RoundedLineBorder extends javax.swing.border.AbstractBorder {
+        private final Color color;
+        private final int radius;
+
+        RoundedLineBorder(Color color, int radius) {
+            this.color = color;
+            this.radius = radius;
+        }
+
+        @Override
+        public void paintBorder(
+            Component component,
+            Graphics graphics,
+            int x,
+            int y,
+            int width,
+            int height
+        ) {
+            Graphics2D g2 = (Graphics2D) graphics.create();
+
+            g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+            g2.setColor(color);
+            g2.draw(new RoundRectangle2D.Double(x, y, width - 1, height - 1, radius, radius));
+
+            g2.dispose();
+        }
+
+        @Override
+        public Insets getBorderInsets(Component component) {
+            return new Insets(1, 1, 1, 1);
+        }
+
+        @Override
+        public Insets getBorderInsets(Component component, Insets insets) {
+            insets.set(1, 1, 1, 1);
+            return insets;
+        }
+    }
+
     private class VariableTableRowLayout implements LayoutManager {
 
         @Override
@@ -971,6 +1153,11 @@ public class APIEnvironmentConfigWindow extends JDialog {
 
         @Override
         public boolean getScrollableTracksViewportHeight() {
+            if (getParent() instanceof JViewport) {
+                JViewport viewport = (JViewport) getParent();
+                return getPreferredSize().height <= viewport.getHeight();
+            }
+
             return false;
         }
     }
