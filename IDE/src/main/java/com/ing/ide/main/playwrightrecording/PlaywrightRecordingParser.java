@@ -1,5 +1,6 @@
 package com.ing.ide.main.playwrightrecording;
 
+import com.ing.datalib.or.common.ORAttribute;
 import com.ing.datalib.or.common.ObjectGroup;
 import com.ing.datalib.or.web.WebOR;
 import com.ing.datalib.or.web.WebORObject;
@@ -67,68 +68,6 @@ public class PlaywrightRecordingParser {
      */
     public String getLiveRecordingPageName() {
         return testCase.get("pageName");
-    }
-
-    /**
-     * Resets the live-recording object registry and clears the given page's object groups so a
-     * fresh rebuild from the full recorder output produces deterministic, incrementally numbered
-     * object names (e.g. {@code Refactor_Object}, {@code Refactor_Object_1}, ...).
-     *
-     * @param page the Web OR page being rebuilt
-     */
-    public void resetLiveObjectRegistry(WebORPage page) {
-        usedLiveObjectNames.clear();
-        if (page != null) {
-            page.getObjectGroups().clear();
-        }
-    }
-
-    /**
-     * Extracts the web object for a single recorder line and registers it into the given Web OR
-     * page. Distinct objects that resolve to the same name are uniquely numbered so each detected
-     * element gets its own OR object. Navigation/dialog lines resolve to {@code "Browser"} and do
-     * not create an OR object.
-     *
-     * @param line the recorder output line
-     * @param page the Web OR page to populate
-     * @return the resolved object name to be used in the test step
-     */
-    public String registerLiveObject(String line, WebORPage page) {
-        attributeDeclaration();
-        testCaseParameter();
-        if (line.trim().startsWith("page")) {
-            pageMapping.put("currentPage", line.trim().split("\\.")[0]);
-        }
-        attributeInitialization(line);
-
-        String objectName = testCase.get("ObjectName");
-        if (objectName == null || objectName.isEmpty()) {
-            objectName = "Refactor_Object";
-        }
-
-        if (!"Browser".equals(objectName) && page != null) {
-            objectName = resolveUniqueObjectName(objectName);
-            ObjectGroup group = page.getObjectGroupByName(objectName);
-            if (group == null) {
-                group = new ObjectGroup(objectName, page);
-                page.getObjectGroups().add(group);
-            }
-            WebORObject obj = new WebORObject(objectName, group);
-            for (Map.Entry<String, String> entry : attribute.entrySet()) {
-                String key = entry.getKey();
-                String value = entry.getValue();
-                if (value != null && !value.isEmpty()) {
-                    obj.setAttributeByName(key, value);
-                }
-            }
-            String frame = testCase.get("frame");
-            if (frame != null && !frame.isEmpty()) {
-                obj.setFrame(frame);
-            }
-            group.getObjects().clear();
-            group.getObjects().add(obj);
-        }
-        return objectName;
     }
 
     /**
@@ -203,86 +142,218 @@ public class PlaywrightRecordingParser {
         }
     }
 
-    private void executeParse(Iterator<String> iterator, WebORPage page, String testScenarioName) {
-        StringBuilder stepBuilder = new StringBuilder();
+    /**
+     * A single parsed recording step extracted from the recorder output: the resolved web object
+     * name, the INGenious action, its input and condition.
+     */
+    public static class ParsedStep {
+        public final String objectName;
+        public final String action;
+        public final String input;
+        public final String condition;
+
+        public ParsedStep(String objectName, String action, String input, String condition) {
+            this.objectName = objectName;
+            this.action = action;
+            this.input = input;
+            this.condition = condition;
+        }
+    }
+
+    /**
+     * Parses the full recorder output into ordered steps using the single, stable parsing logic
+     * shared by both file import and live recording.
+     * <p>
+     * The line-by-line state required for correct results — page-switch detection
+     * ({@link #checkPageSwitch}), page index tracking ({@link #storePageIndex}) and current/previous
+     * page resolution — is maintained across the whole list. Each detected web object is registered
+     * into {@code page} (whose object groups are cleared first so a fresh rebuild is deterministic).
+     * </p>
+     *
+     * @param lines the complete list of recorder output lines
+     * @param page  the Web OR page to populate (may be {@code null} to skip OR registration)
+     * @return the ordered list of parsed steps
+     */
+    public List<ParsedStep> parseLinesToSteps(List<String> lines, WebORPage page) {
+        List<ParsedStep> steps = new ArrayList<>();
+        if (lines == null) {
+            return steps;
+        }
         testCaseParameter();
         attributeDeclaration();
-        usedLiveObjectNames.clear(); // Reset for consistent numbering in file import
-        int stepNumber = 1;
+        usedLiveObjectNames.clear();
+        if (page != null) {
+            page.getObjectGroups().clear();
+        }
         int playwrightSteps = 0;
-        stepBuilder.append("Step,ObjectName,Description,Action,Input,Condition,Reference\n");
-        while (iterator.hasNext()) {
-            attributeDeclaration();
-            testCaseParameter();
-            String line = iterator.next();
-            checkPageSwitch(line);
-            storePageIndex(line);
-            if (line.trim().startsWith("page")) {
-                pageMapping.put("currentPage", line.trim().split("\\.")[0]);
+        // Tracks the page/tab that subsequent actions run against. When an action targets a
+        // different already-open page, a switchToPageByIndex step is emitted to switch back to it.
+        String activePageIndex = "0";
+        for (String line : lines) {
+            if (line == null) {
+                continue;
             }
-            if (
-                !line.contains("System.out.println(") &&
-                !line.contains(pageMapping.get("currentPage") + ".onceDialog(dialog") &&
-                !line.contains(".waitForPopup(() ->")
-            ) {
+            try {
+                attributeDeclaration();
+                testCaseParameter();
+                checkPageSwitch(line);
+                storePageIndex(line);
                 if (line.trim().startsWith("page")) {
-                    playwrightSteps++;
+                    pageMapping.put("currentPage", line.trim().split("\\.")[0]);
                 }
-                if (playwrightSteps >= 1 && !line.contains("}")) {
-                    testCaseMap(getAction(line), getInput(line));
-                    attributeInitialization(line);
-                    String resolvedObjectName = testCase.get("ObjectName");
-                    if (!"Browser".equals(testCase.get("ObjectName"))) {
-                        resolvedObjectName = resolveUniqueObjectName(testCase.get("ObjectName"));
-                        ObjectGroup group = page.getObjectGroupByName(resolvedObjectName);
-                        if (group == null) {
-                            group = new ObjectGroup(resolvedObjectName, page);
-                            page.getObjectGroups().add(group);
+                if (
+                    !line.contains("System.out.println(") &&
+                    !line.contains(pageMapping.get("currentPage") + ".onceDialog(dialog") &&
+                    !line.contains(".waitForPopup(() ->") &&
+                    // Closing the browser externally lets Playwright codegen flush teardown calls
+                    // (page/context/browser .close()). These are not user actions and would
+                    // otherwise be parsed into a trailing empty step, so skip them.
+                    !line.contains(".close()")
+                ) {
+                    if (line.trim().startsWith("page")) {
+                        playwrightSteps++;
+                    }
+                    if (playwrightSteps >= 1 && !line.contains("}")) {
+                        // Resolve the action up front. getAction() consumes the pending
+                        // page-switch flag, so it must be called exactly once per line.
+                        String resolvedAction = getAction(line);
+
+                        // Determine the page/tab this action runs on (e.g. "page", "page1", ...).
+                        // If it is an already-open page different from the active one, switch back
+                        // to it first by emitting a switchToPageByIndex step.
+                        String linePageVar = line.trim().split("\\.")[0];
+                        String linePageIndex = null;
+                        if (linePageVar.equals("page")) {
+                            linePageIndex = "0";
+                        } else if (
+                            linePageVar.startsWith("page") && pageMapping.containsKey(linePageVar)
+                        ) {
+                            linePageIndex = pageMapping.get(linePageVar);
                         }
-                        WebORObject obj = new WebORObject(resolvedObjectName, group);
-                        for (Map.Entry<String, String> entry : attribute.entrySet()) {
-                            String key = entry.getKey();
-                            String value = entry.getValue();
-                            if (value != null && !value.isEmpty()) {
-                                obj.setAttributeByName(key, value);
+                        if (linePageIndex != null && !linePageIndex.equals(activePageIndex)) {
+                            steps.add(
+                                new ParsedStep(
+                                    "Browser",
+                                    "switchToPageByIndex",
+                                    "@" + linePageIndex,
+                                    ""
+                                )
+                            );
+                            activePageIndex = linePageIndex;
+                        }
+
+                        testCaseMap(resolvedAction, getInput(line));
+                        attributeInitialization(line);
+                        String resolvedObjectName = testCase.get("ObjectName");
+                        if (!"Browser".equals(testCase.get("ObjectName"))) {
+                            resolvedObjectName =
+                                resolveUniqueObjectName(testCase.get("ObjectName"));
+                            if (page != null) {
+                                ObjectGroup group = page.getObjectGroupByName(resolvedObjectName);
+                                if (group == null) {
+                                    group = new ObjectGroup(resolvedObjectName, page);
+                                    page.getObjectGroups().add(group);
+                                }
+                                WebORObject obj = new WebORObject(resolvedObjectName, group);
+                                for (Map.Entry<String, String> entry : attribute.entrySet()) {
+                                    String key = entry.getKey();
+                                    String value = entry.getValue();
+                                    if (value != null && !value.isEmpty()) {
+                                        // The recorder encodes Playwright's setExact(true) as a
+                                        // ";exact" suffix on the attribute value. Normalize it into
+                                        // the structured exact flag so the in-memory OR object matches
+                                        // the YAML round-tripped form (clean value + checked Exact box).
+                                        boolean exactFlag = false;
+                                        if (value.endsWith(";exact")) {
+                                            exactFlag = true;
+                                            value =
+                                                value.substring(
+                                                    0,
+                                                    value.length() - ";exact".length()
+                                                );
+                                        }
+                                        obj.setAttributeByName(key, value);
+                                        if (exactFlag) {
+                                            ORAttribute orAttr = obj.getAttribute(key);
+                                            if (orAttr != null) {
+                                                orAttr.setExact(true);
+                                            }
+                                        }
+                                    }
+                                }
+                                if (!testCase.get("frame").isEmpty()) {
+                                    obj.setFrame(testCase.get("frame"));
+                                }
+                                group.getObjects().clear();
+                                group.getObjects().add(obj);
                             }
                         }
-                        if (!testCase.get("frame").isEmpty()) {
-                            obj.setFrame(testCase.get("frame"));
+                        steps.add(
+                            new ParsedStep(
+                                resolvedObjectName,
+                                testCase.get("action"),
+                                testCase.get("input"),
+                                testCase.get("Condition")
+                            )
+                        );
+                        testCase.put("input", "");
+
+                        // A click that opens a new page/tab makes that new page the active one
+                        // for subsequent actions (the popup page recorded on the preceding
+                        // "Page pageN = page.waitForPopup(...)" line).
+                        if ("clickAndSwitchToNewPage".equals(resolvedAction)) {
+                            String newPageVar = pageMapping.get("switchedPageName");
+                            if (newPageVar != null && pageMapping.containsKey(newPageVar)) {
+                                activePageIndex = pageMapping.get(newPageVar);
+                            }
                         }
-                        group.getObjects().clear();
-                        group.getObjects().add(obj);
                     }
-                    testCase.put("step", String.valueOf(stepNumber));
-                    // Only add [Project] reference for object-based actions, not for Browser actions
-                    String reference = (
-                            resolvedObjectName != null &&
-                            resolvedObjectName.trim().equals("Browser")
-                        )
-                        ? ""
-                        : "[Project] " + testCase.get("pageName");
-                    String stepAppender =
-                        testCase.get("step") +
-                        "," +
-                        resolvedObjectName +
-                        "," +
-                        "" +
-                        "," +
-                        testCase.get("action") +
-                        "," +
-                        testCase.get("input") +
-                        "," +
-                        testCase.get("Condition") +
-                        "," +
-                        reference;
-                    stepBuilder.append(stepAppender).append("\n");
-                    stepNumber++;
-                    testCase.put("input", "");
                 }
+                if (line.trim().startsWith("page")) {
+                    pageMapping.put("previousPage", line.trim().split("\\.")[0]);
+                }
+            } catch (Exception ex) {
+                // A partial line (e.g. read while Playwright is mid-rewrite during live recording)
+                // must not abort the whole parse; skip it and continue with the rest.
+                Logger
+                    .getLogger(PlaywrightRecordingParser.class.getName())
+                    .log(Level.FINE, "Skipping unparsable recorder line: " + line, ex);
             }
-            if (line.trim().startsWith("page")) {
-                pageMapping.put("previousPage", line.trim().split("\\.")[0]);
-            }
+        }
+        return steps;
+    }
+
+    private void executeParse(Iterator<String> iterator, WebORPage page, String testScenarioName) {
+        List<String> lines = new ArrayList<>();
+        while (iterator.hasNext()) {
+            lines.add(iterator.next());
+        }
+        List<ParsedStep> steps = parseLinesToSteps(lines, page);
+
+        StringBuilder stepBuilder = new StringBuilder();
+        stepBuilder.append("Step,ObjectName,Description,Action,Input,Condition,Reference\n");
+        int stepNumber = 1;
+        for (ParsedStep ps : steps) {
+            // Only add [Project] reference for object-based actions, not for Browser actions
+            String reference = (ps.objectName != null && ps.objectName.trim().equals("Browser"))
+                ? ""
+                : "[Project] " + testCase.get("pageName");
+            String stepAppender =
+                stepNumber +
+                "," +
+                csvField(ps.objectName) +
+                "," +
+                "" +
+                "," +
+                csvField(ps.action) +
+                "," +
+                csvField(ps.input) +
+                "," +
+                csvField(ps.condition) +
+                "," +
+                csvField(reference);
+            stepBuilder.append(stepAppender).append("\n");
+            stepNumber++;
         }
         try {
             testCase.put("csvFileName", testCase.get("pageName"));
@@ -441,14 +512,57 @@ public class PlaywrightRecordingParser {
         if (line.contains(".navigate(")) {
             input = "@" + line.split("\\.navigate\\(\"")[1].split("\"")[0];
         }
-        if (input.contains(",")) {
-            input = "\"" + input + "\"";
-        }
+        // Return the pure semantic value. CSV-specific escaping (for values containing commas,
+        // quotes or newlines) is applied only where the CSV file is written, so that callers which
+        // consume the value directly (e.g. the live recorder writing to a TestStep) are not given a
+        // quote-wrapped value that never gets stripped back out.
         return input;
+    }
+
+    /**
+     * Escapes a single value for inclusion in a CSV field following RFC 4180 / Excel rules used by
+     * the reader ({@code CSVFormat.EXCEL}): if the value contains a comma, double quote, carriage
+     * return or line feed, it is wrapped in double quotes and any embedded double quotes are
+     * doubled. Other values are returned unchanged.
+     */
+    private static String csvField(String value) {
+        if (value == null) {
+            return "";
+        }
+        if (
+            value.contains(",") ||
+            value.contains("\"") ||
+            value.contains("\r") ||
+            value.contains("\n")
+        ) {
+            return "\"" + value.replace("\"", "\"\"") + "\"";
+        }
+        return value;
+    }
+
+    /**
+     * Normalizes the newer Playwright "content frame" locator syntax into the classic
+     * {@code frameLocator} form so a single, stable frame-parsing path handles both.
+     * <p>
+     * Recent Playwright codegen (used by the live recorder) emits frame interactions as
+     * {@code page.locator("SEL").contentFrame().getByX(...)} whereas the imported scripts use the
+     * older {@code page.frameLocator("SEL").getByX(...)}. Rewriting the former into the latter lets
+     * {@link #attributeInitialization} resolve framed elements to properly named objects (with a
+     * {@code frame} attribute) instead of falling back to {@code Refactor_Object} chained locators.
+     * Nested frames ({@code .locator(a).contentFrame().locator(b).contentFrame()...}) are converted
+     * too, since the replacement is applied to every occurrence.
+     * </p>
+     */
+    static String normalizeContentFrame(String line) {
+        if (line == null || !line.contains(".contentFrame()")) {
+            return line;
+        }
+        return line.replaceAll("\\.locator\\((.*?)\\)\\.contentFrame\\(\\)", ".frameLocator($1)");
     }
 
     public void attributeInitialization(String stringLine) {
         try {
+            stringLine = normalizeContentFrame(stringLine);
             String line = "";
             if (stringLine.contains(").click(")) {
                 line = stringLine.split("\\.click\\(")[0];

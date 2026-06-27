@@ -239,15 +239,13 @@ public class Scenario extends DataModel {
 
     /**
      * Adds a new test case to this scenario.
-     * Validates that the test case name is unique across all scopes (Test Plan, Reusable, Shared Reusable).
+     * Validates that the test case name is unique within this scenario. The same name may be
+     * reused in different scenarios (across Test Plan, Reusable and Shared Reusable scopes).
      * @param testCaseName name of the test case to add
-     * @return the created test case, or null if it already exists in any scope
+     * @return the created test case, or null if it already exists in this scenario
      */
     public TestCase addTestCase(String testCaseName) {
         if (getTestCaseByName(testCaseName) == null) {
-            if (project.testCaseExistsInAnyScope(testCaseName)) {
-                return null;
-            }
             TestCase tc = new TestCase(this, testCaseName);
             testCases.add(tc);
             tc.setSaved(false);
