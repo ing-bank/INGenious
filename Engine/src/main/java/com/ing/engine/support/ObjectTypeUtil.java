@@ -1,12 +1,11 @@
 package com.ing.engine.support;
 
+import com.ing.ingenious.api.types.ObjectType;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
-
-import com.ing.ingenious.api.types.ObjectType;
 
 /**
  * Utility class for managing and querying object types at runtime.
