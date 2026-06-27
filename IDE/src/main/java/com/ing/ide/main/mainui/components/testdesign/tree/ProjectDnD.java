@@ -372,17 +372,11 @@ public class ProjectDnD extends TransferHandler {
             // Copy/paste always creates a copied testcase name.
             newName = name + " Copy(1)";
             int i = 2;
-            while (
-                scenario.getTestCaseByName(newName) != null ||
-                scenario.getProject().testCaseExistsInAnyScope(newName)
-            ) {
+            while (scenario.getTestCaseByName(newName) != null) {
                 newName = name + " Copy(" + i++ + ")";
             }
         } else {
-            if (
-                scenario.getTestCaseByName(newName) != null ||
-                scenario.getProject().testCaseExistsInAnyScope(newName)
-            ) {
+            if (scenario.getTestCaseByName(newName) != null) {
                 return null;
             }
         }
@@ -427,10 +421,7 @@ public class ProjectDnD extends TransferHandler {
             // Scenario-folder paste always creates testcase copies with Copy(n) suffix.
             String newName = baseName + " Copy(1)";
             int i = 2;
-            while (
-                sNode.getScenario().getTestCaseByName(newName) != null ||
-                sNode.getScenario().getProject().testCaseExistsInAnyScope(newName)
-            ) {
+            while (sNode.getScenario().getTestCaseByName(newName) != null) {
                 newName = baseName + " Copy(" + i++ + ")";
             }
             TestCase newTestCase = sNode.getScenario().addTestCase(newName);

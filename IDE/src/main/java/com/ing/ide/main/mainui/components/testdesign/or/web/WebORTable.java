@@ -11,6 +11,7 @@ import com.ing.ide.main.utils.table.PropertyAttributeRenderer;
 import com.ing.ide.main.utils.table.RoleCellEditor;
 import com.ing.ide.main.utils.table.XTable;
 import java.awt.BorderLayout;
+import java.awt.Color;
 import java.awt.Component;
 import java.awt.Font;
 import java.awt.event.ActionEvent;
@@ -541,6 +542,7 @@ public class WebORTable extends JPanel implements ActionListener, ItemListener {
 
     class FrameToolBar extends JToolBar implements DocumentListener {
         private JTextField frameText;
+        private Color defaultFrameForeground;
 
         public FrameToolBar() {
             init();
@@ -551,6 +553,7 @@ public class WebORTable extends JPanel implements ActionListener, ItemListener {
             setFloatable(false);
             setOpaque(false);
             frameText = new JTextField();
+            defaultFrameForeground = frameText.getForeground();
             add(
                 new javax.swing.Box.Filler(
                     new java.awt.Dimension(10, 0),
@@ -568,6 +571,17 @@ public class WebORTable extends JPanel implements ActionListener, ItemListener {
             );
             add(frameText);
             frameText.getDocument().addDocumentListener(this);
+            // The frame value is already persisted live via the document listener.
+            // On Enter, commit and move focus to the table so the edit visibly
+            // settles, signalling to the user that the value has been saved. The
+            // text also turns grey to reinforce the "saved" state.
+            frameText.addActionListener(
+                e -> {
+                    changeFrameText();
+                    frameText.setForeground(Color.GRAY);
+                    table.requestFocusInWindow();
+                }
+            );
             table.addComponentListener(
                 new ComponentAdapter() {
 
@@ -581,16 +595,19 @@ public class WebORTable extends JPanel implements ActionListener, ItemListener {
 
         @Override
         public void insertUpdate(DocumentEvent de) {
+            frameText.setForeground(defaultFrameForeground);
             changeFrameText();
         }
 
         @Override
         public void removeUpdate(DocumentEvent de) {
+            frameText.setForeground(defaultFrameForeground);
             changeFrameText();
         }
 
         @Override
         public void changedUpdate(DocumentEvent de) {
+            frameText.setForeground(defaultFrameForeground);
             changeFrameText();
         }
     }
