@@ -259,6 +259,9 @@ public final class INGIcons {
         register("startup.project", MaterialDesignF.FOLDER_COG, CLR_CONFIG);
         register("startup.folder", MaterialDesignF.FOLDER, CLR_OPEN);
 
+        // ── Tour ──
+        register("tour", MaterialDesignF.FLAG_OUTLINE, CLR_INFO);
+
         // ══════════════════════════════════════════════════════════════════
         // ══ PNG Replacement Icons ══
         // These replace bitmap PNGs with scalable vector icons

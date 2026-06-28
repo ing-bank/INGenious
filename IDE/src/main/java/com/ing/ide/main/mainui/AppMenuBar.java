@@ -298,6 +298,8 @@ public class AppMenuBar extends JMenuBar {
         help.add(
             withMnemonics(withShortCut(Utils.createMenuItem("Show Log", sActionListener)), 'o')
         );
+        help.addSeparator();
+        help.add(withMnemonics(Utils.createMenuItem("Start Tour", sActionListener), 'T'));
 
         return help;
     }
