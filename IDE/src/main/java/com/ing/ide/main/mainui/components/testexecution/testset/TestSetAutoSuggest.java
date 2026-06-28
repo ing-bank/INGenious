@@ -14,6 +14,7 @@ import com.ing.ide.main.utils.table.autosuggest.AutoSuggestCellEditor;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 import javax.swing.JTable;
 
 public class TestSetAutoSuggest {
@@ -43,7 +44,13 @@ public class TestSetAutoSuggest {
 
                 @Override
                 public void beforeSearch(String text) {
-                    setSearchList(Utils.asStringList(sProject.getScenarios()));
+                    setSearchList(
+                        Utils
+                            .asStringList(sProject.getScenarios())
+                            .stream()
+                            .sorted(String.CASE_INSENSITIVE_ORDER)
+                            .collect(Collectors.toList())
+                    );
                 }
             };
         testCaseAutoSuggest =
@@ -60,7 +67,11 @@ public class TestSetAutoSuggest {
                         !scenario.trim().isEmpty() && sProject.getScenarioByName(scenario) != null
                     ) {
                         setSearchList(
-                            Utils.asStringList(sProject.getScenarioByName(scenario).getTestCases())
+                            Utils
+                                .asStringList(sProject.getScenarioByName(scenario).getTestCases())
+                                .stream()
+                                .sorted(String.CASE_INSENSITIVE_ORDER)
+                                .collect(Collectors.toList())
                         );
                     }
                 }
