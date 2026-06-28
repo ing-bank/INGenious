@@ -281,6 +281,7 @@ public class ReusableTree extends ProjectTree {
         ScenarioNode scNode = getTreeModel().addScenario(getSelectedGroupNode(), scenario);
         if (scNode != null) {
             selectAndScrollTo(new TreePath(scNode.getPath()));
+            persistSortOrder(scNode.getParent());
         }
     }
 
@@ -306,6 +307,7 @@ public class ReusableTree extends ProjectTree {
                 selectAndScrollTo(
                     new TreePath(getTreeModel().addTestCase(scenarioNode, testcase).getPath())
                 );
+                persistSortOrder(scenarioNode);
             } else {
                 Notification.show("Reusable test case already exists");
             }
@@ -545,6 +547,7 @@ public class ReusableTree extends ProjectTree {
             toggleTestCase.setEnabled(true);
             toggleSharedReusable.setEnabled(true);
             toggleProjectReusable.setEnabled(false);
+            setGroupItemsVisible(false, false, false, false);
             // addGroup.setEnabled(false);
             // renameGroup.setEnabled(false);
             // deleteGroup.setEnabled(false);
@@ -559,6 +562,7 @@ public class ReusableTree extends ProjectTree {
             toggleTestCase.setEnabled(false);
             toggleSharedReusable.setEnabled(false);
             toggleProjectReusable.setEnabled(false);
+            setGroupItemsVisible(false, false, false, false);
             // addGroup.setEnabled(false);
             // renameGroup.setEnabled(false);
             // deleteGroup.setEnabled(false);
@@ -573,6 +577,7 @@ public class ReusableTree extends ProjectTree {
             toggleTestCase.setEnabled(false);
             toggleSharedReusable.setEnabled(false);
             toggleProjectReusable.setEnabled(false);
+            setGroupItemsVisible(false, false, false, false);
             // addGroup.setEnabled(false);
             // renameGroup.setEnabled(true);
             // deleteGroup.setEnabled(true);
@@ -587,6 +592,7 @@ public class ReusableTree extends ProjectTree {
             toggleTestCase.setEnabled(false);
             toggleSharedReusable.setEnabled(false);
             toggleProjectReusable.setEnabled(false);
+            setGroupItemsVisible(false, false, false, false);
             // addGroup.setEnabled(true);
             // renameGroup.setEnabled(false);
             // deleteGroup.setEnabled(false);

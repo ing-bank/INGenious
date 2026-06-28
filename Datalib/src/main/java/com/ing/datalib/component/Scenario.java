@@ -2,7 +2,7 @@ package com.ing.datalib.component;
 
 import com.ing.datalib.component.io.TestCaseStoreFactory;
 import com.ing.datalib.component.utils.FileUtils;
-import com.ing.datalib.component.utils.FileUtils;
+import com.ing.datalib.component.utils.SortOrderStore;
 import com.ing.datalib.or.web.WebOR.ORScope;
 import com.ing.datalib.or.web.WebOR.ORScope;
 import java.io.File;
@@ -214,7 +214,11 @@ public class Scenario extends DataModel {
     private void loadTestcases() {
         File scenDir = new File(getLocation());
         if (scenDir.exists()) {
-            for (String baseName : TestCaseStoreFactory.listLogicalFiles(scenDir).keySet()) {
+            List<String> names = new ArrayList<>(
+                TestCaseStoreFactory.listLogicalFiles(scenDir).keySet()
+            );
+            names = SortOrderStore.apply(scenDir, names);
+            for (String baseName : names) {
                 testCases.add(new TestCase(this, baseName));
             }
         }
