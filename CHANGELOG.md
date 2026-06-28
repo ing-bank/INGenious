@@ -61,6 +61,7 @@ Release Date: <insert date of release>
 - Corrected misspelled word 'Reusabe' to 'Reusable'
 - Reorganised Configurations menu with renames
 - Updated the Dashboard tree model to expand at Test Release level on load
+- Updated reports to reference resources in Results/media for storage optimization
 
 #### Deprecated
 

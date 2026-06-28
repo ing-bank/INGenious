@@ -21,6 +21,7 @@ import java.io.File;
 import java.io.FileWriter;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.List;
 import java.util.Stack;
 import java.util.logging.Level;
@@ -622,7 +623,7 @@ public class HtmlTestCaseHandler extends TestCaseHandler implements PrimaryHandl
 
             // Fix CSS/JS paths: rewrite ../../../../media to media for standalone reports
             // This matches how HtmlSummaryHandler handles path rewriting
-            tempDoc = tempDoc.replaceAll("\\.\\.\\./\\.\\.\\./\\.\\.\\./\\.\\.\\./media", "media");
+            tempDoc = rewriteMediaReferences(tempDoc);
 
             bufwriter.write(tempDoc);
         } catch (Exception ex) {
@@ -633,6 +634,34 @@ public class HtmlTestCaseHandler extends TestCaseHandler implements PrimaryHandl
     }
 
     private static final Logger LOG = Logger.getLogger(TestCaseReport.class.getName());
+
+    /**
+     * Computes the shared media reference relative to current run directory.
+     */
+    private String getSharedMediaReference() {
+        try {
+            Path currentRunPath = Path.of(FilePath.getCurrentResultsPath());
+            Path resultsRootPath = Path.of(FilePath.getResultsPath());
+            Path relativeToResults = currentRunPath.relativize(resultsRootPath);
+
+            String normalized = relativeToResults.toString().replace(File.separatorChar, '/');
+            if (normalized.isEmpty()) {
+                return "media";
+            }
+            return normalized + "/media";
+        } catch (Exception ex) {
+            return "media";
+        }
+    }
+
+    /**
+     * Rewrites report HTML media paths to shared Results/media location.
+     */
+    private String rewriteMediaReferences(String html) {
+        String sharedMediaRef = getSharedMediaReference();
+        String updatedHtml = html.replaceAll("\\.\\./\\.\\./\\.\\./\\.\\./media", sharedMediaRef);
+        return updatedHtml.replaceAll("(?<![A-Za-z0-9_./-])media(?=/)", sharedMediaRef);
+    }
 
     /**
      * Embed aXe accessibility JSON data directly in the HTML as script tags
