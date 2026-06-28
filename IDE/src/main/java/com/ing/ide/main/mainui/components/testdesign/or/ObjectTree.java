@@ -1984,12 +1984,17 @@ public abstract class ObjectTree implements ActionListener {
             sourceOR instanceof WebOR &&
             ((WebOR) sourceOR).isShared()
         ) {
-            String baseName = sourceGroup.getName().replaceAll("_Copy_\\d+$", "");
             String newGroupName;
-            int i = 1;
-            do {
-                newGroupName = baseName + "_Copy_" + i++;
-            } while (targetPage.getObjectGroupByName(newGroupName) != null);
+            // Only append suffix if target page already contains group with same name
+            if (targetPage.getObjectGroupByName(sourceGroup.getName()) == null) {
+                newGroupName = sourceGroup.getName();
+            } else {
+                String baseName = sourceGroup.getName().replaceAll("_\\d+$", "");
+                int i = 1;
+                do {
+                    newGroupName = baseName + "_" + i++;
+                } while (targetPage.getObjectGroupByName(newGroupName) != null);
+            }
             ObjectGroup<WebORObject> newGroup = new ObjectGroup<>(
                 newGroupName,
                 (WebORPage) targetPage
@@ -2012,12 +2017,17 @@ public abstract class ObjectTree implements ActionListener {
             sourceOR instanceof MobileOR &&
             ((MobileOR) sourceOR).isShared()
         ) {
-            String baseName = sourceGroup.getName().replaceAll("_Copy_\\d+$", "");
             String newGroupName;
-            int i = 1;
-            do {
-                newGroupName = baseName + "_Copy_" + i++;
-            } while (targetPage.getObjectGroupByName(newGroupName) != null);
+            // Only append suffix if target page already contains group with same name
+            if (targetPage.getObjectGroupByName(sourceGroup.getName()) == null) {
+                newGroupName = sourceGroup.getName();
+            } else {
+                String baseName = sourceGroup.getName().replaceAll("_\\d+$", "");
+                int i = 1;
+                do {
+                    newGroupName = baseName + "_" + i++;
+                } while (targetPage.getObjectGroupByName(newGroupName) != null);
+            }
             ObjectGroup<MobileORObject> newGroup = new ObjectGroup<>(
                 newGroupName,
                 (MobileORPage) targetPage
@@ -2048,12 +2058,17 @@ public abstract class ObjectTree implements ActionListener {
             sourceOR instanceof StructuredDataOR &&
             ((StructuredDataOR) sourceOR).isShared()
         ) {
-            String baseName = sourceGroup.getName().replaceAll("_Copy_\\d+$", "");
             String newGroupName;
-            int i = 1;
-            do {
-                newGroupName = baseName + "_Copy_" + i++;
-            } while (targetPage.getObjectGroupByName(newGroupName) != null);
+            // Only append suffix if target page already contains group with same name
+            if (targetPage.getObjectGroupByName(sourceGroup.getName()) == null) {
+                newGroupName = sourceGroup.getName();
+            } else {
+                String baseName = sourceGroup.getName().replaceAll("_\\d+$", "");
+                int i = 1;
+                do {
+                    newGroupName = baseName + "_" + i++;
+                } while (targetPage.getObjectGroupByName(newGroupName) != null);
+            }
             ObjectGroup<StructuredDataORObject> newGroup = new ObjectGroup<>(
                 newGroupName,
                 (StructuredDataORPage) targetPage
@@ -2084,12 +2099,17 @@ public abstract class ObjectTree implements ActionListener {
             sourceOR instanceof MobileOR &&
             ((MobileOR) sourceOR).isShared()
         ) {
-            String baseName = sourceGroup.getName().replaceAll("_Copy_\\d+$", "");
             String newGroupName;
-            int i = 1;
-            do {
-                newGroupName = baseName + "_Copy_" + i++;
-            } while (targetPage.getObjectGroupByName(newGroupName) != null);
+            // Only append suffix if target page already contains group with same name
+            if (targetPage.getObjectGroupByName(sourceGroup.getName()) == null) {
+                newGroupName = sourceGroup.getName();
+            } else {
+                String baseName = sourceGroup.getName().replaceAll("_\\d+$", "");
+                int i = 1;
+                do {
+                    newGroupName = baseName + "_" + i++;
+                } while (targetPage.getObjectGroupByName(newGroupName) != null);
+            }
             ObjectGroup<MobileORObject> newGroup = new ObjectGroup<>(
                 newGroupName,
                 (MobileORPage) targetPage
@@ -2120,12 +2140,17 @@ public abstract class ObjectTree implements ActionListener {
             sourceOR instanceof StructuredDataOR &&
             ((StructuredDataOR) sourceOR).isShared()
         ) {
-            String baseName = sourceGroup.getName().replaceAll("_Copy_\\d+$", "");
             String newGroupName;
-            int i = 1;
-            do {
-                newGroupName = baseName + "_Copy_" + i++;
-            } while (targetPage.getObjectGroupByName(newGroupName) != null);
+            // Only append suffix if target page already contains group with same name
+            if (targetPage.getObjectGroupByName(sourceGroup.getName()) == null) {
+                newGroupName = sourceGroup.getName();
+            } else {
+                String baseName = sourceGroup.getName().replaceAll("_\\d+$", "");
+                int i = 1;
+                do {
+                    newGroupName = baseName + "_" + i++;
+                } while (targetPage.getObjectGroupByName(newGroupName) != null);
+            }
             ObjectGroup<StructuredDataORObject> newGroup = new ObjectGroup<>(
                 newGroupName,
                 (StructuredDataORPage) targetPage
@@ -2156,12 +2181,17 @@ public abstract class ObjectTree implements ActionListener {
             sourceOR instanceof MobileOR &&
             ((MobileOR) sourceOR).isShared()
         ) {
-            String baseName = sourceGroup.getName().replaceAll("_Copy_\\d+$", "");
             String newGroupName;
-            int i = 1;
-            do {
-                newGroupName = baseName + "_Copy_" + i++;
-            } while (targetPage.getObjectGroupByName(newGroupName) != null);
+            // Only append suffix if target page already contains group with same name
+            if (targetPage.getObjectGroupByName(sourceGroup.getName()) == null) {
+                newGroupName = sourceGroup.getName();
+            } else {
+                String baseName = sourceGroup.getName().replaceAll("_\\d+$", "");
+                int i = 1;
+                do {
+                    newGroupName = baseName + "_" + i++;
+                } while (targetPage.getObjectGroupByName(newGroupName) != null);
+            }
             ObjectGroup<MobileORObject> newGroup = new ObjectGroup<>(
                 newGroupName,
                 (MobileORPage) targetPage
@@ -2192,12 +2222,17 @@ public abstract class ObjectTree implements ActionListener {
             sourceOR instanceof StructuredDataOR &&
             ((StructuredDataOR) sourceOR).isShared()
         ) {
-            String baseName = sourceGroup.getName().replaceAll("_Copy_\\d+$", "");
             String newGroupName;
-            int i = 1;
-            do {
-                newGroupName = baseName + "_Copy_" + i++;
-            } while (targetPage.getObjectGroupByName(newGroupName) != null);
+            // Only append suffix if target page already contains group with same name
+            if (targetPage.getObjectGroupByName(sourceGroup.getName()) == null) {
+                newGroupName = sourceGroup.getName();
+            } else {
+                String baseName = sourceGroup.getName().replaceAll("_\\d+$", "");
+                int i = 1;
+                do {
+                    newGroupName = baseName + "_" + i++;
+                } while (targetPage.getObjectGroupByName(newGroupName) != null);
+            }
             ObjectGroup<StructuredDataORObject> newGroup = new ObjectGroup<>(
                 newGroupName,
                 (StructuredDataORPage) targetPage
@@ -2228,12 +2263,17 @@ public abstract class ObjectTree implements ActionListener {
             sourceOR instanceof MobileOR &&
             ((MobileOR) sourceOR).isShared()
         ) {
-            String baseName = sourceGroup.getName().replaceAll("_Copy_\\d+$", "");
             String newGroupName;
-            int i = 1;
-            do {
-                newGroupName = baseName + "_Copy_" + i++;
-            } while (targetPage.getObjectGroupByName(newGroupName) != null);
+            // Only append suffix if target page already contains group with same name
+            if (targetPage.getObjectGroupByName(sourceGroup.getName()) == null) {
+                newGroupName = sourceGroup.getName();
+            } else {
+                String baseName = sourceGroup.getName().replaceAll("_\\d+$", "");
+                int i = 1;
+                do {
+                    newGroupName = baseName + "_" + i++;
+                } while (targetPage.getObjectGroupByName(newGroupName) != null);
+            }
             ObjectGroup<MobileORObject> newGroup = new ObjectGroup<>(
                 newGroupName,
                 (MobileORPage) targetPage
@@ -2264,12 +2304,17 @@ public abstract class ObjectTree implements ActionListener {
             sourceOR instanceof StructuredDataOR &&
             ((StructuredDataOR) sourceOR).isShared()
         ) {
-            String baseName = sourceGroup.getName().replaceAll("_Copy_\\d+$", "");
             String newGroupName;
-            int i = 1;
-            do {
-                newGroupName = baseName + "_Copy_" + i++;
-            } while (targetPage.getObjectGroupByName(newGroupName) != null);
+            // Only append suffix if target page already contains group with same name
+            if (targetPage.getObjectGroupByName(sourceGroup.getName()) == null) {
+                newGroupName = sourceGroup.getName();
+            } else {
+                String baseName = sourceGroup.getName().replaceAll("_\\d+$", "");
+                int i = 1;
+                do {
+                    newGroupName = baseName + "_" + i++;
+                } while (targetPage.getObjectGroupByName(newGroupName) != null);
+            }
             ObjectGroup<StructuredDataORObject> newGroup = new ObjectGroup<>(
                 newGroupName,
                 (StructuredDataORPage) targetPage
@@ -2300,12 +2345,17 @@ public abstract class ObjectTree implements ActionListener {
             sourceOR instanceof MobileOR &&
             ((MobileOR) sourceOR).isShared()
         ) {
-            String baseName = sourceGroup.getName().replaceAll("_Copy_\\d+$", "");
             String newGroupName;
-            int i = 1;
-            do {
-                newGroupName = baseName + "_Copy_" + i++;
-            } while (targetPage.getObjectGroupByName(newGroupName) != null);
+            // Only append suffix if target page already contains group with same name
+            if (targetPage.getObjectGroupByName(sourceGroup.getName()) == null) {
+                newGroupName = sourceGroup.getName();
+            } else {
+                String baseName = sourceGroup.getName().replaceAll("_\\d+$", "");
+                int i = 1;
+                do {
+                    newGroupName = baseName + "_" + i++;
+                } while (targetPage.getObjectGroupByName(newGroupName) != null);
+            }
             ObjectGroup<MobileORObject> newGroup = new ObjectGroup<>(
                 newGroupName,
                 (MobileORPage) targetPage
@@ -2336,12 +2386,17 @@ public abstract class ObjectTree implements ActionListener {
             sourceOR instanceof StructuredDataOR &&
             ((StructuredDataOR) sourceOR).isShared()
         ) {
-            String baseName = sourceGroup.getName().replaceAll("_Copy_\\d+$", "");
             String newGroupName;
-            int i = 1;
-            do {
-                newGroupName = baseName + "_Copy_" + i++;
-            } while (targetPage.getObjectGroupByName(newGroupName) != null);
+            // Only append suffix if target page already contains group with same name
+            if (targetPage.getObjectGroupByName(sourceGroup.getName()) == null) {
+                newGroupName = sourceGroup.getName();
+            } else {
+                String baseName = sourceGroup.getName().replaceAll("_\\d+$", "");
+                int i = 1;
+                do {
+                    newGroupName = baseName + "_" + i++;
+                } while (targetPage.getObjectGroupByName(newGroupName) != null);
+            }
             ObjectGroup<StructuredDataORObject> newGroup = new ObjectGroup<>(
                 newGroupName,
                 (StructuredDataORPage) targetPage
@@ -2485,11 +2540,16 @@ public abstract class ObjectTree implements ActionListener {
 
     private String computeCopyName(ORPageInf page, ORObjectInf source) {
         String original = source.getName();
-        String base = original.replaceAll("_Copy_\\d+$", "");
+        // Only append suffix if object with same name already exists
+        if (!objectNameExists(page, original)) {
+            return original;
+        }
+        // Remove any existing numeric suffix to get base name
+        String base = original.replaceAll("_\\d+$", "");
         int index = 1;
         String candidate;
         do {
-            candidate = base + "_Copy_" + index++;
+            candidate = base + "_" + index++;
         } while (objectNameExists(page, candidate));
         return candidate;
     }
@@ -2949,11 +3009,11 @@ public abstract class ObjectTree implements ActionListener {
     }
 
     private String computeCopyPageName(ORPageInf source) {
-        String base = source.getName().replaceAll("_Copy_\\d+$", "");
+        String base = source.getName().replaceAll("_\\d+$", "");
         int i = 1;
         String candidate;
         do {
-            candidate = base + "_Copy_" + i++;
+            candidate = base + "_" + i++;
         } while (getOR().getPageByName(candidate) != null);
         return candidate;
     }
