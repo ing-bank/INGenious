@@ -26,6 +26,7 @@ import com.ing.ide.main.mainui.components.apitester.APITester;
 import com.ing.ide.main.mainui.components.testdesign.TestDesign;
 import com.ing.ide.main.mainui.components.testexecution.TestExecution;
 import com.ing.ide.main.shr.SHR;
+import com.ing.ide.main.tour.TourManager;
 import com.ing.ide.main.ui.About;
 import com.ing.ide.main.ui.FXStartUp;
 import com.ing.ide.main.utils.AppIcon;
@@ -384,6 +385,38 @@ public class AppMainFrame extends JFrame {
     public void resetToolBar(JToolBar oldToolBar) {
         remove(oldToolBar);
         add(toolBar, BorderLayout.NORTH);
+    }
+
+    // ── Tour ───────────────────────────────────────────────────────────────
+
+    /**
+     * Starts the tour unconditionally (e.g. from Help → Start Tour).
+     * A small delay lets the UI settle before the overlay appears.
+     */
+    public void startTour() {
+        javax.swing.Timer t = new javax.swing.Timer(350, e -> new TourManager(this).startTour());
+        t.setRepeats(false);
+        t.start();
+    }
+
+    /**
+     * Shows the tour only if it has never been completed by this user.
+     * Called automatically from {@link #afterProjectChange()} on first launch.
+     */
+    public void checkAndShowTour() {
+        if (TourManager.shouldShowTour()) {
+            startTour();
+        }
+    }
+
+    /** Returns the JavaFX toolbar component (for spotlight targeting). */
+    public com.ing.ide.main.fx.FXToolBar getFXToolBar() {
+        return fxToolBar;
+    }
+
+    /** Returns the JavaFX menu bar component (for spotlight targeting). */
+    public com.ing.ide.main.fx.FXMenuBar getFXMenuBar() {
+        return fxMenuBar;
     }
 
     public void checkAndLoadRecent() {
@@ -841,6 +874,7 @@ public class AppMainFrame extends JFrame {
     void afterProjectChange() {
         recentItems.addItem(sProject);
         testDesign.afterProjectChange();
+        SwingUtilities.invokeLater(this::checkAndShowTour);
         testExecution.afterProjectChange();
         dashBoard.loadTree();
         dashBoardManager.onProjectChanged();

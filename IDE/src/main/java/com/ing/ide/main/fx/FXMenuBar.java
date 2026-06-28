@@ -398,7 +398,9 @@ public class FXMenuBar extends JFXPanel {
             .addAll(
                 menuItem("Help", "help", KeyCode.F1),
                 menuItem("About", "info", KeyCode.F3),
-                menuItem("Show Log", "console", KeyCode.F9)
+                menuItem("Show Log", "console", KeyCode.F9),
+                new javafx.scene.control.SeparatorMenuItem(),
+                menuItem("Start Tour", "tour")
             );
         return help;
     }

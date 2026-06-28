@@ -35,7 +35,8 @@ public class AppSettings {
         AI_GITHUB_TOKEN("githubModelsToken", ""),
         AI_GITHUB_LOGIN("githubModelsLogin", ""),
         AI_SELECTED_MODEL("githubModelsModel", "openai/gpt-4o-mini"),
-        AI_GITHUB_CLIENT_ID("githubOAuthClientId", "");
+        AI_GITHUB_CLIENT_ID("githubOAuthClientId", ""),
+        TOUR_COMPLETED("tourCompleted", "false");
 
         private final String key;
         private final String val;
