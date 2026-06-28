@@ -4,6 +4,7 @@ import com.ing.datalib.component.Project;
 import com.ing.datalib.component.Scenario;
 import com.ing.datalib.component.TestCase;
 import com.ing.datalib.component.TestStep;
+import com.ing.datalib.component.utils.SortOrderStore;
 import com.ing.datalib.exception.TestCaseConversionException;
 import com.ing.datalib.model.DataItem;
 import com.ing.datalib.model.Meta;
@@ -18,6 +19,8 @@ import com.ing.ide.main.mainui.components.testdesign.tree.model.GroupNode;
 import com.ing.ide.main.mainui.components.testdesign.tree.model.ProjectTreeModel;
 import com.ing.ide.main.mainui.components.testdesign.tree.model.ScenarioNode;
 import com.ing.ide.main.mainui.components.testdesign.tree.model.TestCaseNode;
+import com.ing.ide.main.mainui.components.testdesign.tree.model.TestPlanGroupNode;
+import com.ing.ide.main.mainui.components.testdesign.tree.model.TestPlanNode;
 import com.ing.ide.main.mainui.components.testdesign.tree.model.TestPlanTreeModel;
 import com.ing.ide.main.ui.ProjectProperties;
 import com.ing.ide.main.utils.Utils;
@@ -321,7 +324,9 @@ public class ProjectTree implements ActionListener {
                     row,
                     focused
                 );
-                if (value instanceof GroupNode) {
+                if (value instanceof TestPlanGroupNode) {
+                    setIcons(IconSettings.getIconSettings().getTestPlanGroup());
+                } else if (value instanceof GroupNode) {
                     setIcons(IconSettings.getIconSettings().getReusableFolder());
                 } else if (value instanceof ScenarioNode) {
                     setIcons(IconSettings.getIconSettings().getTestPlanScenario());
@@ -400,6 +405,8 @@ public class ProjectTree implements ActionListener {
             popupMenu.forScenario();
         } else if (selected instanceof TestCaseNode) {
             popupMenu.forTestCase();
+        } else if (selected instanceof TestPlanGroupNode) {
+            popupMenu.forGroup();
         } else if (selected instanceof GroupNode) {
             popupMenu.forTestPlan();
         }
@@ -448,6 +455,15 @@ public class ProjectTree implements ActionListener {
                 break;
             case "Delete TestCase":
                 deleteTestCases();
+                break;
+            case "New Group":
+                addGroup();
+                break;
+            case "Rename Group":
+                renameGroup();
+                break;
+            case "Delete Group":
+                deleteGroup();
                 break;
             case "Sort":
                 sort();
@@ -509,8 +525,15 @@ public class ProjectTree implements ActionListener {
             );
             return;
         }
-        ScenarioNode scNode = treeModel.addScenario(getSelectedGroupNode(), scenario);
+        ScenarioNode scNode;
+        TestPlanGroupNode selectedGroup = getSelectedTestPlanGroupNode();
+        if (selectedGroup != null && treeModel instanceof TestPlanTreeModel) {
+            scNode = ((TestPlanTreeModel) treeModel).addScenarioToGroup(selectedGroup, scenario);
+        } else {
+            scNode = treeModel.addScenario(getSelectedGroupNode(), scenario);
+        }
         selectAndScrollTo(new TreePath(scNode.getPath()));
+        persistSortOrder(scNode.getParent());
     }
 
     /**
@@ -552,6 +575,7 @@ public class ProjectTree implements ActionListener {
             selectAndScrollTo(
                 new TreePath(treeModel.addTestCase(scenarioNode, testcase).getPath())
             );
+            persistSortOrder(scenarioNode);
         }
     }
 
@@ -584,9 +608,23 @@ public class ProjectTree implements ActionListener {
                     getTreeModel().reload(scenarioNode);
                     renameScenario(scenarioNode.getScenario());
                     testDesign.getScenarioComp().refreshTitle();
+                    persistSortOrder(scenarioNode.getParent());
                     return true;
                 } else {
                     Notification.show("Scenario " + name + " Already present");
+                    return false;
+                }
+            }
+            TestPlanGroupNode groupNode = getSelectedTestPlanGroupNode();
+            if (
+                groupNode != null &&
+                !groupNode.toString().equals(name) &&
+                treeModel instanceof TestPlanTreeModel
+            ) {
+                if (((TestPlanTreeModel) treeModel).renameGroup(groupNode, name)) {
+                    return true;
+                } else {
+                    Notification.show("Group " + name + " Already present");
                     return false;
                 }
             }
@@ -595,6 +633,7 @@ public class ProjectTree implements ActionListener {
                 if (testCaseNode.getTestCase().rename(name)) {
                     getTreeModel().reload(testCaseNode);
                     testDesign.getTestCaseComp().refreshTitle();
+                    persistSortOrder(testCaseNode.getParent());
                     return true;
                 } else {
                     Notification.show(
@@ -638,10 +677,19 @@ public class ProjectTree implements ActionListener {
                     "Delete Scenarios approved for {0}; {1}",
                     new Object[] { scenarioNodes.size(), scenarioNodes }
                 );
+                Set<GroupNode> affectedGroups = new HashSet<>();
+                for (ScenarioNode scenarioNode : scenarioNodes) {
+                    if (scenarioNode.getParent() instanceof GroupNode) {
+                        affectedGroups.add((GroupNode) scenarioNode.getParent());
+                    }
+                }
                 for (ScenarioNode scenarioNode : scenarioNodes) {
                     deleteTestCases(TestCaseNode.toList(scenarioNode.children()));
                     scenarioNode.getScenario().delete();
                     getTreeModel().removeNodeFromParent(scenarioNode);
+                }
+                for (GroupNode g : affectedGroups) {
+                    persistSortOrder(g);
                 }
             }
         }
@@ -678,6 +726,12 @@ public class ProjectTree implements ActionListener {
      * @param testcaseNodes list of test case nodes to delete
      */
     private void deleteTestCases(List<TestCaseNode> testcaseNodes) {
+        Set<ScenarioNode> affectedScenarios = new HashSet<>();
+        for (TestCaseNode tcNode : testcaseNodes) {
+            if (tcNode.getParent() instanceof ScenarioNode) {
+                affectedScenarios.add((ScenarioNode) tcNode.getParent());
+            }
+        }
         TestCase loadedTestCase = testDesign.getTestCaseComp().getCurrentTestCase();
         Boolean shouldRemove = false;
 
@@ -691,6 +745,9 @@ public class ProjectTree implements ActionListener {
 
         if (shouldRemove) {
             testDesign.getTestCaseComp().resetTable();
+        }
+        for (ScenarioNode sn : affectedScenarios) {
+            persistSortOrder(sn);
         }
     }
 
@@ -1181,7 +1238,177 @@ public class ProjectTree implements ActionListener {
      */
     private void sort() {
         if (tree.getSelectionPath() != null) {
-            getTreeModel().sort(tree.getSelectionPath().getLastPathComponent());
+            Object node = tree.getSelectionPath().getLastPathComponent();
+            getTreeModel().sort(node);
+            persistSortOrder(node);
+        }
+    }
+
+    /**
+     * @return whether this is a Test Plan tree currently showing a group layer.
+     */
+    boolean isTestPlanGrouped() {
+        return (
+            treeModel instanceof TestPlanTreeModel &&
+            ((TestPlanTreeModel) treeModel).getRoot().isGrouped()
+        );
+    }
+
+    /**
+     * Persists the current Test Plan grouping to {@code TestPlan/.groups} when this
+     * is a Test Plan tree. No-op for other trees.
+     */
+    private void saveGroupsIfTestPlan() {
+        if (treeModel instanceof TestPlanTreeModel) {
+            ((TestPlanTreeModel) treeModel).saveGroups();
+        }
+    }
+
+    /**
+     * @return the currently selected {@link TestPlanGroupNode}, or {@code null}.
+     */
+    protected TestPlanGroupNode getSelectedTestPlanGroupNode() {
+        TreePath path = tree.getSelectionPath();
+        if (path != null && path.getLastPathComponent() instanceof TestPlanGroupNode) {
+            return (TestPlanGroupNode) path.getLastPathComponent();
+        }
+        return null;
+    }
+
+    /**
+     * Prompts for a name and creates a new scenario group.
+     */
+    private void addGroup() {
+        if (!(treeModel instanceof TestPlanTreeModel)) {
+            return;
+        }
+        String name = JOptionPane.showInputDialog(
+            tree,
+            "Group name:",
+            "New Group",
+            JOptionPane.PLAIN_MESSAGE
+        );
+        if (name == null) {
+            return;
+        }
+        name = name.trim();
+        if (name.isEmpty() || name.equals(TestPlanGroupNode.UNGROUPED)) {
+            return;
+        }
+        if (!Validator.isValidName(name)) {
+            return;
+        }
+        TestPlanGroupNode group = ((TestPlanTreeModel) treeModel).addGroup(name);
+        if (group == null) {
+            Notification.show("Group '" + name + "' already exists.");
+            return;
+        }
+        selectAndScrollTo(new TreePath(group.getPath()));
+    }
+
+    /**
+     * Starts inline editing of the selected group's name.
+     */
+    private void renameGroup() {
+        TestPlanGroupNode group = getSelectedTestPlanGroupNode();
+        if (group != null) {
+            tree.startEditingAtPath(new TreePath(group.getPath()));
+        }
+    }
+
+    /**
+     * Deletes the selected group after confirmation, moving its scenarios to the
+     * {@code (Ungrouped)} node.
+     */
+    private void deleteGroup() {
+        TestPlanGroupNode group = getSelectedTestPlanGroupNode();
+        if (group == null || group.isUngrouped() || !(treeModel instanceof TestPlanTreeModel)) {
+            return;
+        }
+        int option = JOptionPane.showConfirmDialog(
+            null,
+            "<html><body><p style='width: 200px;'>" +
+            "Delete group '" +
+            group +
+            "'? Its scenarios will move to " +
+            TestPlanGroupNode.UNGROUPED +
+            ".</p></body></html>",
+            "Delete Group",
+            JOptionPane.YES_NO_OPTION
+        );
+        if (option == JOptionPane.YES_OPTION) {
+            ((TestPlanTreeModel) treeModel).deleteGroup(group);
+        }
+    }
+
+    /**
+     * Moves all selected scenarios into the given target group.
+     * @param target destination group
+     */
+    private void moveSelectedScenariosToGroup(TestPlanGroupNode target) {
+        if (!(treeModel instanceof TestPlanTreeModel)) {
+            return;
+        }
+        for (ScenarioNode scenarioNode : getSelectedScenarioNodes()) {
+            ((TestPlanTreeModel) treeModel).moveScenarioToGroup(scenarioNode, target);
+        }
+    }
+
+    /**
+     * Rebuilds the "Move to Group" submenu with the current groups, excluding the
+     * selected scenario's current parent group.
+     * @param menu the submenu to populate
+     */
+    void buildMoveToGroupSubmenu(JMenu menu) {
+        menu.removeAll();
+        if (!(treeModel instanceof TestPlanTreeModel)) {
+            return;
+        }
+        TestPlanNode root = ((TestPlanTreeModel) treeModel).getRoot();
+        ScenarioNode selected = getSelectedScenarioNode();
+        Object currentParent = selected != null ? selected.getParent() : null;
+        for (final TestPlanGroupNode group : root.getGroupNodes()) {
+            if (group == currentParent) {
+                continue;
+            }
+            JMenuItem item = new JMenuItem(group.toString());
+            item.setFont(new Font("ING Me", Font.PLAIN, 11));
+            item.addActionListener(e -> moveSelectedScenariosToGroup(group));
+            menu.add(item);
+        }
+    }
+
+    /**
+     * Persists the sort order of the given node's children to a {@code .sort_order} file on disk.
+     * Call this after any operation that changes the membership or order of a node's children.
+     * @param node the tree node whose children order should be saved (GroupNode or ScenarioNode)
+     */
+    protected void persistSortOrder(Object node) {
+        if (node instanceof ScenarioNode) {
+            ScenarioNode scenarioNode = (ScenarioNode) node;
+            File scenarioDir = new File(scenarioNode.getScenario().getLocation());
+            List<String> names = new ArrayList<>();
+            for (TestCaseNode tcNode : TestCaseNode.toList(scenarioNode.children())) {
+                names.add(tcNode.getTestCase().getName());
+            }
+            SortOrderStore.save(scenarioDir, names);
+        } else if (node instanceof TestPlanGroupNode) {
+            // Scenario order within a Test Plan group is persisted via .groups.
+            saveGroupsIfTestPlan();
+        } else if (node instanceof TestPlanNode && ((TestPlanNode) node).isGrouped()) {
+            // Group order at the Test Plan root is persisted via .groups.
+            saveGroupsIfTestPlan();
+        } else if (node instanceof GroupNode) {
+            List<ScenarioNode> scenarioNodes = ScenarioNode.toList(((GroupNode) node).children());
+            if (!scenarioNodes.isEmpty()) {
+                File parentDir = new File(scenarioNodes.get(0).getScenario().getLocation())
+                .getParentFile();
+                List<String> names = new ArrayList<>();
+                for (ScenarioNode sn : scenarioNodes) {
+                    names.add(sn.getScenario().getName());
+                }
+                SortOrderStore.save(parentDir, names);
+            }
         }
     }
 
@@ -1428,6 +1655,10 @@ public class ProjectTree implements ActionListener {
         protected JMenuItem addScenario;
         protected JMenuItem renameScenario;
         protected JMenuItem deleteScenario;
+        protected JMenuItem addGroup;
+        protected JMenuItem renameGroup;
+        protected JMenuItem deleteGroup;
+        protected JMenu moveToGroup;
         protected JMenuItem addTestCase;
         protected JMenuItem renameTestCase;
         protected JMenuItem deleteTestCase;
@@ -1460,6 +1691,13 @@ public class ProjectTree implements ActionListener {
             add(addScenario = create("Add Scenario", Keystroke.NEW));
             add(renameScenario = create("Rename Scenario", Keystroke.RENAME));
             add(deleteScenario = create("Delete Scenario", Keystroke.DELETE));
+            addSeparator();
+            add(addGroup = create("New Group", null));
+            add(renameGroup = create("Rename Group", null));
+            add(deleteGroup = create("Delete Group", null));
+            moveToGroup = new JMenu("Move to Group");
+            moveToGroup.setFont(new Font("ING Me", Font.PLAIN, 11));
+            add(moveToGroup);
             addSeparator();
             add(addTestCase = create("Add TestCase", Keystroke.NEW));
             add(renameTestCase = create("Rename TestCase", Keystroke.RENAME));
@@ -1518,6 +1756,11 @@ public class ProjectTree implements ActionListener {
             paste.setFont(UIManager.getFont("TableMenu.font"));
 
             sort.setEnabled(true);
+            boolean grouped = isTestPlanGrouped();
+            setGroupItemsVisible(false, false, false, grouped);
+            if (grouped) {
+                buildMoveToGroupSubmenu(moveToGroup);
+            }
         }
 
         /**
@@ -1548,6 +1791,7 @@ public class ProjectTree implements ActionListener {
             paste.setFont(UIManager.getFont("TableMenu.font"));
 
             sort.setEnabled(false);
+            setGroupItemsVisible(false, false, false, false);
         }
 
         /**
@@ -1577,6 +1821,57 @@ public class ProjectTree implements ActionListener {
             paste.setFont(UIManager.getFont("TableMenu.font"));
 
             sort.setEnabled(true);
+            setGroupItemsVisible(true, false, false, false);
+        }
+
+        /**
+         * Configures menu items for a scenario group context (Test Plan tree only).
+         */
+        protected void forGroup() {
+            TestPlanGroupNode group = getSelectedTestPlanGroupNode();
+            boolean named = group != null && !group.isUngrouped();
+
+            addScenario.setEnabled(true);
+            renameScenario.setEnabled(false);
+            deleteScenario.setEnabled(false);
+            addTestCase.setEnabled(false);
+            renameTestCase.setEnabled(false);
+            deleteTestCase.setEnabled(false);
+            toggleTestCase.setEnabled(false);
+            toggleSharedReusable.setEnabled(false);
+            toggleProjectReusable.setEnabled(false);
+
+            impactAnalysis.setEnabled(false);
+            getCmdSyntax.setEnabled(false);
+
+            copy.setEnabled(false);
+            copy.setFont(UIManager.getFont("TableMenu.font"));
+            cut.setEnabled(false);
+            cut.setFont(UIManager.getFont("TableMenu.font"));
+            paste.setEnabled(true);
+            paste.setFont(UIManager.getFont("TableMenu.font"));
+
+            sort.setEnabled(true);
+            setGroupItemsVisible(false, true, named, false);
+        }
+
+        /**
+         * Controls visibility of the grouping menu items.
+         * @param addG   show "New Group"
+         * @param rename show "Rename Group"
+         * @param delete show "Delete Group"
+         * @param move   show "Move to Group" submenu
+         */
+        protected void setGroupItemsVisible(
+            boolean addG,
+            boolean rename,
+            boolean delete,
+            boolean move
+        ) {
+            addGroup.setVisible(addG);
+            renameGroup.setVisible(rename);
+            deleteGroup.setVisible(delete);
+            moveToGroup.setVisible(move);
         }
 
         /**
