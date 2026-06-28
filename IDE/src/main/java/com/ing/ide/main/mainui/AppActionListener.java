@@ -189,6 +189,9 @@ public class AppActionListener implements ActionListener {
             case "Show Log":
                 UILogger.get().openLog();
                 break;
+            case "Start Tour":
+                sMainFrame.startTour();
+                break;
             case "Test Design":
                 sMainFrame.showTestDesign();
                 break;
