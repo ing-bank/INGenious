@@ -1034,6 +1034,7 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
                 add(scrollPane);
             }
             addTableProps();
+            configureInsertColumnPrompt();
             std.setSaveListener(saveListener);
         }
 
@@ -1340,6 +1341,89 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
             };
 
             return customModel;
+        }
+
+        private void configureInsertColumnPrompt() {
+            table.setInsertColumnHandler(
+                insertColumnIndex -> insertColumnFromHeaderPrompt(insertColumnIndex)
+            );
+
+            if (isGlobalData) {
+                // Do not show the plus button before GlobalDataID.
+                table.setMinimumInsertColumn(1);
+            } else {
+                // Normal TestData can still insert before the first visible scrollable column.
+                table.setMinimumInsertColumn(0);
+            }
+
+            table.setInsertColumnPromptEnabled(true);
+        }
+
+        private void insertColumnFromHeaderPrompt(int viewInsertIndex) {
+            assignThePreviouslySelected();
+            stopCellEditing();
+
+            int modelColumnCount = std.getColumnCount();
+
+            if (isGlobalData) {
+                /*
+                 * GlobalData column 0 is protected: GlobalDataID.
+                 * Do not allow inserting before it.
+                 *
+                 * Header prompt boundary 0 means "before GlobalDataID", so clamp it to 1.
+                 */
+                int modelInsertIndex = Math.max(1, Math.min(viewInsertIndex, modelColumnCount));
+
+                if (modelInsertIndex >= modelColumnCount) {
+                    std.addColumn();
+                } else {
+                    std.addColumnAt(modelInsertIndex);
+                }
+
+                selectThePreviouslySelected();
+                return;
+            }
+
+            /*
+            * For non-global TestData, FrozenColumnScrollPane removes model columns 0-4
+            * from the main scrollable table.
+            *
+            * Therefore:
+            * main table view column 0 == model column 5
+            *
+            * A prompt insert boundary at view index N maps to model index N + 5.
+            */
+            if (frozenScrollPane != null) {
+                JTable fixedTable = frozenScrollPane.getFixedTable();
+
+                if (fixedTable != null) {
+                    fixedTable.clearSelection();
+                }
+
+                int modelInsertIndex = Math.max(5, Math.min(viewInsertIndex + 5, modelColumnCount));
+
+                if (modelInsertIndex >= modelColumnCount) {
+                    std.addColumn();
+                } else {
+                    std.addColumnAt(modelInsertIndex);
+                }
+
+                selectThePreviouslySelected();
+                return;
+            }
+
+            /*
+             * Fallback for non-global data without FrozenColumnScrollPane.
+             */
+            int modelInsertIndex = Math.max(0, Math.min(viewInsertIndex, modelColumnCount));
+
+            if (modelInsertIndex >= modelColumnCount) {
+                std.addColumn();
+            } else {
+                std.addColumnAt(modelInsertIndex);
+            }
+
+            selectThePreviouslySelected();
         }
 
         private void addTableProps() {
