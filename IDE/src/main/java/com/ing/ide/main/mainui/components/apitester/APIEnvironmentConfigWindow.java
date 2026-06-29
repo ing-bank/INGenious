@@ -31,7 +31,7 @@ public class APIEnvironmentConfigWindow extends JDialog {
 
     private static final int ROW_HEIGHT = 35;
     private static final int HEADER_HEIGHT = 30;
-    private static final int SIDE_PANEL_WIDTH = 240;
+    private static final int SIDE_PANEL_WIDTH = 250;
     private static final int SECRET_COLUMN_WIDTH = 85;
     private static final int ACTION_COLUMN_WIDTH = 90;
     private static final int ENVIRONMENT_ROW_HEIGHT = 34;
