@@ -51,6 +51,7 @@ Release Date: <insert date of release>
 - Corrected Object Repository same-name rename blocked incorrectly (case-only renames now allowed)
 - Fixed Test Manager publish report to flow through Console report (`console.txt`)
 - Resolved Test Case Tags to persist to YAML and survive reloads
+- Fixed column add/delete behavior in datasheet related to frozen columns
 
 ### Browser/Playwright Testing
 
