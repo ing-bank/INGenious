@@ -129,10 +129,10 @@ Release Date: <insert date of release>
 - Converted API Workbench Authorization to a proper `addHeader` step
 - Enhanced API Workbench with multiple fixes:
     - Fixed "(Copy) (Copy)" naming during request duplication
-    - Added folder creation and deletion capability under collections
+    - Added nested folder creation and deletion capability under collections
     - Implemented Delete and Add Request functionality in folders
     - Improved request moving between collections and folders
-    - Mirrored click flow to Bruno and VS Code behavior
+    - Mirrored click flow of object tree like in Bruno and VS Code behavior
     - Fixed shortcuts and removed inactive ones
 
 #### Deprecated
