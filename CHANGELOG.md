@@ -29,6 +29,7 @@ Release Date: <insert date of release>
 - Implemented alphabetical sorting for test scenarios and test cases within the Test Lab
 - Implemented closing of popups on Esc keypress
 - Added Update (Rename) and Deleting for Test Case Tags
+- Added cross-environment datasheet renaming functionality and its accompanying UI confirmation dialog
 
 #### Changed
 
