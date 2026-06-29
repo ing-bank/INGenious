@@ -1402,7 +1402,7 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
                     fixedTable.clearSelection();
                 }
 
-                int modelInsertIndex = Math.max(5, Math.min(viewInsertIndex + 5, modelColumnCount));
+                int modelInsertIndex = Math.max(frozenColumnCount, Math.min(viewInsertIndex + frozenColumnCount, modelColumnCount));
 
                 if (modelInsertIndex >= modelColumnCount) {
                     std.addColumn();
