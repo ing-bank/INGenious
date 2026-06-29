@@ -941,6 +941,9 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
     }
 
     class TestDataTablePanel extends JPanel {
+        // Number of frozen (non-scrollable) columns on the left.
+        private static final int frozenColumnCount = 5;
+
         AbstractDataModel std;
         XTable table;
         FrozenColumnScrollPane frozenScrollPane;
@@ -970,8 +973,8 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
                     public TableCellEditor getCellEditor(int row, int column) {
                         if (!isGlobalData) {
                             // When using FrozenColumnScrollPane, columns 0-4 are removed from view
-                            // So view column 0 is model column 5 - need to offset by fixedColumnCount
-                            int modelColumn = column + 5;
+                            // So view column 0 is model column 5 - need to offset by frozenColumnCount
+                            int modelColumn = column + frozenColumnCount;
                             return tDAutoSuggest.getCellEditorFor(
                                 modelColumn,
                                 super.getCellEditor(row, column)
@@ -985,7 +988,7 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
                 load();
             } else {
                 // For non-global data, enable column renaming for all scrollable columns
-                // (fixed columns 0-3 are in a separate table managed by FrozenColumnScrollPane)
+                // (fixed columns 0-4 are in a separate table managed by FrozenColumnScrollPane)
                 // Note: After FrozenColumnScrollPane setup, view column 0 = model column 4
                 table.setColumnRename(onRenameAction());
             }
@@ -1012,8 +1015,7 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
 
             if (!isGlobalData) {
                 // Use frozen column scroll pane for test data (but not global data)
-                frozenScrollPane = new FrozenColumnScrollPane(table, 4);
-                frozenScrollPane = new FrozenColumnScrollPane(table, 5);
+                frozenScrollPane = new FrozenColumnScrollPane(table, frozenColumnCount);
                 frozenScrollPane.setBackground(UIManager.getColor("Panel.background"));
                 frozenScrollPane
                     .getViewport()
@@ -1091,7 +1093,7 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
                             if (col == 0) {
                                 continue;
                             }
-                        } else if (col < 4) {
+                        } else if (col < frozenColumnCount) {
                             continue;
                         }
                         String data = Objects.toString(table.getValueAt(row, col), "");
@@ -1220,8 +1222,8 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
                 // Check if a column is selected in the main (scrollable) table
                 int mainSelectedCol = table.getSelectedColumn();
                 if (mainSelectedCol >= 0) {
-                    // Main table view column needs offset: model = view + 4 (fixed columns)
-                    int insertIndex = mainSelectedCol + 4 + 1;
+                    // Main table view column needs offset: model = view + frozenColumnCount
+                    int insertIndex = mainSelectedCol + frozenColumnCount + 1;
                     std.addColumnAt(insertIndex);
                 } else {
                     // No column selected - add at the end
@@ -1263,7 +1265,7 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
 
             if (!isGlobalData && frozenScrollPane != null) {
                 // Get selected columns from the scrollable table
-                // View column indices need to be converted to model indices (add 4)
+                // View column indices need to be converted to model indices (add frozenColumnCount)
                 int[] viewCols = table.getSelectedColumns();
                 if (viewCols.length == 0) {
                     return;
@@ -1271,7 +1273,7 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
 
                 List<Integer> modelColList = new ArrayList<>();
                 for (int viewCol : viewCols) {
-                    int modelCol = viewCol + 4; // offset by fixed column count
+                    int modelCol = viewCol + frozenColumnCount; // offset by frozenColumnCount
                     modelColList.add(modelCol);
                 }
 
@@ -1285,10 +1287,10 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
                     if (isGlobalData) {
                         colList.remove(Integer.valueOf(0));
                     } else {
-                        colList.remove(Integer.valueOf(0));
-                        colList.remove(Integer.valueOf(1));
-                        colList.remove(Integer.valueOf(2));
-                        colList.remove(Integer.valueOf(3));
+                        // Remove protected (frozen) columns from deletion list.
+                        for (int colIndex = 0; colIndex < frozenColumnCount; colIndex++) {
+                            colList.remove(Integer.valueOf(colIndex));
+                        }
                     }
                     std.removeColumn(colList);
                 }
@@ -1385,14 +1387,14 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
             }
 
             /*
-            * For non-global TestData, FrozenColumnScrollPane removes model columns 0-4
-            * from the main scrollable table.
-            *
-            * Therefore:
-            * main table view column 0 == model column 5
-            *
-            * A prompt insert boundary at view index N maps to model index N + 5.
-            */
+             * For non-global TestData, FrozenColumnScrollPane removes model columns 0-4
+             * from the main scrollable table.
+             *
+             * Therefore:
+             * main table view column 0 == model column 5
+             *
+             * A prompt insert boundary at view index N maps to model index N + 5.
+             */
             if (frozenScrollPane != null) {
                 JTable fixedTable = frozenScrollPane.getFixedTable();
 
@@ -1400,7 +1402,10 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
                     fixedTable.clearSelection();
                 }
 
-                int modelInsertIndex = Math.max(5, Math.min(viewInsertIndex + 5, modelColumnCount));
+                int modelInsertIndex = Math.max(
+                    frozenColumnCount,
+                    Math.min(viewInsertIndex + frozenColumnCount, modelColumnCount)
+                );
 
                 if (modelInsertIndex >= modelColumnCount) {
                     std.addColumn();
@@ -1590,7 +1595,7 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
             if (!isGlobalData) {
                 if (table.getSelectedRow() != -1) {
                     Boolean invalid = false;
-                    // For test data with FrozenColumnScrollPane, columns 0-3 are in the fixed table
+                    // For test data with FrozenColumnScrollPane, columns 0-4 are in the fixed table
                     // We need to read Scenario (column 0) and TestCase (column 1) from the fixed table
                     int selectedRow = table.getSelectedRow();
                     JTable sourceTable = frozenScrollPane.getFixedTable();
