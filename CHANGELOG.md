@@ -25,6 +25,8 @@ Release Date: <insert date of release>
 - Reorganised Configurations menu with renames
 - Implemented Validation Error Red-Marking Across Trees (errors propagate through reusable dependencies)
 - Enhanced Object Repository with UX improvements
+- Added inline “+” buttons to enable quick addition of rows and columns across test steps, test data sheets, settings, and configurations
+- Implemented alphabetical sorting for test scenarios and test cases within the Test Lab
 
 #### Changed
 
@@ -100,6 +102,7 @@ Release Date: <insert date of release>
 
 - Added null-safe handling in `setLambdaStatus` method for LambdaTest integration
 - Resolved Manage Devices accordion scroll behavior
+- Fixed the iOS and Android `platformVersion` for non-LambdaTest configurations to ensure only valid numeric values are accepted
 
 ### API Testing
 
