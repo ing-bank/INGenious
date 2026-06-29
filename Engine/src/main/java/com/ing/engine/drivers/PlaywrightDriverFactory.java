@@ -74,7 +74,7 @@ public class PlaywrightDriverFactory {
         }
     }
 
-    private static boolean looksLikeMissingBrowser(PlaywrightException ex) {
+    private static boolean isMissingBrowser(PlaywrightException ex) {
         if (ex == null || ex.getMessage() == null) {
             return false;
         }
@@ -128,7 +128,7 @@ public class PlaywrightDriverFactory {
         }
     }
 
-    private static void installBrowserForRun(String browserName) {
+    private static void installBrowser(String browserName) {
         String normalized = browserName == null ? "" : browserName.trim().toLowerCase();
 
         try {
@@ -137,10 +137,9 @@ public class PlaywrightDriverFactory {
                     runPlaywrightInstall("install chromium");
                     break;
                 case "webkit":
-                    runPlaywrightInstall("install webkit");
-                    break;
+                    throw new RuntimeException("Webkit auto-install is disabled.");
                 case "firefox":
-                    throw new RuntimeException("Firefox auto-install is disabled in this branch.");
+                    throw new RuntimeException("Firefox auto-install is disabled.");
                 default:
                     throw new IllegalArgumentException("Unsupported browser: " + browserName);
             }
@@ -212,9 +211,9 @@ public class PlaywrightDriverFactory {
             try {
                 browserContext = browserType.launch(launchOptions).newContext(newContextOptions);
             } catch (PlaywrightException ex) {
-                if (looksLikeMissingBrowser(ex)) {
+                if (isMissingBrowser(ex)) {
                     LOGGER.info("[PW-RUN] Missing browser detected for: " + browserName);
-                    installBrowserForRun(browserName);
+                    installBrowser(browserName);
                     LOGGER.info(
                         "[PW-RUN] Retrying launch after selective install for: " + browserName
                     );
