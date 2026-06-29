@@ -41,10 +41,20 @@ public class ImpactUI extends javax.swing.JDialog {
 
             if (value instanceof TestCase) {
                 TestCase testCase = (TestCase) value;
-                String sourceIndicator = testCase.getScenario().getSource() ==
+                String sourceIndicator;
+                if (
+                    testCase.getScenario().getSource() ==
+                    com.ing.datalib.component.Scenario.Source.SHARED_REUSABLE_COMPONENTS
+                ) {
+                    sourceIndicator = "[Shared Reusable] ";
+                } else if (
+                    testCase.getScenario().getSource() ==
                     com.ing.datalib.component.Scenario.Source.REUSABLE_COMPONENTS
-                    ? "[Reusable Component] "
-                    : "[Test Plan] ";
+                ) {
+                    sourceIndicator = "[Project Reusable] ";
+                } else {
+                    sourceIndicator = "[Test Plan] ";
+                }
                 String displayText =
                     sourceIndicator + testCase.getScenario().getName() + "/" + testCase.getName();
                 setText(displayText);

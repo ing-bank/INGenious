@@ -300,12 +300,29 @@ public class ScenarioComponent extends JPanel implements ActionListener {
                     testDesign.getProject()
                 );
                 if (result != null) {
-                    Scenario targetScenario = testDesign
-                        .getProject()
-                        .getReusableScenarioByName(result.getScenarioName());
-                    if (targetScenario == null) {
+                    Scenario targetScenario;
+                    if (result.isSharedScope()) {
                         targetScenario =
-                            testDesign.getProject().addReusableScenario(result.getScenarioName());
+                            testDesign
+                                .getProject()
+                                .getSharedReusableScenarioByName(result.getScenarioName());
+                        if (targetScenario == null) {
+                            targetScenario =
+                                testDesign
+                                    .getProject()
+                                    .addSharedReusableScenario(result.getScenarioName());
+                        }
+                    } else {
+                        targetScenario =
+                            testDesign
+                                .getProject()
+                                .getReusableScenarioByName(result.getScenarioName());
+                        if (targetScenario == null) {
+                            targetScenario =
+                                testDesign
+                                    .getProject()
+                                    .addReusableScenario(result.getScenarioName());
+                        }
                     }
                     TestCase reusable = testCase.createAsReusable(
                         targetScenario,
@@ -315,7 +332,11 @@ public class ScenarioComponent extends JPanel implements ActionListener {
                     );
                     if (reusable != null) {
                         testCase.save();
-                        testDesign.getReusableTree().getTreeModel().addTestCase(reusable);
+                        if (result.isSharedScope()) {
+                            testDesign.getSharedReusableTree().getTreeModel().addTestCase(reusable);
+                        } else {
+                            testDesign.getReusableTree().getTreeModel().addTestCase(reusable);
+                        }
                         getCurrentScenario().fireTableStructureChanged();
                     } else {
                         Notification.show("Couldn't Create Reusable - " + result.getReusableName());

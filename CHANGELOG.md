@@ -29,6 +29,11 @@ Release Date: <insert date of release>
 - Implemented alphabetical sorting for test scenarios and test cases within the Test Lab
 - Implemented closing of popups on Esc keypress
 - Added Update (Rename) and Deleting for Test Case Tags
+- Added scope selector to Create Reusable dialog enabling direct creation to Project or Shared Reusable Components
+- Implemented auto-population of Reference column with `[Project]` or `[Shared]` prefix when creating reusables
+- Extended impact analysis to include Shared Reusable test cases alongside Test Plan and Project Reusable impacts
+- Standardized Reusable Components UI with FXPanelHeader matching Test Plan and Object Repository style
+- Updated Shared Reusable tree root node label to "Shared Reusable Components" for clarity
 
 #### Changed
 

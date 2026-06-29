@@ -1715,17 +1715,35 @@ public class Project {
 
     /**
      * Returns test cases that reference the specified test case.
+     * Searches across Test Plan, Project Reusable Components, and Shared Reusable Components.
      * @param scenarioName scenario name
      * @param testCaseName test case name
      * @return list of impacted test cases
      */
     public List<TestCase> getImpactedTestCaseTestCases(String scenarioName, String testCaseName) {
         List<TestCase> impactedTestCases = new ArrayList<>();
+
+        // Search in Test Plan scenarios
         for (Scenario scenario : scenarios) {
             impactedTestCases.addAll(
                 scenario.getImpactedTestCaseTestCases(scenarioName, testCaseName)
             );
         }
+
+        // Search in Project Reusable Components scenarios
+        for (Scenario scenario : reusableScenarios) {
+            impactedTestCases.addAll(
+                scenario.getImpactedTestCaseTestCases(scenarioName, testCaseName)
+            );
+        }
+
+        // Search in Shared Reusable Components scenarios
+        for (Scenario scenario : sharedReusableScenarios) {
+            impactedTestCases.addAll(
+                scenario.getImpactedTestCaseTestCases(scenarioName, testCaseName)
+            );
+        }
+
         return impactedTestCases;
     }
 
