@@ -29,6 +29,8 @@ Release Date: <insert date of release>
 - Implemented alphabetical sorting for test scenarios and test cases within the Test Lab
 - Implemented closing of popups on Esc keypress
 - Added Update (Rename) and Deleting for Test Case Tags
+- Added Auto-migration of Test Cases from `CSV` to `YAML` on project load
+- Enhanced Auto-migration of Test Datasheet new `Scope` field on project load
 
 #### Changed
 
