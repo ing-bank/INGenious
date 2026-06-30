@@ -6,6 +6,7 @@ import com.ing.datalib.or.common.ObjectGroup;
 import com.ing.datalib.or.mobile.MobileORObject;
 import com.ing.datalib.or.mobile.MobileORPage;
 import com.ing.datalib.or.mobile.MobilePlatform;
+import com.ing.ide.main.mainui.components.testdesign.or.ORTableInsertRowPrompt;
 import com.ing.ide.main.utils.Utils;
 import com.ing.ide.main.utils.table.PropertyAttributeRenderer;
 import com.ing.ide.main.utils.table.XTable;
@@ -64,6 +65,14 @@ public class MobileORTable extends JPanel implements ActionListener {
         add(panel, BorderLayout.CENTER);
         add(toolBar, BorderLayout.NORTH);
         table.setComponentPopupMenu(popupMenu);
+
+        ORTableInsertRowPrompt.install(
+            table,
+            this::stopCellEditing,
+            this::getObject,
+            MobileORObject::getRowCount,
+            (object, modelInsertIndex) -> object.addNewAttributeAt(activePlatform, modelInsertIndex)
+        );
     }
 
     public XTable getTable() {

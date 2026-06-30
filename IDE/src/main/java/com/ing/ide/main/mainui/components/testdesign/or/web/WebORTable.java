@@ -6,6 +6,7 @@ import com.ing.datalib.or.common.ObjectGroup;
 import com.ing.datalib.or.web.WebORObject;
 import com.ing.datalib.or.web.WebORPage;
 import com.ing.ide.main.fx.INGIcons;
+import com.ing.ide.main.mainui.components.testdesign.or.ORTableInsertRowPrompt;
 import com.ing.ide.main.utils.Utils;
 import com.ing.ide.main.utils.table.PropertyAttributeRenderer;
 import com.ing.ide.main.utils.table.RoleCellEditor;
@@ -110,6 +111,14 @@ public class WebORTable extends JPanel implements ActionListener, ItemListener {
         add(panel, BorderLayout.CENTER);
         add(toolBar, BorderLayout.NORTH);
         table.setComponentPopupMenu(popupMenu);
+
+        ORTableInsertRowPrompt.install(
+            table,
+            this::stopCellEditing,
+            this::getObject,
+            WebORObject::getRowCount,
+            (object, modelInsertIndex) -> object.addNewAttributeAt(modelInsertIndex)
+        );
     }
 
     public XTable getTable() {
