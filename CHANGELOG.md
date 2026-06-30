@@ -157,6 +157,7 @@ Release Date: <insert date of release>
 - Implemented color-formatted Response payload in HTML report with separate Headers section and copy buttons
 - Strengthened SSL/TLS certificate validation
 - Enhanced credential handling in API proxy configuration
+- New API Environment Management window to fully manage and use environments and environment variables
 
 #### Changed
 
@@ -260,9 +261,6 @@ Release Date: <insert date of release>
 ### Security Fixes
 
 #### Added
-
-- New API Environment Management window to fully manage and use environments and environment variables
-
 #### Changed
 #### Deprecated
 #### Removed
