@@ -146,7 +146,33 @@ public class StructuredDataORTable extends JPanel implements ActionListener {
 
     private void addRow() {
         stopCellEditing();
-        getObject().addNewAttribute();
+
+        StructuredDataORObject object = getObject();
+        if (object == null) {
+            return;
+        }
+
+        int insertAt = object.getRowCount();
+
+        int[] selectedRows = table.getSelectedRows();
+        if (selectedRows.length > 0) {
+            int lastSelectedModelRow = -1;
+
+            for (int selectedRow : selectedRows) {
+                int modelRow = table.convertRowIndexToModel(selectedRow);
+                lastSelectedModelRow = Math.max(lastSelectedModelRow, modelRow);
+            }
+
+            insertAt = lastSelectedModelRow + 1;
+        }
+
+        int insertedRow = object.addNewAttributeAt(insertAt);
+
+        if (insertedRow >= 0) {
+            int viewRow = table.convertRowIndexToView(insertedRow);
+            table.getSelectionModel().setSelectionInterval(viewRow, viewRow);
+            table.scrollRectToVisible(table.getCellRect(viewRow, 0, true));
+        }
     }
 
     private void removeRow() {

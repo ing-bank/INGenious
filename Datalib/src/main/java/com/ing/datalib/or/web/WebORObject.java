@@ -530,20 +530,49 @@ public class WebORObject extends UndoRedoModel implements ORObjectInf {
 
     @JsonIgnore
     public void addNewAttribute() {
-        String newAttrName = "NewProp";
-        int i = 1;
-        while (getAttribute(newAttrName) != null) {
-            newAttrName = "NewProp" + i++;
-        }
-        addNewAttribute(newAttrName);
+        addNewAttributeAt(attributes.size());
     }
 
     @JsonIgnore
     public void addNewAttribute(String attrName) {
-        if (getAttribute(attrName) == null) {
-            attributes.add(new ORAttribute(attrName, attributes.size()));
-            super.rowAdded(attributes.size() - 1);
-            fireTableRowsInserted(attributes.size() - 1, attributes.size() - 1);
+        addNewAttributeAt(attrName, attributes.size());
+    }
+
+    @JsonIgnore
+    public int addNewAttributeAt(int index) {
+        String newAttrName = "NewProp";
+        int i = 1;
+
+        while (getAttribute(newAttrName) != null) {
+            newAttrName = "NewProp" + i++;
+        }
+
+        return addNewAttributeAt(newAttrName, index);
+    }
+
+    @JsonIgnore
+    public int addNewAttributeAt(String attrName, int index) {
+        if (getAttribute(attrName) != null) {
+            return -1;
+        }
+
+        if (index < 0 || index > attributes.size()) {
+            index = attributes.size();
+        }
+
+        attributes.add(index, new ORAttribute(attrName, index));
+        refreshPreferences();
+
+        super.rowAdded(index);
+        fireTableRowsInserted(index, index);
+
+        return index;
+    }
+
+    @JsonIgnore
+    private void refreshPreferences() {
+        for (int i = 0; i < attributes.size(); i++) {
+            attributes.get(i).setPreference(String.valueOf(i + 1));
         }
     }
 

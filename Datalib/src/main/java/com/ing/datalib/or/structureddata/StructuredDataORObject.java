@@ -393,28 +393,46 @@ public class StructuredDataORObject extends UndoRedoModel implements ORObjectInf
 
     @JsonIgnore
     public void addNewAttribute() {
-        String attrName = "NewAttribute";
-        int i = 0;
-        String name;
-        do {
-            name = attrName + i++;
-        } while (getAttribute(name) != null);
-
-        StructuredDataAttribute attr = new StructuredDataAttribute();
-        attr.setName(name);
-        attr.setValue("");
-        attributes.add(attr);
-        changeSave();
-        fireTableRowsInserted(attributes.size() - 1, attributes.size() - 1);
+        addNewAttributeAt(attributes.size());
     }
 
     @JsonIgnore
     public void addNewAttribute(String attrName) {
-        if (getAttribute(attrName) == null) {
-            attributes.add(new StructuredDataAttribute(attrName, attributes.size()));
-            super.rowAdded(attributes.size() - 1);
-            fireTableRowsInserted(attributes.size() - 1, attributes.size() - 1);
+        addNewAttributeAt(attrName, attributes.size());
+    }
+
+    @JsonIgnore
+    public int addNewAttributeAt(int index) {
+        String attrName = "NewAttribute";
+        int i = 0;
+        String name;
+
+        do {
+            name = attrName + i++;
+        } while (getAttribute(name) != null);
+
+        return addNewAttributeAt(name, index);
+    }
+
+    @JsonIgnore
+    public int addNewAttributeAt(String attrName, int index) {
+        if (getAttribute(attrName) != null) {
+            return -1;
         }
+
+        if (index < 0 || index > attributes.size()) {
+            index = attributes.size();
+        }
+
+        StructuredDataAttribute attr = new StructuredDataAttribute();
+        attr.setName(attrName);
+        attr.setValue("");
+
+        attributes.add(index, attr);
+        super.rowAdded(index);
+        fireTableRowsInserted(index, index);
+
+        return index;
     }
 
     @JsonIgnore
