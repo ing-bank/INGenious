@@ -33,6 +33,7 @@ Release Date: <insert date of release>
 - Enabled reordering of data tabs
 - Corrected misspelled word 'Reusabe' to 'Reusable'
 - Reorganised Configurations menu with renames
+- Updated the Dashboard tree model to expand at Test Release level on load
 
 #### Deprecated
 

@@ -561,8 +561,8 @@
 .tree-view .tree-disclosure-node > .arrow {
     -fx-background-color: -ing-text-muted;
     -fx-shape: "M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6z";
-    -fx-scale-x: 0.50;
-    -fx-scale-y: 0.50;
+    -fx-scale-x: 0.62;
+    -fx-scale-y: 0.62;
     -fx-padding: 3;
 }
 
@@ -572,6 +572,13 @@
 
 .tree-view .tree-cell:selected .tree-disclosure-node > .arrow {
     -fx-background-color: -ing-accent;
+}
+
+/* Dashboard tree uses slightly larger disclosure arrows to match Swing tree panels. */
+.dashboard-tree .tree-disclosure-node > .arrow {
+    -fx-scale-x: 0.82;
+    -fx-scale-y: 0.82;
+    -fx-padding: 4;
 }
 
 
