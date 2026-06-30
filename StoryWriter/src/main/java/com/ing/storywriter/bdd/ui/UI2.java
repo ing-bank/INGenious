@@ -20,8 +20,10 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.DefaultListModel;
 import javax.swing.ImageIcon;
+import javax.swing.JComponent;
 import javax.swing.JPopupMenu;
 import javax.swing.JToolBar;
+import javax.swing.KeyStroke;
 import javax.swing.UIManager;
 import javax.swing.border.LineBorder;
 import javax.swing.event.DocumentEvent;
@@ -84,7 +86,48 @@ public final class UI2 extends javax.swing.JFrame {
             );
         featureList.setTransferHandler(uic.featureTransferHandler);
         this.setLocationRelativeTo(null);
+        installEscapeCloseHandlers();
         eTools(false);
+    }
+
+    private void installEscapeCloseHandlers() {
+        getRootPane()
+            .registerKeyboardAction(
+                e -> handleFeatureEditorEscapeClose(),
+                KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0),
+                JComponent.WHEN_IN_FOCUSED_WINDOW
+            );
+
+        newProj
+            .getRootPane()
+            .registerKeyboardAction(
+                e -> handleNewProjectEscapeClose(),
+                KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0),
+                JComponent.WHEN_IN_FOCUSED_WINDOW
+            );
+    }
+
+    private void handleFeatureEditorEscapeClose() {
+        dispose();
+    }
+
+    private void handleNewProjectEscapeClose() {
+        newProj.dispose();
+    }
+
+    private boolean hasUnsavedFeatureChanges() {
+        if (uic == null || uic.cStory == null || textArea == null) {
+            return false;
+        }
+        String current = textArea.getText() == null ? "" : textArea.getText();
+        String saved = uic.cStory.getData() == null ? "" : uic.cStory.getData();
+        return !current.equals(saved);
+    }
+
+    private boolean hasNewProjectInput() {
+        String nameValue = npName.getText() == null ? "" : npName.getText().trim();
+        String descValue = npDesc.getText() == null ? "" : npDesc.getText().trim();
+        return !nameValue.isEmpty() || !descValue.isEmpty();
     }
 
     /**

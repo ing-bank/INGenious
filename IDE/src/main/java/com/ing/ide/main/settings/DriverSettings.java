@@ -20,6 +20,7 @@ import java.awt.event.ActionListener;
 import java.awt.event.ItemEvent;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
+import java.awt.event.WindowEvent;
 import java.util.ArrayList;
 import java.util.Enumeration;
 import java.util.List;
@@ -148,6 +149,20 @@ public class DriverSettings extends javax.swing.JFrame {
         );
 
         applyThemeStyles();
+        installEscapeCloseHandler();
+    }
+
+    private void installEscapeCloseHandler() {
+        getRootPane()
+            .registerKeyboardAction(
+                this::handleEscapeClose,
+                KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0),
+                JComponent.WHEN_IN_FOCUSED_WINDOW
+            );
+    }
+
+    private void handleEscapeClose(ActionEvent event) {
+        dispatchEvent(new WindowEvent(this, WindowEvent.WINDOW_CLOSING));
     }
 
     // Theme-aware color getters

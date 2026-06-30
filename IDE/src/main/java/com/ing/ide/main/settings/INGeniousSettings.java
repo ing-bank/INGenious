@@ -19,6 +19,7 @@ import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ItemEvent;
 import java.awt.event.KeyEvent;
+import java.awt.event.WindowEvent;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -102,6 +103,20 @@ public class INGeniousSettings extends javax.swing.JFrame {
         // Ensure window is tall enough to show all checkboxes
         setMinimumSize(new java.awt.Dimension(580, 750));
         setSize(580, 750);
+        installEscapeCloseHandler();
+    }
+
+    private void installEscapeCloseHandler() {
+        getRootPane()
+            .registerKeyboardAction(
+                this::handleEscapeClose,
+                KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0),
+                JComponent.WHEN_IN_FOCUSED_WINDOW
+            );
+    }
+
+    private void handleEscapeClose(ActionEvent event) {
+        dispatchEvent(new WindowEvent(this, WindowEvent.WINDOW_CLOSING));
     }
 
     /**
