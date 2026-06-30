@@ -53,6 +53,8 @@ Release Date: <insert date of release>
 - Resolved Test Case Tags to persist to YAML and survive reloads
 - Added missing Web Objects for sample project Tutorial
 - Fixed column add/delete behavior in datasheet related to frozen columns
+- Updated suffix handling for copied objects/pages so it is only applied when another object or page with the same name already exists.
+- Resolved issues with multi-object and multi-page copy-paste and cut-paste operations in the Object Repository.
 
 ### Browser/Playwright Testing
 
