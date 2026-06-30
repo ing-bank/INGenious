@@ -52,6 +52,7 @@ Release Date: <insert date of release>
 - Fixed Test Manager publish report to flow through Console report (`console.txt`)
 - Resolved Test Case Tags to persist to YAML and survive reloads
 - Added missing Web Objects for sample project Tutorial
+- Fixed column add/delete behavior in datasheet related to frozen columns
 
 ### Browser/Playwright Testing
 
