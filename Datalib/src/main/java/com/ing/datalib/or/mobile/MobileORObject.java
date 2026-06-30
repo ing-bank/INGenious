@@ -650,12 +650,7 @@ public class MobileORObject extends UndoRedoModel implements ORObjectInf {
 
     @JsonIgnore
     public void addNewAttribute() {
-        String newAttrName = "NewProp";
-        int i = 1;
-        while (getAttribute(newAttrName) != null) {
-            newAttrName = "NewProp" + i++;
-        }
-        addNewAttribute(newAttrName);
+        addNewAttributeAt(activePlatform, getRowCount());
     }
 
     @JsonIgnore
@@ -665,16 +660,43 @@ public class MobileORObject extends UndoRedoModel implements ORObjectInf {
 
     @JsonIgnore
     public void addNewAttribute(MobilePlatform platform, String attrName) {
-        if (getAttribute(platform, attrName) == null) {
-            List<ORAttribute> attrs = getAttributes(platform);
-            attrs.add(new ORAttribute(attrName, attrs.size()));
-            if (platform == activePlatform) {
-                super.rowAdded(attrs.size() - 1);
-                fireTableRowsInserted(attrs.size() - 1, attrs.size() - 1);
-            } else {
-                changeSave();
-            }
+        addNewAttributeAt(platform, attrName, getAttributes(platform).size());
+    }
+
+    @JsonIgnore
+    public int addNewAttributeAt(MobilePlatform platform, int index) {
+        String newAttrName = "NewProp";
+        int i = 1;
+
+        while (getAttribute(platform, newAttrName) != null) {
+            newAttrName = "NewProp" + i++;
         }
+
+        return addNewAttributeAt(platform, newAttrName, index);
+    }
+
+    @JsonIgnore
+    public int addNewAttributeAt(MobilePlatform platform, String attrName, int index) {
+        if (getAttribute(platform, attrName) != null) {
+            return -1;
+        }
+
+        List<ORAttribute> attrs = getAttributes(platform);
+
+        if (index < 0 || index > attrs.size()) {
+            index = attrs.size();
+        }
+
+        attrs.add(index, new ORAttribute(attrName, index));
+
+        if (platform == activePlatform) {
+            super.rowAdded(index);
+            fireTableRowsInserted(index, index);
+        } else {
+            changeSave();
+        }
+
+        return index;
     }
 
     @JsonIgnore
