@@ -260,6 +260,9 @@ Release Date: <insert date of release>
 ### Security Fixes
 
 #### Added
+
+- New API Environment Management window to fully manage and use environments and environment variables
+
 #### Changed
 #### Deprecated
 #### Removed
