@@ -1163,6 +1163,8 @@ class AuthPanel extends JPanel {
     // Basic Auth
     private JTextField basicUsername;
     private JPasswordField basicPassword;
+    private JToggleButton basicPasswordVisibilityToggle;
+    private char basicPasswordDefaultEchoChar;
 
     // Bearer Token
     private JTextField bearerToken;
@@ -1239,8 +1241,24 @@ class AuthPanel extends JPanel {
         gbc.gridx = 1;
         gbc.fill = GridBagConstraints.HORIZONTAL;
         gbc.weightx = 1;
+
         basicPassword = new JPasswordField(30);
-        panel.add(basicPassword, gbc);
+        basicPasswordDefaultEchoChar = basicPassword.getEchoChar();
+
+        basicPasswordVisibilityToggle = new JToggleButton("Show");
+        basicPasswordVisibilityToggle.setFont(
+            basicPasswordVisibilityToggle.getFont().deriveFont(11f)
+        );
+        basicPasswordVisibilityToggle.setFocusPainted(false);
+        basicPasswordVisibilityToggle.setToolTipText("Show or hide password");
+        basicPasswordVisibilityToggle.addActionListener(e -> updateBasicPasswordVisibility());
+
+        JPanel passwordPanel = new JPanel(new BorderLayout(5, 0));
+        passwordPanel.setOpaque(false);
+        passwordPanel.add(basicPassword, BorderLayout.CENTER);
+        passwordPanel.add(basicPasswordVisibilityToggle, BorderLayout.EAST);
+
+        panel.add(passwordPanel, gbc);
 
         return panel;
     }
@@ -1312,6 +1330,17 @@ class AuthPanel extends JPanel {
         return panel;
     }
 
+    private void updateBasicPasswordVisibility() {
+        if (basicPassword == null || basicPasswordVisibilityToggle == null) {
+            return;
+        }
+
+        boolean showPassword = basicPasswordVisibilityToggle.isSelected();
+
+        basicPassword.setEchoChar(showPassword ? (char) 0 : basicPasswordDefaultEchoChar);
+        basicPasswordVisibilityToggle.setText(showPassword ? "Hide" : "Show");
+    }
+
     private void updateAuthPanel() {
         AuthConfig.AuthType type = (AuthConfig.AuthType) typeSelector.getSelectedItem();
         cardLayout.show(authPanel, type.name());
@@ -1327,6 +1356,10 @@ class AuthPanel extends JPanel {
 
         basicUsername.setText(auth.getBasicUsername() != null ? auth.getBasicUsername() : "");
         basicPassword.setText(auth.getBasicPassword() != null ? auth.getBasicPassword() : "");
+        if (basicPasswordVisibilityToggle != null) {
+            basicPasswordVisibilityToggle.setSelected(false);
+            updateBasicPasswordVisibility();
+        }
         bearerToken.setText(auth.getBearerToken() != null ? auth.getBearerToken() : "");
         bearerPrefix.setText(auth.getBearerPrefix() != null ? auth.getBearerPrefix() : "Bearer");
         apiKeyName.setText(auth.getApiKeyName() != null ? auth.getApiKeyName() : "");
@@ -1367,6 +1400,10 @@ class AuthPanel extends JPanel {
             basicPassword.setBackground(UIManager.getColor("TextField.background"));
             basicPassword.setForeground(UIManager.getColor("TextField.foreground"));
         }
+        if (basicPasswordVisibilityToggle != null) {
+            basicPasswordVisibilityToggle.setBackground(UIManager.getColor("Button.background"));
+            basicPasswordVisibilityToggle.setForeground(UIManager.getColor("Button.foreground"));
+        }
         if (bearerToken != null) {
             bearerToken.setBackground(UIManager.getColor("TextField.background"));
             bearerToken.setForeground(UIManager.getColor("TextField.foreground"));
@@ -1402,10 +1439,37 @@ class AuthPanel extends JPanel {
         // Refresh child panels
         for (Component c : authPanel.getComponents()) {
             if (c instanceof JPanel) {
-                c.setBackground(UIManager.getColor("Panel.background"));
+                refreshAuthChildColors((Container) c);
             }
         }
+
         repaint();
+    }
+
+    private void refreshAuthChildColors(Container container) {
+        for (Component c : container.getComponents()) {
+            if (c instanceof JPanel) {
+                c.setBackground(UIManager.getColor("Panel.background"));
+            }
+            if (c instanceof JTextField) {
+                c.setBackground(UIManager.getColor("TextField.background"));
+                c.setForeground(UIManager.getColor("TextField.foreground"));
+            }
+            if (c instanceof JPasswordField) {
+                c.setBackground(UIManager.getColor("TextField.background"));
+                c.setForeground(UIManager.getColor("TextField.foreground"));
+            }
+            if (c instanceof AbstractButton) {
+                c.setBackground(UIManager.getColor("Button.background"));
+                c.setForeground(UIManager.getColor("Button.foreground"));
+            }
+            if (c instanceof JComboBox) {
+                c.setBackground(UIManager.getColor("ComboBox.background"));
+            }
+            if (c instanceof Container) {
+                refreshAuthChildColors((Container) c);
+            }
+        }
     }
 }
 
