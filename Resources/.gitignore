@@ -1,7 +1,7 @@
 LICENSE
 logs/
 Projects/*/Results/*/
-web/
+/web/
 recent.items
 log.txt
 Tools/
