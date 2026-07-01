@@ -1647,20 +1647,69 @@ public abstract class ObjectTree implements ActionListener {
     }
 
     private boolean isSharedScope() {
-        ORRootInf root = getOR();
-        if (root instanceof WebOR) {
-            return ((WebOR) root).isShared();
+        return isSharedOR(getOR());
+    }
+
+    /**
+     * Helper method to check if an OR (Object Repository) is shared.
+     *
+     * @param or the OR root to check
+     * @return true if the OR is shared, false otherwise
+     */
+    private boolean isSharedOR(ORRootInf or) {
+        if (or instanceof WebOR) {
+            return ((WebOR) or).isShared();
         }
-        if (root instanceof MobileOR) {
-            return ((MobileOR) root).isShared();
+        if (or instanceof MobileOR) {
+            return ((MobileOR) or).isShared();
         }
-        if (root instanceof StructuredDataOR) {
-            return ((StructuredDataOR) root).isShared();
+        if (or instanceof StructuredDataOR) {
+            return ((StructuredDataOR) or).isShared();
         }
-        if (root instanceof SapOR) {
-            return ((SapOR) root).isShared();
+        if (or instanceof SapOR) {
+            return ((SapOR) or).isShared();
         }
         return false;
+    }
+
+    /**
+     * Helper method to check if both ORs are of the same type.
+     *
+     * @param or1 the first OR
+     * @param or2 the second OR
+     * @return true if both ORs are of the same type (Web, Mobile, StructuredData, or Sap)
+     */
+    private boolean isSameORType(ORRootInf or1, ORRootInf or2) {
+        return (
+            (or1 instanceof WebOR && or2 instanceof WebOR) ||
+            (or1 instanceof MobileOR && or2 instanceof MobileOR) ||
+            (or1 instanceof StructuredDataOR && or2 instanceof StructuredDataOR) ||
+            (or1 instanceof SapOR && or2 instanceof SapOR)
+        );
+    }
+
+    /**
+     * Helper method to check if this is a Shared to Project operation.
+     * Verifies that source OR is shared, current OR is not shared, and both are the same type.
+     *
+     * @param sourceOR the source OR
+     * @param currentOR the current (target) OR
+     * @return true if this is a Shared→Project operation
+     */
+    private boolean isSharedToProject(ORRootInf sourceOR, ORRootInf currentOR) {
+        return isSameORType(sourceOR, currentOR) && isSharedOR(sourceOR) && !isSharedOR(currentOR);
+    }
+
+    /**
+     * Helper method to check if this is a Project to Shared operation.
+     * Verifies that source OR is not shared, current OR is shared, and both are the same type.
+     *
+     * @param sourceOR the source OR
+     * @param currentOR the current (target) OR
+     * @return true if this is a Project→Shared operation
+     */
+    private boolean isProjectToShared(ORRootInf sourceOR, ORRootInf currentOR) {
+        return isSameORType(sourceOR, currentOR) && !isSharedOR(sourceOR) && isSharedOR(currentOR);
     }
 
     private boolean confirmSharedRename(String entityLabel, String currentName, String newName) {
@@ -1764,89 +1813,13 @@ public abstract class ObjectTree implements ActionListener {
         ORRootInf sourceOR = (ORRootInf) source.getPage().getParent();
         ObjectGroup sourceGroup = source.getParent();
         ObjectRepository repo = getProject().getObjectRepository();
-        if (
-            cut &&
-            sourceOR instanceof WebOR &&
-            ((WebOR) sourceOR).isShared() &&
-            currentOR instanceof WebOR &&
-            !((WebOR) currentOR).isShared()
-        ) {
+        // Check Shared→Project cut restriction
+        if (cut && isSharedToProject(sourceOR, currentOR)) {
             Notification.show("Cut is not allowed from Shared to Project Object Repository");
             return;
         }
-        if (
-            cut &&
-            sourceOR instanceof MobileOR &&
-            ((MobileOR) sourceOR).isShared() &&
-            currentOR instanceof MobileOR &&
-            !((MobileOR) currentOR).isShared()
-        ) {
-            Notification.show("Cut is not allowed from Shared to Project Object Repository");
-            return;
-        }
-        if (
-            cut &&
-            sourceOR instanceof StructuredDataOR &&
-            ((StructuredDataOR) sourceOR).isShared() &&
-            currentOR instanceof StructuredDataOR &&
-            !((StructuredDataOR) currentOR).isShared()
-        ) {
-            Notification.show("Cut is not allowed from Shared to Project Object Repository");
-            return;
-        }
-        if (
-            cut &&
-            sourceOR instanceof SapOR &&
-            ((SapOR) sourceOR).isShared() &&
-            currentOR instanceof SapOR &&
-            !((SapOR) currentOR).isShared()
-        ) {
-            Notification.show("Cut is not allowed from Shared to Project Object Repository");
-            return;
-        }
-        if (
-            cut &&
-            sourceOR instanceof WebOR &&
-            !((WebOR) sourceOR).isShared() &&
-            currentOR instanceof WebOR &&
-            ((WebOR) currentOR).isShared()
-        ) {
-            Notification.show(
-                "Cut is not allowed in Shared Object Repository. Use `Move to Shared` instead."
-            );
-            return;
-        }
-        if (
-            cut &&
-            sourceOR instanceof MobileOR &&
-            !((MobileOR) sourceOR).isShared() &&
-            currentOR instanceof MobileOR &&
-            ((MobileOR) currentOR).isShared()
-        ) {
-            Notification.show(
-                "Cut is not allowed in Shared Object Repository. Use `Move to Shared` instead."
-            );
-            return;
-        }
-        if (
-            cut &&
-            sourceOR instanceof StructuredDataOR &&
-            !((StructuredDataOR) sourceOR).isShared() &&
-            currentOR instanceof StructuredDataOR &&
-            ((StructuredDataOR) currentOR).isShared()
-        ) {
-            Notification.show(
-                "Cut is not allowed in Shared Object Repository. Use `Move to Shared` instead."
-            );
-            return;
-        }
-        if (
-            cut &&
-            sourceOR instanceof SapOR &&
-            !((SapOR) sourceOR).isShared() &&
-            currentOR instanceof SapOR &&
-            ((SapOR) currentOR).isShared()
-        ) {
+        // Check Project→Shared cut restriction
+        if (cut && isProjectToShared(sourceOR, currentOR)) {
             Notification.show(
                 "Cut is not allowed in Shared Object Repository. Use `Move to Shared` instead."
             );
@@ -1985,12 +1958,8 @@ public abstract class ObjectTree implements ActionListener {
             }
             return;
         }
-        if (
-            currentOR instanceof WebOR &&
-            !((WebOR) currentOR).isShared() &&
-            sourceOR instanceof WebOR &&
-            ((WebOR) sourceOR).isShared()
-        ) {
+        // Shared→Project paste (copy only, cut already blocked)
+        if (isSharedToProject(sourceOR, currentOR) && currentOR instanceof WebOR) {
             String newGroupName;
             // Only append suffix if target page already contains group with same name
             if (targetPage.getObjectGroupByName(sourceGroup.getName()) == null) {
@@ -2026,12 +1995,7 @@ public abstract class ObjectTree implements ActionListener {
             }
             return;
         }
-        if (
-            currentOR instanceof MobileOR &&
-            !((MobileOR) currentOR).isShared() &&
-            sourceOR instanceof MobileOR &&
-            ((MobileOR) sourceOR).isShared()
-        ) {
+        if (isSharedToProject(sourceOR, currentOR) && currentOR instanceof MobileOR) {
             String newGroupName;
             // Only append suffix if target page already contains group with same name
             if (targetPage.getObjectGroupByName(sourceGroup.getName()) == null) {
@@ -2073,12 +2037,7 @@ public abstract class ObjectTree implements ActionListener {
             }
             return;
         }
-        if (
-            currentOR instanceof StructuredDataOR &&
-            !((StructuredDataOR) currentOR).isShared() &&
-            sourceOR instanceof StructuredDataOR &&
-            ((StructuredDataOR) sourceOR).isShared()
-        ) {
+        if (isSharedToProject(sourceOR, currentOR) && currentOR instanceof StructuredDataOR) {
             String newGroupName;
             // Only append suffix if target page already contains group with same name
             if (targetPage.getObjectGroupByName(sourceGroup.getName()) == null) {
@@ -2120,12 +2079,7 @@ public abstract class ObjectTree implements ActionListener {
             }
             return;
         }
-        if (
-            currentOR instanceof MobileOR &&
-            !((MobileOR) currentOR).isShared() &&
-            sourceOR instanceof MobileOR &&
-            ((MobileOR) sourceOR).isShared()
-        ) {
+        if (isSharedToProject(sourceOR, currentOR) && currentOR instanceof MobileOR) {
             String newGroupName;
             // Only append suffix if target page already contains group with same name
             if (targetPage.getObjectGroupByName(sourceGroup.getName()) == null) {
@@ -2167,12 +2121,7 @@ public abstract class ObjectTree implements ActionListener {
             }
             return;
         }
-        if (
-            currentOR instanceof StructuredDataOR &&
-            !((StructuredDataOR) currentOR).isShared() &&
-            sourceOR instanceof StructuredDataOR &&
-            ((StructuredDataOR) sourceOR).isShared()
-        ) {
+        if (isSharedToProject(sourceOR, currentOR) && currentOR instanceof StructuredDataOR) {
             String newGroupName;
             // Only append suffix if target page already contains group with same name
             if (targetPage.getObjectGroupByName(sourceGroup.getName()) == null) {
@@ -2214,12 +2163,7 @@ public abstract class ObjectTree implements ActionListener {
             }
             return;
         }
-        if (
-            currentOR instanceof MobileOR &&
-            !((MobileOR) currentOR).isShared() &&
-            sourceOR instanceof MobileOR &&
-            ((MobileOR) sourceOR).isShared()
-        ) {
+        if (isSharedToProject(sourceOR, currentOR) && currentOR instanceof MobileOR) {
             String newGroupName;
             // Only append suffix if target page already contains group with same name
             if (targetPage.getObjectGroupByName(sourceGroup.getName()) == null) {
@@ -2261,12 +2205,7 @@ public abstract class ObjectTree implements ActionListener {
             }
             return;
         }
-        if (
-            currentOR instanceof StructuredDataOR &&
-            !((StructuredDataOR) currentOR).isShared() &&
-            sourceOR instanceof StructuredDataOR &&
-            ((StructuredDataOR) sourceOR).isShared()
-        ) {
+        if (isSharedToProject(sourceOR, currentOR) && currentOR instanceof StructuredDataOR) {
             String newGroupName;
             // Only append suffix if target page already contains group with same name
             if (targetPage.getObjectGroupByName(sourceGroup.getName()) == null) {
@@ -2308,12 +2247,7 @@ public abstract class ObjectTree implements ActionListener {
             }
             return;
         }
-        if (
-            currentOR instanceof MobileOR &&
-            !((MobileOR) currentOR).isShared() &&
-            sourceOR instanceof MobileOR &&
-            ((MobileOR) sourceOR).isShared()
-        ) {
+        if (isSharedToProject(sourceOR, currentOR) && currentOR instanceof MobileOR) {
             String newGroupName;
             // Only append suffix if target page already contains group with same name
             if (targetPage.getObjectGroupByName(sourceGroup.getName()) == null) {
@@ -2355,12 +2289,7 @@ public abstract class ObjectTree implements ActionListener {
             }
             return;
         }
-        if (
-            currentOR instanceof StructuredDataOR &&
-            !((StructuredDataOR) currentOR).isShared() &&
-            sourceOR instanceof StructuredDataOR &&
-            ((StructuredDataOR) sourceOR).isShared()
-        ) {
+        if (isSharedToProject(sourceOR, currentOR) && currentOR instanceof StructuredDataOR) {
             String newGroupName;
             // Only append suffix if target page already contains group with same name
             if (targetPage.getObjectGroupByName(sourceGroup.getName()) == null) {
@@ -2402,12 +2331,7 @@ public abstract class ObjectTree implements ActionListener {
             }
             return;
         }
-        if (
-            currentOR instanceof MobileOR &&
-            !((MobileOR) currentOR).isShared() &&
-            sourceOR instanceof MobileOR &&
-            ((MobileOR) sourceOR).isShared()
-        ) {
+        if (isSharedToProject(sourceOR, currentOR) && currentOR instanceof MobileOR) {
             String newGroupName;
             // Only append suffix if target page already contains group with same name
             if (targetPage.getObjectGroupByName(sourceGroup.getName()) == null) {
@@ -2449,12 +2373,7 @@ public abstract class ObjectTree implements ActionListener {
             }
             return;
         }
-        if (
-            currentOR instanceof StructuredDataOR &&
-            !((StructuredDataOR) currentOR).isShared() &&
-            sourceOR instanceof StructuredDataOR &&
-            ((StructuredDataOR) sourceOR).isShared()
-        ) {
+        if (isSharedToProject(sourceOR, currentOR) && currentOR instanceof StructuredDataOR) {
             String newGroupName;
             // Only append suffix if target page already contains group with same name
             if (targetPage.getObjectGroupByName(sourceGroup.getName()) == null) {
@@ -2497,12 +2416,7 @@ public abstract class ObjectTree implements ActionListener {
             return;
         }
         // Project to Shared paste sections with smart naming
-        if (
-            currentOR instanceof WebOR &&
-            ((WebOR) currentOR).isShared() &&
-            sourceOR instanceof WebOR &&
-            !((WebOR) sourceOR).isShared()
-        ) {
+        if (isProjectToShared(sourceOR, currentOR)) {
             String newGroupName;
             // Only append suffix if target page already contains group with same name
             if (targetPage.getObjectGroupByName(sourceGroup.getName()) == null) {
@@ -2538,12 +2452,7 @@ public abstract class ObjectTree implements ActionListener {
             }
             return;
         }
-        if (
-            currentOR instanceof MobileOR &&
-            ((MobileOR) currentOR).isShared() &&
-            sourceOR instanceof MobileOR &&
-            !((MobileOR) sourceOR).isShared()
-        ) {
+        if (isProjectToShared(sourceOR, currentOR) && currentOR instanceof MobileOR) {
             String newGroupName;
             // Only append suffix if target page already contains group with same name
             if (targetPage.getObjectGroupByName(sourceGroup.getName()) == null) {
@@ -2579,12 +2488,7 @@ public abstract class ObjectTree implements ActionListener {
             }
             return;
         }
-        if (
-            currentOR instanceof StructuredDataOR &&
-            ((StructuredDataOR) currentOR).isShared() &&
-            sourceOR instanceof StructuredDataOR &&
-            !((StructuredDataOR) sourceOR).isShared()
-        ) {
+        if (isProjectToShared(sourceOR, currentOR) && currentOR instanceof StructuredDataOR) {
             String newGroupName;
             // Only append suffix if target page already contains group with same name
             if (targetPage.getObjectGroupByName(sourceGroup.getName()) == null) {
@@ -2620,12 +2524,7 @@ public abstract class ObjectTree implements ActionListener {
             }
             return;
         }
-        if (
-            currentOR instanceof SapOR &&
-            ((SapOR) currentOR).isShared() &&
-            sourceOR instanceof SapOR &&
-            !((SapOR) sourceOR).isShared()
-        ) {
+        if (isProjectToShared(sourceOR, currentOR) && currentOR instanceof SapOR) {
             String newGroupName;
             // Only append suffix if target page already contains group with same name
             if (targetPage.getObjectGroupByName(sourceGroup.getName()) == null) {
@@ -2803,92 +2702,16 @@ public abstract class ObjectTree implements ActionListener {
             for (ORObjectInf source : sources) {
                 ORRootInf sourceOR = (ORRootInf) source.getPage().getParent();
 
-                // Check Shared to Project cut restriction
-                if (
-                    sourceOR instanceof WebOR &&
-                    ((WebOR) sourceOR).isShared() &&
-                    currentOR instanceof WebOR &&
-                    !((WebOR) currentOR).isShared()
-                ) {
-                    Notification.show(
-                        "Cut is not allowed from Shared to Project Object Repository"
-                    );
-                    return;
-                }
-                if (
-                    sourceOR instanceof MobileOR &&
-                    ((MobileOR) sourceOR).isShared() &&
-                    currentOR instanceof MobileOR &&
-                    !((MobileOR) currentOR).isShared()
-                ) {
-                    Notification.show(
-                        "Cut is not allowed from Shared to Project Object Repository"
-                    );
-                    return;
-                }
-                if (
-                    sourceOR instanceof StructuredDataOR &&
-                    ((StructuredDataOR) sourceOR).isShared() &&
-                    currentOR instanceof StructuredDataOR &&
-                    !((StructuredDataOR) currentOR).isShared()
-                ) {
-                    Notification.show(
-                        "Cut is not allowed from Shared to Project Object Repository"
-                    );
-                    return;
-                }
-                if (
-                    sourceOR instanceof SapOR &&
-                    ((SapOR) sourceOR).isShared() &&
-                    currentOR instanceof SapOR &&
-                    !((SapOR) currentOR).isShared()
-                ) {
+                // Check Shared→Project cut restriction
+                if (isSharedToProject(sourceOR, currentOR)) {
                     Notification.show(
                         "Cut is not allowed from Shared to Project Object Repository"
                     );
                     return;
                 }
 
-                // Check Project to Shared cut restriction
-                if (
-                    sourceOR instanceof WebOR &&
-                    !((WebOR) sourceOR).isShared() &&
-                    currentOR instanceof WebOR &&
-                    ((WebOR) currentOR).isShared()
-                ) {
-                    Notification.show(
-                        "Cut is not allowed in Shared Object Repository. Use `Move to Shared` instead."
-                    );
-                    return;
-                }
-                if (
-                    sourceOR instanceof MobileOR &&
-                    !((MobileOR) sourceOR).isShared() &&
-                    currentOR instanceof MobileOR &&
-                    ((MobileOR) currentOR).isShared()
-                ) {
-                    Notification.show(
-                        "Cut is not allowed in Shared Object Repository. Use `Move to Shared` instead."
-                    );
-                    return;
-                }
-                if (
-                    sourceOR instanceof StructuredDataOR &&
-                    !((StructuredDataOR) sourceOR).isShared() &&
-                    currentOR instanceof StructuredDataOR &&
-                    ((StructuredDataOR) currentOR).isShared()
-                ) {
-                    Notification.show(
-                        "Cut is not allowed in Shared Object Repository. Use `Move to Shared` instead."
-                    );
-                    return;
-                }
-                if (
-                    sourceOR instanceof SapOR &&
-                    !((SapOR) sourceOR).isShared() &&
-                    currentOR instanceof SapOR &&
-                    ((SapOR) currentOR).isShared()
-                ) {
+                // Check Project→Shared cut restriction
+                if (isProjectToShared(sourceOR, currentOR)) {
                     Notification.show(
                         "Cut is not allowed in Shared Object Repository. Use `Move to Shared` instead."
                     );
@@ -3032,12 +2855,7 @@ public abstract class ObjectTree implements ActionListener {
             } else {
                 // Cross-repository paste (Shared to Project - copy only, cut already blocked)
                 // For cross-repo, we paste all objects from the group into a new group
-                if (
-                    currentOR instanceof WebOR &&
-                    !((WebOR) currentOR).isShared() &&
-                    sourceOR instanceof WebOR &&
-                    ((WebOR) sourceOR).isShared()
-                ) {
+                if (isSharedToProject(sourceOR, currentOR) && currentOR instanceof WebOR) {
                     String newGroupName;
                     if (targetPage.getObjectGroupByName(sourceGroup.getName()) == null) {
                         newGroupName = sourceGroup.getName();
@@ -3065,10 +2883,7 @@ public abstract class ObjectTree implements ActionListener {
                     ((WebOR) currentOR).setSaved(false);
                     repo.saveWebPageNow((WebORPage) targetPage);
                 } else if (
-                    currentOR instanceof MobileOR &&
-                    !((MobileOR) currentOR).isShared() &&
-                    sourceOR instanceof MobileOR &&
-                    ((MobileOR) sourceOR).isShared()
+                    isSharedToProject(sourceOR, currentOR) && currentOR instanceof MobileOR
                 ) {
                     String newGroupName;
                     if (targetPage.getObjectGroupByName(sourceGroup.getName()) == null) {
@@ -3097,10 +2912,7 @@ public abstract class ObjectTree implements ActionListener {
                     ((MobileOR) currentOR).setSaved(false);
                     repo.saveMobilePageNow((MobileORPage) targetPage);
                 } else if (
-                    currentOR instanceof StructuredDataOR &&
-                    !((StructuredDataOR) currentOR).isShared() &&
-                    sourceOR instanceof StructuredDataOR &&
-                    ((StructuredDataOR) sourceOR).isShared()
+                    isSharedToProject(sourceOR, currentOR) && currentOR instanceof StructuredDataOR
                 ) {
                     String newGroupName;
                     if (targetPage.getObjectGroupByName(sourceGroup.getName()) == null) {
@@ -3128,12 +2940,7 @@ public abstract class ObjectTree implements ActionListener {
                     targetPage.getObjectGroups().add(newGroup);
                     ((StructuredDataOR) currentOR).setSaved(false);
                     repo.saveStructuredDataPageNow((StructuredDataORPage) targetPage);
-                } else if (
-                    currentOR instanceof SapOR &&
-                    !((SapOR) currentOR).isShared() &&
-                    sourceOR instanceof SapOR &&
-                    ((SapOR) sourceOR).isShared()
-                ) {
+                } else if (isSharedToProject(sourceOR, currentOR) && currentOR instanceof SapOR) {
                     String newGroupName;
                     if (targetPage.getObjectGroupByName(sourceGroup.getName()) == null) {
                         newGroupName = sourceGroup.getName();
@@ -3460,89 +3267,13 @@ public abstract class ObjectTree implements ActionListener {
         ORRootInf currentOR = getOR();
         ORRootInf sourceOR = (ORRootInf) sourcePage.getParent();
         ObjectRepository repo = getProject().getObjectRepository();
-        if (
-            cut &&
-            sourceOR instanceof WebOR &&
-            ((WebOR) sourceOR).isShared() &&
-            currentOR instanceof WebOR &&
-            !((WebOR) currentOR).isShared()
-        ) {
+        // Check Shared→Project cut restriction
+        if (cut && isSharedToProject(sourceOR, currentOR)) {
             Notification.show("Cut is not allowed from Shared to Project Object Repository");
             return;
         }
-        if (
-            cut &&
-            sourceOR instanceof MobileOR &&
-            ((MobileOR) sourceOR).isShared() &&
-            currentOR instanceof MobileOR &&
-            !((MobileOR) currentOR).isShared()
-        ) {
-            Notification.show("Cut is not allowed from Shared to Project Object Repository");
-            return;
-        }
-        if (
-            cut &&
-            sourceOR instanceof StructuredDataOR &&
-            ((StructuredDataOR) sourceOR).isShared() &&
-            currentOR instanceof StructuredDataOR &&
-            !((StructuredDataOR) currentOR).isShared()
-        ) {
-            Notification.show("Cut is not allowed from Shared to Project Object Repository");
-            return;
-        }
-        if (
-            cut &&
-            sourceOR instanceof SapOR &&
-            ((SapOR) sourceOR).isShared() &&
-            currentOR instanceof SapOR &&
-            !((SapOR) currentOR).isShared()
-        ) {
-            Notification.show("Cut is not allowed from Shared to Project Object Repository");
-            return;
-        }
-        if (
-            cut &&
-            sourceOR instanceof WebOR &&
-            !((WebOR) sourceOR).isShared() &&
-            currentOR instanceof WebOR &&
-            ((WebOR) currentOR).isShared()
-        ) {
-            Notification.show(
-                "Cut is not allowed in Shared Object Repository. Use `Move to Shared` instead."
-            );
-            return;
-        }
-        if (
-            cut &&
-            sourceOR instanceof MobileOR &&
-            !((MobileOR) sourceOR).isShared() &&
-            currentOR instanceof MobileOR &&
-            ((MobileOR) currentOR).isShared()
-        ) {
-            Notification.show(
-                "Cut is not allowed in Shared Object Repository. Use `Move to Shared` instead."
-            );
-            return;
-        }
-        if (
-            cut &&
-            sourceOR instanceof StructuredDataOR &&
-            !((StructuredDataOR) sourceOR).isShared() &&
-            currentOR instanceof StructuredDataOR &&
-            ((StructuredDataOR) currentOR).isShared()
-        ) {
-            Notification.show(
-                "Cut is not allowed in Shared Object Repository. Use `Move to Shared` instead."
-            );
-            return;
-        }
-        if (
-            cut &&
-            sourceOR instanceof SapOR &&
-            !((SapOR) sourceOR).isShared() &&
-            currentOR instanceof SapOR &&
-            ((SapOR) currentOR).isShared()
-        ) {
+        // Check Project→Shared cut restriction
+        if (cut && isProjectToShared(sourceOR, currentOR)) {
             Notification.show(
                 "Cut is not allowed in Shared Object Repository. Use `Move to Shared` instead."
             );
@@ -3625,12 +3356,7 @@ public abstract class ObjectTree implements ActionListener {
             reload();
             return;
         }
-        if (
-            currentOR instanceof WebOR &&
-            !((WebOR) currentOR).isShared() &&
-            sourceOR instanceof WebOR &&
-            ((WebOR) sourceOR).isShared()
-        ) {
+        if (isSharedToProject(sourceOR, currentOR) && currentOR instanceof WebOR) {
             String newPageName = cut ? sourcePage.getName() : computeCopyPageName(sourcePage);
             ORPageInf newPage = getOR().addPage(newPageName);
             WebORPage srcPage = (WebORPage) sourcePage;
@@ -3652,12 +3378,7 @@ public abstract class ObjectTree implements ActionListener {
             reload();
             return;
         }
-        if (
-            currentOR instanceof MobileOR &&
-            !((MobileOR) currentOR).isShared() &&
-            sourceOR instanceof MobileOR &&
-            ((MobileOR) sourceOR).isShared()
-        ) {
+        if (isSharedToProject(sourceOR, currentOR) && currentOR instanceof MobileOR) {
             String newPageName = cut ? sourcePage.getName() : computeCopyPageName(sourcePage);
             ORPageInf newPage = getOR().addPage(newPageName);
             MobileORPage srcPage = (MobileORPage) sourcePage;
@@ -3684,12 +3405,7 @@ public abstract class ObjectTree implements ActionListener {
             );
             return;
         }
-        if (
-            currentOR instanceof StructuredDataOR &&
-            !((StructuredDataOR) currentOR).isShared() &&
-            sourceOR instanceof StructuredDataOR &&
-            ((StructuredDataOR) sourceOR).isShared()
-        ) {
+        if (isSharedToProject(sourceOR, currentOR) && currentOR instanceof StructuredDataOR) {
             String newPageName = cut ? sourcePage.getName() : computeCopyPageName(sourcePage);
             ORPageInf newPage = getOR().addPage(newPageName);
             StructuredDataORPage srcPage = (StructuredDataORPage) sourcePage;
@@ -3716,12 +3432,7 @@ public abstract class ObjectTree implements ActionListener {
             );
             return;
         }
-        if (
-            currentOR instanceof SapOR &&
-            !((SapOR) currentOR).isShared() &&
-            sourceOR instanceof SapOR &&
-            ((SapOR) sourceOR).isShared()
-        ) {
+        if (isSharedToProject(sourceOR, currentOR) && currentOR instanceof SapOR) {
             String newPageName = cut ? sourcePage.getName() : computeCopyPageName(sourcePage);
             ORPageInf newPage = getOR().addPage(newPageName);
             SapORPage srcPage = (SapORPage) sourcePage;
@@ -3844,92 +3555,16 @@ public abstract class ObjectTree implements ActionListener {
             for (ORPageInf sourcePage : sourcePages) {
                 ORRootInf sourceOR = (ORRootInf) sourcePage.getParent();
 
-                // Check Shared to Project cut restriction
-                if (
-                    sourceOR instanceof WebOR &&
-                    ((WebOR) sourceOR).isShared() &&
-                    currentOR instanceof WebOR &&
-                    !((WebOR) currentOR).isShared()
-                ) {
-                    Notification.show(
-                        "Cut is not allowed from Shared to Project Object Repository"
-                    );
-                    return;
-                }
-                if (
-                    sourceOR instanceof MobileOR &&
-                    ((MobileOR) sourceOR).isShared() &&
-                    currentOR instanceof MobileOR &&
-                    !((MobileOR) currentOR).isShared()
-                ) {
-                    Notification.show(
-                        "Cut is not allowed from Shared to Project Object Repository"
-                    );
-                    return;
-                }
-                if (
-                    sourceOR instanceof StructuredDataOR &&
-                    ((StructuredDataOR) sourceOR).isShared() &&
-                    currentOR instanceof StructuredDataOR &&
-                    !((StructuredDataOR) currentOR).isShared()
-                ) {
-                    Notification.show(
-                        "Cut is not allowed from Shared to Project Object Repository"
-                    );
-                    return;
-                }
-                if (
-                    sourceOR instanceof SapOR &&
-                    ((SapOR) sourceOR).isShared() &&
-                    currentOR instanceof SapOR &&
-                    !((SapOR) currentOR).isShared()
-                ) {
+                // Check Shared→Project cut restriction
+                if (isSharedToProject(sourceOR, currentOR)) {
                     Notification.show(
                         "Cut is not allowed from Shared to Project Object Repository"
                     );
                     return;
                 }
 
-                // Check Project to Shared cut restriction
-                if (
-                    sourceOR instanceof WebOR &&
-                    !((WebOR) sourceOR).isShared() &&
-                    currentOR instanceof WebOR &&
-                    ((WebOR) currentOR).isShared()
-                ) {
-                    Notification.show(
-                        "Cut is not allowed in Shared Object Repository. Use `Move to Shared` instead."
-                    );
-                    return;
-                }
-                if (
-                    sourceOR instanceof MobileOR &&
-                    !((MobileOR) sourceOR).isShared() &&
-                    currentOR instanceof MobileOR &&
-                    ((MobileOR) currentOR).isShared()
-                ) {
-                    Notification.show(
-                        "Cut is not allowed in Shared Object Repository. Use `Move to Shared` instead."
-                    );
-                    return;
-                }
-                if (
-                    sourceOR instanceof StructuredDataOR &&
-                    !((StructuredDataOR) sourceOR).isShared() &&
-                    currentOR instanceof StructuredDataOR &&
-                    ((StructuredDataOR) currentOR).isShared()
-                ) {
-                    Notification.show(
-                        "Cut is not allowed in Shared Object Repository. Use `Move to Shared` instead."
-                    );
-                    return;
-                }
-                if (
-                    sourceOR instanceof SapOR &&
-                    !((SapOR) sourceOR).isShared() &&
-                    currentOR instanceof SapOR &&
-                    ((SapOR) currentOR).isShared()
-                ) {
+                // Check Project→Shared cut restriction
+                if (isProjectToShared(sourceOR, currentOR)) {
                     Notification.show(
                         "Cut is not allowed in Shared Object Repository. Use `Move to Shared` instead."
                     );
@@ -4026,12 +3661,7 @@ public abstract class ObjectTree implements ActionListener {
                 lastPastedPage = newPage;
             } else {
                 // Cross-repository paste (Shared to Project or Project to Shared)
-                if (
-                    currentOR instanceof WebOR &&
-                    !((WebOR) currentOR).isShared() &&
-                    sourceOR instanceof WebOR &&
-                    ((WebOR) sourceOR).isShared()
-                ) {
+                if (isSharedToProject(sourceOR, currentOR) && currentOR instanceof WebOR) {
                     String newPageName = cut
                         ? sourcePage.getName()
                         : computeCopyPageName(sourcePage);
@@ -4054,10 +3684,7 @@ public abstract class ObjectTree implements ActionListener {
                     pageAdded(newPage);
                     lastPastedPage = newPage;
                 } else if (
-                    currentOR instanceof MobileOR &&
-                    !((MobileOR) currentOR).isShared() &&
-                    sourceOR instanceof MobileOR &&
-                    ((MobileOR) sourceOR).isShared()
+                    isSharedToProject(sourceOR, currentOR) && currentOR instanceof MobileOR
                 ) {
                     String newPageName = cut
                         ? sourcePage.getName()
@@ -4081,10 +3708,7 @@ public abstract class ObjectTree implements ActionListener {
                     pageAdded(newPage);
                     lastPastedPage = newPage;
                 } else if (
-                    currentOR instanceof StructuredDataOR &&
-                    !((StructuredDataOR) currentOR).isShared() &&
-                    sourceOR instanceof StructuredDataOR &&
-                    ((StructuredDataOR) sourceOR).isShared()
+                    isSharedToProject(sourceOR, currentOR) && currentOR instanceof StructuredDataOR
                 ) {
                     String newPageName = cut
                         ? sourcePage.getName()
@@ -4107,12 +3731,7 @@ public abstract class ObjectTree implements ActionListener {
                     }
                     pageAdded(newPage);
                     lastPastedPage = newPage;
-                } else if (
-                    currentOR instanceof SapOR &&
-                    !((SapOR) currentOR).isShared() &&
-                    sourceOR instanceof SapOR &&
-                    ((SapOR) sourceOR).isShared()
-                ) {
+                } else if (isSharedToProject(sourceOR, currentOR) && currentOR instanceof SapOR) {
                     String newPageName = cut
                         ? sourcePage.getName()
                         : computeCopyPageName(sourcePage);
