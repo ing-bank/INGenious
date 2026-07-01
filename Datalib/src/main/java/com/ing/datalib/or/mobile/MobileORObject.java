@@ -648,21 +648,42 @@ public class MobileORObject extends UndoRedoModel implements ORObjectInf {
         }
     }
 
+    /**
+     * Adds a new attribute to the end of the active platform's attribute list.
+     */
     @JsonIgnore
     public void addNewAttribute() {
         addNewAttributeAt(activePlatform, getRowCount());
     }
 
+    /**
+     * Adds a named attribute to the end of the active platform's attribute list.
+     *
+     * @param attrName attribute name to add
+     */
     @JsonIgnore
     public void addNewAttribute(String attrName) {
         addNewAttribute(activePlatform, attrName);
     }
 
+    /**
+     * Adds a named attribute to the end of the specified platform's attribute list.
+     *
+     * @param platform target mobile platform
+     * @param attrName attribute name to add
+     */
     @JsonIgnore
     public void addNewAttribute(MobilePlatform platform, String attrName) {
         addNewAttributeAt(platform, attrName, getAttributes(platform).size());
     }
 
+    /**
+     * Adds a uniquely named new attribute at the specified index.
+     *
+     * @param platform target mobile platform
+     * @param index insertion index
+     * @return inserted row index, or {@code -1} if insertion failed
+     */
     @JsonIgnore
     public int addNewAttributeAt(MobilePlatform platform, int index) {
         String newAttrName = "NewProp";
@@ -675,6 +696,14 @@ public class MobileORObject extends UndoRedoModel implements ORObjectInf {
         return addNewAttributeAt(platform, newAttrName, index);
     }
 
+    /**
+     * Adds a named attribute at the specified index.
+     *
+     * @param platform target mobile platform
+     * @param attrName attribute name to add
+     * @param index insertion index
+     * @return inserted row index, or {@code -1} if the attribute already exists
+     */
     @JsonIgnore
     public int addNewAttributeAt(MobilePlatform platform, String attrName, int index) {
         if (getAttribute(platform, attrName) != null) {

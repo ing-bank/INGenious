@@ -391,16 +391,30 @@ public class StructuredDataORObject extends UndoRedoModel implements ORObjectInf
         changeSave();
     }
 
+    /**
+     * Adds a new attribute to the end of the attribute list.
+     */
     @JsonIgnore
     public void addNewAttribute() {
         addNewAttributeAt(attributes.size());
     }
 
+    /**
+     * Adds a named attribute to the end of the attribute list.
+     *
+     * @param attrName attribute name to add
+     */
     @JsonIgnore
     public void addNewAttribute(String attrName) {
         addNewAttributeAt(attrName, attributes.size());
     }
 
+    /**
+     * Adds a uniquely named new attribute at the specified index.
+     *
+     * @param index insertion index
+     * @return inserted row index, or {@code -1} if insertion failed
+     */
     @JsonIgnore
     public int addNewAttributeAt(int index) {
         String attrName = "NewAttribute";
@@ -414,6 +428,13 @@ public class StructuredDataORObject extends UndoRedoModel implements ORObjectInf
         return addNewAttributeAt(name, index);
     }
 
+    /**
+     * Adds a named attribute at the specified index.
+     *
+     * @param attrName attribute name to add
+     * @param index insertion index
+     * @return inserted row index, or {@code -1} if the attribute already exists
+     */
     @JsonIgnore
     public int addNewAttributeAt(String attrName, int index) {
         if (getAttribute(attrName) != null) {
