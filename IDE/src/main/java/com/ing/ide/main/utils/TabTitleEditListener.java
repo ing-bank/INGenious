@@ -28,6 +28,7 @@ public class TabTitleEditListener extends MouseAdapter implements ChangeListener
     private final RenamePopup rPopup;
 
     private int editingIdx = -1;
+    private boolean isProcessingRename = false;
 
     private final Action onRenameAction;
 
@@ -121,15 +122,25 @@ public class TabTitleEditListener extends MouseAdapter implements ChangeListener
     }
 
     private void renameTabTitle() {
+        // Prevent multiple rename calls when modal dialogs are shown
+        if (isProcessingRename) {
+            return;
+        }
+
         String title = rPopup.editor.getText().trim();
         if (editingIdx >= 0 && !title.isEmpty()) {
             String prevTitle = tabbedPane.getTitleAt(editingIdx);
             if (!prevTitle.equals(title)) {
-                onRenameAction.putValue("oldValue", prevTitle);
-                onRenameAction.putValue("newValue", title);
-                onRenameAction.actionPerformed(null);
-                if (onRenameAction.getValue("rename").equals(true)) {
-                    tabbedPane.setTitleAt(editingIdx, title);
+                isProcessingRename = true;
+                try {
+                    onRenameAction.putValue("oldValue", prevTitle);
+                    onRenameAction.putValue("newValue", title);
+                    onRenameAction.actionPerformed(null);
+                    if (onRenameAction.getValue("rename").equals(true)) {
+                        tabbedPane.setTitleAt(editingIdx, title);
+                    }
+                } finally {
+                    isProcessingRename = false;
                 }
             }
         }
