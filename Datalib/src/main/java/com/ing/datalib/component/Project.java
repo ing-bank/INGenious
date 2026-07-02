@@ -144,7 +144,7 @@ public class Project {
         projectInfo = loadProjectInfo(getProjectFile());
 
         // Auto-migrate CSV test cases to YAML if enabled
-        migrateCsvToYamlIfEnabled();
+        migrateTestsFromCsvToYaml();
 
         loadScenariosFromTestPlan();
         loadTestSets();
@@ -205,21 +205,23 @@ public class Project {
      * <p>Migration is performed once during project load. If migration fails, an error is
      * logged but project loading continues to ensure backward compatibility.</p>
      */
-    private void migrateCsvToYamlIfEnabled() {
+    private void migrateTestsFromCsvToYaml() {
         if (projectInfo == null) {
             return; // No project info available, skip migration
         }
 
         // Check if auto-migration is explicitly disabled (defaults to true if not set)
-        boolean autoMigrate = !Boolean.FALSE.equals(projectInfo.getAutoMigrateCsvToYaml());
+        Boolean autoMigrateFlag = projectInfo.getAutoMigrateCsvToYaml();
+        // Default value of autoMigrateFlag is true when not set
+        boolean autoMigrate = autoMigrateFlag == null || autoMigrateFlag;
         if (!autoMigrate) {
             return; // Auto-migration explicitly disabled
         }
 
         // Determine whether to keep CSV backups (defaults to true for safety)
-        boolean keepBackup =
-            projectInfo.getKeepCsvBackupOnMigrate() == null ||
-            Boolean.TRUE.equals(projectInfo.getKeepCsvBackupOnMigrate());
+        Boolean keepBackupFlag = projectInfo.getKeepCsvBackupOnMigrate();
+        // Default value of keepBackupFlag is true when not set
+        boolean keepBackup = keepBackupFlag == null || keepBackupFlag;
 
         try {
             LOGGER.log(
