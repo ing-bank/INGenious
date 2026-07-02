@@ -20,6 +20,7 @@ import com.ing.ide.main.mainui.SlideShow;
 import com.ing.ide.main.mainui.components.apitester.util.APIHttpClient;
 import java.io.File;
 import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
@@ -27,6 +28,7 @@ import java.util.List;
 import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.checkerframework.checker.units.qual.A;
 
 /**
  * Main controller for the API Tester feature.
@@ -883,7 +885,9 @@ public class APITester implements SlideShow.SlideChangeListener {
         }
 
         try {
-            buildStepsForRequest(testCase, request, apiConfigAlias);
+            APIRequest requestForConversion = createResolvedRequest(request, activeEnvironment);
+
+            buildStepsForRequest(testCase, requestForConversion, apiConfigAlias);
 
             // Save the test case
             testCase.save();
@@ -1004,7 +1008,9 @@ public class APITester implements SlideShow.SlideChangeListener {
         }
 
         try {
-            buildStepsForRequest(testCase, request);
+            APIRequest requestForConversion = createResolvedRequest(request, activeEnvironment);
+            buildStepsForRequest(testCase, requestForConversion);
+
             testCase.save();
 
             // Refresh Reusables tree so the new reusable appears immediately
@@ -1162,15 +1168,23 @@ public class APITester implements SlideShow.SlideChangeListener {
         switch (auth.getAuthType()) {
             case BASIC:
                 {
-                    authStep.setDescription("Add Basic Auth Header");
-                    String basicAuth =
-                        "Basic " +
-                        java
-                            .util.Base64.getEncoder()
-                            .encodeToString(
-                                (auth.getBasicUsername() + ":" + auth.getBasicPassword()).getBytes()
-                            );
-                    authStep.setInput("@Authorization=" + basicAuth);
+                    authStep.setDescription("Add Header: Authorization");
+
+                    String username = auth.getBasicUsername() != null
+                        ? auth.getBasicUsername()
+                        : "";
+
+                    String password = auth.getBasicPassword() != null
+                        ? auth.getBasicPassword()
+                        : "";
+
+                    String credentials = username + ":" + password;
+
+                    String encodedCredentials = java
+                        .util.Base64.getEncoder()
+                        .encodeToString(credentials.getBytes(StandardCharsets.UTF_8));
+
+                    authStep.setInput("@Authorization=Basic " + encodedCredentials);
                     break;
                 }
             case BEARER:
