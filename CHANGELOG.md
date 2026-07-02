@@ -157,7 +157,7 @@ Release Date: <insert date of release>
 - Implemented color-formatted Response payload in HTML report with separate Headers section and copy buttons
 - Strengthened SSL/TLS certificate validation
 - Enhanced credential handling in API proxy configuration
-- New API Environment Management window to fully manage and use environments and environment variables
+- Introduced API Workbench Environment Management to fully manage and use environments and environment variables
 
 #### Changed
 
@@ -184,6 +184,7 @@ Release Date: <insert date of release>
     - Updated all launcher scripts with `jdk.httpclient.allowRestrictedHeaders`
     - Added defensive fallback in `APIHttpClient`
     - Dropped client-managed headers (`Content-Length`, `Accept-Encoding`) silently
+- Conversion from API Request to Test Case did not transfer username and password fields when using Basic Auth
 
 ### Message Testing
 
