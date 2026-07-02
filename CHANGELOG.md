@@ -184,7 +184,7 @@ Release Date: <insert date of release>
     - Updated all launcher scripts with `jdk.httpclient.allowRestrictedHeaders`
     - Added defensive fallback in `APIHttpClient`
     - Dropped client-managed headers (`Content-Length`, `Accept-Encoding`) silently
-- Conversion from API Request to Test Case did not transfer username and password fields when using Basic Auth
+- Conversion from API Request to Test Case now transfers username and password fields when using Basic Auth
 
 ### Message Testing
 
