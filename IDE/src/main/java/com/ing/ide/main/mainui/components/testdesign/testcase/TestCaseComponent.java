@@ -75,6 +75,7 @@ import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.JToolBar;
+import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
@@ -1808,6 +1809,12 @@ public class TestCaseComponent extends JPanel implements ActionListener {
             AppIcon.applyTo(this);
             setDefaultCloseOperation(JDialog.DISPOSE_ON_CLOSE);
             setModalExclusionType(ModalExclusionType.APPLICATION_EXCLUDE);
+            getRootPane()
+                .registerKeyboardAction(
+                    e -> dispose(),
+                    KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0),
+                    JComponent.WHEN_IN_FOCUSED_WINDOW
+                );
         }
 
         public void showConsole() {

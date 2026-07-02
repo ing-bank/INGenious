@@ -10,6 +10,7 @@ import java.awt.Dimension;
 import java.awt.FlowLayout;
 import java.awt.Frame;
 import java.awt.GridLayout;
+import java.awt.event.KeyEvent;
 import java.io.File;
 import javax.swing.BorderFactory;
 import javax.swing.Box;
@@ -18,6 +19,7 @@ import javax.swing.ButtonGroup;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
+import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JFileChooser;
 import javax.swing.JLabel;
@@ -27,6 +29,7 @@ import javax.swing.JRadioButton;
 import javax.swing.JScrollPane;
 import javax.swing.JTextArea;
 import javax.swing.JTextField;
+import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
 import javax.swing.filechooser.FileNameExtensionFilter;
 
@@ -70,8 +73,21 @@ public class ImportCollectionWizard extends JDialog {
         super(owner, "Import Collection", true);
         this.initialSource = initialSource == null ? ImportSource.POSTMAN : initialSource;
         buildUI();
+        installEscapeCloseHandler();
         pack();
         setLocationRelativeTo(owner);
+    }
+
+    private void installEscapeCloseHandler() {
+        getRootPane()
+            .registerKeyboardAction(
+                e -> {
+                    confirmed = false;
+                    dispose();
+                },
+                KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0),
+                JComponent.WHEN_IN_FOCUSED_WINDOW
+            );
     }
 
     private void buildUI() {
@@ -295,6 +311,13 @@ public class ImportCollectionWizard extends JDialog {
                 }
                 ta.setText(sb.toString());
                 d.add(new JScrollPane(ta));
+                d
+                    .getRootPane()
+                    .registerKeyboardAction(
+                        e -> d.dispose(),
+                        KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0),
+                        JComponent.WHEN_IN_FOCUSED_WINDOW
+                    );
                 d.setSize(700, 480);
                 d.setLocationRelativeTo(owner);
                 d.setVisible(true);
