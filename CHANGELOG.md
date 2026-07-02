@@ -76,6 +76,7 @@ Release Date: <insert date of release>
 - Corrected Refactor_Object suffix when importing Playwright recorded scripts
 - Preserved `;exact` modifier in XML to YAML OR conversion
 - Resolved assertURLmatches pattern compile error
+- Fixed issue where the aXe accessibility report failed to load or display when `testAccessibility` is executed inside a reusable component
 
 ### Mobile App Testing
 
