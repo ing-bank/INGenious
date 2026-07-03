@@ -423,14 +423,20 @@ public class TestExecutionUI extends JPanel implements ActionListener {
         }
 
         private void setFilterTags(List<Tag> tags) {
-            this.tags = tags.stream().distinct().collect(toList());
-            this.sTags = tags.stream().map(Tag::getValue).distinct().collect(toList());
-            reloadModel();
-            if (tags.isEmpty()) {
+            if (tags == null || tags.isEmpty()) {
+                this.tags = new ArrayList<>();
+                this.sTags = new ArrayList<>();
                 resetFilter();
-            } else {
-                enableFilter();
+                reloadModel();
+                return;
             }
+
+            this.tags = tags.stream().distinct().collect(toList());
+
+            this.sTags = this.tags.stream().map(Tag::getValue).distinct().collect(toList());
+
+            enableFilter();
+            reloadModel();
         }
 
         private JToolBar createToolbar() {
@@ -482,21 +488,35 @@ public class TestExecutionUI extends JPanel implements ActionListener {
         }
 
         /**
-         * Prunes stale tags (renamed/deleted) from the active filter and
-         * re-applies the filter with only the remaining valid tags.
-         * If no valid tags remain, the filter is cleared entirely.
+         * Prunes stale tags from the active filter and always refreshes sTags.
+         *
+         * Important:
+         * Filtering uses sTags, not tags directly. If a selected Tag is renamed,
+         * the Tag object may already contain the new value, but sTags can still
+         * contain the old value. Therefore, sTags must be rebuilt whenever the
+         * Execution tab is opened/refreshed.
          */
         private void pruneFilter(List<Tag> allTags) {
             if (tags == null || tags.isEmpty()) {
-                return; // no filter active, nothing to prune
+                sTags = null;
+                return;
             }
+
             Set<String> currentTagValues = allTags.stream().map(Tag::getValue).collect(toSet());
+
             List<Tag> validTags = tags
                 .stream()
                 .filter(t -> currentTagValues.contains(t.getValue()))
+                .distinct()
                 .collect(toList());
-            if (validTags.size() != tags.size()) {
-                setFilterTags(validTags);
+
+            this.tags = validTags;
+            this.sTags = validTags.stream().map(Tag::getValue).distinct().collect(toList());
+
+            if (validTags.isEmpty()) {
+                resetFilter();
+            } else {
+                enableFilter();
             }
         }
 
