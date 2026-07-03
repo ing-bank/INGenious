@@ -346,12 +346,19 @@ public class TourManager {
         Project project = frame.getProject();
         if (project == null) return;
         switch (step.getTarget()) {
+            case TEST_DATA:
+                ensureTestDataContent(project);
+                break;
             case REUSABLES:
                 ensureReusableContent(project);
                 break;
             case OBJECT_REPO:
-            case OBJECT_PROPS:
                 ensureORContent(project);
+                break;
+            case OBJECT_PROPS:
+                // Ensure data exists, then select the first object so properties appear
+                ensureORContent(project);
+                SwingUtilities.invokeLater(() -> selectFirstORObject(project));
                 break;
             case TEST_LAB:
                 ensureTestLabContent(project);
@@ -394,6 +401,38 @@ public class TourManager {
         }
     }
 
+    /**
+     * Selects the first object in the Web OR project tree so the Object
+     * Properties table is populated when that step is spotlighted.
+     */
+    @SuppressWarnings("unchecked")
+    private void selectFirstORObject(Project project) {
+        try {
+            WebOR webOR = project.getObjectRepository().getWebOR();
+            java.util.List pages = webOR.getPages();
+            if (pages.isEmpty()) return;
+            WebORPage page = (WebORPage) pages.get(0);
+            java.util.List groups = page.getObjectGroups();
+            if (groups.isEmpty()) return;
+            com.ing.datalib.or.common.ObjectGroup grp = (com.ing.datalib.or.common.ObjectGroup) groups.get(
+                0
+            );
+            java.util.List objs = grp.getObjects();
+            if (objs.isEmpty()) return;
+            com.ing.datalib.or.common.ORObjectInf obj = (com.ing.datalib.or.common.ORObjectInf) objs.get(
+                0
+            );
+            JTree orTree = frame.getTestDesign().getObjectRepo().getWebOR().getProjectTree().tree;
+            javax.swing.tree.TreePath path = obj.getTreePath();
+            if (path != null) {
+                orTree.setSelectionPath(path);
+                orTree.scrollPathToVisible(path);
+            }
+        } catch (Exception ex) {
+            LOG.log(Level.WARNING, "Tour: could not select first OR object", ex);
+        }
+    }
+
     private void ensureTestLabContent(Project project) {
         try {
             if (project.getReleases().isEmpty()) {
@@ -408,6 +447,52 @@ public class TourManager {
             SwingUtilities.invokeLater(() -> expandAllRows(tst.getTree()));
         } catch (Exception ex) {
             LOG.log(Level.WARNING, "Tour: could not seed Test Lab data", ex);
+        }
+    }
+
+    /**
+     * Seeds at least one Global Data row so the Test Data panel shows content,
+     * then triggers the panel to load its data by selecting the Global Data tab.
+     */
+    private void ensureTestDataContent(Project project) {
+        try {
+            com.ing.datalib.component.TestData defaultData = project
+                .getTestData()
+                .getTestDataFor("Default");
+            if (defaultData != null) {
+                com.ing.datalib.testdata.model.GlobalDataModel gdModel = defaultData.getGlobalData();
+                gdModel.load();
+                if (gdModel.getRowCount() == 0) {
+                    gdModel.addRecord();
+                    gdModel.setValueAt("#SampleKey", 0, 0);
+                    if (gdModel.getColumnCount() > 1) {
+                        gdModel.setValueAt("SampleValue", 0, 1);
+                    }
+                    gdModel.saveChanges();
+                }
+            }
+            com.ing.ide.main.mainui.components.testdesign.testdata.TestDataComponent tdc = frame
+                .getTestDesign()
+                .getTestDatacomp();
+            tdc.load();
+            // Programmatically select the Global Data tab (index 0) to trigger panel.load()
+            SwingUtilities.invokeLater(
+                () -> {
+                    javax.swing.JTabbedPane envTab = tdc.getTestdataTab();
+                    if (envTab != null && envTab.getTabCount() > 0) {
+                        envTab.setSelectedIndex(0);
+                        java.awt.Component c = envTab.getSelectedComponent();
+                        if (c instanceof javax.swing.JTabbedPane) {
+                            javax.swing.JTabbedPane inner = (javax.swing.JTabbedPane) c;
+                            if (inner.getTabCount() > 0) {
+                                inner.setSelectedIndex(0); // Global Data is always tab 0
+                            }
+                        }
+                    }
+                }
+            );
+        } catch (Exception ex) {
+            LOG.log(Level.WARNING, "Tour: could not seed Test Data", ex);
         }
     }
 
