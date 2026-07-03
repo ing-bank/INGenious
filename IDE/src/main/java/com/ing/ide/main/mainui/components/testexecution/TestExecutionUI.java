@@ -490,10 +490,7 @@ public class TestExecutionUI extends JPanel implements ActionListener {
             if (tags == null || tags.isEmpty()) {
                 return; // no filter active, nothing to prune
             }
-            Set<String> currentTagValues = allTags
-                .stream()
-                .map(Tag::getValue)
-                .collect(toSet());
+            Set<String> currentTagValues = allTags.stream().map(Tag::getValue).collect(toSet());
             List<Tag> validTags = tags
                 .stream()
                 .filter(t -> currentTagValues.contains(t.getValue()))
