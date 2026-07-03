@@ -13,6 +13,7 @@ import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javafx.application.Platform;
+import javafx.beans.value.ChangeListener;
 import javafx.embed.swing.JFXPanel;
 import javafx.geometry.Orientation;
 import javafx.scene.Scene;
@@ -41,6 +42,7 @@ import javax.swing.tree.TreeNode;
  */
 public class FXDashBoard extends javax.swing.JPanel {
     private static final Logger LOG = Logger.getLogger(FXDashBoard.class.getName());
+    private static final int TREE_DISCLOSURE_ICON_SIZE = 12;
 
     private static final String ERR_HTML =
         "file:///" +
@@ -201,8 +203,8 @@ public class FXDashBoard extends javax.swing.JPanel {
                 TreeItem<DashBoardItem> root = convertSwingTreeModel(swingModel);
                 treeView.setRoot(root);
                 root.setExpanded(true);
-                // Select first test set if available
-                selectFirstTestSet(root);
+                treeView.getSelectionModel().clearSelection();
+                webEngine.load(ERR_HTML);
             }
         );
     }
@@ -249,24 +251,14 @@ public class FXDashBoard extends javax.swing.JPanel {
 
         DashBoardItem item = new DashBoardItem(node.toString(), type, releaseName, testSetName);
         TreeItem<DashBoardItem> treeItem = new TreeItem<>(item);
-        treeItem.setExpanded(true);
+        // Keep releases collapsed by default so test sets are hidden initially.
+        treeItem.setExpanded(false);
         parent.getChildren().add(treeItem);
 
         int childCount = model.getChildCount(node);
         for (int i = 0; i < childCount; i++) {
             Object child = model.getChild(node, i);
             addSwingNodeToFXTree(treeItem, child, model);
-        }
-    }
-
-    private void selectFirstTestSet(TreeItem<DashBoardItem> root) {
-        if (root == null) return;
-        for (TreeItem<DashBoardItem> release : root.getChildren()) {
-            if (!release.getChildren().isEmpty()) {
-                TreeItem<DashBoardItem> firstSet = release.getChildren().get(0);
-                treeView.getSelectionModel().select(firstSet);
-                return;
-            }
         }
     }
 
@@ -415,13 +407,43 @@ public class FXDashBoard extends javax.swing.JPanel {
     // ── Tree Cell with Icons ──
 
     private class DashBoardTreeCell extends TreeCell<DashBoardItem> {
+        private TreeItem<DashBoardItem> observedTreeItem;
+        private final ChangeListener<Boolean> expandedListener = (obs, oldVal, newVal) ->
+            refreshDisclosureIcon();
+
+        private void refreshDisclosureIcon() {
+            TreeItem<DashBoardItem> treeItem = getTreeItem();
+            if (treeItem == null || treeItem.isLeaf()) {
+                setDisclosureNode(null);
+                return;
+            }
+
+            boolean dark = FXTheme.isDark();
+            String iconKey = treeItem.isExpanded()
+                ? (dark ? "tree.expandedDark" : "tree.expandedLight")
+                : (dark ? "tree.collapsedDark" : "tree.collapsedLight");
+            setDisclosureNode(INGIcons.fxColored(iconKey, TREE_DISCLOSURE_ICON_SIZE));
+        }
 
         @Override
         protected void updateItem(DashBoardItem item, boolean empty) {
             super.updateItem(item, empty);
+
+            TreeItem<DashBoardItem> currentTreeItem = getTreeItem();
+            if (observedTreeItem != currentTreeItem) {
+                if (observedTreeItem != null) {
+                    observedTreeItem.expandedProperty().removeListener(expandedListener);
+                }
+                observedTreeItem = currentTreeItem;
+                if (observedTreeItem != null) {
+                    observedTreeItem.expandedProperty().addListener(expandedListener);
+                }
+            }
+
             if (empty || item == null) {
                 setText(null);
                 setGraphic(null);
+                setDisclosureNode(null);
             } else {
                 setText(item.label);
                 switch (item.type) {
@@ -435,6 +457,7 @@ public class FXDashBoard extends javax.swing.JPanel {
                         setGraphic(INGIcons.fxColored("testlab.TestSet", 16));
                         break;
                 }
+                refreshDisclosureIcon();
             }
         }
     }

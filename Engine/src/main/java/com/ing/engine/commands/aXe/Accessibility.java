@@ -66,6 +66,9 @@ public class Accessibility extends General {
 
     private void saveAccessibilityResults(AxeResults accessibilityScanResults)
         throws FileNotFoundException, IOException {
+        // Use getCurrentTestCase() which returns the reusable name when inside a reusable,
+        // or the test case name when running directly. This ensures the frontend can find
+        // the report whether execution is direct or within a reusable.
         String prefix = userData.getScenario() + "_" + userData.getCurrentTestCase();
         File accessibilityFolder = new File(FilePath.getCurrentTestCaseAccessibilityLocation());
         accessibilityFolder.mkdir();
@@ -77,7 +80,7 @@ public class Accessibility extends General {
             "axe-results.json";
         new Reporter().JSONStringify(accessibilityScanResults, accessibilityReportPath);
         System.out.println("\n-----------------------------------------------------");
-        System.out.println("Accessibility Report generated");
+        System.out.println("Accessibility Report generated: " + prefix + "_axe-results.json");
         System.out.println("-----------------------------------------------------\n");
     }
 }

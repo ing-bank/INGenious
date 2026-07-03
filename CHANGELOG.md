@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file.
 
-## Version 3.1.0
+## Version 3.0.0
 
 Release Date: <insert date of release>
 
@@ -28,12 +28,14 @@ Release Date: <insert date of release>
 - Added inline “+” buttons to enable quick addition of rows and columns across test steps, test data sheets, settings, and configurations
 - Implemented alphabetical sorting for test scenarios and test cases within the Test Lab
 - Added Update (Rename) and Deleting for Test Case Tags
+- Implemented closing of popups on Esc keypress
 
 #### Changed
 
 - Enabled reordering of data tabs
 - Corrected misspelled word 'Reusabe' to 'Reusable'
 - Reorganised Configurations menu with renames
+- Updated the Dashboard tree model to expand at Test Release level on load
 
 #### Deprecated
 
@@ -76,6 +78,7 @@ Release Date: <insert date of release>
 - Corrected Refactor_Object suffix when importing Playwright recorded scripts
 - Preserved `;exact` modifier in XML to YAML OR conversion
 - Resolved assertURLmatches pattern compile error
+- Fixed issue where the aXe accessibility report failed to load or display when `testAccessibility` is executed inside a reusable component
 
 ### Mobile App Testing
 
