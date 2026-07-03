@@ -245,6 +245,16 @@ public class TestDesignUI extends JPanel {
         testCaseNTestDataSplitPane.setDividerLocation(0.5);
     }
 
+    /** Returns the Test Plan panel (top-left) — used by the tour for spotlighting. */
+    public JPanel getTestPlanPanel() {
+        return testPlanPanel;
+    }
+
+    /** Returns the Reusable Components panel (bottom-left) — used by the tour for spotlighting. */
+    public JPanel getReusablesPanel() {
+        return appReusablePanel;
+    }
+
     private JPanel getTreeInPanel(String labelText, JTree tree) {
         JPanel panel = new JPanel();
         panel.setLayout(new BorderLayout());
