@@ -1,6 +1,7 @@
 package com.ing.ide.main.mainui.components.testexecution;
 
 import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toSet;
 
 import com.ing.datalib.component.Project;
 import com.ing.datalib.component.Scenario;
@@ -25,6 +26,7 @@ import java.awt.event.ActionListener;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.Icon;
@@ -384,10 +386,30 @@ public class TestExecutionUI extends JPanel implements ActionListener {
         }
 
         private void showFilterTag() {
+            // Prune stale tags from the current filter: if a tag was renamed or deleted
+            // since the filter was applied, remove it from the active filter so the tree
+            // doesn't show stale (empty) results.
+            List<Tag> allTags = testExecution.getProject().getInfo().getAllTags(null);
+            if (tags != null && !tags.isEmpty()) {
+                Set<String> currentTagValues = allTags
+                    .stream()
+                    .map(Tag::getValue)
+                    .collect(toSet());
+                List<Tag> validTags = tags
+                    .stream()
+                    .filter(t -> currentTagValues.contains(t.getValue()))
+                    .collect(toList());
+                if (validTags.size() != tags.size()) {
+                    // Some tags were deleted/renamed; update the filter so the tree shows
+                    // unfiltered results instead of stale filter matches
+                    setFilterTags(validTags);
+                }
+            }
+
             TagEditorDialog
                 .build(
                     testExecution.getsMainFrame(),
-                    testExecution.getProject().getInfo().getAllTags(null),
+                    allTags,
                     tags,
                     null,
                     null,

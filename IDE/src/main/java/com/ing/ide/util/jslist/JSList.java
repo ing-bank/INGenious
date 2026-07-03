@@ -509,7 +509,11 @@ public class JSList<T> extends JPanel {
                 add(rightPanel, BorderLayout.EAST);
 
                 if (cellHasFocus || isSelected) {
-                    setBackground(new Color(230, 240, 255));
+                    Color selBg = javax.swing.UIManager.getColor("ing.selectionBackground");
+                    if (selBg == null) {
+                        selBg = new Color(216, 191, 255); // fallback purple
+                    }
+                    setBackground(selBg);
                 } else {
                     setBackground(Color.WHITE);
                 }
