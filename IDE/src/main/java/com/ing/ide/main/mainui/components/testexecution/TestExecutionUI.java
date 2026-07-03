@@ -262,6 +262,33 @@ public class TestExecutionUI extends JPanel implements ActionListener {
         testPullPanel.loadTestPlanModel();
     }
 
+    // ── Tour spotlight targets ─────────────────────────────────────────────
+
+    /** Returns the Test Lab panel (top-left: Release/TestSet tree). */
+    public java.awt.Component getTestLabPanel() {
+        return testSettreeNSettingsSplitPane.getTopComponent();
+    }
+
+    /** Returns the Left Quick Settings panel (bottom-left). */
+    public java.awt.Component getLeftQuickSettingsPanel() {
+        return testSettreeNSettingsSplitPane.getBottomComponent();
+    }
+
+    /** Returns the centre Test Set canvas (the main run-table area). */
+    public java.awt.Component getTestSetCanvas() {
+        return executionAndConsoleSplitPane.getTopComponent();
+    }
+
+    /** Returns the top-right Test Plan tree panel (scenarios/test cases). */
+    public java.awt.Component getTestPlanTreePanel() {
+        return testplanTreeNSettingsSplitPane.getTopComponent();
+    }
+
+    /** Returns the Right Quick Settings panel (bottom-right). */
+    public java.awt.Component getRightQuickSettingsPanel() {
+        return testplanTreeNSettingsSplitPane.getBottomComponent();
+    }
+
     private JPanel getCompInPanel(String labelText, JComponent comp) {
         JPanel panel = new JPanel();
         panel.setLayout(new BorderLayout());
