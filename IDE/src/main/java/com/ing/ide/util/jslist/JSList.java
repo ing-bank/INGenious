@@ -486,26 +486,32 @@ public class JSList<T> extends JPanel {
                 nameLabel.setBorder(BorderFactory.createEmptyBorder(0, 3, 0, 0));
                 add(nameLabel, BorderLayout.CENTER);
 
-                // Right: rename ✎ and delete ✕ labels (visual only, click handled by mouse handler)
+                // Right: rename ✎ and delete ✕ labels.
+                // Only show when the respective callbacks are provided
+                // (they are null in filter-only mode).
                 JPanel rightPanel = new JPanel(new BorderLayout());
                 rightPanel.setOpaque(false);
 
-                JLabel renameLabel = new JLabel("✎");
-                renameLabel.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 12));
-                renameLabel.setHorizontalAlignment(JLabel.CENTER);
-                renameLabel.setBorder(BorderFactory.createEmptyBorder(0, 5, 0, 5));
-                renameLabel.setOpaque(false);
-                renameLabel.setToolTipText("Rename");
+                if (onUpdate != null) {
+                    JLabel renameLabel = new JLabel("✎");
+                    renameLabel.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 12));
+                    renameLabel.setHorizontalAlignment(JLabel.CENTER);
+                    renameLabel.setBorder(BorderFactory.createEmptyBorder(0, 5, 0, 5));
+                    renameLabel.setOpaque(false);
+                    renameLabel.setToolTipText("Rename");
+                    rightPanel.add(renameLabel, BorderLayout.WEST);
+                }
 
-                JLabel deleteLabel = new JLabel("✕");
-                deleteLabel.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 12));
-                deleteLabel.setHorizontalAlignment(JLabel.CENTER);
-                deleteLabel.setBorder(BorderFactory.createEmptyBorder(0, 5, 0, 5));
-                deleteLabel.setOpaque(false);
-                deleteLabel.setToolTipText("Delete");
+                if (onRemove != null) {
+                    JLabel deleteLabel = new JLabel("✕");
+                    deleteLabel.setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 12));
+                    deleteLabel.setHorizontalAlignment(JLabel.CENTER);
+                    deleteLabel.setBorder(BorderFactory.createEmptyBorder(0, 5, 0, 5));
+                    deleteLabel.setOpaque(false);
+                    deleteLabel.setToolTipText("Delete");
+                    rightPanel.add(deleteLabel, BorderLayout.EAST);
+                }
 
-                rightPanel.add(renameLabel, BorderLayout.WEST);
-                rightPanel.add(deleteLabel, BorderLayout.EAST);
                 add(rightPanel, BorderLayout.EAST);
 
                 // Highlight checked items with purple background (like Object Repo)

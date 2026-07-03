@@ -312,13 +312,14 @@ public class TestExecutionUI extends JPanel implements ActionListener {
     }
 
     /**
-     * Resets the Test Plan tag filter so the tree shows all test cases
-     * without any tag-based filtering. Called when switching to the
-     * Execution tab to ensure stale tag filters from previous edits are
-     * cleared.
+     * Refreshes the Test Plan tag filter when switching to the Execution tab.
+     * Prunes stale tags (renamed/deleted) from the active filter and re-applies
+     * the filter with only the remaining valid tags. If no valid tags remain,
+     * the filter is cleared entirely (showing all test cases).
      */
-    public void resetTagFilter() {
-        testPullPanel.clearFilter();
+    public void refreshTagFilter() {
+        List<Tag> allTags = testExecution.getProject().getInfo().getAllTags(null);
+        testPullPanel.pruneFilter(allTags);
     }
 
     public void adjustUI() {
@@ -479,14 +480,25 @@ public class TestExecutionUI extends JPanel implements ActionListener {
         }
 
         /**
-         * Clears the active tag filter: resets the tags list, button icon, and
-         * reloads the model so the tree shows all test cases unfiltered.
+         * Prunes stale tags (renamed/deleted) from the active filter and
+         * re-applies the filter with only the remaining valid tags.
+         * If no valid tags remain, the filter is cleared entirely.
          */
-        private void clearFilter() {
-            this.tags = null;
-            this.sTags = null;
-            resetFilter();
-            reloadModel();
+        private void pruneFilter(List<Tag> allTags) {
+            if (tags == null || tags.isEmpty()) {
+                return; // no filter active, nothing to prune
+            }
+            Set<String> currentTagValues = allTags
+                .stream()
+                .map(Tag::getValue)
+                .collect(toSet());
+            List<Tag> validTags = tags
+                .stream()
+                .filter(t -> currentTagValues.contains(t.getValue()))
+                .collect(toList());
+            if (validTags.size() != tags.size()) {
+                setFilterTags(validTags);
+            }
         }
 
         private void resetFilter() {

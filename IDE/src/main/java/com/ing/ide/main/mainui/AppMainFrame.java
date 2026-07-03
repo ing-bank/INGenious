@@ -286,9 +286,11 @@ public class AppMainFrame extends JFrame {
         getGlassPane().setVisible(false);
         slideShow.showSlide("TestExecution");
         testExecution.getTestExecutionUI().adjustUI();
-        // Reset any stale tag filter from the Test Plan tree so it shows
-        // all test cases without outdated filtering.
-        testExecution.getTestExecutionUI().resetTagFilter();
+        // Prune stale tags from the active filter and re-apply: if a tag
+        // was renamed or deleted in the Test Design tab, the filter still
+        // shows previous results. This keeps only valid tags, or clears
+        // the filter entirely if no valid tags remain.
+        testExecution.getTestExecutionUI().refreshTagFilter();
         if (fxStatusBar != null) fxStatusBar.setCurrentView("Test Execution");
     }
 
