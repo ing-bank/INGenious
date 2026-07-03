@@ -1,5 +1,10 @@
 package com.ing.ide.main.tour;
 
+import com.ing.datalib.component.Project;
+import com.ing.datalib.component.Release;
+import com.ing.datalib.component.Scenario;
+import com.ing.datalib.or.web.WebOR;
+import com.ing.datalib.or.web.WebORPage;
 import com.ing.ide.main.Main;
 import com.ing.ide.main.mainui.AppMainFrame;
 import com.ing.ide.settings.AppSettings;
@@ -7,8 +12,10 @@ import java.awt.Component;
 import java.awt.Rectangle;
 import java.util.Arrays;
 import java.util.List;
+import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JLayeredPane;
+import javax.swing.JTree;
 import javax.swing.SwingUtilities;
 import javax.swing.Timer;
 
@@ -73,6 +80,7 @@ public class TourManager {
 
     private List<TourStep> buildSteps() {
         return Arrays.asList(
+            // ── Welcome ───────────────────────────────────────────────────
             new TourStep(
                 "Welcome to INGenious Playwright Studio!",
                 "This quick tour introduces the key areas of the IDE. Use the arrow keys " +
@@ -81,6 +89,7 @@ public class TourManager {
                 TourStep.TargetComponent.NONE,
                 TourStep.ViewToShow.NONE
             ),
+            // ── Test Design ───────────────────────────────────────────────
             new TourStep(
                 "Test Design",
                 "The Test Design view is where you build your automation. The layout is " +
@@ -100,6 +109,14 @@ public class TourManager {
                 "The Test Steps canvas is where you design each Test Case. Drag keywords from " +
                 "the palette, fill in object names and data values row by row, then save.",
                 TourStep.TargetComponent.TEST_STEPS,
+                TourStep.ViewToShow.TEST_DESIGN
+            ),
+            new TourStep(
+                "Test Data",
+                "The Test Data panel holds parameterised data for your test cases. Define " +
+                "key\u2011value pairs here and reference them in test steps as {Key}. " +
+                "Multiple environments are supported.",
+                TourStep.TargetComponent.TEST_DATA,
                 TourStep.ViewToShow.TEST_DESIGN
             ),
             new TourStep(
@@ -123,14 +140,50 @@ public class TourManager {
                 TourStep.TargetComponent.OBJECT_PROPS,
                 TourStep.ViewToShow.TEST_DESIGN
             ),
+            // ── Test Execution ────────────────────────────────────────────
             new TourStep(
                 "Test Execution",
-                "Run individual test cases or entire test sets from here. Configure the " +
-                "target browser, environment, thread count, and reporting options. " +
-                "Live logs stream in real time as tests execute.",
+                "The Test Execution view lets you run test sets, monitor live output, and " +
+                "configure execution parameters. Let\u2019s look at each panel.",
                 TourStep.TargetComponent.NONE,
                 TourStep.ViewToShow.TEST_EXECUTION
             ),
+            new TourStep(
+                "Test Lab",
+                "The Test Lab tree organises your Releases and Test Sets. Select a Test Set " +
+                "to load it into the canvas, then choose which test cases to run.",
+                TourStep.TargetComponent.TEST_LAB,
+                TourStep.ViewToShow.TEST_EXECUTION
+            ),
+            new TourStep(
+                "Test Set Canvas",
+                "The Test Set canvas shows the test cases in the selected Test Set. Drag " +
+                "test cases here from the right panel, enable them, and hit Run.",
+                TourStep.TargetComponent.EXEC_TESTSET_CANVAS,
+                TourStep.ViewToShow.TEST_EXECUTION
+            ),
+            new TourStep(
+                "Left Quick Settings",
+                "Left Quick Settings control iteration mode (continue or break on error), " +
+                "screenshot behaviour, and other per-run options for the current Test Set.",
+                TourStep.TargetComponent.EXEC_LEFT_SETTINGS,
+                TourStep.ViewToShow.TEST_EXECUTION
+            ),
+            new TourStep(
+                "Test Plan Tree",
+                "The Test Plan tree on the right shows all Scenarios and Test Cases in your " +
+                "project. Check items and click Pull to add them to the active Test Set.",
+                TourStep.TargetComponent.EXEC_TESTPLAN_PANEL,
+                TourStep.ViewToShow.TEST_EXECUTION
+            ),
+            new TourStep(
+                "Right Quick Settings",
+                "Right Quick Settings configure the execution environment: browser, base URL, " +
+                "thread count, and driver settings that apply to the current run.",
+                TourStep.TargetComponent.EXEC_RIGHT_SETTINGS,
+                TourStep.ViewToShow.TEST_EXECUTION
+            ),
+            // ── Dashboard, API, Toolbar, Done ─────────────────────────────
             new TourStep(
                 "Dashboard & Reports",
                 "Explore rich HTML execution reports and trend analytics. Compare runs " +
@@ -213,11 +266,12 @@ public class TourManager {
 
     private void showStep(int index) {
         TourStep step = steps.get(index);
+        prepareForStep(step); // seed data BEFORE view switch
         switchView(step.getViewToShow());
 
-        // Allow the view switch to complete before computing spotlight bounds
+        // Allow the view switch and tree reloads to settle before spotlighting
         Timer settle = new Timer(
-            150,
+            220,
             e -> {
                 if (overlay == null) return;
                 Rectangle spot = computeSpotlight(step.getTarget());
@@ -280,6 +334,90 @@ public class TourManager {
         }
     }
 
+    // ── Pre-step Data Seeding ──────────────────────────────────────────────
+
+    /**
+     * Creates sample data in the project model so the spotlighted panel is
+     * not empty when first-time users see it.  All operations are idempotent
+     * (they check before creating) and are wrapped in try/catch so a failure
+     * never aborts the tour.
+     */
+    private void prepareForStep(TourStep step) {
+        Project project = frame.getProject();
+        if (project == null) return;
+        switch (step.getTarget()) {
+            case REUSABLES:
+                ensureReusableContent(project);
+                break;
+            case OBJECT_REPO:
+            case OBJECT_PROPS:
+                ensureORContent(project);
+                break;
+            case TEST_LAB:
+                ensureTestLabContent(project);
+                break;
+            default:
+                break;
+        }
+    }
+
+    private void ensureReusableContent(Project project) {
+        try {
+            if (project.getReusableScenarios().isEmpty()) {
+                Scenario sc = project.addReusableScenario("SampleReusable");
+                sc.addTestCase("TC_SampleStep");
+                project.save();
+            }
+            com.ing.ide.main.mainui.components.testdesign.tree.ReusableTree rt = frame
+                .getTestDesign()
+                .getReusableTree();
+            rt.load();
+            SwingUtilities.invokeLater(() -> expandAllRows(rt.getTree()));
+        } catch (Exception ex) {
+            LOG.log(Level.WARNING, "Tour: could not seed Reusable data", ex);
+        }
+    }
+
+    private void ensureORContent(Project project) {
+        try {
+            WebOR webOR = project.getObjectRepository().getWebOR();
+            if (webOR.getPages().isEmpty()) {
+                WebORPage page = webOR.addPage("SamplePage");
+                page.addObject("SampleButton");
+                project.save();
+            }
+            frame.getTestDesign().getObjectRepo().load();
+            JTree orTree = frame.getTestDesign().getObjectRepo().getWebOR().getProjectTree().tree;
+            SwingUtilities.invokeLater(() -> expandAllRows(orTree));
+        } catch (Exception ex) {
+            LOG.log(Level.WARNING, "Tour: could not seed OR data", ex);
+        }
+    }
+
+    private void ensureTestLabContent(Project project) {
+        try {
+            if (project.getReleases().isEmpty()) {
+                Release release = project.addRelease("SampleRelease");
+                release.addTestSet("SampleTestSet");
+                project.save();
+            }
+            com.ing.ide.main.mainui.components.testexecution.tree.TestSetTree tst = frame
+                .getTestExecution()
+                .getTestSetTree();
+            tst.load();
+            SwingUtilities.invokeLater(() -> expandAllRows(tst.getTree()));
+        } catch (Exception ex) {
+            LOG.log(Level.WARNING, "Tour: could not seed Test Lab data", ex);
+        }
+    }
+
+    private void expandAllRows(JTree tree) {
+        if (tree == null) return;
+        for (int i = 0; i < tree.getRowCount(); i++) {
+            tree.expandRow(i);
+        }
+    }
+
     // ── Spotlight Bounds ───────────────────────────────────────────────────
 
     /**
@@ -296,6 +434,8 @@ public class TourManager {
                 );
             case TEST_STEPS:
                 return toLayeredPaneBounds(frame.getTestDesign().getTestCaseComponent());
+            case TEST_DATA:
+                return toLayeredPaneBounds(frame.getTestDesign().getTestDatacomp());
             case REUSABLES:
                 return toLayeredPaneBounds(
                     frame.getTestDesign().getTestDesignUI().getReusablesPanel()
@@ -305,6 +445,26 @@ public class TourManager {
             case OBJECT_PROPS:
                 return toLayeredPaneBounds(
                     frame.getTestDesign().getObjectRepo().getWebOR().getObjectTable()
+                );
+            case TEST_LAB:
+                return toLayeredPaneBounds(
+                    frame.getTestExecution().getTestExecutionUI().getTestLabPanel()
+                );
+            case EXEC_LEFT_SETTINGS:
+                return toLayeredPaneBounds(
+                    frame.getTestExecution().getTestExecutionUI().getLeftQuickSettingsPanel()
+                );
+            case EXEC_TESTSET_CANVAS:
+                return toLayeredPaneBounds(
+                    frame.getTestExecution().getTestExecutionUI().getTestSetCanvas()
+                );
+            case EXEC_TESTPLAN_PANEL:
+                return toLayeredPaneBounds(
+                    frame.getTestExecution().getTestExecutionUI().getTestPlanTreePanel()
+                );
+            case EXEC_RIGHT_SETTINGS:
+                return toLayeredPaneBounds(
+                    frame.getTestExecution().getTestExecutionUI().getRightQuickSettingsPanel()
                 );
             default:
                 return null;
