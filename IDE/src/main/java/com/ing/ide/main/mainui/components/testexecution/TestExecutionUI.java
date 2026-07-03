@@ -401,10 +401,7 @@ public class TestExecutionUI extends JPanel implements ActionListener {
             // doesn't show stale (empty) results.
             List<Tag> allTags = testExecution.getProject().getInfo().getAllTags(null);
             if (tags != null && !tags.isEmpty()) {
-                Set<String> currentTagValues = allTags
-                    .stream()
-                    .map(Tag::getValue)
-                    .collect(toSet());
+                Set<String> currentTagValues = allTags.stream().map(Tag::getValue).collect(toSet());
                 List<Tag> validTags = tags
                     .stream()
                     .filter(t -> currentTagValues.contains(t.getValue()))
@@ -417,14 +414,7 @@ public class TestExecutionUI extends JPanel implements ActionListener {
             }
 
             TagEditorDialog
-                .build(
-                    testExecution.getsMainFrame(),
-                    allTags,
-                    tags,
-                    null,
-                    null,
-                    null
-                )
+                .build(testExecution.getsMainFrame(), allTags, tags, null, null, null)
                 .withTitle("Filter Tags")
                 .show(this::setFilterTags);
         }
