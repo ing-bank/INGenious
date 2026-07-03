@@ -9,12 +9,22 @@ public class TourStep {
 
     /**
      * Which component should be highlighted with the spotlight cutout.
-     * NONE = full dark overlay with a centered callout card.
-     * TOOLBAR = spotlight the FX toolbar strip.
+     * NONE     = full dark overlay with a centred callout card.
+     * TOOLBAR  = spotlight the FX toolbar strip.
+     * TEST_PLAN     = Test Plan tree panel (top-left of Test Design).
+     * TEST_STEPS    = Test Steps / Test Case canvas (centre panel).
+     * REUSABLES     = Reusable Components panel (bottom-left).
+     * OBJECT_REPO   = Object Repository panel (right side, full).
+     * OBJECT_PROPS  = Object Properties table (bottom of OR panel).
      */
     public enum TargetComponent {
         NONE,
-        TOOLBAR
+        TOOLBAR,
+        TEST_PLAN,
+        TEST_STEPS,
+        REUSABLES,
+        OBJECT_REPO,
+        OBJECT_PROPS
     }
 
     /**

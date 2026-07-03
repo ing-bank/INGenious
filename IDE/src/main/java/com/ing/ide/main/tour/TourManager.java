@@ -83,10 +83,44 @@ public class TourManager {
             ),
             new TourStep(
                 "Test Design",
-                "Organize your automated tests into Projects, Scenarios, and Test Cases. " +
-                "Drag and drop built-in keywords to build powerful test steps \u2014 " +
-                "no coding required. The Object Repository lives here too.",
+                "The Test Design view is where you build your automation. The layout is " +
+                "divided into four key areas \u2014 let\u2019s explore each one.",
                 TourStep.TargetComponent.NONE,
+                TourStep.ViewToShow.TEST_DESIGN
+            ),
+            new TourStep(
+                "Test Plan",
+                "The Test Plan panel shows your project hierarchy: Projects contain Scenarios, " +
+                "and Scenarios contain Test Cases. Click any item to open it in the editor.",
+                TourStep.TargetComponent.TEST_PLAN,
+                TourStep.ViewToShow.TEST_DESIGN
+            ),
+            new TourStep(
+                "Test Steps Canvas",
+                "The Test Steps canvas is where you design each Test Case. Drag keywords from " +
+                "the palette, fill in object names and data values row by row, then save.",
+                TourStep.TargetComponent.TEST_STEPS,
+                TourStep.ViewToShow.TEST_DESIGN
+            ),
+            new TourStep(
+                "Reusable Components",
+                "Define common step sequences once and call them from any Test Case \u2014 " +
+                "ideal for login flows, shared setup steps, and teardown routines.",
+                TourStep.TargetComponent.REUSABLES,
+                TourStep.ViewToShow.TEST_DESIGN
+            ),
+            new TourStep(
+                "Object Repository",
+                "The Object Repository stores locators for every UI element you test. " +
+                "Organise them into pages and groups; INGenious resolves them automatically at runtime.",
+                TourStep.TargetComponent.OBJECT_REPO,
+                TourStep.ViewToShow.TEST_DESIGN
+            ),
+            new TourStep(
+                "Object Properties",
+                "Each object\u2019s properties \u2014 locator type, value, and friendly name \u2014 are " +
+                "shown here. Edit and validate locators without leaving the IDE.",
+                TourStep.TargetComponent.OBJECT_PROPS,
                 TourStep.ViewToShow.TEST_DESIGN
             ),
             new TourStep(
@@ -112,14 +146,6 @@ public class TourManager {
                 "into your end-to-end test scenarios.",
                 TourStep.TargetComponent.NONE,
                 TourStep.ViewToShow.API_TESTER
-            ),
-            new TourStep(
-                "AI Copilot",
-                "The built-in AI assistant helps you write test steps from natural language, " +
-                "explains failures, suggests fixes, and generates test scenarios " +
-                "automatically. Powered by GitHub Models.",
-                TourStep.TargetComponent.NONE,
-                TourStep.ViewToShow.AI_COPILOT
             ),
             new TourStep(
                 "Toolbar & Navigation",
@@ -263,20 +289,38 @@ public class TourManager {
     private Rectangle computeSpotlight(TourStep.TargetComponent target) {
         switch (target) {
             case TOOLBAR:
-                {
-                    Component toolbar = frame.getFXToolBar();
-                    if (toolbar != null && toolbar.isShowing()) {
-                        return SwingUtilities.convertRectangle(
-                            toolbar.getParent(),
-                            toolbar.getBounds(),
-                            frame.getLayeredPane()
-                        );
-                    }
-                    break;
-                }
+                return toLayeredPaneBounds(frame.getFXToolBar());
+            case TEST_PLAN:
+                return toLayeredPaneBounds(
+                    frame.getTestDesign().getTestDesignUI().getTestPlanPanel()
+                );
+            case TEST_STEPS:
+                return toLayeredPaneBounds(frame.getTestDesign().getTestCaseComponent());
+            case REUSABLES:
+                return toLayeredPaneBounds(
+                    frame.getTestDesign().getTestDesignUI().getReusablesPanel()
+                );
+            case OBJECT_REPO:
+                return toLayeredPaneBounds(frame.getTestDesign().getObjectRepo());
+            case OBJECT_PROPS:
+                return toLayeredPaneBounds(
+                    frame.getTestDesign().getObjectRepo().getWebOR().getObjectTable()
+                );
             default:
-                break;
+                return null;
         }
-        return null;
+    }
+
+    /**
+     * Converts a component's own bounds into {@link JLayeredPane} coordinate space.
+     * Returns {@code null} if the component is null, not showing, or has no parent.
+     */
+    private Rectangle toLayeredPaneBounds(Component c) {
+        if (c == null || !c.isShowing() || c.getParent() == null) return null;
+        return SwingUtilities.convertRectangle(
+            c.getParent(),
+            c.getBounds(),
+            frame.getLayeredPane()
+        );
     }
 }
