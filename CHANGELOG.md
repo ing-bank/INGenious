@@ -57,6 +57,9 @@ Release Date: <insert date of release>
 - Added missing Web Objects for sample project Tutorial
 - Fixed column add/delete behavior in datasheet related to frozen columns
 - Fixed OR Tables' add row (+) button 
+- Updated suffix handling for copied objects/pages so it is only applied when another object or page with the same name already exists
+- Resolved issues with multi-object and multi-page copy-paste and cut-paste operations in the Object Repository
+
 
 ### Browser/Playwright Testing
 

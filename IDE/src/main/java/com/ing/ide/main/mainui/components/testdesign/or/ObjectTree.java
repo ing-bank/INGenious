@@ -1647,20 +1647,69 @@ public abstract class ObjectTree implements ActionListener {
     }
 
     private boolean isSharedScope() {
-        ORRootInf root = getOR();
-        if (root instanceof WebOR) {
-            return ((WebOR) root).isShared();
+        return isSharedOR(getOR());
+    }
+
+    /**
+     * Helper method to check if an OR (Object Repository) is shared.
+     *
+     * @param or the OR root to check
+     * @return true if the OR is shared, false otherwise
+     */
+    private boolean isSharedOR(ORRootInf or) {
+        if (or instanceof WebOR) {
+            return ((WebOR) or).isShared();
         }
-        if (root instanceof MobileOR) {
-            return ((MobileOR) root).isShared();
+        if (or instanceof MobileOR) {
+            return ((MobileOR) or).isShared();
         }
-        if (root instanceof StructuredDataOR) {
-            return ((StructuredDataOR) root).isShared();
+        if (or instanceof StructuredDataOR) {
+            return ((StructuredDataOR) or).isShared();
         }
-        if (root instanceof SapOR) {
-            return ((SapOR) root).isShared();
+        if (or instanceof SapOR) {
+            return ((SapOR) or).isShared();
         }
         return false;
+    }
+
+    /**
+     * Helper method to check if both ORs are of the same type.
+     *
+     * @param or1 the first OR
+     * @param or2 the second OR
+     * @return true if both ORs are of the same type (Web, Mobile, StructuredData, or Sap)
+     */
+    private boolean isSameORType(ORRootInf or1, ORRootInf or2) {
+        return (
+            (or1 instanceof WebOR && or2 instanceof WebOR) ||
+            (or1 instanceof MobileOR && or2 instanceof MobileOR) ||
+            (or1 instanceof StructuredDataOR && or2 instanceof StructuredDataOR) ||
+            (or1 instanceof SapOR && or2 instanceof SapOR)
+        );
+    }
+
+    /**
+     * Helper method to check if this is a Shared to Project operation.
+     * Verifies that source OR is shared, current OR is not shared, and both are the same type.
+     *
+     * @param sourceOR the source OR
+     * @param currentOR the current (target) OR
+     * @return true if this is a Shared→Project operation
+     */
+    private boolean isSharedToProject(ORRootInf sourceOR, ORRootInf currentOR) {
+        return isSameORType(sourceOR, currentOR) && isSharedOR(sourceOR) && !isSharedOR(currentOR);
+    }
+
+    /**
+     * Helper method to check if this is a Project to Shared operation.
+     * Verifies that source OR is not shared, current OR is shared, and both are the same type.
+     *
+     * @param sourceOR the source OR
+     * @param currentOR the current (target) OR
+     * @return true if this is a Project→Shared operation
+     */
+    private boolean isProjectToShared(ORRootInf sourceOR, ORRootInf currentOR) {
+        return isSameORType(sourceOR, currentOR) && !isSharedOR(sourceOR) && isSharedOR(currentOR);
     }
 
     private boolean confirmSharedRename(String entityLabel, String currentName, String newName) {
@@ -1742,8 +1791,15 @@ public abstract class ObjectTree implements ActionListener {
         if (!ORClipboardManager.hasData()) {
             return;
         }
-        ORObjectInf pastedObject = null;
         ORObjectClipboard cb = ORClipboardManager.get();
+
+        // Handle multiple objects
+        if (cb.hasMultipleObjects()) {
+            pasteMultipleObjects();
+            return;
+        }
+
+        ORObjectInf pastedObject = null;
         ORObjectInf source = cb.getObject();
         boolean cut = cb.isCut();
         ORPageInf targetPage = getSelectedPage();
@@ -1757,89 +1813,13 @@ public abstract class ObjectTree implements ActionListener {
         ORRootInf sourceOR = (ORRootInf) source.getPage().getParent();
         ObjectGroup sourceGroup = source.getParent();
         ObjectRepository repo = getProject().getObjectRepository();
-        if (
-            cut &&
-            sourceOR instanceof WebOR &&
-            ((WebOR) sourceOR).isShared() &&
-            currentOR instanceof WebOR &&
-            !((WebOR) currentOR).isShared()
-        ) {
+        // Check Shared→Project cut restriction
+        if (cut && isSharedToProject(sourceOR, currentOR)) {
             Notification.show("Cut is not allowed from Shared to Project Object Repository");
             return;
         }
-        if (
-            cut &&
-            sourceOR instanceof MobileOR &&
-            ((MobileOR) sourceOR).isShared() &&
-            currentOR instanceof MobileOR &&
-            !((MobileOR) currentOR).isShared()
-        ) {
-            Notification.show("Cut is not allowed from Shared to Project Object Repository");
-            return;
-        }
-        if (
-            cut &&
-            sourceOR instanceof StructuredDataOR &&
-            ((StructuredDataOR) sourceOR).isShared() &&
-            currentOR instanceof StructuredDataOR &&
-            !((StructuredDataOR) currentOR).isShared()
-        ) {
-            Notification.show("Cut is not allowed from Shared to Project Object Repository");
-            return;
-        }
-        if (
-            cut &&
-            sourceOR instanceof SapOR &&
-            ((SapOR) sourceOR).isShared() &&
-            currentOR instanceof SapOR &&
-            !((SapOR) currentOR).isShared()
-        ) {
-            Notification.show("Cut is not allowed from Shared to Project Object Repository");
-            return;
-        }
-        if (
-            cut &&
-            sourceOR instanceof WebOR &&
-            !((WebOR) sourceOR).isShared() &&
-            currentOR instanceof WebOR &&
-            ((WebOR) currentOR).isShared()
-        ) {
-            Notification.show(
-                "Cut is not allowed in Shared Object Repository. Use `Move to Shared` instead."
-            );
-            return;
-        }
-        if (
-            cut &&
-            sourceOR instanceof MobileOR &&
-            !((MobileOR) sourceOR).isShared() &&
-            currentOR instanceof MobileOR &&
-            ((MobileOR) currentOR).isShared()
-        ) {
-            Notification.show(
-                "Cut is not allowed in Shared Object Repository. Use `Move to Shared` instead."
-            );
-            return;
-        }
-        if (
-            cut &&
-            sourceOR instanceof StructuredDataOR &&
-            !((StructuredDataOR) sourceOR).isShared() &&
-            currentOR instanceof StructuredDataOR &&
-            ((StructuredDataOR) currentOR).isShared()
-        ) {
-            Notification.show(
-                "Cut is not allowed in Shared Object Repository. Use `Move to Shared` instead."
-            );
-            return;
-        }
-        if (
-            cut &&
-            sourceOR instanceof SapOR &&
-            !((SapOR) sourceOR).isShared() &&
-            currentOR instanceof SapOR &&
-            ((SapOR) currentOR).isShared()
-        ) {
+        // Check Project→Shared cut restriction
+        if (cut && isProjectToShared(sourceOR, currentOR)) {
             Notification.show(
                 "Cut is not allowed in Shared Object Repository. Use `Move to Shared` instead."
             );
@@ -1978,18 +1958,19 @@ public abstract class ObjectTree implements ActionListener {
             }
             return;
         }
-        if (
-            currentOR instanceof WebOR &&
-            !((WebOR) currentOR).isShared() &&
-            sourceOR instanceof WebOR &&
-            ((WebOR) sourceOR).isShared()
-        ) {
-            String baseName = sourceGroup.getName().replaceAll("_Copy_\\d+$", "");
+        // Shared→Project paste (copy only, cut already blocked)
+        if (isSharedToProject(sourceOR, currentOR) && currentOR instanceof WebOR) {
             String newGroupName;
-            int i = 1;
-            do {
-                newGroupName = baseName + "_Copy_" + i++;
-            } while (targetPage.getObjectGroupByName(newGroupName) != null);
+            // Only append suffix if target page already contains group with same name
+            if (targetPage.getObjectGroupByName(sourceGroup.getName()) == null) {
+                newGroupName = sourceGroup.getName();
+            } else {
+                String baseName = sourceGroup.getName().replaceAll("_\\d+$", "");
+                int i = 1;
+                do {
+                    newGroupName = baseName + "_" + i++;
+                } while (targetPage.getObjectGroupByName(newGroupName) != null);
+            }
             ObjectGroup<WebORObject> newGroup = new ObjectGroup<>(
                 newGroupName,
                 (WebORPage) targetPage
@@ -1997,27 +1978,35 @@ public abstract class ObjectTree implements ActionListener {
             for (Object o : sourceGroup.getObjects()) {
                 WebORObject srcObj = (WebORObject) o;
                 WebORObject cloned = new WebORObject();
-                cloned.setName(newGroupName);
+                String newObjectName = computeCopyName(targetPage, srcObj);
+                cloned.setName(newObjectName);
                 cloned.setParent(newGroup);
                 srcObj.clone(cloned);
                 newGroup.getObjects().add(cloned);
+                pastedObject = cloned;
             }
             targetPage.getObjectGroups().add(newGroup);
+            ((WebOR) currentOR).setSaved(false);
+            repo.saveWebPageNow((WebORPage) targetPage);
             reload();
+            if (pastedObject != null) {
+                final ORObjectInf highlight = pastedObject;
+                SwingUtilities.invokeLater(() -> selectAndSrollTo(highlight.getTreePath()));
+            }
             return;
         }
-        if (
-            currentOR instanceof MobileOR &&
-            !((MobileOR) currentOR).isShared() &&
-            sourceOR instanceof MobileOR &&
-            ((MobileOR) sourceOR).isShared()
-        ) {
-            String baseName = sourceGroup.getName().replaceAll("_Copy_\\d+$", "");
+        if (isSharedToProject(sourceOR, currentOR) && currentOR instanceof MobileOR) {
             String newGroupName;
-            int i = 1;
-            do {
-                newGroupName = baseName + "_Copy_" + i++;
-            } while (targetPage.getObjectGroupByName(newGroupName) != null);
+            // Only append suffix if target page already contains group with same name
+            if (targetPage.getObjectGroupByName(sourceGroup.getName()) == null) {
+                newGroupName = sourceGroup.getName();
+            } else {
+                String baseName = sourceGroup.getName().replaceAll("_\\d+$", "");
+                int i = 1;
+                do {
+                    newGroupName = baseName + "_" + i++;
+                } while (targetPage.getObjectGroupByName(newGroupName) != null);
+            }
             ObjectGroup<MobileORObject> newGroup = new ObjectGroup<>(
                 newGroupName,
                 (MobileORPage) targetPage
@@ -2025,12 +2014,18 @@ public abstract class ObjectTree implements ActionListener {
             for (Object o : sourceGroup.getObjects()) {
                 MobileORObject srcObj = (MobileORObject) o;
                 MobileORObject cloned = new MobileORObject();
-                cloned.setName(newGroupName);
+
+                String newObjectName = computeCopyName(targetPage, srcObj);
+
+                cloned.setName(newObjectName);
                 cloned.setParent(newGroup);
                 srcObj.clone(cloned);
                 newGroup.getObjects().add(cloned);
+                pastedObject = cloned;
             }
             targetPage.getObjectGroups().add(newGroup);
+            ((MobileOR) currentOR).setSaved(false);
+            repo.saveMobilePageNow((MobileORPage) targetPage);
             reload();
             final ORObjectInf highlight = pastedObject;
             if (highlight != null) {
@@ -2042,18 +2037,18 @@ public abstract class ObjectTree implements ActionListener {
             }
             return;
         }
-        if (
-            currentOR instanceof StructuredDataOR &&
-            !((StructuredDataOR) currentOR).isShared() &&
-            sourceOR instanceof StructuredDataOR &&
-            ((StructuredDataOR) sourceOR).isShared()
-        ) {
-            String baseName = sourceGroup.getName().replaceAll("_Copy_\\d+$", "");
+        if (isSharedToProject(sourceOR, currentOR) && currentOR instanceof StructuredDataOR) {
             String newGroupName;
-            int i = 1;
-            do {
-                newGroupName = baseName + "_Copy_" + i++;
-            } while (targetPage.getObjectGroupByName(newGroupName) != null);
+            // Only append suffix if target page already contains group with same name
+            if (targetPage.getObjectGroupByName(sourceGroup.getName()) == null) {
+                newGroupName = sourceGroup.getName();
+            } else {
+                String baseName = sourceGroup.getName().replaceAll("_\\d+$", "");
+                int i = 1;
+                do {
+                    newGroupName = baseName + "_" + i++;
+                } while (targetPage.getObjectGroupByName(newGroupName) != null);
+            }
             ObjectGroup<StructuredDataORObject> newGroup = new ObjectGroup<>(
                 newGroupName,
                 (StructuredDataORPage) targetPage
@@ -2061,12 +2056,18 @@ public abstract class ObjectTree implements ActionListener {
             for (Object o : sourceGroup.getObjects()) {
                 StructuredDataORObject srcObj = (StructuredDataORObject) o;
                 StructuredDataORObject cloned = new StructuredDataORObject();
-                cloned.setName(newGroupName);
+
+                String newObjectName = computeCopyName(targetPage, srcObj);
+
+                cloned.setName(newObjectName);
                 cloned.setParent(newGroup);
                 srcObj.clone(cloned);
                 newGroup.getObjects().add(cloned);
+                pastedObject = cloned;
             }
             targetPage.getObjectGroups().add(newGroup);
+            ((StructuredDataOR) currentOR).setSaved(false);
+            repo.saveStructuredDataPageNow((StructuredDataORPage) targetPage);
             reload();
             final ORObjectInf highlight = pastedObject;
             if (highlight != null) {
@@ -2078,18 +2079,18 @@ public abstract class ObjectTree implements ActionListener {
             }
             return;
         }
-        if (
-            currentOR instanceof MobileOR &&
-            !((MobileOR) currentOR).isShared() &&
-            sourceOR instanceof MobileOR &&
-            ((MobileOR) sourceOR).isShared()
-        ) {
-            String baseName = sourceGroup.getName().replaceAll("_Copy_\\d+$", "");
+        if (isSharedToProject(sourceOR, currentOR) && currentOR instanceof MobileOR) {
             String newGroupName;
-            int i = 1;
-            do {
-                newGroupName = baseName + "_Copy_" + i++;
-            } while (targetPage.getObjectGroupByName(newGroupName) != null);
+            // Only append suffix if target page already contains group with same name
+            if (targetPage.getObjectGroupByName(sourceGroup.getName()) == null) {
+                newGroupName = sourceGroup.getName();
+            } else {
+                String baseName = sourceGroup.getName().replaceAll("_\\d+$", "");
+                int i = 1;
+                do {
+                    newGroupName = baseName + "_" + i++;
+                } while (targetPage.getObjectGroupByName(newGroupName) != null);
+            }
             ObjectGroup<MobileORObject> newGroup = new ObjectGroup<>(
                 newGroupName,
                 (MobileORPage) targetPage
@@ -2097,12 +2098,18 @@ public abstract class ObjectTree implements ActionListener {
             for (Object o : sourceGroup.getObjects()) {
                 MobileORObject srcObj = (MobileORObject) o;
                 MobileORObject cloned = new MobileORObject();
-                cloned.setName(newGroupName);
+
+                String newObjectName = computeCopyName(targetPage, srcObj);
+
+                cloned.setName(newObjectName);
                 cloned.setParent(newGroup);
                 srcObj.clone(cloned);
                 newGroup.getObjects().add(cloned);
+                pastedObject = cloned;
             }
             targetPage.getObjectGroups().add(newGroup);
+            ((MobileOR) currentOR).setSaved(false);
+            repo.saveMobilePageNow((MobileORPage) targetPage);
             reload();
             final ORObjectInf highlight = pastedObject;
             if (highlight != null) {
@@ -2114,18 +2121,18 @@ public abstract class ObjectTree implements ActionListener {
             }
             return;
         }
-        if (
-            currentOR instanceof StructuredDataOR &&
-            !((StructuredDataOR) currentOR).isShared() &&
-            sourceOR instanceof StructuredDataOR &&
-            ((StructuredDataOR) sourceOR).isShared()
-        ) {
-            String baseName = sourceGroup.getName().replaceAll("_Copy_\\d+$", "");
+        if (isSharedToProject(sourceOR, currentOR) && currentOR instanceof StructuredDataOR) {
             String newGroupName;
-            int i = 1;
-            do {
-                newGroupName = baseName + "_Copy_" + i++;
-            } while (targetPage.getObjectGroupByName(newGroupName) != null);
+            // Only append suffix if target page already contains group with same name
+            if (targetPage.getObjectGroupByName(sourceGroup.getName()) == null) {
+                newGroupName = sourceGroup.getName();
+            } else {
+                String baseName = sourceGroup.getName().replaceAll("_\\d+$", "");
+                int i = 1;
+                do {
+                    newGroupName = baseName + "_" + i++;
+                } while (targetPage.getObjectGroupByName(newGroupName) != null);
+            }
             ObjectGroup<StructuredDataORObject> newGroup = new ObjectGroup<>(
                 newGroupName,
                 (StructuredDataORPage) targetPage
@@ -2133,12 +2140,18 @@ public abstract class ObjectTree implements ActionListener {
             for (Object o : sourceGroup.getObjects()) {
                 StructuredDataORObject srcObj = (StructuredDataORObject) o;
                 StructuredDataORObject cloned = new StructuredDataORObject();
-                cloned.setName(newGroupName);
+
+                String newObjectName = computeCopyName(targetPage, srcObj);
+
+                cloned.setName(newObjectName);
                 cloned.setParent(newGroup);
                 srcObj.clone(cloned);
                 newGroup.getObjects().add(cloned);
+                pastedObject = cloned;
             }
             targetPage.getObjectGroups().add(newGroup);
+            ((StructuredDataOR) currentOR).setSaved(false);
+            repo.saveStructuredDataPageNow((StructuredDataORPage) targetPage);
             reload();
             final ORObjectInf highlight = pastedObject;
             if (highlight != null) {
@@ -2150,18 +2163,18 @@ public abstract class ObjectTree implements ActionListener {
             }
             return;
         }
-        if (
-            currentOR instanceof MobileOR &&
-            !((MobileOR) currentOR).isShared() &&
-            sourceOR instanceof MobileOR &&
-            ((MobileOR) sourceOR).isShared()
-        ) {
-            String baseName = sourceGroup.getName().replaceAll("_Copy_\\d+$", "");
+        if (isSharedToProject(sourceOR, currentOR) && currentOR instanceof MobileOR) {
             String newGroupName;
-            int i = 1;
-            do {
-                newGroupName = baseName + "_Copy_" + i++;
-            } while (targetPage.getObjectGroupByName(newGroupName) != null);
+            // Only append suffix if target page already contains group with same name
+            if (targetPage.getObjectGroupByName(sourceGroup.getName()) == null) {
+                newGroupName = sourceGroup.getName();
+            } else {
+                String baseName = sourceGroup.getName().replaceAll("_\\d+$", "");
+                int i = 1;
+                do {
+                    newGroupName = baseName + "_" + i++;
+                } while (targetPage.getObjectGroupByName(newGroupName) != null);
+            }
             ObjectGroup<MobileORObject> newGroup = new ObjectGroup<>(
                 newGroupName,
                 (MobileORPage) targetPage
@@ -2169,12 +2182,18 @@ public abstract class ObjectTree implements ActionListener {
             for (Object o : sourceGroup.getObjects()) {
                 MobileORObject srcObj = (MobileORObject) o;
                 MobileORObject cloned = new MobileORObject();
-                cloned.setName(newGroupName);
+
+                String newObjectName = computeCopyName(targetPage, srcObj);
+
+                cloned.setName(newObjectName);
                 cloned.setParent(newGroup);
                 srcObj.clone(cloned);
                 newGroup.getObjects().add(cloned);
+                pastedObject = cloned;
             }
             targetPage.getObjectGroups().add(newGroup);
+            ((MobileOR) currentOR).setSaved(false);
+            repo.saveMobilePageNow((MobileORPage) targetPage);
             reload();
             final ORObjectInf highlight = pastedObject;
             if (highlight != null) {
@@ -2186,18 +2205,18 @@ public abstract class ObjectTree implements ActionListener {
             }
             return;
         }
-        if (
-            currentOR instanceof StructuredDataOR &&
-            !((StructuredDataOR) currentOR).isShared() &&
-            sourceOR instanceof StructuredDataOR &&
-            ((StructuredDataOR) sourceOR).isShared()
-        ) {
-            String baseName = sourceGroup.getName().replaceAll("_Copy_\\d+$", "");
+        if (isSharedToProject(sourceOR, currentOR) && currentOR instanceof StructuredDataOR) {
             String newGroupName;
-            int i = 1;
-            do {
-                newGroupName = baseName + "_Copy_" + i++;
-            } while (targetPage.getObjectGroupByName(newGroupName) != null);
+            // Only append suffix if target page already contains group with same name
+            if (targetPage.getObjectGroupByName(sourceGroup.getName()) == null) {
+                newGroupName = sourceGroup.getName();
+            } else {
+                String baseName = sourceGroup.getName().replaceAll("_\\d+$", "");
+                int i = 1;
+                do {
+                    newGroupName = baseName + "_" + i++;
+                } while (targetPage.getObjectGroupByName(newGroupName) != null);
+            }
             ObjectGroup<StructuredDataORObject> newGroup = new ObjectGroup<>(
                 newGroupName,
                 (StructuredDataORPage) targetPage
@@ -2205,12 +2224,18 @@ public abstract class ObjectTree implements ActionListener {
             for (Object o : sourceGroup.getObjects()) {
                 StructuredDataORObject srcObj = (StructuredDataORObject) o;
                 StructuredDataORObject cloned = new StructuredDataORObject();
-                cloned.setName(newGroupName);
+
+                String newObjectName = computeCopyName(targetPage, srcObj);
+
+                cloned.setName(newObjectName);
                 cloned.setParent(newGroup);
                 srcObj.clone(cloned);
                 newGroup.getObjects().add(cloned);
+                pastedObject = cloned;
             }
             targetPage.getObjectGroups().add(newGroup);
+            ((StructuredDataOR) currentOR).setSaved(false);
+            repo.saveStructuredDataPageNow((StructuredDataORPage) targetPage);
             reload();
             final ORObjectInf highlight = pastedObject;
             if (highlight != null) {
@@ -2222,18 +2247,18 @@ public abstract class ObjectTree implements ActionListener {
             }
             return;
         }
-        if (
-            currentOR instanceof MobileOR &&
-            !((MobileOR) currentOR).isShared() &&
-            sourceOR instanceof MobileOR &&
-            ((MobileOR) sourceOR).isShared()
-        ) {
-            String baseName = sourceGroup.getName().replaceAll("_Copy_\\d+$", "");
+        if (isSharedToProject(sourceOR, currentOR) && currentOR instanceof MobileOR) {
             String newGroupName;
-            int i = 1;
-            do {
-                newGroupName = baseName + "_Copy_" + i++;
-            } while (targetPage.getObjectGroupByName(newGroupName) != null);
+            // Only append suffix if target page already contains group with same name
+            if (targetPage.getObjectGroupByName(sourceGroup.getName()) == null) {
+                newGroupName = sourceGroup.getName();
+            } else {
+                String baseName = sourceGroup.getName().replaceAll("_\\d+$", "");
+                int i = 1;
+                do {
+                    newGroupName = baseName + "_" + i++;
+                } while (targetPage.getObjectGroupByName(newGroupName) != null);
+            }
             ObjectGroup<MobileORObject> newGroup = new ObjectGroup<>(
                 newGroupName,
                 (MobileORPage) targetPage
@@ -2241,12 +2266,18 @@ public abstract class ObjectTree implements ActionListener {
             for (Object o : sourceGroup.getObjects()) {
                 MobileORObject srcObj = (MobileORObject) o;
                 MobileORObject cloned = new MobileORObject();
-                cloned.setName(newGroupName);
+
+                String newObjectName = computeCopyName(targetPage, srcObj);
+
+                cloned.setName(newObjectName);
                 cloned.setParent(newGroup);
                 srcObj.clone(cloned);
                 newGroup.getObjects().add(cloned);
+                pastedObject = cloned;
             }
             targetPage.getObjectGroups().add(newGroup);
+            ((MobileOR) currentOR).setSaved(false);
+            repo.saveMobilePageNow((MobileORPage) targetPage);
             reload();
             final ORObjectInf highlight = pastedObject;
             if (highlight != null) {
@@ -2258,18 +2289,18 @@ public abstract class ObjectTree implements ActionListener {
             }
             return;
         }
-        if (
-            currentOR instanceof StructuredDataOR &&
-            !((StructuredDataOR) currentOR).isShared() &&
-            sourceOR instanceof StructuredDataOR &&
-            ((StructuredDataOR) sourceOR).isShared()
-        ) {
-            String baseName = sourceGroup.getName().replaceAll("_Copy_\\d+$", "");
+        if (isSharedToProject(sourceOR, currentOR) && currentOR instanceof StructuredDataOR) {
             String newGroupName;
-            int i = 1;
-            do {
-                newGroupName = baseName + "_Copy_" + i++;
-            } while (targetPage.getObjectGroupByName(newGroupName) != null);
+            // Only append suffix if target page already contains group with same name
+            if (targetPage.getObjectGroupByName(sourceGroup.getName()) == null) {
+                newGroupName = sourceGroup.getName();
+            } else {
+                String baseName = sourceGroup.getName().replaceAll("_\\d+$", "");
+                int i = 1;
+                do {
+                    newGroupName = baseName + "_" + i++;
+                } while (targetPage.getObjectGroupByName(newGroupName) != null);
+            }
             ObjectGroup<StructuredDataORObject> newGroup = new ObjectGroup<>(
                 newGroupName,
                 (StructuredDataORPage) targetPage
@@ -2277,12 +2308,18 @@ public abstract class ObjectTree implements ActionListener {
             for (Object o : sourceGroup.getObjects()) {
                 StructuredDataORObject srcObj = (StructuredDataORObject) o;
                 StructuredDataORObject cloned = new StructuredDataORObject();
-                cloned.setName(newGroupName);
+
+                String newObjectName = computeCopyName(targetPage, srcObj);
+
+                cloned.setName(newObjectName);
                 cloned.setParent(newGroup);
                 srcObj.clone(cloned);
                 newGroup.getObjects().add(cloned);
+                pastedObject = cloned;
             }
             targetPage.getObjectGroups().add(newGroup);
+            ((StructuredDataOR) currentOR).setSaved(false);
+            repo.saveStructuredDataPageNow((StructuredDataORPage) targetPage);
             reload();
             final ORObjectInf highlight = pastedObject;
             if (highlight != null) {
@@ -2294,18 +2331,18 @@ public abstract class ObjectTree implements ActionListener {
             }
             return;
         }
-        if (
-            currentOR instanceof MobileOR &&
-            !((MobileOR) currentOR).isShared() &&
-            sourceOR instanceof MobileOR &&
-            ((MobileOR) sourceOR).isShared()
-        ) {
-            String baseName = sourceGroup.getName().replaceAll("_Copy_\\d+$", "");
+        if (isSharedToProject(sourceOR, currentOR) && currentOR instanceof MobileOR) {
             String newGroupName;
-            int i = 1;
-            do {
-                newGroupName = baseName + "_Copy_" + i++;
-            } while (targetPage.getObjectGroupByName(newGroupName) != null);
+            // Only append suffix if target page already contains group with same name
+            if (targetPage.getObjectGroupByName(sourceGroup.getName()) == null) {
+                newGroupName = sourceGroup.getName();
+            } else {
+                String baseName = sourceGroup.getName().replaceAll("_\\d+$", "");
+                int i = 1;
+                do {
+                    newGroupName = baseName + "_" + i++;
+                } while (targetPage.getObjectGroupByName(newGroupName) != null);
+            }
             ObjectGroup<MobileORObject> newGroup = new ObjectGroup<>(
                 newGroupName,
                 (MobileORPage) targetPage
@@ -2313,12 +2350,18 @@ public abstract class ObjectTree implements ActionListener {
             for (Object o : sourceGroup.getObjects()) {
                 MobileORObject srcObj = (MobileORObject) o;
                 MobileORObject cloned = new MobileORObject();
-                cloned.setName(newGroupName);
+
+                String newObjectName = computeCopyName(targetPage, srcObj);
+
+                cloned.setName(newObjectName);
                 cloned.setParent(newGroup);
                 srcObj.clone(cloned);
                 newGroup.getObjects().add(cloned);
+                pastedObject = cloned;
             }
             targetPage.getObjectGroups().add(newGroup);
+            ((MobileOR) currentOR).setSaved(false);
+            repo.saveMobilePageNow((MobileORPage) targetPage);
             reload();
             final ORObjectInf highlight = pastedObject;
             if (highlight != null) {
@@ -2330,18 +2373,18 @@ public abstract class ObjectTree implements ActionListener {
             }
             return;
         }
-        if (
-            currentOR instanceof StructuredDataOR &&
-            !((StructuredDataOR) currentOR).isShared() &&
-            sourceOR instanceof StructuredDataOR &&
-            ((StructuredDataOR) sourceOR).isShared()
-        ) {
-            String baseName = sourceGroup.getName().replaceAll("_Copy_\\d+$", "");
+        if (isSharedToProject(sourceOR, currentOR) && currentOR instanceof StructuredDataOR) {
             String newGroupName;
-            int i = 1;
-            do {
-                newGroupName = baseName + "_Copy_" + i++;
-            } while (targetPage.getObjectGroupByName(newGroupName) != null);
+            // Only append suffix if target page already contains group with same name
+            if (targetPage.getObjectGroupByName(sourceGroup.getName()) == null) {
+                newGroupName = sourceGroup.getName();
+            } else {
+                String baseName = sourceGroup.getName().replaceAll("_\\d+$", "");
+                int i = 1;
+                do {
+                    newGroupName = baseName + "_" + i++;
+                } while (targetPage.getObjectGroupByName(newGroupName) != null);
+            }
             ObjectGroup<StructuredDataORObject> newGroup = new ObjectGroup<>(
                 newGroupName,
                 (StructuredDataORPage) targetPage
@@ -2349,12 +2392,18 @@ public abstract class ObjectTree implements ActionListener {
             for (Object o : sourceGroup.getObjects()) {
                 StructuredDataORObject srcObj = (StructuredDataORObject) o;
                 StructuredDataORObject cloned = new StructuredDataORObject();
-                cloned.setName(newGroupName);
+
+                String newObjectName = computeCopyName(targetPage, srcObj);
+
+                cloned.setName(newObjectName);
                 cloned.setParent(newGroup);
                 srcObj.clone(cloned);
                 newGroup.getObjects().add(cloned);
+                pastedObject = cloned;
             }
             targetPage.getObjectGroups().add(newGroup);
+            ((StructuredDataOR) currentOR).setSaved(false);
+            repo.saveStructuredDataPageNow((StructuredDataORPage) targetPage);
             reload();
             final ORObjectInf highlight = pastedObject;
             if (highlight != null) {
@@ -2363,6 +2412,151 @@ public abstract class ObjectTree implements ActionListener {
                         selectAndSrollTo(highlight.getTreePath());
                     }
                 );
+            }
+            return;
+        }
+        // Project to Shared paste sections with smart naming
+        if (isProjectToShared(sourceOR, currentOR)) {
+            String newGroupName;
+            // Only append suffix if target page already contains group with same name
+            if (targetPage.getObjectGroupByName(sourceGroup.getName()) == null) {
+                newGroupName = sourceGroup.getName();
+            } else {
+                String baseName = sourceGroup.getName().replaceAll("_\\d+$", "");
+                int i = 1;
+                do {
+                    newGroupName = baseName + "_" + i++;
+                } while (targetPage.getObjectGroupByName(newGroupName) != null);
+            }
+            ObjectGroup<WebORObject> newGroup = new ObjectGroup<>(
+                newGroupName,
+                (WebORPage) targetPage
+            );
+            for (Object o : sourceGroup.getObjects()) {
+                WebORObject srcObj = (WebORObject) o;
+                WebORObject cloned = new WebORObject();
+                String newObjectName = computeCopyName(targetPage, srcObj);
+                cloned.setName(newObjectName);
+                cloned.setParent(newGroup);
+                srcObj.clone(cloned);
+                newGroup.getObjects().add(cloned);
+                pastedObject = cloned;
+            }
+            targetPage.getObjectGroups().add(newGroup);
+            ((WebOR) currentOR).setSaved(false);
+            repo.saveWebPageNow((WebORPage) targetPage);
+            reload();
+            if (pastedObject != null) {
+                final ORObjectInf highlight = pastedObject;
+                SwingUtilities.invokeLater(() -> selectAndSrollTo(highlight.getTreePath()));
+            }
+            return;
+        }
+        if (isProjectToShared(sourceOR, currentOR) && currentOR instanceof MobileOR) {
+            String newGroupName;
+            // Only append suffix if target page already contains group with same name
+            if (targetPage.getObjectGroupByName(sourceGroup.getName()) == null) {
+                newGroupName = sourceGroup.getName();
+            } else {
+                String baseName = sourceGroup.getName().replaceAll("_\\d+$", "");
+                int i = 1;
+                do {
+                    newGroupName = baseName + "_" + i++;
+                } while (targetPage.getObjectGroupByName(newGroupName) != null);
+            }
+            ObjectGroup<MobileORObject> newGroup = new ObjectGroup<>(
+                newGroupName,
+                (MobileORPage) targetPage
+            );
+            for (Object o : sourceGroup.getObjects()) {
+                MobileORObject srcObj = (MobileORObject) o;
+                MobileORObject cloned = new MobileORObject();
+                String newObjectName = computeCopyName(targetPage, srcObj);
+                cloned.setName(newObjectName);
+                cloned.setParent(newGroup);
+                srcObj.clone(cloned);
+                newGroup.getObjects().add(cloned);
+                pastedObject = cloned;
+            }
+            targetPage.getObjectGroups().add(newGroup);
+            ((MobileOR) currentOR).setSaved(false);
+            repo.saveMobilePageNow((MobileORPage) targetPage);
+            reload();
+            if (pastedObject != null) {
+                final ORObjectInf highlight = pastedObject;
+                SwingUtilities.invokeLater(() -> selectAndSrollTo(highlight.getTreePath()));
+            }
+            return;
+        }
+        if (isProjectToShared(sourceOR, currentOR) && currentOR instanceof StructuredDataOR) {
+            String newGroupName;
+            // Only append suffix if target page already contains group with same name
+            if (targetPage.getObjectGroupByName(sourceGroup.getName()) == null) {
+                newGroupName = sourceGroup.getName();
+            } else {
+                String baseName = sourceGroup.getName().replaceAll("_\\d+$", "");
+                int i = 1;
+                do {
+                    newGroupName = baseName + "_" + i++;
+                } while (targetPage.getObjectGroupByName(newGroupName) != null);
+            }
+            ObjectGroup<StructuredDataORObject> newGroup = new ObjectGroup<>(
+                newGroupName,
+                (StructuredDataORPage) targetPage
+            );
+            for (Object o : sourceGroup.getObjects()) {
+                StructuredDataORObject srcObj = (StructuredDataORObject) o;
+                StructuredDataORObject cloned = new StructuredDataORObject();
+                String newObjectName = computeCopyName(targetPage, srcObj);
+                cloned.setName(newObjectName);
+                cloned.setParent(newGroup);
+                srcObj.clone(cloned);
+                newGroup.getObjects().add(cloned);
+                pastedObject = cloned;
+            }
+            targetPage.getObjectGroups().add(newGroup);
+            ((StructuredDataOR) currentOR).setSaved(false);
+            repo.saveStructuredDataPageNow((StructuredDataORPage) targetPage);
+            reload();
+            if (pastedObject != null) {
+                final ORObjectInf highlight = pastedObject;
+                SwingUtilities.invokeLater(() -> selectAndSrollTo(highlight.getTreePath()));
+            }
+            return;
+        }
+        if (isProjectToShared(sourceOR, currentOR) && currentOR instanceof SapOR) {
+            String newGroupName;
+            // Only append suffix if target page already contains group with same name
+            if (targetPage.getObjectGroupByName(sourceGroup.getName()) == null) {
+                newGroupName = sourceGroup.getName();
+            } else {
+                String baseName = sourceGroup.getName().replaceAll("_\\d+$", "");
+                int i = 1;
+                do {
+                    newGroupName = baseName + "_" + i++;
+                } while (targetPage.getObjectGroupByName(newGroupName) != null);
+            }
+            ObjectGroup<SapORObject> newGroup = new ObjectGroup<>(
+                newGroupName,
+                (SapORPage) targetPage
+            );
+            for (Object o : sourceGroup.getObjects()) {
+                SapORObject srcObj = (SapORObject) o;
+                SapORObject cloned = new SapORObject();
+                String newObjectName = computeCopyName(targetPage, srcObj);
+                cloned.setName(newObjectName);
+                cloned.setParent(newGroup);
+                srcObj.clone(cloned);
+                newGroup.getObjects().add(cloned);
+                pastedObject = cloned;
+            }
+            targetPage.getObjectGroups().add(newGroup);
+            ((SapOR) currentOR).setSaved(false);
+            repo.saveSapPageNow((SapORPage) targetPage);
+            reload();
+            if (pastedObject != null) {
+                final ORObjectInf highlight = pastedObject;
+                SwingUtilities.invokeLater(() -> selectAndSrollTo(highlight.getTreePath()));
             }
             return;
         }
@@ -2483,13 +2677,468 @@ public abstract class ObjectTree implements ActionListener {
         }
     }
 
+    private void pasteMultipleObjects() {
+        if (!ORClipboardManager.hasData()) {
+            return;
+        }
+
+        ORObjectClipboard cb = ORClipboardManager.get();
+        List<ORObjectInf> sources = cb.getObjects();
+        boolean cut = cb.isCut();
+
+        ORPageInf targetPage = getSelectedPage();
+        if (targetPage == null && getSelectedObjectGroup() != null) {
+            targetPage = getSelectedObjectGroup().getParent();
+        }
+        if (targetPage == null || sources.isEmpty()) {
+            return;
+        }
+
+        ORRootInf currentOR = getOR();
+        ObjectRepository repo = getProject().getObjectRepository();
+
+        // Check cut restrictions for all source objects
+        if (cut) {
+            for (ORObjectInf source : sources) {
+                ORRootInf sourceOR = (ORRootInf) source.getPage().getParent();
+
+                // Check Shared→Project cut restriction
+                if (isSharedToProject(sourceOR, currentOR)) {
+                    Notification.show(
+                        "Cut is not allowed from Shared to Project Object Repository"
+                    );
+                    return;
+                }
+
+                // Check Project→Shared cut restriction
+                if (isProjectToShared(sourceOR, currentOR)) {
+                    Notification.show(
+                        "Cut is not allowed in Shared Object Repository. Use `Move to Shared` instead."
+                    );
+                    return;
+                }
+            }
+        }
+
+        // Group objects by their source ObjectGroup
+        Map<ObjectGroup, List<ORObjectInf>> groupedObjects = new HashMap<>();
+        for (ORObjectInf source : sources) {
+            ObjectGroup sourceGroup = source.getParent();
+            groupedObjects.computeIfAbsent(sourceGroup, k -> new ArrayList<>()).add(source);
+        }
+
+        ORObjectInf lastPastedObject = null;
+        List<ORPageInf> modifiedSourcePages = new ArrayList<>();
+
+        // Process each group
+        for (Map.Entry<ObjectGroup, List<ORObjectInf>> entry : groupedObjects.entrySet()) {
+            ObjectGroup sourceGroup = entry.getKey();
+            List<ORObjectInf> objectsInGroup = entry.getValue();
+            ORObjectInf firstSource = objectsInGroup.get(0);
+            ORRootInf sourceOR = (ORRootInf) firstSource.getPage().getParent();
+
+            if (sourceOR == currentOR) {
+                // Same OR: paste within same repository
+                String newGroupName;
+                if (!cut) {
+                    newGroupName = computeCopyName(targetPage, firstSource);
+                } else {
+                    if (targetPage.getObjectGroupByName(sourceGroup.getName()) != null) {
+                        newGroupName = computeCopyName(targetPage, firstSource);
+                    } else {
+                        newGroupName = sourceGroup.getName();
+                    }
+                }
+
+                ObjectGroup newGroup = new ObjectGroup(newGroupName, targetPage);
+
+                if (currentOR instanceof WebOR) {
+                    for (ORObjectInf srcObj : objectsInGroup) {
+                        String newObjectName;
+                        if (!cut) {
+                            newObjectName = computeCopyName(targetPage, srcObj);
+                        } else {
+                            if (objectNameExists(targetPage, srcObj.getName())) {
+                                newObjectName = computeCopyName(targetPage, srcObj);
+                            } else {
+                                newObjectName = srcObj.getName();
+                            }
+                        }
+                        WebORObject cloned = new WebORObject();
+                        cloned.setName(newObjectName);
+                        cloned.setParent(newGroup);
+                        ((WebORObject) srcObj).clone(cloned);
+                        newGroup.getObjects().add(cloned);
+                        lastPastedObject = cloned;
+                    }
+                    targetPage.getObjectGroups().add(newGroup);
+                    ((WebOR) currentOR).setSaved(false);
+                    repo.saveWebPageNow((WebORPage) targetPage);
+                } else if (currentOR instanceof MobileOR) {
+                    for (ORObjectInf srcObj : objectsInGroup) {
+                        String newObjectName;
+                        if (!cut) {
+                            newObjectName = computeCopyName(targetPage, srcObj);
+                        } else {
+                            if (objectNameExists(targetPage, srcObj.getName())) {
+                                newObjectName = computeCopyName(targetPage, srcObj);
+                            } else {
+                                newObjectName = srcObj.getName();
+                            }
+                        }
+                        MobileORObject cloned = new MobileORObject();
+                        cloned.setName(newObjectName);
+                        cloned.setParent(newGroup);
+                        ((MobileORObject) srcObj).clone(cloned);
+                        newGroup.getObjects().add(cloned);
+                        lastPastedObject = cloned;
+                    }
+                    targetPage.getObjectGroups().add(newGroup);
+                    ((MobileOR) currentOR).setSaved(false);
+                    repo.saveMobilePageNow((MobileORPage) targetPage);
+                } else if (currentOR instanceof StructuredDataOR) {
+                    for (ORObjectInf srcObj : objectsInGroup) {
+                        String newObjectName;
+                        if (!cut) {
+                            newObjectName = computeCopyName(targetPage, srcObj);
+                        } else {
+                            if (objectNameExists(targetPage, srcObj.getName())) {
+                                newObjectName = computeCopyName(targetPage, srcObj);
+                            } else {
+                                newObjectName = srcObj.getName();
+                            }
+                        }
+                        StructuredDataORObject cloned = new StructuredDataORObject();
+                        cloned.setName(newObjectName);
+                        cloned.setParent(newGroup);
+                        ((StructuredDataORObject) srcObj).clone(cloned);
+                        newGroup.getObjects().add(cloned);
+                        lastPastedObject = cloned;
+                    }
+                    targetPage.getObjectGroups().add(newGroup);
+                    ((StructuredDataOR) currentOR).setSaved(false);
+                    repo.saveStructuredDataPageNow((StructuredDataORPage) targetPage);
+                } else if (currentOR instanceof SapOR) {
+                    for (ORObjectInf srcObj : objectsInGroup) {
+                        String newObjectName;
+                        if (!cut) {
+                            newObjectName = computeCopyName(targetPage, srcObj);
+                        } else {
+                            if (objectNameExists(targetPage, srcObj.getName())) {
+                                newObjectName = computeCopyName(targetPage, srcObj);
+                            } else {
+                                newObjectName = srcObj.getName();
+                            }
+                        }
+                        SapORObject cloned = new SapORObject();
+                        cloned.setName(newObjectName);
+                        cloned.setParent(newGroup);
+                        ((SapORObject) srcObj).clone(cloned);
+                        newGroup.getObjects().add(cloned);
+                        lastPastedObject = cloned;
+                    }
+                    targetPage.getObjectGroups().add(newGroup);
+                    ((SapOR) currentOR).setSaved(false);
+                    repo.saveSapPageNow((SapORPage) targetPage);
+                }
+
+                if (cut) {
+                    ORPageInf sourcePage = firstSource.getPage();
+                    if (!modifiedSourcePages.contains(sourcePage)) {
+                        modifiedSourcePages.add(sourcePage);
+                    }
+                    for (ORObjectInf srcObj : objectsInGroup) {
+                        objectRemoved(srcObj);
+                    }
+                    sourceGroup.removeFromParent();
+                }
+            } else {
+                // Cross-repository paste (Shared to Project - copy only, cut already blocked)
+                // For cross-repo, we paste all objects from the group into a new group
+                if (isSharedToProject(sourceOR, currentOR) && currentOR instanceof WebOR) {
+                    String newGroupName;
+                    if (targetPage.getObjectGroupByName(sourceGroup.getName()) == null) {
+                        newGroupName = sourceGroup.getName();
+                    } else {
+                        String baseName = sourceGroup.getName().replaceAll("_\\\\d+$", "");
+                        int i = 1;
+                        do {
+                            newGroupName = baseName + "_" + i++;
+                        } while (targetPage.getObjectGroupByName(newGroupName) != null);
+                    }
+                    ObjectGroup<WebORObject> newGroup = new ObjectGroup<>(
+                        newGroupName,
+                        (WebORPage) targetPage
+                    );
+                    for (ORObjectInf srcObj : objectsInGroup) {
+                        WebORObject cloned = new WebORObject();
+                        String newObjectName = computeCopyName(targetPage, srcObj);
+                        cloned.setName(newObjectName);
+                        cloned.setParent(newGroup);
+                        ((WebORObject) srcObj).clone(cloned);
+                        newGroup.getObjects().add(cloned);
+                        lastPastedObject = cloned;
+                    }
+                    targetPage.getObjectGroups().add(newGroup);
+                    ((WebOR) currentOR).setSaved(false);
+                    repo.saveWebPageNow((WebORPage) targetPage);
+                } else if (
+                    isSharedToProject(sourceOR, currentOR) && currentOR instanceof MobileOR
+                ) {
+                    String newGroupName;
+                    if (targetPage.getObjectGroupByName(sourceGroup.getName()) == null) {
+                        newGroupName = sourceGroup.getName();
+                    } else {
+                        String baseName = sourceGroup.getName().replaceAll("_\\\\d+$", "");
+                        int i = 1;
+                        do {
+                            newGroupName = baseName + "_" + i++;
+                        } while (targetPage.getObjectGroupByName(newGroupName) != null);
+                    }
+                    ObjectGroup<MobileORObject> newGroup = new ObjectGroup<>(
+                        newGroupName,
+                        (MobileORPage) targetPage
+                    );
+                    for (ORObjectInf srcObj : objectsInGroup) {
+                        MobileORObject cloned = new MobileORObject();
+                        String newObjectName = computeCopyName(targetPage, srcObj);
+                        cloned.setName(newObjectName);
+                        cloned.setParent(newGroup);
+                        ((MobileORObject) srcObj).clone(cloned);
+                        newGroup.getObjects().add(cloned);
+                        lastPastedObject = cloned;
+                    }
+                    targetPage.getObjectGroups().add(newGroup);
+                    ((MobileOR) currentOR).setSaved(false);
+                    repo.saveMobilePageNow((MobileORPage) targetPage);
+                } else if (
+                    isSharedToProject(sourceOR, currentOR) && currentOR instanceof StructuredDataOR
+                ) {
+                    String newGroupName;
+                    if (targetPage.getObjectGroupByName(sourceGroup.getName()) == null) {
+                        newGroupName = sourceGroup.getName();
+                    } else {
+                        String baseName = sourceGroup.getName().replaceAll("_\\\\d+$", "");
+                        int i = 1;
+                        do {
+                            newGroupName = baseName + "_" + i++;
+                        } while (targetPage.getObjectGroupByName(newGroupName) != null);
+                    }
+                    ObjectGroup<StructuredDataORObject> newGroup = new ObjectGroup<>(
+                        newGroupName,
+                        (StructuredDataORPage) targetPage
+                    );
+                    for (ORObjectInf srcObj : objectsInGroup) {
+                        StructuredDataORObject cloned = new StructuredDataORObject();
+                        String newObjectName = computeCopyName(targetPage, srcObj);
+                        cloned.setName(newObjectName);
+                        cloned.setParent(newGroup);
+                        ((StructuredDataORObject) srcObj).clone(cloned);
+                        newGroup.getObjects().add(cloned);
+                        lastPastedObject = cloned;
+                    }
+                    targetPage.getObjectGroups().add(newGroup);
+                    ((StructuredDataOR) currentOR).setSaved(false);
+                    repo.saveStructuredDataPageNow((StructuredDataORPage) targetPage);
+                } else if (isSharedToProject(sourceOR, currentOR) && currentOR instanceof SapOR) {
+                    String newGroupName;
+                    if (targetPage.getObjectGroupByName(sourceGroup.getName()) == null) {
+                        newGroupName = sourceGroup.getName();
+                    } else {
+                        String baseName = sourceGroup.getName().replaceAll("_\\\\d+$", "");
+                        int i = 1;
+                        do {
+                            newGroupName = baseName + "_" + i++;
+                        } while (targetPage.getObjectGroupByName(newGroupName) != null);
+                    }
+                    ObjectGroup<SapORObject> newGroup = new ObjectGroup<>(
+                        newGroupName,
+                        (SapORPage) targetPage
+                    );
+                    for (ORObjectInf srcObj : objectsInGroup) {
+                        SapORObject cloned = new SapORObject();
+                        String newObjectName = computeCopyName(targetPage, srcObj);
+                        cloned.setName(newObjectName);
+                        cloned.setParent(newGroup);
+                        ((SapORObject) srcObj).clone(cloned);
+                        newGroup.getObjects().add(cloned);
+                        lastPastedObject = cloned;
+                    }
+                    targetPage.getObjectGroups().add(newGroup);
+                    ((SapOR) currentOR).setSaved(false);
+                    repo.saveSapPageNow((SapORPage) targetPage);
+                } else if (
+                    currentOR instanceof WebOR &&
+                    ((WebOR) currentOR).isShared() &&
+                    sourceOR instanceof WebOR &&
+                    !((WebOR) sourceOR).isShared()
+                ) {
+                    String newGroupName;
+                    if (targetPage.getObjectGroupByName(sourceGroup.getName()) == null) {
+                        newGroupName = sourceGroup.getName();
+                    } else {
+                        String baseName = sourceGroup.getName().replaceAll("_\\\\d+$", "");
+                        int i = 1;
+                        do {
+                            newGroupName = baseName + "_" + i++;
+                        } while (targetPage.getObjectGroupByName(newGroupName) != null);
+                    }
+                    ObjectGroup<WebORObject> newGroup = new ObjectGroup<>(
+                        newGroupName,
+                        (WebORPage) targetPage
+                    );
+                    for (ORObjectInf srcObj : objectsInGroup) {
+                        WebORObject cloned = new WebORObject();
+                        String newObjectName = computeCopyName(targetPage, srcObj);
+                        cloned.setName(newObjectName);
+                        cloned.setParent(newGroup);
+                        ((WebORObject) srcObj).clone(cloned);
+                        newGroup.getObjects().add(cloned);
+                        lastPastedObject = cloned;
+                    }
+                    targetPage.getObjectGroups().add(newGroup);
+                    ((WebOR) currentOR).setSaved(false);
+                    repo.saveWebPageNow((WebORPage) targetPage);
+                } else if (
+                    currentOR instanceof MobileOR &&
+                    ((MobileOR) currentOR).isShared() &&
+                    sourceOR instanceof MobileOR &&
+                    !((MobileOR) sourceOR).isShared()
+                ) {
+                    String newGroupName;
+                    if (targetPage.getObjectGroupByName(sourceGroup.getName()) == null) {
+                        newGroupName = sourceGroup.getName();
+                    } else {
+                        String baseName = sourceGroup.getName().replaceAll("_\\\\d+$", "");
+                        int i = 1;
+                        do {
+                            newGroupName = baseName + "_" + i++;
+                        } while (targetPage.getObjectGroupByName(newGroupName) != null);
+                    }
+                    ObjectGroup<MobileORObject> newGroup = new ObjectGroup<>(
+                        newGroupName,
+                        (MobileORPage) targetPage
+                    );
+                    for (ORObjectInf srcObj : objectsInGroup) {
+                        MobileORObject cloned = new MobileORObject();
+                        String newObjectName = computeCopyName(targetPage, srcObj);
+                        cloned.setName(newObjectName);
+                        cloned.setParent(newGroup);
+                        ((MobileORObject) srcObj).clone(cloned);
+                        newGroup.getObjects().add(cloned);
+                        lastPastedObject = cloned;
+                    }
+                    targetPage.getObjectGroups().add(newGroup);
+                    ((MobileOR) currentOR).setSaved(false);
+                    repo.saveMobilePageNow((MobileORPage) targetPage);
+                } else if (
+                    currentOR instanceof StructuredDataOR &&
+                    ((StructuredDataOR) currentOR).isShared() &&
+                    sourceOR instanceof StructuredDataOR &&
+                    !((StructuredDataOR) sourceOR).isShared()
+                ) {
+                    String newGroupName;
+                    if (targetPage.getObjectGroupByName(sourceGroup.getName()) == null) {
+                        newGroupName = sourceGroup.getName();
+                    } else {
+                        String baseName = sourceGroup.getName().replaceAll("_\\\\d+$", "");
+                        int i = 1;
+                        do {
+                            newGroupName = baseName + "_" + i++;
+                        } while (targetPage.getObjectGroupByName(newGroupName) != null);
+                    }
+                    ObjectGroup<StructuredDataORObject> newGroup = new ObjectGroup<>(
+                        newGroupName,
+                        (StructuredDataORPage) targetPage
+                    );
+                    for (ORObjectInf srcObj : objectsInGroup) {
+                        StructuredDataORObject cloned = new StructuredDataORObject();
+                        String newObjectName = computeCopyName(targetPage, srcObj);
+                        cloned.setName(newObjectName);
+                        cloned.setParent(newGroup);
+                        ((StructuredDataORObject) srcObj).clone(cloned);
+                        newGroup.getObjects().add(cloned);
+                        lastPastedObject = cloned;
+                    }
+                    targetPage.getObjectGroups().add(newGroup);
+                    ((StructuredDataOR) currentOR).setSaved(false);
+                    repo.saveStructuredDataPageNow((StructuredDataORPage) targetPage);
+                } else if (
+                    currentOR instanceof SapOR &&
+                    ((SapOR) currentOR).isShared() &&
+                    sourceOR instanceof SapOR &&
+                    !((SapOR) sourceOR).isShared()
+                ) {
+                    String newGroupName;
+                    if (targetPage.getObjectGroupByName(sourceGroup.getName()) == null) {
+                        newGroupName = sourceGroup.getName();
+                    } else {
+                        String baseName = sourceGroup.getName().replaceAll("_\\\\d+$", "");
+                        int i = 1;
+                        do {
+                            newGroupName = baseName + "_" + i++;
+                        } while (targetPage.getObjectGroupByName(newGroupName) != null);
+                    }
+                    ObjectGroup<SapORObject> newGroup = new ObjectGroup<>(
+                        newGroupName,
+                        (SapORPage) targetPage
+                    );
+                    for (ORObjectInf srcObj : objectsInGroup) {
+                        SapORObject cloned = new SapORObject();
+                        String newObjectName = computeCopyName(targetPage, srcObj);
+                        cloned.setName(newObjectName);
+                        cloned.setParent(newGroup);
+                        ((SapORObject) srcObj).clone(cloned);
+                        newGroup.getObjects().add(cloned);
+                        lastPastedObject = cloned;
+                    }
+                    targetPage.getObjectGroups().add(newGroup);
+                    ((SapOR) currentOR).setSaved(false);
+                    repo.saveSapPageNow((SapORPage) targetPage);
+                }
+            }
+        }
+
+        // Save modified source pages for cut operation
+        if (cut) {
+            for (ORPageInf sourcePage : modifiedSourcePages) {
+                ORRootInf sourceOR = (ORRootInf) sourcePage.getParent();
+                if (sourceOR instanceof WebOR) {
+                    ((WebOR) sourceOR).setSaved(false);
+                    repo.saveWebPageNow((WebORPage) sourcePage);
+                } else if (sourceOR instanceof MobileOR) {
+                    ((MobileOR) sourceOR).setSaved(false);
+                    repo.saveMobilePageNow((MobileORPage) sourcePage);
+                } else if (sourceOR instanceof StructuredDataOR) {
+                    ((StructuredDataOR) sourceOR).setSaved(false);
+                    repo.saveStructuredDataPageNow((StructuredDataORPage) sourcePage);
+                } else if (sourceOR instanceof SapOR) {
+                    ((SapOR) sourceOR).setSaved(false);
+                    repo.saveSapPageNow((SapORPage) sourcePage);
+                }
+            }
+            ORClipboardManager.clear();
+        }
+
+        reload();
+        if (lastPastedObject != null) {
+            final ORObjectInf highlight = lastPastedObject;
+            SwingUtilities.invokeLater(() -> selectAndSrollTo(highlight.getTreePath()));
+        }
+    }
+
     private String computeCopyName(ORPageInf page, ORObjectInf source) {
         String original = source.getName();
-        String base = original.replaceAll("_Copy_\\d+$", "");
+        // Only append suffix if object with same name already exists
+        if (!objectNameExists(page, original)) {
+            return original;
+        }
+        // Remove any existing numeric suffix to get base name
+        String base = original.replaceAll("_\\d+$", "");
         int index = 1;
         String candidate;
         do {
-            candidate = base + "_Copy_" + index++;
+            candidate = base + "_" + index++;
         } while (objectNameExists(page, candidate));
         return candidate;
     }
@@ -2525,36 +3174,62 @@ public abstract class ObjectTree implements ActionListener {
     }
 
     private void copySelection() {
-        if (getSelectedObject() != null) {
-            ORClipboardManager.copy(getSelectedObject());
+        List<ORObjectInf> objects = getSelectedObjects();
+        if (!objects.isEmpty()) {
+            if (objects.size() == 1) {
+                ORClipboardManager.copy(objects.get(0));
+            } else {
+                ORClipboardManager.copy(objects);
+            }
             return;
         }
-        if (getSelectedPage() != null) {
-            ORClipboardManager.copy(getSelectedPage());
+        List<ORPageInf> pages = getSelectedPages();
+        if (!pages.isEmpty()) {
+            if (pages.size() == 1) {
+                ORClipboardManager.copy(pages.get(0));
+            } else {
+                ORClipboardManager.copyPages(pages);
+            }
         }
     }
 
     private void cutSelection() {
-        if (getSelectedObject() != null) {
-            ORObjectInf obj = getSelectedObject();
-            ORRootInf sourceOR = (ORRootInf) obj.getPage().getParent();
+        List<ORObjectInf> objects = getSelectedObjects();
+        if (!objects.isEmpty()) {
+            // Check if all objects are from the same OR
             ORRootInf currentOR = getOR();
-            if (sourceOR != currentOR) {
-                Notification.show("Cut is allowed only within the same Object Repository.");
-                return;
+            for (ORObjectInf obj : objects) {
+                ORRootInf sourceOR = (ORRootInf) obj.getPage().getParent();
+                if (sourceOR != currentOR) {
+                    Notification.show("Cut is allowed only within the same Object Repository.");
+                    return;
+                }
             }
-            ORClipboardManager.cut(obj);
+            // Perform cut
+            if (objects.size() == 1) {
+                ORClipboardManager.cut(objects.get(0));
+            } else {
+                ORClipboardManager.cut(objects);
+            }
             return;
         }
-        if (getSelectedPage() != null) {
-            ORPageInf page = getSelectedPage();
-            ORRootInf sourceOR = (ORRootInf) page.getParent();
+        List<ORPageInf> pages = getSelectedPages();
+        if (!pages.isEmpty()) {
+            // Check if all pages are from the same OR
             ORRootInf currentOR = getOR();
-            if (sourceOR != currentOR) {
-                Notification.show("Cut is allowed only within the same Object Repository.");
-                return;
+            for (ORPageInf page : pages) {
+                ORRootInf sourceOR = (ORRootInf) page.getParent();
+                if (sourceOR != currentOR) {
+                    Notification.show("Cut is allowed only within the same Object Repository.");
+                    return;
+                }
             }
-            ORClipboardManager.cut(page);
+            // Perform cut
+            if (pages.size() == 1) {
+                ORClipboardManager.cut(pages.get(0));
+            } else {
+                ORClipboardManager.cutPages(pages);
+            }
         }
     }
 
@@ -2577,6 +3252,13 @@ public abstract class ObjectTree implements ActionListener {
             return;
         }
         ORObjectClipboard cb = ORClipboardManager.get();
+
+        // Handle multiple pages
+        if (cb.hasMultiplePages()) {
+            pasteMultiplePages();
+            return;
+        }
+
         ORPageInf sourcePage = cb.getPage();
         boolean cut = cb.isCut();
         if (sourcePage == null) {
@@ -2585,89 +3267,13 @@ public abstract class ObjectTree implements ActionListener {
         ORRootInf currentOR = getOR();
         ORRootInf sourceOR = (ORRootInf) sourcePage.getParent();
         ObjectRepository repo = getProject().getObjectRepository();
-        if (
-            cut &&
-            sourceOR instanceof WebOR &&
-            ((WebOR) sourceOR).isShared() &&
-            currentOR instanceof WebOR &&
-            !((WebOR) currentOR).isShared()
-        ) {
+        // Check Shared→Project cut restriction
+        if (cut && isSharedToProject(sourceOR, currentOR)) {
             Notification.show("Cut is not allowed from Shared to Project Object Repository");
             return;
         }
-        if (
-            cut &&
-            sourceOR instanceof MobileOR &&
-            ((MobileOR) sourceOR).isShared() &&
-            currentOR instanceof MobileOR &&
-            !((MobileOR) currentOR).isShared()
-        ) {
-            Notification.show("Cut is not allowed from Shared to Project Object Repository");
-            return;
-        }
-        if (
-            cut &&
-            sourceOR instanceof StructuredDataOR &&
-            ((StructuredDataOR) sourceOR).isShared() &&
-            currentOR instanceof StructuredDataOR &&
-            !((StructuredDataOR) currentOR).isShared()
-        ) {
-            Notification.show("Cut is not allowed from Shared to Project Object Repository");
-            return;
-        }
-        if (
-            cut &&
-            sourceOR instanceof SapOR &&
-            ((SapOR) sourceOR).isShared() &&
-            currentOR instanceof SapOR &&
-            !((SapOR) currentOR).isShared()
-        ) {
-            Notification.show("Cut is not allowed from Shared to Project Object Repository");
-            return;
-        }
-        if (
-            cut &&
-            sourceOR instanceof WebOR &&
-            !((WebOR) sourceOR).isShared() &&
-            currentOR instanceof WebOR &&
-            ((WebOR) currentOR).isShared()
-        ) {
-            Notification.show(
-                "Cut is not allowed in Shared Object Repository. Use `Move to Shared` instead."
-            );
-            return;
-        }
-        if (
-            cut &&
-            sourceOR instanceof MobileOR &&
-            !((MobileOR) sourceOR).isShared() &&
-            currentOR instanceof MobileOR &&
-            ((MobileOR) currentOR).isShared()
-        ) {
-            Notification.show(
-                "Cut is not allowed in Shared Object Repository. Use `Move to Shared` instead."
-            );
-            return;
-        }
-        if (
-            cut &&
-            sourceOR instanceof StructuredDataOR &&
-            !((StructuredDataOR) sourceOR).isShared() &&
-            currentOR instanceof StructuredDataOR &&
-            ((StructuredDataOR) currentOR).isShared()
-        ) {
-            Notification.show(
-                "Cut is not allowed in Shared Object Repository. Use `Move to Shared` instead."
-            );
-            return;
-        }
-        if (
-            cut &&
-            sourceOR instanceof SapOR &&
-            !((SapOR) sourceOR).isShared() &&
-            currentOR instanceof SapOR &&
-            ((SapOR) currentOR).isShared()
-        ) {
+        // Check Project→Shared cut restriction
+        if (cut && isProjectToShared(sourceOR, currentOR)) {
             Notification.show(
                 "Cut is not allowed in Shared Object Repository. Use `Move to Shared` instead."
             );
@@ -2750,12 +3356,7 @@ public abstract class ObjectTree implements ActionListener {
             reload();
             return;
         }
-        if (
-            currentOR instanceof WebOR &&
-            !((WebOR) currentOR).isShared() &&
-            sourceOR instanceof WebOR &&
-            ((WebOR) sourceOR).isShared()
-        ) {
+        if (isSharedToProject(sourceOR, currentOR) && currentOR instanceof WebOR) {
             String newPageName = cut ? sourcePage.getName() : computeCopyPageName(sourcePage);
             ORPageInf newPage = getOR().addPage(newPageName);
             WebORPage srcPage = (WebORPage) sourcePage;
@@ -2777,12 +3378,7 @@ public abstract class ObjectTree implements ActionListener {
             reload();
             return;
         }
-        if (
-            currentOR instanceof MobileOR &&
-            !((MobileOR) currentOR).isShared() &&
-            sourceOR instanceof MobileOR &&
-            ((MobileOR) sourceOR).isShared()
-        ) {
+        if (isSharedToProject(sourceOR, currentOR) && currentOR instanceof MobileOR) {
             String newPageName = cut ? sourcePage.getName() : computeCopyPageName(sourcePage);
             ORPageInf newPage = getOR().addPage(newPageName);
             MobileORPage srcPage = (MobileORPage) sourcePage;
@@ -2809,12 +3405,7 @@ public abstract class ObjectTree implements ActionListener {
             );
             return;
         }
-        if (
-            currentOR instanceof StructuredDataOR &&
-            !((StructuredDataOR) currentOR).isShared() &&
-            sourceOR instanceof StructuredDataOR &&
-            ((StructuredDataOR) sourceOR).isShared()
-        ) {
+        if (isSharedToProject(sourceOR, currentOR) && currentOR instanceof StructuredDataOR) {
             String newPageName = cut ? sourcePage.getName() : computeCopyPageName(sourcePage);
             ORPageInf newPage = getOR().addPage(newPageName);
             StructuredDataORPage srcPage = (StructuredDataORPage) sourcePage;
@@ -2841,12 +3432,7 @@ public abstract class ObjectTree implements ActionListener {
             );
             return;
         }
-        if (
-            currentOR instanceof SapOR &&
-            !((SapOR) currentOR).isShared() &&
-            sourceOR instanceof SapOR &&
-            ((SapOR) sourceOR).isShared()
-        ) {
+        if (isSharedToProject(sourceOR, currentOR) && currentOR instanceof SapOR) {
             String newPageName = cut ? sourcePage.getName() : computeCopyPageName(sourcePage);
             ORPageInf newPage = getOR().addPage(newPageName);
             SapORPage srcPage = (SapORPage) sourcePage;
@@ -2948,12 +3534,366 @@ public abstract class ObjectTree implements ActionListener {
         }
     }
 
+    private void pasteMultiplePages() {
+        if (!ORClipboardManager.hasData()) {
+            return;
+        }
+
+        ORObjectClipboard cb = ORClipboardManager.get();
+        List<ORPageInf> sourcePages = cb.getPages();
+        boolean cut = cb.isCut();
+
+        if (sourcePages.isEmpty()) {
+            return;
+        }
+
+        ORRootInf currentOR = getOR();
+        ObjectRepository repo = getProject().getObjectRepository();
+
+        // Check cut restrictions for all source pages
+        if (cut) {
+            for (ORPageInf sourcePage : sourcePages) {
+                ORRootInf sourceOR = (ORRootInf) sourcePage.getParent();
+
+                // Check Shared→Project cut restriction
+                if (isSharedToProject(sourceOR, currentOR)) {
+                    Notification.show(
+                        "Cut is not allowed from Shared to Project Object Repository"
+                    );
+                    return;
+                }
+
+                // Check Project→Shared cut restriction
+                if (isProjectToShared(sourceOR, currentOR)) {
+                    Notification.show(
+                        "Cut is not allowed in Shared Object Repository. Use `Move to Shared` instead."
+                    );
+                    return;
+                }
+            }
+        }
+
+        ORPageInf lastPastedPage = null;
+
+        // Process each page
+        for (ORPageInf sourcePage : sourcePages) {
+            ORRootInf sourceOR = (ORRootInf) sourcePage.getParent();
+
+            if (sourceOR == currentOR) {
+                // Same OR: paste within same repository
+                String newPageName = cut ? sourcePage.getName() : computeCopyPageName(sourcePage);
+                // Check if page name already exists when cut
+                if (cut && currentOR.getPageByName(newPageName) != null) {
+                    newPageName = computeCopyPageName(sourcePage);
+                }
+
+                ORPageInf newPage = getOR().addPage(newPageName);
+                if (currentOR instanceof WebOR) {
+                    WebORPage srcPage = (WebORPage) sourcePage;
+                    WebORPage tgtPage = (WebORPage) newPage;
+                    for (Object g : srcPage.getObjectGroups()) {
+                        ObjectGroup srcGroup = (ObjectGroup) g;
+                        ObjectGroup newGroup = new ObjectGroup(srcGroup.getName(), tgtPage);
+                        for (Object o : srcGroup.getObjects()) {
+                            WebORObject srcObj = (WebORObject) o;
+                            WebORObject cloned = new WebORObject();
+                            cloned.setName(srcObj.getName());
+                            cloned.setParent(newGroup);
+                            srcObj.clone(cloned);
+                            newGroup.getObjects().add(cloned);
+                        }
+                        tgtPage.getObjectGroups().add(newGroup);
+                    }
+                } else if (currentOR instanceof MobileOR) {
+                    MobileORPage srcPage = (MobileORPage) sourcePage;
+                    MobileORPage tgtPage = (MobileORPage) newPage;
+                    for (Object g : srcPage.getObjectGroups()) {
+                        ObjectGroup srcGroup = (ObjectGroup) g;
+                        ObjectGroup newGroup = new ObjectGroup(srcGroup.getName(), tgtPage);
+                        for (Object o : srcGroup.getObjects()) {
+                            MobileORObject srcObj = (MobileORObject) o;
+                            MobileORObject cloned = new MobileORObject();
+                            cloned.setName(srcObj.getName());
+                            cloned.setParent(newGroup);
+                            srcObj.clone(cloned);
+                            newGroup.getObjects().add(cloned);
+                        }
+                        tgtPage.getObjectGroups().add(newGroup);
+                    }
+                } else if (currentOR instanceof StructuredDataOR) {
+                    StructuredDataORPage srcPage = (StructuredDataORPage) sourcePage;
+                    StructuredDataORPage tgtPage = (StructuredDataORPage) newPage;
+                    for (Object g : srcPage.getObjectGroups()) {
+                        ObjectGroup srcGroup = (ObjectGroup) g;
+                        ObjectGroup newGroup = new ObjectGroup(srcGroup.getName(), tgtPage);
+                        for (Object o : srcGroup.getObjects()) {
+                            StructuredDataORObject srcObj = (StructuredDataORObject) o;
+                            StructuredDataORObject cloned = new StructuredDataORObject();
+                            cloned.setName(srcObj.getName());
+                            cloned.setParent(newGroup);
+                            srcObj.clone(cloned);
+                            newGroup.getObjects().add(cloned);
+                        }
+                        tgtPage.getObjectGroups().add(newGroup);
+                    }
+                } else if (currentOR instanceof SapOR) {
+                    SapORPage srcPage = (SapORPage) sourcePage;
+                    SapORPage tgtPage = (SapORPage) newPage;
+                    for (Object g : srcPage.getObjectGroups()) {
+                        ObjectGroup srcGroup = (ObjectGroup) g;
+                        ObjectGroup newGroup = new ObjectGroup(srcGroup.getName(), tgtPage);
+                        for (Object o : srcGroup.getObjects()) {
+                            SapORObject srcObj = (SapORObject) o;
+                            SapORObject cloned = new SapORObject();
+                            cloned.setName(srcObj.getName());
+                            cloned.setParent(newGroup);
+                            srcObj.clone(cloned);
+                            newGroup.getObjects().add(cloned);
+                        }
+                        tgtPage.getObjectGroups().add(newGroup);
+                    }
+                }
+                pageAdded(newPage);
+                if (cut) {
+                    pageRemoved(sourcePage);
+                    sourcePage.removeFromParent();
+                }
+                lastPastedPage = newPage;
+            } else {
+                // Cross-repository paste (Shared to Project or Project to Shared)
+                if (isSharedToProject(sourceOR, currentOR) && currentOR instanceof WebOR) {
+                    String newPageName = cut
+                        ? sourcePage.getName()
+                        : computeCopyPageName(sourcePage);
+                    ORPageInf newPage = getOR().addPage(newPageName);
+                    WebORPage srcPage = (WebORPage) sourcePage;
+                    WebORPage tgtPage = (WebORPage) newPage;
+                    for (Object g : srcPage.getObjectGroups()) {
+                        ObjectGroup srcGroup = (ObjectGroup) g;
+                        ObjectGroup newGroup = new ObjectGroup(srcGroup.getName(), tgtPage);
+                        for (Object o : srcGroup.getObjects()) {
+                            WebORObject srcObj = (WebORObject) o;
+                            WebORObject cloned = new WebORObject();
+                            cloned.setName(srcObj.getName());
+                            cloned.setParent(newGroup);
+                            srcObj.clone(cloned);
+                            newGroup.getObjects().add(cloned);
+                        }
+                        tgtPage.getObjectGroups().add(newGroup);
+                    }
+                    pageAdded(newPage);
+                    lastPastedPage = newPage;
+                } else if (
+                    isSharedToProject(sourceOR, currentOR) && currentOR instanceof MobileOR
+                ) {
+                    String newPageName = cut
+                        ? sourcePage.getName()
+                        : computeCopyPageName(sourcePage);
+                    ORPageInf newPage = getOR().addPage(newPageName);
+                    MobileORPage srcPage = (MobileORPage) sourcePage;
+                    MobileORPage tgtPage = (MobileORPage) newPage;
+                    for (Object g : srcPage.getObjectGroups()) {
+                        ObjectGroup srcGroup = (ObjectGroup) g;
+                        ObjectGroup newGroup = new ObjectGroup(srcGroup.getName(), tgtPage);
+                        for (Object o : srcGroup.getObjects()) {
+                            MobileORObject srcObj = (MobileORObject) o;
+                            MobileORObject cloned = new MobileORObject();
+                            cloned.setName(srcObj.getName());
+                            cloned.setParent(newGroup);
+                            srcObj.clone(cloned);
+                            newGroup.getObjects().add(cloned);
+                        }
+                        tgtPage.getObjectGroups().add(newGroup);
+                    }
+                    pageAdded(newPage);
+                    lastPastedPage = newPage;
+                } else if (
+                    isSharedToProject(sourceOR, currentOR) && currentOR instanceof StructuredDataOR
+                ) {
+                    String newPageName = cut
+                        ? sourcePage.getName()
+                        : computeCopyPageName(sourcePage);
+                    ORPageInf newPage = getOR().addPage(newPageName);
+                    StructuredDataORPage srcPage = (StructuredDataORPage) sourcePage;
+                    StructuredDataORPage tgtPage = (StructuredDataORPage) newPage;
+                    for (Object g : srcPage.getObjectGroups()) {
+                        ObjectGroup srcGroup = (ObjectGroup) g;
+                        ObjectGroup newGroup = new ObjectGroup(srcGroup.getName(), tgtPage);
+                        for (Object o : srcGroup.getObjects()) {
+                            StructuredDataORObject srcObj = (StructuredDataORObject) o;
+                            StructuredDataORObject cloned = new StructuredDataORObject();
+                            cloned.setName(srcObj.getName());
+                            cloned.setParent(newGroup);
+                            srcObj.clone(cloned);
+                            newGroup.getObjects().add(cloned);
+                        }
+                        tgtPage.getObjectGroups().add(newGroup);
+                    }
+                    pageAdded(newPage);
+                    lastPastedPage = newPage;
+                } else if (isSharedToProject(sourceOR, currentOR) && currentOR instanceof SapOR) {
+                    String newPageName = cut
+                        ? sourcePage.getName()
+                        : computeCopyPageName(sourcePage);
+                    ORPageInf newPage = getOR().addPage(newPageName);
+                    SapORPage srcPage = (SapORPage) sourcePage;
+                    SapORPage tgtPage = (SapORPage) newPage;
+                    for (Object g : srcPage.getObjectGroups()) {
+                        ObjectGroup srcGroup = (ObjectGroup) g;
+                        ObjectGroup newGroup = new ObjectGroup(srcGroup.getName(), tgtPage);
+                        for (Object o : srcGroup.getObjects()) {
+                            SapORObject srcObj = (SapORObject) o;
+                            SapORObject cloned = new SapORObject();
+                            cloned.setName(srcObj.getName());
+                            cloned.setParent(newGroup);
+                            srcObj.clone(cloned);
+                            newGroup.getObjects().add(cloned);
+                        }
+                        tgtPage.getObjectGroups().add(newGroup);
+                    }
+                    pageAdded(newPage);
+                    lastPastedPage = newPage;
+                } else if (
+                    currentOR instanceof WebOR &&
+                    ((WebOR) currentOR).isShared() &&
+                    sourceOR instanceof WebOR &&
+                    !((WebOR) sourceOR).isShared()
+                ) {
+                    String newPageName = cut
+                        ? sourcePage.getName()
+                        : computeCopyPageName(sourcePage);
+                    ORPageInf newPage = getOR().addPage(newPageName);
+                    WebORPage srcPage = (WebORPage) sourcePage;
+                    WebORPage tgtPage = (WebORPage) newPage;
+                    for (Object g : srcPage.getObjectGroups()) {
+                        ObjectGroup srcGroup = (ObjectGroup) g;
+                        ObjectGroup newGroup = new ObjectGroup(srcGroup.getName(), tgtPage);
+                        for (Object o : srcGroup.getObjects()) {
+                            WebORObject srcObj = (WebORObject) o;
+                            WebORObject cloned = new WebORObject();
+                            cloned.setName(srcObj.getName());
+                            cloned.setParent(newGroup);
+                            srcObj.clone(cloned);
+                            newGroup.getObjects().add(cloned);
+                        }
+                        tgtPage.getObjectGroups().add(newGroup);
+                    }
+                    pageAdded(newPage);
+                    lastPastedPage = newPage;
+                } else if (
+                    currentOR instanceof MobileOR &&
+                    ((MobileOR) currentOR).isShared() &&
+                    sourceOR instanceof MobileOR &&
+                    !((MobileOR) sourceOR).isShared()
+                ) {
+                    String newPageName = cut
+                        ? sourcePage.getName()
+                        : computeCopyPageName(sourcePage);
+                    ORPageInf newPage = getOR().addPage(newPageName);
+                    MobileORPage srcPage = (MobileORPage) sourcePage;
+                    MobileORPage tgtPage = (MobileORPage) newPage;
+                    for (Object g : srcPage.getObjectGroups()) {
+                        ObjectGroup srcGroup = (ObjectGroup) g;
+                        ObjectGroup newGroup = new ObjectGroup(srcGroup.getName(), tgtPage);
+                        for (Object o : srcGroup.getObjects()) {
+                            MobileORObject srcObj = (MobileORObject) o;
+                            MobileORObject cloned = new MobileORObject();
+                            cloned.setName(srcObj.getName());
+                            cloned.setParent(newGroup);
+                            srcObj.clone(cloned);
+                            newGroup.getObjects().add(cloned);
+                        }
+                        tgtPage.getObjectGroups().add(newGroup);
+                    }
+                    pageAdded(newPage);
+                    lastPastedPage = newPage;
+                } else if (
+                    currentOR instanceof StructuredDataOR &&
+                    ((StructuredDataOR) currentOR).isShared() &&
+                    sourceOR instanceof StructuredDataOR &&
+                    !((StructuredDataOR) sourceOR).isShared()
+                ) {
+                    String newPageName = cut
+                        ? sourcePage.getName()
+                        : computeCopyPageName(sourcePage);
+                    ORPageInf newPage = getOR().addPage(newPageName);
+                    StructuredDataORPage srcPage = (StructuredDataORPage) sourcePage;
+                    StructuredDataORPage tgtPage = (StructuredDataORPage) newPage;
+                    for (Object g : srcPage.getObjectGroups()) {
+                        ObjectGroup srcGroup = (ObjectGroup) g;
+                        ObjectGroup newGroup = new ObjectGroup(srcGroup.getName(), tgtPage);
+                        for (Object o : srcGroup.getObjects()) {
+                            StructuredDataORObject srcObj = (StructuredDataORObject) o;
+                            StructuredDataORObject cloned = new StructuredDataORObject();
+                            cloned.setName(srcObj.getName());
+                            cloned.setParent(newGroup);
+                            srcObj.clone(cloned);
+                            newGroup.getObjects().add(cloned);
+                        }
+                        tgtPage.getObjectGroups().add(newGroup);
+                    }
+                    pageAdded(newPage);
+                    lastPastedPage = newPage;
+                } else if (
+                    currentOR instanceof SapOR &&
+                    ((SapOR) currentOR).isShared() &&
+                    sourceOR instanceof SapOR &&
+                    !((SapOR) sourceOR).isShared()
+                ) {
+                    String newPageName = cut
+                        ? sourcePage.getName()
+                        : computeCopyPageName(sourcePage);
+                    ORPageInf newPage = getOR().addPage(newPageName);
+                    SapORPage srcPage = (SapORPage) sourcePage;
+                    SapORPage tgtPage = (SapORPage) newPage;
+                    for (Object g : srcPage.getObjectGroups()) {
+                        ObjectGroup srcGroup = (ObjectGroup) g;
+                        ObjectGroup newGroup = new ObjectGroup(srcGroup.getName(), tgtPage);
+                        for (Object o : srcGroup.getObjects()) {
+                            SapORObject srcObj = (SapORObject) o;
+                            SapORObject cloned = new SapORObject();
+                            cloned.setName(srcObj.getName());
+                            cloned.setParent(newGroup);
+                            srcObj.clone(cloned);
+                            newGroup.getObjects().add(cloned);
+                        }
+                        tgtPage.getObjectGroups().add(newGroup);
+                    }
+                    pageAdded(newPage);
+                    lastPastedPage = newPage;
+                }
+            }
+        }
+
+        // Clean up if cut operation
+        if (cut) {
+            ORClipboardManager.clear();
+        }
+
+        // Reload and select last pasted page
+        reload();
+        if (lastPastedPage != null) {
+            final ORPageInf finalPage = lastPastedPage;
+            SwingUtilities.invokeLater(
+                () -> {
+                    selectAndSrollTo(finalPage.getTreePath());
+                }
+            );
+        }
+    }
+
     private String computeCopyPageName(ORPageInf source) {
-        String base = source.getName().replaceAll("_Copy_\\d+$", "");
+        String original = source.getName();
+        // Only append suffix if page with same name already exists
+        if (getOR().getPageByName(original) == null) {
+            return original;
+        }
+        // Remove any existing numeric suffix to get base name
+        String base = original.replaceAll("_\\d+$", "");
         int i = 1;
         String candidate;
         do {
-            candidate = base + "_Copy_" + i++;
+            candidate = base + "_" + i++;
         } while (getOR().getPageByName(candidate) != null);
         return candidate;
     }
