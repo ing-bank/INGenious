@@ -313,13 +313,15 @@ public class TestExecutionUI extends JPanel implements ActionListener {
 
     /**
      * Refreshes the Test Plan tag filter when switching to the Execution tab.
-     * Prunes stale tags (renamed/deleted) from the active filter and re-applies
-     * the filter with only the remaining valid tags. If no valid tags remain,
-     * the filter is cleared entirely (showing all test cases).
+     * Prunes stale tags (renamed/deleted) from the active filter, then always
+     * reloads the tree model so test cases that were recently tagged with an
+     * already-selected filter tag appear in the results.
      */
     public void refreshTagFilter() {
         List<Tag> allTags = testExecution.getProject().getInfo().getAllTags(null);
         testPullPanel.pruneFilter(allTags);
+        // Always reload so test cases that newly received a matching tag show up
+        testPullPanel.reloadModel();
     }
 
     public void adjustUI() {
