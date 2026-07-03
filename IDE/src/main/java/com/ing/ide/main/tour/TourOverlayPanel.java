@@ -301,17 +301,27 @@ public class TourOverlayPanel extends JPanel {
         // Step counter pill (top-right of card)
         drawStepPill(g2, cx, cy);
 
-        // Title — inset CARD_PAD from left, 28px below accent bar
+        // ── Vertically center title + description in the card body ──
+        // Content zone: below accent bar, above button row.
+        int zoneTop = cy + ACCENT_H + CARD_ARC; // cy + 26
+        int zoneBottom = cy + CARD_H - BTN_H - 36; // cy + 176
+        int zoneH = zoneBottom - zoneTop; // 150 px
+        // Estimated block height: title(20) + gap(10) + 3 desc lines(54)
+        int blockH = 84;
+        int topPad = (zoneH - blockH) / 2; // ~33 px
+
+        int titleBaseline = zoneTop + topPad + 16; // +16 = font ascent
+        int descBaseline = titleBaseline + 20 + 10 + 13; // title height + gap + desc ascent
+
         Font titleFont = new Font("SansSerif", Font.BOLD, 16);
         g2.setFont(titleFont);
         g2.setColor(isDarkMode ? new Color(220, 190, 255) : ING_BURGUNDY);
-        g2.drawString(title, cx + CARD_PAD, cy + ACCENT_H + 36);
+        g2.drawString(title, cx + CARD_PAD, titleBaseline);
 
-        // Description (word-wrapped) — 20px below title baseline
         Font descFont = new Font("SansSerif", Font.PLAIN, 13);
         g2.setFont(descFont);
         g2.setColor(isDarkMode ? new Color(215, 210, 228) : new Color(50, 50, 65));
-        drawWrapped(g2, description, cx + CARD_PAD, cy + ACCENT_H + 64, CARD_W - CARD_PAD * 2);
+        drawWrapped(g2, description, cx + CARD_PAD, descBaseline, CARD_W - CARD_PAD * 2);
 
         // Keyboard hint — aligned with Skip button, just above the card bottom
         Font hintFont = new Font("SansSerif", Font.PLAIN, 10);
@@ -329,14 +339,22 @@ public class TourOverlayPanel extends JPanel {
         Font pillFont = new Font("SansSerif", Font.BOLD, 10);
         g2.setFont(pillFont);
         FontMetrics fm = g2.getFontMetrics();
-        int pw = fm.stringWidth(text) + 16;
-        int ph = 18;
+        int pw = fm.stringWidth(text) + 18;
+        int ph = 20;
         int px = cx + CARD_W - pw - 12;
-        int py = cy + 10;
-        g2.setColor(ACCENT);
-        g2.fillRoundRect(px, py, pw, ph, 9, 9);
+        int py = cy + 8;
+
+        // Drop shadow → lift effect
+        g2.setColor(new Color(0, 0, 0, 55));
+        g2.fillRoundRect(px + 2, py + 3, pw, ph, 10, 10);
+
+        // White pill
         g2.setColor(Color.WHITE);
-        g2.drawString(text, px + 8, py + 12);
+        g2.fillRoundRect(px, py, pw, ph, 10, 10);
+
+        // Black text
+        g2.setColor(new Color(20, 20, 20));
+        g2.drawString(text, px + 9, py + 13);
     }
 
     private void drawWrapped(Graphics2D g2, String text, int x, int y, int maxW) {
