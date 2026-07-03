@@ -34,19 +34,19 @@ import javax.swing.JPanel;
  * underlying components during the tour.
  */
 public class TourOverlayPanel extends JPanel {
-    // ── ING Brand Palette ──
-    private static final Color ING_ORANGE = new Color(0xFF6200);
+    // ── Brand Palette ──
+    private static final Color ACCENT = new Color(0xB487FF); // #B487FF purple
     private static final Color ING_BURGUNDY = new Color(0x4D0020);
     private static final Color OVERLAY_COLOR = new Color(0, 0, 0, 175);
 
     // ── Card Dimensions ──
-    private static final int CARD_W = 440;
-    private static final int CARD_H = 230;
+    private static final int CARD_W = 460;
+    private static final int CARD_H = 250;
     private static final int CARD_ARC = 20;
     private static final int ACCENT_H = 6;
-    private static final int CARD_PAD = 22;
-    private static final int BTN_W = 110;
-    private static final int BTN_H = 36;
+    private static final int CARD_PAD = 32; // generous horizontal inset
+    private static final int BTN_W = 118;
+    private static final int BTN_H = 38;
 
     // ── Step state ──
     private String title = "";
@@ -132,7 +132,7 @@ public class TourOverlayPanel extends JPanel {
         btn.setFont(new Font("SansSerif", Font.BOLD, 12));
         btn.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         if (primary) {
-            btn.setBackground(ING_ORANGE);
+            btn.setBackground(ACCENT);
             btn.setForeground(Color.WHITE);
         } else {
             btn.setBackground(new Color(180, 180, 185));
@@ -164,11 +164,7 @@ public class TourOverlayPanel extends JPanel {
 
         boolean isLast = (current == total - 1);
         nextBtn.setText(isLast ? "Finish \u2713" : "Next \u2192");
-        if (isLast) {
-            nextBtn.setBackground(new Color(0x349651)); // green for finish
-        } else {
-            nextBtn.setBackground(ING_ORANGE);
-        }
+        nextBtn.setBackground(ACCENT); // consistent purple throughout
         skipBtn.setVisible(!isLast);
 
         positionButtons();
@@ -193,10 +189,11 @@ public class TourOverlayPanel extends JPanel {
         int cardX = xy[0];
         int cardY = xy[1];
 
-        // Buttons sit at the bottom of the card, 14px from edge
-        int btnY = cardY + CARD_H - BTN_H - 14;
+        // Buttons sit at the bottom of the card, 16px from bottom edge
+        int btnY = cardY + CARD_H - BTN_H - 16;
         skipBtn.setBounds(cardX + CARD_PAD, btnY, BTN_W, BTN_H);
         nextBtn.setBounds(cardX + CARD_W - BTN_W - CARD_PAD, btnY, BTN_W, BTN_H);
+        // Prev sits immediately left of Next with an 8px gap
         prevBtn.setBounds(cardX + CARD_W - BTN_W * 2 - CARD_PAD - 8, btnY, BTN_W, BTN_H);
     }
 
@@ -258,13 +255,13 @@ public class TourOverlayPanel extends JPanel {
             g2.setColor(OVERLAY_COLOR);
             g2.fill(full);
 
-            // Animated-feel orange glow border around spotlight
-            g2.setColor(new Color(0xFF6200));
+            // Glow border around spotlight
+            g2.setColor(ACCENT);
             g2.setStroke(new BasicStroke(2.5f));
             g2.draw(spot);
 
             // Subtle inner glow
-            g2.setColor(new Color(0xFF6200, true));
+            g2.setColor(ACCENT);
             g2.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER, 0.15f));
             RoundRectangle2D innerGlow = new RoundRectangle2D.Float(
                 spotlight.x - pad + 4,
@@ -297,33 +294,33 @@ public class TourOverlayPanel extends JPanel {
         g2.fillRoundRect(cx, cy, CARD_W, CARD_H, CARD_ARC, CARD_ARC);
 
         // Top accent bar
-        g2.setColor(ING_ORANGE);
+        g2.setColor(ACCENT);
         g2.fillRoundRect(cx, cy, CARD_W, ACCENT_H + CARD_ARC, CARD_ARC, CARD_ARC);
         g2.fillRect(cx, cy + ACCENT_H, CARD_W, CARD_ARC);
 
         // Step counter pill (top-right of card)
         drawStepPill(g2, cx, cy);
 
-        // Title
+        // Title — inset CARD_PAD from left, 28px below accent bar
         Font titleFont = new Font("SansSerif", Font.BOLD, 16);
         g2.setFont(titleFont);
-        g2.setColor(isDarkMode ? new Color(255, 200, 130) : ING_BURGUNDY);
-        g2.drawString(title, cx + CARD_PAD, cy + ACCENT_H + 32);
+        g2.setColor(isDarkMode ? new Color(220, 190, 255) : ING_BURGUNDY);
+        g2.drawString(title, cx + CARD_PAD, cy + ACCENT_H + 36);
 
-        // Description (word-wrapped)
+        // Description (word-wrapped) — 20px below title baseline
         Font descFont = new Font("SansSerif", Font.PLAIN, 13);
         g2.setFont(descFont);
         g2.setColor(isDarkMode ? new Color(215, 210, 228) : new Color(50, 50, 65));
-        drawWrapped(g2, description, cx + CARD_PAD, cy + ACCENT_H + 58, CARD_W - CARD_PAD * 2);
+        drawWrapped(g2, description, cx + CARD_PAD, cy + ACCENT_H + 64, CARD_W - CARD_PAD * 2);
 
-        // Keyboard hint at bottom-left below buttons
+        // Keyboard hint — aligned with Skip button, just above the card bottom
         Font hintFont = new Font("SansSerif", Font.PLAIN, 10);
         g2.setFont(hintFont);
-        g2.setColor(isDarkMode ? new Color(130, 125, 145) : new Color(150, 150, 165));
+        g2.setColor(isDarkMode ? new Color(130, 125, 145) : new Color(155, 150, 170));
         g2.drawString(
-            "  \u2190 \u2192 arrow keys  \u2022  Esc to skip",
+            "\u2190 \u2192 arrow keys  \u2022  Esc to skip",
             cx + CARD_PAD,
-            cy + CARD_H - 7
+            cy + CARD_H - 6
         );
     }
 
@@ -336,7 +333,7 @@ public class TourOverlayPanel extends JPanel {
         int ph = 18;
         int px = cx + CARD_W - pw - 12;
         int py = cy + 10;
-        g2.setColor(ING_BURGUNDY);
+        g2.setColor(ACCENT);
         g2.fillRoundRect(px, py, pw, ph, 9, 9);
         g2.setColor(Color.WHITE);
         g2.drawString(text, px + 8, py + 12);
