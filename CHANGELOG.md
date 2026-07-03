@@ -27,8 +27,8 @@ Release Date: <insert date of release>
 - Enhanced Object Repository with UX improvements
 - Added inline “+” buttons to enable quick addition of rows and columns across test steps, test data sheets, settings, and configurations
 - Implemented alphabetical sorting for test scenarios and test cases within the Test Lab
-- Added Update (Rename) and Deleting for Test Case Tags
 - Implemented closing of popups on Esc keypress
+- Added Update (Rename) and Deleting for Test Case Tags
 
 #### Changed
 
