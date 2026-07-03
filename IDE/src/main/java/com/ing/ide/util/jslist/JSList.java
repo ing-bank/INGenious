@@ -3,16 +3,18 @@ package com.ing.ide.util.jslist;
 import static java.util.stream.Collectors.toList;
 
 import com.ing.ide.main.fx.INGIcons;
+import java.awt.BasicStroke;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Cursor;
 import java.awt.Font;
-import java.awt.Point;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
 import java.awt.Rectangle;
+import java.awt.RenderingHints;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
-import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
@@ -20,7 +22,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedHashSet;
 import java.util.List;
-import java.util.Objects;
 import java.util.Set;
 import java.util.function.BiConsumer;
 import java.util.function.BiPredicate;
@@ -28,13 +29,12 @@ import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.function.Supplier;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import javax.swing.AbstractAction;
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
 import javax.swing.DefaultListModel;
 import javax.swing.DefaultListSelectionModel;
+import javax.swing.Icon;
 import javax.swing.JCheckBox;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
@@ -47,16 +47,18 @@ import javax.swing.JToolBar;
 import javax.swing.KeyStroke;
 import javax.swing.ListCellRenderer;
 import javax.swing.SwingUtilities;
+import javax.swing.UIManager;
 import javax.swing.text.JTextComponent;
 
 /**
- * A checkbox-based list component with support for adding (typing + Enter),
- * renaming (double-click or ✎ button → popup dialog), and deleting (✕ button with confirmation).
+ * A checkbox-based list component with support for adding, renaming,
+ * deleting, and selecting items.
  *
  * @param <T> the type of items in the list
  */
 public class JSList<T> extends JPanel {
     private static final javax.swing.Icon ADD_NEW_ICON = INGIcons.swingColored("icon.addNew", 16);
+
     private ListPanel listPanel;
     private TopBar topBar;
     private Consumer<List<T>> onSelect;
@@ -68,31 +70,14 @@ public class JSList<T> extends JPanel {
     private boolean isAdjusting = false;
     private FilterModel fltrmodel;
 
-    /**
-     * Creates a JSList with the given model, using toString() for display.
-     * @param srcmodel the initial list of items
-     */
     public JSList(List srcmodel) {
         this(srcmodel, Object::toString, null);
     }
 
-    /**
-     * Creates a JSList with a custom display mapper and an optional add handler.
-     * @param srcmodel the initial list of items
-     * @param mapper   function to convert items to display text
-     * @param onAdd    callback invoked when the user creates a new item via the add field; null to disable adding
-     */
     public JSList(List srcmodel, Function<T, String> mapper, Function<String, T> onAdd) {
         this(srcmodel, mapper, onAdd, (e, k) -> k.isEmpty() || e.contains(k));
     }
 
-    /**
-     * Creates a JSList with full control over display, add, and filtering.
-     * @param srcmodel  the initial list of items
-     * @param mapper    function to convert items to display text
-     * @param onAdd     callback invoked when the user creates a new item; null to disable adding
-     * @param predicate filter predicate: (displayText, searchKeyword) → true if item matches
-     */
     public JSList(
         List srcmodel,
         Function<T, String> mapper,
@@ -102,66 +87,46 @@ public class JSList<T> extends JPanel {
         this.onAdd = onAdd;
         this.mapper = mapper;
         fltrmodel = new FilterModel(srcmodel, mapper, predicate);
-        setLayout(new java.awt.BorderLayout());
+
+        setLayout(new BorderLayout());
+
         topBar = new TopBar();
-        add(topBar, java.awt.BorderLayout.NORTH);
+        add(topBar, BorderLayout.NORTH);
+
         listPanel = new ListPanel(fltrmodel, mapper);
-        add(listPanel, java.awt.BorderLayout.CENTER);
+        add(listPanel, BorderLayout.CENTER);
+
         setSize(300, 380);
     }
 
-    /**
-     * Registers a callback fired whenever the set of selected items changes.
-     * @param onSelect consumer receiving the new selection list
-     */
     public void setOnSelect(Consumer<List<T>> onSelect) {
         this.onSelect = onSelect;
     }
 
-    /**
-     * Registers a callback fired when an item is removed (e.g. via the ✕ button).
-     * @param onRemove consumer receiving the removed item
-     * @return this instance for chaining
-     */
-    public JSList withOnRemove(Consumer<T> onRemove) {
+    public JSList<T> withOnRemove(Consumer<T> onRemove) {
         this.onRemove = onRemove;
         return this;
     }
 
-    /**
-     * Registers a callback fired when an item is renamed.
-     * @param onUpdate bi-consumer receiving (item, newName)
-     * @return this instance for chaining
-     */
-    public JSList withOnUpdate(BiConsumer<T, String> onUpdate) {
+    public JSList<T> withOnUpdate(BiConsumer<T, String> onUpdate) {
         this.onUpdate = onUpdate;
         return this;
     }
 
-    /**
-     * Sets the currently selected items. The checkboxes will reflect this set.
-     * @param selected items to mark as selected; null is treated as empty
-     */
     public void setSelected(List<T> selected) {
         this.selected.clear();
+
         if (selected != null) {
             this.selected.addAll(selected.stream().distinct().collect(toList()));
         }
+
         listPanel.reselect();
     }
 
-    /**
-     * Returns the currently selected items.
-     * @return list of selected items (never null)
-     */
     public List<T> getSelected() {
         return listPanel.getSelected();
     }
 
-    /**
-     * Adds an item to the list model and marks it as selected.
-     * @param t the item to add
-     */
     public void add(T t) {
         fltrmodel.srcmodel.add(t);
         selected.add(t);
@@ -169,11 +134,6 @@ public class JSList<T> extends JPanel {
         listPanel.onSelect();
     }
 
-    /**
-     * Removes an item from the list and calls the onRemove callback.
-     * If onRemove is null or t is null, this is a no-op.
-     * @param t the item to remove
-     */
     public void remove(T t) {
         if (onRemove != null && t != null) {
             onRemove.accept(t);
@@ -183,24 +143,18 @@ public class JSList<T> extends JPanel {
         }
     }
 
-    /**
-     * Refreshes the list display to show all items from the source model.
-     */
     public void reload() {
         fltrmodel.doFilter("");
     }
 
-    /**
-     * Opens a popup dialog to rename the given tag. Calls onUpdate if the name
-     * actually changed, then refreshes the list. If onUpdate is null this is a no-op.
-     * @param tag the tag to rename
-     */
     public void rename(T tag) {
-        if (onUpdate == null) {
+        if (onUpdate == null || tag == null) {
             return;
         }
+
         String oldName = mapper.apply(tag);
         String newName = JOptionPane.showInputDialog(this, "Rename tag:", oldName);
+
         if (newName != null && !newName.trim().isEmpty() && !newName.trim().equals(oldName)) {
             onUpdate.accept(tag, newName.trim());
             reload();
@@ -227,12 +181,16 @@ public class JSList<T> extends JPanel {
 
         public void doFilter(Object keyword) {
             List<T> cselected = listPanel.getSelected();
+
             items()
                 .stream()
                 .filter(item -> !cselected.contains((T) item))
                 .forEach(selected::remove);
+
             this.clear();
+
             srcmodel.stream().filter(by(keyword::toString)).forEach(this::addElement);
+
             listPanel.reselect();
         }
 
@@ -242,30 +200,37 @@ public class JSList<T> extends JPanel {
     }
 
     class TopBar extends JPanel {
-        JTextField addField = new javax.swing.JTextField(28);
+        JTextField addField = new JTextField(28);
 
         public TopBar() {
             JToolBar tbar = getToolbar();
+
             addField.addActionListener(e -> onAddT(addField.getText()));
+
             JPanel textfieldWithButton = new JPanel(new BorderLayout());
             textfieldWithButton.add(withToolbar(addField, getClearButton(addField)));
             textfieldWithButton.setBorder(addField.getBorder());
+
             tbar.add(textfieldWithButton);
+
             if (onAdd != null) {
                 javax.swing.JButton addBtn = new javax.swing.JButton();
                 addBtn.setIcon(ADD_NEW_ICON);
-                addBtn.addActionListener(anyting -> onAddT(addField.getText()));
+                addBtn.addActionListener(anything -> onAddT(addField.getText()));
                 tbar.add(addBtn);
             }
+
             tbar.setLayout(new BoxLayout(tbar, BoxLayout.LINE_AXIS));
-            setLayout(new java.awt.BorderLayout());
+
+            setLayout(new BorderLayout());
             add(tbar, BorderLayout.CENTER);
+
             setSize(300, 40);
             setLocation(0, 0);
         }
 
         private JToolBar getToolbar() {
-            JToolBar tbar = new javax.swing.JToolBar();
+            JToolBar tbar = new JToolBar();
             tbar.setFloatable(false);
             tbar.setRollover(true);
             tbar.setBorderPainted(false);
@@ -300,11 +265,14 @@ public class JSList<T> extends JPanel {
         JList list;
 
         public ListPanel(FilterModel fltrmodel, Function<T, String> mapper) {
-            setLayout(new java.awt.BorderLayout());
-            JScrollPane sp = new javax.swing.JScrollPane();
+            setLayout(new BorderLayout());
+
+            JScrollPane sp = new JScrollPane();
+
             list = new JList();
             list.setModel(fltrmodel);
             list.setCellRenderer(new CheckBoxListRenderer(mapper));
+
             sp.setViewportView(list);
             add(sp, BorderLayout.CENTER);
 
@@ -312,9 +280,11 @@ public class JSList<T> extends JPanel {
             list.addMouseListener(new ListMouseHandler());
 
             int SHORTCUT = Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx();
+
             list
                 .getInputMap(JComponent.WHEN_FOCUSED)
                 .put(KeyStroke.getKeyStroke(KeyEvent.VK_A, SHORTCUT), "SelectAll");
+
             list
                 .getActionMap()
                 .put(
@@ -324,10 +294,12 @@ public class JSList<T> extends JPanel {
                         @Override
                         public void actionPerformed(ActionEvent ae) {
                             int size = list.getModel().getSize();
+
                             for (int i = 0; i < size; i++) {
                                 T item = (T) list.getModel().getElementAt(i);
                                 selected.add(item);
                             }
+
                             list.repaint();
                             onSelect();
                         }
@@ -336,8 +308,11 @@ public class JSList<T> extends JPanel {
         }
 
         /**
-         * Mouse handler on the JList. Routes clicks based on X coordinate.
-         * Zones: [checkbox 0-25] [label 25 ~ width-60] [rename width-60 ~ width-30] [delete width-30 ~ end]
+         * Mouse zones:
+         * checkbox: 0-25
+         * label: 25 to width-60
+         * rename: width-60 to width-30
+         * delete: width-30 to end
          */
         class ListMouseHandler extends MouseAdapter {
             private static final int CHECKBOX_WIDTH = 25;
@@ -348,15 +323,19 @@ public class JSList<T> extends JPanel {
                 if (!SwingUtilities.isLeftMouseButton(e)) {
                     return;
                 }
+
                 int idx = list.locationToIndex(e.getPoint());
+
                 if (idx < 0 || idx >= list.getModel().getSize()) {
                     return;
                 }
+
                 Rectangle cellBounds = list.getCellBounds(idx, idx);
+
                 if (cellBounds == null || !cellBounds.contains(e.getPoint())) {
-                    // Click is in empty space, not on a cell
                     return;
                 }
+
                 @SuppressWarnings("unchecked")
                 T item = (T) list.getModel().getElementAt(idx);
 
@@ -367,7 +346,6 @@ public class JSList<T> extends JPanel {
                 int deleteBtnX = Math.max(cellWidth - BUTTON_WIDTH, 0);
 
                 if (e.getClickCount() == 2) {
-                    // Double-click on label area → popup rename dialog
                     if (relativeX > CHECKBOX_WIDTH && relativeX < renameBtnX) {
                         rename(item);
                         return;
@@ -376,11 +354,14 @@ public class JSList<T> extends JPanel {
                     if (relativeX < CHECKBOX_WIDTH) {
                         toggleSelection(item);
                         return;
-                    } else if (relativeX >= renameBtnX && relativeX < deleteBtnX) {
+                    }
+
+                    if (relativeX >= renameBtnX && relativeX < deleteBtnX) {
                         rename(item);
                         return;
-                    } else if (relativeX >= deleteBtnX) {
-                        // Confirm delete
+                    }
+
+                    if (relativeX >= deleteBtnX) {
                         int confirm = JOptionPane.showConfirmDialog(
                             JSList.this,
                             "Delete tag \"" + mapper.apply(item) + "\"?",
@@ -388,12 +369,13 @@ public class JSList<T> extends JPanel {
                             JOptionPane.YES_NO_OPTION,
                             JOptionPane.WARNING_MESSAGE
                         );
+
                         if (confirm == JOptionPane.YES_OPTION) {
                             JSList.this.remove(item);
                         }
+
                         return;
                     }
-                    // Clicks on label area do nothing (only checkbox toggles)
                 }
             }
 
@@ -403,6 +385,7 @@ public class JSList<T> extends JPanel {
                 } else {
                     selected.add(item);
                 }
+
                 list.repaint();
                 onSelect();
             }
@@ -420,16 +403,21 @@ public class JSList<T> extends JPanel {
 
         private void reselect() {
             isAdjusting = true;
+
             int size = list.getModel().getSize();
+
             for (int i = 0; i < size; i++) {
                 T item = (T) list.getModel().getElementAt(i);
+
                 if (selected.contains(item)) {
                     list.addSelectionInterval(i, i);
                 } else {
                     list.removeSelectionInterval(i, i);
                 }
             }
+
             isAdjusting = false;
+            list.repaint();
         }
 
         class ListSelectionModel extends DefaultListSelectionModel {
@@ -444,16 +432,19 @@ public class JSList<T> extends JPanel {
 
         class CheckBoxListRenderer extends JPanel implements ListCellRenderer<T> {
             private final Function<T, String> mapper;
+
             Font font = new Font(Font.SANS_SERIF, Font.PLAIN, 14);
             Font fontSel = new Font(Font.SANS_SERIF, Font.BOLD, 14);
 
             public CheckBoxListRenderer(Function<T, String> mapper) {
                 super(new BorderLayout());
                 this.mapper = mapper;
+
                 setLayout(new BorderLayout());
-                setFont(new Font(Font.SANS_SERIF, Font.PLAIN, 14));
+                setFont(font);
                 setCursor(Cursor.getPredefinedCursor(Cursor.DEFAULT_CURSOR));
                 setFocusable(false);
+                setOpaque(true);
             }
 
             public boolean contains(T v) {
@@ -469,27 +460,56 @@ public class JSList<T> extends JPanel {
                 boolean cellHasFocus
             ) {
                 removeAll();
+
                 setBorder(BorderFactory.createEmptyBorder(2, 2, 2, 2));
 
                 boolean checked = contains(value);
 
-                // Left: checkbox (disabled, visual only)
+                Color purple = getPurpleColor();
+                Color normalText = getNormalTextColor();
+
+                /*
+                 * Left checkbox.
+                 *
+                 * Important:
+                 * Do NOT disable this checkbox.
+                 * A disabled JCheckBox is painted using disabled LAF colors,
+                 * which is why your purple checkbox disappeared.
+                 *
+                 * Since this is only a renderer component, making it enabled
+                 * does not make it directly interactive.
+                 */
                 JCheckBox checkBox = new JCheckBox();
                 checkBox.setSelected(checked);
                 checkBox.setOpaque(false);
-                checkBox.setEnabled(false);
+                checkBox.setFocusable(false);
+                checkBox.setBorderPainted(false);
+                checkBox.setContentAreaFilled(false);
+                checkBox.setForeground(checked ? purple : normalText);
+
+                /*
+                 * Custom icons guarantee the purple checkbox/check mark even
+                 * if the current Look & Feel ignores JCheckBox foreground.
+                 */
+                checkBox.setIcon(new PurpleCheckBoxIcon(false, purple));
+                checkBox.setSelectedIcon(new PurpleCheckBoxIcon(true, purple));
+
                 add(checkBox, BorderLayout.WEST);
 
-                // Label
+                /*
+                 * Label/text.
+                 *
+                 * This restores the old behavior:
+                 * selected/checked rows use the ING focused foreground color.
+                 */
                 JLabel nameLabel = new JLabel(mapper.apply(value));
                 nameLabel.setFont(checked ? fontSel : font);
+                nameLabel.setForeground(checked ? purple : normalText);
                 nameLabel.setOpaque(false);
                 nameLabel.setBorder(BorderFactory.createEmptyBorder(0, 3, 0, 0));
+
                 add(nameLabel, BorderLayout.CENTER);
 
-                // Right: rename ✎ and delete ✕ labels.
-                // Only show when the respective callbacks are provided
-                // (they are null in filter-only mode).
                 JPanel rightPanel = new JPanel(new BorderLayout());
                 rightPanel.setOpaque(false);
 
@@ -499,7 +519,9 @@ public class JSList<T> extends JPanel {
                     renameLabel.setHorizontalAlignment(JLabel.CENTER);
                     renameLabel.setBorder(BorderFactory.createEmptyBorder(0, 5, 0, 5));
                     renameLabel.setOpaque(false);
+                    renameLabel.setForeground(checked ? purple : normalText);
                     renameLabel.setToolTipText("Rename");
+
                     rightPanel.add(renameLabel, BorderLayout.WEST);
                 }
 
@@ -509,30 +531,114 @@ public class JSList<T> extends JPanel {
                     deleteLabel.setHorizontalAlignment(JLabel.CENTER);
                     deleteLabel.setBorder(BorderFactory.createEmptyBorder(0, 5, 0, 5));
                     deleteLabel.setOpaque(false);
+                    deleteLabel.setForeground(checked ? purple : normalText);
                     deleteLabel.setToolTipText("Delete");
+
                     rightPanel.add(deleteLabel, BorderLayout.EAST);
                 }
 
                 add(rightPanel, BorderLayout.EAST);
 
-                // Highlight checked items with purple background (like Object Repo)
-                // Use checked status rather than JList selection state because the
-                // custom ListSelectionModel only allows selection during reselect().
-                if (checked) {
-                    Color selBg = javax.swing.UIManager.getColor("ing.selectionBackground");
-                    if (selBg == null) {
-                        selBg = new Color(216, 191, 255); // fallback purple
-                    }
-                    setBackground(selBg);
-                } else {
-                    setBackground(Color.WHITE);
-                }
-                setOpaque(true);
+                /*
+                 * Keep background neutral so the visual style matches the old
+                 * renderer: purple text + purple checkbox, not purple row bg.
+                 */
+                Color bg = list.getBackground();
 
-                // Use a blue checkbox accent color to match Object Repo styling
-                checkBox.setForeground(new java.awt.Color(0, 102, 204));
+                if (bg == null) {
+                    bg = Color.WHITE;
+                }
+
+                setBackground(bg);
 
                 return this;
+            }
+
+            private Color getPurpleColor() {
+                Color purple = UIManager.getColor("ing.focusedForeground");
+
+                if (purple == null) {
+                    purple = UIManager.getColor("ing.selectionForeground");
+                }
+
+                if (purple == null) {
+                    purple = new Color(128, 0, 128);
+                }
+
+                return purple;
+            }
+
+            private Color getNormalTextColor() {
+                Color text = UIManager.getColor("text");
+
+                if (text == null) {
+                    text = UIManager.getColor("Label.foreground");
+                }
+
+                if (text == null) {
+                    text = Color.BLACK;
+                }
+
+                return text;
+            }
+        }
+
+        class PurpleCheckBoxIcon implements Icon {
+            private static final int SIZE = 14;
+
+            private final boolean checked;
+            private final Color purple;
+
+            PurpleCheckBoxIcon(boolean checked, Color purple) {
+                this.checked = checked;
+                this.purple = purple;
+            }
+
+            @Override
+            public int getIconWidth() {
+                return SIZE;
+            }
+
+            @Override
+            public int getIconHeight() {
+                return SIZE;
+            }
+
+            @Override
+            public void paintIcon(Component c, Graphics g, int x, int y) {
+                Graphics2D g2 = (Graphics2D) g.create();
+
+                try {
+                    g2.setRenderingHint(
+                        RenderingHints.KEY_ANTIALIASING,
+                        RenderingHints.VALUE_ANTIALIAS_ON
+                    );
+
+                    Color borderColor = checked ? purple : new Color(130, 130, 130);
+
+                    g2.setColor(Color.WHITE);
+                    g2.fillRoundRect(x + 1, y + 1, SIZE - 3, SIZE - 3, 3, 3);
+
+                    g2.setColor(borderColor);
+                    g2.drawRoundRect(x + 1, y + 1, SIZE - 3, SIZE - 3, 3, 3);
+
+                    if (checked) {
+                        g2.setColor(purple);
+                        g2.setStroke(new BasicStroke(2f));
+
+                        int x1 = x + 4;
+                        int y1 = y + 7;
+                        int x2 = x + 6;
+                        int y2 = y + 10;
+                        int x3 = x + 11;
+                        int y3 = y + 4;
+
+                        g2.drawLine(x1, y1, x2, y2);
+                        g2.drawLine(x2, y2, x3, y3);
+                    }
+                } finally {
+                    g2.dispose();
+                }
             }
         }
     }
