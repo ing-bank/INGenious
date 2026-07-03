@@ -166,6 +166,7 @@ public class JSList<T> extends JPanel {
         fltrmodel.srcmodel.add(t);
         selected.add(t);
         reload();
+        listPanel.onSelect();
     }
 
     /**
