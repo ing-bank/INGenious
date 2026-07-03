@@ -5,6 +5,7 @@ import com.ing.datalib.or.common.ORObjectInf;
 import com.ing.datalib.or.common.ObjectGroup;
 import com.ing.datalib.or.sap.SapORObject;
 import com.ing.datalib.or.sap.SapORPage;
+import com.ing.ide.main.mainui.components.testdesign.or.ORTableInsertRowPrompt;
 import com.ing.ide.main.utils.Utils;
 import com.ing.ide.main.utils.table.XTable;
 import java.awt.BorderLayout;
@@ -44,6 +45,14 @@ public class SapORTable extends JPanel implements ActionListener {
         add(panel, BorderLayout.CENTER);
         add(toolBar, BorderLayout.NORTH);
         table.setComponentPopupMenu(popupMenu);
+
+        ORTableInsertRowPrompt.install(
+            table,
+            this::stopCellEditing,
+            this::getObject,
+            SapORObject::getRowCount,
+            (object, modelInsertIndex) -> object.addNewAttributeAt(modelInsertIndex)
+        );
     }
 
     public XTable getTable() {
@@ -120,7 +129,33 @@ public class SapORTable extends JPanel implements ActionListener {
 
     private void addRow() {
         stopCellEditing();
-        getObject().addNewAttribute();
+
+        SapORObject object = getObject();
+        if (object == null) {
+            return;
+        }
+
+        int insertAt = object.getRowCount();
+
+        int[] selectedRows = table.getSelectedRows();
+        if (selectedRows.length > 0) {
+            int lastSelectedModelRow = -1;
+
+            for (int selectedRow : selectedRows) {
+                int modelRow = table.convertRowIndexToModel(selectedRow);
+                lastSelectedModelRow = Math.max(lastSelectedModelRow, modelRow);
+            }
+
+            insertAt = lastSelectedModelRow + 1;
+        }
+
+        int insertedRow = object.addNewAttributeAt(insertAt);
+
+        if (insertedRow >= 0) {
+            int viewRow = table.convertRowIndexToView(insertedRow);
+            table.getSelectionModel().setSelectionInterval(viewRow, viewRow);
+            table.scrollRectToVisible(table.getCellRect(viewRow, 0, true));
+        }
     }
 
     private void removeRow() {

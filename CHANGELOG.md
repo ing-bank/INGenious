@@ -55,6 +55,7 @@ Release Date: <insert date of release>
 - Resolved Test Case Tags to persist to YAML and survive reloads
 - Added missing Web Objects for sample project Tutorial
 - Fixed column add/delete behavior in datasheet related to frozen columns
+- Fixed OR Tables' add row (+) button 
 
 ### Browser/Playwright Testing
 
