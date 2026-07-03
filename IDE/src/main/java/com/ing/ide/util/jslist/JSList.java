@@ -508,7 +508,10 @@ public class JSList<T> extends JPanel {
                 rightPanel.add(deleteLabel, BorderLayout.EAST);
                 add(rightPanel, BorderLayout.EAST);
 
-                if (cellHasFocus || isSelected) {
+                // Highlight checked items with purple background (like Object Repo)
+                // Use checked status rather than JList selection state because the
+                // custom ListSelectionModel only allows selection during reselect().
+                if (checked) {
                     Color selBg = javax.swing.UIManager.getColor("ing.selectionBackground");
                     if (selBg == null) {
                         selBg = new Color(216, 191, 255); // fallback purple
@@ -518,6 +521,9 @@ public class JSList<T> extends JPanel {
                     setBackground(Color.WHITE);
                 }
                 setOpaque(true);
+
+                // Use a blue checkbox accent color to match Object Repo styling
+                checkBox.setForeground(new java.awt.Color(0, 102, 204));
 
                 return this;
             }

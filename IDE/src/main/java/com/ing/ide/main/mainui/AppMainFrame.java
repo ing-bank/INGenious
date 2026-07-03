@@ -286,6 +286,9 @@ public class AppMainFrame extends JFrame {
         getGlassPane().setVisible(false);
         slideShow.showSlide("TestExecution");
         testExecution.getTestExecutionUI().adjustUI();
+        // Reset any stale tag filter from the Test Plan tree so it shows
+        // all test cases without outdated filtering.
+        testExecution.getTestExecutionUI().resetTagFilter();
         if (fxStatusBar != null) fxStatusBar.setCurrentView("Test Execution");
     }
 

@@ -311,6 +311,16 @@ public class TestExecutionUI extends JPanel implements ActionListener {
         }
     }
 
+    /**
+     * Resets the Test Plan tag filter so the tree shows all test cases
+     * without any tag-based filtering. Called when switching to the
+     * Execution tab to ensure stale tag filters from previous edits are
+     * cleared.
+     */
+    public void resetTagFilter() {
+        testPullPanel.clearFilter();
+    }
+
     public void adjustUI() {
         treeSNTableSplitPane.setDividerLocation(0.25);
         testSetCompNtestPlan.setDividerLocation(0.8);
@@ -476,6 +486,17 @@ public class TestExecutionUI extends JPanel implements ActionListener {
 
         private void enableFilter() {
             filterButton.setIcon(Utils.getIconByResourceName("/ui/resources/toolbar/tagsel"));
+        }
+
+        /**
+         * Clears the active tag filter: resets the tags list, button icon, and
+         * reloads the model so the tree shows all test cases unfiltered.
+         */
+        private void clearFilter() {
+            this.tags = null;
+            this.sTags = null;
+            resetFilter();
+            reloadModel();
         }
 
         private void resetFilter() {
