@@ -27,12 +27,14 @@ Release Date: <insert date of release>
 - Enhanced Object Repository with UX improvements
 - Added inline “+” buttons to enable quick addition of rows and columns across test steps, test data sheets, settings, and configurations
 - Implemented alphabetical sorting for test scenarios and test cases within the Test Lab
+- Implemented closing of popups on Esc keypress
 
 #### Changed
 
 - Enabled reordering of data tabs
 - Corrected misspelled word 'Reusabe' to 'Reusable'
 - Reorganised Configurations menu with renames
+- Updated the Dashboard tree model to expand at Test Release level on load
 
 #### Deprecated
 
@@ -53,8 +55,10 @@ Release Date: <insert date of release>
 - Resolved Test Case Tags to persist to YAML and survive reloads
 - Added missing Web Objects for sample project Tutorial
 - Fixed column add/delete behavior in datasheet related to frozen columns
-- Updated suffix handling for copied objects/pages so it is only applied when another object or page with the same name already exists.
-- Resolved issues with multi-object and multi-page copy-paste and cut-paste operations in the Object Repository.
+- Fixed OR Tables' add row (+) button 
+- Updated suffix handling for copied objects/pages so it is only applied when another object or page with the same name already exists
+- Resolved issues with multi-object and multi-page copy-paste and cut-paste operations in the Object Repository
+
 
 ### Browser/Playwright Testing
 
@@ -77,6 +81,7 @@ Release Date: <insert date of release>
 - Corrected Refactor_Object suffix when importing Playwright recorded scripts
 - Preserved `;exact` modifier in XML to YAML OR conversion
 - Resolved assertURLmatches pattern compile error
+- Fixed issue where the aXe accessibility report failed to load or display when `testAccessibility` is executed inside a reusable component
 
 ### Mobile App Testing
 

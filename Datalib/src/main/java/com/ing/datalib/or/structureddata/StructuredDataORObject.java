@@ -391,30 +391,69 @@ public class StructuredDataORObject extends UndoRedoModel implements ORObjectInf
         changeSave();
     }
 
+    /**
+     * Adds a new attribute to the end of the attribute list.
+     */
     @JsonIgnore
     public void addNewAttribute() {
+        addNewAttributeAt(attributes.size());
+    }
+
+    /**
+     * Adds a named attribute to the end of the attribute list.
+     *
+     * @param attrName attribute name to add
+     */
+    @JsonIgnore
+    public void addNewAttribute(String attrName) {
+        addNewAttributeAt(attrName, attributes.size());
+    }
+
+    /**
+     * Adds a uniquely named new attribute at the specified index.
+     *
+     * @param index insertion index
+     * @return inserted row index, or {@code -1} if insertion failed
+     */
+    @JsonIgnore
+    public int addNewAttributeAt(int index) {
         String attrName = "NewAttribute";
         int i = 0;
         String name;
+
         do {
             name = attrName + i++;
         } while (getAttribute(name) != null);
 
-        StructuredDataAttribute attr = new StructuredDataAttribute();
-        attr.setName(name);
-        attr.setValue("");
-        attributes.add(attr);
-        changeSave();
-        fireTableRowsInserted(attributes.size() - 1, attributes.size() - 1);
+        return addNewAttributeAt(name, index);
     }
 
+    /**
+     * Adds a named attribute at the specified index.
+     *
+     * @param attrName attribute name to add
+     * @param index insertion index
+     * @return inserted row index, or {@code -1} if the attribute already exists
+     */
     @JsonIgnore
-    public void addNewAttribute(String attrName) {
-        if (getAttribute(attrName) == null) {
-            attributes.add(new StructuredDataAttribute(attrName, attributes.size()));
-            super.rowAdded(attributes.size() - 1);
-            fireTableRowsInserted(attributes.size() - 1, attributes.size() - 1);
+    public int addNewAttributeAt(String attrName, int index) {
+        if (getAttribute(attrName) != null) {
+            return -1;
         }
+
+        if (index < 0 || index > attributes.size()) {
+            index = attributes.size();
+        }
+
+        StructuredDataAttribute attr = new StructuredDataAttribute();
+        attr.setName(attrName);
+        attr.setValue("");
+
+        attributes.add(index, attr);
+        super.rowAdded(index);
+        fireTableRowsInserted(index, index);
+
+        return index;
     }
 
     @JsonIgnore
