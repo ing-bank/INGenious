@@ -30,6 +30,7 @@ Release Date: <insert date of release>
 - Implemented closing of popups on Esc keypress
 - Added Update (Rename) and Deleting for Test Case Tags
 
+
 #### Changed
 
 - Enabled reordering of data tabs
@@ -113,6 +114,7 @@ Release Date: <insert date of release>
 - Added null-safe handling in `setLambdaStatus` method for LambdaTest integration
 - Resolved Manage Devices accordion scroll behavior
 - Fixed the iOS and Android `platformVersion` for non-LambdaTest configurations to ensure only valid numeric values are accepted
+- Fixed custom properties not persisting after IDE restart
 
 ### API Testing
 
