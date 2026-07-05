@@ -29,7 +29,7 @@ Release Date: <insert date of release>
 - Implemented alphabetical sorting for test scenarios and test cases within the Test Lab
 - Implemented closing of popups on Esc keypress
 - Added Update (Rename) and Deleting for Test Case Tags
-
+- Action 'assertVariable' can now assert runtime and global variables
 #### Changed
 
 - Enabled reordering of data tabs
