@@ -10,13 +10,20 @@ import java.awt.event.FocusAdapter;
 import java.awt.event.FocusEvent;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
+import java.util.ArrayList;
+import java.util.List;
 import javax.swing.AbstractCellEditor;
+import javax.swing.DefaultComboBoxModel;
 import javax.swing.JComboBox;
 import javax.swing.JPanel;
 import javax.swing.JTable;
 import javax.swing.JTextField;
+import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 import javax.swing.table.TableCellEditor;
+import javax.swing.text.JTextComponent;
 
 /**
  * Custom cell editor for the Role attribute in Web Object Repository.
@@ -116,14 +123,57 @@ public class RoleCellEditor extends AbstractCellEditor implements TableCellEdito
     private final JPanel editorPanel;
     private final JComboBox<String> roleComboBox;
     private final JTextField nameField;
+    private final List<String> allRoles;
+    private boolean suppressRoleFilter;
 
+    /**
+     * Creates and initializes the custom role cell editor.
+     */
     public RoleCellEditor() {
         editorPanel = new JPanel(new BorderLayout(2, 0));
 
         // Role dropdown
         roleComboBox = new JComboBox<>(ARIA_ROLES);
         roleComboBox.setPreferredSize(new Dimension(80, 22));
-        roleComboBox.setEditable(false);
+        roleComboBox.setEditable(true);
+
+        allRoles = new ArrayList<>();
+        for (String role : ARIA_ROLES) {
+            allRoles.add(role);
+        }
+
+        JTextComponent roleEditor = (JTextComponent) roleComboBox.getEditor().getEditorComponent();
+        roleEditor
+            .getDocument()
+            .addDocumentListener(
+                new DocumentListener() {
+
+                    @Override
+                    public void insertUpdate(DocumentEvent e) {
+                        filterRoles(roleEditor.getText());
+                    }
+
+                    @Override
+                    public void removeUpdate(DocumentEvent e) {
+                        filterRoles(roleEditor.getText());
+                    }
+
+                    @Override
+                    public void changedUpdate(DocumentEvent e) {
+                        filterRoles(roleEditor.getText());
+                    }
+                }
+            );
+
+        roleEditor.addFocusListener(
+            new FocusAdapter() {
+
+                @Override
+                public void focusGained(FocusEvent e) {
+                    showAllRolesPopup();
+                }
+            }
+        );
 
         // Name text field with placeholder hint
         nameField = new JTextField();
@@ -153,15 +203,28 @@ public class RoleCellEditor extends AbstractCellEditor implements TableCellEdito
 
                 @Override
                 public void actionPerformed(ActionEvent e) {
+                    if (suppressRoleFilter) {
+                        return;
+                    }
+                    // Ignore edit events fired while typing in the combo editor.
+                    if ("comboBoxEdited".equals(e.getActionCommand())) {
+                        return;
+                    }
                     nameField.requestFocusInWindow();
                 }
             }
         );
     }
 
+
+    /**
+     * Returns the edited cell value in the formatted role/name representation.
+     *
+     * @return formatted cell value
+     */
     @Override
     public Object getCellEditorValue() {
-        String role = (String) roleComboBox.getSelectedItem();
+        String role = getNormalizedSelectedRole();
         String name = nameField.getText().trim();
 
         if (role == null || role.isEmpty()) {
@@ -173,6 +236,17 @@ public class RoleCellEditor extends AbstractCellEditor implements TableCellEdito
         }
     }
 
+
+    /**
+     * Prepares and returns the editor component for the specified table cell.
+     *
+     * @param table the target table
+     * @param value the current cell value
+     * @param isSelected whether the cell is selected
+     * @param row the row index
+     * @param column the column index
+     * @return the editor component
+     */
     @Override
     public Component getTableCellEditorComponent(
         JTable table,
@@ -182,6 +256,8 @@ public class RoleCellEditor extends AbstractCellEditor implements TableCellEdito
         int column
     ) {
         String strValue = value != null ? value.toString() : "";
+        suppressRoleFilter = true;
+        resetRoleFilter();
 
         if (strValue.contains(";")) {
             // Parse existing "ROLE;Name" value
@@ -205,6 +281,7 @@ public class RoleCellEditor extends AbstractCellEditor implements TableCellEdito
                 nameField.setText("");
             }
         }
+        suppressRoleFilter = false;
 
         // Apply theme colors for dark mode compatibility
         Color fgColor = UIManager.getColor("TextField.foreground");
@@ -233,5 +310,110 @@ public class RoleCellEditor extends AbstractCellEditor implements TableCellEdito
         }
 
         return editorPanel;
+    }
+
+
+    /**
+     * Retrieves the currently selected role and normalizes its value.
+     *
+     * @return normalized role name, or an empty string if none is selected
+     */
+    private String getNormalizedSelectedRole() {
+        Object selected = roleComboBox.getEditor().getItem();
+        String roleText = selected != null ? selected.toString().trim() : "";
+        if (roleText.isEmpty()) {
+            return "";
+        }
+
+        for (String role : ARIA_ROLES) {
+            if (role.equalsIgnoreCase(roleText)) {
+                return role;
+            }
+        }
+
+        return "";
+    }
+
+
+    /**
+     * Restores the role dropdown to display all available roles.
+     */
+    private void resetRoleFilter() {
+        updateRoleModel(allRoles);
+    }
+
+    /**
+     * Filters the roles based on the typed text.
+     *
+     * @param typedText the text typed by the user
+     */
+    private void filterRoles(String typedText) {
+        if (suppressRoleFilter) {
+            return;
+        }
+
+        String safeTypedText = typedText == null ? "" : typedText;
+        String query = safeTypedText.trim().toUpperCase();
+        List<String> filtered = new ArrayList<>();
+
+        for (String role : allRoles) {
+            if (query.isEmpty() || role.toUpperCase().startsWith(query)) {
+                filtered.add(role);
+            }
+        }
+
+        List<String> filteredRoles = new ArrayList<>(filtered);
+
+        SwingUtilities.invokeLater(
+            () -> {
+                suppressRoleFilter = true;
+                updateRoleModel(filteredRoles);
+                roleComboBox.getEditor().setItem(safeTypedText);
+                suppressRoleFilter = false;
+
+                if (roleComboBox.isDisplayable() && !filteredRoles.isEmpty()) {
+                    roleComboBox.showPopup();
+                } else {
+                    roleComboBox.hidePopup();
+                }
+            }
+        );
+    }
+
+    /**
+     * Updates the role model with the specified list of roles.
+     *
+     * @param roles the list of roles to display
+     */
+    private void updateRoleModel(List<String> roles) {
+        DefaultComboBoxModel<String> model = new DefaultComboBoxModel<>();
+        for (String role : roles) {
+            model.addElement(role);
+        }
+        roleComboBox.setModel(model);
+    }
+
+    /**
+     * Shows the popup with all available roles.
+     */
+    private void showAllRolesPopup() {
+        SwingUtilities.invokeLater(
+            () -> {
+                String currentText = "";
+                Object editorItem = roleComboBox.getEditor().getItem();
+                if (editorItem != null) {
+                    currentText = editorItem.toString();
+                }
+
+                suppressRoleFilter = true;
+                resetRoleFilter();
+                roleComboBox.getEditor().setItem(currentText);
+                suppressRoleFilter = false;
+
+                if (roleComboBox.isDisplayable()) {
+                    roleComboBox.showPopup();
+                }
+            }
+        );
     }
 }

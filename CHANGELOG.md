@@ -45,6 +45,7 @@ Release Date: <insert date of release>
     - Scenarios in Test Plan, Reusable Components, and Shared Reusables now restore last sort order
     - Test cases within scenarios maintain custom ordering across restarts
     - Sort order persists after creation, deletion, rename, and drag-and-drop operations
+- Enhanced Web Object Repository role selection with dynamic filtering based on user-entered text
 
 #### Changed
 
