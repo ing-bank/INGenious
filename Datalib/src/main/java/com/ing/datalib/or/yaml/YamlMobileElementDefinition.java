@@ -1,5 +1,7 @@
 package com.ing.datalib.or.yaml;
 
+import com.fasterxml.jackson.annotation.JsonAnyGetter;
+import com.fasterxml.jackson.annotation.JsonAnySetter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonProperty;
@@ -14,7 +16,9 @@ import com.ing.datalib.or.mobile.MobileORObject;
 import com.ing.datalib.or.mobile.MobileORObject;
 import com.ing.datalib.or.mobile.MobilePlatform;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * YAML representation of a Mobile OR element.
@@ -249,7 +253,7 @@ public class YamlMobileElementDefinition {
     // =================================================================
     // Per-platform locator block
     // =================================================================
-    @JsonInclude(JsonInclude.Include.NON_EMPTY)
+    @JsonInclude(JsonInclude.Include.NON_NULL)
     @JsonPropertyOrder(
         {
             "uiAutomator",
@@ -283,10 +287,23 @@ public class YamlMobileElementDefinition {
 
         private List<String> exact;
 
+        /** Captures custom (user-defined) attribute name-value pairs not in the known locator set. */
+        private Map<String, String> additionalProperties = new LinkedHashMap<>();
+
         public PlatformLocators() {}
 
+        @JsonAnyGetter
+        public Map<String, String> getAdditionalProperties() {
+            return additionalProperties;
+        }
+
+        @JsonAnySetter
+        public void setAdditionalProperty(String key, String value) {
+            additionalProperties.put(key, value);
+        }
+
         public String getUiAutomator() {
-            return uiAutomator;
+            return isNullOrEmpty(uiAutomator) ? null : uiAutomator;
         }
 
         public void setUiAutomator(String v) {
@@ -294,7 +311,7 @@ public class YamlMobileElementDefinition {
         }
 
         public String getUiAutomation() {
-            return uiAutomation;
+            return isNullOrEmpty(uiAutomation) ? null : uiAutomation;
         }
 
         public void setUiAutomation(String v) {
@@ -302,7 +319,7 @@ public class YamlMobileElementDefinition {
         }
 
         public String getId() {
-            return id;
+            return isNullOrEmpty(id) ? null : id;
         }
 
         public void setId(String v) {
@@ -310,7 +327,7 @@ public class YamlMobileElementDefinition {
         }
 
         public String getAccessibility() {
-            return accessibility;
+            return isNullOrEmpty(accessibility) ? null : accessibility;
         }
 
         public void setAccessibility(String v) {
@@ -318,7 +335,7 @@ public class YamlMobileElementDefinition {
         }
 
         public String getXpath() {
-            return xpath;
+            return isNullOrEmpty(xpath) ? null : xpath;
         }
 
         public void setXpath(String v) {
@@ -326,7 +343,7 @@ public class YamlMobileElementDefinition {
         }
 
         public String getCss() {
-            return css;
+            return isNullOrEmpty(css) ? null : css;
         }
 
         public void setCss(String v) {
@@ -334,7 +351,7 @@ public class YamlMobileElementDefinition {
         }
 
         public String getName() {
-            return name;
+            return isNullOrEmpty(name) ? null : name;
         }
 
         public void setName(String v) {
@@ -342,7 +359,7 @@ public class YamlMobileElementDefinition {
         }
 
         public String getTagName() {
-            return tagName;
+            return isNullOrEmpty(tagName) ? null : tagName;
         }
 
         public void setTagName(String v) {
@@ -350,7 +367,7 @@ public class YamlMobileElementDefinition {
         }
 
         public String getLinkText() {
-            return linkText;
+            return isNullOrEmpty(linkText) ? null : linkText;
         }
 
         public void setLinkText(String v) {
@@ -358,7 +375,7 @@ public class YamlMobileElementDefinition {
         }
 
         public String getClassName() {
-            return className;
+            return isNullOrEmpty(className) ? null : className;
         }
 
         public void setClassName(String v) {
@@ -398,7 +415,8 @@ public class YamlMobileElementDefinition {
                 isNullOrEmpty(name) &&
                 isNullOrEmpty(tagName) &&
                 isNullOrEmpty(linkText) &&
-                isNullOrEmpty(className)
+                isNullOrEmpty(className) &&
+                (additionalProperties == null || additionalProperties.isEmpty())
             );
         }
 
@@ -413,45 +431,66 @@ public class YamlMobileElementDefinition {
             }
             for (ORAttribute attr : attrs) {
                 String value = attr.getValue();
-                if (value == null || value.isEmpty()) {
-                    continue;
-                }
-                switch (attr.getName()) {
+                String attrName = attr.getName();
+
+                switch (attrName) {
                     case "UiAutomator":
-                        p.uiAutomator = value;
+                        if (value != null && !value.isEmpty()) {
+                            p.uiAutomator = value;
+                        }
                         break;
                     case "UiAutomation":
-                        p.uiAutomation = value;
+                        if (value != null && !value.isEmpty()) {
+                            p.uiAutomation = value;
+                        }
                         break;
                     case "id":
-                        p.id = value;
+                        if (value != null && !value.isEmpty()) {
+                            p.id = value;
+                        }
                         break;
                     case "Accessibility":
-                        p.accessibility = value;
+                        if (value != null && !value.isEmpty()) {
+                            p.accessibility = value;
+                        }
                         break;
                     case "xpath":
-                        p.xpath = value;
+                        if (value != null && !value.isEmpty()) {
+                            p.xpath = value;
+                        }
                         break;
                     case "css":
-                        p.css = value;
+                        if (value != null && !value.isEmpty()) {
+                            p.css = value;
+                        }
                         break;
                     case "name":
-                        p.name = value;
+                        if (value != null && !value.isEmpty()) {
+                            p.name = value;
+                        }
                         break;
                     case "tagName":
-                        p.tagName = value;
+                        if (value != null && !value.isEmpty()) {
+                            p.tagName = value;
+                        }
                         break;
                     case "link_text":
-                        p.linkText = value;
+                        if (value != null && !value.isEmpty()) {
+                            p.linkText = value;
+                        }
                         break;
                     case "class":
-                        p.className = value;
+                        if (value != null && !value.isEmpty()) {
+                            p.className = value;
+                        }
                         break;
                     default:
-                        break; // ignore unknown
+                        // Custom (user-defined) attributes — capture even when empty
+                        p.additionalProperties.put(attrName, value != null ? value : "");
+                        break;
                 }
                 if (attr.isExact()) {
-                    p.addExact(attr.getName());
+                    p.addExact(attrName);
                 }
             }
             return p;
@@ -468,6 +507,16 @@ public class YamlMobileElementDefinition {
             setAttr(obj, platform, "tagName", tagName, isExact("tagname"));
             setAttr(obj, platform, "link_text", linkText, isExact("link_text"));
             setAttr(obj, platform, "class", className, isExact("class"));
+            // Restore custom (user-defined) properties
+            if (additionalProperties != null) {
+                for (Map.Entry<String, String> entry : additionalProperties.entrySet()) {
+                    obj.addNewAttribute(platform, entry.getKey());
+                    ORAttribute attr = obj.getAttribute(platform, entry.getKey());
+                    if (attr != null && entry.getValue() != null) {
+                        attr.setValue(entry.getValue());
+                    }
+                }
+            }
         }
 
         private void setAttr(
