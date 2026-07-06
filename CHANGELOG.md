@@ -114,7 +114,7 @@ Release Date: <insert date of release>
 - Added null-safe handling in `setLambdaStatus` method for LambdaTest integration
 - Resolved Manage Devices accordion scroll behavior
 - Fixed the iOS and Android `platformVersion` for non-LambdaTest configurations to ensure only valid numeric values are accepted
-- Fixed custom properties not persisting after IDE restart
+- Fixed persistence of custom mobile properties across IDE restarts
 
 ### API Testing
 
