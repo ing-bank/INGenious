@@ -114,6 +114,9 @@ public class DriverSettings extends javax.swing.JFrame {
         initAddNewContextListener();
         initAddNewDBAPIListener();
 
+        // Initial state: nothing is edited yet.
+        clearDirty();
+
         final JTextField resolutionText = new JTextField();
         //final JTextField resolutionText = (JTextField) resolution.getEditor().getEditorComponent();
         resolutionText.addKeyListener(
@@ -462,9 +465,7 @@ public class DriverSettings extends javax.swing.JFrame {
 
         model.insertRow(safeRow, emptyRow);
 
-        if (saveSettings != null) {
-            saveSettings.setEnabled(true);
-        }
+        markDirty();
     }
 
     private void initAddEmulatorListener() {
@@ -500,7 +501,7 @@ public class DriverSettings extends javax.swing.JFrame {
                     @Override
                     public void actionPerformed(ActionEvent ae) {
                         addNewDB();
-                        saveSettings.setEnabled(true);
+                        markDirty();
                     }
                 }
             );
@@ -515,7 +516,7 @@ public class DriverSettings extends javax.swing.JFrame {
                     @Override
                     public void actionPerformed(ActionEvent ae) {
                         addNewContext();
-                        saveSettings.setEnabled(true);
+                        markDirty();
                     }
                 }
             );
@@ -530,7 +531,7 @@ public class DriverSettings extends javax.swing.JFrame {
                     @Override
                     public void actionPerformed(ActionEvent ae) {
                         addNewAPI();
-                        saveSettings.setEnabled(true);
+                        markDirty();
                     }
                 }
             );
@@ -540,6 +541,8 @@ public class DriverSettings extends javax.swing.JFrame {
         this.sProject = sMainFrame.getProject();
         settings = sProject.getProjectSettings();
         loadSettings();
+        // Loading persisted data is not a user edit.
+        clearDirty();
     }
 
     private void loadSettings() {
@@ -759,6 +762,8 @@ public class DriverSettings extends javax.swing.JFrame {
 
     public void open() {
         loadBrowsers();
+        // Ensure Save starts disabled when opening the window.
+        clearDirty();
         setLocationRelativeTo(null);
         setVisible(true);
     }
@@ -767,7 +772,7 @@ public class DriverSettings extends javax.swing.JFrame {
         String newEmName = browserCombo.getEditor().getItem().toString();
         if (!getTotalBrowserList().contains(newEmName)) {
             isAddingEmulator = true;
-            saveSettings.setEnabled(true);
+            markDirty();
             settings.getEmulators().addEmulator(newEmName);
             browserCombo.addItem(newEmName);
             //dupDriverCombo.addItem(newEmName);
@@ -1913,12 +1918,12 @@ public class DriverSettings extends javax.swing.JFrame {
 
     private void saveSettingsActionPerformed(java.awt.event.ActionEvent evt) { //GEN-FIRST:event_saveSettingsActionPerformed
         saveSettings();
-        saveSettings.setEnabled(false);
+        clearDirty();
     } //GEN-LAST:event_saveSettingsActionPerformed
 
     private void resetSettingsActionPerformed(java.awt.event.ActionEvent evt) { //GEN-FIRST:event_resetSettingsActionPerformed
         // TODO add your handling code here:
-        saveSettings.setEnabled(false);
+        clearDirty();
     } //GEN-LAST:event_resetSettingsActionPerformed
 
     private void formWindowClosing(java.awt.event.WindowEvent evt) { //GEN-FIRST:event_formWindowClosing
@@ -1976,8 +1981,7 @@ public class DriverSettings extends javax.swing.JFrame {
     } //GEN-LAST:event_dbComboItemStateChanged
 
     private void formWindowActivated(java.awt.event.WindowEvent evt) { //GEN-FIRST:event_formWindowActivated
-        // TODO add your handling code here:
-        saveSettings.setEnabled(false);
+        // Keep Save state tied to real edits; do not clear it on window focus.
         addListeners();
     } //GEN-LAST:event_formWindowActivated
 
@@ -2167,6 +2171,9 @@ public class DriverSettings extends javax.swing.JFrame {
     }
 
     private void addListeners() {
+        if (saveListenersAttached) {
+            return;
+        }
         // Add SaveSettings listeners
         saveSettingsListeners = new SaveSettingsListeners(saveSettings);
 
@@ -2188,6 +2195,11 @@ public class DriverSettings extends javax.swing.JFrame {
         contextPropTable
             .getModel()
             .addTableModelListener(saveSettingsListeners.new SaveTableModelListener());
+        if (kafkaSSLPanel != null && kafkaSSLPanel.table != null) {
+            kafkaSSLPanel
+                .table.getModel()
+                .addTableModelListener(saveSettingsListeners.new SaveTableModelListener());
+        }
         if (deviceCombo != null) {
             deviceCombo.addItemListener(saveSettingsListeners.new SaveItemListener());
             deviceCapTable
@@ -2198,6 +2210,7 @@ public class DriverSettings extends javax.swing.JFrame {
             // ensureLambdaCapsPanel() once the panel actually exists.
         }
         // End of SaveSettings Listeners
+        saveListenersAttached = true;
     }
 
     // ====================================================================
@@ -2228,6 +2241,7 @@ public class DriverSettings extends javax.swing.JFrame {
     private boolean isAddingDevice = false;
     private boolean isTogglingLambdaTest = false;
     private boolean isLoadingDevice = false;
+    private boolean saveListenersAttached = false;
 
     // Holds the unmasked Remote URL for the currently displayed device. The
     // text field shows a masked version (credentials replaced with ****) while
@@ -2295,10 +2309,12 @@ public class DriverSettings extends javax.swing.JFrame {
         // new value as the canonical URL, then mask if needed.
         actualRemoteUrl = text;
         if (hasCredentials(text)) {
+            int caret = deviceRemoteUrlField.getCaretPosition();
+            String masked = maskRemoteUrl(text);
             isMaskingRemoteUrl = true;
             try {
-                deviceRemoteUrlField.setText(maskRemoteUrl(text));
-                deviceRemoteUrlField.setCaretPosition(0);
+                deviceRemoteUrlField.setText(masked);
+                deviceRemoteUrlField.setCaretPosition(Math.min(caret, masked.length()));
             } finally {
                 isMaskingRemoteUrl = false;
             }
@@ -2529,7 +2545,7 @@ public class DriverSettings extends javax.swing.JFrame {
                         if (isLoadingDevice || isMaskingRemoteUrl) {
                             return;
                         }
-                        saveSettings.setEnabled(true);
+                        markDirty();
                         // If credentials are visible in the field (e.g. just pasted or
                         // typed in full), mask them right away. Defer the mutation so
                         // we don't modify the document from inside its own listener.
@@ -2653,7 +2669,7 @@ public class DriverSettings extends javax.swing.JFrame {
             return;
         }
         addNewDevice(newName);
-        saveSettings.setEnabled(true);
+        markDirty();
     }
 
     private void addNewDevice(String newName) {
@@ -2730,7 +2746,7 @@ public class DriverSettings extends javax.swing.JFrame {
             m.removeElement(oldName);
             m.insertElementAt(newName, idx);
             deviceCombo.setSelectedIndex(idx);
-            saveSettings.setEnabled(true);
+            markDirty();
         }
     }
 
@@ -2800,10 +2816,11 @@ public class DriverSettings extends javax.swing.JFrame {
         if (d == null) {
             return;
         }
+        // Read from the currently visible card before switching views.
+        LinkedProperties current = readActiveCaps();
         boolean enabled = lambdaTestCheckBox.isSelected();
         d.setLambdaTest(enabled);
-        // Preserve whatever the user has already typed in the visible view
-        LinkedProperties current = readActiveCaps();
+        // Preserve whatever the user has already typed in the active view.
         if (enabled) {
             showLambdaCapsView(current.isEmpty() ? null : current);
         } else {
@@ -2819,7 +2836,30 @@ public class DriverSettings extends javax.swing.JFrame {
             }
             showFlatCapsView(merged);
         }
-        saveSettings.setEnabled(true);
+        markDirty();
+    }
+
+    /**
+     * Marks settings state as dirty (unsaved changes present).
+     */
+    private void markDirty() {
+        setDirtyState(true);
+    }
+
+    /**
+     * Marks settings state as clean (no unsaved changes).
+     */
+    private void clearDirty() {
+        setDirtyState(false);
+    }
+
+    /**
+     * Centralized save-button state control for all tabs.
+     */
+    private void setDirtyState(boolean dirty) {
+        if (saveSettings != null) {
+            saveSettings.setEnabled(dirty);
+        }
     }
 
     private LinkedProperties readDeviceCapTable() {
@@ -2843,9 +2883,7 @@ public class DriverSettings extends javax.swing.JFrame {
      * (flat table or grouped LambdaTest panel).
      */
     private LinkedProperties readActiveCaps() {
-        if (
-            lambdaTestCheckBox != null && lambdaTestCheckBox.isSelected() && lambdaCapsPanel != null
-        ) {
+        if (lambdaCapsPanel != null && lambdaCapsPanel.isVisible()) {
             return lambdaCapsPanel.getProperties();
         }
         return readDeviceCapTable();
