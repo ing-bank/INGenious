@@ -29,7 +29,6 @@ Release Date: <insert date of release>
 - Implemented alphabetical sorting for test scenarios and test cases within the Test Lab
 - Implemented closing of popups on Esc keypress
 - Added Update (Rename) and Deleting for Test Case Tags
-- Action 'assertVariable' can now assert runtime and global variables
 - Implemented Test Plan Scenario Groups with persistent organization
     - Added named group folders to organize Test Plan scenarios
     - Introduced visual distinction with stacked-folder group icon
@@ -46,6 +45,8 @@ Release Date: <insert date of release>
     - Scenarios in Test Plan, Reusable Components, and Shared Reusables now restore last sort order
     - Test cases within scenarios maintain custom ordering across restarts
     - Sort order persists after creation, deletion, rename, and drag-and-drop operations
+- Action 'assertVariable' can now assert runtime and global variables
+
 
 #### Changed
 
