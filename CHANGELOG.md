@@ -250,6 +250,7 @@ Release Date: <insert date of release>
     - Documented JaCoCo incompatibility on JDK 26
 - Improved Reusable Scenario Creation Process
 - Automated copy of API jar to `Dist/release/Engine/lib` when built
+- Update `project upgrade` CLI, include migration of Test data new `Scope` field
 
 #### Changed
 
