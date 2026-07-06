@@ -66,7 +66,7 @@ public class FXToolBar extends JFXPanel {
                 createButton("Archetype Configurations", "BrowserConfiguration"),
                 new Separator(),
                 createAPITesterButton(),
-                createAICopilotButton(),
+                //createAICopilotButton(),
                 createSpacer()
                 //, createDarkModeToggle()
             );
@@ -96,14 +96,17 @@ public class FXToolBar extends JFXPanel {
     }
 
     private Button createAPITesterButton() {
-        Button btn = new Button("API Workbench");
-        btn.getStyleClass().add("api-tester-btn");
+        Button btn = new Button("Workbench");
+        btn.getStyleClass().add("workbench-btn");
         btn.setTooltip(new Tooltip("Open API Testing Console - Test REST APIs like Postman"));
 
-        // API icon with vibrant cyan color - use registered icon from INGIcons
-        org.kordamp.ikonli.javafx.FontIcon icon = INGIcons.fxColored("APITester", 16);
+        // Keep the icon explicitly black to match the neutral Workbench style.
+        org.kordamp.ikonli.javafx.FontIcon icon = INGIcons.fx(
+            "APITester",
+            16,
+            javafx.scene.paint.Color.BLACK
+        );
         if (icon != null) {
-            icon.setIconColor(INGIcons.CLR_DATA);
             btn.setGraphic(icon);
         }
 

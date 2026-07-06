@@ -1,11 +1,17 @@
 package com.ing.ide.main.mainui;
 
+import com.ing.ide.main.fx.INGIcons;
 import com.ing.ide.main.utils.Utils;
 import com.ing.ide.util.Canvas;
+import java.awt.BasicStroke;
+import java.awt.Color;
 import java.awt.Font;
 import java.awt.FontFormatException;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
 import java.awt.GraphicsEnvironment;
 import java.awt.Insets;
+import java.awt.RenderingHints;
 import java.awt.Toolkit;
 import java.awt.event.KeyEvent;
 import java.io.File;
@@ -317,9 +323,7 @@ public class AppMenuBar extends JMenuBar {
             withMnemonics(withShortCut(Utils.createMenuItem("Dashboard", sActionListener)), 'D')
         );
 
-        window.add(
-            withMnemonics(withShortCut(Utils.createMenuItem("API Workbench", sActionListener)), 'P')
-        );
+        window.add(createAPIWorkbenchMenuItem());
 
         window.add(
             withMnemonics(
@@ -335,6 +339,54 @@ public class AppMenuBar extends JMenuBar {
         );
 
         return window;
+    }
+
+    /**
+     * Creates the API Workbench menu item with a solid purple style,
+     * bold outline, white icon/text, hover effect, and drop shadow.
+     */
+    private JMenuItem createAPIWorkbenchMenuItem() {
+        final Color BG_NORMAL = Color.decode("#7724FF");
+        final Color BG_HOVER = Color.decode("#5F18D8");
+        final Color BORDER = Color.decode("#FFFFFF");
+
+        JMenuItem item = new JMenuItem("Workbench") {
+
+            @Override
+            public void paintComponent(Graphics g) {
+                Graphics2D g2d = (Graphics2D) g.create();
+                g2d.setRenderingHint(
+                    RenderingHints.KEY_ANTIALIASING,
+                    RenderingHints.VALUE_ANTIALIAS_ON
+                );
+
+                // Shadow for prominence
+                g2d.setColor(new Color(0, 0, 0, 85));
+                g2d.fillRoundRect(4, 3, getWidth() - 6, getHeight() - 5, 9, 9);
+
+                // Solid background
+                g2d.setColor(isArmed() ? BG_HOVER : BG_NORMAL);
+                g2d.fillRoundRect(3, 2, getWidth() - 6, getHeight() - 4, 8, 8);
+
+                // Bold coloured outline
+                g2d.setColor(BORDER);
+                g2d.setStroke(new BasicStroke(2.3f));
+                g2d.drawRoundRect(3, 2, getWidth() - 7, getHeight() - 5, 8, 8);
+
+                g2d.dispose();
+                // Let L&F draw icon + text on top of our background
+                super.paintComponent(g);
+            }
+        };
+        item.setOpaque(false);
+        item.setFont(item.getFont().deriveFont(Font.BOLD));
+        item.setForeground(Color.WHITE);
+        item.setIcon(INGIcons.swing("apidock", 15, Color.WHITE));
+        item.setActionCommand("API Workbench");
+        item.addActionListener(sActionListener);
+        item.setAccelerator(shortcuts.get("API Workbench"));
+        item.setMnemonic('W');
+        return item;
     }
 
     private JMenuItem withEmptyIcon(JMenuItem menuItem) {
