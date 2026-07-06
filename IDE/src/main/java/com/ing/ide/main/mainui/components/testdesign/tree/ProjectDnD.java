@@ -11,7 +11,9 @@ import com.ing.ide.main.mainui.components.testdesign.tree.model.ReusableNode;
 import com.ing.ide.main.mainui.components.testdesign.tree.model.ScenarioNode;
 import com.ing.ide.main.mainui.components.testdesign.tree.model.SharedReusableNode;
 import com.ing.ide.main.mainui.components.testdesign.tree.model.TestCaseNode;
+import com.ing.ide.main.mainui.components.testdesign.tree.model.TestPlanGroupNode;
 import com.ing.ide.main.mainui.components.testdesign.tree.model.TestPlanNode;
+import com.ing.ide.main.mainui.components.testdesign.tree.model.TestPlanTreeModel;
 import com.ing.ide.main.utils.dnd.TransferableNode;
 import com.ing.ide.util.Notification;
 import java.awt.datatransfer.Clipboard;
@@ -131,10 +133,12 @@ public class ProjectDnD extends TransferHandler {
         ScenarioNode scNode = getScenarioNode(destObject);
         if (scNode != null) {
             copySelectedTestCases(testCaseNodes, scNode, shouldCut);
+            pTree.persistSortOrder(scNode);
             return true;
         }
         if (!(destObject instanceof TestPlanNode) && destObject instanceof GroupNode) {
             copySelectedTestCases(testCaseNodes, (GroupNode) destObject, shouldCut);
+            pTree.persistSortOrder((GroupNode) destObject);
             return true;
         }
         return false;
@@ -154,6 +158,24 @@ public class ProjectDnD extends TransferHandler {
         List<ScenarioNode> scenarioNodes,
         TransferHandler.TransferSupport ts
     ) {
+        Object dropTarget = getDestinationObject(ts);
+        if (
+            dropTarget instanceof TestPlanGroupNode &&
+            pTree.getTreeModel() instanceof TestPlanTreeModel
+        ) {
+            TestPlanTreeModel model = (TestPlanTreeModel) pTree.getTreeModel();
+            TestPlanGroupNode target = (TestPlanGroupNode) dropTarget;
+            boolean moved = false;
+            for (ScenarioNode scenarioNode : scenarioNodes) {
+                if (scenarioNode.getParent() instanceof TestPlanGroupNode) {
+                    model.moveScenarioToGroup(scenarioNode, target);
+                    moved = true;
+                }
+            }
+            if (moved) {
+                return true;
+            }
+        }
         Boolean shouldCut = ts.isDrop() ? ts.getDropAction() == MOVE : clipboardCutInProgress;
         if (shouldCut && isMoveFromTestPlanOrProjectToShared()) {
             Notification.showWarning(
@@ -173,6 +195,7 @@ public class ProjectDnD extends TransferHandler {
             for (ScenarioNode scenarioNode : scenarioNodes) {
                 addScenario(scenarioNode.getScenario(), (GroupNode) destObject);
             }
+            pTree.persistSortOrder((GroupNode) destObject);
             return true;
         }
         return false;
@@ -372,17 +395,11 @@ public class ProjectDnD extends TransferHandler {
             // Copy/paste always creates a copied testcase name.
             newName = name + " Copy(1)";
             int i = 2;
-            while (
-                scenario.getTestCaseByName(newName) != null ||
-                scenario.getProject().testCaseExistsInAnyScope(newName)
-            ) {
+            while (scenario.getTestCaseByName(newName) != null) {
                 newName = name + " Copy(" + i++ + ")";
             }
         } else {
-            if (
-                scenario.getTestCaseByName(newName) != null ||
-                scenario.getProject().testCaseExistsInAnyScope(newName)
-            ) {
+            if (scenario.getTestCaseByName(newName) != null) {
                 return null;
             }
         }
@@ -427,10 +444,7 @@ public class ProjectDnD extends TransferHandler {
             // Scenario-folder paste always creates testcase copies with Copy(n) suffix.
             String newName = baseName + " Copy(1)";
             int i = 2;
-            while (
-                sNode.getScenario().getTestCaseByName(newName) != null ||
-                sNode.getScenario().getProject().testCaseExistsInAnyScope(newName)
-            ) {
+            while (sNode.getScenario().getTestCaseByName(newName) != null) {
                 newName = baseName + " Copy(" + i++ + ")";
             }
             TestCase newTestCase = sNode.getScenario().addTestCase(newName);

@@ -516,6 +516,7 @@ public class TestCaseRunner {
             TestCase parentTestCase = testCase.getParentTestCase();
             for (int currStep = 0; canRunStep(currStep); currStep++) {
                 TestStep testStep = testCase.getTestSteps().get(currStep);
+                currentStepIndex = currStep;
 
                 if (!testStep.isCommented()) {
                     checkForStartLoop(testStep, currStep);

@@ -117,11 +117,11 @@ public class RequestPanel extends JPanel {
         saveButton.setPreferredSize(new Dimension(70, 36));
         saveButton.addActionListener(e -> parent.saveRequest());
 
-        // Convert to Test button
-        JButton convertButton = new JButton("⇢ Test");
+        // Convert to Automation button
+        JButton convertButton = new JButton("⇢ Automation");
         convertButton.setFont(convertButton.getFont().deriveFont(11f));
-        convertButton.setPreferredSize(new Dimension(75, 36));
-        convertButton.setToolTipText("Convert to INGenious Test Case");
+        convertButton.setPreferredSize(new Dimension(110, 36));
+        convertButton.setToolTipText("Convert to INGenious Test Case or User Intent (Reusable)");
         convertButton.addActionListener(e -> showConvertToTestDialog());
 
         // Layout
@@ -239,12 +239,15 @@ public class RequestPanel extends JPanel {
         updateRequest(parent.getCurrentRequest());
         APIRequest request = parent.getCurrentRequest();
 
-        // Get available scenarios
-        java.util.List<com.ing.datalib.component.Scenario> scenarios = parent
+        // Get available scenarios from both Test Plan and Reusable Components
+        final java.util.List<com.ing.datalib.component.Scenario> testPlanScenarios = parent
             .getApiTester()
             .getAvailableScenarios();
+        final java.util.List<com.ing.datalib.component.Scenario> reusableScenarios = parent
+            .getApiTester()
+            .getAvailableReusableScenarios();
 
-        if (scenarios.isEmpty()) {
+        if (testPlanScenarios.isEmpty() && reusableScenarios.isEmpty()) {
             javax.swing.JOptionPane.showMessageDialog(
                 this,
                 "No scenarios available. Please open a project and create a scenario first.",
@@ -254,14 +257,23 @@ public class RequestPanel extends JPanel {
             return;
         }
 
+        // Automation target options
+        final String TYPE_TEST_CASE = "Test Case";
+        final String TYPE_USER_INTENT = "User Intent (Reusable)";
+
         // Create dialog
-        javax.swing.JPanel panel = new javax.swing.JPanel(new java.awt.GridLayout(3, 2, 10, 10));
+        javax.swing.JPanel panel = new javax.swing.JPanel(new java.awt.GridLayout(4, 2, 10, 10));
         panel.setBorder(new EmptyBorder(10, 10, 10, 10));
 
-        panel.add(new javax.swing.JLabel("Target Scenario:"));
-        javax.swing.JComboBox<com.ing.datalib.component.Scenario> scenarioCombo = new javax.swing.JComboBox<>(
-            scenarios.toArray(new com.ing.datalib.component.Scenario[0])
+        panel.add(new javax.swing.JLabel("Automation Type:"));
+        javax.swing.JComboBox<String> typeCombo = new javax.swing.JComboBox<>(
+            new String[] { TYPE_TEST_CASE, TYPE_USER_INTENT }
         );
+        panel.add(typeCombo);
+
+        final javax.swing.JLabel scenarioLabel = new javax.swing.JLabel("Target Scenario:");
+        panel.add(scenarioLabel);
+        final javax.swing.JComboBox<com.ing.datalib.component.Scenario> scenarioCombo = new javax.swing.JComboBox<>();
         scenarioCombo.setRenderer(
             new javax.swing.DefaultListCellRenderer() {
 
@@ -289,11 +301,12 @@ public class RequestPanel extends JPanel {
         );
         panel.add(scenarioCombo);
 
-        panel.add(new javax.swing.JLabel("Test Case Name:"));
+        final javax.swing.JLabel nameLabel = new javax.swing.JLabel("Test Case Name:");
+        panel.add(nameLabel);
         String defaultName = request.getName() != null
             ? request.getName()
             : request.getMethod() + "_" + extractPathName(request.getUrl());
-        javax.swing.JTextField nameField = new javax.swing.JTextField(defaultName);
+        final javax.swing.JTextField nameField = new javax.swing.JTextField(defaultName);
         panel.add(nameField);
 
         panel.add(new javax.swing.JLabel(""));
@@ -303,15 +316,38 @@ public class RequestPanel extends JPanel {
         infoLabel.setForeground(APITesterColors.textSecondary());
         panel.add(infoLabel);
 
+        // Populate the scenario combo (and name label) based on the selected type
+        typeCombo.addActionListener(
+            e -> {
+                boolean reusable = TYPE_USER_INTENT.equals(typeCombo.getSelectedItem());
+                java.util.List<com.ing.datalib.component.Scenario> list = reusable
+                    ? reusableScenarios
+                    : testPlanScenarios;
+                scenarioCombo.setModel(
+                    new javax.swing.DefaultComboBoxModel<>(
+                        list.toArray(new com.ing.datalib.component.Scenario[0])
+                    )
+                );
+                nameLabel.setText(reusable ? "User Intent Name:" : "Test Case Name:");
+            }
+        );
+        // Initialise for the default selection (Test Case)
+        scenarioCombo.setModel(
+            new javax.swing.DefaultComboBoxModel<>(
+                testPlanScenarios.toArray(new com.ing.datalib.component.Scenario[0])
+            )
+        );
+
         int result = javax.swing.JOptionPane.showConfirmDialog(
             this,
             panel,
-            "Convert to INGenious Test",
+            "Convert to Automation",
             javax.swing.JOptionPane.OK_CANCEL_OPTION,
             javax.swing.JOptionPane.PLAIN_MESSAGE
         );
 
         if (result == javax.swing.JOptionPane.OK_OPTION) {
+            boolean reusable = TYPE_USER_INTENT.equals(typeCombo.getSelectedItem());
             com.ing.datalib.component.Scenario selectedScenario = (com.ing.datalib.component.Scenario) scenarioCombo.getSelectedItem();
 
             // Validate scenario is selected
@@ -330,10 +366,43 @@ public class RequestPanel extends JPanel {
             if (testCaseName.isEmpty()) {
                 javax.swing.JOptionPane.showMessageDialog(
                     this,
-                    "Please enter a test case name.",
+                    "Please enter a " + (reusable ? "user intent" : "test case") + " name.",
                     "Invalid Name",
                     javax.swing.JOptionPane.WARNING_MESSAGE
                 );
+                return;
+            }
+
+            // User Intent (Reusable) path: create a reusable component and finish
+            if (reusable) {
+                com.ing.datalib.component.TestCase reusableCase = parent
+                    .getApiTester()
+                    .convertRequestToReusable(request, selectedScenario, testCaseName);
+
+                if (reusableCase != null) {
+                    int navigateResult = javax.swing.JOptionPane.showConfirmDialog(
+                        this,
+                        "Successfully created user intent '" +
+                        testCaseName +
+                        "' in reusable scenario '" +
+                        selectedScenario.getName() +
+                        "'.\n\nWould you like to open it in Test Design?",
+                        "Conversion Successful",
+                        javax.swing.JOptionPane.YES_NO_OPTION,
+                        javax.swing.JOptionPane.INFORMATION_MESSAGE
+                    );
+
+                    if (navigateResult == javax.swing.JOptionPane.YES_OPTION) {
+                        parent.getApiTester().navigateToTestCase(reusableCase);
+                    }
+                } else {
+                    javax.swing.JOptionPane.showMessageDialog(
+                        this,
+                        "Failed to convert request to user intent. Check the logs for details.",
+                        "Conversion Failed",
+                        javax.swing.JOptionPane.ERROR_MESSAGE
+                    );
+                }
                 return;
             }
 
