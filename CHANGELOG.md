@@ -30,6 +30,23 @@ Release Date: <insert date of release>
 - Implemented closing of popups on Esc keypress
 - Added Update (Rename) and Deleting for Test Case Tags
 - Action 'assertVariable' can now assert runtime and global variables
+- Implemented Test Plan Scenario Groups with persistent organization
+    - Added named group folders to organize Test Plan scenarios
+    - Introduced visual distinction with stacked-folder group icon
+    - Enabled drag-and-drop scenarios between groups
+    - Created automatic (Ungrouped) bucket for unassigned scenarios
+    - Added group creation, rename, and delete operations via context menu
+    - Implemented persistent group membership and ordering across sessions
+- Enhanced Workbench UI with refreshed branding
+    - Redesigned Workbench button in toolbar, menu bar, and dock with prominent styling
+    - Added larger, colored tiles in dock for Test Design, Execution, Dashboard, and API Workbench
+    - Applied hover effects and shadows to dock buttons
+    - Renamed "API Workbench" to "Workbench" with neutral icon treatment
+- Implemented persistent sort order for scenarios and test cases
+    - Scenarios in Test Plan, Reusable Components, and Shared Reusables now restore last sort order
+    - Test cases within scenarios maintain custom ordering across restarts
+    - Sort order persists after creation, deletion, rename, and drag-and-drop operations
+
 #### Changed
 
 - Enabled reordering of data tabs
@@ -144,6 +161,7 @@ Release Date: <insert date of release>
     - Improved request moving between collections and folders
     - Mirrored click flow of object tree like in Bruno and VS Code behavior
     - Fixed shortcuts and removed inactive ones
+- Renamed "⇢ Test" button to "⇢ Automation" in API Workbench
 
 #### Deprecated
 

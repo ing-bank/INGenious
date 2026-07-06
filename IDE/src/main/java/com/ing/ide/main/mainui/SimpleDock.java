@@ -1,6 +1,7 @@
 package com.ing.ide.main.mainui;
 
 import com.ing.ide.main.fx.INGIcons;
+import java.awt.BasicStroke;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Cursor;
@@ -18,6 +19,7 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import javax.swing.BorderFactory;
 import javax.swing.Box.Filler;
+import javax.swing.BoxLayout;
 import javax.swing.Icon;
 import javax.swing.JButton;
 import javax.swing.JLabel;
@@ -29,21 +31,31 @@ import javax.swing.SwingConstants;
  * Test Design, Test Execution, and Dashboard navigation.
  */
 public class SimpleDock extends JPanel implements ActionListener {
-    // ING Brand Colors
-    private static final Color ING_YELLOW = Color.decode("#FFE100"); // Test Design theme
-    private static final Color ING_ORANGE = Color.decode("#FF6200"); // Dashboard theme
-    private static final Color ING_GREEN = Color.decode("#349651"); // Test Execution theme
-    private static final Color DOCK_BG = Color.decode("#F7F4F1"); //Dock background
-    private static final Color BUTTON_HOVER_BG = new Color(255, 255, 255, 40);
-    private static final Color BUTTON_NORMAL_BG = new Color(0, 0, 0, 0);
+    // Dock background
+    private static final Color DOCK_BG = Color.decode("#F0EDE8");
 
-    private static final int ICON_SIZE = 32;
-    private static final int BUTTON_WIDTH = 100;
-    private static final int BUTTON_HEIGHT = 80;
+    // Per-button normal and hover background colors
+    private static final Color BG_DESIGN_NORMAL = Color.decode("#FFEE73");
+    private static final Color BG_DESIGN_HOVER = Color.decode("#FFE100");
+    private static final Color BG_EXEC_NORMAL = Color.decode("#CDF4DB");
+    private static final Color BG_EXEC_HOVER = Color.decode("#1E8700");
+    private static final Color BG_DASH_NORMAL = Color.decode("#F1E9FF");
+    private static final Color BG_DASH_HOVER = Color.decode("#B487FF");
+    private static final Color BG_API_NORMAL = Color.decode("#E4F5FF");
+    private static final Color BG_API_HOVER = Color.decode("#BEE8FE");
+
+    private static final Color ICON_NORMAL = Color.decode("#222222");
+    private static final Color ICON_WHITE = Color.WHITE;
+    private static final Color TEXT_DARK = Color.decode("#1A1A1A");
+
+    private static final int ICON_SIZE = 30;
+    private static final int BUTTON_WIDTH = 115;
+    private static final int BUTTON_HEIGHT = 84;
 
     private DockButton testDesignButton;
     private DockButton testExecutionButton;
     private DockButton dashBoardButton;
+    private DockButton apiWorkbenchButton;
 
     private final AppMainFrame mainFrame;
 
@@ -101,10 +113,42 @@ public class SimpleDock extends JPanel implements ActionListener {
         dPanel.setBackground(new Color(0, 0, 0, 0));
         dPanel.setBorder(BorderFactory.createEmptyBorder(12, 8, 12, 8));
 
-        testDesignButton = createDockButton("TestDesign", "Design", "testdesign", ING_YELLOW);
+        testDesignButton =
+            createDockButton(
+                "TestDesign",
+                "Design",
+                "testdesign",
+                BG_DESIGN_NORMAL,
+                BG_DESIGN_HOVER,
+                false
+            );
         testExecutionButton =
-            createDockButton("TestExecution", "Execution", "testexecution", ING_GREEN);
-        dashBoardButton = createDockButton("DashBoard", "Dashboard", "dashboard", ING_ORANGE);
+            createDockButton(
+                "TestExecution",
+                "Execution",
+                "testexecution",
+                BG_EXEC_NORMAL,
+                BG_EXEC_HOVER,
+                true
+            );
+        dashBoardButton =
+            createDockButton(
+                "DashBoard",
+                "Dashboard",
+                "dashboard",
+                BG_DASH_NORMAL,
+                BG_DASH_HOVER,
+                true
+            );
+        apiWorkbenchButton =
+            createDockButton(
+                "APIWorkbench",
+                "API Workbench",
+                "apidock",
+                BG_API_NORMAL,
+                BG_API_HOVER,
+                false
+            );
 
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.gridx = 0;
@@ -117,6 +161,8 @@ public class SimpleDock extends JPanel implements ActionListener {
         dPanel.add(testExecutionButton, gbc);
         gbc.gridy = 2;
         dPanel.add(dashBoardButton, gbc);
+        gbc.gridy = 3;
+        dPanel.add(apiWorkbenchButton, gbc);
 
         return dPanel;
     }
@@ -144,10 +190,24 @@ public class SimpleDock extends JPanel implements ActionListener {
         String actionCommand,
         String displayText,
         String iconKey,
-        Color iconColor
+        Color normalBg,
+        Color hoverBg,
+        boolean invertOnHover
     ) {
-        Icon icon = INGIcons.swing(iconKey, ICON_SIZE, iconColor);
-        DockButton button = new DockButton(displayText, icon, iconColor);
+        Icon normalIcon = INGIcons.swing(iconKey, ICON_SIZE, ICON_NORMAL);
+        Icon hoverIcon = INGIcons.swing(
+            iconKey,
+            ICON_SIZE,
+            invertOnHover ? ICON_WHITE : ICON_NORMAL
+        );
+        DockButton button = new DockButton(
+            displayText,
+            normalIcon,
+            hoverIcon,
+            normalBg,
+            hoverBg,
+            invertOnHover
+        );
         button.setActionCommand(actionCommand);
         button.addActionListener(this);
         return button;
@@ -165,56 +225,97 @@ public class SimpleDock extends JPanel implements ActionListener {
             case "DashBoard":
                 mainFrame.showDashBoard();
                 break;
+            case "APIWorkbench":
+                mainFrame.showAPITester();
+                break;
         }
     }
 
     /**
-     * Custom styled button for the dock with icon, label, and hover effects.
+     * Custom dock button with solid per-button background, shadow, and
+     * icon/text colour inversion on hover where requested.
      */
     private static class DockButton extends JButton {
         private boolean isHovered = false;
-        private final Color accentColor;
+        private final Color normalBg;
+        private final Color hoverBg;
+        private final boolean invertOnHover;
+        private final JLabel iconLabel;
+        private final JLabel textLabel;
+        private final Icon normalIcon;
+        private final Icon hoverIcon;
+        private final JPanel contentPanel;
 
-        public DockButton(String text, Icon icon, Color accentColor) {
+        public DockButton(
+            String text,
+            Icon normalIcon,
+            Icon hoverIcon,
+            Color normalBg,
+            Color hoverBg,
+            boolean invertOnHover
+        ) {
             super();
-            this.accentColor = accentColor;
+            this.normalBg = normalBg;
+            this.hoverBg = hoverBg;
+            this.invertOnHover = invertOnHover;
+            this.normalIcon = normalIcon;
+            this.hoverIcon = hoverIcon;
 
-            setLayout(new BorderLayout(0, 4));
+            setLayout(new BorderLayout());
             setOpaque(false);
             setContentAreaFilled(false);
             setBorderPainted(false);
             setFocusPainted(false);
             setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
 
-            // Icon at top
-            JLabel iconLabel = new JLabel(icon);
-            iconLabel.setHorizontalAlignment(SwingConstants.CENTER);
-            add(iconLabel, BorderLayout.CENTER);
+            // Keep content centered and away from the bottom edge.
+            contentPanel = new JPanel();
+            contentPanel.setOpaque(false);
+            contentPanel.setLayout(new BoxLayout(contentPanel, BoxLayout.Y_AXIS));
+            contentPanel.setBorder(BorderFactory.createEmptyBorder(6, 0, 10, 0));
 
-            // Text label at bottom
-            JLabel textLabel = new JLabel(text);
-            textLabel.setHorizontalAlignment(SwingConstants.CENTER);
-            textLabel.setForeground(Color.DARK_GRAY);
-            textLabel.setFont(new Font("SansSerif", Font.BOLD, 11));
-            add(textLabel, BorderLayout.SOUTH);
+            iconLabel = new JLabel(normalIcon);
+            iconLabel.setHorizontalAlignment(SwingConstants.CENTER);
+            iconLabel.setAlignmentX(0.5f);
+            contentPanel.add(iconLabel);
+            contentPanel.add(
+                new javax.swing.Box.Filler(
+                    new Dimension(0, 8),
+                    new Dimension(0, 8),
+                    new Dimension(0, 8)
+                )
+            );
+
+            // Label with no minimum width so long text scales down without "..."
+            textLabel = new JLabel(text, SwingConstants.CENTER);
+            textLabel.setForeground(TEXT_DARK);
+            textLabel.setFont(new Font("SansSerif", Font.BOLD, 10));
+            textLabel.setMinimumSize(new Dimension(0, textLabel.getPreferredSize().height));
+            textLabel.setAlignmentX(0.5f);
+            contentPanel.add(textLabel);
+
+            add(contentPanel, BorderLayout.CENTER);
 
             setPreferredSize(new Dimension(BUTTON_WIDTH, BUTTON_HEIGHT));
             setMinimumSize(new Dimension(BUTTON_WIDTH, BUTTON_HEIGHT));
             setMaximumSize(new Dimension(BUTTON_WIDTH, BUTTON_HEIGHT));
 
-            // Hover effects
             addMouseListener(
                 new MouseAdapter() {
 
                     @Override
                     public void mouseEntered(MouseEvent e) {
                         isHovered = true;
+                        iconLabel.setIcon(hoverIcon);
+                        textLabel.setForeground(invertOnHover ? Color.WHITE : TEXT_DARK);
                         repaint();
                     }
 
                     @Override
                     public void mouseExited(MouseEvent e) {
                         isHovered = false;
+                        iconLabel.setIcon(normalIcon);
+                        textLabel.setForeground(TEXT_DARK);
                         repaint();
                     }
                 }
@@ -230,30 +331,31 @@ public class SimpleDock extends JPanel implements ActionListener {
                 RenderingHints.KEY_ANTIALIASING,
                 RenderingHints.VALUE_ANTIALIAS_ON
             );
+            g2d.setRenderingHint(
+                RenderingHints.KEY_STROKE_CONTROL,
+                RenderingHints.VALUE_STROKE_PURE
+            );
 
-            if (isHovered) {
-                // Draw hover background with accent color tint
-                g2d.setColor(
-                    new Color(
-                        accentColor.getRed(),
-                        accentColor.getGreen(),
-                        accentColor.getBlue(),
-                        50
-                    )
-                );
-                g2d.fillRoundRect(2, 2, getWidth() - 4, getHeight() - 4, 12, 12);
+            Color bg = isHovered ? hoverBg : normalBg;
 
-                // Draw accent border
-                g2d.setColor(
-                    new Color(
-                        accentColor.getRed(),
-                        accentColor.getGreen(),
-                        accentColor.getBlue(),
-                        150
-                    )
-                );
-                g2d.drawRoundRect(2, 2, getWidth() - 5, getHeight() - 5, 12, 12);
-            }
+            // Drop shadow (bottom-right offset)
+            g2d.setColor(new Color(0, 0, 0, 22));
+            g2d.fillRoundRect(3, 4, getWidth() - 4, getHeight() - 4, 14, 14);
+
+            // Solid background fill
+            g2d.setColor(bg);
+            g2d.fillRoundRect(1, 1, getWidth() - 4, getHeight() - 5, 14, 14);
+
+            // Border — auto-derived darker tint of the active background
+            float[] hsb = Color.RGBtoHSB(bg.getRed(), bg.getGreen(), bg.getBlue(), null);
+            Color border = Color.getHSBColor(
+                hsb[0],
+                Math.min(1f, hsb[1] * 1.6f),
+                Math.max(0f, hsb[2] * 0.65f)
+            );
+            g2d.setColor(border);
+            g2d.setStroke(new BasicStroke(isHovered ? 1.5f : 1.0f));
+            g2d.drawRoundRect(1, 1, getWidth() - 5, getHeight() - 6, 14, 14);
 
             g2d.dispose();
             super.paintComponent(g);
