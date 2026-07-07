@@ -175,6 +175,25 @@ public class RoleCellEditor extends AbstractCellEditor implements TableCellEdito
             }
         );
 
+        roleEditor.addKeyListener(
+            new KeyAdapter() {
+
+                @Override
+                public void keyPressed(KeyEvent e) {
+                    if (e.getKeyCode() == KeyEvent.VK_DOWN) {
+                        moveRoleSelection(1);
+                        e.consume();
+                    } else if (e.getKeyCode() == KeyEvent.VK_UP) {
+                        moveRoleSelection(-1);
+                        e.consume();
+                    } else if (e.getKeyCode() == KeyEvent.VK_ENTER) {
+                        SwingUtilities.invokeLater(() -> commitRoleSelectionFromKeyboard());
+                        e.consume();
+                    }
+                }
+            }
+        );
+
         // Name text field with placeholder hint
         nameField = new JTextField();
         nameField.setToolTipText("Element name (optional)");
@@ -216,7 +235,6 @@ public class RoleCellEditor extends AbstractCellEditor implements TableCellEdito
         );
     }
 
-
     /**
      * Returns the edited cell value in the formatted role/name representation.
      *
@@ -235,7 +253,6 @@ public class RoleCellEditor extends AbstractCellEditor implements TableCellEdito
             return role + ";" + name; // Combined format
         }
     }
-
 
     /**
      * Prepares and returns the editor component for the specified table cell.
@@ -312,7 +329,6 @@ public class RoleCellEditor extends AbstractCellEditor implements TableCellEdito
         return editorPanel;
     }
 
-
     /**
      * Retrieves the currently selected role and normalizes its value.
      *
@@ -322,6 +338,13 @@ public class RoleCellEditor extends AbstractCellEditor implements TableCellEdito
         Object selected = roleComboBox.getEditor().getItem();
         String roleText = selected != null ? selected.toString().trim() : "";
         if (roleText.isEmpty()) {
+            Object comboSelected = roleComboBox.getSelectedItem();
+            String selectedRole = comboSelected != null ? comboSelected.toString().trim() : "";
+            for (String role : ARIA_ROLES) {
+                if (role.equalsIgnoreCase(selectedRole)) {
+                    return role;
+                }
+            }
             return "";
         }
 
@@ -331,9 +354,17 @@ public class RoleCellEditor extends AbstractCellEditor implements TableCellEdito
             }
         }
 
+        // If editor text is partial (e.g., "com"), use combo selection when it is valid.
+        Object comboSelected = roleComboBox.getSelectedItem();
+        String selectedRole = comboSelected != null ? comboSelected.toString().trim() : "";
+        for (String role : ARIA_ROLES) {
+            if (role.equalsIgnoreCase(selectedRole)) {
+                return role;
+            }
+        }
+
         return "";
     }
-
 
     /**
      * Restores the role dropdown to display all available roles.
@@ -415,5 +446,111 @@ public class RoleCellEditor extends AbstractCellEditor implements TableCellEdito
                 }
             }
         );
+    }
+
+    /**
+     * Moves combo-box selection up/down while editing from keyboard.
+     *
+     * @param delta +1 for next, -1 for previous item
+     */
+    private void moveRoleSelection(int delta) {
+        int size = roleComboBox.getItemCount();
+        if (size == 0) {
+            return;
+        }
+
+        int selected = roleComboBox.getSelectedIndex();
+        int nextIndex;
+        if (selected < 0) {
+            nextIndex = delta > 0 ? 0 : size - 1;
+        } else {
+            nextIndex = Math.max(0, Math.min(size - 1, selected + delta));
+        }
+
+        suppressRoleFilter = true;
+        roleComboBox.setSelectedIndex(nextIndex);
+        suppressRoleFilter = false;
+
+        if (roleComboBox.isDisplayable()) {
+            roleComboBox.showPopup();
+        }
+    }
+
+    /**
+     * Commits role selection from keyboard. If nothing is selected, picks first option.
+     */
+    private void commitRoleSelectionFromKeyboard() {
+        if (roleComboBox.getItemCount() == 0) {
+            return;
+        }
+
+        String typedText = "";
+        Object editorItem = roleComboBox.getEditor().getItem();
+        if (editorItem != null) {
+            typedText = editorItem.toString().trim();
+        }
+
+        String roleToSelect = null;
+
+        // Exact typed role wins.
+        roleToSelect = findExactRole(typedText);
+
+        // Otherwise choose the first prefix match (e.g., "com" -> "COMBOBOX").
+        if (roleToSelect == null && !typedText.isEmpty()) {
+            roleToSelect = findFirstRoleStartsWith(typedText);
+        }
+
+        // Fall back to current selection or first item.
+        int selectedIndex = roleComboBox.getSelectedIndex();
+        if (roleToSelect == null && selectedIndex >= 0) {
+            Object selectedItem = roleComboBox.getItemAt(selectedIndex);
+            roleToSelect = selectedItem != null ? selectedItem.toString() : null;
+        }
+        if (roleToSelect == null && roleComboBox.getItemCount() > 0) {
+            Object firstItem = roleComboBox.getItemAt(0);
+            roleToSelect = firstItem != null ? firstItem.toString() : "";
+        }
+
+        suppressRoleFilter = true;
+        roleComboBox.setSelectedItem(roleToSelect != null ? roleToSelect : "");
+        roleComboBox.getEditor().setItem(roleToSelect != null ? roleToSelect : "");
+        suppressRoleFilter = false;
+        roleComboBox.hidePopup();
+        nameField.requestFocusInWindow();
+    }
+
+    /**
+     * Finds a role by exact case-insensitive match.
+     */
+    private String findExactRole(String typedText) {
+        if (typedText == null || typedText.isEmpty()) {
+            return null;
+        }
+
+        for (String role : ARIA_ROLES) {
+            if (role.equalsIgnoreCase(typedText)) {
+                return role;
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Finds the first role that starts with the provided text (case-insensitive).
+     */
+    private String findFirstRoleStartsWith(String typedText) {
+        if (typedText == null || typedText.isEmpty()) {
+            return null;
+        }
+
+        String query = typedText.toUpperCase();
+        for (String role : ARIA_ROLES) {
+            if (role.toUpperCase().startsWith(query)) {
+                return role;
+            }
+        }
+
+        return null;
     }
 }
