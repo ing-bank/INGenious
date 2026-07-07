@@ -158,7 +158,12 @@ public class TestStepRunner {
                     // Phase 4: Validate object references against policy before execution
                     validateObjectReferencesForPolicy(context, resolvedScope);
 
-                    executeTestCase(context, stc);
+                    try {
+                        executeTestCase(context, stc);
+                    } finally {
+                        // Clear scope after reusable execution completes
+                        context.setResolvedReusableScope(null);
+                    }
                     return;
                 } else {
                     throw new ForcedException(

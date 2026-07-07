@@ -89,13 +89,22 @@ public class DataAccess extends DataAccessInternal {
         throws DataNotFoundException {
         String nextSubIteration = (Integer.parseInt(subIter) + 1) + "";
         String val = null;
+
+        // Determine if we should use scope filtering:
+        // Only apply scope if querying the CURRENT context (reusable), not the ROOT (test plan)
+        boolean isQueryingRoot =
+            scn.equals(context.getRoot().scenario()) && tc.equals(context.getRoot().testcase());
+        String scopeFilter = isQueryingRoot ? "" : getScopeFilter(context);
+
         TestDataModel env;
         TestDataModel def = getDefModel(context, sheet);
         if (validEnv(context)) {
             env = getModel(context, sheet);
-            val = getDataFromModel(env, field, scn, tc, iter, nextSubIteration);
+            val =
+                getDataFromModelWithScope(env, field, scn, tc, iter, nextSubIteration, scopeFilter);
         } else {
-            val = getDataFromModel(def, field, scn, tc, iter, nextSubIteration);
+            val =
+                getDataFromModelWithScope(def, field, scn, tc, iter, nextSubIteration, scopeFilter);
         }
         return val;
     }
@@ -324,7 +333,10 @@ public class DataAccess extends DataAccessInternal {
         String iter,
         String subIter
     ) {
+        String scopeFilter = getScopeFilter(context);
+
         if (notNull(env) && env.hasColumn(field)) {
+            // Try root test case first (test plan data - always uses empty scope)
             Object val = getDataFromModel(
                 env,
                 field,
@@ -344,24 +356,27 @@ public class DataAccess extends DataAccessInternal {
                         subIter
                     );
                 if (val == null) {
+                    // Try reusable data with scope filtering
                     val =
-                        getDataFromModel(
+                        getDataFromModelWithScope(
                             env,
                             field,
                             context.scenario(),
                             context.testcase(),
                             iter,
-                            subIter
+                            subIter,
+                            scopeFilter
                         );
                     if (val == null) {
                         val =
-                            getDataFromModel(
+                            getDataFromModelWithScope(
                                 def,
                                 field,
                                 context.scenario(),
                                 context.testcase(),
                                 iter,
-                                subIter
+                                subIter,
+                                scopeFilter
                             );
                     }
                 }
@@ -438,17 +453,30 @@ public class DataAccess extends DataAccessInternal {
         String iter,
         String subIter
     ) {
+        String scopeFilter = getScopeFilter(context);
+
         if (notNull(def) && def.hasColumn(field)) {
-            return Objects.toString(
-                getDataFromModel(
-                    def,
-                    field,
-                    context.getRoot().scenario(),
-                    context.getRoot().testcase(),
-                    iter,
-                    subIter
-                ),
-                getDataFromModel(def, field, context.scenario(), context.testcase(), iter, subIter)
+            // Try root test case first (test plan data)
+            Object rootVal = getDataFromModel(
+                def,
+                field,
+                context.getRoot().scenario(),
+                context.getRoot().testcase(),
+                iter,
+                subIter
+            );
+            if (rootVal != null) {
+                return rootVal;
+            }
+            // Try reusable data with scope filtering
+            return getDataFromModelWithScope(
+                def,
+                field,
+                context.scenario(),
+                context.testcase(),
+                iter,
+                subIter,
+                scopeFilter
             );
         }
         return null;
@@ -474,7 +502,10 @@ public class DataAccess extends DataAccessInternal {
         String iter,
         String subIter
     ) {
+        String scopeFilter = getScopeFilter(context);
+
         if (notNull(env) && env.hasColumn(field)) {
+            // Try root test case first (test plan data)
             Object val = getDataFromModel(
                 env,
                 field,
@@ -494,24 +525,27 @@ public class DataAccess extends DataAccessInternal {
                         subIter
                     );
                 if (val == null) {
+                    // Try reusable data with scope filtering
                     val =
-                        getDataFromModel(
+                        getDataFromModelWithScope(
                             env,
                             field,
                             context.scenario(),
                             context.testcase(),
                             iter,
-                            subIter
+                            subIter,
+                            scopeFilter
                         );
                     if (val == null) {
                         val =
-                            getDataFromModel(
+                            getDataFromModelWithScope(
                                 def,
                                 field,
                                 context.scenario(),
                                 context.testcase(),
                                 iter,
-                                subIter
+                                subIter,
+                                scopeFilter
                             );
                     }
                 }
@@ -539,14 +573,18 @@ public class DataAccess extends DataAccessInternal {
         String iter,
         String subIter
     ) {
+        String scopeFilter = getScopeFilter(context);
+
         if (notNull(def) && def.hasColumn(field)) {
-            return getDataFromModel(
+            // Use scope-aware filtering for reusable data
+            return getDataFromModelWithScope(
                 def,
                 field,
                 context.scenario(),
                 context.testcase(),
                 iter,
-                subIter
+                subIter,
+                scopeFilter
             );
         }
         return null;

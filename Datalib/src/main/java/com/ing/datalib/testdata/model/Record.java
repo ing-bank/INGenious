@@ -39,6 +39,10 @@ public class Record extends ArrayList<String> {
         return get(1);
     }
 
+    public String getScope() {
+        return get(2);
+    }
+
     public String getIteration() {
         return get(3);
     }
@@ -53,6 +57,10 @@ public class Record extends ArrayList<String> {
 
     public void setTestcase(String testCase) {
         set(1, testCase);
+    }
+
+    public void setScope(String scope) {
+        set(2, scope);
     }
 
     public void setIteration(String iteration) {
