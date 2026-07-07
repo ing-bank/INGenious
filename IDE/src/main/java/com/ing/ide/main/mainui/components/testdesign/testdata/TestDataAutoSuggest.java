@@ -83,6 +83,10 @@ public class TestDataAutoSuggest {
                     }
                     javax.swing.JLabel lbl = (javax.swing.JLabel) comp;
                     String raw = value.toString();
+                    // Remove the ordering prefix (1-, 2-, 3-) if present
+                    if (raw.matches("^[123]-.*")) {
+                        raw = raw.substring(2);
+                    }
                     // show scenario name without scope prefix in the dropdown
                     lbl.setText(
                         raw.startsWith("[Project]") ||
@@ -117,29 +121,33 @@ public class TestDataAutoSuggest {
                 protected boolean addHeaderBefore(JList list, Object value, int index) {
                     if (value == null) return false;
                     String current = value.toString();
+                    // Remove the ordering prefix (1-, 2-, 3-) if present
+                    if (current.matches("^[123]-.*")) {
+                        current = current.substring(2);
+                    }
                     if (current.startsWith("[TestPlan]")) {
-                        return (
-                            index == 0 ||
-                            !Objects
-                                .toString(list.getModel().getElementAt(index - 1), "")
-                                .startsWith("[TestPlan]")
-                        );
+                        if (index == 0) return true;
+                        String prev = Objects.toString(list.getModel().getElementAt(index - 1), "");
+                        if (prev.matches("^[123]-.*")) {
+                            prev = prev.substring(2);
+                        }
+                        return !prev.startsWith("[TestPlan]");
                     }
                     if (current.startsWith("[Project]")) {
-                        return (
-                            index == 0 ||
-                            !Objects
-                                .toString(list.getModel().getElementAt(index - 1), "")
-                                .startsWith("[Project]")
-                        );
+                        if (index == 0) return true;
+                        String prev = Objects.toString(list.getModel().getElementAt(index - 1), "");
+                        if (prev.matches("^[123]-.*")) {
+                            prev = prev.substring(2);
+                        }
+                        return !prev.startsWith("[Project]");
                     }
                     if (current.startsWith("[Shared]")) {
-                        return (
-                            index == 0 ||
-                            !Objects
-                                .toString(list.getModel().getElementAt(index - 1), "")
-                                .startsWith("[Shared]")
-                        );
+                        if (index == 0) return true;
+                        String prev = Objects.toString(list.getModel().getElementAt(index - 1), "");
+                        if (prev.matches("^[123]-.*")) {
+                            prev = prev.substring(2);
+                        }
+                        return !prev.startsWith("[Shared]");
                     }
                     return false;
                 }
@@ -148,14 +156,18 @@ public class TestDataAutoSuggest {
                 protected boolean addSeparatorBefore(JList list, Object value, int index) {
                     if (value == null) return false;
                     String current = value.toString();
+                    // Remove the ordering prefix (1-, 2-, 3-) if present
+                    if (current.matches("^[123]-.*")) {
+                        current = current.substring(2);
+                    }
                     // Add a separator before the TestPlan group (i.e., when first TestPlan item appears)
                     if (current.startsWith("[TestPlan]")) {
-                        return (
-                            index == 0 ||
-                            !Objects
-                                .toString(list.getModel().getElementAt(index - 1), "")
-                                .startsWith("[TestPlan]")
-                        );
+                        if (index == 0) return true;
+                        String prev = Objects.toString(list.getModel().getElementAt(index - 1), "");
+                        if (prev.matches("^[123]-.*")) {
+                            prev = prev.substring(2);
+                        }
+                        return !prev.startsWith("[TestPlan]");
                     }
                     return false;
                 }
@@ -164,6 +176,10 @@ public class TestDataAutoSuggest {
                 protected String getHeaderLabel(JList list, Object value, int index) {
                     if (value == null) return "";
                     String current = value.toString();
+                    // Remove the ordering prefix (1-, 2-, 3-) if present
+                    if (current.matches("^[123]-.*")) {
+                        current = current.substring(2);
+                    }
                     if (current.startsWith("[TestPlan]")) return "Test plan";
                     if (current.startsWith("[Project]")) return "Project Reusable Components";
                     if (current.startsWith("[Shared]")) return "Shared Reusable Components";
@@ -179,6 +195,10 @@ public class TestDataAutoSuggest {
                 ) {
                     if (value == null) return Color.DARK_GRAY;
                     String current = value.toString();
+                    // Remove the ordering prefix (1-, 2-, 3-) if present
+                    if (current.matches("^[123]-.*")) {
+                        current = current.substring(2);
+                    }
                     if (current.startsWith("[Shared]")) return new Color(0, 128, 0);
                     if (current.startsWith("[TestPlan]")) return Color.DARK_GRAY;
                     return Color.BLACK;
@@ -188,10 +208,18 @@ public class TestDataAutoSuggest {
                 protected boolean addSeparatorAfter(JList list, Object value, int index) {
                     if (value == null) return false;
                     String val = value.toString();
+                    // Remove the ordering prefix (1-, 2-, 3-) if present
+                    if (val.matches("^[123]-.*")) {
+                        val = val.substring(2);
+                    }
                     if (index < list.getModel().getSize() - 1) {
                         Object nextValue = list.getModel().getElementAt(index + 1);
                         if (nextValue != null) {
                             String next = nextValue.toString();
+                            // Remove the ordering prefix from next item
+                            if (next.matches("^[123]-.*")) {
+                                next = next.substring(2);
+                            }
                             // separator between TestPlan -> Project and Project -> Shared
                             if (
                                 val.startsWith("[TestPlan]") && next.startsWith("[Project]")
@@ -210,15 +238,27 @@ public class TestDataAutoSuggest {
             (ActionListener) ae -> {
                 Object sel = scenarioSugg.getSelectedItem();
                 String s = Objects.toString(sel, "").trim();
+                // Remove the ordering prefix (1-, 2-, 3-) if present
+                if (s.matches("^[123]-.*")) {
+                    s = s.substring(2);
+                }
                 // If a header was selected, try to move selection to the next real item
                 if (s.startsWith("__HEADER__:")) {
                     // find next non-header item in the popup model
                     for (int i = 0; i < scenarioSugg.getItemCount(); i++) {
                         String it = Objects.toString(scenarioSugg.getItemAt(i), "");
+                        // Remove the ordering prefix from items in the list
+                        if (it.matches("^[123]-.*")) {
+                            it = it.substring(2);
+                        }
                         if (!it.startsWith("__HEADER__:")) {
                             scenarioSugg.setSelectedIndex(i);
                             sel = scenarioSugg.getSelectedItem();
                             s = Objects.toString(sel, "").trim();
+                            // Remove the ordering prefix again
+                            if (s.matches("^[123]-.*")) {
+                                s = s.substring(2);
+                            }
                             break;
                         }
                     }
@@ -333,7 +373,7 @@ public class TestDataAutoSuggest {
     }
 
     private void updateScenarios() {
-        Set<String> allScenarios = new LinkedHashSet<>();
+        List<String> allScenarios = new ArrayList<>();
 
         // Include test plan scenarios first, then project-scoped reusable scenarios, then shared-scoped
         List<String> testPlanList = new ArrayList<>();
@@ -357,16 +397,18 @@ public class TestDataAutoSuggest {
             }
         }
         Collections.sort(testPlanList, String.CASE_INSENSITIVE_ORDER);
+        // Prefix with "1-" to ensure Test Plan appears first after alphabetical sort
         for (String sc : testPlanList) {
-            allScenarios.add("[TestPlan] " + sc);
+            allScenarios.add("1-[TestPlan] " + sc);
         }
 
         // Add Project-scoped Reusable Component Test Scenarios to the autosuggest list (prefixed)
         List<String> reusableScenarioList = Utils.asStringList(sProject.getReusableScenarios());
         Collections.sort(reusableScenarioList, String.CASE_INSENSITIVE_ORDER);
         if (!reusableScenarioList.isEmpty()) {
+            // Prefix with "2-" to ensure Project appears second after alphabetical sort
             for (String sc : reusableScenarioList) {
-                allScenarios.add("[Project] " + sc);
+                allScenarios.add("2-[Project] " + sc);
             }
         }
 
@@ -374,12 +416,13 @@ public class TestDataAutoSuggest {
         List<String> sharedReusableScenarioList = Utils.asStringList(sProject.getSharedScenarios());
         Collections.sort(sharedReusableScenarioList, String.CASE_INSENSITIVE_ORDER);
         if (!sharedReusableScenarioList.isEmpty()) {
+            // Prefix with "3-" to ensure Shared appears third after alphabetical sort
             for (String sc : sharedReusableScenarioList) {
-                allScenarios.add("[Shared] " + sc);
+                allScenarios.add("3-[Shared] " + sc);
             }
         }
 
-        scenarioSugg.setSearchList(new ArrayList<String>(allScenarios));
+        scenarioSugg.setSearchList(allScenarios);
     }
 
     private void updateTestCases() {
