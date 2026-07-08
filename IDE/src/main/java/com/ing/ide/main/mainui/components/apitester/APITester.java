@@ -1266,13 +1266,25 @@ public class APITester implements SlideShow.SlideChangeListener {
     }
 
     /**
-     * Gets all scenarios from the current project.
+     * Gets all Test Plan scenarios from the current project.
      */
     public List<Scenario> getAvailableScenarios() {
         List<Scenario> scenarios = new ArrayList<>();
         Project project = mainFrame.getProject();
         if (project != null) {
             scenarios.addAll(project.getScenarios());
+        }
+        return scenarios;
+    }
+
+    /**
+     * Gets all Reusable Components scenarios from the current project.
+     */
+    public List<Scenario> getAvailableReusableScenarios() {
+        List<Scenario> scenarios = new ArrayList<>();
+        Project project = mainFrame.getProject();
+        if (project != null) {
+            scenarios.addAll(project.getReusableScenarios());
         }
         return scenarios;
     }

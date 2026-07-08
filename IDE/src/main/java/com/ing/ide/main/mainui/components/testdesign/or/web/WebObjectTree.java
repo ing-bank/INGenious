@@ -5,6 +5,7 @@ import com.ing.datalib.component.TestCase;
 import com.ing.datalib.or.ObjectRepository;
 import com.ing.datalib.or.common.ORObjectInf;
 import com.ing.datalib.or.common.ORRootInf;
+import com.ing.datalib.or.common.ObjectGroup;
 import com.ing.datalib.or.web.WebOR;
 import com.ing.datalib.or.web.WebORObject;
 import com.ing.datalib.or.web.WebORPage;
@@ -53,10 +54,27 @@ public class WebObjectTree extends ObjectTree {
     }
 
     void changeFrameData(String frameText) {
-        WebORObject obj = (WebORObject) getSelectedObject();
+        WebORObject obj = getSelectedWebObject();
         if (obj != null) {
             obj.setFrame(frameText);
         }
+    }
+
+    /**
+     * Resolves the {@link WebORObject} currently shown in the details table. When an
+     * {@link ObjectGroup} node is selected, the table loads the group's first child, so the
+     * frame edit must be applied to that same object rather than to the (non-object) group node.
+     */
+    private WebORObject getSelectedWebObject() {
+        ORObjectInf selected = getSelectedObject();
+        if (selected instanceof WebORObject) {
+            return (WebORObject) selected;
+        }
+        ObjectGroup group = getSelectedObjectGroup();
+        if (group != null && group.getChildAt(0) instanceof WebORObject) {
+            return (WebORObject) group.getChildAt(0);
+        }
+        return null;
     }
 
     @Override

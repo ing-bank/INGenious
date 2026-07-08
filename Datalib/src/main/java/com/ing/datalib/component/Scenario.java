@@ -2,7 +2,7 @@ package com.ing.datalib.component;
 
 import com.ing.datalib.component.io.TestCaseStoreFactory;
 import com.ing.datalib.component.utils.FileUtils;
-import com.ing.datalib.component.utils.FileUtils;
+import com.ing.datalib.component.utils.SortOrderStore;
 import com.ing.datalib.or.web.WebOR.ORScope;
 import com.ing.datalib.or.web.WebOR.ORScope;
 import java.io.File;
@@ -214,7 +214,11 @@ public class Scenario extends DataModel {
     private void loadTestcases() {
         File scenDir = new File(getLocation());
         if (scenDir.exists()) {
-            for (String baseName : TestCaseStoreFactory.listLogicalFiles(scenDir).keySet()) {
+            List<String> names = new ArrayList<>(
+                TestCaseStoreFactory.listLogicalFiles(scenDir).keySet()
+            );
+            names = SortOrderStore.apply(scenDir, names);
+            for (String baseName : names) {
                 testCases.add(new TestCase(this, baseName));
             }
         }
@@ -239,15 +243,13 @@ public class Scenario extends DataModel {
 
     /**
      * Adds a new test case to this scenario.
-     * Validates that the test case name is unique across all scopes (Test Plan, Reusable, Shared Reusable).
+     * Validates that the test case name is unique within this scenario. The same name may be
+     * reused in different scenarios (across Test Plan, Reusable and Shared Reusable scopes).
      * @param testCaseName name of the test case to add
-     * @return the created test case, or null if it already exists in any scope
+     * @return the created test case, or null if it already exists in this scenario
      */
     public TestCase addTestCase(String testCaseName) {
         if (getTestCaseByName(testCaseName) == null) {
-            if (project.testCaseExistsInAnyScope(testCaseName)) {
-                return null;
-            }
             TestCase tc = new TestCase(this, testCaseName);
             testCases.add(tc);
             tc.setSaved(false);

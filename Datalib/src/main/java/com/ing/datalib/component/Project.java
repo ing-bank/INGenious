@@ -7,6 +7,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ing.datalib.component.io.ProjectMigrator;
 import com.ing.datalib.component.utils.FileUtils;
+import com.ing.datalib.component.utils.SortOrderStore;
 import com.ing.datalib.exception.TestCaseConversionException;
 import com.ing.datalib.model.DataItem;
 import com.ing.datalib.model.Meta;
@@ -722,7 +723,11 @@ public class Project {
         if (file.exists() && file.isDirectory()) {
             File testPlan = new File(getTestPlanPath());
             if (testPlan.exists() && testPlan.list() != null) {
-                for (String scenario : testPlan.list(DIR_FILTER)) {
+                List<String> names = new ArrayList<>(
+                    java.util.Arrays.asList(testPlan.list(DIR_FILTER))
+                );
+                names = SortOrderStore.apply(testPlan, names);
+                for (String scenario : names) {
                     scenarios.add(new Scenario(this, scenario, Scenario.Source.TEST_PLAN));
                 }
             }
@@ -741,7 +746,11 @@ public class Project {
         if (file.exists() && file.isDirectory()) {
             File reusableRoot = new File(getReusableComponentsPath());
             if (reusableRoot.exists() && reusableRoot.list() != null) {
-                for (String scenario : reusableRoot.list(DIR_FILTER)) {
+                List<String> names = new ArrayList<>(
+                    java.util.Arrays.asList(reusableRoot.list(DIR_FILTER))
+                );
+                names = SortOrderStore.apply(reusableRoot, names);
+                for (String scenario : names) {
                     reusableScenarios.add(
                         new Scenario(this, scenario, Scenario.Source.REUSABLE_COMPONENTS)
                     );
@@ -760,7 +769,11 @@ public class Project {
         sharedReusableScenarios.clear();
         File sharedRoot = new File(getSharedReusableComponentsPath());
         if (sharedRoot.exists() && sharedRoot.isDirectory() && sharedRoot.list() != null) {
-            for (String scenario : sharedRoot.list(DIR_FILTER)) {
+            List<String> names = new ArrayList<>(
+                java.util.Arrays.asList(sharedRoot.list(DIR_FILTER))
+            );
+            names = SortOrderStore.apply(sharedRoot, names);
+            for (String scenario : names) {
                 sharedReusableScenarios.add(
                     new Scenario(this, scenario, Scenario.Source.SHARED_REUSABLE_COMPONENTS)
                 );

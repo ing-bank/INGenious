@@ -190,6 +190,9 @@ public class RecordingTargetDialog extends JDialog {
         actions.add(ok);
         add(actions, BorderLayout.SOUTH);
 
+        // Make "Start Recording" the default button so pressing Enter starts the recording.
+        getRootPane().setDefaultButton(ok);
+
         java.awt.event.ActionListener listener = e -> updateEnabledState();
         newScenarioRadio.addActionListener(listener);
         newReusableRadio.addActionListener(listener);

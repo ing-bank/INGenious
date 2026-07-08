@@ -15,6 +15,7 @@ public class IconSettings {
 
     private final Icon testPlanRoot = icon("testplan.Root", TREE_SIZE);
     private final Icon testPlanScenario = icon("testplan.Scenario", TREE_SIZE);
+    private final Icon testPlanGroup = icon("testplan.Group", TREE_SIZE);
     private final Icon testPlanTestCase = icon("testplan.TestCase", TREE_SIZE);
     private final Icon testLabRoot = icon("testlab.Root", TREE_SIZE);
     private final Icon testLabRelease = icon("testlab.Release", TREE_SIZE);
@@ -65,6 +66,10 @@ public class IconSettings {
 
     public Icon getTestPlanScenario() {
         return testPlanScenario;
+    }
+
+    public Icon getTestPlanGroup() {
+        return testPlanGroup;
     }
 
     public Icon getTestPlanTestCase() {
