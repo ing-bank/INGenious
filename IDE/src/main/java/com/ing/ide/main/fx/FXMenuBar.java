@@ -371,13 +371,13 @@ public class FXMenuBar extends JFXPanel {
                     KeyCombination.SHIFT_DOWN,
                     KeyCombination.ALT_DOWN
                 ),
-                menuItem(
+                /*  menuItem(
                     "AI Assistant",
                     "AICopilot",
                     KeyCode.I,
                     KeyCombination.SHIFT_DOWN,
                     KeyCombination.ALT_DOWN
-                ),
+                ),*/
                 menuItem(
                     "AdjustUI",
                     "settings",

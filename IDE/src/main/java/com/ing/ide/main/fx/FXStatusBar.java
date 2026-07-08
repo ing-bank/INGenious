@@ -103,7 +103,12 @@ public class FXStatusBar extends JFXPanel {
                     // Apply style based on view
                     viewLabel
                         .getStyleClass()
-                        .removeAll("status-design", "status-execution", "status-dashboard");
+                        .removeAll(
+                            "status-design",
+                            "status-execution",
+                            "status-dashboard",
+                            "status-apitester"
+                        );
 
                     // Update icon to match the dock icon for each view
                     String iconKey;
@@ -119,6 +124,10 @@ public class FXStatusBar extends JFXPanel {
                         case "DashBoard":
                             viewLabel.getStyleClass().add("status-dashboard");
                             iconKey = "dashboard";
+                            break;
+                        case "API Workbench":
+                            viewLabel.getStyleClass().add("status-apitester");
+                            iconKey = "APITester";
                             break;
                         default:
                             iconKey = "testdesign";

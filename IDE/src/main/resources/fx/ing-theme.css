@@ -374,6 +374,40 @@
     -fx-icon-color: "#7724FF";
 }
 
+/* Dedicated API Workbench button in toolbar */
+.tool-bar .button.workbench-btn {
+    -fx-background-color: #F7F4F1;
+    -fx-border-radius: 9;
+    -fx-background-radius: 9;
+    -fx-padding: 6 14 6 12;
+    -fx-font-size: 11px;
+    -fx-font-weight: 700;
+    -fx-text-fill: #111111;
+    -fx-graphic-text-gap: 6;
+    -fx-translate-y: 0;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.26), 9, 0, 0, 2);
+}
+
+.tool-bar .button.workbench-btn:hover {
+    -fx-background-color: #F7F4F1;
+    -fx-translate-y: -1;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.34), 14, 0, 0, 4);
+}
+
+.tool-bar .button.workbench-btn:pressed {
+    -fx-background-color: #EFEAE5;
+    -fx-translate-y: 0;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.20), 6, 0, 0, 1);
+}
+
+.tool-bar .button.workbench-btn > .text {
+    -fx-fill: #111111;
+}
+
+.tool-bar .button.workbench-btn .ikonli-font-icon {
+    -fx-icon-color: #111111;
+}
+
 
 /* ═══════════════════════════════════════════════════
    8. LABELS IN TOOLBAR
@@ -719,6 +753,11 @@
 
 .status-dashboard {
     -fx-background-color: #FF6200; /* Orange - matches Dashboard dock icon */
+    -fx-text-fill: white !important;
+}
+
+.status-apitester {
+    -fx-background-color: #00BCD4; /* Cyan/Teal - matches API Workbench dock icon */
     -fx-text-fill: white !important;
 }
 
