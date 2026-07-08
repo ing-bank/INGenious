@@ -1588,12 +1588,25 @@ public class TestCaseComponent extends JPanel implements ActionListener {
                 current.getProject()
             );
             if (result != null) {
-                Scenario targetScenario = current
-                    .getProject()
-                    .getReusableScenarioByName(result.getScenarioName());
-                if (targetScenario == null) {
+                Scenario targetScenario;
+                if (result.isSharedScope()) {
                     targetScenario =
-                        current.getProject().addReusableScenario(result.getScenarioName());
+                        current
+                            .getProject()
+                            .getSharedReusableScenarioByName(result.getScenarioName());
+                    if (targetScenario == null) {
+                        targetScenario =
+                            current
+                                .getProject()
+                                .addSharedReusableScenario(result.getScenarioName());
+                    }
+                } else {
+                    targetScenario =
+                        current.getProject().getReusableScenarioByName(result.getScenarioName());
+                    if (targetScenario == null) {
+                        targetScenario =
+                            current.getProject().addReusableScenario(result.getScenarioName());
+                    }
                 }
                 TestCase reusable = current.createAsReusable(
                     targetScenario,
@@ -1603,7 +1616,11 @@ public class TestCaseComponent extends JPanel implements ActionListener {
                 );
                 if (reusable != null) {
                     current.save();
-                    testDesign.getReusableTree().getTreeModel().addTestCase(reusable);
+                    if (result.isSharedScope()) {
+                        testDesign.getSharedReusableTree().getTreeModel().addTestCase(reusable);
+                    } else {
+                        testDesign.getReusableTree().getTreeModel().addTestCase(reusable);
+                    }
                 } else {
                     Notification.show("Couldn't Create Reusable - " + result.getReusableName());
                 }
