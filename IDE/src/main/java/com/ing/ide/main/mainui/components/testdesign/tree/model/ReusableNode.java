@@ -15,7 +15,7 @@ import javax.swing.tree.TreeNode;
  *
  */
 public class ReusableNode extends CommonNode {
-    private static final String DEFAULT_GROUP = "Reusable Components";
+    private static final String DEFAULT_GROUP = "Project Reusable Components";
 
     Project project;
 
@@ -61,7 +61,7 @@ public class ReusableNode extends CommonNode {
 
     @Override
     public String toString() {
-        return project != null ? project.getName() : "Reusable";
+        return project != null ? project.getName() : "Project Reusable Components";
     }
 
     public static List<ReusableNode> toList(Enumeration<TreeNode> children) {

@@ -302,7 +302,21 @@ public class TestCase extends DataModel {
             }
             newTestcase.save();
             startGroupEdit();
-            addReusableStep(fromStep, targetScenario.getName() + ":" + reusableName);
+
+            // Create Execute step with appropriate scope prefix
+            TestStep reusableStep = new TestStep(this);
+            reusableStep.setObject("Execute");
+            reusableStep.setAction(targetScenario.getName() + ":" + reusableName);
+
+            // Auto-populate Reference column based on target scenario source
+            if (targetScenario.isSharedReusableScenario()) {
+                reusableStep.setReference("[Shared]");
+            } else if (targetScenario.isReusableScenario()) {
+                reusableStep.setReference("[Project]");
+            }
+
+            addStep(fromStep, reusableStep);
+
             for (int i = toStep + 1; i >= fromStep + 1; i--) {
                 rowDeleted(i);
                 testSteps.remove(i);
