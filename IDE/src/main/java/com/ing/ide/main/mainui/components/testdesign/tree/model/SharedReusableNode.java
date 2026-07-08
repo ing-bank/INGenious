@@ -15,7 +15,7 @@ import javax.swing.tree.TreeNode;
  * Displays all shared reusable scenarios and test cases with [Shared] scope indicators.
  */
 public class SharedReusableNode extends CommonNode {
-    private static final String DEFAULT_GROUP = "Shared Components";
+    private static final String DEFAULT_GROUP = "Shared Reusable Components";
 
     Project project;
 
@@ -57,6 +57,11 @@ public class SharedReusableNode extends CommonNode {
             }
         }
         return null;
+    }
+
+    @Override
+    public String toString() {
+        return "Shared Reusable Components";
     }
 
     public List<GroupNode> getGroups() {

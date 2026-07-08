@@ -45,6 +45,13 @@ Release Date: <insert date of release>
     - Scenarios in Test Plan, Reusable Components, and Shared Reusables now restore last sort order
     - Test cases within scenarios maintain custom ordering across restarts
     - Sort order persists after creation, deletion, rename, and drag-and-drop operations
+- Added Auto-migration of Test Cases from `CSV` to `YAML` on project load
+- Enhanced Auto-migration of Test Datasheet new `Scope` field on project load
+- Added scope selector to Create Reusable dialog enabling direct creation to Project or Shared Reusable Components
+- Implemented auto-population of Reference column with `[Project]` or `[Shared]` prefix when creating reusables
+- Extended impact analysis to include Shared Reusable test cases alongside Test Plan and Project Reusable impacts
+- Standardized Reusable Components UI with FXPanelHeader matching Test Plan and Object Repository style
+- Updated Shared Reusable tree root node label to "Shared Reusable Components" for clarity
 - Enhanced Web Object Repository role selection with dynamic filtering based on user-entered text
 
 #### Changed

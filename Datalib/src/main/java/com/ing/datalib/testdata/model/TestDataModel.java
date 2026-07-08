@@ -25,6 +25,27 @@ public abstract class TestDataModel extends AbstractDataModel<Record> {
         return super.getRecords();
     }
 
+    /**
+     * Migrates test data columns by inserting the 'Scope' column at index 2 if missing.
+     * This ensures older CSV files without the Scope column are automatically updated.
+     *
+     * @param columns the columns loaded from file
+     * @return the migrated column list with Scope at index 2
+     */
+    @Override
+    protected java.util.List<String> migrateColumnsIfNeeded(java.util.List<String> columns) {
+        // Check if Scope column is missing (older 4-column format)
+        if (!columns.contains(Record.HEADERS[2])) {
+            // Insert Scope at index 2 if we have at least two columns, otherwise append
+            if (columns.size() >= 2) {
+                columns.add(2, Record.HEADERS[2]);
+            } else {
+                columns.add(Record.HEADERS[2]);
+            }
+        }
+        return columns;
+    }
+
     @Override
     public boolean canEditOnExecution(int columnIndex) {
         // With new Scope column inserted at index 2, editable columns during execution are after SubIteration (now index 4)
