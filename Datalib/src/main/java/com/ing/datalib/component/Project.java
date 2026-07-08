@@ -5,7 +5,9 @@ import static java.util.stream.Collectors.toList;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.ing.datalib.component.io.ProjectMigrator;
 import com.ing.datalib.component.utils.FileUtils;
+import com.ing.datalib.component.utils.SortOrderStore;
 import com.ing.datalib.exception.TestCaseConversionException;
 import com.ing.datalib.model.DataItem;
 import com.ing.datalib.model.Meta;
@@ -136,9 +138,15 @@ public class Project {
 
     /**
      * Loads all project components from disk including scenarios, test sets, test data, settings, and object repository.
-     * Performs migration of legacy reusable component XML if present.
+     * Performs migration of legacy reusable component XML if present and auto-migrates CSV test cases to YAML if enabled.
      */
     private void loadProject() {
+        // Load project info early to check migration flags
+        projectInfo = loadProjectInfo(getProjectFile());
+
+        // Auto-migrate CSV test cases to YAML if enabled
+        migrateTestsFromCsvToYaml();
+
         loadScenariosFromTestPlan();
         loadTestSets();
         migrateReusableComponentXmlIfPresent();
@@ -148,7 +156,6 @@ public class Project {
         loadTestDatas();
         projectSettings = new ProjectSettings(this);
         objectRepository = new ObjectRepository(this);
-        projectInfo = loadProjectInfo(getProjectFile());
         migrateLegacyReusableExecuteReferencesOnLoad();
 
         // Reconcile shared reusable project tracking on load to clean stale entries
@@ -181,6 +188,86 @@ public class Project {
             "Legacy Execute reference migration check completed for {0} test case(s)",
             testCasesScanned
         );
+    }
+
+    /**
+     * Auto-migrates CSV test cases to YAML format if enabled via project configuration.
+     *
+     * <p>This method checks the {@code autoMigrateCsvToYaml} flag in projectinfo.json.
+     * Migration is enabled by default (when flag is null or true). Set to {@code false}
+     * to explicitly disable auto-migration.</p>
+     *
+     * <p>This invokes {@link ProjectMigrator#migrate(File, boolean, boolean)} to
+     * convert all CSV test cases, reusable components, and test sets to YAML format.</p>
+     *
+     * <p>The {@code keepCsvBackupOnMigrate} flag controls whether original CSV files are
+     * moved to {@code .migration-backup/} or deleted after successful migration.</p>
+     *
+     * <p>Migration is performed once during project load. If migration fails, an error is
+     * logged but project loading continues to ensure backward compatibility.</p>
+     */
+    private void migrateTestsFromCsvToYaml() {
+        if (projectInfo == null) {
+            return; // No project info available, skip migration
+        }
+
+        // Check if auto-migration is explicitly disabled (defaults to true if not set)
+        Boolean autoMigrateFlag = projectInfo.getAutoMigrateCsvToYaml();
+        // Default value of autoMigrateFlag is true when not set
+        boolean autoMigrate = autoMigrateFlag == null || autoMigrateFlag;
+        if (!autoMigrate) {
+            return; // Auto-migration explicitly disabled
+        }
+
+        // Determine whether to keep CSV backups (defaults to true for safety)
+        Boolean keepBackupFlag = projectInfo.getKeepCsvBackupOnMigrate();
+        // Default value of keepBackupFlag is true when not set
+        boolean keepBackup = keepBackupFlag == null || keepBackupFlag;
+
+        try {
+            LOGGER.log(
+                Level.INFO,
+                "Auto-migrating CSV test cases to YAML (keepBackup={0})...",
+                keepBackup
+            );
+
+            ProjectMigrator.Result result = ProjectMigrator.migrate(
+                new File(location),
+                false, // not a dry run
+                keepBackup
+            );
+
+            // Log migration results
+            if (result.hasChanges()) {
+                LOGGER.log(
+                    Level.INFO,
+                    "CSV to YAML migration completed: {0} file(s) converted, {1} conflict(s), {2} error(s)",
+                    new Object[] {
+                        result.converted.size(),
+                        result.conflicts.size(),
+                        result.errors.size()
+                    }
+                );
+
+                if (!result.errors.isEmpty()) {
+                    for (String error : result.errors) {
+                        LOGGER.log(Level.WARNING, "Migration error: {0}", error);
+                    }
+                }
+            } else {
+                LOGGER.log(
+                    Level.FINE,
+                    "No CSV files to migrate (already migrated or YAML-only project)"
+                );
+            }
+        } catch (Exception ex) {
+            LOGGER.log(
+                Level.WARNING,
+                "Auto-migration from CSV to YAML failed: " + ex.getMessage(),
+                ex
+            );
+            // Don't throw - allow project to load even if migration fails
+        }
     }
 
     /**
@@ -636,7 +723,11 @@ public class Project {
         if (file.exists() && file.isDirectory()) {
             File testPlan = new File(getTestPlanPath());
             if (testPlan.exists() && testPlan.list() != null) {
-                for (String scenario : testPlan.list(DIR_FILTER)) {
+                List<String> names = new ArrayList<>(
+                    java.util.Arrays.asList(testPlan.list(DIR_FILTER))
+                );
+                names = SortOrderStore.apply(testPlan, names);
+                for (String scenario : names) {
                     scenarios.add(new Scenario(this, scenario, Scenario.Source.TEST_PLAN));
                 }
             }
@@ -655,7 +746,11 @@ public class Project {
         if (file.exists() && file.isDirectory()) {
             File reusableRoot = new File(getReusableComponentsPath());
             if (reusableRoot.exists() && reusableRoot.list() != null) {
-                for (String scenario : reusableRoot.list(DIR_FILTER)) {
+                List<String> names = new ArrayList<>(
+                    java.util.Arrays.asList(reusableRoot.list(DIR_FILTER))
+                );
+                names = SortOrderStore.apply(reusableRoot, names);
+                for (String scenario : names) {
                     reusableScenarios.add(
                         new Scenario(this, scenario, Scenario.Source.REUSABLE_COMPONENTS)
                     );
@@ -674,7 +769,11 @@ public class Project {
         sharedReusableScenarios.clear();
         File sharedRoot = new File(getSharedReusableComponentsPath());
         if (sharedRoot.exists() && sharedRoot.isDirectory() && sharedRoot.list() != null) {
-            for (String scenario : sharedRoot.list(DIR_FILTER)) {
+            List<String> names = new ArrayList<>(
+                java.util.Arrays.asList(sharedRoot.list(DIR_FILTER))
+            );
+            names = SortOrderStore.apply(sharedRoot, names);
+            for (String scenario : names) {
                 sharedReusableScenarios.add(
                     new Scenario(this, scenario, Scenario.Source.SHARED_REUSABLE_COMPONENTS)
                 );

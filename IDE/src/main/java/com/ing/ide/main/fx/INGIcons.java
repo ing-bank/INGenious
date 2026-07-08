@@ -91,6 +91,7 @@ public final class INGIcons {
         // ── Tree: Test Plan ──
         register("testplan.Root", MaterialDesignF.FLASK, CLR_DATA);
         register("testplan.Scenario", MaterialDesignF.FOLDER, CLR_OPEN);
+        register("testplan.Group", MaterialDesignF.FOLDER_MULTIPLE, CLR_DATA);
         register("testplan.TestCase", MaterialDesignF.FLASK, CLR_SAVE);
 
         // ── Tree: Test Lab ──
@@ -179,6 +180,7 @@ public final class INGIcons {
         register("testdesign", MaterialDesignP.PENCIL_RULER, CLR_TOOL);
         register("testexecution", MaterialDesignP.PLAY_BOX, CLR_RUN);
         register("dashboard", MaterialDesignV.VIEW_DASHBOARD, CLR_CREATE);
+        register("apidock", MaterialDesignS.SERVER_NETWORK, CLR_TOOL);
 
         // ── Table ──
         register("cut", MaterialDesignC.CONTENT_CUT, CLR_NAV);
