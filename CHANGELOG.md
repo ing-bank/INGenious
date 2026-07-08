@@ -52,6 +52,7 @@ Release Date: <insert date of release>
 - Extended impact analysis to include Shared Reusable test cases alongside Test Plan and Project Reusable impacts
 - Standardized Reusable Components UI with FXPanelHeader matching Test Plan and Object Repository style
 - Updated Shared Reusable tree root node label to "Shared Reusable Components" for clarity
+- Enhanced Web Object Repository role selection with dynamic filtering based on user-entered text
 
 #### Changed
 
