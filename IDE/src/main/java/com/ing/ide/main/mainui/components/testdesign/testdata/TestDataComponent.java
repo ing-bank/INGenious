@@ -1062,20 +1062,21 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
             setBackground(UIManager.getColor("Panel.background"));
 
             if (!isGlobalData) {
-                // Use frozen column scroll pane for test data (but not global data)
                 frozenScrollPane = new FrozenColumnScrollPane(table, frozenColumnCount);
                 frozenScrollPane.setBackground(UIManager.getColor("Panel.background"));
                 frozenScrollPane
                     .getViewport()
                     .setBackground(UIManager.getColor("Panel.background"));
 
-                // Apply popup menu to fixed table as well
                 frozenScrollPane.getFixedTable().setComponentPopupMenu(popupMenu);
-                // Set cell editor provider for fixed columns (columns 0-4: Scenario, Flow, Scope, Iteration, SubIteration)
+
                 frozenScrollPane.setCellEditorProvider(
                     (row, column, defaultEditor) ->
                         tDAutoSuggest.getCellEditorFor(column, defaultEditor)
                 );
+
+                configureFrozenInsertRowPrompt();
+
                 add(frozenScrollPane);
             } else {
                 JScrollPane scrollPane = new JScrollPane(table);
@@ -1096,6 +1097,71 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
             if (!isGlobalData && frozenScrollPane != null) {
                 frozenScrollPane.updateModel();
             }
+        }
+
+        private void configureFrozenInsertRowPrompt() {
+            table.setInsertRowPromptEnabled(false);
+
+            frozenScrollPane.setFixedInsertRowHandler(this::insertRowFromFrozenPrompt);
+            frozenScrollPane.setFixedInsertRowPromptEnabled(true);
+        }
+
+        private void insertRowFromFrozenPrompt(int insertIndex) {
+            stopCellEditing();
+
+            int rowCount = table.getRowCount();
+            int safeInsertIndex = Math.max(0, Math.min(insertIndex, rowCount));
+
+            if (safeInsertIndex >= rowCount) {
+                std.addRecord();
+            } else {
+                std.addRecord(safeInsertIndex);
+            }
+
+            selectInsertedRowAcrossFrozenTables(safeInsertIndex);
+        }
+
+        private void selectInsertedRowAcrossFrozenTables(int insertedRowIndex) {
+            SwingUtilities.invokeLater(
+                () -> {
+                    int rowCount = table.getRowCount();
+
+                    if (rowCount == 0) {
+                        table.clearSelection();
+
+                        if (frozenScrollPane != null && frozenScrollPane.getFixedTable() != null) {
+                            frozenScrollPane.getFixedTable().clearSelection();
+                        }
+
+                        return;
+                    }
+
+                    int safeRow = Math.max(0, Math.min(insertedRowIndex, rowCount - 1));
+
+                    table.setRowSelectionInterval(safeRow, safeRow);
+
+                    if (table.getColumnCount() > 0) {
+                        table.setColumnSelectionInterval(0, table.getColumnCount() - 1);
+                    }
+
+                    if (frozenScrollPane != null && frozenScrollPane.getFixedTable() != null) {
+                        JTable fixedTable = frozenScrollPane.getFixedTable();
+
+                        fixedTable.setRowSelectionInterval(safeRow, safeRow);
+
+                        if (fixedTable.getColumnCount() > 0) {
+                            fixedTable.setColumnSelectionInterval(
+                                0,
+                                fixedTable.getColumnCount() - 1
+                            );
+                        }
+
+                        fixedTable.repaint();
+                    }
+
+                    table.repaint();
+                }
+            );
         }
 
         private Action onRenameAction() {
