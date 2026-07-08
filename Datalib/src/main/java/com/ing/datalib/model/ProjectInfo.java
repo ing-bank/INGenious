@@ -65,8 +65,8 @@ public class ProjectInfo {
 
     /**
      * Whether the application should auto-migrate CSV test cases to YAML on
-     * project load. Null (legacy) defaults to {@code false} during the opt-in
-     * phase; new projects opt in by setting this to {@code true}.
+     * project load. Defaults to {@code true} (auto-migration enabled).
+     * Set to {@code false} to explicitly disable auto-migration.
      */
     @JsonProperty("autoMigrateCsvToYaml")
     private Boolean autoMigrateCsvToYaml;

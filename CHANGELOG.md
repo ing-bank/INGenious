@@ -45,6 +45,8 @@ Release Date: <insert date of release>
     - Scenarios in Test Plan, Reusable Components, and Shared Reusables now restore last sort order
     - Test cases within scenarios maintain custom ordering across restarts
     - Sort order persists after creation, deletion, rename, and drag-and-drop operations
+- Added Auto-migration of Test Cases from `CSV` to `YAML` on project load
+- Enhanced Auto-migration of Test Datasheet new `Scope` field on project load
 
 #### Changed
 
