@@ -8,8 +8,8 @@
     <packaging>pom</packaging>
     <modules>
         <module>StoryWriter</module>
-        <module>Datalib</module>
         <module>TestData - Csv</module>
+        <module>Datalib</module>
         <module>Engine</module>
         <module>IDE</module>
         <module>Common</module>
