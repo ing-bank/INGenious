@@ -498,7 +498,7 @@ public class APIEnvironmentConfigWindow extends JDialog {
         button.setFocusPainted(false);
         button.setBorderPainted(false);
         button.setContentAreaFilled(false);
-        button.setForeground(getSecondaryTextColor());
+        button.setForeground(getActionButtonTextColor());
         button.setFont(button.getFont().deriveFont(Font.BOLD, 13f));
         button.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         return button;
@@ -969,6 +969,14 @@ public class APIEnvironmentConfigWindow extends JDialog {
         return APITesterColors.isDarkMode() ? DARK_ROW_HOVER : new Color(245, 245, 245);
     }
 
+    private Color getActionButtonTextColor() {
+        return APITesterColors.isDarkMode() ? new Color(175, 175, 175) : new Color(90, 90, 90);
+    }
+
+    private Color getActionButtonHoverTextColor() {
+        return APITesterColors.isDarkMode() ? new Color(220, 220, 220) : new Color(55, 55, 55);
+    }
+
     private class RoundedPanel extends JPanel {
         private final int radius;
 
@@ -1381,7 +1389,7 @@ public class APIEnvironmentConfigWindow extends JDialog {
         button.setBorderPainted(false);
         button.setContentAreaFilled(false);
         button.setFocusPainted(false);
-        button.setForeground(getSecondaryTextColor());
+        button.setForeground(getActionButtonTextColor());
         button.setFont(button.getFont().deriveFont(Font.BOLD, 12f));
         button.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
         button.setPreferredSize(new Dimension(72, 30));
