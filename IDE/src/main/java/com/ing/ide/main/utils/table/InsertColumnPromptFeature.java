@@ -50,6 +50,8 @@ public class InsertColumnPromptFeature {
 
     private int minimumInsertColumn = 0;
 
+    private boolean cursorOwnedByInsertColumnPrompt = false;
+
     /**
      * Creates a new insert-column prompt feature for the specified table.
      *
@@ -100,8 +102,10 @@ public class InsertColumnPromptFeature {
 
                     if (hoverInsertColumn != -1 && isPointOnPlus(e.getPoint())) {
                         table.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-                    } else {
+                        cursorOwnedByInsertColumnPrompt = true;
+                    } else if (cursorOwnedByInsertColumnPrompt) {
                         table.setCursor(Cursor.getDefaultCursor());
+                        cursorOwnedByInsertColumnPrompt = false;
                     }
                 }
 
@@ -622,6 +626,9 @@ public class InsertColumnPromptFeature {
      * Restores the default cursor on the table.
      */
     private void resetTableCursor() {
-        table.setCursor(Cursor.getDefaultCursor());
+        if (cursorOwnedByInsertColumnPrompt) {
+            table.setCursor(Cursor.getDefaultCursor());
+            cursorOwnedByInsertColumnPrompt = false;
+        }
     }
 }
