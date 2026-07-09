@@ -292,6 +292,53 @@ public class EnvTestData {
         }
     }
 
+    /**
+     * Find all environments that contain a datasheet with the given name.
+     *
+     * @param datasheetName the name of the datasheet to search for
+     * @return list of environment names where the datasheet exists
+     */
+    public List<String> findEnvironmentsWithDatasheet(String datasheetName) {
+        List<String> environments = new ArrayList<>();
+        for (Map.Entry<String, TestData> entry : environmentTestData.entrySet()) {
+            TestData testData = entry.getValue();
+            if (testData.getByName(datasheetName) != null) {
+                environments.add(entry.getKey());
+            }
+        }
+        return environments;
+    }
+
+    /**
+     * Find environments other than the current one that contain a datasheet with the given name.
+     *
+     * @param datasheetName the name of the datasheet to search for
+     * @param currentEnv the current environment to exclude from search
+     * @return list of environment names (excluding currentEnv) where the datasheet exists
+     */
+    public List<String> findOtherEnvironmentsWithDatasheet(
+        String datasheetName,
+        String currentEnv
+    ) {
+        List<String> environments = new ArrayList<>();
+        for (Map.Entry<String, TestData> entry : environmentTestData.entrySet()) {
+            String envName = entry.getKey();
+            TestData testData = entry.getValue();
+            if (!envName.equals(currentEnv) && testData.getByName(datasheetName) != null) {
+                environments.add(envName);
+            }
+        }
+        return environments;
+    }
+
+    /**
+     * Rename a datasheet in a single environment only.
+     *
+     * @param oldName current datasheet name
+     * @param newName new datasheet name
+     * @param envName environment where rename should occur
+     * @return true if rename was successful, false if newName already exists
+     */
     public Boolean renameTestData(String oldName, String newName, String envName) {
         TestData ntestData = sProject.getTestData().getTestDataFor(envName);
         if (ntestData.getByName(newName) != null) {
@@ -303,6 +350,40 @@ public class EnvTestData {
                 testData.getByName(oldName).rename(newName);
             }
         }
+        sProject.refactorTestData(oldName, newName);
+        return true;
+    }
+
+    /**
+     * Rename a datasheet across multiple specified environments.
+     *
+     * @param oldName current datasheet name
+     * @param newName new datasheet name
+     * @param environments list of environment names where rename should occur
+     * @return true if rename was successful across all environments, false if newName already exists in any
+     */
+    public Boolean renameTestDataAcrossEnvironments(
+        String oldName,
+        String newName,
+        List<String> environments
+    ) {
+        // First check if newName already exists in any of the target environments
+        for (String envName : environments) {
+            TestData testData = getTestDataFor(envName);
+            if (testData != null && testData.getByName(newName) != null) {
+                return false;
+            }
+        }
+
+        // Perform the rename in all specified environments
+        for (String envName : environments) {
+            TestData testData = getTestDataFor(envName);
+            if (testData != null && testData.getByName(oldName) != null) {
+                testData.getByName(oldName).rename(newName);
+            }
+        }
+
+        // Refactor references in test cases
         sProject.refactorTestData(oldName, newName);
         return true;
     }
