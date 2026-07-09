@@ -21,11 +21,15 @@ import com.ing.ingenious.api.status.Status;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Stream;
 import org.apache.commons.io.FileUtils;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
@@ -119,6 +123,134 @@ public class HtmlSummaryHandler extends SummaryHandler implements PrimaryHandler
     }
 
     /**
+     * Ensures shared media assets exist once under the Results root.
+     */
+    private void ensureSharedMediaAssets() {
+        String resultsRoot = FilePath.getResultsPath();
+        createReportIfNotExists(resultsRoot);
+
+        File sharedMedia = new File(resultsRoot + File.separator + "media");
+        File templateMedia = new File(FilePath.getReportResourcePath());
+
+        if (!templateMedia.exists()) {
+            return;
+        }
+
+        try {
+            copyMissingDirectoryTree(templateMedia.toPath(), sharedMedia.toPath());
+        } catch (Exception ex) {
+            LOGGER.log(Level.WARNING, "Failed to refresh shared media assets", ex);
+        }
+    }
+
+    /**
+     * Reuses shared media assets for the current run by creating hard links.
+     * Falls back to regular copy if linking is not supported.
+     */
+    private void ensureRunMediaAssets() {
+        ensureSharedMediaAssets();
+
+        File sharedMedia = new File(FilePath.getResultsPath() + File.separator + "media");
+        File runMedia = new File(FilePath.getCurrentResultsPath() + File.separator + "media");
+
+        if (!sharedMedia.exists()) {
+            return;
+        }
+
+        try {
+            linkDirectoryTree(sharedMedia.toPath(), runMedia.toPath());
+        } catch (Exception ex) {
+            try {
+                FileUtils.copyDirectory(sharedMedia, runMedia);
+            } catch (IOException ioEx) {
+                LOGGER.log(Level.SEVERE, "Failed to prepare media assets for current run", ioEx);
+            }
+        }
+    }
+
+    /**
+     * Computes the media reference relative to the current run directory.
+     */
+    private String getSharedMediaReference() {
+        try {
+            Path currentRunPath = Path.of(FilePath.getCurrentResultsPath());
+            Path resultsRootPath = Path.of(FilePath.getResultsPath());
+            Path relativeToResults = currentRunPath.relativize(resultsRootPath);
+
+            String normalized = relativeToResults.toString().replace(File.separatorChar, '/');
+            if (normalized.isEmpty()) {
+                return "media";
+            }
+            return normalized + "/media";
+        } catch (Exception ex) {
+            return "media";
+        }
+    }
+
+    /**
+     * Rewrites report HTML media paths to the shared Results/media location.
+     */
+    private String rewriteMediaReferences(String html) {
+        String sharedMediaRef = getSharedMediaReference();
+        String updatedHtml = html.replaceAll("\\.\\./\\.\\./\\.\\./\\.\\./media", sharedMediaRef);
+        return updatedHtml.replaceAll("(?<![A-Za-z0-9_./-])media(?=/)", sharedMediaRef);
+    }
+
+    /**
+     * Copies only missing files/directories from source to target.
+     */
+    private void copyMissingDirectoryTree(Path sourceRoot, Path targetRoot) throws IOException {
+        Files.createDirectories(targetRoot);
+
+        try (Stream<Path> paths = Files.walk(sourceRoot)) {
+            for (Path sourcePath : (Iterable<Path>) paths::iterator) {
+                Path relative = sourceRoot.relativize(sourcePath);
+                Path targetPath = targetRoot.resolve(relative);
+
+                if (Files.isDirectory(sourcePath)) {
+                    Files.createDirectories(targetPath);
+                    continue;
+                }
+
+                if (Files.exists(targetPath)) {
+                    continue;
+                }
+
+                Files.copy(sourcePath, targetPath);
+            }
+        }
+    }
+
+    /**
+     * Creates a target directory tree and hard-links files from source.
+     */
+    private void linkDirectoryTree(Path sourceRoot, Path targetRoot) throws IOException {
+        Files.createDirectories(targetRoot);
+
+        try (Stream<Path> paths = Files.walk(sourceRoot)) {
+            for (Path sourcePath : (Iterable<Path>) paths::iterator) {
+                Path relative = sourceRoot.relativize(sourcePath);
+                Path targetPath = targetRoot.resolve(relative);
+
+                if (Files.isDirectory(sourcePath)) {
+                    Files.createDirectories(targetPath);
+                    continue;
+                }
+
+                if (Files.exists(targetPath)) {
+                    continue;
+                }
+
+                try {
+                    Files.createLink(targetPath, sourcePath);
+                } catch (UnsupportedOperationException | IOException linkEx) {
+                    Files.copy(sourcePath, targetPath, StandardCopyOption.REPLACE_EXISTING);
+                }
+            }
+        }
+    }
+
+    /**
      * initialize the report data file.
      *
      * @param runTime
@@ -131,6 +263,7 @@ public class HtmlSummaryHandler extends SummaryHandler implements PrimaryHandler
             ReportUtils.loadDefaultTheme(testSetData);
             RunTime = new DateTimeUtils();
             new File(FilePath.getCurrentResultsPath()).mkdirs();
+            ensureSharedMediaAssets();
             testSetData.put(
                 RDS.TestSet.PROJECT_NAME,
                 RunManager.getGlobalSettings().getProjectName()
@@ -281,18 +414,14 @@ public class HtmlSummaryHandler extends SummaryHandler implements PrimaryHandler
                 new File(FilePath.getCurrentResultsPath())
             );
             embedAxeDataInDetailedV2(new File(FilePath.getCurrentDetailedHTMLPathV2()));
-            // Copy media folder for embedded CSS/JS resources
-            FileUtils.copyDirectoryToDirectory(
-                new File(FilePath.getReportMediaPath()),
-                new File(FilePath.getCurrentResultsPath())
-            );
+            ensureSharedMediaAssets();
 
             // Fix media paths in the copied HTML files
             String summaryHtml = FileUtils.readFileToString(
                 new File(FilePath.getCurrentSummaryHTMLPathV2()),
                 Charset.defaultCharset()
             );
-            summaryHtml = summaryHtml.replaceAll("../../../../media", "media");
+            summaryHtml = rewriteMediaReferences(summaryHtml);
             FileUtils.writeStringToFile(
                 new File(FilePath.getCurrentSummaryHTMLPathV2()),
                 summaryHtml,
@@ -303,7 +432,7 @@ public class HtmlSummaryHandler extends SummaryHandler implements PrimaryHandler
                 new File(FilePath.getCurrentDetailedHTMLPathV2()),
                 Charset.defaultCharset()
             );
-            detailedHtml = detailedHtml.replaceAll("../../../../media", "media");
+            detailedHtml = rewriteMediaReferences(detailedHtml);
             FileUtils.writeStringToFile(
                 new File(FilePath.getCurrentDetailedHTMLPathV2()),
                 detailedHtml,
@@ -333,7 +462,7 @@ public class HtmlSummaryHandler extends SummaryHandler implements PrimaryHandler
                     new File(FilePath.getCurrentPerfReportHTMLPathV2()),
                     Charset.defaultCharset()
                 );
-                perfHtml = perfHtml.replaceAll("../../../../media", "media");
+                perfHtml = rewriteMediaReferences(perfHtml);
                 FileUtils.writeStringToFile(
                     new File(FilePath.getCurrentPerfReportHTMLPathV2()),
                     perfHtml,
@@ -357,7 +486,7 @@ public class HtmlSummaryHandler extends SummaryHandler implements PrimaryHandler
                     new File(FilePath.getCurrentVideoReportHTMLPathV2()),
                     Charset.defaultCharset()
                 );
-                videoHtml = videoHtml.replaceAll("../../../../media", "media");
+                videoHtml = rewriteMediaReferences(videoHtml);
                 FileUtils.writeStringToFile(
                     new File(FilePath.getCurrentVideoReportHTMLPathV2()),
                     videoHtml,
@@ -377,7 +506,7 @@ public class HtmlSummaryHandler extends SummaryHandler implements PrimaryHandler
      * @throws IOException if file operations fail
      */
     private void createStandaloneHtmls() throws IOException {
-        createReportIfNotExists(FilePath.getCurrentResultsPath());
+        ensureSharedMediaAssets();
 
         // Check if modern report style is enabled
         boolean useModern = Control.exe.getExecSettings().getRunSettings().isModernReport();
@@ -388,7 +517,7 @@ public class HtmlSummaryHandler extends SummaryHandler implements PrimaryHandler
                 new File(FilePath.getSummaryHTMLPathV2()),
                 Charset.defaultCharset()
             );
-            summaryHtml = summaryHtml.replaceAll("../../../../media", "media");
+            summaryHtml = rewriteMediaReferences(summaryHtml);
             FileUtils.writeStringToFile(
                 new File(FilePath.getCurrentSummaryHTMLPathV2()),
                 summaryHtml,
@@ -399,7 +528,7 @@ public class HtmlSummaryHandler extends SummaryHandler implements PrimaryHandler
                 new File(FilePath.getDetailedHTMLPathV2()),
                 Charset.defaultCharset()
             );
-            detailedHtml = detailedHtml.replaceAll("../../../../media", "media");
+            detailedHtml = rewriteMediaReferences(detailedHtml);
             FileUtils.writeStringToFile(
                 new File(FilePath.getCurrentDetailedHTMLPathV2()),
                 detailedHtml,
@@ -413,7 +542,7 @@ public class HtmlSummaryHandler extends SummaryHandler implements PrimaryHandler
                     new File(FilePath.getPerfReportHTMLPathV2()),
                     Charset.defaultCharset()
                 );
-                perfHtml = perfHtml.replaceAll("../../../../media", "media");
+                perfHtml = rewriteMediaReferences(perfHtml);
                 FileUtils.writeStringToFile(
                     new File(FilePath.getCurrentPerfReportHTMLPathV2()),
                     perfHtml,
@@ -426,7 +555,7 @@ public class HtmlSummaryHandler extends SummaryHandler implements PrimaryHandler
                 new File(FilePath.getSummaryHTMLPath()),
                 Charset.defaultCharset()
             );
-            summaryHtml = summaryHtml.replaceAll("../../../../media", "media");
+            summaryHtml = rewriteMediaReferences(summaryHtml);
             FileUtils.writeStringToFile(
                 new File(FilePath.getCurrentSummaryHTMLPath()),
                 summaryHtml,
@@ -437,7 +566,7 @@ public class HtmlSummaryHandler extends SummaryHandler implements PrimaryHandler
                 new File(FilePath.getDetailedHTMLPath()),
                 Charset.defaultCharset()
             );
-            detailedHtml = detailedHtml.replaceAll("../../../../media", "media");
+            detailedHtml = rewriteMediaReferences(detailedHtml);
             FileUtils.writeStringToFile(
                 new File(FilePath.getCurrentDetailedHTMLPath()),
                 detailedHtml,
@@ -450,7 +579,7 @@ public class HtmlSummaryHandler extends SummaryHandler implements PrimaryHandler
                     new File(FilePath.getPerfReportHTMLPath()),
                     Charset.defaultCharset()
                 );
-                perfHtml = perfHtml.replaceAll("../../../../media", "media");
+                perfHtml = rewriteMediaReferences(perfHtml);
                 FileUtils.writeStringToFile(
                     new File(FilePath.getCurrentPerfReportHTMLPath()),
                     perfHtml,
