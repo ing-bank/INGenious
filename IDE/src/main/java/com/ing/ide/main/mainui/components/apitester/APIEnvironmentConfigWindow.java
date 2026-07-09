@@ -970,11 +970,11 @@ public class APIEnvironmentConfigWindow extends JDialog {
     }
 
     private Color getActionButtonTextColor() {
-        return APITesterColors.isDarkMode() ? new Color(175, 175, 175) : new Color(90, 90, 90);
+        return APITesterColors.isDarkMode() ? new Color(175, 175, 175) : new Color(45, 45, 45);
     }
 
     private Color getActionButtonHoverTextColor() {
-        return APITesterColors.isDarkMode() ? new Color(220, 220, 220) : new Color(55, 55, 55);
+        return APITesterColors.isDarkMode() ? new Color(240, 240, 240) : new Color(15, 15, 15);
     }
 
     private class RoundedPanel extends JPanel {
