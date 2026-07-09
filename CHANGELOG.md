@@ -108,6 +108,13 @@ Release Date: <insert date of release>
 - Preserved `;exact` modifier in XML to YAML OR conversion
 - Resolved assertURLmatches pattern compile error
 - Fixed issue where the aXe accessibility report failed to load or display when `testAccessibility` is executed inside a reusable component
+- Fixed Playwright recorder exact-match attributes to correctly populate the Exact flag and display consistent Object Repository values during live recording and file import.
+- Fixed validation that incorrectly prevented duplicate test case names across different scenarios; test case names now only need to be unique within the same scenario.
+- Added Enter key support to the Start Recording dialog for quicker recording startup.
+- Fixed an issue where closing the recording browser externally added an unwanted empty step at the end of recorded test cases.
+- Fixed Playwright recordings to correctly capture and insert page/tab switch actions in multi-tab scenarios.
+- Fixed iframe element detection during live Playwright recording to correctly populate frame-related Object Repository attributes.
+- Fixed `Record From Here` recordings being inserted at the beginning of a test case instead of immediately after the selected step.
 
 ### Mobile App Testing
 
