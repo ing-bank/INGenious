@@ -53,8 +53,9 @@ Release Date: <insert date of release>
 - Standardized Reusable Components UI with FXPanelHeader matching Test Plan and Object Repository style
 - Updated Shared Reusable tree root node label to "Shared Reusable Components" for clarity
 - Enhanced Web Object Repository role selection with dynamic filtering based on user-entered text
+- Added cross-environment datasheet renaming functionality and its accompanying UI confirmation dialog
 - Action 'assertVariable' can now assert runtime and global variables
-
+  
 #### Changed
 
 - Enabled reordering of data tabs

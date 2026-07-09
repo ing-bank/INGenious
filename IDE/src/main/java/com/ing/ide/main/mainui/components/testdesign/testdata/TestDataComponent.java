@@ -20,6 +20,7 @@ import com.ing.ide.util.Notification;
 import com.ing.ide.util.Utility;
 import com.ing.ide.util.Validator;
 import java.awt.BorderLayout;
+import java.awt.Frame;
 import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
@@ -509,6 +510,25 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
         }
     }
 
+    private void renameTestDataFromMenu() {
+        TestDataTablePanel panel = getSelectedData();
+        if (panel != null && !panel.isGlobalData) {
+            JTabbedPane tab = (JTabbedPane) envTab.getSelectedComponent();
+            int index = tab.getSelectedIndex();
+            String oldName = tab.getTitleAt(index);
+
+            String newName = JOptionPane.showInputDialog(
+                this,
+                "Enter new name for TestData:",
+                oldName
+            );
+
+            if (newName != null && !newName.trim().isEmpty() && Validator.isValidName(newName)) {
+                panel.rename(newName);
+            }
+        }
+    }
+
     private void reopenTestData() {
         int index = envTab.getSelectedIndex();
         String envName = envTab.getTitleAt(index);
@@ -609,6 +629,9 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
                     break;
                 case "Add In All Env":
                     addInAllEnvironement();
+                    break;
+                case "Rename TestData":
+                    renameTestDataFromMenu();
                     break;
                 case "Search TestData":
                     searchTestData(envTab.getSelectedComponent());
@@ -834,6 +857,31 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
         for (int i = 0; i < selectedTab.getTabCount(); i++) {
             if (selectedTab.getTitleAt(i).equals(oldName)) {
                 selectedTab.setTitleAt(i, newName);
+            }
+        }
+    }
+
+    /**
+     * Rename datasheet tabs across multiple specified environments.
+     *
+     * @param oldName the old datasheet name
+     * @param newName the new datasheet name
+     * @param environments list of environment names to update tabs in
+     */
+    private void renameTestDataTabsInEnvironments(
+        String oldName,
+        String newName,
+        List<String> environments
+    ) {
+        for (int envIndex = 0; envIndex < envTab.getTabCount(); envIndex++) {
+            String envName = envTab.getTitleAt(envIndex);
+            if (environments.contains(envName)) {
+                JTabbedPane testdataTab = (JTabbedPane) envTab.getComponentAt(envIndex);
+                for (int tabIndex = 0; tabIndex < testdataTab.getTabCount(); tabIndex++) {
+                    if (testdataTab.getTitleAt(tabIndex).equals(oldName)) {
+                        testdataTab.setTitleAt(tabIndex, newName);
+                    }
+                }
             }
         }
     }
@@ -1144,13 +1192,81 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
         private Boolean rename(String newName) {
             String oldName = std.getName();
             String envName = envTab.getTitleAt(envTab.getSelectedIndex());
-            if (testDesign.getProject().getTestData().renameTestData(oldName, newName, envName)) {
-                renameTestDataTabs(oldName, newName);
-                return true;
+
+            // Check for duplicates in other environments
+            List<String> otherEnvsWithSameName = testDesign
+                .getProject()
+                .getTestData()
+                .findOtherEnvironmentsWithDatasheet(oldName, envName);
+
+            if (!otherEnvsWithSameName.isEmpty()) {
+                // Show confirmation dialog for cross-environment rename
+                CrossEnvironmentRenameDialog dialog = CrossEnvironmentRenameDialog.showDialog(
+                    (Frame) SwingUtilities.getWindowAncestor(TestDataComponent.this),
+                    oldName,
+                    envName,
+                    otherEnvsWithSameName
+                );
+
+                if (!dialog.isConfirmed()) {
+                    // User cancelled
+                    return false;
+                }
+
+                List<String> selectedEnvs = dialog.getSelectedEnvironmentsForRename();
+
+                if (selectedEnvs == null) {
+                    // User chose to rename current environment only
+                    if (
+                        testDesign
+                            .getProject()
+                            .getTestData()
+                            .renameTestData(oldName, newName, envName)
+                    ) {
+                        renameTestDataTabs(oldName, newName);
+                        return true;
+                    } else {
+                        Notification.show(
+                            "A TestData with name '" + newName + "' is present already"
+                        );
+                        return false;
+                    }
+                } else {
+                    // User chose to rename across selected environments
+                    // Add current environment to the list
+                    List<String> allEnvs = new ArrayList<>(selectedEnvs);
+                    allEnvs.add(envName);
+
+                    if (
+                        testDesign
+                            .getProject()
+                            .getTestData()
+                            .renameTestDataAcrossEnvironments(oldName, newName, allEnvs)
+                    ) {
+                        // Update tabs in all affected environments
+                        renameTestDataTabsInEnvironments(oldName, newName, allEnvs);
+                        return true;
+                    } else {
+                        Notification.show(
+                            "A TestData with name '" +
+                            newName +
+                            "' is present already in one or more environments"
+                        );
+                        return false;
+                    }
+                }
             } else {
-                Notification.show("A TestData with name '" + newName + "' is present already");
+                // No duplicates in other environments, proceed with normal rename
+                if (
+                    testDesign.getProject().getTestData().renameTestData(oldName, newName, envName)
+                ) {
+                    renameTestDataTabs(oldName, newName);
+                    return true;
+                } else {
+                    Notification.show("A TestData with name '" + newName + "' is present already");
+                }
+                return false;
             }
-            return false;
         }
 
         private void save() {
@@ -1694,6 +1810,7 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
     class TestDataTabPopup extends JPopupMenu {
         JMenuItem addNew;
         JMenuItem addInAll;
+        JMenuItem rename;
         JMenuItem search;
         JMenuItem close;
         JMenuItem delete;
@@ -1712,6 +1829,9 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
             addInAll = new JMenuItem("Add In All Env");
             addInAll.setActionCommand("Add In All Env");
 
+            rename = new JMenuItem("Rename");
+            rename.setActionCommand("Rename TestData");
+
             search = new JMenuItem("Search TestData");
             search.setActionCommand("Search TestData");
 
@@ -1727,6 +1847,7 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
 
             addNew.addActionListener(TestDataComponent.this);
             addInAll.addActionListener(TestDataComponent.this);
+            rename.addActionListener(TestDataComponent.this);
             search.addActionListener(TestDataComponent.this);
             close.addActionListener(TestDataComponent.this);
             delete.addActionListener(TestDataComponent.this);
@@ -1740,6 +1861,7 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
             addSeparator();
             add(close);
             add(delete);
+            add(rename);
             addSeparator();
             add(impactAnalysis);
             addSeparator();
