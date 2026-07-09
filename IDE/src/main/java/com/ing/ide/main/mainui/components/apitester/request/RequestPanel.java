@@ -405,10 +405,17 @@ public class RequestPanel extends JPanel {
                 }
                 return;
             }
+            // Resolve environment variables for conversion only.
+            // Do not mutate the original request; collections should keep {{var}} placeholders.
+            APIEnvironment activeEnvironment = parent.getApiTester().getActiveEnvironment();
+            APIRequest requestForConversion = createResolvedRequestForConversion(
+                request,
+                activeEnvironment
+            );
 
             // Proxy handling: if the request uses a proxy, ask where to persist the details
             String proxyConfigAlias = null;
-            ProxyConfig proxyConfig = request.getProxyConfig();
+            ProxyConfig proxyConfig = requestForConversion.getProxyConfig();
             if (proxyConfig != null && proxyConfig.hasValidConfig()) {
                 Object[] options = { "Default API Config", "New API Config", "Cancel" };
                 int proxyChoice = javax.swing.JOptionPane.showOptionDialog(
@@ -462,7 +469,7 @@ public class RequestPanel extends JPanel {
             com.ing.datalib.component.TestCase testCase = parent
                 .getApiTester()
                 .convertRequestToTestCase(
-                    request,
+                    requestForConversion,
                     selectedScenario,
                     testCaseName,
                     proxyConfigAlias
@@ -494,6 +501,158 @@ public class RequestPanel extends JPanel {
                 );
             }
         }
+    }
+
+    /**
+     * Creates a resolved copy of the request for test-case conversion.
+     *
+     * Important: this does not mutate the original API request. The API Tester should
+     * keep {{variable}} placeholders in the saved request, but the generated test case
+     * should receive concrete values from the active environment.
+     */
+    private APIRequest createResolvedRequestForConversion(
+        APIRequest source,
+        APIEnvironment environment
+    ) {
+        if (source == null || environment == null) {
+            return source;
+        }
+
+        APIRequest resolved = new APIRequest();
+
+        resolved.setId(source.getId());
+        resolved.setName(source.getName());
+        resolved.setMethod(source.getMethod());
+        resolved.setUrl(resolveValue(source.getUrl(), environment));
+
+        resolved.setQueryParams(resolveKeyValuePairs(source.getQueryParams(), environment));
+        resolved.setHeaders(resolveKeyValuePairs(source.getHeaders(), environment));
+        resolved.setBody(resolveBody(source.getBody(), environment));
+        resolved.setAuth(resolveAuth(source.getAuth(), environment));
+
+        resolved.setFollowRedirects(source.isFollowRedirects());
+        resolved.setSslVerificationEnabled(source.isSslVerificationEnabled());
+        resolved.setTimeout(source.getTimeout());
+
+        resolved.setProxyConfig(resolveProxyConfig(source.getProxyConfig(), environment));
+        resolved.setCertificateConfig(
+            resolveCertificateConfig(source.getCertificateConfig(), environment)
+        );
+
+        return resolved;
+    }
+
+    private String resolveValue(String value, APIEnvironment environment) {
+        if (value == null || environment == null) {
+            return value;
+        }
+        return environment.resolve(value);
+    }
+
+    private List<KeyValuePair> resolveKeyValuePairs(
+        List<KeyValuePair> pairs,
+        APIEnvironment environment
+    ) {
+        if (pairs == null) {
+            return null;
+        }
+
+        List<KeyValuePair> resolvedPairs = new ArrayList<>();
+
+        for (KeyValuePair pair : pairs) {
+            if (pair == null) {
+                continue;
+            }
+
+            resolvedPairs.add(
+                new KeyValuePair(
+                    resolveValue(pair.getKey(), environment),
+                    resolveValue(pair.getValue(), environment),
+                    pair.isEnabled()
+                )
+            );
+        }
+
+        return resolvedPairs;
+    }
+
+    private RequestBody resolveBody(RequestBody body, APIEnvironment environment) {
+        if (body == null) {
+            return null;
+        }
+
+        RequestBody resolvedBody = new RequestBody();
+        resolvedBody.setBodyType(body.getBodyType());
+        resolvedBody.setRawFormat(body.getRawFormat());
+        resolvedBody.setRawContent(resolveValue(body.getRawContent(), environment));
+
+        return resolvedBody;
+    }
+
+    private AuthConfig resolveAuth(AuthConfig auth, APIEnvironment environment) {
+        if (auth == null) {
+            return null;
+        }
+
+        AuthConfig resolvedAuth = new AuthConfig();
+        resolvedAuth.setAuthType(auth.getAuthType());
+
+        resolvedAuth.setBasicUsername(resolveValue(auth.getBasicUsername(), environment));
+        resolvedAuth.setBasicPassword(resolveValue(auth.getBasicPassword(), environment));
+
+        resolvedAuth.setBearerToken(resolveValue(auth.getBearerToken(), environment));
+        resolvedAuth.setBearerPrefix(resolveValue(auth.getBearerPrefix(), environment));
+
+        resolvedAuth.setApiKeyName(resolveValue(auth.getApiKeyName(), environment));
+        resolvedAuth.setApiKeyValue(resolveValue(auth.getApiKeyValue(), environment));
+        resolvedAuth.setApiKeyLocation(auth.getApiKeyLocation());
+
+        return resolvedAuth;
+    }
+
+    private ProxyConfig resolveProxyConfig(ProxyConfig proxyConfig, APIEnvironment environment) {
+        if (proxyConfig == null) {
+            return null;
+        }
+
+        ProxyConfig resolvedProxyConfig = new ProxyConfig();
+        resolvedProxyConfig.setEnabled(proxyConfig.isEnabled());
+        resolvedProxyConfig.setHost(resolveValue(proxyConfig.getHost(), environment));
+        resolvedProxyConfig.setPort(resolveValue(proxyConfig.getPort(), environment));
+
+        return resolvedProxyConfig;
+    }
+
+    private CertificateConfig resolveCertificateConfig(
+        CertificateConfig certificateConfig,
+        APIEnvironment environment
+    ) {
+        if (certificateConfig == null) {
+            return null;
+        }
+
+        CertificateConfig resolvedCertificateConfig = new CertificateConfig();
+
+        resolvedCertificateConfig.setEnabled(certificateConfig.isEnabled());
+        resolvedCertificateConfig.setCertificateType(certificateConfig.getCertificateType());
+
+        resolvedCertificateConfig.setCaCertPath(
+            resolveValue(certificateConfig.getCaCertPath(), environment)
+        );
+        resolvedCertificateConfig.setClientCertPath(
+            resolveValue(certificateConfig.getClientCertPath(), environment)
+        );
+        resolvedCertificateConfig.setClientKeyPath(
+            resolveValue(certificateConfig.getClientKeyPath(), environment)
+        );
+        resolvedCertificateConfig.setPfxPath(
+            resolveValue(certificateConfig.getPfxPath(), environment)
+        );
+        resolvedCertificateConfig.setPassphrase(
+            resolveValue(certificateConfig.getPassphrase(), environment)
+        );
+
+        return resolvedCertificateConfig;
     }
 
     private String extractPathName(String url) {
@@ -1004,6 +1163,8 @@ class AuthPanel extends JPanel {
     // Basic Auth
     private JTextField basicUsername;
     private JPasswordField basicPassword;
+    private JToggleButton basicPasswordVisibilityToggle;
+    private char basicPasswordDefaultEchoChar;
 
     // Bearer Token
     private JTextField bearerToken;
@@ -1080,8 +1241,24 @@ class AuthPanel extends JPanel {
         gbc.gridx = 1;
         gbc.fill = GridBagConstraints.HORIZONTAL;
         gbc.weightx = 1;
+
         basicPassword = new JPasswordField(30);
-        panel.add(basicPassword, gbc);
+        basicPasswordDefaultEchoChar = basicPassword.getEchoChar();
+
+        basicPasswordVisibilityToggle = new JToggleButton("Show");
+        basicPasswordVisibilityToggle.setFont(
+            basicPasswordVisibilityToggle.getFont().deriveFont(11f)
+        );
+        basicPasswordVisibilityToggle.setFocusPainted(false);
+        basicPasswordVisibilityToggle.setToolTipText("Show or hide password");
+        basicPasswordVisibilityToggle.addActionListener(e -> updateBasicPasswordVisibility());
+
+        JPanel passwordPanel = new JPanel(new BorderLayout(5, 0));
+        passwordPanel.setOpaque(false);
+        passwordPanel.add(basicPassword, BorderLayout.CENTER);
+        passwordPanel.add(basicPasswordVisibilityToggle, BorderLayout.EAST);
+
+        panel.add(passwordPanel, gbc);
 
         return panel;
     }
@@ -1153,6 +1330,17 @@ class AuthPanel extends JPanel {
         return panel;
     }
 
+    private void updateBasicPasswordVisibility() {
+        if (basicPassword == null || basicPasswordVisibilityToggle == null) {
+            return;
+        }
+
+        boolean showPassword = basicPasswordVisibilityToggle.isSelected();
+
+        basicPassword.setEchoChar(showPassword ? (char) 0 : basicPasswordDefaultEchoChar);
+        basicPasswordVisibilityToggle.setText(showPassword ? "Hide" : "Show");
+    }
+
     private void updateAuthPanel() {
         AuthConfig.AuthType type = (AuthConfig.AuthType) typeSelector.getSelectedItem();
         cardLayout.show(authPanel, type.name());
@@ -1168,6 +1356,10 @@ class AuthPanel extends JPanel {
 
         basicUsername.setText(auth.getBasicUsername() != null ? auth.getBasicUsername() : "");
         basicPassword.setText(auth.getBasicPassword() != null ? auth.getBasicPassword() : "");
+        if (basicPasswordVisibilityToggle != null) {
+            basicPasswordVisibilityToggle.setSelected(false);
+            updateBasicPasswordVisibility();
+        }
         bearerToken.setText(auth.getBearerToken() != null ? auth.getBearerToken() : "");
         bearerPrefix.setText(auth.getBearerPrefix() != null ? auth.getBearerPrefix() : "Bearer");
         apiKeyName.setText(auth.getApiKeyName() != null ? auth.getApiKeyName() : "");
@@ -1208,6 +1400,10 @@ class AuthPanel extends JPanel {
             basicPassword.setBackground(UIManager.getColor("TextField.background"));
             basicPassword.setForeground(UIManager.getColor("TextField.foreground"));
         }
+        if (basicPasswordVisibilityToggle != null) {
+            basicPasswordVisibilityToggle.setBackground(UIManager.getColor("Button.background"));
+            basicPasswordVisibilityToggle.setForeground(UIManager.getColor("Button.foreground"));
+        }
         if (bearerToken != null) {
             bearerToken.setBackground(UIManager.getColor("TextField.background"));
             bearerToken.setForeground(UIManager.getColor("TextField.foreground"));
@@ -1243,10 +1439,37 @@ class AuthPanel extends JPanel {
         // Refresh child panels
         for (Component c : authPanel.getComponents()) {
             if (c instanceof JPanel) {
-                c.setBackground(UIManager.getColor("Panel.background"));
+                refreshAuthChildColors((Container) c);
             }
         }
+
         repaint();
+    }
+
+    private void refreshAuthChildColors(Container container) {
+        for (Component c : container.getComponents()) {
+            if (c instanceof JPanel) {
+                c.setBackground(UIManager.getColor("Panel.background"));
+            }
+            if (c instanceof JTextField) {
+                c.setBackground(UIManager.getColor("TextField.background"));
+                c.setForeground(UIManager.getColor("TextField.foreground"));
+            }
+            if (c instanceof JPasswordField) {
+                c.setBackground(UIManager.getColor("TextField.background"));
+                c.setForeground(UIManager.getColor("TextField.foreground"));
+            }
+            if (c instanceof AbstractButton) {
+                c.setBackground(UIManager.getColor("Button.background"));
+                c.setForeground(UIManager.getColor("Button.foreground"));
+            }
+            if (c instanceof JComboBox) {
+                c.setBackground(UIManager.getColor("ComboBox.background"));
+            }
+            if (c instanceof Container) {
+                refreshAuthChildColors((Container) c);
+            }
+        }
     }
 }
 
