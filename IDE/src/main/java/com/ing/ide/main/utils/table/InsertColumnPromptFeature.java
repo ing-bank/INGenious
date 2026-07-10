@@ -580,10 +580,13 @@ public class InsertColumnPromptFeature {
             );
             g2.setColor(accentColor);
             g2.setStroke(new BasicStroke(2f));
-            int safeRow = getSafeHoverRow();
-            Rectangle rowBounds = table.getCellRect(safeRow, 0, true);
+            Rectangle firstRowBounds = table.getCellRect(0, 0, true);
+            Rectangle lastRowBounds = table.getCellRect(table.getRowCount() - 1, 0, true);
 
-            g2.drawLine(x, rowBounds.y, x, rowBounds.y + rowBounds.height);
+            int lineTop = firstRowBounds.y;
+            int lineBottom = lastRowBounds.y + lastRowBounds.height;
+
+            g2.drawLine(x, lineTop, x, lineBottom);
 
             Rectangle plusBounds = getPlusBounds(hoverInsertColumn);
 
