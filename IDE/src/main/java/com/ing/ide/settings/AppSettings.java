@@ -36,6 +36,8 @@ public class AppSettings {
         AI_GITHUB_LOGIN("githubModelsLogin", ""),
         AI_SELECTED_MODEL("githubModelsModel", "openai/gpt-4o-mini"),
         AI_GITHUB_CLIENT_ID("githubOAuthClientId", ""),
+        AI_SIDEBAR_VISIBLE("aiSidebarVisible", "false"),
+        AI_SIDEBAR_WIDTH("aiSidebarWidth", "360"),
         TOUR_COMPLETED("tourCompleted", "false");
 
         private final String key;

@@ -75,7 +75,7 @@ public class FXStatusBar extends JFXPanel {
         Pane spacer = new Pane();
         HBox.setHgrow(spacer, Priority.ALWAYS);
 
-        statusLabel = new Label("INGenious Playwright Studio");
+        statusLabel = new Label("INGenious");
         statusLabel.getStyleClass().add("status-info-label");
         // Add flask icon to branding label
         org.kordamp.ikonli.javafx.FontIcon brandIcon = INGIcons.fxColored("favicon", 11);

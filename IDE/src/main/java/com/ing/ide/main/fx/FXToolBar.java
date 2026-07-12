@@ -66,8 +66,8 @@ public class FXToolBar extends JFXPanel {
                 createButton("Archetype Configurations", "BrowserConfiguration"),
                 new Separator(),
                 createAPITesterButton(),
-                //createAICopilotButton(),
-                createSpacer()
+                createSpacer(),
+                createAICopilotButton()
                 //, createDarkModeToggle()
             );
 
@@ -117,7 +117,7 @@ public class FXToolBar extends JFXPanel {
     private Button createAICopilotButton() {
         Button btn = new Button("AI Assistant");
         btn.getStyleClass().add("api-tester-btn");
-        btn.setTooltip(new Tooltip("Open the INGenious AI Assistant (GitHub Models)"));
+        btn.setTooltip(new Tooltip("Toggle the INGenious AI Assistant sidebar (GitHub Models)"));
 
         org.kordamp.ikonli.javafx.FontIcon icon = INGIcons.fxColored("AICopilot", 16);
         if (icon != null) {

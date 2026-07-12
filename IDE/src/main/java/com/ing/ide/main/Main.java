@@ -232,7 +232,6 @@ public class Main {
         System.out.println(
             bo + l + "              ═══════════════════════════════════════════════════════════" + r
         );
-        System.out.println(bo + w + "               ✦  P L A Y W R I G H T   S T U D I O  ✦" + r);
         System.out.println(
             bo + b + "                              Version " + About.getBuildVersion() + r
         );
@@ -306,6 +305,10 @@ public class Main {
                                 frame.setVisible(true);
                                 // Swap Swing chrome for JavaFX CSS-styled chrome
                                 frame.initFXChrome();
+                                // First-run archetype selector (RELEASE_STRATEGY.md 9.5)
+                                com.ing.ide.main.settings.ArchetypeManagerDialog.maybeShowFirstRun(
+                                    frame
+                                );
                             }
                         );
                         delayTimer.setRepeats(false);
@@ -947,7 +950,7 @@ public class Main {
             .getLogger(Main.class.getName())
             .log(
                 Level.INFO,
-                "INGenious Playwright Studio has been Terminated - [ Total Time : {0} ]",
+                "INGenious has been Terminated - [ Total Time : {0} ]",
                 STOP_WATCH.toString()
             );
     }
