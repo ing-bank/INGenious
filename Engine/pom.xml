@@ -371,21 +371,7 @@
             <artifactId>bcutil-jdk18on</artifactId>
             <version>${bouncycastle.version}</version>
         </dependency>
-        <dependency>
-            <groupId>com.microsoft.sqlserver</groupId>
-            <artifactId>mssql-jdbc</artifactId>
-            <version>13.2.1.jre11</version>
-        </dependency>
-        <dependency>
-            <groupId>com.mysql</groupId>
-            <artifactId>mysql-connector-j</artifactId>
-            <version>9.4.0</version>
-        </dependency>
-        <dependency>
-          <groupId>com.oracle.database.jdbc</groupId>
-          <artifactId>ojdbc11</artifactId>
-          <version>23.26.1.0.0</version>
-        </dependency>
+        <!-- JDBC drivers (Database archetype) moved to the 'database' profile - see <profiles> below. -->
         
         <!-- Enhanced CLI Framework -->
         <dependency>
@@ -600,4 +586,149 @@
             </plugin>          
         </plugins>
     </build>
+
+    <!--
+        Lightweight archetype-based distribution (RELEASE_STRATEGY.md §9.3).
+
+        The default build produces the Browser archetype. Optional archetypes whose
+        dependencies are cleanly separable are activated with -P:
+
+            mvn clean package                 (browser - default)
+            mvn clean package -P database     (browser + JDBC drivers)
+            mvn clean package -P kafka        (browser + Kafka/Avro)
+            mvn clean package -P database,kafka
+            mvn clean package -P full         (everything)
+
+        Only the database (JDBC drivers, loaded reflectively at runtime) and kafka
+        (source currently disabled; deps optional) archetypes can be fully gated
+        today, so those profiles strip real dependencies from the default build.
+
+        The mobile (Appium), api (Apache HttpClient), sap (JACOB) and axe (axe-core)
+        archetypes currently ship inside the core <dependencies> block because engine
+        core classes (drivers.WebDriverFactory/MobileObject/DefaultFindBy,
+        CommandControl, base Command) reference them directly. Fully stripping them
+        requires the source decoupling described in §9.4 and is tracked as a
+        follow-up; their profiles are provided as archetype-packaging markers so the
+        build IDs stay stable.
+    -->
+    <profiles>
+        <profile>
+            <id>browser</id>
+            <activation>
+                <activeByDefault>true</activeByDefault>
+            </activation>
+            <!-- Browser (Playwright) is the primary archetype. Its dependency
+                 (com.microsoft.playwright:playwright) ships in the core
+                 <dependencies> block because the engine core references it
+                 directly. This profile is the documented default marker. -->
+        </profile>
+
+        <profile>
+            <id>mobile</id>
+            <!-- Mobile (Appium) currently ships in the core <dependencies> block
+                 because engine core drivers reference io.appium directly. Marker
+                 profile retained for archetype-packaging parity (see §9.4). -->
+        </profile>
+
+        <profile>
+            <id>database</id>
+            <dependencies>
+                <dependency>
+                    <groupId>com.microsoft.sqlserver</groupId>
+                    <artifactId>mssql-jdbc</artifactId>
+                    <version>13.2.1.jre11</version>
+                </dependency>
+                <dependency>
+                    <groupId>com.mysql</groupId>
+                    <artifactId>mysql-connector-j</artifactId>
+                    <version>9.4.0</version>
+                </dependency>
+                <dependency>
+                    <groupId>com.oracle.database.jdbc</groupId>
+                    <artifactId>ojdbc11</artifactId>
+                    <version>23.26.1.0.0</version>
+                </dependency>
+            </dependencies>
+        </profile>
+
+        <profile>
+            <id>kafka</id>
+            <repositories>
+                <repository>
+                    <id>confluent</id>
+                    <url>https://packages.confluent.io/maven/</url>
+                </repository>
+            </repositories>
+            <dependencies>
+                <dependency>
+                    <groupId>org.apache.kafka</groupId>
+                    <artifactId>kafka-clients</artifactId>
+                    <version>${kafka-clients.version}</version>
+                </dependency>
+                <dependency>
+                    <groupId>io.confluent</groupId>
+                    <artifactId>kafka-avro-serializer</artifactId>
+                    <version>${kafka-avro-serializer.version}</version>
+                </dependency>
+            </dependencies>
+        </profile>
+
+        <profile>
+            <id>api</id>
+            <!-- API / Web Services commands rely on Apache HttpClient, which ships in
+                 the core <dependencies> block (shared with reporting/integration
+                 code). Marker profile retained for archetype-packaging parity. -->
+        </profile>
+
+        <profile>
+            <id>sap</id>
+            <!-- SAP GUI automation uses the JACOB bridge, referenced by engine core
+                 classes (CommandControl, drivers.SAP*, base Command). It ships in the
+                 core <dependencies> block. Marker profile retained. -->
+        </profile>
+
+        <profile>
+            <id>axe</id>
+            <!-- Accessibility (aXe) uses com.deque.html.axe-core:playwright, which
+                 ships in the core <dependencies> block alongside Playwright. Marker
+                 profile retained. -->
+        </profile>
+
+        <profile>
+            <id>full</id>
+            <repositories>
+                <repository>
+                    <id>confluent</id>
+                    <url>https://packages.confluent.io/maven/</url>
+                </repository>
+            </repositories>
+            <dependencies>
+                <dependency>
+                    <groupId>com.microsoft.sqlserver</groupId>
+                    <artifactId>mssql-jdbc</artifactId>
+                    <version>13.2.1.jre11</version>
+                </dependency>
+                <dependency>
+                    <groupId>com.mysql</groupId>
+                    <artifactId>mysql-connector-j</artifactId>
+                    <version>9.4.0</version>
+                </dependency>
+                <dependency>
+                    <groupId>com.oracle.database.jdbc</groupId>
+                    <artifactId>ojdbc11</artifactId>
+                    <version>23.26.1.0.0</version>
+                </dependency>
+                <dependency>
+                    <groupId>org.apache.kafka</groupId>
+                    <artifactId>kafka-clients</artifactId>
+                    <version>${kafka-clients.version}</version>
+                </dependency>
+                <dependency>
+                    <groupId>io.confluent</groupId>
+                    <artifactId>kafka-avro-serializer</artifactId>
+                    <version>${kafka-avro-serializer.version}</version>
+                </dependency>
+            </dependencies>
+        </profile>
+    </profiles>
 </project>

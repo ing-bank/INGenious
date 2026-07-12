@@ -1,0 +1,52 @@
+{
+  "name": "vscode-ingenious-bridge",
+  "displayName": "VSCode INGenious Bridge",
+  "description": "Bridges VS Code Copilot models to the INGenious AI Assistant (IDE) and AI CLI over a local OpenAI-compatible endpoint",
+  "publisher": "local",
+  "version": "1.1.0",
+  "engines": {
+    "vscode": "^1.94.0"
+  },
+  "categories": [
+    "Other"
+  ],
+  "activationEvents": [
+    "onStartupFinished"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "ingenious-bridge-explorer",
+          "title": "VSCode INGenious Bridge",
+          "icon": "$(radio-tower)"
+        }
+      ]
+    },
+    "views": {
+      "ingenious-bridge-explorer": [
+        {
+          "type": "webview",
+          "id": "ingenious-bridge-view",
+          "name": "Panel"
+        }
+      ]
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "lint": "eslint src"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.6",
+    "@types/node": "22.x",
+    "@types/vscode": "^1.94.0",
+    "typescript": "^5.9.3"
+  },
+  "dependencies": {
+    "express": "^5.2.1"
+  }
+}

@@ -1,0 +1,7 @@
+src/**
+tsconfig.json
+Build_Prompt.md
+.gitignore
+*.vsix
+node_modules/.bin/**
+.vscode/**

@@ -218,7 +218,7 @@ public class TestCaseCommand implements Callable<Integer> {
     /**
      * Create a new test case.
      */
-    @Command(name = "create", description = "Create a new test case")
+    @Command(name = "create", description = "Create a new test case (defaults to YAML format)")
     public static class CreateCommand implements Callable<Integer> {
         @ParentCommand
         private TestCaseCommand parent;
@@ -232,6 +232,24 @@ public class TestCaseCommand implements Callable<Integer> {
         @Option(names = { "--description", "-d" }, description = "Test case description")
         private String description;
 
+        @Option(
+            names = { "--reusable" },
+            description = "Create under ReusableComponents/ instead of TestPlan/"
+        )
+        private boolean reusable;
+
+        @Option(
+            names = { "--format" },
+            description = "Test case file format: ${COMPLETION-CANDIDATES} (default: YAML)",
+            defaultValue = "YAML"
+        )
+        private FormatChoice format;
+
+        public enum FormatChoice {
+            YAML,
+            CSV
+        }
+
         @Override
         public Integer call() {
             INGeniousCLI cli = INGeniousCLI.getInstance();
@@ -242,7 +260,6 @@ public class TestCaseCommand implements Callable<Integer> {
                 return 1;
             }
 
-            // Parse scenario/testcase path
             String[] parts = testCasePath.split("/");
             if (parts.length != 2) {
                 cli.printError("Invalid format. Use: Scenario/TestCase");
@@ -252,32 +269,71 @@ public class TestCaseCommand implements Callable<Integer> {
             String scenarioName = parts[0];
             String testCaseName = parts[1];
 
+            String previousFormat = null;
             try {
-                File scenarioDir = new File(path, "TestPlan/" + scenarioName);
-                if (!scenarioDir.exists()) {
-                    scenarioDir.mkdirs();
-                    cli.printInfo("Created scenario: " + scenarioName);
+                Project project = new Project(path);
+
+                // Temporarily switch project default format so TestCase.save()
+                // honours --format for THIS test case. Restore on the way out.
+                if (project.getInfo() != null) {
+                    previousFormat = project.getInfo().getTestCaseFormat();
+                    project.getInfo().setTestCaseFormat(format.name());
                 }
 
-                File testCaseFile = new File(scenarioDir, testCaseName + ".csv");
-                if (testCaseFile.exists()) {
+                Scenario scenario = reusable
+                    ? project.getReusableScenarioByName(scenarioName)
+                    : project.getScenarioByName(scenarioName);
+                if (scenario == null) {
+                    scenario =
+                        reusable
+                            ? project.addReusableScenario(scenarioName)
+                            : project.addScenario(scenarioName);
+                    new File(scenario.getLocation()).mkdirs();
+                    cli.printInfo(
+                        "Created " + (reusable ? "reusable " : "") + "scenario: " + scenarioName
+                    );
+                }
+
+                if (scenario.getTestCaseByName(testCaseName) != null) {
                     cli.printError("Test case already exists: " + testCasePath);
                     return 1;
                 }
 
-                // Create test case CSV with headers
-                try (java.io.PrintWriter writer = new java.io.PrintWriter(testCaseFile)) {
-                    writer.println(
-                        "Step,Execute,ObjectName,Reference,Action,Input,Condition,Description"
-                    );
-                    writer.println("1,Y,,,Open Browser,@Browser,,Open browser for testing");
+                TestCase tc = scenario.addTestCase(testCaseName);
+                if (tc == null) {
+                    cli.printError("Failed to add test case to scenario model.");
+                    return 1;
                 }
+                if (description != null && !description.isEmpty()) {
+                    TestStep s = tc.addNewStep();
+                    s.setDescription(description);
+                }
+                tc.save();
+                project.save();
 
-                cli.printSuccess("Created test case: " + testCasePath);
+                cli.printSuccess(
+                    "Created test case: " +
+                    testCasePath +
+                    " (" +
+                    format.name() +
+                    ")" +
+                    (reusable ? " [reusable]" : "")
+                );
                 return 0;
             } catch (Exception e) {
                 cli.printError("Failed to create test case: " + e.getMessage());
                 return 1;
+            } finally {
+                // Best-effort restore of original project format on disk.
+                if (previousFormat != null) {
+                    try {
+                        Project p = new Project(path);
+                        if (p.getInfo() != null) {
+                            p.getInfo().setTestCaseFormat(previousFormat);
+                            p.save();
+                        }
+                    } catch (Exception ignored) {}
+                }
             }
         }
     }
