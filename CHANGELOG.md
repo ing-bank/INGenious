@@ -86,7 +86,7 @@ Release Date: <insert date of release>
 - Fixed OR Tables' add row (+) button 
 - Updated suffix handling for copied objects/pages so it is only applied when another object or page with the same name already exists
 - Resolved issues with multi-object and multi-page copy-paste and cut-paste operations in the Object Repository
-
+- Enhanced Object Repository object name validation to prevent the creation of duplicate object names, regardless of letter casing (e.g., LoginButton, loginbutton, and LOGINBUTTON are now treated as duplicates).
 
 ### Browser/Playwright Testing
 
