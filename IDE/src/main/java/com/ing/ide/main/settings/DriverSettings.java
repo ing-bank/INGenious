@@ -23,7 +23,9 @@ import java.awt.event.KeyEvent;
 import java.awt.event.WindowEvent;
 import java.util.ArrayList;
 import java.util.Enumeration;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Properties;
 import java.util.regex.Matcher;
@@ -2242,12 +2244,17 @@ public class DriverSettings extends javax.swing.JFrame {
     private boolean isTogglingLambdaTest = false;
     private boolean isLoadingDevice = false;
     private boolean saveListenersAttached = false;
+    // Keep per-device in-memory snapshots while user toggles LambdaTest on/off,
+    // so mode switches do not discard the previously configured capability set.
+    private final Map<String, LinkedProperties> nonLambdaCapsSnapshots = new HashMap<>();
+    private final Map<String, LinkedProperties> lambdaCapsSnapshots = new HashMap<>();
 
     // Holds the unmasked Remote URL for the currently displayed device. The
     // text field shows a masked version (credentials replaced with ****) while
     // this variable preserves the real value for persistence.
     private String actualRemoteUrl = com.ing.datalib.settings.emulators.Device.DEFAULT_REMOTE_URL;
     private boolean isMaskingRemoteUrl = false;
+    private boolean remoteUrlMaskUpdateQueued = false;
 
     private static final Pattern REMOTE_URL_CRED_PATTERN = Pattern.compile(
         "^([a-zA-Z][a-zA-Z0-9+.-]*://)([^:/@\\s]+):([^@/\\s]+)@(.*)$"
@@ -2263,9 +2270,147 @@ public class DriverSettings extends javax.swing.JFrame {
         }
         Matcher m = REMOTE_URL_CRED_PATTERN.matcher(url);
         if (m.matches()) {
-            return m.group(1) + "****:****@" + m.group(4);
+            String maskedUser = maskSameLength(m.group(2));
+            String maskedPassword = maskSameLength(m.group(3));
+            return m.group(1) + maskedUser + ":" + maskedPassword + "@" + m.group(4);
         }
         return url;
+    }
+
+    private static String maskSameLength(String value) {
+        int len = value == null ? 0 : value.length();
+        if (len <= 0) {
+            return "";
+        }
+        StringBuilder masked = new StringBuilder(len);
+        for (int i = 0; i < len; i++) {
+            masked.append('*');
+        }
+        return masked.toString();
+    }
+
+    private static boolean isAllAsterisks(String value, int expectedLength) {
+        if (value == null || value.length() != expectedLength || expectedLength < 0) {
+            return false;
+        }
+        for (int i = 0; i < value.length(); i++) {
+            if (value.charAt(i) != '*') {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private static boolean isCaretInOrAdjacentCredentialArea(String url, int caretPosition) {
+        if (url == null) {
+            return false;
+        }
+        Matcher m = REMOTE_URL_CRED_PATTERN.matcher(url);
+        if (!m.matches()) {
+            return false;
+        }
+        int start = Math.max(0, m.group(1).length() - 1);
+        int endExclusive = Math.min(
+            url.length(),
+            m.group(1).length() + m.group(2).length() + 1 + m.group(3).length() + 1
+        );
+        return caretPosition >= start && caretPosition <= endExclusive;
+    }
+
+    private void updateActualRemoteUrlFromVisibleText(String visibleText) {
+        if (visibleText == null) {
+            actualRemoteUrl = "";
+            return;
+        }
+
+        Matcher visibleMatcher = REMOTE_URL_CRED_PATTERN.matcher(visibleText);
+        Matcher actualMatcher = REMOTE_URL_CRED_PATTERN.matcher(actualRemoteUrl);
+
+        if (visibleMatcher.matches() && actualMatcher.matches()) {
+            String visibleUser = visibleMatcher.group(2);
+            String visiblePass = visibleMatcher.group(3);
+            String actualUser = actualMatcher.group(2);
+            String actualPass = actualMatcher.group(3);
+
+            boolean maskedCredentials =
+                isAllAsterisks(visibleUser, actualUser.length()) &&
+                isAllAsterisks(visiblePass, actualPass.length());
+
+            if (maskedCredentials) {
+                actualRemoteUrl =
+                    visibleMatcher.group(1) +
+                    actualUser +
+                    ":" +
+                    actualPass +
+                    "@" +
+                    visibleMatcher.group(4);
+                return;
+            }
+        }
+
+        actualRemoteUrl = visibleText;
+    }
+
+    private void updateRemoteUrlMaskByCaret() {
+        if (deviceRemoteUrlField == null || !deviceRemoteUrlField.isEnabled()) {
+            return;
+        }
+        String visibleText = deviceRemoteUrlField.getText();
+        String maskedActual = maskRemoteUrl(actualRemoteUrl);
+        if (maskedActual == null || maskedActual.equals(actualRemoteUrl)) {
+            return;
+        }
+
+        int caret = deviceRemoteUrlField.getCaretPosition();
+        boolean caretNearCredentials = isCaretInOrAdjacentCredentialArea(visibleText, caret);
+
+        if (maskedActual.equals(visibleText)) {
+            if (!caretNearCredentials) {
+                return;
+            }
+            isMaskingRemoteUrl = true;
+            try {
+                deviceRemoteUrlField.setText(actualRemoteUrl);
+                deviceRemoteUrlField.setCaretPosition(Math.min(caret, actualRemoteUrl.length()));
+            } finally {
+                isMaskingRemoteUrl = false;
+            }
+            return;
+        }
+
+        if (
+            visibleText.equals(actualRemoteUrl) &&
+            !caretNearCredentials &&
+            hasCredentials(visibleText)
+        ) {
+            isMaskingRemoteUrl = true;
+            try {
+                deviceRemoteUrlField.setText(maskedActual);
+                deviceRemoteUrlField.setCaretPosition(Math.min(caret, maskedActual.length()));
+            } finally {
+                isMaskingRemoteUrl = false;
+            }
+        }
+    }
+
+    private void requestRemoteUrlMaskUpdate() {
+        if (remoteUrlMaskUpdateQueued) {
+            return;
+        }
+        remoteUrlMaskUpdateQueued = true;
+        SwingUtilities.invokeLater(
+            () -> {
+                remoteUrlMaskUpdateQueued = false;
+                if (isLoadingDevice || isMaskingRemoteUrl || deviceRemoteUrlField == null) {
+                    return;
+                }
+                if (!deviceRemoteUrlField.hasFocus()) {
+                    syncAndMaskRemoteUrlField();
+                    return;
+                }
+                updateRemoteUrlMaskByCaret();
+            }
+        );
     }
 
     private void setRemoteUrlValue(String url) {
@@ -2546,20 +2691,12 @@ public class DriverSettings extends javax.swing.JFrame {
                             return;
                         }
                         markDirty();
-                        // If credentials are visible in the field (e.g. just pasted or
-                        // typed in full), mask them right away. Defer the mutation so
-                        // we don't modify the document from inside its own listener.
-                        final String text = deviceRemoteUrlField.getText();
-                        if (hasCredentials(text)) {
-                            SwingUtilities.invokeLater(
-                                () -> {
-                                    // Re-check inside the EDT runnable in case the value
-                                    // changed again before we got here.
-                                    if (hasCredentials(deviceRemoteUrlField.getText())) {
-                                        syncAndMaskRemoteUrlField();
-                                    }
-                                }
-                            );
+                        // Keep canonical URL updated while preserving credentials if
+                        // masked placeholders are still present in the visible value.
+                        if (deviceRemoteUrlField.hasFocus()) {
+                            updateActualRemoteUrlFromVisibleText(deviceRemoteUrlField.getText());
+                            // Defer text mutations outside document notification.
+                            requestRemoteUrlMaskUpdate();
                         }
                     }
 
@@ -2579,36 +2716,22 @@ public class DriverSettings extends javax.swing.JFrame {
                     }
                 }
             );
+        // Mask / unmask is driven by caret position.
+        deviceRemoteUrlField.addCaretListener(
+            e -> {
+                if (isLoadingDevice || isMaskingRemoteUrl) {
+                    return;
+                }
+                requestRemoteUrlMaskUpdate();
+            }
+        );
 
-        // When the user focuses the field, reveal the real URL for editing;
-        // when focus is lost, re-mask any credentials.
         deviceRemoteUrlField.addFocusListener(
             new java.awt.event.FocusAdapter() {
 
                 @Override
-                public void focusGained(java.awt.event.FocusEvent e) {
-                    if (!deviceRemoteUrlField.isEnabled()) {
-                        return;
-                    }
-                    String masked = maskRemoteUrl(actualRemoteUrl);
-                    if (
-                        masked != null &&
-                        !masked.equals(actualRemoteUrl) &&
-                        deviceRemoteUrlField.getText().equals(masked)
-                    ) {
-                        isMaskingRemoteUrl = true;
-                        try {
-                            deviceRemoteUrlField.setText(actualRemoteUrl);
-                            deviceRemoteUrlField.selectAll();
-                        } finally {
-                            isMaskingRemoteUrl = false;
-                        }
-                    }
-                }
-
-                @Override
                 public void focusLost(java.awt.event.FocusEvent e) {
-                    syncAndMaskRemoteUrlField();
+                    requestRemoteUrlMaskUpdate();
                 }
             }
         );
@@ -2618,6 +2741,8 @@ public class DriverSettings extends javax.swing.JFrame {
         if (deviceCombo == null) {
             return;
         }
+        nonLambdaCapsSnapshots.clear();
+        lambdaCapsSnapshots.clear();
         List<String> names = new ArrayList<>(settings.getDevices().getDeviceNames());
         deviceCombo.setModel(new DefaultComboBoxModel<>(names.toArray(new String[0])));
         if (!names.isEmpty()) {
@@ -2746,6 +2871,16 @@ public class DriverSettings extends javax.swing.JFrame {
             m.removeElement(oldName);
             m.insertElementAt(newName, idx);
             deviceCombo.setSelectedIndex(idx);
+
+            LinkedProperties nonLambdaSnapshot = nonLambdaCapsSnapshots.remove(oldName);
+            if (nonLambdaSnapshot != null) {
+                nonLambdaCapsSnapshots.put(newName, nonLambdaSnapshot);
+            }
+            LinkedProperties lambdaSnapshot = lambdaCapsSnapshots.remove(oldName);
+            if (lambdaSnapshot != null) {
+                lambdaCapsSnapshots.put(newName, lambdaSnapshot);
+            }
+
             markDirty();
         }
     }
@@ -2757,6 +2892,8 @@ public class DriverSettings extends javax.swing.JFrame {
         String name = deviceCombo.getSelectedItem().toString();
         settings.getDevices().deleteDevice(name);
         settings.getCapabilities().getBrowserCapabilties().remove(name);
+        nonLambdaCapsSnapshots.remove(name);
+        lambdaCapsSnapshots.remove(name);
         deviceCombo.removeItem(name);
         if (deviceCombo.getItemCount() == 0) {
             ((DefaultTableModel) deviceCapTable.getModel()).setRowCount(0);
@@ -2792,8 +2929,10 @@ public class DriverSettings extends javax.swing.JFrame {
         if (saved != null && !saved.isEmpty()) {
             // If LambdaTest, re-display with category headers around recognised keys
             if (d.isLambdaTest()) {
+                lambdaCapsSnapshots.put(name, copyProperties(saved));
                 showLambdaCapsView(saved);
             } else {
+                nonLambdaCapsSnapshots.put(name, copyProperties(saved));
                 showFlatCapsView(saved);
             }
         } else {
@@ -2801,7 +2940,9 @@ public class DriverSettings extends javax.swing.JFrame {
             if (d.isLambdaTest()) {
                 showLambdaCapsView(null);
             } else {
-                showFlatCapsView(settings.getDevices().defaultDeviceCap());
+                LinkedProperties defaults = settings.getDevices().defaultDeviceCap();
+                nonLambdaCapsSnapshots.put(name, copyProperties(defaults));
+                showFlatCapsView(defaults);
             }
         }
     }
@@ -2820,23 +2961,42 @@ public class DriverSettings extends javax.swing.JFrame {
         LinkedProperties current = readActiveCaps();
         boolean enabled = lambdaTestCheckBox.isSelected();
         d.setLambdaTest(enabled);
-        // Preserve whatever the user has already typed in the active view.
         if (enabled) {
-            showLambdaCapsView(current.isEmpty() ? null : current);
-        } else {
-            // Show the simple default set but keep existing values for matching keys
-            LinkedProperties defaults = settings.getDevices().defaultDeviceCap();
-            LinkedProperties merged = new LinkedProperties();
-            for (Object key : defaults.orderedKeys()) {
-                String k = key.toString();
-                merged.setProperty(
-                    k,
-                    Objects.toString(current.containsKey(k) ? current.get(k) : defaults.get(k), "")
-                );
+            // Capture the current non-Lambda set so untoggle restores it exactly.
+            nonLambdaCapsSnapshots.put(name, copyProperties(current));
+
+            LinkedProperties lambdaProps = lambdaCapsSnapshots.get(name);
+            if (lambdaProps != null && !lambdaProps.isEmpty()) {
+                showLambdaCapsView(copyProperties(lambdaProps));
+            } else {
+                // First-time switch: seed Lambda groups from existing values where keys overlap.
+                showLambdaCapsView(current.isEmpty() ? null : current);
             }
-            showFlatCapsView(merged);
+        } else {
+            // Preserve Lambda edits for when user re-enables LambdaTest.
+            lambdaCapsSnapshots.put(name, copyProperties(current));
+
+            LinkedProperties nonLambdaProps = nonLambdaCapsSnapshots.get(name);
+            if (nonLambdaProps != null && !nonLambdaProps.isEmpty()) {
+                showFlatCapsView(copyProperties(nonLambdaProps));
+            } else {
+                LinkedProperties defaults = settings.getDevices().defaultDeviceCap();
+                showFlatCapsView(defaults);
+            }
         }
         markDirty();
+    }
+
+    private LinkedProperties copyProperties(LinkedProperties source) {
+        LinkedProperties copy = new LinkedProperties();
+        if (source == null) {
+            return copy;
+        }
+        for (Object key : source.orderedKeys()) {
+            String k = key.toString();
+            copy.setProperty(k, Objects.toString(source.get(k), ""));
+        }
+        return copy;
     }
 
     /**
