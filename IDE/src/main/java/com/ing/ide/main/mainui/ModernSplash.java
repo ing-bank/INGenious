@@ -56,7 +56,7 @@ public class ModernSplash extends JFrame {
     private static final int[] STEP_THRESHOLDS = { 0, 15, 35, 55, 75, 95 };
 
     public ModernSplash() {
-        super("INGenious Playwright Studio");
+        super("INGenious");
         initComponents();
         startAnimation();
     }
@@ -350,7 +350,7 @@ public class ModernSplash extends JFrame {
             int y = 280;
 
             // App name with gradient
-            String appName = "INGenious Playwright Studio";
+            String appName = "INGenious";
             g2d.setFont(new Font("Segoe UI", Font.BOLD, 18));
             FontMetrics fm = g2d.getFontMetrics();
 

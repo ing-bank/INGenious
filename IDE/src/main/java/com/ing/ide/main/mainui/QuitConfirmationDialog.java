@@ -86,7 +86,7 @@ public class QuitConfirmationDialog extends JDialog {
         textPanel.setLayout(new BoxLayout(textPanel, BoxLayout.Y_AXIS));
         textPanel.setOpaque(false);
 
-        JLabel titleLabel = new JLabel("Quit INGenious Studio");
+        JLabel titleLabel = new JLabel("Quit INGenious");
         titleLabel.setFont(new Font("Segoe UI", Font.BOLD, 16));
         titleLabel.setForeground(TEXT_PRIMARY);
         titleLabel.setAlignmentX(Component.LEFT_ALIGNMENT);

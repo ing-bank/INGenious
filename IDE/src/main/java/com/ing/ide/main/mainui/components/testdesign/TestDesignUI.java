@@ -56,10 +56,9 @@ public class TestDesignUI extends JPanel {
 
         // Create tabbed pane for Project and Shared Reusables with header
         reusableTreeTabbedPane = new JTabbedPane();
-        JPanel projectReusablesPanel = new JPanel(new BorderLayout());
-        projectReusablesPanel.add(
-            TreeSearch.installFor(testDesign.getReusableTree().getTree()),
-            BorderLayout.CENTER
+        JPanel projectReusablesPanel = getRTreeInPanel(
+            "User Intent",
+            testDesign.getReusableTree().getTree()
         );
 
         JPanel sharedReusablesPanel = new JPanel(new BorderLayout());
@@ -67,9 +66,8 @@ public class TestDesignUI extends JPanel {
             TreeSearch.installFor(testDesign.getSharedReusableTree().getTree()),
             BorderLayout.CENTER
         );
-
-        reusableTreeTabbedPane.addTab("Project", projectReusablesPanel);
-        reusableTreeTabbedPane.addTab("Shared", sharedReusablesPanel);
+        reusableTreeTabbedPane.addTab("User Intent", projectReusablesPanel);
+        reusableTreeTabbedPane.addTab("Shared Reusables", sharedReusablesPanel);
 
         // Wrap reusable tabbed pane with FXPanelHeader style
         appReusablePanel = new JPanel(new BorderLayout());

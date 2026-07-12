@@ -4,7 +4,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.ing.ide.main.mainui.components.aichat.client.GitHubModelsClient;
-import com.ing.ide.main.mainui.components.aichat.mcp.INGeniousToolServer;
+import com.ing.ide.main.mainui.components.aichat.mcp.ToolProvider;
 import com.ing.ide.main.mainui.components.aichat.mcp.ToolResult;
 import com.ing.ide.main.mainui.components.aichat.model.ChatCompletionRequest;
 import com.ing.ide.main.mainui.components.aichat.model.ChatCompletionResponse;
@@ -29,15 +29,15 @@ import java.util.logging.Logger;
 public class AgentOrchestrator {
     private static final Logger LOG = Logger.getLogger(AgentOrchestrator.class.getName());
 
-    private static final int MAX_ITERATIONS = 8;
+    private static final int MAX_ITERATIONS = 20;
 
     private final GitHubModelsClient client;
-    private final INGeniousToolServer toolServer;
+    private final ToolProvider toolServer;
     private final ObjectMapper mapper = new ObjectMapper();
 
     private volatile boolean cancelled;
 
-    public AgentOrchestrator(GitHubModelsClient client, INGeniousToolServer toolServer) {
+    public AgentOrchestrator(GitHubModelsClient client, ToolProvider toolServer) {
         this.client = client;
         this.toolServer = toolServer;
     }
