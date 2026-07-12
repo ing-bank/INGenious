@@ -13,7 +13,7 @@ import java.util.logging.Logger;
  */
 public class ReusableTreeModel extends ProjectTreeModel {
     private static final Logger LOGGER = Logger.getLogger(ReusableTreeModel.class.getName());
-    private static final String DEFAULT_GROUP = "Reusable Components";
+    private static final String DEFAULT_GROUP = "Reusable Intents";
 
     Project project;
 

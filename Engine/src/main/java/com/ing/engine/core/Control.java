@@ -281,6 +281,10 @@ public class Control {
 
         // New CLI subcommands & global flags
         String[] newCommands = {
+            "ai",
+            "chat",
+            "assistant",
+            "plugins",
             "project",
             "scenario",
             "testcase",
@@ -291,6 +295,7 @@ public class Control {
             "data",
             "action",
             "actions",
+            "import",
             "run",
             "report",
             "config",
@@ -331,8 +336,10 @@ public class Control {
                 LookUp.exe(args);
             }
         } else {
-            // No args - show CLI help with banner
-            int exitCode = com.ing.engine.cli.INGeniousCLI.run(new String[0]);
+            // No args: in a real terminal launch the interactive AI CLI;
+            // when piped/scripted fall back to help so automation never hangs.
+            String[] fallback = System.console() != null ? new String[] { "ai" } : new String[0];
+            int exitCode = com.ing.engine.cli.INGeniousCLI.run(fallback);
             System.exit(exitCode);
         }
     }

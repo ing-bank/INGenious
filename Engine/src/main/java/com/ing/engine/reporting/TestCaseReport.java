@@ -542,7 +542,7 @@ public final class TestCaseReport implements Report, TestCaseReportApi {
             "\n" +
             "========================" +
             "\n" +
-            "INGenious Playwright Studio                :  " +
+            "INGenious                :  " +
             SystemDefaults.getBuildVersion() +
             "\n" +
             "java.runtime.name                          :  " +

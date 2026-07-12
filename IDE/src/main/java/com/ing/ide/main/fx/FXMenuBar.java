@@ -333,6 +333,9 @@ public class FXMenuBar extends JFXPanel {
                 )
             );
 
+        tools.getItems().add(new SeparatorMenuItem());
+        tools.getItems().add(menuItem("Project Health", "dashboard"));
+
         return tools;
     }
 

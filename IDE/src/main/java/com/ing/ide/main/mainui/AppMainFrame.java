@@ -58,6 +58,7 @@ import javax.swing.ImageIcon;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
+import javax.swing.JSplitPane;
 import javax.swing.JToolBar;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
@@ -68,6 +69,16 @@ public class AppMainFrame extends JFrame {
 
     private final SimpleDock docker;
 
+    /** Split pane hosting the main SlideShow (left) and the AI sidebar (right). */
+    private JSplitPane centerSplit;
+
+    /** Last non-zero sidebar width, restored when the sidebar is re-shown. */
+    private int aiSidebarWidth = 360;
+
+    private boolean aiSidebarVisible = false;
+
+    /** True while the divider is being positioned programmatically. */
+    private boolean applyingAISidebar = false;
     private final AppMenuBar menuBar;
 
     private final AppToolBar toolBar;
@@ -168,10 +179,9 @@ public class AppMainFrame extends JFrame {
         slideShow.addSlide("TestExecution", testExecution.getTestExecutionUI());
         slideShow.addSlide("DashBoard", dashBoard);
         slideShow.addSlide("APITester", apiTester.getAPITesterUI());
-        slideShow.addSlide("AICopilot", aiCopilot.getAICopilotUI());
         slideShow.addSlideChangeListener(aiCopilot);
         progressed(85);
-        add(slideShow, BorderLayout.CENTER);
+        add(buildCenter(), BorderLayout.CENTER);
         add(toolBar, BorderLayout.NORTH);
         add(simpleFiller(), BorderLayout.WEST);
         dashBoard.load();
@@ -305,12 +315,143 @@ public class AppMainFrame extends JFrame {
 
     public void showAICopilot() {
         getGlassPane().setVisible(false);
-        slideShow.showSlide("AICopilot");
+        toggleAISidebar();
         if (fxStatusBar != null) fxStatusBar.setCurrentView("AI Assistant");
     }
 
+    /**
+     * Builds the centre component: a horizontal split pane with the main
+     * {@link SlideShow} on the left and the AI assistant sidebar on the right.
+     * The sidebar starts collapsed and is toggled via {@link #toggleAISidebar()}.
+     */
+    private java.awt.Component buildCenter() {
+        centerSplit = new JSplitPane(JSplitPane.HORIZONTAL_SPLIT);
+        centerSplit.setLeftComponent(slideShow);
+        centerSplit.setRightComponent(aiCopilot.getAICopilotUI());
+        centerSplit.setResizeWeight(1.0); // give extra space to the main view
+        centerSplit.setContinuousLayout(true);
+        centerSplit.setOneTouchExpandable(true);
+        centerSplit.setBorder(null);
+
+        // Restore persisted state.
+        try {
+            aiSidebarWidth =
+                Integer.parseInt(
+                    AppSettings.get(AppSettings.APP_SETTINGS.AI_SIDEBAR_WIDTH.getKey())
+                );
+        } catch (NumberFormatException ignore) {
+            aiSidebarWidth = 360;
+        }
+        aiSidebarVisible =
+            Boolean.parseBoolean(
+                AppSettings.get(AppSettings.APP_SETTINGS.AI_SIDEBAR_VISIBLE.getKey())
+            );
+
+        // Persist width whenever the user drags the divider (only while visible).
+        centerSplit.addPropertyChangeListener(
+            JSplitPane.DIVIDER_LOCATION_PROPERTY,
+            evt -> {
+                // Ignore programmatic divider moves (show/hide/relayout); only
+                // genuine user drags should update the persisted default width.
+                if (applyingAISidebar) {
+                    return;
+                }
+                if (aiSidebarVisible && centerSplit.getWidth() > 0) {
+                    int w =
+                        centerSplit.getWidth() -
+                        centerSplit.getDividerLocation() -
+                        centerSplit.getDividerSize();
+                    if (w >= 200) {
+                        aiSidebarWidth = w;
+                        AppSettings.set(
+                            AppSettings.APP_SETTINGS.AI_SIDEBAR_WIDTH.getKey(),
+                            String.valueOf(w)
+                        );
+                    }
+                }
+            }
+        );
+
+        // Apply the initial visibility once the frame has a real size.
+        SwingUtilities.invokeLater(() -> applyAISidebar(aiSidebarVisible));
+        return centerSplit;
+    }
+
+    /** Shows the AI sidebar if hidden, hides it if shown. */
+    public void toggleAISidebar() {
+        setAISidebarVisible(!aiSidebarVisible);
+    }
+
+    /** Explicitly show or hide the AI sidebar and persist the choice. */
+    public void setAISidebarVisible(boolean visible) {
+        aiSidebarVisible = visible;
+        AppSettings.set(
+            AppSettings.APP_SETTINGS.AI_SIDEBAR_VISIBLE.getKey(),
+            String.valueOf(visible)
+        );
+        AppSettings.store("AI sidebar state");
+        applyAISidebar(visible);
+    }
+
+    public boolean isAISidebarVisible() {
+        return aiSidebarVisible;
+    }
+
+    /** Applies the divider position for the current visibility on the EDT. */
+    private void applyAISidebar(boolean visible) {
+        if (centerSplit == null) {
+            return;
+        }
+        java.awt.Component right = centerSplit.getRightComponent();
+        if (right != null) {
+            right.setVisible(visible);
+        }
+        int total = centerSplit.getWidth();
+        if (total <= 0) {
+            // Frame not laid out yet; retry after layout.
+            SwingUtilities.invokeLater(() -> applyAISidebar(visible));
+            return;
+        }
+        if (visible) {
+            int clamped = Math.max(280, Math.min(aiSidebarWidth, total / 2));
+            centerSplit.setDividerSize(8);
+            final int targetDivider = total - clamped - centerSplit.getDividerSize();
+            // Set the divider immediately for a correct first paint...
+            applyingAISidebar = true;
+            centerSplit.setDividerLocation(targetDivider);
+            centerSplit.revalidate();
+            applyingAISidebar = false;
+            // ...then again after the freshly-revealed right component has been
+            // laid out. On the first reveal Swing otherwise snaps the divider to
+            // the component's minimum size (the "half open" state) until a later
+            // interaction re-lays it out. Re-applying on a deferred EDT cycle
+            // guarantees the sidebar always opens at its persisted default width.
+            SwingUtilities.invokeLater(
+                () -> {
+                    int t = centerSplit.getWidth();
+                    if (t <= 0) {
+                        return;
+                    }
+                    int c = Math.max(280, Math.min(aiSidebarWidth, t / 2));
+                    applyingAISidebar = true;
+                    centerSplit.setDividerLocation(t - c - centerSplit.getDividerSize());
+                    centerSplit.revalidate();
+                    centerSplit.repaint();
+                    applyingAISidebar = false;
+                }
+            );
+        } else {
+            applyingAISidebar = true;
+            centerSplit.setDividerSize(0);
+            centerSplit.setDividerLocation(total);
+            centerSplit.revalidate();
+            centerSplit.repaint();
+            applyingAISidebar = false;
+        }
+    }
+
     private String getAppTitle() {
-        return "INGenious Playwright Studio " + About.getBuildVersion() + " (Open Source)";
+        return "INGenious " + About.getBuildVersion();
     }
 
     public String getCurrentSlide() {
@@ -865,6 +1006,75 @@ public class AppMainFrame extends JFrame {
 
     public void reloadSettings() {
         testExecution.getTestSetComp().reloadSettings();
+    }
+
+    /**
+     * Reloads the open project from disk in place and refreshes every view, so
+     * changes made outside the IDE's in-memory model — e.g. by the AI assistant
+     * or CLI/MCP tools (new test cases, steps, data rows, environments,
+     * reusables, Object Repository entries) — appear immediately without a
+     * restart or project switch.
+     *
+     * <p>Preserves tree expansion/selection and re-opens the currently displayed
+     * test case. Does <b>not</b> save the in-memory model first, so it never
+     * clobbers the external changes it is picking up. Safe to call from any
+     * thread.</p>
+     */
+    public void reloadProject() {
+        if (sProject == null || sProject.getName() == null || sProject.getName().isEmpty()) {
+            return;
+        }
+        Runnable task = () -> {
+            try {
+                // Remember what the user has open so the reload isn't disruptive.
+                String scenarioName = null;
+                String testCaseName = null;
+                com.ing.datalib.component.TestCase openTc = testDesign
+                    .getTestCaseComp()
+                    .getCurrentTestCase();
+                if (openTc != null) {
+                    testCaseName = openTc.getName();
+                    scenarioName =
+                        openTc.getScenario() == null ? null : openTc.getScenario().getName();
+                }
+                com.ing.ide.main.utils.tree.TreeStateSaver.State treeState = com.ing.ide.main.utils.tree.TreeStateSaver.capture(
+                    testDesign.getProjectTree().getTree()
+                );
+
+                sProject.reload(); // re-read scenarios/testcases/data/env/reusables/OR from disk
+                load(); // rebuild TestDesign + TestExecution views from the reloaded model
+
+                // Re-open the same test case in the editor (if it still exists).
+                if (scenarioName != null && testCaseName != null) {
+                    com.ing.datalib.component.Scenario sc = sProject.getScenarioByName(
+                        scenarioName
+                    );
+                    if (sc == null) {
+                        sc = sProject.getReusableScenarioByName(scenarioName);
+                    }
+                    if (sc != null) {
+                        com.ing.datalib.component.TestCase tc = sc.getTestCaseByName(testCaseName);
+                        if (tc != null) {
+                            testDesign.getTestCaseComp().loadTableModelForSelection(tc);
+                        }
+                    }
+                }
+                com.ing.ide.main.utils.tree.TreeStateSaver.restore(
+                    testDesign.getProjectTree().getTree(),
+                    treeState
+                );
+                afterProjectChange();
+            } catch (Exception ex) {
+                Logger
+                    .getLogger(AppMainFrame.class.getName())
+                    .log(Level.WARNING, "reloadProject failed", ex);
+            }
+        };
+        if (SwingUtilities.isEventDispatchThread()) {
+            task.run();
+        } else {
+            SwingUtilities.invokeLater(task);
+        }
     }
 
     void beforeProjectChange() {

@@ -57,14 +57,14 @@ public class TestDesignUI extends JPanel {
         // Create tabbed pane for Project and Shared Reusables
         reusableTreeTabbedPane = new JTabbedPane();
         JPanel projectReusablesPanel = getRTreeInPanel(
-            "Project Reusables",
+            "User Intent",
             testDesign.getReusableTree().getTree()
         );
         JPanel sharedReusablesPanel = getRTreeInPanel(
             "Shared Reusables",
             testDesign.getSharedReusableTree().getTree()
         );
-        reusableTreeTabbedPane.addTab("Project Reusables", projectReusablesPanel);
+        reusableTreeTabbedPane.addTab("User Intent", projectReusablesPanel);
         reusableTreeTabbedPane.addTab("Shared Reusables", sharedReusablesPanel);
 
         appReusablePanel = new JPanel(new BorderLayout());

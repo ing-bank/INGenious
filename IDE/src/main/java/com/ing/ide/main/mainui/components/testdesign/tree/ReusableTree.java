@@ -419,12 +419,12 @@ public class ReusableTree extends ProjectTree {
      * @return unique test case name
      */
     private String fetchNewReusableTestCaseName(Scenario scenario) {
-        String newTestCaseName = "NewTestCase";
+        String newTestCaseName = "NewIntent";
         for (int i = 0;; i++) {
             if (scenario.getTestCaseByName(newTestCaseName) == null) {
                 break;
             }
-            newTestCaseName = "NewTestCase" + i;
+            newTestCaseName = "NewIntent" + i;
         }
         return newTestCaseName;
     }
@@ -533,6 +533,8 @@ public class ReusableTree extends ProjectTree {
             // add(deleteGroup = create("Delete Group", Keystroke.DELETE));
             // addSeparator();
             super.init();
+            // Reusable test cases are surfaced to the user as "intents".
+            renameTestCase.setText("Rename Intent");
             toggleTestCase.setVisible(true);
             toggleProjectReusable.setVisible(false);
             toggleSharedReusable.setVisible(true);

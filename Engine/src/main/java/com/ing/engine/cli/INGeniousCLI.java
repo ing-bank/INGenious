@@ -23,6 +23,7 @@ import picocli.CommandLine.Option;
     description = "INGenious Test Automation Platform - Command Line Interface",
     subcommands = {
         HelpCommand.class,
+        AiCommand.class,
         ProjectCommand.class,
         ScenarioCommand.class,
         TestCaseCommand.class,
@@ -35,6 +36,8 @@ import picocli.CommandLine.Option;
         ConfigCommand.class,
         ServerCommand.class,
         ShellCommand.class,
+        ImportCommand.class,
+        PluginsCommand.class,
         LegacyCommand.class
     },
     synopsisHeading = "%nUsage: ",

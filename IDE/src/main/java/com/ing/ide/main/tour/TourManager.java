@@ -82,7 +82,7 @@ public class TourManager {
         return Arrays.asList(
             // ── Welcome ───────────────────────────────────────────────────
             new TourStep(
-                "Welcome to INGenious Playwright Studio!",
+                "Welcome to INGenious",
                 "This quick tour introduces the key areas of the IDE. Use the arrow keys " +
                 "or buttons below to navigate. You can re-launch this tour any time from " +
                 "Help \u2192 Start Tour.",

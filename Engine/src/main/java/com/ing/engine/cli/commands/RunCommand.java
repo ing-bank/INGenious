@@ -142,22 +142,33 @@ public class RunCommand implements Callable<Integer> {
             return 1;
         }
 
-        File testCaseCsv = new File(projectDir, "TestPlan/" + group + "/" + name + ".csv");
-        File testSetCsv = new File(projectDir, "TestLab/" + group + "/" + name + ".csv");
-        boolean isTestCase = testCaseCsv.isFile();
-        boolean isTestSet = testSetCsv.isFile();
+        // Test cases (TestPlan/) and test sets (TestLab/) may be persisted as
+        // either YAML (the current default) or the legacy CSV format, so probe
+        // all supported extensions instead of assuming .csv.
+        File testCaseFile = resolveExecutable(projectDir, "TestPlan", group, name);
+        File testSetFile = resolveExecutable(projectDir, "TestLab", group, name);
+        boolean isTestCase = testCaseFile != null;
+        boolean isTestSet = testSetFile != null;
 
         if (isTestCase && isTestSet) {
             cli.printError("Ambiguous: path matches both a test case and a test set.");
-            cli.printInfo("  TestCase: " + testCaseCsv.getPath());
-            cli.printInfo("  TestSet : " + testSetCsv.getPath());
+            cli.printInfo("  TestCase: " + testCaseFile.getPath());
+            cli.printInfo("  TestSet : " + testSetFile.getPath());
             cli.printInfo("Use 'ingenious run testcase' or 'ingenious run testset' explicitly.");
             return 1;
         }
         if (!isTestCase && !isTestSet) {
             cli.printError("Not found as a test case or test set.");
-            cli.printInfo("  Tried: " + testCaseCsv.getPath());
-            cli.printInfo("  Tried: " + testSetCsv.getPath());
+            cli.printInfo(
+                "  Tried: " +
+                new File(projectDir, "TestPlan/" + group + "/" + name).getPath() +
+                ".{yaml,yml,csv}"
+            );
+            cli.printInfo(
+                "  Tried: " +
+                new File(projectDir, "TestLab/" + group + "/" + name).getPath() +
+                ".{yaml,yml,csv}"
+            );
             return 1;
         }
 
@@ -204,7 +215,7 @@ public class RunCommand implements Callable<Integer> {
             }
         }
         args.add("-browser");
-        args.add(browser);
+        args.add(com.ing.engine.cli.lib.BrowserNames.normalize(browser));
         if (headless) {
             args.add("-op_setHeadless");
             args.add("true");
@@ -217,6 +228,23 @@ public class RunCommand implements Callable<Integer> {
             cli.printError("Execution failed: " + e.getMessage());
             return 1;
         }
+    }
+
+    /**
+     * Resolve the on-disk file for an executable (test case under
+     * {@code TestPlan/} or test set under {@code TestLab/}), probing every
+     * supported persistence format in preference order (YAML then legacy CSV).
+     * Returns {@code null} when none of the candidates exist.
+     */
+    private static File resolveExecutable(File projectDir, String top, String group, String name) {
+        String base = top + "/" + group + "/" + name;
+        for (String ext : new String[] { ".yaml", ".yml", ".csv" }) {
+            File f = new File(projectDir, base + ext);
+            if (f.isFile()) {
+                return f;
+            }
+        }
+        return null;
     }
 
     /**
@@ -360,7 +388,7 @@ public class RunCommand implements Callable<Integer> {
             args.add("-testcase");
             args.add(tc[1]);
             args.add("-browser");
-            args.add(browser);
+            args.add(com.ing.engine.cli.lib.BrowserNames.normalize(browser));
             if (headless) {
                 args.add("-op_setHeadless");
                 args.add("true");
@@ -591,7 +619,7 @@ public class RunCommand implements Callable<Integer> {
                 args.add("-testset");
                 args.add(testset);
                 args.add("-browser");
-                args.add(browser);
+                args.add(com.ing.engine.cli.lib.BrowserNames.normalize(browser));
                 if (parallel > 1) {
                     args.add("-setEnv");
                     args.add("run.ThreadCount=" + parallel);
@@ -674,7 +702,7 @@ public class RunCommand implements Callable<Integer> {
                 args.add("-project_location");
                 args.add(path);
                 args.add("-browser");
-                args.add(browser);
+                args.add(com.ing.engine.cli.lib.BrowserNames.normalize(browser));
                 args.add("-tags");
                 args.add(String.join(",", tags));
 
