@@ -63,6 +63,7 @@ Release Date: <insert date of release>
 - Reorganised Configurations menu with renames
 - Updated the Dashboard tree model to expand at Test Release level on load
 - Updated reports to reference resources in Results/media for storage optimization
+- Enhanced the bulk Delete Test Case and Object confirmation dialog to support scrolling, improving usability when deleting a large number of test cases and objects
 
 #### Deprecated
 

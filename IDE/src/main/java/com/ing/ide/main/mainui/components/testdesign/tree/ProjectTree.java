@@ -33,6 +33,7 @@ import com.ing.ide.util.Notification;
 import com.ing.ide.util.Validator;
 import java.awt.Color;
 import java.awt.Component;
+import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.FontFormatException;
 import java.awt.GraphicsEnvironment;
@@ -58,10 +59,14 @@ import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.Icon;
 import javax.swing.JComponent;
+import javax.swing.JLabel;
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
+import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
+import javax.swing.JScrollPane;
+import javax.swing.JTextArea;
 import javax.swing.JTree;
 import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
@@ -701,14 +706,10 @@ public class ProjectTree implements ActionListener {
     private void deleteTestCases() {
         List<TestCaseNode> testcaseNodes = getSelectedTestCaseNodes();
         if (!testcaseNodes.isEmpty()) {
-            int option = JOptionPane.showConfirmDialog(
-                null,
-                "<html><body><p style='width: 200px;'>" +
-                "Are you sure want to delete the following TestCases?<br>" +
-                testcaseNodes +
-                "</p></body></html>",
+            int option = showScrollableDeleteConfirmation(
                 "Delete TestCase",
-                JOptionPane.YES_NO_OPTION
+                "TestCases",
+                testcaseNodes
             );
             if (option == JOptionPane.YES_OPTION) {
                 LOGGER.log(
@@ -719,6 +720,49 @@ public class ProjectTree implements ActionListener {
                 deleteTestCases(testcaseNodes);
             }
         }
+    }
+
+    /**
+     * Shows a delete confirmation dialog with a scrollable list so action buttons stay visible.
+     * @param title dialog title
+     * @param itemType display name for the selected item type
+     * @param selectedItems selected items to display
+     * @return JOptionPane option value
+     */
+    private int showScrollableDeleteConfirmation(
+        String title,
+        String itemType,
+        List<?> selectedItems
+    ) {
+        JPanel messagePanel = new JPanel(new java.awt.BorderLayout(0, 8));
+        messagePanel.add(
+            new JLabel("Are you sure want to delete the following " + itemType + "?"),
+            java.awt.BorderLayout.NORTH
+        );
+
+        JTextArea itemsArea = new JTextArea();
+        itemsArea.setEditable(false);
+        itemsArea.setLineWrap(false);
+        itemsArea.setWrapStyleWord(false);
+
+        StringBuilder content = new StringBuilder();
+        for (Object item : selectedItems) {
+            content.append(item).append(System.lineSeparator());
+        }
+        itemsArea.setText(content.toString());
+        itemsArea.setCaretPosition(0);
+
+        JScrollPane scrollPane = new JScrollPane(itemsArea);
+        scrollPane.setPreferredSize(new Dimension(360, 180));
+        messagePanel.add(scrollPane, java.awt.BorderLayout.CENTER);
+
+        return JOptionPane.showConfirmDialog(
+            null,
+            messagePanel,
+            title,
+            JOptionPane.YES_NO_OPTION,
+            JOptionPane.WARNING_MESSAGE
+        );
     }
 
     /**
