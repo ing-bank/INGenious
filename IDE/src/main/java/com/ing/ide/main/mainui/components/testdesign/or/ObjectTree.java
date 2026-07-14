@@ -709,16 +709,11 @@ public abstract class ObjectTree implements ActionListener {
                     }
                 }
                 if (!unusedWebObjects.isEmpty()) {
-                    int option = JOptionPane.showConfirmDialog(
-                        null,
-                        "<html><body><p style='width: 260px;'>" +
-                        "Delete the following Web objects from page [ " +
-                        pageName +
-                        " ]?<br>" +
-                        unusedWebObjects +
-                        "</p></body></html>",
+                    int option = showScrollableDeleteConfirmation(
                         "Delete Web Objects",
-                        JOptionPane.YES_NO_OPTION
+                        "Web objects from page [ " + pageName + " ]",
+                        unusedWebObjects,
+                        ""
                     );
                     if (option == JOptionPane.YES_OPTION) {
                         Iterator<ObjectGroup<WebORObject>> it = webPage
@@ -752,16 +747,11 @@ public abstract class ObjectTree implements ActionListener {
                         }
                     }
                     if (!unusedMobileObjects.isEmpty()) {
-                        int option = JOptionPane.showConfirmDialog(
-                            null,
-                            "<html><body><p style='width: 260px;'>" +
-                            "Delete the following Mobile objects from page [ " +
-                            pageName +
-                            " ]?<br>" +
-                            unusedMobileObjects +
-                            "</p></body></html>",
+                        int option = showScrollableDeleteConfirmation(
                             "Delete Mobile Objects",
-                            JOptionPane.YES_NO_OPTION
+                            "Mobile objects from page [ " + pageName + " ]",
+                            unusedMobileObjects,
+                            ""
                         );
                         if (option == JOptionPane.YES_OPTION) {
                             Iterator<ObjectGroup<MobileORObject>> it = mobilePage
@@ -798,16 +788,11 @@ public abstract class ObjectTree implements ActionListener {
                         }
                     }
                     if (!unusedStructuredDataObjects.isEmpty()) {
-                        int option = JOptionPane.showConfirmDialog(
-                            null,
-                            "<html><body><p style='width: 260px;'>" +
-                            "Delete the following Structured Data objects from page [ " +
-                            pageName +
-                            " ]?<br>" +
-                            unusedStructuredDataObjects +
-                            "</p></body></html>",
+                        int option = showScrollableDeleteConfirmation(
                             "Delete Structured Data Objects",
-                            JOptionPane.YES_NO_OPTION
+                            "Structured Data objects from page [ " + pageName + " ]",
+                            unusedStructuredDataObjects,
+                            ""
                         );
                         if (option == JOptionPane.YES_OPTION) {
                             Iterator<ObjectGroup<StructuredDataORObject>> it = structuredDataPage
@@ -842,16 +827,11 @@ public abstract class ObjectTree implements ActionListener {
                         }
                     }
                     if (!unusedSapObjects.isEmpty()) {
-                        int option = JOptionPane.showConfirmDialog(
-                            null,
-                            "<html><body><p style='width: 260px;'>" +
-                            "Delete the following SAP objects from page [ " +
-                            pageName +
-                            " ]?<br>" +
-                            unusedSapObjects +
-                            "</p></body></html>",
+                        int option = showScrollableDeleteConfirmation(
                             "Delete SAP Objects",
-                            JOptionPane.YES_NO_OPTION
+                            "SAP objects from page [ " + pageName + " ]",
+                            unusedSapObjects,
+                            ""
                         );
                         if (option == JOptionPane.YES_OPTION) {
                             Iterator<ObjectGroup<SapORObject>> it = sapPage

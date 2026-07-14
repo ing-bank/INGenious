@@ -667,14 +667,10 @@ public class ProjectTree implements ActionListener {
     private void deleteScenarios() {
         List<ScenarioNode> scenarioNodes = getSelectedScenarioNodes();
         if (!scenarioNodes.isEmpty()) {
-            int option = JOptionPane.showConfirmDialog(
-                null,
-                "<html><body><p style='width: 200px;'>" +
-                "Are you sure want to delete the following Scenarios?<br>" +
-                scenarioNodes +
-                "</p></body></html>",
+            int option = showScrollableDeleteConfirmation(
                 "Delete Scenario",
-                JOptionPane.YES_NO_OPTION
+                "Scenarios",
+                scenarioNodes
             );
             if (option == JOptionPane.YES_OPTION) {
                 LOGGER.log(
