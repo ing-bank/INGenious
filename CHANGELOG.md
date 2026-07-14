@@ -86,6 +86,9 @@ Release Date: <insert date of release>
 - Fixed OR Tables' add row (+) button 
 - Updated suffix handling for copied objects/pages so it is only applied when another object or page with the same name already exists
 - Resolved issues with multi-object and multi-page copy-paste and cut-paste operations in the Object Repository
+- Fixed issue where enabling or disabling the LambdaTest option in the Manange Devices caused the Properties table to display empty entries.
+- Corrected Save button behavior that becomes disabled after switching applications using Alt+Tab, despite having unsaved changes.
+- Fixed behavior in the LambdaTest Remote URL field where the cursor unexpectedly jumped to the beginning of the text after typing characters beyond the @ symbol.
 
 
 ### Browser/Playwright Testing
