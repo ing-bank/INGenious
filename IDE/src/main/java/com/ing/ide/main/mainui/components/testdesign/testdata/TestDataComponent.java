@@ -1062,13 +1062,16 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
             setBackground(UIManager.getColor("Panel.background"));
 
             if (!isGlobalData) {
+                // Use frozen column scroll pane for test data (but not global data)
                 frozenScrollPane = new FrozenColumnScrollPane(table, frozenColumnCount);
                 frozenScrollPane.setBackground(UIManager.getColor("Panel.background"));
                 frozenScrollPane
                     .getViewport()
                     .setBackground(UIManager.getColor("Panel.background"));
 
+                // Apply popup menu to fixed table as well
                 frozenScrollPane.getFixedTable().setComponentPopupMenu(popupMenu);
+                // Set cell editor provider for fixed columns (columns 0-4: Scenario, Flow, Scope, Iteration, SubIteration)
 
                 frozenScrollPane.setCellEditorProvider(
                     (row, column, defaultEditor) ->

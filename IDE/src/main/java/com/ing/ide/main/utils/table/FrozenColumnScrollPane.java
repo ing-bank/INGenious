@@ -268,8 +268,8 @@ public class FrozenColumnScrollPane extends JScrollPane {
         fixed.setSelectionModel(mainTable.getSelectionModel());
         fixed.setRowHeight(mainTable.getRowHeight());
         fixed.setFont(mainTable.getFont());
-        fixed.setIntercellSpacing(new Dimension(0, 0));
-        fixed.setShowGrid(false);
+        fixed.setIntercellSpacing(new Dimension(0, 0)); // Remove intercell spacing to avoid white lines
+        fixed.setShowGrid(false); // Disable grid lines to avoid white lines
         fixed.setFillsViewportHeight(true);
         fixed.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
         fixed.getTableHeader().setReorderingAllowed(false);
