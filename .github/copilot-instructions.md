@@ -6,6 +6,13 @@ This file contains coding standards, conventions, and best practices for the ING
 
 INGenious is a multi-module Maven project that provides a no-code/low-code test automation solution leveraging Playwright-Java, Appium, and JavaFX. The framework enables everyone—from engineers to business analysts—to create high-quality automated tests.
 
+## Technology Stack
+
+- Language: Java 17
+- Build Tool: Maven
+- Test Framework: JUnit 5
+- UI Framework: JavaFX
+
 ### Module Structure
 
 The project consists of the following modules:
@@ -16,109 +23,19 @@ The project consists of the following modules:
 - **IDE** – Code and utilities for the integrated development environment
 - **StoryWriter** – Components and templates for building BDD scenarios and test cases
 - **TestData** – Manages test plan interactions and orchestrates test data retrieval from backend systems
-- **Ingenious-api** – Provides an contract for the INGenious API, enabling plugins to interact with the framework
+- **Ingenious-api** – Provides an contract for the INGenious framework, enabling plugins to interact with the framework
 
-## Code Style and Formatting
+### Key Packages
 
-### Indentation and Spacing
-- Use **4 spaces** for indentation (no tabs)
-- Add space after keywords: `if`, `for`, `while`, `catch`
-- No trailing whitespace
+| Category | Module | Package |Description |
+|----------|--------|---------|-----------|
+| Actions | Engine Module | `com.ing.ingenious.engine.commands` |  Contains Action annotated methods for executing test actions | 
+| Object Repositories (OR) | IDE Module | `com.ing.ide.main.mainui.components.testdesign.or` |Contains object repository components for the IDE module |
+| Object Repositories (OR) | Datalib Module |`com.ing.datalib.or`|Contains object repository components in the Datalib module for accessing data |  
+| Plugin| Engine Module | `com.ing.engine.plugin.loader` | Contains plugin components in the Engine module which is responsible for reading and loading plugins |
+| Plugin| Ingenious-api Module | `com.ing.ingenious.api` | Contains annotation classes, contracts or APIs, DTOs, and other components for the Ingenious API |
+| Plugin and Actions | Engine Module | `com.ing.engine.support` | Utility classes for instantiating plugins and actions |
 
-### Braces and Blocks
-- Always use braces `{}` for `if`, `else`, `for`, `while`, and `do` blocks, even for single statements
-- Place opening brace on same line as declaration
-
-```java
-// Correct
-if (condition) {
-    doSomething();
-}
-
-// Incorrect
-if (condition)
-    doSomething();
-```
-
-### Naming Conventions
-- **Classes and Interfaces**: `PascalCase`
-- **Methods and Variables**: `camelCase`
-- **Constants**: `UPPER_SNAKE_CASE`
-- **Packages**: lowercase, dot-separated (e.g., `com.ing.ingenious.engine`)
-
-### Line Length and Wrapping
-- Keep lines under **120 characters**
-- Break long method calls or expressions into multiple lines with proper indentation
-- Align continuation lines with the start of the expression
-
-### Imports
-- **Never use wildcard imports** (`import java.util.*`)
-- Import only what is needed
-- Group imports: standard Java → third-party libraries → project-specific imports
-- Use static imports sparingly and only when they improve readability
-
-### Annotations
-- Place annotations on their own line above the declaration
-- Use `@Override`, `@Deprecated`, and `@SuppressWarnings` appropriately
-
-```java
-@Override
-@SuppressWarnings("unchecked")
-public void process() {
-    // implementation
-}
-```
-
-### Comments
-- Use `//` for single-line comments and `/* */` for multi-line comments
-- Write meaningful comments that explain **why**, not what
-- Keep comments synchronized with code changes
-
-### Modern Java Features
-- Use `var` for local variables when the type is obvious from context
-- Use **Records** for immutable data carriers
-- Use **text blocks** (triple quotes `"""`) for multiline strings
-- Favor **immutability** for POJOs and data classes
-- Use `final` keyword wherever applicable
-
-```java
-// Use text blocks for multiline strings
-var jsonPayload = """
-    {
-        "name": "test",
-        "value": 123
-    }
-    """;
-
-// Use records for data carriers
-public record TestResult(String name, boolean passed, String message) {}
-```
-
-### Collections and Streams
-- Use **interfaces** (`List`, `Map`) over concrete implementations (`ArrayList`, `HashMap`)
-- Prefer **Stream API** for filtering, mapping, and collecting operations
-
-```java
-// Correct
-List<String> names = users.stream()
-    .map(User::getName)
-    .filter(name -> name.startsWith("A"))
-    .collect(Collectors.toList());
-
-// Incorrect
-ArrayList<String> names = new ArrayList<>();
-for (User user : users) {
-    if (user.getName().startsWith("A")) {
-        names.add(user.getName());
-    }
-}
-```
-
-### Clean Code Principles
-- Write **small, focused methods** (typically under 20 lines)
-- Follow **Single Responsibility Principle** (SRP)
-- Avoid magic numbers and hard-coded values—use named constants
-- Extract complex conditions into well-named methods
 
 ## INGenious-Specific Conventions
 
