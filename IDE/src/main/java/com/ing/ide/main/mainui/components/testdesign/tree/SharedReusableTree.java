@@ -695,6 +695,8 @@ public class SharedReusableTree extends ProjectTree {
             toggleTestCase.setEnabled(false);
             toggleProjectReusable.setEnabled(false);
             toggleSharedReusable.setEnabled(false);
+            // Hide group items - grouping is not supported in Shared Reusable Components
+            setGroupItemsVisible(false, false, false, false);
         }
 
         /**
@@ -706,6 +708,8 @@ public class SharedReusableTree extends ProjectTree {
             toggleTestCase.setEnabled(false);
             toggleProjectReusable.setEnabled(false);
             toggleSharedReusable.setEnabled(false);
+            // Hide group items - grouping is not supported in Shared Reusable Components
+            setGroupItemsVisible(false, false, false, false);
         }
 
         /**
@@ -717,6 +721,8 @@ public class SharedReusableTree extends ProjectTree {
             toggleTestCase.setEnabled(false);
             toggleProjectReusable.setEnabled(false);
             toggleSharedReusable.setEnabled(false);
+            // Hide group items - grouping is not supported in Shared Reusable Components
+            setGroupItemsVisible(false, false, false, false);
         }
     }
 }
