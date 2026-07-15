@@ -697,6 +697,7 @@ public class ProjectCommand implements Callable<Integer> {
             int scopeShared = 0;
             int scopeProject = 0;
             int scopeEmpty = 0;
+            int scopeUnexpected = 0;
 
             int scoreScopeMigration() {
                 if (total == 0) return 0;
@@ -738,7 +739,11 @@ public class ProjectCommand implements Callable<Integer> {
 
         /**
          * Analyzes a single CSV datasheet file to check for Scope column
-         * and count its values.
+         * and count its values. Valid Scope values are:
+         * - "[Shared]" (case-insensitive)
+         * - "[Project]" (case-insensitive)
+         * - null, empty, or missing values
+         * Any other non-empty value is tracked as unexpected.
          */
         private static void analyzeDatasheet(File csvFile, DatasheetQualityStats stats) {
             try (
@@ -776,12 +781,21 @@ public class ProjectCommand implements Callable<Integer> {
                     if (scopeColIndex < values.length) {
                         String scopeVal = values[scopeColIndex].trim();
                         if (scopeVal.isEmpty()) {
+                            // Empty/blank scope value
                             stats.scopeEmpty++;
-                        } else if (scopeVal.equalsIgnoreCase("Shared")) {
+                        } else if (scopeVal.equalsIgnoreCase("[Shared]")) {
+                            // Shared reusable component
                             stats.scopeShared++;
-                        } else if (scopeVal.equalsIgnoreCase("Project")) {
+                        } else if (scopeVal.equalsIgnoreCase("[Project]")) {
+                            // Project reusable component
                             stats.scopeProject++;
+                        } else {
+                            // Unexpected/invalid scope value
+                            stats.scopeUnexpected++;
                         }
+                    } else {
+                        // Missing scope value (column index out of range)
+                        stats.scopeEmpty++;
                     }
                 }
             } catch (Exception ignored) {
@@ -1499,6 +1513,7 @@ public class ProjectCommand implements Callable<Integer> {
                 int sharedCount = stats.scopeShared;
                 int projectCount = stats.scopeProject;
                 int emptyCount = stats.scopeEmpty;
+                int unexpectedCount = stats.scopeUnexpected;
 
                 System.out.println(
                     "  " +
@@ -1524,6 +1539,18 @@ public class ProjectCommand implements Callable<Integer> {
                     s.dim(": ") +
                     String.valueOf(emptyCount)
                 );
+
+                // Display unexpected scope values if any exist
+                if (unexpectedCount > 0) {
+                    System.out.println(
+                        "  " +
+                        s.cyan(Style.ICON_BULLET) +
+                        " " +
+                        s.bold("Unexpected Scope Values") +
+                        s.dim(": ") +
+                        s.red(String.valueOf(unexpectedCount))
+                    );
+                }
             }
 
             System.out.println();
