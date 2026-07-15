@@ -101,7 +101,8 @@ Release Date: <insert date of release>
 - Fix context menu options for Reusable Component Test Cases for `New Group` option
 - Added missing Test Manager option under TM Settings dropdown
 - Resolved issues with Test datasheet references in Reusable components.
-- Fixed the delete confirmation message for Impacted Assets to ensure correct notification and confirmation behavior during deletion actions.
+- Fixed the delete confirmation message for Impacted Assets to ensure correct notification and confirmation behavior during deletion actions.- Allow reuse of deleted scenarios in Project Reusable Components
+- Allow reuse of deleted scenarios in Project Reusable Components
 
 ### Browser/Playwright Testing
 
