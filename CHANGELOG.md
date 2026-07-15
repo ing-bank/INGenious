@@ -55,11 +55,6 @@ Release Date: <insert date of release>
 - Enhanced Web Object Repository role selection with dynamic filtering based on user-entered text
 - Added cross-environment datasheet renaming functionality and its accompanying UI confirmation dialog
 - Action 'assertVariable' can now assert runtime and global variables
-  - Added scope selector to Create Reusable dialog enabling direct creation to Project or Shared Reusable Components
-- Implemented auto-population of Reference column with `[Project]` or `[Shared]` prefix when creating reusables
-- Extended impact analysis to include Shared Reusable test cases alongside Test Plan and Project Reusable impacts
-- Standardized Reusable Components UI with FXPanelHeader matching Test Plan and Object Repository style
-- Updated Shared Reusable tree root node label to "Shared Reusable Components" for clarity
 
 #### Changed
 
@@ -68,6 +63,9 @@ Release Date: <insert date of release>
 - Reorganised Configurations menu with renames
 - Updated the Dashboard tree model to expand at Test Release level on load
 - Updated reports to reference resources in Results/media for storage optimization
+- The Scope field has been made read-only and is now displayed as disabled to prevent user edits while maintaining visibility of the configured scope.
+- Updated the list and display order of test cases in Test Data and Test Plan to improve usability and maintain a consistent user experience.
+- Ensured Shared Reusables continue to correctly reference and inherit their associated Test Datasheet scope.
 
 #### Deprecated
 
@@ -95,7 +93,7 @@ Release Date: <insert date of release>
 - Corrected Save button behavior that becomes disabled after switching applications using Alt+Tab, despite having unsaved changes.
 - Fixed behavior in the LambdaTest Remote URL field where the cursor unexpectedly jumped to the beginning of the text after typing characters beyond the @ symbol.
 - Resolved issues with Test datasheet references in Reusable components.
-
+- Fixed the delete confirmation message for Impacted Assets to ensure correct notification and confirmation behavior during deletion actions.
 
 ### Browser/Playwright Testing
 
