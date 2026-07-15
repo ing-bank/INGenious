@@ -55,6 +55,7 @@ Release Date: <insert date of release>
 - Enhanced Web Object Repository role selection with dynamic filtering based on user-entered text
 - Added cross-environment datasheet renaming functionality and its accompanying UI confirmation dialog
 - Action 'assertVariable' can now assert runtime and global variables
+- Fix context menu options for Reusable Component Test Cases for `New Group` option
   
 #### Changed
 
