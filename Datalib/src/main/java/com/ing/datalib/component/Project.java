@@ -28,6 +28,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
+import java.util.function.Predicate;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
@@ -1015,24 +1016,27 @@ public class Project {
     }
 
     /**
-     * Generates a unique scenario name by applying iteration if the name exists in any scope.
-     * For copy operations, adds " Copy" before the iteration number.
+     * Checks if a scenario exists in reusable scopes only (project/shared reusable).
+     */
+    private boolean scenarioExistsInReusableScopes(String scenarioName) {
+        return (
+            getReusableScenarioByName(scenarioName) != null ||
+            getSharedReusableScenarioByName(scenarioName) != null
+        );
+    }
+
+    /**
+     * Generates a unique reusable-scope scenario name by appending "_n" only when duplicates exist.
+     * Test Plan scenarios do not influence this naming.
      * @param baseName base scenario name
      * @param isCopy true if this is a copy operation, false if move
      * @return unique name or baseName if not in use
      */
-    private String makeScenarioNameUniqueAcrossScopes(String baseName, boolean isCopy) {
-        String candidate = baseName;
-        if (!scenarioExistsInAnyScope(candidate)) {
-            return candidate;
+    private String makeScenarioNameUniqueAcrossReusableScopes(String baseName, boolean isCopy) {
+        if (!isCopy) {
+            return baseName;
         }
-        int i = 1;
-        String pattern = isCopy ? baseName + " Copy(" + i + ")" : baseName + "(" + i + ")";
-        while (scenarioExistsInAnyScope(pattern)) {
-            i++;
-            pattern = isCopy ? baseName + " Copy(" + i + ")" : baseName + "(" + i + ")";
-        }
-        return pattern;
+        return generateUniqueName(baseName, this::scenarioExistsInReusableScopes);
     }
 
     /**
@@ -1150,7 +1154,7 @@ public class Project {
                 );
             }
         }
-        // For copy operations: no validation needed - names will be appended with Copy(n)
+        // For copy operations, naming is resolved with collision-only suffixing.
 
         Scenario targetScenario = getOrCreateScenarioForScope(targetSource, scenarioName, !move);
         if (targetScenario == null) {
@@ -1281,7 +1285,7 @@ public class Project {
             return addScenarioInScope(scope, scenarioName);
         }
 
-        String uniqueName = makeScenarioNameUniqueAcrossScopes(scenarioName, true);
+        String uniqueName = makeScenarioNameUniqueAcrossReusableScopes(scenarioName, true);
         if (scope == Scenario.Source.REUSABLE_COMPONENTS) {
             Scenario scenario = getReusableScenarioByName(uniqueName);
             return scenario != null ? scenario : addScenarioInScope(scope, uniqueName);
@@ -1321,17 +1325,25 @@ public class Project {
     }
 
     private String uniqueNameInScenario(Scenario scenario, String baseName, boolean isCopy) {
-        String candidate = baseName;
         if (!isCopy) {
             // For move operations, keep original name
-            return candidate;
+            return baseName;
         }
-        // For copy operations, add Copy with iteration
-        int i = 1;
-        candidate = baseName + " Copy(" + i + ")";
-        while (scenario.getTestCaseByName(candidate) != null) {
-            i++;
-            candidate = baseName + " Copy(" + i + ")";
+        return generateUniqueName(baseName, name -> scenario.getTestCaseByName(name) != null);
+    }
+
+    /**
+     * Generates a unique name by appending "_n" only when duplicates exist.
+     */
+    private String generateUniqueName(String baseName, Predicate<String> exists) {
+        if (baseName == null || baseName.isBlank()) {
+            return baseName;
+        }
+        String candidate = baseName;
+        int counter = 1;
+        while (exists.test(candidate)) {
+            candidate = baseName + "_" + counter;
+            counter++;
         }
         return candidate;
     }
