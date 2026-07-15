@@ -55,7 +55,6 @@ Release Date: <insert date of release>
 - Enhanced Web Object Repository role selection with dynamic filtering based on user-entered text
 - Added cross-environment datasheet renaming functionality and its accompanying UI confirmation dialog
 - Action 'assertVariable' can now assert runtime and global variables
-- Fix context menu options for Reusable Component Test Cases for `New Group` option
   
 #### Changed
 
@@ -90,6 +89,7 @@ Release Date: <insert date of release>
 - Fixed issue where enabling or disabling the LambdaTest option in the Manange Devices caused the Properties table to display empty entries.
 - Corrected Save button behavior that becomes disabled after switching applications using Alt+Tab, despite having unsaved changes.
 - Fixed behavior in the LambdaTest Remote URL field where the cursor unexpectedly jumped to the beginning of the text after typing characters beyond the @ symbol.
+- Fix context menu options for Reusable Component Test Cases for `New Group` option
 
 
 ### Browser/Playwright Testing
