@@ -3,6 +3,7 @@ package com.ing.engine.execution.data;
 import com.ing.datalib.component.ReusableRef;
 import com.ing.datalib.testdata.model.GlobalDataModel;
 import com.ing.datalib.testdata.model.TestDataModel;
+import com.ing.datalib.testdata.view.TestDataView;
 import com.ing.engine.execution.exception.data.DataNotFoundException;
 import com.ing.engine.execution.exception.data.DataNotFoundException.Cause;
 import com.ing.engine.execution.exception.data.TestDataNotFoundException;
@@ -293,20 +294,29 @@ public class DataAccessInternal {
             String testPlanScope = "";
             String scopeFilter = getScopeFilter(context);
 
-            Set<String> val = def
+            // Get root testcase view with null-safety check
+            TestDataView rootTestcaseView = def
                 .view()
                 .withTestcaseAndScope(
                     context.getRoot().scenario(),
                     context.getRoot().testcase(),
                     testPlanScope
-                )
-                .getIterations();
+                );
+
+            Set<String> val = null;
+            if (notNull(rootTestcaseView)) {
+                val = rootTestcaseView.getIterations();
+            }
+
             if (isNullOrEmpty(val)) {
-                val =
-                    def
-                        .view()
-                        .withTestcaseAndScope(context.scenario(), context.testcase(), scopeFilter)
-                        .getIterations();
+                // Get reusable testcase view with null-safety check
+                TestDataView reusableTestcaseView = def
+                    .view()
+                    .withTestcaseAndScope(context.scenario(), context.testcase(), scopeFilter);
+
+                if (notNull(reusableTestcaseView)) {
+                    val = reusableTestcaseView.getIterations();
+                }
             }
             return val;
         }

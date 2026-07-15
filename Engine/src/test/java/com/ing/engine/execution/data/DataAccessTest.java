@@ -70,7 +70,7 @@ public class DataAccessTest {
         when(rootContext.testcase()).thenReturn("TC1");
         when(context.scenario()).thenReturn("Scn1");
         when(context.testcase()).thenReturn("TC1");
-        when(view.withTestcase(anyString(), anyString())).thenReturn(view);
+        when(view.withTestcaseAndScope(anyString(), anyString(), anyString())).thenReturn(view);
         when(view.getIterations()).thenReturn(new java.util.LinkedHashSet<>());
 
         DataAccessInternal.getIterations(context, "Sheet1");

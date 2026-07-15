@@ -1030,6 +1030,22 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
                         }
                         return super.getCellEditor(row, column);
                     }
+
+                    @Override
+                    public boolean isCellEditable(int row, int column) {
+                        if (!isGlobalData) {
+                            // Scope column (model column 2) is always read-only and auto-populated
+                            if (column == 2) {
+                                return false;
+                            }
+                            // For frozen table columns in FrozenColumnScrollPane, check model column
+                            int modelColumn = column + frozenColumnCount;
+                            if (modelColumn == 2) {
+                                return false;
+                            }
+                        }
+                        return super.isCellEditable(row, column);
+                    }
                 };
             if (isGlobalData) {
                 table.setColumnRename(onRenameAction(), 0);

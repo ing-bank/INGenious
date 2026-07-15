@@ -3,6 +3,7 @@ package com.ing.ide.main.mainui.components.testdesign.testdata;
 import com.ing.datalib.component.Project;
 import com.ing.engine.util.data.fx.FParser;
 import com.ing.ide.main.utils.Utils;
+import com.ing.ide.main.utils.table.ReadOnlyCellEditor;
 import com.ing.ide.main.utils.table.autosuggest.AutoSuggest;
 import com.ing.ide.main.utils.table.autosuggest.AutoSuggestCellEditor;
 import com.ing.ide.main.utils.table.autosuggest.ComboSeparatorsRenderer;
@@ -496,6 +497,8 @@ public class TestDataAutoSuggest {
                 updateTestCases();
                 return new AutoSuggestCellEditor(testCaseSugg);
             case 2:
+                // Scope column (column 2) is read-only and auto-populated from Scenario/TestCase selection
+                return new ReadOnlyCellEditor();
             case 3:
                 return cellEditor;
             default:
