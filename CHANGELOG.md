@@ -63,7 +63,7 @@ Release Date: <insert date of release>
 - Reorganised Configurations menu with renames
 - Updated the Dashboard tree model to expand at Test Release level on load
 - Updated reports to reference resources in Results/media for storage optimization
-- The Scope field has been made read-only and is now displayed as disabled to prevent user edits while maintaining visibility of the configured scope.
+- Disabled edit mode on `Scope` field in Test datasheet to prevent user edits while maintaining visibility of the configured scope.
 - Updated the list and display order of test cases in Test Data and Test Plan to improve usability and maintain a consistent user experience.
 - Ensured Shared Reusables continue to correctly reference and inherit their associated Test Datasheet scope.
 
