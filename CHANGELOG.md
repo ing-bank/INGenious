@@ -259,7 +259,7 @@ Release Date: <insert date of release>
 - Applied Prettier formatting updates
 - Enhanced HTML summary clickable rows (Tabulator v6 fix)
 - Implemented HTML report in-page Console Viewer with working filter under `file://`
-- Update `project upgrade` and `project validate` CLI, include migration of Test data new `Scope` field and disable auto-migration of project for `validate`
+- Updated `project upgrade` and `project validate` CLI, included migration of Test data new `Scope` field and disabled auto-migration of project for `validate` command
 
 #### Deprecated
 
