@@ -45,6 +45,7 @@ import com.ing.ide.util.Notification;
 import com.ing.ide.util.Validator;
 import java.awt.Color;
 import java.awt.Component;
+import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.FontFormatException;
 import java.awt.FontMetrics;
@@ -74,7 +75,11 @@ import java.util.Set;
 import javax.swing.AbstractAction;
 import javax.swing.Icon;
 import javax.swing.JComponent;
+import javax.swing.JLabel;
 import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTextArea;
 import javax.swing.JTree;
 import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
@@ -623,15 +628,11 @@ public abstract class ObjectTree implements ActionListener {
         List<ORObjectInf> objects = getSelectedObjects();
         if (!objects.isEmpty()) {
             String extra = isSharedScope() ? sharedProjectsInfo() : "";
-            int option = JOptionPane.showConfirmDialog(
-                null,
-                "<html><body><p style='width: 300px;'>" +
-                "Are you sure you want to delete the following Objects?<br/>" +
-                objects +
-                extra +
-                "</p></body></html>",
+            int option = showScrollableDeleteConfirmation(
                 isSharedScope() ? "Delete SHARED Object" : "Delete Object",
-                JOptionPane.YES_NO_OPTION
+                "Objects",
+                objects,
+                extra
             );
             if (option == JOptionPane.YES_OPTION) {
                 ObjectRepository repo = getProject().getObjectRepository();
@@ -708,16 +709,11 @@ public abstract class ObjectTree implements ActionListener {
                     }
                 }
                 if (!unusedWebObjects.isEmpty()) {
-                    int option = JOptionPane.showConfirmDialog(
-                        null,
-                        "<html><body><p style='width: 260px;'>" +
-                        "Delete the following Web objects from page [ " +
-                        pageName +
-                        " ]?<br>" +
-                        unusedWebObjects +
-                        "</p></body></html>",
+                    int option = showScrollableDeleteConfirmation(
                         "Delete Web Objects",
-                        JOptionPane.YES_NO_OPTION
+                        "Web objects from page [ " + pageName + " ]",
+                        unusedWebObjects,
+                        ""
                     );
                     if (option == JOptionPane.YES_OPTION) {
                         Iterator<ObjectGroup<WebORObject>> it = webPage
@@ -751,16 +747,11 @@ public abstract class ObjectTree implements ActionListener {
                         }
                     }
                     if (!unusedMobileObjects.isEmpty()) {
-                        int option = JOptionPane.showConfirmDialog(
-                            null,
-                            "<html><body><p style='width: 260px;'>" +
-                            "Delete the following Mobile objects from page [ " +
-                            pageName +
-                            " ]?<br>" +
-                            unusedMobileObjects +
-                            "</p></body></html>",
+                        int option = showScrollableDeleteConfirmation(
                             "Delete Mobile Objects",
-                            JOptionPane.YES_NO_OPTION
+                            "Mobile objects from page [ " + pageName + " ]",
+                            unusedMobileObjects,
+                            ""
                         );
                         if (option == JOptionPane.YES_OPTION) {
                             Iterator<ObjectGroup<MobileORObject>> it = mobilePage
@@ -797,16 +788,11 @@ public abstract class ObjectTree implements ActionListener {
                         }
                     }
                     if (!unusedStructuredDataObjects.isEmpty()) {
-                        int option = JOptionPane.showConfirmDialog(
-                            null,
-                            "<html><body><p style='width: 260px;'>" +
-                            "Delete the following Structured Data objects from page [ " +
-                            pageName +
-                            " ]?<br>" +
-                            unusedStructuredDataObjects +
-                            "</p></body></html>",
+                        int option = showScrollableDeleteConfirmation(
                             "Delete Structured Data Objects",
-                            JOptionPane.YES_NO_OPTION
+                            "Structured Data objects from page [ " + pageName + " ]",
+                            unusedStructuredDataObjects,
+                            ""
                         );
                         if (option == JOptionPane.YES_OPTION) {
                             Iterator<ObjectGroup<StructuredDataORObject>> it = structuredDataPage
@@ -841,16 +827,11 @@ public abstract class ObjectTree implements ActionListener {
                         }
                     }
                     if (!unusedSapObjects.isEmpty()) {
-                        int option = JOptionPane.showConfirmDialog(
-                            null,
-                            "<html><body><p style='width: 260px;'>" +
-                            "Delete the following SAP objects from page [ " +
-                            pageName +
-                            " ]?<br>" +
-                            unusedSapObjects +
-                            "</p></body></html>",
+                        int option = showScrollableDeleteConfirmation(
                             "Delete SAP Objects",
-                            JOptionPane.YES_NO_OPTION
+                            "SAP objects from page [ " + pageName + " ]",
+                            unusedSapObjects,
+                            ""
                         );
                         if (option == JOptionPane.YES_OPTION) {
                             Iterator<ObjectGroup<SapORObject>> it = sapPage
@@ -1043,15 +1024,11 @@ public abstract class ObjectTree implements ActionListener {
         List<ObjectGroup> objects = getSelectedObjectGroups();
         if (!objects.isEmpty()) {
             String extra = isSharedScope() ? sharedProjectsInfo() : "";
-            int option = JOptionPane.showConfirmDialog(
-                null,
-                "<html><body><p style='width: 300px;'>" +
-                "Are you sure you want to delete the following ObjectGroups?<br/>" +
-                objects +
-                extra +
-                "</p></body></html>",
+            int option = showScrollableDeleteConfirmation(
                 isSharedScope() ? "Delete SHARED ObjectGroup" : "Delete ObjectGroup",
-                JOptionPane.YES_NO_OPTION
+                "ObjectGroups",
+                objects,
+                extra
             );
             if (option == JOptionPane.YES_OPTION) {
                 for (ObjectGroup object : objects) {
@@ -1069,15 +1046,11 @@ public abstract class ObjectTree implements ActionListener {
         List<ORPageInf> pages = getSelectedPages();
         if (!pages.isEmpty()) {
             String extra = isSharedScope() ? sharedProjectsInfo() : "";
-            int option = JOptionPane.showConfirmDialog(
-                null,
-                "<html><body><p style='width: 300px;'>" +
-                "Are you sure you want to delete the following Pages?<br/>" +
-                pages +
-                extra +
-                "</p></body></html>",
+            int option = showScrollableDeleteConfirmation(
                 isSharedScope() ? "Delete SHARED Page" : "Delete Page",
-                JOptionPane.YES_NO_OPTION
+                "Pages",
+                pages,
+                extra
             );
             if (option == JOptionPane.YES_OPTION) {
                 ObjectRepository repo = getProject().getObjectRepository();
@@ -1090,6 +1063,56 @@ public abstract class ObjectTree implements ActionListener {
                 repo.save();
             }
         }
+    }
+
+    /**
+     * Shows a delete confirmation dialog with a scrollable list so action buttons stay visible.
+     * @param title dialog title
+     * @param itemType label for the selected item type
+     * @param selectedItems selected items to display
+     * @param extraHtml optional extra HTML content (e.g. shared project warning)
+     * @return JOptionPane option value
+     */
+    private int showScrollableDeleteConfirmation(
+        String title,
+        String itemType,
+        List<?> selectedItems,
+        String extraHtml
+    ) {
+        JPanel messagePanel = new JPanel(new java.awt.BorderLayout(0, 8));
+        messagePanel.add(
+            new JLabel("Are you sure you want to delete the following " + itemType + "?"),
+            java.awt.BorderLayout.NORTH
+        );
+
+        JTextArea itemsArea = new JTextArea();
+        itemsArea.setEditable(false);
+        itemsArea.setLineWrap(false);
+        itemsArea.setWrapStyleWord(false);
+
+        StringBuilder content = new StringBuilder();
+        for (Object item : selectedItems) {
+            content.append(item).append(System.lineSeparator());
+        }
+        itemsArea.setText(content.toString());
+        itemsArea.setCaretPosition(0);
+
+        JScrollPane scrollPane = new JScrollPane(itemsArea);
+        scrollPane.setPreferredSize(new Dimension(420, 180));
+        messagePanel.add(scrollPane, java.awt.BorderLayout.CENTER);
+
+        if (extraHtml != null && !extraHtml.isBlank()) {
+            JLabel extraLabel = new JLabel("<html><body>" + extraHtml + "</body></html>");
+            messagePanel.add(extraLabel, java.awt.BorderLayout.SOUTH);
+        }
+
+        return JOptionPane.showConfirmDialog(
+            null,
+            messagePanel,
+            title,
+            JOptionPane.YES_NO_OPTION,
+            JOptionPane.WARNING_MESSAGE
+        );
     }
 
     private void getImpactedTestCases() {
