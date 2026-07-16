@@ -4,13 +4,16 @@ import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Font;
+import java.awt.Graphics;
 import java.awt.Point;
 import java.awt.event.AdjustmentEvent;
 import java.awt.event.AdjustmentListener;
 import java.awt.event.FocusAdapter;
 import java.awt.event.FocusEvent;
 import java.awt.event.FocusListener;
+import java.awt.event.MouseEvent;
 import java.util.Objects;
+import java.util.function.IntConsumer;
 import javax.swing.BorderFactory;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
@@ -48,6 +51,8 @@ public class FrozenColumnScrollPane extends JScrollPane {
     private final int fixedColumnCount;
     private TableModelListener modelListener;
     private CellEditorProvider cellEditorProvider;
+
+    private InsertRowPromptFeature fixedInsertRowPromptFeature;
 
     // Theme-aware color getters
     private static Color getFixedColumnBg() {
@@ -185,6 +190,7 @@ public class FrozenColumnScrollPane extends JScrollPane {
         // Create a table sharing the same model but different column model
         // Using 'this' reference to access cellEditorProvider from inner class
         final FrozenColumnScrollPane scrollPane = this;
+
         JTable fixed = new JTable(mainTable.getModel()) {
 
             @Override
@@ -212,12 +218,41 @@ public class FrozenColumnScrollPane extends JScrollPane {
             }
 
             @Override
-            protected void paintComponent(java.awt.Graphics g) {
+            protected void paintComponent(Graphics g) {
                 // Fill the entire component with the background color first
                 // This ensures empty areas below rows have the correct color
                 g.setColor(getFixedColumnBg());
                 g.fillRect(0, 0, getWidth(), getHeight());
+
                 super.paintComponent(g);
+
+                if (fixedInsertRowPromptFeature != null) {
+                    fixedInsertRowPromptFeature.paint(g);
+                }
+            }
+
+            @Override
+            protected void processMouseEvent(MouseEvent e) {
+                if (
+                    fixedInsertRowPromptFeature != null &&
+                    fixedInsertRowPromptFeature.processMouseEvent(e)
+                ) {
+                    return;
+                }
+
+                super.processMouseEvent(e);
+            }
+
+            @Override
+            protected void processMouseMotionEvent(MouseEvent e) {
+                if (
+                    fixedInsertRowPromptFeature != null &&
+                    fixedInsertRowPromptFeature.processMouseMotionEvent(e)
+                ) {
+                    return;
+                }
+
+                super.processMouseMotionEvent(e);
             }
 
             @Override
@@ -256,6 +291,10 @@ public class FrozenColumnScrollPane extends JScrollPane {
             int width = mainTable.getColumnModel().getColumn(i).getPreferredWidth();
             fixed.getColumnModel().getColumn(i).setPreferredWidth(width);
         }
+
+        fixedInsertRowPromptFeature = new InsertRowPromptFeature(fixed);
+        fixedInsertRowPromptFeature.install();
+        fixedInsertRowPromptFeature.setEnabled(false);
 
         return fixed;
     }
@@ -596,5 +635,27 @@ public class FrozenColumnScrollPane extends JScrollPane {
      */
     public void setCellEditorProvider(CellEditorProvider provider) {
         this.cellEditorProvider = provider;
+    }
+
+    /**
+     * Enables or disables the insert-row prompt on the fixed columns table.
+     *
+     * @param enabled true to enable the fixed insert-row prompt
+     */
+    public void setFixedInsertRowPromptEnabled(boolean enabled) {
+        if (fixedInsertRowPromptFeature != null) {
+            fixedInsertRowPromptFeature.setEnabled(enabled);
+        }
+    }
+
+    /**
+     * Sets the insert-row handler for the fixed columns table.
+     *
+     * @param insertRowHandler callback receiving the insertion row index
+     */
+    public void setFixedInsertRowHandler(IntConsumer insertRowHandler) {
+        if (fixedInsertRowPromptFeature != null) {
+            fixedInsertRowPromptFeature.setInsertRowHandler(insertRowHandler);
+        }
     }
 }

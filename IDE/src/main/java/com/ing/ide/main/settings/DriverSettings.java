@@ -1614,7 +1614,6 @@ public class DriverSettings extends javax.swing.JFrame {
 
         dbPropTable.setMinimumSize(new java.awt.Dimension(30, 120));
         dbPropTable.setOpaque(false);
-        dbPropTable.setPreferredSize(new java.awt.Dimension(150, 120));
         databasePanel.add(jScrollPane4, java.awt.BorderLayout.CENTER);
 
         javax.swing.GroupLayout jPanel5Layout = new javax.swing.GroupLayout(jPanel5);
@@ -1778,7 +1777,6 @@ public class DriverSettings extends javax.swing.JFrame {
         );
         contextPropTable.setMinimumSize(new java.awt.Dimension(30, 120));
         contextPropTable.setOpaque(false);
-        contextPropTable.setPreferredSize(new java.awt.Dimension(150, 120));
         jScrollPane5.setViewportView(contextPropTable);
         contextPanel.add(jScrollPane5, java.awt.BorderLayout.CENTER);
 

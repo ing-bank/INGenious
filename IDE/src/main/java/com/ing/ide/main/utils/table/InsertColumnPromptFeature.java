@@ -4,28 +4,23 @@ import java.awt.AlphaComposite;
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Cursor;
-import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.RenderingHints;
 import java.awt.event.ActionEvent;
-import java.awt.event.ComponentAdapter;
-import java.awt.event.ComponentEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.function.IntConsumer;
 import javax.swing.Action;
-import javax.swing.JComponent;
 import javax.swing.JTable;
 import javax.swing.SwingUtilities;
-import javax.swing.table.JTableHeader;
 
 /**
- * Provides a visual insert-column prompt for a table header, allowing users
+ * Provides a visual insert-column prompt for a table body, allowing users
  * to insert columns at specific positions via a hoverable plus icon displayed
- * between columns.
+ * between cells in a hovered row.
  */
 public class InsertColumnPromptFeature {
     private static final Color INSERT_INDICATOR_COLOR = Color.decode("#7724FF");
@@ -42,19 +37,20 @@ public class InsertColumnPromptFeature {
     private final JTable table;
 
     private int hoverInsertColumn = -1;
+    private int hoverRow = -1;
     private boolean insertingColumn = false;
     private boolean enabled = false;
+    private boolean installed = false;
 
     private long suppressMouseEventsUntil = 0L;
 
     private IntConsumer insertColumnHandler;
 
-    private JTableHeader installedHeader;
     private MouseAdapter insertColumnMouseAdapter;
-    private ComponentAdapter headerComponentAdapter;
-    private HeaderOverlay overlay;
 
     private int minimumInsertColumn = 0;
+
+    private boolean cursorOwnedByInsertColumnPrompt = false;
 
     /**
      * Creates a new insert-column prompt feature for the specified table.
@@ -66,24 +62,15 @@ public class InsertColumnPromptFeature {
     }
 
     /**
-     * Installs the header overlay and listeners required to support column
-     * insertion prompts.
+     * Installs the mouse listeners required to support column insertion prompts.
+     * Subsequent calls have no effect.
      */
     public void install() {
-        JTableHeader header = table.getTableHeader();
-
-        if (header == null) {
+        if (installed) {
             return;
         }
 
-        if (header == installedHeader) {
-            ensureOverlayBounds();
-            return;
-        }
-
-        uninstallFromCurrentHeader();
-
-        installedHeader = header;
+        installed = true;
 
         insertColumnMouseAdapter =
             new MouseAdapter() {
@@ -100,17 +87,25 @@ public class InsertColumnPromptFeature {
                         return;
                     }
 
+                    int newHoverRow = table.rowAtPoint(e.getPoint());
                     int newHoverInsertColumn = getInsertColumnForPoint(e.getPoint());
 
-                    if (newHoverInsertColumn != hoverInsertColumn) {
+                    if (newHoverInsertColumn == -1) {
+                        newHoverRow = -1;
+                    }
+
+                    if (newHoverInsertColumn != hoverInsertColumn || newHoverRow != hoverRow) {
                         hoverInsertColumn = newHoverInsertColumn;
-                        repaintHeader();
+                        hoverRow = newHoverRow;
+                        table.repaint();
                     }
 
                     if (hoverInsertColumn != -1 && isPointOnPlus(e.getPoint())) {
-                        installedHeader.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-                    } else {
-                        installedHeader.setCursor(Cursor.getDefaultCursor());
+                        table.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+                        cursorOwnedByInsertColumnPrompt = true;
+                    } else if (cursorOwnedByInsertColumnPrompt) {
+                        table.setCursor(Cursor.getDefaultCursor());
+                        cursorOwnedByInsertColumnPrompt = false;
                     }
                 }
 
@@ -139,41 +134,30 @@ public class InsertColumnPromptFeature {
                 }
             };
 
-        headerComponentAdapter =
-            new ComponentAdapter() {
-
-                @Override
-                public void componentResized(ComponentEvent e) {
-                    ensureOverlayBounds();
-                }
-            };
-
-        overlay = new HeaderOverlay();
-        overlay.setOpaque(false);
-        overlay.setEnabled(false);
-        overlay.setFocusable(false);
-
-        /*
-         * JTableHeader normally does not use child components.
-         * The overlay paints after the normal header rendering, giving us
-         * a clean indicator without replacing the header renderer.
-         */
-        header.setLayout(null);
-        header.add(overlay);
-        header.addMouseMotionListener(insertColumnMouseAdapter);
-        header.addMouseListener(insertColumnMouseAdapter);
-        header.addComponentListener(headerComponentAdapter);
-
-        ensureOverlayBounds();
-        repaintHeader();
+        table.addMouseMotionListener(insertColumnMouseAdapter);
+        table.addMouseListener(insertColumnMouseAdapter);
     }
 
     /**
-     * Removes installed listeners and overlay components from the current
-     * table header.
+     * Removes installed listeners from the table.
      */
     public void uninstall() {
-        uninstallFromCurrentHeader();
+        if (!installed) {
+            return;
+        }
+
+        if (insertColumnMouseAdapter != null) {
+            table.removeMouseMotionListener(insertColumnMouseAdapter);
+            table.removeMouseListener(insertColumnMouseAdapter);
+        }
+
+        table.setCursor(Cursor.getDefaultCursor());
+        table.repaint();
+
+        insertColumnMouseAdapter = null;
+        installed = false;
+        hoverInsertColumn = -1;
+        hoverRow = -1;
     }
 
     /**
@@ -190,7 +174,7 @@ public class InsertColumnPromptFeature {
             clearHoverState();
         }
 
-        repaintHeader();
+        table.repaint();
     }
 
     /**
@@ -212,38 +196,6 @@ public class InsertColumnPromptFeature {
     }
 
     /**
-     * Removes listeners and UI artifacts associated with the currently
-     * installed header.
-     */
-    private void uninstallFromCurrentHeader() {
-        if (installedHeader == null) {
-            return;
-        }
-
-        if (insertColumnMouseAdapter != null) {
-            installedHeader.removeMouseMotionListener(insertColumnMouseAdapter);
-            installedHeader.removeMouseListener(insertColumnMouseAdapter);
-        }
-
-        if (headerComponentAdapter != null) {
-            installedHeader.removeComponentListener(headerComponentAdapter);
-        }
-
-        if (overlay != null) {
-            installedHeader.remove(overlay);
-        }
-
-        installedHeader.setCursor(Cursor.getDefaultCursor());
-        installedHeader.repaint();
-
-        installedHeader = null;
-        insertColumnMouseAdapter = null;
-        headerComponentAdapter = null;
-        overlay = null;
-        hoverInsertColumn = -1;
-    }
-
-    /**
      * Sets the minimum visible/view insertion column boundary.
      *
      * For example, GlobalData can set this to 1 so the insert prompt does not
@@ -258,7 +210,20 @@ public class InsertColumnPromptFeature {
             clearHoverState();
         }
 
-        repaintHeader();
+        table.repaint();
+    }
+
+    /**
+     * Paints the insert-column indicator when a valid insertion location is hovered.
+     *
+     * This should be called by the owning table after normal table painting.
+     *
+     * @param g graphics context
+     */
+    public void paint(Graphics g) {
+        if (enabled && hoverInsertColumn != -1 && hoverRow != -1) {
+            paintInsertColumnIndicator(g);
+        }
     }
 
     private boolean isInsertColumnAllowed(int insertColumn) {
@@ -280,37 +245,43 @@ public class InsertColumnPromptFeature {
     /**
      * Resolves the column insertion index for the specified point.
      *
-     * @param point mouse location within the header
+     * @param point mouse location within the table body
      * @return insertion column index, or {@code -1} if none applies
      */
     private int getInsertColumnForPoint(Point point) {
         int columnCount = table.getColumnCount();
 
-        if (columnCount <= 0 || installedHeader == null) {
+        if (columnCount <= 0 || table.getRowCount() <= 0) {
             return -1;
         }
 
-        int column = installedHeader.columnAtPoint(point);
+        int row = table.rowAtPoint(point);
 
-        if (column == -1) {
-            return getInsertColumnForPointOutsideColumns(point);
+        if (row == -1) {
+            return -1;
         }
 
-        Rectangle columnBounds = installedHeader.getHeaderRect(column);
+        int column = table.columnAtPoint(point);
 
-        int columnLeft = columnBounds.x;
-        int columnRight = columnBounds.x + columnBounds.width;
+        if (column == -1) {
+            return getInsertColumnForPointOutsideColumns(point, row);
+        }
+
+        Rectangle cellBounds = table.getCellRect(row, column, true);
+
+        int cellLeft = cellBounds.x;
+        int cellRight = cellBounds.x + cellBounds.width;
 
         /*
          * If a custom handler exists, insertion before the first visible column
-         * is allowed. This is needed for TestData tables with frozen columns:
-         * visible column 0 maps to model column 4.
+         * is allowed. This is needed for tables whose visible columns are mapped
+         * to different model columns, such as test data tables with frozen columns.
          *
          * Without a handler, fallback "Add Column" can only insert after a selected
          * column, so before-first-column insertion is not reliable.
          */
         if (
-            Math.abs(point.x - columnLeft) <= INSERT_HOVER_ZONE &&
+            Math.abs(point.x - cellLeft) <= INSERT_HOVER_ZONE &&
             (column > 0 || insertColumnHandler != null)
         ) {
             int candidateInsertColumn = column;
@@ -320,7 +291,7 @@ public class InsertColumnPromptFeature {
             }
         }
 
-        if (Math.abs(point.x - columnRight) <= INSERT_HOVER_ZONE) {
+        if (Math.abs(point.x - cellRight) <= INSERT_HOVER_ZONE) {
             int candidateInsertColumn = column + 1;
 
             if (isInsertColumnAllowed(candidateInsertColumn)) {
@@ -333,22 +304,23 @@ public class InsertColumnPromptFeature {
 
     /**
      * Determines an insertion index when the pointer is outside the bounds of
-     * any visible column.
+     * any visible column but still inside a table row.
      *
      * @param point mouse location
+     * @param row row index under the pointer
      * @return insertion column index, or {@code -1} if none applies
      */
-    private int getInsertColumnForPointOutsideColumns(Point point) {
+    private int getInsertColumnForPointOutsideColumns(Point point, int row) {
         int columnCount = table.getColumnCount();
 
-        if (columnCount <= 0 || installedHeader == null) {
+        if (columnCount <= 0 || row < 0) {
             return -1;
         }
 
-        Rectangle lastColumn = installedHeader.getHeaderRect(columnCount - 1);
-        int lastColumnRight = lastColumn.x + lastColumn.width;
+        Rectangle lastCell = table.getCellRect(row, columnCount - 1, true);
+        int lastCellRight = lastCell.x + lastCell.width;
 
-        if (Math.abs(point.x - lastColumnRight) <= INSERT_HOVER_ZONE) {
+        if (Math.abs(point.x - lastCellRight) <= INSERT_HOVER_ZONE) {
             int candidateInsertColumn = columnCount;
 
             if (isInsertColumnAllowed(candidateInsertColumn)) {
@@ -368,22 +340,39 @@ public class InsertColumnPromptFeature {
     private int getInsertLineX(int insertColumn) {
         int columnCount = table.getColumnCount();
 
-        if (columnCount <= 0 || installedHeader == null) {
+        if (columnCount <= 0) {
             return 0;
         }
 
+        int safeRow = getSafeHoverRow();
+
         if (insertColumn <= 0) {
-            Rectangle firstColumn = installedHeader.getHeaderRect(0);
-            return firstColumn.x;
+            Rectangle firstCell = table.getCellRect(safeRow, 0, true);
+            return firstCell.x;
         }
 
         if (insertColumn >= columnCount) {
-            Rectangle lastColumn = installedHeader.getHeaderRect(columnCount - 1);
-            return lastColumn.x + lastColumn.width;
+            Rectangle lastCell = table.getCellRect(safeRow, columnCount - 1, true);
+            return lastCell.x + lastCell.width;
         }
 
-        Rectangle targetColumn = installedHeader.getHeaderRect(insertColumn);
-        return targetColumn.x;
+        Rectangle targetCell = table.getCellRect(safeRow, insertColumn, true);
+        return targetCell.x;
+    }
+
+    /**
+     * Returns a safe row to use for geometry calculations.
+     *
+     * @return valid row index
+     */
+    private int getSafeHoverRow() {
+        int rowCount = table.getRowCount();
+
+        if (rowCount <= 0) {
+            return 0;
+        }
+
+        return Math.max(0, Math.min(hoverRow, rowCount - 1));
     }
 
     /**
@@ -393,7 +382,7 @@ public class InsertColumnPromptFeature {
      * @return {@code true} if the point is on the plus icon
      */
     private boolean isPointOnPlus(Point point) {
-        if (hoverInsertColumn == -1) {
+        if (hoverInsertColumn == -1 || hoverRow == -1) {
             return false;
         }
 
@@ -408,10 +397,16 @@ public class InsertColumnPromptFeature {
      * @return plus icon bounds
      */
     private Rectangle getPlusBounds(int insertColumn) {
+        if (hoverRow == -1 || table.getRowCount() <= 0) {
+            return new Rectangle();
+        }
+
+        int safeRow = getSafeHoverRow();
+
+        Rectangle rowBounds = table.getCellRect(safeRow, 0, true);
+
         int x = getInsertLineX(insertColumn);
-        int y = installedHeader != null
-            ? Math.max(INSERT_PLUS_SIZE / 2, installedHeader.getHeight() / 2)
-            : INSERT_PLUS_SIZE / 2;
+        int y = rowBounds.y + rowBounds.height / 2;
 
         int half = INSERT_PLUS_SIZE / 2;
 
@@ -478,17 +473,15 @@ public class InsertColumnPromptFeature {
             selectInsertedColumn(insertIndex);
         } finally {
             hoverInsertColumn = -1;
+            hoverRow = -1;
             insertingColumn = false;
-            resetHeaderCursor();
-            repaintHeader();
+            resetTableCursor();
             table.repaint();
         }
 
         SwingUtilities.invokeLater(
             () -> {
-                install();
                 selectInsertedColumn(insertIndex);
-                repaintHeader();
                 table.repaint();
             }
         );
@@ -564,12 +557,12 @@ public class InsertColumnPromptFeature {
     }
 
     /**
-     * Paints the insertion guide line and plus icon in the table header.
+     * Paints the insertion guide line and plus icon in the table body.
      *
      * @param g graphics context
      */
     private void paintInsertColumnIndicator(Graphics g) {
-        if (!enabled || hoverInsertColumn == -1 || installedHeader == null) {
+        if (!enabled || hoverInsertColumn == -1 || hoverRow == -1) {
             return;
         }
 
@@ -587,7 +580,13 @@ public class InsertColumnPromptFeature {
             );
             g2.setColor(accentColor);
             g2.setStroke(new BasicStroke(2f));
-            g2.drawLine(x, 0, x, installedHeader.getHeight());
+            Rectangle firstRowBounds = table.getCellRect(0, 0, true);
+            Rectangle lastRowBounds = table.getCellRect(table.getRowCount() - 1, 0, true);
+
+            int lineTop = firstRowBounds.y;
+            int lineBottom = lastRowBounds.y + lastRowBounds.height;
+
+            g2.drawLine(x, lineTop, x, lineBottom);
 
             Rectangle plusBounds = getPlusBounds(hoverInsertColumn);
 
@@ -612,65 +611,27 @@ public class InsertColumnPromptFeature {
     }
 
     /**
-     * Clears the current hover state and resets the header cursor.
+     * Clears the current hover state and resets the table cursor.
      */
     private void clearHoverState() {
-        if (hoverInsertColumn == -1) {
-            resetHeaderCursor();
+        if (hoverInsertColumn == -1 && hoverRow == -1) {
+            resetTableCursor();
             return;
         }
 
         hoverInsertColumn = -1;
-        resetHeaderCursor();
-        repaintHeader();
+        hoverRow = -1;
+        resetTableCursor();
+        table.repaint();
     }
 
     /**
-     * Restores the default cursor on the installed header.
+     * Restores the default cursor on the table.
      */
-    private void resetHeaderCursor() {
-        if (installedHeader != null) {
-            installedHeader.setCursor(Cursor.getDefaultCursor());
-        }
-    }
-
-    /**
-     * Repaints the header and overlay components.
-     */
-    private void repaintHeader() {
-        if (installedHeader != null) {
-            installedHeader.repaint();
-        }
-
-        if (overlay != null) {
-            overlay.repaint();
-        }
-    }
-
-    /**
-     * Synchronizes the overlay bounds with the current header size.
-     */
-    private void ensureOverlayBounds() {
-        if (installedHeader == null || overlay == null) {
-            return;
-        }
-
-        Dimension size = installedHeader.getSize();
-        overlay.setBounds(0, 0, size.width, size.height);
-        overlay.revalidate();
-        overlay.repaint();
-    }
-
-    /**
-     * Lightweight overlay used to paint insertion indicators on top of the
-     * table header.
-     */
-    private class HeaderOverlay extends JComponent {
-
-        @Override
-        protected void paintComponent(Graphics g) {
-            super.paintComponent(g);
-            paintInsertColumnIndicator(g);
+    private void resetTableCursor() {
+        if (cursorOwnedByInsertColumnPrompt) {
+            table.setCursor(Cursor.getDefaultCursor());
+            cursorOwnedByInsertColumnPrompt = false;
         }
     }
 }

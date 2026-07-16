@@ -634,6 +634,10 @@ public class XTable extends JTable {
         if (insertRowPromptFeature != null) {
             insertRowPromptFeature.paint(g);
         }
+
+        if (insertColumnPromptFeature != null) {
+            insertColumnPromptFeature.paint(g);
+        }
     }
 
     /**
@@ -672,7 +676,9 @@ public class XTable extends JTable {
      * @param minimumInsertColumn minimum allowed insertion column index
      */
     public void setMinimumInsertColumn(int minimumInsertColumn) {
-        insertColumnPromptFeature.setMinimumInsertColumn(minimumInsertColumn);
+        if (insertColumnPromptFeature != null) {
+            insertColumnPromptFeature.setMinimumInsertColumn(minimumInsertColumn);
+        }
     }
 
     // -----------------------------------------------------------------------------
