@@ -311,8 +311,12 @@ public class StructuredDataORObject extends UndoRedoModel implements ORObjectInf
     @JsonIgnore
     @Override
     public Boolean rename(String newName) {
+        boolean renamedParent = true;
         if (getParent().getChildCount() == 1) {
-            getParent().rename(newName);
+            renamedParent = getParent().rename(newName);
+            if (!renamedParent) {
+                return false;
+            }
         }
         if (newName == null || newName.isBlank()) {
             return false;

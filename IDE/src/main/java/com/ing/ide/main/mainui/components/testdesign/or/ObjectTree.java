@@ -3171,7 +3171,7 @@ public abstract class ObjectTree implements ActionListener {
             ObjectGroup<?> group = (ObjectGroup<?>) groupObj;
             for (Object obj : group.getObjects()) {
                 ORObjectInf orObj = (ORObjectInf) obj;
-                if (objectName.equals(orObj.getName())) {
+                if (objectName.equalsIgnoreCase(orObj.getName())) {
                     return orObj;
                 }
             }
@@ -3187,7 +3187,7 @@ public abstract class ObjectTree implements ActionListener {
                 Object child = children.nextElement();
                 if (child instanceof ORObjectInf) {
                     ORObjectInf obj = (ORObjectInf) child;
-                    if (name.equals(obj.getName())) {
+                    if (name.equalsIgnoreCase(obj.getName())) {
                         return true;
                     }
                 }
