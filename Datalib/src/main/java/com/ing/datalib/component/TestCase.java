@@ -65,6 +65,12 @@ public class TestCase extends DataModel {
 
     private boolean migrationChecked = false;
 
+    /**
+     * When true, skips migrations on test case load to ensure read-only validation.
+     * Set by the parent Scenario when loaded in read-only mode.
+     */
+    private boolean readOnlyMode = false;
+
     public TestCase(Scenario scenario, String name) {
         this.scenario = scenario;
         this.name = TestCaseFormat.stripExtension(name);
@@ -380,7 +386,10 @@ public class TestCase extends DataModel {
             loadSteps();
         } else if (!migrationChecked) {
             // Check for migration even if steps are already loaded
-            checkAndMigrateReferences();
+            // Skip if in read-only mode (e.g., during validation)
+            if (!readOnlyMode) {
+                checkAndMigrateReferences();
+            }
             migrationChecked = true;
         }
     }
@@ -423,29 +432,34 @@ public class TestCase extends DataModel {
                 TestStep step = new TestStep(this, row);
 
                 // Auto-migrate unprefixed references to explicit [Project]/[Shared] format
-                String ref = step.getReference();
-                if (
-                    ref != null &&
-                    !ref.trim().isEmpty() &&
-                    !ref.startsWith("[Project] ") &&
-                    !ref.startsWith("[Shared] ") &&
-                    step.isPageObjectStep()
-                ) {
-                    String migratedRef = resolveAndAddPrefix(step);
-                    if (migratedRef != null && !migratedRef.equals(ref)) {
-                        step.setReference(migratedRef);
-                        migratedReferencesCount++;
+                // Skip migrations if in read-only mode (e.g., during validation)
+                if (!readOnlyMode) {
+                    String ref = step.getReference();
+                    if (
+                        ref != null &&
+                        !ref.trim().isEmpty() &&
+                        !ref.startsWith("[Project] ") &&
+                        !ref.startsWith("[Shared] ") &&
+                        step.isPageObjectStep()
+                    ) {
+                        String migratedRef = resolveAndAddPrefix(step);
+                        if (migratedRef != null && !migratedRef.equals(ref)) {
+                            step.setReference(migratedRef);
+                            migratedReferencesCount++;
+                        }
                     }
-                }
 
-                // Auto-migrate unscoped Execute reusable references.
-                // Current model: keep Action unscoped and store scope in Reference column.
-                if (step.isReusableStep()) {
-                    ScopedReusableMigrationResult result = migrateReusableScopeToReference(step);
-                    if (result != null && result.changed) {
-                        migratedReusableActionCount++;
-                        if (result.successfullyResolved) {
-                            migratedResolvedReusableActionCount++;
+                    // Auto-migrate unscoped Execute reusable references.
+                    // Current model: keep Action unscoped and store scope in Reference column.
+                    if (step.isReusableStep()) {
+                        ScopedReusableMigrationResult result = migrateReusableScopeToReference(
+                            step
+                        );
+                        if (result != null && result.changed) {
+                            migratedReusableActionCount++;
+                            if (result.successfullyResolved) {
+                                migratedResolvedReusableActionCount++;
+                            }
                         }
                     }
                 }
@@ -454,8 +468,9 @@ public class TestCase extends DataModel {
             }
             setSaved(true);
 
+            // Save only if migrations occurred and NOT in read-only mode
             boolean hasReusableScopeMigration = migratedReusableActionCount > 0;
-            if (migratedReferencesCount > 0 || hasReusableScopeMigration) {
+            if (!readOnlyMode && (migratedReferencesCount > 0 || hasReusableScopeMigration)) {
                 setSaved(false);
                 save();
             }
@@ -494,6 +509,16 @@ public class TestCase extends DataModel {
      * Checks and migrates unprefixed references for test steps already loaded in memory.
      * This is called when test steps are already loaded but migration hasn't been checked yet.
      */
+    /**
+     * Sets the read-only mode for this TestCase.
+     * When true, prevents test case migrations during load.
+     *
+     * @param readOnly true to enable read-only mode
+     */
+    public void setReadOnlyMode(boolean readOnly) {
+        this.readOnlyMode = readOnly;
+    }
+
     private void checkAndMigrateReferences() {
         migratedReferencesCount = 0;
         migratedReusableActionCount = 0;

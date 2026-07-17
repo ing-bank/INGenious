@@ -33,6 +33,7 @@ import picocli.CommandLine.Option;
         RunCommand.class,
         ReportCommand.class,
         ConfigCommand.class,
+        UpgradeCommand.class,
         ServerCommand.class,
         ShellCommand.class,
         LegacyCommand.class
