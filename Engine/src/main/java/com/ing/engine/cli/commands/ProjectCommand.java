@@ -351,6 +351,13 @@ public class ProjectCommand implements Callable<Integer> {
             TcFormatStats tcFormat = scanTestCaseFormats(new File(projectDir, "TestPlan"));
 
             // ----------------------------------------------------------------
+            // 2b. Datasheet quality analysis (Scope column adoption)
+            // ----------------------------------------------------------------
+            DatasheetQualityStats datasheetStats = scanDatasheetQuality(
+                new File(projectDir, "TestData")
+            );
+
+            // ----------------------------------------------------------------
             // 3. Per-test-case quality analysis (uses the live project model)
             // ----------------------------------------------------------------
             Project project = null;
@@ -371,7 +378,8 @@ public class ProjectCommand implements Callable<Integer> {
 
             try {
                 try (Silencer ignored = Silencer.aroundProjectLoad()) {
-                    project = new Project(projectDir.getAbsolutePath());
+                    // Load project in read-only mode to prevent auto-migrations during validation
+                    project = new Project(projectDir.getAbsolutePath(), true);
                 }
                 scenarioCount = project.getScenarios().size();
                 reusableScenarioCount = project.getReusableScenarios().size();
@@ -465,10 +473,19 @@ public class ProjectCommand implements Callable<Integer> {
             int dataScore = averageDataScore(tcQuality);
             int testSetScore = scoreTestSets(totalTestSets, totalTestCases, testCasesInTestSets);
             int tagScore = scoreTagging(taggedTcCount, totalTestCases);
+            int datasheetScore = datasheetStats.scoreScopeMigration();
 
             int overall = (int) Math.round(
-                (orScore + tcFormatScore + modularityScore + dataScore + testSetScore + tagScore) /
-                6.0
+                (
+                    orScore +
+                    tcFormatScore +
+                    modularityScore +
+                    dataScore +
+                    testSetScore +
+                    tagScore +
+                    datasheetScore
+                ) /
+                7.0
             );
 
             // ----------------------------------------------------------------
@@ -493,8 +510,14 @@ public class ProjectCommand implements Callable<Integer> {
                 dataScore,
                 testSetScore,
                 tagScore,
+                datasheetScore,
+                datasheetStats,
                 overall
             );
+
+            if (!noDetail && datasheetStats.total > 0) {
+                renderDatasheetQualityTable(cli, datasheetStats);
+            }
 
             if (!noDetail && !tcQuality.isEmpty()) {
                 renderTestCaseTable(cli, tcQuality);
@@ -664,6 +687,133 @@ public class ProjectCommand implements Callable<Integer> {
                 /* best-effort scan */
             }
             return s;
+        }
+
+        /** Statistics about test datasheets (CSV files in TestData directory). */
+        private static class DatasheetQualityStats {
+            int total = 0;
+            int withScope = 0;
+            int withoutScope = 0;
+            int scopeShared = 0;
+            int scopeProject = 0;
+            int scopeEmpty = 0;
+            int scopeUnexpected = 0;
+
+            int scoreScopeMigration() {
+                if (total == 0) return 0;
+                return (int) Math.round(withScope * 100.0 / total);
+            }
+        }
+
+        /**
+         * Scans the TestData directory for CSV files and checks which ones
+         * have a "Scope" column. Counts records by Scope value (Shared,
+         * Project, Empty/Blank). Excludes Global Data CSV files that contain
+         * data shared across all environments.
+         */
+        private static DatasheetQualityStats scanDatasheetQuality(File testDataDir) {
+            DatasheetQualityStats stats = new DatasheetQualityStats();
+            if (!testDataDir.isDirectory()) return stats;
+            try {
+                Files
+                    .walk(testDataDir.toPath())
+                    .filter(
+                        p -> p.getFileName().toString().toLowerCase(Locale.ROOT).endsWith(".csv")
+                    )
+                    .filter(p -> !isGlobalDataFile(p.toFile()))
+                    .forEach(
+                        p -> {
+                            try {
+                                stats.total++;
+                                analyzeDatasheet(p.toFile(), stats);
+                            } catch (Exception ignored) {
+                                /* best-effort analysis */
+                            }
+                        }
+                    );
+            } catch (Exception ignored) {
+                /* best-effort scan */
+            }
+            return stats;
+        }
+
+        /**
+         * Analyzes a single CSV datasheet file to check for Scope column
+         * and count its values. Valid Scope values are:
+         * - "[Shared]" (case-insensitive)
+         * - "[Project]" (case-insensitive)
+         * - null, empty, or missing values
+         * Any other non-empty value is tracked as unexpected.
+         */
+        private static void analyzeDatasheet(File csvFile, DatasheetQualityStats stats) {
+            try (
+                java.io.BufferedReader reader = new java.io.BufferedReader(
+                    new java.io.FileReader(csvFile)
+                )
+            ) {
+                String headerLine = reader.readLine();
+                if (headerLine == null || headerLine.trim().isEmpty()) return;
+
+                String[] headers = headerLine.split(",");
+                int scopeColIndex = -1;
+
+                // Find the Scope column index
+                for (int i = 0; i < headers.length; i++) {
+                    if (headers[i].trim().equalsIgnoreCase("Scope")) {
+                        scopeColIndex = i;
+                        break;
+                    }
+                }
+
+                if (scopeColIndex == -1) {
+                    stats.withoutScope++;
+                    return;
+                }
+
+                // Scope column found
+                stats.withScope++;
+
+                // Count scope values in data rows
+                String dataLine;
+                while ((dataLine = reader.readLine()) != null) {
+                    if (dataLine.trim().isEmpty()) continue;
+                    String[] values = dataLine.split(",");
+                    if (scopeColIndex < values.length) {
+                        String scopeVal = values[scopeColIndex].trim();
+                        if (scopeVal.isEmpty()) {
+                            // Empty/blank scope value
+                            stats.scopeEmpty++;
+                        } else if (scopeVal.equalsIgnoreCase("[Shared]")) {
+                            // Shared reusable component
+                            stats.scopeShared++;
+                        } else if (scopeVal.equalsIgnoreCase("[Project]")) {
+                            // Project reusable component
+                            stats.scopeProject++;
+                        } else {
+                            // Unexpected/invalid scope value
+                            stats.scopeUnexpected++;
+                        }
+                    } else {
+                        // Missing scope value (column index out of range)
+                        stats.scopeEmpty++;
+                    }
+                }
+            } catch (Exception ignored) {
+                /* best-effort analysis */
+            }
+        }
+
+        /**
+         * Checks if a CSV file is a Global Data file. Global Data files
+         * (GlobalData.csv) contain data shared across all environments and
+         * should be excluded from Test Datasheet validation metrics.
+         *
+         * @param csvFile the CSV file to check
+         * @return true if the file is a Global Data file, false otherwise
+         */
+        private static boolean isGlobalDataFile(File csvFile) {
+            String fileName = csvFile.getName();
+            return fileName.equalsIgnoreCase("GlobalData.csv");
         }
 
         /** Quality snapshot for a single test case (or reusable component). */
@@ -1241,6 +1391,8 @@ public class ProjectCommand implements Callable<Integer> {
             int dataScore,
             int tsScore,
             int tagScore,
+            int datasheetScore,
+            DatasheetQualityStats datasheetStats,
             int overall
         ) {
             Style s = cli.style();
@@ -1273,6 +1425,7 @@ public class ProjectCommand implements Callable<Integer> {
             printScoreRow(s, "Data parameterisation", dataScore);
             printScoreRow(s, "Test-set coverage", tsScore);
             printScoreRow(s, "Tag adoption", tagScore);
+            printScoreRow(s, "Test Datasheet Scope", datasheetScore);
 
             cli.printHeader("Overall");
             String g = grade(overall);
@@ -1307,6 +1460,106 @@ public class ProjectCommand implements Callable<Integer> {
                 "  " +
                 scoreColor(s, score)
             );
+        }
+
+        /**
+         * Renders the Test Datasheet Quality analysis section, showing
+         * adoption of the Scope column migration across all test datasheets.
+         */
+        private static void renderDatasheetQualityTable(
+            INGeniousCLI cli,
+            DatasheetQualityStats stats
+        ) {
+            Style s = cli.style();
+            cli.printHeader("Test Datasheet Quality");
+
+            System.out.println("  " + s.bold("Migration/Adoption Analysis"));
+            System.out.println("  " + s.dim("─".repeat(80)));
+
+            String total = String.valueOf(stats.total);
+            String migrated = String.valueOf(stats.withScope);
+            String notMigrated = String.valueOf(stats.withoutScope);
+
+            System.out.println(
+                "  " +
+                s.cyan(Style.ICON_BULLET) +
+                " " +
+                s.bold("Total test datasheets") +
+                s.dim(": ") +
+                total
+            );
+            System.out.println(
+                "  " +
+                s.cyan(Style.ICON_BULLET) +
+                " " +
+                s.bold("Datasheets with Scope column") +
+                s.dim(": ") +
+                s.green(migrated)
+            );
+            System.out.println(
+                "  " +
+                s.cyan(Style.ICON_BULLET) +
+                " " +
+                s.bold("Datasheets without Scope column") +
+                s.dim(": ") +
+                (stats.withoutScope > 0 ? s.red(notMigrated) : s.dim(notMigrated))
+            );
+
+            if (stats.withScope > 0) {
+                System.out.println();
+                System.out.println("  " + s.bold("Scope Column Values"));
+                System.out.println("  " + s.dim("─".repeat(80)));
+
+                int sharedCount = stats.scopeShared;
+                int projectCount = stats.scopeProject;
+                int emptyCount = stats.scopeEmpty;
+                int unexpectedCount = stats.scopeUnexpected;
+
+                System.out.println(
+                    "  " +
+                    s.cyan(Style.ICON_BULLET) +
+                    " " +
+                    s.bold("Shared Reusable Components") +
+                    s.dim(": ") +
+                    String.valueOf(sharedCount)
+                );
+                System.out.println(
+                    "  " +
+                    s.cyan(Style.ICON_BULLET) +
+                    " " +
+                    s.bold("Project Reusable Components") +
+                    s.dim(": ") +
+                    String.valueOf(projectCount)
+                );
+                System.out.println(
+                    "  " +
+                    s.cyan(Style.ICON_BULLET) +
+                    " " +
+                    s.bold("Empty/Blank (test cases in test plan)") +
+                    s.dim(": ") +
+                    String.valueOf(emptyCount)
+                );
+
+                // Display unexpected scope values if any exist
+                if (unexpectedCount > 0) {
+                    System.out.println(
+                        "  " +
+                        s.cyan(Style.ICON_BULLET) +
+                        " " +
+                        s.bold("Unexpected Scope Values") +
+                        s.dim(": ") +
+                        s.red(String.valueOf(unexpectedCount))
+                    );
+                }
+            }
+
+            System.out.println();
+            int score = stats.scoreScopeMigration();
+            String scoreStr = score + "%";
+            String coloured;
+            if (score >= 90) coloured = s.green(scoreStr); else if (score >= 70) coloured =
+                s.yellow(scoreStr); else coloured = s.red(scoreStr);
+            System.out.println("  " + s.bold("Migration/Adoption Score") + s.dim(": ") + coloured);
         }
 
         private static void renderTestCaseTable(INGeniousCLI cli, List<TestCaseQuality> list) {

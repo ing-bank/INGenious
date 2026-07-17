@@ -20,6 +20,12 @@ public abstract class TestData {
 
     private String enviroment;
 
+    /**
+     * When true, skips datasheet migrations to ensure read-only operation (e.g., during validation).
+     * Set by the parent Project when loaded in read-only mode.
+     */
+    private boolean readOnlyMode = false;
+
     public TestData(Project sProject, String enviroment) {
         this.sProject = sProject;
         this.enviroment = enviroment;
@@ -27,6 +33,25 @@ public abstract class TestData {
     }
 
     public abstract void load();
+
+    /**
+     * Sets the read-only mode for this TestData instance.
+     * When true, prevents datasheet migrations during load.
+     *
+     * @param readOnly true to enable read-only mode
+     */
+    public void setReadOnlyMode(boolean readOnly) {
+        this.readOnlyMode = readOnly;
+    }
+
+    /**
+     * Returns whether this TestData is in read-only mode.
+     *
+     * @return true if in read-only mode
+     */
+    protected boolean isReadOnlyMode() {
+        return readOnlyMode;
+    }
 
     public void save() {
         for (TestDataModel tData : testDataList) {

@@ -4,7 +4,6 @@ import com.ing.datalib.component.io.TestCaseStoreFactory;
 import com.ing.datalib.component.utils.FileUtils;
 import com.ing.datalib.component.utils.SortOrderStore;
 import com.ing.datalib.or.web.WebOR.ORScope;
-import com.ing.datalib.or.web.WebOR.ORScope;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
@@ -39,6 +38,12 @@ public class Scenario extends DataModel {
     private String name;
 
     private final Source source;
+
+    /**
+     * When true, skips migrations on scenario/test case load to ensure read-only validation.
+     * Propagated from parent Project when loaded in read-only mode.
+     */
+    private boolean readOnlyMode = false;
 
     /**
      * Constructs a scenario in the Test Plan.
@@ -132,6 +137,20 @@ public class Scenario extends DataModel {
      */
     public List<TestCase> getTestCases() {
         return testCases;
+    }
+
+    /**
+     * Sets the read-only mode for this Scenario and propagates to all child TestCases.
+     * When true, prevents scenario and test case migrations during load.
+     *
+     * @param readOnly true to enable read-only mode
+     */
+    public void setReadOnlyMode(boolean readOnly) {
+        this.readOnlyMode = readOnly;
+        // Propagate to all child test cases
+        for (TestCase tc : testCases) {
+            tc.setReadOnlyMode(readOnly);
+        }
     }
 
     /**

@@ -20,10 +20,17 @@ public class Emulators {
 
     private String location;
 
+    private boolean readOnlyMode = false;
+
     private final ObjectMapper objMapper;
 
     public Emulators(String location) {
+        this(location, false);
+    }
+
+    public Emulators(String location, boolean readOnlyMode) {
         this.location = location;
+        this.readOnlyMode = readOnlyMode;
         this.objMapper = new ObjectMapper();
         emulators = new ArrayList<>();
         load();
@@ -59,11 +66,19 @@ public class Emulators {
     }
 
     private void ensureDefaultEmulators() {
-        // Add SAP emulator if it doesn't exist
-        if (getEmulator("SAP") == null) {
+        // Add SAP emulator if it doesn't exist (skip if in read-only mode)
+        if (!readOnlyMode && getEmulator("SAP") == null) {
             addEmulator("SAP");
             save();
         }
+    }
+
+    public void setReadOnlyMode(boolean readOnly) {
+        this.readOnlyMode = readOnly;
+    }
+
+    protected boolean isReadOnlyMode() {
+        return readOnlyMode;
     }
 
     public void reload() {
