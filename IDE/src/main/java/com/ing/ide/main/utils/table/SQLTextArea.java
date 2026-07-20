@@ -242,9 +242,9 @@ public class SQLTextArea extends javax.swing.JDialog {
 
                             @Override
                             public void actionPerformed(ActionEvent e) {
-                                linearizeCode();
+                                String linearized = linearizeCode();
                                 Optional
-                                        .ofNullable(jTextArea1.getText())
+                                        .ofNullable(linearized)
                                         .filter(val -> !val.trim().isEmpty())
                                         .map(val -> val.startsWith("@") ? val : "@" + val)
                                         .ifPresent(currentStep::setInput);
