@@ -82,7 +82,7 @@ public class SQLTextArea extends javax.swing.JDialog {
         setVisible(true);
     }
 
-    private void linearizeCode() {
+    private String linearizeCode() {
         String text = jTextArea1.getText();
         if (text == null || text.trim().isEmpty()) {
             return text;
