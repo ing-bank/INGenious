@@ -199,6 +199,7 @@ Release Date: <insert date of release>
     - Added defensive fallback in `APIHttpClient`
     - Dropped client-managed headers (`Content-Length`, `Accept-Encoding`) silently
 - Conversion from API Request to Test Case now transfers username and password fields when using Basic Auth
+- Fixed Bruno importer parsing of URLs containing `//`
 
 ### Message Testing
 
