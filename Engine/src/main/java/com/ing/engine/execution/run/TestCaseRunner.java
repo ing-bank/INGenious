@@ -368,20 +368,23 @@ public class TestCaseRunner {
     private int checkForEndLoop(TestStep testStep, int currStep) {
         if (Parameter.endParamRLoop(testStep.getCondition())) {
             if (!stepStack.isEmpty()) {
-                if (stepStack.peek().to != currStep) {
-                    stepStack.peek().to = currStep;
-                    stepStack.peek().setTimes(this.resolveNoOfTimes(testStep));
-                }
                 // Check if child reusable signaled to exit the parameter loop
                 // Only exit if current test case is also a reusable (has a parent)
                 if (testCase.getExitParamLoopFlag() && testCase.getParentTestCase() != null) {
                     stepStack.pop();
                     testCase.setExitParamLoop(false); // Reset flag after handling
-                } else if (stepStack.peek().getTimes() == 0) {
-                    stepStack.pop();
                 } else {
-                    currStep = stepStack.peek().from - 1;
-                    stepStack.peek().next();
+                    // Only update times if not exiting early
+                    if (stepStack.peek().to != currStep) {
+                        stepStack.peek().to = currStep;
+                        stepStack.peek().setTimes(this.resolveNoOfTimes(testStep));
+                    }
+                    if (stepStack.peek().getTimes() == 0) {
+                        stepStack.pop();
+                    } else {
+                        currStep = stepStack.peek().from - 1;
+                        stepStack.peek().next();
+                    }
                 }
             }
         }
@@ -608,8 +611,12 @@ public class TestCaseRunner {
                     if (isLastData) {
                         this.breakSubIterationFlag = false;
                         if (parentTestCase != null) {
-                            // For nested reusable: signal child to exit loop
+                            // For nested reusable: set child's flag and force loop exit
                             testCase.setExitParamLoop(true);
+                            // Also force times to 0 to prevent extra iterations
+                            if (!stepStack.isEmpty()) {
+                                stepStack.peek().breakIt();
+                            }
                         } else {
                             // Normal flow: No reusable component
                             checkForEndLoop(testStep, currStep);
