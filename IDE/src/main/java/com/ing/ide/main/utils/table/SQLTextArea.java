@@ -71,12 +71,10 @@ public class SQLTextArea extends javax.swing.JDialog {
         if (currentStep.getAction().contains("protractor_customSpec")) {
             if (!step.getInput().isEmpty()) {
                 jTextArea1.setText(step.getInput());
-                beautifyCode();
             } else jTextArea1.setText("Write your Spec file");
         } else {
             if (!step.getInput().isEmpty()) {
                 jTextArea1.setText(step.getInput());
-                beautifyCode();
             }
         }
         setLocationRelativeTo(parent);
@@ -84,14 +82,14 @@ public class SQLTextArea extends javax.swing.JDialog {
         setVisible(true);
     }
 
-    private void linearizeCode() {
+    private String linearizeCode() {
         String text = jTextArea1.getText();
         if (text == null || text.trim().isEmpty()) {
-            return;
+            return text;
         }
         // Collapse all whitespace (newlines, tabs, multiple spaces) into single spaces
         String linearized = text.replaceAll("\\s+", " ").trim();
-        jTextArea1.setText(linearized);
+        return linearized;
     }
 
     private void addToolbar() {
@@ -109,10 +107,10 @@ public class SQLTextArea extends javax.swing.JDialog {
         WindowMover.register(this, toolbar, WindowMover.MOVE_BOTH);
 
         JButton beautifyBtn = createToolbarButton(
-                "Beautify",
-                "format",
-                ACCENT_BLUE,
-                this::beautifyCode
+            "Beautify",
+            "format",
+            ACCENT_BLUE,
+            this::beautifyCode
         );
         toolbar.add(beautifyBtn);
 
@@ -137,10 +135,10 @@ public class SQLTextArea extends javax.swing.JDialog {
     }
 
     private JButton createToolbarButton(
-            String text,
-            String iconKey,
-            Color bgColor,
-            Runnable action
+        String text,
+        String iconKey,
+        Color bgColor,
+        Runnable action
     ) {
         JButton button = new JButton(text);
         button.setIcon(INGIcons.swing(iconKey, 16, Color.WHITE));
@@ -158,43 +156,43 @@ public class SQLTextArea extends javax.swing.JDialog {
         // Hover effect
         final Color originalBg = bgColor;
         button.addMouseListener(
-                new java.awt.event.MouseAdapter() {
+            new java.awt.event.MouseAdapter() {
 
-                    @Override
-                    public void mouseEntered(java.awt.event.MouseEvent evt) {
-                        button.setBackground(originalBg.brighter());
-                    }
-
-                    @Override
-                    public void mouseExited(java.awt.event.MouseEvent evt) {
-                        button.setBackground(originalBg);
-                    }
+                @Override
+                public void mouseEntered(java.awt.event.MouseEvent evt) {
+                    button.setBackground(originalBg.brighter());
                 }
+
+                @Override
+                public void mouseExited(java.awt.event.MouseEvent evt) {
+                    button.setBackground(originalBg);
+                }
+            }
         );
 
         // Add keyboard shortcut for beautify only
         if ("format".equals(iconKey)) {
             getRootPane()
-                    .getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW)
-                    .put(
-                            KeyStroke.getKeyStroke(
-                                    KeyEvent.VK_F,
-                                    KeyEvent.CTRL_DOWN_MASK | KeyEvent.SHIFT_DOWN_MASK
-                            ),
-                            "beautify"
-                    );
+                .getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW)
+                .put(
+                    KeyStroke.getKeyStroke(
+                        KeyEvent.VK_F,
+                        KeyEvent.CTRL_DOWN_MASK | KeyEvent.SHIFT_DOWN_MASK
+                    ),
+                    "beautify"
+                );
             getRootPane()
-                    .getActionMap()
-                    .put(
-                            "beautify",
-                            new AbstractAction() {
+                .getActionMap()
+                .put(
+                    "beautify",
+                    new AbstractAction() {
 
-                                @Override
-                                public void actionPerformed(ActionEvent e) {
-                                    action.run();
-                                }
-                            }
-                    );
+                        @Override
+                        public void actionPerformed(ActionEvent e) {
+                            action.run();
+                        }
+                    }
+                );
         }
 
         return button;
@@ -204,16 +202,17 @@ public class SQLTextArea extends javax.swing.JDialog {
         String text = jTextArea1.getText();
         if (text != null && !text.trim().isEmpty()) {
             // Linearize first
-            text = text.replaceAll("\\s+", " ").trim();
+            text=linearizeCode();
             // Add @ prefix if not present
             if (!text.startsWith("@")) {
                 text = "@" + text;
             }
-            linearizeCode();
+            jTextArea1.setText(text);
             currentStep.setInput(text);
         }
         dispose();
     }
+
     private void beautifyCode() {
         String text = jTextArea1.getText();
         if (text == null || text.trim().isEmpty()) {
@@ -234,25 +233,25 @@ public class SQLTextArea extends javax.swing.JDialog {
 
     private void initCloseListener() {
         getRootPane()
-                .getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW)
-                .put(KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), "close");
+            .getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW)
+            .put(KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), "close");
         getRootPane()
-                .getActionMap()
-                .put(
-                        "close",
-                        new AbstractAction() {
+            .getActionMap()
+            .put(
+                "close",
+                new AbstractAction() {
 
-                            @Override
-                            public void actionPerformed(ActionEvent e) {
-                                Optional
-                                        .ofNullable(jTextArea1.getText())
-                                        .filter(val -> !val.trim().isEmpty())
-                                        .map(val -> val.startsWith("@") ? val : "@" + val)
-                                        .ifPresent(currentStep::setInput);
-                                dispose();
-                            }
-                        }
-                );
+                    @Override
+                    public void actionPerformed(ActionEvent e) {
+                        Optional
+                            .ofNullable(jTextArea1.getText())
+                            .filter(val -> !val.trim().isEmpty())
+                            .map(val -> val.startsWith("@") ? val : "@" + val)
+                            .ifPresent(currentStep::setInput);
+                        dispose();
+                    }
+                }
+            );
     }
 
     private void installAutoComplete(List<String> searchStr) {
@@ -304,14 +303,14 @@ public class SQLTextArea extends javax.swing.JDialog {
 
     private void setSearchString(List<String> searchString) {
         searchString
-                .stream()
-                .forEach(
-                        string -> {
-                            provider.addCompletion(
-                                    new ShorthandCompletion(provider, string, "{" + string + "}")
-                            );
-                        }
-                );
+            .stream()
+            .forEach(
+                string -> {
+                    provider.addCompletion(
+                        new ShorthandCompletion(provider, string, "{" + string + "}")
+                    );
+                }
+            );
     }
 
     /**
@@ -336,36 +335,36 @@ public class SQLTextArea extends javax.swing.JDialog {
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
-                layout
-                        .createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                        .addGroup(
-                                layout
-                                        .createSequentialGroup()
-                                        .addContainerGap()
-                                        .addComponent(
-                                                jScrollPane2,
-                                                javax.swing.GroupLayout.DEFAULT_SIZE,
-                                                615,
-                                                Short.MAX_VALUE
-                                        )
-                                        .addContainerGap()
+            layout
+                .createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                .addGroup(
+                    layout
+                        .createSequentialGroup()
+                        .addContainerGap()
+                        .addComponent(
+                            jScrollPane2,
+                            javax.swing.GroupLayout.DEFAULT_SIZE,
+                            615,
+                            Short.MAX_VALUE
                         )
+                        .addContainerGap()
+                )
         );
         layout.setVerticalGroup(
-                layout
-                        .createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                        .addGroup(
-                                layout
-                                        .createSequentialGroup()
-                                        .addContainerGap()
-                                        .addComponent(
-                                                jScrollPane2,
-                                                javax.swing.GroupLayout.PREFERRED_SIZE,
-                                                javax.swing.GroupLayout.DEFAULT_SIZE,
-                                                javax.swing.GroupLayout.PREFERRED_SIZE
-                                        )
-                                        .addContainerGap(11, Short.MAX_VALUE)
+            layout
+                .createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                .addGroup(
+                    layout
+                        .createSequentialGroup()
+                        .addContainerGap()
+                        .addComponent(
+                            jScrollPane2,
+                            javax.swing.GroupLayout.PREFERRED_SIZE,
+                            javax.swing.GroupLayout.DEFAULT_SIZE,
+                            javax.swing.GroupLayout.PREFERRED_SIZE
                         )
+                        .addContainerGap(11, Short.MAX_VALUE)
+                )
         );
 
         pack();
