@@ -71,12 +71,10 @@ public class SQLTextArea extends javax.swing.JDialog {
         if (currentStep.getAction().contains("protractor_customSpec")) {
             if (!step.getInput().isEmpty()) {
                 jTextArea1.setText(step.getInput());
-                beautifyCode();
             } else jTextArea1.setText("Write your Spec file");
         } else {
             if (!step.getInput().isEmpty()) {
                 jTextArea1.setText(step.getInput());
-                beautifyCode();
             }
         }
         setLocationRelativeTo(parent);
@@ -87,11 +85,11 @@ public class SQLTextArea extends javax.swing.JDialog {
     private void linearizeCode() {
         String text = jTextArea1.getText();
         if (text == null || text.trim().isEmpty()) {
-            return;
+            return text;
         }
         // Collapse all whitespace (newlines, tabs, multiple spaces) into single spaces
         String linearized = text.replaceAll("\\s+", " ").trim();
-        jTextArea1.setText(linearized);
+        return linearized;
     }
 
     private void addToolbar() {
@@ -204,12 +202,12 @@ public class SQLTextArea extends javax.swing.JDialog {
         String text = jTextArea1.getText();
         if (text != null && !text.trim().isEmpty()) {
             // Linearize first
-            text = text.replaceAll("\\s+", " ").trim();
+            text=linearizeCode();
             // Add @ prefix if not present
             if (!text.startsWith("@")) {
                 text = "@" + text;
             }
-            linearizeCode();
+            jTextArea1.setText(text);
             currentStep.setInput(text);
         }
         dispose();
