@@ -1,4 +1,3 @@
-
 package com.ing.ide.main.shr.mobile;
 
 import com.ing.datalib.or.mobile.MobileORPage;
@@ -11,7 +10,7 @@ import org.w3c.dom.Node;
 
 /**
  *
- * 
+ *
  */
 public abstract class MobileTree {
 
@@ -22,6 +21,7 @@ public abstract class MobileTree {
     public JTree getTree() {
         return tree;
     }
+
     private JTree tree;
 
     public abstract void loadTree(String xml);
@@ -35,8 +35,7 @@ public abstract class MobileTree {
         NamedNodeMap nodemap = node.getAttributes();
         int maxcount = 2000;
         int loopcount = nodemap.getLength();
-        if(loopcount>maxcount)
-            loopcount = maxcount;
+        if (loopcount > maxcount) loopcount = maxcount;
         for (int i = 0; i < loopcount; i++) {
             Node attrnode = nodemap.item(i);
             treeNode.setAttribute(attrnode.getNodeName(), attrnode.getTextContent());
@@ -52,7 +51,12 @@ public abstract class MobileTree {
             }
             loc = loc + File.separator + "dump.xml";
             if (new File(loc).exists()) {
-                int option = JOptionPane.showConfirmDialog(null, "Mapping already present.Do you want to overwrite?", "Overwrite", JOptionPane.YES_NO_OPTION);
+                int option = JOptionPane.showConfirmDialog(
+                    null,
+                    "Mapping already present.Do you want to overwrite?",
+                    "Overwrite",
+                    JOptionPane.YES_NO_OPTION
+                );
                 if (option == JOptionPane.YES_OPTION) {
                     saveXML(loc);
                     return true;
@@ -72,5 +76,4 @@ public abstract class MobileTree {
     public abstract String getDisplayName(Node node);
 
     public abstract MobileTreeNode getSelectedNode();
-
 }

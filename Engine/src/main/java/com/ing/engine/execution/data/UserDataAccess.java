@@ -1,4 +1,3 @@
-
 package com.ing.engine.execution.data;
 
 import com.ing.datalib.testdata.view.TestDataView;
@@ -11,7 +10,7 @@ import com.ing.ingenious.api.contract.data.UserDataAccessApi;
  */
 public abstract class UserDataAccess implements UserDataAccessApi {
 
-    abstract public TestCaseRunner context();
+    public abstract TestCaseRunner context();
 
     public String getCurrentScenario() {
         return context().scenario();
@@ -61,27 +60,68 @@ public abstract class UserDataAccess implements UserDataAccessApi {
         return DataAccess.getData(context(), Sheet, Column, Iteration, SubIteration);
     }
 
-    public String getData(String sheet, String column, String scenario, String testcase, String iteration,
-            String subiteration) {
-        return DataAccess.getData(context(), sheet, column, scenario, testcase, iteration, subiteration);
+    public String getData(
+        String sheet,
+        String column,
+        String scenario,
+        String testcase,
+        String iteration,
+        String subiteration
+    ) {
+        return DataAccess.getData(
+            context(),
+            sheet,
+            column,
+            scenario,
+            testcase,
+            iteration,
+            subiteration
+        );
     }
 
     public void putData(String sheet, String column, String value) {
         putData(sheet, column, value, getIteration(), getSubIteration());
     }
 
-    public void putData(String sheet, String column, String value, String iteration, String subIteration) {
+    public void putData(
+        String sheet,
+        String column,
+        String value,
+        String iteration,
+        String subIteration
+    ) {
         DataAccess.putData(context(), sheet, column, value, iteration, subIteration);
     }
 
-    public void putData(String sheet, String column, String value, String scenario, String testcase, String iteration,
-            String subIteration) {
-        DataAccess.putData(context(), sheet, column, value, scenario, testcase, iteration, subIteration);
+    public void putData(
+        String sheet,
+        String column,
+        String value,
+        String scenario,
+        String testcase,
+        String iteration,
+        String subIteration
+    ) {
+        DataAccess.putData(
+            context(),
+            sheet,
+            column,
+            value,
+            scenario,
+            testcase,
+            iteration,
+            subIteration
+        );
     }
 
     public TestDataView getTestData(String sheetName) {
-        return DataAccess.getTestData(context(), sheetName).withSubIter(context().scenario(), context().testcase(),
-                context().iteration(), context().subIteration());
+        return DataAccess
+            .getTestData(context(), sheetName)
+            .withSubIter(
+                context().scenario(),
+                context().testcase(),
+                context().iteration(),
+                context().subIteration()
+            );
     }
-
 }

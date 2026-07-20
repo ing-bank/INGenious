@@ -1,4 +1,3 @@
-
 package com.ing.ide.main.mainui.components.testdesign.or.web;
 
 import com.ing.datalib.or.common.ORAttribute;
@@ -34,6 +33,7 @@ import javax.swing.JTextField;
 import javax.swing.JToggleButton;
 import javax.swing.JToolBar;
 import javax.swing.SwingConstants;
+import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
@@ -70,29 +70,31 @@ public class WebORTable extends JPanel implements ActionListener, ItemListener {
     private final WebORPanel webOR;
 
     private Boolean monitorFrameChange = true;
-    
+
     private final RoleCellEditor roleCellEditor;
 
     public WebORTable(WebORPanel webOR) {
         this.webOR = webOR;
-        
+
         // Create the role cell editor with dropdown + name field
         roleCellEditor = new RoleCellEditor();
-        
+
         // Create custom XTable that returns role editor for Role attribute
-        table = new XTable() {
-            @Override
-            public TableCellEditor getCellEditor(int row, int column) {
-                // Column 1 is the Value column, Column 0 is the Attribute name
-                if (column == 1 && row >= 0 && row < getRowCount()) {
-                    Object attrName = getValueAt(row, 0);
-                    if ("Role".equalsIgnoreCase(String.valueOf(attrName))) {
-                        return roleCellEditor;
+        table =
+            new XTable() {
+
+                @Override
+                public TableCellEditor getCellEditor(int row, int column) {
+                    // Column 1 is the Value column, Column 0 is the Attribute name
+                    if (column == 1 && row >= 0 && row < getRowCount()) {
+                        Object attrName = getValueAt(row, 0);
+                        if ("Role".equalsIgnoreCase(String.valueOf(attrName))) {
+                            return roleCellEditor;
+                        }
                     }
+                    return super.getCellEditor(row, column);
                 }
-                return super.getCellEditor(row, column);
-            }
-        };
+            };
         frameToolbar = new FrameToolBar();
         toolBar = new ToolBar();
         popupMenu = new PopupMenu();
@@ -115,8 +117,12 @@ public class WebORTable extends JPanel implements ActionListener, ItemListener {
     }
 
     public void loadObject(WebORObject object) {
+        if (table.isEditing()) {
+            table.getCellEditor().stopCellEditing();
+        }
         table.setModel(object);
         configureColumns();
+        SwingUtilities.invokeLater(this::adjustColumnsToViewport);
         monitorFrameChange = false;
         frameToolbar.frameText.setText(object.getFrame());
         toolBar.frameToggle.setSelected(!frameToolbar.frameText.getText().isEmpty());
@@ -128,7 +134,7 @@ public class WebORTable extends JPanel implements ActionListener, ItemListener {
     private void configureColumns() {
         if (table.getColumnCount() >= 3) {
             table.setAutoResizeMode(JTable.AUTO_RESIZE_LAST_COLUMN);
-            
+
             // Column 0: Attribute - narrow width
             TableColumn attrCol = table.getColumnModel().getColumn(0);
             attrCol.setCellRenderer(new PropertyAttributeRenderer());
@@ -141,43 +147,52 @@ public class WebORTable extends JPanel implements ActionListener, ItemListener {
             valueCol.setPreferredWidth(150);
             valueCol.setMinWidth(50);
             valueCol.setMaxWidth(350);
-            
+
             // Column 2: Exact - fixed width, centered
             TableColumn exactCol = table.getColumnModel().getColumn(2);
             exactCol.setPreferredWidth(50);
             exactCol.setMinWidth(50);
             exactCol.setMaxWidth(50);
             exactCol.setResizable(false);
-            
+
             // Center-aligned header for Exact column
             DefaultTableCellRenderer headerRenderer = new DefaultTableCellRenderer();
             headerRenderer.setHorizontalAlignment(SwingConstants.CENTER);
             exactCol.setHeaderRenderer(headerRenderer);
-            
+
             // Center-aligned checkbox renderer for Exact column
-            exactCol.setCellRenderer(new DefaultTableCellRenderer() {
-                private final JCheckBox checkBox = new JCheckBox();
-                {
-                    checkBox.setHorizontalAlignment(SwingConstants.CENTER);
-                    checkBox.setOpaque(true);
-                }
-                
-                @Override
-                public Component getTableCellRendererComponent(JTable table, Object value,
-                        boolean isSelected, boolean hasFocus, int row, int column) {
-                    // Check if cell is editable (not xpath, css, TestId)
-                    boolean editable = table.getModel().isCellEditable(row, column);
-                    checkBox.setSelected(value != null && (Boolean) value);
-                    checkBox.setEnabled(editable);
-                    
-                    if (isSelected) {
-                        checkBox.setBackground(table.getSelectionBackground());
-                    } else {
-                        checkBox.setBackground(table.getBackground());
+            exactCol.setCellRenderer(
+                new DefaultTableCellRenderer() {
+                    private final JCheckBox checkBox = new JCheckBox();
+
+                    {
+                        checkBox.setHorizontalAlignment(SwingConstants.CENTER);
+                        checkBox.setOpaque(true);
                     }
-                    return checkBox;
+
+                    @Override
+                    public Component getTableCellRendererComponent(
+                        JTable table,
+                        Object value,
+                        boolean isSelected,
+                        boolean hasFocus,
+                        int row,
+                        int column
+                    ) {
+                        // Check if cell is editable (not xpath, css, TestId)
+                        boolean editable = table.getModel().isCellEditable(row, column);
+                        checkBox.setSelected(value != null && (Boolean) value);
+                        checkBox.setEnabled(editable);
+
+                        if (isSelected) {
+                            checkBox.setBackground(table.getSelectionBackground());
+                        } else {
+                            checkBox.setBackground(table.getBackground());
+                        }
+                        return checkBox;
+                    }
                 }
-            });
+            );
         }
     }
 
@@ -188,6 +203,7 @@ public class WebORTable extends JPanel implements ActionListener, ItemListener {
     }
 
     public void reset() {
+        stopCellEditing();
         table.setModel(new DefaultTableModel());
     }
 
@@ -303,9 +319,14 @@ public class WebORTable extends JPanel implements ActionListener, ItemListener {
 
     private void clearFrameFromSelected() {
         frameToolbar.frameText.setText("");
-        webOR.getSelectedObjectsFromActiveTab().stream().forEach((object) -> {
-            ((WebORObject) object).setFrame("");
-        });
+        webOR
+            .getSelectedObjectsFromActiveTab()
+            .stream()
+            .forEach(
+                object -> {
+                    ((WebORObject) object).setFrame("");
+                }
+            );
     }
 
     private void clearFrameFromAll() {
@@ -455,8 +476,10 @@ public class WebORTable extends JPanel implements ActionListener, ItemListener {
         for (ORObjectInf object : selected) {
             if (object instanceof WebORObject) {
                 if (currObj != null) {
-                    reorderAttributes(currObj.getAttributes(),
-                            ((WebORObject) object).getAttributes());
+                    reorderAttributes(
+                        currObj.getAttributes(),
+                        ((WebORObject) object).getAttributes()
+                    );
                 }
             }
         }
@@ -528,27 +551,48 @@ public class WebORTable extends JPanel implements ActionListener, ItemListener {
             setFloatable(false);
             setOpaque(false);
             frameText = new JTextField();
-            add(new javax.swing.Box.Filler(new java.awt.Dimension(10, 0), new java.awt.Dimension(10, 0), new java.awt.Dimension(10, 32767)));
+            add(
+                new javax.swing.Box.Filler(
+                    new java.awt.Dimension(10, 0),
+                    new java.awt.Dimension(10, 0),
+                    new java.awt.Dimension(10, 32767)
+                )
+            );
             add(new JLabel("Frame"));
-            add(new javax.swing.Box.Filler(new java.awt.Dimension(10, 0), new java.awt.Dimension(10, 0), new java.awt.Dimension(10, 32767)));
+            add(
+                new javax.swing.Box.Filler(
+                    new java.awt.Dimension(10, 0),
+                    new java.awt.Dimension(10, 0),
+                    new java.awt.Dimension(10, 32767)
+                )
+            );
             add(frameText);
             frameText.getDocument().addDocumentListener(this);
-            table.addComponentListener(new ComponentAdapter() {
-                @Override
-                public void componentResized(ComponentEvent e) {
-                    adjustColumnsToViewport();
+            table.addComponentListener(
+                new ComponentAdapter() {
+
+                    @Override
+                    public void componentResized(ComponentEvent e) {
+                        adjustColumnsToViewport();
+                    }
                 }
-            });
+            );
         }
 
         @Override
-        public void insertUpdate(DocumentEvent de) { changeFrameText(); }
+        public void insertUpdate(DocumentEvent de) {
+            changeFrameText();
+        }
 
         @Override
-        public void removeUpdate(DocumentEvent de) { changeFrameText(); }
+        public void removeUpdate(DocumentEvent de) {
+            changeFrameText();
+        }
 
         @Override
-        public void changedUpdate(DocumentEvent de) { changeFrameText(); }
+        public void changedUpdate(DocumentEvent de) {
+            changeFrameText();
+        }
     }
 
     private void adjustColumnsToViewport() {
@@ -561,7 +605,7 @@ public class WebORTable extends JPanel implements ActionListener, ItemListener {
         TableColumn exact = m.getColumn(2);
 
         int exactWidth = exact.getMinWidth();
-        int attrMin = attr.getMinWidth(); 
+        int attrMin = attr.getMinWidth();
         int valueMin = value.getMinWidth();
 
         int viewportWidth = table.getParent().getWidth();
@@ -586,17 +630,37 @@ public class WebORTable extends JPanel implements ActionListener, ItemListener {
         public ToolBar() {
             init();
             setOpaque(false);
-            setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, UIManager.getColor("Separator.foreground")));
+            setBorder(
+                BorderFactory.createMatteBorder(
+                    0,
+                    0,
+                    1,
+                    0,
+                    UIManager.getColor("Separator.foreground")
+                )
+            );
         }
 
         private void init() {
             setLayout(new javax.swing.BoxLayout(this, javax.swing.BoxLayout.X_AXIS));
             setFloatable(false);
-            add(new javax.swing.Box.Filler(new java.awt.Dimension(10, 0), new java.awt.Dimension(10, 0), new java.awt.Dimension(10, 32767)));
+            add(
+                new javax.swing.Box.Filler(
+                    new java.awt.Dimension(10, 0),
+                    new java.awt.Dimension(10, 0),
+                    new java.awt.Dimension(10, 32767)
+                )
+            );
             titleLabel = new JLabel("Properties");
             titleLabel.setFont(new Font("Default", Font.BOLD, 12));
             add(titleLabel);
-            add(new javax.swing.Box.Filler(new java.awt.Dimension(0, 0), new java.awt.Dimension(0, 0), new java.awt.Dimension(32767, 32767)));
+            add(
+                new javax.swing.Box.Filler(
+                    new java.awt.Dimension(0, 0),
+                    new java.awt.Dimension(0, 0),
+                    new java.awt.Dimension(32767, 32767)
+                )
+            );
             add(Utils.createLRButton("Add Row", "add", WebORTable.this));
             add(Utils.createLRButton("Delete Rows", "remove", WebORTable.this));
             addSeparator();
@@ -609,13 +673,14 @@ public class WebORTable extends JPanel implements ActionListener, ItemListener {
             frameToggle.setActionCommand("Toggle Frame");
             add(frameToggle);
         }
-        
+
         public void setTitleSuffix(String suffix) {
             titleLabel.setText("Properties " + suffix);
         }
     }
 
     class PopupMenu extends JPopupMenu {
+
         public PopupMenu() {
             init();
         }

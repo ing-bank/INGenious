@@ -5,15 +5,15 @@ import com.ing.datalib.settings.UserDefinedSettings;
 import com.ing.datalib.util.data.LinkedProperties;
 import com.ing.engine.commands.browser.Command;
 import com.ing.engine.core.CommandControl;
-import com.ing.ingenious.api.status.Status;
-import com.ing.util.encryption.Encryption;
 import com.ing.engine.core.Control;
 import com.ing.ingenious.api.contract.DatabasePluginApi;
 import com.ing.ingenious.api.contract.reports.TestCaseReportApi;
 import com.ing.ingenious.api.dto.DMLResult;
-import java.util.Collection;
+import com.ing.ingenious.api.status.Status;
+import com.ing.util.encryption.Encryption;
 import java.sql.*;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Properties;
@@ -27,7 +27,6 @@ import java.util.regex.Pattern;
  * for specific database operations and supports both DML and SELECT queries.
  */
 public class General extends Command implements DatabasePluginApi {
-
     public static Connection dbconnection;
     static Statement statement;
     static ResultSet result;
@@ -63,38 +62,38 @@ public class General extends Command implements DatabasePluginApi {
     public boolean verifyDbConnection(String dbName) throws ClassNotFoundException, SQLException {
         if (getDBFile(dbName).exists()) {
             Properties dbDetails = getDBDetails(dbName);
-            
-            String dbDriver             = resolveAllVariables(dbDetails.getProperty(DB_DRIVER));
-            String dbConnectionString   = resolveAllVariables(dbDetails.getProperty(DB_CONN_STR));
-            String dbUser               = resolveAllVariables(dbDetails.getProperty(DB_USER));
-            String dbPass               = resolveAllVariables(dbDetails.getProperty(DB_PWD));
-            String dbCommitStr          = resolveAllVariables(dbDetails.getProperty(DB_COMMIT));
-            String dbTimeoutStr         = resolveAllVariables(dbDetails.getProperty(DB_TIME_OUT));
-            
+
+            String dbDriver = resolveAllVariables(dbDetails.getProperty(DB_DRIVER));
+            String dbConnectionString = resolveAllVariables(dbDetails.getProperty(DB_CONN_STR));
+            String dbUser = resolveAllVariables(dbDetails.getProperty(DB_USER));
+            String dbPass = resolveAllVariables(dbDetails.getProperty(DB_PWD));
+            String dbCommitStr = resolveAllVariables(dbDetails.getProperty(DB_COMMIT));
+            String dbTimeoutStr = resolveAllVariables(dbDetails.getProperty(DB_TIME_OUT));
+
             if (dbPass.endsWith(" Enc")) {
                 dbPass = dbPass.substring(0, dbPass.lastIndexOf(" Enc"));
                 byte[] valueDecoded = Encryption.getInstance().decrypt(dbPass).getBytes();
                 dbPass = new String(valueDecoded);
             }
-            
+
             Boolean dbCommit = Boolean.valueOf(dbCommitStr);
             int dbTimeout = Integer.parseInt(dbTimeoutStr);
 
             if (dbDriver != null) {
                 Class.forName(dbDriver);
                 if (dbConnectionString != null && dbUser != null && dbPass != null) {
-                    dbconnection = DriverManager.getConnection(dbConnectionString, dbUser,dbPass);
+                    dbconnection = DriverManager.getConnection(dbConnectionString, dbUser, dbPass);
                 } else if (dbConnectionString != null) {
                     dbconnection = DriverManager.getConnection(dbConnectionString);
                 }
-                initialize(dbCommit,dbTimeout);
+                initialize(dbCommit, dbTimeout);
 
                 return (dbconnection != null);
             }
             return false;
         }
         return false;
-    } 
+    }
 
     /**
      * Detects and resolves all variables in the input string, including datasheet variables,
@@ -107,8 +106,8 @@ public class General extends Command implements DatabasePluginApi {
      *         or the original string if none are found
      */
     private String resolveAllVariables(String str) {
-        str=handleDataSheetVariables(str);
-        str=resolveAllRuntimeVars(str);
+        str = handleDataSheetVariables(str);
+        str = resolveAllRuntimeVars(str);
         return str;
     }
 
@@ -119,8 +118,8 @@ public class General extends Command implements DatabasePluginApi {
      */
     public void executeSelect() throws SQLException {
         String query = Data;
-    	query = handleDataSheetVariables(query);
-    	query = handleUserDefinedVariables(query);
+        query = handleDataSheetVariables(query);
+        query = handleUserDefinedVariables(query);
         System.out.println("Query :" + query);
         result = statement.executeQuery(query);
         resultData = result.getMetaData();
@@ -149,10 +148,14 @@ public class General extends Command implements DatabasePluginApi {
      * @param timeout the query timeout in seconds
      * @throws SQLException if a database access error occurs
      */
-    private void initialize(Boolean commit,int timeout) throws SQLException {
+    private void initialize(Boolean commit, int timeout) throws SQLException {
         colNames.clear();
         dbconnection.setAutoCommit(commit);
-        statement = dbconnection.createStatement(ResultSet.TYPE_SCROLL_INSENSITIVE,ResultSet.CONCUR_READ_ONLY);
+        statement =
+            dbconnection.createStatement(
+                ResultSet.TYPE_SCROLL_INSENSITIVE,
+                ResultSet.CONCUR_READ_ONLY
+            );
         statement.setQueryTimeout(timeout);
         resolveVars();
     }
@@ -192,10 +195,18 @@ public class General extends Command implements DatabasePluginApi {
                     }
                 }
             } else {
-                Report.updateTestLog(Action, "Column " + columnName + " doesn't exist", Status.FAIL);
+                Report.updateTestLog(
+                    Action,
+                    "Column " + columnName + " doesn't exist",
+                    Status.FAIL
+                );
             }
         } catch (SQLException ex) {
-            Report.updateTestLog(Action, "Error asserting the value in DB " + ex.getMessage(), Status.FAIL);
+            Report.updateTestLog(
+                Action,
+                "Error asserting the value in DB " + ex.getMessage(),
+                Status.FAIL
+            );
             return false;
         }
         return isExist;
@@ -228,17 +239,19 @@ public class General extends Command implements DatabasePluginApi {
                     }
                     return true;
                 } else {
-                    Report.updateTestLog(Action, "Row " + rowIndex + " doesn't exist",
-                            Status.FAIL);
+                    Report.updateTestLog(Action, "Row " + rowIndex + " doesn't exist", Status.FAIL);
                     return false;
                 }
             } else {
-                Report.updateTestLog(Action, "Column " + split[0] + " doesn't exist ",
-                        Status.FAIL);
+                Report.updateTestLog(Action, "Column " + split[0] + " doesn't exist ", Status.FAIL);
                 return false;
             }
         } catch (SQLException se) {
-            Report.updateTestLog(Action, "Error storing value in variable " + se.getMessage(), Status.FAIL);
+            Report.updateTestLog(
+                Action,
+                "Error storing value in variable " + se.getMessage(),
+                Status.FAIL
+            );
             return false;
         }
     }
@@ -252,20 +265,23 @@ public class General extends Command implements DatabasePluginApi {
         while (matcher.find()) {
             listMatches.add(matcher.group(1));
         }
-        listMatches.stream().forEach((s) -> {
-            String replace;
-            if (s.contains("%")) {
-                replace = getVar(s);
-            } else {
-                String[] sheet = s.split(":");
-                replace = userData.getData(sheet[0], sheet[1]);
-            }
-            if (replace != null) {
-                Data = Data.replace("{" + s + "}", "'" + replace + "'");
-            }
-        });
+        listMatches
+            .stream()
+            .forEach(
+                s -> {
+                    String replace;
+                    if (s.contains("%")) {
+                        replace = getVar(s);
+                    } else {
+                        String[] sheet = s.split(":");
+                        replace = userData.getData(sheet[0], sheet[1]);
+                    }
+                    if (replace != null) {
+                        Data = Data.replace("{" + s + "}", "'" + replace + "'");
+                    }
+                }
+            );
     }
-
 
     /**
      * Retrieves database properties for the specified database name.
@@ -306,17 +322,25 @@ public class General extends Command implements DatabasePluginApi {
      * @return the query with datasheet variables replaced
      */
     private String handleDataSheetVariables(String query) {
-        List<String> sheetlist = Control.getCurrentProject().getTestData().getTestDataFor(Control.exe.runEnv())
-                .getTestDataNames();
+        List<String> sheetlist = Control
+            .getCurrentProject()
+            .getTestData()
+            .getTestDataFor(Control.exe.runEnv())
+            .getTestDataNames();
         for (int sheet = 0; sheet < sheetlist.size(); sheet++) {
             if (query.contains("{" + sheetlist.get(sheet) + ":")) {
-                com.ing.datalib.testdata.model.TestDataModel tdModel = Control.getCurrentProject()
-                        .getTestData().getTestDataByName(sheetlist.get(sheet));
+                com.ing.datalib.testdata.model.TestDataModel tdModel = Control
+                    .getCurrentProject()
+                    .getTestData()
+                    .getTestDataByName(sheetlist.get(sheet));
                 List<String> columns = tdModel.getColumns();
                 for (int col = 0; col < columns.size(); col++) {
                     if (query.contains("{" + sheetlist.get(sheet) + ":" + columns.get(col) + "}")) {
-                    	query = query.replace("{" + sheetlist.get(sheet) + ":" + columns.get(col) + "}",
-                                userData.getData(sheetlist.get(sheet), columns.get(col)));
+                        query =
+                            query.replace(
+                                "{" + sheetlist.get(sheet) + ":" + columns.get(col) + "}",
+                                userData.getData(sheetlist.get(sheet), columns.get(col))
+                            );
                     }
                 }
             }
@@ -331,16 +355,18 @@ public class General extends Command implements DatabasePluginApi {
      * @return the query with user-defined variables replaced
      */
     private String handleUserDefinedVariables(String query) {
-        Collection<Object> valuelist = Control.getCurrentProject().getProjectSettings().getUserDefinedSettings()
-                .values();
+        Collection<Object> valuelist = Control
+            .getCurrentProject()
+            .getProjectSettings()
+            .getUserDefinedSettings()
+            .values();
         for (Object prop : valuelist) {
             if (query.contains("{" + prop + "}")) {
-            	query = query.replace("{" + prop + "}", prop.toString());
+                query = query.replace("{" + prop + "}", prop.toString());
             }
         }
         return query;
     }
-    
 
     /**
      * Returns the current database connection used by this command.
@@ -354,7 +380,6 @@ public class General extends Command implements DatabasePluginApi {
         return dbconnection;
     }
 
-
     /**
      * Returns the current SQL statement object used for database operations.
      * <p>
@@ -366,7 +391,6 @@ public class General extends Command implements DatabasePluginApi {
     public Statement getStatement() {
         return statement;
     }
-
 
     /**
      * Returns the current result set from the last executed query.
@@ -380,7 +404,6 @@ public class General extends Command implements DatabasePluginApi {
         return result;
     }
 
-
     /**
      * Returns the metadata for the current result set.
      * <p>
@@ -393,7 +416,6 @@ public class General extends Command implements DatabasePluginApi {
         return resultData;
     }
 
-
     /**
      * Returns the list of column names for the current result set.
      * <p>
@@ -405,5 +427,4 @@ public class General extends Command implements DatabasePluginApi {
     public List<String> getColNames() {
         return colNames;
     }
-
 }

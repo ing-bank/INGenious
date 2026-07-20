@@ -1,4 +1,3 @@
-
 package com.ing.ide.main.shr.image.crop;
 
 import com.ing.ide.util.Canvas;
@@ -22,7 +21,6 @@ import javax.swing.SwingUtilities;
  *
  */
 public class Cropper extends JWindow implements MouseListener, MouseMotionListener {
-
     private static final long serialVersionUID = 29051411;
     private Cursor normal, crop;
     private final CropUIController uiController;
@@ -55,7 +53,6 @@ public class Cropper extends JWindow implements MouseListener, MouseMotionListen
     }
 
     private void initListeners() {
-
         addMouseMotionListener(this);
         addMouseListener(this);
     }
@@ -117,7 +114,6 @@ public class Cropper extends JWindow implements MouseListener, MouseMotionListen
         } else if (SwingUtilities.isRightMouseButton(e) && rcDisArm) {
             hideCropper();
         }
-
     }
 
     @Override
@@ -170,19 +166,13 @@ public class Cropper extends JWindow implements MouseListener, MouseMotionListen
     }
 
     @Override
-    public void mouseClicked(MouseEvent e) {
-
-    }
+    public void mouseClicked(MouseEvent e) {}
 
     @Override
-    public void mouseEntered(MouseEvent e) {
-
-    }
+    public void mouseEntered(MouseEvent e) {}
 
     @Override
-    public void mouseExited(MouseEvent e) {
-
-    }
+    public void mouseExited(MouseEvent e) {}
 
     private void setOffsetMarker(MouseEvent e) {
         if (rcDisArm && isvalid()) {
@@ -203,5 +193,4 @@ public class Cropper extends JWindow implements MouseListener, MouseMotionListen
     public Rectangle getSelection() {
         return editor.selection.getBounds();
     }
-
 }

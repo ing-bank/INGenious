@@ -8,7 +8,6 @@ import java.io.Serializable;
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class RequestBody implements Serializable {
-
     private static final long serialVersionUID = 1L;
 
     /**
@@ -154,11 +153,16 @@ public class RequestBody implements Serializable {
             case RAW:
                 if (rawFormat == null) return "text/plain";
                 switch (rawFormat) {
-                    case JSON: return "application/json";
-                    case XML: return "application/xml";
-                    case HTML: return "text/html";
-                    case JAVASCRIPT: return "application/javascript";
-                    default: return "text/plain";
+                    case JSON:
+                        return "application/json";
+                    case XML:
+                        return "application/xml";
+                    case HTML:
+                        return "text/html";
+                    case JAVASCRIPT:
+                        return "application/javascript";
+                    default:
+                        return "text/plain";
                 }
             case FORM_DATA:
                 return "multipart/form-data";

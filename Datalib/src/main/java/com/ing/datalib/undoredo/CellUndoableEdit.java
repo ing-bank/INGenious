@@ -1,4 +1,3 @@
-
 package com.ing.datalib.undoredo;
 
 import javax.swing.table.AbstractTableModel;
@@ -7,15 +6,20 @@ import javax.swing.undo.CannotUndoException;
 
 /**
  *
- * 
+ *
  */
 public class CellUndoableEdit extends CommonUndoableEdit {
-
     private final int row, column;
     private final Object oldValue, newValue;
 
-    public CellUndoableEdit(AbstractTableModel model, UndoRedoProgress progress,
-            int row, int column, Object oldValue, Object newValue) {
+    public CellUndoableEdit(
+        AbstractTableModel model,
+        UndoRedoProgress progress,
+        int row,
+        int column,
+        Object oldValue,
+        Object newValue
+    ) {
         super(model, progress);
         this.row = row;
         this.column = column;
@@ -38,5 +42,4 @@ public class CellUndoableEdit extends CommonUndoableEdit {
         super.undo();
         stopProgress();
     }
-
 }

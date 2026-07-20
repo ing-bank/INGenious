@@ -1,5 +1,6 @@
-
 package com.ing.ide.util;
+
+import static javax.swing.JLayeredPane.putLayer;
 
 import java.awt.Component;
 import java.awt.Dimension;
@@ -7,15 +8,13 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import javax.swing.JComponent;
 import javax.swing.JLayeredPane;
-import static javax.swing.JLayeredPane.putLayer;
 import javax.swing.Timer;
 
 /**
  *
- * 
+ *
  */
 public class SlideContainer extends JLayeredPane {
-
     private static int PREF_W = 400;
     private static int PREF_H = PREF_W;
     private static final int DELAY = 1;
@@ -64,26 +63,29 @@ public class SlideContainer extends JLayeredPane {
         return returnResult;
     }
 
-    private void slideFromTop(final Component comp,
-            final Component oldComponent2) {
-        new Timer(DELAY, new ActionListener() {
+    private void slideFromTop(final Component comp, final Component oldComponent2) {
+        new Timer(
+            DELAY,
+            new ActionListener() {
 
-            @Override
-            public void actionPerformed(ActionEvent aEvt) {
-                int y = comp.getY();
-                if (y >= -2) {
-                    comp.setLocation(0, 0);
-                    putLayer((JComponent) comp, JLayeredPane.DEFAULT_LAYER);
-                    if (oldComponent2 != null) {
-                        remove(oldComponent2);
+                @Override
+                public void actionPerformed(ActionEvent aEvt) {
+                    int y = comp.getY();
+                    if (y >= -2) {
+                        comp.setLocation(0, 0);
+                        putLayer((JComponent) comp, JLayeredPane.DEFAULT_LAYER);
+                        if (oldComponent2 != null) {
+                            remove(oldComponent2);
+                        }
+                        ((Timer) aEvt.getSource()).stop();
+                    } else {
+                        y += DY;
+                        comp.setLocation(0, y);
                     }
-                    ((Timer) aEvt.getSource()).stop();
-                } else {
-                    y += DY;
-                    comp.setLocation(0, y);
+                    repaint();
                 }
-                repaint();
             }
-        }).start();
+        )
+        .start();
     }
 }

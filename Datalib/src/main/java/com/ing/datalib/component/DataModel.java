@@ -1,11 +1,10 @@
-
 package com.ing.datalib.component;
 
 import com.ing.datalib.undoredo.UndoRedoModel;
 
 /**
  *
- * 
+ *
  */
 public abstract class DataModel extends UndoRedoModel {
 
@@ -26,5 +25,4 @@ public abstract class DataModel extends UndoRedoModel {
     public void removeColumn(int colIndex) {
         throw new UnsupportedOperationException("Not supported yet.");
     }
-
 }

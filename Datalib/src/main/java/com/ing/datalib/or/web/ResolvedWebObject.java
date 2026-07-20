@@ -1,4 +1,3 @@
-
 package com.ing.datalib.or.web;
 
 import com.ing.datalib.or.common.ObjectGroup;
@@ -13,17 +12,22 @@ public class ResolvedWebObject {
     private final String pageName;
     private final String objectName;
     private final ObjectGroup<WebORObject> group;
-    
+
     /**
-    * Creates a resolved web object record tying together scope, page name, object name,
-    * and the matched object group.
-    *
-    * @param scope      OR scope (Project or Shared)
-    * @param pageName   logical page name
-    * @param objectName name of the web object
-    * @param group      group of matching WebORObject instances
-    */
-    public ResolvedWebObject(ORScope scope, String pageName, String objectName, ObjectGroup<WebORObject> group) {
+     * Creates a resolved web object record tying together scope, page name, object name,
+     * and the matched object group.
+     *
+     * @param scope      OR scope (Project or Shared)
+     * @param pageName   logical page name
+     * @param objectName name of the web object
+     * @param group      group of matching WebORObject instances
+     */
+    public ResolvedWebObject(
+        ORScope scope,
+        String pageName,
+        String objectName,
+        ObjectGroup<WebORObject> group
+    ) {
         this.scope = scope;
         this.pageName = pageName;
         this.objectName = objectName;
@@ -48,7 +52,7 @@ public class ResolvedWebObject {
             this.name = name;
             this.scope = scope;
         }
-        
+
         /**
          * Returns the page name prefixed with its scope (e.g., "[Project] Login"),
          * or the raw name if scope is null.
@@ -58,8 +62,7 @@ public class ResolvedWebObject {
         public String qualified() {
             if (null == scope) {
                 return name;
-            } 
-            else switch (scope) {
+            } else switch (scope) {
                 case PROJECT:
                     return "[Project] " + name;
                 case SHARED:
@@ -103,10 +106,21 @@ public class ResolvedWebObject {
         }
     }
 
-    public ORScope getScope() { return scope; }
-    public String getPageName() { return pageName; }
-    public String getObjectName() { return objectName; }
-    public ObjectGroup<WebORObject> getGroup() { return group; }
+    public ORScope getScope() {
+        return scope;
+    }
+
+    public String getPageName() {
+        return pageName;
+    }
+
+    public String getObjectName() {
+        return objectName;
+    }
+
+    public ObjectGroup<WebORObject> getGroup() {
+        return group;
+    }
 
     /**
      * Returns the first resolved WebORObject from the group, or null if none exist.
@@ -117,9 +131,17 @@ public class ResolvedWebObject {
         return (group != null && !group.getObjects().isEmpty()) ? group.getObjects().get(0) : null;
     }
 
-    public boolean isFromProject() { return scope == ORScope.PROJECT; }
-    public boolean isFromShared()  { return scope == ORScope.SHARED; }
-    public boolean isPresent()     { return group != null && !group.getObjects().isEmpty(); }
+    public boolean isFromProject() {
+        return scope == ORScope.PROJECT;
+    }
+
+    public boolean isFromShared() {
+        return scope == ORScope.SHARED;
+    }
+
+    public boolean isPresent() {
+        return group != null && !group.getObjects().isEmpty();
+    }
 
     /**
      * Returns a debug-friendly string summarizing the scope, page, object name,
@@ -128,10 +150,18 @@ public class ResolvedWebObject {
      * @return formatted debug information
      */
     public String debugString() {
-        return "ResolvedWebObject{scope=" + scope +
-               ", page='" + pageName + '\'' +
-               ", object='" + objectName + '\'' +
-               ", objectCount=" + (group == null ? 0 : group.getObjects().size()) +
-               '}';
+        return (
+            "ResolvedWebObject{scope=" +
+            scope +
+            ", page='" +
+            pageName +
+            '\'' +
+            ", object='" +
+            objectName +
+            '\'' +
+            ", objectCount=" +
+            (group == null ? 0 : group.getObjects().size()) +
+            '}'
+        );
     }
 }

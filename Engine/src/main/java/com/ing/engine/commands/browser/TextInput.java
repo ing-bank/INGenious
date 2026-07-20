@@ -1,13 +1,12 @@
 package com.ing.engine.commands.browser;
 
 import com.ing.engine.core.CommandControl;
+import com.ing.ingenious.api.annotation.Action;
 import com.ing.ingenious.api.exception.ActionException;
 import com.ing.ingenious.api.status.Status;
-import com.ing.ingenious.api.annotation.Action;
 import com.ing.ingenious.api.types.InputType;
 import com.ing.ingenious.api.types.ObjectType;
 import com.ing.util.encryption.Encryption;
-
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -17,35 +16,61 @@ public class TextInput extends General {
         super(cc);
     }
 
-    @Action(object = ObjectType.PLAYWRIGHT, desc = "Enter the value [<Data>] in the Field [<Object>]", input = InputType.YES)
+    @Action(
+        object = ObjectType.PLAYWRIGHT,
+        desc = "Enter the value [<Data>] in the Field [<Object>]",
+        input = InputType.YES
+    )
     public void Fill() {
         try {
             Locator.clear();
             Locator.fill(Data);
-            Report.updateTestLog(Action, "Entered Text '" + Data + "' on '"
-                    + "[" + ObjectName + "]" + "'", Status.DONE);
+            Report.updateTestLog(
+                Action,
+                "Entered Text '" + Data + "' on '" + "[" + ObjectName + "]" + "'",
+                Status.DONE
+            );
         } catch (Exception e) {
             Logger.getLogger(this.getClass().getName()).log(Level.OFF, null, e);
-            Report.updateTestLog("Could not perfom [" + Action + "] action", "Error: " + e.getMessage(), Status.FAIL);
+            Report.updateTestLog(
+                "Could not perfom [" + Action + "] action",
+                "Error: " + e.getMessage(),
+                Status.FAIL
+            );
             throw new ActionException(e);
         }
     }
 
-    @Action(object = ObjectType.PLAYWRIGHT, desc = "Enter the value [<Data>] in the Field [<Object>]", input = InputType.YES)
+    @Action(
+        object = ObjectType.PLAYWRIGHT,
+        desc = "Enter the value [<Data>] in the Field [<Object>]",
+        input = InputType.YES
+    )
     public void PressSequentially() {
         try {
             Locator.clear();
             Locator.pressSequentially(Data);
-            Report.updateTestLog(Action, "Entered Text '" + Data + "' on '"
-                    + "[" + ObjectName + "]" + "'", Status.DONE);
+            Report.updateTestLog(
+                Action,
+                "Entered Text '" + Data + "' on '" + "[" + ObjectName + "]" + "'",
+                Status.DONE
+            );
         } catch (Exception e) {
             Logger.getLogger(this.getClass().getName()).log(Level.OFF, null, e);
-            Report.updateTestLog("Could not perfom [" + Action + "] action", "Error: " + e.getMessage(), Status.FAIL);
+            Report.updateTestLog(
+                "Could not perfom [" + Action + "] action",
+                "Error: " + e.getMessage(),
+                Status.FAIL
+            );
             throw new ActionException(e);
         }
     }
 
-    @Action(object = ObjectType.PLAYWRIGHT, desc = "Enter the value [<Data>] in the [<Object>] if it Data exists", input = InputType.YES)
+    @Action(
+        object = ObjectType.PLAYWRIGHT,
+        desc = "Enter the value [<Data>] in the [<Object>] if it Data exists",
+        input = InputType.YES
+    )
     public void FillIfDataExists() {
         Page.waitForLoadState();
         if (!Data.isEmpty()) {
@@ -55,7 +80,11 @@ public class TextInput extends General {
         }
     }
 
-    @Action(object = ObjectType.PLAYWRIGHT, desc = "Enter the value [<Data>] in the [<Object>] if visible", input = InputType.YES)
+    @Action(
+        object = ObjectType.PLAYWRIGHT,
+        desc = "Enter the value [<Data>] in the [<Object>] if visible",
+        input = InputType.YES
+    )
     public void FillIfVisible() {
         Page.waitForLoadState();
         if (Locator.isVisible()) {
@@ -65,21 +94,35 @@ public class TextInput extends General {
         }
     }
 
-    @Action(object = ObjectType.PLAYWRIGHT, desc = "Enter the value [<Data>] in the Field [<Object>] and check [<Data>] matches with [<Object>] value", input = InputType.YES)
+    @Action(
+        object = ObjectType.PLAYWRIGHT,
+        desc = "Enter the value [<Data>] in the Field [<Object>] and check [<Data>] matches with [<Object>] value",
+        input = InputType.YES
+    )
     public void FillAndCheck() {
         try {
             Locator.clear();
             Locator.fill(Data);
             if (Locator.getAttribute("value").equals(Data)) {
-                Report.updateTestLog("Set", "Entered Text '" + Data + "' on '"
-                        + "[" + ObjectName + "]" + "'", Status.DONE);
+                Report.updateTestLog(
+                    "Set",
+                    "Entered Text '" + Data + "' on '" + "[" + ObjectName + "]" + "'",
+                    Status.DONE
+                );
             } else {
-                Report.updateTestLog("Set", "Unable Enter Text '" + Data
-                        + "' on '" + ObjectName + "'", Status.FAIL);
+                Report.updateTestLog(
+                    "Set",
+                    "Unable Enter Text '" + Data + "' on '" + ObjectName + "'",
+                    Status.FAIL
+                );
             }
         } catch (Exception e) {
             Logger.getLogger(this.getClass().getName()).log(Level.OFF, null, e);
-            Report.updateTestLog("Could not perfom [" + Action + "] action", "Error: " + e.getMessage(), Status.FAIL);
+            Report.updateTestLog(
+                "Could not perfom [" + Action + "] action",
+                "Error: " + e.getMessage(),
+                Status.FAIL
+            );
             throw new ActionException(e);
         }
     }
@@ -88,15 +131,27 @@ public class TextInput extends General {
     public void Clear() {
         try {
             Locator.clear();
-            Report.updateTestLog("Clear", "Cleared Text on '" + "[" + ObjectName + "]" + "'", Status.DONE);
+            Report.updateTestLog(
+                "Clear",
+                "Cleared Text on '" + "[" + ObjectName + "]" + "'",
+                Status.DONE
+            );
         } catch (Exception e) {
             Logger.getLogger(this.getClass().getName()).log(Level.OFF, null, e);
-            Report.updateTestLog("Could not perfom [" + Action + "] action", "Error: " + e.getMessage(), Status.FAIL);
+            Report.updateTestLog(
+                "Could not perfom [" + Action + "] action",
+                "Error: " + e.getMessage(),
+                Status.FAIL
+            );
             throw new ActionException(e);
         }
     }
 
-    @Action(object = ObjectType.PLAYWRIGHT, desc = "Enter the Decrypted value [<Data>] in the Field [<Object>]", input = InputType.YES)
+    @Action(
+        object = ObjectType.PLAYWRIGHT,
+        desc = "Enter the Decrypted value [<Data>] in the Field [<Object>]",
+        input = InputType.YES
+    )
     public void fillEncrypted() {
         if (Data != null && Data.matches(".* Enc")) {
             try {
@@ -104,16 +159,18 @@ public class TextInput extends General {
                 Data = Data.substring(0, Data.lastIndexOf(" Enc"));
                 byte[] valueDecoded = Encryption.getInstance().decrypt(Data).getBytes();
                 Locator.fill(new String(valueDecoded));
-                Report.updateTestLog(Action, "Entered Encrypted Text " + Data + " on " + "[" + ObjectName + "]", Status.DONE);
+                Report.updateTestLog(
+                    Action,
+                    "Entered Encrypted Text " + Data + " on " + "[" + ObjectName + "]",
+                    Status.DONE
+                );
             } catch (Exception ex) {
                 Report.updateTestLog(Action, ex.getMessage(), Status.FAIL);
                 Logger.getLogger(TextInput.class.getName()).log(Level.SEVERE, null, ex);
                 throw new ActionException(ex);
             }
-
         } else {
             Report.updateTestLog(Action, "Data not encrypted '" + Data + "'", Status.DEBUG);
         }
     }
-
 }

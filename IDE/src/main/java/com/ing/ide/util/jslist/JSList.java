@@ -1,6 +1,8 @@
-
 package com.ing.ide.util.jslist;
 
+import static java.util.stream.Collectors.toList;
+
+import com.ing.ide.main.fx.INGIcons;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
@@ -23,7 +25,6 @@ import java.util.function.Predicate;
 import java.util.function.Supplier;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import static java.util.stream.Collectors.toList;
 import javax.swing.AbstractAction;
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
@@ -47,15 +48,13 @@ import javax.swing.event.DocumentListener;
 import javax.swing.text.BadLocationException;
 import javax.swing.text.Document;
 import javax.swing.text.JTextComponent;
-import com.ing.ide.main.fx.INGIcons;
 
 /**
  *
- * 
+ *
  * @param <T>
  */
 public class JSList<T> extends JPanel {
-
     private static final javax.swing.Icon ADD_NEW_ICON = INGIcons.swingColored("icon.addNew", 16);
     private ListPanel listPanel;
     private TopBar topBar;
@@ -75,8 +74,12 @@ public class JSList<T> extends JPanel {
         this(srcmodel, mapper, onAdd, (e, k) -> k.isEmpty() || e.contains(k));
     }
 
-    public JSList(List srcmodel, Function<T, String> mapper,
-            Function<String, T> onAdd, BiPredicate<String, String> predicate) {
+    public JSList(
+        List srcmodel,
+        Function<T, String> mapper,
+        Function<String, T> onAdd,
+        BiPredicate<String, String> predicate
+    ) {
         this.onAdd = onAdd;
         this.mapper = mapper;
         fltrmodel = new FilterModel(srcmodel, mapper, predicate);
@@ -129,11 +132,14 @@ public class JSList<T> extends JPanel {
     }
 
     class FilterModel extends DefaultListModel {
-
         List<T> srcmodel;
         BiPredicate<T, Supplier<String>> predicate;
 
-        public FilterModel(List srcmodel, Function<T, String> mapper, BiPredicate<String, String> predicate) {
+        public FilterModel(
+            List srcmodel,
+            Function<T, String> mapper,
+            BiPredicate<String, String> predicate
+        ) {
             this.srcmodel = srcmodel;
             this.predicate = (entry, key) -> predicate.test(mapper.apply(entry), key.get());
             srcmodel.stream().forEach(this::addElement);
@@ -145,7 +151,10 @@ public class JSList<T> extends JPanel {
 
         public void doFilter(Object keyword) {
             List<T> cselected = listPanel.getSelected();
-            items().stream().filter(item -> !cselected.contains((T) item)).forEach(selected::remove);
+            items()
+                .stream()
+                .filter(item -> !cselected.contains((T) item))
+                .forEach(selected::remove);
             this.clear();
             srcmodel.stream().filter(by(keyword::toString)).forEach(this::addElement);
             listPanel.reselect();
@@ -157,7 +166,6 @@ public class JSList<T> extends JPanel {
     }
 
     class TopBar extends JPanel {
-
         JTextField searchBox = new javax.swing.JTextField(28);
 
         public TopBar(Consumer<Object> onUpdate) {
@@ -200,14 +208,17 @@ public class JSList<T> extends JPanel {
         private JButton getClearButton(JTextComponent parent) {
             JButton clear = new JButton(" x ");
             clear.setFont(new Font(Font.SANS_SERIF, Font.BOLD, 14));
-            clear.addActionListener((ActionEvent e) -> {
-                parent.setText("");
-            });
+            clear.addActionListener(
+                (ActionEvent e) -> {
+                    parent.setText("");
+                }
+            );
             return clear;
         }
 
         private KeyAdapter onEscape() {
             return new KeyAdapter() {
+
                 @Override
                 public void keyPressed(KeyEvent ke) {
                     if (ke.getKeyCode() == KeyEvent.VK_ESCAPE) {
@@ -224,7 +235,6 @@ public class JSList<T> extends JPanel {
         }
 
         public class SearchFieldListener implements DocumentListener {
-
             Consumer<Object> onUpdate;
 
             public SearchFieldListener(Consumer<Object> fltrC) {
@@ -253,12 +263,10 @@ public class JSList<T> extends JPanel {
             public void changedUpdate(DocumentEvent de) {
                 updateFilter(de.getDocument());
             }
-
         }
     }
 
     class ListPanel extends JPanel {
-
         JList list;
 
         public ListPanel(FilterModel fltrmodel, Function<T, String> mapper) {
@@ -272,17 +280,26 @@ public class JSList<T> extends JPanel {
             list.setSelectionModel(new MultiSelectionModel(this::onSelect));
             list.addKeyListener(onDelete());
             int SHORTCUT = Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx();
-            list.getInputMap(JComponent.WHEN_FOCUSED).put(KeyStroke.getKeyStroke(KeyEvent.VK_A, SHORTCUT), "SelectAll");
-            list.getActionMap().put("SelectAll", new AbstractAction() {
-                @Override
-                public void actionPerformed(ActionEvent ae) {
-                    list.setSelectionInterval(0, list.getModel().getSize() - 1);
-                }
-            });
+            list
+                .getInputMap(JComponent.WHEN_FOCUSED)
+                .put(KeyStroke.getKeyStroke(KeyEvent.VK_A, SHORTCUT), "SelectAll");
+            list
+                .getActionMap()
+                .put(
+                    "SelectAll",
+                    new AbstractAction() {
+
+                        @Override
+                        public void actionPerformed(ActionEvent ae) {
+                            list.setSelectionInterval(0, list.getModel().getSize() - 1);
+                        }
+                    }
+                );
         }
 
         private KeyAdapter onDelete() {
             return new KeyAdapter() {
+
                 @Override
                 public void keyPressed(KeyEvent ke) {
                     if (ke.getKeyCode() == KeyEvent.VK_DELETE) {
@@ -323,7 +340,6 @@ public class JSList<T> extends JPanel {
         }
 
         class MultiSelectionModel extends DefaultListSelectionModel {
-
             Runnable r;
 
             public MultiSelectionModel(Runnable r) {
@@ -350,7 +366,6 @@ public class JSList<T> extends JPanel {
         }
 
         class CheckBoxListRenderer extends JCheckBox implements ListCellRenderer<T> {
-
             private final Function<T, String> mapper;
             private final int pixels = 1;
             Font font = new Font(Font.SANS_SERIF, Font.PLAIN, 14);
@@ -372,8 +387,13 @@ public class JSList<T> extends JPanel {
             }
 
             @Override
-            public Component getListCellRendererComponent(JList<? extends T> list,
-                    T value, int index, boolean isSelected, boolean cellHasFocus) {
+            public Component getListCellRendererComponent(
+                JList<? extends T> list,
+                T value,
+                int index,
+                boolean isSelected,
+                boolean cellHasFocus
+            ) {
                 setText(mapper.apply(value));
                 if (isSelected) {
                     if (!contains(value)) {
@@ -386,11 +406,15 @@ public class JSList<T> extends JPanel {
                 if (cellHasFocus) {
                     focused = value;
                 }
-                this.setForeground(cellHasFocus
-                        ? javax.swing.UIManager.getColor("ing.focusedForeground") != null
-                            ? javax.swing.UIManager.getColor("ing.focusedForeground") : Color.BLUE
-                        : javax.swing.UIManager.getColor("text") != null
-                            ? javax.swing.UIManager.getColor("text") : Color.BLACK);
+                this.setForeground(
+                        cellHasFocus
+                            ? javax.swing.UIManager.getColor("ing.focusedForeground") != null
+                                ? javax.swing.UIManager.getColor("ing.focusedForeground")
+                                : Color.BLUE
+                            : javax.swing.UIManager.getColor("text") != null
+                                ? javax.swing.UIManager.getColor("text")
+                                : Color.BLACK
+                    );
                 return this;
             }
 
@@ -402,15 +426,14 @@ public class JSList<T> extends JPanel {
 
             public final void init() {
                 Border border = BorderFactory.createEmptyBorder(pixels, 1, pixels, 1);
-                this.setBorder(BorderFactory.createCompoundBorder(new EmptyBorder(1, 1, 1, 0), border));
+                this.setBorder(
+                        BorderFactory.createCompoundBorder(new EmptyBorder(1, 1, 1, 0), border)
+                    );
                 this.setLayout(new BorderLayout());
                 setSize(this.getWidth(), 40);
                 setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
                 this.setFocusPainted(true);
             }
-
         }
-
     }
-
 }

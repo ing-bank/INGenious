@@ -1,0 +1,6 @@
+Step,ObjectName,Description,Action,Input,Condition,Reference
+1,Webservice,"Set End Point",setEndPoint,@https://jsonplaceholder.typicode.com/posts/1,,
+2,Webservice,"Add Header",addHeader,@Content-Type=application/json,,
+3,Webservice,"PUT Rest Request",putRestRequest,"{ ""id"": 1, ""title"": ""Updated by CLI"", ""body"": ""Body updated"", ""userId"": 1 }",,
+4,Webservice,"Assert Response Code",assertResponseCode,@200,,
+5,Webservice,"Assert JSON Element Equals",assertJSONelementEquals,@Updated by CLI,$.title,

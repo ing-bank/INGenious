@@ -1,4 +1,3 @@
-
 package com.ing.ide.main.ui;
 
 import com.ing.engine.support.methodInf.MethodInfoManager;
@@ -38,10 +37,9 @@ import org.apache.commons.io.FileUtils;
 
 /**
  *
- * 
+ *
  */
 public class InjectScript extends javax.swing.JFrame {
-
     private static final Logger LOG = Logger.getLogger(InjectScript.class.getName());
     private static final JavaCompiler JAVA_COMPILER = ToolProvider.getSystemJavaCompiler();
 
@@ -59,7 +57,11 @@ public class InjectScript extends javax.swing.JFrame {
     public InjectScript() {
         initComponents();
 
-        setIconImage(com.ing.ide.main.fx.INGIcons.toImage(Utils.getIconByResourceName("/ui/resources/main/InjectScript")));
+        setIconImage(
+            com.ing.ide.main.fx.INGIcons.toImage(
+                Utils.getIconByResourceName("/ui/resources/main/InjectScript")
+            )
+        );
 
         loadSampleScript();
 
@@ -70,33 +72,44 @@ public class InjectScript extends javax.swing.JFrame {
         javaList.setModel(javaListModel);
         javaList.setTransferHandler(new FileTransferHandler());
 
-        consoleOutputStream = new OutputStream() {
-            @Override
-            public void write(byte[] buffer, int offset, int length) throws IOException {
-                final String text = new String(buffer, offset, length);
-                SwingUtilities.invokeLater(() -> {
-                    console.append(text);
-                });
-            }
+        consoleOutputStream =
+            new OutputStream() {
 
-            @Override
-            public void write(int b) throws IOException {
-                write(new byte[]{(byte) b}, 0, 1);
-            }
+                @Override
+                public void write(byte[] buffer, int offset, int length) throws IOException {
+                    final String text = new String(buffer, offset, length);
+                    SwingUtilities.invokeLater(
+                        () -> {
+                            console.append(text);
+                        }
+                    );
+                }
 
-        };
-        javaList.getInputMap(JComponent.WHEN_FOCUSED).put(KeyStroke.getKeyStroke("DELETE"), "Delete");
-        javaList.getActionMap().put("Delete", new AbstractAction() {
-            @Override
-            public void actionPerformed(ActionEvent ae) {
-                int[] indices = javaList.getSelectedIndices();
-                if (indices != null && indices.length > 0) {
-                    for (int i = indices.length - 1; i >= 0; i--) {
-                        javaListModel.removeElementAt(i);
+                @Override
+                public void write(int b) throws IOException {
+                    write(new byte[] { (byte) b }, 0, 1);
+                }
+            };
+        javaList
+            .getInputMap(JComponent.WHEN_FOCUSED)
+            .put(KeyStroke.getKeyStroke("DELETE"), "Delete");
+        javaList
+            .getActionMap()
+            .put(
+                "Delete",
+                new AbstractAction() {
+
+                    @Override
+                    public void actionPerformed(ActionEvent ae) {
+                        int[] indices = javaList.getSelectedIndices();
+                        if (indices != null && indices.length > 0) {
+                            for (int i = indices.length - 1; i >= 0; i--) {
+                                javaListModel.removeElementAt(i);
+                            }
+                        }
                     }
                 }
-            }
-        });
+            );
     }
 
     private void loadSampleScript() {
@@ -124,7 +137,9 @@ public class InjectScript extends javax.swing.JFrame {
                 Notification.show("JDK is not available in path.Please select a jdk");
                 JFileChooser fileChooser = new JFileChooser();
                 fileChooser.setDialogTitle("Select JDK bin path");
-                fileChooser.setSelectedFile(new File(new File(System.getenv("JAVA_HOME")).getCanonicalPath()));
+                fileChooser.setSelectedFile(
+                    new File(new File(System.getenv("JAVA_HOME")).getCanonicalPath())
+                );
                 fileChooser.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
                 File selected = promptFile(fileChooser);
                 while (selected != null && !Utils.getJavaCFilter().accept(selected)) {
@@ -134,14 +149,18 @@ public class InjectScript extends javax.swing.JFrame {
                 if (selected != null) {
                     javacPath = selected.getAbsolutePath() + File.separator + "javac";
                 } else {
-                    Notification.show("Compile java file/s manually and "
-                            + "place class file/s inside [app.root]/userdefined");
+                    Notification.show(
+                        "Compile java file/s manually and " +
+                        "place class file/s inside [app.root]/userdefined"
+                    );
                     return;
                 }
             }
         }
-        console.setText("Add Files by using load button or Drag and Drop java files to the box above\n"
-                + "Remove files by using DELETE key");
+        console.setText(
+            "Add Files by using load button or Drag and Drop java files to the box above\n" +
+            "Remove files by using DELETE key"
+        );
         setSize(500, 600);
         setLocationRelativeTo(null);
         setVisible(true);
@@ -169,7 +188,6 @@ public class InjectScript extends javax.swing.JFrame {
     @SuppressWarnings("unchecked")
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
-
         javaFileChooser = new javax.swing.JFileChooser();
         jPopupMenu1 = new javax.swing.JPopupMenu();
         clearConsole = new javax.swing.JMenuItem();
@@ -185,15 +203,17 @@ public class InjectScript extends javax.swing.JFrame {
         console = new javax.swing.JTextArea();
 
         javaFileChooser.setDialogTitle("Select Java Files");
-        javaFileChooser.setFileFilter(new FileNameExtensionFilter("Java Files","java")
-        );
+        javaFileChooser.setFileFilter(new FileNameExtensionFilter("Java Files", "java"));
 
         clearConsole.setText("Clear Console");
-        clearConsole.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                clearConsoleActionPerformed(evt);
+        clearConsole.addActionListener(
+            new java.awt.event.ActionListener() {
+
+                public void actionPerformed(java.awt.event.ActionEvent evt) {
+                    clearConsoleActionPerformed(evt);
+                }
             }
-        });
+        );
         jPopupMenu1.add(clearConsole);
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
@@ -203,35 +223,47 @@ public class InjectScript extends javax.swing.JFrame {
 
         loadFiles.setText("Load Files");
         loadFiles.setToolTipText("Add Java Files");
-        loadFiles.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                loadFilesActionPerformed(evt);
+        loadFiles.addActionListener(
+            new java.awt.event.ActionListener() {
+
+                public void actionPerformed(java.awt.event.ActionEvent evt) {
+                    loadFilesActionPerformed(evt);
+                }
             }
-        });
+        );
         jPanel1.add(loadFiles);
 
         inject.setText("Inject Script");
-        inject.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                injectActionPerformed(evt);
+        inject.addActionListener(
+            new java.awt.event.ActionListener() {
+
+                public void actionPerformed(java.awt.event.ActionEvent evt) {
+                    injectActionPerformed(evt);
+                }
             }
-        });
+        );
         jPanel1.add(inject);
 
         help.setText("Open Help");
-        help.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                helpActionPerformed(evt);
+        help.addActionListener(
+            new java.awt.event.ActionListener() {
+
+                public void actionPerformed(java.awt.event.ActionEvent evt) {
+                    helpActionPerformed(evt);
+                }
             }
-        });
+        );
         jPanel1.add(help);
 
         showSample.setText("Get Sample");
-        showSample.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                showSampleActionPerformed(evt);
+        showSample.addActionListener(
+            new java.awt.event.ActionListener() {
+
+                public void actionPerformed(java.awt.event.ActionEvent evt) {
+                    showSampleActionPerformed(evt);
+                }
             }
-        });
+        );
         jPanel1.add(showSample);
 
         getContentPane().add(jPanel1, java.awt.BorderLayout.NORTH);
@@ -239,13 +271,27 @@ public class InjectScript extends javax.swing.JFrame {
         jSplitPane1.setOrientation(javax.swing.JSplitPane.VERTICAL_SPLIT);
         jSplitPane1.setOneTouchExpandable(true);
 
-        jScrollPane1.setBorder(javax.swing.BorderFactory.createTitledBorder(null, "Java Files", javax.swing.border.TitledBorder.CENTER, javax.swing.border.TitledBorder.DEFAULT_POSITION));
+        jScrollPane1.setBorder(
+            javax.swing.BorderFactory.createTitledBorder(
+                null,
+                "Java Files",
+                javax.swing.border.TitledBorder.CENTER,
+                javax.swing.border.TitledBorder.DEFAULT_POSITION
+            )
+        );
 
         jScrollPane1.setViewportView(javaList);
 
         jSplitPane1.setLeftComponent(jScrollPane1);
 
-        jScrollPane4.setBorder(javax.swing.BorderFactory.createTitledBorder(null, "Console", javax.swing.border.TitledBorder.CENTER, javax.swing.border.TitledBorder.DEFAULT_POSITION));
+        jScrollPane4.setBorder(
+            javax.swing.BorderFactory.createTitledBorder(
+                null,
+                "Console",
+                javax.swing.border.TitledBorder.CENTER,
+                javax.swing.border.TitledBorder.DEFAULT_POSITION
+            )
+        );
 
         console.setEditable(false);
         console.setBackground(java.awt.Color.black);
@@ -253,7 +299,9 @@ public class InjectScript extends javax.swing.JFrame {
         console.setFont(new java.awt.Font("Courier New", 0, 12)); // NOI18N
         console.setForeground(java.awt.Color.white);
         console.setRows(5);
-        console.setText("Add Files by using load button or Drag and Drop java files to the box above\n");
+        console.setText(
+            "Add Files by using load button or Drag and Drop java files to the box above\n"
+        );
         console.setComponentPopupMenu(jPopupMenu1);
         jScrollPane4.setViewportView(console);
 
@@ -262,7 +310,7 @@ public class InjectScript extends javax.swing.JFrame {
         getContentPane().add(jSplitPane1, java.awt.BorderLayout.CENTER);
 
         pack();
-    }// </editor-fold>//GEN-END:initComponents
+    } // </editor-fold>//GEN-END:initComponents
 
     /**
      * Handles the action event when the inject button is performed.
@@ -280,36 +328,38 @@ public class InjectScript extends javax.swing.JFrame {
      * @see #injectScript()
      * @see MethodInfoManager#load()
      */
-    private void injectActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_injectActionPerformed
+    private void injectActionPerformed(java.awt.event.ActionEvent evt) { //GEN-FIRST:event_injectActionPerformed
         if (injectScript()) {
             try {
                 MethodInfoManager.load();
                 this.dispose();
             } catch (DuplicateMethodException ex) {
-                System.getLogger(InjectScript.class.getName()).log(System.Logger.Level.ERROR, (String) null, ex);
+                System
+                    .getLogger(InjectScript.class.getName())
+                    .log(System.Logger.Level.ERROR, (String) null, ex);
             }
         }
-    }//GEN-LAST:event_injectActionPerformed
+    } //GEN-LAST:event_injectActionPerformed
 
-    private void loadFilesActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_loadFilesActionPerformed
+    private void loadFilesActionPerformed(java.awt.event.ActionEvent evt) { //GEN-FIRST:event_loadFilesActionPerformed
         int val = javaFileChooser.showOpenDialog(this);
         if (val == JFileChooser.APPROVE_OPTION) {
             addToList(javaFileChooser.getSelectedFile().getAbsolutePath());
         }
-    }//GEN-LAST:event_loadFilesActionPerformed
+    } //GEN-LAST:event_loadFilesActionPerformed
 
-    private void helpActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_helpActionPerformed
+    private void helpActionPerformed(java.awt.event.ActionEvent evt) { //GEN-FIRST:event_helpActionPerformed
         Help.openHelp();
-    }//GEN-LAST:event_helpActionPerformed
+    } //GEN-LAST:event_helpActionPerformed
 
-    private void showSampleActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_showSampleActionPerformed
+    private void showSampleActionPerformed(java.awt.event.ActionEvent evt) { //GEN-FIRST:event_showSampleActionPerformed
         Utils.copyTextToClipboard(sampleCode);
         JOptionPane.showMessageDialog(this, "Sample code has been copied to clipboard");
-    }//GEN-LAST:event_showSampleActionPerformed
+    } //GEN-LAST:event_showSampleActionPerformed
 
-    private void clearConsoleActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_clearConsoleActionPerformed
+    private void clearConsoleActionPerformed(java.awt.event.ActionEvent evt) { //GEN-FIRST:event_clearConsoleActionPerformed
         console.setText("");
-    }//GEN-LAST:event_clearConsoleActionPerformed
+    } //GEN-LAST:event_clearConsoleActionPerformed
 
     private Boolean injectScript() {
         if (javaListModel.isEmpty()) {
@@ -322,9 +372,10 @@ public class InjectScript extends javax.swing.JFrame {
                 if (injectScript(object.toString()) == 0) {
                     console.append(object + " - compiled successfully");
                     try {
-                        FileUtils.copyFileToDirectory(new File(object.toString()
-                                .replace(".java", ".class")),
-                                new File("userdefined"));
+                        FileUtils.copyFileToDirectory(
+                            new File(object.toString().replace(".java", ".class")),
+                            new File("userdefined")
+                        );
                     } catch (IOException ex) {
                         LOG.log(Level.SEVERE, null, ex);
                     }
@@ -341,15 +392,14 @@ public class InjectScript extends javax.swing.JFrame {
 
     private int injectScript(String path) {
         if (JAVA_COMPILER != null) {
-            return JAVA_COMPILER.run(null, consoleOutputStream,
-                    consoleOutputStream, path);
+            return JAVA_COMPILER.run(null, consoleOutputStream, consoleOutputStream, path);
         }
         return compileClass(javacPath, path);
     }
 
     private int compileClass(String jdkPath, String file) {
         try {
-            String[] cmd = {jdkPath, "-cp", System.getProperty("java.class.path"), file};
+            String[] cmd = { jdkPath, "-cp", System.getProperty("java.class.path"), file };
             Process pro = Runtime.getRuntime().exec(cmd, null, Utils.getAppRoot());
             printLines(pro.getErrorStream());
             pro.waitFor();
@@ -362,15 +412,13 @@ public class InjectScript extends javax.swing.JFrame {
 
     private void printLines(InputStream ins) throws IOException {
         int line;
-        BufferedReader in = new BufferedReader(
-                new InputStreamReader(ins));
+        BufferedReader in = new BufferedReader(new InputStreamReader(ins));
         while ((line = in.read()) != -1) {
             consoleOutputStream.write(line);
         }
     }
 
     class FileTransferHandler extends TransferHandler {
-
         private final DataFlavor INDICES = new DataFlavor(int[].class, "Selected Indices");
 
         @Override
@@ -421,7 +469,8 @@ public class InjectScript extends javax.swing.JFrame {
         private Boolean dropProjects(TransferHandler.TransferSupport support) {
             List files;
             try {
-                files = (List) support.getTransferable().getTransferData(DataFlavor.javaFileListFlavor);
+                files =
+                    (List) support.getTransferable().getTransferData(DataFlavor.javaFileListFlavor);
                 for (Object dfile : files) {
                     File file = (File) dfile;
                     if (file.isDirectory()) {
@@ -446,12 +495,13 @@ public class InjectScript extends javax.swing.JFrame {
 
         @Override
         public boolean canImport(TransferHandler.TransferSupport support) {
-            return support.isDataFlavorSupported(DataFlavor.javaFileListFlavor)
-                    || support.isDataFlavorSupported(INDICES);
+            return (
+                support.isDataFlavorSupported(DataFlavor.javaFileListFlavor) ||
+                support.isDataFlavorSupported(INDICES)
+            );
         }
 
         class JListTransferable implements Transferable {
-
             private final int[] selectedValues;
 
             public JListTransferable(int[] selectedValues) {
@@ -460,7 +510,7 @@ public class InjectScript extends javax.swing.JFrame {
 
             @Override
             public DataFlavor[] getTransferDataFlavors() {
-                return new DataFlavor[]{INDICES};
+                return new DataFlavor[] { INDICES };
             }
 
             @Override
@@ -469,16 +519,15 @@ public class InjectScript extends javax.swing.JFrame {
             }
 
             @Override
-            public Object getTransferData(DataFlavor flavor) throws UnsupportedFlavorException, IOException {
+            public Object getTransferData(DataFlavor flavor)
+                throws UnsupportedFlavorException, IOException {
                 if (flavor.equals(INDICES)) {
                     return selectedValues;
                 }
                 throw new UnsupportedFlavorException(flavor);
             }
-
         }
     }
-
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JMenuItem clearConsole;

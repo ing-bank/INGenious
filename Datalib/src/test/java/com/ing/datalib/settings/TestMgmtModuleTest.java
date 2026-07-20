@@ -1,6 +1,7 @@
 package com.ing.datalib.settings;
 
 import static org.assertj.core.api.Assertions.assertThat;
+
 import com.ing.datalib.settings.testmgmt.Option;
 import com.ing.datalib.settings.testmgmt.TestMgModule;
 import java.io.File;
@@ -19,7 +20,6 @@ import org.testng.annotations.Test;
  * Tests for TestMgmtModule — JSON-based test management module management.
  */
 public class TestMgmtModuleTest {
-
     private Path tempDir;
 
     @BeforeMethod
@@ -29,10 +29,11 @@ public class TestMgmtModuleTest {
 
     @AfterMethod
     public void tearDown() throws IOException {
-        Files.walk(tempDir)
-                .sorted(Comparator.reverseOrder())
-                .map(Path::toFile)
-                .forEach(File::delete);
+        Files
+            .walk(tempDir)
+            .sorted(Comparator.reverseOrder())
+            .map(Path::toFile)
+            .forEach(File::delete);
     }
 
     @Test
@@ -168,7 +169,8 @@ public class TestMgmtModuleTest {
     @Test
     public void testGetLocation() {
         TestMgmtModule tmm = new TestMgmtModule(tempDir.toString());
-        assertThat(tmm.getLocation()).isEqualTo(tempDir.toString() + File.separator + "TMModules.json");
+        assertThat(tmm.getLocation())
+            .isEqualTo(tempDir.toString() + File.separator + "TMModules.json");
     }
 
     @Test

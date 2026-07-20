@@ -1,4 +1,3 @@
-
 package com.ing.ide.main.mainui.components.testdesign.or.clipboard;
 
 import com.ing.datalib.or.common.ORObjectInf;
@@ -9,7 +8,6 @@ import com.ing.datalib.or.common.ORPageInf;
  * for OR objects.
  */
 public final class ORClipboardManager {
-
     private static ORObjectClipboard clipboard;
 
     public static void copy(ORObjectInf object) {

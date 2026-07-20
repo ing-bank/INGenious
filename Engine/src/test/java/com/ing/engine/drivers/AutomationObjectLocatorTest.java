@@ -3,13 +3,11 @@ package com.ing.engine.drivers;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.ing.datalib.or.common.ORAttribute;
-
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
@@ -19,7 +17,6 @@ import org.testng.annotations.Test;
  * chainLocatorMapping, getRuntimeValue, storeElementDetailsinOR, getAttributeValue.
  */
 public class AutomationObjectLocatorTest {
-
     private AutomationObject ao;
 
     @BeforeMethod
@@ -42,25 +39,25 @@ public class AutomationObjectLocatorTest {
     @Test
     public void testFindTypeFromStringGlobalObject() {
         assertThat(AutomationObject.FindType.fromString("globalobject"))
-                .isEqualTo(AutomationObject.FindType.GLOBAL_OBJECT);
+            .isEqualTo(AutomationObject.FindType.GLOBAL_OBJECT);
     }
 
     @Test
     public void testFindTypeFromStringGlobalObjectUpperCase() {
         assertThat(AutomationObject.FindType.fromString("GLOBALOBJECT"))
-                .isEqualTo(AutomationObject.FindType.GLOBAL_OBJECT);
+            .isEqualTo(AutomationObject.FindType.GLOBAL_OBJECT);
     }
 
     @Test
     public void testFindTypeFromStringDefault() {
         assertThat(AutomationObject.FindType.fromString("anything"))
-                .isEqualTo(AutomationObject.FindType.DEFAULT);
+            .isEqualTo(AutomationObject.FindType.DEFAULT);
     }
 
     @Test
     public void testFindTypeFromStringEmpty() {
         assertThat(AutomationObject.FindType.fromString(""))
-                .isEqualTo(AutomationObject.FindType.DEFAULT);
+            .isEqualTo(AutomationObject.FindType.DEFAULT);
     }
 
     @Test
@@ -72,7 +69,9 @@ public class AutomationObjectLocatorTest {
 
     @Test
     public void testChainLocatorMappingGetByRole() {
-        AutomationObject.chainLocatorMapping("getByRole(AriaRole.BUTTON, new GetByRoleOptions().setName(\"Submit\"))");
+        AutomationObject.chainLocatorMapping(
+            "getByRole(AriaRole.BUTTON, new GetByRoleOptions().setName(\"Submit\"))"
+        );
 
         assertThat(AutomationObject.chainLocatorMaping.get("roleType")).isEqualTo("BUTTON");
         assertThat(AutomationObject.chainLocatorMaping.get("setName")).isEqualTo("Submit");
@@ -95,7 +94,9 @@ public class AutomationObjectLocatorTest {
 
     @Test
     public void testChainLocatorMappingFilter() {
-        AutomationObject.chainLocatorMapping("filter(new Locator.FilterOptions().setHasText(\"Hello\"))");
+        AutomationObject.chainLocatorMapping(
+            "filter(new Locator.FilterOptions().setHasText(\"Hello\"))"
+        );
 
         assertThat(AutomationObject.chainLocatorMaping.get("setHasText")).isEqualTo("Hello");
     }
@@ -251,7 +252,8 @@ public class AutomationObjectLocatorTest {
     public void testSetAndResetWaitTime() throws Exception {
         ao.setWaitTime(Duration.ofSeconds(10));
 
-        java.lang.reflect.Method getWaitTime = AutomationObject.class.getDeclaredMethod("getWaitTime");
+        java.lang.reflect.Method getWaitTime =
+            AutomationObject.class.getDeclaredMethod("getWaitTime");
         getWaitTime.setAccessible(true);
         Duration d = (Duration) getWaitTime.invoke(ao);
         assertThat(d).isEqualTo(Duration.ofSeconds(10));
@@ -285,7 +287,9 @@ public class AutomationObjectLocatorTest {
 
     @Test
     public void testPageGetterSetter() {
-        com.microsoft.playwright.Page mockPage = org.mockito.Mockito.mock(com.microsoft.playwright.Page.class);
+        com.microsoft.playwright.Page mockPage = org.mockito.Mockito.mock(
+            com.microsoft.playwright.Page.class
+        );
         ao.setPage(mockPage);
         assertThat(ao.getPage()).isSameAs(mockPage);
     }
@@ -293,7 +297,8 @@ public class AutomationObjectLocatorTest {
     // ── Utility ─────────────────────────────────────────────────────────
 
     private String invokeGetRuntimeValue(String value) throws Exception {
-        java.lang.reflect.Method m = AutomationObject.class.getDeclaredMethod("getRuntimeValue", String.class);
+        java.lang.reflect.Method m =
+            AutomationObject.class.getDeclaredMethod("getRuntimeValue", String.class);
         m.setAccessible(true);
         return (String) m.invoke(ao, value);
     }

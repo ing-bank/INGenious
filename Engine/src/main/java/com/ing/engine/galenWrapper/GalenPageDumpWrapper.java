@@ -1,13 +1,12 @@
-
 package com.ing.engine.galenWrapper;
 
-import com.ing.engine.constants.FilePath;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.galenframework.api.GalenPageDump;
 import com.galenframework.api.PageDump;
 import com.galenframework.page.PageElement;
 import com.galenframework.page.Rect;
 import com.galenframework.utils.GalenUtils;
+import com.ing.engine.constants.FilePath;
 import java.io.File;
 import java.io.IOException;
 import java.nio.charset.Charset;
@@ -24,7 +23,7 @@ import org.apache.commons.io.FileUtils;
 
 /**
  *
- * 
+ *
  */
 public class GalenPageDumpWrapper extends GalenPageDump {
 
@@ -32,7 +31,12 @@ public class GalenPageDumpWrapper extends GalenPageDump {
         super(pageName);
     }
 
-    public void dumpPage(PageValidationWrapper pageValidation, String testCaseName, File reportFolder) throws IOException {
+    public void dumpPage(
+        PageValidationWrapper pageValidation,
+        String testCaseName,
+        File reportFolder
+    )
+        throws IOException {
         if (!reportFolder.exists()) {
             if (!reportFolder.mkdirs()) {
                 throw new RuntimeException("Cannot create dir: " + reportFolder.getAbsolutePath());
@@ -43,16 +47,23 @@ public class GalenPageDumpWrapper extends GalenPageDump {
 
         PageDump pageDump = new PageDump();
         pageDump.setTitle(testCaseName);
-        List< Pattern> patterns = convertPatterns(getExcludedObjects());
+        List<Pattern> patterns = convertPatterns(getExcludedObjects());
 
         for (String objectName : objectNames) {
             if (!matchesExcludedPatterns(objectName, patterns)) {
                 PageElement pageElement = pageValidation.findPageElement(objectName);
 
                 if (pageElement.isVisible() && pageElement.getArea() != null) {
-                    PageDump.Element element = new PageDump.Element(objectName, pageElement.getArea().toIntArray());
+                    PageDump.Element element = new PageDump.Element(
+                        objectName,
+                        pageElement.getArea().toIntArray()
+                    );
 
-                    if (pageElement.isPresent() && pageElement.isVisible() && isWithinArea(pageElement, getMaxWidth(), getMaxHeight())) {
+                    if (
+                        pageElement.isPresent() &&
+                        pageElement.isVisible() &&
+                        isWithinArea(pageElement, getMaxWidth(), getMaxHeight())
+                    ) {
                         element.setHasImage(true);
                     }
                     pageDump.addElement(element);
@@ -62,7 +73,10 @@ public class GalenPageDumpWrapper extends GalenPageDump {
 
         if (!isOnlyImages()) {
             pageDump.setPageName(getPageName());
-            exportAsJson(pageDump, new File(reportFolder.getAbsoluteFile() + File.separator + "page.js"));
+            exportAsJson(
+                pageDump,
+                new File(reportFolder.getAbsoluteFile() + File.separator + "page.js")
+            );
         }
 
         exportAllScreenshots(pageDump, pageValidation.getBrowser(), reportFolder);

@@ -1,4 +1,3 @@
-
 package com.ing.datalib.testdata.view;
 
 import com.ing.datalib.testdata.model.Record;
@@ -25,19 +24,23 @@ import java.util.Set;
  *
  */
 public abstract class TestDataView implements TestDataViewApi {
-
-    public final static String ALL = ".*";
+    public static final String ALL = ".*";
     public final Map<String, List<List<String>>> VIEWS = new HashMap<>();
 
-    abstract public List columns();
+    public abstract List columns();
 
-    abstract public List records();
+    public abstract List records();
 
-    abstract public int index(String field);
+    public abstract int index(String field);
 
-    abstract public boolean canUpdate(String field);
+    public abstract boolean canUpdate(String field);
 
-    abstract public List<String> addRecord(String scenario, String testcase, String iteration, String subIteration);
+    public abstract List<String> addRecord(
+        String scenario,
+        String testcase,
+        String iteration,
+        String subIteration
+    );
 
     public void clear() {
         VIEWS.clear();
@@ -304,7 +307,13 @@ public abstract class TestDataView implements TestDataViewApi {
         return withSubIter(scn, tc, iter, subIter, false);
     }
 
-    public TestDataView withSubIter(String scn, String tc, String iter, String subIter, Boolean addIfNotPresent) {
+    public TestDataView withSubIter(
+        String scn,
+        String tc,
+        String iter,
+        String subIter,
+        Boolean addIfNotPresent
+    ) {
         String key = scn + "#" + tc + "#" + iter + "#" + subIter;
         if (!VIEWS.containsKey(key)) {
             return index(key, scn, tc, iter, subIter);
@@ -336,7 +345,8 @@ public abstract class TestDataView implements TestDataViewApi {
         VIEWS.put(key, v.records());
         return v;
     }
-//</editor-fold>
+
+    //</editor-fold>
 
     private TestDataView getView(String scnOrgid) {
         return toView(getRecords(records(), scnOrgid));
@@ -353,9 +363,7 @@ public abstract class TestDataView implements TestDataViewApi {
                 if (((List) r).get(0).toString().matches(scnOrgid)) {
                     view.add(r);
                 }
-            } catch (Exception ex) {
-
-            }
+            } catch (Exception ex) {}
         }
         return view;
     }
@@ -365,13 +373,15 @@ public abstract class TestDataView implements TestDataViewApi {
         for (Object rObj : records) {
             Record r = (Record) rObj;
             try {
-                if (r.getScenario().matches(scn) && r.getTestcase().matches(tc)
-                        && r.getIteration().matches(iter) && r.getSubIteration().matches(subIter)) {
+                if (
+                    r.getScenario().matches(scn) &&
+                    r.getTestcase().matches(tc) &&
+                    r.getIteration().matches(iter) &&
+                    r.getSubIteration().matches(subIter)
+                ) {
                     view.add(r);
                 }
-            } catch (Exception ex) {
-
-            }
+            } catch (Exception ex) {}
         }
         return view;
     }
@@ -379,6 +389,7 @@ public abstract class TestDataView implements TestDataViewApi {
     private TestDataView toView(final List l) {
         final TestDataView parent = this;
         return new TestDataView() {
+
             @Override
             public List records() {
                 return l;
@@ -400,11 +411,14 @@ public abstract class TestDataView implements TestDataViewApi {
             }
 
             @Override
-            public List<String> addRecord(String scenario, String testcase, String iteration, String subIteration) {
+            public List<String> addRecord(
+                String scenario,
+                String testcase,
+                String iteration,
+                String subIteration
+            ) {
                 return parent.addRecord(scenario, testcase, iteration, subIteration);
             }
-
         };
     }
-
 }

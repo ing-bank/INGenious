@@ -1,4 +1,3 @@
-
 package com.ing.datalib.component;
 
 import com.ing.datalib.component.utils.FileUtils;
@@ -10,10 +9,9 @@ import java.util.List;
 
 /**
  *
- * 
+ *
  */
 public abstract class TestData {
-
     private List<TestDataModel> testDataList;
 
     private GlobalDataModel globalData;
@@ -46,8 +44,12 @@ public abstract class TestData {
     }
 
     public String getLocation() {
-        return sProject.getLocation() + File.separator + "TestData"
-                + (getEnviroment().equals("Default") ? "" : File.separator + getEnviroment());
+        return (
+            sProject.getLocation() +
+            File.separator +
+            "TestData" +
+            (getEnviroment().equals("Default") ? "" : File.separator + getEnviroment())
+        );
     }
 
     public List<TestDataModel> getTestDataList() {
@@ -144,16 +146,23 @@ public abstract class TestData {
         }
     }
 
-    public void refactorTestCase(String scenarioName, String oldTestCaseName, String newTestCaseName) {
+    public void refactorTestCase(
+        String scenarioName,
+        String oldTestCaseName,
+        String newTestCaseName
+    ) {
         for (TestDataModel testDataList1 : testDataList) {
             testDataList1.refactorTestCase(scenarioName, oldTestCaseName, newTestCaseName);
         }
     }
 
-    public void refactorTestCaseScenario(String testCaseName, String oldScenarioName, String newScenarioName) {
+    public void refactorTestCaseScenario(
+        String testCaseName,
+        String oldScenarioName,
+        String newScenarioName
+    ) {
         for (TestDataModel testDataList1 : testDataList) {
             testDataList1.refactorTestCaseScenario(testCaseName, oldScenarioName, newScenarioName);
         }
     }
-
 }

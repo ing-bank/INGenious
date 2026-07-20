@@ -15,27 +15,25 @@ import com.ing.engine.reporting.util.RDS;
 import com.ing.engine.reporting.util.RDS.TestCase;
 import com.ing.engine.reporting.util.ReportUtils;
 import com.ing.ingenious.api.status.Status;
+import io.opentelemetry.exporter.logging.SystemOutLogRecordExporter;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.util.List;
 import java.util.Stack;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
-import io.opentelemetry.exporter.logging.SystemOutLogRecordExporter;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
-import java.nio.file.Files;
-import java.nio.charset.StandardCharsets;
 
 /**
  *
  *
  */
-@SuppressWarnings({"unchecked"})
+@SuppressWarnings({ "unchecked" })
 public class HtmlTestCaseHandler extends TestCaseHandler implements PrimaryHandler {
-
     JSONObject testCaseData = new JSONObject();
     JSONArray Steps = new JSONArray();
     JSONObject iteration;
@@ -55,33 +53,47 @@ public class HtmlTestCaseHandler extends TestCaseHandler implements PrimaryHandl
     int FailedSteps = 0;
     int PassedSteps = 0;
     int DoneSteps = 0;
-    
+
     // Store video and trace paths before browser closes
     private String capturedVideoPath = null;
     private String capturedTracePath = null;
 
     public HtmlTestCaseHandler(TestCaseReport report) {
         super(report);
-
     }
-
 
     @Override
     public void setPlaywrightDriver(PlaywrightDriverCreation driver) {
         testCaseData.put(TestCase.B_VERSION, getPlaywrightDriver().getBrowserVersion());
-        testCaseData.put(TestCase.PLATFORM, System.getProperty("os.name")+ " " +System.getProperty("os.version")+ " " +System.getProperty("os.arch"));
+        testCaseData.put(
+            TestCase.PLATFORM,
+            System.getProperty("os.name") +
+            " " +
+            System.getProperty("os.version") +
+            " " +
+            System.getProperty("os.arch")
+        );
         testCaseData.put(TestCase.BROWSER, getPlaywrightDriver().getCurrentBrowser());
-        testCaseData.put("browserTypeLabel", resolveBrowserTypeLabel(driver != null ? driver.getRunContext() : null, false));
+        testCaseData.put(
+            "browserTypeLabel",
+            resolveBrowserTypeLabel(driver != null ? driver.getRunContext() : null, false)
+        );
     }
-    
+
     @Override
     public void setWebDriver(WebDriverCreation driver) {
         testCaseData.put(TestCase.B_VERSION, getWebDriver().getCurrentBrowserVersion());
         testCaseData.put(TestCase.PLATFORM, getWebDriver().getPlatform());
         testCaseData.put(TestCase.BROWSER, getWebDriver().getCurrentBrowser());
-        testCaseData.put("browserTypeLabel", resolveBrowserTypeLabel(driver != null ? driver.getRunContext() : null, driver != null && driver.isMobileExecution()));
+        testCaseData.put(
+            "browserTypeLabel",
+            resolveBrowserTypeLabel(
+                driver != null ? driver.getRunContext() : null,
+                driver != null && driver.isMobileExecution()
+            )
+        );
     }
-    
+
     @Override
     public void setSapSession(com.ing.engine.drivers.SAPSessionCreation session) {
         if (session != null) {
@@ -103,11 +115,17 @@ public class HtmlTestCaseHandler extends TestCaseHandler implements PrimaryHandl
         try {
             if (runContext != null) {
                 String browserName = runContext.BrowserName;
-                if (isMobile || "Android".equalsIgnoreCase(browserName) || "iOS".equalsIgnoreCase(browserName)) {
+                if (
+                    isMobile ||
+                    "Android".equalsIgnoreCase(browserName) ||
+                    "iOS".equalsIgnoreCase(browserName)
+                ) {
                     return "Device";
-                } else if ("Chromium".equalsIgnoreCase(browserName) ||
-                        "WebKit".equalsIgnoreCase(browserName) ||
-                        "Firefox".equalsIgnoreCase(browserName)) {
+                } else if (
+                    "Chromium".equalsIgnoreCase(browserName) ||
+                    "WebKit".equalsIgnoreCase(browserName) ||
+                    "Firefox".equalsIgnoreCase(browserName)
+                ) {
                     return "Browser";
                 } else {
                     return "Browser/Device";
@@ -127,10 +145,10 @@ public class HtmlTestCaseHandler extends TestCaseHandler implements PrimaryHandl
             String reportFileName = runContext.getName() + (useModern ? "-v2.html" : ".html");
             ReportFile = new File(getReportLoc(), reportFileName);
             ReportFile.createNewFile();
-            
+
             // Use appropriate template based on setting
-            File templateFile = useModern 
-                ? new File(FilePath.getTCReportTemplateV2()) 
+            File templateFile = useModern
+                ? new File(FilePath.getTCReportTemplateV2())
                 : new File(FilePath.getTCReportTemplate());
             SourceDoc = new StringBuffer(FileScanner.readFile(templateFile));
         } catch (Exception ex) {
@@ -144,9 +162,13 @@ public class HtmlTestCaseHandler extends TestCaseHandler implements PrimaryHandl
     }
 
     @Override
-    public void updateTestLog(String stepName, String stepDescription, Status state,
-            String link, List<String> links) {
-
+    public void updateTestLog(
+        String stepName,
+        String stepDescription,
+        Status state,
+        String link,
+        List<String> links
+    ) {
         String time = DateTimeUtils.DateTimeNow();
         JSONObject step;
         try {
@@ -163,46 +185,57 @@ public class HtmlTestCaseHandler extends TestCaseHandler implements PrimaryHandl
             String payloadfiles = "";
             String filename = "";
             if (link != null) {
-                payloadfiles = testCaseData.get(TestCase.SCENARIO_NAME)
-                        + "_"
-                        + testCaseData.get(TestCase.TESTCASE_NAME)
-                        + "_Step-"
-                        + getStepCount()
-                        + "_";
-                filename = AppResourcePath.getCurrentResultsPath() + link + File.separator + payloadfiles;
+                payloadfiles =
+                    testCaseData.get(TestCase.SCENARIO_NAME) +
+                    "_" +
+                    testCaseData.get(TestCase.TESTCASE_NAME) +
+                    "_Step-" +
+                    getStepCount() +
+                    "_";
+                filename =
+                    AppResourcePath.getCurrentResultsPath() + link + File.separator + payloadfiles;
                 data.put(RDS.Step.Data.LINK, filename);
-                
+
                 // Embed payload content directly in JSON to avoid CORS issues with file:// protocol
                 String requestFilePath = filename + "Request.txt";
                 String responseFilePath = filename + "Response.txt";
-                
+
                 // Read and embed request payload if it exists
                 File requestFile = new File(requestFilePath);
                 if (requestFile.exists()) {
                     try {
-                        String requestContent = new String(Files.readAllBytes(requestFile.toPath()), StandardCharsets.UTF_8);
+                        String requestContent = new String(
+                            Files.readAllBytes(requestFile.toPath()),
+                            StandardCharsets.UTF_8
+                        );
                         data.put("requestPayload", requestContent);
                     } catch (Exception e) {
-                        System.out.println("[PAYLOAD] Failed to read request file: " + requestFilePath);
+                        System.out.println(
+                            "[PAYLOAD] Failed to read request file: " + requestFilePath
+                        );
                     }
                 }
-                
+
                 // Read and embed response payload if it exists
                 File responseFile = new File(responseFilePath);
                 if (responseFile.exists()) {
                     try {
-                        String responseContent = new String(Files.readAllBytes(responseFile.toPath()), StandardCharsets.UTF_8);
+                        String responseContent = new String(
+                            Files.readAllBytes(responseFile.toPath()),
+                            StandardCharsets.UTF_8
+                        );
                         data.put("responsePayload", responseContent);
                     } catch (Exception e) {
-                        System.out.println("[PAYLOAD] Failed to read response file: " + responseFilePath);
+                        System.out.println(
+                            "[PAYLOAD] Failed to read response file: " + responseFilePath
+                        );
                     }
                 }
-               
             }
             /*if (link != null) {
                data.put(RDS.Step.Data.LINK, link);
             }*/
-            
+
             putStatus(state, links, link, data);
             if (isIteration) {
                 ((JSONArray) iteration.get(RDS.Step.DATA)).add(step);
@@ -214,11 +247,22 @@ public class HtmlTestCaseHandler extends TestCaseHandler implements PrimaryHandl
             }
             if (isVideoEnabled()) {
                 if (isIteration) {
-                    iteration.put(RDS.TestSet.VIDEO_REPORT_DIR, getPlaywrightDriver().page.video().path().toString());
+                    iteration.put(
+                        RDS.TestSet.VIDEO_REPORT_DIR,
+                        getPlaywrightDriver().page.video().path().toString()
+                    );
                 } else if (!reusableStack.isEmpty()) {
-                    reusableStack.peek().put(RDS.TestSet.VIDEO_REPORT_DIR, getPlaywrightDriver().page.video().path().toString());
+                    reusableStack
+                        .peek()
+                        .put(
+                            RDS.TestSet.VIDEO_REPORT_DIR,
+                            getPlaywrightDriver().page.video().path().toString()
+                        );
                 } else if (reusable != null) {
-                    reusable.put(RDS.TestSet.VIDEO_REPORT_DIR, getPlaywrightDriver().page.video().path().toString());
+                    reusable.put(
+                        RDS.TestSet.VIDEO_REPORT_DIR,
+                        getPlaywrightDriver().page.video().path().toString()
+                    );
                 }
                 // Capture video path early before browser closes (only need to do once)
                 if (capturedVideoPath == null) {
@@ -230,13 +274,14 @@ public class HtmlTestCaseHandler extends TestCaseHandler implements PrimaryHandl
         }
     }
 
-    private Boolean isVideoEnabled(){
+    private Boolean isVideoEnabled() {
         return Control.exe.getExecSettings().getRunSettings().isVideoEnabled();
-    }    
+    }
+
     private boolean isTracingEnabled() {
         return Control.exe.getExecSettings().getRunSettings().isTracingEnabled();
     }
-    
+
     /**
      * Convert absolute path to relative path from current results directory
      * Does NOT validate file existence - used for video/trace paths that may not exist yet
@@ -267,7 +312,7 @@ public class HtmlTestCaseHandler extends TestCaseHandler implements PrimaryHandl
 
         return normalizedPath;
     }
-    
+
     private String resolveReportPathIfExists(String rawPath) {
         if (rawPath == null || rawPath.trim().isEmpty()) {
             return null;
@@ -298,6 +343,7 @@ public class HtmlTestCaseHandler extends TestCaseHandler implements PrimaryHandl
         File absoluteFile = new File(normalizedPath);
         return absoluteFile.exists() ? normalizedPath : null;
     }
+
     private String getVideoPathForTestCase() {
         try {
             // First, try to extract video path from the Steps data (which was set during execution)
@@ -315,9 +361,13 @@ public class HtmlTestCaseHandler extends TestCaseHandler implements PrimaryHandl
                     }
                 }
             }
-            
+
             // Fallback: Try to get from Playwright driver
-            if (getPlaywrightDriver() != null && getPlaywrightDriver().page != null && getPlaywrightDriver().page.video() != null) {
+            if (
+                getPlaywrightDriver() != null &&
+                getPlaywrightDriver().page != null &&
+                getPlaywrightDriver().page.video() != null
+            ) {
                 return getPlaywrightDriver().page.video().path().toString();
             }
         } catch (Exception e) {
@@ -326,7 +376,7 @@ public class HtmlTestCaseHandler extends TestCaseHandler implements PrimaryHandl
         }
         return null;
     }
-    
+
     /**
      * Get the trace path for the current test case
      * Traces are saved as: {ResultsPath}/traces/{Scenario}_{TestCase}_{Timestamp}/traces.zip
@@ -336,28 +386,28 @@ public class HtmlTestCaseHandler extends TestCaseHandler implements PrimaryHandl
             String currentResultsPath = FilePath.getCurrentResultsPath();
             String tracesDir = currentResultsPath + File.separator + "traces";
             File tracesDirFile = new File(tracesDir);
-            
+
             if (!tracesDirFile.exists() || !tracesDirFile.isDirectory()) {
                 return null;
             }
-            
+
             // Look for trace folder matching scenario and test case name
             String scenarioName = (String) testCaseData.get(TestCase.SCENARIO_NAME);
             String testCaseName = (String) testCaseData.get(TestCase.TESTCASE_NAME);
             String searchPattern = scenarioName + "_" + testCaseName + "_";
-            
-            File[] matchingDirs = tracesDirFile.listFiles(file -> 
-                file.isDirectory() && file.getName().startsWith(searchPattern)
+
+            File[] matchingDirs = tracesDirFile.listFiles(
+                file -> file.isDirectory() && file.getName().startsWith(searchPattern)
             );
-            
+
             if (matchingDirs != null && matchingDirs.length > 0) {
                 // Get the most recent one (should be the only one for current execution)
                 File traceFolder = matchingDirs[matchingDirs.length - 1];
                 File traceZip = new File(traceFolder, "traces.zip");
-                
+
                 // Return path even if file doesn't exist yet (may still be writing)
                 String fullTracePath = traceZip.getAbsolutePath();
-                
+
                 // Convert to relative path
                 if (fullTracePath.startsWith(currentResultsPath)) {
                     String relativePath = fullTracePath.substring(currentResultsPath.length());
@@ -420,7 +470,6 @@ public class HtmlTestCaseHandler extends TestCaseHandler implements PrimaryHandl
             reusableStack.peek().put(TestCase.STATUS, completedReusable.get(TestCase.STATUS));
             reusable = reusableStack.peek();
         }
-
     }
 
     @Override
@@ -461,7 +510,12 @@ public class HtmlTestCaseHandler extends TestCaseHandler implements PrimaryHandl
         }
     }
 
-    private void putStatus(Status state, List<String> optional, String optionalLink, JSONObject data) {
+    private void putStatus(
+        Status state,
+        List<String> optional,
+        String optionalLink,
+        JSONObject data
+    ) {
         switch (state) {
             case DONE:
             case PASSNS:
@@ -480,11 +534,15 @@ public class HtmlTestCaseHandler extends TestCaseHandler implements PrimaryHandl
             case COMPLETE:
                 onSetpPassed();
                 break;
-
         }
     }
 
-    private void takeScreenShot(Status status, List<String> optional, String optionalLink, JSONObject data) {
+    private void takeScreenShot(
+        Status status,
+        List<String> optional,
+        String optionalLink,
+        JSONObject data
+    ) {
         String imgSrc = getScreenShotName();
         switch (status) {
             case PASS:
@@ -511,7 +569,6 @@ public class HtmlTestCaseHandler extends TestCaseHandler implements PrimaryHandl
         if (status.equals(Status.PASS)) {
             onSetpPassed();
             return screenShotSettings().matches("(Pass|Both)");
-
         }
         return false;
     }
@@ -536,11 +593,10 @@ public class HtmlTestCaseHandler extends TestCaseHandler implements PrimaryHandl
                 data.put(RDS.Step.Data.OBJECTS, optional.get(0));
             }
             // Always take screenshots for each step
-            if (ReportUtils.takeScreenshot(getPlaywrightDriver(),getWebDriver(), imgSrc)) {
+            if (ReportUtils.takeScreenshot(getPlaywrightDriver(), getWebDriver(), imgSrc)) {
                 data.put(RDS.Step.Data.LINK, imgSrc);
             }
         }
-
     }
 
     /**
@@ -552,22 +608,22 @@ public class HtmlTestCaseHandler extends TestCaseHandler implements PrimaryHandl
     @Override
     public Status finalizeReport() {
         updateResults();
-        
+
         try (BufferedWriter bufwriter = new BufferedWriter(new FileWriter(ReportFile));) {
             JSONObject singleTestcasereport = (JSONObject) testCaseData.clone();
             ReportUtils.loadDefaultTheme(singleTestcasereport);
-            
+
             String jsonString = singleTestcasereport.toJSONString();
             // Embed aXe scripts BEFORE inserting JSON data.
             String templateWithAxeScripts = embedAxeDataInHtml(SourceDoc.toString());
-            
+
             // Now replace the data token with JSON
             String tempDoc = templateWithAxeScripts.replace(DATAF, jsonString);
-            
+
             // Fix CSS/JS paths: rewrite ../../../../media to media for standalone reports
             // This matches how HtmlSummaryHandler handles path rewriting
             tempDoc = tempDoc.replaceAll("\\.\\.\\./\\.\\.\\./\\.\\.\\./\\.\\.\\./media", "media");
-            
+
             bufwriter.write(tempDoc);
         } catch (Exception ex) {
             LOG.log(Level.SEVERE, null, ex);
@@ -575,6 +631,7 @@ public class HtmlTestCaseHandler extends TestCaseHandler implements PrimaryHandl
         printReport();
         return report.getCurrentStatus();
     }
+
     private static final Logger LOG = Logger.getLogger(TestCaseReport.class.getName());
 
     /**
@@ -584,13 +641,13 @@ public class HtmlTestCaseHandler extends TestCaseHandler implements PrimaryHandl
     private String embedAxeDataInHtml(String htmlContent) {
         try {
             String axePath = FilePath.getCurrentTestCaseAccessibilityLocation();
-            
+
             File axeFolder = new File(axePath);
-            
+
             if (!axeFolder.exists()) {
                 return htmlContent;
             }
-            
+
             File[] axeFiles = null;
             if (axeFolder.exists()) {
                 // Find all axe-results.json files
@@ -599,22 +656,25 @@ public class HtmlTestCaseHandler extends TestCaseHandler implements PrimaryHandl
                     return htmlContent;
                 }
             }
-            
+
             StringBuilder axeScriptTags = new StringBuilder();
-            
+
             if (axeFiles != null) {
                 for (File axeFile : axeFiles) {
                     try {
                         // Read the JSON content
-                        String jsonContent = new String(Files.readAllBytes(axeFile.toPath()), StandardCharsets.UTF_8);
+                        String jsonContent = new String(
+                            Files.readAllBytes(axeFile.toPath()),
+                            StandardCharsets.UTF_8
+                        );
                         // Prevent </script> from terminating the script tag early
                         jsonContent = jsonContent.replace("</script", "<\\/script");
-                        
+
                         // Extract reusable name from filename
                         // Format: {scenario}_{reusable-name}_axe-results.json
                         String fileName = axeFile.getName();
                         String reusablePart = fileName.replace("_axe-results.json", "");
-                        
+
                         // Extract just the reusable name (everything after the last underscore that's not part of "axe")
                         // For "Mortgage Calculator_Your Plans_axe-results.json", we want "Your Plans"
                         String[] parts = reusablePart.split("_");
@@ -625,12 +685,15 @@ public class HtmlTestCaseHandler extends TestCaseHandler implements PrimaryHandl
                                 if (i > 1) reusableName.append("_");
                                 reusableName.append(parts[i]);
                             }
-                            
+
                             // Sanitize for ID: replace non-alphanumeric with hyphen
-                            String sanitizedId = reusableName.toString().replaceAll("[^a-zA-Z0-9]", "-");
-                            
+                            String sanitizedId = reusableName
+                                .toString()
+                                .replaceAll("[^a-zA-Z0-9]", "-");
+
                             // Create script tag with embedded JSON
-                            axeScriptTags.append("<script type=\"application/json\" id=\"axe-data-")
+                            axeScriptTags
+                                .append("<script type=\"application/json\" id=\"axe-data-")
                                 .append(sanitizedId)
                                 .append("\">\n")
                                 .append(jsonContent)
@@ -641,7 +704,7 @@ public class HtmlTestCaseHandler extends TestCaseHandler implements PrimaryHandl
                     }
                 }
             }
-            
+
             // Insert script tags before closing </head> tag
             if (axeScriptTags.length() > 0) {
                 htmlContent = htmlContent.replace("</head>", axeScriptTags.toString() + "</head>");
@@ -663,42 +726,50 @@ public class HtmlTestCaseHandler extends TestCaseHandler implements PrimaryHandl
             if (tracePath == null || tracePath.isEmpty()) {
                 return null;
             }
-            
+
             // Construct full path from relative path
             String currentResultsPath = FilePath.getCurrentResultsPath();
             String fullTracePath = currentResultsPath + tracePath;
-            
+
             File traceZipFile = new File(fullTracePath);
             if (!traceZipFile.exists()) {
                 return null;
             }
-            
+
             JSONObject traceData = new JSONObject();
             JSONArray actions = new JSONArray();
             JSONArray screenshots = new JSONArray();
             long startTimestamp = Long.MAX_VALUE;
             long endTimestamp = 0;
-            
+
             // Extract trace data from zip
             try (java.util.zip.ZipFile zipFile = new java.util.zip.ZipFile(traceZipFile)) {
                 // Get list of screenshot resources
                 java.util.Enumeration<? extends java.util.zip.ZipEntry> entries = zipFile.entries();
-                
+
                 while (entries.hasMoreElements()) {
                     java.util.zip.ZipEntry entry = entries.nextElement();
-                    
-                    if (entry.getName().startsWith("resources/page@") && entry.getName().endsWith(".jpeg")) {
+
+                    if (
+                        entry.getName().startsWith("resources/page@") &&
+                        entry.getName().endsWith(".jpeg")
+                    ) {
                         // Extract timestamp from filename: resources/page@{hash}-{timestamp}.jpeg
                         String filename = entry.getName();
-                        String[] parts = filename.substring(filename.lastIndexOf('-') + 1).replace(".jpeg", "").split("");
+                        String[] parts = filename
+                            .substring(filename.lastIndexOf('-') + 1)
+                            .replace(".jpeg", "")
+                            .split("");
                         if (parts.length > 0) {
                             try {
-                                String timestamp = filename.substring(filename.lastIndexOf('-') + 1).replace(".jpeg", "");
+                                String timestamp = filename
+                                    .substring(filename.lastIndexOf('-') + 1)
+                                    .replace(".jpeg", "");
                                 JSONObject screenshot = new JSONObject();
                                 screenshot.put("file", filename);
                                 screenshot.put("timestamp", timestamp);
                                 screenshots.add(screenshot);
-                                
+
                                 long ts = Long.parseLong(timestamp);
                                 startTimestamp = Math.min(startTimestamp, ts);
                                 endTimestamp = Math.max(endTimestamp, ts);
@@ -708,20 +779,22 @@ public class HtmlTestCaseHandler extends TestCaseHandler implements PrimaryHandl
                         }
                     }
                 }
-                
+
                 // Parse trace.trace file for actions
                 java.util.zip.ZipEntry traceEntry = zipFile.getEntry("trace.trace");
                 if (traceEntry != null) {
                     java.io.BufferedReader reader = new java.io.BufferedReader(
-                        new java.io.InputStreamReader(zipFile.getInputStream(traceEntry)));
+                        new java.io.InputStreamReader(zipFile.getInputStream(traceEntry))
+                    );
                     String line;
                     int actionCount = 0;
-                    
+
                     while ((line = reader.readLine()) != null && actionCount < 50) { // Limit to first 50 actions for performance
                         try {
-                            JSONObject event = (JSONObject) new org.json.simple.parser.JSONParser().parse(line);
+                            JSONObject event = (JSONObject) new org.json.simple.parser.JSONParser()
+                            .parse(line);
                             String type = (String) event.get("type");
-                            
+
                             // Extract action events
                             if ("action".equals(type)) {
                                 JSONObject action = new JSONObject();
@@ -739,19 +812,18 @@ public class HtmlTestCaseHandler extends TestCaseHandler implements PrimaryHandl
                     reader.close();
                 }
             }
-            
+
             // Build trace data object
             traceData.put("actions", actions);
             traceData.put("screenshots", screenshots);
             traceData.put("actionCount", actions.size());
             traceData.put("screenshotCount", screenshots.size());
-            
+
             if (startTimestamp < Long.MAX_VALUE && endTimestamp > 0) {
                 traceData.put("duration", (endTimestamp - startTimestamp) + "ms");
             }
-            
+
             return !actions.isEmpty() || !screenshots.isEmpty() ? traceData : null;
-            
         } catch (Exception e) {
             e.printStackTrace();
             return null;
@@ -772,19 +844,22 @@ public class HtmlTestCaseHandler extends TestCaseHandler implements PrimaryHandl
         testCaseData.put(TestCase.ITERATIONS, iterCounter);
         testCaseData.put(TestCase.NO_OF_TESTS, getStepCount());
         testCaseData.put(TestCase.NO_OF_FAIL_TESTS, String.valueOf(this.FailedSteps));
-        testCaseData.put(TestCase.NO_OF_PASS_TESTS, String.valueOf(this.DoneSteps + this.PassedSteps));
+        testCaseData.put(
+            TestCase.NO_OF_PASS_TESTS,
+            String.valueOf(this.DoneSteps + this.PassedSteps)
+        );
         testCaseData.put(TestCase.STATUS, getCurrentStatus().toString());
-        
+
         // Add video path if video recording is enabled
         if (isVideoEnabled()) {
             // Try to get video path - first from captured value, then from getVideoPathForTestCase
             String videoPath = capturedVideoPath;
-            
+
             // If not captured yet, try to get it now (before browser closes completely)
             if (videoPath == null || videoPath.trim().isEmpty()) {
                 videoPath = getVideoPathForTestCase();
             }
-            
+
             // Convert to relative path without validating existence (video file may not be fully written yet)
             if (videoPath != null && !videoPath.isEmpty()) {
                 String relativePath = convertToRelativePath(videoPath);
@@ -793,20 +868,20 @@ public class HtmlTestCaseHandler extends TestCaseHandler implements PrimaryHandl
                 }
             }
         }
-        
+
         // Add trace path if tracing is enabled
         if (isTracingEnabled()) {
             String tracePath = capturedTracePath;
             if (tracePath == null || tracePath.trim().isEmpty()) {
                 tracePath = getTracePathForTestCase();
             }
-            
+
             // Convert to relative path without validating existence (trace file may not be fully written yet)
             if (tracePath != null && !tracePath.isEmpty()) {
                 String relativePath = convertToRelativePath(tracePath);
                 if (relativePath != null && !relativePath.isEmpty()) {
                     testCaseData.put(TestCase.TRACE_PATH, relativePath);
-                    
+
                     // Extract and add trace data for inline viewer (only if file exists now)
                     JSONObject traceData = getTraceData();
                     if (traceData != null) {
@@ -815,7 +890,6 @@ public class HtmlTestCaseHandler extends TestCaseHandler implements PrimaryHandl
                 }
             }
         }
-
     }
 
     private DateTimeUtils startTime() {
@@ -824,8 +898,12 @@ public class HtmlTestCaseHandler extends TestCaseHandler implements PrimaryHandl
 
     private void printReport() {
         System.out.println("\n---------------------------------------------------");
-        print("Testcase Name", testCaseData.get(TestCase.SCENARIO_NAME)
-                + ":" + testCaseData.get(TestCase.TESTCASE_NAME));
+        print(
+            "Testcase Name",
+            testCaseData.get(TestCase.SCENARIO_NAME) +
+            ":" +
+            testCaseData.get(TestCase.TESTCASE_NAME)
+        );
         print("Executed Steps", testCaseData.get(TestCase.NO_OF_TESTS));
         print("Passed Steps", testCaseData.get(TestCase.NO_OF_PASS_TESTS));
         print("Failed Steps", testCaseData.get(TestCase.NO_OF_FAIL_TESTS));

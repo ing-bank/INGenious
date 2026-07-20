@@ -1,21 +1,20 @@
 package com.ing.engine.cli.commands;
 
 import com.ing.engine.cli.INGeniousCLI;
+import java.io.*;
+import java.util.*;
+import java.util.concurrent.Callable;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
 import picocli.CommandLine.ParentCommand;
-
-import java.io.*;
-import java.util.*;
-import java.util.concurrent.Callable;
 
 /**
  * Page object/object repository management commands.
  */
 @Command(
     name = "object",
-    aliases = {"objects", "or"},
+    aliases = { "objects", "or" },
     description = "Object repository management",
     subcommands = {
         ObjectCommand.ListCommand.class,
@@ -25,7 +24,6 @@ import java.util.concurrent.Callable;
     }
 )
 public class ObjectCommand implements Callable<Integer> {
-
     @ParentCommand
     private INGeniousCLI parent;
 
@@ -40,20 +38,19 @@ public class ObjectCommand implements Callable<Integer> {
      */
     @Command(name = "list", description = "List pages in object repository")
     public static class ListCommand implements Callable<Integer> {
-
         @ParentCommand
         private ObjectCommand parent;
 
-        @Option(names = {"-p", "--project"}, description = "Project path")
+        @Option(names = { "-p", "--project" }, description = "Project path")
         private String projectPath;
 
-        @Option(names = {"--with-count"}, description = "Show object count per page")
+        @Option(names = { "--with-count" }, description = "Show object count per page")
         private boolean withCount;
 
         @Override
         public Integer call() {
             INGeniousCLI cli = INGeniousCLI.getInstance();
-            
+
             String path = projectPath != null ? projectPath : cli.getProjectPath();
             if (path == null || path.isEmpty()) {
                 cli.printError("Project path required.");
@@ -67,7 +64,7 @@ public class ObjectCommand implements Callable<Integer> {
                     return 0;
                 }
 
-                List<String> headers = withCount 
+                List<String> headers = withCount
                     ? Arrays.asList("Page", "Objects")
                     : Arrays.asList("Page");
                 List<List<String>> rows = new ArrayList<>();
@@ -93,7 +90,6 @@ public class ObjectCommand implements Callable<Integer> {
                 System.out.println(cli.getOutputFormatter().formatTable(headers, rows));
                 cli.printInfo("\nTotal: " + rows.size() + " pages");
                 return 0;
-                
             } catch (Exception e) {
                 cli.printError("Failed to list pages: " + e.getMessage());
                 return 1;
@@ -124,20 +120,19 @@ public class ObjectCommand implements Callable<Integer> {
      */
     @Command(name = "show", description = "Show objects in a page")
     public static class ShowCommand implements Callable<Integer> {
-
         @ParentCommand
         private ObjectCommand parent;
 
         @Parameters(index = "0", description = "Page name")
         private String pageName;
 
-        @Option(names = {"-p", "--project"}, description = "Project path")
+        @Option(names = { "-p", "--project" }, description = "Project path")
         private String projectPath;
 
         @Override
         public Integer call() {
             INGeniousCLI cli = INGeniousCLI.getInstance();
-            
+
             String path = projectPath != null ? projectPath : cli.getProjectPath();
             if (path == null || path.isEmpty()) {
                 cli.printError("Project path required.");
@@ -165,15 +160,17 @@ public class ObjectCommand implements Callable<Integer> {
                             isHeader = false;
                             continue;
                         }
-                        
+
                         String[] cols = line.split(",", -1);
                         if (cols.length >= 4) {
-                            rows.add(Arrays.asList(
-                                cols[0], // Name
-                                cols.length > 1 ? cols[1] : "", // Type
-                                cols.length > 2 ? cols[2] : "", // Locator
-                                truncate(cols.length > 3 ? cols[3] : "", 40) // Value
-                            ));
+                            rows.add(
+                                Arrays.asList(
+                                    cols[0], // Name
+                                    cols.length > 1 ? cols[1] : "", // Type
+                                    cols.length > 2 ? cols[2] : "", // Locator
+                                    truncate(cols.length > 3 ? cols[3] : "", 40) // Value
+                                )
+                            );
                         }
                     }
                 }
@@ -181,7 +178,6 @@ public class ObjectCommand implements Callable<Integer> {
                 System.out.println(cli.getOutputFormatter().formatTable(headers, rows));
                 cli.printInfo("\nTotal: " + rows.size() + " objects");
                 return 0;
-                
             } catch (Exception e) {
                 cli.printError("Failed to show page: " + e.getMessage());
                 return 1;
@@ -199,20 +195,19 @@ public class ObjectCommand implements Callable<Integer> {
      */
     @Command(name = "search", description = "Search for objects")
     public static class SearchCommand implements Callable<Integer> {
-
         @ParentCommand
         private ObjectCommand parent;
 
         @Parameters(index = "0", description = "Search query")
         private String query;
 
-        @Option(names = {"-p", "--project"}, description = "Project path")
+        @Option(names = { "-p", "--project" }, description = "Project path")
         private String projectPath;
 
         @Override
         public Integer call() {
             INGeniousCLI cli = INGeniousCLI.getInstance();
-            
+
             String path = projectPath != null ? projectPath : cli.getProjectPath();
             if (path == null || path.isEmpty()) {
                 cli.printError("Project path required.");
@@ -234,7 +229,7 @@ public class ObjectCommand implements Callable<Integer> {
                 if (pages != null) {
                     for (File page : pages) {
                         String pageName = page.getName().replace(".csv", "");
-                        
+
                         try (Scanner scanner = new Scanner(page)) {
                             boolean isHeader = true;
                             while (scanner.hasNextLine()) {
@@ -243,16 +238,18 @@ public class ObjectCommand implements Callable<Integer> {
                                     isHeader = false;
                                     continue;
                                 }
-                                
+
                                 if (line.toLowerCase().contains(queryLower)) {
                                     String[] cols = line.split(",", -1);
                                     if (cols.length >= 3) {
-                                        rows.add(Arrays.asList(
-                                            pageName,
-                                            cols[0],
-                                            cols.length > 1 ? cols[1] : "",
-                                            cols.length > 2 ? cols[2] : ""
-                                        ));
+                                        rows.add(
+                                            Arrays.asList(
+                                                pageName,
+                                                cols[0],
+                                                cols.length > 1 ? cols[1] : "",
+                                                cols.length > 2 ? cols[2] : ""
+                                            )
+                                        );
                                     }
                                 }
                             }
@@ -268,7 +265,6 @@ public class ObjectCommand implements Callable<Integer> {
                 System.out.println(cli.getOutputFormatter().formatTable(headers, rows));
                 cli.printInfo("\nFound " + rows.size() + " matching objects");
                 return 0;
-                
             } catch (Exception e) {
                 cli.printError("Search failed: " + e.getMessage());
                 return 1;
@@ -281,32 +277,31 @@ public class ObjectCommand implements Callable<Integer> {
      */
     @Command(name = "create", description = "Create a new page or add object")
     public static class CreateCommand implements Callable<Integer> {
-
         @ParentCommand
         private ObjectCommand parent;
 
-        @Option(names = {"--page"}, description = "Page name")
+        @Option(names = { "--page" }, description = "Page name")
         private String page;
 
-        @Option(names = {"--name", "-n"}, description = "Object name")
+        @Option(names = { "--name", "-n" }, description = "Object name")
         private String objectName;
 
-        @Option(names = {"--type"}, description = "Object type", defaultValue = "WebElement")
+        @Option(names = { "--type" }, description = "Object type", defaultValue = "WebElement")
         private String objectType;
 
-        @Option(names = {"--locator"}, description = "Locator type (id, css, xpath)")
+        @Option(names = { "--locator" }, description = "Locator type (id, css, xpath)")
         private String locator;
 
-        @Option(names = {"--value"}, description = "Locator value")
+        @Option(names = { "--value" }, description = "Locator value")
         private String value;
 
-        @Option(names = {"-p", "--project"}, description = "Project path")
+        @Option(names = { "-p", "--project" }, description = "Project path")
         private String projectPath;
 
         @Override
         public Integer call() {
             INGeniousCLI cli = INGeniousCLI.getInstance();
-            
+
             String path = projectPath != null ? projectPath : cli.getProjectPath();
             if (path == null || path.isEmpty()) {
                 cli.printError("Project path required.");
@@ -323,18 +318,18 @@ public class ObjectCommand implements Callable<Integer> {
                 orDir.mkdirs();
 
                 File pageFile = new File(orDir, page + ".csv");
-                
+
                 if (objectName == null) {
                     // Create new page only
                     if (pageFile.exists()) {
                         cli.printError("Page already exists: " + page);
                         return 1;
                     }
-                    
+
                     try (PrintWriter writer = new PrintWriter(pageFile)) {
                         writer.println("Name,Type,Locator,Value,Description");
                     }
-                    
+
                     cli.printSuccess("Created page: " + page);
                 } else {
                     // Add object to page
@@ -344,19 +339,27 @@ public class ObjectCommand implements Callable<Integer> {
                             writer.println("Name,Type,Locator,Value,Description");
                         }
                     }
-                    
-                    try (FileWriter fw = new FileWriter(pageFile, true);
-                         PrintWriter writer = new PrintWriter(fw)) {
-                        writer.println(objectName + "," + objectType + "," + 
-                                     (locator != null ? locator : "") + "," +
-                                     (value != null ? value : "") + ",");
+
+                    try (
+                        FileWriter fw = new FileWriter(pageFile, true);
+                        PrintWriter writer = new PrintWriter(fw)
+                    ) {
+                        writer.println(
+                            objectName +
+                            "," +
+                            objectType +
+                            "," +
+                            (locator != null ? locator : "") +
+                            "," +
+                            (value != null ? value : "") +
+                            ","
+                        );
                     }
-                    
+
                     cli.printSuccess("Added object " + objectName + " to page " + page);
                 }
-                
+
                 return 0;
-                
             } catch (Exception e) {
                 cli.printError("Failed to create: " + e.getMessage());
                 return 1;

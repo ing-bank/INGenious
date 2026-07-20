@@ -1,19 +1,18 @@
-
 package com.ing.engine.commands.galenCommands;
 
+import com.galenframework.specs.SpecImage;
 import com.ing.engine.core.CommandControl;
 import com.ing.engine.galenWrapper.SpecValidation.SpecReader;
 import com.ing.ingenious.api.annotation.Action;
 import com.ing.ingenious.api.types.InputType;
 import com.ing.ingenious.api.types.ObjectType;
-import com.galenframework.specs.SpecImage;
 
 public class Image extends General {
 
     public Image(CommandControl cc) {
         super(cc);
     }
-/*
+    /*
     @Action(object = ObjectType.APP, desc ="Assert if [<Object>]'s image has [<Data>]", input =InputType.YES)
     public void assertElementImage() {
         SpecImage spec = SpecReader.reader().getSpecImage(Reference, ObjectName, Data);

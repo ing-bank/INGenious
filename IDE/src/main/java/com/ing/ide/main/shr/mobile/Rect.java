@@ -1,4 +1,3 @@
-
 package com.ing.ide.main.shr.mobile;
 
 import com.ing.ide.main.shr.mobile.android.AndroidUtil;
@@ -7,11 +6,12 @@ import java.util.regex.Pattern;
 
 /**
  *
- * 
+ *
  */
 public class Rect {
-
-    private static final Pattern BOUNDS_PATTERN = Pattern.compile("\\[-?(\\d+),-?(\\d+)\\]\\[-?(\\d+),-?(\\d+)\\]");
+    private static final Pattern BOUNDS_PATTERN = Pattern.compile(
+        "\\[-?(\\d+),-?(\\d+)\\]\\[-?(\\d+),-?(\\d+)\\]"
+    );
 
     public static Rect fromString(String bounds) {
         if (bounds != null && !bounds.isEmpty()) {
@@ -20,8 +20,14 @@ public class Rect {
                 Rect rect = new Rect();
                 rect.setX(Integer.parseInt(m.group(1)) * AndroidUtil.get().scaleFactor);
                 rect.setY(Integer.parseInt(m.group(2)) * AndroidUtil.get().scaleFactor);
-                rect.setWidth((Integer.parseInt(m.group(3)) - Integer.parseInt(m.group(1))) * AndroidUtil.get().scaleFactor);
-                rect.setHeight((Integer.parseInt(m.group(4)) - Integer.parseInt(m.group(2))) * AndroidUtil.get().scaleFactor);
+                rect.setWidth(
+                    (Integer.parseInt(m.group(3)) - Integer.parseInt(m.group(1))) *
+                    AndroidUtil.get().scaleFactor
+                );
+                rect.setHeight(
+                    (Integer.parseInt(m.group(4)) - Integer.parseInt(m.group(2))) *
+                    AndroidUtil.get().scaleFactor
+                );
                 return rect;
             } else {
                 throw new RuntimeException("Invalid bounds: " + bounds);

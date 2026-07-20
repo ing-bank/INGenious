@@ -1,28 +1,15 @@
 package com.ing.engine.reporting.impl.extent;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Stack;
-
-import org.apache.http.client.ClientProtocolException;
-import org.apache.http.client.HttpClient;
-import org.apache.http.impl.client.HttpClientBuilder;
-import org.json.simple.JSONArray;
-import org.json.simple.JSONObject;
-import org.json.simple.parser.ParseException;
 import com.aventstack.extentreports.ExtentTest;
+import com.aventstack.extentreports.MediaEntityBuilder;
 import com.aventstack.extentreports.markuputils.ExtentColor;
 import com.aventstack.extentreports.markuputils.MarkupHelper;
-import com.aventstack.extentreports.MediaEntityBuilder;
+import com.ing.datalib.model.Tag;
+import com.ing.datalib.model.Tags;
 import com.ing.engine.constants.AppResourcePath;
 import com.ing.engine.core.Control;
 import com.ing.engine.core.RunContext;
 import com.ing.engine.core.RunManager;
-import com.ing.datalib.model.Tag;
-import com.ing.datalib.model.Tags;
 import com.ing.engine.drivers.PlaywrightDriverCreation;
 import com.ing.engine.drivers.WebDriverCreation;
 import com.ing.engine.reporting.TestCaseReport;
@@ -34,14 +21,25 @@ import com.ing.engine.reporting.util.RDS;
 import com.ing.engine.reporting.util.RDS.TestCase;
 import com.ing.engine.reporting.util.ReportUtils;
 import com.ing.ingenious.api.status.Status;
+import java.io.File;
+import java.io.IOException;
+import java.util.Base64;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Stack;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.commons.io.FileUtils;
-import java.util.Base64;
+import org.apache.http.client.ClientProtocolException;
+import org.apache.http.client.HttpClient;
+import org.apache.http.impl.client.HttpClientBuilder;
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
+import org.json.simple.parser.ParseException;
 
-@SuppressWarnings({"unchecked"})
+@SuppressWarnings({ "unchecked" })
 public class ExtentTestCaseHandler extends TestCaseHandler implements PrimaryHandler {
-
     private static final Logger LOGGER = Logger.getLogger(ExtentTestCaseHandler.class.getName());
 
     JSONObject testCaseData = new JSONObject();
@@ -83,8 +81,15 @@ public class ExtentTestCaseHandler extends TestCaseHandler implements PrimaryHan
 
     public boolean isExtentEnabled() {
         if (!RunManager.getGlobalSettings().isTestRun()) {
-            return Control.getCurrentProject().getProjectSettings()
-                    .getExecSettings(RunManager.getGlobalSettings().getRelease(), RunManager.getGlobalSettings().getTestSet()).getRunSettings().isExtentReport();
+            return Control
+                .getCurrentProject()
+                .getProjectSettings()
+                .getExecSettings(
+                    RunManager.getGlobalSettings().getRelease(),
+                    RunManager.getGlobalSettings().getTestSet()
+                )
+                .getRunSettings()
+                .isExtentReport();
         }
         return false;
     }
@@ -92,9 +97,19 @@ public class ExtentTestCaseHandler extends TestCaseHandler implements PrimaryHan
     @Override
     public void setPlaywrightDriver(PlaywrightDriverCreation driver) {
         testCaseData.put(TestCase.B_VERSION, getPlaywrightDriver().getBrowserVersion());
-        testCaseData.put(TestCase.PLATFORM, System.getProperty("os.name") + " " + System.getProperty("os.version") + " " + System.getProperty("os.arch"));
+        testCaseData.put(
+            TestCase.PLATFORM,
+            System.getProperty("os.name") +
+            " " +
+            System.getProperty("os.version") +
+            " " +
+            System.getProperty("os.arch")
+        );
         testCaseData.put(TestCase.BROWSER, getPlaywrightDriver().getCurrentBrowser());
-        testCaseData.put("browserTypeLabel", resolveBrowserTypeLabel(driver != null ? driver.getRunContext() : null, false));
+        testCaseData.put(
+            "browserTypeLabel",
+            resolveBrowserTypeLabel(driver != null ? driver.getRunContext() : null, false)
+        );
     }
 
     @Override
@@ -102,7 +117,13 @@ public class ExtentTestCaseHandler extends TestCaseHandler implements PrimaryHan
         testCaseData.put(TestCase.B_VERSION, getWebDriver().getCurrentBrowserVersion());
         testCaseData.put(TestCase.PLATFORM, getWebDriver().getPlatform());
         testCaseData.put(TestCase.BROWSER, getWebDriver().getCurrentBrowser());
-        testCaseData.put("browserTypeLabel", resolveBrowserTypeLabel(driver != null ? driver.getRunContext() : null, driver != null && driver.isMobileExecution()));
+        testCaseData.put(
+            "browserTypeLabel",
+            resolveBrowserTypeLabel(
+                driver != null ? driver.getRunContext() : null,
+                driver != null && driver.isMobileExecution()
+            )
+        );
     }
 
     /**
@@ -115,11 +136,17 @@ public class ExtentTestCaseHandler extends TestCaseHandler implements PrimaryHan
         try {
             if (runContext != null) {
                 String browserName = runContext.BrowserName;
-                if (isMobile || "Android".equalsIgnoreCase(browserName) || "iOS".equalsIgnoreCase(browserName)) {
+                if (
+                    isMobile ||
+                    "Android".equalsIgnoreCase(browserName) ||
+                    "iOS".equalsIgnoreCase(browserName)
+                ) {
                     return "Device";
-                } else if ("Chromium".equalsIgnoreCase(browserName) ||
-                        "WebKit".equalsIgnoreCase(browserName) ||
-                        "Firefox".equalsIgnoreCase(browserName)) {
+                } else if (
+                    "Chromium".equalsIgnoreCase(browserName) ||
+                    "WebKit".equalsIgnoreCase(browserName) ||
+                    "Firefox".equalsIgnoreCase(browserName)
+                ) {
                     return "Browser";
                 } else {
                     return "Browser/Device";
@@ -130,7 +157,7 @@ public class ExtentTestCaseHandler extends TestCaseHandler implements PrimaryHan
         }
         return "Browser/Device";
     }
-    
+
     @Override
     public void setSapSession(com.ing.engine.drivers.SAPSessionCreation session) {
         if (session != null) {
@@ -145,7 +172,12 @@ public class ExtentTestCaseHandler extends TestCaseHandler implements PrimaryHan
         if (isExtentEnabled()) {
             try {
                 testcasename = runContext.Scenario + " : " + runContext.TestCase;
-                Tags tags = Control.getCurrentProject().getInfo().getData().findOrCreate(runContext.TestCase, runContext.Scenario).getTags();
+                Tags tags = Control
+                    .getCurrentProject()
+                    .getInfo()
+                    .getData()
+                    .findOrCreate(runContext.TestCase, runContext.Scenario)
+                    .getTags();
                 description = runContext.Description;
                 iterationValue = runContext.Iteration;
                 createTest(testcasename, "", "", "", tags);
@@ -173,12 +205,17 @@ public class ExtentTestCaseHandler extends TestCaseHandler implements PrimaryHan
     }
 
     @Override
-    public void updateTestLog(String stepName, String stepDescription, Status state, String link, List<String> links) {
+    public void updateTestLog(
+        String stepName,
+        String stepDescription,
+        Status state,
+        String link,
+        List<String> links
+    ) {
         String time = DateTimeUtils.DateTimeNow();
         String stepData = "";
         JSONObject step;
         try {
-
             step = RDS.getNewStep(getStep().Description);
             JSONObject data = (JSONObject) step.get(RDS.Step.DATA);
             data.put(RDS.Step.Data.STEP_NO, getStepCount());
@@ -187,7 +224,8 @@ public class ExtentTestCaseHandler extends TestCaseHandler implements PrimaryHan
             data.put(RDS.Step.Data.DESCRIPTION, ReportUtils.resolveDesc(stepDescription));
             data.put(RDS.Step.Data.TIME_STAMP, time);
             data.put(RDS.Step.Data.STATUS, state.toString());
-            stepData = String.format("[%s]   | %s", state, ReportUtils.resolveDesc(stepDescription));
+            stepData =
+                String.format("[%s]   | %s", state, ReportUtils.resolveDesc(stepDescription));
 
             stepData = stepData.replaceAll("\"", "--");
             stepData = stepData.replaceAll("\\r\\n|\\r|\\n", "");
@@ -204,12 +242,13 @@ public class ExtentTestCaseHandler extends TestCaseHandler implements PrimaryHan
                 filename = AppResourcePath.getCurrentResultsPath() + data.get(RDS.Step.Data.LINK);
             }
 
-            String payloadfiles = testCaseData.get(TestCase.SCENARIO_NAME)
-                    + "_"
-                    + testCaseData.get(TestCase.TESTCASE_NAME)
-                    + "_Step-"
-                    + getStepCount()
-                    + "_";
+            String payloadfiles =
+                testCaseData.get(TestCase.SCENARIO_NAME) +
+                "_" +
+                testCaseData.get(TestCase.TESTCASE_NAME) +
+                "_Step-" +
+                getStepCount() +
+                "_";
 
             if (isExtentEnabled()) {
                 try {
@@ -254,7 +293,12 @@ public class ExtentTestCaseHandler extends TestCaseHandler implements PrimaryHan
         reusableStack.push(reusable);
         isIteration = false;
         this.CurrentComponent = component;
-        this.test.info(MarkupHelper.createLabel("Reusable Component : [" + this.CurrentComponent + "] starts here", ExtentColor.GREY));
+        this.test.info(
+                MarkupHelper.createLabel(
+                    "Reusable Component : [" + this.CurrentComponent + "] starts here",
+                    ExtentColor.GREY
+                )
+            );
     }
 
     @Override
@@ -264,7 +308,12 @@ public class ExtentTestCaseHandler extends TestCaseHandler implements PrimaryHan
             // status not is updated set it to PASS
             reusable.put(TestCase.STATUS, "PASS");
         }
-        this.test.info(MarkupHelper.createLabel("Reusable Component : [" + this.CurrentComponent + "] ends here", ExtentColor.GREY));
+        this.test.info(
+                MarkupHelper.createLabel(
+                    "Reusable Component : [" + this.CurrentComponent + "] ends here",
+                    ExtentColor.GREY
+                )
+            );
         // Save reference before popping
         JSONObject completedReusable = reusable;
         reusableStack.pop();
@@ -277,7 +326,6 @@ public class ExtentTestCaseHandler extends TestCaseHandler implements PrimaryHan
             reusableStack.peek().put(TestCase.STATUS, completedReusable.get(TestCase.STATUS));
             reusable = reusableStack.peek();
         }
-
     }
 
     @Override
@@ -318,7 +366,12 @@ public class ExtentTestCaseHandler extends TestCaseHandler implements PrimaryHan
         }
     }
 
-    private void putStatus(Status state, List<String> optional, String optionalLink, JSONObject data) {
+    private void putStatus(
+        Status state,
+        List<String> optional,
+        String optionalLink,
+        JSONObject data
+    ) {
         switch (state) {
             case DONE:
             case PASSNS:
@@ -334,11 +387,15 @@ public class ExtentTestCaseHandler extends TestCaseHandler implements PrimaryHan
             case FAILNS:
                 onSetpFailed();
                 break;
-
         }
     }
 
-    private void takeScreenShot(Status status, List<String> optional, String optionalLink, JSONObject data) {
+    private void takeScreenShot(
+        Status status,
+        List<String> optional,
+        String optionalLink,
+        JSONObject data
+    ) {
         String imgSrc = getScreenShotName();
         switch (status) {
             case PASS:
@@ -365,7 +422,6 @@ public class ExtentTestCaseHandler extends TestCaseHandler implements PrimaryHan
         if (status.equals(Status.PASS)) {
             onSetpPassed();
             return screenShotSettings().matches("(Pass|Both)");
-
         }
         return false;
     }
@@ -393,7 +449,6 @@ public class ExtentTestCaseHandler extends TestCaseHandler implements PrimaryHan
                 data.put(RDS.Step.Data.LINK, imgSrc);
             }
         }
-
     }
 
     /**
@@ -405,15 +460,23 @@ public class ExtentTestCaseHandler extends TestCaseHandler implements PrimaryHan
     @Override
     public Status finalizeReport() {
         updateResults();
-        this.test.assignDevice("[" + testCaseData.get(TestCase.PLATFORM).toString() + "]  [" + testCaseData.get(TestCase.BROWSER).toString() + " : " + testCaseData.get(TestCase.B_VERSION).toString() + "]");
+        this.test.assignDevice(
+                "[" +
+                testCaseData.get(TestCase.PLATFORM).toString() +
+                "]  [" +
+                testCaseData.get(TestCase.BROWSER).toString() +
+                " : " +
+                testCaseData.get(TestCase.B_VERSION).toString() +
+                "]"
+            );
         this.test.assignCategory("Platform: " + testCaseData.get(TestCase.PLATFORM).toString());
         this.test.assignCategory("Browser: " + testCaseData.get(TestCase.BROWSER).toString());
         return report.getCurrentStatus();
     }
 
     /*
-	 * private static final Logger LOG =
-	 * Logger.getLogger(TestCaseReport.class.getName());
+     * private static final Logger LOG =
+     * Logger.getLogger(TestCaseReport.class.getName());
      */
     /**
      * update the test case execution details to the json DATA file
@@ -429,12 +492,19 @@ public class ExtentTestCaseHandler extends TestCaseHandler implements PrimaryHan
         testCaseData.put(TestCase.ITERATIONS, iterCounter);
         testCaseData.put(TestCase.NO_OF_TESTS, getStepCount());
         testCaseData.put(TestCase.NO_OF_FAIL_TESTS, String.valueOf(this.FailedSteps));
-        testCaseData.put(TestCase.NO_OF_PASS_TESTS, String.valueOf(this.DoneSteps + this.PassedSteps));
+        testCaseData.put(
+            TestCase.NO_OF_PASS_TESTS,
+            String.valueOf(this.DoneSteps + this.PassedSteps)
+        );
         testCaseData.put(TestCase.STATUS, getCurrentStatus().toString());
         if (getStepCount() == 1 && this.PassedSteps == 0 && this.DoneSteps != 1) {
-            this.test.fail(MarkupHelper.createLabel("An exception has occured! Please check the console.txt for details.", ExtentColor.RED));
+            this.test.fail(
+                    MarkupHelper.createLabel(
+                        "An exception has occured! Please check the console.txt for details.",
+                        ExtentColor.RED
+                    )
+                );
         }
-
     }
 
     private DateTimeUtils startTime() {
@@ -450,7 +520,14 @@ public class ExtentTestCaseHandler extends TestCaseHandler implements PrimaryHan
         }
     }
 
-    public void createTest(String testcaseName, String platform, String browser, String browserVersion, Tags tags) throws ClientProtocolException, IOException, ParseException {
+    public void createTest(
+        String testcaseName,
+        String platform,
+        String browser,
+        String browserVersion,
+        Tags tags
+    )
+        throws ClientProtocolException, IOException, ParseException {
         this.test = extentReport.extentReports.createTest(testcaseName);
         if (!tags.isEmpty()) {
             for (Tag tag : tags) {
@@ -459,36 +536,76 @@ public class ExtentTestCaseHandler extends TestCaseHandler implements PrimaryHan
         }
     }
 
-    public void sendLog(String action, String payloadfiles, String status, String teststepdata, String filename) throws IOException, ParseException {
+    public void sendLog(
+        String action,
+        String payloadfiles,
+        String status,
+        String teststepdata,
+        String filename
+    )
+        throws IOException, ParseException {
         String actionInfo = "[" + action + "] - ";
         if (filename.equalsIgnoreCase("")) {
             if (status.contains("DONE") || status.contains("COMPLETE")) {
-                this.test.info(actionInfo + teststepdata.replace("[" + status + "]", "").replace("|", "").trim());
+                this.test.info(
+                        actionInfo +
+                        teststepdata.replace("[" + status + "]", "").replace("|", "").trim()
+                    );
             } else if (status.contains("WARNING")) {
-                this.test.warning(actionInfo + teststepdata.replace("[" + status + "]", "").replace("|", "").trim());
+                this.test.warning(
+                        actionInfo +
+                        teststepdata.replace("[" + status + "]", "").replace("|", "").trim()
+                    );
             } else if (status.contains("PASS")) {
-                this.test.pass(MarkupHelper.createLabel(
-                        actionInfo + teststepdata.replace("[" + status + "]", "").replace("|", "").trim(), ExtentColor.GREEN));
+                this.test.pass(
+                        MarkupHelper.createLabel(
+                            actionInfo +
+                            teststepdata.replace("[" + status + "]", "").replace("|", "").trim(),
+                            ExtentColor.GREEN
+                        )
+                    );
             } else {
-                this.test.fail(MarkupHelper.createLabel(
-                        actionInfo + teststepdata.replace("[" + status + "]", "").replace("|", "").trim(), ExtentColor.RED));
+                this.test.fail(
+                        MarkupHelper.createLabel(
+                            actionInfo +
+                            teststepdata.replace("[" + status + "]", "").replace("|", "").trim(),
+                            ExtentColor.RED
+                        )
+                    );
             }
         } else {
             String encodedString = "";
             File file = new File(new File(filename).getCanonicalPath());
             if (!file.isDirectory()) {
                 byte[] fileContent = FileUtils.readFileToByteArray(file);
-                encodedString = "data:image/png;base64," + Base64.getEncoder().encodeToString(fileContent);
+                encodedString =
+                    "data:image/png;base64," + Base64.getEncoder().encodeToString(fileContent);
                 if (status.contains("DONE") || status.contains("COMPLETE")) {
-                    this.test.info(actionInfo + teststepdata.replace("[" + status + "]", "").replace("|", "").trim());
+                    this.test.info(
+                            actionInfo +
+                            teststepdata.replace("[" + status + "]", "").replace("|", "").trim()
+                        );
                 } else if (status.contains("WARNING")) {
-                    this.test.warning(actionInfo + teststepdata.replace("[" + status + "]", "").replace("|", "").trim());
+                    this.test.warning(
+                            actionInfo +
+                            teststepdata.replace("[" + status + "]", "").replace("|", "").trim()
+                        );
                 } else if (status.contains("PASS")) {
-                    this.test.pass(actionInfo + teststepdata.replace("[" + status + "]", "").replace("|", "").trim(),
-                            MediaEntityBuilder.createScreenCaptureFromBase64String(encodedString).build());
+                    this.test.pass(
+                            actionInfo +
+                            teststepdata.replace("[" + status + "]", "").replace("|", "").trim(),
+                            MediaEntityBuilder
+                                .createScreenCaptureFromBase64String(encodedString)
+                                .build()
+                        );
                 } else {
-                    this.test.fail(actionInfo + teststepdata.replace("[" + status + "]", "").replace("|", "").trim(),
-                            MediaEntityBuilder.createScreenCaptureFromBase64String(encodedString).build());
+                    this.test.fail(
+                            actionInfo +
+                            teststepdata.replace("[" + status + "]", "").replace("|", "").trim(),
+                            MediaEntityBuilder
+                                .createScreenCaptureFromBase64String(encodedString)
+                                .build()
+                        );
                 }
             } else {
                 String request = "";
@@ -503,18 +620,42 @@ public class ExtentTestCaseHandler extends TestCaseHandler implements PrimaryHan
 
                 if (status.contains("COMPLETE")) {
                     if (!request.isEmpty()) {
-                        this.test.info(actionInfo + "Click to view : <a href='" + request + "'>Request</a>  |   <a href='" + response + "'>Response</a>");
+                        this.test.info(
+                                actionInfo +
+                                "Click to view : <a href='" +
+                                request +
+                                "'>Request</a>  |   <a href='" +
+                                response +
+                                "'>Response</a>"
+                            );
                     } else {
-                        this.test.info(actionInfo + "Click to view : <a href='" + response + "'>Response</a>");
+                        this.test.info(
+                                actionInfo +
+                                "Click to view : <a href='" +
+                                response +
+                                "'>Response</a>"
+                            );
                     }
                 } else if (status.contains("DONE")) {
-                    this.test.info(actionInfo + teststepdata.replace("[" + status + "]", "").replace("|", "").trim());
+                    this.test.info(
+                            actionInfo +
+                            teststepdata.replace("[" + status + "]", "").replace("|", "").trim()
+                        );
                 } else if (status.contains("WARNING")) {
-                    this.test.warning(actionInfo + teststepdata.replace("[" + status + "]", "").replace("|", "").trim());
+                    this.test.warning(
+                            actionInfo +
+                            teststepdata.replace("[" + status + "]", "").replace("|", "").trim()
+                        );
                 } else if (status.contains("PASS")) {
-                    this.test.pass(actionInfo + teststepdata.replace("[" + status + "]", "").replace("|", "").trim());
+                    this.test.pass(
+                            actionInfo +
+                            teststepdata.replace("[" + status + "]", "").replace("|", "").trim()
+                        );
                 } else {
-                    this.test.fail(actionInfo + teststepdata.replace("[" + status + "]", "").replace("|", "").trim());
+                    this.test.fail(
+                            actionInfo +
+                            teststepdata.replace("[" + status + "]", "").replace("|", "").trim()
+                        );
                 }
             }
         }
@@ -524,7 +665,11 @@ public class ExtentTestCaseHandler extends TestCaseHandler implements PrimaryHan
         boolean isBrowserExecution = false;
         try {
             String browserName = runContext.BrowserName;
-            if (browserName.equals("Chromium") || browserName.equals("WebKit") || browserName.equals("Firefox")) {
+            if (
+                browserName.equals("Chromium") ||
+                browserName.equals("WebKit") ||
+                browserName.equals("Firefox")
+            ) {
                 isBrowserExecution = true;
             }
         } catch (Exception ex) {

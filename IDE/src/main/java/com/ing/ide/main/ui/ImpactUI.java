@@ -1,4 +1,3 @@
-
 package com.ing.ide.main.ui;
 
 import com.ing.datalib.component.Project;
@@ -14,10 +13,9 @@ import javax.swing.JFrame;
 
 /**
  *
- * 
+ *
  */
 public class ImpactUI extends javax.swing.JDialog {
-
     DefaultListModel listModel;
 
     static ImpactUI impactUI;
@@ -30,25 +28,28 @@ public class ImpactUI extends javax.swing.JDialog {
      * Custom cell renderer to display test cases with source indicator
      */
     private static class TestCaseListCellRenderer extends javax.swing.DefaultListCellRenderer {
+
         @Override
         public java.awt.Component getListCellRendererComponent(
-                javax.swing.JList<?> list,
-                Object value,
-                int index,
-                boolean isSelected,
-                boolean cellHasFocus) {
-            
+            javax.swing.JList<?> list,
+            Object value,
+            int index,
+            boolean isSelected,
+            boolean cellHasFocus
+        ) {
             super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
-            
+
             if (value instanceof TestCase) {
                 TestCase testCase = (TestCase) value;
-                String sourceIndicator = testCase.getScenario().getSource() == com.ing.datalib.component.Scenario.Source.REUSABLE_COMPONENTS
-                        ? "[Reusable Component] "
-                        : "[Test Plan] ";
-                String displayText = sourceIndicator + testCase.getScenario().getName() + "/" + testCase.getName();
+                String sourceIndicator = testCase.getScenario().getSource() ==
+                    com.ing.datalib.component.Scenario.Source.REUSABLE_COMPONENTS
+                    ? "[Reusable Component] "
+                    : "[Test Plan] ";
+                String displayText =
+                    sourceIndicator + testCase.getScenario().getName() + "/" + testCase.getName();
                 setText(displayText);
             }
-            
+
             return this;
         }
     }
@@ -73,7 +74,11 @@ public class ImpactUI extends javax.swing.JDialog {
         }
     }
 
-    public void loadForTestCase(List<TestCase> testCases, String scenarioName, String testCaseName) {
+    public void loadForTestCase(
+        List<TestCase> testCases,
+        String scenarioName,
+        String testCaseName
+    ) {
         if (!testCases.isEmpty()) {
             infoLabel.setText("For TestCase [" + scenarioName + " - " + testCaseName + "] : ");
             loadForTestCases(testCases);
@@ -110,20 +115,34 @@ public class ImpactUI extends javax.swing.JDialog {
     @SuppressWarnings("unchecked")
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
-
         jPanel2 = new javax.swing.JPanel();
         jPanel1 = new javax.swing.JPanel();
         jScrollPane1 = new javax.swing.JScrollPane();
         testCaseList = new javax.swing.JList<>();
         jToolBar1 = new javax.swing.JToolBar();
-        filler3 = new javax.swing.Box.Filler(new java.awt.Dimension(10, 0), new java.awt.Dimension(10, 0), new java.awt.Dimension(10, 32767));
+        filler3 =
+            new javax.swing.Box.Filler(
+                new java.awt.Dimension(10, 0),
+                new java.awt.Dimension(10, 0),
+                new java.awt.Dimension(10, 32767)
+            );
         infoLabel = new javax.swing.JLabel();
         tcCount = new javax.swing.JLabel();
-        filler1 = new javax.swing.Box.Filler(new java.awt.Dimension(0, 0), new java.awt.Dimension(0, 0), new java.awt.Dimension(32767, 32767));
+        filler1 =
+            new javax.swing.Box.Filler(
+                new java.awt.Dimension(0, 0),
+                new java.awt.Dimension(0, 0),
+                new java.awt.Dimension(32767, 32767)
+            );
         selectAll = new javax.swing.JButton();
         clearAll = new javax.swing.JButton();
         jToolBar2 = new javax.swing.JToolBar();
-        filler2 = new javax.swing.Box.Filler(new java.awt.Dimension(0, 0), new java.awt.Dimension(0, 0), new java.awt.Dimension(32767, 32767));
+        filler2 =
+            new javax.swing.Box.Filler(
+                new java.awt.Dimension(0, 0),
+                new java.awt.Dimension(0, 0),
+                new java.awt.Dimension(32767, 32767)
+            );
         createAsTestSet = new javax.swing.JButton();
         close = new javax.swing.JButton();
 
@@ -138,11 +157,14 @@ public class ImpactUI extends javax.swing.JDialog {
         jPanel1.setBorder(javax.swing.BorderFactory.createEtchedBorder());
         jPanel1.setLayout(new java.awt.BorderLayout());
 
-        testCaseList.addMouseListener(new java.awt.event.MouseAdapter() {
-            public void mouseClicked(java.awt.event.MouseEvent evt) {
-                testCaseListMouseClicked(evt);
+        testCaseList.addMouseListener(
+            new java.awt.event.MouseAdapter() {
+
+                public void mouseClicked(java.awt.event.MouseEvent evt) {
+                    testCaseListMouseClicked(evt);
+                }
             }
-        });
+        );
         jScrollPane1.setViewportView(testCaseList);
 
         jPanel1.add(jScrollPane1, java.awt.BorderLayout.CENTER);
@@ -166,22 +188,28 @@ public class ImpactUI extends javax.swing.JDialog {
         selectAll.setFocusable(false);
         selectAll.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
         selectAll.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
-        selectAll.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                selectAllActionPerformed(evt);
+        selectAll.addActionListener(
+            new java.awt.event.ActionListener() {
+
+                public void actionPerformed(java.awt.event.ActionEvent evt) {
+                    selectAllActionPerformed(evt);
+                }
             }
-        });
+        );
         jToolBar1.add(selectAll);
 
         clearAll.setText("Clear");
         clearAll.setFocusable(false);
         clearAll.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
         clearAll.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
-        clearAll.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                clearAllActionPerformed(evt);
+        clearAll.addActionListener(
+            new java.awt.event.ActionListener() {
+
+                public void actionPerformed(java.awt.event.ActionEvent evt) {
+                    clearAllActionPerformed(evt);
+                }
             }
-        });
+        );
         jToolBar1.add(clearAll);
 
         getContentPane().add(jToolBar1, java.awt.BorderLayout.PAGE_START);
@@ -194,68 +222,82 @@ public class ImpactUI extends javax.swing.JDialog {
         createAsTestSet.setFocusable(false);
         createAsTestSet.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
         createAsTestSet.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
-        createAsTestSet.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                createAsTestSetActionPerformed(evt);
+        createAsTestSet.addActionListener(
+            new java.awt.event.ActionListener() {
+
+                public void actionPerformed(java.awt.event.ActionEvent evt) {
+                    createAsTestSetActionPerformed(evt);
+                }
             }
-        });
+        );
         jToolBar2.add(createAsTestSet);
 
         close.setText("Close");
         close.setFocusable(false);
         close.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
         close.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
-        close.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                closeActionPerformed(evt);
+        close.addActionListener(
+            new java.awt.event.ActionListener() {
+
+                public void actionPerformed(java.awt.event.ActionEvent evt) {
+                    closeActionPerformed(evt);
+                }
             }
-        });
+        );
         jToolBar2.add(close);
 
         getContentPane().add(jToolBar2, java.awt.BorderLayout.PAGE_END);
 
         pack();
-    }// </editor-fold>//GEN-END:initComponents
+    } // </editor-fold>//GEN-END:initComponents
 
-    private void closeActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_closeActionPerformed
+    private void closeActionPerformed(java.awt.event.ActionEvent evt) { //GEN-FIRST:event_closeActionPerformed
         this.dispatchEvent(new WindowEvent(this, WindowEvent.WINDOW_CLOSING));
-    }//GEN-LAST:event_closeActionPerformed
+    } //GEN-LAST:event_closeActionPerformed
 
-    private void createAsTestSetActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_createAsTestSetActionPerformed
+    private void createAsTestSetActionPerformed(java.awt.event.ActionEvent evt) { //GEN-FIRST:event_createAsTestSetActionPerformed
         if (testCaseList.getSelectedIndices().length > 0) {
             sProject.addRelease("ImpactAnalysis");
             sProject.getReleaseByName("ImpactAnalysis").addTestSet("ImpactedTestSet");
-            TestSet testSet = sProject.getReleaseByName("ImpactAnalysis").getTestSetByName("ImpactedTestSet");
+            TestSet testSet = sProject
+                .getReleaseByName("ImpactAnalysis")
+                .getTestSetByName("ImpactedTestSet");
             for (int index : testCaseList.getSelectedIndices()) {
                 if (listModel.size() > index) {
                     TestCase testCase = (TestCase) listModel.get(index);
-                    testSet.addNewStep().setTestCase(testCase.getName())
-                            .setTestScenario(testCase.getScenario().getName())
-                            .setBrowser(testDesign.getDefaultBrowser());
+                    testSet
+                        .addNewStep()
+                        .setTestCase(testCase.getName())
+                        .setTestScenario(testCase.getScenario().getName())
+                        .setBrowser(testDesign.getDefaultBrowser());
                 }
             }
-            testDesign.getsMainFrame().getTestExecution().getTestSetTree().getModel().addTestSet(testSet);
+            testDesign
+                .getsMainFrame()
+                .getTestExecution()
+                .getTestSetTree()
+                .getModel()
+                .addTestSet(testSet);
             Notification.show("TestSet ImpactAnalysis:ImpactedTestSet created");
         } else {
             Notification.show("Please Select atleast one TestCase from the list");
         }
-    }//GEN-LAST:event_createAsTestSetActionPerformed
+    } //GEN-LAST:event_createAsTestSetActionPerformed
 
-    private void selectAllActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_selectAllActionPerformed
+    private void selectAllActionPerformed(java.awt.event.ActionEvent evt) { //GEN-FIRST:event_selectAllActionPerformed
         testCaseList.setSelectionInterval(0, listModel.getSize());
-    }//GEN-LAST:event_selectAllActionPerformed
+    } //GEN-LAST:event_selectAllActionPerformed
 
-    private void clearAllActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_clearAllActionPerformed
+    private void clearAllActionPerformed(java.awt.event.ActionEvent evt) { //GEN-FIRST:event_clearAllActionPerformed
         testCaseList.clearSelection();
-    }//GEN-LAST:event_clearAllActionPerformed
+    } //GEN-LAST:event_clearAllActionPerformed
 
-    private void testCaseListMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_testCaseListMouseClicked
+    private void testCaseListMouseClicked(java.awt.event.MouseEvent evt) { //GEN-FIRST:event_testCaseListMouseClicked
         if (evt.getClickCount() == 2) {
             int index = testCaseList.locationToIndex(evt.getPoint());
             testDesign.loadTableModelForSelection(listModel.get(index));
         }
-    }//GEN-LAST:event_testCaseListMouseClicked
-
+    } //GEN-LAST:event_testCaseListMouseClicked
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton clearAll;

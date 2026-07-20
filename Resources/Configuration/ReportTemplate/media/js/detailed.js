@@ -250,6 +250,133 @@ function escapeHtml(text) {
             .replace(/'/g, '&#39;');
 }
 
+// Split a saved response payload into its body and headers blocks.
+// The Engine writes responses to disk as: <body>\n\n--- Response Headers ---\n<headers>
+function splitResponsePayload(rawResponse) {
+    if (!rawResponse) return { body: '', headers: '' };
+    const marker = '--- Response Headers ---';
+    const idx = rawResponse.indexOf(marker);
+    if (idx === -1) return { body: rawResponse, headers: '' };
+    const body = rawResponse.substring(0, idx).replace(/\s+$/, '');
+    const headers = rawResponse.substring(idx + marker.length).replace(/^\s+/, '');
+    return { body, headers };
+}
+
+// Parse a java.net.http.HttpHeaders#toString() output of the form
+// "{ name=[value], name2=[value1, value2] }" into [{name, value}] entries.
+function parseHttpHeaders(headersText) {
+    if (!headersText) return [];
+    let text = headersText.trim();
+    if (text.startsWith('{')) text = text.substring(1);
+    if (text.endsWith('}')) text = text.substring(0, text.length - 1);
+    text = text.trim();
+    if (!text) return [];
+    const entries = [];
+    const regex = /([A-Za-z0-9!#$%&'*+.^_`|~-]+)\s*=\s*\[([^\]]*)\]/g;
+    let match;
+    while ((match = regex.exec(text)) !== null) {
+    entries.push({ name: match[1], value: match[2] });
+    }
+    return entries;
+}
+
+function renderHeadersSection(headersText) {
+    if (!headersText) return '';
+    const entries = this.parseHttpHeaders(headersText);
+    let rowsHtml;
+    let plainText;
+    if (entries.length === 0) {
+    rowsHtml = `<pre style="margin: 0; white-space: pre-wrap; word-wrap: break-word; color: #e5e7eb; font-size: 0.85rem; line-height: 1.4;">${this.escapeHtml(headersText)}</pre>`;
+    plainText = headersText;
+    } else {
+    rowsHtml = '<div style="display: grid; grid-template-columns: minmax(160px, max-content) 1fr; gap: 0.35rem 1rem;">'
+        + entries.map(e => `
+            <div style="color: #C6A6FF; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 0.85rem; word-break: break-word;">${this.escapeHtml(e.name)}</div>
+            <div style="color: #e5e7eb; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 0.85rem; word-break: break-word;">${this.escapeHtml(e.value)}</div>
+        `).join('')
+        + '</div>';
+    plainText = entries.map(e => `${e.name}: ${e.value}`).join('\n');
+    }
+    return `
+        <div style="margin-bottom: 1.5rem;">
+        ${renderPayloadSectionHeader('Response Headers', plainText)}
+        <div style="background: rgba(255, 255, 255, 0.06); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 0.75rem; padding: 1rem;">${rowsHtml}</div>
+        </div>
+    `;
+}
+
+// Encode arbitrary UTF-8 text as base64 so it can be safely embedded in an HTML attribute.
+function encodePayloadForCopy(text) {
+    if (!text) return '';
+    try {
+    return btoa(unescape(encodeURIComponent(text)));
+    } catch (error) {
+    return '';
+    }
+}
+
+// Render a section header with a "Copy" button. The text to copy is embedded as
+// a base64 data attribute on the button and read back by copyPayloadFromButton.
+function renderPayloadSectionHeader(title, copyText) {
+    const encoded = encodePayloadForCopy(copyText || '');
+    const copyBtn = encoded
+    ? `<button type="button" onclick="copyPayloadFromButton(this)" data-copy-text-b64="${encoded}" data-copy-label="Copy" style="background: rgba(180, 135, 255, 0.18); border: 1px solid rgba(180, 135, 255, 0.45); color: #ffffff; border-radius: 0.5rem; padding: 0.25rem 0.65rem; font-size: 0.75rem; font-weight: 500; cursor: pointer; display: inline-flex; align-items: center; gap: 0.35rem;" title="Copy to clipboard">
+        <svg style="width: 0.85rem; height: 0.85rem;" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+        </svg>
+        <span data-copy-label-text>Copy</span>
+        </button>`
+    : '';
+    return `
+        <div style="display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; margin: 0 0 0.5rem 0;">
+        <h3 style="color: #ffffff; margin: 0; font-size: 1rem; font-weight: 600;">${title}</h3>
+        ${copyBtn}
+        </div>
+    `;
+}
+
+// Decode the base64 payload from a copy button, write it to the clipboard,
+// and briefly flash "Copied!" feedback on the button.
+function copyPayloadFromButton(btn) {
+    if (!btn) return;
+    const encoded = btn.getAttribute('data-copy-text-b64') || '';
+    let text = '';
+    try {
+    text = decodeURIComponent(escape(atob(encoded)));
+    } catch (error) {
+    text = '';
+    }
+    const flash = (label) => {
+    const labelEl = btn.querySelector('[data-copy-label-text]');
+    if (labelEl) labelEl.textContent = label;
+    setTimeout(() => {
+        const reset = btn.getAttribute('data-copy-label') || 'Copy';
+        const el = btn.querySelector('[data-copy-label-text]');
+        if (el) el.textContent = reset;
+    }, 1500);
+    };
+    const fallback = () => {
+    try {
+        const ta = document.createElement('textarea');
+        ta.value = text;
+        ta.style.position = 'fixed';
+        ta.style.opacity = '0';
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand('copy');
+        document.body.removeChild(ta);
+        flash('Copied!');
+    } catch (error) {
+        flash('Copy failed');
+    }
+    };
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text).then(() => flash('Copied!')).catch(fallback);
+    } else {
+    fallback();
+    }
+}
+
 async function openPayloadModal(link, stepJson) {
     if (!link) return;
     const step = JSON.parse(decodeURIComponent(escape(atob(stepJson))));
@@ -282,9 +409,13 @@ async function openPayloadModal(link, stepJson) {
     }
 
     const requestText = this.formatPayload(rawRequest);
-    const responseText = this.formatPayload(rawResponse);
+    const requestPlain = this.formatPayload(rawRequest, false);
+    const { body: rawResponseBody, headers: rawResponseHeaders } = this.splitResponsePayload(rawResponse);
+    const responseText = this.formatPayload(rawResponseBody);
+    const responsePlain = this.formatPayload(rawResponseBody, false);
     const showRequest = !!requestText && (!method || ['POST', 'PUT', 'PATCH'].includes(method));
     const showResponse = !!responseText;
+    const headersSectionHtml = this.renderHeadersSection(rawResponseHeaders);
 
     const modal = document.createElement('div');
     modal.className = 'payload-modal-overlay';
@@ -292,7 +423,7 @@ async function openPayloadModal(link, stepJson) {
     const requestHtml = showRequest
     ? `
         <div style="margin-bottom: 1.5rem;">
-        <h3 style="color: #ffffff; margin: 0 0 0.5rem 0; font-size: 1rem; font-weight: 600;">Request Payload</h3>
+        ${renderPayloadSectionHeader('Request Payload', requestPlain)}
         <pre style="white-space: pre-wrap; word-wrap: break-word; background: rgba(255, 255, 255, 0.06); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 0.75rem; padding: 1rem; color: #e5e7eb; font-size: 0.875rem; line-height: 1.4;">${requestText}</pre>
         </div>
     `
@@ -301,7 +432,7 @@ async function openPayloadModal(link, stepJson) {
     const responseHtml = showResponse
     ? `
         <div style="margin-bottom: 1.5rem;">
-        <h3 style="color: #ffffff; margin: 0 0 0.5rem 0; font-size: 1rem; font-weight: 600;">Response Payload</h3>
+        ${renderPayloadSectionHeader('Response Payload', responsePlain)}
         <pre style="white-space: pre-wrap; word-wrap: break-word; background: rgba(255, 255, 255, 0.06); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 0.75rem; padding: 1rem; color: #e5e7eb; font-size: 0.875rem; line-height: 1.4;">${responseText}</pre>
         </div>
     `
@@ -324,6 +455,7 @@ async function openPayloadModal(link, stepJson) {
         </div>
         ${requestHtml}
         ${responseHtml}
+        ${headersSectionHtml}
         </div>
     </div>
     `;
@@ -367,7 +499,7 @@ function collapseAllSteps() {
 }
 
 // Modern recursive renderer for detailed-v2.html
-function renderStepsV2(iterations, showFailedOnly = false, stepFilter = '') {
+function renderStepsV2(iterations, showFailedOnly = false, stepFilter = '', keyPrefix = '') {
     function escapeHtml(unsafe) {
         if (!unsafe) return '';
         return unsafe.toString()
@@ -533,7 +665,7 @@ function renderStepsV2(iterations, showFailedOnly = false, stepFilter = '') {
     
     let html = '';
     (iterations || []).forEach((item, idx) => {
-        const keyPath = '' + idx;
+        const keyPath = keyPrefix === '' ? ('' + idx) : (keyPrefix + '-' + idx);
         if (item.type === 'step') html += renderStep(item, keyPath);
         else if (item.type === 'reusable') html += renderReusable(item, keyPath);
     });
@@ -609,7 +741,7 @@ function injectStepsV2(showFailedOnly = false, stepFilter = '', scenarioName = n
     let html = '';
     stepsToRender.forEach(function(iteration, idx) {
         if (showFailedOnly && iteration.status !== 'FAIL') return;
-        html += `<div class="mb-6 pb-6 border-b border-gray-200 dark:border-gray-700 last:border-b-0"><div class="flex items-center gap-3 mb-4"><div class="px-3 py-1 rounded-full text-sm font-semibold ${iteration.status === 'PASS' ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' : 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'}">${iteration.name || 'Iteration'}</div><span class="text-sm text-muted">${iteration.status || ''}</span></div><div class="step-timeline">${renderStepsV2(iteration.data, showFailedOnly, stepFilter)}</div></div>`;
+        html += `<div class="mb-6 pb-6 border-b border-gray-200 dark:border-gray-700 last:border-b-0"><div class="flex items-center gap-3 mb-4"><div class="px-3 py-1 rounded-full text-sm font-semibold ${iteration.status === 'PASS' ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' : 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'}">${iteration.name || 'Iteration'}</div><span class="text-sm text-muted">${iteration.status || ''}</span></div><div class="step-timeline">${renderStepsV2(iteration.data, showFailedOnly, stepFilter, 'iter' + idx)}</div></div>`;
     });
     
     // Handle empty steps

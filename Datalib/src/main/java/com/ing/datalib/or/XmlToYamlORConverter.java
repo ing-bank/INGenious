@@ -1,19 +1,17 @@
-
 package com.ing.datalib.or;
-
-import java.io.File;
-import java.io.IOException;
-import java.util.logging.Logger;
 
 import com.ing.datalib.or.mobile.MobileOR;
 import com.ing.datalib.or.mobile.MobileORPage;
-import com.ing.datalib.or.structureddata.StructuredDataOR;
-import com.ing.datalib.or.structureddata.StructuredDataORPage;
 import com.ing.datalib.or.sap.SapOR;
 import com.ing.datalib.or.sap.SapORPage;
+import com.ing.datalib.or.structureddata.StructuredDataOR;
+import com.ing.datalib.or.structureddata.StructuredDataORPage;
 import com.ing.datalib.or.web.WebOR;
 import com.ing.datalib.or.web.WebORPage;
 import com.ing.datalib.or.yaml.YamlORWriter;
+import java.io.File;
+import java.io.IOException;
+import java.util.logging.Logger;
 
 /**
  * Converts in-memory XML Object Repositories to YAML.
@@ -25,7 +23,6 @@ import com.ing.datalib.or.yaml.YamlORWriter;
  * Pages do not carry scope.
  */
 public class XmlToYamlORConverter {
-
     private static final Logger LOG = Logger.getLogger(XmlToYamlORConverter.class.getName());
 
     private final YamlORWriter yamlWriter;
@@ -38,17 +35,18 @@ public class XmlToYamlORConverter {
      * Convert all ORs to YAML with correct folder separation.
      */
     public void convertAll(
-            WebOR projectWeb,
-            WebOR sharedWeb,
-            MobileOR projectMobile,
-            MobileOR sharedMobile,
-            StructuredDataOR projectStructuredData,
-            StructuredDataOR sharedStructuredData,
-            SapOR sapProjectOR,
-            SapOR sapSharedOR,
-            File projectRoot,
-            File sharedRoot) throws IOException {
-
+        WebOR projectWeb,
+        WebOR sharedWeb,
+        MobileOR projectMobile,
+        MobileOR sharedMobile,
+        StructuredDataOR projectStructuredData,
+        StructuredDataOR sharedStructuredData,
+        SapOR sapProjectOR,
+        SapOR sapSharedOR,
+        File projectRoot,
+        File sharedRoot
+    )
+        throws IOException {
         writeProjectWeb(projectWeb, projectRoot);
         writeSharedWeb(sharedWeb, sharedRoot);
 
@@ -62,9 +60,7 @@ public class XmlToYamlORConverter {
         writeSharedSap(sapSharedOR, sharedRoot);
     }
 
-    private void writeProjectWeb(WebOR projectOR, File projectRoot)
-            throws IOException {
-
+    private void writeProjectWeb(WebOR projectOR, File projectRoot) throws IOException {
         if (projectOR == null) return;
 
         File pagesDir = new File(projectRoot, "Web");
@@ -77,9 +73,7 @@ public class XmlToYamlORConverter {
         }
     }
 
-    private void writeProjectMobile(MobileOR projectOR, File projectRoot)
-            throws IOException {
-
+    private void writeProjectMobile(MobileOR projectOR, File projectRoot) throws IOException {
         if (projectOR == null) return;
 
         File pagesDir = new File(projectRoot, "Mobile");
@@ -93,8 +87,7 @@ public class XmlToYamlORConverter {
     }
 
     private void writeProjectStructuredData(StructuredDataOR projectOR, File projectRoot)
-            throws IOException {
-
+        throws IOException {
         if (projectOR == null) return;
 
         File pagesDir = new File(projectRoot, "StructuredData");
@@ -107,9 +100,7 @@ public class XmlToYamlORConverter {
         }
     }
 
-    private void writeProjectSap(SapOR projectOR, File projectRoot)
-            throws IOException {
-
+    private void writeProjectSap(SapOR projectOR, File projectRoot) throws IOException {
         if (projectOR == null) return;
 
         File pagesDir = new File(projectRoot, "SAP");
@@ -122,9 +113,7 @@ public class XmlToYamlORConverter {
         }
     }
 
-    private void writeSharedWeb(WebOR sharedOR, File sharedRoot)
-            throws IOException {
-
+    private void writeSharedWeb(WebOR sharedOR, File sharedRoot) throws IOException {
         if (sharedOR == null) return;
 
         File pagesDir = new File(sharedRoot, "Web");
@@ -137,9 +126,7 @@ public class XmlToYamlORConverter {
         }
     }
 
-    private void writeSharedMobile(MobileOR sharedOR, File sharedRoot)
-            throws IOException {
-
+    private void writeSharedMobile(MobileOR sharedOR, File sharedRoot) throws IOException {
         if (sharedOR == null) return;
 
         File pagesDir = new File(sharedRoot, "Mobile");
@@ -153,8 +140,7 @@ public class XmlToYamlORConverter {
     }
 
     private void writeSharedStructuredData(StructuredDataOR sharedOR, File sharedRoot)
-            throws IOException {
-
+        throws IOException {
         if (sharedOR == null) return;
 
         File pagesDir = new File(sharedRoot, "StructuredData");
@@ -167,9 +153,7 @@ public class XmlToYamlORConverter {
         }
     }
 
-    private void writeSharedSap(SapOR sharedOR, File sharedRoot)
-            throws IOException {
-
+    private void writeSharedSap(SapOR sharedOR, File sharedRoot) throws IOException {
         if (sharedOR == null) return;
 
         File pagesDir = new File(sharedRoot, "SAP");

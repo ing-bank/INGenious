@@ -1,6 +1,6 @@
-
 package com.ing.ide.main.explorer;
 
+import com.ing.ide.main.fx.INGIcons;
 import com.ing.ide.util.Canvas;
 import com.ing.ide.util.SlideContainer;
 import java.awt.Color;
@@ -10,29 +10,25 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.ImageIcon;
 import javax.swing.JPanel;
-import com.ing.ide.main.fx.INGIcons;
 
 /**
  *
- * 
+ *
  */
 public class BaseEditor extends javax.swing.JFrame {
-
     /**
      * Creates new form BaseEditor
      */
     private static BaseEditor bedit;
-    private final  SlideContainer slider = new SlideContainer();
+    private final SlideContainer slider = new SlideContainer();
 
     private BaseEditor() {
-
         this.setUndecorated(this.isUndecorated());
         initComponents();
         this.setIconImage(INGIcons.toImage("icon.explorer", 16));
         this.setBackground(new Color(255, 255, 255, 0));
         this.setAlwaysOnTop(true);
         add(slider);
-
     }
 
     /**
@@ -41,19 +37,23 @@ public class BaseEditor extends javax.swing.JFrame {
      * @param object - the UI instance
      */
     synchronized void setComponent(JPanel object) {
-
         slider.removeAll();
         slider.add(object);
         this.setTitle(object.getName());
         this.setSize(object.getSize());
         this.pack();
         this.setLocation(this.getLocation(object.getSize()));
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                setVisible(true);
-            }
-        }, "UI:Explorer:ShowBaseEditor").start();
+        new Thread(
+            new Runnable() {
+
+                @Override
+                public void run() {
+                    setVisible(true);
+                }
+            },
+            "UI:Explorer:ShowBaseEditor"
+        )
+        .start();
     }
 
     /**
@@ -72,12 +72,11 @@ public class BaseEditor extends javax.swing.JFrame {
         setOpacity(1.0f);
         if (!visible) {
             fadeOut();
-//            ScriptLess.resetFrame();
+            //            ScriptLess.resetFrame();
         } else {
-//            ScriptLess.setFrame(this);
+            //            ScriptLess.setFrame(this);
         }
         super.setVisible(visible);
-
     }
 
     /**
@@ -140,7 +139,6 @@ public class BaseEditor extends javax.swing.JFrame {
     @SuppressWarnings("unchecked")
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
-
         editorPanel = new javax.swing.JPanel();
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
@@ -150,7 +148,7 @@ public class BaseEditor extends javax.swing.JFrame {
         getContentPane().add(editorPanel, java.awt.BorderLayout.CENTER);
 
         pack();
-    }// </editor-fold>//GEN-END:initComponents
+    } // </editor-fold>//GEN-END:initComponents
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JPanel editorPanel;

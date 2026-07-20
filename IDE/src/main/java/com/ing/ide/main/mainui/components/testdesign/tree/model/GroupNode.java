@@ -1,4 +1,3 @@
-
 package com.ing.ide.main.mainui.components.testdesign.tree.model;
 
 import com.ing.datalib.component.Scenario;
@@ -11,10 +10,9 @@ import javax.swing.tree.TreeNode;
 
 /**
  *
- * 
+ *
  */
 public class GroupNode extends CommonNode {
-
     private String name;
 
     public GroupNode(String name) {
@@ -41,8 +39,8 @@ public class GroupNode extends CommonNode {
 
     public ScenarioNode getScenarioNodeBy(Scenario scenario) {
         for (TreeNode scenarioNode : Collections.list(children())) {
-            if (((ScenarioNode)scenarioNode).getScenario().equals(scenario)) {
-                return (ScenarioNode)scenarioNode;
+            if (((ScenarioNode) scenarioNode).getScenario().equals(scenario)) {
+                return (ScenarioNode) scenarioNode;
             }
         }
         return null;
@@ -53,7 +51,6 @@ public class GroupNode extends CommonNode {
         return name;
     }
 
-
     public boolean rename(String name) {
         ReusableNode rNode = (ReusableNode) getParent();
         if (rNode.getGroupByName(name) == null) {
@@ -63,7 +60,11 @@ public class GroupNode extends CommonNode {
         return false;
     }
 
-   public static List<GroupNode> toList(Enumeration<TreeNode> children){
-       return Collections.list(children).stream().map(tsNode -> (GroupNode) tsNode).collect(Collectors.toList());       
-   }
+    public static List<GroupNode> toList(Enumeration<TreeNode> children) {
+        return Collections
+            .list(children)
+            .stream()
+            .map(tsNode -> (GroupNode) tsNode)
+            .collect(Collectors.toList());
+    }
 }

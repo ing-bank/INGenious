@@ -1,6 +1,7 @@
 package com.ing.datalib.settings;
 
 import static org.assertj.core.api.Assertions.assertThat;
+
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -14,7 +15,6 @@ import org.testng.annotations.Test;
  * Tests for ExtentReportSettings — defaults and save/load.
  */
 public class ExtentReportSettingsTest {
-
     private Path tempDir;
 
     @BeforeMethod
@@ -24,10 +24,11 @@ public class ExtentReportSettingsTest {
 
     @AfterMethod
     public void tearDown() throws IOException {
-        Files.walk(tempDir)
-                .sorted(Comparator.reverseOrder())
-                .map(Path::toFile)
-                .forEach(File::delete);
+        Files
+            .walk(tempDir)
+            .sorted(Comparator.reverseOrder())
+            .map(Path::toFile)
+            .forEach(File::delete);
     }
 
     @Test

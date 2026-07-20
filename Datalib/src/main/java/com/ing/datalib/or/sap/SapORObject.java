@@ -1,18 +1,4 @@
-
 package com.ing.datalib.or.sap;
-
-import java.io.File;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Enumeration;
-import java.util.EventListener;
-import java.util.List;
-import java.util.Objects;
-
-import javax.swing.event.TableModelEvent;
-import javax.swing.event.TableModelListener;
-import javax.swing.tree.TreeNode;
-import javax.swing.tree.TreePath;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -24,10 +10,20 @@ import com.ing.datalib.or.common.ORObjectInf;
 import com.ing.datalib.or.common.ORUtils;
 import com.ing.datalib.or.common.ObjectGroup;
 import com.ing.datalib.undoredo.UndoRedoModel;
+import java.io.File;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Enumeration;
+import java.util.EventListener;
+import java.util.List;
+import java.util.Objects;
+import javax.swing.event.TableModelEvent;
+import javax.swing.event.TableModelListener;
+import javax.swing.tree.TreeNode;
+import javax.swing.tree.TreePath;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class SapORObject extends UndoRedoModel implements ORObjectInf {
-
     @JacksonXmlProperty(isAttribute = true, localName = "ref")
     private String name;
 
@@ -100,7 +96,7 @@ public class SapORObject extends UndoRedoModel implements ORObjectInf {
     public void setFrame(String frame) {
         this.frame = frame;
     }
-    
+
     @JsonIgnore
     @Override
     public TreeNode getChildAt(int i) {
@@ -321,7 +317,8 @@ public class SapORObject extends UndoRedoModel implements ORObjectInf {
         if (getParent().getChildCount() == 1) {
             flag = getParent().rename(newName);
         }
-        if (flag && getParent().getObjectByName(newName) == null) {
+        ORObjectInf existing = getParent().getObjectByName(newName);
+        if (flag && (existing == null || existing == this)) {
             if (FileUtils.renameFile(getRepLocation(), newName)) {
                 setName(newName);
                 changeSave();
@@ -460,7 +457,12 @@ public class SapORObject extends UndoRedoModel implements ORObjectInf {
     public Boolean isEqualOf(ORObjectInf obj) {
         SapORObject object = (SapORObject) obj;
         for (ORAttribute attribute : attributes) {
-            if (!Objects.equals(attribute.getValue(), object.getAttributeByName(attribute.getName()))) {
+            if (
+                !Objects.equals(
+                    attribute.getValue(),
+                    object.getAttributeByName(attribute.getName())
+                )
+            ) {
                 return false;
             }
         }

@@ -9,7 +9,6 @@ import java.io.Serializable;
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class CertificateConfig implements Serializable {
-
     private static final long serialVersionUID = 1L;
 
     /**
@@ -22,11 +21,11 @@ public class CertificateConfig implements Serializable {
 
     private boolean enabled;
     private CertificateType certificateType;
-    private String caCertPath;         // CA / root certificate file path (PEM)
-    private String clientCertPath;     // Client certificate file path (PEM .crt/.pem)
-    private String clientKeyPath;      // Client private key file path (PEM .key)
-    private String pfxPath;            // PFX/PKCS12 keystore file path
-    private String passphrase;         // Passphrase for private key or PFX
+    private String caCertPath; // CA / root certificate file path (PEM)
+    private String clientCertPath; // Client certificate file path (PEM .crt/.pem)
+    private String clientKeyPath; // Client private key file path (PEM .key)
+    private String pfxPath; // PFX/PKCS12 keystore file path
+    private String passphrase; // Passphrase for private key or PFX
 
     public CertificateConfig() {
         this.enabled = false;
@@ -100,8 +99,10 @@ public class CertificateConfig implements Serializable {
             return pfxPath != null && !pfxPath.trim().isEmpty();
         }
         // PEM: need at least a client cert or CA cert
-        return (clientCertPath != null && !clientCertPath.trim().isEmpty())
-                || (caCertPath != null && !caCertPath.trim().isEmpty());
+        return (
+            (clientCertPath != null && !clientCertPath.trim().isEmpty()) ||
+            (caCertPath != null && !caCertPath.trim().isEmpty())
+        );
     }
 
     /**

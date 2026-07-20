@@ -1,4 +1,3 @@
-
 package com.ing.ide.main.mainui.components.testdesign.or.sap;
 
 import com.ing.datalib.component.Project;
@@ -25,7 +24,6 @@ import javax.swing.tree.TreePath;
  * It acts as the controller between tree selections and OR object presentation.
  */
 public class SapObjectTree extends ObjectTree {
-
     private final SapORPanel oRPanel;
     private final ORSource source;
 
@@ -53,7 +51,11 @@ public class SapObjectTree extends ObjectTree {
     }
 
     @Override
-    public void showImpactedTestCases(List<TestCase> testcases, String pageName, String objectName) {
+    public void showImpactedTestCases(
+        List<TestCase> testcases,
+        String pageName,
+        String objectName
+    ) {
         oRPanel.getTestDesign().getImpactUI().loadForObject(testcases, pageName, objectName);
     }
 
@@ -77,7 +79,8 @@ public class SapObjectTree extends ObjectTree {
     }
 
     public enum ORSource {
-        PROJECT, SHARED
+        PROJECT,
+        SHARED
     }
 
     public ORSource getSource() {

@@ -1,4 +1,3 @@
-
 package com.ing.ide.main.mainui.components.testdesign.testdata;
 
 import java.util.List;
@@ -7,10 +6,9 @@ import javax.swing.DefaultListModel;
 
 /**
  *
- * 
+ *
  */
 public class Environment extends javax.swing.JPanel {
-
     TestDataComponent tdProxy;
 
     /**
@@ -32,7 +30,6 @@ public class Environment extends javax.swing.JPanel {
     @SuppressWarnings("unchecked")
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
-
         envName = new javax.swing.JTextField();
         copyFromOthers = new javax.swing.JCheckBox();
         environments = new javax.swing.JComboBox();
@@ -42,42 +39,66 @@ public class Environment extends javax.swing.JPanel {
         copyGlobalData = new javax.swing.JCheckBox();
 
         envName.setText("New Environment");
-        envName.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                envNameActionPerformed(evt);
+        envName.addActionListener(
+            new java.awt.event.ActionListener() {
+
+                public void actionPerformed(java.awt.event.ActionEvent evt) {
+                    envNameActionPerformed(evt);
+                }
             }
-        });
+        );
 
         copyFromOthers.setText("Copy data from other Environments");
-        copyFromOthers.addItemListener(new java.awt.event.ItemListener() {
-            public void itemStateChanged(java.awt.event.ItemEvent evt) {
-                copyFromOthersItemStateChanged(evt);
-            }
-        });
+        copyFromOthers.addItemListener(
+            new java.awt.event.ItemListener() {
 
-        environments.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "Item 1", "Item 2", "Item 3", "Item 4" }));
+                public void itemStateChanged(java.awt.event.ItemEvent evt) {
+                    copyFromOthersItemStateChanged(evt);
+                }
+            }
+        );
+
+        environments.setModel(
+            new javax.swing.DefaultComboBoxModel(
+                new String[] { "Item 1", "Item 2", "Item 3", "Item 4" }
+            )
+        );
         environments.setEnabled(false);
-        environments.addItemListener(new java.awt.event.ItemListener() {
-            public void itemStateChanged(java.awt.event.ItemEvent evt) {
-                environmentsItemStateChanged(evt);
-            }
-        });
+        environments.addItemListener(
+            new java.awt.event.ItemListener() {
 
-        testDataList.setModel(new javax.swing.AbstractListModel() {
-            String[] strings = { "Item 1", "Item 2", "Item 3", "Item 4", "Item 5" };
-            public int getSize() { return strings.length; }
-            public Object getElementAt(int i) { return strings[i]; }
-        });
+                public void itemStateChanged(java.awt.event.ItemEvent evt) {
+                    environmentsItemStateChanged(evt);
+                }
+            }
+        );
+
+        testDataList.setModel(
+            new javax.swing.AbstractListModel() {
+                String[] strings = { "Item 1", "Item 2", "Item 3", "Item 4", "Item 5" };
+
+                public int getSize() {
+                    return strings.length;
+                }
+
+                public Object getElementAt(int i) {
+                    return strings[i];
+                }
+            }
+        );
         testDataList.setEnabled(false);
         jScrollPane1.setViewportView(testDataList);
 
         createEnv.setText("Create");
         createEnv.setActionCommand("CreateEnvironment");
-        createEnv.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                createEnvActionPerformed(evt);
+        createEnv.addActionListener(
+            new java.awt.event.ActionListener() {
+
+                public void actionPerformed(java.awt.event.ActionEvent evt) {
+                    createEnvActionPerformed(evt);
+                }
             }
-        });
+        );
 
         copyGlobalData.setText("Copy Global Data");
         copyGlobalData.setEnabled(false);
@@ -85,85 +106,143 @@ public class Environment extends javax.swing.JPanel {
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
         layout.setHorizontalGroup(
-            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(layout.createSequentialGroup()
-                .addContainerGap()
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(environments, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(jScrollPane1)
-                    .addGroup(layout.createSequentialGroup()
-                        .addComponent(envName, javax.swing.GroupLayout.DEFAULT_SIZE, 245, Short.MAX_VALUE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(copyFromOthers)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                        .addComponent(createEnv))
-                    .addGroup(layout.createSequentialGroup()
-                        .addComponent(copyGlobalData)
-                        .addGap(0, 0, Short.MAX_VALUE)))
-                .addContainerGap())
+            layout
+                .createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                .addGroup(
+                    layout
+                        .createSequentialGroup()
+                        .addContainerGap()
+                        .addGroup(
+                            layout
+                                .createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                .addComponent(
+                                    environments,
+                                    0,
+                                    javax.swing.GroupLayout.DEFAULT_SIZE,
+                                    Short.MAX_VALUE
+                                )
+                                .addComponent(jScrollPane1)
+                                .addGroup(
+                                    layout
+                                        .createSequentialGroup()
+                                        .addComponent(
+                                            envName,
+                                            javax.swing.GroupLayout.DEFAULT_SIZE,
+                                            245,
+                                            Short.MAX_VALUE
+                                        )
+                                        .addPreferredGap(
+                                            javax.swing.LayoutStyle.ComponentPlacement.RELATED
+                                        )
+                                        .addComponent(copyFromOthers)
+                                        .addPreferredGap(
+                                            javax.swing.LayoutStyle.ComponentPlacement.UNRELATED
+                                        )
+                                        .addComponent(createEnv)
+                                )
+                                .addGroup(
+                                    layout
+                                        .createSequentialGroup()
+                                        .addComponent(copyGlobalData)
+                                        .addGap(0, 0, Short.MAX_VALUE)
+                                )
+                        )
+                        .addContainerGap()
+                )
         );
         layout.setVerticalGroup(
-            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(layout.createSequentialGroup()
-                .addContainerGap()
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(envName, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(createEnv)
-                    .addComponent(copyFromOthers))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(environments, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addComponent(copyGlobalData)
-                .addGap(5, 5, 5)
-                .addComponent(jScrollPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 142, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+            layout
+                .createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                .addGroup(
+                    layout
+                        .createSequentialGroup()
+                        .addContainerGap()
+                        .addGroup(
+                            layout
+                                .createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                                .addComponent(
+                                    envName,
+                                    javax.swing.GroupLayout.PREFERRED_SIZE,
+                                    javax.swing.GroupLayout.DEFAULT_SIZE,
+                                    javax.swing.GroupLayout.PREFERRED_SIZE
+                                )
+                                .addComponent(createEnv)
+                                .addComponent(copyFromOthers)
+                        )
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(
+                            environments,
+                            javax.swing.GroupLayout.PREFERRED_SIZE,
+                            javax.swing.GroupLayout.DEFAULT_SIZE,
+                            javax.swing.GroupLayout.PREFERRED_SIZE
+                        )
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addComponent(copyGlobalData)
+                        .addGap(5, 5, 5)
+                        .addComponent(
+                            jScrollPane1,
+                            javax.swing.GroupLayout.PREFERRED_SIZE,
+                            142,
+                            javax.swing.GroupLayout.PREFERRED_SIZE
+                        )
+                        .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                )
         );
-    }// </editor-fold>//GEN-END:initComponents
+    } // </editor-fold>//GEN-END:initComponents
 
-    private void envNameActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_envNameActionPerformed
+    private void envNameActionPerformed(java.awt.event.ActionEvent evt) { //GEN-FIRST:event_envNameActionPerformed
         createEnv.doClick();
-    }//GEN-LAST:event_envNameActionPerformed
+    } //GEN-LAST:event_envNameActionPerformed
 
-    private void createEnvActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_createEnvActionPerformed
+    private void createEnvActionPerformed(java.awt.event.ActionEvent evt) { //GEN-FIRST:event_createEnvActionPerformed
         createNewEnvironment();
-    }//GEN-LAST:event_createEnvActionPerformed
+    } //GEN-LAST:event_createEnvActionPerformed
 
-    private void copyFromOthersItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_copyFromOthersItemStateChanged
+    private void copyFromOthersItemStateChanged(java.awt.event.ItemEvent evt) { //GEN-FIRST:event_copyFromOthersItemStateChanged
         environments.setEnabled(copyFromOthers.isSelected());
         testDataList.setEnabled(copyFromOthers.isSelected());
         copyGlobalData.setEnabled(copyFromOthers.isSelected());
         if (copyFromOthers.isSelected()) {
-            environments.setModel(new DefaultComboBoxModel(tdProxy.getListOfEnvironements().toArray()));
+            environments.setModel(
+                new DefaultComboBoxModel(tdProxy.getListOfEnvironements().toArray())
+            );
             loadTestDataLists();
         }
-    }//GEN-LAST:event_copyFromOthersItemStateChanged
+    } //GEN-LAST:event_copyFromOthersItemStateChanged
 
-    private void environmentsItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_environmentsItemStateChanged
+    private void environmentsItemStateChanged(java.awt.event.ItemEvent evt) { //GEN-FIRST:event_environmentsItemStateChanged
         if (evt.getStateChange() == java.awt.event.ItemEvent.SELECTED) {
             loadTestDataLists();
         }
-    }//GEN-LAST:event_environmentsItemStateChanged
+    } //GEN-LAST:event_environmentsItemStateChanged
 
     private void loadTestDataLists() {
         DefaultListModel dfM = (DefaultListModel) testDataList.getModel();
         dfM.clear();
         List<String> values = tdProxy.getListOfTestDatas(environments.getSelectedItem().toString());
-        values.stream().forEach((value) -> {
-            dfM.addElement(value);
-        });
+        values
+            .stream()
+            .forEach(
+                value -> {
+                    dfM.addElement(value);
+                }
+            );
     }
 
     private void createNewEnvironment() {
         if (!getEnvironmentName().trim().isEmpty()) {
             if (copyFromOthers.isSelected()) {
-                if (tdProxy.addNewEnvironment(getEnvironmentName(),
+                if (
+                    tdProxy.addNewEnvironment(
+                        getEnvironmentName(),
                         environments.getSelectedItem().toString(),
                         testDataList.getSelectedValuesList(),
-                        copyGlobalData.isSelected())) {
+                        copyGlobalData.isSelected()
+                    )
+                ) {
                     environments.addItem(getEnvironmentName());
                     copyFromOthers.setSelected(false);
                 }
-
             } else {
                 tdProxy.addNewEnvironment(getEnvironmentName(), null, null, false);
             }

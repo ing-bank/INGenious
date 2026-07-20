@@ -1,4 +1,3 @@
-
 package com.ing.ide.settings;
 
 import com.ing.ide.main.fx.INGIcons;
@@ -10,7 +9,6 @@ import javax.swing.ImageIcon;
  * Icons are now Ikonli font icons via INGIcons, with PNG fallbacks.
  */
 public class IconSettings {
-
     private static final int TREE_SIZE = 16;
     private static final int TOOLBAR_SIZE = 18;
     private static final int LARGE_SIZE = 24;

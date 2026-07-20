@@ -1,9 +1,9 @@
-
 package com.ing.ide.util.logging;
+
+import static com.ing.engine.reporting.impl.ConsoleReport.resetLogger;
 
 import com.ing.engine.reporting.impl.ConsoleReport.MultiOutputStream;
 import com.ing.engine.reporting.impl.ConsoleReport.PrintStreamOut;
-import static com.ing.engine.reporting.impl.ConsoleReport.resetLogger;
 import com.ing.engine.support.DesktopApi;
 import com.ing.ide.settings.AppSettings;
 import com.ing.ide.util.Utility;
@@ -19,10 +19,9 @@ import org.slf4j.LoggerFactory;
 
 /**
  *
- * 
+ *
  */
 public final class UILogger {
-
     public static PrintStream log_out, log_err, logStream, sysout, syserr;
     private static final PrintStream SYS_OUT = System.out, SYS_ERR = System.err;
     private static UILogger logger;
@@ -32,19 +31,21 @@ public final class UILogger {
 
     static {
         com.ing.engine.constants.SystemDefaults.getClassesFromJar.set(true);
-       // System.setProperty(org.slf4j.impl.SimpleLogger.DEFAULT_LOG_LEVEL_KEY, AppSettings.get("defaultLogLevel"));
-      //  System.setProperty(org.slf4j.impl.SimpleLogger.SHOW_DATE_TIME_KEY, AppSettings.get("showDateTime"));
-      //  System.setProperty(org.slf4j.impl.SimpleLogger.DATE_TIME_FORMAT_KEY, AppSettings.get("dateTimeFormat"));
+        // System.setProperty(org.slf4j.impl.SimpleLogger.DEFAULT_LOG_LEVEL_KEY, AppSettings.get("defaultLogLevel"));
+        //  System.setProperty(org.slf4j.impl.SimpleLogger.SHOW_DATE_TIME_KEY, AppSettings.get("showDateTime"));
+        //  System.setProperty(org.slf4j.impl.SimpleLogger.DATE_TIME_FORMAT_KEY, AppSettings.get("dateTimeFormat"));
         LOG_BKP_LOC = AppSettings.get("logBackupLoc");
         LOG_FILE = AppSettings.get("logfile");
-     //   System.setProperty(org.slf4j.impl.SimpleLogger.LEVEL_IN_BRACKETS_KEY, "true");
-     //   System.setProperty(org.slf4j.impl.SimpleLogger.SHOW_THREAD_NAME_KEY, "true");
+        //   System.setProperty(org.slf4j.impl.SimpleLogger.LEVEL_IN_BRACKETS_KEY, "true");
+        //   System.setProperty(org.slf4j.impl.SimpleLogger.SHOW_THREAD_NAME_KEY, "true");
         try {
             maxFileSize = Double.valueOf(AppSettings.get("maxFileSize"));
         } catch (NumberFormatException ex) {
             AppSettings.set("maxlogSize", maxFileSize + "");
             AppSettings.store("Logger properties");
-            java.util.logging.Logger.getLogger(UILogger.class.getName()).log(Level.SEVERE, null, ex);
+            java
+                .util.logging.Logger.getLogger(UILogger.class.getName())
+                .log(Level.SEVERE, null, ex);
         }
         UILogger.get().init();
     }
@@ -64,7 +65,9 @@ public final class UILogger {
             init();
         } catch (Exception ex) {
             reset();
-            java.util.logging.Logger.getLogger(UILogger.class.getName()).log(Level.SEVERE, null, ex);
+            java
+                .util.logging.Logger.getLogger(UILogger.class.getName())
+                .log(Level.SEVERE, null, ex);
         }
     }
 
@@ -91,7 +94,6 @@ public final class UILogger {
         System.setErr(log_err);
         System.setOut(log_out);
         resetLogger();
-
     }
 
     public static void reset() {
@@ -120,12 +122,14 @@ public final class UILogger {
             String filename = "log-" + Utility.getdatetimeString() + ".txt";
             FileUtils.moveFile(new File(LOG_FILE), new File(bkp, filename));
         } catch (IOException ex) {
-            java.util.logging.Logger.getLogger(UILogger.class.getName()).log(Level.SEVERE, null, ex);
+            java
+                .util.logging.Logger.getLogger(UILogger.class.getName())
+                .log(Level.SEVERE, null, ex);
         }
     }
 
     public void openLog() {
-       DesktopApi.open(new File(LOG_FILE));
+        DesktopApi.open(new File(LOG_FILE));
     }
 
     String getLogFile() {

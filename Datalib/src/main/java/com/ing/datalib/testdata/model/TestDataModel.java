@@ -1,4 +1,3 @@
-
 package com.ing.datalib.testdata.model;
 
 import java.util.LinkedList;
@@ -8,7 +7,7 @@ import java.util.Queue;
 
 /**
  *
- * 
+ *
  */
 public abstract class TestDataModel extends AbstractDataModel<Record> {
 
@@ -28,14 +27,24 @@ public abstract class TestDataModel extends AbstractDataModel<Record> {
 
     @Override
     public boolean canEditOnExecution(int columnIndex) {
-        return columnIndex > 3;
+        // With new Scope column inserted at index 2, editable columns during execution are after SubIteration (now index 4)
+        return columnIndex > 4;
     }
 
-    public Queue<Integer> getDataIteration(String scenario, String testcase,
-            int startIteration, int endIteration) {
+    public Queue<Integer> getDataIteration(
+        String scenario,
+        String testcase,
+        int startIteration,
+        int endIteration
+    ) {
         List<Integer> iterations = new LinkedList<>();
-        iterations.addAll(getIterations(view().withTestcase(scenario, testcase).get(),
-                getColumnIndex("Iteration"), startIteration, endIteration)
+        iterations.addAll(
+            getIterations(
+                view().withTestcase(scenario, testcase).get(),
+                getColumnIndex("Iteration"),
+                startIteration,
+                endIteration
+            )
         );
         return (Queue<Integer>) iterations;
     }
@@ -45,8 +54,7 @@ public abstract class TestDataModel extends AbstractDataModel<Record> {
         if (rows != null && !rows.isEmpty()) {
             for (List<String> row : rows) {
                 int i = parseInt(row.get(iter), 0);
-                if (i >= start
-                        && (i <= end || end == -1)) {
+                if (i >= start && (i <= end || end == -1)) {
                     if (!iterations.contains(i)) {
                         iterations.add(i);
                     }
@@ -78,11 +86,18 @@ public abstract class TestDataModel extends AbstractDataModel<Record> {
         }
     }
 
-    public void refactorTestCase(String scenarioName, String oldTestCaseName, String newTestCaseName) {
+    public void refactorTestCase(
+        String scenarioName,
+        String oldTestCaseName,
+        String newTestCaseName
+    ) {
         Boolean clearOnExit = getRecords().isEmpty();
         loadTableModel();
         for (Record record : getRecords()) {
-            if (record.getScenario().equals(scenarioName) && record.getTestcase().equals(oldTestCaseName)) {
+            if (
+                record.getScenario().equals(scenarioName) &&
+                record.getTestcase().equals(oldTestCaseName)
+            ) {
                 record.setTestcase(newTestCaseName);
                 fireTableCellUpdated(getRecords().indexOf(record), 1);
             }
@@ -93,11 +108,18 @@ public abstract class TestDataModel extends AbstractDataModel<Record> {
         }
     }
 
-    public void refactorTestCaseScenario(String testCaseName, String oldScenarioName, String newScenarioName) {
+    public void refactorTestCaseScenario(
+        String testCaseName,
+        String oldScenarioName,
+        String newScenarioName
+    ) {
         Boolean clearOnExit = getRecords().isEmpty();
         loadTableModel();
         for (Record record : getRecords()) {
-            if (record.getScenario().equals(oldScenarioName) && record.getTestcase().equals(testCaseName)) {
+            if (
+                record.getScenario().equals(oldScenarioName) &&
+                record.getTestcase().equals(testCaseName)
+            ) {
                 record.setScenario(newScenarioName);
                 fireTableCellUpdated(getRecords().indexOf(record), 1);
             }
@@ -107,5 +129,4 @@ public abstract class TestDataModel extends AbstractDataModel<Record> {
             getRecords().clear();
         }
     }
-
 }

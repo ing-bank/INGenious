@@ -1,16 +1,14 @@
-
 package com.ing.storywriter.bdd.data;
 
+import com.ing.storywriter.util.Tools;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
-import com.ing.storywriter.util.Tools;
 
 /**
  *
  */
 public class StoryParser {
-
     List<Story> stories;
 
     public StoryParser(File feature) throws Exception {
@@ -23,5 +21,4 @@ public class StoryParser {
     public List<Story> stories() {
         return stories;
     }
-
 }

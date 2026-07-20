@@ -1,5 +1,8 @@
 package com.ing.ide.main.fx;
 
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+import java.util.logging.Logger;
 import javafx.application.Platform;
 import javafx.embed.swing.JFXPanel;
 import javafx.geometry.Pos;
@@ -10,16 +13,11 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.Priority;
 
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
-import java.util.logging.Logger;
-
 /**
  * JavaFX-based status bar for the bottom of the application frame.
  * Shows current view, project name, and other status indicators.
  */
 public class FXStatusBar extends JFXPanel {
-
     private static final Logger LOG = Logger.getLogger(FXStatusBar.class.getName());
 
     private Label viewLabel;
@@ -29,10 +27,12 @@ public class FXStatusBar extends JFXPanel {
 
     public FXStatusBar() {
         CountDownLatch sceneReady = new CountDownLatch(1);
-        Platform.runLater(() -> {
-            initFX();
-            sceneReady.countDown();
-        });
+        Platform.runLater(
+            () -> {
+                initFX();
+                sceneReady.countDown();
+            }
+        );
         try {
             sceneReady.await(5, TimeUnit.SECONDS);
         } catch (InterruptedException e) {
@@ -50,7 +50,11 @@ public class FXStatusBar extends JFXPanel {
         viewLabel.getStyleClass().add("status-view-label");
         viewLabel.getStyleClass().add("status-design");
         // Add a white icon to the view label (matches dock testdesign icon)
-        org.kordamp.ikonli.javafx.FontIcon viewIcon = INGIcons.fx("testdesign", 12, javafx.scene.paint.Color.WHITE);
+        org.kordamp.ikonli.javafx.FontIcon viewIcon = INGIcons.fx(
+            "testdesign",
+            12,
+            javafx.scene.paint.Color.WHITE
+        );
         if (viewIcon != null) {
             viewLabel.setGraphic(viewIcon);
             viewLabel.setGraphicTextGap(5);
@@ -92,64 +96,76 @@ public class FXStatusBar extends JFXPanel {
      * Updates the current view indicator.
      */
     public void setCurrentView(String view) {
-        Platform.runLater(() -> {
-            if (viewLabel != null) {
-                viewLabel.setText(view);
-                // Apply style based on view
-                viewLabel.getStyleClass().removeAll("status-design", "status-execution", "status-dashboard");
-                
-                // Update icon to match the dock icon for each view
-                String iconKey;
-                switch (view) {
-                    case "Test Design":
-                        viewLabel.getStyleClass().add("status-design");
-                        iconKey = "testdesign";
-                        break;
-                    case "Test Execution":
-                        viewLabel.getStyleClass().add("status-execution");
-                        iconKey = "testexecution";
-                        break;
-                    case "DashBoard":
-                        viewLabel.getStyleClass().add("status-dashboard");
-                        iconKey = "dashboard";
-                        break;
-                    default:
-                        iconKey = "testdesign";
-                        break;
+        Platform.runLater(
+            () -> {
+                if (viewLabel != null) {
+                    viewLabel.setText(view);
+                    // Apply style based on view
+                    viewLabel
+                        .getStyleClass()
+                        .removeAll("status-design", "status-execution", "status-dashboard");
+
+                    // Update icon to match the dock icon for each view
+                    String iconKey;
+                    switch (view) {
+                        case "Test Design":
+                            viewLabel.getStyleClass().add("status-design");
+                            iconKey = "testdesign";
+                            break;
+                        case "Test Execution":
+                            viewLabel.getStyleClass().add("status-execution");
+                            iconKey = "testexecution";
+                            break;
+                        case "DashBoard":
+                            viewLabel.getStyleClass().add("status-dashboard");
+                            iconKey = "dashboard";
+                            break;
+                        default:
+                            iconKey = "testdesign";
+                            break;
+                    }
+
+                    // Set the icon with white color
+                    org.kordamp.ikonli.javafx.FontIcon viewIcon = INGIcons.fx(
+                        iconKey,
+                        12,
+                        javafx.scene.paint.Color.WHITE
+                    );
+                    if (viewIcon != null) {
+                        viewLabel.setGraphic(viewIcon);
+                        viewLabel.setGraphicTextGap(5);
+                    }
+
+                    // Force white text color programmatically
+                    viewLabel.setTextFill(javafx.scene.paint.Color.WHITE);
                 }
-                
-                // Set the icon with white color
-                org.kordamp.ikonli.javafx.FontIcon viewIcon = INGIcons.fx(iconKey, 12, javafx.scene.paint.Color.WHITE);
-                if (viewIcon != null) {
-                    viewLabel.setGraphic(viewIcon);
-                    viewLabel.setGraphicTextGap(5);
-                }
-                
-                // Force white text color programmatically
-                viewLabel.setTextFill(javafx.scene.paint.Color.WHITE);
             }
-        });
+        );
     }
 
     /**
      * Updates the project name display.
      */
     public void setProjectName(String name) {
-        Platform.runLater(() -> {
-            if (projectLabel != null) {
-                projectLabel.setText(name != null && !name.isEmpty() ? name : "No Project");
+        Platform.runLater(
+            () -> {
+                if (projectLabel != null) {
+                    projectLabel.setText(name != null && !name.isEmpty() ? name : "No Project");
+                }
             }
-        });
+        );
     }
 
     /**
      * Updates the status message.
      */
     public void setStatus(String message) {
-        Platform.runLater(() -> {
-            if (statusLabel != null) {
-                statusLabel.setText(message);
+        Platform.runLater(
+            () -> {
+                if (statusLabel != null) {
+                    statusLabel.setText(message);
+                }
             }
-        });
+        );
     }
 }

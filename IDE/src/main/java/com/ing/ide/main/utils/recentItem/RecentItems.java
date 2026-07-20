@@ -1,11 +1,10 @@
-
 package com.ing.ide.main.utils.recentItem;
 
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ing.datalib.component.Project;
 import com.ing.ide.main.mainui.AppMainFrame;
 import com.ing.ide.util.Notification;
-import com.fasterxml.jackson.core.type.TypeReference;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.File;
@@ -18,7 +17,6 @@ import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 
 public class RecentItems extends JMenu implements ActionListener {
-
     private static final Logger LOG = Logger.getLogger(RecentItems.class.getName());
     private static final ObjectMapper MAPPER = new ObjectMapper();
     private static final File RECENT_FILE = new File("recent.items");
@@ -36,9 +34,8 @@ public class RecentItems extends JMenu implements ActionListener {
     private void load() {
         try {
             if (RECENT_FILE.exists()) {
-                RECENT_ITEMS = MAPPER.readValue(RECENT_FILE,
-                        new TypeReference<List<RecentItem>>() {
-                });
+                RECENT_ITEMS =
+                    MAPPER.readValue(RECENT_FILE, new TypeReference<List<RecentItem>>() {});
             }
         } catch (Exception ex) {
             LOG.log(Level.SEVERE, "Error loading recent items", ex);
@@ -91,7 +88,7 @@ public class RecentItems extends JMenu implements ActionListener {
     public void actionPerformed(ActionEvent ae) {
         JMenuItem menuItem = (JMenuItem) ae.getSource();
         String location = menuItem.getToolTipText();
-        
+
         // Validate that the project path exists
         if (!new File(location).exists()) {
             Notification.show("Project path no longer exists: " + location);
@@ -99,7 +96,7 @@ public class RecentItems extends JMenu implements ActionListener {
             save();
             return;
         }
-        
+
         sMainFrame.loadProject(location);
     }
 
@@ -126,7 +123,7 @@ public class RecentItems extends JMenu implements ActionListener {
     /**
      * Removes a recent item by its location path.
      * Used when a project path no longer exists.
-     * 
+     *
      * @param location The project location path to remove
      */
     public void removeItemByLocation(String location) {
@@ -138,5 +135,4 @@ public class RecentItems extends JMenu implements ActionListener {
             }
         }
     }
-
 }

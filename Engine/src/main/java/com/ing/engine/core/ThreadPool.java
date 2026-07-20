@@ -14,11 +14,16 @@ import java.util.concurrent.TimeUnit;
  *
  */
 public class ThreadPool extends ThreadPoolExecutor {
-
     public Boolean doSelectiveThreading = false;
 
     public ThreadPool(int threadCount, long keepAliveTime, boolean isGridMode) {
-        super(threadCount, threadCount, keepAliveTime, TimeUnit.MINUTES, new LinkedBlockingQueue<Runnable>());
+        super(
+            threadCount,
+            threadCount,
+            keepAliveTime,
+            TimeUnit.MINUTES,
+            new LinkedBlockingQueue<Runnable>()
+        );
         doSelectiveThreading = threadCount > 1 && !isGridMode;
     }
 
@@ -30,16 +35,14 @@ public class ThreadPool extends ThreadPoolExecutor {
         super.afterExecute(r, t);
         if (doSelectiveThreading) {
             if (browserPool.containsKey(r)) {
-                browserPool.remove(r); 
+                browserPool.remove(r);
             }
             if (BrowserList.isEmpty()) {
                 shutdown();
-            } else  {
+            } else {
                 if (getActiveCount() < getCorePoolSize()) {
-                   
                     Runnable ieRun = BrowserList.remove();
                     execute(ieRun);
-
                 }
             }
         }
@@ -47,7 +50,6 @@ public class ThreadPool extends ThreadPoolExecutor {
 
     public synchronized void execute(Runnable command, Browser browserName) {
         execute(command);
-
     }
 
     public void shutdownExecution() {
@@ -55,5 +57,4 @@ public class ThreadPool extends ThreadPoolExecutor {
             shutdown();
         }
     }
-
 }

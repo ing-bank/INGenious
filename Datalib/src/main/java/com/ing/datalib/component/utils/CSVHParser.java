@@ -1,4 +1,3 @@
-
 package com.ing.datalib.component.utils;
 
 import java.util.List;
@@ -7,10 +6,9 @@ import org.apache.commons.csv.CSVRecord;
 
 /**
  *
- * 
+ *
  */
 public class CSVHParser {
-
     private final Map<String, Integer> headerMap;
     private final List<CSVRecord> records;
 

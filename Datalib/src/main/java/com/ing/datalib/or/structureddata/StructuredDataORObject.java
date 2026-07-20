@@ -1,14 +1,14 @@
 package com.ing.datalib.or.structureddata;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.ing.datalib.component.utils.FileUtils;
 import com.ing.datalib.or.common.ORObjectInf;
 import com.ing.datalib.or.common.ORUtils;
 import com.ing.datalib.or.common.ObjectGroup;
 import com.ing.datalib.undoredo.UndoRedoModel;
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -28,7 +28,6 @@ import javax.swing.tree.TreePath;
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class StructuredDataORObject extends UndoRedoModel implements ORObjectInf {
-
     @JacksonXmlProperty(isAttribute = true, localName = "ref")
     private String name;
 
@@ -88,7 +87,7 @@ public class StructuredDataORObject extends UndoRedoModel implements ORObjectInf
         group.getObjects().remove(this);
         if (!group.getParent().getRoot().getObjectRepository().isUsingYamlFormat()) {
             FileUtils.deleteFile(getRepLocation());
-        } 
+        }
     }
 
     @JsonIgnore
@@ -214,10 +213,12 @@ public class StructuredDataORObject extends UndoRedoModel implements ORObjectInf
         if (group != null) {
             StructuredDataORPage page = (StructuredDataORPage) group.getParent();
             page.getRoot().setSaved(false);
-            
+
             // Auto-save for YAML format
-            if (page.getRoot().getObjectRepository() != null 
-                && page.getRoot().getObjectRepository().isUsingYamlFormat()) {
+            if (
+                page.getRoot().getObjectRepository() != null &&
+                page.getRoot().getObjectRepository().isUsingYamlFormat()
+            ) {
                 page.getRoot().getObjectRepository().saveStructuredDataPageNow(page);
             }
         }
@@ -316,7 +317,8 @@ public class StructuredDataORObject extends UndoRedoModel implements ORObjectInf
         if (newName == null || newName.isBlank()) {
             return false;
         }
-        if (getParent().getObjectByName(newName) != null) {
+        ORObjectInf existing = getParent().getObjectByName(newName);
+        if (existing != null && existing != this) {
             return false;
         }
         setName(newName);
@@ -397,7 +399,7 @@ public class StructuredDataORObject extends UndoRedoModel implements ORObjectInf
         do {
             name = attrName + i++;
         } while (getAttribute(name) != null);
-        
+
         StructuredDataAttribute attr = new StructuredDataAttribute();
         attr.setName(name);
         attr.setValue("");
@@ -441,7 +443,7 @@ public class StructuredDataORObject extends UndoRedoModel implements ORObjectInf
         if (row < 0 || row > attributes.size()) {
             return;
         }
-        
+
         StructuredDataAttribute attr = new StructuredDataAttribute();
         if (values != null && values.length > 0) {
             attr.setName(values[0] != null ? values[0].toString() : "");
@@ -449,7 +451,7 @@ public class StructuredDataORObject extends UndoRedoModel implements ORObjectInf
                 attr.setValue(values[1] != null ? values[1].toString() : "");
             }
         }
-        
+
         attributes.add(row, attr);
         rowAdded(row);
         fireTableRowsInserted(row, row);

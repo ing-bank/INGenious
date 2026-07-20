@@ -12,7 +12,6 @@ import org.testng.annotations.Test;
  * shutdown behavior, and execute delegation.
  */
 public class ThreadPoolTest {
-
     private ThreadPool pool;
 
     @AfterMethod
@@ -21,8 +20,7 @@ public class ThreadPoolTest {
             pool.shutdownNow();
             try {
                 pool.awaitTermination(2, TimeUnit.SECONDS);
-            } catch (InterruptedException ignored) {
-            }
+            } catch (InterruptedException ignored) {}
         }
     }
 
@@ -83,7 +81,7 @@ public class ThreadPoolTest {
     @Test
     public void testExecuteWithBrowser() throws Exception {
         pool = new ThreadPool(1, 1, true);
-        final boolean[] ran = {false};
+        final boolean[] ran = { false };
         pool.execute(() -> ran[0] = true, Browser.Chromium);
         pool.shutdown();
         pool.awaitTermination(5, TimeUnit.SECONDS);
@@ -96,7 +94,11 @@ public class ThreadPoolTest {
     public void testAfterExecuteShutdownWhenBrowserListEmpty() throws Exception {
         pool = new ThreadPool(2, 1, false);
         // doSelectiveThreading = true, BrowserList is empty
-        pool.execute(() -> { /* no-op */ });
+        pool.execute(
+            () -> {
+                /* no-op */
+            }
+        );
         // The pool should auto-shutdown after the task completes because
         // BrowserList is empty and doSelectiveThreading is true
         pool.awaitTermination(5, TimeUnit.SECONDS);

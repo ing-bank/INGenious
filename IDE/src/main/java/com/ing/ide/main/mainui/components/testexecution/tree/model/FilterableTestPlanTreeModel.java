@@ -1,4 +1,3 @@
-
 package com.ing.ide.main.mainui.components.testexecution.tree.model;
 
 import com.ing.datalib.component.Project;
@@ -11,7 +10,7 @@ import java.util.stream.Stream;
 
 /**
  *
- * 
+ *
  */
 public class FilterableTestPlanTreeModel extends TestPlanTreeModel {
 
@@ -19,11 +18,9 @@ public class FilterableTestPlanTreeModel extends TestPlanTreeModel {
         super(new FilteredTestPlanNode(accept));
         this.setProject(project);
     }
-
 }
 
 class FilteredTestPlanNode extends TestPlanNode {
-
     private final Predicate<Object> byPredicate;
 
     public FilteredTestPlanNode(Predicate<Object> accept) {
@@ -36,8 +33,8 @@ class FilteredTestPlanNode extends TestPlanNode {
     }
 
     public Stream<TestCase> toFilteredTestcases(Scenario scenario) {
-        return byPredicate.test(scenario) ? scenario.getTestcasesAlone().stream()
-                : scenario.getTestcasesAlone().stream().filter(byPredicate);
+        return byPredicate.test(scenario)
+            ? scenario.getTestcasesAlone().stream()
+            : scenario.getTestcasesAlone().stream().filter(byPredicate);
     }
-
 }

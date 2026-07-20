@@ -1,4 +1,3 @@
-
 package com.ing.ide.main.shr.mobile;
 
 import java.util.LinkedHashMap;
@@ -7,14 +6,12 @@ import javax.swing.tree.DefaultMutableTreeNode;
 
 /**
  *
- * 
+ *
  */
 public abstract class MobileTreeNode extends DefaultMutableTreeNode {
-
     private final Map<String, String> attributes = new LinkedHashMap<>();
 
-    public MobileTreeNode() {
-    }
+    public MobileTreeNode() {}
 
     public MobileTreeNode(String text) {
         setUserObject(text);
@@ -48,10 +45,12 @@ public abstract class MobileTreeNode extends DefaultMutableTreeNode {
         // check self if the node has no children, or no child nodes covers the point
         if (getBounds() != null) {
             Rect rect = getBounds();
-            if (rect.getX() <= px
-                    && px <= rect.getX() + rect.getWidth()
-                    && rect.getY() <= py
-                    && py <= rect.getY() + rect.getHeight()) {
+            if (
+                rect.getX() <= px &&
+                px <= rect.getX() + rect.getWidth() &&
+                rect.getY() <= py &&
+                py <= rect.getY() + rect.getHeight()
+            ) {
                 listener.onFoundNode(this);
                 return true;
             } else {

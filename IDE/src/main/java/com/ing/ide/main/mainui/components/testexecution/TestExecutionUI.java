@@ -1,5 +1,6 @@
-
 package com.ing.ide.main.mainui.components.testexecution;
+
+import static java.util.stream.Collectors.toList;
 
 import com.ing.datalib.component.Project;
 import com.ing.datalib.component.Scenario;
@@ -26,7 +27,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import static java.util.stream.Collectors.toList;
 import javax.swing.Icon;
 import javax.swing.JButton;
 import javax.swing.JComponent;
@@ -44,10 +44,9 @@ import javax.swing.tree.TreePath;
 
 /**
  *
- * 
+ *
  */
 public class TestExecutionUI extends JPanel implements ActionListener {
-
     TestExecution testExecution;
 
     private TestPlanPullPanel testPullPanel;
@@ -69,7 +68,6 @@ public class TestExecutionUI extends JPanel implements ActionListener {
     }
 
     private void init() {
-
         setLayout(new BorderLayout());
 
         testSetCompNtestPlan = new JSplitPane();
@@ -88,16 +86,18 @@ public class TestExecutionUI extends JPanel implements ActionListener {
         executionAndConsoleSplitPane.setOneTouchExpandable(true);
 
         testSettreeNSettingsSplitPane.setTopComponent(
-                getCompInPanel(
-                        "TestLab",
-                        TreeSearch.installFor(testExecution.getTestSetTree().getTree())));
+            getCompInPanel(
+                "TestLab",
+                TreeSearch.installFor(testExecution.getTestSetTree().getTree())
+            )
+        );
 
         testSettreeNSettingsSplitPane.setBottomComponent(
-                getCompInPanel(
-                        "QuickSettings",
-                        new JScrollPane(
-                                testExecution.getTestSetComp()
-                                .getQuickSettings().getUILeft(this))));
+            getCompInPanel(
+                "QuickSettings",
+                new JScrollPane(testExecution.getTestSetComp().getQuickSettings().getUILeft(this))
+            )
+        );
 
         testSettreeNSettingsSplitPane.setDividerLocation(0.5);
 
@@ -115,23 +115,25 @@ public class TestExecutionUI extends JPanel implements ActionListener {
 
         testPullPanel = new TestPlanPullPanel();
         testplanTreeNSettingsSplitPane.setTopComponent(testPullPanel);
-        testplanTreeNSettingsSplitPane.getTopComponent().setFont(UIManager.getFont("TableMenu.font"));
+        testplanTreeNSettingsSplitPane
+            .getTopComponent()
+            .setFont(UIManager.getFont("TableMenu.font"));
 
         testplanTreeNSettingsSplitPane.setBottomComponent(
-                getCompInPanel(
-                        "QuickSettings",
-                        new JScrollPane(
-                                testExecution.getTestSetComp()
-                                .getQuickSettings().getUIRight(this))));
+            getCompInPanel(
+                "QuickSettings",
+                new JScrollPane(testExecution.getTestSetComp().getQuickSettings().getUIRight(this))
+            )
+        );
         testSetCompNtestPlan.setRightComponent(testplanTreeNSettingsSplitPane);
         testSetCompNtestPlan.setResizeWeight(0.8);
 
         add(testSetCompNtestPlan, BorderLayout.CENTER);
-        
+
         // Apply initial pane backgrounds
         applyPaneBackgrounds();
     }
-    
+
     /**
      * Applies themed backgrounds to the test execution panes.
      * Called at init and when theme changes via adjustUI().
@@ -143,11 +145,11 @@ public class TestExecutionUI extends JPanel implements ActionListener {
         if (!Main.isDarkMode()) {
             return;
         }
-        
+
         Color sidebarColor = UIManager.getColor("ing.sidebarPane");
         Color editorColor = UIManager.getColor("ing.editorPane");
         Color dividerColor = UIManager.getColor("ing.dividerColor");
-        
+
         if (sidebarColor == null) {
             sidebarColor = UIManager.getColor("Panel.background");
         }
@@ -157,7 +159,7 @@ public class TestExecutionUI extends JPanel implements ActionListener {
         if (dividerColor == null) {
             dividerColor = UIManager.getColor("SplitPane.dividerColor");
         }
-        
+
         // Apply colors to all split panes
         applyBackgroundRecursively(testSetCompNtestPlan, sidebarColor, dividerColor);
         applyBackgroundRecursively(treeSNTableSplitPane, sidebarColor, dividerColor);
@@ -165,19 +167,23 @@ public class TestExecutionUI extends JPanel implements ActionListener {
         applyBackgroundRecursively(testplanTreeNSettingsSplitPane, sidebarColor, dividerColor);
         applyBackgroundRecursively(executionAndConsoleSplitPane, sidebarColor, dividerColor);
     }
-    
+
     /**
      * Recursively applies background color to a component and all its children.
      * Handles special cases for JScrollPane, JSplitPane, JTable, JTree, JList.
      */
-    private void applyBackgroundRecursively(java.awt.Component comp, Color bgColor, Color dividerColor) {
+    private void applyBackgroundRecursively(
+        java.awt.Component comp,
+        Color bgColor,
+        Color dividerColor
+    ) {
         if (comp == null) return;
-        
+
         // Skip FXPanelHeader (has its own styling)
         if (comp instanceof FXPanelHeader) {
             return;
         }
-        
+
         // Handle JSplitPane specially - set divider color
         if (comp instanceof JSplitPane) {
             JSplitPane split = (JSplitPane) comp;
@@ -190,7 +196,7 @@ public class TestExecutionUI extends JPanel implements ActionListener {
             applyBackgroundRecursively(split.getBottomComponent(), bgColor, dividerColor);
             return;
         }
-        
+
         // Handle JScrollPane - set background on pane and viewport
         if (comp instanceof JScrollPane) {
             JScrollPane scroll = (JScrollPane) comp;
@@ -205,7 +211,7 @@ public class TestExecutionUI extends JPanel implements ActionListener {
             }
             return;
         }
-        
+
         // Handle JTable
         if (comp instanceof javax.swing.JTable) {
             javax.swing.JTable table = (javax.swing.JTable) comp;
@@ -215,7 +221,7 @@ public class TestExecutionUI extends JPanel implements ActionListener {
             }
             return;
         }
-        
+
         // Handle JTree
         if (comp instanceof javax.swing.JTree) {
             javax.swing.JTree tree = (javax.swing.JTree) comp;
@@ -224,18 +230,18 @@ public class TestExecutionUI extends JPanel implements ActionListener {
             SwingUtilities.updateComponentTreeUI(tree);
             return;
         }
-        
+
         // Handle JList
         if (comp instanceof javax.swing.JList) {
             comp.setBackground(bgColor);
             return;
         }
-        
+
         // Handle JToolBar - keep its styled background
         if (comp instanceof JToolBar) {
             return;
         }
-        
+
         // Handle general JPanel and Container
         if (comp instanceof java.awt.Container) {
             if (comp instanceof JPanel) {
@@ -255,14 +261,13 @@ public class TestExecutionUI extends JPanel implements ActionListener {
     }
 
     private JPanel getCompInPanel(String labelText, JComponent comp) {
-        
         JPanel panel = new JPanel();
         panel.setLayout(new BorderLayout());
 
         FXPanelHeader header = new FXPanelHeader(labelText);
         panel.add(header, BorderLayout.NORTH);
         comp.setFont(UIManager.getFont("Table.font"));
-        
+
         panel.add(comp, BorderLayout.CENTER);
         return panel;
     }
@@ -272,18 +277,28 @@ public class TestExecutionUI extends JPanel implements ActionListener {
         switch (ae.getActionCommand()) {
             case "Pull":
                 if (testExecution.getTestSetComp().getCurrentTestSet() != null) {
-                    testExecution.getTestSetComp().pullTestCases(testPullPanel.getSelectedTestCases());
+                    testExecution
+                        .getTestSetComp()
+                        .pullTestCases(testPullPanel.getSelectedTestCases());
                 } else {
                     Notification.show("Please select/load a TestSet from the TestLab tree");
                 }
                 break;
             case "Export":
                 if (testPullPanel.isChecked()) {
-            try {
-                testExecution.getsMainFrame().getStepMap().convertTestCase(Utils.saveDialog("Manual TestCase.csv"), testPullPanel.getSelectedTestCases());
-            } catch (IOException ex) {
-                Logger.getLogger(TestExecutionUI.class.getName()).log(Level.SEVERE, null, ex);
-            }
+                    try {
+                        testExecution
+                            .getsMainFrame()
+                            .getStepMap()
+                            .convertTestCase(
+                                Utils.saveDialog("Manual TestCase.csv"),
+                                testPullPanel.getSelectedTestCases()
+                            );
+                    } catch (IOException ex) {
+                        Logger
+                            .getLogger(TestExecutionUI.class.getName())
+                            .log(Level.SEVERE, null, ex);
+                    }
                 }
                 break;
             case "Filter":
@@ -300,15 +315,14 @@ public class TestExecutionUI extends JPanel implements ActionListener {
         treeSNTableSplitPane.setDividerLocation(0.25);
         testSettreeNSettingsSplitPane.setDividerLocation(0.5);
         testplanTreeNSettingsSplitPane.setDividerLocation(0.5);
-        
+
         // Reapply pane backgrounds for theme changes
         applyPaneBackgrounds();
     }
 
     class TestPlanPullPanel extends JPanel {
-
         JCheckBoxTree testPlanTree;
-        
+
         TreeModelListener modelListener;
 
         List<Tag> tags;
@@ -333,7 +347,12 @@ public class TestExecutionUI extends JPanel implements ActionListener {
         }
 
         private boolean containsAny(List<String> sTags, List<Tag> nTags) {
-            return nTags.stream().map(Tag::getValue).filter(sTags::contains).findFirst().isPresent();
+            return nTags
+                .stream()
+                .map(Tag::getValue)
+                .filter(sTags::contains)
+                .findFirst()
+                .isPresent();
         }
 
         private boolean doFilter(Object o) {
@@ -348,22 +367,33 @@ public class TestExecutionUI extends JPanel implements ActionListener {
         }
 
         private List<Tag> getTags(Scenario scn) {
-            return testExecution.getProject().getInfo()
-                    .findScenarioOrCreate(scn.getName())
-                    .getTags();
+            return testExecution
+                .getProject()
+                .getInfo()
+                .findScenarioOrCreate(scn.getName())
+                .getTags();
         }
 
         private List<Tag> getTags(TestCase tc) {
-            return testExecution.getProject().getInfo().getData()
-                    .findOrCreate(tc.getName(), tc.getScenario().getName())
-                    .getTags();
-
+            return testExecution
+                .getProject()
+                .getInfo()
+                .getData()
+                .findOrCreate(tc.getName(), tc.getScenario().getName())
+                .getTags();
         }
 
         private void showFilterTag() {
-            TagEditorDialog.build(testExecution.getsMainFrame(),
-                    testExecution.getProject().getInfo().getAllTags(null), tags,
-                    null, null).withTitle("Filter Tags").show(this::setFilterTags);
+            TagEditorDialog
+                .build(
+                    testExecution.getsMainFrame(),
+                    testExecution.getProject().getInfo().getAllTags(null),
+                    tags,
+                    null,
+                    null
+                )
+                .withTitle("Filter Tags")
+                .show(this::setFilterTags);
         }
 
         private void setFilterTags(List<Tag> tags) {
@@ -381,7 +411,15 @@ public class TestExecutionUI extends JPanel implements ActionListener {
             JToolBar toolBar = new JToolBar();
             toolBar.setFloatable(false);
             toolBar.setOpaque(false);
-            toolBar.setBorder(javax.swing.BorderFactory.createMatteBorder(0, 0, 1, 0, UIManager.getColor("Separator.foreground")));
+            toolBar.setBorder(
+                javax.swing.BorderFactory.createMatteBorder(
+                    0,
+                    0,
+                    1,
+                    0,
+                    UIManager.getColor("Separator.foreground")
+                )
+            );
             toolBar.setLayout(new javax.swing.BoxLayout(toolBar, javax.swing.BoxLayout.X_AXIS));
 
             JButton pull = Utils.createButton("Pull", TestExecutionUI.this);
@@ -400,8 +438,13 @@ public class TestExecutionUI extends JPanel implements ActionListener {
         }
 
         public void loadTestPlanModel() {
-            testExecution.getsMainFrame().getTestDesign().getProjectTree()
-                    .getTree().getModel().addTreeModelListener(modelListener);
+            testExecution
+                .getsMainFrame()
+                .getTestDesign()
+                .getProjectTree()
+                .getTree()
+                .getModel()
+                .addTreeModelListener(modelListener);
             reloadModel();
             this.tags = null;
             this.sTags = null;
@@ -418,6 +461,7 @@ public class TestExecutionUI extends JPanel implements ActionListener {
 
         private TreeModelListener getModelListener() {
             return new TreeModelListener() {
+
                 @Override
                 public void treeNodesChanged(TreeModelEvent tme) {
                     reloadModel();
@@ -441,12 +485,14 @@ public class TestExecutionUI extends JPanel implements ActionListener {
         }
 
         private void reloadModel() {
-            SwingUtilities.invokeLater(() -> {
-                testPlanTree.setModel(null);
-                testPlanTree.setModel(getModel(testExecution.getProject()));
-                testPlanTree.setFont(UIManager.getFont("TableMenu.font"));
-                testPlanTree.refresh();
-            });
+            SwingUtilities.invokeLater(
+                () -> {
+                    testPlanTree.setModel(null);
+                    testPlanTree.setModel(getModel(testExecution.getProject()));
+                    testPlanTree.setFont(UIManager.getFont("TableMenu.font"));
+                    testPlanTree.refresh();
+                }
+            );
         }
 
         private TreeModel getModel(Project project) {
@@ -458,8 +504,7 @@ public class TestExecutionUI extends JPanel implements ActionListener {
             TreePath[] paths = testPlanTree.getCheckedPaths();
             for (TreePath path : paths) {
                 if (path.getLastPathComponent() instanceof TestCaseNode) {
-                    testcases.add(((TestCaseNode) path.getLastPathComponent())
-                            .getTestCase());
+                    testcases.add(((TestCaseNode) path.getLastPathComponent()).getTestCase());
                 }
             }
             return testcases;
@@ -491,18 +536,20 @@ public class TestExecutionUI extends JPanel implements ActionListener {
     public void toggleConsolePanel(Object source) {
         if (source instanceof JToggleButton) {
             final Boolean flag = ((JToggleButton) source).isSelected();
-            SwingUtilities.invokeLater(new Runnable() {
-                @Override
-                public void run() {
-                    if (flag) {
-                        executionAndConsoleSplitPane.setBottomComponent(consolePanel);
-                        executionAndConsoleSplitPane.setDividerLocation(0.5);
-                    } else {
-                        executionAndConsoleSplitPane.remove(consolePanel);
+            SwingUtilities.invokeLater(
+                new Runnable() {
+
+                    @Override
+                    public void run() {
+                        if (flag) {
+                            executionAndConsoleSplitPane.setBottomComponent(consolePanel);
+                            executionAndConsoleSplitPane.setDividerLocation(0.5);
+                        } else {
+                            executionAndConsoleSplitPane.remove(consolePanel);
+                        }
                     }
                 }
-            });
+            );
         }
     }
-
 }

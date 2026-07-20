@@ -28,7 +28,6 @@ import javax.swing.tree.TreePath;
  * with mobile OR data in Test Design.
  */
 public class MobileORPanel extends JPanel {
-
     private final MobileObjectTree projectTree;
     private final MobileObjectTree sharedTree;
     private final MobileORTable objectTable;
@@ -40,7 +39,7 @@ public class MobileORPanel extends JPanel {
     public MobileORPanel(TestDesign testDesign) {
         this.testDesign = testDesign;
         this.projectTree = new MobileObjectTree(this, MobileObjectTree.ORSource.PROJECT);
-        this.sharedTree  = new MobileObjectTree(this, MobileObjectTree.ORSource.SHARED);
+        this.sharedTree = new MobileObjectTree(this, MobileObjectTree.ORSource.SHARED);
         this.objectTable = new MobileORTable(this);
         init();
     }
@@ -56,12 +55,15 @@ public class MobileORPanel extends JPanel {
         JComponent sharedTreeWithSearch = TreeSearch.installForOR(sharedTree.getTree());
         tabs.addTab("Shared", sharedTreeWithSearch);
 
-        tabs.addChangeListener(new ChangeListener() {
-            @Override
-            public void stateChanged(ChangeEvent e) {
-                updateTableForCurrentSelection();
+        tabs.addChangeListener(
+            new ChangeListener() {
+
+                @Override
+                public void stateChanged(ChangeEvent e) {
+                    updateTableForCurrentSelection();
+                }
             }
-        });
+        );
 
         splitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT);
         splitPane.setOneTouchExpandable(true);
@@ -70,28 +72,36 @@ public class MobileORPanel extends JPanel {
         splitPane.setResizeWeight(0.5);
 
         add(splitPane, BorderLayout.CENTER);
-        
-        javax.swing.SwingUtilities.invokeLater(() -> {
-            splitPane.setDividerLocation(0.5);
-        });
+
+        javax.swing.SwingUtilities.invokeLater(
+            () -> {
+                splitPane.setDividerLocation(0.5);
+            }
+        );
 
         hookSelectionToTable(projectTree);
         hookSelectionToTable(sharedTree);
     }
 
     private void hookSelectionToTable(MobileObjectTree tree) {
-        tree.getTree().addTreeSelectionListener(e -> {
-            if (isTreeOnCurrentTab(tree)) {
-                loadTableModelForSelection(getSelectedNodeUserObject(tree));
-            }
-        });
+        tree
+            .getTree()
+            .addTreeSelectionListener(
+                e -> {
+                    if (isTreeOnCurrentTab(tree)) {
+                        loadTableModelForSelection(getSelectedNodeUserObject(tree));
+                    }
+                }
+            );
     }
 
     private boolean isTreeOnCurrentTab(MobileObjectTree tree) {
         int idx = tabs.getSelectedIndex();
         String title = (idx >= 0) ? tabs.getTitleAt(idx) : "";
-        return (tree == projectTree && "Project".equals(title))
-            || (tree == sharedTree  && "Shared".equals(title));
+        return (
+            (tree == projectTree && "Project".equals(title)) ||
+            (tree == sharedTree && "Shared".equals(title))
+        );
     }
 
     private Object getSelectedNodeUserObject(MobileObjectTree tree) {
@@ -128,8 +138,13 @@ public class MobileORPanel extends JPanel {
         }
     }
 
-    public TestDesign getTestDesign() { return testDesign; }
-    public Project getProject() { return testDesign.getProject(); }
+    public TestDesign getTestDesign() {
+        return testDesign;
+    }
+
+    public Project getProject() {
+        return testDesign.getProject();
+    }
 
     public void load() {
         objectTable.reset();
@@ -149,7 +164,7 @@ public class MobileORPanel extends JPanel {
     public Boolean navigateToObject(String objectName, String pageName) {
         // Extract scope from pageName (e.g., "[Shared] PageName" or "[Project] PageName")
         String scope = extractScope(pageName);
-        
+
         // If scope is explicitly specified in the reference, use only that tree
         if (scope != null) {
             if ("SHARED".equalsIgnoreCase(scope)) {
@@ -166,7 +181,7 @@ public class MobileORPanel extends JPanel {
                 return false;
             }
         }
-        
+
         // If no scope specified, try shared first, then project as fallback
         if (sharedTree != null && sharedTree.navigateToObject(objectName, pageName)) {
             tabs.setSelectedIndex(1); // Switch to Shared tab
@@ -178,11 +193,11 @@ public class MobileORPanel extends JPanel {
         }
         return false;
     }
-    
+
     /**
      * Extracts the scope prefix from a page reference.
      * Format: "[Scope] PageName" where Scope is either "Shared" or "Project"
-     * 
+     *
      * @param pageReference the page reference that may contain scope prefix
      * @return the scope ("SHARED" or "PROJECT") or null if no scope prefix
      */
@@ -190,7 +205,7 @@ public class MobileORPanel extends JPanel {
         if (pageReference == null || pageReference.trim().isEmpty()) {
             return null;
         }
-        
+
         String trimmed = pageReference.trim();
         if (trimmed.startsWith("[") && trimmed.contains("]")) {
             int endBracket = trimmed.indexOf(']');
@@ -200,21 +215,20 @@ public class MobileORPanel extends JPanel {
         return null;
     }
 
-    public MobileORTable getObjectTable() { 
-        return objectTable; 
+    public MobileORTable getObjectTable() {
+        return objectTable;
     }
 
-    public MobileObjectTree getProjectTree() { 
-        return projectTree; 
+    public MobileObjectTree getProjectTree() {
+        return projectTree;
     }
-    
-    public MobileObjectTree getSharedTree() { 
-        return sharedTree; 
+
+    public MobileObjectTree getSharedTree() {
+        return sharedTree;
     }
-    
+
     public List<com.ing.datalib.or.common.ORObjectInf> getSelectedObjectsFromActiveTab() {
         MobileObjectTree active = getActiveTree();
-        return (active != null) ? active.getSelectedObjects()
-                                : java.util.Collections.emptyList();
+        return (active != null) ? active.getSelectedObjects() : java.util.Collections.emptyList();
     }
 }

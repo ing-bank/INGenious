@@ -1,4 +1,3 @@
-
 package com.ing.engine.cli;
 
 import com.ing.engine.cli.CLI.Op;
@@ -18,9 +17,8 @@ import org.apache.commons.cli.ParseException;
  *
  */
 public class LookUp {
-
     private static final Logger LOG = Logger.getLogger(LookUp.class.getName());
-    public static boolean cliflag= false;
+    public static boolean cliflag = false;
     public static final Options OPTIONS = new Options();
     private static final Map<String, Option> DO_LATER = new HashMap<>();
     private static final Map<String, Option> EXECUTION = new HashMap<>();
@@ -36,43 +34,107 @@ public class LookUp {
         OPTIONS.addOption(Op.PROJECT_LOC, true, "Project Location for Execution");
         OPTIONS.addOption(Op.SC_NAME, true, "Scenario Name");
         OPTIONS.addOption(Op.TC_NAME, true, "Testcase Name");
-        OPTIONS.addOption(Op.BROWSER_NAME, true, "Browser Name (Not applicable for Testset Execution)");
+        OPTIONS.addOption(
+            Op.BROWSER_NAME,
+            true,
+            "Browser Name (Not applicable for Testset Execution)"
+        );
         OPTIONS.addOption(Op.RS_NAME, true, "Release Name");
         OPTIONS.addOption(Op.TS_NAME, true, "Testset Name");
         OPTIONS.addOption(Op.TAGS, true, "Tags");
         OPTIONS.addOption(Op.B_DATE, false, "Display current build date");
         OPTIONS.addOption(Op.B_TIME, false, "Display current build time");
         OPTIONS.addOption(Op.B_VERSION, false, "Display current build version");
-        OPTIONS.addOption(Op.DONT_LAUNCH_SUMMARY, false, "Disables launching summary report after execution");
+        OPTIONS.addOption(
+            Op.DONT_LAUNCH_SUMMARY,
+            false,
+            "Disables launching summary report after execution"
+        );
         OPTIONS.addOption(Op.DEBUG, false, "Enable debug mode");
         OPTIONS.addOption(Op.HELP, false, "Help");
         OPTIONS.addOption(Op.HELLO, false, "Says Hello!");
         OPTIONS.addOption(Op.TIME, false, "Display Current Time");
-        OPTIONS.addOption(Op.LATEST_EXE, true, "Returns the given property value for the latest execution");
-        OPTIONS.addOption(Op.LATEST_EXE_LOC, false, "Returns the results folder for the latest execution");
-        OPTIONS.addOption(Op.LATEST_EXE_STATUS, false, "Returns the status for the latest execution");
-        OPTIONS.addOption(Op.LATEST_EXE_DATA_LOC, false, "Returns the Report data location for the latest execution");
-        OPTIONS.addOption(Op.LATEST_EXE_DATA_RAW, false, "Returns the Report data for the latest execution");
-        OPTIONS.addOption(Op.LATEST_EXE_LOG_LOC, false, "Returns the log file location for the latest execution");
-        OPTIONS.addOption(Op.LATEST_EXE_LOG_RAW, false, "Returns the log file for the latest execution");
-        OPTIONS.addOption(Op.LATEST_EXE_LOG_RAW, false, "Returns the log file for the latest execution");
+        OPTIONS.addOption(
+            Op.LATEST_EXE,
+            true,
+            "Returns the given property value for the latest execution"
+        );
+        OPTIONS.addOption(
+            Op.LATEST_EXE_LOC,
+            false,
+            "Returns the results folder for the latest execution"
+        );
+        OPTIONS.addOption(
+            Op.LATEST_EXE_STATUS,
+            false,
+            "Returns the status for the latest execution"
+        );
+        OPTIONS.addOption(
+            Op.LATEST_EXE_DATA_LOC,
+            false,
+            "Returns the Report data location for the latest execution"
+        );
+        OPTIONS.addOption(
+            Op.LATEST_EXE_DATA_RAW,
+            false,
+            "Returns the Report data for the latest execution"
+        );
+        OPTIONS.addOption(
+            Op.LATEST_EXE_LOG_LOC,
+            false,
+            "Returns the log file location for the latest execution"
+        );
+        OPTIONS.addOption(
+            Op.LATEST_EXE_LOG_RAW,
+            false,
+            "Returns the log file for the latest execution"
+        );
+        OPTIONS.addOption(
+            Op.LATEST_EXE_LOG_RAW,
+            false,
+            "Returns the log file for the latest execution"
+        );
 
-        OPTIONS.addOption(Op.LATEST_EXE_PERF_STAT, true, "Returns the page load performance results for latest execution");
+        OPTIONS.addOption(
+            Op.LATEST_EXE_PERF_STAT,
+            true,
+            "Returns the page load performance results for latest execution"
+        );
         OPTIONS.getOption(Op.LATEST_EXE_PERF_STAT).setOptionalArg(true);
-        OPTIONS.addOption(Op.LATEST_EXE_PERF_REPORT, true, "Returns the page load performance report for latest execution");
+        OPTIONS.addOption(
+            Op.LATEST_EXE_PERF_REPORT,
+            true,
+            "Returns the page load performance report for latest execution"
+        );
         OPTIONS.getOption(Op.LATEST_EXE_PERF_REPORT).setOptionalArg(true);
 
-        OPTIONS.addOption(Op.PLOAD_PERF, true, "Returns the page load performance results after Run");
+        OPTIONS.addOption(
+            Op.PLOAD_PERF,
+            true,
+            "Returns the page load performance results after Run"
+        );
         OPTIONS.getOption(Op.PLOAD_PERF).setOptionalArg(true);
 
-        OPTIONS.addOption(Op.SET_VAR, true, "Create/Set user defined variable [-setVar \"var=value\"]");
-        OPTIONS.addOption(Op.SET_ENV, true, "Create/Set Env settings(override) from Command Line.\n"
-                + "Global settings (exe), Run Settings (run), User Defined Settings (user), Driver Settings (driver), Test Management Settings (tm)\n"
-                + "[-setEnv \"run.var=value;exe.var=value;user.var=value\"]");
+        OPTIONS.addOption(
+            Op.SET_VAR,
+            true,
+            "Create/Set user defined variable [-setVar \"var=value\"]"
+        );
+        OPTIONS.addOption(
+            Op.SET_ENV,
+            true,
+            "Create/Set Env settings(override) from Command Line.\n" +
+            "Global settings (exe), Run Settings (run), User Defined Settings (user), Driver Settings (driver), Test Management Settings (tm)\n" +
+            "[-setEnv \"run.var=value;exe.var=value;user.var=value\"]"
+        );
         OPTIONS.addOption(Op.TIME, false, "Display Current Time");
 
-        OPTIONS.addOption(Op.STANDALONE_REPORT, false, "Create Standalone Report instead of Relative one");
-        OPTIONS.addOption(Op.QUIT,false, "Quit after execution is complete");
+        OPTIONS.addOption(
+            Op.STANDALONE_REPORT,
+            false,
+            "Create Standalone Report instead of Relative one"
+        );
+        OPTIONS.addOption(Op.QUIT, false, "Quit after execution is complete");
         DO_LATER.clear();
         EXECUTION.clear();
     }
@@ -83,7 +145,6 @@ public class LookUp {
             cliflag = true;
             CommandLine cmd = parser.parse(OPTIONS, args);
             for (Option op : cmd.getOptions()) {
-
                 switch (op.getOpt()) {
                     case Op.B_DATE:
                     case Op.B_TIME:
@@ -105,7 +166,7 @@ public class LookUp {
                         break;
                     case Op.DEBUG:
                         /*
-                        * set debug=true
+                         * set debug=true
                          */
                         CLI.setVar(Op.DEBUG);
                         break;
@@ -160,14 +221,11 @@ public class LookUp {
                 if (!EXECUTION.containsKey(Op.RUN) && !LATEST.isEmpty()) {
                     CLI.latest.getLatestDetails(LATEST);
                 }
-
             }
-
         } catch (ParseException ex) {
             LOG.severe(ex.getMessage());
         } catch (Exception ex) {
             Logger.getLogger(LookUp.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
-
 }

@@ -1,14 +1,13 @@
 package com.ing.engine.cli.commands;
 
 import com.ing.engine.cli.INGeniousCLI;
+import java.io.*;
+import java.util.*;
+import java.util.concurrent.Callable;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
 import picocli.CommandLine.ParentCommand;
-
-import java.io.*;
-import java.util.*;
-import java.util.concurrent.Callable;
 
 /**
  * Test data management commands.
@@ -25,7 +24,6 @@ import java.util.concurrent.Callable;
     }
 )
 public class DataCommand implements Callable<Integer> {
-
     @ParentCommand
     private INGeniousCLI parent;
 
@@ -40,17 +38,16 @@ public class DataCommand implements Callable<Integer> {
      */
     @Command(name = "list", description = "List data sheets")
     public static class ListCommand implements Callable<Integer> {
-
         @ParentCommand
         private DataCommand parent;
 
-        @Option(names = {"-p", "--project"}, description = "Project path")
+        @Option(names = { "-p", "--project" }, description = "Project path")
         private String projectPath;
 
         @Override
         public Integer call() {
             INGeniousCLI cli = INGeniousCLI.getInstance();
-            
+
             String path = projectPath != null ? projectPath : cli.getProjectPath();
             if (path == null || path.isEmpty()) {
                 cli.printError("Project path required.");
@@ -67,9 +64,12 @@ public class DataCommand implements Callable<Integer> {
                 List<String> headers = Arrays.asList("Data Sheet", "Rows");
                 List<List<String>> rows = new ArrayList<>();
 
-                File[] dataFiles = testDataDir.listFiles(f -> f.isFile() && 
-                    (f.getName().endsWith(".csv") || f.getName().endsWith(".xlsx")));
-                    
+                File[] dataFiles = testDataDir.listFiles(
+                    f ->
+                        f.isFile() &&
+                        (f.getName().endsWith(".csv") || f.getName().endsWith(".xlsx"))
+                );
+
                 if (dataFiles != null) {
                     for (File df : dataFiles) {
                         int rowCount = countDataRows(df);
@@ -84,7 +84,6 @@ public class DataCommand implements Callable<Integer> {
 
                 System.out.println(cli.getOutputFormatter().formatTable(headers, rows));
                 return 0;
-                
             } catch (Exception e) {
                 cli.printError("Failed to list data: " + e.getMessage());
                 return 1;
@@ -113,23 +112,22 @@ public class DataCommand implements Callable<Integer> {
      */
     @Command(name = "show", description = "Show data sheet contents")
     public static class ShowCommand implements Callable<Integer> {
-
         @ParentCommand
         private DataCommand parent;
 
         @Parameters(index = "0", description = "Data sheet name")
         private String sheetName;
 
-        @Option(names = {"-p", "--project"}, description = "Project path")
+        @Option(names = { "-p", "--project" }, description = "Project path")
         private String projectPath;
 
-        @Option(names = {"--limit"}, description = "Number of rows to show", defaultValue = "20")
+        @Option(names = { "--limit" }, description = "Number of rows to show", defaultValue = "20")
         private int limit;
 
         @Override
         public Integer call() {
             INGeniousCLI cli = INGeniousCLI.getInstance();
-            
+
             String path = projectPath != null ? projectPath : cli.getProjectPath();
             if (path == null || path.isEmpty()) {
                 cli.printError("Project path required.");
@@ -142,7 +140,7 @@ public class DataCommand implements Callable<Integer> {
                     // Try with .csv extension
                     dataFile = new File(path, "TestData/" + sheetName + ".csv");
                 }
-                
+
                 if (!dataFile.exists()) {
                     cli.printError("Data sheet not found: " + sheetName);
                     return 1;
@@ -154,11 +152,11 @@ public class DataCommand implements Callable<Integer> {
                 try (Scanner scanner = new Scanner(dataFile)) {
                     boolean isHeader = true;
                     int rowCount = 0;
-                    
+
                     while (scanner.hasNextLine() && rowCount < limit) {
                         String line = scanner.nextLine();
                         String[] cols = line.split(",", -1);
-                        
+
                         if (isHeader) {
                             headers.addAll(Arrays.asList(cols));
                             isHeader = false;
@@ -171,7 +169,6 @@ public class DataCommand implements Callable<Integer> {
 
                 System.out.println(cli.getOutputFormatter().formatTable(headers, rows));
                 return 0;
-                
             } catch (Exception e) {
                 cli.printError("Failed to show data: " + e.getMessage());
                 return 1;
@@ -184,20 +181,19 @@ public class DataCommand implements Callable<Integer> {
      */
     @Command(name = "get", description = "Get a specific data value")
     public static class GetCommand implements Callable<Integer> {
-
         @ParentCommand
         private DataCommand parent;
 
         @Parameters(index = "0", description = "Data reference (Sheet:Column:Row)")
         private String reference;
 
-        @Option(names = {"-p", "--project"}, description = "Project path")
+        @Option(names = { "-p", "--project" }, description = "Project path")
         private String projectPath;
 
         @Override
         public Integer call() {
             INGeniousCLI cli = INGeniousCLI.getInstance();
-            
+
             String path = projectPath != null ? projectPath : cli.getProjectPath();
             if (path == null || path.isEmpty()) {
                 cli.printError("Project path required.");
@@ -234,9 +230,8 @@ public class DataCommand implements Callable<Integer> {
                 } else {
                     System.out.println(value);
                 }
-                
+
                 return 0;
-                
             } catch (Exception e) {
                 cli.printError("Failed to get data: " + e.getMessage());
                 return 1;
@@ -246,7 +241,7 @@ public class DataCommand implements Callable<Integer> {
         private String readCellValue(File file, String column, int targetRow) throws Exception {
             try (Scanner scanner = new Scanner(file)) {
                 if (!scanner.hasNextLine()) return null;
-                
+
                 // Find column index
                 String headerLine = scanner.nextLine();
                 String[] headers = headerLine.split(",", -1);
@@ -257,9 +252,9 @@ public class DataCommand implements Callable<Integer> {
                         break;
                     }
                 }
-                
+
                 if (colIndex == -1) return null;
-                
+
                 // Find row
                 int currentRow = 1;
                 while (scanner.hasNextLine()) {
@@ -283,7 +278,6 @@ public class DataCommand implements Callable<Integer> {
      */
     @Command(name = "set", description = "Set a specific data value")
     public static class SetCommand implements Callable<Integer> {
-
         @ParentCommand
         private DataCommand parent;
 
@@ -293,13 +287,13 @@ public class DataCommand implements Callable<Integer> {
         @Parameters(index = "1", description = "Value to set")
         private String value;
 
-        @Option(names = {"-p", "--project"}, description = "Project path")
+        @Option(names = { "-p", "--project" }, description = "Project path")
         private String projectPath;
 
         @Override
         public Integer call() {
             INGeniousCLI cli = INGeniousCLI.getInstance();
-            
+
             String path = projectPath != null ? projectPath : cli.getProjectPath();
             if (path == null || path.isEmpty()) {
                 cli.printError("Project path required.");
@@ -378,7 +372,6 @@ public class DataCommand implements Callable<Integer> {
 
                 cli.printSuccess("Updated " + reference + " = " + value);
                 return 0;
-                
             } catch (Exception e) {
                 cli.printError("Failed to set data: " + e.getMessage());
                 return 1;
@@ -391,26 +384,25 @@ public class DataCommand implements Callable<Integer> {
      */
     @Command(name = "import", description = "Import data from CSV/JSON")
     public static class ImportCommand implements Callable<Integer> {
-
         @ParentCommand
         private DataCommand parent;
 
         @Parameters(index = "0", description = "Source file path")
         private String sourcePath;
 
-        @Option(names = {"--name", "-n"}, description = "Target data sheet name")
+        @Option(names = { "--name", "-n" }, description = "Target data sheet name")
         private String targetName;
 
-        @Option(names = {"-p", "--project"}, description = "Project path")
+        @Option(names = { "-p", "--project" }, description = "Project path")
         private String projectPath;
 
-        @Option(names = {"--overwrite"}, description = "Overwrite existing")
+        @Option(names = { "--overwrite" }, description = "Overwrite existing")
         private boolean overwrite;
 
         @Override
         public Integer call() {
             INGeniousCLI cli = INGeniousCLI.getInstance();
-            
+
             String path = projectPath != null ? projectPath : cli.getProjectPath();
             if (path == null || path.isEmpty()) {
                 cli.printError("Project path required.");
@@ -431,7 +423,7 @@ public class DataCommand implements Callable<Integer> {
             try {
                 File targetDir = new File(path, "TestData");
                 targetDir.mkdirs();
-                
+
                 File targetFile = new File(targetDir, name);
                 if (targetFile.exists() && !overwrite) {
                     cli.printError("Target exists. Use --overwrite to replace.");
@@ -439,12 +431,14 @@ public class DataCommand implements Callable<Integer> {
                 }
 
                 // Copy file
-                java.nio.file.Files.copy(sourceFile.toPath(), targetFile.toPath(), 
-                    java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+                java.nio.file.Files.copy(
+                    sourceFile.toPath(),
+                    targetFile.toPath(),
+                    java.nio.file.StandardCopyOption.REPLACE_EXISTING
+                );
 
                 cli.printSuccess("Imported data to: " + name);
                 return 0;
-                
             } catch (Exception e) {
                 cli.printError("Import failed: " + e.getMessage());
                 return 1;

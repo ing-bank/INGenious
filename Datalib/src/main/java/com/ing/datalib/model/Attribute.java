@@ -1,4 +1,3 @@
-
 package com.ing.datalib.model;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -8,14 +7,11 @@ import java.util.Objects;
 
 /**
  *
- * 
+ *
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
-@JsonPropertyOrder({
-    "name", "value"
-})
+@JsonPropertyOrder({ "name", "value" })
 public class Attribute {
-
     @JsonProperty("name")
     private String name;
 
@@ -55,5 +51,4 @@ public class Attribute {
         }
         return null;
     }
-
 }

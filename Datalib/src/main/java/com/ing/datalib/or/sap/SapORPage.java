@@ -1,14 +1,4 @@
-
 package com.ing.datalib.or.sap;
-
-import java.io.File;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Enumeration;
-import java.util.List;
-
-import javax.swing.tree.TreeNode;
-import javax.swing.tree.TreePath;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -18,10 +8,16 @@ import com.ing.datalib.component.utils.FileUtils;
 import com.ing.datalib.or.common.ORPageInf;
 import com.ing.datalib.or.common.ORUtils;
 import com.ing.datalib.or.common.ObjectGroup;
+import java.io.File;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Enumeration;
+import java.util.List;
+import javax.swing.tree.TreeNode;
+import javax.swing.tree.TreePath;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class SapORPage implements ORPageInf<SapORObject, SapOR> {
-
     @JacksonXmlProperty(isAttribute = true, localName = "ref")
     private String name;
 
@@ -34,7 +30,7 @@ public class SapORPage implements ORPageInf<SapORObject, SapOR> {
 
     @JsonIgnore
     private SapOR root;
-    
+
     @JacksonXmlProperty(isAttribute = true, localName = "source")
     private SapOR.ORScope source = SapOR.ORScope.PROJECT;
 
@@ -127,15 +123,19 @@ public class SapORPage implements ORPageInf<SapORObject, SapOR> {
             ObjectGroup<SapORObject> group = new ObjectGroup<>(groupName, this);
             objectGroups.add(group);
             // Only create folder for non-YAML formats
-            if (root.getObjectRepository() == null || !root.getObjectRepository().isUsingYamlFormat()) {
+            if (
+                root.getObjectRepository() == null ||
+                !root.getObjectRepository().isUsingYamlFormat()
+            ) {
                 new File(group.getRepLocation()).mkdirs();
             }
             group.addObject(groupName);
             root.setSaved(false);
-            
+
             // Auto-save for YAML format
-            if (root.getObjectRepository() != null 
-                && root.getObjectRepository().isUsingYamlFormat()) {
+            if (
+                root.getObjectRepository() != null && root.getObjectRepository().isUsingYamlFormat()
+            ) {
                 root.getObjectRepository().saveSapPageNow(this);
             }
             return group;
@@ -194,8 +194,7 @@ public class SapORPage implements ORPageInf<SapORObject, SapOR> {
     @JsonIgnore
     @Override
     public int getChildCount() {
-        return objectGroups == null ? 0
-                : objectGroups.size();
+        return objectGroups == null ? 0 : objectGroups.size();
     }
 
     @JsonIgnore
@@ -259,7 +258,8 @@ public class SapORPage implements ORPageInf<SapORObject, SapOR> {
 
     @Override
     public Boolean rename(String newName) {
-        if (getParent().getPageByName(newName) == null) {
+        SapORPage existing = getParent().getPageByName(newName);
+        if (existing == null || existing == this) {
             if (FileUtils.renameFile(getRepLocation(), newName)) {
                 getRoot().getObjectRepository().renamePage(this, newName);
                 setName(newName);
@@ -281,7 +281,7 @@ public class SapORPage implements ORPageInf<SapORObject, SapOR> {
     public void sort() {
         ORUtils.sort(this);
     }
-    
+
     public SapOR.ORScope getSource() {
         return source;
     }

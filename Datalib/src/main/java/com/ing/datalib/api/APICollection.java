@@ -1,19 +1,17 @@
 package com.ing.datalib.api;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import java.io.Serializable;
 import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-
 /**
  * Represents a collection of API requests organized in folders.
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class APICollection implements Serializable {
-
     private static final long serialVersionUID = 1L;
 
     private String id;

@@ -1,4 +1,3 @@
-
 package com.ing.ide.main.mainui.components.testdesign.or.clipboard;
 
 import com.ing.datalib.or.common.ORObjectInf;
@@ -12,9 +11,12 @@ import com.ing.datalib.or.common.ORPageInf;
  */
 public class ORObjectClipboard {
 
-    public enum Type { OBJECT, PAGE }
+    public enum Type {
+        OBJECT,
+        PAGE
+    }
 
-    private final Object data;     // ORObjectInf or ORPageInf
+    private final Object data; // ORObjectInf or ORPageInf
     private final boolean cut;
     private final Type type;
 

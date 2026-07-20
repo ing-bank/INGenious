@@ -8,12 +8,10 @@ import com.ing.engine.core.CommandControl;
 import com.ing.engine.execution.data.UserDataAccess;
 import com.ing.engine.reporting.TestCaseReport;
 import com.ing.ingenious.api.status.Status;
-
 import java.lang.reflect.Field;
 import java.util.Arrays;
-import java.util.List;
 import java.util.HashMap;
-
+import java.util.List;
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
@@ -27,10 +25,14 @@ import org.testng.annotations.Test;
  * Split, GetOccurence, GetLength.
  */
 public class StringOperationsActionTest {
+    @Mock
+    private CommandControl cc;
 
-    @Mock private CommandControl cc;
-    @Mock private TestCaseReport report;
-    @Mock private UserDataAccess userData;
+    @Mock
+    private TestCaseReport report;
+
+    @Mock
+    private UserDataAccess userData;
 
     private StringOperations stringOps;
     private AutoCloseable mocks;
@@ -51,13 +53,16 @@ public class StringOperationsActionTest {
         // Mock addVar/getVar behavior via the Commander delegate
         // Since addVar/getVar are on Command but delegate to Commander,
         // we'll use doAnswer to track them
-        doAnswer(inv -> {
-            runtimeVars.put(inv.getArgument(0), inv.getArgument(1));
-            return null;
-        }).when(stringOps).addVar(anyString(), anyString());
+        doAnswer(
+                inv -> {
+                    runtimeVars.put(inv.getArgument(0), inv.getArgument(1));
+                    return null;
+                }
+            )
+            .when(stringOps)
+            .addVar(anyString(), anyString());
 
-        doAnswer(inv -> runtimeVars.get(inv.getArgument(0)))
-                .when(stringOps).getVar(anyString());
+        doAnswer(inv -> runtimeVars.get(inv.getArgument(0))).when(stringOps).getVar(anyString());
     }
 
     @AfterMethod
@@ -142,7 +147,8 @@ public class StringOperationsActionTest {
     public void testGetLengthEmptyInput() throws Exception {
         setCommandFields("invalidFormat", "%len%", "invalidFormat");
         stringOps.GetLength();
-        verify(report).updateTestLog(eq("getLength"), contains("invalid input format"), eq(Status.FAIL));
+        verify(report)
+            .updateTestLog(eq("getLength"), contains("invalid input format"), eq(Status.FAIL));
     }
 
     // ---- Concat ----
@@ -170,7 +176,8 @@ public class StringOperationsActionTest {
         String inputData = "\"a\",\"b\",\"c\",\"d\",\"e\",\"f\"";
         setCommandFields(inputData, "%result%", inputData);
         stringOps.Concat();
-        verify(report).updateTestLog(eq("Concat"), contains("exceeds expected limit"), eq(Status.FAIL));
+        verify(report)
+            .updateTestLog(eq("Concat"), contains("exceeds expected limit"), eq(Status.FAIL));
     }
 
     // ---- Substring ----
@@ -199,7 +206,8 @@ public class StringOperationsActionTest {
         String inputData = "\"Hello\",\"0\",\"3\"";
         setCommandFields(inputData, "", inputData);
         stringOps.Substring();
-        verify(report).updateTestLog(eq("Substring"), contains("No variable name"), eq(Status.FAIL));
+        verify(report)
+            .updateTestLog(eq("Substring"), contains("No variable name"), eq(Status.FAIL));
     }
 
     // ---- Replace ----
@@ -265,6 +273,7 @@ public class StringOperationsActionTest {
         String inputData = "\"hello\",\"ll\"";
         setCommandFields(inputData, "%count%", inputData);
         stringOps.GetOccurence();
-        verify(report).updateTestLog(eq("getOccurence"), contains("single character"), eq(Status.FAIL));
+        verify(report)
+            .updateTestLog(eq("getOccurence"), contains("single character"), eq(Status.FAIL));
     }
 }

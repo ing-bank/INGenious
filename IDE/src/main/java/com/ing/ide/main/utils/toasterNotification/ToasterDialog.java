@@ -1,4 +1,3 @@
-
 package com.ing.ide.main.utils.toasterNotification;
 
 import java.awt.*;
@@ -11,106 +10,128 @@ import javax.swing.JPanel;
  * Modern toast notification dialog with rounded corners, shadows, and icons.
  */
 public class ToasterDialog extends javax.swing.JDialog {
-
     // Notification type constants
     public static final int TYPE_INFO = 0;
     public static final int TYPE_SUCCESS = 1;
     public static final int TYPE_WARNING = 2;
     public static final int TYPE_ERROR = 3;
-    
+
     // Modern colors with better opacity for glass effect
-    private static final Color SUCCESS_BG = new Color(76, 175, 80, 240);    // Green
-    private static final Color INFO_BG = new Color(33, 150, 243, 240);      // Blue
-    private static final Color WARNING_BG = new Color(255, 152, 0, 240);    // Orange
-    private static final Color ERROR_BG = new Color(244, 67, 54, 240);      // Red
+    private static final Color SUCCESS_BG = new Color(76, 175, 80, 240); // Green
+    private static final Color INFO_BG = new Color(33, 150, 243, 240); // Blue
+    private static final Color WARNING_BG = new Color(255, 152, 0, 240); // Orange
+    private static final Color ERROR_BG = new Color(244, 67, 54, 240); // Red
     private static final Color TEXT_COLOR = Color.WHITE;
-    
+
     private JLabel iconLabel;
-    
+
     ToasterDialog() {
         this(TYPE_INFO);
     }
-    
+
     ToasterDialog(int notificationType) {
         initComponents();
         applyStyle(notificationType);
     }
-    
+
     private void applyStyle(int notificationType) {
         Color bgColor = getBackgroundColor(notificationType);
         String icon = getIconForType(notificationType);
-        
+
         // Make dialog transparent for custom painting
         setBackground(new Color(0, 0, 0, 0));
-        
+
         // Create a custom panel with rounded corners and shadow
         JPanel contentPanel = new JPanel() {
+
             @Override
             protected void paintComponent(Graphics g) {
                 Graphics2D g2 = (Graphics2D) g.create();
-                g2.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
-                
+                g2.setRenderingHint(
+                    RenderingHints.KEY_ANTIALIASING,
+                    RenderingHints.VALUE_ANTIALIAS_ON
+                );
+
                 // Draw shadow (subtle dark border)
                 for (int i = 0; i < 5; i++) {
                     float alpha = (5 - i) / 50f;
-                    g2.setColor(new Color(0, 0, 0, (int)(alpha * 100)));
-                    g2.fill(new RoundRectangle2D.Float(i, i, getWidth() - i * 2, getHeight() - i * 2, 12, 12));
+                    g2.setColor(new Color(0, 0, 0, (int) (alpha * 100)));
+                    g2.fill(
+                        new RoundRectangle2D.Float(
+                            i,
+                            i,
+                            getWidth() - i * 2,
+                            getHeight() - i * 2,
+                            12,
+                            12
+                        )
+                    );
                 }
-                
+
                 // Draw main background with rounded corners
                 g2.setColor(bgColor);
-                g2.fill(new RoundRectangle2D.Float(5, 5, getWidth() - 10, getHeight() - 10, 12, 12));
+                g2.fill(
+                    new RoundRectangle2D.Float(5, 5, getWidth() - 10, getHeight() - 10, 12, 12)
+                );
                 g2.dispose();
             }
         };
         contentPanel.setOpaque(false);
         contentPanel.setLayout(new BorderLayout(12, 0));
         contentPanel.setBorder(BorderFactory.createEmptyBorder(15, 20, 15, 20));
-        
+
         // Add icon
         iconLabel = new JLabel(icon);
         iconLabel.setFont(new Font("Segoe UI Emoji", Font.PLAIN, 22));
         iconLabel.setVerticalAlignment(JLabel.TOP);
         contentPanel.add(iconLabel, BorderLayout.WEST);
-        
+
         // Style the message text area
         message.setBackground(new Color(0, 0, 0, 0));
         message.setForeground(TEXT_COLOR);
         message.setFont(new Font("Segoe UI", Font.PLAIN, 13));
         message.setOpaque(false);
         message.setBorder(BorderFactory.createEmptyBorder());
-        
+
         // Style scroll pane
         jScrollPane1.setBackground(new Color(0, 0, 0, 0));
         jScrollPane1.getViewport().setBackground(new Color(0, 0, 0, 0));
         jScrollPane1.setBorder(BorderFactory.createEmptyBorder());
         jScrollPane1.setOpaque(false);
         jScrollPane1.getViewport().setOpaque(false);
-        
+
         contentPanel.add(jScrollPane1, BorderLayout.CENTER);
-        
+
         // Replace content pane
         getContentPane().removeAll();
         getContentPane().setLayout(new BorderLayout());
         getContentPane().add(contentPanel);
         getContentPane().setBackground(new Color(0, 0, 0, 0));
     }
-    
+
     private Color getBackgroundColor(int type) {
         switch (type) {
-            case TYPE_SUCCESS: return SUCCESS_BG;
-            case TYPE_WARNING: return WARNING_BG;
-            case TYPE_ERROR: return ERROR_BG;
-            default: return INFO_BG;
+            case TYPE_SUCCESS:
+                return SUCCESS_BG;
+            case TYPE_WARNING:
+                return WARNING_BG;
+            case TYPE_ERROR:
+                return ERROR_BG;
+            default:
+                return INFO_BG;
         }
     }
-    
+
     private String getIconForType(int type) {
         switch (type) {
-            case TYPE_SUCCESS: return "✓";
-            case TYPE_WARNING: return "⚠";
-            case TYPE_ERROR: return "✕";
-            default: return "ℹ";
+            case TYPE_SUCCESS:
+                return "✓";
+            case TYPE_WARNING:
+                return "⚠";
+            case TYPE_ERROR:
+                return "✕";
+            default:
+                return "ℹ";
         }
     }
 
@@ -122,7 +143,6 @@ public class ToasterDialog extends javax.swing.JDialog {
     @SuppressWarnings("unchecked")
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
-
         jScrollPane1 = new javax.swing.JScrollPane();
         message = new javax.swing.JTextArea();
 
@@ -131,8 +151,12 @@ public class ToasterDialog extends javax.swing.JDialog {
         setMinimumSize(new java.awt.Dimension(300, 80));
         setUndecorated(true);
 
-        jScrollPane1.setHorizontalScrollBarPolicy(javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
-        jScrollPane1.setVerticalScrollBarPolicy(javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_NEVER);
+        jScrollPane1.setHorizontalScrollBarPolicy(
+            javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER
+        );
+        jScrollPane1.setVerticalScrollBarPolicy(
+            javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_NEVER
+        );
         jScrollPane1.setPreferredSize(new java.awt.Dimension(226, 75));
 
         message.setEditable(false);
@@ -149,8 +173,7 @@ public class ToasterDialog extends javax.swing.JDialog {
         getContentPane().add(jScrollPane1, java.awt.BorderLayout.CENTER);
 
         pack();
-    }// </editor-fold>//GEN-END:initComponents
-
+    } // </editor-fold>//GEN-END:initComponents
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JScrollPane jScrollPane1;

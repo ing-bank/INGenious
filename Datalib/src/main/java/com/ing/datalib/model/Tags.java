@@ -1,4 +1,3 @@
-
 package com.ing.datalib.model;
 
 import java.util.ArrayList;
@@ -9,7 +8,7 @@ import java.util.function.Supplier;
 
 /**
  *
- * 
+ *
  */
 public class Tags extends ArrayList<Tag> {
 
@@ -51,9 +50,8 @@ public class Tags extends ArrayList<Tag> {
     public static boolean equals(Supplier<Object> supplier, Object val) {
         return Objects.equals(supplier.get(), val);
     }
-    
-    public void removeTag(Tag t){
+
+    public void removeTag(Tag t) {
         find(t.getValue()).ifPresent(this::remove);
     }
-
 }

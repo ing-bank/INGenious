@@ -1,5 +1,8 @@
 package com.ing.ide.main.utils.table;
 
+import static javax.swing.JTable.AUTO_RESIZE_OFF;
+import static javax.swing.JTable.AUTO_RESIZE_SUBSEQUENT_COLUMNS;
+
 import com.ing.datalib.undoredo.UndoRedoModel;
 import com.ing.ide.main.Main;
 import com.ing.ide.main.utils.keys.ClipboardKeyAdapter;
@@ -31,8 +34,6 @@ import javax.swing.BorderFactory;
 import javax.swing.DefaultCellEditor;
 import javax.swing.JComponent;
 import javax.swing.JTable;
-import static javax.swing.JTable.AUTO_RESIZE_OFF;
-import static javax.swing.JTable.AUTO_RESIZE_SUBSEQUENT_COLUMNS;
 import javax.swing.JTextField;
 import javax.swing.KeyStroke;
 import javax.swing.UIManager;
@@ -43,7 +44,6 @@ import javax.swing.table.TableColumn;
 import javax.swing.table.TableModel;
 
 public class XTable extends JTable {
-
     private boolean inLayout;
 
     private SearchRenderer searchRenderer;
@@ -61,11 +61,13 @@ public class XTable extends JTable {
 
     private void init() {
         try {
-            Font customFont = Font.createFont(Font.TRUETYPE_FONT, new File("resources/ui/resources/fonts/ingme_regular.ttf"));//.deriveFont(12f);
+            Font customFont = Font.createFont(
+                Font.TRUETYPE_FONT,
+                new File("resources/ui/resources/fonts/ingme_regular.ttf")
+            ); //.deriveFont(12f);
             GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
             ge.registerFont(customFont);
         } catch (IOException | FontFormatException e) {
-
             //  e.printStackTrace();
         }
         setFont(new Font("ING Me", Font.BOLD, 11));
@@ -79,53 +81,92 @@ public class XTable extends JTable {
         getTableHeader().setBackground(headerBg != null ? headerBg : Color.decode("#F6F8FA"));
         getTableHeader().setForeground(headerFg != null ? headerFg : Color.decode("#24292F"));
         Color borderClr = UIManager.getColor("Component.borderColor");
-        getTableHeader().setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, borderClr != null ? borderClr : Color.decode("#D0D7DE")));
+        getTableHeader()
+            .setBorder(
+                BorderFactory.createMatteBorder(
+                    0,
+                    0,
+                    1,
+                    0,
+                    borderClr != null ? borderClr : Color.decode("#D0D7DE")
+                )
+            );
         getTableHeader().setReorderingAllowed(false);
-        getTableHeader().setDefaultRenderer(new javax.swing.table.DefaultTableCellRenderer() {
-            @Override
-            public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
-                Component c = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
-                setBorder(BorderFactory.createCompoundBorder(
-                    BorderFactory.createMatteBorder(0, 0, 1, 0, borderClr != null ? borderClr : Color.decode("#D0D7DE")),
-                    BorderFactory.createEmptyBorder(4, 8, 4, 4)));
-                Color hBg = UIManager.getColor("TableHeader.background");
-                setBackground(hBg != null ? hBg : Color.decode("#F6F8FA"));
-                Color hFg = UIManager.getColor("TableHeader.foreground");
-                setForeground(hFg != null ? hFg : Color.decode("#24292F"));
-                return c;
-            }
-        });
+        getTableHeader()
+            .setDefaultRenderer(
+                new javax.swing.table.DefaultTableCellRenderer() {
+
+                    @Override
+                    public Component getTableCellRendererComponent(
+                        JTable table,
+                        Object value,
+                        boolean isSelected,
+                        boolean hasFocus,
+                        int row,
+                        int column
+                    ) {
+                        Component c = super.getTableCellRendererComponent(
+                            table,
+                            value,
+                            isSelected,
+                            hasFocus,
+                            row,
+                            column
+                        );
+                        setBorder(
+                            BorderFactory.createCompoundBorder(
+                                BorderFactory.createMatteBorder(
+                                    0,
+                                    0,
+                                    1,
+                                    0,
+                                    borderClr != null ? borderClr : Color.decode("#D0D7DE")
+                                ),
+                                BorderFactory.createEmptyBorder(4, 8, 4, 4)
+                            )
+                        );
+                        Color hBg = UIManager.getColor("TableHeader.background");
+                        setBackground(hBg != null ? hBg : Color.decode("#F6F8FA"));
+                        Color hFg = UIManager.getColor("TableHeader.foreground");
+                        setForeground(hFg != null ? hFg : Color.decode("#24292F"));
+                        return c;
+                    }
+                }
+            );
         setCellSelectionEnabled(true);
         setColumnSelectionAllowed(true);
         setGridColor(gridClr != null ? gridClr : new Color(246, 227, 221));
         setIntercellSpacing(new java.awt.Dimension(0, 1));
-        
+
         // Apply theme-aware background
         Color tableBg = UIManager.getColor("Table.background");
         setBackground(tableBg != null ? tableBg : Color.WHITE);
         Color tableFg = UIManager.getColor("Table.foreground");
         setForeground(tableFg != null ? tableFg : Color.BLACK);
-        
+
         setDefaultEditor(Object.class, new CustomTableCellEditor());
         addKeyListeners();
 
         putClientProperty("terminateEditOnFocusLost", true);
-        this.addFocusListener(new FocusListener() {
-            @Override
-            public void focusGained(FocusEvent fe) {
-                searchRenderer.focused = true;
-                repaint();
-            }
+        this.addFocusListener(
+                new FocusListener() {
 
-            @Override
-            public void focusLost(FocusEvent fe) {
-                searchRenderer.focused = false;
-                repaint();
-            }
-        });
+                    @Override
+                    public void focusGained(FocusEvent fe) {
+                        searchRenderer.focused = true;
+                        repaint();
+                    }
+
+                    @Override
+                    public void focusLost(FocusEvent fe) {
+                        searchRenderer.focused = false;
+                        repaint();
+                    }
+                }
+            );
         TableCellDrag.install(this);
     }
-    
+
     /**
      * Called when the L&F changes. Refresh theme-aware colors.
      */
@@ -147,19 +188,33 @@ public class XTable extends JTable {
             Color headerFg = UIManager.getColor("TableHeader.foreground");
             getTableHeader().setForeground(headerFg != null ? headerFg : Color.decode("#24292F"));
             Color borderClr = UIManager.getColor("Component.borderColor");
-            getTableHeader().setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, borderClr != null ? borderClr : Color.decode("#D0D7DE")));
+            getTableHeader()
+                .setBorder(
+                    BorderFactory.createMatteBorder(
+                        0,
+                        0,
+                        1,
+                        0,
+                        borderClr != null ? borderClr : Color.decode("#D0D7DE")
+                    )
+                );
         }
     }
 
     private void addKeyListeners() {
         addKeyListener(new ClipboardKeyAdapter(this));
         getInputMap(JComponent.WHEN_FOCUSED).put(Keystroke.DELETE, "Clear");
-        getActionMap().put("Clear", new AbstractAction() {
-            @Override
-            public void actionPerformed(ActionEvent ae) {
-                deleteSelectedCells();
-            }
-        });
+        getActionMap()
+            .put(
+                "Clear",
+                new AbstractAction() {
+
+                    @Override
+                    public void actionPerformed(ActionEvent ae) {
+                        deleteSelectedCells();
+                    }
+                }
+            );
         int menuShortcutKeyMask = Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx();
         getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_X, menuShortcutKeyMask), "none");
         getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_C, menuShortcutKeyMask), "none");
@@ -193,30 +248,45 @@ public class XTable extends JTable {
         getInputMap(JComponent.WHEN_FOCUSED).put(Keystroke.DOWN, "MoveDown");
 
         getInputMap(JComponent.WHEN_FOCUSED).put(Keystroke.UNDO, "Undo");
-        getActionMap().put("Undo", new AbstractAction() {
-            @Override
-            public void actionPerformed(ActionEvent ae) {
-                if (getModel() instanceof UndoRedoModel) {
-                    ((UndoRedoModel) getModel()).getUndoManager().undo();
+        getActionMap()
+            .put(
+                "Undo",
+                new AbstractAction() {
+
+                    @Override
+                    public void actionPerformed(ActionEvent ae) {
+                        if (getModel() instanceof UndoRedoModel) {
+                            ((UndoRedoModel) getModel()).getUndoManager().undo();
+                        }
+                    }
                 }
-            }
-        });
+            );
         getInputMap(JComponent.WHEN_FOCUSED).put(Keystroke.REDO, "Redo");
-        getActionMap().put("Redo", new AbstractAction() {
-            @Override
-            public void actionPerformed(ActionEvent ae) {
-                if (getModel() instanceof UndoRedoModel) {
-                    ((UndoRedoModel) getModel()).getUndoManager().redo();
+        getActionMap()
+            .put(
+                "Redo",
+                new AbstractAction() {
+
+                    @Override
+                    public void actionPerformed(ActionEvent ae) {
+                        if (getModel() instanceof UndoRedoModel) {
+                            ((UndoRedoModel) getModel()).getUndoManager().redo();
+                        }
+                    }
                 }
-            }
-        });
+            );
         getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_A, menuShortcutKeyMask), "selectAll");
-        getActionMap().put("selectAll", new AbstractAction() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                selectAll();
-            }
-        });
+        getActionMap()
+            .put(
+                "selectAll",
+                new AbstractAction() {
+
+                    @Override
+                    public void actionPerformed(ActionEvent e) {
+                        selectAll();
+                    }
+                }
+            );
     }
 
     private void deleteSelectedCells() {
@@ -247,7 +317,6 @@ public class XTable extends JTable {
     @Override
     public boolean getScrollableTracksViewportWidth() {
         return hasExcessWidth();
-
     }
 
     @Override
@@ -280,8 +349,7 @@ public class XTable extends JTable {
         TableColumn resizingColumn = getTableHeader().getResizingColumn();
         // Need to do this here, before the parent's
         // layout manager calls getPreferredSize().
-        if (resizingColumn != null && autoResizeMode == AUTO_RESIZE_OFF
-                && !inLayout) {
+        if (resizingColumn != null && autoResizeMode == AUTO_RESIZE_OFF && !inLayout) {
             resizingColumn.setPreferredWidth(resizingColumn.getWidth());
         }
         resizeAndRepaint();
@@ -293,8 +361,7 @@ public class XTable extends JTable {
         if (flag) {
             if (e instanceof KeyEvent) {
                 int code = ((KeyEvent) e).getKeyCode();
-                if (code < KeyEvent.VK_DELETE
-                        && code >= KeyEvent.VK_COMMA) {
+                if (code < KeyEvent.VK_DELETE && code >= KeyEvent.VK_COMMA) {
                     getEditorComponent().requestFocusInWindow();
                 }
             }
@@ -334,26 +401,34 @@ public class XTable extends JTable {
                         headerRenderer.setForeground(Color.BLACK);
                         Color matchBg = UIManager.getColor("ing.searchHighlight");
                         headerRenderer.setBackground(matchBg != null ? matchBg : Color.ORANGE);
-                        getTableHeader().getColumnModel().getColumn(i).setHeaderRenderer(headerRenderer);
-
+                        getTableHeader()
+                            .getColumnModel()
+                            .getColumn(i)
+                            .setHeaderRenderer(headerRenderer);
                     } else {
                         DefaultTableCellRenderer headerRenderer = new DefaultTableCellRenderer();
                         Color hdrBg = UIManager.getColor("TableHeader.background");
                         Color hdrFg = UIManager.getColor("TableHeader.foreground");
-                        headerRenderer.setBackground(hdrBg != null ? hdrBg : Color.decode("#f0edf6"));
-                        getTableHeader().setForeground(hdrFg != null ? hdrFg : Color.decode("#342245"));
-                        getTableHeader().getColumnModel().getColumn(i).setHeaderRenderer(headerRenderer);
-
+                        headerRenderer.setBackground(
+                            hdrBg != null ? hdrBg : Color.decode("#f0edf6")
+                        );
+                        getTableHeader()
+                            .setForeground(hdrFg != null ? hdrFg : Color.decode("#342245"));
+                        getTableHeader()
+                            .getColumnModel()
+                            .getColumn(i)
+                            .setHeaderRenderer(headerRenderer);
                     }
-
                 } else {
                     DefaultTableCellRenderer headerRenderer = new DefaultTableCellRenderer();
                     Color hdrBg = UIManager.getColor("TableHeader.background");
                     Color hdrFg = UIManager.getColor("TableHeader.foreground");
                     headerRenderer.setBackground(hdrBg != null ? hdrBg : Color.decode("#f0edf6"));
                     getTableHeader().setForeground(hdrFg != null ? hdrFg : Color.decode("#342245"));
-                    getTableHeader().getColumnModel().getColumn(i).setHeaderRenderer(headerRenderer);
-
+                    getTableHeader()
+                        .getColumnModel()
+                        .getColumn(i)
+                        .setHeaderRenderer(headerRenderer);
                 }
             }
         }
@@ -377,7 +452,11 @@ public class XTable extends JTable {
             for (int row = 0; row < getRowCount(); row++) {
                 for (int column = 0; column < getColumnCount(); column++) {
                     String value = Objects.toString(getValueAt(row, column), "");
-                    if (isRegex ? value.matches(text) : value.toLowerCase().contains(text.toLowerCase())) {
+                    if (
+                        isRegex
+                            ? value.matches(text)
+                            : value.toLowerCase().contains(text.toLowerCase())
+                    ) {
                         //if (value.contains(text)){
                         if (!searchRenderer.searchRowMap.containsKey(row)) {
                             searchRenderer.searchRowMap.put(row, new ArrayList<Integer>());
@@ -430,7 +509,6 @@ public class XTable extends JTable {
                 changeSelection(nextRow, nextColumn, false, false);
             }
         }
-
     }
 
     public void goToPrevoiusSearch() {
@@ -455,7 +533,9 @@ public class XTable extends JTable {
                 for (Integer searchedRow : searchedRowList) {
                     if (searchedRow < selectedRow) {
                         nextRow = searchedRow;
-                        nextColumn = searchRenderer.searchRowMap.get(searchedRow)
+                        nextColumn =
+                            searchRenderer
+                                .searchRowMap.get(searchedRow)
                                 .get(searchRenderer.searchRowMap.get(searchedRow).size() - 1);
                         break;
                     }
@@ -487,61 +567,92 @@ public class XTable extends JTable {
             }
         }
     }
-    
+
     public class CustomTableCellEditor extends DefaultCellEditor {
 
-    public CustomTableCellEditor() {
-        super(new JTextField());
-        JTextField editor = (JTextField) getComponent();
-        int menuShortcutKeyMask = Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx();
+        public CustomTableCellEditor() {
+            super(new JTextField());
+            JTextField editor = (JTextField) getComponent();
+            int menuShortcutKeyMask = Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx();
 
-        // Remove default Ctrl key bindings
-        editor.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_X, menuShortcutKeyMask), "none");
-        editor.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_C, menuShortcutKeyMask), "none");
-        editor.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_V, menuShortcutKeyMask), "none");
-        editor.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_A, menuShortcutKeyMask), "none");
+            // Remove default Ctrl key bindings
+            editor
+                .getInputMap()
+                .put(KeyStroke.getKeyStroke(KeyEvent.VK_X, menuShortcutKeyMask), "none");
+            editor
+                .getInputMap()
+                .put(KeyStroke.getKeyStroke(KeyEvent.VK_C, menuShortcutKeyMask), "none");
+            editor
+                .getInputMap()
+                .put(KeyStroke.getKeyStroke(KeyEvent.VK_V, menuShortcutKeyMask), "none");
+            editor
+                .getInputMap()
+                .put(KeyStroke.getKeyStroke(KeyEvent.VK_A, menuShortcutKeyMask), "none");
 
-        // Add Cmd key bindings
-        editor.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_X, menuShortcutKeyMask), "cut");
-        editor.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_C, menuShortcutKeyMask), "copy");
-        editor.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_V, menuShortcutKeyMask), "paste");
-        editor.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_A, menuShortcutKeyMask), "selectAll");
-        editor.getActionMap().put("selectAll", new AbstractAction() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                editor.selectAll();
+            // Add Cmd key bindings
+            editor
+                .getInputMap()
+                .put(KeyStroke.getKeyStroke(KeyEvent.VK_X, menuShortcutKeyMask), "cut");
+            editor
+                .getInputMap()
+                .put(KeyStroke.getKeyStroke(KeyEvent.VK_C, menuShortcutKeyMask), "copy");
+            editor
+                .getInputMap()
+                .put(KeyStroke.getKeyStroke(KeyEvent.VK_V, menuShortcutKeyMask), "paste");
+            editor
+                .getInputMap()
+                .put(KeyStroke.getKeyStroke(KeyEvent.VK_A, menuShortcutKeyMask), "selectAll");
+            editor
+                .getActionMap()
+                .put(
+                    "selectAll",
+                    new AbstractAction() {
+
+                        @Override
+                        public void actionPerformed(ActionEvent e) {
+                            editor.selectAll();
+                        }
+                    }
+                );
+        }
+
+        @Override
+        public Component getTableCellEditorComponent(
+            JTable table,
+            Object value,
+            boolean isSelected,
+            int row,
+            int column
+        ) {
+            JTextField editor = (JTextField) super.getTableCellEditorComponent(
+                table,
+                value,
+                isSelected,
+                row,
+                column
+            );
+
+            // Apply theme colors to ensure visibility in dark mode
+            Color fgColor = UIManager.getColor("TextField.foreground");
+            Color bgColor = UIManager.getColor("TextField.background");
+            Color caretColor = UIManager.getColor("TextField.caretForeground");
+
+            if (fgColor != null) {
+                editor.setForeground(fgColor);
             }
-        });
-    }
-    
-    @Override
-    public Component getTableCellEditorComponent(JTable table, Object value,
-            boolean isSelected, int row, int column) {
-        JTextField editor = (JTextField) super.getTableCellEditorComponent(table, value, isSelected, row, column);
-        
-        // Apply theme colors to ensure visibility in dark mode
-        Color fgColor = UIManager.getColor("TextField.foreground");
-        Color bgColor = UIManager.getColor("TextField.background");
-        Color caretColor = UIManager.getColor("TextField.caretForeground");
-        
-        if (fgColor != null) {
-            editor.setForeground(fgColor);
-        }
-        if (bgColor != null) {
-            editor.setBackground(bgColor);
-        }
-        if (caretColor != null) {
-            editor.setCaretColor(caretColor);
-        }
-        
-        return editor;
-    }
-}    
+            if (bgColor != null) {
+                editor.setBackground(bgColor);
+            }
+            if (caretColor != null) {
+                editor.setCaretColor(caretColor);
+            }
 
+            return editor;
+        }
+    }
 }
 
 class SearchRenderer extends DefaultTableCellRenderer {
-
     public Map<Integer, List<Integer>> searchRowMap = new LinkedHashMap<>();
 
     TableCellRenderer defCellRenderer;
@@ -554,11 +665,27 @@ class SearchRenderer extends DefaultTableCellRenderer {
     }
 
     @Override
-    public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected, boolean hasFocus, int row, int column) {
-        JComponent comp = (JComponent) defCellRenderer.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
+    public Component getTableCellRendererComponent(
+        JTable table,
+        Object value,
+        boolean isSelected,
+        boolean hasFocus,
+        int row,
+        int column
+    ) {
+        JComponent comp = (JComponent) defCellRenderer.getTableCellRendererComponent(
+            table,
+            value,
+            isSelected,
+            hasFocus,
+            row,
+            column
+        );
 
         // Add left padding for modern web-table look unless renderer already marked this cell as empty-required error.
-        boolean emptyRequiredError = Boolean.TRUE.equals(comp.getClientProperty("ing.emptyRequiredError"));
+        boolean emptyRequiredError = Boolean.TRUE.equals(
+            comp.getClientProperty("ing.emptyRequiredError")
+        );
         if (!emptyRequiredError) {
             comp.setBorder(javax.swing.BorderFactory.createEmptyBorder(2, 8, 2, 4));
         }
@@ -589,8 +716,12 @@ class SearchRenderer extends DefaultTableCellRenderer {
         }
     }
 
-    private void setSelectionColor(Boolean rowSelected, Boolean cellSelected,
-            JComponent comp, Color defalutRowBgColor) {
+    private void setSelectionColor(
+        Boolean rowSelected,
+        Boolean cellSelected,
+        JComponent comp,
+        Color defalutRowBgColor
+    ) {
         // Preserve empty-required error styling from base renderer.
         if (Boolean.TRUE.equals(comp.getClientProperty("ing.emptyRequiredError"))) {
             return;
@@ -615,8 +746,4 @@ class SearchRenderer extends DefaultTableCellRenderer {
             }
         }
     }
-    
 }
-
-
-

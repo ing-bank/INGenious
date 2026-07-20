@@ -1,6 +1,6 @@
-
 package com.ing.engine.execution.data;
 
+import com.ing.datalib.component.ReusableRef;
 import com.ing.datalib.testdata.model.GlobalDataModel;
 import com.ing.datalib.testdata.model.TestDataModel;
 import com.ing.engine.execution.exception.data.DataNotFoundException;
@@ -13,7 +13,7 @@ import java.util.logging.Logger;
 
 /**
  *
- * 
+ *
  */
 public class DataAccessInternal {
 
@@ -27,9 +27,20 @@ public class DataAccessInternal {
      * @return the iterations
      */
     public static Set<String> getIterations(TestCaseRunner context, String sheet) {
+        String scopeContext = getScopeContextString(context);
+        LOG.fine(
+            "Fetching iterations for sheet '" +
+            sheet +
+            "'" +
+            scopeContext +
+            " in " +
+            context.scenario() +
+            ":" +
+            context.testcase()
+        );
+
         if (validEnv(context)) {
-            return getIter(context, getModel(context, sheet),
-                    getDefModel(context, sheet));
+            return getIter(context, getModel(context, sheet), getDefModel(context, sheet));
         } else {
             return getIter(context, getDefModel(context, sheet));
         }
@@ -52,12 +63,17 @@ public class DataAccessInternal {
         }
     }
 
-    protected static String getDataFromModel(TestDataModel model, String field,
-            String scn, String tc, String iter, String subIter) {
+    protected static String getDataFromModel(
+        TestDataModel model,
+        String field,
+        String scn,
+        String tc,
+        String iter,
+        String subIter
+    ) {
         try {
             if (notNull(model)) {
-                return model.view().withSubIter(scn, tc, iter, subIter)
-                        .getField(field);
+                return model.view().withSubIter(scn, tc, iter, subIter).getField(field);
             }
         } catch (Exception ex) {
             LOG.log(Level.WARNING, ex.getMessage(), ex);
@@ -65,11 +81,20 @@ public class DataAccessInternal {
         return null;
     }
 
-    protected static boolean putDataToModel(TestDataModel model, String field, String newVal,
-            String scn, String tc, String iter, String subIter) {
+    protected static boolean putDataToModel(
+        TestDataModel model,
+        String field,
+        String newVal,
+        String scn,
+        String tc,
+        String iter,
+        String subIter
+    ) {
         try {
-            if (notNull(model) && model.view().withSubIter(scn, tc, iter, subIter, true)
-                    .update(field, newVal)) {
+            if (
+                notNull(model) &&
+                model.view().withSubIter(scn, tc, iter, subIter, true).update(field, newVal)
+            ) {
                 model.saveChanges();
                 return true;
             }
@@ -78,12 +103,23 @@ public class DataAccessInternal {
         }
         return false;
     }
+
     private static final Logger LOG = Logger.getLogger(DataAccessInternal.class.getName());
 
-    protected static boolean putDataToModel(TestDataModel env, TestDataModel def, String field, String newVal,
-            String scn, String tc, String iter, String subIter) {
-        return putDataToModel(env, field, newVal, scn, tc, iter, subIter)
-                || putDataToModel(def, field, newVal, scn, tc, iter, subIter);
+    protected static boolean putDataToModel(
+        TestDataModel env,
+        TestDataModel def,
+        String field,
+        String newVal,
+        String scn,
+        String tc,
+        String iter,
+        String subIter
+    ) {
+        return (
+            putDataToModel(env, field, newVal, scn, tc, iter, subIter) ||
+            putDataToModel(def, field, newVal, scn, tc, iter, subIter)
+        );
     }
 
     /**
@@ -95,8 +131,12 @@ public class DataAccessInternal {
      * @param field the column/field name
      * @return the data value
      */
-    protected static Object getGlobal(GlobalDataModel env, GlobalDataModel def,
-            String gid, String field) {
+    protected static Object getGlobal(
+        GlobalDataModel env,
+        GlobalDataModel def,
+        String gid,
+        String field
+    ) {
         Object val = getGlobal(env, gid, field);
         if (isNull(val)) {
             val = getGlobal(def, gid, field);
@@ -129,8 +169,11 @@ public class DataAccessInternal {
      * @param env environment data model
      * @return the iteration set
      */
-    protected static Set<String> getIter(TestCaseRunner context,
-            TestDataModel env, TestDataModel def) {
+    protected static Set<String> getIter(
+        TestCaseRunner context,
+        TestDataModel env,
+        TestDataModel def
+    ) {
         Set<String> val = getIterForRootTestCase(env, context, def);
         if (isNullOrEmpty(val)) {
             val = getIterForReusable(env, context, def);
@@ -138,16 +181,25 @@ public class DataAccessInternal {
         return val;
     }
 
-    private static Set<String> getIterForRootTestCase(TestDataModel env,
-            TestCaseRunner context, TestDataModel def) {
+    private static Set<String> getIterForRootTestCase(
+        TestDataModel env,
+        TestCaseRunner context,
+        TestDataModel def
+    ) {
         Set<String> val = null;
         if (notNull(env)) {
-            val = env.view().withTestcase(context.getRoot().scenario(),
-                    context.getRoot().testcase()).getIterations();
+            val =
+                env
+                    .view()
+                    .withTestcase(context.getRoot().scenario(), context.getRoot().testcase())
+                    .getIterations();
         }
         if (isNullOrEmpty(val) && notNull(def)) {
-            val = def.view().withTestcase(context.getRoot().scenario(),
-                    context.getRoot().testcase()).getIterations();
+            val =
+                def
+                    .view()
+                    .withTestcase(context.getRoot().scenario(), context.getRoot().testcase())
+                    .getIterations();
         }
         return val;
     }
@@ -156,16 +208,17 @@ public class DataAccessInternal {
         return isNull(val) || val.isEmpty();
     }
 
-    private static Set<String> getIterForReusable(TestDataModel env,
-            TestCaseRunner context, TestDataModel def) {
+    private static Set<String> getIterForReusable(
+        TestDataModel env,
+        TestCaseRunner context,
+        TestDataModel def
+    ) {
         Set<String> val = null;
         if (notNull(env)) {
-            val = env.view().withTestcase(context.scenario(),
-                    context.testcase()).getIterations();
+            val = env.view().withTestcase(context.scenario(), context.testcase()).getIterations();
         }
         if (isNullOrEmpty(val) && notNull(def)) {
-            val = def.view().withTestcase(context.scenario(),
-                    context.testcase()).getIterations();
+            val = def.view().withTestcase(context.scenario(), context.testcase()).getIterations();
         }
         return val;
     }
@@ -179,10 +232,13 @@ public class DataAccessInternal {
      */
     protected static Set<String> getIter(TestCaseRunner context, TestDataModel def) {
         if (notNull(def)) {
-            Set<String> val = def.view().withTestcase(context.getRoot().scenario(),
-                    context.getRoot().testcase()).getIterations();
+            Set<String> val = def
+                .view()
+                .withTestcase(context.getRoot().scenario(), context.getRoot().testcase())
+                .getIterations();
             if (isNullOrEmpty(val)) {
-                val = def.view().withTestcase(context.scenario(), context.testcase()).getIterations();
+                val =
+                    def.view().withTestcase(context.scenario(), context.testcase()).getIterations();
             }
             return val;
         }
@@ -199,7 +255,11 @@ public class DataAccessInternal {
      * @param env environment data model
      * @return the sub iteration set
      */
-    protected static Set<String> getSubIter(TestCaseRunner context, TestDataModel env, TestDataModel def) {
+    protected static Set<String> getSubIter(
+        TestCaseRunner context,
+        TestDataModel env,
+        TestDataModel def
+    ) {
         Set<String> val = getSubIterForRootTestCase(env, context, def);
         if (isNullOrEmpty(val)) {
             val = getSubIterForReusable(env, context, def);
@@ -207,28 +267,56 @@ public class DataAccessInternal {
         return val;
     }
 
-    private static Set<String> getSubIterForRootTestCase(TestDataModel env, TestCaseRunner context, TestDataModel def) {
+    private static Set<String> getSubIterForRootTestCase(
+        TestDataModel env,
+        TestCaseRunner context,
+        TestDataModel def
+    ) {
         Set<String> val = null;
         if (notNull(env)) {
-            val = env.view().withIter(context.getRoot().scenario(), context.getRoot().testcase(), context.iteration())
+            val =
+                env
+                    .view()
+                    .withIter(
+                        context.getRoot().scenario(),
+                        context.getRoot().testcase(),
+                        context.iteration()
+                    )
                     .getSubIterations();
         }
         if (isNullOrEmpty(val) && notNull(def)) {
-            val = def.view().withIter(context.getRoot().scenario(), context.getRoot().testcase(), context.iteration())
+            val =
+                def
+                    .view()
+                    .withIter(
+                        context.getRoot().scenario(),
+                        context.getRoot().testcase(),
+                        context.iteration()
+                    )
                     .getSubIterations();
         }
         return val;
     }
 
-    private static Set<String> getSubIterForReusable(TestDataModel env, TestCaseRunner context, TestDataModel def) {
+    private static Set<String> getSubIterForReusable(
+        TestDataModel env,
+        TestCaseRunner context,
+        TestDataModel def
+    ) {
         Set<String> val = null;
         if (notNull(env)) {
-            val = env.view().withIter(context.scenario(), context.testcase(),
-                    context.iteration()).getSubIterations();
+            val =
+                env
+                    .view()
+                    .withIter(context.scenario(), context.testcase(), context.iteration())
+                    .getSubIterations();
         }
         if (isNullOrEmpty(val) && notNull(def)) {
-            val = def.view().withIter(context.scenario(), context.testcase(),
-                    context.iteration()).getSubIterations();
+            val =
+                def
+                    .view()
+                    .withIter(context.scenario(), context.testcase(), context.iteration())
+                    .getSubIterations();
         }
         return val;
     }
@@ -243,11 +331,18 @@ public class DataAccessInternal {
      */
     protected static Set<String> getSubIter(TestCaseRunner context, TestDataModel def) {
         if (notNull(def)) {
-            Set<String> val = def.view()
-                    .withIter(context.getRoot().scenario(), context.getRoot().testcase(), context.iteration())
-                    .getSubIterations();
+            Set<String> val = def
+                .view()
+                .withIter(
+                    context.getRoot().scenario(),
+                    context.getRoot().testcase(),
+                    context.iteration()
+                )
+                .getSubIterations();
             if (isNullOrEmpty(val)) {
-                val = def.view()
+                val =
+                    def
+                        .view()
                         .withIter(context.scenario(), context.testcase(), context.iteration())
                         .getSubIterations();
             }
@@ -267,27 +362,91 @@ public class DataAccessInternal {
      * @param subIter sub-iteration no
      * @throws TestDataNotFoundException detailed exception with cause
      */
-    protected static void throwErrorWithCause(TestCaseRunner context,
-            String sheet, String field, String subIter) throws TestDataNotFoundException, DataNotFoundException {
+    protected static void throwErrorWithCause(
+        TestCaseRunner context,
+        String sheet,
+        String field,
+        String subIter
+    )
+        throws TestDataNotFoundException, DataNotFoundException {
         Set<String> iterSet = getIterations(context, sheet);
+        ReusableRef.Scope scope = context.getResolvedReusableScope();
+
         if (isNull(iterSet) || !iterSet.contains(context.iteration())) {
-            throw new TestDataNotFoundException(context, sheet, field, Cause.Iteration, context.iteration());
+            // Iteration not found - enhanced with scope context
+            String scopedField = buildScopeAwareErrorMessage(
+                context.iteration(),
+                scope,
+                sheet,
+                field
+            );
+            TestDataNotFoundException ex = new TestDataNotFoundException(
+                context,
+                sheet,
+                field,
+                Cause.Iteration,
+                scopedField
+            );
+            if (scope != null) {
+                LOG.warning(
+                    "Iteration not found for [" +
+                    scope +
+                    "] reusable: sheet='" +
+                    sheet +
+                    "', iteration='" +
+                    context.iteration() +
+                    "'"
+                );
+            }
+            throw ex;
         } else {
             Set<String> subIterSet = getSubIterations(context, sheet);
             if (isNull(subIterSet) || !subIterSet.contains(subIter)) {
-                DataNotFoundException dnfe = new DataNotFoundException("Reached the end of data sheet.");
-                DataNotFoundException.CauseInfo causeInfo = dnfe.new CauseInfo(Cause.EndOfDataSheet, "Reached the end of data sheet.");
+                // End of data sheet reached
+                String errorMsg = "Reached the end of data sheet.";
+                if (scope != null) {
+                    errorMsg = "[" + scope + "] " + errorMsg;
+                    LOG.warning(
+                        "End of data sheet for [" + scope + "] reusable: sheet='" + sheet + "'"
+                    );
+                }
+                DataNotFoundException dnfe = new DataNotFoundException(errorMsg);
+                DataNotFoundException.CauseInfo causeInfo =
+                    dnfe.new CauseInfo(Cause.EndOfDataSheet, errorMsg);
                 dnfe.cause = causeInfo;
                 throw dnfe;
             } else {
-                throw new TestDataNotFoundException(context, sheet, field, Cause.Data, field);
+                // Data field not found
+                String scopedField = buildScopeAwareErrorMessage(field, scope, sheet, field);
+                TestDataNotFoundException ex = new TestDataNotFoundException(
+                    context,
+                    sheet,
+                    field,
+                    Cause.Data,
+                    scopedField
+                );
+                if (scope != null) {
+                    LOG.warning(
+                        "Data not found for [" +
+                        scope +
+                        "] reusable: sheet='" +
+                        sheet +
+                        "', field='" +
+                        field +
+                        "'"
+                    );
+                }
+                throw ex;
             }
         }
     }
 
     protected static TestDataModel getModel(TestCaseRunner context, String sheet) {
-        return context.executor().dataProvider().getTestDataFor(
-                context.executor().runEnv()).getByName(sheet);
+        return context
+            .executor()
+            .dataProvider()
+            .getTestDataFor(context.executor().runEnv())
+            .getByName(sheet);
     }
 
     protected static TestDataModel getDefModel(TestCaseRunner context, String sheet) {
@@ -295,8 +454,14 @@ public class DataAccessInternal {
     }
 
     protected static boolean validEnv(TestCaseRunner context) {
-        return !context.executor().dataProvider().defEnv().equals(context.executor().runEnv())
-                && context.executor().dataProvider().getEnvironments().contains(context.executor().runEnv());
+        return (
+            !context.executor().dataProvider().defEnv().equals(context.executor().runEnv()) &&
+            context
+                .executor()
+                .dataProvider()
+                .getEnvironments()
+                .contains(context.executor().runEnv())
+        );
     }
 
     public static boolean notNull(Object ins) {
@@ -305,5 +470,40 @@ public class DataAccessInternal {
 
     public static boolean isNull(Object ins) {
         return ins == null;
+    }
+
+    /**
+     * Builds a scoped error message for data access errors.
+     * Prepends scope information for reusable references.
+     *
+     * @param info the base error info (iteration, field name, etc.)
+     * @param scope the resolved reusable scope (PROJECT, SHARED, or null)
+     * @param sheet the datasheet name (for context)
+     * @param field the field/column name (for context)
+     * @return error message info, prefixed with scope if applicable
+     */
+    protected static String buildScopeAwareErrorMessage(
+        String info,
+        ReusableRef.Scope scope,
+        String sheet,
+        String field
+    ) {
+        if (scope == null) {
+            return info;
+        }
+
+        // Return info prefixed with scope for error reporting
+        return "[" + scope + "] " + info;
+    }
+
+    /**
+     * Gets the scope context string for logging and diagnostics.
+     *
+     * @param context the test case execution context
+     * @return scope context string e.g. " (scope: [Shared])" or empty string for non-reusables
+     */
+    protected static String getScopeContextString(TestCaseRunner context) {
+        ReusableRef.Scope scope = context.getResolvedReusableScope();
+        return scope != null ? " (scope: [" + scope + "])" : "";
     }
 }

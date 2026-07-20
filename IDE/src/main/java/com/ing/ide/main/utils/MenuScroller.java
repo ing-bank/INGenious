@@ -1,4 +1,3 @@
-
 package com.ing.ide.main.utils;
 
 import java.awt.Color;
@@ -28,10 +27,9 @@ import javax.swing.event.PopupMenuListener;
  * is 15, and the default scrolling interval is 125 milliseconds.
  * <P>
  *
- * 
+ *
  */
 public class MenuScroller {
-
     //private JMenu menu;
     private JPopupMenu menu;
     private Component[] menuItems;
@@ -139,10 +137,14 @@ public class MenuScroller {
      * negative or if topFixedCount or bottomFixedCount is negative
      * @return the MenuScroller
      */
-    public static MenuScroller setScrollerFor(JMenu menu, int scrollCount, int interval,
-            int topFixedCount, int bottomFixedCount) {
-        return new MenuScroller(menu, scrollCount, interval,
-                topFixedCount, bottomFixedCount);
+    public static MenuScroller setScrollerFor(
+        JMenu menu,
+        int scrollCount,
+        int interval,
+        int topFixedCount,
+        int bottomFixedCount
+    ) {
+        return new MenuScroller(menu, scrollCount, interval, topFixedCount, bottomFixedCount);
     }
 
     /**
@@ -162,10 +164,14 @@ public class MenuScroller {
      * negative or if topFixedCount or bottomFixedCount is negative
      * @return the MenuScroller
      */
-    public static MenuScroller setScrollerFor(JPopupMenu menu, int scrollCount, int interval,
-            int topFixedCount, int bottomFixedCount) {
-        return new MenuScroller(menu, scrollCount, interval,
-                topFixedCount, bottomFixedCount);
+    public static MenuScroller setScrollerFor(
+        JPopupMenu menu,
+        int scrollCount,
+        int interval,
+        int topFixedCount,
+        int bottomFixedCount
+    ) {
+        return new MenuScroller(menu, scrollCount, interval, topFixedCount, bottomFixedCount);
     }
 
     /**
@@ -262,8 +268,13 @@ public class MenuScroller {
      * @throws IllegalArgumentException if scrollCount or interval is 0 or
      * negative or if topFixedCount or bottomFixedCount is negative
      */
-    public MenuScroller(JMenu menu, int scrollCount, int interval,
-            int topFixedCount, int bottomFixedCount) {
+    public MenuScroller(
+        JMenu menu,
+        int scrollCount,
+        int interval,
+        int topFixedCount,
+        int bottomFixedCount
+    ) {
         this(menu.getPopupMenu(), scrollCount, interval, topFixedCount, bottomFixedCount);
     }
 
@@ -283,13 +294,20 @@ public class MenuScroller {
      * @throws IllegalArgumentException if scrollCount or interval is 0 or
      * negative or if topFixedCount or bottomFixedCount is negative
      */
-    public MenuScroller(JPopupMenu menu, int scrollCount, int interval,
-            int topFixedCount, int bottomFixedCount) {
+    public MenuScroller(
+        JPopupMenu menu,
+        int scrollCount,
+        int interval,
+        int topFixedCount,
+        int bottomFixedCount
+    ) {
         if (scrollCount <= 0 || interval <= 0) {
             throw new IllegalArgumentException("scrollCount and interval must be greater than 0");
         }
         if (topFixedCount < 0 || bottomFixedCount < 0) {
-            throw new IllegalArgumentException("topFixedCount and bottomFixedCount cannot be negative");
+            throw new IllegalArgumentException(
+                "topFixedCount and bottomFixedCount cannot be negative"
+            );
         }
 
         upItem = new MenuScrollItem(MenuIcon.UP, -1);
@@ -498,10 +516,11 @@ public class MenuScroller {
 
         private void setMenuItems() {
             menuItems = menu.getComponents();
-            if (keepVisibleIndex >= topFixedCount
-                    && keepVisibleIndex <= menuItems.length - bottomFixedCount
-                    && (keepVisibleIndex > firstIndex + scrollCount
-                    || keepVisibleIndex < firstIndex)) {
+            if (
+                keepVisibleIndex >= topFixedCount &&
+                keepVisibleIndex <= menuItems.length - bottomFixedCount &&
+                (keepVisibleIndex > firstIndex + scrollCount || keepVisibleIndex < firstIndex)
+            ) {
                 firstIndex = Math.min(firstIndex, keepVisibleIndex);
                 firstIndex = Math.max(firstIndex, keepVisibleIndex - scrollCount + 1);
             }
@@ -521,20 +540,21 @@ public class MenuScroller {
     private class MenuScrollTimer extends Timer {
 
         public MenuScrollTimer(final int increment, int interval) {
-            super(interval, new ActionListener() {
+            super(
+                interval,
+                new ActionListener() {
 
-                @Override
-                public void actionPerformed(ActionEvent e) {
-                    firstIndex += increment;
-                    refreshMenu();
+                    @Override
+                    public void actionPerformed(ActionEvent e) {
+                        firstIndex += increment;
+                        refreshMenu();
+                    }
                 }
-            });
+            );
         }
     }
 
-    private class MenuScrollItem extends JMenuItem
-            implements ChangeListener {
-
+    private class MenuScrollItem extends JMenuItem implements ChangeListener {
         private final MenuScrollTimer timer;
 
         public MenuScrollItem(MenuIcon icon, int increment) {
@@ -560,10 +580,10 @@ public class MenuScroller {
     }
 
     private static enum MenuIcon implements Icon {
-
         UP(9, 1, 9),
         DOWN(1, 9, 1);
-        final int[] xPoints = {1, 5, 9};
+
+        final int[] xPoints = { 1, 5, 9 };
         final int[] yPoints;
 
         MenuIcon(int... yPoints) {

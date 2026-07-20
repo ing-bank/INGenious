@@ -1,9 +1,8 @@
-
 package com.ing.engine.util.data.fx;
 
 /**
  *
- * 
+ *
  */
 import java.lang.reflect.Method;
 import java.util.ArrayList;
@@ -15,9 +14,8 @@ import javax.script.ScriptEngineManager;
 import javax.script.ScriptException;
 
 public class FParser {
-
     private static final Logger LOG = Logger.getLogger(FParser.class.getName());
-    private final static String RX = "(?x),(?=([^\"] * \" [^\"] * \" )* [^\"] * $ )";
+    private static final String RX = "(?x),(?=([^\"] * \" [^\"] * \" )* [^\"] * $ )";
 
     public static List<String> FUNCTIONS;
     private static ScriptEngine JS;
@@ -38,7 +36,6 @@ public class FParser {
      * @return result
      */
     public static Object eval(String s) {
-
         String func = FN(s);
         s = s.replaceFirst(func, "");
         String[] params = {};
@@ -59,7 +56,7 @@ public class FParser {
         try {
             return JS.eval("JSON.stringify(" + script + ")").toString();
         } catch (ScriptException ex) {
-           LOG.log(Level.SEVERE, ex.getMessage(), ex);
+            LOG.log(Level.SEVERE, ex.getMessage(), ex);
         }
         return "undefined";
     }
@@ -73,7 +70,7 @@ public class FParser {
                 FUNCTIONS.add(m.getName());
             }
         } catch (Exception ex) {
-           LOG.log(Level.SEVERE, ex.getMessage(), ex);
+            LOG.log(Level.SEVERE, ex.getMessage(), ex);
         }
     }
 
@@ -83,7 +80,7 @@ public class FParser {
             js.eval("Object.getOwnPropertyNames(Math).map(function(p){this[p]=Math[p]});");
             return js;
         } catch (Exception ex) {
-           LOG.log(Level.SEVERE, ex.getMessage(), ex);
+            LOG.log(Level.SEVERE, ex.getMessage(), ex);
         }
         return null;
     }
@@ -95,9 +92,10 @@ public class FParser {
                 p.add(RES(param));
             }
             Method actn = FX.getDeclaredMethod(func, String[].class);
-            return actn.invoke(FX.newInstance(),
-                    new Object[]{p.toArray(new String[params.length])});
-
+            return actn.invoke(
+                FX.newInstance(),
+                new Object[] { p.toArray(new String[params.length]) }
+            );
         } catch (Exception ex) {
             LOG.log(Level.SEVERE, ex.getMessage(), ex);
         }
@@ -127,7 +125,7 @@ public class FParser {
             Method m = FX.getDeclaredMethod(arg, String[].class);
             return m != null;
         } catch (NoSuchMethodException | SecurityException ex) {
-           LOG.log(Level.SEVERE, ex.getMessage(), ex);
+            LOG.log(Level.SEVERE, ex.getMessage(), ex);
             return false;
         }
     }
@@ -139,5 +137,4 @@ public class FParser {
             return arg;
         }
     }
-
 }

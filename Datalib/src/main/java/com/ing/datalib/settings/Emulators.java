@@ -1,6 +1,8 @@
-
 package com.ing.datalib.settings;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.ing.datalib.settings.emulators.Emulator;
+import com.ing.datalib.util.data.LinkedProperties;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -9,16 +11,11 @@ import java.util.Objects;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.ing.datalib.settings.emulators.Emulator;
-import com.ing.datalib.util.data.LinkedProperties;
-
 /**
  *
- * 
+ *
  */
 public class Emulators {
-
     private List<Emulator> emulators;
 
     private String location;
@@ -36,7 +33,13 @@ public class Emulators {
         File emFile = new File(getLocation());
         if (emFile.exists()) {
             try {
-                emulators = objMapper.readValue(emFile, objMapper.getTypeFactory().constructCollectionType(List.class, Emulator.class));
+                emulators =
+                    objMapper.readValue(
+                        emFile,
+                        objMapper
+                            .getTypeFactory()
+                            .constructCollectionType(List.class, Emulator.class)
+                    );
                 // Ensure SAP emulator exists by default only for actual projects (Settings folder)
                 if (isRealProjectSettings()) {
                     ensureDefaultEmulators();
@@ -46,7 +49,7 @@ public class Emulators {
             }
         }
     }
-    
+
     /**
      * Check if this is a real project's Settings folder (not a test directory)
      */
@@ -54,7 +57,7 @@ public class Emulators {
         // Real projects have "Settings" folder name in path
         return location.endsWith("Settings");
     }
-    
+
     private void ensureDefaultEmulators() {
         // Add SAP emulator if it doesn't exist
         if (getEmulator("SAP") == null) {
@@ -62,8 +65,8 @@ public class Emulators {
             save();
         }
     }
-    
-    public void reload(){
+
+    public void reload() {
         emulators.clear();
         load();
     }
@@ -79,15 +82,15 @@ public class Emulators {
             emulators.add(new Emulator(emulatorName));
         }
     }
-  
-    public LinkedProperties defaultEmulatorCap(){
+
+    public LinkedProperties defaultEmulatorCap() {
         LinkedProperties props = new LinkedProperties();
         // Add default key-value pairs
         props.setProperty("deviceName", "");
         props.setProperty("platformName", "");
         props.setProperty("platformVersion", "");
         props.setProperty("automationName", "");
-        
+
         return props;
     }
 
@@ -102,7 +105,7 @@ public class Emulators {
         props.setProperty("dllPath", "lib/jacob-1.21/jacob-1.21-x64.dll");
         props.setProperty("connectionName", "SAP_CONN_NAME");
         props.setProperty("platformName", "Windows");
-        
+
         return props;
     }
 

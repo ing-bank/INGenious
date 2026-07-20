@@ -1,4 +1,3 @@
-
 package com.ing.engine.reporting.sync.azure;
 
 import com.ing.engine.reporting.sync.Sync;
@@ -17,7 +16,6 @@ import org.json.simple.JSONObject;
  *
  */
 public class AzureSync implements Sync {
-
     private AzureClient conn;
     private final ArrayList<AzureTestData> listOTest = new ArrayList<>();
     private String project = "";
@@ -35,9 +33,13 @@ public class AzureSync implements Sync {
      * @param options
      */
     public AzureSync(Properties options) {
-        this(options.getProperty("AzureDevOps URL"), options.getProperty("PersonalAccessToken"),
-                options.getProperty("AzureDevOps Project"), Integer.valueOf(options.getProperty("AzureDevOps TestPlanId")),
-                options);
+        this(
+            options.getProperty("AzureDevOps URL"),
+            options.getProperty("PersonalAccessToken"),
+            options.getProperty("AzureDevOps Project"),
+            Integer.valueOf(options.getProperty("AzureDevOps TestPlanId")),
+            options
+        );
     }
 
     @Override
@@ -63,7 +65,14 @@ public class AzureSync implements Sync {
 
     @Override
     public boolean updateResults(TestInfo tc, String status, List<File> attach) {
-        AzureTestData test = new AzureTestData(project, testPlanId, tc.testScenario, tc.testCase, status, attach);
+        AzureTestData test = new AzureTestData(
+            project,
+            testPlanId,
+            tc.testScenario,
+            tc.testCase,
+            status,
+            attach
+        );
         listOTest.add(test);
         return true;
     }
@@ -72,5 +81,4 @@ public class AzureSync implements Sync {
     public String createIssue(JSONObject issue, List<File> attach) {
         throw new UnsupportedOperationException("Not supported yet.");
     }
-
 }

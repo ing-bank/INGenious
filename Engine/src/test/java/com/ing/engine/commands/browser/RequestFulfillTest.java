@@ -3,7 +3,6 @@ package com.ing.engine.commands.browser;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.util.HashMap;
-
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;

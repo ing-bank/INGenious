@@ -1,14 +1,12 @@
-
 package com.ing.engine.galenWrapper.SpecValidation;
 
 import com.galenframework.specs.SpecText;
 
 /**
  *
- * 
+ *
  */
 public class SpecAttribute extends SpecText {
-
     private String attributeName;
 
     public SpecAttribute(String attributeName, Type type, String text) {
@@ -23,5 +21,4 @@ public class SpecAttribute extends SpecText {
     public void setAtributeName(String attributeName) {
         this.attributeName = attributeName;
     }
-
 }

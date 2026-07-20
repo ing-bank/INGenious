@@ -1,4 +1,3 @@
-
 package com.ing.ide.main.shr.mobile.android;
 
 import com.ing.ide.main.shr.mobile.MobileUtil;
@@ -13,10 +12,9 @@ import javax.imageio.ImageIO;
 
 /**
  *
- * 
+ *
  */
 public class AndroidUtil extends MobileUtil {
-
     private static AndroidUtil androidUtil;
 
     public static AndroidUtil get() {
@@ -52,7 +50,6 @@ public class AndroidUtil extends MobileUtil {
         } catch (IOException ex) {
             Logger.getLogger(AndroidUtil.class.getName()).log(Level.SEVERE, null, ex);
         }
-
     }
 
     /**
@@ -71,7 +68,6 @@ public class AndroidUtil extends MobileUtil {
      *
      */
     private BufferedImage rotate(BufferedImage image, double theta, int thetaInDegrees) {
-
         AffineTransform xform = new AffineTransform();
 
         if (image.getWidth() > image.getHeight()) {
@@ -118,5 +114,4 @@ public class AndroidUtil extends MobileUtil {
 
         return op.filter(image, null);
     }
-
 }

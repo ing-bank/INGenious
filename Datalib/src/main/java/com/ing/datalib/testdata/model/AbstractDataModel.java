@@ -1,12 +1,9 @@
-
 package com.ing.datalib.testdata.model;
 
 import com.ing.datalib.component.utils.SaveListener;
 import com.ing.datalib.testdata.view.TestDataView;
 import com.ing.datalib.undoredo.UndoRedoModel;
 import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
@@ -15,16 +12,13 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import javax.swing.event.TableModelEvent;
-import javax.swing.table.TableColumnModel;
-import javax.swing.table.TableModel;
 
 /**
  *
- * 
+ *
  * @param <T>
  */
 public abstract class AbstractDataModel<T extends List<String>> extends UndoRedoModel {
-
     private List<T> records = new ArrayList<>();
 
     private final List<String> columns = new ArrayList<>();
@@ -78,7 +72,7 @@ public abstract class AbstractDataModel<T extends List<String>> extends UndoRedo
         return true;
     }
 
-    abstract public boolean canEditOnExecution(int columnIndex);
+    public abstract boolean canEditOnExecution(int columnIndex);
 
     @Override
     public Object getValueAt(int rowIndex, int columnIndex) {
@@ -158,7 +152,6 @@ public abstract class AbstractDataModel<T extends List<String>> extends UndoRedo
         setSaved(false);
         return true;
     }
-    
 
     public Boolean moveRowsDown(int from, int to) {
         if (to + 1 > records.size() - 1) {
@@ -402,14 +395,25 @@ public abstract class AbstractDataModel<T extends List<String>> extends UndoRedo
     private void loadMColumns() {
         if (isFromFile) {
             if (new File(getLocation()).exists()) {
-                setColumns(loadColumns(new File(getLocation())));
+                // Load columns from file. If older CSVs are missing the newer 'Scope' column
+                // we migrate by inserting 'Scope' at index 2 so column indices remain stable.
+                java.util.Set<String> fileCols = loadColumns(new File(getLocation()));
+                java.util.List<String> colsList = new java.util.ArrayList<>(fileCols);
+                if (!fileCols.contains(com.ing.datalib.testdata.model.Record.HEADERS[2])) {
+                    // insert Scope at index 2 if we have at least two columns, otherwise append
+                    if (colsList.size() >= 2) {
+                        colsList.add(2, com.ing.datalib.testdata.model.Record.HEADERS[2]);
+                    } else {
+                        colsList.add(com.ing.datalib.testdata.model.Record.HEADERS[2]);
+                    }
+                }
+                setColumns(colsList);
             }
         } else {
             setColumns(loadColumns());
         }
         setSaved(true);
     }
-    
 
     public abstract Set<String> loadColumns(File location);
 
@@ -521,7 +525,6 @@ public abstract class AbstractDataModel<T extends List<String>> extends UndoRedo
     }
 
     class ModelView extends TestDataView {
-
         AbstractDataModel model;
 
         public ModelView(AbstractDataModel model) {
@@ -549,7 +552,12 @@ public abstract class AbstractDataModel<T extends List<String>> extends UndoRedo
         }
 
         @Override
-        public List<String> addRecord(String scenario, String testcase, String iteration, String subIteration) {
+        public List<String> addRecord(
+            String scenario,
+            String testcase,
+            String iteration,
+            String subIteration
+        ) {
             List<String> record = model.addRecord();
             record.set(0, scenario);
             record.set(1, testcase);
@@ -557,6 +565,5 @@ public abstract class AbstractDataModel<T extends List<String>> extends UndoRedo
             record.set(3, subIteration);
             return record;
         }
-
     }
 }

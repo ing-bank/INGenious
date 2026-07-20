@@ -3,4 +3,4 @@
 # Usage: ./ingenious <command> [options]
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-java -cp "$SCRIPT_DIR/lib/*" com.ing.engine.core.Control "$@"
+java -Djdk.httpclient.allowRestrictedHeaders=host,connection,content-length,upgrade,expect,via,date,accept-encoding -cp "$SCRIPT_DIR/lib/*" com.ing.engine.core.Control "$@"

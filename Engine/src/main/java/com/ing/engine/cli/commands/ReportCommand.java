@@ -2,16 +2,15 @@ package com.ing.engine.cli.commands;
 
 import com.ing.engine.cli.INGeniousCLI;
 import com.ing.engine.constants.AppResourcePath;
-import picocli.CommandLine.Command;
-import picocli.CommandLine.Option;
-import picocli.CommandLine.Parameters;
-import picocli.CommandLine.ParentCommand;
-
 import java.io.*;
 import java.nio.file.*;
 import java.text.SimpleDateFormat;
 import java.util.*;
 import java.util.concurrent.Callable;
+import picocli.CommandLine.Command;
+import picocli.CommandLine.Option;
+import picocli.CommandLine.Parameters;
+import picocli.CommandLine.ParentCommand;
 
 /**
  * Report management commands.
@@ -28,7 +27,6 @@ import java.util.concurrent.Callable;
     }
 )
 public class ReportCommand implements Callable<Integer> {
-
     @ParentCommand
     private INGeniousCLI parent;
 
@@ -43,23 +41,22 @@ public class ReportCommand implements Callable<Integer> {
      */
     @Command(name = "latest", description = "Show latest test execution results")
     public static class LatestCommand implements Callable<Integer> {
-
         @ParentCommand
         private ReportCommand parent;
 
-        @Option(names = {"-p", "--project"}, description = "Project path")
+        @Option(names = { "-p", "--project" }, description = "Project path")
         private String projectPath;
 
-        @Option(names = {"--summary"}, description = "Show only summary")
+        @Option(names = { "--summary" }, description = "Show only summary")
         private boolean summaryOnly;
 
-        @Option(names = {"--open"}, description = "Open report in browser")
+        @Option(names = { "--open" }, description = "Open report in browser")
         private boolean openReport;
 
         @Override
         public Integer call() {
             INGeniousCLI cli = INGeniousCLI.getInstance();
-            
+
             String path = projectPath != null ? projectPath : cli.getProjectPath();
             if (path == null || path.isEmpty()) {
                 cli.printError("Project path required.");
@@ -95,18 +92,25 @@ public class ReportCommand implements Callable<Integer> {
                     List<TestResult> results = parseTestResults(latestRun);
                     if (!results.isEmpty()) {
                         System.out.println("\nTest Cases:");
-                        List<String> headers = Arrays.asList("Scenario", "TestCase", "Status", "Duration");
+                        List<String> headers = Arrays.asList(
+                            "Scenario",
+                            "TestCase",
+                            "Status",
+                            "Duration"
+                        );
                         List<List<String>> rows = new ArrayList<>();
-                        
+
                         for (TestResult result : results) {
-                            rows.add(Arrays.asList(
-                                result.scenario,
-                                result.testCase,
-                                formatStatus(result.status),
-                                result.duration + "ms"
-                            ));
+                            rows.add(
+                                Arrays.asList(
+                                    result.scenario,
+                                    result.testCase,
+                                    formatStatus(result.status),
+                                    result.duration + "ms"
+                                )
+                            );
                         }
-                        
+
                         System.out.println(cli.getOutputFormatter().formatTable(headers, rows));
                     }
                 }
@@ -123,7 +127,6 @@ public class ReportCommand implements Callable<Integer> {
                 }
 
                 return 0;
-                
             } catch (Exception e) {
                 cli.printError("Failed to get results: " + e.getMessage());
                 return 1;
@@ -136,20 +139,23 @@ public class ReportCommand implements Callable<Integer> {
      */
     @Command(name = "history", description = "Show test execution history")
     public static class HistoryCommand implements Callable<Integer> {
-
         @ParentCommand
         private ReportCommand parent;
 
-        @Option(names = {"-p", "--project"}, description = "Project path")
+        @Option(names = { "-p", "--project" }, description = "Project path")
         private String projectPath;
 
-        @Option(names = {"-n", "--last"}, description = "Number of runs to show", defaultValue = "10")
+        @Option(
+            names = { "-n", "--last" },
+            description = "Number of runs to show",
+            defaultValue = "10"
+        )
         private int lastN;
 
         @Override
         public Integer call() {
             INGeniousCLI cli = INGeniousCLI.getInstance();
-            
+
             String path = projectPath != null ? projectPath : cli.getProjectPath();
             if (path == null || path.isEmpty()) {
                 cli.printError("Project path required.");
@@ -171,39 +177,49 @@ public class ReportCommand implements Callable<Integer> {
 
                 // Sort by last modified (newest first)
                 Arrays.sort(runs, Comparator.comparingLong(File::lastModified).reversed());
-                
+
                 // Limit to lastN
                 int count = Math.min(lastN, runs.length);
 
-                List<String> headers = Arrays.asList("Run ID", "Date/Time", "Passed", "Failed", "Total", "Pass Rate");
+                List<String> headers = Arrays.asList(
+                    "Run ID",
+                    "Date/Time",
+                    "Passed",
+                    "Failed",
+                    "Total",
+                    "Pass Rate"
+                );
                 List<List<String>> rows = new ArrayList<>();
-                
+
                 SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd HH:mm");
 
                 for (int i = 0; i < count; i++) {
                     File run = runs[i];
                     Map<String, Object> summary = parseResultSummary(run);
-                    
+
                     int passed = (int) summary.getOrDefault("passed", 0);
                     int failed = (int) summary.getOrDefault("failed", 0);
                     int total = passed + failed;
-                    String passRate = total > 0 ? String.format("%.1f%%", (passed * 100.0 / total)) : "N/A";
-                    
-                    rows.add(Arrays.asList(
-                        run.getName(),
-                        sdf.format(new Date(run.lastModified())),
-                        String.valueOf(passed),
-                        String.valueOf(failed),
-                        String.valueOf(total),
-                        passRate
-                    ));
+                    String passRate = total > 0
+                        ? String.format("%.1f%%", (passed * 100.0 / total))
+                        : "N/A";
+
+                    rows.add(
+                        Arrays.asList(
+                            run.getName(),
+                            sdf.format(new Date(run.lastModified())),
+                            String.valueOf(passed),
+                            String.valueOf(failed),
+                            String.valueOf(total),
+                            passRate
+                        )
+                    );
                 }
 
                 System.out.println(cli.getOutputFormatter().formatTable(headers, rows));
                 cli.printInfo("\nShowing " + count + " of " + runs.length + " runs");
-                
+
                 return 0;
-                
             } catch (Exception e) {
                 cli.printError("Failed to get history: " + e.getMessage());
                 return 1;
@@ -216,23 +232,22 @@ public class ReportCommand implements Callable<Integer> {
      */
     @Command(name = "show", description = "Show details of a specific run")
     public static class ShowCommand implements Callable<Integer> {
-
         @ParentCommand
         private ReportCommand parent;
 
         @Parameters(index = "0", description = "Run ID or folder name")
         private String runId;
 
-        @Option(names = {"-p", "--project"}, description = "Project path")
+        @Option(names = { "-p", "--project" }, description = "Project path")
         private String projectPath;
 
-        @Option(names = {"--failed-only"}, description = "Show only failed tests")
+        @Option(names = { "--failed-only" }, description = "Show only failed tests")
         private boolean failedOnly;
 
         @Override
         public Integer call() {
             INGeniousCLI cli = INGeniousCLI.getInstance();
-            
+
             String path = projectPath != null ? projectPath : cli.getProjectPath();
             if (path == null || path.isEmpty()) {
                 cli.printError("Project path required.");
@@ -242,10 +257,12 @@ public class ReportCommand implements Callable<Integer> {
             try {
                 File resultsDir = new File(path, "Results");
                 File runDir = new File(resultsDir, runId);
-                
+
                 if (!runDir.exists()) {
                     // Try to find partial match
-                    File[] runs = resultsDir.listFiles(f -> f.isDirectory() && f.getName().contains(runId));
+                    File[] runs = resultsDir.listFiles(
+                        f -> f.isDirectory() && f.getName().contains(runId)
+                    );
                     if (runs != null && runs.length > 0) {
                         runDir = runs[0];
                     } else {
@@ -262,31 +279,38 @@ public class ReportCommand implements Callable<Integer> {
 
                 // Show test details
                 List<TestResult> results = parseTestResults(runDir);
-                
+
                 if (failedOnly) {
                     results.removeIf(r -> !"FAIL".equalsIgnoreCase(r.status));
                 }
-                
+
                 if (!results.isEmpty()) {
                     System.out.println("\nTest Results:");
-                    List<String> headers = Arrays.asList("Scenario", "TestCase", "Status", "Duration", "Error");
+                    List<String> headers = Arrays.asList(
+                        "Scenario",
+                        "TestCase",
+                        "Status",
+                        "Duration",
+                        "Error"
+                    );
                     List<List<String>> rows = new ArrayList<>();
-                    
+
                     for (TestResult result : results) {
-                        rows.add(Arrays.asList(
-                            result.scenario,
-                            result.testCase,
-                            formatStatus(result.status),
-                            result.duration + "ms",
-                            truncate(result.error, 40)
-                        ));
+                        rows.add(
+                            Arrays.asList(
+                                result.scenario,
+                                result.testCase,
+                                formatStatus(result.status),
+                                result.duration + "ms",
+                                truncate(result.error, 40)
+                            )
+                        );
                     }
-                    
+
                     System.out.println(cli.getOutputFormatter().formatTable(headers, rows));
                 }
-                
+
                 return 0;
-                
             } catch (Exception e) {
                 cli.printError("Failed to show run: " + e.getMessage());
                 return 1;
@@ -299,26 +323,29 @@ public class ReportCommand implements Callable<Integer> {
      */
     @Command(name = "export", description = "Export report in various formats")
     public static class ExportCommand implements Callable<Integer> {
-
         @ParentCommand
         private ReportCommand parent;
 
-        @Option(names = {"-p", "--project"}, description = "Project path")
+        @Option(names = { "-p", "--project" }, description = "Project path")
         private String projectPath;
 
-        @Option(names = {"--run-id"}, description = "Run ID to export (default: latest)")
+        @Option(names = { "--run-id" }, description = "Run ID to export (default: latest)")
         private String runId;
 
-        @Option(names = {"--format"}, description = "Export format (json, csv, junit)", defaultValue = "json")
+        @Option(
+            names = { "--format" },
+            description = "Export format (json, csv, junit)",
+            defaultValue = "json"
+        )
         private String format;
 
-        @Option(names = {"-o", "--output"}, description = "Output file path")
+        @Option(names = { "-o", "--output" }, description = "Output file path")
         private String outputPath;
 
         @Override
         public Integer call() {
             INGeniousCLI cli = INGeniousCLI.getInstance();
-            
+
             String path = projectPath != null ? projectPath : cli.getProjectPath();
             if (path == null || path.isEmpty()) {
                 cli.printError("Project path required.");
@@ -328,7 +355,7 @@ public class ReportCommand implements Callable<Integer> {
             try {
                 File resultsDir = new File(path, "Results");
                 File runDir;
-                
+
                 if (runId != null) {
                     runDir = new File(resultsDir, runId);
                 } else {
@@ -348,10 +375,10 @@ public class ReportCommand implements Callable<Integer> {
 
                 List<TestResult> results = parseTestResults(runDir);
                 Map<String, Object> summary = parseResultSummary(runDir);
-                
+
                 String output;
                 String extension;
-                
+
                 switch (format.toLowerCase()) {
                     case "csv":
                         output = exportToCsv(results);
@@ -374,15 +401,14 @@ public class ReportCommand implements Callable<Integer> {
                     Files.writeString(Paths.get(defaultOutput), output);
                     cli.printSuccess("Exported to: " + defaultOutput);
                 }
-                
+
                 return 0;
-                
             } catch (Exception e) {
                 cli.printError("Export failed: " + e.getMessage());
                 return 1;
             }
         }
-        
+
         private String exportToJson(List<TestResult> results, Map<String, Object> summary) {
             StringBuilder sb = new StringBuilder();
             sb.append("{\n");
@@ -416,7 +442,7 @@ public class ReportCommand implements Callable<Integer> {
             sb.append("}");
             return sb.toString();
         }
-        
+
         private String exportToCsv(List<TestResult> results) {
             StringBuilder sb = new StringBuilder();
             sb.append("Scenario,TestCase,Status,Duration,Error\n");
@@ -425,25 +451,31 @@ public class ReportCommand implements Callable<Integer> {
                 sb.append("\"").append(r.testCase).append("\",");
                 sb.append("\"").append(r.status).append("\",");
                 sb.append(r.duration).append(",");
-                sb.append("\"").append(r.error != null ? r.error.replace("\"", "\"\"") : "").append("\"\n");
+                sb
+                    .append("\"")
+                    .append(r.error != null ? r.error.replace("\"", "\"\"") : "")
+                    .append("\"\n");
             }
             return sb.toString();
         }
-        
+
         private String exportToJUnit(List<TestResult> results, Map<String, Object> summary) {
             int passed = (int) summary.getOrDefault("passed", 0);
             int failed = (int) summary.getOrDefault("failed", 0);
-            
+
             StringBuilder sb = new StringBuilder();
             sb.append("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
-            sb.append("<testsuite name=\"INGenious\" tests=\"").append(passed + failed).append("\" ");
+            sb
+                .append("<testsuite name=\"INGenious\" tests=\"")
+                .append(passed + failed)
+                .append("\" ");
             sb.append("failures=\"").append(failed).append("\" errors=\"0\">\n");
-            
+
             for (TestResult r : results) {
                 sb.append("  <testcase name=\"").append(r.testCase).append("\" ");
                 sb.append("classname=\"").append(r.scenario).append("\" ");
                 sb.append("time=\"").append(r.duration / 1000.0).append("\">\n");
-                
+
                 if ("FAIL".equalsIgnoreCase(r.status)) {
                     sb.append("    <failure message=\"Test failed\">");
                     if (r.error != null) {
@@ -451,10 +483,10 @@ public class ReportCommand implements Callable<Integer> {
                     }
                     sb.append("</failure>\n");
                 }
-                
+
                 sb.append("  </testcase>\n");
             }
-            
+
             sb.append("</testsuite>");
             return sb.toString();
         }
@@ -465,7 +497,6 @@ public class ReportCommand implements Callable<Integer> {
      */
     @Command(name = "compare", description = "Compare two test runs")
     public static class CompareCommand implements Callable<Integer> {
-
         @ParentCommand
         private ReportCommand parent;
 
@@ -475,13 +506,13 @@ public class ReportCommand implements Callable<Integer> {
         @Parameters(index = "1", description = "Second run ID")
         private String run2;
 
-        @Option(names = {"-p", "--project"}, description = "Project path")
+        @Option(names = { "-p", "--project" }, description = "Project path")
         private String projectPath;
 
         @Override
         public Integer call() {
             INGeniousCLI cli = INGeniousCLI.getInstance();
-            
+
             String path = projectPath != null ? projectPath : cli.getProjectPath();
             if (path == null || path.isEmpty()) {
                 cli.printError("Project path required.");
@@ -514,18 +545,45 @@ public class ReportCommand implements Callable<Integer> {
                 int total1 = passed1 + failed1;
                 int total2 = passed2 + failed2;
 
-                rows.add(Arrays.asList("Passed", String.valueOf(passed1), String.valueOf(passed2), formatDelta(passed2 - passed1)));
-                rows.add(Arrays.asList("Failed", String.valueOf(failed1), String.valueOf(failed2), formatDelta(failed2 - failed1, true)));
-                rows.add(Arrays.asList("Total", String.valueOf(total1), String.valueOf(total2), formatDelta(total2 - total1)));
-                
+                rows.add(
+                    Arrays.asList(
+                        "Passed",
+                        String.valueOf(passed1),
+                        String.valueOf(passed2),
+                        formatDelta(passed2 - passed1)
+                    )
+                );
+                rows.add(
+                    Arrays.asList(
+                        "Failed",
+                        String.valueOf(failed1),
+                        String.valueOf(failed2),
+                        formatDelta(failed2 - failed1, true)
+                    )
+                );
+                rows.add(
+                    Arrays.asList(
+                        "Total",
+                        String.valueOf(total1),
+                        String.valueOf(total2),
+                        formatDelta(total2 - total1)
+                    )
+                );
+
                 double rate1 = total1 > 0 ? (passed1 * 100.0 / total1) : 0;
                 double rate2 = total2 > 0 ? (passed2 * 100.0 / total2) : 0;
-                rows.add(Arrays.asList("Pass Rate", String.format("%.1f%%", rate1), String.format("%.1f%%", rate2), String.format("%+.1f%%", rate2 - rate1)));
+                rows.add(
+                    Arrays.asList(
+                        "Pass Rate",
+                        String.format("%.1f%%", rate1),
+                        String.format("%.1f%%", rate2),
+                        String.format("%+.1f%%", rate2 - rate1)
+                    )
+                );
 
                 System.out.println(cli.getOutputFormatter().formatTable(headers, rows));
-                
+
                 return 0;
-                
             } catch (Exception e) {
                 cli.printError("Comparison failed: " + e.getMessage());
                 return 1;
@@ -538,7 +596,7 @@ public class ReportCommand implements Callable<Integer> {
     private static File findRun(File resultsDir, String runId) {
         File runDir = new File(resultsDir, runId);
         if (runDir.exists()) return runDir;
-        
+
         File[] matches = resultsDir.listFiles(f -> f.isDirectory() && f.getName().contains(runId));
         return (matches != null && matches.length > 0) ? matches[0] : null;
     }
@@ -546,7 +604,7 @@ public class ReportCommand implements Callable<Integer> {
     private static Map<String, Object> parseResultSummary(File runDir) {
         Map<String, Object> summary = new LinkedHashMap<>();
         summary.put("runId", runDir.getName());
-        
+
         // Try to parse summary from JSON or HTML
         File summaryJson = new File(runDir, "summary.json");
         if (summaryJson.exists()) {
@@ -565,7 +623,7 @@ public class ReportCommand implements Callable<Integer> {
                 // Fall back to defaults
             }
         }
-        
+
         // Count result files if no summary
         if (!summary.containsKey("passed")) {
             int passed = 0, failed = 0;
@@ -579,8 +637,7 @@ public class ReportCommand implements Callable<Integer> {
                             if (statusFile.exists()) {
                                 try {
                                     String status = Files.readString(statusFile.toPath()).trim();
-                                    if ("PASS".equalsIgnoreCase(status)) passed++;
-                                    else failed++;
+                                    if ("PASS".equalsIgnoreCase(status)) passed++; else failed++;
                                 } catch (Exception e) {
                                     failed++;
                                 }
@@ -592,20 +649,20 @@ public class ReportCommand implements Callable<Integer> {
             summary.put("passed", passed);
             summary.put("failed", failed);
         }
-        
+
         return summary;
     }
 
     private static List<TestResult> parseTestResults(File runDir) {
         List<TestResult> results = new ArrayList<>();
-        
+
         File[] scenarioDirs = runDir.listFiles(File::isDirectory);
         if (scenarioDirs == null) return results;
-        
+
         for (File scenario : scenarioDirs) {
             File[] testCases = scenario.listFiles(File::isDirectory);
             if (testCases == null) continue;
-            
+
             for (File tc : testCases) {
                 TestResult result = new TestResult();
                 result.scenario = scenario.getName();
@@ -613,7 +670,7 @@ public class ReportCommand implements Callable<Integer> {
                 result.status = "PASS";
                 result.duration = 0;
                 result.error = "";
-                
+
                 File statusFile = new File(tc, "status.txt");
                 if (statusFile.exists()) {
                     try {
@@ -622,7 +679,7 @@ public class ReportCommand implements Callable<Integer> {
                         result.status = "UNKNOWN";
                     }
                 }
-                
+
                 File errorFile = new File(tc, "error.txt");
                 if (errorFile.exists()) {
                     try {
@@ -631,11 +688,11 @@ public class ReportCommand implements Callable<Integer> {
                         // Ignore
                     }
                 }
-                
+
                 results.add(result);
             }
         }
-        
+
         return results;
     }
 

@@ -8,9 +8,7 @@ import com.ing.engine.core.CommandControl;
 import com.ing.engine.execution.data.UserDataAccess;
 import com.ing.engine.reporting.TestCaseReport;
 import com.ing.ingenious.api.status.Status;
-
 import java.lang.reflect.Field;
-
 import org.mockito.ArgumentCaptor;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
@@ -24,10 +22,14 @@ import org.testng.annotations.Test;
  * since the constructor requires a fully wired CommandControl.
  */
 public class WebserviceJsonPathTest {
+    @Mock
+    private CommandControl cc;
 
-    @Mock private CommandControl cc;
-    @Mock private TestCaseReport report;
-    @Mock private UserDataAccess userData;
+    @Mock
+    private TestCaseReport report;
+
+    @Mock
+    private UserDataAccess userData;
 
     private Webservice ws;
     private AutoCloseable mocks;
@@ -75,7 +77,8 @@ public class WebserviceJsonPathTest {
         f.set(obj, value);
     }
 
-    private void setCommandFields(String data, String condition, String input, String action) throws Exception {
+    private void setCommandFields(String data, String condition, String input, String action)
+        throws Exception {
         setField(ws, Command.class, "Data", data);
         setField(ws, Command.class, "Condition", condition);
         setField(ws, Command.class, "Input", input);
@@ -111,7 +114,8 @@ public class WebserviceJsonPathTest {
         setCommandFields("John", null, null, "assertResponsebodycontains");
 
         ws.assertResponsebodycontains();
-        verify(report).updateTestLog(eq("assertResponsebodycontains"), contains("John"), eq(Status.PASSNS));
+        verify(report)
+            .updateTestLog(eq("assertResponsebodycontains"), contains("John"), eq(Status.PASSNS));
     }
 
     @Test
@@ -120,7 +124,8 @@ public class WebserviceJsonPathTest {
         setCommandFields("John", null, null, "assertResponsebodycontains");
 
         ws.assertResponsebodycontains();
-        verify(report).updateTestLog(eq("assertResponsebodycontains"), contains("John"), eq(Status.FAILNS));
+        verify(report)
+            .updateTestLog(eq("assertResponsebodycontains"), contains("John"), eq(Status.FAILNS));
     }
 
     // ---- assertJSONelementEquals ----
@@ -131,7 +136,12 @@ public class WebserviceJsonPathTest {
         setCommandFields("John", "$.name", null, "assertJSONelementEquals");
 
         ws.assertJSONelementEquals();
-        verify(report).updateTestLog(eq("assertJSONelementEquals"), contains("as expected"), eq(Status.PASSNS));
+        verify(report)
+            .updateTestLog(
+                eq("assertJSONelementEquals"),
+                contains("as expected"),
+                eq(Status.PASSNS)
+            );
     }
 
     @Test
@@ -140,7 +150,8 @@ public class WebserviceJsonPathTest {
         setCommandFields("John", "$.name", null, "assertJSONelementEquals");
 
         ws.assertJSONelementEquals();
-        verify(report).updateTestLog(eq("assertJSONelementEquals"), contains("Jane"), eq(Status.FAILNS));
+        verify(report)
+            .updateTestLog(eq("assertJSONelementEquals"), contains("Jane"), eq(Status.FAILNS));
     }
 
     // ---- assertJSONelementContains ----
@@ -151,7 +162,12 @@ public class WebserviceJsonPathTest {
         setCommandFields("World", "$.greeting", null, "assertJSONelementContains");
 
         ws.assertJSONelementContains();
-        verify(report).updateTestLog(eq("assertJSONelementContains"), contains("as expected"), eq(Status.PASSNS));
+        verify(report)
+            .updateTestLog(
+                eq("assertJSONelementContains"),
+                contains("as expected"),
+                eq(Status.PASSNS)
+            );
     }
 
     @Test
@@ -160,7 +176,12 @@ public class WebserviceJsonPathTest {
         setCommandFields("Evening", "$.greeting", null, "assertJSONelementContains");
 
         ws.assertJSONelementContains();
-        verify(report).updateTestLog(eq("assertJSONelementContains"), contains("does not contain"), eq(Status.FAILNS));
+        verify(report)
+            .updateTestLog(
+                eq("assertJSONelementContains"),
+                contains("does not contain"),
+                eq(Status.FAILNS)
+            );
     }
 
     // ---- storeJSONelement ----
@@ -180,6 +201,7 @@ public class WebserviceJsonPathTest {
         setCommandFields("$.token", "myVar", null, "storeJSONelement");
 
         ws.storeJSONelement();
-        verify(report).updateTestLog(eq("storeJSONelement"), contains("Variable format"), eq(Status.DEBUG));
+        verify(report)
+            .updateTestLog(eq("storeJSONelement"), contains("Variable format"), eq(Status.DEBUG));
     }
 }

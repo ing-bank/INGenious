@@ -1,6 +1,7 @@
 package com.ing.engine.util.data;
 
 import static org.assertj.core.api.Assertions.assertThat;
+
 import java.util.HashMap;
 import java.util.Map;
 import org.testng.annotations.Test;
@@ -46,13 +47,25 @@ public class KeyMapExpandedTest {
 
     @Test
     public void testReplaceKeysNullMaps() {
-        String result = KeyMap.replaceKeys("{key}", KeyMap.CONTEXT_VARS, true, 1, (Map<?, ?>[]) null);
+        String result = KeyMap.replaceKeys(
+            "{key}",
+            KeyMap.CONTEXT_VARS,
+            true,
+            1,
+            (Map<?, ?>[]) null
+        );
         assertThat(result).isEqualTo("{key}");
     }
 
     @Test
     public void testReplaceKeysNullMapsStripKeys() {
-        String result = KeyMap.replaceKeys("{key}", KeyMap.CONTEXT_VARS, false, 1, (Map<?, ?>[]) null);
+        String result = KeyMap.replaceKeys(
+            "{key}",
+            KeyMap.CONTEXT_VARS,
+            false,
+            1,
+            (Map<?, ?>[]) null
+        );
         assertThat(result).isEqualTo("key");
     }
 

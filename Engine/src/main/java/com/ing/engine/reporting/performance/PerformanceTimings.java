@@ -1,33 +1,11 @@
-
 package com.ing.engine.reporting.performance;
 
 /**
  *
- * 
+ *
  */
 public class PerformanceTimings {
-
-    public long connectEnd,
-            connectStart,
-            domComplete,
-            domContentLoadedEventEnd,
-            domContentLoadedEventStart,
-            domInteractive,
-            domLoading,
-            domainLookupEnd,
-            domainLookupStart,
-            fetchStart,
-            loadEventEnd,
-            loadEventStart,
-            navigationStart,
-            redirectEnd,
-            redirectStart,
-            requestStart,
-            responseEnd,
-            responseStart,
-            secureConnectionStart,
-            unloadEventEnd,
-            unloadEventStart;
+    public long connectEnd, connectStart, domComplete, domContentLoadedEventEnd, domContentLoadedEventStart, domInteractive, domLoading, domainLookupEnd, domainLookupStart, fetchStart, loadEventEnd, loadEventStart, navigationStart, redirectEnd, redirectStart, requestStart, responseEnd, responseStart, secureConnectionStart, unloadEventEnd, unloadEventStart;
     public String url, title;
 
     /**
@@ -49,15 +27,13 @@ public class PerformanceTimings {
         rt.requestStart = new Double(this.requestStart - start);
         rt.connectEnd = new Double(this.connectEnd - start);
         rt.connectStart = new Double(this.connectStart - start);
-        rt.secureConnectionStart = new Double(
-                (this.secureConnectionStart == 0 ? 0 : this.secureConnectionStart - start));
+        rt.secureConnectionStart =
+            new Double((this.secureConnectionStart == 0 ? 0 : this.secureConnectionStart - start));
         rt.domainLookupEnd = new Double(this.domainLookupEnd - start);
         rt.domainLookupStart = new Double(this.domainLookupStart - start);
 
-        rt.redirectStart = new Double(
-                (this.redirectStart == 0 ? 0 : this.redirectStart - start));
-        rt.redirectEnd = new Double(
-                (this.redirectEnd == 0 ? 0 : this.redirectEnd - start));
+        rt.redirectStart = new Double((this.redirectStart == 0 ? 0 : this.redirectStart - start));
+        rt.redirectEnd = new Double((this.redirectEnd == 0 ? 0 : this.redirectEnd - start));
 
         rt.fetchStart = new Double(this.fetchStart - start);
 
@@ -72,12 +48,14 @@ public class PerformanceTimings {
      * @return
      */
     public static String script() {
-        return "  var pt=performance.timing;"
-                + "var t={};"
-                + "t.title=document.title;"
-                + "t.url=window.location.href;"
-                + "for(var k in pt){t[k]=pt[k];}"
-                + "t.toJSON=undefined;"
-                + "JSON.stringify(t);";
+        return (
+            "  var pt=performance.timing;" +
+            "var t={};" +
+            "t.title=document.title;" +
+            "t.url=window.location.href;" +
+            "for(var k in pt){t[k]=pt[k];}" +
+            "t.toJSON=undefined;" +
+            "JSON.stringify(t);"
+        );
     }
 }

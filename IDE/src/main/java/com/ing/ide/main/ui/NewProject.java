@@ -1,4 +1,3 @@
-
 package com.ing.ide.main.ui;
 
 import com.ing.datalib.testdata.TestDataFactory;
@@ -13,7 +12,6 @@ import javax.swing.DefaultComboBoxModel;
 import javax.swing.ImageIcon;
 
 public class NewProject extends javax.swing.JDialog {
-
     private final AppMainFrame sMainFrame;
 
     private Boolean created = false;
@@ -22,8 +20,14 @@ public class NewProject extends javax.swing.JDialog {
         this.sMainFrame = sMainFrame;
         initComponents();
 
-        setIconImage(com.ing.ide.main.fx.INGIcons.toImage(Utils.getIconByResourceName("/ui/resources/main/NewProject")));
-        String currDirectory = new File(System.getProperty("user.dir")).getCanonicalPath() + File.separator + "Projects";
+        setIconImage(
+            com.ing.ide.main.fx.INGIcons.toImage(
+                Utils.getIconByResourceName("/ui/resources/main/NewProject")
+            )
+        );
+        String currDirectory = new File(System.getProperty("user.dir")).getCanonicalPath() +
+        File.separator +
+        "Projects";
         fileChooser.setCurrentDirectory(new File(currDirectory));
         projLocation.setText(fileChooser.getCurrentDirectory().getAbsolutePath());
     }
@@ -33,7 +37,9 @@ public class NewProject extends javax.swing.JDialog {
         setSize(480, 270);
         error.setText("  ");
         setLocationRelativeTo(null);
-        testDataType.setModel(new DefaultComboBoxModel(TestDataFactory.getDATA_PROVIDER_NAMES().toArray()));
+        testDataType.setModel(
+            new DefaultComboBoxModel(TestDataFactory.getDATA_PROVIDER_NAMES().toArray())
+        );
         setVisible(true);
     }
 
@@ -49,7 +55,6 @@ public class NewProject extends javax.swing.JDialog {
     @SuppressWarnings("unchecked")
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
-
         fileChooser = new javax.swing.JFileChooser();
         testDataType = new javax.swing.JComboBox<>();
         jLabel5 = new javax.swing.JLabel();
@@ -71,7 +76,11 @@ public class NewProject extends javax.swing.JDialog {
         fileChooser.setDialogTitle("Select Project Location");
         fileChooser.setFileSelectionMode(javax.swing.JFileChooser.DIRECTORIES_ONLY);
 
-        testDataType.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Item 1", "Item 2", "Item 3", "Item 4" }));
+        testDataType.setModel(
+            new javax.swing.DefaultComboBoxModel<>(
+                new String[] { "Item 1", "Item 2", "Item 3", "Item 4" }
+            )
+        );
 
         jLabel5.setText("Testdata Type");
 
@@ -80,7 +89,8 @@ public class NewProject extends javax.swing.JDialog {
         setMinimumSize(new java.awt.Dimension(120, 300));
         setModal(true);
         setPreferredSize(new java.awt.Dimension(602, 320));
-        getContentPane().setLayout(new javax.swing.BoxLayout(getContentPane(), javax.swing.BoxLayout.Y_AXIS));
+        getContentPane()
+            .setLayout(new javax.swing.BoxLayout(getContentPane(), javax.swing.BoxLayout.Y_AXIS));
 
         jPanel3.setBorder(javax.swing.BorderFactory.createEmptyBorder(20, 20, 20, 20));
         jPanel3.setMinimumSize(new java.awt.Dimension(120, 100));
@@ -110,11 +120,14 @@ public class NewProject extends javax.swing.JDialog {
         jPanel6.setLayout(new java.awt.GridLayout());
 
         projName.setText("NewProject");
-        projName.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                projNameActionPerformed(evt);
+        projName.addActionListener(
+            new java.awt.event.ActionListener() {
+
+                public void actionPerformed(java.awt.event.ActionEvent evt) {
+                    projNameActionPerformed(evt);
+                }
             }
-        });
+        );
         jPanel6.add(projName);
 
         jPanel3.add(jPanel6);
@@ -136,11 +149,14 @@ public class NewProject extends javax.swing.JDialog {
         jPanel8.setLayout(new java.awt.GridLayout());
 
         projLocation.setEditable(false);
-        projLocation.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                projLocationActionPerformed(evt);
+        projLocation.addActionListener(
+            new java.awt.event.ActionListener() {
+
+                public void actionPerformed(java.awt.event.ActionEvent evt) {
+                    projLocationActionPerformed(evt);
+                }
             }
-        });
+        );
         jPanel8.add(projLocation);
 
         jPanel4.add(jPanel8);
@@ -151,34 +167,37 @@ public class NewProject extends javax.swing.JDialog {
         jPanel2.setLayout(new java.awt.GridBagLayout());
 
         createProject.setText("Create Project");
-        createProject.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                createProjectActionPerformed(evt);
+        createProject.addActionListener(
+            new java.awt.event.ActionListener() {
+
+                public void actionPerformed(java.awt.event.ActionEvent evt) {
+                    createProjectActionPerformed(evt);
+                }
             }
-        });
+        );
         jPanel2.add(createProject, new java.awt.GridBagConstraints());
 
         getContentPane().add(jPanel2);
 
         pack();
-    }// </editor-fold>//GEN-END:initComponents
+    } // </editor-fold>//GEN-END:initComponents
 
-    private void createProjectActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_createProjectActionPerformed
+    private void createProjectActionPerformed(java.awt.event.ActionEvent evt) { //GEN-FIRST:event_createProjectActionPerformed
         createProject();
-    }//GEN-LAST:event_createProjectActionPerformed
+    } //GEN-LAST:event_createProjectActionPerformed
 
-    private void projNameActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_projNameActionPerformed
+    private void projNameActionPerformed(java.awt.event.ActionEvent evt) { //GEN-FIRST:event_projNameActionPerformed
         createProject.doClick();
-    }//GEN-LAST:event_projNameActionPerformed
+    } //GEN-LAST:event_projNameActionPerformed
 
-    private void projLocationActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_projLocationActionPerformed
+    private void projLocationActionPerformed(java.awt.event.ActionEvent evt) { //GEN-FIRST:event_projLocationActionPerformed
         projLocation.setText(System.getProperty("user.dir") + File.separator + "Projects");
-    }//GEN-LAST:event_projLocationActionPerformed
+    } //GEN-LAST:event_projLocationActionPerformed
 
     private void createProject() {
         if (Validator.isValidName(projName.getText().trim())) {
             String location = System.getProperty("user.dir") + File.separator + "Projects";
-           /* if (projLocation.getText().trim().isEmpty()) {
+            /* if (projLocation.getText().trim().isEmpty()) {
                 location = System.getProperty("user.dir") + File.separator + "Projects";
             } else {
                 location = FilenameUtils.getFullPath(projLocation.getText().trim());
@@ -192,19 +211,30 @@ public class NewProject extends javax.swing.JDialog {
     private void createProject(String location) {
         File file = null;
         try {
-            String fileloc = new File(location + File.separator + projName.getText()).getCanonicalPath();
+            String fileloc = new File(location + File.separator + projName.getText())
+            .getCanonicalPath();
             file = new File(fileloc);
         } catch (IOException ex) {
             Logger.getLogger(NewProject.class.getName()).log(Level.SEVERE, null, ex);
         }
-        if (!file.exists()
-                && (sMainFrame.getProject() == null
-                || !sMainFrame.getProject().getLocation().equals(file.getAbsolutePath()))) {
-            sMainFrame.createProject(projName.getText().trim(), location, testDataType.getSelectedItem().toString());
+        if (
+            !file.exists() &&
+            (
+                sMainFrame.getProject() == null ||
+                !sMainFrame.getProject().getLocation().equals(file.getAbsolutePath())
+            )
+        ) {
+            sMainFrame.createProject(
+                projName.getText().trim(),
+                location,
+                testDataType.getSelectedItem().toString()
+            );
             created = true;
             dispose();
         } else {
-            error.setText("Project Location is not Empty / Project already present in the location");
+            error.setText(
+                "Project Location is not Empty / Project already present in the location"
+            );
         }
     }
 

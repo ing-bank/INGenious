@@ -1,9 +1,12 @@
-
 package com.ing.engine.galenWrapper.SpecValidation;
 
-import com.ing.engine.commands.galenCommands.General;
-import com.ing.engine.constants.FilePath;
-import com.ing.engine.galenWrapper.Parser;
+import static com.galenframework.specs.Alignment.ALL;
+import static com.galenframework.specs.Alignment.BOTTOM;
+import static com.galenframework.specs.Alignment.CENTERED;
+import static com.galenframework.specs.Alignment.LEFT;
+import static com.galenframework.specs.Alignment.RIGHT;
+import static com.galenframework.specs.Alignment.TOP;
+
 import com.galenframework.config.GalenConfig;
 import com.galenframework.page.Rect;
 import com.galenframework.parser.ExpectNumber;
@@ -18,12 +21,6 @@ import com.galenframework.rainbow4j.filters.ImageFilter;
 import com.galenframework.rainbow4j.filters.QuantinizeFilter;
 import com.galenframework.rainbow4j.filters.SaturationFilter;
 import com.galenframework.specs.Alignment;
-import static com.galenframework.specs.Alignment.ALL;
-import static com.galenframework.specs.Alignment.BOTTOM;
-import static com.galenframework.specs.Alignment.CENTERED;
-import static com.galenframework.specs.Alignment.LEFT;
-import static com.galenframework.specs.Alignment.RIGHT;
-import static com.galenframework.specs.Alignment.TOP;
 import com.galenframework.specs.Location;
 import com.galenframework.specs.Range;
 import com.galenframework.specs.Side;
@@ -47,6 +44,9 @@ import com.galenframework.specs.SpecText.Type;
 import com.galenframework.specs.SpecVertically;
 import com.galenframework.specs.SpecWidth;
 import com.galenframework.specs.colors.ColorRange;
+import com.ing.engine.commands.galenCommands.General;
+import com.ing.engine.constants.FilePath;
+import com.ing.engine.galenWrapper.Parser;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.LinkedList;
@@ -60,7 +60,6 @@ import org.apache.commons.lang3.tuple.Pair;
  *
  */
 public class SpecReader {
-
     private static SpecReader specReader;
 
     public static SpecReader reader() {
@@ -74,15 +73,28 @@ public class SpecReader {
         return new SpecContains(objects, isPartly);
     }
 
-    public SpecWidth getSpecWidth(General.RelativeElement rElement, String value, String relativeObjectName) {
+    public SpecWidth getSpecWidth(
+        General.RelativeElement rElement,
+        String value,
+        String relativeObjectName
+    ) {
         return new SpecWidth(getRange(rElement, value, relativeObjectName, "/width"));
     }
 
-    public SpecHeight getSpecHeight(General.RelativeElement rElement, String value, String relativeObjectName) {
+    public SpecHeight getSpecHeight(
+        General.RelativeElement rElement,
+        String value,
+        String relativeObjectName
+    ) {
         return new SpecHeight(getRange(rElement, value, relativeObjectName, "/height"));
     }
 
-    private Range getRange(General.RelativeElement rElement, String value, String relativeObjectName, String type) {
+    private Range getRange(
+        General.RelativeElement rElement,
+        String value,
+        String relativeObjectName,
+        String type
+    ) {
         switch (rElement) {
             case None:
                 return Parser.parseRange(value);
@@ -101,7 +113,9 @@ public class SpecReader {
     public SpecCss getSpecCSS(Type type, String value) {
         String cssPropertyName = Expectations.word().read(new StringCharReader(value));
         if (cssPropertyName.isEmpty()) {
-            throw new SyntaxException("Expected two values {property (space) value} but only got " + value);
+            throw new SyntaxException(
+                "Expected two values {property (space) value} but only got " + value
+            );
         }
         String cssValue = value.replaceFirst(cssPropertyName + "(,|=|:| )", "");
         return new SpecCss(cssPropertyName, type, cssValue);
@@ -118,7 +132,9 @@ public class SpecReader {
     public SpecAttribute getSpecAttribute(Type type, String value) {
         String attributeName = Expectations.word().read(new StringCharReader(value));
         if (attributeName.isEmpty()) {
-            throw new SyntaxException("Expected two values {attribute (space) value} but only got " + value);
+            throw new SyntaxException(
+                "Expected two values {attribute (space) value} but only got " + value
+            );
         }
         String attrValue = value.replaceFirst(attributeName + "(,|=|:| )", "");
         return new SpecAttribute(attributeName, type, attrValue);
@@ -182,26 +198,40 @@ public class SpecReader {
                 if (alignment.isOneOf(CENTERED, TOP, BOTTOM, ALL)) {
                     return new SpecHorizontally(alignment, objectName).withErrorRate(errorRate);
                 } else {
-                    throw new SyntaxException("Horizontal alignment doesn't allow this side: " + alignment.toString());
+                    throw new SyntaxException(
+                        "Horizontal alignment doesn't allow this side: " + alignment.toString()
+                    );
                 }
             case "vertically":
                 if (alignment.isOneOf(CENTERED, LEFT, RIGHT, ALL)) {
                     return new SpecVertically(alignment, objectName).withErrorRate(errorRate);
                 } else {
-                    throw new SyntaxException("Verticall alignment doesn't allow this side: " + alignment.toString());
+                    throw new SyntaxException(
+                        "Verticall alignment doesn't allow this side: " + alignment.toString()
+                    );
                 }
             default:
                 throw new SyntaxException("Unknown alignment: " + type);
         }
     }
 
-    public SpecCentered getSpecCentered(String objectName, String value, SpecCentered.Location location, SpecCentered.Alignment alignment) {
+    public SpecCentered getSpecCentered(
+        String objectName,
+        String value,
+        SpecCentered.Location location,
+        SpecCentered.Alignment alignment
+    ) {
         int errorRate = Parser.parseRange(value).getFrom().asInt();
         errorRate = errorRate == -1 ? 2 : errorRate;
         return new SpecCentered(objectName, alignment, location).withErrorRate(errorRate);
     }
 
-    public SpecOn getSpecOn(String objectName, Side sideHorizontal, Side sideVertical, String value) {
+    public SpecOn getSpecOn(
+        String objectName,
+        Side sideHorizontal,
+        Side sideVertical,
+        String value
+    ) {
         List<Location> locations = Parser.parseLocation(value);
         if (locations == null || locations.isEmpty()) {
             throw new SyntaxException("There is no location defined");
@@ -229,7 +259,9 @@ public class SpecReader {
     }
 
     private void getImageParameters(SpecImage spec, String Data) {
-        List<Pair<String, String>> parameters = Expectations.commaSeparatedRepeatedKeyValues().read(new StringCharReader(Data));
+        List<Pair<String, String>> parameters = Expectations
+            .commaSeparatedRepeatedKeyValues()
+            .read(new StringCharReader(Data));
         for (Pair<String, String> parameter : parameters) {
             if (null != parameter.getKey()) {
                 switch (parameter.getKey()) {
@@ -248,39 +280,46 @@ public class SpecReader {
                     case "area":
                         spec.setSelectedArea(parseRect(parameter.getValue()));
                         break;
-                    case "filter": {
-                        ImageFilter filter = parseImageFilter(parameter.getValue());
-                        spec.getOriginalFilters().add(filter);
-                        spec.getSampleFilters().add(filter);
-                    }
-                    break;
-                    case "filter-a": {
-                        ImageFilter filter = parseImageFilter(parameter.getValue());
-                        spec.getOriginalFilters().add(filter);
+                    case "filter":
+                        {
+                            ImageFilter filter = parseImageFilter(parameter.getValue());
+                            spec.getOriginalFilters().add(filter);
+                            spec.getSampleFilters().add(filter);
+                        }
                         break;
-                    }
-                    case "filter-b": {
-                        ImageFilter filter = parseImageFilter(parameter.getValue());
-                        spec.getSampleFilters().add(filter);
-                    }
-                    break;
-                    case "map-filter": {
-                        ImageFilter filter = parseImageFilter(parameter.getValue());
-                        spec.getMapFilters().add(filter);
-                    }
-                    break;
+                    case "filter-a":
+                        {
+                            ImageFilter filter = parseImageFilter(parameter.getValue());
+                            spec.getOriginalFilters().add(filter);
+                            break;
+                        }
+                    case "filter-b":
+                        {
+                            ImageFilter filter = parseImageFilter(parameter.getValue());
+                            spec.getSampleFilters().add(filter);
+                        }
+                        break;
+                    case "map-filter":
+                        {
+                            ImageFilter filter = parseImageFilter(parameter.getValue());
+                            spec.getMapFilters().add(filter);
+                        }
+                        break;
                     case "crop-if-outside":
                         spec.setCropIfOutside(true);
                         break;
                     case "exclude-objects":
                         String ignoreObjects = parseExcludeObjects(parameter.getValue());
-                        Optional.ofNullable(spec.getIgnoredObjectExpressions())
-                                .orElseGet(() -> {
+                        Optional
+                            .ofNullable(spec.getIgnoredObjectExpressions())
+                            .orElseGet(
+                                () -> {
                                     List<String> l = new LinkedList<>();
                                     spec.setIgnoredObjectExpressions(l);
                                     return l;
-                                })
-                                .add(ignoreObjects);
+                                }
+                            )
+                            .add(ignoreObjects);
                         break;
                     default:
                         throw new SyntaxException("Unknown parameter: " + parameter.getKey());
@@ -317,7 +356,14 @@ public class SpecReader {
 
     private List<String> getImagepath(String pageName, String objectName) {
         List<String> path = new ArrayList<>();
-        File[] files = new File(FilePath.getORimagestorelocation() + File.separator + pageName + File.separator + objectName).listFiles();
+        File[] files = new File(
+            FilePath.getORimagestorelocation() +
+            File.separator +
+            pageName +
+            File.separator +
+            objectName
+        )
+        .listFiles();
         if (files == null || files.length == 0) {
             return path;
         }

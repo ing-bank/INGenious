@@ -1,4 +1,3 @@
-
 package com.ing.ide.main.utils;
 
 import java.awt.Color;
@@ -17,7 +16,6 @@ import javax.swing.text.JTextComponent;
 import javax.swing.text.SimpleAttributeSet;
 import javax.swing.text.StyleConstants;
 
-
 /*
  *  Create a simple console to display text messages.
  *
@@ -30,7 +28,6 @@ import javax.swing.text.StyleConstants;
  *  You can limit the number of lines to hold in the Document.
  */
 public class MessageConsole {
-
     private static final Color DARK_GREEN = new Color(0x00, 0xC0, 0x00);
 
     private JTextComponent textComponent;
@@ -127,7 +124,6 @@ public class MessageConsole {
      *  the output source.
      */
     class ConsoleOutputStream extends ByteArrayOutputStream {
-
         private final String EOL = System.getProperty("line.separator");
         private SimpleAttributeSet attributes, attr_PASS, attr_FAIL;
         private PrintStream printStream;
@@ -200,7 +196,6 @@ public class MessageConsole {
                 buffer.append(message);
                 clearBuffer();
             }
-
         }
 
         /*
@@ -242,8 +237,7 @@ public class MessageConsole {
                     document.insertString(0, line, withDynamicColor(line));
                     textComponent.setCaretPosition(0);
                 }
-            } catch (BadLocationException ble) {
-            }
+            } catch (BadLocationException ble) {}
 
             if (printStream != null) {
                 printStream.print(line);
@@ -260,15 +254,13 @@ public class MessageConsole {
                 } else if (line.startsWith("[FAIL]") || line.startsWith("[DEBUG]")) {
                     return attr_FAIL;
                 }
-            } catch (Exception ex) {
-            }
+            } catch (Exception ex) {}
             return attributes;
         }
     }
 }
 
 final class LimitLinesDocumentListener implements DocumentListener {
-
     private static final Logger LOG = Logger.getLogger(LimitLinesDocumentListener.class.getName());
 
     private int maximumLines;
@@ -317,18 +309,18 @@ final class LimitLinesDocumentListener implements DocumentListener {
         //  Changes to the Document can not be done within the listener
         //  so we need to add the processing to the end of the EDT
 
-        SwingUtilities.invokeLater(() -> {
-            removeLines(e);
-        });
+        SwingUtilities.invokeLater(
+            () -> {
+                removeLines(e);
+            }
+        );
     }
 
     @Override
-    public void removeUpdate(DocumentEvent e) {
-    }
+    public void removeUpdate(DocumentEvent e) {}
 
     @Override
-    public void changedUpdate(DocumentEvent e) {
-    }
+    public void changedUpdate(DocumentEvent e) {}
 
     /*
      *  Remove lines from the Document when necessary
@@ -380,5 +372,4 @@ final class LimitLinesDocumentListener implements DocumentListener {
             LOG.log(Level.WARNING, ex.getMessage(), ex);
         }
     }
-
 }

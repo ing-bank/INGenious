@@ -1,14 +1,12 @@
-
 package com.ing.ide.main.mainui.components.testexecution.quickSettings;
 
 import com.ing.datalib.settings.RunSettings;
 
 /**
  *
- * 
+ *
  */
 public abstract class QuickSettingsUI extends javax.swing.JPanel {
-
     protected PropertyListener pUp;
 
     /**
@@ -32,5 +30,5 @@ public abstract class QuickSettingsUI extends javax.swing.JPanel {
         }
     }
 
-    abstract protected void updateUI(RunSettings x);
+    protected abstract void updateUI(RunSettings x);
 }

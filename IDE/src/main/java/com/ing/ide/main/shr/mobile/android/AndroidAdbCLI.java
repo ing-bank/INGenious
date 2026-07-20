@@ -1,4 +1,3 @@
-
 package com.ing.ide.main.shr.mobile.android;
 
 import com.ing.ide.util.Notification;
@@ -15,26 +14,24 @@ import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public class AndroidAdbCLI {
-    
-    private final String adbPath = "/Users/Apple/Library/Android/sdk/platform-tools/";//For Testing
+    private final String adbPath = "/Users/Apple/Library/Android/sdk/platform-tools/"; //For Testing
     private String serial = System.getenv("ANDROID_SERIAL");
     private ProcRunner procRunner;
     private int retCode = -1;
-    
+
     public void setSerial(Object serial) {
         this.serial = serial != null ? serial.toString() : null;
     }
-    
+
     public List<String> getDevices() {
         List<String> devices = new ArrayList<>();
-        procRunner = getAdbRunner(serial,
-                "devices");
+        procRunner = getAdbRunner(serial, "devices");
         try {
             retCode = procRunner.run(30000);
             if (retCode != 0) {
                 throw new IOException(
-                        "Non-zero return code from devices command\n"
-                        + procRunner.getOutputBlob());
+                    "Non-zero return code from devices command\n" + procRunner.getOutputBlob()
+                );
             }
             for (int i = 1; i < procRunner.mOutput.size(); i++) {
                 String val = procRunner.mOutput.get(i);
@@ -45,7 +42,9 @@ public class AndroidAdbCLI {
                 }
             }
             if (devices.isEmpty()) {
-                Notification.show("No device found. Please Check whether the device is connected or not");
+                Notification.show(
+                    "No device found. Please Check whether the device is connected or not"
+                );
             }
         } catch (IOException e) {
             Notification.show(e.getMessage());
@@ -53,7 +52,7 @@ public class AndroidAdbCLI {
         }
         return devices;
     }
-    
+
     public File takeScreenshot() {
         File screenshotfile;
         try {
@@ -63,37 +62,46 @@ public class AndroidAdbCLI {
             Logger.getLogger(AndroidAdbCLI.class.getName()).log(Level.SEVERE, null, ex);
             return null;
         }
-        procRunner = getAdbRunner(serial,
-                "shell", "rm", "/sdcard/screenshot.png");
+        procRunner = getAdbRunner(serial, "shell", "rm", "/sdcard/screenshot.png");
         try {
             retCode = procRunner.run(30000);
             if (retCode != 0) {
                 throw new IOException(
-                        "Non-zero return code from \"rm\" screenshot command:\n"
-                        + procRunner.getOutputBlob());
+                    "Non-zero return code from \"rm\" screenshot command:\n" +
+                    procRunner.getOutputBlob()
+                );
             }
         } catch (IOException e) {
-//            Notification.show(e.getMessage());
+            //            Notification.show(e.getMessage());
             Logger.getLogger(AndroidAdbCLI.class.getName()).log(Level.SEVERE, null, e);
-//            return null;
+            //            return null;
         }
         procRunner = getAdbRunner(serial, "shell", "screencap", "-p", "/sdcard/screenshot.png");
         try {
             retCode = procRunner.run(30000);
             if (retCode != 0) {
-                throw new IOException("Non-zero return code from screenshot command:\n"
-                        + procRunner.getOutputBlob());
+                throw new IOException(
+                    "Non-zero return code from screenshot command:\n" + procRunner.getOutputBlob()
+                );
             }
         } catch (IOException e) {
             Logger.getLogger(AndroidAdbCLI.class.getName()).log(Level.SEVERE, null, e);
             Notification.show(e.getMessage());
             return null;
         }
-        procRunner = getAdbRunner(serial, "pull", "/sdcard/screenshot.png", screenshotfile.getAbsolutePath());
+        procRunner =
+            getAdbRunner(
+                serial,
+                "pull",
+                "/sdcard/screenshot.png",
+                screenshotfile.getAbsolutePath()
+            );
         try {
             retCode = procRunner.run(30000);
             if (retCode != 0) {
-                throw new IOException("Non-zero return code from pull command:\n" + procRunner.getOutputBlob());
+                throw new IOException(
+                    "Non-zero return code from pull command:\n" + procRunner.getOutputBlob()
+                );
             }
         } catch (IOException e) {
             Logger.getLogger(AndroidAdbCLI.class.getName()).log(Level.SEVERE, null, e);
@@ -102,7 +110,7 @@ public class AndroidAdbCLI {
         }
         return screenshotfile;
     }
-    
+
     public File takeXML() {
         File xmlDumpFile;
         try {
@@ -112,40 +120,42 @@ public class AndroidAdbCLI {
             Logger.getLogger(AndroidAdbCLI.class.getName()).log(Level.SEVERE, null, ex);
             return null;
         }
-        procRunner = getAdbRunner(serial,
-                "shell", "rm", "/sdcard/uidump.xml");
+        procRunner = getAdbRunner(serial, "shell", "rm", "/sdcard/uidump.xml");
         try {
             retCode = procRunner.run(30000);
             if (retCode != 0) {
                 throw new IOException(
-                        "Non-zero return code from \"rm\" xml dump command:\n"
-                        + procRunner.getOutputBlob());
+                    "Non-zero return code from \"rm\" xml dump command:\n" +
+                    procRunner.getOutputBlob()
+                );
             }
         } catch (IOException e) {
-//            Notification.show(e.getMessage());
+            //            Notification.show(e.getMessage());
             Logger.getLogger(AndroidAdbCLI.class.getName()).log(Level.SEVERE, null, e);
-//            return null;
+            //            return null;
         }
-        procRunner = getAdbRunner(serial,
-                "shell", "/system/bin/uiautomator", "dump", "/sdcard/uidump.xml");
+        procRunner =
+            getAdbRunner(serial, "shell", "/system/bin/uiautomator", "dump", "/sdcard/uidump.xml");
         try {
             retCode = procRunner.run(30000);
             if (retCode != 0) {
-                throw new IOException("Non-zero return code from dump command:\n"
-                        + procRunner.getOutputBlob());
+                throw new IOException(
+                    "Non-zero return code from dump command:\n" + procRunner.getOutputBlob()
+                );
             }
         } catch (IOException e) {
             Notification.show(e.getMessage());
             Logger.getLogger(AndroidAdbCLI.class.getName()).log(Level.SEVERE, null, e);
             return null;
         }
-        procRunner = getAdbRunner(serial,
-                "pull", "/sdcard/uidump.xml", xmlDumpFile.getAbsolutePath());
+        procRunner =
+            getAdbRunner(serial, "pull", "/sdcard/uidump.xml", xmlDumpFile.getAbsolutePath());
         try {
             retCode = procRunner.run(30000);
             if (retCode != 0) {
-                throw new IOException("Non-zero return code from pull command:\n"
-                        + procRunner.getOutputBlob());
+                throw new IOException(
+                    "Non-zero return code from pull command:\n" + procRunner.getOutputBlob()
+                );
             }
         } catch (IOException e) {
             Notification.show(e.getMessage());
@@ -154,16 +164,15 @@ public class AndroidAdbCLI {
         }
         return xmlDumpFile;
     }
-    
+
     public String[] getPackageNameAndActivityName() {
-        procRunner = getAdbRunner(serial,
-                "shell", "dumpsys", "activity", "activities");
+        procRunner = getAdbRunner(serial, "shell", "dumpsys", "activity", "activities");
         try {
             retCode = procRunner.run(30000);
             if (retCode != 0) {
                 throw new IOException(
-                        "Non-zero return code from devices command\n"
-                        + procRunner.getOutputBlob());
+                    "Non-zero return code from devices command\n" + procRunner.getOutputBlob()
+                );
             }
             String activity = null;
             for (int i = 1; i < procRunner.mOutput.size(); i++) {
@@ -175,19 +184,20 @@ public class AndroidAdbCLI {
             }
             if (activity != null) {
                 String[] details = new String[2];
-                Matcher match = Pattern.compile("((\\w+(\\.)?)+)/(\\.)?((\\w+(\\.)?)+)").matcher(activity);
+                Matcher match = Pattern
+                    .compile("((\\w+(\\.)?)+)/(\\.)?((\\w+(\\.)?)+)")
+                    .matcher(activity);
                 if (match.find()) {
                     details[0] = match.group(1);
                     details[1] = match.group(5);
                 }
                 return details;
             }
-            
         } catch (IOException e) {
             Notification.show(e.getMessage());
             Logger.getLogger(AndroidAdbCLI.class.getName()).log(Level.SEVERE, null, e);
         }
-        return new String[]{};
+        return new String[] {};
     }
 
     /*
@@ -211,24 +221,27 @@ public class AndroidAdbCLI {
      *
      */
     private static class ProcRunner {
-        
         ProcessBuilder mProcessBuilder;
         List<String> mOutput = new ArrayList<String>();
-        
+
         public ProcRunner(List<String> command) {
             mProcessBuilder = new ProcessBuilder(command).redirectErrorStream(true);
         }
-        
+
         public int run(long timeout) throws IOException {
             final Process p = mProcessBuilder.start();
             Thread t = new Thread() {
+
                 @Override
                 public void run() {
                     String line;
                     mOutput.clear();
                     try {
-                        try (BufferedReader br = new BufferedReader(new InputStreamReader(
-                                p.getInputStream()))) {
+                        try (
+                            BufferedReader br = new BufferedReader(
+                                new InputStreamReader(p.getInputStream())
+                            )
+                        ) {
                             line = br.readLine();
                             while (line != null) {
                                 mOutput.add(line);
@@ -256,7 +269,7 @@ public class AndroidAdbCLI {
                 throw new IOException(e);
             }
         }
-        
+
         public String getOutputBlob() {
             StringBuilder sb = new StringBuilder();
             for (String line : mOutput) {

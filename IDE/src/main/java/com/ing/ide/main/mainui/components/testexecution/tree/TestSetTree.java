@@ -1,4 +1,3 @@
-
 package com.ing.ide.main.mainui.components.testexecution.tree;
 
 import com.ing.datalib.component.Release;
@@ -52,7 +51,6 @@ import javax.swing.tree.TreePath;
  *
  */
 public class TestSetTree implements ActionListener {
-
     private static final Logger LOGGER = Logger.getLogger(TestSetTree.class.getName());
 
     private final TestSetPopupMenu popupMenu;
@@ -82,100 +80,131 @@ public class TestSetTree implements ActionListener {
         tree.getInputMap(JComponent.WHEN_FOCUSED).put(Keystroke.RENAME, "Rename");
         tree.getInputMap(JComponent.WHEN_FOCUSED).put(KeyStroke.getKeyStroke("ESCAPE"), "Escape");
 
-        tree.getActionMap().put("New", new AbstractAction() {
+        tree
+            .getActionMap()
+            .put(
+                "New",
+                new AbstractAction() {
 
-            @Override
-            public void actionPerformed(ActionEvent ae) {
-                if (getSelectedRelease() != null) {
-                    addTestSet();
-                } else {
-                    addRelease();
+                    @Override
+                    public void actionPerformed(ActionEvent ae) {
+                        if (getSelectedRelease() != null || getSelectedTestSet() != null) {
+                            addTestSet();
+                        } else {
+                            addRelease();
+                        }
+                    }
+                }
+            );
+        tree
+            .getActionMap()
+            .put(
+                "Delete",
+                new AbstractAction() {
+
+                    @Override
+                    public void actionPerformed(ActionEvent ae) {
+                        deleteTestSets();
+                        deleteReleases();
+                    }
+                }
+            );
+
+        tree
+            .getActionMap()
+            .put(
+                "Rename",
+                new AbstractAction() {
+
+                    @Override
+                    public void actionPerformed(ActionEvent ae) {
+                        ReleaseNode releaseNode = getSelectedReleaseNode();
+                        if (releaseNode != null) {
+                            tree.startEditingAtPath(new TreePath(releaseNode.getPath()));
+                            return;
+                        }
+                        TestSetNode testSetNode = getSelectedTestSetNode();
+                        if (testSetNode != null) {
+                            tree.startEditingAtPath(new TreePath(testSetNode.getPath()));
+                        }
+                    }
+                }
+            );
+
+        tree
+            .getActionMap()
+            .put(
+                "Escape",
+                new AbstractAction() {
+
+                    @Override
+                    public void actionPerformed(ActionEvent ae) {
+                        if (tree.isEditing()) {
+                            tree.cancelEditing();
+                        }
+                    }
+                }
+            );
+
+        tree.addMouseListener(
+            new MouseAdapter() {
+
+                @Override
+                public void mouseClicked(MouseEvent e) {
+                    if (SwingUtilities.isLeftMouseButton(e) && e.getClickCount() == 2) {
+                        loadTableModelForSelection();
+                    }
                 }
             }
-        });
-        tree.getActionMap().put("Delete", new AbstractAction() {
+        );
+        popupMenu.addPopupMenuListener(
+            new PopupMenuListener() {
 
-            @Override
-            public void actionPerformed(ActionEvent ae) {
-                deleteTestSets();
-                deleteReleases();
-            }
-        });
-
-        tree.getActionMap().put("Rename", new AbstractAction() {
-
-            @Override
-            public void actionPerformed(ActionEvent ae) {
-                ReleaseNode releaseNode = getSelectedReleaseNode();
-                if (releaseNode != null) {
-                    tree.startEditingAtPath(new TreePath(releaseNode.getPath()));
-                    return;
+                @Override
+                public void popupMenuWillBecomeVisible(PopupMenuEvent pme) {
+                    onRightClick(null);
                 }
-                TestSetNode testSetNode = getSelectedTestSetNode();
-                if (testSetNode != null) {
-                    tree.startEditingAtPath(new TreePath(testSetNode.getPath()));
+
+                @Override
+                public void popupMenuWillBecomeInvisible(PopupMenuEvent pme) {
+                    //
+                }
+
+                @Override
+                public void popupMenuCanceled(PopupMenuEvent pme) {
+                    //
                 }
             }
-        });
-
-        tree.getActionMap().put("Escape", new AbstractAction() {
-
-            @Override
-            public void actionPerformed(ActionEvent ae) {
-                if (tree.isEditing()) {
-                    tree.cancelEditing();
-                }
-            }
-        });
-
-        tree.addMouseListener(new MouseAdapter() {
-
-            @Override
-            public void mouseClicked(MouseEvent e) {
-                if (SwingUtilities.isLeftMouseButton(e) && e.getClickCount() == 2) {
-                    loadTableModelForSelection();
-                }
-            }
-        });
-        popupMenu.addPopupMenuListener(new PopupMenuListener() {
-
-            @Override
-            public void popupMenuWillBecomeVisible(PopupMenuEvent pme) {
-                onRightClick(null);
-            }
-
-            @Override
-            public void popupMenuWillBecomeInvisible(PopupMenuEvent pme) {
-                //
-            }
-
-            @Override
-            public void popupMenuCanceled(PopupMenuEvent pme) {
-                //
-            }
-        });
+        );
         setTreeIcon();
 
-        tree.getCellEditor().addCellEditorListener(new CellEditorListener() {
-            @Override
-            public void editingStopped(ChangeEvent ce) {
-                if (!checkAndRename()) {
-                    tree.getCellEditor().cancelCellEditing();
+        tree
+            .getCellEditor()
+            .addCellEditorListener(
+                new CellEditorListener() {
+
+                    @Override
+                    public void editingStopped(ChangeEvent ce) {
+                        if (!checkAndRename()) {
+                            tree.getCellEditor().cancelCellEditing();
+                        }
+                    }
+
+                    @Override
+                    public void editingCanceled(ChangeEvent ce) {
+                        //                checkAndRename();
+                    }
                 }
-            }
-
-            @Override
-            public void editingCanceled(ChangeEvent ce) {
-//                checkAndRename();
-            }
-        });
-
+            );
     }
 
     private void setTreeIcon() {
         try {
             //create the font to use. Specify the size!
-            Font customFont = Font.createFont(Font.TRUETYPE_FONT, new File("resources/ui/resources/fonts/ingme_regular.ttf"));//.deriveFont(12f);
+            Font customFont = Font.createFont(
+                Font.TRUETYPE_FONT,
+                new File("resources/ui/resources/fonts/ingme_regular.ttf")
+            ); //.deriveFont(12f);
             GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
             //register the font
             ge.registerFont(customFont);
@@ -184,9 +213,26 @@ public class TestSetTree implements ActionListener {
         }
         tree.setFont(new Font("ING Me", Font.PLAIN, 11));
         new TreeSelectionRenderer(tree) {
+
             @Override
-            public Component getTreeCellRendererComponent(JTree tree, Object value, boolean selected, boolean expanded, boolean isLeaf, int row, boolean focused) {
-                Component c = super.getTreeCellRendererComponent(tree, value, selected, expanded, isLeaf, row, focused);
+            public Component getTreeCellRendererComponent(
+                JTree tree,
+                Object value,
+                boolean selected,
+                boolean expanded,
+                boolean isLeaf,
+                int row,
+                boolean focused
+            ) {
+                Component c = super.getTreeCellRendererComponent(
+                    tree,
+                    value,
+                    selected,
+                    expanded,
+                    isLeaf,
+                    row,
+                    focused
+                );
                 if (value instanceof ReleaseNode) {
                     setIcons(IconSettings.getIconSettings().getTestLabRelease());
                 } else if (value instanceof TestSetNode) {
@@ -274,7 +320,8 @@ public class TestSetTree implements ActionListener {
 
     private void addRelease() {
         ReleaseNode releaseNode = treeModel.addRelease(
-                testExecution.getProject().addRelease(fetchNewReleaseName()));
+            testExecution.getProject().addRelease(fetchNewReleaseName())
+        );
         selectAndScrollTo(new TreePath(releaseNode.getPath()));
     }
 
@@ -291,25 +338,31 @@ public class TestSetTree implements ActionListener {
 
     private void addTestSet() {
         ReleaseNode releaseNode = getSelectedReleaseNode();
+        if (releaseNode == null) {
+            TestSetNode tsNode = getSelectedTestSetNode();
+            if (tsNode != null && tsNode.getParent() instanceof ReleaseNode) {
+                releaseNode = (ReleaseNode) tsNode.getParent();
+            }
+        }
         if (releaseNode != null) {
             String testSetName = fetchNewTestSetName(releaseNode.getRelease());
             TestSet testset = releaseNode.getRelease().addTestSet(testSetName);
             testExecution.getTestSetComp().loadTableModelForSelection(testset);
-            selectAndScrollTo(new TreePath(treeModel.
-                    addTestSet(releaseNode, testset).getPath()));
+            selectAndScrollTo(new TreePath(treeModel.addTestSet(releaseNode, testset).getPath()));
         }
     }
 
     private void selectAndScrollTo(final TreePath path) {
-        SwingUtilities.invokeLater(new Runnable() {
-            @Override
-            public void run() {
-                tree.setSelectionPath(path);
-                tree.scrollPathToVisible(path);
-                tree.removeSelectionPath(path);
-                tree.addSelectionPaths(new TreePath[]{path.getParentPath(), path});
+        SwingUtilities.invokeLater(
+            new Runnable() {
+
+                @Override
+                public void run() {
+                    tree.setSelectionPath(path);
+                    tree.scrollPathToVisible(path);
+                }
             }
-        });
+        );
     }
 
     private String fetchNewTestSetName(Release release) {
@@ -344,10 +397,14 @@ public class TestSetTree implements ActionListener {
                     testExecution.getTestSetComp().refreshTitle();
                     return true;
                 } else {
-                    Notification.show("TestSet '" + name + "' Already present in Release - " + getSelectedTestSet().getRelease().getName());
+                    Notification.show(
+                        "TestSet '" +
+                        name +
+                        "' Already present in Release - " +
+                        getSelectedTestSet().getRelease().getName()
+                    );
                 }
             }
-
         }
         return false;
     }
@@ -355,16 +412,21 @@ public class TestSetTree implements ActionListener {
     private void deleteReleases() {
         List<ReleaseNode> releases = getSelectedReleaseNodes();
         if (!releases.isEmpty()) {
-            int option = JOptionPane.showConfirmDialog(null,
-                    "<html><body><p style='width: 200px;'>"
-                            + "Are you sure want to delete the following Releases?<br>"
-                            + releases
-                            + "</p></body></html>",
-                    "Delete Release",
-                    JOptionPane.YES_NO_OPTION);
+            int option = JOptionPane.showConfirmDialog(
+                null,
+                "<html><body><p style='width: 200px;'>" +
+                "Are you sure want to delete the following Releases?<br>" +
+                releases +
+                "</p></body></html>",
+                "Delete Release",
+                JOptionPane.YES_NO_OPTION
+            );
             if (option == JOptionPane.YES_OPTION) {
-                LOGGER.log(Level.INFO, "Delete Releases approved for {0}; {1}",
-                        new Object[]{releases.size(), releases});
+                LOGGER.log(
+                    Level.INFO,
+                    "Delete Releases approved for {0}; {1}",
+                    new Object[] { releases.size(), releases }
+                );
                 for (ReleaseNode releaseNode : releases) {
                     deleteTestSets(Collections.list(releaseNode.children()));
                     releaseNode.getRelease().delete();
@@ -377,17 +439,24 @@ public class TestSetTree implements ActionListener {
     private void deleteTestSets() {
         List<TestSetNode> testsets = getSelectedTestSetNodes();
         if (!testsets.isEmpty()) {
-            int option = JOptionPane.showConfirmDialog(null,
-                    "<html><body><p style='width: 200px;'>"
-                            + "Are you sure want to delete the following TestSets?<br>"
-                            + testsets
-                            + "</p></body></html>",
-                    "Delete TestSet",
-                    JOptionPane.YES_NO_OPTION);
+            int option = JOptionPane.showConfirmDialog(
+                null,
+                "<html><body><p style='width: 200px;'>" +
+                "Are you sure want to delete the following TestSets?<br>" +
+                testsets +
+                "</p></body></html>",
+                "Delete TestSet",
+                JOptionPane.YES_NO_OPTION
+            );
             if (option == JOptionPane.YES_OPTION) {
-                LOGGER.log(Level.INFO, "Delete TestSets approved for {0}; {1}",
-                        new Object[]{testsets.size(), testsets});
-                deleteTestSets(testsets.stream().map(tsNode -> (TreeNode) tsNode).collect(Collectors.toList()));
+                LOGGER.log(
+                    Level.INFO,
+                    "Delete TestSets approved for {0}; {1}",
+                    new Object[] { testsets.size(), testsets }
+                );
+                deleteTestSets(
+                    testsets.stream().map(tsNode -> (TreeNode) tsNode).collect(Collectors.toList())
+                );
             }
         }
     }
@@ -397,10 +466,11 @@ public class TestSetTree implements ActionListener {
         Boolean shouldRemove = false;
         for (TreeNode testsetNode : testsets) {
             if (!shouldRemove) {
-                shouldRemove = Objects.equals(loadedTestSet,(((TestSetNode)testsetNode).getTestSet()));
+                shouldRemove =
+                    Objects.equals(loadedTestSet, (((TestSetNode) testsetNode).getTestSet()));
             }
-            ((TestSetNode)testsetNode).getTestSet().delete();
-            treeModel.removeNodeFromParent((TestSetNode)testsetNode);
+            ((TestSetNode) testsetNode).getTestSet().delete();
+            treeModel.removeNodeFromParent((TestSetNode) testsetNode);
         }
         if (shouldRemove) {
             testExecution.getTestSetComp().resetTable();
@@ -477,11 +547,12 @@ public class TestSetTree implements ActionListener {
             String releaseName = testSet.getRelease().getName();
             String testSetName = testSet.getName();
             String syntax = String.format(
-                    "%s -run -project_location \"%s\" -release \"%s\" -testset \"%s\"",
-                    getBatRCommand(),
-                    testSet.getProject().getLocation(),
-                    releaseName,
-                    testSetName);
+                "%s -run -project_location \"%s\" -release \"%s\" -testset \"%s\"",
+                getBatRCommand(),
+                testSet.getProject().getLocation(),
+                releaseName,
+                testSetName
+            );
             Utils.copyTextToClipboard(syntax);
             Notification.show("Syntax has been copied to Clipboard");
         } else {
@@ -502,7 +573,7 @@ public class TestSetTree implements ActionListener {
         if (testSet != null) {
             String releaseName = testSet.getRelease().getName();
             String testSetName = testSet.getName();
-            String yaml = generateYAML(testSet.getProject().getName(),releaseName,testSetName);
+            String yaml = generateYAML(testSet.getProject().getName(), releaseName, testSetName);
             Utils.copyTextToClipboard(yaml);
             Notification.show("Yaml Content has been copied to Clipboard");
         } else {
@@ -525,13 +596,12 @@ public class TestSetTree implements ActionListener {
         loadTableModelForSelection();
     }
 
-    private String generateYAML(String Project,String Release,String TestSet) {
+    private String generateYAML(String Project, String Release, String TestSet) {
         StringBuilder yamlBuilder = new StringBuilder();
         return yamlBuilder.toString();
     }
 
     class TestSetPopupMenu extends JPopupMenu {
-
         private JMenuItem addRelease;
         private JMenuItem renameRelease;
         private JMenuItem deleteRelease;
@@ -605,7 +675,10 @@ public class TestSetTree implements ActionListener {
         private JMenuItem create(String name, KeyStroke keyStroke) {
             try {
                 //create the font to use. Specify the size!
-                Font customFont = Font.createFont(Font.TRUETYPE_FONT, new File("resources/ui/resources/fonts/ingme_regular.ttf"));//.deriveFont(12f);
+                Font customFont = Font.createFont(
+                    Font.TRUETYPE_FONT,
+                    new File("resources/ui/resources/fonts/ingme_regular.ttf")
+                ); //.deriveFont(12f);
                 GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
                 //register the font
                 ge.registerFont(customFont);
@@ -619,8 +692,5 @@ public class TestSetTree implements ActionListener {
             menuItem.setFont(new Font("ING Me", Font.PLAIN, 11));
             return menuItem;
         }
-
-
-
     }
 }

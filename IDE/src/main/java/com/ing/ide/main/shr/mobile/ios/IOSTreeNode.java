@@ -1,4 +1,3 @@
-
 package com.ing.ide.main.shr.mobile.ios;
 
 import com.ing.ide.main.shr.mobile.MobileTreeNode;
@@ -6,12 +5,11 @@ import com.ing.ide.main.shr.mobile.Rect;
 
 /**
  *
- * 
+ *
  */
 public class IOSTreeNode extends MobileTreeNode {
 
-    public IOSTreeNode() {
-    }
+    public IOSTreeNode() {}
 
     public IOSTreeNode(String text) {
         setUserObject(text);

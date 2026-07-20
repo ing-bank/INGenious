@@ -1,10 +1,9 @@
-
 package com.ing.datalib.settings;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ing.datalib.settings.testmgmt.Option;
 import com.ing.datalib.settings.testmgmt.TestMgModule;
 import com.ing.datalib.util.data.FileScanner;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -17,10 +16,9 @@ import java.util.logging.Logger;
 
 /**
  *
- * 
+ *
  */
 public class TestMgmtModule {
-
     private List<TestMgModule> modules;
 
     private String location;
@@ -38,11 +36,21 @@ public class TestMgmtModule {
         File modulesFile = new File(getLocation());
         try {
             if (modulesFile.exists()) {
-                modules = objMapper.readValue(modulesFile,
-                        objMapper.getTypeFactory().constructCollectionType(List.class, TestMgModule.class));
+                modules =
+                    objMapper.readValue(
+                        modulesFile,
+                        objMapper
+                            .getTypeFactory()
+                            .constructCollectionType(List.class, TestMgModule.class)
+                    );
             } else {
-                modules = objMapper.readValue(FileScanner.getResourceString("TMModules.json"),
-                        objMapper.getTypeFactory().constructCollectionType(List.class, TestMgModule.class));
+                modules =
+                    objMapper.readValue(
+                        FileScanner.getResourceString("TMModules.json"),
+                        objMapper
+                            .getTypeFactory()
+                            .constructCollectionType(List.class, TestMgModule.class)
+                    );
             }
         } catch (IOException ex) {
             Logger.getLogger(TestMgmtModule.class.getName()).log(Level.SEVERE, null, ex);
@@ -99,6 +107,24 @@ public class TestMgmtModule {
         for (Option key : prop) {
             module.getOptions().add(new Option(key.getName(), key.getValue()));
         }
+    }
+
+    /**
+     * Set (or update) a single option on a module. If the module does not
+     * exist it is created. If the option already exists its value is
+     * replaced; otherwise it is appended. Used by the CLI override path
+     * ({@code -setEnv "tmModule.<mod>.<key>=<value>"}).
+     */
+    public void setOption(String moduleName, String optionName, String value) {
+        addModule(moduleName);
+        TestMgModule module = getModule(moduleName);
+        for (Option opt : module.getOptions()) {
+            if (opt.getName() != null && opt.getName().equals(optionName)) {
+                opt.setValue(value);
+                return;
+            }
+        }
+        module.getOptions().add(new Option(optionName, value));
     }
 
     public String getLocation() {

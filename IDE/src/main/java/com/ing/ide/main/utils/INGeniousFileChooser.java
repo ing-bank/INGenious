@@ -1,7 +1,7 @@
-
 package com.ing.ide.main.utils;
 
 import static com.ing.ide.main.utils.Utils.getFavIcon;
+
 import java.awt.Component;
 import java.awt.HeadlessException;
 import java.awt.Image;
@@ -18,12 +18,14 @@ import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.filechooser.FileSystemView;
 
 public class INGeniousFileChooser extends JFileChooser implements PropertyChangeListener {
-
     public static final FileFilter PROJECT_SELECTOR = new FileFilter() {
+
         @Override
         public boolean accept(File f) {
             if (f.isDirectory()) {
-                File[] files = f.listFiles((File file, String string) -> string.endsWith(".project"));
+                File[] files = f.listFiles(
+                    (File file, String string) -> string.endsWith(".project")
+                );
                 return files != null && files.length > 0;
             }
             return false;
@@ -34,21 +36,25 @@ public class INGeniousFileChooser extends JFileChooser implements PropertyChange
             return "Automation Project";
         }
     };
-    public static final FileFilter PROJECT_FILTER = new FileNameExtensionFilter("Automation Project", "project");
+    public static final FileFilter PROJECT_FILTER = new FileNameExtensionFilter(
+        "Automation Project",
+        "project"
+    );
 
     public enum Selection {
-        MULTI, SINGLE
+        MULTI,
+        SINGLE
     }
 
     public enum SelectionMode {
-        FILE, DIR, BOTH
-
+        FILE,
+        DIR,
+        BOTH
     }
 
     private final ImageIcon ICON_14;
 
     public enum Dir {
-
         PROJECTS(new File(System.getProperty("user.dir"), "Projects"));
 
         private final File f;
@@ -62,15 +68,26 @@ public class INGeniousFileChooser extends JFileChooser implements PropertyChange
         }
     }
 
-    public static final INGeniousFileChooser OPEN_PROJECT = new INGeniousFileChooser(Utils.FAVICON_OUTLINE,
-            "Open Project", SelectionMode.DIR, Dir.PROJECTS.value(),
-            PROJECT_SELECTOR, PROJECT_FILTER);
+    public static final INGeniousFileChooser OPEN_PROJECT = new INGeniousFileChooser(
+        Utils.FAVICON_OUTLINE,
+        "Open Project",
+        SelectionMode.DIR,
+        Dir.PROJECTS.value(),
+        PROJECT_SELECTOR,
+        PROJECT_FILTER
+    );
 
     private final FileFilter selector;
 
     public Consumer<String> afterFileSelected;
 
-    public INGeniousFileChooser(Image i, String title, SelectionMode selMode, File startIn, FileFilter selector) {
+    public INGeniousFileChooser(
+        Image i,
+        String title,
+        SelectionMode selMode,
+        File startIn,
+        FileFilter selector
+    ) {
         super(startIn);
         ICON_14 = new ImageIcon(i.getScaledInstance(13, 13, 4));
         this.selector = selector;
@@ -83,18 +100,29 @@ public class INGeniousFileChooser extends JFileChooser implements PropertyChange
         }
     }
 
-    public INGeniousFileChooser(Image i, String title, SelectionMode selMode, File startIn, FileFilter selector,
-            FileFilter fltr) {
+    public INGeniousFileChooser(
+        Image i,
+        String title,
+        SelectionMode selMode,
+        File startIn,
+        FileFilter selector,
+        FileFilter fltr
+    ) {
         this(i, title, selMode, startIn, selector);
         setFileFilter(fltr);
     }
 
-    public INGeniousFileChooser(Image i, String title, SelectionMode selMode,
-            File startIn, FileFilter selector,
-            FileFilter fltr, Selection selType) {
+    public INGeniousFileChooser(
+        Image i,
+        String title,
+        SelectionMode selMode,
+        File startIn,
+        FileFilter selector,
+        FileFilter fltr,
+        Selection selType
+    ) {
         this(i, title, selMode, startIn, selector, fltr);
         setMultiSelectionEnabled(selType.equals(Selection.MULTI));
-
     }
 
     @Override

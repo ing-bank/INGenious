@@ -1,15 +1,13 @@
-
 package com.ing.ide.main.utils.table;
 
 import com.ing.datalib.component.TestStep;
 import com.ing.ide.main.Main;
-import com.ing.ide.main.utils.CodeFormatter;
 import com.ing.ide.main.fx.INGIcons;
+import com.ing.ide.main.utils.CodeFormatter;
 import com.ing.ide.util.WindowMover;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Cursor;
-import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
@@ -35,29 +33,28 @@ import org.fife.ui.rtextarea.RTextScrollPane;
  *
  */
 public class SQLTextArea extends javax.swing.JDialog {
-
     // ===== Dracula Theme (Dark Mode) =====
-    private static final Color DARK_BG = new Color(40, 42, 54);           // #282A36
-    private static final Color DARK_FG = new Color(248, 248, 242);        // #F8F8F2
+    private static final Color DARK_BG = new Color(40, 42, 54); // #282A36
+    private static final Color DARK_FG = new Color(248, 248, 242); // #F8F8F2
     private static final Color DARK_CURRENT_LINE = new Color(68, 71, 90); // #44475A
-    private static final Color DARK_SELECTION = new Color(68, 71, 90);    // #44475A
-    private static final Color DARK_TOOLBAR_BG = new Color(33, 34, 44);   // #21222C
-    private static final Color DARK_LINE_NUM_BG = new Color(33, 34, 44);  // #21222C
-    private static final Color DARK_LINE_NUM_FG = new Color(98, 114, 164);// #6272A4 (purple-gray)
-    
+    private static final Color DARK_SELECTION = new Color(68, 71, 90); // #44475A
+    private static final Color DARK_TOOLBAR_BG = new Color(33, 34, 44); // #21222C
+    private static final Color DARK_LINE_NUM_BG = new Color(33, 34, 44); // #21222C
+    private static final Color DARK_LINE_NUM_FG = new Color(98, 114, 164); // #6272A4 (purple-gray)
+
     // ===== Light Theme =====
-    private static final Color LIGHT_BG = new Color(255, 255, 255);       // #FFFFFF
-    private static final Color LIGHT_FG = new Color(30, 30, 30);          // #1E1E1E
+    private static final Color LIGHT_BG = new Color(255, 255, 255); // #FFFFFF
+    private static final Color LIGHT_FG = new Color(30, 30, 30); // #1E1E1E
     private static final Color LIGHT_CURRENT_LINE = new Color(245, 245, 245); // #F5F5F5
-    private static final Color LIGHT_SELECTION = new Color(173, 214, 255);// #ADD6FF
+    private static final Color LIGHT_SELECTION = new Color(173, 214, 255); // #ADD6FF
     private static final Color LIGHT_TOOLBAR_BG = new Color(243, 243, 243); // #F3F3F3
     private static final Color LIGHT_LINE_NUM_BG = new Color(243, 243, 243); // #F3F3F3
     private static final Color LIGHT_LINE_NUM_FG = new Color(133, 133, 133); // #858585
-    
+
     // Accent colors (same for both themes)
-    private static final Color ACCENT_BLUE = new Color(33, 136, 255);     // #2188FF
-    private static final Color CLOSE_RED = new Color(220, 53, 69);        // #DC3545
-    
+    private static final Color ACCENT_BLUE = new Color(33, 136, 255); // #2188FF
+    private static final Color CLOSE_RED = new Color(220, 53, 69); // #DC3545
+
     TestStep currentStep;
     DefaultCompletionProvider provider;
     private boolean isProtractor = false;
@@ -71,16 +68,12 @@ public class SQLTextArea extends javax.swing.JDialog {
         installAutoComplete(searchStr);
         addToolbar();
         setTitle("SQL Query Editor");
-         if (currentStep.getAction().contains("protractor_customSpec")) {
+        if (currentStep.getAction().contains("protractor_customSpec")) {
             if (!step.getInput().isEmpty()) {
                 jTextArea1.setText(step.getInput());
-            }
-            else
-             jTextArea1.setText("Write your Spec file");
-            
-        }
-        else
-        { if (!step.getInput().isEmpty()) {
+            } else jTextArea1.setText("Write your Spec file");
+        } else {
+            if (!step.getInput().isEmpty()) {
                 jTextArea1.setText(step.getInput());
             }
         }
@@ -88,36 +81,51 @@ public class SQLTextArea extends javax.swing.JDialog {
         initCloseListener();
         setVisible(true);
     }
-    
+
+    private String linearizeCode() {
+        String text = jTextArea1.getText();
+        if (text == null || text.trim().isEmpty()) {
+            return text;
+        }
+        // Collapse all whitespace (newlines, tabs, multiple spaces) into single spaces
+        String linearized = text.replaceAll("\\s+", " ").trim();
+        return linearized;
+    }
+
     private void addToolbar() {
         boolean dark = Main.isDarkMode();
         Color toolbarBg = dark ? DARK_TOOLBAR_BG : LIGHT_TOOLBAR_BG;
         Color panelBg = dark ? DARK_BG : LIGHT_BG;
-        
+
         JToolBar toolbar = new JToolBar();
         toolbar.setFloatable(false);
         toolbar.setBorder(new EmptyBorder(6, 10, 6, 10));
         toolbar.setBackground(toolbarBg);
         toolbar.setOpaque(true);
-        
+
         // Make the dialog draggable by the toolbar
         WindowMover.register(this, toolbar, WindowMover.MOVE_BOTH);
-        
-        JButton beautifyBtn = createToolbarButton("Beautify", "format", ACCENT_BLUE, this::beautifyCode);
+
+        JButton beautifyBtn = createToolbarButton(
+            "Beautify",
+            "format",
+            ACCENT_BLUE,
+            this::beautifyCode
+        );
         toolbar.add(beautifyBtn);
-        
+
         toolbar.add(javax.swing.Box.createHorizontalGlue()); // Push close to right
-        
+
         JButton closeBtn = createToolbarButton("Close", "close", CLOSE_RED, this::closeAndSave);
         toolbar.add(closeBtn);
-        
+
         // Add toolbar at the top
         JPanel contentPanel = new JPanel(new BorderLayout());
         contentPanel.setBackground(panelBg);
         contentPanel.setBorder(new EmptyBorder(0, 0, 0, 0));
         contentPanel.add(toolbar, BorderLayout.NORTH);
         contentPanel.add(scrollPane, BorderLayout.CENTER);
-        
+
         getContentPane().removeAll();
         getContentPane().setBackground(panelBg);
         getContentPane().setLayout(new BorderLayout());
@@ -125,8 +133,13 @@ public class SQLTextArea extends javax.swing.JDialog {
         pack();
         setSize(700, 450);
     }
-    
-    private JButton createToolbarButton(String text, String iconKey, Color bgColor, Runnable action) {
+
+    private JButton createToolbarButton(
+        String text,
+        String iconKey,
+        Color bgColor,
+        Runnable action
+    ) {
         JButton button = new JButton(text);
         button.setIcon(INGIcons.swing(iconKey, 16, Color.WHITE));
         button.setForeground(Color.WHITE);
@@ -139,50 +152,73 @@ public class SQLTextArea extends javax.swing.JDialog {
         button.setFont(button.getFont().deriveFont(Font.BOLD, 12f));
         button.setBorder(BorderFactory.createEmptyBorder(6, 14, 6, 14));
         button.addActionListener(e -> action.run());
-        
+
         // Hover effect
         final Color originalBg = bgColor;
-        button.addMouseListener(new java.awt.event.MouseAdapter() {
-            @Override
-            public void mouseEntered(java.awt.event.MouseEvent evt) {
-                button.setBackground(originalBg.brighter());
+        button.addMouseListener(
+            new java.awt.event.MouseAdapter() {
+
+                @Override
+                public void mouseEntered(java.awt.event.MouseEvent evt) {
+                    button.setBackground(originalBg.brighter());
+                }
+
+                @Override
+                public void mouseExited(java.awt.event.MouseEvent evt) {
+                    button.setBackground(originalBg);
+                }
             }
-            @Override
-            public void mouseExited(java.awt.event.MouseEvent evt) {
-                button.setBackground(originalBg);
-            }
-        });
-        
+        );
+
         // Add keyboard shortcut for beautify only
         if ("format".equals(iconKey)) {
-            getRootPane().getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(
-                    KeyStroke.getKeyStroke(KeyEvent.VK_F, KeyEvent.CTRL_DOWN_MASK | KeyEvent.SHIFT_DOWN_MASK), 
-                    "beautify");
-            getRootPane().getActionMap().put("beautify", new AbstractAction() {
-                @Override
-                public void actionPerformed(ActionEvent e) {
-                    action.run();
-                }
-            });
+            getRootPane()
+                .getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW)
+                .put(
+                    KeyStroke.getKeyStroke(
+                        KeyEvent.VK_F,
+                        KeyEvent.CTRL_DOWN_MASK | KeyEvent.SHIFT_DOWN_MASK
+                    ),
+                    "beautify"
+                );
+            getRootPane()
+                .getActionMap()
+                .put(
+                    "beautify",
+                    new AbstractAction() {
+
+                        @Override
+                        public void actionPerformed(ActionEvent e) {
+                            action.run();
+                        }
+                    }
+                );
         }
-        
+
         return button;
     }
-    
+
     private void closeAndSave() {
-        Optional.ofNullable(jTextArea1.getText())
-                .filter((val) -> !val.trim().isEmpty())
-                .map((val) -> val.startsWith("@") ? val : "@" + val)
-                .ifPresent(currentStep::setInput);
+        String text = jTextArea1.getText();
+        if (text != null && !text.trim().isEmpty()) {
+            // Linearize first
+            text=linearizeCode();
+            // Add @ prefix if not present
+            if (!text.startsWith("@")) {
+                text = "@" + text;
+            }
+            jTextArea1.setText(text);
+            currentStep.setInput(text);
+        }
         dispose();
     }
-    
+
     private void beautifyCode() {
         String text = jTextArea1.getText();
         if (text == null || text.trim().isEmpty()) {
             return;
         }
-        
+
         String formatted;
         if (isProtractor) {
             // For JavaScript/Protractor, just indent properly (basic)
@@ -191,29 +227,37 @@ public class SQLTextArea extends javax.swing.JDialog {
             // SQL formatting
             formatted = CodeFormatter.beautifySql(text);
         }
-        
+
         jTextArea1.setText(formatted);
     }
 
     private void initCloseListener() {
-        getRootPane().getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(
-                KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), "close");
-        getRootPane().getActionMap().put("close", new AbstractAction() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                Optional.ofNullable(jTextArea1.getText())
-                        .filter((val) -> !val.trim().isEmpty())
-                        .map((val) -> val.startsWith("@") ? val : "@" + val)
-                        .ifPresent(currentStep::setInput);
-                dispose();
-            }
-        });
+        getRootPane()
+            .getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW)
+            .put(KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), "close");
+        getRootPane()
+            .getActionMap()
+            .put(
+                "close",
+                new AbstractAction() {
+
+                    @Override
+                    public void actionPerformed(ActionEvent e) {
+                        Optional
+                            .ofNullable(jTextArea1.getText())
+                            .filter(val -> !val.trim().isEmpty())
+                            .map(val -> val.startsWith("@") ? val : "@" + val)
+                            .ifPresent(currentStep::setInput);
+                        dispose();
+                    }
+                }
+            );
     }
 
     private void installAutoComplete(List<String> searchStr) {
         RSyntaxTextArea textArea = (RSyntaxTextArea) jTextArea1;
         boolean dark = Main.isDarkMode();
-        
+
         // Apply theme-aware colors
         Color editorBg = dark ? DARK_BG : LIGHT_BG;
         Color editorFg = dark ? DARK_FG : LIGHT_FG;
@@ -221,7 +265,7 @@ public class SQLTextArea extends javax.swing.JDialog {
         Color selection = dark ? DARK_SELECTION : LIGHT_SELECTION;
         Color gutterBg = dark ? DARK_LINE_NUM_BG : LIGHT_LINE_NUM_BG;
         Color gutterFg = dark ? DARK_LINE_NUM_FG : LIGHT_LINE_NUM_FG;
-        
+
         textArea.setBackground(editorBg);
         textArea.setForeground(editorFg);
         textArea.setCaretColor(editorFg);
@@ -235,13 +279,13 @@ public class SQLTextArea extends javax.swing.JDialog {
         textArea.setFadeCurrentLineHighlight(true);
         textArea.setHighlightCurrentLine(true);
         textArea.setRoundedSelectionEdges(true);
-        
+
         if (currentStep.getAction().contains("protractor")) {
             textArea.setSyntaxEditingStyle(SyntaxConstants.SYNTAX_STYLE_JAVASCRIPT);
         } else {
             textArea.setSyntaxEditingStyle(SyntaxConstants.SYNTAX_STYLE_SQL);
         }
-        
+
         // Create scroll pane with line numbers
         scrollPane = new RTextScrollPane(textArea);
         scrollPane.setLineNumbersEnabled(true);
@@ -258,9 +302,15 @@ public class SQLTextArea extends javax.swing.JDialog {
     }
 
     private void setSearchString(List<String> searchString) {
-        searchString.stream().forEach((string) -> {
-            provider.addCompletion(new ShorthandCompletion(provider, string, "{" + string + "}"));
-        });
+        searchString
+            .stream()
+            .forEach(
+                string -> {
+                    provider.addCompletion(
+                        new ShorthandCompletion(provider, string, "{" + string + "}")
+                    );
+                }
+            );
     }
 
     /**
@@ -271,7 +321,6 @@ public class SQLTextArea extends javax.swing.JDialog {
     @SuppressWarnings("unchecked")
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
-
         jScrollPane2 = new javax.swing.JScrollPane();
         jTextArea1 = new RSyntaxTextArea();
 
@@ -286,23 +335,40 @@ public class SQLTextArea extends javax.swing.JDialog {
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
-            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(layout.createSequentialGroup()
-                .addContainerGap()
-                .addComponent(jScrollPane2, javax.swing.GroupLayout.DEFAULT_SIZE, 615, Short.MAX_VALUE)
-                .addContainerGap())
+            layout
+                .createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                .addGroup(
+                    layout
+                        .createSequentialGroup()
+                        .addContainerGap()
+                        .addComponent(
+                            jScrollPane2,
+                            javax.swing.GroupLayout.DEFAULT_SIZE,
+                            615,
+                            Short.MAX_VALUE
+                        )
+                        .addContainerGap()
+                )
         );
         layout.setVerticalGroup(
-            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(layout.createSequentialGroup()
-                .addContainerGap()
-                .addComponent(jScrollPane2, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(11, Short.MAX_VALUE))
+            layout
+                .createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                .addGroup(
+                    layout
+                        .createSequentialGroup()
+                        .addContainerGap()
+                        .addComponent(
+                            jScrollPane2,
+                            javax.swing.GroupLayout.PREFERRED_SIZE,
+                            javax.swing.GroupLayout.DEFAULT_SIZE,
+                            javax.swing.GroupLayout.PREFERRED_SIZE
+                        )
+                        .addContainerGap(11, Short.MAX_VALUE)
+                )
         );
 
         pack();
-    }// </editor-fold>//GEN-END:initComponents
-
+    } // </editor-fold>//GEN-END:initComponents
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JScrollPane jScrollPane2;

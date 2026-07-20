@@ -1,14 +1,12 @@
-
 package com.ing.engine.core;
 
 import com.ing.datalib.component.ExecutionStep;
 import com.ing.datalib.component.TestSet;
+import com.ing.datalib.model.Tags;
 import com.ing.engine.cli.LookUp;
 import com.ing.engine.constants.FilePath;
 import com.ing.engine.drivers.PlaywrightDriverFactory.Browser;
 import com.ing.engine.settings.GlobalSettings;
-import com.ing.datalib.model.Tags;
-import org.apache.commons.lang.ArrayUtils;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
@@ -17,9 +15,9 @@ import java.util.Properties;
 import java.util.Queue;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.apache.commons.lang.ArrayUtils;
 
 public class RunManager {
-
     private static GlobalSettings globalSettings;
 
     private static Queue<RunContext> runQ;
@@ -33,7 +31,9 @@ public class RunManager {
 
     public static String getRunName() {
         if (globalSettings.isTestRun()) {
-            return "TestCase - " + globalSettings.getScenario() + " - " + globalSettings.getTestCase();
+            return (
+                "TestCase - " + globalSettings.getScenario() + " - " + globalSettings.getTestCase()
+            );
         }
         return "TestSet - " + globalSettings.getRelease() + " - " + globalSettings.getTestSet();
     }
@@ -88,51 +88,63 @@ public class RunManager {
         TestSet testSet = Control.exe.getTestSet();
         int count = 0;
         try {
-            testSet.loadTableModel();	
-			int tagsMatched=0;
-			if (!testSet.getExecutableSteps().isEmpty()) {
-				for (ExecutionStep step : testSet.getExecutableSteps()) {
-					Tags tags = step.getProject().getInfo().getData()
-							.findOrCreate(step.getTestCaseName(), step.getTestScenarioName()).getTags();
-					if (globalSettings.getTags()!=null) {
-						String tagsArr[] = globalSettings.getTags().split(",");
-						for (String tag : tagsArr) {
-							
-							if (tags.contains(tag)) {
-								tagsMatched = ArrayUtils.indexOf(tagsArr, tag)+1;
-								count=1;
-								break;
-							}
-							else {
-								
-								count=0;
-							}
-						}
-						if (count != 0) {
-							addRunContext(step, execQ);
-						}
-					}
-					else
-						addRunContext(step, execQ);
-						
-				}
-				if(tagsMatched==0 && globalSettings.getTags()!=null)
-					System.out.println("----------------------------------------------------------\n"
-				            +"[Error] No testcase in the selected test set contain the tag(s) ["
-							+ globalSettings.getTags() + "]");
-			} else {
-				    throw new Exception("No testcases are selected for execution in - " + testSet.getName());
-			}
+            testSet.loadTableModel();
+            int tagsMatched = 0;
+            if (!testSet.getExecutableSteps().isEmpty()) {
+                for (ExecutionStep step : testSet.getExecutableSteps()) {
+                    Tags tags = step
+                        .getProject()
+                        .getInfo()
+                        .getData()
+                        .findOrCreate(step.getTestCaseName(), step.getTestScenarioName())
+                        .getTags();
+                    if (globalSettings.getTags() != null) {
+                        String tagsArr[] = globalSettings.getTags().split(",");
+                        for (String tag : tagsArr) {
+                            if (tags.contains(tag)) {
+                                tagsMatched = ArrayUtils.indexOf(tagsArr, tag) + 1;
+                                count = 1;
+                                break;
+                            } else {
+                                count = 0;
+                            }
+                        }
+                        if (count != 0) {
+                            addRunContext(step, execQ);
+                        }
+                    } else addRunContext(step, execQ);
+                }
+                if (tagsMatched == 0 && globalSettings.getTags() != null) System.out.println(
+                    "----------------------------------------------------------\n" +
+                    "[Error] No testcase in the selected test set contain the tag(s) [" +
+                    globalSettings.getTags() +
+                    "]"
+                );
+            } else {
+                throw new Exception(
+                    "No testcases are selected for execution in - " + testSet.getName()
+                );
+            }
         } catch (Exception ex) {
-            throw new Exception(String.format(
+            throw new Exception(
+                String.format(
                     "Not able to load TestSet [%s/%s]\n[%S]",
-                    testSet.getRelease().getName(), testSet.getName(), ex.getMessage()));
+                    testSet.getRelease().getName(),
+                    testSet.getName(),
+                    ex.getMessage()
+                )
+            );
         }
         System.out.println("----------------------------------------------------------");
-        System.out.println(String.format(
+        System.out.println(
+            String.format(
                 "[%s] TestCase%s selected for execution from [//%s/%s]",
-                execQ.size(), execQ.size() > 1 ? "s" : "", testSet.getRelease().getName(),
-                testSet.getName()));
+                execQ.size(),
+                execQ.size() > 1 ? "s" : "",
+                testSet.getRelease().getName(),
+                testSet.getName()
+            )
+        );
         System.out.println("----------------------------------------------------------");
         return execQ;
     }
@@ -143,7 +155,7 @@ public class RunManager {
         exe.TestCase = step.getTestCaseName();
         exe.Description = exe.TestCase;
         exe.PlatformValue = step.getPlatform();
-        
+
         String browser = RunManager.getGlobalSettings().getBrowser();
         if (browser != null && !(browser.equals("")) && LookUp.cliflag == true) {
             exe.BrowserName = browser;
@@ -200,8 +212,6 @@ public class RunManager {
         }
         return bVersion;
     }
-
-
 
     public static void clear() {
         runQ.clear();

@@ -5,14 +5,13 @@ import com.ing.datalib.component.Scenario;
 import com.ing.datalib.component.TestCase;
 import com.ing.datalib.component.TestStep;
 import com.ing.engine.cli.INGeniousCLI;
+import java.io.File;
+import java.util.*;
+import java.util.concurrent.Callable;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
 import picocli.CommandLine.ParentCommand;
-
-import java.io.File;
-import java.util.*;
-import java.util.concurrent.Callable;
 
 /**
  * Scenario management commands.
@@ -28,13 +27,14 @@ import java.util.concurrent.Callable;
     }
 )
 public class ScenarioCommand implements Callable<Integer> {
-
     @ParentCommand
     private INGeniousCLI parent;
 
     @Override
     public Integer call() {
-        System.out.println("Use 'ingenious scenario <subcommand>' - see 'ingenious scenario --help'");
+        System.out.println(
+            "Use 'ingenious scenario <subcommand>' - see 'ingenious scenario --help'"
+        );
         return 0;
     }
 
@@ -43,20 +43,19 @@ public class ScenarioCommand implements Callable<Integer> {
      */
     @Command(name = "list", description = "List all scenarios in a project")
     public static class ListCommand implements Callable<Integer> {
-
         @ParentCommand
         private ScenarioCommand parent;
 
-        @Option(names = {"-p", "--project"}, description = "Project path")
+        @Option(names = { "-p", "--project" }, description = "Project path")
         private String projectPath;
 
-        @Option(names = {"--with-testcases"}, description = "Include test case details")
+        @Option(names = { "--with-testcases" }, description = "Include test case details")
         private boolean withTestCases;
 
         @Override
         public Integer call() {
             INGeniousCLI cli = INGeniousCLI.getInstance();
-            
+
             String path = projectPath != null ? projectPath : cli.getProjectPath();
             if (path == null || path.isEmpty()) {
                 cli.printError("Project path required. Use --project or -p flag.");
@@ -65,26 +64,28 @@ public class ScenarioCommand implements Callable<Integer> {
 
             try {
                 Project project = new Project(path);
-                
-                List<String> headers = withTestCases 
+
+                List<String> headers = withTestCases
                     ? Arrays.asList("Scenario", "Test Cases", "Total Steps", "Reusable")
                     : Arrays.asList("Scenario", "Test Cases");
-                    
+
                 List<List<String>> rows = new ArrayList<>();
 
                 for (Scenario scenario : project.getScenarios()) {
                     List<String> row = new ArrayList<>();
                     row.add(scenario.getName());
                     row.add(String.valueOf(scenario.getTestCases().size()));
-                    
+
                     if (withTestCases) {
-                        int totalSteps = scenario.getTestCases().stream()
-                                .mapToInt(tc -> tc.getTestSteps().size())
-                                .sum();
+                        int totalSteps = scenario
+                            .getTestCases()
+                            .stream()
+                            .mapToInt(tc -> tc.getTestSteps().size())
+                            .sum();
                         row.add(String.valueOf(totalSteps));
                         row.add("No"); // Reusable check not available via API
                     }
-                    
+
                     rows.add(row);
                 }
 
@@ -95,7 +96,6 @@ public class ScenarioCommand implements Callable<Integer> {
 
                 System.out.println(cli.getOutputFormatter().formatTable(headers, rows));
                 return 0;
-                
             } catch (Exception e) {
                 cli.printError("Failed to list scenarios: " + e.getMessage());
                 return 1;
@@ -108,20 +108,19 @@ public class ScenarioCommand implements Callable<Integer> {
      */
     @Command(name = "info", description = "Show scenario details")
     public static class InfoCommand implements Callable<Integer> {
-
         @ParentCommand
         private ScenarioCommand parent;
 
         @Parameters(index = "0", description = "Scenario name")
         private String scenarioName;
 
-        @Option(names = {"-p", "--project"}, description = "Project path")
+        @Option(names = { "-p", "--project" }, description = "Project path")
         private String projectPath;
 
         @Override
         public Integer call() {
             INGeniousCLI cli = INGeniousCLI.getInstance();
-            
+
             String path = projectPath != null ? projectPath : cli.getProjectPath();
             if (path == null || path.isEmpty()) {
                 cli.printError("Project path required.");
@@ -130,11 +129,13 @@ public class ScenarioCommand implements Callable<Integer> {
 
             try {
                 Project project = new Project(path);
-                
-                Scenario scenario = project.getScenarios().stream()
-                        .filter(s -> s.getName().equals(scenarioName))
-                        .findFirst()
-                        .orElse(null);
+
+                Scenario scenario = project
+                    .getScenarios()
+                    .stream()
+                    .filter(s -> s.getName().equals(scenarioName))
+                    .findFirst()
+                    .orElse(null);
 
                 if (scenario == null) {
                     cli.printError("Scenario not found: " + scenarioName);
@@ -145,33 +146,36 @@ public class ScenarioCommand implements Callable<Integer> {
                 info.put("name", scenario.getName());
                 info.put("testCases", scenario.getTestCases().size());
                 info.put("reusable", false); // Reusable check not available via API
-                
-                int totalSteps = scenario.getTestCases().stream()
-                        .mapToInt(tc -> tc.getTestSteps().size())
-                        .sum();
+
+                int totalSteps = scenario
+                    .getTestCases()
+                    .stream()
+                    .mapToInt(tc -> tc.getTestSteps().size())
+                    .sum();
                 info.put("totalSteps", totalSteps);
 
                 System.out.println(cli.getOutputFormatter().formatKeyValue(info));
-                
+
                 // List test cases
                 if (!scenario.getTestCases().isEmpty()) {
                     System.out.println("\nTest Cases:");
                     List<String> headers = Arrays.asList("Name", "Steps", "Description");
                     List<List<String>> rows = new ArrayList<>();
-                    
+
                     for (TestCase tc : scenario.getTestCases()) {
-                        rows.add(Arrays.asList(
-                            tc.getName(),
-                            String.valueOf(tc.getTestSteps().size()),
-                            "" // No description field available
-                        ));
+                        rows.add(
+                            Arrays.asList(
+                                tc.getName(),
+                                String.valueOf(tc.getTestSteps().size()),
+                                "" // No description field available
+                            )
+                        );
                     }
-                    
+
                     System.out.println(cli.getOutputFormatter().formatTable(headers, rows));
                 }
-                
+
                 return 0;
-                
             } catch (Exception e) {
                 cli.printError("Failed to get scenario info: " + e.getMessage());
                 return 1;
@@ -184,23 +188,22 @@ public class ScenarioCommand implements Callable<Integer> {
      */
     @Command(name = "create", description = "Create a new scenario")
     public static class CreateCommand implements Callable<Integer> {
-
         @ParentCommand
         private ScenarioCommand parent;
 
         @Parameters(index = "0", description = "Scenario name")
         private String scenarioName;
 
-        @Option(names = {"-p", "--project"}, description = "Project path")
+        @Option(names = { "-p", "--project" }, description = "Project path")
         private String projectPath;
 
-        @Option(names = {"--reusable"}, description = "Create as reusable scenario")
+        @Option(names = { "--reusable" }, description = "Create as reusable scenario")
         private boolean reusable;
 
         @Override
         public Integer call() {
             INGeniousCLI cli = INGeniousCLI.getInstance();
-            
+
             String path = projectPath != null ? projectPath : cli.getProjectPath();
             if (path == null || path.isEmpty()) {
                 cli.printError("Project path required.");
@@ -209,11 +212,13 @@ public class ScenarioCommand implements Callable<Integer> {
 
             try {
                 Project project = new Project(path);
-                
+
                 // Check if scenario already exists
-                boolean exists = project.getScenarios().stream()
-                        .anyMatch(s -> s.getName().equals(scenarioName));
-                
+                boolean exists = project
+                    .getScenarios()
+                    .stream()
+                    .anyMatch(s -> s.getName().equals(scenarioName));
+
                 if (exists) {
                     cli.printError("Scenario already exists: " + scenarioName);
                     return 1;
@@ -225,7 +230,6 @@ public class ScenarioCommand implements Callable<Integer> {
 
                 cli.printSuccess("Created scenario: " + scenarioName);
                 return 0;
-                
             } catch (Exception e) {
                 cli.printError("Failed to create scenario: " + e.getMessage());
                 return 1;
@@ -238,23 +242,22 @@ public class ScenarioCommand implements Callable<Integer> {
      */
     @Command(name = "delete", description = "Delete a scenario")
     public static class DeleteCommand implements Callable<Integer> {
-
         @ParentCommand
         private ScenarioCommand parent;
 
         @Parameters(index = "0", description = "Scenario name")
         private String scenarioName;
 
-        @Option(names = {"-p", "--project"}, description = "Project path")
+        @Option(names = { "-p", "--project" }, description = "Project path")
         private String projectPath;
 
-        @Option(names = {"--force", "-f"}, description = "Force delete without confirmation")
+        @Option(names = { "--force", "-f" }, description = "Force delete without confirmation")
         private boolean force;
 
         @Override
         public Integer call() {
             INGeniousCLI cli = INGeniousCLI.getInstance();
-            
+
             String path = projectPath != null ? projectPath : cli.getProjectPath();
             if (path == null || path.isEmpty()) {
                 cli.printError("Project path required.");
@@ -268,7 +271,7 @@ public class ScenarioCommand implements Callable<Integer> {
 
             try {
                 File scenarioDir = new File(path, "TestPlan/" + scenarioName);
-                
+
                 if (!scenarioDir.exists()) {
                     cli.printError("Scenario not found: " + scenarioName);
                     return 1;
@@ -277,7 +280,6 @@ public class ScenarioCommand implements Callable<Integer> {
                 deleteDirectory(scenarioDir);
                 cli.printSuccess("Deleted scenario: " + scenarioName);
                 return 0;
-                
             } catch (Exception e) {
                 cli.printError("Failed to delete scenario: " + e.getMessage());
                 return 1;

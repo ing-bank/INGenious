@@ -1,4 +1,3 @@
-
 package com.ing.ide.main.mainui.components.testdesign.tree.model;
 
 import com.ing.datalib.component.Project;
@@ -10,10 +9,9 @@ import java.util.logging.Logger;
 
 /**
  *
- * 
+ *
  */
 public class ReusableTreeModel extends ProjectTreeModel {
-
     private static final Logger LOGGER = Logger.getLogger(ReusableTreeModel.class.getName());
     private static final String DEFAULT_GROUP = "Reusable Components";
 
@@ -49,7 +47,11 @@ public class ReusableTreeModel extends ProjectTreeModel {
                 try {
                     project.moveTestCaseToTestPlan(testCaseNode.getTestCase());
                 } catch (TestCaseConversionException e) {
-                    LOGGER.log(Level.WARNING, "Failed to move test case to test plan: " + e.getMessage(), e);
+                    LOGGER.log(
+                        Level.WARNING,
+                        "Failed to move test case to test plan: " + e.getMessage(),
+                        e
+                    );
                 }
             }
         }
@@ -57,6 +59,9 @@ public class ReusableTreeModel extends ProjectTreeModel {
 
     @Override
     public TestCaseNode addTestCase(TestCase testCase) {
+        if (testCase == null || testCase.getScenario() == null) {
+            return null;
+        }
         GroupNode groupNode;
         if (getRoot().getChildCount() > 0) {
             for (GroupNode group : GroupNode.toList(getRoot().children())) {
@@ -93,5 +98,4 @@ public class ReusableTreeModel extends ProjectTreeModel {
     public void save() {
         // No-op: reusable components are now inferred from directory placement.
     }
-
 }

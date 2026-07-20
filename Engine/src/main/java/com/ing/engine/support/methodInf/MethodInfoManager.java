@@ -1,28 +1,26 @@
-
 package com.ing.engine.support.methodInf;
-
 
 import com.ing.datalib.component.TestStep;
 import com.ing.engine.constants.FilePath;
 import com.ing.engine.support.AnnontationUtil;
+import com.ing.engine.support.ObjectTypeUtil;
 import com.ing.engine.support.reflect.Discovery;
 import com.ing.engine.support.reflect.MethodExecutor;
-import com.ing.engine.support.ObjectTypeUtil;
 import com.ing.exceptions.DuplicateMethodException;
 import com.ing.ingenious.api.annotation.Action;
 import com.ing.ingenious.api.types.ObjectType;
 import eu.infomas.annotation.AnnotationDetector;
+import java.io.File;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.HashSet;
-import java.io.File;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -34,7 +32,7 @@ import java.util.logging.Logger;
  * descriptions and method lists by object type.
  */
 public class MethodInfoManager {
-    
+
     /**
      * Wrapper class to store Action annotation, class name, method name, and plugin location.
      */
@@ -43,56 +41,65 @@ public class MethodInfoManager {
         private final String className;
         private final String methodName;
         private final String pluginLocation;
-        
-        public MethodInfo(Action action, String className, String methodName, String pluginLocation) {
+
+        public MethodInfo(
+            Action action,
+            String className,
+            String methodName,
+            String pluginLocation
+        ) {
             this.action = action;
             this.className = className;
             this.methodName = methodName;
             this.pluginLocation = pluginLocation;
         }
-        
+
         public Action getAction() {
             return action;
         }
-        
+
         public String getClassName() {
             return className;
         }
-        
+
         public String getMethodName() {
             return methodName;
         }
-        
+
         public String getPluginLocation() {
             return pluginLocation;
         }
     }
-    
+
     /**
      * Map of method names to their associated {@link MethodInfo} containing Action annotation and location metadata.
      */
     public static Map<String, MethodInfo> methodInfoMap = new HashMap<>();
     private static boolean isDuplicateMethodDetected = false;
     private static Map<String, Set<String>> objectTypeMethodMap = new HashMap<>();
-    
+
     private static final AnnotationDetector.MethodReporter METHOD_REPORTER = new AnnotationDetector.MethodReporter() {
-        
+
         @SuppressWarnings("unchecked")
         @Override
         public Class<? extends Annotation>[] annotations() {
-            return new Class[]{Action.class};
+            return new Class[] { Action.class };
         }
-        
+
         @Override
-        public void reportMethodAnnotation(Class<? extends Annotation> annotation,
-                String className, String methodName) {
+        public void reportMethodAnnotation(
+            Class<? extends Annotation> annotation,
+            String className,
+            String methodName
+        ) {
             loadMethodAndRegisterType(className, methodName);
         }
-        
     };
-    
-    private static final AnnotationDetector ANNOTATION_DETECTOR = new AnnotationDetector(METHOD_REPORTER);
-    
+
+    private static final AnnotationDetector ANNOTATION_DETECTOR = new AnnotationDetector(
+        METHOD_REPORTER
+    );
+
     /**
      * Loads all methods annotated with {@link Action} from the application and plugins.
      * <p>
@@ -120,9 +127,13 @@ public class MethodInfoManager {
         String[] jarPaths = getPluginJarPaths(basePluginDir);
         AnnontationUtil.detectFromPluginPaths(ANNOTATION_DETECTOR, jarPaths);
 
-        if(isDuplicateMethodDetected){
-            System.out.println("\u001B[31mDuplicate method names detected in the loaded actions. Please resolve the conflicts.\u001B[0m");
-            throw new DuplicateMethodException("Duplicate method names detected in the loaded actions. Please resolve the conflicts.");
+        if (isDuplicateMethodDetected) {
+            System.out.println(
+                "\u001B[31mDuplicate method names detected in the loaded actions. Please resolve the conflicts.\u001B[0m"
+            );
+            throw new DuplicateMethodException(
+                "Duplicate method names detected in the loaded actions. Please resolve the conflicts."
+            );
         }
     }
 
@@ -154,19 +165,37 @@ public class MethodInfoManager {
                 String originalClassName = originalMethodInfo.getClassName();
                 String originalLocation = originalMethodInfo.getPluginLocation();
 
-                System.out.println("\u001B[31m" + "Duplicate action '" + methodName + "' for object type '" + mInfo.object() + "' detected:\n" +
-                   "  - Original found in: " + originalLocation + " (class: " + originalClassName + ")\n" +
-                   "  - Duplicate found in: " + currentLocation + " (class: " + className + ")\u001B[0m");
+                System.out.println(
+                    "\u001B[31m" +
+                    "Duplicate action '" +
+                    methodName +
+                    "' for object type '" +
+                    mInfo.object() +
+                    "' detected:\n" +
+                    "  - Original found in: " +
+                    originalLocation +
+                    " (class: " +
+                    originalClassName +
+                    ")\n" +
+                    "  - Duplicate found in: " +
+                    currentLocation +
+                    " (class: " +
+                    className +
+                    ")\u001B[0m"
+                );
                 isDuplicateMethodDetected = true; // Set flag and return early
                 return; // Don't register the duplicate
             }
-            methodInfoMap.put(methodName, new MethodInfo(mInfo, className, methodName, currentLocation));
+            methodInfoMap.put(
+                methodName,
+                new MethodInfo(mInfo, className, methodName, currentLocation)
+            );
             registerMethodToObjectType(methodName, mInfo.object());
         } catch (NoSuchMethodException | SecurityException ex) {
             Logger.getLogger(MethodInfoManager.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
-    
+
     /**
      * Attempts to retrieve a {@link Class} object for the specified class name.
      * <p>
@@ -190,7 +219,7 @@ public class MethodInfoManager {
         }
         return null;
     }
-    
+
     /**
      * Retrieves a sorted list of method names associated with the specified {@link ObjectType}
      * and any additional {@link ObjectType}s provided.
@@ -210,16 +239,17 @@ public class MethodInfoManager {
         for (Map.Entry<String, MethodInfo> entry : methodInfoMap.entrySet()) {
             String methodName = entry.getKey();
             Action mInfo = entry.getValue().getAction();
-            if (mInfo.object().equals(type)
-                    || (others != null
-                    && Arrays.asList(others).contains(mInfo.object()))) {
+            if (
+                mInfo.object().equals(type) ||
+                (others != null && Arrays.asList(others).contains(mInfo.object()))
+            ) {
                 methodList.add(methodName);
             }
         }
         Collections.sort(methodList);
         return methodList;
     }
-    
+
     /**
      * Returns the description for the given action method, if available.
      *
@@ -232,7 +262,7 @@ public class MethodInfoManager {
         }
         return "";
     }
-    
+
     /**
      * Returns the MethodInfo for the given action method, if available.
      *
@@ -242,7 +272,7 @@ public class MethodInfoManager {
     public static MethodInfo getMethodInfo(String action) {
         return methodInfoMap.get(action);
     }
-    
+
     /**
      * Returns the Action annotation for the given action method, if available.
      *
@@ -253,7 +283,7 @@ public class MethodInfoManager {
         MethodInfo info = methodInfoMap.get(action);
         return info != null ? info.getAction() : null;
     }
-    
+
     /**
      * Checks if an action method exists in the registry.
      *
@@ -263,7 +293,7 @@ public class MethodInfoManager {
     public static boolean containsAction(String action) {
         return methodInfoMap.containsKey(action);
     }
-    
+
     /**
      * Returns the resolved description for a test step, replacing placeholders with actual values.
      *
@@ -272,9 +302,9 @@ public class MethodInfoManager {
      */
     public static String getResolvedDescriptionFor(TestStep step) {
         return getDescriptionFor(step.getAction())
-                .replace("[<Object>]", step.getObject())
-                .replace("[<Object2>]", step.getCondition())
-                .replace("[<Data>]", step.getInput());
+            .replace("[<Object>]", step.getObject())
+            .replace("[<Object2>]", step.getCondition())
+            .replace("[<Data>]", step.getInput());
     }
 
     /**
@@ -291,17 +321,22 @@ public class MethodInfoManager {
         if (pluginDirs == null) {
             return new String[0];
         }
-        return Arrays.stream(pluginDirs) // Stream each plugin directory
-            .flatMap(dir -> Arrays.stream( // For each directory, stream its files
-                dir.listFiles(file ->      // Only include files that:
-                    file.isFile() &&       // - are regular files
-                    file.getName().endsWith(".jar") // - have a .jar extension
-                )
-            ))
-            .map(File::getAbsolutePath)    // Map each File to its absolute path
-            .toArray(String[]::new);       // Collect results into a String array
+        return Arrays
+            .stream(pluginDirs) // Stream each plugin directory
+            .flatMap(
+                dir ->
+                    Arrays.stream( // For each directory, stream its files
+                        dir.listFiles(
+                            file -> // Only include files that:
+                                file.isFile() && // - are regular files
+                                file.getName().endsWith(".jar") // - have a .jar extension
+                        )
+                    )
+            )
+            .map(File::getAbsolutePath) // Map each File to its absolute path
+            .toArray(String[]::new); // Collect results into a String array
     }
-    
+
     /**
      * Registers a method name to its associated object type.
      * <p>
@@ -313,9 +348,7 @@ public class MethodInfoManager {
      * @param objectType the object type associated with the method
      */
     private static void registerMethodToObjectType(String methodName, String objectType) {
-        objectTypeMethodMap
-            .computeIfAbsent(objectType, k -> new HashSet<>())
-            .add(methodName);
+        objectTypeMethodMap.computeIfAbsent(objectType, k -> new HashSet<>()).add(methodName);
     }
 
     /**
@@ -330,8 +363,10 @@ public class MethodInfoManager {
      * @return {@code true} if the method is already registered for this object type (duplicate), {@code false} otherwise
      */
     private static boolean isDuplicateMethodForObjectType(String methodName, String objectType) {
-        return objectTypeMethodMap.containsKey(objectType) &&
-               objectTypeMethodMap.get(objectType).contains(methodName);
+        return (
+            objectTypeMethodMap.containsKey(objectType) &&
+            objectTypeMethodMap.get(objectType).contains(methodName)
+        );
     }
 
     /**
@@ -346,10 +381,11 @@ public class MethodInfoManager {
      */
     private static String getPluginFolderName(Method method) {
         try {
-            java.net.URL location = method.getDeclaringClass()
-                    .getProtectionDomain()
-                    .getCodeSource()
-                    .getLocation();
+            java.net.URL location = method
+                .getDeclaringClass()
+                .getProtectionDomain()
+                .getCodeSource()
+                .getLocation();
             if (location != null) {
                 String path = location.getPath();
                 // Extract plugin folder name from path like: /path/to/plugins/plugin-name/plugin.jar
@@ -367,5 +403,4 @@ public class MethodInfoManager {
         }
         return "core";
     }
-    
 }

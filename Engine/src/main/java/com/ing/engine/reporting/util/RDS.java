@@ -14,10 +14,9 @@ import org.json.simple.JSONObject;
  */
 @SuppressWarnings("unchecked")
 public class RDS {
+    private static final String BEFORE = "var DATA=", AFTER = ";";
 
-    private final static String BEFORE = "var DATA=", AFTER = ";";
-
-    public synchronized static JSONObject getNewStep(String name) {
+    public static synchronized JSONObject getNewStep(String name) {
         JSONObject step = new JSONObject();
         step.put(Step.TYPE, "step");
         step.put(Step.NAME, name == null ? "Description Not Given" : name);
@@ -25,7 +24,7 @@ public class RDS {
         return step;
     }
 
-    public synchronized static JSONObject getNewIteration(String name) {
+    public static synchronized JSONObject getNewIteration(String name) {
         JSONObject iteration = new JSONObject();
         iteration.put(Step.TYPE, "iteration");
         iteration.put(Step.NAME, name);
@@ -34,7 +33,7 @@ public class RDS {
         return iteration;
     }
 
-    public synchronized static JSONObject getNewReusable(String name, String desc) {
+    public static synchronized JSONObject getNewReusable(String name, String desc) {
         JSONObject reusable = new JSONObject();
         reusable.put(Step.TYPE, "reusable");
         reusable.put(Step.NAME, name);
@@ -45,11 +44,11 @@ public class RDS {
         return reusable;
     }
 
-    public synchronized static void writeToDataJS(String fileToWrite, JSONObject data) {
+    public static synchronized void writeToDataJS(String fileToWrite, JSONObject data) {
         writeToFile(fileToWrite, BEFORE + data.toString() + AFTER);
     }
 
-    public synchronized static void writeToFile(String fileToWrite, String data) {
+    public static synchronized void writeToFile(String fileToWrite, String data) {
         try (BufferedWriter bufwriter = new BufferedWriter(new FileWriter(fileToWrite))) {
             bufwriter.write(data);
         } catch (IOException ex) {
@@ -58,7 +57,6 @@ public class RDS {
     }
 
     public class TestSet {
-
         public static final String PROJECT_NAME = "projectName";
         public static final String RELEASE_NAME = "releaseName";
         public static final String TESTSET_NAME = "testsetName";
@@ -85,7 +83,6 @@ public class RDS {
     }
 
     public class TestCase {
-
         public static final String SCENARIO_NAME = "scenarioName";
         public static final String TESTCASE_NAME = "testcaseName";
         public static final String DESCRIPTION = "description";
@@ -105,11 +102,9 @@ public class RDS {
         public static final String VIDEO_PATH = "videoPath";
         public static final String TRACE_PATH = "tracePath";
         public static final String TRACE_DATA = "traceData";
-
     }
 
     public class Step {
-
         public static final String NAME = "name";
         public static final String TYPE = "type";
         public static final String DATA = "data";
@@ -118,7 +113,6 @@ public class RDS {
         public static final String END_TIME = "endTime";
 
         public class Data {
-
             public static final String STEP_NO = "stepno";
             public static final String STEP_NAME = "stepName";
             public static final String ACTION = "action";
@@ -132,5 +126,4 @@ public class RDS {
             public static final String OBJECTS = "objects";
         }
     }
-
 }

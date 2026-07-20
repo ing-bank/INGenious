@@ -1,4 +1,3 @@
-
 package com.ing.ide.main.shr.mobile.ios;
 
 import com.ing.ide.main.shr.mobile.MobileUtil;
@@ -7,7 +6,7 @@ import javax.swing.ImageIcon;
 
 /**
  *
- * 
+ *
  */
 public class IOSUtil extends MobileUtil {
 
@@ -74,5 +73,4 @@ public class IOSUtil extends MobileUtil {
             iosScaleFactor = 1.0f;
         }
     }
-
 }

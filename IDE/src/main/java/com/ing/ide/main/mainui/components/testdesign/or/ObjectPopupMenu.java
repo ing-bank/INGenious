@@ -1,4 +1,3 @@
-
 package com.ing.ide.main.mainui.components.testdesign.or;
 
 import com.ing.datalib.or.common.ORObjectInf;
@@ -34,7 +33,6 @@ import javax.swing.KeyStroke;
  * </p>
  */
 public class ObjectPopupMenu extends JPopupMenu {
-
     private JMenuItem addPage;
     private JMenuItem renamePage;
     private JMenuItem deletePage;
@@ -56,7 +54,7 @@ public class ObjectPopupMenu extends JPopupMenu {
     private JMenuItem sort;
 
     private final ActionListener listener;
-    
+
     private Object currentSelection;
 
     public ObjectPopupMenu(ActionListener listener) {
@@ -69,17 +67,17 @@ public class ObjectPopupMenu extends JPopupMenu {
         add(renamePage = create("Rename Page", Keystroke.RENAME));
         add(deletePage = create("Delete Page", Keystroke.DELETE));
         addSeparator();
-        
+
         add(renameObjectGroup = create("Rename Object Group", Keystroke.RENAME));
         add(deleteObjectGroup = create("Delete Object Group", Keystroke.DELETE));
         addSeparator();
-        
+
         add(addObject = create("Add Object", Keystroke.NEW));
         add(renameObject = create("Rename Object", Keystroke.RENAME));
         add(deleteObject = create("Delete Object", Keystroke.DELETE));
-        add(removeUnusedObject = create("Remove Unused Object",Keystroke.REMOVE_OBJECT));
+        add(removeUnusedObject = create("Remove Unused Object", Keystroke.REMOVE_OBJECT));
         addSeparator();
-        
+
         moveToShared = create("Move to Shared", null);
         moveToShared.setActionCommand("Move to Shared");
         moveToShared.addActionListener(listener);
@@ -90,7 +88,7 @@ public class ObjectPopupMenu extends JPopupMenu {
 
         setCCP();
         addSeparator();
-        
+
         add(sort = create("Sort", null));
         sort.setIcon(Canvas.EmptyIcon);
     }
@@ -99,7 +97,10 @@ public class ObjectPopupMenu extends JPopupMenu {
         this.currentSelection = selected;
         copy.setEnabled(false);
         cut.setEnabled(false);
-        paste.setEnabled((currentSelection instanceof ORPageInf || currentSelection instanceof ORObjectInf)&& ORClipboardManager.hasData());
+        paste.setEnabled(
+            (currentSelection instanceof ORPageInf || currentSelection instanceof ORObjectInf) &&
+            ORClipboardManager.hasData()
+        );
 
         if (selected instanceof ORRootInf) {
             forRoot();
@@ -124,7 +125,7 @@ public class ObjectPopupMenu extends JPopupMenu {
         renameObject.setEnabled(false);
         deleteObject.setEnabled(false);
         removeUnusedObject.setEnabled(!isSharedSelection(currentSelection));
-        
+
         impactAnalysis.setEnabled(false);
 
         copy.setEnabled(true);
@@ -180,7 +181,7 @@ public class ObjectPopupMenu extends JPopupMenu {
 
     private void forRoot() {
         boolean hasClipboard = ORClipboardManager.hasData();
-        
+
         addPage.setEnabled(true);
         renamePage.setEnabled(false);
         deletePage.setEnabled(false);
@@ -196,7 +197,9 @@ public class ObjectPopupMenu extends JPopupMenu {
         impactAnalysis.setEnabled(false);
 
         cut.setEnabled(isSameOR(currentSelection));
-        paste.setEnabled( hasClipboard && ORClipboardManager.get().getType() == ORObjectClipboard.Type.PAGE);
+        paste.setEnabled(
+            hasClipboard && ORClipboardManager.get().getType() == ORObjectClipboard.Type.PAGE
+        );
         sort.setEnabled(true);
     }
 
@@ -210,21 +213,21 @@ public class ObjectPopupMenu extends JPopupMenu {
 
     private void setCCP() {
         cut = new JMenuItem("Cut");
-        cut.setActionCommand("Cut");           // for Pages 
+        cut.setActionCommand("Cut"); // for Pages
         cut.setAccelerator(Keystroke.CUT);
         cut.setMnemonic(KeyEvent.VK_T);
         cut.addActionListener(listener);
         add(cut);
 
         copy = new JMenuItem("Copy");
-        copy.setActionCommand("Copy");         // for Pages
+        copy.setActionCommand("Copy"); // for Pages
         copy.setAccelerator(Keystroke.COPY);
         copy.setMnemonic(KeyEvent.VK_C);
         copy.addActionListener(listener);
         add(copy);
 
         paste = new JMenuItem("Paste");
-        paste.setActionCommand("Paste");       // for Pages
+        paste.setActionCommand("Paste"); // for Pages
         paste.setAccelerator(Keystroke.PASTE);
         paste.setMnemonic(KeyEvent.VK_P);
         paste.addActionListener(listener);
@@ -238,7 +241,7 @@ public class ObjectPopupMenu extends JPopupMenu {
         } else if (selected instanceof ORObjectInf) {
             page = ((ORObjectInf) selected).getPage();
         }
-        
+
         if (page != null && page.getRoot() instanceof WebOR) {
             WebOR root = (WebOR) page.getRoot();
             return root.isShared();
@@ -257,7 +260,7 @@ public class ObjectPopupMenu extends JPopupMenu {
         }
         return false;
     }
-    
+
     private boolean isSameOR(Object selected) {
         if (selected instanceof ORPageInf) {
             return ((ORPageInf) selected).getParent() == getCurrentRoot();

@@ -3,11 +3,6 @@ package com.ing.engine.cli.commands;
 import com.ing.engine.cli.INGeniousCLI;
 import com.ing.ingenious.api.annotation.Action;
 import com.ing.ingenious.api.types.ObjectType;
-import picocli.CommandLine.Command;
-import picocli.CommandLine.Option;
-import picocli.CommandLine.Parameters;
-import picocli.CommandLine.ParentCommand;
-
 import java.io.File;
 import java.lang.reflect.Method;
 import java.net.URL;
@@ -17,6 +12,10 @@ import java.util.concurrent.Callable;
 import java.util.jar.JarEntry;
 import java.util.jar.JarFile;
 import java.util.stream.Collectors;
+import picocli.CommandLine.Command;
+import picocli.CommandLine.Option;
+import picocli.CommandLine.Parameters;
+import picocli.CommandLine.ParentCommand;
 
 /**
  * Action discovery and documentation commands.
@@ -24,7 +23,7 @@ import java.util.stream.Collectors;
  */
 @Command(
     name = "action",
-    aliases = {"actions"},
+    aliases = { "actions" },
     description = "Discover and document available test actions",
     subcommands = {
         ActionCommand.ListCommand.class,
@@ -34,32 +33,32 @@ import java.util.stream.Collectors;
     }
 )
 public class ActionCommand implements Callable<Integer> {
-
     @ParentCommand
     private INGeniousCLI parent;
-    
+
     // Category mapping from ObjectType to user-friendly names
     private static final Map<String, String> CATEGORY_MAPPING = new LinkedHashMap<>();
+
     static {
         // Browser actions (Playwright, Browser, Web)
         CATEGORY_MAPPING.put("PLAYWRIGHT", "Browser");
         CATEGORY_MAPPING.put("BROWSER", "Browser");
         CATEGORY_MAPPING.put("WEB", "Browser");
-        
+
         // API actions (Webservice)
         CATEGORY_MAPPING.put("WEBSERVICE", "API");
-        
+
         // Database actions
         CATEGORY_MAPPING.put("DATABASE", "Database");
-        
+
         // Kafka/Queue actions
         CATEGORY_MAPPING.put("KAFKA", "Kafka");
         CATEGORY_MAPPING.put("QUEUE", "Kafka");
-        
+
         // Mobile actions
         CATEGORY_MAPPING.put("MOBILE", "Mobile");
         CATEGORY_MAPPING.put("APP", "Mobile");
-        
+
         // General actions
         CATEGORY_MAPPING.put("GENERAL", "General");
         CATEGORY_MAPPING.put("ANY", "General");
@@ -91,24 +90,26 @@ public class ActionCommand implements Callable<Integer> {
      */
     @Command(name = "list", description = "List available test actions by type")
     public static class ListCommand implements Callable<Integer> {
-
         @ParentCommand
         private ActionCommand parent;
 
-        @Parameters(index = "0", arity = "0..1", 
-                   description = "Action type: Browser, API, Database, Kafka, Mobile, General")
+        @Parameters(
+            index = "0",
+            arity = "0..1",
+            description = "Action type: Browser, API, Database, Kafka, Mobile, General"
+        )
         private String actionType;
 
-        @Option(names = {"--all"}, description = "List all actions from all types")
+        @Option(names = { "--all" }, description = "List all actions from all types")
         private boolean showAll;
 
-        @Option(names = {"--limit"}, description = "Maximum number of results")
+        @Option(names = { "--limit" }, description = "Maximum number of results")
         private Integer limit;
 
         @Override
         public Integer call() {
             INGeniousCLI cli = INGeniousCLI.getInstance();
-            
+
             // If no type specified and --all not set, show help
             if (actionType == null && !showAll) {
                 System.out.println("Please specify an action type or use --all flag.\n");
@@ -125,24 +126,28 @@ public class ActionCommand implements Callable<Integer> {
                 System.out.println("  ingenious action list --all");
                 return 0;
             }
-            
+
             try {
                 List<ActionInfo> actions = discoverAllActions();
-                
+
                 // Filter by type if specified
                 if (actionType != null && !showAll) {
                     String normalizedType = normalizeType(actionType);
                     if (normalizedType == null) {
                         cli.printError("Unknown action type: " + actionType);
-                        System.out.println("\nValid types: Browser, API, Database, Kafka, Mobile, General");
+                        System.out.println(
+                            "\nValid types: Browser, API, Database, Kafka, Mobile, General"
+                        );
                         return 1;
                     }
                     actions.removeIf(a -> !a.category.equalsIgnoreCase(normalizedType));
                 }
-                
+
                 // Sort by category, then name
-                actions.sort(Comparator.comparing((ActionInfo a) -> a.category).thenComparing(a -> a.name));
-                
+                actions.sort(
+                    Comparator.comparing((ActionInfo a) -> a.category).thenComparing(a -> a.name)
+                );
+
                 // Apply limit
                 if (limit != null && limit > 0 && actions.size() > limit) {
                     actions = actions.subList(0, limit);
@@ -158,32 +163,40 @@ public class ActionCommand implements Callable<Integer> {
                 }
 
                 // Format output
-                List<String> headers = Arrays.asList("Name", "Category", "Object Type", "Description");
+                List<String> headers = Arrays.asList(
+                    "Name",
+                    "Category",
+                    "Object Type",
+                    "Description"
+                );
                 List<List<String>> rows = new ArrayList<>();
 
                 for (ActionInfo action : actions) {
-                    rows.add(Arrays.asList(
-                        action.name,
-                        action.category,
-                        action.objectType,
-                        truncate(action.description, 50)
-                    ));
+                    rows.add(
+                        Arrays.asList(
+                            action.name,
+                            action.category,
+                            action.objectType,
+                            truncate(action.description, 50)
+                        )
+                    );
                 }
 
                 System.out.println(cli.getOutputFormatter().formatTable(headers, rows));
-                
-                String typeInfo = (actionType != null && !showAll) ? " (" + normalizeType(actionType) + ")" : "";
+
+                String typeInfo = (actionType != null && !showAll)
+                    ? " (" + normalizeType(actionType) + ")"
+                    : "";
                 cli.printInfo("\nTotal: " + actions.size() + " actions" + typeInfo);
-                
+
                 return 0;
-                
             } catch (Exception e) {
                 cli.printError("Failed to list actions: " + e.getMessage());
                 e.printStackTrace();
                 return 1;
             }
         }
-        
+
         private String normalizeType(String type) {
             if (type == null) return null;
             String lower = type.toLowerCase();
@@ -222,30 +235,33 @@ public class ActionCommand implements Callable<Integer> {
      */
     @Command(name = "search", description = "Search for actions by name or description")
     public static class SearchCommand implements Callable<Integer> {
-
         @ParentCommand
         private ActionCommand parent;
 
         @Parameters(index = "0", description = "Search query")
         private String query;
 
-        @Option(names = {"--limit"}, description = "Maximum number of results", defaultValue = "20")
+        @Option(
+            names = { "--limit" },
+            description = "Maximum number of results",
+            defaultValue = "20"
+        )
         private int limit;
 
         @Override
         public Integer call() {
             INGeniousCLI cli = INGeniousCLI.getInstance();
-            
+
             try {
                 List<ActionInfo> actions = discoverAllActions();
                 String lowerQuery = query.toLowerCase();
-                
+
                 // Score and filter actions
                 List<Map.Entry<ActionInfo, Integer>> scored = new ArrayList<>();
-                
+
                 for (ActionInfo action : actions) {
                     int score = 0;
-                    
+
                     // Exact name match
                     if (action.name.equalsIgnoreCase(query)) {
                         score += 100;
@@ -262,15 +278,15 @@ public class ActionCommand implements Callable<Integer> {
                     if (action.category.toLowerCase().contains(lowerQuery)) {
                         score += 10;
                     }
-                    
+
                     if (score > 0) {
                         scored.add(new AbstractMap.SimpleEntry<>(action, score));
                     }
                 }
-                
+
                 // Sort by score descending
                 scored.sort((a, b) -> b.getValue().compareTo(a.getValue()));
-                
+
                 // Apply limit
                 if (scored.size() > limit) {
                     scored = scored.subList(0, limit);
@@ -287,19 +303,20 @@ public class ActionCommand implements Callable<Integer> {
 
                 for (Map.Entry<ActionInfo, Integer> entry : scored) {
                     ActionInfo action = entry.getKey();
-                    rows.add(Arrays.asList(
-                        action.name,
-                        action.category,
-                        truncate(action.description, 40),
-                        entry.getValue() + "%"
-                    ));
+                    rows.add(
+                        Arrays.asList(
+                            action.name,
+                            action.category,
+                            truncate(action.description, 40),
+                            entry.getValue() + "%"
+                        )
+                    );
                 }
 
                 System.out.println(cli.getOutputFormatter().formatTable(headers, rows));
                 cli.printInfo("\nFound " + scored.size() + " matching actions");
-                
+
                 return 0;
-                
             } catch (Exception e) {
                 cli.printError("Search failed: " + e.getMessage());
                 return 1;
@@ -312,7 +329,6 @@ public class ActionCommand implements Callable<Integer> {
      */
     @Command(name = "info", description = "Show detailed action information")
     public static class InfoCommand implements Callable<Integer> {
-
         @ParentCommand
         private ActionCommand parent;
 
@@ -322,30 +338,41 @@ public class ActionCommand implements Callable<Integer> {
         @Override
         public Integer call() {
             INGeniousCLI cli = INGeniousCLI.getInstance();
-            
+
             try {
                 List<ActionInfo> actions = discoverAllActions();
-                
+
                 // Find matching action
-                ActionInfo found = actions.stream()
-                        .filter(a -> a.name.equalsIgnoreCase(actionName))
-                        .findFirst()
-                        .orElse(null);
+                ActionInfo found = actions
+                    .stream()
+                    .filter(a -> a.name.equalsIgnoreCase(actionName))
+                    .findFirst()
+                    .orElse(null);
 
                 if (found == null) {
                     cli.printError("Action not found: " + actionName);
-                    
+
                     // Suggest similar actions
-                    List<String> suggestions = actions.stream()
-                            .filter(a -> a.name.toLowerCase().contains(actionName.toLowerCase().substring(0, Math.min(4, actionName.length()))))
-                            .map(a -> a.name)
-                            .limit(5)
-                            .collect(Collectors.toList());
-                    
+                    List<String> suggestions = actions
+                        .stream()
+                        .filter(
+                            a ->
+                                a
+                                    .name.toLowerCase()
+                                    .contains(
+                                        actionName
+                                            .toLowerCase()
+                                            .substring(0, Math.min(4, actionName.length()))
+                                    )
+                        )
+                        .map(a -> a.name)
+                        .limit(5)
+                        .collect(Collectors.toList());
+
                     if (!suggestions.isEmpty()) {
                         cli.printInfo("Did you mean: " + String.join(", ", suggestions));
                     }
-                    
+
                     return 1;
                 }
 
@@ -357,19 +384,18 @@ public class ActionCommand implements Callable<Integer> {
                 info.put("description", found.description);
                 info.put("inputRequired", found.inputRequired);
                 info.put("conditionSupported", found.conditionSupported);
-                
+
                 if (found.parameters != null && !found.parameters.isEmpty()) {
                     info.put("parameters", found.parameters);
                 }
-                
+
                 if (found.example != null && !found.example.isEmpty()) {
                     info.put("example", found.example);
                 }
 
                 System.out.println(cli.getOutputFormatter().formatKeyValue(info));
-                
+
                 return 0;
-                
             } catch (Exception e) {
                 cli.printError("Failed to get action info: " + e.getMessage());
                 return 1;
@@ -382,25 +408,26 @@ public class ActionCommand implements Callable<Integer> {
      */
     @Command(name = "categories", description = "List action categories with counts")
     public static class CategoriesCommand implements Callable<Integer> {
-
         @ParentCommand
         private ActionCommand parent;
 
         @Override
         public Integer call() {
             INGeniousCLI cli = INGeniousCLI.getInstance();
-            
+
             try {
                 List<ActionInfo> actions = discoverAllActions();
-                
+
                 // Count by category
                 Map<String, Integer> categoryCounts = new LinkedHashMap<>();
                 for (ActionInfo action : actions) {
                     categoryCounts.merge(action.category, 1, Integer::sum);
                 }
-                
+
                 // Sort by count descending
-                List<Map.Entry<String, Integer>> sorted = new ArrayList<>(categoryCounts.entrySet());
+                List<Map.Entry<String, Integer>> sorted = new ArrayList<>(
+                    categoryCounts.entrySet()
+                );
                 sorted.sort((a, b) -> b.getValue().compareTo(a.getValue()));
 
                 // Format output
@@ -412,10 +439,15 @@ public class ActionCommand implements Callable<Integer> {
                 }
 
                 System.out.println(cli.getOutputFormatter().formatTable(headers, rows));
-                cli.printInfo("\nTotal: " + actions.size() + " actions in " + categoryCounts.size() + " categories");
-                
+                cli.printInfo(
+                    "\nTotal: " +
+                    actions.size() +
+                    " actions in " +
+                    categoryCounts.size() +
+                    " categories"
+                );
+
                 return 0;
-                
             } catch (Exception e) {
                 cli.printError("Failed to list categories: " + e.getMessage());
                 return 1;
@@ -436,7 +468,7 @@ public class ActionCommand implements Callable<Integer> {
      */
     private static List<ActionInfo> discoverAllActions() {
         List<ActionInfo> actions = new ArrayList<>();
-        
+
         // Known command classes - explicit list based on actual JAR contents
         String[] commandClasses = {
             // Browser commands
@@ -519,7 +551,7 @@ public class ActionCommand implements Callable<Integer> {
             "com.ing.engine.commands.galenCommands.Url",
             "com.ing.engine.commands.galenCommands.WidthAndHeight"
         };
-        
+
         for (String className : commandClasses) {
             try {
                 Class<?> clazz = Class.forName(className);
@@ -528,15 +560,17 @@ public class ActionCommand implements Callable<Integer> {
                         Action annotation = method.getAnnotation(Action.class);
                         String objType = annotation.object();
                         String category = mapObjectTypeToCategory(objType);
-                        
-                        actions.add(new ActionInfo(
-                            method.getName(),
-                            category,
-                            objType,
-                            annotation.desc(),
-                            annotation.input().name(),
-                            annotation.condition().name()
-                        ));
+
+                        actions.add(
+                            new ActionInfo(
+                                method.getName(),
+                                category,
+                                objType,
+                                annotation.desc(),
+                                annotation.input().name(),
+                                annotation.condition().name()
+                            )
+                        );
                     }
                 }
             } catch (ClassNotFoundException e) {
@@ -547,13 +581,13 @@ public class ActionCommand implements Callable<Integer> {
                 // Skip problematic classes
             }
         }
-        
+
         // Remove duplicates based on name
         Map<String, ActionInfo> unique = new LinkedHashMap<>();
         for (ActionInfo action : actions) {
             unique.putIfAbsent(action.name, action);
         }
-        
+
         return new ArrayList<>(unique.values());
     }
 
@@ -578,8 +612,14 @@ public class ActionCommand implements Callable<Integer> {
         String parameters;
         String example;
 
-        ActionInfo(String name, String category, String objectType, String description, 
-                   String inputRequired, String conditionSupported) {
+        ActionInfo(
+            String name,
+            String category,
+            String objectType,
+            String description,
+            String inputRequired,
+            String conditionSupported
+        ) {
             this.name = name;
             this.category = category;
             this.objectType = objectType;

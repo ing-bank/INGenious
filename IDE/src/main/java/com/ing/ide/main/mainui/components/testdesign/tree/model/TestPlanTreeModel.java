@@ -1,4 +1,3 @@
-
 package com.ing.ide.main.mainui.components.testdesign.tree.model;
 
 import com.ing.datalib.component.Project;
@@ -7,10 +6,9 @@ import com.ing.datalib.component.TestCase;
 
 /**
  *
- * 
+ *
  */
 public class TestPlanTreeModel extends ProjectTreeModel<TestPlanNode> {
-
     Project project;
 
     public TestPlanTreeModel() {
@@ -61,5 +59,4 @@ public class TestPlanTreeModel extends ProjectTreeModel<TestPlanNode> {
             }
         }
     }
-
 }

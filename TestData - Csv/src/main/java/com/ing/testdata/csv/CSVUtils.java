@@ -1,4 +1,3 @@
-
 package com.ing.testdata.csv;
 
 import com.ing.datalib.component.utils.CSVHParser;
@@ -20,15 +19,22 @@ import org.apache.commons.csv.CSVRecord;
 
 public class CSVUtils {
 
+    @SuppressWarnings({ "rawtypes", "unchecked" })
     public static void load(File location, AbstractDataModel sAbstractData) {
         CSVHParser parser = FileUtils.getCSVHParser(location);
         if (parser != null) {
             for (CSVRecord crecord : parser.getRecords()) {
-                List record = sAbstractData.getNewRecord();
+                List<String> record = (List<String>) sAbstractData.getNewRecord();
                 for (int i = 0; i < crecord.size(); i++) {
-                    record.add(crecord.get(i));
+                    String val = crecord.get(i);
+                    if (i < record.size()) {
+                        // set into existing slot (Record constructor initializes default slots)
+                        record.set(i, val);
+                    } else {
+                        record.add(val);
+                    }
                 }
-                sAbstractData.addRecord(record);
+                sAbstractData.addRecord((List) record);
             }
         }
     }
@@ -48,8 +54,10 @@ public class CSVUtils {
 
     public static void saveChanges(GlobalDataModel globalData) {
         createIfNotExists(globalData.getLocation());
-        try (FileWriter out = new FileWriter(new File(globalData.getLocation()));
-                CSVPrinter printer = new CSVPrinter(out, CSVFormat.EXCEL.withIgnoreEmptyLines());) {
+        try (
+            FileWriter out = new FileWriter(new File(globalData.getLocation()));
+            CSVPrinter printer = new CSVPrinter(out, CSVFormat.EXCEL.withIgnoreEmptyLines());
+        ) {
             for (String header : globalData.getColumns()) {
                 printer.print(header);
             }
@@ -68,8 +76,10 @@ public class CSVUtils {
 
     public static void saveChanges(TestDataModel testData) {
         createIfNotExists(testData.getLocation());
-        try (FileWriter out = new FileWriter(new File(testData.getLocation()));
-                CSVPrinter printer = new CSVPrinter(out, CSVFormat.EXCEL.withIgnoreEmptyLines());) {
+        try (
+            FileWriter out = new FileWriter(new File(testData.getLocation()));
+            CSVPrinter printer = new CSVPrinter(out, CSVFormat.EXCEL.withIgnoreEmptyLines());
+        ) {
             for (String header : testData.getColumns()) {
                 printer.print(header);
             }

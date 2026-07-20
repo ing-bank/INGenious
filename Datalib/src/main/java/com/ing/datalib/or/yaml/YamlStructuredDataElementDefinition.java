@@ -1,23 +1,22 @@
 package com.ing.datalib.or.yaml;
 
-import com.ing.datalib.or.structureddata.StructuredDataOR;
-import com.ing.datalib.or.structureddata.StructuredDataORObject;
-import com.ing.datalib.or.common.ORAttribute;
-import com.ing.datalib.or.common.ObjectGroup;
 import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import com.fasterxml.jackson.annotation.JsonAnySetter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
+import com.ing.datalib.or.common.ORAttribute;
+import com.ing.datalib.or.common.ObjectGroup;
 import com.ing.datalib.or.structureddata.StructuredDataAttribute;
-
+import com.ing.datalib.or.structureddata.StructuredDataOR;
+import com.ing.datalib.or.structureddata.StructuredDataORObject;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
 /**
  * YAML representation of an Structured Data OR element.
  * Only non-empty properties are serialized to YAML.
- * 
+ *
  * Example YAML output:
  * <pre>
  * userResponse:
@@ -26,25 +25,23 @@ import java.util.Map;
  * </pre>
  */
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
-@JsonPropertyOrder({"jsonPath", "xpath", "description"})
+@JsonPropertyOrder({ "jsonPath", "xpath", "description" })
 public class YamlStructuredDataElementDefinition {
-    
     // Structured Data locator properties
     private String jsonPath;
     private String xpath;
-    
+
     // Additional metadata
     private String description;
-    
+
     // Capture any unknown properties for extensibility
     @JsonIgnore
     private Map<String, Object> additionalProperties = new LinkedHashMap<>();
-    
-    public YamlStructuredDataElementDefinition() {
-    }
-    
+
+    public YamlStructuredDataElementDefinition() {}
+
     // ==================== Getters and Setters ====================
-    
+
     public String getJsonPath() {
         return jsonPath;
     }
@@ -80,14 +77,16 @@ public class YamlStructuredDataElementDefinition {
     }
 
     // ==================== Conversion Methods ====================
-    
+
     /**
      * Convert an StructuredDataORObject to YamlStructuredDataElementDefinition.
      * Only non-empty attributes are captured.
      */
-    public static YamlStructuredDataElementDefinition fromStructuredDataORObject(StructuredDataORObject obj) {
+    public static YamlStructuredDataElementDefinition fromStructuredDataORObject(
+        StructuredDataORObject obj
+    ) {
         YamlStructuredDataElementDefinition elem = new YamlStructuredDataElementDefinition();
-        
+
         // Map attributes to properties (only non-empty values)
         for (StructuredDataAttribute attr : obj.getAttributes()) {
             if (attr.getValue() != null && !attr.getValue().isEmpty()) {
@@ -108,20 +107,23 @@ public class YamlStructuredDataElementDefinition {
         }
         return elem;
     }
-    
+
     /**
      * Convert YamlStructuredDataElementDefinition to an StructuredDataORObject.
      */
-    public StructuredDataORObject toStructuredDataORObject(String name, ObjectGroup<StructuredDataORObject> group) {
+    public StructuredDataORObject toStructuredDataORObject(
+        String name,
+        ObjectGroup<StructuredDataORObject> group
+    ) {
         StructuredDataORObject obj = new StructuredDataORObject(name, group);
-        
+
         // Set attribute values
         setAttributeIfPresent(obj, "JsonPath", jsonPath);
         setAttributeIfPresent(obj, "Xpath", xpath);
-        
+
         return obj;
     }
-    
+
     private void setAttributeIfPresent(StructuredDataORObject obj, String name, String value) {
         if (value != null && !value.isEmpty()) {
             StructuredDataAttribute attr = obj.getAttribute(name);
@@ -130,7 +132,7 @@ public class YamlStructuredDataElementDefinition {
             }
         }
     }
-    
+
     /**
      * Check if this element has any locator properties defined.
      */
@@ -138,7 +140,7 @@ public class YamlStructuredDataElementDefinition {
     public boolean hasLocators() {
         return isNotEmpty(jsonPath) || isNotEmpty(xpath);
     }
-    
+
     private boolean isNotEmpty(String s) {
         return s != null && !s.isEmpty();
     }

@@ -3,11 +3,17 @@ package com.ing.ide.main.mainui.components.testdesign.tree;
 import com.ing.datalib.component.Project;
 import com.ing.datalib.component.Scenario;
 import com.ing.datalib.component.TestCase;
+import com.ing.datalib.component.TestStep;
 import com.ing.datalib.exception.TestCaseConversionException;
 import com.ing.datalib.model.DataItem;
 import com.ing.datalib.model.Meta;
 import com.ing.datalib.model.Tag;
+import com.ing.datalib.or.mobile.ResolvedMobileObject;
+import com.ing.datalib.or.sap.ResolvedSapObject;
+import com.ing.datalib.or.structureddata.ResolvedStructuredDataObject;
+import com.ing.datalib.or.web.ResolvedWebObject;
 import com.ing.ide.main.mainui.components.testdesign.TestDesign;
+import com.ing.ide.main.mainui.components.testdesign.testcase.validation.TestCaseValidation;
 import com.ing.ide.main.mainui.components.testdesign.tree.model.GroupNode;
 import com.ing.ide.main.mainui.components.testdesign.tree.model.ProjectTreeModel;
 import com.ing.ide.main.mainui.components.testdesign.tree.model.ScenarioNode;
@@ -22,20 +28,27 @@ import com.ing.ide.settings.IconSettings;
 import com.ing.ide.util.Canvas;
 import com.ing.ide.util.Notification;
 import com.ing.ide.util.Validator;
+import java.awt.Color;
 import java.awt.Component;
 import java.awt.Font;
 import java.awt.FontFormatException;
 import java.awt.GraphicsEnvironment;
+import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.KeyEvent;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.AbstractAction;
@@ -47,6 +60,7 @@ import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPopupMenu;
 import javax.swing.JTree;
+import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
 import javax.swing.TransferHandler;
 import javax.swing.UIManager;
@@ -55,17 +69,16 @@ import javax.swing.event.ChangeEvent;
 import javax.swing.event.PopupMenuEvent;
 import javax.swing.event.PopupMenuListener;
 import javax.swing.tree.TreePath;
-import java.awt.Toolkit;
-import java.awt.event.KeyEvent;
-import javax.swing.KeyStroke;
 
 /**
  * UI tree component for displaying and managing Test Plan scenarios and test cases.
  * Provides context menus, drag-and-drop support, and editing capabilities.
  */
 public class ProjectTree implements ActionListener {
-
     private static final Logger LOGGER = Logger.getLogger(ProjectTree.class.getName());
+
+    /** Colour used to mark scenario/test-case nodes that have validation errors. */
+    private static final Color VALIDATION_ERROR_COLOR = new Color(0xCE2323);
 
     ProjectPopupMenu popupMenu;
 
@@ -114,7 +127,10 @@ public class ProjectTree implements ActionListener {
     private void init() {
         try {
             //create the font to use. Specify the size!
-            Font customFont = Font.createFont(Font.TRUETYPE_FONT, new File("resources/ui/resources/fonts/ingme_regular.ttf"));//.deriveFont(12f);
+            Font customFont = Font.createFont(
+                Font.TRUETYPE_FONT,
+                new File("resources/ui/resources/fonts/ingme_regular.ttf")
+            ); //.deriveFont(12f);
             GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
             //register the font
             ge.registerFont(customFont);
@@ -141,96 +157,130 @@ public class ProjectTree implements ActionListener {
         tree.getInputMap(JComponent.WHEN_FOCUSED).put(Keystroke.ALTENTER, "AltEnter");
         tree.getInputMap(JComponent.WHEN_FOCUSED).put(KeyStroke.getKeyStroke("ESCAPE"), "Escape");
 
-        tree.getActionMap().put("AltEnter", new AbstractAction() {
+        tree
+            .getActionMap()
+            .put(
+                "AltEnter",
+                new AbstractAction() {
 
-            @Override
-            public void actionPerformed(ActionEvent ae) {
-                showDetails();
-            }
-        });
-
-        tree.getActionMap().put("New", new AbstractAction() {
-
-            @Override
-            public void actionPerformed(ActionEvent ae) {
-                onNewAction();
-            }
-        });
-
-        tree.getActionMap().put("Delete", new AbstractAction() {
-
-            @Override
-            public void actionPerformed(ActionEvent ae) {
-                onDeleteAction();
-            }
-        });
-
-        tree.getActionMap().put("Rename", new AbstractAction() {
-
-            @Override
-            public void actionPerformed(ActionEvent ae) {
-                ScenarioNode scenarioNode = getSelectedScenarioNode();
-                if (scenarioNode != null) {
-                    tree.startEditingAtPath(new TreePath(scenarioNode.getPath()));
-                    return;
+                    @Override
+                    public void actionPerformed(ActionEvent ae) {
+                        showDetails();
+                    }
                 }
-                TestCaseNode testCaseNode = getSelectedTestCaseNode();
-                if (testCaseNode != null) {
-                    tree.startEditingAtPath(new TreePath(testCaseNode.getPath()));
+            );
+
+        tree
+            .getActionMap()
+            .put(
+                "New",
+                new AbstractAction() {
+
+                    @Override
+                    public void actionPerformed(ActionEvent ae) {
+                        onNewAction();
+                    }
+                }
+            );
+
+        tree
+            .getActionMap()
+            .put(
+                "Delete",
+                new AbstractAction() {
+
+                    @Override
+                    public void actionPerformed(ActionEvent ae) {
+                        onDeleteAction();
+                    }
+                }
+            );
+
+        tree
+            .getActionMap()
+            .put(
+                "Rename",
+                new AbstractAction() {
+
+                    @Override
+                    public void actionPerformed(ActionEvent ae) {
+                        ScenarioNode scenarioNode = getSelectedScenarioNode();
+                        if (scenarioNode != null) {
+                            tree.startEditingAtPath(new TreePath(scenarioNode.getPath()));
+                            return;
+                        }
+                        TestCaseNode testCaseNode = getSelectedTestCaseNode();
+                        if (testCaseNode != null) {
+                            tree.startEditingAtPath(new TreePath(testCaseNode.getPath()));
+                        }
+                    }
+                }
+            );
+
+        tree
+            .getActionMap()
+            .put(
+                "Escape",
+                new AbstractAction() {
+
+                    @Override
+                    public void actionPerformed(ActionEvent ae) {
+                        if (tree.isEditing()) {
+                            tree.cancelEditing();
+                        }
+                    }
+                }
+            );
+
+        tree.addMouseListener(
+            new MouseAdapter() {
+
+                @Override
+                public void mouseClicked(MouseEvent e) {
+                    if (SwingUtilities.isLeftMouseButton(e) && e.getClickCount() == 2) {
+                        loadTableModelForSelection();
+                    }
                 }
             }
-        });
+        );
+        popupMenu.addPopupMenuListener(
+            new PopupMenuListener() {
 
-        tree.getActionMap().put("Escape", new AbstractAction() {
+                @Override
+                public void popupMenuWillBecomeVisible(PopupMenuEvent pme) {
+                    onRightClick();
+                }
 
-            @Override
-            public void actionPerformed(ActionEvent ae) {
-                if (tree.isEditing()) {
-                    tree.cancelEditing();
+                @Override
+                public void popupMenuWillBecomeInvisible(PopupMenuEvent pme) {
+                    // Not Needed
+                }
+
+                @Override
+                public void popupMenuCanceled(PopupMenuEvent pme) {
+                    // Not Needed
                 }
             }
-        });
-
-        tree.addMouseListener(new MouseAdapter() {
-
-            @Override
-            public void mouseClicked(MouseEvent e) {
-                if (SwingUtilities.isLeftMouseButton(e) && e.getClickCount() == 2) {
-                    loadTableModelForSelection();
-                }
-            }
-        });
-        popupMenu.addPopupMenuListener(new PopupMenuListener() {
-
-            @Override
-            public void popupMenuWillBecomeVisible(PopupMenuEvent pme) {
-                onRightClick();
-            }
-
-            @Override
-            public void popupMenuWillBecomeInvisible(PopupMenuEvent pme) {
-                // Not Needed
-            }
-
-            @Override
-            public void popupMenuCanceled(PopupMenuEvent pme) {
-                // Not Needed
-            }
-        });
+        );
         setTreeIcon();
-        tree.getCellEditor().addCellEditorListener(new CellEditorListener() {
-            @Override
-            public void editingStopped(ChangeEvent ce) {
-                if (!checkAndRename()) {
-                    tree.getCellEditor().cancelCellEditing();
-                }
-            }
+        tree
+            .getCellEditor()
+            .addCellEditorListener(
+                new CellEditorListener() {
 
-            @Override
-            public void editingCanceled(ChangeEvent ce) {
-                //   Not Needed
-            }
-        });
+                    @Override
+                    public void editingStopped(ChangeEvent ce) {
+                        if (!checkAndRename()) {
+                            tree.getCellEditor().cancelCellEditing();
+                        }
+                    }
+
+                    @Override
+                    public void editingCanceled(ChangeEvent ce) {
+                        //   Not Needed
+                    }
+                }
+            );
     }
 
     /**
@@ -239,7 +289,10 @@ public class ProjectTree implements ActionListener {
     private void setTreeIcon() {
         try {
             //create the font to use. Specify the size!
-            Font customFont = Font.createFont(Font.TRUETYPE_FONT, new File("resources/ui/resources/fonts/ingme_regular.ttf"));//.deriveFont(12f);
+            Font customFont = Font.createFont(
+                Font.TRUETYPE_FONT,
+                new File("resources/ui/resources/fonts/ingme_regular.ttf")
+            ); //.deriveFont(12f);
             GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
             //register the font
             ge.registerFont(customFont);
@@ -248,23 +301,62 @@ public class ProjectTree implements ActionListener {
         }
         tree.setFont(new Font("ING Me", Font.PLAIN, 11));
         new TreeSelectionRenderer(tree) {
+
             @Override
-            public Component getTreeCellRendererComponent(JTree tree, Object value, boolean selected, boolean expanded, boolean isLeaf, int row, boolean focused) {
-                Component c = super.getTreeCellRendererComponent(tree, value, selected, expanded, isLeaf, row, focused);
+            public Component getTreeCellRendererComponent(
+                JTree tree,
+                Object value,
+                boolean selected,
+                boolean expanded,
+                boolean isLeaf,
+                int row,
+                boolean focused
+            ) {
+                Component c = super.getTreeCellRendererComponent(
+                    tree,
+                    value,
+                    selected,
+                    expanded,
+                    isLeaf,
+                    row,
+                    focused
+                );
                 if (value instanceof GroupNode) {
                     setIcons(IconSettings.getIconSettings().getReusableFolder());
                 } else if (value instanceof ScenarioNode) {
                     setIcons(IconSettings.getIconSettings().getTestPlanScenario());
+                    // setText(withScopeBadge(value));
                 } else if (value instanceof TestCaseNode) {
                     if (ProjectTree.this instanceof ReusableTree) {
                         setIcons(IconSettings.getIconSettings().getReusableTestCase());
                     } else {
                         setIcons(IconSettings.getIconSettings().getTestPlanTestCase());
                     }
+                    // setText(withScopeBadge(value));
                 } else {
                     setIcons(IconSettings.getIconSettings().getTestPlanRoot());
                 }
+                markValidationError(c, value);
                 return c;
+            }
+
+            /**
+             * Marks a scenario or test case node in red when it (or any
+             * reusable it references) contains an IDE-level validation error.
+             *
+             * @param comp  the rendered tree cell component
+             * @param value the tree node being rendered
+             */
+            void markValidationError(Component comp, Object value) {
+                boolean error = false;
+                if (value instanceof ScenarioNode) {
+                    error = TestCaseValidation.hasError(((ScenarioNode) value).getScenario());
+                } else if (value instanceof TestCaseNode) {
+                    error = TestCaseValidation.hasError(((TestCaseNode) value).getTestCase());
+                }
+                if (error) {
+                    comp.setForeground(VALIDATION_ERROR_COLOR);
+                }
             }
 
             void setIcons(Icon icon) {
@@ -317,7 +409,7 @@ public class ProjectTree implements ActionListener {
      * Handles the "New" action based on current selection.
      */
     protected void onNewAction() {
-        if (getSelectedScenarioNode() != null) {
+        if (getSelectedScenarioNode() != null || getSelectedTestCaseNode() != null) {
             addTestCase();
         } else if (getSelectedGroupNode() != null) {
             addScenario();
@@ -363,28 +455,33 @@ public class ProjectTree implements ActionListener {
             case "Edit Tag":
                 editTag();
                 break;
-            case "Make As Reusable/TestCase":
+            case "Make As TestCase":
                 makeAsReusableRTestCase();
+                break;
+            case "Make As Project Reusable":
+                makeAsReusableRTestCase();
+                break;
+            case "Make As Shared Reusable":
+                moveTestCaseToSharedReusable();
                 break;
             case "Details":
                 showDetails();
                 break;
-            case "Manual Testcase": {
-                try {
-                    convertToManual();
-                } catch (IOException ex) {
-                    Logger.getLogger(ProjectTree.class.getName()).log(Level.SEVERE, null, ex);
+            case "Manual Testcase":
+                {
+                    try {
+                        convertToManual();
+                    } catch (IOException ex) {
+                        Logger.getLogger(ProjectTree.class.getName()).log(Level.SEVERE, null, ex);
+                    }
                 }
-            }
-            break;
-
+                break;
             case "Get Impacted TestCases":
                 getImpactedTestCases();
                 break;
             case "Get CmdLine Syntax":
                 getCmdLineSyntax();
                 break;
-
             default:
                 throw new UnsupportedOperationException();
         }
@@ -402,19 +499,33 @@ public class ProjectTree implements ActionListener {
      * Adds a new scenario to the project.
      */
     private void addScenario() {
-        ScenarioNode scNode = treeModel.addScenario(getSelectedGroupNode(),
-                testDesign.getProject().addScenario(fetchNewScenarioName()));
+        String scenarioName = fetchNewScenarioName();
+        Scenario scenario = testDesign.getProject().addScenario(scenarioName);
+        if (scenario == null) {
+            Notification.showWarning(
+                "Scenario '" +
+                scenarioName +
+                "' already exists in another scope (Test Plan, Reusable, or Shared Reusable)."
+            );
+            return;
+        }
+        ScenarioNode scNode = treeModel.addScenario(getSelectedGroupNode(), scenario);
         selectAndScrollTo(new TreePath(scNode.getPath()));
     }
 
     /**
-     * Generates a unique name for a new scenario.
+     * Generates a unique name for a new scenario checking all scopes.
      * @return unique scenario name
      */
     private String fetchNewScenarioName() {
         String newScenarioName = "NewScenario";
         for (int i = 0;; i++) {
-            if (testDesign.getProject().getScenarioByName(newScenarioName) == null) {
+            // Check if scenario exists in any scope
+            if (
+                testDesign.getProject().getScenarioByName(newScenarioName) == null &&
+                testDesign.getProject().getReusableScenarioByName(newScenarioName) == null &&
+                testDesign.getProject().getSharedReusableScenarioByName(newScenarioName) == null
+            ) {
                 break;
             }
             newScenarioName = "NewScenario" + i;
@@ -427,13 +538,20 @@ public class ProjectTree implements ActionListener {
      */
     private void addTestCase() {
         ScenarioNode scenarioNode = getSelectedScenarioNode();
+        if (scenarioNode == null) {
+            TestCaseNode tcNode = getSelectedTestCaseNode();
+            if (tcNode != null && tcNode.getParent() instanceof ScenarioNode) {
+                scenarioNode = (ScenarioNode) tcNode.getParent();
+            }
+        }
         if (scenarioNode != null) {
             TestCase testcase;
             String testCaseName = fetchNewTestCaseName(scenarioNode.getScenario());
             testcase = scenarioNode.getScenario().addTestCase(testCaseName);
             testDesign.loadTableModelForSelection(testcase);
-            selectAndScrollTo(new TreePath(treeModel.
-                    addTestCase(scenarioNode, testcase).getPath()));
+            selectAndScrollTo(
+                new TreePath(treeModel.addTestCase(scenarioNode, testcase).getPath())
+            );
         }
     }
 
@@ -445,8 +563,10 @@ public class ProjectTree implements ActionListener {
     private String fetchNewTestCaseName(Scenario scenario) {
         String newTestCaseName = "NewTestCase";
         for (int i = 0;; i++) {
-            if (scenario.getTestCaseByName(newTestCaseName) == null 
-                    && !getProject().hasTestCaseInAnyScenario(scenario.getName(), newTestCaseName)) {
+            if (
+                scenario.getTestCaseByName(newTestCaseName) == null &&
+                !getProject().testCaseExistsInAnyScope(newTestCaseName)
+            ) {
                 break;
             }
             newTestCaseName = "NewTestCase" + i;
@@ -480,7 +600,12 @@ public class ProjectTree implements ActionListener {
                     testDesign.getTestCaseComp().refreshTitle();
                     return true;
                 } else {
-                    Notification.show("Testcase '" + name + "' Already present in Scenario - " + getSelectedTestCase().getScenario().getName());
+                    Notification.show(
+                        "Testcase '" +
+                        name +
+                        "' Already present in Scenario - " +
+                        getSelectedTestCase().getScenario().getName()
+                    );
                 }
             }
         }
@@ -492,8 +617,7 @@ public class ProjectTree implements ActionListener {
      * @param scenario renamed scenario
      */
     void renameScenario(Scenario scenario) {
-        getTestDesign().getReusableTree()
-                .getTreeModel().onScenarioRename(scenario);
+        getTestDesign().getReusableTree().getTreeModel().onScenarioRename(scenario);
     }
 
     /**
@@ -502,16 +626,21 @@ public class ProjectTree implements ActionListener {
     private void deleteScenarios() {
         List<ScenarioNode> scenarioNodes = getSelectedScenarioNodes();
         if (!scenarioNodes.isEmpty()) {
-            int option = JOptionPane.showConfirmDialog(null,
-                    "<html><body><p style='width: 200px;'>"
-                    + "Are you sure want to delete the following Scenarios?<br>"
-                    + scenarioNodes
-                    + "</p></body></html>",
-                    "Delete Scenario",
-                    JOptionPane.YES_NO_OPTION);
+            int option = JOptionPane.showConfirmDialog(
+                null,
+                "<html><body><p style='width: 200px;'>" +
+                "Are you sure want to delete the following Scenarios?<br>" +
+                scenarioNodes +
+                "</p></body></html>",
+                "Delete Scenario",
+                JOptionPane.YES_NO_OPTION
+            );
             if (option == JOptionPane.YES_OPTION) {
-                LOGGER.log(Level.INFO, "Delete Scenarios approved for {0}; {1}",
-                        new Object[]{scenarioNodes.size(), scenarioNodes});
+                LOGGER.log(
+                    Level.INFO,
+                    "Delete Scenarios approved for {0}; {1}",
+                    new Object[] { scenarioNodes.size(), scenarioNodes }
+                );
                 for (ScenarioNode scenarioNode : scenarioNodes) {
                     deleteTestCases(TestCaseNode.toList(scenarioNode.children()));
                     scenarioNode.getScenario().delete();
@@ -527,16 +656,21 @@ public class ProjectTree implements ActionListener {
     private void deleteTestCases() {
         List<TestCaseNode> testcaseNodes = getSelectedTestCaseNodes();
         if (!testcaseNodes.isEmpty()) {
-            int option = JOptionPane.showConfirmDialog(null,
-                    "<html><body><p style='width: 200px;'>"
-                    + "Are you sure want to delete the following TestCases?<br>"
-                    + testcaseNodes
-                    + "</p></body></html>",
-                    "Delete TestCase",
-                    JOptionPane.YES_NO_OPTION);
+            int option = JOptionPane.showConfirmDialog(
+                null,
+                "<html><body><p style='width: 200px;'>" +
+                "Are you sure want to delete the following TestCases?<br>" +
+                testcaseNodes +
+                "</p></body></html>",
+                "Delete TestCase",
+                JOptionPane.YES_NO_OPTION
+            );
             if (option == JOptionPane.YES_OPTION) {
-                LOGGER.log(Level.INFO, "Delete TestCases approved for {0}; {1}",
-                        new Object[]{testcaseNodes.size(), testcaseNodes});
+                LOGGER.log(
+                    Level.INFO,
+                    "Delete TestCases approved for {0}; {1}",
+                    new Object[] { testcaseNodes.size(), testcaseNodes }
+                );
                 deleteTestCases(testcaseNodes);
             }
         }
@@ -713,15 +847,16 @@ public class ProjectTree implements ActionListener {
      * @param path tree path to select and scroll to
      */
     protected void selectAndScrollTo(final TreePath path) {
-        SwingUtilities.invokeLater(new Runnable() {
-            @Override
-            public void run() {
-                tree.setSelectionPath(path);
-                tree.scrollPathToVisible(path);
-                tree.removeSelectionPath(path);
-                tree.addSelectionPaths(new TreePath[]{path.getParentPath(), path});
+        SwingUtilities.invokeLater(
+            new Runnable() {
+
+                @Override
+                public void run() {
+                    tree.setSelectionPath(path);
+                    tree.scrollPathToVisible(path);
+                }
             }
-        });
+        );
     }
 
     /**
@@ -729,14 +864,21 @@ public class ProjectTree implements ActionListener {
      * Shows error notifications for failures and reloads both trees on success.
      */
     protected void makeAsReusableRTestCase() {
+        if (getSelectedTestCaseNodes().isEmpty()) {
+            Notification.showWarning("Select at least one test case to make as Project Reusable.");
+            return;
+        }
         if (!getSelectedTestCaseNodes().isEmpty()) {
             // Save ALL test cases to prevent data loss on reload
             getProject().save();
-            
+
             boolean anySuccess = false;
+            int impactedUpdates = 0;
             for (TestCaseNode testCaseNode : getSelectedTestCaseNodes()) {
                 try {
                     getProject().moveTestCaseToReusable(testCaseNode.getTestCase());
+                    impactedUpdates +=
+                        getProject().getAndResetLastImpactedReusableReferenceUpdates();
                     anySuccess = true;
                 } catch (TestCaseConversionException e) {
                     Notification.show(e.getMessage());
@@ -747,6 +889,9 @@ public class ProjectTree implements ActionListener {
                 getProject().save();
                 load();
                 getTestDesign().getReusableTree().load();
+                showImpactedReferenceNotification("Moved to Project Reusable", impactedUpdates);
+            } else {
+                Notification.showWarning("No test cases were moved to Project Reusable.");
             }
         }
     }
@@ -757,6 +902,244 @@ public class ProjectTree implements ActionListener {
      */
     void makeAsReusableRTestCase(TestCase testCase) {
         getTestDesign().getReusableTree().getTreeModel().addTestCase(testCase);
+    }
+
+    /**
+     * Moves selected test case(s) from Test Plan to Shared Reusable Components.
+     */
+    private void moveTestCaseToSharedReusable() {
+        if (getSelectedTestCaseNodes().isEmpty()) {
+            Notification.showWarning("Select at least one test case to make as Shared Reusable.");
+            return;
+        }
+        if (!getSelectedTestCaseNodes().isEmpty()) {
+            int option = JOptionPane.showConfirmDialog(
+                null,
+                "Move selected test case(s) to Shared Reusable Components?",
+                "Make As Shared Reusable",
+                JOptionPane.YES_NO_OPTION
+            );
+            if (option != JOptionPane.YES_OPTION) {
+                return;
+            }
+            // Save ALL test cases to prevent data loss on reload
+            getProject().save();
+
+            boolean anySuccess = false;
+            int impactedUpdates = 0;
+
+            // Move test cases first and record which ones moved successfully.
+            List<TestCase> movedSuccessfully = new ArrayList<>();
+            for (TestCaseNode testCaseNode : getSelectedTestCaseNodes()) {
+                try {
+                    getProject().moveTestCaseToSharedReusable(testCaseNode.getTestCase());
+                    impactedUpdates +=
+                        getProject().getAndResetLastImpactedReusableReferenceUpdates();
+                    anySuccess = true;
+                    movedSuccessfully.add(testCaseNode.getTestCase());
+                } catch (TestCaseConversionException e) {
+                    Notification.show(e.getMessage());
+                }
+            }
+
+            // Only after test cases have been moved successfully, detect and optionally move project-scoped objects
+            if (!movedSuccessfully.isEmpty()) {
+                // If the user cancels the second confirmation, we simply skip moving objects but do not revert moved test cases.
+                try {
+                    confirmAndMoveProjectObjectsForTestCases(movedSuccessfully);
+                } catch (Exception ex) {
+                    LOGGER.log(
+                        Level.WARNING,
+                        "Error during optional object move after test case migration",
+                        ex
+                    );
+                }
+            }
+            if (anySuccess) {
+                getProject().reload();
+                getProject().save();
+                load();
+                getTestDesign().getSharedReusableTree().load();
+                showImpactedReferenceNotification("Moved to Shared Reusable", impactedUpdates);
+            } else {
+                Notification.showWarning("No test cases were moved to Shared Reusable.");
+            }
+        }
+    }
+
+    protected void showImpactedReferenceNotification(String operationName, int impactedUpdates) {
+        if (impactedUpdates > 0) {
+            Notification.showSuccess(
+                operationName +
+                " completed. All impacted test cases have been updated (" +
+                impactedUpdates +
+                ")."
+            );
+        } else {
+            Notification.showSuccess(
+                operationName + " completed. No impacted test case references required updates."
+            );
+        }
+    }
+
+    /**
+     * Detects project-scoped object references used by the provided test cases.
+     * If any project-only objects are found, prompts the user whether to move those
+     * objects/pages to Shared OR. If the user agrees, moves objects/pages to Shared.
+     * Returns true when the caller should proceed with moving test cases to Shared; false if cancelled.
+     */
+    public boolean confirmAndMoveProjectObjectsForTestCases(List<TestCase> testCases) {
+        try {
+            var repo = getProject().getObjectRepository();
+            if (repo == null) return true; // nothing to do
+
+            // Collect project-only references as pairs of pageName -> set(objectName)
+            Map<String, Set<String>> projectRefs = new HashMap<>();
+
+            for (TestCase tc : testCases) {
+                tc.loadTableModel();
+                for (TestStep step : tc.getTestSteps()) {
+                    if (!step.isPageObjectStep()) continue;
+                    String ref = step.getReference();
+                    String obj = step.getObject();
+                    if (ref == null || ref.isBlank() || obj == null || obj.isBlank()) continue;
+
+                    // Parse the page reference first to handle scoped tokens like "[Project] Home"
+                    ResolvedWebObject.PageRef wref = ResolvedWebObject.PageRef.parse(ref);
+                    var wres = repo.resolveWebObject(wref, obj);
+                    if (wres != null) {
+                        if (wres.isFromProject()) {
+                            projectRefs
+                                .computeIfAbsent(wres.getPageName(), k -> new HashSet<>())
+                                .add(obj);
+                        }
+                        continue;
+                    }
+
+                    ResolvedMobileObject.PageRef mref = ResolvedMobileObject.PageRef.parse(ref);
+                    var mres = repo.resolveMobileObject(mref, obj);
+                    if (mres != null) {
+                        if (mres.isFromProject()) {
+                            projectRefs
+                                .computeIfAbsent(mres.getPageName(), k -> new HashSet<>())
+                                .add(obj);
+                        }
+                        continue;
+                    }
+
+                    ResolvedStructuredDataObject.PageRef sref = ResolvedStructuredDataObject.PageRef.parse(
+                        ref
+                    );
+                    var sres = repo.resolveStructuredDataObject(sref, obj);
+                    if (sres != null) {
+                        if (sres.isFromProject()) {
+                            projectRefs
+                                .computeIfAbsent(sres.getPageName(), k -> new HashSet<>())
+                                .add(obj);
+                        }
+                        continue;
+                    }
+
+                    ResolvedSapObject.PageRef sapref = ResolvedSapObject.PageRef.parse(ref);
+                    var sapres = repo.resolveSapObject(sapref, obj);
+                    if (sapres != null) {
+                        if (sapres.isFromProject()) {
+                            projectRefs
+                                .computeIfAbsent(sapres.getPageName(), k -> new HashSet<>())
+                                .add(obj);
+                        }
+                        continue;
+                    }
+                }
+            }
+
+            if (projectRefs.isEmpty()) return true; // no project-only objects found
+
+            // Build confirmation message
+            StringBuilder sb = new StringBuilder();
+            sb.append(
+                "The selected test case(s) reference project-scoped Object Repository items:\n\n"
+            );
+            for (var e : projectRefs.entrySet()) {
+                sb
+                    .append("Page: ")
+                    .append(e.getKey())
+                    .append(" -> Objects: ")
+                    .append(e.getValue())
+                    .append("\n");
+            }
+            sb.append(
+                "\nDo you want to move these objects/pages to Shared Object Repository as well?\n"
+            );
+
+            int opt = JOptionPane.showConfirmDialog(
+                null,
+                sb.toString(),
+                "Move referenced Project Objects to Shared?",
+                JOptionPane.YES_NO_OPTION
+            );
+
+            // if (opt == JOptionPane.CANCEL_OPTION || opt == JOptionPane.CLOSED_OPTION) return false;
+            if (opt != JOptionPane.YES_OPTION) return true; // proceed without moving objects
+
+            // User agreed to move objects/pages to Shared OR.
+            // Only move the specific objects referenced by the selected test cases.
+            for (String pageName : projectRefs.keySet()) {
+                try {
+                    for (String obj : projectRefs.get(pageName)) {
+                        // try web
+                        var r = repo.resolveWebObjectWithScope(pageName, obj);
+                        if (r != null && r.isFromProject()) {
+                            repo.moveWebObject(r, pageName);
+                            continue;
+                        }
+                        var rm = repo.resolveMobileObjectWithScope(pageName, obj);
+                        if (rm != null && rm.isFromProject()) {
+                            repo.moveMobileObject(rm, pageName);
+                            continue;
+                        }
+                        var rs = repo.resolveStructuredDataObjectWithScope(pageName, obj);
+                        if (rs != null && rs.isFromProject()) {
+                            repo.moveStructuredDataObject(rs, pageName);
+                            continue;
+                        }
+                        var rsp = repo.resolveSapObjectWithScope(pageName, obj);
+                        if (rsp != null && rsp.isFromProject()) {
+                            repo.moveSapObject(rsp, pageName);
+                            continue;
+                        }
+                    }
+                } catch (Exception ex) {
+                    // ignore individual failures and continue
+                }
+            }
+
+            // Save repository and refresh UI.
+            // Remove any now-empty source pages (moved all objects) to keep repository consistent
+            try {
+                com.ing.datalib.or.web.WebOR projectWebOR = repo.getWebOR();
+                if (projectWebOR != null) {
+                    for (String pageName : projectRefs.keySet()) {
+                        com.ing.datalib.or.web.WebORPage sourcePage = projectWebOR.getPageByName(
+                            pageName
+                        );
+                        if (sourcePage != null && sourcePage.getObjectGroups().isEmpty()) {
+                            sourcePage.removeFromParent();
+                        }
+                    }
+                }
+            } catch (Throwable t) {
+                // Ignore - best effort cleanup
+            }
+
+            repo.save();
+            // Ensure UI reload runs on the Swing EDT to avoid potential threading/race issues
+            javax.swing.SwingUtilities.invokeLater(() -> getTestDesign().getObjectRepo().load());
+            return true;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return true; // allow proceed on error
+        }
     }
 
     /**
@@ -776,14 +1159,23 @@ public class ProjectTree implements ActionListener {
      */
     private void convertToManual() throws IOException {
         if (!getSelectedScenarios().isEmpty()) {
-            testDesign.getsMainFrame().getStepMap().convertScenarios(
-                    Utils.saveDialog("Manual TestCase.csv"), getSelectedScenarios());
+            testDesign
+                .getsMainFrame()
+                .getStepMap()
+                .convertScenarios(Utils.saveDialog("Manual TestCase.csv"), getSelectedScenarios());
         } else if (!getSelectedTestCases().isEmpty()) {
-            testDesign.getsMainFrame().getStepMap().convertTestCase(
-                    Utils.saveDialog("Manual TestCase.csv"), getSelectedTestCases());
+            testDesign
+                .getsMainFrame()
+                .getStepMap()
+                .convertTestCase(Utils.saveDialog("Manual TestCase.csv"), getSelectedTestCases());
         } else {
-            testDesign.getsMainFrame().getStepMap().convertScenarios(
-                    Utils.saveDialog("Manual TestCase.csv"), getProject().getScenarios());
+            testDesign
+                .getsMainFrame()
+                .getStepMap()
+                .convertScenarios(
+                    Utils.saveDialog("Manual TestCase.csv"),
+                    getProject().getScenarios()
+                );
         }
     }
 
@@ -808,7 +1200,6 @@ public class ProjectTree implements ActionListener {
                 editTag(sel[0]);
             }
         }
-
     }
 
     /**
@@ -830,15 +1221,28 @@ public class ProjectTree implements ActionListener {
     }
 
     /**
-     * Opens the tag editor for a test case data item.
-     * @param tc test case data item
+     * Opens the tag editor for a test case data item and, when a corresponding
+     * {@link TestCase} is supplied, re-saves its YAML so the new tag set is
+     * mirrored on disk.
      */
-    private void editTag(DataItem tc) {
-        TagEditorDialog.build(testDesign.getsMainFrame(),
-                getProject().getInfo().getAllTags(tc.getTags()), tc.getTags(),
-                this::onRemoveTag, this::onAddTag)
-                .withTitle(editTagTitle(tc.getName())).show(tc::setTags);
-
+    private void editTag(DataItem tc, TestCase testCase) {
+        TagEditorDialog
+            .build(
+                testDesign.getsMainFrame(),
+                getProject().getInfo().getAllTags(tc.getTags()),
+                tc.getTags(),
+                this::onRemoveTag,
+                this::onAddTag
+            )
+            .withTitle(editTagTitle(tc.getName()))
+            .show(
+                tags -> {
+                    tc.setTags(tags);
+                    if (testCase != null) {
+                        testCase.saveMetadata();
+                    }
+                }
+            );
     }
 
     /**
@@ -846,11 +1250,16 @@ public class ProjectTree implements ActionListener {
      * @param scn scenario metadata
      */
     private void editTag(Meta scn) {
-        TagEditorDialog.build(testDesign.getsMainFrame(),
-                getProject().getInfo().getAllTags(scn.getTags()), scn.getTags(),
-                this::onRemoveTag, this::onAddTag)
-                .withTitle(editTagTitle(scn.getName())).show(scn::setTags);
-
+        TagEditorDialog
+            .build(
+                testDesign.getsMainFrame(),
+                getProject().getInfo().getAllTags(scn.getTags()),
+                scn.getTags(),
+                this::onRemoveTag,
+                this::onAddTag
+            )
+            .withTitle(editTagTitle(scn.getName()))
+            .show(scn::setTags);
     }
 
     /**
@@ -869,8 +1278,13 @@ public class ProjectTree implements ActionListener {
     private void editTag(TreePath path) {
         if (path.getLastPathComponent() instanceof TestCaseNode) {
             TestCase tcn = ((TestCaseNode) path.getLastPathComponent()).getTestCase();
-            editTag(getProject().getInfo().getData()
-                    .findOrCreate(tcn.getName(), tcn.getScenario().getName()));
+            editTag(
+                getProject()
+                    .getInfo()
+                    .getData()
+                    .findOrCreate(tcn.getName(), tcn.getScenario().getName()),
+                tcn
+            );
         } else if (path.getLastPathComponent() instanceof ScenarioNode) {
             Scenario scn = ((ScenarioNode) path.getLastPathComponent()).getScenario();
             editTag(getProject().getInfo().findScenarioOrCreate(scn.getName()));
@@ -893,8 +1307,13 @@ public class ProjectTree implements ActionListener {
         if (testCase != null) {
             String scenarioName = testCase.getScenario().getName();
             String testCaseName = testCase.getName();
-            testDesign.getImpactUI().loadForTestCase(getProject()
-                    .getImpactedTestCaseTestCases(scenarioName, testCaseName), scenarioName, testCaseName);
+            testDesign
+                .getImpactUI()
+                .loadForTestCase(
+                    getProject().getImpactedTestCaseTestCases(scenarioName, testCaseName),
+                    scenarioName,
+                    testCaseName
+                );
         } else {
             Notification.show("Select a Valid TestCase");
         }
@@ -909,12 +1328,13 @@ public class ProjectTree implements ActionListener {
             String scenarioName = testCase.getScenario().getName();
             String testCaseName = testCase.getName();
             String syntax = String.format(
-                    "%s -run -project_location \"%s\" -scenario \"%s\" -testcase \"%s\" -browser \"%s\"",
-                    getBatRCommand(),
-                    getProject().getLocation(),
-                    scenarioName,
-                    testCaseName,
-                    getTestDesign().getDefaultBrowser());
+                "%s -run -project_location \"%s\" -scenario \"%s\" -testcase \"%s\" -browser \"%s\"",
+                getBatRCommand(),
+                getProject().getLocation(),
+                scenarioName,
+                testCaseName,
+                getTestDesign().getDefaultBrowser()
+            );
             Utils.copyTextToClipboard(syntax);
             Notification.show("Syntax has been copied to Clipboard");
         } else {
@@ -949,7 +1369,7 @@ public class ProjectTree implements ActionListener {
      */
     private void showProjDetails() {
         projectProperties.loadForCurrentProject();
-//        projectProperties.pack();
+        //        projectProperties.pack();
         projectProperties.setLocationRelativeTo(null);
         projectProperties.setVisible(true);
     }
@@ -992,7 +1412,6 @@ public class ProjectTree implements ActionListener {
      * Context menu for the project tree with actions for scenarios and test cases.
      */
     class ProjectPopupMenu extends JPopupMenu {
-
         protected JMenuItem addScenario;
         protected JMenuItem renameScenario;
         protected JMenuItem deleteScenario;
@@ -1000,7 +1419,9 @@ public class ProjectTree implements ActionListener {
         protected JMenuItem renameTestCase;
         protected JMenuItem deleteTestCase;
 
-        protected JMenuItem toggleReusable;
+        protected JMenuItem toggleTestCase;
+        protected JMenuItem toggleSharedReusable;
+        protected JMenuItem toggleProjectReusable;
 
         protected JMenuItem impactAnalysis;
 
@@ -1036,8 +1457,15 @@ public class ProjectTree implements ActionListener {
             menu.setFont(UIManager.getFont("TableMenu.font"));
             menu.add(create("Manual Testcase", null));
             add(menu);
-            add(toggleReusable = create("Make As Reusable/TestCase", null));
-            toggleReusable.setText("Make As Reusable");
+            add(toggleTestCase = create("Make As TestCase", null));
+            toggleTestCase.setText("Make As TestCase");
+            toggleTestCase.setVisible(false);
+            add(toggleProjectReusable = create("Make As Project Reusable", null));
+            toggleProjectReusable.setText("Make As Project Reusable");
+            toggleProjectReusable.setVisible(true);
+            add(toggleSharedReusable = create("Make As Shared Reusable", null));
+            toggleSharedReusable.setText("Make As Shared Reusable");
+            toggleSharedReusable.setVisible(true);
             addSeparator();
             setCCP();
             addSeparator();
@@ -1062,7 +1490,9 @@ public class ProjectTree implements ActionListener {
             addScenario.setEnabled(false);
             renameTestCase.setEnabled(false);
             deleteTestCase.setEnabled(false);
-            toggleReusable.setEnabled(false);
+            toggleTestCase.setEnabled(false);
+            toggleSharedReusable.setEnabled(false);
+            toggleProjectReusable.setEnabled(false);
 
             impactAnalysis.setEnabled(false);
             getCmdSyntax.setEnabled(false);
@@ -1089,7 +1519,9 @@ public class ProjectTree implements ActionListener {
 
             renameTestCase.setEnabled(true);
             deleteTestCase.setEnabled(true);
-            toggleReusable.setEnabled(true);
+            toggleTestCase.setEnabled(true);
+            toggleSharedReusable.setEnabled(true);
+            toggleProjectReusable.setEnabled(true);
 
             impactAnalysis.setEnabled(true);
 
@@ -1117,7 +1549,9 @@ public class ProjectTree implements ActionListener {
             addTestCase.setEnabled(false);
             renameTestCase.setEnabled(false);
             deleteTestCase.setEnabled(false);
-            toggleReusable.setEnabled(false);
+            toggleTestCase.setEnabled(false);
+            toggleSharedReusable.setEnabled(false);
+            toggleProjectReusable.setEnabled(false);
 
             impactAnalysis.setEnabled(false);
             getCmdSyntax.setEnabled(false);
@@ -1141,7 +1575,10 @@ public class ProjectTree implements ActionListener {
         protected JMenuItem create(String name, KeyStroke keyStroke) {
             try {
                 //create the font to use. Specify the size!
-                Font customFont = Font.createFont(Font.TRUETYPE_FONT, new File("resources/ui/resources/fonts/ingme_regular.ttf"));//.deriveFont(12f);
+                Font customFont = Font.createFont(
+                    Font.TRUETYPE_FONT,
+                    new File("resources/ui/resources/fonts/ingme_regular.ttf")
+                ); //.deriveFont(12f);
                 GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
                 //register the font
                 ge.registerFont(customFont);
@@ -1185,14 +1622,12 @@ public class ProjectTree implements ActionListener {
             paste.setMnemonic(KeyEvent.VK_P);
             add(paste);
         }
-
     }
 
     /**
      * Alters default tree key bindings to support cut, copy, and paste operations.
      */
     private void alterTreeDefaultKeyBindings() {
-
         int menuShortcutKeyMask = Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx();
         tree.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_X, menuShortcutKeyMask), "none");
         tree.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_C, menuShortcutKeyMask), "none");
@@ -1201,7 +1636,5 @@ public class ProjectTree implements ActionListener {
         tree.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_X, menuShortcutKeyMask), "cut");
         tree.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_C, menuShortcutKeyMask), "copy");
         tree.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_V, menuShortcutKeyMask), "paste");
-
     }
-
 }

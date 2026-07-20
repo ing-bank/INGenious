@@ -1,4 +1,3 @@
-
 package com.ing.engine.drivers.findObjectBy;
 
 import com.ing.engine.drivers.findObjectBy.support.SProperty;
@@ -6,7 +5,7 @@ import org.openqa.selenium.By;
 
 /**
  *
- * 
+ *
  */
 public class CustomFindBy {
 

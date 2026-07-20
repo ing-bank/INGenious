@@ -8,10 +8,8 @@ import com.ing.engine.core.CommandControl;
 import com.ing.engine.execution.data.UserDataAccess;
 import com.ing.engine.reporting.TestCaseReport;
 import com.ing.ingenious.api.status.Status;
-
 import java.lang.reflect.Field;
 import java.util.ArrayList;
-
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.testng.annotations.AfterMethod;
@@ -23,10 +21,14 @@ import org.testng.annotations.Test;
  * Uses reflection to set Command fields.
  */
 public class WebserviceHttpTest {
+    @Mock
+    private TestCaseReport report;
 
-    @Mock private TestCaseReport report;
-    @Mock private UserDataAccess userData;
-    @Mock private CommandControl commander;
+    @Mock
+    private UserDataAccess userData;
+
+    @Mock
+    private CommandControl commander;
 
     private Webservice ws;
     private AutoCloseable mocks;
@@ -67,7 +69,8 @@ public class WebserviceHttpTest {
         f.set(obj, value);
     }
 
-    private void setCommandFields(String data, String condition, String input, String action) throws Exception {
+    private void setCommandFields(String data, String condition, String input, String action)
+        throws Exception {
         setField(ws, Command.class, "Data", data);
         setField(ws, Command.class, "Condition", condition);
         setField(ws, Command.class, "Input", input);
@@ -82,7 +85,12 @@ public class WebserviceHttpTest {
         setCommandFields(null, null, "noColonHere", "storeResponseBodyInDataSheet");
 
         ws.storeResponseBodyInDataSheet();
-        verify(report).updateTestLog(eq("storeResponseBodyInDataSheet"), contains("format is invalid"), eq(Status.DEBUG));
+        verify(report)
+            .updateTestLog(
+                eq("storeResponseBodyInDataSheet"),
+                contains("format is invalid"),
+                eq(Status.DEBUG)
+            );
     }
 
     @Test
@@ -92,7 +100,8 @@ public class WebserviceHttpTest {
 
         ws.storeResponseBodyInDataSheet();
         verify(userData).putData("Sheet1", "Column1", "{\"result\":\"ok\"}");
-        verify(report).updateTestLog(eq("storeResponseBodyInDataSheet"), contains("stored"), eq(Status.DONE));
+        verify(report)
+            .updateTestLog(eq("storeResponseBodyInDataSheet"), contains("stored"), eq(Status.DONE));
     }
 
     // ---- storeJSONelementInDataSheet ----
@@ -103,7 +112,12 @@ public class WebserviceHttpTest {
         setCommandFields(null, "$.token", "invalidFormat", "storeJSONelementInDataSheet");
 
         ws.storeJSONelementInDataSheet();
-        verify(report).updateTestLog(eq("storeJSONelementInDataSheet"), contains("format is invalid"), eq(Status.DEBUG));
+        verify(report)
+            .updateTestLog(
+                eq("storeJSONelementInDataSheet"),
+                contains("format is invalid"),
+                eq(Status.DEBUG)
+            );
     }
 
     @Test
@@ -113,7 +127,8 @@ public class WebserviceHttpTest {
 
         ws.storeJSONelementInDataSheet();
         verify(userData).putData("Sheet1", "Token", "xyz");
-        verify(report).updateTestLog(eq("storeJSONelementInDataSheet"), contains("stored"), eq(Status.DONE));
+        verify(report)
+            .updateTestLog(eq("storeJSONelementInDataSheet"), contains("stored"), eq(Status.DONE));
     }
 
     // ---- addURLParam ----
@@ -148,7 +163,12 @@ public class WebserviceHttpTest {
         setCommandFields("3", "$.items", null, "assertJSONelementCount");
 
         ws.assertJSONelementCount();
-        verify(report).updateTestLog(eq("assertJSONelementCount"), contains("as expected"), eq(Status.PASSNS));
+        verify(report)
+            .updateTestLog(
+                eq("assertJSONelementCount"),
+                contains("as expected"),
+                eq(Status.PASSNS)
+            );
     }
 
     @Test
@@ -157,7 +177,12 @@ public class WebserviceHttpTest {
         setCommandFields("5", "$.items", null, "assertJSONelementCount");
 
         ws.assertJSONelementCount();
-        verify(report).updateTestLog(eq("assertJSONelementCount"), contains("expected to be"), eq(Status.FAILNS));
+        verify(report)
+            .updateTestLog(
+                eq("assertJSONelementCount"),
+                contains("expected to be"),
+                eq(Status.FAILNS)
+            );
     }
 
     // ---- storeJsonElementCount ----
@@ -168,7 +193,8 @@ public class WebserviceHttpTest {
         setCommandFields("$.items", "%count%", null, "storeJsonElementCount");
 
         ws.storeJsonElementCount();
-        verify(report).updateTestLog(eq("storeJsonElementCount"), contains("stored"), eq(Status.DONE));
+        verify(report)
+            .updateTestLog(eq("storeJsonElementCount"), contains("stored"), eq(Status.DONE));
     }
 
     @Test
@@ -177,6 +203,11 @@ public class WebserviceHttpTest {
         setCommandFields("$.items", "count", null, "storeJsonElementCount");
 
         ws.storeJsonElementCount();
-        verify(report).updateTestLog(eq("storeJsonElementCount"), contains("format is invalid"), eq(Status.DEBUG));
+        verify(report)
+            .updateTestLog(
+                eq("storeJsonElementCount"),
+                contains("format is invalid"),
+                eq(Status.DEBUG)
+            );
     }
 }

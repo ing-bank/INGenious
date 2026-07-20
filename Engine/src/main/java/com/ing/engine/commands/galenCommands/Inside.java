@@ -1,13 +1,12 @@
-
 package com.ing.engine.commands.galenCommands;
 
+import com.galenframework.specs.Location;
+import com.galenframework.specs.SpecInside;
 import com.ing.engine.core.CommandControl;
 import com.ing.engine.galenWrapper.SpecValidation.SpecReader;
 import com.ing.ingenious.api.annotation.Action;
 import com.ing.ingenious.api.types.InputType;
 import com.ing.ingenious.api.types.ObjectType;
-import com.galenframework.specs.Location;
-import com.galenframework.specs.SpecInside;
 import java.util.List;
 
 public class Inside extends General {
@@ -15,7 +14,7 @@ public class Inside extends General {
     public Inside(CommandControl cc) {
         super(cc);
     }
-/*
+    /*
     private void assertElement(Boolean isPartly) {
         SpecInside spec = SpecReader.reader().getSpecInside(Condition, Data, isPartly);
         spec.setOriginalText(getMessage(isPartly, spec.getLocations()));

@@ -1,4 +1,3 @@
-
 package com.ing.ide.main.mainui.components.testdesign.testdata;
 
 import com.formdev.flatlaf.ui.FlatTabbedPaneUI;
@@ -7,7 +6,6 @@ import java.awt.Rectangle;
 import javax.swing.JTabbedPane;
 
 public class XJTabbedPane extends JTabbedPane {
-
     private boolean showTabsHeader = false;
 
     public XJTabbedPane() {
@@ -33,10 +31,12 @@ public class XJTabbedPane extends JTabbedPane {
 
         @Override
         protected int calculateTabAreaHeight(
-                int tabPlacement, int horizRunCount, int maxTabHeight) {
+            int tabPlacement,
+            int horizRunCount,
+            int maxTabHeight
+        ) {
             if (isShowTabsHeader()) {
-                return super.calculateTabAreaHeight(
-                        tabPlacement, horizRunCount, maxTabHeight);
+                return super.calculateTabAreaHeight(tabPlacement, horizRunCount, maxTabHeight);
             } else {
                 return 0;
             }
@@ -44,17 +44,20 @@ public class XJTabbedPane extends JTabbedPane {
 
         @Override
         protected void paintTab(
-                Graphics g, int tabPlacement, Rectangle[] rects, int tabIndex,
-                Rectangle iconRect, Rectangle textRect) {
+            Graphics g,
+            int tabPlacement,
+            Rectangle[] rects,
+            int tabIndex,
+            Rectangle iconRect,
+            Rectangle textRect
+        ) {
             if (isShowTabsHeader()) {
-                super.paintTab(
-                        g, tabPlacement, rects, tabIndex, iconRect, textRect);
+                super.paintTab(g, tabPlacement, rects, tabIndex, iconRect, textRect);
             }
         }
 
         @Override
-        protected void paintContentBorder(
-                Graphics g, int tabPlacement, int selectedIndex) {
+        protected void paintContentBorder(Graphics g, int tabPlacement, int selectedIndex) {
             if (isShowTabsHeader()) {
                 super.paintContentBorder(g, tabPlacement, selectedIndex);
             }

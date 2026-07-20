@@ -1,7 +1,6 @@
 package com.ing.datalib.settings;
 
 import com.ing.datalib.util.data.LinkedProperties;
-
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -13,7 +12,6 @@ import java.util.Properties;
  *
  */
 public class Capabilities {
-
     private final Map<String, LinkedProperties> browserCapabilties = new HashMap<>();
 
     private String location;
@@ -32,12 +30,31 @@ public class Capabilities {
         return browserCapabilties.get(browserName);
     }
 
+    /**
+     * Returns the capability bag for {@code browserName}, creating an empty
+     * one (and registering it under the supplied name) if it is missing.
+     * Used by the CLI override dispatcher so that
+     * {@code -setEnv "browser.<name>.<key>=<value>"} works even when the
+     * browser/device entry doesn't pre-exist in the project.
+     */
+    public LinkedProperties getOrCreateCapabiltiesFor(String browserName) {
+        LinkedProperties props = browserCapabilties.get(browserName);
+        if (props == null) {
+            props = new LinkedProperties();
+            browserCapabilties.put(browserName, props);
+        }
+        return props;
+    }
+
     private void load() {
         File caps = new File(getLocation());
         if (caps.exists()) {
             for (File cap : caps.listFiles()) {
                 if (cap.getName().endsWith(".properties")) {
-                    browserCapabilties.put(cap.getName().replace(".properties", ""), PropUtils.load(cap));
+                    browserCapabilties.put(
+                        cap.getName().replace(".properties", ""),
+                        PropUtils.load(cap)
+                    );
                 }
             }
         }
@@ -60,7 +77,12 @@ public class Capabilities {
         addDefaultAppiumCapability(browserName, "", "", "");
     }
 
-    public void addDefaultAppiumCapability(String browserName, String udid, String appPackage, String appiumActivity) {
+    public void addDefaultAppiumCapability(
+        String browserName,
+        String udid,
+        String appPackage,
+        String appiumActivity
+    ) {
         LinkedProperties x = new LinkedProperties();
         if (appiumActivity.isEmpty()) {
             x.setProperty("browserName", "chrome");
@@ -102,7 +124,10 @@ public class Capabilities {
     }
 
     public Boolean rename(String oldCapsName, String newCapsName) {
-        if (browserCapabilties.containsKey(oldCapsName) && !browserCapabilties.containsKey(newCapsName)) {
+        if (
+            browserCapabilties.containsKey(oldCapsName) &&
+            !browserCapabilties.containsKey(newCapsName)
+        ) {
             File caps = new File(getCapLocation(oldCapsName));
             if (caps.exists()) {
                 if (caps.renameTo(new File(getCapLocation(newCapsName)))) {
@@ -152,18 +177,25 @@ public class Capabilities {
         if (!propertiesFile.exists()) {
             try (FileOutputStream fos = new FileOutputStream(propertiesFile)) {
                 Properties prop = new Properties();
-                
+
                 // Determine browser type from filename
                 String baseName = propertiesFile.getName();
-                
+
                 if (baseName.equals("SAP.properties")) {
                     // SAP-specific properties
-                    prop.setProperty("app", "C:\\Program Files\\SAP\\FrontEnd\\SAPGUI\\saplogon.exe");
+                    prop.setProperty(
+                        "app",
+                        "C:\\Program Files\\SAP\\FrontEnd\\SAPGUI\\saplogon.exe"
+                    );
                     prop.setProperty("libraryPath", "lib/jacob-1.21");
                     prop.setProperty("dllPath", "lib/jacob-1.21/jacob-1.21-x64.dll");
                     prop.setProperty("connectionName", "SAP_CONN_NAME");
                     prop.setProperty("platformName", "Windows");
-                } else if (baseName.equals("Chromium.properties") || baseName.equals("WebKit.properties") || baseName.equals("Firefox.properties")) {
+                } else if (
+                    baseName.equals("Chromium.properties") ||
+                    baseName.equals("WebKit.properties") ||
+                    baseName.equals("Firefox.properties")
+                ) {
                     // Playwright browser properties (same for all)
                     prop.setProperty("setHeadless", "false");
                     prop.setProperty("setSlowMo", "");
@@ -186,14 +218,13 @@ public class Capabilities {
             System.out.println(fileName + " properties file already exists: " + location);
         }
     }
-    
+
     /**
-     * Ensures SAP.properties file exists. 
+     * Ensures SAP.properties file exists.
      * Creates it if missing for projects that have SAP emulator.
      */
     public void ensureSAPCapabilitiesExist() {
         String sapFile = location + File.separator + "SAP.properties";
         createFile(sapFile);
     }
-
 }

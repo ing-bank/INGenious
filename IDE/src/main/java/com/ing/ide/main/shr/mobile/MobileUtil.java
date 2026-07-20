@@ -1,4 +1,3 @@
-
 package com.ing.ide.main.shr.mobile;
 
 import com.ing.datalib.or.mobile.MobileORPage;
@@ -20,10 +19,9 @@ import org.apache.commons.codec.binary.Base64;
 
 /**
  *
- * 
+ *
  */
 public abstract class MobileUtil implements MobileUtils {
-
     private JTree tree;
     private JLabel label;
     private JTable table;
@@ -104,7 +102,7 @@ public abstract class MobileUtil implements MobileUtils {
                 DefaultTableModel model = (DefaultTableModel) table.getModel();
                 removeAllRows(model);
                 for (Object attr : treenode.getAttributes().keySet()) {
-                    model.addRow(new Object[]{attr, treenode.getAttributes().get(attr)});
+                    model.addRow(new Object[] { attr, treenode.getAttributes().get(attr) });
                 }
                 return treenode.getBounds();
             }
@@ -173,9 +171,12 @@ public abstract class MobileUtil implements MobileUtils {
     public String[] getResourcesFor(MobileORPage mobileObjectNode) {
         String loc = mobileObjectNode.getRepLocation();
         if (loc != null && new File(loc).exists()) {
-            return new String[]{loc + File.separator + "dump.xml", loc + File.separator + "screenshot.png"};
+            return new String[] {
+                loc + File.separator + "dump.xml",
+                loc + File.separator + "screenshot.png"
+            };
         }
-        return new String[]{};
+        return new String[] {};
     }
 
     private void saveImage(String loc) {

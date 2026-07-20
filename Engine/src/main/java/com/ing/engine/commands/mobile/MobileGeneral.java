@@ -2,10 +2,10 @@ package com.ing.engine.commands.mobile;
 
 import com.ing.engine.commands.browser.Command;
 import com.ing.engine.core.CommandControl;
-import com.ing.ingenious.api.exception.mobile.ElementException;
-import com.ing.ingenious.api.exception.mobile.ElementException.ExceptionType;
 import com.ing.ingenious.api.contract.MobilePluginApi;
 import com.ing.ingenious.api.contract.drivers.MobileObjectApi;
+import com.ing.ingenious.api.exception.mobile.ElementException;
+import com.ing.ingenious.api.exception.mobile.ElementException.ExceptionType;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.openqa.selenium.JavascriptExecutor;
@@ -28,7 +28,9 @@ public class MobileGeneral extends Command implements MobilePluginApi {
         if (mDriver != null) {
             return getMobileDriverControl().isAlive();
         } else {
-            throw new RuntimeException("Seems like connection with the driver is lost/driver is closed");
+            throw new RuntimeException(
+                "Seems like connection with the driver is lost/driver is closed"
+            );
         }
     }
 
@@ -91,8 +93,9 @@ public class MobileGeneral extends Command implements MobilePluginApi {
      */
     @Override
     public boolean isHScrollBarPresent() {
-        return (boolean) ((JavascriptExecutor) mDriver)
-                .executeScript("return document.documentElement.scrollWidth>document.documentElement.clientWidth;");
+        return (boolean) ((JavascriptExecutor) mDriver).executeScript(
+                "return document.documentElement.scrollWidth>document.documentElement.clientWidth;"
+            );
     }
 
     /**
@@ -102,8 +105,9 @@ public class MobileGeneral extends Command implements MobilePluginApi {
      */
     @Override
     public boolean isvScrollBarPresent() {
-        return (boolean) ((JavascriptExecutor) mDriver)
-                .executeScript("return document.documentElement.scrollHeight>document.documentElement.clientHeight;");
+        return (boolean) ((JavascriptExecutor) mDriver).executeScript(
+                "return document.documentElement.scrollHeight>document.documentElement.clientHeight;"
+            );
     }
 
     /**
@@ -121,7 +125,7 @@ public class MobileGeneral extends Command implements MobilePluginApi {
             return false;
         }
     }
-    
+
     @Override
     public MobileObjectApi getMObject() {
         return mObject;
@@ -136,6 +140,4 @@ public class MobileGeneral extends Command implements MobilePluginApi {
     public Object getElement() {
         return Element;
     }
-
-    
 }

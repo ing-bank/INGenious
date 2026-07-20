@@ -15,9 +15,8 @@ import java.util.regex.Pattern;
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class APIEnvironment implements Serializable {
-
     private static final long serialVersionUID = 1L;
-    
+
     private static final Pattern VARIABLE_PATTERN = Pattern.compile("\\{\\{([^}]+)\\}\\}");
 
     private String id;
@@ -184,7 +183,7 @@ public class APIEnvironment implements Serializable {
 
     /**
      * Resolves all {{variableName}} placeholders in the given string.
-     * 
+     *
      * @param input The input string with placeholders
      * @return The resolved string with placeholders replaced by variable values
      */
@@ -192,10 +191,10 @@ public class APIEnvironment implements Serializable {
         if (input == null || input.isEmpty()) {
             return input;
         }
-        
+
         StringBuffer result = new StringBuffer();
         Matcher matcher = VARIABLE_PATTERN.matcher(input);
-        
+
         while (matcher.find()) {
             String variableName = matcher.group(1).trim();
             String value = getVariable(variableName);
@@ -207,7 +206,7 @@ public class APIEnvironment implements Serializable {
             }
         }
         matcher.appendTail(result);
-        
+
         return result.toString();
     }
 

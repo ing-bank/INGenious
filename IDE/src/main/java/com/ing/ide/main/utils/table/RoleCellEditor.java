@@ -24,24 +24,93 @@ import javax.swing.table.TableCellEditor;
  * The value is stored as "ROLE;Name" format.
  */
 public class RoleCellEditor extends AbstractCellEditor implements TableCellEditor {
-
     /**
      * Playwright AriaRole enum values
      */
     public static final String[] ARIA_ROLES = {
         "", // Empty option for no selection
-        "ALERT", "ALERTDIALOG", "APPLICATION", "ARTICLE", "BANNER", "BLOCKQUOTE", 
-        "BUTTON", "CAPTION", "CELL", "CHECKBOX", "CODE", "COLUMNHEADER", "COMBOBOX", 
-        "COMPLEMENTARY", "CONTENTINFO", "DEFINITION", "DELETION", "DIALOG", "DIRECTORY", 
-        "DOCUMENT", "EMPHASIS", "FEED", "FIGURE", "FORM", "GENERIC", "GRID", "GRIDCELL", 
-        "GROUP", "HEADING", "IMG", "INSERTION", "LINK", "LIST", "LISTBOX", "LISTITEM", 
-        "LOG", "MAIN", "MARQUEE", "MATH", "METER", "MENU", "MENUBAR", "MENUITEM", 
-        "MENUITEMCHECKBOX", "MENUITEMRADIO", "NAVIGATION", "NONE", "NOTE", "OPTION", 
-        "PARAGRAPH", "PRESENTATION", "PROGRESSBAR", "RADIO", "RADIOGROUP", "REGION", 
-        "ROW", "ROWGROUP", "ROWHEADER", "SCROLLBAR", "SEARCH", "SEARCHBOX", "SEPARATOR", 
-        "SLIDER", "SPINBUTTON", "STATUS", "STRONG", "SUBSCRIPT", "SUPERSCRIPT", "SWITCH", 
-        "TAB", "TABLE", "TABLIST", "TABPANEL", "TERM", "TEXTBOX", "TIME", "TIMER", 
-        "TOOLBAR", "TOOLTIP", "TREE", "TREEGRID", "TREEITEM"
+        "ALERT",
+        "ALERTDIALOG",
+        "APPLICATION",
+        "ARTICLE",
+        "BANNER",
+        "BLOCKQUOTE",
+        "BUTTON",
+        "CAPTION",
+        "CELL",
+        "CHECKBOX",
+        "CODE",
+        "COLUMNHEADER",
+        "COMBOBOX",
+        "COMPLEMENTARY",
+        "CONTENTINFO",
+        "DEFINITION",
+        "DELETION",
+        "DIALOG",
+        "DIRECTORY",
+        "DOCUMENT",
+        "EMPHASIS",
+        "FEED",
+        "FIGURE",
+        "FORM",
+        "GENERIC",
+        "GRID",
+        "GRIDCELL",
+        "GROUP",
+        "HEADING",
+        "IMG",
+        "INSERTION",
+        "LINK",
+        "LIST",
+        "LISTBOX",
+        "LISTITEM",
+        "LOG",
+        "MAIN",
+        "MARQUEE",
+        "MATH",
+        "METER",
+        "MENU",
+        "MENUBAR",
+        "MENUITEM",
+        "MENUITEMCHECKBOX",
+        "MENUITEMRADIO",
+        "NAVIGATION",
+        "NONE",
+        "NOTE",
+        "OPTION",
+        "PARAGRAPH",
+        "PRESENTATION",
+        "PROGRESSBAR",
+        "RADIO",
+        "RADIOGROUP",
+        "REGION",
+        "ROW",
+        "ROWGROUP",
+        "ROWHEADER",
+        "SCROLLBAR",
+        "SEARCH",
+        "SEARCHBOX",
+        "SEPARATOR",
+        "SLIDER",
+        "SPINBUTTON",
+        "STATUS",
+        "STRONG",
+        "SUBSCRIPT",
+        "SUPERSCRIPT",
+        "SWITCH",
+        "TAB",
+        "TABLE",
+        "TABLIST",
+        "TABPANEL",
+        "TERM",
+        "TEXTBOX",
+        "TIME",
+        "TIMER",
+        "TOOLBAR",
+        "TOOLTIP",
+        "TREE",
+        "TREEGRID",
+        "TREEITEM"
     };
 
     private final JPanel editorPanel;
@@ -50,45 +119,51 @@ public class RoleCellEditor extends AbstractCellEditor implements TableCellEdito
 
     public RoleCellEditor() {
         editorPanel = new JPanel(new BorderLayout(2, 0));
-        
+
         // Role dropdown
         roleComboBox = new JComboBox<>(ARIA_ROLES);
         roleComboBox.setPreferredSize(new Dimension(80, 22));
         roleComboBox.setEditable(false);
-        
+
         // Name text field with placeholder hint
         nameField = new JTextField();
         nameField.setToolTipText("Element name (optional)");
-        
+
         editorPanel.add(roleComboBox, BorderLayout.WEST);
         editorPanel.add(nameField, BorderLayout.CENTER);
-        
+
         // Stop editing on Enter key
-        nameField.addKeyListener(new KeyAdapter() {
-            @Override
-            public void keyPressed(KeyEvent e) {
-                if (e.getKeyCode() == KeyEvent.VK_ENTER) {
-                    stopCellEditing();
-                } else if (e.getKeyCode() == KeyEvent.VK_ESCAPE) {
-                    cancelCellEditing();
+        nameField.addKeyListener(
+            new KeyAdapter() {
+
+                @Override
+                public void keyPressed(KeyEvent e) {
+                    if (e.getKeyCode() == KeyEvent.VK_ENTER) {
+                        stopCellEditing();
+                    } else if (e.getKeyCode() == KeyEvent.VK_ESCAPE) {
+                        cancelCellEditing();
+                    }
                 }
             }
-        });
-        
+        );
+
         // Focus the name field after role selection
-        roleComboBox.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                nameField.requestFocusInWindow();
+        roleComboBox.addActionListener(
+            new ActionListener() {
+
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    nameField.requestFocusInWindow();
+                }
             }
-        });
+        );
     }
 
     @Override
     public Object getCellEditorValue() {
         String role = (String) roleComboBox.getSelectedItem();
         String name = nameField.getText().trim();
-        
+
         if (role == null || role.isEmpty()) {
             return name; // Just the name if no role
         } else if (name.isEmpty()) {
@@ -99,11 +174,15 @@ public class RoleCellEditor extends AbstractCellEditor implements TableCellEdito
     }
 
     @Override
-    public Component getTableCellEditorComponent(JTable table, Object value,
-            boolean isSelected, int row, int column) {
-        
+    public Component getTableCellEditorComponent(
+        JTable table,
+        Object value,
+        boolean isSelected,
+        int row,
+        int column
+    ) {
         String strValue = value != null ? value.toString() : "";
-        
+
         if (strValue.contains(";")) {
             // Parse existing "ROLE;Name" value
             String[] parts = strValue.split(";", 2);
@@ -126,12 +205,12 @@ public class RoleCellEditor extends AbstractCellEditor implements TableCellEdito
                 nameField.setText("");
             }
         }
-        
+
         // Apply theme colors for dark mode compatibility
         Color fgColor = UIManager.getColor("TextField.foreground");
         Color bgColor = UIManager.getColor("TextField.background");
         Color caretColor = UIManager.getColor("TextField.caretForeground");
-        
+
         // Apply colors to nameField (JTextField)
         if (fgColor != null) {
             nameField.setForeground(fgColor);
@@ -142,8 +221,8 @@ public class RoleCellEditor extends AbstractCellEditor implements TableCellEdito
         if (caretColor != null) {
             nameField.setCaretColor(caretColor);
         }
-        
-        // Apply colors to roleComboBox 
+
+        // Apply colors to roleComboBox
         Color comboFg = UIManager.getColor("ComboBox.foreground");
         Color comboBg = UIManager.getColor("ComboBox.background");
         if (comboFg != null) {
@@ -152,7 +231,7 @@ public class RoleCellEditor extends AbstractCellEditor implements TableCellEdito
         if (comboBg != null) {
             roleComboBox.setBackground(comboBg);
         }
-        
+
         return editorPanel;
     }
 }

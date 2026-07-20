@@ -1,6 +1,7 @@
 package com.ing.datalib.model;
 
 import static org.assertj.core.api.Assertions.assertThat;
+
 import com.fasterxml.jackson.core.JsonProcessingException;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -8,7 +9,6 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 public class ProjectInfoTest {
-
     private ProjectInfo projectInfo;
 
     @BeforeMethod

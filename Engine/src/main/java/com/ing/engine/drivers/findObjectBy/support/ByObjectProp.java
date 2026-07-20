@@ -1,4 +1,3 @@
-
 package com.ing.engine.drivers.findObjectBy.support;
 
 import com.ing.engine.support.AnnontationUtil;
@@ -16,7 +15,6 @@ import java.util.logging.Logger;
 import org.openqa.selenium.By;
 
 public class ByObjectProp {
-
     private static ByObjectProp byObjectProp = new ByObjectProp();
 
     private final List<ObjectPropClass> OBJ_PROP_CLASSES = new ArrayList<>();
@@ -26,17 +24,21 @@ public class ByObjectProp {
         @SuppressWarnings("unchecked")
         @Override
         public Class<? extends Annotation>[] annotations() {
-            return new Class[]{SProperty.class};
+            return new Class[] { SProperty.class };
         }
 
         @Override
-        public void reportMethodAnnotation(Class<? extends Annotation> annotation,
-                String className, String methodName) {
+        public void reportMethodAnnotation(
+            Class<? extends Annotation> annotation,
+            String className,
+            String methodName
+        ) {
             byObjectProp.load(className, methodName);
         }
-
     };
-    private static final AnnotationDetector ANNOTATION_DETECTOR = new AnnotationDetector(METHOD_REPORTER);
+    private static final AnnotationDetector ANNOTATION_DETECTOR = new AnnotationDetector(
+        METHOD_REPORTER
+    );
 
     public static void load() {
         if (byObjectProp.OBJ_PROP_CLASSES.isEmpty()) {
@@ -76,21 +78,23 @@ public class ByObjectProp {
         for (ObjectPropClass objectPropClass : OBJ_PROP_CLASSES) {
             if (objectPropClass.propertyMethodMap.containsKey(propertyName)) {
                 Method method = objectPropClass.propertyMethodMap.get(propertyName);
-                try {                   
+                try {
                     return (By) method.invoke(objectPropClass.classObject, value);
-                } catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException ex) {
+                } catch (
+                    IllegalAccessException | IllegalArgumentException | InvocationTargetException ex
+                ) {
                     Logger.getLogger(ByObjectProp.class.getName()).log(Level.SEVERE, null, ex);
                 }
                 break;
             }
         }
-        if(!propertyName.equals("NLP_locator"))
-          Logger.getLogger(ByObjectProp.class.getName()).log(Level.SEVERE, "Find logic not implemented for - {0}", propertyName);
+        if (!propertyName.equals("NLP_locator")) Logger
+            .getLogger(ByObjectProp.class.getName())
+            .log(Level.SEVERE, "Find logic not implemented for - {0}", propertyName);
         return null;
     }
 
     class ObjectPropClass {
-
         Class<?> aclass;
 
         String className;
@@ -120,7 +124,5 @@ public class ByObjectProp {
                 Logger.getLogger(ObjectPropClass.class.getName()).log(Level.SEVERE, null, ex);
             }
         }
-
     }
-
 }

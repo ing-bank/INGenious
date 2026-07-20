@@ -1,4 +1,3 @@
-
 package com.ing.ide.main.ui;
 
 import java.awt.Image;
@@ -14,7 +13,6 @@ import javax.swing.JFrame;
  *
  */
 public class AboutUI extends javax.swing.JDialog {
-
     private static AboutUI abtUI;
 
     public AboutUI() {
@@ -51,11 +49,20 @@ public class AboutUI extends javax.swing.JDialog {
     @SuppressWarnings("unchecked")
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
-
         jPanel1 = new javax.swing.JPanel();
         iconLabel = new javax.swing.JLabel();
-        filler1 = new javax.swing.Box.Filler(new java.awt.Dimension(0, 10), new java.awt.Dimension(0, 10), new java.awt.Dimension(32767, 10));
-        filler2 = new javax.swing.Box.Filler(new java.awt.Dimension(0, 10), new java.awt.Dimension(0, 10), new java.awt.Dimension(32767, 10));
+        filler1 =
+            new javax.swing.Box.Filler(
+                new java.awt.Dimension(0, 10),
+                new java.awt.Dimension(0, 10),
+                new java.awt.Dimension(32767, 10)
+            );
+        filler2 =
+            new javax.swing.Box.Filler(
+                new java.awt.Dimension(0, 10),
+                new java.awt.Dimension(0, 10),
+                new java.awt.Dimension(32767, 10)
+            );
         jPanel2 = new javax.swing.JPanel();
         jPanel4 = new javax.swing.JPanel();
         jScrollPane3 = new javax.swing.JScrollPane();
@@ -74,7 +81,9 @@ public class AboutUI extends javax.swing.JDialog {
         jPanel1.setLayout(new java.awt.BorderLayout());
 
         iconLabel.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
-        iconLabel.setIcon(new javax.swing.ImageIcon(getClass().getResource("/ui/resources/favicon.png"))); // NOI18N
+        iconLabel.setIcon(
+            new javax.swing.ImageIcon(getClass().getResource("/ui/resources/favicon.png"))
+        ); // NOI18N
         jPanel1.add(iconLabel, java.awt.BorderLayout.CENTER);
         jPanel1.add(filler1, java.awt.BorderLayout.PAGE_END);
         jPanel1.add(filler2, java.awt.BorderLayout.PAGE_START);
@@ -89,7 +98,9 @@ public class AboutUI extends javax.swing.JDialog {
         jTextPane1.setEditable(false);
         jTextPane1.setContentType("text/html"); // NOI18N
         jTextPane1.setFont(new java.awt.Font("sansserif", 0, 13)); // NOI18N
-        jTextPane1.setText("<html> <body> INGenious is a test automation platform that provides a unified interface for all the \"day-to-day\" test automation activities such as test design, test development, test execution, reporting and maintenance <p>Visit <a href=\"https://ing-bank.github.io/ingenious-doc/\">INGenious Documentation</a>&nbsp;for more details</p> </body> </html>");
+        jTextPane1.setText(
+            "<html> <body> INGenious is a test automation platform that provides a unified interface for all the \"day-to-day\" test automation activities such as test design, test development, test execution, reporting and maintenance <p>Visit <a href=\"https://ing-bank.github.io/ingenious-doc/\">INGenious Documentation</a>&nbsp;for more details</p> </body> </html>"
+        );
         jScrollPane3.setViewportView(jTextPane1);
 
         jPanel4.add(jScrollPane3, java.awt.BorderLayout.CENTER);
@@ -110,22 +121,24 @@ public class AboutUI extends javax.swing.JDialog {
         getContentPane().add(jPanel2, java.awt.BorderLayout.CENTER);
 
         jButton1.setText("Close");
-        jButton1.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButton1ActionPerformed(evt);
+        jButton1.addActionListener(
+            new java.awt.event.ActionListener() {
+
+                public void actionPerformed(java.awt.event.ActionEvent evt) {
+                    jButton1ActionPerformed(evt);
+                }
             }
-        });
+        );
         jPanel5.add(jButton1);
 
         getContentPane().add(jPanel5, java.awt.BorderLayout.SOUTH);
 
         pack();
-    }// </editor-fold>//GEN-END:initComponents
+    } // </editor-fold>//GEN-END:initComponents
 
-    private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
+    private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) { //GEN-FIRST:event_jButton1ActionPerformed
         setVisible(false);
-    }//GEN-LAST:event_jButton1ActionPerformed
-
+    } //GEN-LAST:event_jButton1ActionPerformed
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JTextPane detailsPane;

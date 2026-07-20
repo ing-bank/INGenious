@@ -1,6 +1,7 @@
 package com.ing.datalib.settings;
 
 import static org.assertj.core.api.Assertions.assertThat;
+
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
@@ -10,7 +11,6 @@ import org.testng.annotations.Test;
  * but with a non-existent location it stays empty, exercising defaults.
  */
 public class RunSettingsTest {
-
     private RunSettings rs;
 
     @BeforeMethod

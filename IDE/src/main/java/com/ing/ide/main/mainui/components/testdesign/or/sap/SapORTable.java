@@ -1,4 +1,3 @@
-
 package com.ing.ide.main.mainui.components.testdesign.or.sap;
 
 import com.ing.datalib.or.common.ORAttribute;
@@ -24,7 +23,6 @@ import javax.swing.JToolBar;
 import javax.swing.table.DefaultTableModel;
 
 public class SapORTable extends JPanel implements ActionListener {
-
     private final XTable table;
 
     private final SapORPanel sapOR;
@@ -53,10 +51,14 @@ public class SapORTable extends JPanel implements ActionListener {
     }
 
     public void loadObject(SapORObject object) {
+        if (table.isEditing()) {
+            table.getCellEditor().stopCellEditing();
+        }
         table.setModel(object);
     }
 
     public void reset() {
+        stopCellEditing();
         table.setModel(new DefaultTableModel());
     }
 
@@ -169,9 +171,13 @@ public class SapORTable extends JPanel implements ActionListener {
         if (table.getSelectedRowCount() > 0) {
             String[] attrs = getSelectedAttrs();
             for (String attr : attrs) {
-                getSelectedObjects().stream().forEach((object) -> {
-                    ((SapORObject) object).setAttributeByName(attr, "");
-                });
+                getSelectedObjects()
+                    .stream()
+                    .forEach(
+                        object -> {
+                            ((SapORObject) object).setAttributeByName(attr, "");
+                        }
+                    );
             }
         }
     }
@@ -214,9 +220,13 @@ public class SapORTable extends JPanel implements ActionListener {
         if (table.getSelectedRowCount() > 0) {
             String[] attrs = getSelectedAttrs();
             for (String attr : attrs) {
-                getSelectedObjects().stream().forEach((object) -> {
-                    ((SapORObject) object).removeAttribute(attr);
-                });
+                getSelectedObjects()
+                    .stream()
+                    .forEach(
+                        object -> {
+                            ((SapORObject) object).removeAttribute(attr);
+                        }
+                    );
             }
         }
     }
@@ -241,9 +251,13 @@ public class SapORTable extends JPanel implements ActionListener {
         if (table.getSelectedRowCount() > 0) {
             String[] attrs = getSelectedAttrs();
             for (String attr : attrs) {
-                getSelectedObjects().stream().forEach((object) -> {
-                    ((SapORObject) object).addNewAttribute(attr);
-                });
+                getSelectedObjects()
+                    .stream()
+                    .forEach(
+                        object -> {
+                            ((SapORObject) object).addNewAttribute(attr);
+                        }
+                    );
             }
         }
     }
@@ -284,9 +298,16 @@ public class SapORTable extends JPanel implements ActionListener {
     private void setPriorityToSelected() {
         stopCellEditing();
         SapORObject currObj = getObject();
-        getSelectedObjects().stream().forEach((object) -> {
-            reorderAttributes(currObj.getAttributes(), ((SapORObject) object).getAttributes());
-        });
+        getSelectedObjects()
+            .stream()
+            .forEach(
+                object -> {
+                    reorderAttributes(
+                        currObj.getAttributes(),
+                        ((SapORObject) object).getAttributes()
+                    );
+                }
+            );
     }
 
     private void setPriorityToPage() {
@@ -339,14 +360,24 @@ public class SapORTable extends JPanel implements ActionListener {
             setLayout(new javax.swing.BoxLayout(this, javax.swing.BoxLayout.X_AXIS));
             setFloatable(false);
 
-            add(new javax.swing.Box.Filler(new java.awt.Dimension(10, 0),
+            add(
+                new javax.swing.Box.Filler(
                     new java.awt.Dimension(10, 0),
-                    new java.awt.Dimension(10, 32767)));
+                    new java.awt.Dimension(10, 0),
+                    new java.awt.Dimension(10, 32767)
+                )
+            );
             JLabel label = new JLabel("Properties");
             label.setFont(new Font("Default", Font.BOLD, 12));
             add(label);
 
-            add(new javax.swing.Box.Filler(new java.awt.Dimension(0, 0), new java.awt.Dimension(0, 0), new java.awt.Dimension(32767, 32767)));
+            add(
+                new javax.swing.Box.Filler(
+                    new java.awt.Dimension(0, 0),
+                    new java.awt.Dimension(0, 0),
+                    new java.awt.Dimension(32767, 32767)
+                )
+            );
 
             add(Utils.createButton("Add Row", "add", "Ctrl+Plus", SapORTable.this));
             add(Utils.createButton("Delete Rows", "remove", "Ctrl+Minus", SapORTable.this));
@@ -354,7 +385,6 @@ public class SapORTable extends JPanel implements ActionListener {
             add(Utils.createButton("Move Rows Up", "up", "Ctrl+Up", SapORTable.this));
             add(Utils.createButton("Move Rows Down", "down", "Ctrl+Down", SapORTable.this));
         }
-
     }
 
     class PopupMenu extends JPopupMenu {
@@ -386,6 +416,5 @@ public class SapORTable extends JPanel implements ActionListener {
             addProp.add(Utils.createMenuItem("Add to Selected", SapORTable.this));
             add(addProp);
         }
-
     }
 }

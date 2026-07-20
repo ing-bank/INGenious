@@ -2,7 +2,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>ingenious-playwright</groupId>
     <artifactId>ingenious-engine</artifactId>
-    <version>3.0.0-preview</version>
+    <version>3.1.0</version>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <playwright.version>1.58.0</playwright.version>
@@ -69,6 +69,21 @@
                 <artifactId>maven-install-plugin</artifactId>
                 <version>3.1.1</version>
                 <executions>
+                    <execution>
+                        <id>install-ingenious-api</id>
+                        <phase>initialize</phase>
+                        <configuration>
+                            <file>${basedir}/lib/ingenious-api-${ingenious-api.version}.jar</file>
+                            <groupId>com.ing</groupId>
+                            <artifactId>ingenious-api</artifactId>
+                            <version>${ingenious-api.version}</version>
+                            <packaging>jar</packaging>
+                            <generatePom>true</generatePom>
+                        </configuration>
+                        <goals>
+                            <goal>install-file</goal>
+                        </goals>
+                    </execution>
                     <execution>
                         <id>install-datalib</id>
                         <phase>initialize</phase>
@@ -350,24 +365,9 @@
             <version>${javamail.version}</version>
         </dependency>
         
-        <dependency>
-            <groupId>org.testng</groupId>
-            <artifactId>testng</artifactId>
-            <version>${testng.version}</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.mockito</groupId>
-            <artifactId>mockito-core</artifactId>
-            <version>${mockito.version}</version>
-            <scope>test</scope>
-        </dependency>
-        <dependency>
-            <groupId>org.assertj</groupId>
-            <artifactId>assertj-core</artifactId>
-            <version>${assertj.version}</version>
-            <scope>test</scope>
-        </dependency>
+        
+        
+        
   
         <dependency>
             <groupId>com.jayway.jsonpath</groupId>
@@ -765,6 +765,25 @@
 			<artifactId>javafx-base</artifactId>
 			<version>${javafx.version}</version>
 			<classifier>${mac.version}</classifier>
+		</dependency>
+		<!-- Test Dependencies -->
+		<dependency>
+			<groupId>org.testng</groupId>
+			<artifactId>testng</artifactId>
+			<version>${testng.version}</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.mockito</groupId>
+			<artifactId>mockito-core</artifactId>
+			<version>${mockito.version}</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.assertj</groupId>
+			<artifactId>assertj-core</artifactId>
+			<version>${assertj.version}</version>
+			<scope>test</scope>
 		</dependency>
     </dependencies>
     

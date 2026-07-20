@@ -1,6 +1,7 @@
 package com.ing.engine.constants;
 
 import static org.assertj.core.api.Assertions.assertThat;
+
 import java.time.Duration;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.Test;

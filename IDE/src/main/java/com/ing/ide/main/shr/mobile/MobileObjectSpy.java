@@ -1,4 +1,3 @@
-
 package com.ing.ide.main.shr.mobile;
 
 import com.ing.datalib.component.Project;
@@ -8,8 +7,10 @@ import com.ing.datalib.or.common.ObjectGroup;
 import com.ing.datalib.or.mobile.MobileOR;
 import com.ing.datalib.or.mobile.MobileORObject;
 import com.ing.datalib.or.mobile.MobileORPage;
+import com.ing.datalib.settings.emulators.Device;
 import com.ing.datalib.settings.emulators.Emulator;
 import com.ing.datalib.util.data.LinkedProperties;
+import com.ing.ide.main.fx.INGIcons;
 import com.ing.ide.main.mainui.AppMainFrame;
 import com.ing.ide.main.mainui.components.testdesign.TestDesign;
 import com.ing.ide.main.mainui.components.testdesign.or.ObjectTree;
@@ -51,14 +52,12 @@ import javax.swing.filechooser.FileNameExtensionFilter;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableColumn;
 import javax.swing.tree.DefaultTreeModel;
-import com.ing.ide.main.fx.INGIcons;
 
 /**
  *
- * 
+ *
  */
 public class MobileObjectSpy extends javax.swing.JFrame {
-
     private static final Logger LOG = Logger.getLogger(MobileObjectSpy.class.getName());
 
     private final transient Icon spy = INGIcons.swingColored("icon.spy", 16);
@@ -68,8 +67,15 @@ public class MobileObjectSpy extends javax.swing.JFrame {
 
     private final transient AndroidAdbCLI screenshotAction = new AndroidAdbCLI();
     private transient Rect selectedRect;
-    private final transient FileFilter xmlDumpFilter = new FileNameExtensionFilter("Screen XML Dump", "uix", "xml");
-    private final transient FileFilter screenShotFilter = new FileNameExtensionFilter("ScreenShot", "png");
+    private final transient FileFilter xmlDumpFilter = new FileNameExtensionFilter(
+        "Screen XML Dump",
+        "uix",
+        "xml"
+    );
+    private final transient FileFilter screenShotFilter = new FileNameExtensionFilter(
+        "ScreenShot",
+        "png"
+    );
 
     private transient MobileUtils mobileUtils;
     private transient MobileTree mobileTree;
@@ -82,7 +88,11 @@ public class MobileObjectSpy extends javax.swing.JFrame {
 
     public MobileObjectSpy(AppMainFrame sMainFrame) {
         initComponents();
-        setIconImage(com.ing.ide.main.fx.INGIcons.toImage(IconSettings.getIconSettings().getMobileObjectGrabb()));
+        setIconImage(
+            com.ing.ide.main.fx.INGIcons.toImage(
+                IconSettings.getIconSettings().getMobileObjectGrabb()
+            )
+        );
         this.sMainFrame = sMainFrame;
         initVars();
         loadDefaultAppiumCaps();
@@ -97,36 +107,42 @@ public class MobileObjectSpy extends javax.swing.JFrame {
         JTableUtils.addlisteners(jTable1, true);
         JTableUtils.addlisteners(mobilePropTable, true);
         JTableUtils.addlisteners(jTable3, true);
-        objectTree = new ObjectTree() {
-            @Override
-            public void loadTableModelForSelection() {
-                Object obj = objectTree.getSelectedObject();
-                if (obj != null && obj instanceof MobileORObject) {
-                    mobilePropTable.setModel((MobileORObject) obj);
-                    configureMobilePropTableColumns();
+        objectTree =
+            new ObjectTree() {
+
+                @Override
+                public void loadTableModelForSelection() {
+                    Object obj = objectTree.getSelectedObject();
+                    if (obj != null && obj instanceof MobileORObject) {
+                        mobilePropTable.setModel((MobileORObject) obj);
+                        configureMobilePropTableColumns();
+                    }
                 }
-            }
 
-            @Override
-            public void showImpactedTestCases(List<TestCase> testcases, String pageName, String objectName) {
-//                throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
-            }
+                @Override
+                public void showImpactedTestCases(
+                    List<TestCase> testcases,
+                    String pageName,
+                    String objectName
+                ) {
+                    //                throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
+                }
 
-            @Override
-            public Project getProject() {
-                return sMainFrame.getProject();
-            }
+                @Override
+                public Project getProject() {
+                    return sMainFrame.getProject();
+                }
 
-            @Override
-            public ORRootInf getOR() {
-                return mobileOR;
-            }
+                @Override
+                public ORRootInf getOR() {
+                    return mobileOR;
+                }
 
-            @Override
-            public TestDesign getTestDesign() {
-                return sMainFrame.getTestDesign();
-            }
-        };
+                @Override
+                public TestDesign getTestDesign() {
+                    return sMainFrame.getTestDesign();
+                }
+            };
         treePanel.add(new JScrollPane(objectTree.getTree()), BorderLayout.CENTER);
     }
 
@@ -136,8 +152,20 @@ public class MobileObjectSpy extends javax.swing.JFrame {
     }
 
     public void reloadEmulators() {
-        andEmulatorCombo.setModel(new DefaultComboBoxModel(sMainFrame.getProject().getProjectSettings()
-                .getEmulators().getAppiumEmulatorNames().toArray()));
+        // Merge legacy Appium emulator names with new "Manage Devices" entries.
+        java.util.List<String> names = new java.util.ArrayList<>(
+            sMainFrame.getProject().getProjectSettings().getEmulators().getAppiumEmulatorNames()
+        );
+        for (String d : sMainFrame
+            .getProject()
+            .getProjectSettings()
+            .getDevices()
+            .getDeviceNames()) {
+            if (!names.contains(d)) {
+                names.add(d);
+            }
+        }
+        andEmulatorCombo.setModel(new DefaultComboBoxModel(names.toArray()));
         iosEmulatorCombo.setModel(andEmulatorCombo.getModel());
     }
 
@@ -149,7 +177,7 @@ public class MobileObjectSpy extends javax.swing.JFrame {
             attrCol.setPreferredWidth(100);
             attrCol.setMinWidth(80);
             attrCol.setMaxWidth(150);
-            
+
             // Column 1: Value - takes remaining space
             TableColumn valueCol = mobilePropTable.getColumnModel().getColumn(1);
             valueCol.setPreferredWidth(300);
@@ -192,34 +220,53 @@ public class MobileObjectSpy extends javax.swing.JFrame {
         jScrollPane1 = new javax.swing.JScrollPane();
         jTree1 = new javax.swing.JTree();
         imageAndObjectRepo = new javax.swing.JSplitPane();
-        screenShotLabel = new javax.swing.JLabel(){
-            @Override
-            public void paintComponent(Graphics g) {
-                super.paintComponent(g);
-                if(selectedRect!=null)
-                {
-                    Graphics2D g2d = (Graphics2D) g;
-                    g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_OFF);
-                    g2d.setStroke(new BasicStroke(1.8f));
-                    g2d.setColor(Color.RED);
-                    g2d.drawRect(selectedRect.getX(), selectedRect.getY(), selectedRect.getWidth(), selectedRect.getHeight());
-                    g2d.dispose();
+        screenShotLabel =
+            new javax.swing.JLabel() {
+
+                @Override
+                public void paintComponent(Graphics g) {
+                    super.paintComponent(g);
+                    if (selectedRect != null) {
+                        Graphics2D g2d = (Graphics2D) g;
+                        g2d.setRenderingHint(
+                            RenderingHints.KEY_ANTIALIASING,
+                            RenderingHints.VALUE_ANTIALIAS_OFF
+                        );
+                        g2d.setStroke(new BasicStroke(1.8f));
+                        g2d.setColor(Color.RED);
+                        g2d.drawRect(
+                            selectedRect.getX(),
+                            selectedRect.getY(),
+                            selectedRect.getWidth(),
+                            selectedRect.getHeight()
+                        );
+                        g2d.dispose();
+                    }
                 }
-            }
-        };
+            };
         jSplitPane3 = new javax.swing.JSplitPane();
         jScrollPane3 = new javax.swing.JScrollPane();
         mobilePropTable = new javax.swing.JTable();
         treePanel = new javax.swing.JPanel();
         jToolBar3 = new javax.swing.JToolBar();
-        filler2 = new javax.swing.Box.Filler(new java.awt.Dimension(0, 0), new java.awt.Dimension(0, 0), new java.awt.Dimension(32767, 0));
+        filler2 =
+            new javax.swing.Box.Filler(
+                new java.awt.Dimension(0, 0),
+                new java.awt.Dimension(0, 0),
+                new java.awt.Dimension(32767, 0)
+            );
         addToSelectedPage = new javax.swing.JToggleButton();
         loadResourceFromPage = new javax.swing.JButton();
         mapCurrentToPage = new javax.swing.JButton();
         settingsPane = new javax.swing.JTabbedPane();
         androidSettings = new javax.swing.JPanel();
         jToolBar4 = new javax.swing.JToolBar();
-        filler3 = new javax.swing.Box.Filler(new java.awt.Dimension(0, 0), new java.awt.Dimension(0, 0), new java.awt.Dimension(32767, 0));
+        filler3 =
+            new javax.swing.Box.Filler(
+                new java.awt.Dimension(0, 0),
+                new java.awt.Dimension(0, 0),
+                new java.awt.Dimension(32767, 0)
+            );
         loadAndroidDevices = new javax.swing.JButton();
         loadPackageAndActivity = new javax.swing.JButton();
         addAsAndroidemulator = new javax.swing.JButton();
@@ -240,7 +287,12 @@ public class MobileObjectSpy extends javax.swing.JFrame {
         jCheckBox1 = new javax.swing.JCheckBox();
         iosEmulatorCombo = new javax.swing.JComboBox();
         jToolBar2 = new javax.swing.JToolBar();
-        filler1 = new javax.swing.Box.Filler(new java.awt.Dimension(0, 0), new java.awt.Dimension(0, 0), new java.awt.Dimension(32767, 0));
+        filler1 =
+            new javax.swing.Box.Filler(
+                new java.awt.Dimension(0, 0),
+                new java.awt.Dimension(0, 0),
+                new java.awt.Dimension(32767, 0)
+            );
         loadDefault = new javax.swing.JButton();
         addRow = new javax.swing.JButton();
         removeRow = new javax.swing.JButton();
@@ -248,63 +300,111 @@ public class MobileObjectSpy extends javax.swing.JFrame {
 
         jMenu1.setText("File");
 
-        jMenuItem1.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_O, java.awt.event.InputEvent.CTRL_DOWN_MASK));
+        jMenuItem1.setAccelerator(
+            javax.swing.KeyStroke.getKeyStroke(
+                java.awt.event.KeyEvent.VK_O,
+                java.awt.event.InputEvent.CTRL_DOWN_MASK
+            )
+        );
         jMenuItem1.setText("Open");
-        jMenuItem1.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jMenuItem1ActionPerformed(evt);
+        jMenuItem1.addActionListener(
+            new java.awt.event.ActionListener() {
+
+                public void actionPerformed(java.awt.event.ActionEvent evt) {
+                    jMenuItem1ActionPerformed(evt);
+                }
             }
-        });
+        );
         jMenu1.add(jMenuItem1);
 
-        jMenuItem2.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_S, java.awt.event.InputEvent.CTRL_DOWN_MASK));
+        jMenuItem2.setAccelerator(
+            javax.swing.KeyStroke.getKeyStroke(
+                java.awt.event.KeyEvent.VK_S,
+                java.awt.event.InputEvent.CTRL_DOWN_MASK
+            )
+        );
         jMenuItem2.setText("Save");
-        jMenuItem2.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jMenuItem2ActionPerformed(evt);
+        jMenuItem2.addActionListener(
+            new java.awt.event.ActionListener() {
+
+                public void actionPerformed(java.awt.event.ActionEvent evt) {
+                    jMenuItem2ActionPerformed(evt);
+                }
             }
-        });
+        );
         jMenu1.add(jMenuItem2);
 
-        jMenuItem3.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_F4, java.awt.event.InputEvent.ALT_DOWN_MASK));
+        jMenuItem3.setAccelerator(
+            javax.swing.KeyStroke.getKeyStroke(
+                java.awt.event.KeyEvent.VK_F4,
+                java.awt.event.InputEvent.ALT_DOWN_MASK
+            )
+        );
         jMenuItem3.setText("Exit");
-        jMenuItem3.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jMenuItem3ActionPerformed(evt);
+        jMenuItem3.addActionListener(
+            new java.awt.event.ActionListener() {
+
+                public void actionPerformed(java.awt.event.ActionEvent evt) {
+                    jMenuItem3ActionPerformed(evt);
+                }
             }
-        });
+        );
         jMenu1.add(jMenuItem3);
 
         jMenuBar1.add(jMenu1);
 
         jMenu2.setText("Tools");
 
-        jMenuItem4.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_L, java.awt.event.InputEvent.CTRL_DOWN_MASK));
+        jMenuItem4.setAccelerator(
+            javax.swing.KeyStroke.getKeyStroke(
+                java.awt.event.KeyEvent.VK_L,
+                java.awt.event.InputEvent.CTRL_DOWN_MASK
+            )
+        );
         jMenuItem4.setText("Load Screen");
-        jMenuItem4.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jMenuItem4ActionPerformed(evt);
+        jMenuItem4.addActionListener(
+            new java.awt.event.ActionListener() {
+
+                public void actionPerformed(java.awt.event.ActionEvent evt) {
+                    jMenuItem4ActionPerformed(evt);
+                }
             }
-        });
+        );
         jMenu2.add(jMenuItem4);
 
-        mapToPage.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_M, java.awt.event.InputEvent.ALT_DOWN_MASK | java.awt.event.InputEvent.CTRL_DOWN_MASK));
+        mapToPage.setAccelerator(
+            javax.swing.KeyStroke.getKeyStroke(
+                java.awt.event.KeyEvent.VK_M,
+                java.awt.event.InputEvent.ALT_DOWN_MASK | java.awt.event.InputEvent.CTRL_DOWN_MASK
+            )
+        );
         mapToPage.setText("Map To Page");
         mapToPage.setToolTipText("Map the cuurent ScreenShot and XML to the selected Page");
-        mapToPage.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                mapToPageActionPerformed(evt);
+        mapToPage.addActionListener(
+            new java.awt.event.ActionListener() {
+
+                public void actionPerformed(java.awt.event.ActionEvent evt) {
+                    mapToPageActionPerformed(evt);
+                }
             }
-        });
+        );
         jMenu2.add(mapToPage);
 
-        loadFromPage.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_L, java.awt.event.InputEvent.ALT_DOWN_MASK | java.awt.event.InputEvent.CTRL_DOWN_MASK));
+        loadFromPage.setAccelerator(
+            javax.swing.KeyStroke.getKeyStroke(
+                java.awt.event.KeyEvent.VK_L,
+                java.awt.event.InputEvent.ALT_DOWN_MASK | java.awt.event.InputEvent.CTRL_DOWN_MASK
+            )
+        );
         loadFromPage.setText("Load From Page");
-        loadFromPage.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                loadFromPageActionPerformed(evt);
+        loadFromPage.addActionListener(
+            new java.awt.event.ActionListener() {
+
+                public void actionPerformed(java.awt.event.ActionEvent evt) {
+                    loadFromPageActionPerformed(evt);
+                }
             }
-        });
+        );
         jMenu2.add(loadFromPage);
 
         jMenuBar1.add(jMenu2);
@@ -313,37 +413,50 @@ public class MobileObjectSpy extends javax.swing.JFrame {
 
         setDefaultCloseOperation(javax.swing.WindowConstants.DISPOSE_ON_CLOSE);
         setTitle("Mobile Object Grabber");
-        addWindowListener(new java.awt.event.WindowAdapter() {
-            public void windowClosing(java.awt.event.WindowEvent evt) {
-                formWindowClosing(evt);
+        addWindowListener(
+            new java.awt.event.WindowAdapter() {
+
+                public void windowClosing(java.awt.event.WindowEvent evt) {
+                    formWindowClosing(evt);
+                }
             }
-        });
+        );
 
         jToolBar1.setOrientation(javax.swing.SwingConstants.VERTICAL);
         jToolBar1.setRollover(true);
 
-        loadScreen.setIcon(new javax.swing.ImageIcon(getClass().getResource("/mobilespy/loadIcon.png"))); // NOI18N
+        loadScreen.setIcon(
+            new javax.swing.ImageIcon(getClass().getResource("/mobilespy/loadIcon.png"))
+        ); // NOI18N
         loadScreen.setToolTipText("Load From Device [Ctrl+L]");
         loadScreen.setFocusable(false);
         loadScreen.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
         loadScreen.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
-        loadScreen.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                loadScreenActionPerformed(evt);
+        loadScreen.addActionListener(
+            new java.awt.event.ActionListener() {
+
+                public void actionPerformed(java.awt.event.ActionEvent evt) {
+                    loadScreenActionPerformed(evt);
+                }
             }
-        });
+        );
         jToolBar1.add(loadScreen);
 
-        jButton1.setIcon(new javax.swing.ImageIcon(getClass().getResource("/mobilespy/loadFromFileIcon.png"))); // NOI18N
+        jButton1.setIcon(
+            new javax.swing.ImageIcon(getClass().getResource("/mobilespy/loadFromFileIcon.png"))
+        ); // NOI18N
         jButton1.setToolTipText("Load Data from file [Ctrl+O]");
         jButton1.setFocusable(false);
         jButton1.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
         jButton1.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
-        jButton1.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButton1ActionPerformed(evt);
+        jButton1.addActionListener(
+            new java.awt.event.ActionListener() {
+
+                public void actionPerformed(java.awt.event.ActionEvent evt) {
+                    jButton1ActionPerformed(evt);
+                }
             }
-        });
+        );
         jToolBar1.add(jButton1);
 
         spyrHeal.setIcon(new javax.swing.ImageIcon(getClass().getResource("/mobilespy/spy.png"))); // NOI18N
@@ -351,34 +464,47 @@ public class MobileObjectSpy extends javax.swing.JFrame {
         spyrHeal.setFocusable(false);
         spyrHeal.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
         spyrHeal.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
-        spyrHeal.addItemListener(new java.awt.event.ItemListener() {
-            public void itemStateChanged(java.awt.event.ItemEvent evt) {
-                spyrHealItemStateChanged(evt);
+        spyrHeal.addItemListener(
+            new java.awt.event.ItemListener() {
+
+                public void itemStateChanged(java.awt.event.ItemEvent evt) {
+                    spyrHealItemStateChanged(evt);
+                }
             }
-        });
+        );
         jToolBar1.add(spyrHeal);
 
-        jToggleButton1.setIcon(new javax.swing.ImageIcon(getClass().getResource("/mobilespy/android.png"))); // NOI18N
+        jToggleButton1.setIcon(
+            new javax.swing.ImageIcon(getClass().getResource("/mobilespy/android.png"))
+        ); // NOI18N
         jToggleButton1.setFocusable(false);
         jToggleButton1.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
         jToggleButton1.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
-        jToggleButton1.addItemListener(new java.awt.event.ItemListener() {
-            public void itemStateChanged(java.awt.event.ItemEvent evt) {
-                jToggleButton1ItemStateChanged(evt);
+        jToggleButton1.addItemListener(
+            new java.awt.event.ItemListener() {
+
+                public void itemStateChanged(java.awt.event.ItemEvent evt) {
+                    jToggleButton1ItemStateChanged(evt);
+                }
             }
-        });
+        );
         jToolBar1.add(jToggleButton1);
 
-        settings.setIcon(new javax.swing.ImageIcon(getClass().getResource("/mobilespy/Settings.png"))); // NOI18N
+        settings.setIcon(
+            new javax.swing.ImageIcon(getClass().getResource("/mobilespy/Settings.png"))
+        ); // NOI18N
         settings.setToolTipText("Settings");
         settings.setFocusable(false);
         settings.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
         settings.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
-        settings.addItemListener(new java.awt.event.ItemListener() {
-            public void itemStateChanged(java.awt.event.ItemEvent evt) {
-                settingsItemStateChanged(evt);
+        settings.addItemListener(
+            new java.awt.event.ItemListener() {
+
+                public void itemStateChanged(java.awt.event.ItemEvent evt) {
+                    settingsItemStateChanged(evt);
+                }
             }
-        });
+        );
         jToolBar1.add(settings);
 
         getContentPane().add(jToolBar1, java.awt.BorderLayout.WEST);
@@ -394,34 +520,41 @@ public class MobileObjectSpy extends javax.swing.JFrame {
         jSplitPane1.setResizeWeight(0.5);
         jSplitPane1.setOneTouchExpandable(true);
 
-        jTable1.setModel(new javax.swing.table.DefaultTableModel(
-            new Object [][] {
-                {null, null},
-                {null, null},
-                {null, null},
-                {null, null}
-            },
-            new String [] {
-                "Property", "Value"
-            }
-        ));
+        jTable1.setModel(
+            new javax.swing.table.DefaultTableModel(
+                new Object[][] { { null, null }, { null, null }, { null, null }, { null, null } },
+                new String[] { "Property", "Value" }
+            )
+        );
         jTable1.setColumnSelectionAllowed(true);
         jScrollPane2.setViewportView(jTable1);
-        jTable1.getColumnModel().getSelectionModel().setSelectionMode(javax.swing.ListSelectionModel.SINGLE_INTERVAL_SELECTION);
+        jTable1
+            .getColumnModel()
+            .getSelectionModel()
+            .setSelectionMode(javax.swing.ListSelectionModel.SINGLE_INTERVAL_SELECTION);
 
         jSplitPane1.setRightComponent(jScrollPane2);
 
-        javax.swing.tree.DefaultMutableTreeNode treeNode1 = new javax.swing.tree.DefaultMutableTreeNode("View");
-        javax.swing.tree.DefaultMutableTreeNode treeNode2 = new javax.swing.tree.DefaultMutableTreeNode("Node");
-        javax.swing.tree.DefaultMutableTreeNode treeNode3 = new javax.swing.tree.DefaultMutableTreeNode("Value");
+        javax.swing.tree.DefaultMutableTreeNode treeNode1 = new javax.swing.tree.DefaultMutableTreeNode(
+            "View"
+        );
+        javax.swing.tree.DefaultMutableTreeNode treeNode2 = new javax.swing.tree.DefaultMutableTreeNode(
+            "Node"
+        );
+        javax.swing.tree.DefaultMutableTreeNode treeNode3 = new javax.swing.tree.DefaultMutableTreeNode(
+            "Value"
+        );
         treeNode2.add(treeNode3);
         treeNode1.add(treeNode2);
         jTree1.setModel(new javax.swing.tree.DefaultTreeModel(treeNode1));
-        jTree1.addTreeSelectionListener(new javax.swing.event.TreeSelectionListener() {
-            public void valueChanged(javax.swing.event.TreeSelectionEvent evt) {
-                jTree1ValueChanged(evt);
+        jTree1.addTreeSelectionListener(
+            new javax.swing.event.TreeSelectionListener() {
+
+                public void valueChanged(javax.swing.event.TreeSelectionEvent evt) {
+                    jTree1ValueChanged(evt);
+                }
             }
-        });
+        );
         jScrollPane1.setViewportView(jTree1);
 
         jSplitPane1.setLeftComponent(jScrollPane1);
@@ -437,21 +570,30 @@ public class MobileObjectSpy extends javax.swing.JFrame {
         screenShotLabel.setMinimumSize(new java.awt.Dimension(346, 680));
         screenShotLabel.setPreferredSize(new java.awt.Dimension(250, 680));
         screenShotLabel.setVerticalTextPosition(javax.swing.SwingConstants.TOP);
-        screenShotLabel.addMouseMotionListener(new java.awt.event.MouseMotionAdapter() {
-            public void mouseMoved(java.awt.event.MouseEvent evt) {
-                screenShotLabelMouseMoved(evt);
+        screenShotLabel.addMouseMotionListener(
+            new java.awt.event.MouseMotionAdapter() {
+
+                public void mouseMoved(java.awt.event.MouseEvent evt) {
+                    screenShotLabelMouseMoved(evt);
+                }
             }
-        });
-        screenShotLabel.addMouseListener(new java.awt.event.MouseAdapter() {
-            public void mouseClicked(java.awt.event.MouseEvent evt) {
-                screenShotLabelMouseClicked(evt);
+        );
+        screenShotLabel.addMouseListener(
+            new java.awt.event.MouseAdapter() {
+
+                public void mouseClicked(java.awt.event.MouseEvent evt) {
+                    screenShotLabelMouseClicked(evt);
+                }
             }
-        });
-        screenShotLabel.addComponentListener(new java.awt.event.ComponentAdapter() {
-            public void componentResized(java.awt.event.ComponentEvent evt) {
-                screenShotLabelComponentResized(evt);
+        );
+        screenShotLabel.addComponentListener(
+            new java.awt.event.ComponentAdapter() {
+
+                public void componentResized(java.awt.event.ComponentEvent evt) {
+                    screenShotLabelComponentResized(evt);
+                }
             }
-        });
+        );
         imageAndObjectRepo.setLeftComponent(screenShotLabel);
 
         jSplitPane3.setOrientation(javax.swing.JSplitPane.VERTICAL_SPLIT);
@@ -459,27 +601,25 @@ public class MobileObjectSpy extends javax.swing.JFrame {
         jSplitPane3.setMinimumSize(new java.awt.Dimension(100, 94));
         jSplitPane3.setPreferredSize(new java.awt.Dimension(300, 836));
 
-        mobilePropTable.setModel(new javax.swing.table.DefaultTableModel(
-            new Object [][] {
-                {null, null},
-                {null, null},
-                {null, null},
-                {null, null},
-                {null, null},
-                {null, null}
-            },
-            new String [] {
-                "Property", "Value"
-            }
-        ) {
-            boolean[] canEdit = new boolean [] {
-                false, false
-            };
+        mobilePropTable.setModel(
+            new javax.swing.table.DefaultTableModel(
+                new Object[][] {
+                    { null, null },
+                    { null, null },
+                    { null, null },
+                    { null, null },
+                    { null, null },
+                    { null, null }
+                },
+                new String[] { "Property", "Value" }
+            ) {
+                boolean[] canEdit = new boolean[] { false, false };
 
-            public boolean isCellEditable(int rowIndex, int columnIndex) {
-                return canEdit [columnIndex];
+                public boolean isCellEditable(int rowIndex, int columnIndex) {
+                    return canEdit[columnIndex];
+                }
             }
-        });
+        );
         jScrollPane3.setViewportView(mobilePropTable);
 
         jSplitPane3.setRightComponent(jScrollPane3);
@@ -489,17 +629,24 @@ public class MobileObjectSpy extends javax.swing.JFrame {
         jToolBar3.setRollover(true);
         jToolBar3.add(filler2);
 
-        addToSelectedPage.setIcon(new javax.swing.ImageIcon(getClass().getResource("/mobilespy/pageOpen.png"))); // NOI18N
+        addToSelectedPage.setIcon(
+            new javax.swing.ImageIcon(getClass().getResource("/mobilespy/pageOpen.png"))
+        ); // NOI18N
         addToSelectedPage.setToolTipText("Add Objects to Selected Page/Object Group");
         addToSelectedPage.setFocusable(false);
         addToSelectedPage.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
-        addToSelectedPage.setSelectedIcon(new javax.swing.ImageIcon(getClass().getResource("/mobilespy/pageLock.png"))); // NOI18N
+        addToSelectedPage.setSelectedIcon(
+            new javax.swing.ImageIcon(getClass().getResource("/mobilespy/pageLock.png"))
+        ); // NOI18N
         addToSelectedPage.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
-        addToSelectedPage.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                addToSelectedPageActionPerformed(evt);
+        addToSelectedPage.addActionListener(
+            new java.awt.event.ActionListener() {
+
+                public void actionPerformed(java.awt.event.ActionEvent evt) {
+                    addToSelectedPageActionPerformed(evt);
+                }
             }
-        });
+        );
         jToolBar3.add(addToSelectedPage);
 
         loadResourceFromPage.setIcon(INGIcons.swingColored("icon.import", 16));
@@ -507,11 +654,14 @@ public class MobileObjectSpy extends javax.swing.JFrame {
         loadResourceFromPage.setFocusable(false);
         loadResourceFromPage.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
         loadResourceFromPage.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
-        loadResourceFromPage.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                loadResourceFromPageActionPerformed(evt);
+        loadResourceFromPage.addActionListener(
+            new java.awt.event.ActionListener() {
+
+                public void actionPerformed(java.awt.event.ActionEvent evt) {
+                    loadResourceFromPageActionPerformed(evt);
+                }
             }
-        });
+        );
         jToolBar3.add(loadResourceFromPage);
 
         mapCurrentToPage.setIcon(INGIcons.swingColored("icon.map", 16));
@@ -519,11 +669,14 @@ public class MobileObjectSpy extends javax.swing.JFrame {
         mapCurrentToPage.setFocusable(false);
         mapCurrentToPage.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
         mapCurrentToPage.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
-        mapCurrentToPage.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                mapCurrentToPageActionPerformed(evt);
+        mapCurrentToPage.addActionListener(
+            new java.awt.event.ActionListener() {
+
+                public void actionPerformed(java.awt.event.ActionEvent evt) {
+                    mapCurrentToPageActionPerformed(evt);
+                }
             }
-        });
+        );
         jToolBar3.add(mapCurrentToPage);
 
         treePanel.add(jToolBar3, java.awt.BorderLayout.PAGE_START);
@@ -543,20 +696,26 @@ public class MobileObjectSpy extends javax.swing.JFrame {
 
         loadAndroidDevices.setIcon(INGIcons.swingColored("icon.refresh", 16));
         loadAndroidDevices.setToolTipText("Load UDID");
-        loadAndroidDevices.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                loadAndroidDevicesActionPerformed(evt);
+        loadAndroidDevices.addActionListener(
+            new java.awt.event.ActionListener() {
+
+                public void actionPerformed(java.awt.event.ActionEvent evt) {
+                    loadAndroidDevicesActionPerformed(evt);
+                }
             }
-        });
+        );
         jToolBar4.add(loadAndroidDevices);
 
         loadPackageAndActivity.setIcon(INGIcons.swingColored("icon.objects", 16));
         loadPackageAndActivity.setToolTipText("Fetch current Acitivity");
-        loadPackageAndActivity.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                loadPackageAndActivityActionPerformed(evt);
+        loadPackageAndActivity.addActionListener(
+            new java.awt.event.ActionListener() {
+
+                public void actionPerformed(java.awt.event.ActionEvent evt) {
+                    loadPackageAndActivityActionPerformed(evt);
+                }
             }
-        });
+        );
         jToolBar4.add(loadPackageAndActivity);
 
         addAsAndroidemulator.setIcon(INGIcons.swingColored("icon.saveproj", 16));
@@ -564,11 +723,14 @@ public class MobileObjectSpy extends javax.swing.JFrame {
         addAsAndroidemulator.setFocusable(false);
         addAsAndroidemulator.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
         addAsAndroidemulator.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
-        addAsAndroidemulator.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                addAsAndroidemulatorActionPerformed(evt);
+        addAsAndroidemulator.addActionListener(
+            new java.awt.event.ActionListener() {
+
+                public void actionPerformed(java.awt.event.ActionEvent evt) {
+                    addAsAndroidemulatorActionPerformed(evt);
+                }
             }
-        });
+        );
         jToolBar4.add(addAsAndroidemulator);
 
         androidSettings.add(jToolBar4, java.awt.BorderLayout.NORTH);
@@ -576,7 +738,11 @@ public class MobileObjectSpy extends javax.swing.JFrame {
         jLabel5.setText("AddTo/Update");
 
         andEmulatorCombo.setEditable(true);
-        andEmulatorCombo.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "Item 1", "Item 2", "Item 3", "Item 4" }));
+        andEmulatorCombo.setModel(
+            new javax.swing.DefaultComboBoxModel(
+                new String[] { "Item 1", "Item 2", "Item 3", "Item 4" }
+            )
+        );
 
         jLabel4.setText("UDID");
 
@@ -587,42 +753,152 @@ public class MobileObjectSpy extends javax.swing.JFrame {
         javax.swing.GroupLayout jPanel3Layout = new javax.swing.GroupLayout(jPanel3);
         jPanel3.setLayout(jPanel3Layout);
         jPanel3Layout.setHorizontalGroup(
-            jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel3Layout.createSequentialGroup()
-                .addContainerGap()
-                .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                    .addComponent(jLabel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(jLabel7, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(jLabel4, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(jLabel5, javax.swing.GroupLayout.Alignment.TRAILING, javax.swing.GroupLayout.PREFERRED_SIZE, 136, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                    .addComponent(androidDevices, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(andEmulatorCombo, 0, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                    .addComponent(packageName)
-                    .addComponent(activityName, javax.swing.GroupLayout.PREFERRED_SIZE, 226, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addContainerGap(684, Short.MAX_VALUE))
+            jPanel3Layout
+                .createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                .addGroup(
+                    jPanel3Layout
+                        .createSequentialGroup()
+                        .addContainerGap()
+                        .addGroup(
+                            jPanel3Layout
+                                .createParallelGroup(
+                                    javax.swing.GroupLayout.Alignment.LEADING,
+                                    false
+                                )
+                                .addComponent(
+                                    jLabel1,
+                                    javax.swing.GroupLayout.DEFAULT_SIZE,
+                                    javax.swing.GroupLayout.DEFAULT_SIZE,
+                                    Short.MAX_VALUE
+                                )
+                                .addComponent(
+                                    jLabel7,
+                                    javax.swing.GroupLayout.Alignment.TRAILING,
+                                    javax.swing.GroupLayout.DEFAULT_SIZE,
+                                    javax.swing.GroupLayout.DEFAULT_SIZE,
+                                    Short.MAX_VALUE
+                                )
+                                .addComponent(
+                                    jLabel4,
+                                    javax.swing.GroupLayout.Alignment.TRAILING,
+                                    javax.swing.GroupLayout.DEFAULT_SIZE,
+                                    javax.swing.GroupLayout.DEFAULT_SIZE,
+                                    Short.MAX_VALUE
+                                )
+                                .addComponent(
+                                    jLabel5,
+                                    javax.swing.GroupLayout.Alignment.TRAILING,
+                                    javax.swing.GroupLayout.PREFERRED_SIZE,
+                                    136,
+                                    javax.swing.GroupLayout.PREFERRED_SIZE
+                                )
+                        )
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addGroup(
+                            jPanel3Layout
+                                .createParallelGroup(
+                                    javax.swing.GroupLayout.Alignment.LEADING,
+                                    false
+                                )
+                                .addComponent(
+                                    androidDevices,
+                                    0,
+                                    javax.swing.GroupLayout.DEFAULT_SIZE,
+                                    Short.MAX_VALUE
+                                )
+                                .addComponent(
+                                    andEmulatorCombo,
+                                    0,
+                                    javax.swing.GroupLayout.DEFAULT_SIZE,
+                                    Short.MAX_VALUE
+                                )
+                                .addComponent(packageName)
+                                .addComponent(
+                                    activityName,
+                                    javax.swing.GroupLayout.PREFERRED_SIZE,
+                                    226,
+                                    javax.swing.GroupLayout.PREFERRED_SIZE
+                                )
+                        )
+                        .addContainerGap(684, Short.MAX_VALUE)
+                )
         );
         jPanel3Layout.setVerticalGroup(
-            jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel3Layout.createSequentialGroup()
-                .addGap(19, 19, 19)
-                .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jLabel5, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(andEmulatorCombo, javax.swing.GroupLayout.PREFERRED_SIZE, 28, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addGap(10, 10, 10)
-                .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jLabel4, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(androidDevices, javax.swing.GroupLayout.PREFERRED_SIZE, 28, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addGap(10, 10, 10)
-                .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(jLabel7, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(packageName, javax.swing.GroupLayout.PREFERRED_SIZE, 28, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addGap(10, 10, 10)
-                .addGroup(jPanel3Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, 30, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(activityName, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+            jPanel3Layout
+                .createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                .addGroup(
+                    jPanel3Layout
+                        .createSequentialGroup()
+                        .addGap(19, 19, 19)
+                        .addGroup(
+                            jPanel3Layout
+                                .createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                .addComponent(
+                                    jLabel5,
+                                    javax.swing.GroupLayout.PREFERRED_SIZE,
+                                    30,
+                                    javax.swing.GroupLayout.PREFERRED_SIZE
+                                )
+                                .addComponent(
+                                    andEmulatorCombo,
+                                    javax.swing.GroupLayout.PREFERRED_SIZE,
+                                    28,
+                                    javax.swing.GroupLayout.PREFERRED_SIZE
+                                )
+                        )
+                        .addGap(10, 10, 10)
+                        .addGroup(
+                            jPanel3Layout
+                                .createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                .addComponent(
+                                    jLabel4,
+                                    javax.swing.GroupLayout.PREFERRED_SIZE,
+                                    30,
+                                    javax.swing.GroupLayout.PREFERRED_SIZE
+                                )
+                                .addComponent(
+                                    androidDevices,
+                                    javax.swing.GroupLayout.PREFERRED_SIZE,
+                                    28,
+                                    javax.swing.GroupLayout.PREFERRED_SIZE
+                                )
+                        )
+                        .addGap(10, 10, 10)
+                        .addGroup(
+                            jPanel3Layout
+                                .createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                .addComponent(
+                                    jLabel7,
+                                    javax.swing.GroupLayout.PREFERRED_SIZE,
+                                    30,
+                                    javax.swing.GroupLayout.PREFERRED_SIZE
+                                )
+                                .addComponent(
+                                    packageName,
+                                    javax.swing.GroupLayout.PREFERRED_SIZE,
+                                    28,
+                                    javax.swing.GroupLayout.PREFERRED_SIZE
+                                )
+                        )
+                        .addGap(10, 10, 10)
+                        .addGroup(
+                            jPanel3Layout
+                                .createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                                .addComponent(
+                                    jLabel1,
+                                    javax.swing.GroupLayout.PREFERRED_SIZE,
+                                    30,
+                                    javax.swing.GroupLayout.PREFERRED_SIZE
+                                )
+                                .addComponent(
+                                    activityName,
+                                    javax.swing.GroupLayout.PREFERRED_SIZE,
+                                    javax.swing.GroupLayout.DEFAULT_SIZE,
+                                    javax.swing.GroupLayout.PREFERRED_SIZE
+                                )
+                        )
+                        .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                )
         );
 
         androidSettings.add(jPanel3, java.awt.BorderLayout.CENTER);
@@ -631,23 +907,29 @@ public class MobileObjectSpy extends javax.swing.JFrame {
 
         iosSettings.setLayout(new java.awt.GridBagLayout());
 
-        jTable3.setModel(new javax.swing.table.DefaultTableModel(
-            new Object [][] {
-                {"UDID", null},
-                {"appium-version", "1.0"},
-                {"platformName", "iOS"},
-                {"platformVersion", "8.2"},
-                {"deviceName", "iPhone 5s"},
-                {"app", "/Users/Apple/Library/Developer/Xcode/DerivedData/UICatalog-awyrhprjhfypbofjkcjkujlkngty/Build/Products/Debug-iphonesimulator/UICatalog.app"}
-            },
-            new String [] {
-                "Capability", "Value"
-            }
-        ));
+        jTable3.setModel(
+            new javax.swing.table.DefaultTableModel(
+                new Object[][] {
+                    { "UDID", null },
+                    { "appium-version", "1.0" },
+                    { "platformName", "iOS" },
+                    { "platformVersion", "8.2" },
+                    { "deviceName", "iPhone 5s" },
+                    {
+                        "app",
+                        "/Users/Apple/Library/Developer/Xcode/DerivedData/UICatalog-awyrhprjhfypbofjkcjkujlkngty/Build/Products/Debug-iphonesimulator/UICatalog.app"
+                    }
+                },
+                new String[] { "Capability", "Value" }
+            )
+        );
         jTable3.setColumnSelectionAllowed(true);
         jTable3.getTableHeader().setReorderingAllowed(false);
         jScrollPane5.setViewportView(jTable3);
-        jTable3.getColumnModel().getSelectionModel().setSelectionMode(javax.swing.ListSelectionModel.SINGLE_INTERVAL_SELECTION);
+        jTable3
+            .getColumnModel()
+            .getSelectionModel()
+            .setSelectionMode(javax.swing.ListSelectionModel.SINGLE_INTERVAL_SELECTION);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
@@ -682,11 +964,14 @@ public class MobileObjectSpy extends javax.swing.JFrame {
         iosSettings.add(appiumServerLoc, gridBagConstraints);
 
         jCheckBox1.setText("Load Settings For");
-        jCheckBox1.addItemListener(new java.awt.event.ItemListener() {
-            public void itemStateChanged(java.awt.event.ItemEvent evt) {
-                jCheckBox1ItemStateChanged(evt);
+        jCheckBox1.addItemListener(
+            new java.awt.event.ItemListener() {
+
+                public void itemStateChanged(java.awt.event.ItemEvent evt) {
+                    jCheckBox1ItemStateChanged(evt);
+                }
             }
-        });
+        );
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 0;
         gridBagConstraints.gridy = 0;
@@ -696,13 +981,20 @@ public class MobileObjectSpy extends javax.swing.JFrame {
         iosSettings.add(jCheckBox1, gridBagConstraints);
 
         iosEmulatorCombo.setEditable(true);
-        iosEmulatorCombo.setModel(new javax.swing.DefaultComboBoxModel(new String[] { "Item 1", "Item 2", "Item 3", "Item 4" }));
+        iosEmulatorCombo.setModel(
+            new javax.swing.DefaultComboBoxModel(
+                new String[] { "Item 1", "Item 2", "Item 3", "Item 4" }
+            )
+        );
         iosEmulatorCombo.setEnabled(false);
-        iosEmulatorCombo.addItemListener(new java.awt.event.ItemListener() {
-            public void itemStateChanged(java.awt.event.ItemEvent evt) {
-                iosEmulatorComboItemStateChanged(evt);
+        iosEmulatorCombo.addItemListener(
+            new java.awt.event.ItemListener() {
+
+                public void itemStateChanged(java.awt.event.ItemEvent evt) {
+                    iosEmulatorComboItemStateChanged(evt);
+                }
             }
-        });
+        );
         gridBagConstraints = new java.awt.GridBagConstraints();
         gridBagConstraints.gridx = 2;
         gridBagConstraints.gridy = 0;
@@ -719,11 +1011,14 @@ public class MobileObjectSpy extends javax.swing.JFrame {
         loadDefault.setFocusable(false);
         loadDefault.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
         loadDefault.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
-        loadDefault.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                loadDefaultActionPerformed(evt);
+        loadDefault.addActionListener(
+            new java.awt.event.ActionListener() {
+
+                public void actionPerformed(java.awt.event.ActionEvent evt) {
+                    loadDefaultActionPerformed(evt);
+                }
             }
-        });
+        );
         jToolBar2.add(loadDefault);
 
         addRow.setIcon(INGIcons.swingColored("icon.add", 16)); // NOI18N
@@ -731,11 +1026,14 @@ public class MobileObjectSpy extends javax.swing.JFrame {
         addRow.setFocusable(false);
         addRow.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
         addRow.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
-        addRow.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                addRowActionPerformed(evt);
+        addRow.addActionListener(
+            new java.awt.event.ActionListener() {
+
+                public void actionPerformed(java.awt.event.ActionEvent evt) {
+                    addRowActionPerformed(evt);
+                }
             }
-        });
+        );
         jToolBar2.add(addRow);
 
         removeRow.setIcon(INGIcons.swingColored("icon.rem", 16)); // NOI18N
@@ -743,11 +1041,14 @@ public class MobileObjectSpy extends javax.swing.JFrame {
         removeRow.setFocusable(false);
         removeRow.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
         removeRow.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
-        removeRow.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                removeRowActionPerformed(evt);
+        removeRow.addActionListener(
+            new java.awt.event.ActionListener() {
+
+                public void actionPerformed(java.awt.event.ActionEvent evt) {
+                    removeRowActionPerformed(evt);
+                }
             }
-        });
+        );
         jToolBar2.add(removeRow);
 
         updateEmulator.setIcon(INGIcons.swingColored("icon.saveproj", 16));
@@ -756,11 +1057,14 @@ public class MobileObjectSpy extends javax.swing.JFrame {
         updateEmulator.setFocusable(false);
         updateEmulator.setHorizontalTextPosition(javax.swing.SwingConstants.CENTER);
         updateEmulator.setVerticalTextPosition(javax.swing.SwingConstants.BOTTOM);
-        updateEmulator.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                updateEmulatorActionPerformed(evt);
+        updateEmulator.addActionListener(
+            new java.awt.event.ActionListener() {
+
+                public void actionPerformed(java.awt.event.ActionEvent evt) {
+                    updateEmulatorActionPerformed(evt);
+                }
             }
-        });
+        );
         jToolBar2.add(updateEmulator);
 
         gridBagConstraints = new java.awt.GridBagConstraints();
@@ -781,32 +1085,32 @@ public class MobileObjectSpy extends javax.swing.JFrame {
         getContentPane().add(mainPanel, java.awt.BorderLayout.CENTER);
 
         pack();
-    }// </editor-fold>//GEN-END:initComponents
+    } // </editor-fold>//GEN-END:initComponents
 
-    private void loadScreenActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_loadScreenActionPerformed
+    private void loadScreenActionPerformed(java.awt.event.ActionEvent evt) { //GEN-FIRST:event_loadScreenActionPerformed
         if (jToggleButton1.isSelected()) {
             loadIOSXMLAndScreenShot();
         } else {
             loadAndroidXMLAndScreenShot();
         }
-    }//GEN-LAST:event_loadScreenActionPerformed
+    } //GEN-LAST:event_loadScreenActionPerformed
 
-    private void jTree1ValueChanged(javax.swing.event.TreeSelectionEvent evt) {//GEN-FIRST:event_jTree1ValueChanged
+    private void jTree1ValueChanged(javax.swing.event.TreeSelectionEvent evt) { //GEN-FIRST:event_jTree1ValueChanged
         selectedRect = mobileUtils.loadValuesToTable();
         if (selectedRect != null) {
             screenShotLabel.paintImmediately(screenShotLabel.getBounds());
         }
-    }//GEN-LAST:event_jTree1ValueChanged
+    } //GEN-LAST:event_jTree1ValueChanged
 
-    private void screenShotLabelMouseMoved(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_screenShotLabelMouseMoved
+    private void screenShotLabelMouseMoved(java.awt.event.MouseEvent evt) { //GEN-FIRST:event_screenShotLabelMouseMoved
         mobileUtils.highlightOnMouseMove(evt.getX(), evt.getY());
-    }//GEN-LAST:event_screenShotLabelMouseMoved
+    } //GEN-LAST:event_screenShotLabelMouseMoved
 
-    private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
+    private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) { //GEN-FIRST:event_jButton1ActionPerformed
         showOpenDialog();
-    }//GEN-LAST:event_jButton1ActionPerformed
+    } //GEN-LAST:event_jButton1ActionPerformed
 
-    private void screenShotLabelMouseClicked(java.awt.event.MouseEvent evt) {//GEN-FIRST:event_screenShotLabelMouseClicked
+    private void screenShotLabelMouseClicked(java.awt.event.MouseEvent evt) { //GEN-FIRST:event_screenShotLabelMouseClicked
         if (evt.getButton() == 3) {
             if (spyrHeal.isSelected()) {
                 updateObject(mobileTree.getSelectedNode());
@@ -816,7 +1120,7 @@ public class MobileObjectSpy extends javax.swing.JFrame {
         } else {
             mobileUtils.switchHighlightOnMouseMove();
         }
-    }//GEN-LAST:event_screenShotLabelMouseClicked
+    } //GEN-LAST:event_screenShotLabelMouseClicked
 
     private void updateObject(MobileTreeNode mobileNode) {
         if (objectTree.getSelectedObject() != null) {
@@ -826,7 +1130,7 @@ public class MobileObjectSpy extends javax.swing.JFrame {
             Notification.show("Please select an object from OR to update");
         }
     }
-    
+
     private void saveObject(MobileTreeNode mobileNode) {
         if (addToSelectedPage.isSelected()) {
             saveObjectToSelected(mobileNode);
@@ -840,7 +1144,10 @@ public class MobileObjectSpy extends javax.swing.JFrame {
         if (page == null) {
             page = mobileOR.addPage(mobileNode.getPageName());
             page.setPackageName(mobileNode.getPageName());
-            ((DefaultTreeModel) objectTree.getTree().getModel()).nodesWereInserted(mobileOR, new int[]{mobileOR.getChildCount() - 1});
+            ((DefaultTreeModel) objectTree.getTree().getModel()).nodesWereInserted(
+                    mobileOR,
+                    new int[] { mobileOR.getChildCount() - 1 }
+                );
         }
         saveObjectToPage(page, mobileNode);
     }
@@ -866,9 +1173,17 @@ public class MobileObjectSpy extends javax.swing.JFrame {
             MobileORObject newObj = page.addObject(objName);
             dummyObject.clone(newObj);
             Notification.show("Object Added : " + objName);
-            ((DefaultTreeModel) objectTree.getTree().getModel()).nodesWereInserted(page, new int[]{page.getChildCount() - 1});
+            ((DefaultTreeModel) objectTree.getTree().getModel()).nodesWereInserted(
+                    page,
+                    new int[] { page.getChildCount() - 1 }
+                );
         } else {
-            Notification.show("Object Already Present\nPage : " + page.getName() + "\nObject : " + dupObj.getName());
+            Notification.show(
+                "Object Already Present\nPage : " +
+                page.getName() +
+                "\nObject : " +
+                dupObj.getName()
+            );
         }
     }
 
@@ -889,14 +1204,16 @@ public class MobileObjectSpy extends javax.swing.JFrame {
             MobileORObject newObj = group.addObject(objName);
             dummyObject.clone(newObj);
             LOG.log(Level.INFO, "Object Added : {0}", objName);
-            ((DefaultTreeModel) objectTree.getTree().getModel()).nodesWereInserted(group, new int[]{group.getChildCount() - 1});
+            ((DefaultTreeModel) objectTree.getTree().getModel()).nodesWereInserted(
+                    group,
+                    new int[] { group.getChildCount() - 1 }
+                );
             if (group.getChildCount() == 2) {
                 ((DefaultTreeModel) objectTree.getTree().getModel()).reload(group.getParent());
             }
         } else {
             LOG.log(Level.WARNING, "Object Similar To\nObject : {0}", dupObj.getName());
         }
-
     }
 
     private void saveObjectToSelected(MobileTreeNode mobileNode) {
@@ -939,24 +1256,23 @@ public class MobileObjectSpy extends javax.swing.JFrame {
         return null;
     }
 
-
-    private void jMenuItem1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem1ActionPerformed
+    private void jMenuItem1ActionPerformed(java.awt.event.ActionEvent evt) { //GEN-FIRST:event_jMenuItem1ActionPerformed
         showOpenDialog();
-    }//GEN-LAST:event_jMenuItem1ActionPerformed
+    } //GEN-LAST:event_jMenuItem1ActionPerformed
 
-    private void jMenuItem2ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem2ActionPerformed
+    private void jMenuItem2ActionPerformed(java.awt.event.ActionEvent evt) { //GEN-FIRST:event_jMenuItem2ActionPerformed
         mobileOR.getObjectRepository().save();
-    }//GEN-LAST:event_jMenuItem2ActionPerformed
+    } //GEN-LAST:event_jMenuItem2ActionPerformed
 
-    private void jMenuItem3ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem3ActionPerformed
+    private void jMenuItem3ActionPerformed(java.awt.event.ActionEvent evt) { //GEN-FIRST:event_jMenuItem3ActionPerformed
         this.dispose();
-    }//GEN-LAST:event_jMenuItem3ActionPerformed
+    } //GEN-LAST:event_jMenuItem3ActionPerformed
 
-    private void jMenuItem4ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jMenuItem4ActionPerformed
+    private void jMenuItem4ActionPerformed(java.awt.event.ActionEvent evt) { //GEN-FIRST:event_jMenuItem4ActionPerformed
         loadAndroidXMLAndScreenShot();
-    }//GEN-LAST:event_jMenuItem4ActionPerformed
+    } //GEN-LAST:event_jMenuItem4ActionPerformed
 
-    private void spyrHealItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_spyrHealItemStateChanged
+    private void spyrHealItemStateChanged(java.awt.event.ItemEvent evt) { //GEN-FIRST:event_spyrHealItemStateChanged
         if (spyrHeal.isSelected()) {
             spyrHeal.setIcon(heal);
             spyrHeal.setToolTipText("Update values of the Selected Object in the OR");
@@ -964,20 +1280,20 @@ public class MobileObjectSpy extends javax.swing.JFrame {
             spyrHeal.setIcon(spy);
             spyrHeal.setToolTipText("Add a new Object to OR");
         }
-    }//GEN-LAST:event_spyrHealItemStateChanged
+    } //GEN-LAST:event_spyrHealItemStateChanged
 
-    private void jToggleButton1ItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_jToggleButton1ItemStateChanged
+    private void jToggleButton1ItemStateChanged(java.awt.event.ItemEvent evt) { //GEN-FIRST:event_jToggleButton1ItemStateChanged
         switchTo(jToggleButton1.isSelected());
-    }//GEN-LAST:event_jToggleButton1ItemStateChanged
+    } //GEN-LAST:event_jToggleButton1ItemStateChanged
 
-    private void formWindowClosing(java.awt.event.WindowEvent evt) {//GEN-FIRST:event_formWindowClosing
-    //    IOSpy.quit();
+    private void formWindowClosing(java.awt.event.WindowEvent evt) { //GEN-FIRST:event_formWindowClosing
+        //    IOSpy.quit();
         addToSelectedPage.setSelected(false);
         addToSelectedPage.setToolTipText("Add Objects to Selected Page");
         sMainFrame.getTestDesign().getObjectRepo().getMobileOR().load();
-    }//GEN-LAST:event_formWindowClosing
+    } //GEN-LAST:event_formWindowClosing
 
-    private void settingsItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_settingsItemStateChanged
+    private void settingsItemStateChanged(java.awt.event.ItemEvent evt) { //GEN-FIRST:event_settingsItemStateChanged
         CardLayout layout = (CardLayout) mainPanel.getLayout();
         if (settings.isSelected()) {
             setSize(500, getHeight());
@@ -987,88 +1303,88 @@ public class MobileObjectSpy extends javax.swing.JFrame {
             setExtendedState(JFrame.MAXIMIZED_BOTH);
             layout.show(mainPanel, "Spy");
         }
-    }//GEN-LAST:event_settingsItemStateChanged
+    } //GEN-LAST:event_settingsItemStateChanged
 
-    private void screenShotLabelComponentResized(java.awt.event.ComponentEvent evt) {//GEN-FIRST:event_screenShotLabelComponentResized
+    private void screenShotLabelComponentResized(java.awt.event.ComponentEvent evt) { //GEN-FIRST:event_screenShotLabelComponentResized
         if (mobileUtils != null) {
             mobileUtils.setScreenShotImageToLabelWResize();
         }
-    }//GEN-LAST:event_screenShotLabelComponentResized
+    } //GEN-LAST:event_screenShotLabelComponentResized
 
-    private void mapToPageActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_mapToPageActionPerformed
+    private void mapToPageActionPerformed(java.awt.event.ActionEvent evt) { //GEN-FIRST:event_mapToPageActionPerformed
         mapToPage();
-    }//GEN-LAST:event_mapToPageActionPerformed
+    } //GEN-LAST:event_mapToPageActionPerformed
 
-    private void loadFromPageActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_loadFromPageActionPerformed
+    private void loadFromPageActionPerformed(java.awt.event.ActionEvent evt) { //GEN-FIRST:event_loadFromPageActionPerformed
         loadFromPage();
-    }//GEN-LAST:event_loadFromPageActionPerformed
+    } //GEN-LAST:event_loadFromPageActionPerformed
 
-    private void iosEmulatorComboItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_iosEmulatorComboItemStateChanged
+    private void iosEmulatorComboItemStateChanged(java.awt.event.ItemEvent evt) { //GEN-FIRST:event_iosEmulatorComboItemStateChanged
         if (evt.getStateChange() == java.awt.event.ItemEvent.SELECTED) {
             loadEmulator(evt.getItem().toString());
         }
-    }//GEN-LAST:event_iosEmulatorComboItemStateChanged
+    } //GEN-LAST:event_iosEmulatorComboItemStateChanged
 
-    private void jCheckBox1ItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_jCheckBox1ItemStateChanged
+    private void jCheckBox1ItemStateChanged(java.awt.event.ItemEvent evt) { //GEN-FIRST:event_jCheckBox1ItemStateChanged
         iosEmulatorCombo.setEnabled(jCheckBox1.isSelected());
         updateEmulator.setEnabled(jCheckBox1.isSelected());
         if (jCheckBox1.isSelected() && iosEmulatorCombo.getItemCount() > 0) {
             loadEmulator(iosEmulatorCombo.getSelectedItem().toString());
         }
-    }//GEN-LAST:event_jCheckBox1ItemStateChanged
+    } //GEN-LAST:event_jCheckBox1ItemStateChanged
 
-    private void addRowActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_addRowActionPerformed
+    private void addRowActionPerformed(java.awt.event.ActionEvent evt) { //GEN-FIRST:event_addRowActionPerformed
         JTableUtils.addrow(jTable3);
-    }//GEN-LAST:event_addRowActionPerformed
+    } //GEN-LAST:event_addRowActionPerformed
 
-    private void removeRowActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_removeRowActionPerformed
+    private void removeRowActionPerformed(java.awt.event.ActionEvent evt) { //GEN-FIRST:event_removeRowActionPerformed
         JTableUtils.deleterow(jTable3);
-    }//GEN-LAST:event_removeRowActionPerformed
+    } //GEN-LAST:event_removeRowActionPerformed
 
-    private void updateEmulatorActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_updateEmulatorActionPerformed
+    private void updateEmulatorActionPerformed(java.awt.event.ActionEvent evt) { //GEN-FIRST:event_updateEmulatorActionPerformed
         addRUpdateIOSEmulator();
-    }//GEN-LAST:event_updateEmulatorActionPerformed
+    } //GEN-LAST:event_updateEmulatorActionPerformed
 
-    private void loadDefaultActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_loadDefaultActionPerformed
+    private void loadDefaultActionPerformed(java.awt.event.ActionEvent evt) { //GEN-FIRST:event_loadDefaultActionPerformed
         loadDefaultAppiumCaps();
-    }//GEN-LAST:event_loadDefaultActionPerformed
+    } //GEN-LAST:event_loadDefaultActionPerformed
 
-    private void loadAndroidDevicesActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_loadAndroidDevicesActionPerformed
+    private void loadAndroidDevicesActionPerformed(java.awt.event.ActionEvent evt) { //GEN-FIRST:event_loadAndroidDevicesActionPerformed
         androidDevices.setModel(new DefaultComboBoxModel(screenshotAction.getDevices().toArray()));
-    }//GEN-LAST:event_loadAndroidDevicesActionPerformed
+    } //GEN-LAST:event_loadAndroidDevicesActionPerformed
 
-    private void loadResourceFromPageActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_loadResourceFromPageActionPerformed
+    private void loadResourceFromPageActionPerformed(java.awt.event.ActionEvent evt) { //GEN-FIRST:event_loadResourceFromPageActionPerformed
         loadFromPage();
-    }//GEN-LAST:event_loadResourceFromPageActionPerformed
+    } //GEN-LAST:event_loadResourceFromPageActionPerformed
 
-    private void mapCurrentToPageActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_mapCurrentToPageActionPerformed
+    private void mapCurrentToPageActionPerformed(java.awt.event.ActionEvent evt) { //GEN-FIRST:event_mapCurrentToPageActionPerformed
         mapToPage();
-    }//GEN-LAST:event_mapCurrentToPageActionPerformed
+    } //GEN-LAST:event_mapCurrentToPageActionPerformed
 
-    private void addToSelectedPageActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_addToSelectedPageActionPerformed
-//        selectedPageNode = null;
-//        if (addToSelectedPage.isSelected()) {
-//            if (mobileObjectTree.getSelectedNode() != null) {
-//                MobileObjectNode node = mobileObjectTree.getSelectedNode();
-//                if (node.isPage()) {
-//                    selectedPageNode = node;
-//                } else if (node.isObject()) {
-//                    selectedPageNode = node.getParent();
-//                } else {
-//                    Notification.show("Please select a Page");
-//                    addToSelectedPage.setSelected(false);
-//                }
-//                addToSelectedPage.setToolTipText("Add Objects to Selected Page -{{ " + selectedPageNode.getText() + " }}");
-//            } else {
-//                Notification.show("Please select a Page");
-//                addToSelectedPage.setSelected(false);
-//            }
-//        } else {
-//            addToSelectedPage.setToolTipText("Add Objects to Selected Page");
-//        }
-    }//GEN-LAST:event_addToSelectedPageActionPerformed
+    private void addToSelectedPageActionPerformed(java.awt.event.ActionEvent evt) { //GEN-FIRST:event_addToSelectedPageActionPerformed
+        //        selectedPageNode = null;
+        //        if (addToSelectedPage.isSelected()) {
+        //            if (mobileObjectTree.getSelectedNode() != null) {
+        //                MobileObjectNode node = mobileObjectTree.getSelectedNode();
+        //                if (node.isPage()) {
+        //                    selectedPageNode = node;
+        //                } else if (node.isObject()) {
+        //                    selectedPageNode = node.getParent();
+        //                } else {
+        //                    Notification.show("Please select a Page");
+        //                    addToSelectedPage.setSelected(false);
+        //                }
+        //                addToSelectedPage.setToolTipText("Add Objects to Selected Page -{{ " + selectedPageNode.getText() + " }}");
+        //            } else {
+        //                Notification.show("Please select a Page");
+        //                addToSelectedPage.setSelected(false);
+        //            }
+        //        } else {
+        //            addToSelectedPage.setToolTipText("Add Objects to Selected Page");
+        //        }
+    } //GEN-LAST:event_addToSelectedPageActionPerformed
 
-    private void loadPackageAndActivityActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_loadPackageAndActivityActionPerformed
+    private void loadPackageAndActivityActionPerformed(java.awt.event.ActionEvent evt) { //GEN-FIRST:event_loadPackageAndActivityActionPerformed
         screenshotAction.setSerial(androidDevices.getSelectedItem());
         String[] details = screenshotAction.getPackageNameAndActivityName();
         if (details.length > 0) {
@@ -1077,11 +1393,11 @@ public class MobileObjectSpy extends javax.swing.JFrame {
         } else {
             Notification.show("Couldn't fetch the details");
         }
-    }//GEN-LAST:event_loadPackageAndActivityActionPerformed
+    } //GEN-LAST:event_loadPackageAndActivityActionPerformed
 
-    private void addAsAndroidemulatorActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_addAsAndroidemulatorActionPerformed
+    private void addAsAndroidemulatorActionPerformed(java.awt.event.ActionEvent evt) { //GEN-FIRST:event_addAsAndroidemulatorActionPerformed
         addRUpdateAndroidEmulator();
-    }//GEN-LAST:event_addAsAndroidemulatorActionPerformed
+    } //GEN-LAST:event_addAsAndroidemulatorActionPerformed
 
     private void addRUpdateIOSEmulator() {
         Object val = iosEmulatorCombo.getEditor().getItem();
@@ -1094,7 +1410,11 @@ public class MobileObjectSpy extends javax.swing.JFrame {
                     prop.put(attr, value);
                 }
             }
-            sMainFrame.getProject().getProjectSettings().getCapabilities().addCapability(val.toString(), prop);
+            sMainFrame
+                .getProject()
+                .getProjectSettings()
+                .getCapabilities()
+                .addCapability(val.toString(), prop);
         }
     }
 
@@ -1102,8 +1422,18 @@ public class MobileObjectSpy extends javax.swing.JFrame {
         String val = Objects.toString(emulatorName, "");
         if (!val.trim().isEmpty()) {
             if (((DefaultComboBoxModel) iosEmulatorCombo.getModel()).getIndexOf(val) == -1) {
-                sMainFrame.getProject().getProjectSettings()
-                        .getEmulators().addAppiumEmulator(val, appiumServerLoc.getText());
+                // New entries are added to the "Manage Devices" store; legacy
+                // Emulators.json is no longer written from the Object Spy.
+                sMainFrame.getProject().getProjectSettings().getDevices().addDevice(val);
+                Device device = sMainFrame
+                    .getProject()
+                    .getProjectSettings()
+                    .getDevices()
+                    .getDevice(val);
+                if (device != null) {
+                    device.setRemoteUrl(appiumServerLoc.getText());
+                }
+                sMainFrame.getProject().getProjectSettings().getDevices().save();
                 ((DefaultComboBoxModel) iosEmulatorCombo.getModel()).addElement(val);
                 iosEmulatorCombo.setSelectedItem(emulatorName);
                 andEmulatorCombo.setSelectedItem(emulatorName);
@@ -1118,8 +1448,16 @@ public class MobileObjectSpy extends javax.swing.JFrame {
         Object val = andEmulatorCombo.getEditor().getItem();
         if (addNewEmulator(val)) {
             String udid = Objects.toString(androidDevices.getSelectedItem(), "");
-            sMainFrame.getProject().getProjectSettings().getCapabilities().
-                    addDefaultAppiumCapability(val.toString(), udid, packageName.getText(), activityName.getText());
+            sMainFrame
+                .getProject()
+                .getProjectSettings()
+                .getCapabilities()
+                .addDefaultAppiumCapability(
+                    val.toString(),
+                    udid,
+                    packageName.getText(),
+                    activityName.getText()
+                );
         }
     }
 
@@ -1143,25 +1481,53 @@ public class MobileObjectSpy extends javax.swing.JFrame {
     private void loadDefaultAppiumCaps() {
         DefaultTableModel model = (DefaultTableModel) jTable3.getModel();
         model.setRowCount(0);
-        model.addRow(new Object[]{"udid", null});       
-        model.addRow(new Object[]{"deviceName", "iPhone 5s"});
-        model.addRow(new Object[]{"platformName", "iOS"});
-        model.addRow(new Object[]{"platformVersion", "8.2"});
-        model.addRow(new Object[]{"automationName", "XCUITest"});
-        model.addRow(new Object[]{"bundleId", ""});
-        model.addRow(new Object[]{"xcodeOrgId", "<Team ID>"});
-        model.addRow(new Object[]{"xcodeSigningId", "iPhone Developer"});
-        model.addRow(new Object[]{"noReset", "true"});
-        model.addRow(new Object[]{"app", "application.app"});
+        model.addRow(new Object[] { "udid", null });
+        model.addRow(new Object[] { "deviceName", "iPhone 5s" });
+        model.addRow(new Object[] { "platformName", "iOS" });
+        model.addRow(new Object[] { "platformVersion", "8.2" });
+        model.addRow(new Object[] { "automationName", "XCUITest" });
+        model.addRow(new Object[] { "bundleId", "" });
+        model.addRow(new Object[] { "xcodeOrgId", "<Team ID>" });
+        model.addRow(new Object[] { "xcodeSigningId", "iPhone Developer" });
+        model.addRow(new Object[] { "noReset", "true" });
+        model.addRow(new Object[] { "app", "application.app" });
     }
 
     private void loadEmulator(String emulatorName) {
-        Emulator emul = sMainFrame.getProject().getProjectSettings()
-                .getEmulators().getEmulator(emulatorName);
+        // Prefer the new "Manage Devices" store; fall back to legacy emulators
+        // for any project that hasn't been migrated yet (defensive only).
+        Device device = sMainFrame
+            .getProject()
+            .getProjectSettings()
+            .getDevices()
+            .getDevice(emulatorName);
+        if (device != null) {
+            appiumServerLoc.setText(device.getRemoteUrl());
+            PropUtils.loadPropertiesInTable(
+                sMainFrame
+                    .getProject()
+                    .getProjectSettings()
+                    .getCapabilities()
+                    .getCapabiltiesFor(emulatorName),
+                jTable3
+            );
+            return;
+        }
+        Emulator emul = sMainFrame
+            .getProject()
+            .getProjectSettings()
+            .getEmulators()
+            .getEmulator(emulatorName);
         if (emul != null) {
             appiumServerLoc.setText(emul.getRemoteUrl());
             PropUtils.loadPropertiesInTable(
-                    sMainFrame.getProject().getProjectSettings().getCapabilities().getCapabiltiesFor(emulatorName), jTable3);
+                sMainFrame
+                    .getProject()
+                    .getProjectSettings()
+                    .getCapabilities()
+                    .getCapabiltiesFor(emulatorName),
+                jTable3
+            );
         }
     }
 
@@ -1180,9 +1546,9 @@ public class MobileObjectSpy extends javax.swing.JFrame {
     }
 
     private void showOpenDialog() {
-     //   fileChooserDialog.pack();
-     //   fileChooserDialog.setLocationRelativeTo(null);
-     //   fileChooserDialog.setVisible(true);
+        //   fileChooserDialog.pack();
+        //   fileChooserDialog.setLocationRelativeTo(null);
+        //   fileChooserDialog.setVisible(true);
     }
 
     private String showFileChooser(FileFilter ff) {
@@ -1204,6 +1570,7 @@ public class MobileObjectSpy extends javax.swing.JFrame {
 
     private void loadAndroidXMLAndScreenShot() {
         Runnable r = new Runnable() {
+
             @Override
             public void run() {
                 screenshotAction.setSerial(androidDevices.getSelectedItem());
@@ -1219,28 +1586,26 @@ public class MobileObjectSpy extends javax.swing.JFrame {
 
     private void loadIOSXMLAndScreenShot() {
         Runnable r = new Runnable() {
+
             @Override
             public void run() {
                 String remoteServer = "";
-                if(appiumServerLoc.getText().equals("http://127.0.0.1:4723/"))
-                    remoteServer = "http://127.0.0.1:4723/";
-                else{
-                    Matcher matcher = Pattern.compile("^((http[s]?):\\/)?\\/?([^:\\/\\s]+)(:([^\\/]*))?((\\/\\w+)*\\/)([\\w\\-\\.]+[^#?\\s]+)(\\?([^#]*))?(#(.*))?$").matcher(appiumServerLoc.getText()); 
-                    if(matcher.matches()){
-                         remoteServer = matcher.group(0); 
-                    }else{
+                if (appiumServerLoc.getText().equals("http://127.0.0.1:4723/")) remoteServer =
+                    "http://127.0.0.1:4723/"; else {
+                    Matcher matcher = Pattern
+                        .compile(
+                            "^((http[s]?):\\/)?\\/?([^:\\/\\s]+)(:([^\\/]*))?((\\/\\w+)*\\/)([\\w\\-\\.]+[^#?\\s]+)(\\?([^#]*))?(#(.*))?$"
+                        )
+                        .matcher(appiumServerLoc.getText());
+                    if (matcher.matches()) {
+                        remoteServer = matcher.group(0);
+                    } else {
                         Notification.show("URL is not safe!");
                     }
                 }
-                if(remoteServer.startsWith("http") && remoteServer.endsWith("/wd/hub"))
-            //    IOSpy.setSettings(remoteServer, jTable3);
-            //    String xml = IOSpy.getXML();
-            //    String screenshot = IOSpy.getScreenShot();
-            //    if (xml != null && screenshot != null) {
-            //        mobileTree.loadTree(xml);
-            //        mobileUtils.setScreenShotImageToLabelWResize(screenshot);
-            //    }
-                setNormalCursor();
+                if (
+                    remoteServer.startsWith("http") && remoteServer.endsWith("/wd/hub")
+                ) setNormalCursor();
             }
         };
         setLoadingCursor();

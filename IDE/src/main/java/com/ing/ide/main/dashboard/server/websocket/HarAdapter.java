@@ -1,4 +1,3 @@
-
 package com.ing.ide.main.dashboard.server.websocket;
 
 import com.ing.ide.main.dashboard.server.Handler;
@@ -11,10 +10,9 @@ import org.json.simple.JSONObject;
 
 /**
  *
- * 
+ *
  */
 public class HarAdapter extends WebSocketAdapter {
-
     private static final Logger LOG = Logger.getLogger(HarAdapter.class.getName());
 
     Session session;
@@ -42,7 +40,11 @@ public class HarAdapter extends WebSocketAdapter {
 
     @Override
     public void onWebSocketError(Throwable cause) {
-        LOG.log(Level.SEVERE, "{0} : {1}", new Object[]{cause.getMessage(), session.getRemoteAddress().getHostString()});
+        LOG.log(
+            Level.SEVERE,
+            "{0} : {1}",
+            new Object[] { cause.getMessage(), session.getRemoteAddress().getHostString() }
+        );
     }
 
     @Override
@@ -73,5 +75,4 @@ public class HarAdapter extends WebSocketAdapter {
     public void stopServer(JSONObject data) throws Exception {
         throw new Exception("Access restricted.");
     }
-
 }

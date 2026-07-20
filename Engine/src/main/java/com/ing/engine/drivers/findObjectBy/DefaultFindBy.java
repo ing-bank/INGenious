@@ -1,4 +1,3 @@
-
 package com.ing.engine.drivers.findObjectBy;
 
 import com.ing.engine.drivers.findObjectBy.support.SProperty;
@@ -8,7 +7,7 @@ import org.openqa.selenium.By;
 
 /**
  *
- * 
+ *
  */
 public class DefaultFindBy {
 
@@ -54,23 +53,27 @@ public class DefaultFindBy {
         }
         return By.className(className);
     }
-   
+
     @SProperty(name = "type")
     public By getByType(String tagName) {
-         return By.tagName(tagName);
+        return By.tagName(tagName);
+    }
+
+    @SProperty(name = "tagName")
+    public By getByTagName(String tagName) {
+        return By.tagName(tagName);
     }
 
     @SProperty(name = "Accessibility")
     public By getByAccess(String access) {
         return AppiumBy.accessibilityId(access);
     }
-    
+
     @SProperty(name = "UiAutomator")
     public By getByUiAutomator(String uiAutomator) {
         return AppiumBy.androidUIAutomator(uiAutomator);
     }
-    
-/*
+    /*
     @SProperty(name = "UiAutomator")
     public By getByUiAutomator(String uiAutomator) {
         return MobileBy.AndroidUIAutomator(uiAutomator);

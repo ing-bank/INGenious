@@ -1,8 +1,8 @@
 package com.ing.ide.main.mainui.components.testdesign.or.structureddata;
 
 import com.ing.datalib.component.Project;
-import com.ing.datalib.or.structureddata.StructuredDataORObject;
 import com.ing.datalib.or.common.ObjectGroup;
+import com.ing.datalib.or.structureddata.StructuredDataORObject;
 import com.ing.ide.main.mainui.components.testdesign.TestDesign;
 import com.ing.ide.main.utils.tree.TreeSearch;
 import java.awt.BorderLayout;
@@ -20,7 +20,6 @@ import javax.swing.tree.TreePath;
  * Contains tree view and property table for API objects.
  */
 public class StructuredDataORPanel extends JPanel {
-    
     private final StructuredDataObjectTree projectTree;
     private final StructuredDataObjectTree sharedTree;
     private final StructuredDataORTable objectTable;
@@ -31,8 +30,10 @@ public class StructuredDataORPanel extends JPanel {
 
     public StructuredDataORPanel(TestDesign testDesign) {
         this.testDesign = testDesign;
-        this.projectTree = new StructuredDataObjectTree(this, StructuredDataObjectTree.ORSource.PROJECT);
-        this.sharedTree  = new StructuredDataObjectTree(this, StructuredDataObjectTree.ORSource.SHARED);
+        this.projectTree =
+            new StructuredDataObjectTree(this, StructuredDataObjectTree.ORSource.PROJECT);
+        this.sharedTree =
+            new StructuredDataObjectTree(this, StructuredDataObjectTree.ORSource.SHARED);
         this.objectTable = new StructuredDataORTable(this);
         init();
     }
@@ -48,12 +49,15 @@ public class StructuredDataORPanel extends JPanel {
         JComponent sharedTreeWithSearch = TreeSearch.installForOR(sharedTree.getTree());
         tabs.addTab("Shared", sharedTreeWithSearch);
 
-        tabs.addChangeListener(new ChangeListener() {
-            @Override
-            public void stateChanged(ChangeEvent e) {
-                updateTableForCurrentSelection();
+        tabs.addChangeListener(
+            new ChangeListener() {
+
+                @Override
+                public void stateChanged(ChangeEvent e) {
+                    updateTableForCurrentSelection();
+                }
             }
-        });
+        );
 
         splitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT);
         splitPane.setOneTouchExpandable(true);
@@ -62,28 +66,36 @@ public class StructuredDataORPanel extends JPanel {
         splitPane.setResizeWeight(0.5);
 
         add(splitPane, BorderLayout.CENTER);
-        
-        javax.swing.SwingUtilities.invokeLater(() -> {
-            splitPane.setDividerLocation(0.5);
-        });
+
+        javax.swing.SwingUtilities.invokeLater(
+            () -> {
+                splitPane.setDividerLocation(0.5);
+            }
+        );
 
         hookSelectionToTable(projectTree);
         hookSelectionToTable(sharedTree);
     }
 
     private void hookSelectionToTable(StructuredDataObjectTree tree) {
-        tree.getTree().addTreeSelectionListener(e -> {
-            if (isTreeOnCurrentTab(tree)) {
-                loadTableModelForSelection(getSelectedNodeUserObject(tree));
-            }
-        });
+        tree
+            .getTree()
+            .addTreeSelectionListener(
+                e -> {
+                    if (isTreeOnCurrentTab(tree)) {
+                        loadTableModelForSelection(getSelectedNodeUserObject(tree));
+                    }
+                }
+            );
     }
-    
+
     private boolean isTreeOnCurrentTab(StructuredDataObjectTree tree) {
         int idx = tabs.getSelectedIndex();
         String title = (idx >= 0) ? tabs.getTitleAt(idx) : "";
-        return (tree == projectTree && "Project".equals(title))
-            || (tree == sharedTree  && "Shared".equals(title));
+        return (
+            (tree == projectTree && "Project".equals(title)) ||
+            (tree == sharedTree && "Shared".equals(title))
+        );
     }
 
     private Object getSelectedNodeUserObject(StructuredDataObjectTree tree) {
@@ -120,8 +132,13 @@ public class StructuredDataORPanel extends JPanel {
         }
     }
 
-    public TestDesign getTestDesign() { return testDesign; }
-    public Project getProject() { return testDesign.getProject(); }
+    public TestDesign getTestDesign() {
+        return testDesign;
+    }
+
+    public Project getProject() {
+        return testDesign.getProject();
+    }
 
     public void load() {
         objectTable.reset();
@@ -140,28 +157,28 @@ public class StructuredDataORPanel extends JPanel {
 
     public Boolean navigateToObject(String objectName, String pageName) {
         StructuredDataObjectTree active = getActiveTree();
-        if (active != null && Boolean.TRUE.equals(active.navigateToObject(objectName, pageName))) return true;
+        if (
+            active != null && Boolean.TRUE.equals(active.navigateToObject(objectName, pageName))
+        ) return true;
 
         StructuredDataObjectTree other = (active == projectTree) ? sharedTree : projectTree;
         return (other != null) ? other.navigateToObject(objectName, pageName) : false;
     }
 
-    public StructuredDataORTable getObjectTable() { 
-        return objectTable; 
+    public StructuredDataORTable getObjectTable() {
+        return objectTable;
     }
 
-    public StructuredDataObjectTree getProjectTree() { 
-        return projectTree; 
+    public StructuredDataObjectTree getProjectTree() {
+        return projectTree;
     }
-    
-    public StructuredDataObjectTree getSharedTree() { 
-        return sharedTree; 
+
+    public StructuredDataObjectTree getSharedTree() {
+        return sharedTree;
     }
-    
+
     public List<com.ing.datalib.or.common.ORObjectInf> getSelectedObjectsFromActiveTab() {
         StructuredDataObjectTree active = getActiveTree();
-        return (active != null) ? active.getSelectedObjects()
-                                : java.util.Collections.emptyList();
+        return (active != null) ? active.getSelectedObjects() : java.util.Collections.emptyList();
     }
-
 }

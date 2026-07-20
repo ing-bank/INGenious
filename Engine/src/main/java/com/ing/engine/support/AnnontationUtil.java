@@ -1,4 +1,3 @@
-
 package com.ing.engine.support;
 
 import com.ing.engine.constants.FilePath;
@@ -47,14 +46,18 @@ public class AnnontationUtil {
      * @param annotationDetector the annotation detector to use
      * @param jarPaths array of plugin JAR file paths to scan
      */
-    public static void detectFromPluginPaths(AnnotationDetector annotationDetector, String... jarPaths) {
+    public static void detectFromPluginPaths(
+        AnnotationDetector annotationDetector,
+        String... jarPaths
+    ) {
         for (String jarPath : jarPaths) {
             File jarFile = new File(jarPath);
             try {
                 if (jarFile.exists() && jarFile.getName().endsWith(".jar")) {
                     annotationDetector.detect(jarFile);
                 } else {
-                    Logger.getLogger(AnnontationUtil.class.getName())
+                    Logger
+                        .getLogger(AnnontationUtil.class.getName())
                         .log(Level.WARNING, "Invalid JAR file: " + jarFile.getAbsolutePath());
                 }
             } catch (IOException ex) {

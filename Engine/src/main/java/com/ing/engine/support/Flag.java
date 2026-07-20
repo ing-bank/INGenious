@@ -1,12 +1,10 @@
-
 package com.ing.engine.support;
 
 /**
- * 
+ *
  *
  */
 public enum Flag {
-
     /*
     [offset]
     apply offset(from the image object properties) to the region found on screen
