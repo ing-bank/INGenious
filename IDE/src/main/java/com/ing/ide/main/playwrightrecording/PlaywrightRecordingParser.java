@@ -175,6 +175,29 @@ public class PlaywrightRecordingParser {
      * @return the ordered list of parsed steps
      */
     public List<ParsedStep> parseLinesToSteps(List<String> lines, WebORPage page) {
+        return parseLinesToSteps(lines, page, false);
+    }
+
+    /**
+     * Parses Playwright recorder output into a list of INGenious test steps. This parsing logic is
+     * shared by both file import and live recording.
+     * <p>
+     * The line-by-line state required for correct results — page-switch detection
+     * ({@link #checkPageSwitch}), page index tracking ({@link #storePageIndex}) and current/previous
+     * page resolution — is maintained across the whole list. Each detected web object is registered
+     * into {@code page}.
+     * </p>
+     *
+     * @param lines                   the complete list of recorder output lines
+     * @param page                    the Web OR page to populate (may be {@code null} to skip OR registration)
+     * @param preserveExistingObjects if {@code true}, preserve existing object groups in the page; if {@code false}, clear them first for a fresh rebuild
+     * @return the ordered list of parsed steps
+     */
+    public List<ParsedStep> parseLinesToSteps(
+        List<String> lines,
+        WebORPage page,
+        boolean preserveExistingObjects
+    ) {
         List<ParsedStep> steps = new ArrayList<>();
         if (lines == null) {
             return steps;
@@ -182,7 +205,7 @@ public class PlaywrightRecordingParser {
         testCaseParameter();
         attributeDeclaration();
         usedLiveObjectNames.clear();
-        if (page != null) {
+        if (page != null && !preserveExistingObjects) {
             page.getObjectGroups().clear();
         }
         int playwrightSteps = 0;
