@@ -608,8 +608,8 @@ public class TestCaseRunner {
                     if (isLastData) {
                         this.breakSubIterationFlag = false;
                         if (parentTestCase != null) {
-                            parentTestCase.setExitParamLoop(true);
-                            // continue;
+                            // For nested reusable: signal child to exit loop
+                            testCase.setExitParamLoop(true);
                         } else {
                             // Normal flow: No reusable component
                             checkForEndLoop(testStep, currStep);
