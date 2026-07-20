@@ -242,6 +242,7 @@ public class SQLTextArea extends javax.swing.JDialog {
 
                             @Override
                             public void actionPerformed(ActionEvent e) {
+                                linearizeCode();
                                 Optional
                                         .ofNullable(jTextArea1.getText())
                                         .filter(val -> !val.trim().isEmpty())
