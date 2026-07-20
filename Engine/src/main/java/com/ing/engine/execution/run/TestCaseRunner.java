@@ -372,7 +372,12 @@ public class TestCaseRunner {
                     stepStack.peek().to = currStep;
                     stepStack.peek().setTimes(this.resolveNoOfTimes(testStep));
                 }
-                if (stepStack.peek().getTimes() == 0) {
+                // Check if child reusable signaled to exit the parameter loop
+                // Only exit if current test case is also a reusable (has a parent)
+                if (testCase.getExitParamLoopFlag() && testCase.getParentTestCase() != null) {
+                    stepStack.pop();
+                    testCase.setExitParamLoop(false); // Reset flag after handling
+                } else if (stepStack.peek().getTimes() == 0) {
                     stepStack.pop();
                 } else {
                     currStep = stepStack.peek().from - 1;
@@ -604,6 +609,7 @@ public class TestCaseRunner {
                         this.breakSubIterationFlag = false;
                         if (parentTestCase != null) {
                             parentTestCase.setExitParamLoop(true);
+                            // continue;
                         } else {
                             // Normal flow: No reusable component
                             checkForEndLoop(testStep, currStep);
