@@ -182,4 +182,14 @@ public class TestMgmtModuleTest {
         List<String> names = tmm.getModuleNames();
         assertThat(names).contains("A", "B");
     }
+
+    @Test
+    public void testLoadMergesMissingDefaultModulesIntoExistingFile() throws IOException {
+        String onlyAzureModuleJson = "[{\"module\":\"AzureDevOps TestPlan\",\"options\":[]}]";
+        Files.writeString(tempDir.resolve("TMModules.json"), onlyAzureModuleJson);
+
+        TestMgmtModule tmm = new TestMgmtModule(tempDir.toString());
+
+        assertThat(tmm.getModuleNames()).contains("AzureDevOps TestPlan", "Test Manager");
+    }
 }
