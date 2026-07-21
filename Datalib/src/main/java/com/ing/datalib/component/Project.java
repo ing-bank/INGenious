@@ -7,6 +7,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ing.datalib.component.io.ProjectMigrator;
 import com.ing.datalib.component.utils.FileUtils;
+import com.ing.datalib.component.utils.NamingUtils;
 import com.ing.datalib.component.utils.SortOrderStore;
 import com.ing.datalib.exception.TestCaseConversionException;
 import com.ing.datalib.model.DataItem;
@@ -28,7 +29,6 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
-import java.util.function.Predicate;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.stream.Stream;
@@ -1032,11 +1032,11 @@ public class Project {
      * @param isCopy true if this is a copy operation, false if move
      * @return unique name or baseName if not in use
      */
-    private String makeScenarioNameUniqueAcrossReusableScopes(String baseName, boolean isCopy) {
+    private String makeScenarioNameUnique(String baseName, boolean isCopy) {
         if (!isCopy) {
             return baseName;
         }
-        return generateUniqueName(baseName, this::scenarioExistsInReusableScopes);
+        return NamingUtils.generateUniqueName(baseName, this::scenarioExistsInReusableScopes);
     }
 
     /**
@@ -1285,7 +1285,7 @@ public class Project {
             return addScenarioInScope(scope, scenarioName);
         }
 
-        String uniqueName = makeScenarioNameUniqueAcrossReusableScopes(scenarioName, true);
+        String uniqueName = makeScenarioNameUnique(scenarioName, true);
         if (scope == Scenario.Source.REUSABLE_COMPONENTS) {
             Scenario scenario = getReusableScenarioByName(uniqueName);
             return scenario != null ? scenario : addScenarioInScope(scope, uniqueName);
@@ -1329,23 +1329,10 @@ public class Project {
             // For move operations, keep original name
             return baseName;
         }
-        return generateUniqueName(baseName, name -> scenario.getTestCaseByName(name) != null);
-    }
-
-    /**
-     * Generates a unique name by appending "_n" only when duplicates exist.
-     */
-    private String generateUniqueName(String baseName, Predicate<String> exists) {
-        if (baseName == null || baseName.isBlank()) {
-            return baseName;
-        }
-        String candidate = baseName;
-        int counter = 1;
-        while (exists.test(candidate)) {
-            candidate = baseName + "_" + counter;
-            counter++;
-        }
-        return candidate;
+        return NamingUtils.generateUniqueName(
+            baseName,
+            name -> scenario.getTestCaseByName(name) != null
+        );
     }
 
     private void cleanupEmptyScenario(Scenario scenario) {

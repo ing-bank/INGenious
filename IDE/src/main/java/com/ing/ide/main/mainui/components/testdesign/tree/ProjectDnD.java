@@ -5,6 +5,7 @@ import static javax.swing.TransferHandler.MOVE;
 
 import com.ing.datalib.component.Scenario;
 import com.ing.datalib.component.TestCase;
+import com.ing.datalib.component.utils.NamingUtils;
 import com.ing.ide.main.mainui.components.testdesign.tree.model.GroupNode;
 import com.ing.ide.main.mainui.components.testdesign.tree.model.ProjectTreeModel;
 import com.ing.ide.main.mainui.components.testdesign.tree.model.ReusableNode;
@@ -22,7 +23,6 @@ import java.awt.datatransfer.Transferable;
 import java.awt.datatransfer.UnsupportedFlavorException;
 import java.io.IOException;
 import java.util.List;
-import java.util.function.Predicate;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JComponent;
@@ -394,7 +394,7 @@ public class ProjectDnD extends TransferHandler {
         String newName = name;
         if (allowCopySuffix) {
             newName =
-                generateUniqueName(
+                NamingUtils.generateUniqueName(
                     name,
                     candidate -> scenario.getTestCaseByName(candidate) != null
                 );
@@ -441,7 +441,7 @@ public class ProjectDnD extends TransferHandler {
         for (TestCase testcase : testcases) {
             testcase.loadTableModel();
             String baseName = testcase.getName();
-            String newName = generateUniqueName(
+            String newName = NamingUtils.generateUniqueName(
                 baseName,
                 candidate -> sNode.getScenario().getTestCaseByName(candidate) != null
             );
@@ -458,13 +458,13 @@ public class ProjectDnD extends TransferHandler {
 
     private String buildCopiedScenarioName(Scenario sourceScenario) {
         String baseName = sourceScenario.getName();
-        return generateUniqueName(
+        return NamingUtils.generateUniqueName(
             baseName,
-            candidate -> scenarioExistsInDestinationScope(sourceScenario, candidate)
+            candidate -> scenarioExistsInDestination(sourceScenario, candidate)
         );
     }
 
-    private boolean scenarioExistsInDestinationScope(Scenario sourceScenario, String scenarioName) {
+    private boolean scenarioExistsInDestination(Scenario sourceScenario, String scenarioName) {
         if (pTree.getTreeModel().getRoot() instanceof TestPlanNode) {
             return sourceScenario.getProject().getTestPlanScenarioByName(scenarioName) != null;
         }
@@ -477,19 +477,6 @@ public class ProjectDnD extends TransferHandler {
             );
         }
         return false;
-    }
-
-    private String generateUniqueName(String baseName, Predicate<String> exists) {
-        if (baseName == null || baseName.isBlank()) {
-            return baseName;
-        }
-        String candidate = baseName;
-        int counter = 1;
-        while (exists.test(candidate)) {
-            candidate = baseName + "_" + counter;
-            counter++;
-        }
-        return candidate;
     }
 
     private Scenario createScenarioInDestinationScope(
