@@ -85,6 +85,22 @@ public class Project {
     private int lastImpactedReusableReferenceUpdates = 0;
 
     /**
+     * When true, skips auto-migrations on project load to ensure read-only validation.
+     * Used by validation operations to prevent unintended file modifications.
+     */
+    private boolean readOnlyMode = false;
+
+    /**
+     * Returns whether this Project is in read-only mode.
+     * When true, no migrations, transformations, or file saves should occur.
+     *
+     * @return true if in read-only mode, false otherwise
+     */
+    public boolean isReadOnlyMode() {
+        return readOnlyMode;
+    }
+
+    /**
      * Constructs a new project with the specified name, location, and test data type.
      * @param name project name
      * @param projectLocation parent directory where the project will be located
@@ -118,6 +134,22 @@ public class Project {
     }
 
     /**
+     * Constructs a new project from an existing project location in read-only mode.
+     * When readOnlyMode is true, auto-migrations (CSV to YAML, XML, legacy references)
+     * are skipped to ensure the project structure is not modified during inspection.
+     * This is used for validation operations where no file modifications should occur.
+     * @param projectLocation absolute path to the project directory
+     * @param readOnlyMode when true, skips all migration logic during load
+     */
+    public Project(String projectLocation, boolean readOnlyMode) {
+        this.name = new File(projectLocation).getName();
+        this.location = projectLocation;
+        this.testdataType = "csv";
+        this.readOnlyMode = readOnlyMode;
+        load();
+    }
+
+    /**
      * Initiates the project loading process.
      */
     private void load() {
@@ -139,32 +171,63 @@ public class Project {
     /**
      * Loads all project components from disk including scenarios, test sets, test data, settings, and object repository.
      * Performs migration of legacy reusable component XML if present and auto-migrates CSV test cases to YAML if enabled.
+     * When in read-only mode, all migrations are skipped to prevent file modifications.
      */
     private void loadProject() {
         // Load project info early to check migration flags
         projectInfo = loadProjectInfo(getProjectFile());
 
-        // Auto-migrate CSV test cases to YAML if enabled
-        migrateTestsFromCsvToYaml();
-
+        // ════════════════════════════════════════════════════════════════════
+        // Phase 1: Load all project components (read-only, always executed)
+        // ════════════════════════════════════════════════════════════════════
         loadScenariosFromTestPlan();
         loadTestSets();
-        migrateReusableComponentXmlIfPresent();
         loadScenariosFromTestPlan();
         loadScenariosFromReusableComponents();
         loadScenariosFromSharedReusableComponents();
         loadTestDatas();
-        projectSettings = new ProjectSettings(this);
-        objectRepository = new ObjectRepository(this);
-        migrateLegacyReusableExecuteReferencesOnLoad();
+        projectSettings = new ProjectSettings(this, readOnlyMode);
+        objectRepository = new ObjectRepository(this, readOnlyMode);
+        // Note: ObjectRepository constructor now receives readOnlyMode to skip XML->YAML migration
 
-        // Reconcile shared reusable project tracking on load to clean stale entries
-        try {
-            reconcileSharedReusableProjectsItems();
-        } catch (Exception ex) {
-            Logger
-                .getLogger(Project.class.getName())
-                .log(Level.WARNING, "Failed to reconcile shared reusable projects items", ex);
+        // ════════════════════════════════════════════════════════════════════
+        // Phase 1.5: Propagate read-only mode to components
+        // ════════════════════════════════════════════════════════════════════
+        if (readOnlyMode) {
+            // Propagate read-only mode to prevent migrations during validation
+            for (Scenario scenario : scenarios) {
+                scenario.setReadOnlyMode(true);
+            }
+            for (Scenario scenario : reusableScenarios) {
+                scenario.setReadOnlyMode(true);
+            }
+            for (Scenario scenario : sharedReusableScenarios) {
+                scenario.setReadOnlyMode(true);
+            }
+            // Note: TestData readOnlyMode is propagated in EnvTestData.loadForEnv()
+        }
+
+        // ════════════════════════════════════════════════════════════════════
+        // Phase 2: Apply migrations and reconciliation (skipped in read-only)
+        // ════════════════════════════════════════════════════════════════════
+        if (!readOnlyMode) {
+            // Auto-migrate CSV test cases to YAML if enabled
+            migrateTestsFromCsvToYaml();
+
+            // Migrate reusable component XML if present
+            migrateReusableComponentXmlIfPresent();
+
+            // Migrate legacy Execute references
+            migrateLegacyReusableExecuteReferencesOnLoad();
+
+            // Reconcile shared reusable project tracking to clean stale entries
+            try {
+                reconcileSharedReusableProjectsItems();
+            } catch (Exception ex) {
+                Logger
+                    .getLogger(Project.class.getName())
+                    .log(Level.WARNING, "Failed to reconcile shared reusable projects items", ex);
+            }
         }
     }
 

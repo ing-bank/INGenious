@@ -11,6 +11,7 @@ import com.ing.ide.main.mainui.components.testdesign.tree.model.SharedReusableTr
 import com.ing.ide.main.mainui.components.testdesign.tree.model.TestCaseNode;
 import com.ing.ide.util.Notification;
 import com.ing.ide.util.Validator;
+import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -21,7 +22,11 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JCheckBox;
+import javax.swing.JLabel;
 import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTextArea;
 import javax.swing.tree.TreePath;
 
 /**
@@ -491,16 +496,28 @@ public class SharedReusableTree extends ProjectTree {
     private void deleteGroups() {
         List<GroupNode> groupNodes = getSelectedGroupNodes();
         if (!groupNodes.isEmpty()) {
-            String groupNodes_str = groupNodes
-                .stream()
-                .map(g -> g.toString())
-                .reduce((a, b) -> a + "\n" + b)
-                .get();
-            String question =
-                "<html><body><p style='width: 200px;'>" +
-                "Are you sure want to delete the following Groups?<br>" +
-                groupNodes_str +
-                "</p></body></html>";
+            JPanel messagePanel = new JPanel(new java.awt.BorderLayout(0, 8));
+            messagePanel.add(
+                new JLabel("Are you sure want to delete the following Groups?"),
+                java.awt.BorderLayout.NORTH
+            );
+
+            JTextArea groupsArea = new JTextArea();
+            groupsArea.setEditable(false);
+            groupsArea.setLineWrap(false);
+            groupsArea.setWrapStyleWord(false);
+
+            StringBuilder content = new StringBuilder();
+            for (GroupNode groupNode : groupNodes) {
+                content.append(groupNode).append(System.lineSeparator());
+            }
+            String groupNodesStr = content.toString();
+            groupsArea.setText(groupNodesStr);
+            groupsArea.setCaretPosition(0);
+
+            JScrollPane scrollPane = new JScrollPane(groupsArea);
+            scrollPane.setPreferredSize(new Dimension(360, 180));
+            messagePanel.add(scrollPane, java.awt.BorderLayout.CENTER);
 
             JCheckBox confirmBox = new JCheckBox(
                 "Move Shared Reusables inside Group to TestPlan instead of deleting"
@@ -508,7 +525,7 @@ public class SharedReusableTree extends ProjectTree {
 
             int option = JOptionPane.showConfirmDialog(
                 null,
-                new Object[] { question, confirmBox },
+                new Object[] { messagePanel, confirmBox },
                 "Delete TestCase",
                 JOptionPane.YES_NO_OPTION
             );
@@ -516,7 +533,7 @@ public class SharedReusableTree extends ProjectTree {
                 LOGGER.log(
                     Level.INFO,
                     "Delete Shared Reusable Groups approved for {0}; {1}",
-                    new Object[] { groupNodes.size(), groupNodes_str }
+                    new Object[] { groupNodes.size(), groupNodesStr }
                 );
                 for (GroupNode groupNode : groupNodes) {
                     if (confirmBox.isSelected()) {

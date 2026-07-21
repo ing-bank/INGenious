@@ -63,6 +63,7 @@ Release Date: <insert date of release>
 - Reorganised Configurations menu with renames
 - Updated the Dashboard tree model to expand at Test Release level on load
 - Updated reports to reference resources in Results/media for storage optimization
+- Enhanced all bulk Delete confirmation dialog to support scrolling, improving usability when deleting a large number of test cases, objects, releases and test sets
 
 #### Deprecated
 
@@ -89,9 +90,10 @@ Release Date: <insert date of release>
 - Fixed issue where enabling or disabling the LambdaTest option in the Manange Devices caused the Properties table to display empty entries.
 - Corrected Save button behavior that becomes disabled after switching applications using Alt+Tab, despite having unsaved changes.
 - Fixed behavior in the LambdaTest Remote URL field where the cursor unexpectedly jumped to the beginning of the text after typing characters beyond the @ symbol.
+- Add Row (+) button is restricted to the first column hover
+- Enhanced Object Repository object name validation to prevent the creation of duplicate object names, regardless of letter casing (e.g., LoginButton, loginbutton, and LOGINBUTTON are now treated as duplicates).
 - Fix context menu options for Reusable Component Test Cases for `New Group` option
-
-
+  
 ### Browser/Playwright Testing
 
 #### Added
@@ -260,6 +262,7 @@ Release Date: <insert date of release>
 - Applied Prettier formatting updates
 - Enhanced HTML summary clickable rows (Tabulator v6 fix)
 - Implemented HTML report in-page Console Viewer with working filter under `file://`
+- Updated `project upgrade` and `project validate` CLI, included migration of Test data new `Scope` field and disabled auto-migration of project for `validate` command
 
 #### Deprecated
 

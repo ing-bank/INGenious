@@ -17,6 +17,12 @@ public class CsvDataProvider extends TestData {
 
     @Override
     public void load() {
+        // Skip all migrations and saves if in read-only mode (e.g., during validation)
+        if (isReadOnlyMode()) {
+            loadGlobalData();
+            return;
+        }
+
         File file = new File(getLocation());
         if (file.exists()) {
             for (File tData : file.listFiles(FileUtils.CSV_FILTER)) {
