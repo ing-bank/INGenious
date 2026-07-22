@@ -5,6 +5,7 @@ import static javax.swing.TransferHandler.MOVE;
 
 import com.ing.datalib.component.Scenario;
 import com.ing.datalib.component.TestCase;
+import com.ing.datalib.component.utils.NamingUtils;
 import com.ing.ide.main.mainui.components.testdesign.tree.model.GroupNode;
 import com.ing.ide.main.mainui.components.testdesign.tree.model.ProjectTreeModel;
 import com.ing.ide.main.mainui.components.testdesign.tree.model.ReusableNode;
@@ -392,12 +393,11 @@ public class ProjectDnD extends TransferHandler {
     private TestCaseNode addTestCase(Scenario scenario, String name, boolean allowCopySuffix) {
         String newName = name;
         if (allowCopySuffix) {
-            // Copy/paste always creates a copied testcase name.
-            newName = name + " Copy(1)";
-            int i = 2;
-            while (scenario.getTestCaseByName(newName) != null) {
-                newName = name + " Copy(" + i++ + ")";
-            }
+            newName =
+                NamingUtils.generateUniqueName(
+                    name,
+                    candidate -> scenario.getTestCaseByName(candidate) != null
+                );
         } else {
             if (scenario.getTestCaseByName(newName) != null) {
                 return null;
@@ -441,12 +441,10 @@ public class ProjectDnD extends TransferHandler {
         for (TestCase testcase : testcases) {
             testcase.loadTableModel();
             String baseName = testcase.getName();
-            // Scenario-folder paste always creates testcase copies with Copy(n) suffix.
-            String newName = baseName + " Copy(1)";
-            int i = 2;
-            while (sNode.getScenario().getTestCaseByName(newName) != null) {
-                newName = baseName + " Copy(" + i++ + ")";
-            }
+            String newName = NamingUtils.generateUniqueName(
+                baseName,
+                candidate -> sNode.getScenario().getTestCaseByName(candidate) != null
+            );
             TestCase newTestCase = sNode.getScenario().addTestCase(newName);
             if (newTestCase == null) {
                 skipped++;
@@ -460,16 +458,25 @@ public class ProjectDnD extends TransferHandler {
 
     private String buildCopiedScenarioName(Scenario sourceScenario) {
         String baseName = sourceScenario.getName();
-        String newName = baseName + " Copy(1)";
-        int i = 2;
-        while (
-            sourceScenario.getProject().getScenarioByName(newName) != null ||
-            sourceScenario.getProject().getReusableScenarioByName(newName) != null ||
-            sourceScenario.getProject().getSharedReusableScenarioByName(newName) != null
-        ) {
-            newName = baseName + " Copy(" + i++ + ")";
+        return NamingUtils.generateUniqueName(
+            baseName,
+            candidate -> scenarioExistsInDestination(sourceScenario, candidate)
+        );
+    }
+
+    private boolean scenarioExistsInDestination(Scenario sourceScenario, String scenarioName) {
+        if (pTree.getTreeModel().getRoot() instanceof TestPlanNode) {
+            return sourceScenario.getProject().getTestPlanScenarioByName(scenarioName) != null;
         }
-        return newName;
+        if (pTree.getTreeModel().getRoot() instanceof ReusableNode) {
+            return sourceScenario.getProject().getReusableScenarioByName(scenarioName) != null;
+        }
+        if (pTree.getTreeModel().getRoot() instanceof SharedReusableNode) {
+            return (
+                sourceScenario.getProject().getSharedReusableScenarioByName(scenarioName) != null
+            );
+        }
+        return false;
     }
 
     private Scenario createScenarioInDestinationScope(

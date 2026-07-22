@@ -85,7 +85,7 @@ Release Date: <insert date of release>
 - Added missing Web Objects for sample project Tutorial
 - Fixed column add/delete behavior in datasheet related to frozen columns
 - Fixed OR Tables' add row (+) button 
-- Updated suffix handling for copied objects/pages so it is only applied when another object or page with the same name already exists
+- Updated suffix handling for copied scenarios, test cases, objects, and pages to apply only when an item with the same name already exists
 - Resolved issues with multi-object and multi-page copy-paste and cut-paste operations in the Object Repository
 - Fixed issue where enabling or disabling the LambdaTest option in the Manange Devices caused the Properties table to display empty entries.
 - Corrected Save button behavior that becomes disabled after switching applications using Alt+Tab, despite having unsaved changes.
