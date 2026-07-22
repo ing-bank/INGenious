@@ -8,7 +8,6 @@ import com.ing.ide.util.WindowMover;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Cursor;
-import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
@@ -83,6 +82,16 @@ public class SQLTextArea extends javax.swing.JDialog {
         setVisible(true);
     }
 
+    private String linearizeCode() {
+        String text = jTextArea1.getText();
+        if (text == null || text.trim().isEmpty()) {
+            return text;
+        }
+        // Collapse all whitespace (newlines, tabs, multiple spaces) into single spaces
+        String linearized = text.replaceAll("\\s+", " ").trim();
+        return linearized;
+    }
+
     private void addToolbar() {
         boolean dark = Main.isDarkMode();
         Color toolbarBg = dark ? DARK_TOOLBAR_BG : LIGHT_TOOLBAR_BG;
@@ -98,10 +107,10 @@ public class SQLTextArea extends javax.swing.JDialog {
         WindowMover.register(this, toolbar, WindowMover.MOVE_BOTH);
 
         JButton beautifyBtn = createToolbarButton(
-            "Beautify",
-            "format",
-            ACCENT_BLUE,
-            this::beautifyCode
+                "Beautify",
+                "format",
+                ACCENT_BLUE,
+                this::beautifyCode
         );
         toolbar.add(beautifyBtn);
 
@@ -126,10 +135,10 @@ public class SQLTextArea extends javax.swing.JDialog {
     }
 
     private JButton createToolbarButton(
-        String text,
-        String iconKey,
-        Color bgColor,
-        Runnable action
+            String text,
+            String iconKey,
+            Color bgColor,
+            Runnable action
     ) {
         JButton button = new JButton(text);
         button.setIcon(INGIcons.swing(iconKey, 16, Color.WHITE));
@@ -147,57 +156,62 @@ public class SQLTextArea extends javax.swing.JDialog {
         // Hover effect
         final Color originalBg = bgColor;
         button.addMouseListener(
-            new java.awt.event.MouseAdapter() {
+                new java.awt.event.MouseAdapter() {
 
-                @Override
-                public void mouseEntered(java.awt.event.MouseEvent evt) {
-                    button.setBackground(originalBg.brighter());
-                }
+                    @Override
+                    public void mouseEntered(java.awt.event.MouseEvent evt) {
+                        button.setBackground(originalBg.brighter());
+                    }
 
-                @Override
-                public void mouseExited(java.awt.event.MouseEvent evt) {
-                    button.setBackground(originalBg);
+                    @Override
+                    public void mouseExited(java.awt.event.MouseEvent evt) {
+                        button.setBackground(originalBg);
+                    }
                 }
-            }
         );
 
         // Add keyboard shortcut for beautify only
         if ("format".equals(iconKey)) {
             getRootPane()
-                .getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW)
-                .put(
-                    KeyStroke.getKeyStroke(
-                        KeyEvent.VK_F,
-                        KeyEvent.CTRL_DOWN_MASK | KeyEvent.SHIFT_DOWN_MASK
-                    ),
-                    "beautify"
-                );
+                    .getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW)
+                    .put(
+                            KeyStroke.getKeyStroke(
+                                    KeyEvent.VK_F,
+                                    KeyEvent.CTRL_DOWN_MASK | KeyEvent.SHIFT_DOWN_MASK
+                            ),
+                            "beautify"
+                    );
             getRootPane()
-                .getActionMap()
-                .put(
-                    "beautify",
-                    new AbstractAction() {
+                    .getActionMap()
+                    .put(
+                            "beautify",
+                            new AbstractAction() {
 
-                        @Override
-                        public void actionPerformed(ActionEvent e) {
-                            action.run();
-                        }
-                    }
-                );
+                                @Override
+                                public void actionPerformed(ActionEvent e) {
+                                    action.run();
+                                }
+                            }
+                    );
         }
 
         return button;
     }
 
     private void closeAndSave() {
-        Optional
-            .ofNullable(jTextArea1.getText())
-            .filter(val -> !val.trim().isEmpty())
-            .map(val -> val.startsWith("@") ? val : "@" + val)
-            .ifPresent(currentStep::setInput);
+        String text = jTextArea1.getText();
+        if (text != null && !text.trim().isEmpty()) {
+            // Linearize first
+            text=linearizeCode();
+            // Add @ prefix if not present
+            if (!text.startsWith("@")) {
+                text = "@" + text;
+            }
+            jTextArea1.setText(text);
+            currentStep.setInput(text);
+        }
         dispose();
     }
-
     private void beautifyCode() {
         String text = jTextArea1.getText();
         if (text == null || text.trim().isEmpty()) {
@@ -218,25 +232,26 @@ public class SQLTextArea extends javax.swing.JDialog {
 
     private void initCloseListener() {
         getRootPane()
-            .getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW)
-            .put(KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), "close");
+                .getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW)
+                .put(KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), "close");
         getRootPane()
-            .getActionMap()
-            .put(
-                "close",
-                new AbstractAction() {
+                .getActionMap()
+                .put(
+                        "close",
+                        new AbstractAction() {
 
-                    @Override
-                    public void actionPerformed(ActionEvent e) {
-                        Optional
-                            .ofNullable(jTextArea1.getText())
-                            .filter(val -> !val.trim().isEmpty())
-                            .map(val -> val.startsWith("@") ? val : "@" + val)
-                            .ifPresent(currentStep::setInput);
-                        dispose();
-                    }
-                }
-            );
+                            @Override
+                            public void actionPerformed(ActionEvent e) {
+                                String linearized = linearizeCode();
+                                Optional
+                                        .ofNullable(linearized)
+                                        .filter(val -> !val.trim().isEmpty())
+                                        .map(val -> val.startsWith("@") ? val : "@" + val)
+                                        .ifPresent(currentStep::setInput);
+                                dispose();
+                            }
+                        }
+                );
     }
 
     private void installAutoComplete(List<String> searchStr) {
@@ -288,14 +303,14 @@ public class SQLTextArea extends javax.swing.JDialog {
 
     private void setSearchString(List<String> searchString) {
         searchString
-            .stream()
-            .forEach(
-                string -> {
-                    provider.addCompletion(
-                        new ShorthandCompletion(provider, string, "{" + string + "}")
-                    );
-                }
-            );
+                .stream()
+                .forEach(
+                        string -> {
+                            provider.addCompletion(
+                                    new ShorthandCompletion(provider, string, "{" + string + "}")
+                            );
+                        }
+                );
     }
 
     /**
@@ -320,36 +335,36 @@ public class SQLTextArea extends javax.swing.JDialog {
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
-            layout
-                .createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                .addGroup(
-                    layout
-                        .createSequentialGroup()
-                        .addContainerGap()
-                        .addComponent(
-                            jScrollPane2,
-                            javax.swing.GroupLayout.DEFAULT_SIZE,
-                            615,
-                            Short.MAX_VALUE
+                layout
+                        .createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                        .addGroup(
+                                layout
+                                        .createSequentialGroup()
+                                        .addContainerGap()
+                                        .addComponent(
+                                                jScrollPane2,
+                                                javax.swing.GroupLayout.DEFAULT_SIZE,
+                                                615,
+                                                Short.MAX_VALUE
+                                        )
+                                        .addContainerGap()
                         )
-                        .addContainerGap()
-                )
         );
         layout.setVerticalGroup(
-            layout
-                .createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                .addGroup(
-                    layout
-                        .createSequentialGroup()
-                        .addContainerGap()
-                        .addComponent(
-                            jScrollPane2,
-                            javax.swing.GroupLayout.PREFERRED_SIZE,
-                            javax.swing.GroupLayout.DEFAULT_SIZE,
-                            javax.swing.GroupLayout.PREFERRED_SIZE
+                layout
+                        .createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                        .addGroup(
+                                layout
+                                        .createSequentialGroup()
+                                        .addContainerGap()
+                                        .addComponent(
+                                                jScrollPane2,
+                                                javax.swing.GroupLayout.PREFERRED_SIZE,
+                                                javax.swing.GroupLayout.DEFAULT_SIZE,
+                                                javax.swing.GroupLayout.PREFERRED_SIZE
+                                        )
+                                        .addContainerGap(11, Short.MAX_VALUE)
                         )
-                        .addContainerGap(11, Short.MAX_VALUE)
-                )
         );
 
         pack();
