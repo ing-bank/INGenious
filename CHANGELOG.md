@@ -93,7 +93,8 @@ Release Date: <insert date of release>
 - Add Row (+) button is restricted to the first column hover
 - Enhanced Object Repository object name validation to prevent the creation of duplicate object names, regardless of letter casing (e.g., LoginButton, loginbutton, and LOGINBUTTON are now treated as duplicates).
 - Fix context menu options for Reusable Component Test Cases for `New Group` option
-  
+- Added missing Test Manager option under TM Settings dropdown
+
 ### Browser/Playwright Testing
 
 #### Added
