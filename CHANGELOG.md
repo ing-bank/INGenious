@@ -295,3 +295,12 @@ Release Date: <insert date of release>
 #### Fixed
 
 - Fixed unit test for EnvTest Data Cross Environment Rename
+
+### Contribution
+
+#### Added
+#### Changed
+#### Deprecated
+#### Removed
+#### Fixed
+- by Palmieri, G. (Gianluca) [@palmierigianlu](https://github.com/palmierigianlu): Fixed SQL query editor error that occurs after formatting queries with Beautify or inserting manual line breaks.
