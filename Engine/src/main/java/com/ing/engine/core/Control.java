@@ -288,6 +288,8 @@ public class Control {
             "object",
             "objects",
             "or",
+            "page",
+            "pages",
             "data",
             "action",
             "actions",

@@ -65,19 +65,45 @@ public class ObjectCommand implements Callable<Integer> {
                 }
 
                 List<String> headers = withCount
-                    ? Arrays.asList("Page", "Objects")
-                    : Arrays.asList("Page");
+                    ? Arrays.asList("Page", "Format", "Objects")
+                    : Arrays.asList("Page", "Format");
                 List<List<String>> rows = new ArrayList<>();
 
-                File[] pages = orDir.listFiles(f -> f.isFile() && f.getName().endsWith(".csv"));
-                if (pages != null) {
-                    for (File page : pages) {
-                        String pageName = page.getName().replace(".csv", "");
+                // Collect all .yaml / .yml pages recursively (the modern YAML OR format)
+                List<File> yamlPages = new ArrayList<>();
+                findFiles(orDir, yamlPages);
+                for (File page : yamlPages) {
+                    // Use relative path from ObjectRepository dir as the page name
+                    String rel = orDir.toURI().relativize(page.toURI()).getPath();
+                    String ext = "YAML";
+                    if (rel.endsWith(".yaml")) {
+                        rel = rel.substring(0, rel.length() - 5);
+                    } else if (rel.endsWith(".yml")) {
+                        rel = rel.substring(0, rel.length() - 4);
+                    }
+                    if (withCount) {
+                        int count = countYamlObjects(page);
+                        rows.add(Arrays.asList(rel, ext, String.valueOf(count)));
+                    } else {
+                        rows.add(Arrays.asList(rel, ext));
+                    }
+                }
+
+                // Also check for legacy IOR.object / MOR.object / SharedOR.object (XML format)
+                String[] legacyObjectFiles = {
+                    "IOR.object",
+                    "MOR.object",
+                    "SapOR.object",
+                    "StructuredDataOR.object"
+                };
+                for (String legacyName : legacyObjectFiles) {
+                    File legacy = new File(path, legacyName);
+                    if (legacy.isFile()) {
+                        String pageName = legacyName.replace(".object", "");
                         if (withCount) {
-                            int count = countObjects(page);
-                            rows.add(Arrays.asList(pageName, String.valueOf(count)));
+                            rows.add(Arrays.asList(pageName, "XML (legacy)", "?"));
                         } else {
-                            rows.add(Arrays.asList(pageName));
+                            rows.add(Arrays.asList(pageName, "XML (legacy)"));
                         }
                     }
                 }
@@ -96,6 +122,53 @@ public class ObjectCommand implements Callable<Integer> {
             }
         }
 
+        /**
+         * Recursively find all .yaml and .yml files under a directory.
+         */
+        private void findFiles(File dir, List<File> result) {
+            File[] files = dir.listFiles();
+            if (files == null) return;
+            for (File f : files) {
+                if (f.isDirectory()) {
+                    findFiles(f, result);
+                } else {
+                    String name = f.getName().toLowerCase();
+                    if (name.endsWith(".yaml") || name.endsWith(".yml")) {
+                        result.add(f);
+                    }
+                }
+            }
+        }
+
+        /**
+         * Count the number of objects (top-level YAML keys) in a YAML page file.
+         */
+        private int countYamlObjects(File page) {
+            try (Scanner scanner = new Scanner(page)) {
+                int count = 0;
+                while (scanner.hasNextLine()) {
+                    String line = scanner.nextLine();
+                    if (
+                        !line.isEmpty() &&
+                        !line.startsWith(" ") &&
+                        !line.startsWith("\t") &&
+                        !line.startsWith("#") &&
+                        !line.startsWith("-") &&
+                        !line.startsWith("---") &&
+                        !line.startsWith("...")
+                    ) {
+                        count++;
+                    }
+                }
+                return Math.max(0, count);
+            } catch (Exception e) {
+                return 0;
+            }
+        }
+
+        /**
+         * Count CSV data rows (legacy).
+         */
         private int countObjects(File page) {
             try (Scanner scanner = new Scanner(page)) {
                 int count = 0;
