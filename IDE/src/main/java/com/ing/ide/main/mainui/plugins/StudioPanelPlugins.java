@@ -48,8 +48,9 @@ public final class StudioPanelPlugins {
         try {
             entryClasses = PluginLoader.loadAllPluginsEntryClasses();
         } catch (RuntimeException ex) {
-            // No plugins directory is the normal case for a stock install.
-            LOG.log(Level.FINE, "No plugin panels loaded: {0}", ex.getMessage());
+            // No plugins directory is the normal case for a stock install. Say so at INFO:
+            // an empty toolbar with a silent log is indistinguishable from a broken load.
+            LOG.log(Level.INFO, "No Studio panels loaded: {0}", ex.getMessage());
             cache(found);
             return cached;
         }
@@ -70,6 +71,7 @@ public final class StudioPanelPlugins {
         }
 
         cache(found);
+        LOG.log(Level.INFO, "Studio panel discovery finished: {0} panel(s)", cached.size());
         return cached;
     }
 
@@ -302,6 +304,7 @@ public final class StudioPanelPlugins {
             }
             activationAttempted = true;
 
+            LOG.log(Level.INFO, "Activating Studio panel {0}", identity);
             try {
                 if (factory == null) {
                     factory = constructor.newInstance();

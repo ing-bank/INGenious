@@ -173,6 +173,11 @@ public class AppMainFrame extends JFrame {
         slideShow.addSlide("APITester", apiTester.getAPITesterUI());
         slideShow.addSlide("AICopilot", aiCopilot.getAICopilotUI());
         slideShow.addSlideChangeListener(aiCopilot);
+        // Discover plugin-contributed screens while Studio is starting. Reading the
+        // declarations here keeps them off the JavaFX toolbar build — that runs only once
+        // a project is open, and behind a short timeout. Discovery reads manifests; a
+        // panel's createPanel() still runs on first activation only.
+        StudioPanelPlugins.load();
         progressed(85);
         add(slideShow, BorderLayout.CENTER);
         add(toolBar, BorderLayout.NORTH);
