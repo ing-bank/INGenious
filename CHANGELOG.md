@@ -91,7 +91,7 @@ Release Date: <insert date of release>
 - Corrected Save button behavior that becomes disabled after switching applications using Alt+Tab, despite having unsaved changes.
 - Fixed behavior in the LambdaTest Remote URL field where the cursor unexpectedly jumped to the beginning of the text after typing characters beyond the @ symbol.
 - Add Row (+) button is restricted to the first column hover
-- Enhanced Object Repository object name validation to prevent the creation of duplicate object names, regardless of letter casing (e.g., LoginButton, loginbutton, and LOGINBUTTON are now treated as duplicates).
+- Enhanced Object Repository and Test Data sheet name validation to prevent the creation of duplicate names, regardless of letter casing (e.g., LoginButton, loginbutton, and LOGINBUTTON are now treated as duplicates)
 - Fix context menu options for Reusable Component Test Cases for `New Group` option
 - Added missing Test Manager option under TM Settings dropdown
 
