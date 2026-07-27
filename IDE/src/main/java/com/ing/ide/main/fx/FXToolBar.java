@@ -2,6 +2,7 @@ package com.ing.ide.main.fx;
 
 import com.ing.ide.main.Main;
 import com.ing.ide.main.mainui.AppActionListener;
+import com.ing.ide.main.mainui.plugins.StudioPanelPlugins;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Logger;
@@ -72,7 +73,7 @@ public class FXToolBar extends JFXPanel {
             );
 
         // Plugin-contributed screens get a button each, after the built-in ones.
-        for (com.ing.ingenious.api.contract.ui.StudioPanelApi panel : com.ing.ide.main.mainui.plugins.StudioPanelPlugins.load()) {
+        for (StudioPanelPlugins.Panel panel : StudioPanelPlugins.load()) {
             toolBar.getItems().add(createPluginPanelButton(panel));
         }
 
@@ -121,18 +122,14 @@ public class FXToolBar extends JFXPanel {
 
     /**
      * Builds the toolbar button for a plugin-contributed screen. The action command carries
-     * the panel title, so one handler serves any number of plugins.
+     * the stable panel identity, so one handler serves any number of plugins.
      */
-    private Button createPluginPanelButton(com.ing.ingenious.api.contract.ui.StudioPanelApi panel) {
+    private Button createPluginPanelButton(StudioPanelPlugins.Panel panel) {
         Button btn = new Button(panel.getTitle());
         btn.getStyleClass().add("workbench-btn");
         btn.setTooltip(new Tooltip(panel.getTooltip()));
         btn.setOnAction(
-            e ->
-                fireSwingAction(
-                    com.ing.ide.main.mainui.plugins.StudioPanelPlugins.ACTION_PREFIX +
-                    panel.getTitle()
-                )
+            e -> fireSwingAction(StudioPanelPlugins.ACTION_PREFIX + panel.getIdentity())
         );
         return btn;
     }

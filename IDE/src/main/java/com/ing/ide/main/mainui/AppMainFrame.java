@@ -45,6 +45,7 @@ import java.awt.event.WindowEvent;
 import java.io.File;
 import java.io.IOException;
 import java.util.Enumeration;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Objects;
@@ -103,6 +104,8 @@ public class AppMainFrame extends JFrame {
     private Project sProject;
 
     private final LoaderScreen loader;
+
+    private final Set<String> pluginPanelSlides = new HashSet<>();
 
     private QUIT_TYPE quitType = QUIT_TYPE.NORMAL;
 
@@ -169,7 +172,6 @@ public class AppMainFrame extends JFrame {
         slideShow.addSlide("DashBoard", dashBoard);
         slideShow.addSlide("APITester", apiTester.getAPITesterUI());
         slideShow.addSlide("AICopilot", aiCopilot.getAICopilotUI());
-        addPluginPanels();
         slideShow.addSlideChangeListener(aiCopilot);
         progressed(85);
         add(slideShow, BorderLayout.CENTER);
@@ -200,35 +202,30 @@ public class AppMainFrame extends JFrame {
     }
 
     /**
-     * Adds every plugin-contributed screen as a slide. A plugin that throws while building
-     * its panel is skipped with a log entry — it must never prevent Studio from starting.
-     */
-    private void addPluginPanels() {
-        for (com.ing.ingenious.api.contract.ui.StudioPanelApi panel : StudioPanelPlugins.load()) {
-            try {
-                javax.swing.JComponent component = panel.createPanel();
-                if (component != null) {
-                    slideShow.addSlide(StudioPanelPlugins.slideName(panel.getTitle()), component);
-                }
-            } catch (RuntimeException ex) {
-                java
-                    .util.logging.Logger.getLogger(AppMainFrame.class.getName())
-                    .log(
-                        java.util.logging.Level.WARNING,
-                        "Panel plugin '" + panel.getTitle() + "' failed to build",
-                        ex
-                    );
-            }
-        }
-    }
-
-    /**
-     * Shows a plugin-contributed screen.
+     * Activates and shows a plugin-contributed screen. Its component is built only on the
+     * first activation.
      *
-     * @param title the panel title as reported by the plugin
+     * @param identity the plugin ID, or entry class name when no ID is declared
      */
-    public void showPluginPanel(String title) {
-        slideShow.showSlide(StudioPanelPlugins.slideName(title));
+    public void showPluginPanel(String identity) {
+        StudioPanelPlugins.Panel panel = StudioPanelPlugins.find(identity);
+        if (panel == null) {
+            Logger
+                .getLogger(AppMainFrame.class.getName())
+                .log(Level.WARNING, "No Studio panel found for identity {0}", identity);
+            return;
+        }
+
+        javax.swing.JComponent component = panel.activate();
+        if (component == null) {
+            return;
+        }
+
+        String slideName = StudioPanelPlugins.slideName(panel.getIdentity());
+        if (pluginPanelSlides.add(panel.getIdentity())) {
+            slideShow.addSlide(slideName, component);
+        }
+        slideShow.showSlide(slideName);
     }
 
     private void progressed(int val) {
