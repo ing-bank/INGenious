@@ -19,9 +19,32 @@ import java.util.logging.Logger;
  * PluginLoader is responsible for discovering and loading plugin entry classes
  * from plugin JARs located on the plugin search path. It uses a child-first class loader strategy
  * to ensure plugin classes and their dependencies are loaded in isolation from the main application.
+ *
+ * <p>Discovery is idempotent: a plugin folder keeps one class loader for the lifetime of the
+ * process, so every caller that asks which plugins are installed receives the same
+ * {@code Class} objects. See {@link #unloadAll()} for the reload path.
  */
 public class PluginLoader {
     private static final Logger LOG = Logger.getLogger(PluginLoader.class.getName());
+
+    /**
+     * One class loader per plugin folder, keyed by the folder's absolute path.
+     *
+     * <p>Discovery runs more than once in a session: the engine asks for plugin actions, and
+     * every extension point that offers plugins a place in the application asks again. Creating
+     * a class loader per call gave each caller a <em>different</em> {@code Class} for the same
+     * plugin, so a plugin could not recognise an object it had itself created one lookup
+     * earlier, and each lookup got its own copy of the plugin's static state — anything handed
+     * to a plugin through one lookup was invisible to the next.
+     *
+     * <p>Reusing a loader per folder makes plugin classes, and therefore the instances built
+     * from them, stable across lookups. Isolation is unaffected: each plugin folder still has
+     * its own loader, so two plugins never share classes.
+     */
+    private static final Map<String, CachedClassLoader> CLASS_LOADERS = new HashMap<>();
+
+    /** Guards {@link #CLASS_LOADERS}; discovery can be triggered from more than one thread. */
+    private static final Object CLASS_LOADER_LOCK = new Object();
 
     /**
      * Loads all plugin entry classes from the configured plugin search path.
@@ -152,11 +175,8 @@ public class PluginLoader {
         List<String> loadedEntryClasses = new ArrayList<>();
         try {
             File libDir = new File(pluginFolder, "lib");
-            List<URL> jarUrls = collectPluginJarsUrls(libDir, jarFiles);
-            ClassLoader pluginClassLoader = new PluginClassLoader(
-                jarUrls.toArray(new URL[0]),
-                PluginLoader.class.getClassLoader()
-            );
+            List<File> pluginJars = collectPluginJars(libDir, jarFiles);
+            ClassLoader pluginClassLoader = classLoaderFor(pluginFolder, pluginJars);
             for (String entryClass : declaredEntryClasses) {
                 try {
                     classes.add(pluginClassLoader.loadClass(entryClass));
@@ -247,21 +267,110 @@ public class PluginLoader {
     }
 
     /**
-     * Collects URLs for the given plugin JARs and their dependencies in the optional lib directory.
+     * Returns the class loader for a plugin folder, creating it on first use and reusing it
+     * afterwards so repeated discovery yields the same plugin classes.
+     *
+     * <p>A loader is replaced only when the JARs behind it have changed on disk; the previous
+     * loader is closed first, so a reload releases its file handles instead of stacking a
+     * second loader on the same folder.
+     *
+     * @param pluginFolder the plugin folder, used as the cache key
+     * @param pluginJars the plugin JARs and their dependencies, in class path order
+     * @return the class loader for this plugin folder
+     * @throws Exception if a JAR cannot be converted to a URL
+     */
+    private static ClassLoader classLoaderFor(File pluginFolder, List<File> pluginJars)
+        throws Exception {
+        String key = pluginFolder.getAbsoluteFile().getPath();
+        String fingerprint = fingerprint(pluginJars);
+        synchronized (CLASS_LOADER_LOCK) {
+            CachedClassLoader cached = CLASS_LOADERS.get(key);
+            if (cached != null) {
+                if (cached.fingerprint().equals(fingerprint)) {
+                    return cached.classLoader();
+                }
+                LOG.log(Level.INFO, "Reloading plugin path={0}, reason=JARs changed on disk", key);
+                close(key, cached.classLoader());
+                CLASS_LOADERS.remove(key);
+            }
+
+            List<URL> urls = new ArrayList<>();
+            for (File jar : pluginJars) {
+                urls.add(jar.toURI().toURL());
+            }
+            PluginClassLoader classLoader = new PluginClassLoader(
+                urls.toArray(new URL[0]),
+                PluginLoader.class.getClassLoader()
+            );
+            CLASS_LOADERS.put(key, new CachedClassLoader(classLoader, fingerprint));
+            return classLoader;
+        }
+    }
+
+    /**
+     * Closes every cached plugin class loader and forgets it, so the next discovery reads the
+     * plugin JARs afresh.
+     *
+     * <p>Classes already loaded stay usable, but objects created from them belong to the
+     * discarded loader and will not match the classes discovery returns afterwards. Call this
+     * when plugins are being replaced on disk, not to refresh a running plugin.
+     */
+    public static void unloadAll() {
+        synchronized (CLASS_LOADER_LOCK) {
+            for (Map.Entry<String, CachedClassLoader> entry : CLASS_LOADERS.entrySet()) {
+                close(entry.getKey(), entry.getValue().classLoader());
+            }
+            CLASS_LOADERS.clear();
+        }
+    }
+
+    private static void close(String key, PluginClassLoader classLoader) {
+        try {
+            classLoader.close();
+        } catch (IOException ex) {
+            LOG.log(
+                Level.INFO,
+                "Could not close plugin class loader path={0}, reason={1}",
+                new Object[] { key, ex.getMessage() }
+            );
+        }
+    }
+
+    /**
+     * Describes the JARs behind a plugin folder closely enough to notice that they changed.
+     *
+     * @param pluginJars the plugin JARs and their dependencies, in class path order
+     * @return a value that differs when the set, size or modification time of the JARs differs
+     */
+    private static String fingerprint(List<File> pluginJars) {
+        StringBuilder fingerprint = new StringBuilder();
+        for (File jar : pluginJars) {
+            fingerprint
+                .append(jar.getAbsolutePath())
+                .append(' ')
+                .append(jar.length())
+                .append(' ')
+                .append(jar.lastModified())
+                .append('\n');
+        }
+        return fingerprint.toString();
+    }
+
+    /**
+     * Collects the given plugin JARs and their dependencies in the optional lib directory.
      *
      * @param libDir the directory containing dependency JARs (may be null)
      * @param pluginJars one or more plugin JAR files
-     * @return a list of URLs for all plugin and dependency JARs
-     * @throws Exception if a JAR file is missing or cannot be converted to a URL
+     * @return all plugin and dependency JARs, in class path order
+     * @throws IllegalArgumentException if a plugin JAR is missing
      */
-    private static List<URL> collectPluginJarsUrls(File libDir, File... pluginJars)
-        throws Exception {
-        List<URL> urls = new ArrayList<>();
+    private static List<File> collectPluginJars(File libDir, File... pluginJars) {
+        List<File> jars = new ArrayList<>();
 
         // Add all provided plugin JARs
         for (File pluginJar : pluginJars) {
             if (pluginJar.exists()) {
-                urls.add(pluginJar.toURI().toURL());
+                jars.add(pluginJar);
             } else {
                 throw new IllegalArgumentException(
                     "Plugin JAR not found: " + pluginJar.getAbsolutePath()
@@ -271,15 +380,13 @@ public class PluginLoader {
 
         // Add all dependency JARs from lib directory
         if (libDir != null && libDir.exists() && libDir.isDirectory()) {
-            File[] jars = libDir.listFiles((dir, name) -> name.endsWith(".jar"));
-            if (jars != null) {
-                Arrays.sort(jars, Comparator.comparing(File::getName));
-                for (File jar : jars) {
-                    urls.add(jar.toURI().toURL());
-                }
+            File[] dependencies = libDir.listFiles((dir, name) -> name.endsWith(".jar"));
+            if (dependencies != null) {
+                Arrays.sort(dependencies, Comparator.comparing(File::getName));
+                jars.addAll(Arrays.asList(dependencies));
             }
         }
-        return urls;
+        return jars;
     }
 
     /**
@@ -304,4 +411,7 @@ public class PluginLoader {
     }
 
     private record PluginMetadata(String id, String version) {}
+
+    /** A plugin folder's class loader, with the state of the JARs it was built from. */
+    private record CachedClassLoader(PluginClassLoader classLoader, String fingerprint) {}
 }

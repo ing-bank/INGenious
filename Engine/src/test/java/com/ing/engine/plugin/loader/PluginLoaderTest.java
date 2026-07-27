@@ -6,6 +6,7 @@ import static org.assertj.core.api.Assertions.assertThatCode;
 import com.ing.engine.support.reflect.Discovery;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.text.MessageFormat;
@@ -15,6 +16,11 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.Future;
+import java.util.concurrent.TimeUnit;
 import java.util.jar.Attributes;
 import java.util.jar.JarEntry;
 import java.util.jar.JarOutputStream;
@@ -30,6 +36,7 @@ import org.testng.annotations.Test;
 
 public class PluginLoaderTest {
     private static final String ENTRY_CLASS = "com.example.plugin.SamplePlugin";
+    private static final String PLUGIN_MARKER_RESOURCE = "plugin-marker.txt";
 
     private Path temporaryDirectory;
     private List<String> logMessages;
@@ -37,6 +44,7 @@ public class PluginLoaderTest {
 
     @BeforeMethod
     public void setUp() throws IOException {
+        PluginLoader.unloadAll();
         temporaryDirectory = Files.createTempDirectory("plugin-loader-test-");
         logMessages = new CopyOnWriteArrayList<>();
         logHandler =
@@ -59,6 +67,8 @@ public class PluginLoaderTest {
     @AfterMethod(alwaysRun = true)
     public void tearDown() throws IOException {
         Logger.getLogger(PluginLoader.class.getName()).removeHandler(logHandler);
+        // Release the cached loaders' handles on the generated JARs before deleting them.
+        PluginLoader.unloadAll();
         if (temporaryDirectory != null) {
             try (var paths = Files.walk(temporaryDirectory)) {
                 for (Path path : paths.sorted((left, right) -> right.compareTo(left)).toList()) {
@@ -279,6 +289,164 @@ public class PluginLoaderTest {
         );
     }
 
+    @Test
+    public void repeatedDiscoveryReturnsTheSamePluginClassAndStaticState() throws Exception {
+        Path pluginDirectory = temporaryDirectory.resolve("plugins");
+        createPlugin(pluginDirectory, "sample", "sample.plugin", "1.0.0");
+
+        List<Class<?>> first = PluginLoader.loadAllPluginsEntryClasses(locations(pluginDirectory));
+        List<Class<?>> second = PluginLoader.loadAllPluginsEntryClasses(locations(pluginDirectory));
+
+        assertThat(first).hasSize(1);
+        assertThat(second).hasSize(1);
+        assertThat(second.get(0)).isSameAs(first.get(0));
+        assertThat(second.get(0).getClassLoader()).isSameAs(first.get(0).getClassLoader());
+
+        // An object created from the first lookup is recognised by the second lookup's class:
+        // the property a plugin needs before anything can be handed to it across lookups.
+        Object instanceFromFirstLookup = first.get(0).getConstructor().newInstance();
+        assertThat(second.get(0).isInstance(instanceFromFirstLookup)).isTrue();
+
+        // And there is one copy of the plugin's static state, not one per lookup.
+        first.get(0).getField("sharedHandle").set(null, "handed-over-at-first-lookup");
+        assertThat(second.get(0).getField("sharedHandle").get(null))
+            .isEqualTo("handed-over-at-first-lookup");
+
+        Reporter.log(
+            "repeatedDiscoveryReturnsTheSamePluginClassAndStaticState EVIDENCE identity: two lookups returned the same Class (" +
+            System.identityHashCode(first.get(0)) +
+            ") from the same loader (" +
+            System.identityHashCode(first.get(0).getClassLoader()) +
+            "); an instance from lookup 1 is an instance of lookup 2's class; static state carried over",
+            true
+        );
+    }
+
+    @Test
+    public void differentPluginsKeepIsolatedClassLoaders() throws Exception {
+        Path pluginDirectory = temporaryDirectory.resolve("plugins");
+        createPlugin(pluginDirectory, "first-plugin", "first.plugin", "1.0.0");
+        createPlugin(pluginDirectory, "second-plugin", "second.plugin", "1.0.0");
+
+        List<Class<?>> classes = PluginLoader.loadAllPluginsEntryClasses(
+            locations(pluginDirectory)
+        );
+
+        assertThat(classes).hasSize(2);
+        assertThat(classes.get(0).getClassLoader()).isNotSameAs(classes.get(1).getClassLoader());
+        assertThat(classes.get(0)).isNotSameAs(classes.get(1));
+        assertThat(classes.get(0).getClassLoader()).isInstanceOf(PluginClassLoader.class);
+        assertThat(classes.get(1).getClassLoader()).isInstanceOf(PluginClassLoader.class);
+
+        // Caching per folder must not merge two plugins: static state stays separate.
+        classes.get(0).getField("sharedHandle").set(null, "first");
+        classes.get(1).getField("sharedHandle").set(null, "second");
+        assertThat(classes.get(0).getField("sharedHandle").get(null)).isEqualTo("first");
+
+        Reporter.log(
+            "differentPluginsKeepIsolatedClassLoaders EVIDENCE isolation: first.plugin loader=" +
+            System.identityHashCode(classes.get(0).getClassLoader()) +
+            ", second.plugin loader=" +
+            System.identityHashCode(classes.get(1).getClassLoader()) +
+            "; same class name, separate classes and separate static state",
+            true
+        );
+    }
+
+    @Test
+    public void changedPluginJarsAreReloadedAndThePreviousClassLoaderIsClosed() throws Exception {
+        Path pluginDirectory = temporaryDirectory.resolve("plugins");
+        Path jar = createPlugin(pluginDirectory, "sample", "sample.plugin", "1.0.0");
+
+        List<Class<?>> before = PluginLoader.loadAllPluginsEntryClasses(locations(pluginDirectory));
+        ClassLoader previousClassLoader = before.get(0).getClassLoader();
+        assertThat(previousClassLoader.getResource(PLUGIN_MARKER_RESOURCE)).isNotNull();
+
+        // Install a dependency beside the plugin, as shipping a new build of it would.
+        createDependencyJar(jar.getParent().resolve("lib").resolve("extra.jar"));
+
+        List<Class<?>> after = PluginLoader.loadAllPluginsEntryClasses(locations(pluginDirectory));
+
+        assertThat(after.get(0).getClassLoader()).isNotSameAs(previousClassLoader);
+        assertThat(previousClassLoader.getResource(PLUGIN_MARKER_RESOURCE))
+            .as("the replaced loader is closed, not left holding the old JAR")
+            .isNull();
+        assertThat(logMessages).anyMatch(message -> message.contains("Reloading plugin path="));
+
+        Reporter.log(
+            "changedPluginJarsAreReloadedAndThePreviousClassLoaderIsClosed EVIDENCE reload: changed JARs produced loader " +
+            System.identityHashCode(after.get(0).getClassLoader()) +
+            " and closed loader " +
+            System.identityHashCode(previousClassLoader),
+            true
+        );
+    }
+
+    @Test
+    public void unloadAllClosesCachedClassLoadersAndForcesAFreshLoad() throws Exception {
+        Path pluginDirectory = temporaryDirectory.resolve("plugins");
+        createPlugin(pluginDirectory, "sample", "sample.plugin", "1.0.0");
+
+        List<Class<?>> before = PluginLoader.loadAllPluginsEntryClasses(locations(pluginDirectory));
+        ClassLoader previousClassLoader = before.get(0).getClassLoader();
+
+        PluginLoader.unloadAll();
+
+        assertThat(previousClassLoader.getResource(PLUGIN_MARKER_RESOURCE)).isNull();
+
+        List<Class<?>> after = PluginLoader.loadAllPluginsEntryClasses(locations(pluginDirectory));
+        assertThat(after.get(0).getClassLoader()).isNotSameAs(previousClassLoader);
+        assertThat(after.get(0).getClassLoader().getResource(PLUGIN_MARKER_RESOURCE)).isNotNull();
+
+        Reporter.log(
+            "unloadAllClosesCachedClassLoadersAndForcesAFreshLoad EVIDENCE unload: loader " +
+            System.identityHashCode(previousClassLoader) +
+            " closed; the next discovery built loader " +
+            System.identityHashCode(after.get(0).getClassLoader()),
+            true
+        );
+    }
+
+    @Test
+    public void concurrentDiscoveryShareTheSamePluginClass() throws Exception {
+        Path pluginDirectory = temporaryDirectory.resolve("plugins");
+        createPlugin(pluginDirectory, "sample", "sample.plugin", "1.0.0");
+
+        int threads = 8;
+        ExecutorService executor = Executors.newFixedThreadPool(threads);
+        try {
+            CountDownLatch startLine = new CountDownLatch(1);
+            List<Future<Class<?>>> results = new ArrayList<>();
+            for (int index = 0; index < threads; index++) {
+                results.add(
+                    executor.submit(
+                        () -> {
+                            startLine.await();
+                            return PluginLoader
+                                .loadAllPluginsEntryClasses(locations(pluginDirectory))
+                                .get(0);
+                        }
+                    )
+                );
+            }
+            startLine.countDown();
+
+            Class<?> expected = results.get(0).get(30, TimeUnit.SECONDS);
+            for (Future<Class<?>> result : results) {
+                assertThat(result.get(30, TimeUnit.SECONDS)).isSameAs(expected);
+            }
+            Reporter.log(
+                "concurrentDiscoveryShareTheSamePluginClass EVIDENCE thread-safety: " +
+                threads +
+                " concurrent discoveries all returned Class " +
+                System.identityHashCode(expected),
+                true
+            );
+        } finally {
+            executor.shutdownNow();
+        }
+    }
+
     private List<PluginSearchPath.Location> locations(Path... directories) {
         List<PluginSearchPath.Location> locations = new ArrayList<>();
         for (int index = 0; index < directories.length; index++) {
@@ -321,8 +489,24 @@ public class PluginLoaderTest {
             jar.putNextEntry(new JarEntry("com/example/plugin/SamplePlugin.class"));
             classBytes.transferTo(jar);
             jar.closeEntry();
+            // A resource that exists only inside the JAR, so a lookup on it cannot be answered
+            // by the parent class loader. Reading it proves a loader is still open.
+            jar.putNextEntry(new JarEntry(PLUGIN_MARKER_RESOURCE));
+            jar.write(folderName.getBytes(StandardCharsets.UTF_8));
+            jar.closeEntry();
         }
         return jarPath.toAbsolutePath();
+    }
+
+    private void createDependencyJar(Path jarPath) throws IOException {
+        Files.createDirectories(jarPath.getParent());
+        Manifest manifest = new Manifest();
+        manifest.getMainAttributes().put(Attributes.Name.MANIFEST_VERSION, "1.0");
+        try (JarOutputStream jar = new JarOutputStream(Files.newOutputStream(jarPath), manifest)) {
+            jar.putNextEntry(new JarEntry("dependency-marker.txt"));
+            jar.write("dependency".getBytes(StandardCharsets.UTF_8));
+            jar.closeEntry();
+        }
     }
 
     private Path codeSource(Class<?> pluginClass) {
