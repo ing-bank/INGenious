@@ -1,5 +1,6 @@
 package com.ing.ingenious.api.contract.ui;
 
+import com.ing.ingenious.api.contract.data.ProjectTestDataApi;
 import javax.swing.JComponent;
 
 /**
@@ -56,4 +57,19 @@ public interface StudioPanelApi {
     default String getTooltip() {
         return getTitle();
     }
+
+    /**
+     * Hands the panel the open project's test data, before {@link #createPanel()} is called.
+     *
+     * <p>A screen that helps a user prepare a test case usually has to record what it decided
+     * somewhere the project keeps. {@link ProjectTestDataApi} is that place, and the instance
+     * handed over stays valid for the panel's lifetime — it always answers for whichever
+     * project is open, so the panel can keep it and does not have to follow project changes.
+     *
+     * <p>The default implementation ignores it: a panel that does not touch test data needs no
+     * change.
+     *
+     * @param testData the open project's test data
+     */
+    default void setProjectTestData(ProjectTestDataApi testData) {}
 }
