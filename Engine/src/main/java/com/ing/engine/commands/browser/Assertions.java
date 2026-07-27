@@ -1257,14 +1257,17 @@ public class Assertions extends General {
     public void assertElementIsVisible() {
         try {
             LocatorAssertions.IsVisibleOptions options = new LocatorAssertions.IsVisibleOptions();
+
             options.setTimeout(getTimeoutValue());
-            highlightElement();
+
             assertThat(Locator).isVisible(options);
+            highlightElement();
+
             Report.updateTestLog(Action, "[" + ObjectName + "] is visible", Status.PASS);
         } catch (PlaywrightException e) {
             PlaywrightExceptionLogging(e);
         } catch (AssertionFailedError err) {
-            assertionLogging(err, "[" + ObjectName + "] is not visible");
+            assertionLogging(err, "[" + ObjectName + "] is not visible or was not found on Page");
         } finally {
             removeHighlightFromElement();
         }
@@ -1334,38 +1337,64 @@ public class Assertions extends General {
     }
 
     private void PlaywrightExceptionLogging(PlaywrightException e) {
-        Report.updateTestLog(
-            Action,
-            "Unique Element [" + ObjectName + "] not found on Page. Error :" + e.getMessage(),
-            Status.FAIL
-        );
-        Logger.getLogger(this.getClass().getName()).log(Level.OFF, null, e);
-        throw new ActionException(e);
+        String message =
+            "Element [" +
+            ObjectName +
+            "] not found on Page within " +
+            getTimeoutValue() +
+            " ms. Error: " +
+            getBestErrorMessage(e);
+
+        Report.updateTestLog(Action, message, Status.FAIL);
+
+        Logger.getLogger(this.getClass().getName()).log(Level.OFF, message, e);
     }
 
     private void assertionLogging(AssertionFailedError err, String message) {
-        if (err.getMessage().contains("locator resolved to")) {
-            Report.updateTestLog(Action, message, Status.FAIL);
-        } else {
-            Report.updateTestLog(
-                Action,
-                "Element [" + ObjectName + "] not found on Page \n",
-                Status.FAIL
-            );
+        Report.updateTestLog(Action, message + ". Error: " + getBestErrorMessage(err), Status.FAIL);
+
+        Logger.getLogger(this.getClass().getName()).log(Level.OFF, message, err);
+    }
+
+    private String getBestErrorMessage(Throwable error) {
+        Throwable current = error;
+
+        while (current != null) {
+            if (StringUtils.isNotBlank(current.getMessage())) {
+                return current.getMessage();
+            }
+
+            current = current.getCause();
         }
-        Logger.getLogger(this.getClass().getName()).log(Level.OFF, null, err);
+
+        return error == null ? "Unknown assertion failure" : error.getClass().getSimpleName();
     }
 
     /**
      * *********************************************************************************************
      */
     private void highlightElement() {
-        Locator.scrollIntoViewIfNeeded();
-        Locator.evaluate("element => element.style.outline = '2px solid red'");
+        try {
+            if (Locator.count() > 0) {
+                Locator.evaluate("element => element.style.outline = '2px solid red'");
+            }
+        } catch (PlaywrightException e) {
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.FINE, "Unable to highlight element [" + ObjectName + "]", e);
+        }
     }
 
     private void removeHighlightFromElement() {
-        Locator.evaluate("element => element.style.outline = ''");
+        try {
+            if (Locator.count() > 0) {
+                Locator.evaluate("element => element.style.outline = ''");
+            }
+        } catch (PlaywrightException e) {
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.FINE, "Unable to remove highlight from element [" + ObjectName + "]", e);
+        }
     }
 
     private double getTimeoutValue() {
