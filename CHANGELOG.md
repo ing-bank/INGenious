@@ -73,6 +73,7 @@ Release Date: <insert date of release>
 #### Fixed
 
 - Made plugin and application-root discovery tolerate missing or unreadable paths
+- Kept one class loader per plugin, so repeated plugin discovery returns the same plugin classes instead of a new copy per lookup
 - Resolved global shortcut keys functionality including:
     - Playwright recorder enablement
     - Run Test command
