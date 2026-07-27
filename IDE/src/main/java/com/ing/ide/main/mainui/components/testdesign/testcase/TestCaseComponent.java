@@ -18,6 +18,7 @@ import com.ing.ide.main.mainui.AppMainFrame;
 import com.ing.ide.main.mainui.EngineConfig;
 import com.ing.ide.main.mainui.components.testdesign.ReusableComponentDialog;
 import com.ing.ide.main.mainui.components.testdesign.TestDesign;
+import com.ing.ide.main.mainui.plugins.RecordingTargetPlugins;
 import com.ing.ide.main.playwrightrecording.InspectorWindowController;
 import com.ing.ide.main.playwrightrecording.LiveRecordingParser;
 import com.ing.ide.main.playwrightrecording.PlaywrightRecordingParser;
@@ -33,6 +34,7 @@ import com.ing.ide.util.Canvas;
 import com.ing.ide.util.Notification;
 import com.ing.ide.util.Notification;
 import com.ing.ide.util.WindowMover;
+import com.ing.ingenious.api.contract.ui.RecordingTarget;
 import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.Cursor;
@@ -682,17 +684,31 @@ public class TestCaseComponent extends JPanel implements ActionListener {
             return;
         }
 
-        RecordingTargetDialog.Selection selection = RecordingTargetDialog.showDialog(
-            this,
-            testDesign.getProject(),
-            getCurrentTestCase()
-        );
-        if (selection == null) {
-            SwingUtilities.invokeLater(() -> toolBar.enableRecordButton());
-            return;
+        // A plugin that already knows what the user is working on answers here, and the target
+        // chooser never opens. No plugin, or no answer, and the dialog behaves exactly as before.
+        RecordingTarget pluginTarget = RecordingTargetPlugins.currentTarget();
+
+        TestCase target;
+        if (pluginTarget != null) {
+            target =
+                createOrResolveTarget(
+                    pluginTarget.getScenarioName(),
+                    pluginTarget.getTestCaseName(),
+                    pluginTarget.isReusableScenario()
+                );
+        } else {
+            RecordingTargetDialog.Selection selection = RecordingTargetDialog.showDialog(
+                this,
+                testDesign.getProject(),
+                getCurrentTestCase()
+            );
+            if (selection == null) {
+                SwingUtilities.invokeLater(() -> toolBar.enableRecordButton());
+                return;
+            }
+            target = resolveRecordingTarget(selection);
         }
 
-        TestCase target = resolveRecordingTarget(selection);
         if (target == null) {
             JOptionPane.showMessageDialog(
                 this,
@@ -725,6 +741,12 @@ public class TestCaseComponent extends JPanel implements ActionListener {
         consoleDialog.clear();
         consoleDialog.showConsole();
         logPlaywright("🎬 Playwright Recording is being initiated...");
+        // The user was not asked where this goes, so the console has to say it.
+        if (pluginTarget != null) {
+            logPlaywright(
+                "🎯 Recording into " + target.getScenario().getName() + " / " + target.getName()
+            );
+        }
         logPlaywright(
             "============================== Playwright Log Started =============================="
         );
