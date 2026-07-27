@@ -118,6 +118,7 @@
                                         <include>**/*.command</include>
                                         <include>**/*.txt</include>
                                         <include>**/*.md</include>
+                                        <include>ingenious</include>
                                     </includes>
                                 </resource>
                                 <resource>
@@ -128,6 +129,7 @@
                                         <exclude>**/*.command</exclude>
                                         <exclude>**/*.txt</exclude>
                                         <exclude>**/*.md</exclude>
+                                        <exclude>ingenious</exclude>
                                     </excludes>
                                 </resource>
                             </resources>
