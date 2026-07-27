@@ -298,8 +298,22 @@ public class AppActionListener implements ActionListener {
                 }
                 break;
             default:
-                // Handle language-specific SAP imports
-                if (ae.getActionCommand().startsWith("Import SAP Recording:")) {
+                // Plugin-contributed screens are dynamic, so they dispatch by prefix.
+                if (
+                    ae
+                        .getActionCommand()
+                        .startsWith(
+                            com.ing.ide.main.mainui.plugins.StudioPanelPlugins.ACTION_PREFIX
+                        )
+                ) {
+                    sMainFrame.showPluginPanel(
+                        ae
+                            .getActionCommand()
+                            .substring(
+                                com.ing.ide.main.mainui.plugins.StudioPanelPlugins.ACTION_PREFIX.length()
+                            )
+                    );
+                } else if (ae.getActionCommand().startsWith("Import SAP Recording:")) {
                     String language = ae
                         .getActionCommand()
                         .substring("Import SAP Recording:".length());

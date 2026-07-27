@@ -71,6 +71,11 @@ public class FXToolBar extends JFXPanel {
                 //, createDarkModeToggle()
             );
 
+        // Plugin-contributed screens get a button each, after the built-in ones.
+        for (com.ing.ingenious.api.contract.ui.StudioPanelApi panel : com.ing.ide.main.mainui.plugins.StudioPanelPlugins.load()) {
+            toolBar.getItems().add(createPluginPanelButton(panel));
+        }
+
         VBox root = new VBox(toolBar);
         root.getStyleClass().add("light-theme");
 
@@ -111,6 +116,24 @@ public class FXToolBar extends JFXPanel {
         }
 
         btn.setOnAction(e -> fireSwingAction("API Workbench"));
+        return btn;
+    }
+
+    /**
+     * Builds the toolbar button for a plugin-contributed screen. The action command carries
+     * the panel title, so one handler serves any number of plugins.
+     */
+    private Button createPluginPanelButton(com.ing.ingenious.api.contract.ui.StudioPanelApi panel) {
+        Button btn = new Button(panel.getTitle());
+        btn.getStyleClass().add("workbench-btn");
+        btn.setTooltip(new Tooltip(panel.getTooltip()));
+        btn.setOnAction(
+            e ->
+                fireSwingAction(
+                    com.ing.ide.main.mainui.plugins.StudioPanelPlugins.ACTION_PREFIX +
+                    panel.getTitle()
+                )
+        );
         return btn;
     }
 

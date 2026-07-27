@@ -25,6 +25,7 @@ import com.ing.ide.main.mainui.components.aichat.AICopilot;
 import com.ing.ide.main.mainui.components.apitester.APITester;
 import com.ing.ide.main.mainui.components.testdesign.TestDesign;
 import com.ing.ide.main.mainui.components.testexecution.TestExecution;
+import com.ing.ide.main.mainui.plugins.StudioPanelPlugins;
 import com.ing.ide.main.shr.SHR;
 import com.ing.ide.main.ui.About;
 import com.ing.ide.main.ui.FXStartUp;
@@ -168,6 +169,7 @@ public class AppMainFrame extends JFrame {
         slideShow.addSlide("DashBoard", dashBoard);
         slideShow.addSlide("APITester", apiTester.getAPITesterUI());
         slideShow.addSlide("AICopilot", aiCopilot.getAICopilotUI());
+        addPluginPanels();
         slideShow.addSlideChangeListener(aiCopilot);
         progressed(85);
         add(slideShow, BorderLayout.CENTER);
@@ -195,6 +197,38 @@ public class AppMainFrame extends JFrame {
             }
         );
         progressed(90);
+    }
+
+    /**
+     * Adds every plugin-contributed screen as a slide. A plugin that throws while building
+     * its panel is skipped with a log entry — it must never prevent Studio from starting.
+     */
+    private void addPluginPanels() {
+        for (com.ing.ingenious.api.contract.ui.StudioPanelApi panel : StudioPanelPlugins.load()) {
+            try {
+                javax.swing.JComponent component = panel.createPanel();
+                if (component != null) {
+                    slideShow.addSlide(StudioPanelPlugins.slideName(panel.getTitle()), component);
+                }
+            } catch (RuntimeException ex) {
+                java
+                    .util.logging.Logger.getLogger(AppMainFrame.class.getName())
+                    .log(
+                        java.util.logging.Level.WARNING,
+                        "Panel plugin '" + panel.getTitle() + "' failed to build",
+                        ex
+                    );
+            }
+        }
+    }
+
+    /**
+     * Shows a plugin-contributed screen.
+     *
+     * @param title the panel title as reported by the plugin
+     */
+    public void showPluginPanel(String title) {
+        slideShow.showSlide(StudioPanelPlugins.slideName(title));
     }
 
     private void progressed(int val) {
