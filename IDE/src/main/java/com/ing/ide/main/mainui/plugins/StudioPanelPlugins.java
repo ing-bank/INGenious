@@ -1,6 +1,7 @@
 package com.ing.ide.main.mainui.plugins;
 
 import com.ing.engine.plugin.loader.PluginLoader;
+import com.ing.ingenious.api.contract.data.ProjectTestDataApi;
 import com.ing.ingenious.api.contract.ui.StudioPanelApi;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Modifier;
@@ -296,9 +297,11 @@ public final class StudioPanelPlugins {
          * Creates the panel on first activation and returns the cached component thereafter.
          * A failed activation is not retried.
          *
+         * @param testData the open project's test data, handed to the panel before its screen
+         *     is built; may be {@code null} when the host has none to offer
          * @return the component, or {@code null} when construction failed
          */
-        public synchronized JComponent activate() {
+        public synchronized JComponent activate(ProjectTestDataApi testData) {
             if (activationAttempted) {
                 return component;
             }
@@ -308,6 +311,9 @@ public final class StudioPanelPlugins {
             try {
                 if (factory == null) {
                     factory = constructor.newInstance();
+                }
+                if (testData != null) {
+                    factory.setProjectTestData(testData);
                 }
                 component = factory.createPanel();
                 if (component == null) {

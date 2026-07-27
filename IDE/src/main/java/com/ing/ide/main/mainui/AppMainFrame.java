@@ -8,6 +8,7 @@ import com.ing.datalib.component.TestCase;
 import com.ing.datalib.component.TestData;
 import com.ing.datalib.component.TestSet;
 import com.ing.datalib.component.TestStep;
+import com.ing.datalib.plugin.ProjectTestData;
 import com.ing.datalib.settings.testmgmt.Option;
 import com.ing.datalib.settings.testmgmt.TestMgModule;
 import com.ing.datalib.testdata.model.AbstractDataModel;
@@ -37,6 +38,7 @@ import com.ing.ide.settings.AppSettings;
 import com.ing.ide.util.Notification;
 import com.ing.ide.util.SystemInfo;
 import com.ing.ide.util.Utility;
+import com.ing.ingenious.api.contract.data.ProjectTestDataApi;
 import java.awt.BorderLayout;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
@@ -106,6 +108,13 @@ public class AppMainFrame extends JFrame {
     private final LoaderScreen loader;
 
     private final Set<String> pluginPanelSlides = new HashSet<>();
+
+    /**
+     * What a plugin screen is given so it can record its decisions where the project keeps
+     * them. Reads the project through the frame, so it stays correct when another one is
+     * opened.
+     */
+    private final ProjectTestDataApi projectTestData = new ProjectTestData(this::getProject);
 
     private QUIT_TYPE quitType = QUIT_TYPE.NORMAL;
 
@@ -221,7 +230,7 @@ public class AppMainFrame extends JFrame {
             return;
         }
 
-        javax.swing.JComponent component = panel.activate();
+        javax.swing.JComponent component = panel.activate(projectTestData);
         if (component == null) {
             return;
         }

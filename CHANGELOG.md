@@ -11,6 +11,7 @@ Release Date: <insert date of release>
 #### Added
 
 - Added a user-writable plugin search path with optional environment configuration and manifest-based plugin identity
+- Let a plugin read and write a test case's test data in the open project, so a plugin screen can record what it decided where the project keeps it
 - Implemented `Shared Reusable Components` for cross-project reusables
     - Added dedicated UI section for managing shared reusable components
     - Introduced visual distinction between project-local and shared reusables
