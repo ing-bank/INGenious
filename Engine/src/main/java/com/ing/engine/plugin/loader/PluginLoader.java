@@ -1,88 +1,251 @@
 package com.ing.engine.plugin.loader;
 
-import com.ing.engine.constants.FilePath;
 import java.io.File;
+import java.io.IOException;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Comparator;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.jar.Attributes;
 import java.util.jar.JarFile;
 import java.util.jar.Manifest;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * PluginLoader is responsible for discovering and loading plugin entry classes
- * from plugin JARs located in the application's plugin directory. It uses a child-first class loader
- * strategy to ensure plugin classes and their dependencies are loaded in isolation from the main application.
+ * from plugin JARs located on the plugin search path. It uses a child-first class loader strategy
+ * to ensure plugin classes and their dependencies are loaded in isolation from the main application.
  */
 public class PluginLoader {
+    private static final Logger LOG = Logger.getLogger(PluginLoader.class.getName());
 
     /**
-     * Loads all plugin entry classes from the plugins directory.
+     * Loads all plugin entry classes from the configured plugin search path.
      * <p>
      * This method scans each plugin folder, collects all plugin JARs and their dependencies,
      * and loads the classes specified as entry points in the JAR manifest (pluginEntryClasses attribute).
      *
      * @return a list of loaded plugin entry classes
-     * @throws IllegalArgumentException if the plugin directory is missing
      */
     public static List<Class<?>> loadAllPluginsEntryClasses() {
-        List<Class<?>> classes = new ArrayList<>();
-        File baseDir = new File(FilePath.getAppRoot() + "/plugins"); // root plugin directory
-
-        if (!baseDir.exists() || !baseDir.isDirectory()) {
-            throw new IllegalArgumentException(
-                "Base plugin directory not found: " + baseDir.getAbsolutePath()
-            );
+        try {
+            return loadAllPluginsEntryClasses(PluginSearchPath.resolve());
+        } catch (Exception | LinkageError ex) {
+            LOG.log(Level.INFO, "Skipping plugin discovery because the search path failed", ex);
+            return new ArrayList<>();
         }
+    }
 
-        // Iterate over each plugin folder
-        for (File pluginFolder : baseDir.listFiles(File::isDirectory)) {
-            // Find all plugin JARs (any *.jar in the plugin folder, not in lib)
-            File[] jarFiles = pluginFolder.listFiles((dir, name) -> name.endsWith(".jar"));
-            if (jarFiles == null || jarFiles.length == 0) {
-                System.err.println("No plugin JAR found in: " + pluginFolder.getAbsolutePath());
+    static List<Class<?>> loadAllPluginsEntryClasses(List<PluginSearchPath.Location> searchPath) {
+        List<Class<?>> classes = new ArrayList<>();
+        Map<String, File> loadedPluginFolders = new HashMap<>();
+
+        for (PluginSearchPath.Location location : searchPath) {
+            File baseDir = location.directory().getAbsoluteFile();
+            LOG.log(
+                Level.INFO,
+                "Plugin search directory source={0}, path={1}, exists={2}, writable={3}",
+                new Object[] {
+                    location.source(),
+                    baseDir.getAbsolutePath(),
+                    baseDir.exists(),
+                    baseDir.canWrite()
+                }
+            );
+
+            if (!baseDir.exists()) {
+                LOG.log(
+                    Level.INFO,
+                    "Skipping plugin search directory path={0}, reason=directory absent",
+                    baseDir.getAbsolutePath()
+                );
                 continue;
             }
-            File libDir = new File(pluginFolder, "lib"); // Dependencies folder
-
-            // Collect all JARs for this plugin (all found jars)
-            List<URL> jarUrls;
-            try {
-                jarUrls = collectPluginJarsUrls(libDir, jarFiles);
-                // Create child-first loader for this plugin
-                ClassLoader pluginClassLoader = new PluginClassLoader(
-                    jarUrls.toArray(new URL[0]),
-                    PluginLoader.class.getClassLoader()
+            if (!baseDir.isDirectory() || !baseDir.canRead()) {
+                LOG.log(
+                    Level.INFO,
+                    "Skipping plugin search directory path={0}, reason=directory unreadable",
+                    baseDir.getAbsolutePath()
                 );
+                continue;
+            }
 
-                // get the entry classes for each plugin JAR
-                for (File pluginJar : jarFiles) {
-                    List<String> entryClasses;
-                    try {
-                        entryClasses = getEntryClasses(pluginJar);
-                        for (String entryClass : entryClasses) {
-                            classes.add(pluginClassLoader.loadClass(entryClass));
-                        }
-                    } catch (Exception ex) {
-                        System.err.println(
-                            "Error loading entry classes from: " +
-                            pluginJar.getName() +
-                            " -> " +
-                            ex.getMessage()
-                        );
-                    }
-                }
-            } catch (Exception ex) {
-                System
-                    .getLogger(PluginLoader.class.getName())
-                    .log(System.Logger.Level.ERROR, (String) null, ex);
+            File[] pluginFolders = baseDir.listFiles(File::isDirectory);
+            if (pluginFolders == null) {
+                LOG.log(
+                    Level.INFO,
+                    "Skipping plugin search directory path={0}, reason=directory could not be listed",
+                    baseDir.getAbsolutePath()
+                );
+                continue;
+            }
+            Arrays.sort(pluginFolders, Comparator.comparing(File::getName));
+            for (File pluginFolder : pluginFolders) {
+                loadPluginFolder(pluginFolder, loadedPluginFolders, classes);
             }
         }
         return classes;
     }
 
-    // Accepts one or more plugin JARs, plus an optional libDir for dependencies
+    private static void loadPluginFolder(
+        File pluginFolder,
+        Map<String, File> loadedPluginFolders,
+        List<Class<?>> classes
+    ) {
+        File[] jarFiles = pluginFolder.listFiles((dir, name) -> name.endsWith(".jar"));
+        if (jarFiles == null || jarFiles.length == 0) {
+            LOG.log(
+                Level.INFO,
+                "Skipping plugin folder path={0}, reason=no JAR in folder",
+                pluginFolder.getAbsolutePath()
+            );
+            return;
+        }
+        Arrays.sort(jarFiles, Comparator.comparing(File::getName));
+
+        PluginMetadata metadata = readPluginMetadata(pluginFolder, jarFiles);
+        File higherPrecedenceFolder = loadedPluginFolders.putIfAbsent(
+            metadata.id(),
+            pluginFolder.getAbsoluteFile()
+        );
+        if (higherPrecedenceFolder != null) {
+            // User data conventionally precedes shared defaults (as in XDG and layered
+            // application configurations). Reversing that order would prevent a user from
+            // trying a newer copy of a plugin that is also present in the installed baseline.
+            LOG.log(
+                Level.INFO,
+                "Skipping shadowed plugin id={0}, higher-precedence path={1}, shadowed path={2}",
+                new Object[] {
+                    metadata.id(),
+                    higherPrecedenceFolder.getAbsolutePath(),
+                    pluginFolder.getAbsolutePath()
+                }
+            );
+            return;
+        }
+
+        List<String> declaredEntryClasses = new ArrayList<>();
+        for (File jarFile : jarFiles) {
+            try {
+                declaredEntryClasses.addAll(getEntryClasses(jarFile));
+            } catch (Exception ex) {
+                LOG.log(
+                    Level.INFO,
+                    "Skipping plugin JAR path={0}, reason={1}",
+                    new Object[] { jarFile.getAbsolutePath(), ex.getMessage() }
+                );
+            }
+        }
+        if (declaredEntryClasses.isEmpty()) {
+            LOG.log(
+                Level.INFO,
+                "Skipping plugin id={0}, path={1}, reason=missing pluginEntryClasses",
+                new Object[] { metadata.id(), pluginFolder.getAbsolutePath() }
+            );
+            return;
+        }
+
+        List<String> loadedEntryClasses = new ArrayList<>();
+        try {
+            File libDir = new File(pluginFolder, "lib");
+            List<URL> jarUrls = collectPluginJarsUrls(libDir, jarFiles);
+            ClassLoader pluginClassLoader = new PluginClassLoader(
+                jarUrls.toArray(new URL[0]),
+                PluginLoader.class.getClassLoader()
+            );
+            for (String entryClass : declaredEntryClasses) {
+                try {
+                    classes.add(pluginClassLoader.loadClass(entryClass));
+                    loadedEntryClasses.add(entryClass);
+                } catch (Exception | LinkageError ex) {
+                    LOG.log(
+                        Level.INFO,
+                        "Skipping plugin entry class name={0}, plugin id={1}, path={2}, reason={3}",
+                        new Object[] {
+                            entryClass,
+                            metadata.id(),
+                            pluginFolder.getAbsolutePath(),
+                            ex.toString()
+                        }
+                    );
+                }
+            }
+        } catch (Exception | LinkageError ex) {
+            LOG.log(
+                Level.INFO,
+                "Skipping plugin id={0}, path={1}, reason={2}",
+                new Object[] { metadata.id(), pluginFolder.getAbsolutePath(), ex.toString() }
+            );
+            return;
+        }
+
+        if (loadedEntryClasses.isEmpty()) {
+            LOG.log(
+                Level.INFO,
+                "Skipping plugin id={0}, path={1}, reason=no entry classes loaded",
+                new Object[] { metadata.id(), pluginFolder.getAbsolutePath() }
+            );
+            return;
+        }
+        LOG.log(
+            Level.INFO,
+            "Loaded plugin id={0}, version={1}, source={2}, entry classes={3}",
+            new Object[] {
+                metadata.id(),
+                metadata.version(),
+                pluginFolder.getAbsolutePath(),
+                loadedEntryClasses
+            }
+        );
+    }
+
+    private static PluginMetadata readPluginMetadata(File pluginFolder, File[] jarFiles) {
+        String pluginId = null;
+        String pluginVersion = null;
+        for (File jarFile : jarFiles) {
+            try (JarFile jar = new JarFile(jarFile)) {
+                Manifest manifest = jar.getManifest();
+                if (manifest == null) {
+                    continue;
+                }
+                Attributes attributes = manifest.getMainAttributes();
+                if (pluginVersion == null) {
+                    pluginVersion = nonBlank(attributes.getValue("pluginVersion"));
+                }
+                String candidateId = nonBlank(attributes.getValue("pluginId"));
+                if (candidateId != null) {
+                    pluginId = candidateId;
+                    String candidateVersion = nonBlank(attributes.getValue("pluginVersion"));
+                    if (candidateVersion != null) {
+                        pluginVersion = candidateVersion;
+                    }
+                    break;
+                }
+            } catch (IOException ex) {
+                LOG.log(
+                    Level.INFO,
+                    "Skipping plugin manifest path={0}, reason={1}",
+                    new Object[] { jarFile.getAbsolutePath(), ex.getMessage() }
+                );
+            }
+        }
+        if (pluginId == null) {
+            pluginId = pluginFolder.getName();
+        }
+        return new PluginMetadata(
+            pluginId,
+            pluginVersion == null ? "<unspecified>" : pluginVersion
+        );
+    }
+
+    private static String nonBlank(String value) {
+        return value == null || value.isBlank() ? null : value.trim();
+    }
+
     /**
      * Collects URLs for the given plugin JARs and their dependencies in the optional lib directory.
      *
@@ -110,6 +273,7 @@ public class PluginLoader {
         if (libDir != null && libDir.exists() && libDir.isDirectory()) {
             File[] jars = libDir.listFiles((dir, name) -> name.endsWith(".jar"));
             if (jars != null) {
+                Arrays.sort(jars, Comparator.comparing(File::getName));
                 for (File jar : jars) {
                     urls.add(jar.toURI().toURL());
                 }
@@ -138,4 +302,6 @@ public class PluginLoader {
         }
         throw new IllegalStateException("No pluginEntryClasses attribute found in manifest");
     }
+
+    private record PluginMetadata(String id, String version) {}
 }

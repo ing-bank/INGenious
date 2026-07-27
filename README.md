@@ -79,6 +79,12 @@ Developed and perfected by <span style="color:#FF6200;width:100px">**ING Bank**<
 
     <span style="color:#FF6200">INGenious</span> features a powerful **Plugin System** that lets you extend the framework with custom automation actions, new object types, and integrations—across browser, database, mobile, web services, and more.
 
+    Plugins are discovered from the user data directory first, followed by the installation's `plugins` directory. The user directory is `%LOCALAPPDATA%\INGenious\plugins` on Windows, `~/Library/Application Support/INGenious/plugins` on macOS, and `${XDG_DATA_HOME:-$HOME/.local/share}/ingenious/plugins` on Linux and other systems. Earlier directories take precedence for the same plugin identity.
+
+    Set `INGENIOUS_PLUGIN_PATH` to a platform path-separator-delimited list to replace those defaults, or set `INGENIOUS_DISABLE_USER_PLUGINS=true` (or `1`) to scan only the installation directory. The explicit search path remains active when user plugins are disabled.
+
+    A plugin JAR can declare optional `pluginId` and `pluginVersion` main manifest attributes. `pluginId` provides stable identity for precedence, while `pluginVersion` is logged for information. Existing plugins without `pluginId` use their plugin folder name.
+
     [:arrow_right: Customizations](https://ing-bank.github.io/ingenious-doc/customizations/)
 
 -   :white_check_mark: __Integrated BDD__

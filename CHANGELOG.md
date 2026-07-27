@@ -10,6 +10,7 @@ Release Date: <insert date of release>
 
 #### Added
 
+- Added a user-writable plugin search path with optional environment configuration and manifest-based plugin identity
 - Implemented `Shared Reusable Components` for cross-project reusables
     - Added dedicated UI section for managing shared reusable components
     - Introduced visual distinction between project-local and shared reusables
@@ -71,6 +72,7 @@ Release Date: <insert date of release>
 
 #### Fixed
 
+- Made plugin and application-root discovery tolerate missing or unreadable paths
 - Resolved global shortcut keys functionality including:
     - Playwright recorder enablement
     - Run Test command

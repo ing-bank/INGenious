@@ -38,7 +38,15 @@ public class Discovery {
         ArrayList<Class<?>> clazz = new ArrayList<>();
         clazz.addAll(getClassesFromPackageList());
         clazz.addAll(getClassesFromUserDefinedPackage());
-        clazz.addAll(PluginLoader.loadAllPluginsEntryClasses());
+        try {
+            clazz.addAll(PluginLoader.loadAllPluginsEntryClasses());
+        } catch (RuntimeException | LinkageError ex) {
+            LOG.log(
+                Level.INFO,
+                "Plugin loading failed; built-in class discovery will continue",
+                ex
+            );
+        }
         return clazz;
     }
 
@@ -69,6 +77,14 @@ public class Discovery {
             if (directory.exists()) {
                 URL[] urls = new URL[] { directory.toURI().toURL() };
                 String[] files = directory.list();
+                if (files == null) {
+                    LOG.log(
+                        Level.INFO,
+                        "User-defined class directory could not be listed: {0}",
+                        directory.getAbsolutePath()
+                    );
+                    return classes;
+                }
                 for (String file : files) {
                     if (file.endsWith(".class")) {
                         String className = file.substring(0, file.length() - 6);

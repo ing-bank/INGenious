@@ -57,13 +57,29 @@ public class AppResourcePath {
     private static String time;
 
     public static String getAppRoot() {
+        String userDirectory;
         try {
-            // return System.getProperty("user.dir");
-            return new File(System.getProperty("user.dir")).getCanonicalPath();
-        } catch (IOException ex) {
+            userDirectory = System.getProperty("user.dir");
+        } catch (SecurityException ex) {
             Logger.getLogger(AppResourcePath.class.getName()).log(Level.SEVERE, null, ex);
+            return ".";
         }
-        return null;
+        File workingDirectory = userDirectory == null || userDirectory.isBlank()
+            ? new File(".")
+            : new File(userDirectory);
+        try {
+            return workingDirectory.getCanonicalPath();
+        } catch (IOException | SecurityException ex) {
+            Logger.getLogger(AppResourcePath.class.getName()).log(Level.SEVERE, null, ex);
+            try {
+                return workingDirectory.getAbsolutePath();
+            } catch (SecurityException fallbackException) {
+                Logger
+                    .getLogger(AppResourcePath.class.getName())
+                    .log(Level.SEVERE, null, fallbackException);
+                return ".";
+            }
+        }
     }
 
     public static String getExternalCommandsConfig() {
