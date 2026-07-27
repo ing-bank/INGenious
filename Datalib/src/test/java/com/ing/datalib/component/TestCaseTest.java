@@ -52,10 +52,9 @@ public class TestCaseTest {
 
     @Test
     public void testGetLocation() {
+        String scenarioDir = new File("/tmp/test-project/TestPlan/LoginScenario").getPath();
         assertThat(testCase.getLocation())
-            .isEqualTo(
-                "/tmp/test-project/TestPlan/LoginScenario" + File.separator + "TC_Login.yaml"
-            );
+            .isEqualTo(scenarioDir + File.separator + "TC_Login.yaml");
     }
 
     // ---- toString ----
