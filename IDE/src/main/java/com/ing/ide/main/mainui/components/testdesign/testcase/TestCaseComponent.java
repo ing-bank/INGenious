@@ -736,6 +736,7 @@ public class TestCaseComponent extends JPanel implements ActionListener {
             new LiveRecordingParser(baseParser, target, firstInsertIndex, reference, objectPage);
 
         liveRecordingOutputFile = prepareLiveRecordingOutputFile();
+        final String startUrl = resolveRecordingStartUrl(pluginTarget);
 
         toolBar.setConsoleVisible(true);
         consoleDialog.clear();
@@ -747,6 +748,9 @@ public class TestCaseComponent extends JPanel implements ActionListener {
                 "🎯 Recording into " + target.getScenario().getName() + " / " + target.getName()
             );
         }
+        if (startUrl != null) {
+            logPlaywright("🌐 Opening " + startUrl);
+        }
         logPlaywright(
             "============================== Playwright Log Started =============================="
         );
@@ -757,7 +761,7 @@ public class TestCaseComponent extends JPanel implements ActionListener {
             CompletableFuture.runAsync(
                 () -> {
                     try {
-                        launchPlaywright(liveRecordingOutputFile);
+                        launchPlaywright(liveRecordingOutputFile, startUrl);
                     } catch (IOException ex) {
                         logPlaywrightError("Error launching Playwright: " + ex.getMessage());
                         Logger
@@ -953,11 +957,28 @@ public class TestCaseComponent extends JPanel implements ActionListener {
     //    }
 
     public void launchPlaywright(File outputFile) throws IOException {
+        launchPlaywright(outputFile, null);
+    }
+
+    /**
+     * Starts the Playwright recorder, optionally on a given page.
+     *
+     * @param outputFile file codegen writes the recorded script to
+     * @param startUrl page to open, or {@code null} for codegen's blank page
+     * @throws IOException when the recorder process cannot be started
+     */
+    public void launchPlaywright(File outputFile, String startUrl) throws IOException {
         String escapedPath = outputFile
             .getAbsolutePath()
             .replace("\\", "\\\\")
             .replace("\"", "\\\"");
         String processArgs = "codegen --target java --output \"" + escapedPath + "\"";
+        if (startUrl != null) {
+            // Quoted: the command is handed to cmd/bash as one string, and an unquoted query
+            // string would be cut at its first '&'. Validation upstream has already ruled out
+            // anything that could break out of these quotes.
+            processArgs += " \"" + startUrl + "\"";
+        }
         runPlaywrightProcess(processArgs);
         logPlaywright(
             "============================== Playwright Log Ended =============================="
@@ -1205,6 +1226,75 @@ public class TestCaseComponent extends JPanel implements ActionListener {
             Logger
                 .getLogger(TestCaseComponent.class.getName())
                 .log(Level.WARNING, "Unable to sync live recording", ex);
+        }
+    }
+
+    /**
+     * Decides which page the recorder opens: what the plugin asked for, else what the project
+     * configured, else nothing — which is codegen's blank page, i.e. the behaviour every
+     * existing project already has.
+     *
+     * @param pluginTarget the plugin's target, or {@code null} when the user chose by hand
+     * @return a usable URL, or {@code null} to start on a blank page
+     */
+    private String resolveRecordingStartUrl(RecordingTarget pluginTarget) {
+        String fromPlugin = pluginTarget == null ? null : pluginTarget.getStartUrl();
+        if (fromPlugin != null) {
+            if (isUsableStartUrl(fromPlugin)) {
+                return fromPlugin.trim();
+            }
+            logPlaywright("Ignoring unusable recording URL from plugin: " + fromPlugin);
+        }
+
+        String fromProject = "";
+        try {
+            fromProject =
+                testDesign.getProject().getProjectSettings().getRecorderSettings().getStartUrl();
+        } catch (RuntimeException ex) {
+            Logger
+                .getLogger(TestCaseComponent.class.getName())
+                .log(Level.WARNING, "Unable to read the project's recorder settings", ex);
+        }
+        if (!fromProject.isEmpty()) {
+            if (isUsableStartUrl(fromProject)) {
+                return fromProject.trim();
+            }
+            logPlaywright("Ignoring unusable recording URL in project settings: " + fromProject);
+        }
+
+        return null;
+    }
+
+    /**
+     * An absolute http(s) address and nothing else.
+     *
+     * <p>The recorder command is assembled as one string and handed to a shell, so a value that
+     * is not a plain URL must not reach it. Rejecting here means a mistyped setting starts a
+     * blank recording with a note in the console, rather than a broken or surprising command.
+     *
+     * @param value the configured value
+     * @return {@code true} when it is safe to pass to the recorder
+     */
+    private boolean isUsableStartUrl(String value) {
+        if (value == null) {
+            return false;
+        }
+        String candidate = value.trim();
+        if (candidate.isEmpty() || candidate.indexOf('"') >= 0 || candidate.indexOf('%') >= 0) {
+            // '%' is legal in a URL but is what a Windows shell expands, so a percent-encoded
+            // address is refused rather than silently mangled on the way to the recorder.
+            return false;
+        }
+        try {
+            java.net.URI uri = new java.net.URI(candidate);
+            String scheme = uri.getScheme();
+            return (
+                uri.isAbsolute() &&
+                uri.getHost() != null &&
+                ("http".equalsIgnoreCase(scheme) || "https".equalsIgnoreCase(scheme))
+            );
+        } catch (java.net.URISyntaxException ex) {
+            return false;
         }
     }
 

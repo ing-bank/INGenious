@@ -19,6 +19,7 @@ public final class RecordingTarget {
     private final String scenarioName;
     private final String testCaseName;
     private final boolean reusableScenario;
+    private final String startUrl;
 
     /**
      * A target under an ordinary test scenario.
@@ -40,9 +41,33 @@ public final class RecordingTarget {
      * @throws IllegalArgumentException when either name is {@code null} or blank
      */
     public RecordingTarget(String scenarioName, String testCaseName, boolean reusableScenario) {
+        this(scenarioName, testCaseName, reusableScenario, null);
+    }
+
+    /**
+     * A target that also says which page the recording should start on.
+     *
+     * <p>Use this when the plugin knows more about the context than the project does — a test
+     * case that belongs to a different module or entry page than the project's usual one. Pass
+     * {@code null} to express no opinion, which leaves the project's own recorder setting in
+     * charge.
+     *
+     * @param scenarioName the scenario name, neither {@code null} nor blank
+     * @param testCaseName the test case name, neither {@code null} nor blank
+     * @param reusableScenario {@code true} to place the test case under a reusable scenario
+     * @param startUrl the page to open, or {@code null} for no opinion
+     * @throws IllegalArgumentException when either name is {@code null} or blank
+     */
+    public RecordingTarget(
+        String scenarioName,
+        String testCaseName,
+        boolean reusableScenario,
+        String startUrl
+    ) {
         this.scenarioName = require(scenarioName, "scenarioName");
         this.testCaseName = require(testCaseName, "testCaseName");
         this.reusableScenario = reusableScenario;
+        this.startUrl = startUrl == null || startUrl.trim().isEmpty() ? null : startUrl.trim();
     }
 
     private static String require(String value, String field) {
@@ -73,6 +98,16 @@ public final class RecordingTarget {
         return reusableScenario;
     }
 
+    /**
+     * The page the recording should start on.
+     *
+     * @return the URL, or {@code null} when this target has no opinion and the project's own
+     *     recorder setting decides
+     */
+    public String getStartUrl() {
+        return startUrl;
+    }
+
     @Override
     public boolean equals(Object other) {
         if (this == other) {
@@ -85,7 +120,8 @@ public final class RecordingTarget {
         return (
             reusableScenario == that.reusableScenario &&
             scenarioName.equals(that.scenarioName) &&
-            testCaseName.equals(that.testCaseName)
+            testCaseName.equals(that.testCaseName) &&
+            (startUrl == null ? that.startUrl == null : startUrl.equals(that.startUrl))
         );
     }
 
@@ -93,11 +129,18 @@ public final class RecordingTarget {
     public int hashCode() {
         int result = scenarioName.hashCode();
         result = 31 * result + testCaseName.hashCode();
-        return 31 * result + (reusableScenario ? 1 : 0);
+        result = 31 * result + (reusableScenario ? 1 : 0);
+        return 31 * result + (startUrl == null ? 0 : startUrl.hashCode());
     }
 
     @Override
     public String toString() {
-        return (reusableScenario ? "[Reusable] " : "") + scenarioName + " / " + testCaseName;
+        return (
+            (reusableScenario ? "[Reusable] " : "") +
+            scenarioName +
+            " / " +
+            testCaseName +
+            (startUrl == null ? "" : " @ " + startUrl)
+        );
     }
 }

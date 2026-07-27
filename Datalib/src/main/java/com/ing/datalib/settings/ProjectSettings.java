@@ -27,6 +27,7 @@ public class ProjectSettings {
     private final ExecutionSettings execSettings;
     private final DBProperties dbSettings;
     private final ContextOptions contextSettings;
+    private final RecorderSettings recorderSettings;
     private final KafkaSSLConfigurations SSLConfigurations;
     private final LambdaTestCaps lambdaTestCaps;
 
@@ -49,6 +50,7 @@ public class ProjectSettings {
         this.rpSettings = new ReportPortalSettings(getLocation());
         this.extentSettings = new ExtentReportSettings(getLocation());
         this.contextSettings = new ContextOptions(getLocation());
+        this.recorderSettings = new RecorderSettings(getLocation());
         this.SSLConfigurations = new KafkaSSLConfigurations(getLocation());
         this.lambdaTestCaps = new LambdaTestCaps(getLocation());
 
@@ -120,6 +122,15 @@ public class ProjectSettings {
 
     public KafkaSSLConfigurations getKafkaSSLConfigurations() {
         return SSLConfigurations;
+    }
+
+    /**
+     * Recorder settings for this project, such as the page a recording starts on.
+     *
+     * @return the recorder settings, never {@code null}
+     */
+    public RecorderSettings getRecorderSettings() {
+        return recorderSettings;
     }
 
     public ContextOptions getContextSettings() {
