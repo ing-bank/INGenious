@@ -49,19 +49,11 @@ public class DataAccess extends DataAccessInternal {
         String subIter
     )
         throws DataNotFoundException {
-        Object val;
-        TestDataModel env;
-        TestDataModel def = getDefModel(context, sheet);
-        if (validEnv(context)) {
-            env = getModel(context, sheet);
-            val = getData(context, env, def, field, iter, subIter);
-        } else {
-            val = getData(context, def, field, iter, subIter);
-        }
-        if (val == null) {
-            throwErrorWithCause(context, sheet, field, subIter);
-        }
-        return DataProcessor.resolve(val, context, field);
+        // Extract scenario and testcase from context to enable scope-aware filtering
+        String scn = context.scenario();
+        String tc = context.testcase();
+        // Call the 7-parameter version that supports scope filtering
+        return getData(context, sheet, field, scn, tc, iter, subIter);
     }
 
     /**
@@ -172,12 +164,51 @@ public class DataAccess extends DataAccessInternal {
         Object val = null;
         TestDataModel env;
         TestDataModel def = getDefModel(context, sheet);
+
+        // Get scope indicator if this is a scoped reusable execution
+        String scopeIndicator = null;
+        com.ing.datalib.component.ReusableRef.Scope resolvedScope = context.getResolvedReusableScope();
+        if (
+            resolvedScope != null &&
+            resolvedScope != com.ing.datalib.component.ReusableRef.Scope.UNSCOPED
+        ) {
+            scopeIndicator = "[" + resolvedScope.name() + "]";
+        }
+
         if (validEnv(context)) {
             env = getModel(context, sheet);
-            val = getDataFromModel(env, field, scn, tc, iter, subIter);
+            // Use scope-aware data access if scope is available
+            if (scopeIndicator != null) {
+                val =
+                    DataAccessInternal.getDataFromModelWithScope(
+                        env,
+                        field,
+                        scn,
+                        tc,
+                        iter,
+                        subIter,
+                        scopeIndicator
+                    );
+            } else {
+                val = getDataFromModel(env, field, scn, tc, iter, subIter);
+            }
         }
         if (val == null) {
-            val = getDataFromModel(def, field, scn, tc, iter, subIter);
+            // Use scope-aware data access if scope is available
+            if (scopeIndicator != null) {
+                val =
+                    DataAccessInternal.getDataFromModelWithScope(
+                        def,
+                        field,
+                        scn,
+                        tc,
+                        iter,
+                        subIter,
+                        scopeIndicator
+                    );
+            } else {
+                val = getDataFromModel(def, field, scn, tc, iter, subIter);
+            }
         }
         if (val == null) {
             throwErrorWithCause(context, sheet, field, subIter);

@@ -255,6 +255,32 @@ public class TestStep {
         return this;
     }
 
+    /**
+     * Creates a reusable step with explicit scope.
+     * Used when test data rows specify a scope (e.g., [Project] or [Shared]).
+     * The scope is stored in the Reference field so getEffectiveReusableRef()
+     * can properly combine it with the unscoped action.
+     *
+     * @param scenario the scenario name
+     * @param reusable the test case/reusable name
+     * @param scope the scope indicator like "[Project]" or "[Shared]", or "Project"/"Shared", or empty for unscoped
+     * @return this TestStep for method chaining
+     */
+    public TestStep asReusableStep(String scenario, String reusable, String scope) {
+        setAction(scenario + ":" + reusable);
+        setObject("Execute");
+        // Set the scope in Reference field so getEffectiveReusableRef() can use it
+        if (scope != null && !scope.trim().isEmpty()) {
+            String scopeTrimmed = scope.trim();
+            // Ensure scope is wrapped in brackets [Project] or [Shared] for parseReusableScopeFromReference()
+            if (!scopeTrimmed.startsWith("[")) {
+                scopeTrimmed = "[" + scopeTrimmed + "]";
+            }
+            setReference(scopeTrimmed);
+        }
+        return this;
+    }
+
     public TestStep asObjectStep(String objectName, String pageName) {
         setObject(objectName);
         setReference(pageName);

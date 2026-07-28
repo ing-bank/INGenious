@@ -181,7 +181,7 @@ public class TestDataAutoSuggest {
                     if (current.matches("^[123]-.*")) {
                         current = current.substring(2);
                     }
-                    if (current.startsWith("[TestPlan]")) return "Test plan";
+                    if (current.startsWith("[TestPlan]")) return "Test Plan";
                     if (current.startsWith("[Project]")) return "Project Reusable Components";
                     if (current.startsWith("[Shared]")) return "Shared Reusable Components";
                     return "";

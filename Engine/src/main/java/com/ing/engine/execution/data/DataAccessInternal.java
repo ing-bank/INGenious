@@ -74,7 +74,46 @@ public class DataAccessInternal {
     ) {
         try {
             if (notNull(model)) {
+                // If scope has been resolved for this reusable execution, use scope-aware filtering
+                // Check if model.view() supports withSubIterScope (new scope-filtering method)
                 return model.view().withSubIter(scn, tc, iter, subIter).getField(field);
+            }
+        } catch (Exception ex) {
+            LOG.log(Level.WARNING, ex.getMessage(), ex);
+        }
+        return null;
+    }
+
+    /**
+     * Get data from model with scope filtering.
+     * Used when the current execution has a resolved scope (e.g., [Project] or [Shared]).
+     */
+    protected static String getDataFromModelWithScope(
+        TestDataModel model,
+        String field,
+        String scn,
+        String tc,
+        String iter,
+        String subIter,
+        String scope
+    ) {
+        try {
+            if (notNull(model)) {
+                // Use scope-aware filtering if scope is provided
+                if (scope != null && !scope.isEmpty()) {
+                    // Check if the view has withSubIterScope method (new scope-filtering)
+                    try {
+                        return model
+                            .view()
+                            .withSubIterScope(scn, tc, iter, subIter, scope)
+                            .getField(field);
+                    } catch (NoSuchMethodError | UnsupportedOperationException e) {
+                        // Fallback to regular withSubIter if scope method not available
+                        return model.view().withSubIter(scn, tc, iter, subIter).getField(field);
+                    }
+                } else {
+                    return model.view().withSubIter(scn, tc, iter, subIter).getField(field);
+                }
             }
         } catch (Exception ex) {
             LOG.log(Level.WARNING, ex.getMessage(), ex);
@@ -233,13 +272,25 @@ public class DataAccessInternal {
      */
     protected static Set<String> getIter(TestCaseRunner context, TestDataModel def) {
         if (notNull(def)) {
-            Set<String> val = def
+            // Get root testcase view with null-safety check
+            TestDataView rootTestcaseView = def
                 .view()
-                .withTestcase(context.getRoot().scenario(), context.getRoot().testcase())
-                .getIterations();
+                .withTestcase(context.getRoot().scenario(), context.getRoot().testcase());
+
+            Set<String> val = null;
+            if (notNull(rootTestcaseView)) {
+                val = rootTestcaseView.getIterations();
+            }
+
             if (isNullOrEmpty(val)) {
-                val =
-                    def.view().withTestcase(context.scenario(), context.testcase()).getIterations();
+                // Get reusable testcase view with null-safety check
+                TestDataView reusableTestcaseView = def
+                    .view()
+                    .withTestcase(context.scenario(), context.testcase());
+
+                if (notNull(reusableTestcaseView)) {
+                    val = reusableTestcaseView.getIterations();
+                }
             }
             return val;
         }

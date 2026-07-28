@@ -1,13 +1,14 @@
 package com.ing.datalib.testdata.view;
 
-import com.ing.datalib.testdata.model.Record;
-import com.ing.ingenious.api.contract.data.TestDataViewApi;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+
+import com.ing.datalib.testdata.model.Record;
+import com.ing.ingenious.api.contract.data.TestDataViewApi;
 
 /**
  *
@@ -323,6 +324,144 @@ public abstract class TestDataView implements TestDataViewApi {
             }
             return toView(get(key));
         }
+    }
+
+    /**
+     * Get records for scenario/testcase/iteration/subiteration with scope filtering.
+     * When scope is provided (e.g., "[Project]" or "[Shared]"), only records matching that scope are returned.
+     *
+     * @param scn scenario
+     * @param tc testcase
+     * @param iter iteration
+     * @param subIter sub iteration
+     * @param scope scope indicator like "[Project]" or "[Shared]", or empty/null for no filtering
+     * @return the view filtered by scope if provided
+     */
+    /**
+     * Get records for scenario/testcase/iteration/subiteration with scope filtering.
+     * IMPORTANT: Scope filtering is applied BEFORE iteration/subIteration filtering
+     * to ensure that rows with matching scope but different subIteration values are not excluded.
+     *
+     * When scope is provided (e.g., "[Project]" or "[Shared]"), only records matching that scope are returned.
+     *
+     * @param scn scenario
+     * @param tc testcase
+     * @param iter iteration
+     * @param subIter sub iteration
+     * @param scope scope indicator like "[Project]" or "[Shared]", or empty/null for no filtering
+     * @return the view filtered by scope first, then by iteration/subIteration
+     */
+    public TestDataView withSubIterScope(
+        String scn,
+        String tc,
+        String iter,
+        String subIter,
+        String scope
+    ) {
+        // Step 1: Get all records for scenario/testcase (without iteration filtering yet)
+        List allRecordsForScenarioTestcase = getRecords(records(), scn, tc, ALL, ALL);
+
+        // Step 2: Apply scope filtering if scope is provided
+        if (scope != null && !scope.trim().isEmpty()) {
+            allRecordsForScenarioTestcase = applyScopeFilter(allRecordsForScenarioTestcase, scope);
+        }
+
+        // Step 3: Now apply iteration/subIteration filtering on the scope-filtered records
+        List<Object> iterFiltered = new ArrayList();
+
+        for (Object r : allRecordsForScenarioTestcase) {
+            try {
+                List row = (List) r;
+                // Check iteration (column 3) and subIteration (column 4) match
+                String rowIter = row.size() > 3 ? row.get(3).toString() : "";
+                String rowSubIter = row.size() > 4 ? row.get(4).toString() : "";
+
+                // Use pattern matching for iteration/subIteration (same as original logic)
+                if (rowIter.matches(iter) && rowSubIter.matches(subIter)) {
+                    iterFiltered.add(r);
+                }
+            } catch (Exception ex) {
+                // Skip rows that can't be parsed
+            }
+        }
+
+        return toView(iterFiltered);
+    }
+
+    /**
+     * Applies scope filtering to a list of records.
+     * Used by withSubIterScope to filter before iteration/subIteration matching.
+     */
+    private List applyScopeFilter(List records, String scope) {
+        String scopeTrimmed = scope.trim();
+        // Normalize scope to include brackets if not already present
+        if (!scopeTrimmed.startsWith("[")) {
+            scopeTrimmed = "[" + scopeTrimmed + "]";
+        }
+
+        List<List<String>> filtered = new ArrayList<>();
+        if (records != null) {
+            for (Object record : records) {
+                if (record instanceof List) {
+                    List<String> row = (List<String>) record;
+                    // Check if scope column (index 2) matches or is empty
+                    if (row.size() > 2) {
+                        String rowScope = row.get(2).trim();
+                        // Include if scope matches (case-insensitive) or row has no scope (backward compatibility)
+                        if (rowScope.isEmpty() || rowScope.equalsIgnoreCase(scopeTrimmed)) {
+                            filtered.add(row);
+                        }
+                    } else {
+                        // Row doesn't have scope column, include it
+                        filtered.add(row);
+                    }
+                }
+            }
+        }
+
+        return filtered;
+    }
+
+    /**
+     * Filters a view to only include records matching the specified scope.
+     * Scope column is at index 2 in Record.HEADERS.
+     * If a row has no scope (column 2 is empty), it's included (backward compatibility).
+     * Comparison is case-insensitive to handle both "[Project]" and "[PROJECT]" formats.
+     *
+     * @param view the view to filter
+     * @param scope scope indicator like "[Project]", "[Shared]", "[PROJECT]", etc.
+     * @return a new view containing only records with matching scope
+     */
+    private TestDataView filterByScope(TestDataView view, String scope) {
+        String scopeTrimmed = scope.trim();
+        // Normalize scope to include brackets if not already present
+        if (!scopeTrimmed.startsWith("[")) {
+            scopeTrimmed = "[" + scopeTrimmed + "]";
+        }
+
+        List<List<String>> filtered = new ArrayList<>();
+        List records = view.records();
+        if (records != null) {
+            for (Object record : records) {
+                if (record instanceof List) {
+                    List<String> row = (List<String>) record;
+                    // Check if scope column (index 2) matches or is empty
+                    if (row.size() > 2) {
+                        String rowScope = row.get(2).trim();
+                        // Include if scope matches (case-insensitive) or row has no scope (backward compatibility)
+                        if (rowScope.isEmpty() || rowScope.equalsIgnoreCase(scopeTrimmed)) {
+                            filtered.add(row);
+                        }
+                    } else {
+                        // Row doesn't have scope column, include it
+                        filtered.add(row);
+                    }
+                }
+            }
+        }
+
+        // Return a new view with filtered records
+        return toView(filtered);
     }
 
     //<editor-fold defaultstate="collapsed" desc="index keys">
