@@ -8,6 +8,7 @@ import com.ing.datalib.component.TestCase;
 import com.ing.datalib.component.TestStep;
 import com.ing.datalib.component.TestStep.HEADERS;
 import com.ing.datalib.component.utils.SaveListener;
+import com.ing.datalib.or.web.WebOR;
 import com.ing.datalib.or.web.WebORPage;
 import com.ing.engine.constants.SystemDefaults;
 import com.ing.engine.core.LiveRecordingHook;
@@ -781,8 +782,15 @@ public class TestCaseComponent extends JPanel implements ActionListener {
                     PlaywrightRecordingParser baseParser = new PlaywrightRecordingParser(
                         sMainFrame
                     );
-                    WebORPage objectPage = baseParser.createLiveRecordingPage(target.getName());
-                    liveRecordingPageName = baseParser.getLiveRecordingPageName();
+                    WebORPage objectPage = resolveExistingProjectPage(target);
+                    boolean preserveExistingObjects = false;
+                    if (objectPage != null) {
+                        liveRecordingPageName = objectPage.getName();
+                        preserveExistingObjects = true;
+                    } else {
+                        objectPage = baseParser.createLiveRecordingPage(target.getName());
+                        liveRecordingPageName = baseParser.getLiveRecordingPageName();
+                    }
                     String reference = "[Project] " + liveRecordingPageName;
                     liveRecordingParser =
                         new LiveRecordingParser(
@@ -790,7 +798,8 @@ public class TestCaseComponent extends JPanel implements ActionListener {
                             target,
                             firstInsertIndex,
                             reference,
-                            objectPage
+                            objectPage,
+                            preserveExistingObjects
                         );
 
                     liveRecordingOutputFile = prepareLiveRecordingOutputFile();
@@ -1192,8 +1201,6 @@ public class TestCaseComponent extends JPanel implements ActionListener {
         }
 
         switch (selection.getMode()) {
-            case CURRENT_OPEN_TEST_CASE:
-                return getCurrentTestCase();
             case NEW_TEST_SCENARIO:
                 return createOrResolveTarget(
                     selection.getScenarioName(),
@@ -1205,12 +1212,6 @@ public class TestCaseComponent extends JPanel implements ActionListener {
                     selection.getScenarioName(),
                     selection.getTestCaseName(),
                     true
-                );
-            case EXISTING_TEST_CASE:
-                return findExistingTarget(
-                    selection.getExistingScenarioName(),
-                    selection.getTestCaseName(),
-                    selection.isExistingReusable()
                 );
             default:
                 return null;
@@ -1233,13 +1234,37 @@ public class TestCaseComponent extends JPanel implements ActionListener {
             return null;
         }
 
-        TestCase testCase = scenario.getTestCaseByName(testCaseName);
-        if (testCase == null) {
-            testCase = scenario.addTestCase(testCaseName);
-        }
+        String resolvedName = resolveUniqueTestCaseName(scenario, testCaseName, reusable);
+        TestCase testCase = scenario.addTestCase(resolvedName);
 
         registerTargetInTree(testCase, reusable);
         return testCase;
+    }
+
+    private String resolveUniqueTestCaseName(
+        Scenario scenario,
+        String requestedName,
+        boolean reusable
+    ) {
+        String baseName = (requestedName == null || requestedName.trim().isEmpty())
+            ? (reusable ? "LiveRecordingReusableTestCase" : "LiveRecordingTestCase")
+            : requestedName.trim();
+        String candidate = baseName;
+        int counter = 1;
+        while (hasTestCaseNameIgnoreCase(scenario, candidate)) {
+            candidate = baseName + "_" + counter;
+            counter++;
+        }
+        return candidate;
+    }
+
+    private boolean hasTestCaseNameIgnoreCase(Scenario scenario, String name) {
+        for (TestCase existing : scenario.getTestCases()) {
+            if (existing.getName().equalsIgnoreCase(name)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     /**
@@ -1320,6 +1345,47 @@ public class TestCaseComponent extends JPanel implements ActionListener {
 
     private boolean isBlank(String value) {
         return value == null || value.trim().isEmpty();
+    }
+
+    private WebORPage resolveExistingProjectPage(TestCase target) {
+        if (
+            target == null ||
+            sMainFrame == null ||
+            sMainFrame.getProject() == null ||
+            sMainFrame.getProject().getObjectRepository() == null
+        ) {
+            return null;
+        }
+
+        WebOR webOR = sMainFrame.getProject().getObjectRepository().getWebOR();
+        if (webOR == null) {
+            return null;
+        }
+
+        for (TestStep step : target.getTestSteps()) {
+            String pageName = extractProjectPageName(step == null ? null : step.getReference());
+            if (pageName == null) {
+                continue;
+            }
+            WebORPage page = webOR.getPageByName(pageName);
+            if (page != null) {
+                return page;
+            }
+        }
+        return null;
+    }
+
+    private String extractProjectPageName(String reference) {
+        if (reference == null) {
+            return null;
+        }
+        String trimmed = reference.trim();
+        String prefix = "[Project]";
+        if (!trimmed.startsWith(prefix)) {
+            return null;
+        }
+        String pageName = trimmed.substring(prefix.length()).trim();
+        return pageName.isEmpty() ? null : pageName;
     }
 
     private File prepareLiveRecordingOutputFile() throws IOException {

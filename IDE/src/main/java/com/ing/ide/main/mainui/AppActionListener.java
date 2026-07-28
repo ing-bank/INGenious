@@ -27,8 +27,6 @@ import java.awt.event.ActionListener;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Comparator;
 import java.util.Timer;
@@ -236,11 +234,15 @@ public class AppActionListener implements ActionListener {
             case "Import via Playwright Recorder":
                 {
                     try {
-                        String ScenarioName = RecordedStepsNameDialogue.getScenarioName();
+                        String requestedScenarioName = RecordedStepsNameDialogue.getScenarioName();
                         PlaywrightRecordingParser playwrightRecordingParser = new PlaywrightRecordingParser(
                             sMainFrame
                         );
                         String ProjectLocation = sMainFrame.getProject().getLocation();
+                        String scenarioName = resolveUniqueScenarioName(
+                            ProjectLocation,
+                            requestedScenarioName
+                        );
                         sMainFrame.loadProject(ProjectLocation);
                         File recordingDir = new File(
                             ProjectLocation + File.separator + "Recording"
@@ -254,7 +256,7 @@ public class AppActionListener implements ActionListener {
                                 Comparator.comparingLong(File::lastModified).reversed()
                             );
                             File latestFile = recordingFiles[0];
-                            File duplicateFile = new File(recordingDir, ScenarioName + ".txt");
+                            File duplicateFile = new File(recordingDir, scenarioName + ".txt");
                             try {
                                 Files.copy(latestFile.toPath(), duplicateFile.toPath());
                             } catch (IOException e) {
@@ -282,7 +284,7 @@ public class AppActionListener implements ActionListener {
                         String ProjectLocation = sMainFrame.getProject().getLocation();
                         sMainFrame.loadProject(ProjectLocation);
                         playwrightRecordingParser.playwrightParser(
-                            Utils.openDialog("Playwright Recording File", "txt")
+                            Utils.openDialog("Playwright Recording File", "txt", "java")
                         );
                         sMainFrame.loadProject(ProjectLocation);
                     } catch (Exception ex) {
@@ -500,5 +502,28 @@ public class AppActionListener implements ActionListener {
         if (bddParser != null) {
             bddParser.closeEditor();
         }
+    }
+
+    private String resolveUniqueScenarioName(String projectLocation, String requestedName) {
+        String baseName = (requestedName == null || requestedName.trim().isEmpty())
+            ? "NewScenario"
+            : requestedName.trim();
+        String candidate = baseName;
+        int counter = 1;
+        while (scenarioNameExists(projectLocation, candidate)) {
+            candidate = baseName + "_" + counter;
+            counter++;
+        }
+        return candidate;
+    }
+
+    private boolean scenarioNameExists(String projectLocation, String scenarioName) {
+        File scenarioDir = new File(
+            projectLocation + File.separator + "TestPlan" + File.separator + scenarioName
+        );
+        File recordingFile = new File(
+            projectLocation + File.separator + "Recording" + File.separator + scenarioName + ".txt"
+        );
+        return scenarioDir.exists() || recordingFile.exists();
     }
 }
