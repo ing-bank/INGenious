@@ -26,10 +26,15 @@ cd INGenious
 ```
 
 ### 2. Install Dependencies
-Install the necessary dependencies using:
+`ingenious-api` is not part of the root reactor and is not published to Maven Central, so build it
+first and then the rest of the project:
 ```bash
-mvn install
+mvn clean install --file ./ingenious-api/pom.xml
+mvn clean install
 ```
+This is the same two-step the CI workflow runs. On a machine that already has
+`com.ing:ingenious-api` in its local Maven repository from an earlier build, `mvn install` on its
+own is enough.
 
 ### 3. Create a Branch
 Always create a new branch for your contributions:
