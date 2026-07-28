@@ -7,8 +7,6 @@ import java.io.File;
 import java.io.File;
 import java.nio.file.Files;
 import java.util.*;
-import java.util.*;
-import java.util.concurrent.Callable;
 import java.util.concurrent.Callable;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Mixin;
@@ -380,7 +378,11 @@ public class RunCommand implements Callable<Integer> {
     /**
      * Run a specific test case.
      */
-    @Command(name = "testcase", description = "Run a specific test case")
+    @Command(
+        name = "testcase",
+        mixinStandardHelpOptions = true,
+        description = "Run a specific test case"
+    )
     public static class TestCaseRunCommand implements Callable<Integer> {
         @ParentCommand
         private RunCommand parent;
@@ -516,7 +518,7 @@ public class RunCommand implements Callable<Integer> {
     /**
      * Run a test set (release/test set combination).
      */
-    @Command(name = "testset", description = "Run a test set")
+    @Command(name = "testset", mixinStandardHelpOptions = true, description = "Run a test set")
     public static class TestSetRunCommand implements Callable<Integer> {
         @ParentCommand
         private RunCommand parent;
@@ -614,7 +616,11 @@ public class RunCommand implements Callable<Integer> {
     /**
      * Run tests by tags.
      */
-    @Command(name = "tags", description = "Run tests matching tags")
+    @Command(
+        name = "tags",
+        mixinStandardHelpOptions = true,
+        description = "Run tests matching tags"
+    )
     public static class TagsRunCommand implements Callable<Integer> {
         @ParentCommand
         private RunCommand parent;
@@ -702,6 +708,7 @@ public class RunCommand implements Callable<Integer> {
      */
     @Command(
         name = "rerun",
+        mixinStandardHelpOptions = true,
         description = "Rerun only the failed test cases from the last execution"
     )
     public static class RerunCommand implements Callable<Integer> {
