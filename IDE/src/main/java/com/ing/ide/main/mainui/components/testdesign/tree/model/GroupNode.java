@@ -60,7 +60,7 @@ public class GroupNode extends CommonNode {
         return false;
     }
 
-    public static List<GroupNode> toList(Enumeration<TreeNode> children) {
+    public static List<GroupNode> toList(Enumeration<? extends TreeNode> children) {
         return Collections
             .list(children)
             .stream()
