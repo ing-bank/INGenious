@@ -10,7 +10,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -52,8 +51,38 @@ public class TestMgmtModule {
                             .constructCollectionType(List.class, TestMgModule.class)
                     );
             }
+            mergeMissingDefaultModules();
         } catch (IOException ex) {
             Logger.getLogger(TestMgmtModule.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+
+    private void mergeMissingDefaultModules() {
+        List<TestMgModule> defaultModules = loadDefaultModules();
+        for (TestMgModule defaultModule : defaultModules) {
+            if (getModule(defaultModule.getModule()) == null) {
+                List<Option> copiedOptions = new ArrayList<>();
+                for (Option option : defaultModule.getOptions()) {
+                    copiedOptions.add(new Option(option.getName(), option.getValue()));
+                }
+                TestMgModule moduleToAdd = new TestMgModule(defaultModule.getModule());
+                moduleToAdd.setOptions(copiedOptions);
+                modules.add(moduleToAdd);
+            }
+        }
+    }
+
+    private List<TestMgModule> loadDefaultModules() {
+        try {
+            return objMapper.readValue(
+                FileScanner.getResourceString("TMModules.json"),
+                objMapper.getTypeFactory().constructCollectionType(List.class, TestMgModule.class)
+            );
+        } catch (IOException ex) {
+            Logger
+                .getLogger(TestMgmtModule.class.getName())
+                .log(Level.WARNING, "Unable to load default test management modules", ex);
+            return new ArrayList<>();
         }
     }
 
@@ -62,7 +91,7 @@ public class TestMgmtModule {
     }
 
     public Map<String, String> asMap() {
-        Map<String, String> map = new HashMap();
+        Map<String, String> map = new HashMap<>();
         for (TestMgModule module : modules) {
             for (Option option : module.getOptions()) {
                 map.put(option.getName(), option.getValue());

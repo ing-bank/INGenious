@@ -33,6 +33,7 @@ import com.ing.ide.util.Notification;
 import com.ing.ide.util.Validator;
 import java.awt.Color;
 import java.awt.Component;
+import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.FontFormatException;
 import java.awt.GraphicsEnvironment;
@@ -58,10 +59,14 @@ import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.Icon;
 import javax.swing.JComponent;
+import javax.swing.JLabel;
 import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
+import javax.swing.JPanel;
 import javax.swing.JPopupMenu;
+import javax.swing.JScrollPane;
+import javax.swing.JTextArea;
 import javax.swing.JTree;
 import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
@@ -662,14 +667,10 @@ public class ProjectTree implements ActionListener {
     private void deleteScenarios() {
         List<ScenarioNode> scenarioNodes = getSelectedScenarioNodes();
         if (!scenarioNodes.isEmpty()) {
-            int option = JOptionPane.showConfirmDialog(
-                null,
-                "<html><body><p style='width: 200px;'>" +
-                "Are you sure want to delete the following Scenarios?<br>" +
-                scenarioNodes +
-                "</p></body></html>",
+            int option = showScrollableDeleteConfirmation(
                 "Delete Scenario",
-                JOptionPane.YES_NO_OPTION
+                "Scenarios",
+                scenarioNodes
             );
             if (option == JOptionPane.YES_OPTION) {
                 LOGGER.log(
@@ -701,14 +702,10 @@ public class ProjectTree implements ActionListener {
     private void deleteTestCases() {
         List<TestCaseNode> testcaseNodes = getSelectedTestCaseNodes();
         if (!testcaseNodes.isEmpty()) {
-            int option = JOptionPane.showConfirmDialog(
-                null,
-                "<html><body><p style='width: 200px;'>" +
-                "Are you sure want to delete the following TestCases?<br>" +
-                testcaseNodes +
-                "</p></body></html>",
+            int option = showScrollableDeleteConfirmation(
                 "Delete TestCase",
-                JOptionPane.YES_NO_OPTION
+                "TestCases",
+                testcaseNodes
             );
             if (option == JOptionPane.YES_OPTION) {
                 LOGGER.log(
@@ -719,6 +716,49 @@ public class ProjectTree implements ActionListener {
                 deleteTestCases(testcaseNodes);
             }
         }
+    }
+
+    /**
+     * Shows a delete confirmation dialog with a scrollable list so action buttons stay visible.
+     * @param title dialog title
+     * @param itemType display name for the selected item type
+     * @param selectedItems selected items to display
+     * @return JOptionPane option value
+     */
+    private int showScrollableDeleteConfirmation(
+        String title,
+        String itemType,
+        List<?> selectedItems
+    ) {
+        JPanel messagePanel = new JPanel(new java.awt.BorderLayout(0, 8));
+        messagePanel.add(
+            new JLabel("Are you sure want to delete the following " + itemType + "?"),
+            java.awt.BorderLayout.NORTH
+        );
+
+        JTextArea itemsArea = new JTextArea();
+        itemsArea.setEditable(false);
+        itemsArea.setLineWrap(false);
+        itemsArea.setWrapStyleWord(false);
+
+        StringBuilder content = new StringBuilder();
+        for (Object item : selectedItems) {
+            content.append(item).append(System.lineSeparator());
+        }
+        itemsArea.setText(content.toString());
+        itemsArea.setCaretPosition(0);
+
+        JScrollPane scrollPane = new JScrollPane(itemsArea);
+        scrollPane.setPreferredSize(new Dimension(360, 180));
+        messagePanel.add(scrollPane, java.awt.BorderLayout.CENTER);
+
+        return JOptionPane.showConfirmDialog(
+            null,
+            messagePanel,
+            title,
+            JOptionPane.YES_NO_OPTION,
+            JOptionPane.WARNING_MESSAGE
+        );
     }
 
     /**
@@ -1872,6 +1912,108 @@ public class ProjectTree implements ActionListener {
             renameGroup.setVisible(rename);
             deleteGroup.setVisible(delete);
             moveToGroup.setVisible(move);
+
+            // Clean up orphaned separators after visibility changes
+            cleanupOrphanedSeparators();
+        }
+
+        /**
+         * Hides separators that are orphaned or duplicate.
+         * A separator is hidden if:
+         * 1. It's between two groups where one or both have no visible items, AND
+         * 2. There's another separator adjacent to it with only hidden items between them (consecutive duplicate).
+         *
+         * This ensures that when a group of items (like group actions) is completely hidden,
+         * we don't get multiple consecutive separators, but keep exactly one separator between
+         * the surrounding visible item groups.
+         *
+         * Since the menu is reused, separators are hidden rather than removed to allow proper restoration.
+         */
+        private void cleanupOrphanedSeparators() {
+            java.util.List<Integer> separatorIndices = new java.util.ArrayList<>();
+
+            // Find all separator indices
+            for (int i = 0; i < getComponentCount(); i++) {
+                java.awt.Component comp = getComponent(i);
+                if (comp instanceof javax.swing.JSeparator) {
+                    separatorIndices.add(i);
+                }
+            }
+
+            // For each separator, determine if it should be hidden
+            for (int sepIdx : separatorIndices) {
+                boolean hasVisibleBefore = false;
+                boolean hasVisibleAfter = false;
+
+                // Find the nearest visible item before this separator
+                // (stop at the previous separator, don't look across separator boundaries)
+                for (int i = sepIdx - 1; i >= 0; i--) {
+                    java.awt.Component comp = getComponent(i);
+                    if (comp != null && comp instanceof javax.swing.JSeparator) {
+                        // Hit another separator, stop looking
+                        break;
+                    }
+                    if (comp != null && comp.isVisible()) {
+                        hasVisibleBefore = true;
+                        break;
+                    }
+                }
+
+                // Find the nearest visible item after this separator
+                // (stop at the next separator, don't look across separator boundaries)
+                for (int i = sepIdx + 1; i < getComponentCount(); i++) {
+                    java.awt.Component comp = getComponent(i);
+                    if (comp != null && comp instanceof javax.swing.JSeparator) {
+                        // Hit another separator, stop looking
+                        break;
+                    }
+                    if (comp != null && comp.isVisible()) {
+                        hasVisibleAfter = true;
+                        break;
+                    }
+                }
+
+                java.awt.Component separator = getComponent(sepIdx);
+                if (separator == null) {
+                    continue;
+                }
+
+                // If one or both sides have no visible items (orphaned separator)
+                if (!hasVisibleBefore || !hasVisibleAfter) {
+                    // Check if this is a duplicate separator (has another orphaned separator adjacent)
+                    // Only keep the first one, hide subsequent duplicates
+                    boolean isDuplicate = false;
+
+                    // Check if there's another orphaned separator before this one
+                    for (int idx : separatorIndices) {
+                        if (idx >= sepIdx) {
+                            break; // Only check separators before this one
+                        }
+                        // Check if that separator is also orphaned
+                        boolean thatHasVisibleAfter = false;
+                        for (int i = idx + 1; i < getComponentCount(); i++) {
+                            java.awt.Component comp = getComponent(i);
+                            if (comp != null && comp instanceof javax.swing.JSeparator) {
+                                break;
+                            }
+                            if (comp != null && comp.isVisible()) {
+                                thatHasVisibleAfter = true;
+                                break;
+                            }
+                        }
+                        if (!thatHasVisibleAfter) {
+                            // Previous separator is also orphaned with nothing after it
+                            isDuplicate = true;
+                            break;
+                        }
+                    }
+
+                    separator.setVisible(!isDuplicate);
+                } else {
+                    // Keep separator if it has visible items on both sides
+                    separator.setVisible(true);
+                }
+            }
         }
 
         /**

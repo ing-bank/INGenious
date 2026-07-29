@@ -66,6 +66,10 @@ Release Date: <insert date of release>
 - Disabled edit mode on `Scope` field in Test datasheet to prevent user edits while maintaining visibility of the configured scope.
 - Updated the list and display order of test cases in Test Data and Test Plan to improve usability and maintain a consistent user experience.
 - Ensured Shared Reusables continue to correctly reference and inherit their associated Test Datasheet scope.
+- Enhanced all bulk Delete confirmation dialog to support scrolling, improving usability when deleting a large number of test cases, objects, releases and test sets
+- Disabled edit mode on `Scope` field in Test datasheet to prevent user edits while maintaining visibility of the configured scope.
+- Updated the list and display order of test cases in Test Data and Test Plan to improve usability and maintain a consistent user experience.
+- Ensured Shared Reusables continue to correctly reference and inherit their associated Test Datasheet scope.
 
 #### Deprecated
 
@@ -87,11 +91,15 @@ Release Date: <insert date of release>
 - Added missing Web Objects for sample project Tutorial
 - Fixed column add/delete behavior in datasheet related to frozen columns
 - Fixed OR Tables' add row (+) button 
-- Updated suffix handling for copied objects/pages so it is only applied when another object or page with the same name already exists
+- Updated suffix handling for copied scenarios, test cases, objects, and pages to apply only when an item with the same name already exists
 - Resolved issues with multi-object and multi-page copy-paste and cut-paste operations in the Object Repository
 - Fixed issue where enabling or disabling the LambdaTest option in the Manange Devices caused the Properties table to display empty entries.
 - Corrected Save button behavior that becomes disabled after switching applications using Alt+Tab, despite having unsaved changes.
 - Fixed behavior in the LambdaTest Remote URL field where the cursor unexpectedly jumped to the beginning of the text after typing characters beyond the @ symbol.
+- Add Row (+) button is restricted to the first column hover
+- Enhanced Object Repository object name validation to prevent the creation of duplicate object names, regardless of letter casing (e.g., LoginButton, loginbutton, and LOGINBUTTON are now treated as duplicates).
+- Fix context menu options for Reusable Component Test Cases for `New Group` option
+- Added missing Test Manager option under TM Settings dropdown
 - Resolved issues with Test datasheet references in Reusable components.
 - Fixed the delete confirmation message for Impacted Assets to ensure correct notification and confirmation behavior during deletion actions.
 
@@ -124,6 +132,7 @@ Release Date: <insert date of release>
 - Fixed Playwright recordings to correctly capture and insert page/tab switch actions in multi-tab scenarios.
 - Fixed iframe element detection during live Playwright recording to correctly populate frame-related Object Repository attributes.
 - Fixed `Record From Here` recordings being inserted at the beginning of a test case instead of immediately after the selected step.
+- Fixed Live Recorder to prevent test case overwrite by appending suffix to duplicate names
 
 ### Mobile App Testing
 
@@ -201,6 +210,7 @@ Release Date: <insert date of release>
     - Added defensive fallback in `APIHttpClient`
     - Dropped client-managed headers (`Content-Length`, `Accept-Encoding`) silently
 - Conversion from API Request to Test Case now transfers username and password fields when using Basic Auth
+- Fixed Bruno importer parsing of URLs containing `//`
 
 ### Message Testing
 
@@ -263,6 +273,7 @@ Release Date: <insert date of release>
 - Applied Prettier formatting updates
 - Enhanced HTML summary clickable rows (Tabulator v6 fix)
 - Implemented HTML report in-page Console Viewer with working filter under `file://`
+- Updated `project upgrade` and `project validate` CLI, included migration of Test data new `Scope` field and disabled auto-migration of project for `validate` command
 
 #### Deprecated
 
@@ -293,3 +304,12 @@ Release Date: <insert date of release>
 #### Fixed
 
 - Fixed unit test for EnvTest Data Cross Environment Rename
+
+### Contribution
+
+#### Added
+#### Changed
+#### Deprecated
+#### Removed
+#### Fixed
+- by Palmieri, G. (Gianluca) [@palmierigianlu](https://github.com/palmierigianlu): Fixed SQL query editor error that occurs after formatting queries with Beautify or inserting manual line breaks.

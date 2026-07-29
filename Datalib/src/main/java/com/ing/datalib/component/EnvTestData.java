@@ -171,6 +171,8 @@ public class EnvTestData {
 
     private void loadForEnv(String env) {
         TestData stestData = TestDataFactory.get(sProject.getTestdataType(), sProject, env);
+        // Propagate read-only mode to prevent datasheet migrations during validation
+        stestData.setReadOnlyMode(sProject.isReadOnlyMode());
         stestData.load();
         environmentTestData.put(env, stestData);
     }

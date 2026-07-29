@@ -153,7 +153,12 @@ public final class BrunoParser {
                 } else if (ch == '"' || ch == '\'') {
                     inStr = true;
                     q = ch;
-                } else if (ch == '/' && k + 1 < val.length() && val.charAt(k + 1) == '/') {
+                } else if (
+                    ch == '/' &&
+                    k + 1 < val.length() &&
+                    val.charAt(k + 1) == '/' &&
+                    (k == 0 || Character.isWhitespace(val.charAt(k - 1)))
+                ) {
                     commentIdx = k;
                     break;
                 }

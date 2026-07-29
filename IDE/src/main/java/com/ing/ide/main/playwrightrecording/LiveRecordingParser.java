@@ -45,6 +45,7 @@ public class LiveRecordingParser {
     private final String referenceValue;
     private final int firstInsertIndex;
     private final WebORPage objectPage;
+    private final boolean preserveExistingObjects;
 
     private int addedCount = 0;
     private String lastSignature = null;
@@ -58,11 +59,34 @@ public class LiveRecordingParser {
         String referenceValue,
         WebORPage objectPage
     ) {
+        this(parser, testCase, firstInsertIndex, referenceValue, objectPage, false);
+    }
+
+    /**
+     * Creates a live recording parser.
+     *
+     * @param parser                   the base Playwright recording parser
+     * @param testCase                 the test case to populate with recorded steps
+     * @param firstInsertIndex         the index where recorded steps should be inserted
+     * @param referenceValue           the reference value for recorded steps
+     * @param objectPage               the Web OR page to register recorded objects
+     * @param preserveExistingObjects  if {@code true}, preserve any existing objects in the page (for RecordFromHere);
+     *                                 if {@code false}, clear objects for a fresh rebuild
+     */
+    public LiveRecordingParser(
+        PlaywrightRecordingParser parser,
+        TestCase testCase,
+        int firstInsertIndex,
+        String referenceValue,
+        WebORPage objectPage,
+        boolean preserveExistingObjects
+    ) {
         this.parser = parser;
         this.testCase = testCase;
         this.referenceValue = referenceValue;
         this.firstInsertIndex = Math.max(firstInsertIndex, 0);
         this.objectPage = objectPage;
+        this.preserveExistingObjects = preserveExistingObjects;
     }
 
     /**
@@ -83,7 +107,8 @@ public class LiveRecordingParser {
         // objects into the recording page.
         List<PlaywrightRecordingParser.ParsedStep> parsedSteps = parser.parseLinesToSteps(
             fileLines,
-            objectPage
+            objectPage,
+            preserveExistingObjects
         );
 
         String signature = buildSignature(parsedSteps);

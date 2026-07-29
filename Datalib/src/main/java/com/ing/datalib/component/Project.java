@@ -7,6 +7,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ing.datalib.component.io.ProjectMigrator;
 import com.ing.datalib.component.utils.FileUtils;
+import com.ing.datalib.component.utils.NamingUtils;
 import com.ing.datalib.component.utils.SortOrderStore;
 import com.ing.datalib.exception.TestCaseConversionException;
 import com.ing.datalib.model.DataItem;
@@ -85,6 +86,22 @@ public class Project {
     private int lastImpactedReusableReferenceUpdates = 0;
 
     /**
+     * When true, skips auto-migrations on project load to ensure read-only validation.
+     * Used by validation operations to prevent unintended file modifications.
+     */
+    private boolean readOnlyMode = false;
+
+    /**
+     * Returns whether this Project is in read-only mode.
+     * When true, no migrations, transformations, or file saves should occur.
+     *
+     * @return true if in read-only mode, false otherwise
+     */
+    public boolean isReadOnlyMode() {
+        return readOnlyMode;
+    }
+
+    /**
      * Constructs a new project with the specified name, location, and test data type.
      * @param name project name
      * @param projectLocation parent directory where the project will be located
@@ -118,6 +135,22 @@ public class Project {
     }
 
     /**
+     * Constructs a new project from an existing project location in read-only mode.
+     * When readOnlyMode is true, auto-migrations (CSV to YAML, XML, legacy references)
+     * are skipped to ensure the project structure is not modified during inspection.
+     * This is used for validation operations where no file modifications should occur.
+     * @param projectLocation absolute path to the project directory
+     * @param readOnlyMode when true, skips all migration logic during load
+     */
+    public Project(String projectLocation, boolean readOnlyMode) {
+        this.name = new File(projectLocation).getName();
+        this.location = projectLocation;
+        this.testdataType = "csv";
+        this.readOnlyMode = readOnlyMode;
+        load();
+    }
+
+    /**
      * Initiates the project loading process.
      */
     private void load() {
@@ -139,32 +172,63 @@ public class Project {
     /**
      * Loads all project components from disk including scenarios, test sets, test data, settings, and object repository.
      * Performs migration of legacy reusable component XML if present and auto-migrates CSV test cases to YAML if enabled.
+     * When in read-only mode, all migrations are skipped to prevent file modifications.
      */
     private void loadProject() {
         // Load project info early to check migration flags
         projectInfo = loadProjectInfo(getProjectFile());
 
-        // Auto-migrate CSV test cases to YAML if enabled
-        migrateTestsFromCsvToYaml();
-
+        // ════════════════════════════════════════════════════════════════════
+        // Phase 1: Load all project components (read-only, always executed)
+        // ════════════════════════════════════════════════════════════════════
         loadScenariosFromTestPlan();
         loadTestSets();
-        migrateReusableComponentXmlIfPresent();
         loadScenariosFromTestPlan();
         loadScenariosFromReusableComponents();
         loadScenariosFromSharedReusableComponents();
         loadTestDatas();
-        projectSettings = new ProjectSettings(this);
-        objectRepository = new ObjectRepository(this);
-        migrateLegacyReusableExecuteReferencesOnLoad();
+        projectSettings = new ProjectSettings(this, readOnlyMode);
+        objectRepository = new ObjectRepository(this, readOnlyMode);
+        // Note: ObjectRepository constructor now receives readOnlyMode to skip XML->YAML migration
 
-        // Reconcile shared reusable project tracking on load to clean stale entries
-        try {
-            reconcileSharedReusableProjectsItems();
-        } catch (Exception ex) {
-            Logger
-                .getLogger(Project.class.getName())
-                .log(Level.WARNING, "Failed to reconcile shared reusable projects items", ex);
+        // ════════════════════════════════════════════════════════════════════
+        // Phase 1.5: Propagate read-only mode to components
+        // ════════════════════════════════════════════════════════════════════
+        if (readOnlyMode) {
+            // Propagate read-only mode to prevent migrations during validation
+            for (Scenario scenario : scenarios) {
+                scenario.setReadOnlyMode(true);
+            }
+            for (Scenario scenario : reusableScenarios) {
+                scenario.setReadOnlyMode(true);
+            }
+            for (Scenario scenario : sharedReusableScenarios) {
+                scenario.setReadOnlyMode(true);
+            }
+            // Note: TestData readOnlyMode is propagated in EnvTestData.loadForEnv()
+        }
+
+        // ════════════════════════════════════════════════════════════════════
+        // Phase 2: Apply migrations and reconciliation (skipped in read-only)
+        // ════════════════════════════════════════════════════════════════════
+        if (!readOnlyMode) {
+            // Auto-migrate CSV test cases to YAML if enabled
+            migrateTestsFromCsvToYaml();
+
+            // Migrate reusable component XML if present
+            migrateReusableComponentXmlIfPresent();
+
+            // Migrate legacy Execute references
+            migrateLegacyReusableExecuteReferencesOnLoad();
+
+            // Reconcile shared reusable project tracking to clean stale entries
+            try {
+                reconcileSharedReusableProjectsItems();
+            } catch (Exception ex) {
+                Logger
+                    .getLogger(Project.class.getName())
+                    .log(Level.WARNING, "Failed to reconcile shared reusable projects items", ex);
+            }
         }
     }
 
@@ -1015,24 +1079,27 @@ public class Project {
     }
 
     /**
-     * Generates a unique scenario name by applying iteration if the name exists in any scope.
-     * For copy operations, adds " Copy" before the iteration number.
+     * Checks if a scenario exists in reusable scopes only (project/shared reusable).
+     */
+    private boolean scenarioExistsInReusableScopes(String scenarioName) {
+        return (
+            getReusableScenarioByName(scenarioName) != null ||
+            getSharedReusableScenarioByName(scenarioName) != null
+        );
+    }
+
+    /**
+     * Generates a unique reusable-scope scenario name by appending "_n" only when duplicates exist.
+     * Test Plan scenarios do not influence this naming.
      * @param baseName base scenario name
      * @param isCopy true if this is a copy operation, false if move
      * @return unique name or baseName if not in use
      */
-    private String makeScenarioNameUniqueAcrossScopes(String baseName, boolean isCopy) {
-        String candidate = baseName;
-        if (!scenarioExistsInAnyScope(candidate)) {
-            return candidate;
+    private String makeScenarioNameUnique(String baseName, boolean isCopy) {
+        if (!isCopy) {
+            return baseName;
         }
-        int i = 1;
-        String pattern = isCopy ? baseName + " Copy(" + i + ")" : baseName + "(" + i + ")";
-        while (scenarioExistsInAnyScope(pattern)) {
-            i++;
-            pattern = isCopy ? baseName + " Copy(" + i + ")" : baseName + "(" + i + ")";
-        }
-        return pattern;
+        return NamingUtils.generateUniqueName(baseName, this::scenarioExistsInReusableScopes);
     }
 
     /**
@@ -1150,7 +1217,7 @@ public class Project {
                 );
             }
         }
-        // For copy operations: no validation needed - names will be appended with Copy(n)
+        // For copy operations, naming is resolved with collision-only suffixing.
 
         Scenario targetScenario = getOrCreateScenarioForScope(targetSource, scenarioName, !move);
         if (targetScenario == null) {
@@ -1281,7 +1348,7 @@ public class Project {
             return addScenarioInScope(scope, scenarioName);
         }
 
-        String uniqueName = makeScenarioNameUniqueAcrossScopes(scenarioName, true);
+        String uniqueName = makeScenarioNameUnique(scenarioName, true);
         if (scope == Scenario.Source.REUSABLE_COMPONENTS) {
             Scenario scenario = getReusableScenarioByName(uniqueName);
             return scenario != null ? scenario : addScenarioInScope(scope, uniqueName);
@@ -1321,19 +1388,14 @@ public class Project {
     }
 
     private String uniqueNameInScenario(Scenario scenario, String baseName, boolean isCopy) {
-        String candidate = baseName;
         if (!isCopy) {
             // For move operations, keep original name
-            return candidate;
+            return baseName;
         }
-        // For copy operations, add Copy with iteration
-        int i = 1;
-        candidate = baseName + " Copy(" + i + ")";
-        while (scenario.getTestCaseByName(candidate) != null) {
-            i++;
-            candidate = baseName + " Copy(" + i + ")";
-        }
-        return candidate;
+        return NamingUtils.generateUniqueName(
+            baseName,
+            name -> scenario.getTestCaseByName(name) != null
+        );
     }
 
     private void cleanupEmptyScenario(Scenario scenario) {

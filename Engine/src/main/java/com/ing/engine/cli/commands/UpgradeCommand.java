@@ -2,9 +2,12 @@ package com.ing.engine.cli.commands;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
+import com.ing.datalib.component.EnvTestData;
 import com.ing.datalib.component.Project;
+import com.ing.datalib.component.TestData;
 import com.ing.datalib.component.io.ProjectMigrator;
 import com.ing.datalib.component.io.TestCaseYaml;
+import com.ing.datalib.testdata.model.TestDataModel;
 import com.ing.engine.cli.INGeniousCLI;
 import com.ing.engine.cli.output.Silencer;
 import com.ing.engine.cli.output.Style;
@@ -26,10 +29,13 @@ import picocli.CommandLine.Option;
 import picocli.CommandLine.Parameters;
 
 /**
- * Interactive project upgrade wizard. Walks the user through four
+ * Interactive project upgrade wizard. Walks the user through five
  * independent modernisation steps:
  *
  * <ol>
+ *   <li><b>Test data migration</b> — add the new {@code Scope} field to all test data sheets
+ *       if missing. This step runs FIRST before any project load to ensure proper migration
+ *       and reporting. The migration is automatically applied when accessing test data columns.</li>
  *   <li><b>Object Repositories</b> — convert {@code IOR.object}, {@code MOR.object},
  *       {@code StructuredDataOR.object}, {@code SapOR.object} (and their Shared
  *       siblings) to per-page YAML under {@code ObjectRepository/}.
@@ -46,9 +52,21 @@ import picocli.CommandLine.Parameters;
  *       {@code reusable: <name>} belongs in {@code ReusableComponents/};
  *       relocate while preserving the scenario sub-folder.</li>
  * </ol>
+ *       {@code reusable: <name>} belongs in {@code ReusableComponents/};
+ *       relocate while preserving the scenario sub-folder.</li>
+ * </ol>
  *
  * <p>Each step prompts before executing. Use {@code --yes} to accept all
  * defaults, or {@code --dry-run} to preview without writing.
+ *
+ * <p><b>Auto-Migration on Project Load</b>: When a project is loaded,
+ * the framework automatically applies test case and test data migrations
+ * based on {@code projectinfo.json} flags:
+ * <ul>
+ *   <li>{@code autoMigrateCsvToYaml} (default: true) — enables automatic CSV to YAML conversion</li>
+ *   <li>{@code keepCsvBackupOnMigrate} (default: true) — preserves originals in {@code .migration-backup/}</li>
+ * </ul>
+ * These auto-migrations ensure your project stays current as framework versions evolve.</p>
  */
 @Command(
     name = "upgrade",
@@ -112,7 +130,19 @@ public class UpgradeCommand implements Callable<Integer> {
 
         int totalChanges = 0;
 
-        // --- Step 1: Object Repository XML → YAML -------------------------
+        // --- Step 1: Test Data Migration (Scope field) --------------------
+        // Run this FIRST before any project load to ensure we capture the migration
+        if (plan.testDataSheets > 0) {
+            System.out.println(); // Add blank line for separation
+            cli.printHeader("Step 1: Test Data Migration");
+            cli.printInfo(
+                "Migrating " + plan.testDataSheets + " test datasheet(s) to add Scope field..."
+            );
+            totalChanges += migrateTestDataSheets(cli, projectDir);
+            System.out.println(); // Add blank line after migration
+        }
+
+        // --- Step 2: Object Repository XML → YAML -------------------------
         if (plan.hasXmlOR && askYes(cli, "Convert Object Repositories from XML to YAML?", true)) {
             totalChanges += upgradeObjectRepository(cli, projectDir);
             // Conversion archives the originals to ProjectXMLOR/ and leaves
@@ -121,7 +151,7 @@ public class UpgradeCommand implements Callable<Integer> {
             rescanDeprecated(projectDir, plan);
         }
 
-        // --- Step 2: Test cases CSV → YAML --------------------------------
+        // --- Step 3: Test cases CSV → YAML --------------------------------
         if (
             plan.csvTestCases > 0 &&
             askYes(
@@ -133,7 +163,7 @@ public class UpgradeCommand implements Callable<Integer> {
             totalChanges += upgradeTestCases(cli, projectDir);
         }
 
-        // --- Step 3: Deprecated files cleanup -----------------------------
+        // --- Step 4: Deprecated files cleanup -----------------------------
         if (
             !plan.deprecated.isEmpty() &&
             askYes(
@@ -145,7 +175,7 @@ public class UpgradeCommand implements Callable<Integer> {
             totalChanges += cleanupDeprecated(cli, plan.deprecated);
         }
 
-        // --- Step 4: Relocate mislocated reusables ------------------------
+        // --- Step 5: Relocate mislocated reusables ------------------------
         if (
             !plan.mislocatedReusables.isEmpty() &&
             askYes(
@@ -186,6 +216,7 @@ public class UpgradeCommand implements Callable<Integer> {
         boolean hasXmlOR;
         final List<File> xmlORFiles = new ArrayList<>();
         int csvTestCases;
+        int testDataSheets;
         final List<File> deprecated = new ArrayList<>();
         final List<File> mislocatedReusables = new ArrayList<>();
 
@@ -193,6 +224,7 @@ public class UpgradeCommand implements Callable<Integer> {
             return (
                 hasXmlOR ||
                 csvTestCases > 0 ||
+                testDataSheets > 0 ||
                 !deprecated.isEmpty() ||
                 !mislocatedReusables.isEmpty()
             );
@@ -238,6 +270,13 @@ public class UpgradeCommand implements Callable<Integer> {
             countCsv(new File(projectDir, "ReusableComponents")) +
             countCsv(new File(projectDir, "TestLab"));
 
+        // Count test data sheets (CSV or YAML) without loading project (to avoid premature migration)
+        // TestData sheets are stored under TestData/<environment>/ directories
+        File testDataDir = new File(projectDir, "TestData");
+        if (testDataDir.isDirectory()) {
+            plan.testDataSheets = countCsv(testDataDir) + countYaml(testDataDir);
+        }
+
         // Deprecated files / archive folders.
         for (String name : new String[] {
             "ReusableComponent.xml.bak",
@@ -273,7 +312,35 @@ public class UpgradeCommand implements Callable<Integer> {
         try (Stream<Path> stream = Files.walk(root.toPath())) {
             return (int) stream
                 .filter(Files::isRegularFile)
-                .filter(p -> p.getFileName().toString().toLowerCase().endsWith(".csv"))
+                .filter(
+                    p -> {
+                        String name = p.getFileName().toString().toLowerCase();
+                        // Exclude GlobalData.csv from count (it's not a test datasheet)
+                        return name.endsWith(".csv") && !name.equals("globaldata.csv");
+                    }
+                )
+                .count();
+        } catch (IOException ignored) {
+            return 0;
+        }
+    }
+
+    private int countYaml(File root) {
+        if (root == null || !root.isDirectory()) return 0;
+        try (Stream<Path> stream = Files.walk(root.toPath())) {
+            return (int) stream
+                .filter(Files::isRegularFile)
+                .filter(
+                    p -> {
+                        String name = p.getFileName().toString().toLowerCase();
+                        // Exclude GlobalData.yaml/yml from count (it's not a test datasheet)
+                        return (
+                            (name.endsWith(".yaml") || name.endsWith(".yml")) &&
+                            !name.equals("globaldata.yaml") &&
+                            !name.equals("globaldata.yml")
+                        );
+                    }
+                )
                 .count();
         } catch (IOException ignored) {
             return 0;
@@ -348,6 +415,11 @@ public class UpgradeCommand implements Callable<Integer> {
             s,
             "CSV test cases",
             plan.csvTestCases == 0 ? "none" : plan.csvTestCases + " file(s)"
+        );
+        bullet(
+            s,
+            "Test datasheets",
+            plan.testDataSheets == 0 ? "none" : plan.testDataSheets + " sheet(s)"
         );
         bullet(
             s,
@@ -435,7 +507,63 @@ public class UpgradeCommand implements Callable<Integer> {
         for (String err : r.errors) {
             cli.printError(err);
         }
+
         return r.converted.size() + r.conflicts.size();
+    }
+
+    /**
+     * Migrates test data sheets by adding the new Scope field (if missing).
+     * This is automatically applied when test cases are migrated or when the
+     * project is loaded. This method reports the migration statistics to the user.
+     * Reports how many test datasheets were processed and any failures.
+     */
+    private int migrateTestDataSheets(INGeniousCLI cli, File projectDir) {
+        int processedCount = 0;
+        int failedCount = 0;
+
+        try {
+            // Use Silencer only for project load and migration, not for reporting
+            try (Silencer silenced = Silencer.aroundProjectLoad()) {
+                Project project = new Project(projectDir.getAbsolutePath());
+
+                // Load and migrate all test data sheets across all environments
+                EnvTestData envTestData = project.getTestData();
+                if (envTestData != null) {
+                    for (TestData testData : envTestData.getAllEnvironments()) {
+                        if (testData != null) {
+                            try {
+                                // Iterate through all test data sheets and trigger migration
+                                for (TestDataModel sheet : testData.getTestDataList()) {
+                                    if (sheet != null) {
+                                        // Accessing columns triggers migrateColumnsIfNeeded()
+                                        sheet.getColumns();
+                                        processedCount++;
+                                    }
+                                }
+                            } catch (Exception ex) {
+                                failedCount++;
+                                // Store error for later reporting outside Silencer
+                            }
+                        }
+                    }
+                }
+            } // Silencer ends here
+
+            // Report migration results OUTSIDE Silencer - always report if we found any sheets
+            if (processedCount > 0) {
+                cli.printSuccess(
+                    processedCount + " test datasheet(s) processed for Scope field migration."
+                );
+            }
+            if (failedCount > 0) {
+                cli.printWarning(failedCount + " test datasheet(s) failed to migrate.");
+            }
+
+            return processedCount + failedCount;
+        } catch (Exception ex) {
+            cli.printWarning("Could not load project for test data migration: " + ex.getMessage());
+            return 0;
+        }
     }
 
     /** Deletes the deprecated file/folder list collected during scan. */

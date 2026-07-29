@@ -73,14 +73,30 @@ public class ObjectRepository {
     private YamlORWriter yamlWriter;
 
     /**
+     * When true, skips XML-to-YAML migration to ensure read-only operation (e.g., during validation).
+     */
+    private boolean readOnlyMode = false;
+
+    /**
      * Creates an ObjectRepository for the given project and loads all OR files
      * (project WebOR, shared WebOR, and MobileOR), initializing defaults when missing.
      *
      * @param sProject the project owning this repository
+     * @param readOnlyMode true to skip migrations and preserve files as-is
+     */
+    public ObjectRepository(Project sProject, boolean readOnlyMode) {
+        this.sProject = sProject;
+        this.readOnlyMode = readOnlyMode;
+        init();
+    }
+
+    /**
+     * Creates an ObjectRepository for the given project (default: not in read-only mode).
+     *
+     * @param sProject the project owning this repository
      */
     public ObjectRepository(Project sProject) {
-        this.sProject = sProject;
-        init();
+        this(sProject, false);
     }
 
     /**
@@ -98,9 +114,15 @@ public class ObjectRepository {
 
             if (xmlExists) {
                 loadXmlObjectRepositories();
-                convertXmlOrsToYamlAndArchive();
-                loadYamlObjectRepositories();
-                useYamlFormat = true;
+                // Skip XML-to-YAML migration if in read-only mode (e.g., during validation)
+                if (!readOnlyMode) {
+                    convertXmlOrsToYamlAndArchive();
+                    loadYamlObjectRepositories();
+                    useYamlFormat = true;
+                } else {
+                    // In read-only mode, continue using XML format without migration
+                    useYamlFormat = false;
+                }
             } else if (projectYamlExists || sharedYamlExists) {
                 loadYamlObjectRepositories();
                 useYamlFormat = true;

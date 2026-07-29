@@ -214,6 +214,10 @@ public class InsertRowPromptFeature {
      * @return insertion row index, or {@code -1} if none applies
      */
     private int getInsertRowForPoint(Point point) {
+        if (!isPointInFirstColumn(point)) {
+            return -1;
+        }
+
         int rowCount = table.getRowCount();
 
         if (rowCount == 0) {
@@ -555,5 +559,21 @@ public class InsertRowPromptFeature {
                 new ActionEvent(table, ActionEvent.ACTION_PERFORMED, actionName)
             );
         }
+    }
+
+    /**
+     * Checks whether the specified point is inside the first visible table column.
+     *
+     * @param point mouse location
+     * @return {@code true} if the point is inside the first visible column
+     */
+    private boolean isPointInFirstColumn(Point point) {
+        if (table.getColumnCount() == 0) {
+            return false;
+        }
+
+        int firstColumnWidth = table.getColumnModel().getColumn(0).getWidth();
+
+        return point.x >= 0 && point.x <= firstColumnWidth;
     }
 }
