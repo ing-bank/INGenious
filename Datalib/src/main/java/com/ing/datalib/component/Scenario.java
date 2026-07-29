@@ -268,7 +268,10 @@ public class Scenario extends DataModel {
      * @return the created test case, or null if it already exists in this scenario
      */
     public TestCase addTestCase(String testCaseName) {
-        if (getTestCaseByName(testCaseName) == null) {
+        if (
+            getTestCaseByName(testCaseName) == null &&
+            !getProject().testCaseExistsForScenarioNameAcrossScopes(getName(), this, testCaseName)
+        ) {
             TestCase tc = new TestCase(this, testCaseName);
             testCases.add(tc);
             tc.setSaved(false);

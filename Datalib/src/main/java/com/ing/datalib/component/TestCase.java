@@ -1572,7 +1572,12 @@ public class TestCase extends DataModel {
         TestCase existing = getScenario().getTestCaseByName(newName);
         if (
             (existing == null || existing == this) &&
-            getScenario().getReusableTestCaseByName(getScenario().getName(), newName) == null
+            !getProject()
+                .testCaseExistsForScenarioNameAcrossScopes(
+                    getScenario().getName(),
+                    getScenario(),
+                    newName
+                )
         ) {
             if (FileUtils.renameFile(getLocation(), newName + getFormat().extension())) {
                 getProject().refactorTestCase(getScenario().getName(), name, newName);
@@ -1584,11 +1589,15 @@ public class TestCase extends DataModel {
     }
 
     public Boolean renameReusable(String newName) {
-        TestCase existingReusable = getScenario()
-            .getReusableTestCaseByName(getScenario().getName(), newName);
+        TestCase existing = getScenario().getTestCaseByName(newName);
         if (
-            getScenario().getTestCaseByName(getScenario().getName(), newName) == null &&
-            (existingReusable == null || existingReusable == this)
+            (existing == null || existing == this) &&
+            !getProject()
+                .testCaseExistsForScenarioNameAcrossScopes(
+                    getScenario().getName(),
+                    getScenario(),
+                    newName
+                )
         ) {
             if (FileUtils.renameFile(getLocation(), newName + getFormat().extension())) {
                 getProject().refactorTestCase(getScenario().getName(), name, newName);
@@ -1605,7 +1614,16 @@ public class TestCase extends DataModel {
      * @return true if successful, false if a test case with the new name already exists
      */
     public Boolean renameSharedReusable(String newName) {
-        if (getScenario().getTestCaseByName(newName) == null) {
+        TestCase existing = getScenario().getTestCaseByName(newName);
+        if (
+            (existing == null || existing == this) &&
+            !getProject()
+                .testCaseExistsForScenarioNameAcrossScopes(
+                    getScenario().getName(),
+                    getScenario(),
+                    newName
+                )
+        ) {
             if (FileUtils.renameFile(getLocation(), newName + getFormat().extension())) {
                 getProject().refactorTestCase(getScenario().getName(), name, newName);
                 name = newName;

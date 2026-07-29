@@ -919,9 +919,10 @@ public class Project {
 
         lastImpactedReusableReferenceUpdates = 0;
 
-        String scenarioName = testCase.getScenario().getName();
+        Scenario sourceScenario = testCase.getScenario();
+        String scenarioName = sourceScenario.getName();
         String testCaseName = testCase.getName();
-        Scenario.Source sourceType = testCase.getScenario().getSource();
+        Scenario.Source sourceType = sourceScenario.getSource();
         String targetName = targetSource == Scenario.Source.REUSABLE_COMPONENTS
             ? "Reusable Components"
             : "Test Plan";
@@ -955,6 +956,24 @@ public class Project {
                 "Failed to move test case: " + ex.getMessage(),
                 ex
             );
+        }
+
+        // When moving TO Test Plan from a reusable source, remove the case from source and cleanup
+        if (sourceType != Scenario.Source.TEST_PLAN && targetSource == Scenario.Source.TEST_PLAN) {
+            sourceScenario.removeTestCase(testCase);
+            if (sourceType == Scenario.Source.REUSABLE_COMPONENTS) {
+                cleanupEmptyScenario(sourceScenario);
+            }
+        }
+
+        // When moving FROM Test Plan TO Project Reusable, remove the case from the Test Plan
+        // and cleanup the scenario if it becomes empty so the scenario name can be reused.
+        if (
+            sourceType == Scenario.Source.TEST_PLAN &&
+            targetSource == Scenario.Source.REUSABLE_COMPONENTS
+        ) {
+            sourceScenario.removeTestCase(testCase);
+            cleanupEmptyScenario(sourceScenario);
         }
 
         lastImpactedReusableReferenceUpdates =
@@ -1008,7 +1027,7 @@ public class Project {
      * @return the created scenario, or null if a scenario with the same name already exists in any scope
      */
     public Scenario addScenario(String scenarioName) {
-        if (getScenarioByName(scenarioName) == null && !scenarioExistsInAnyScope(scenarioName)) {
+        if (getTestPlanScenarioByName(scenarioName) == null) {
             Scenario scn = new Scenario(this, scenarioName, Scenario.Source.TEST_PLAN);
             scenarios.add(scn);
             return scn;
@@ -1019,13 +1038,10 @@ public class Project {
     /**
      * Adds a new scenario to Reusable Components.
      * @param scenarioName name of the scenario to add
-     * @return the created scenario, or null if a scenario with the same name already exists in any scope
+     * @return the created scenario, or null if a scenario with the same name already exists in the Project Reusable scope
      */
     public Scenario addReusableScenario(String scenarioName) {
-        if (
-            getReusableScenarioByName(scenarioName) == null &&
-            !scenarioExistsInAnyScope(scenarioName)
-        ) {
+        if (getReusableScenarioByName(scenarioName) == null) {
             Scenario scn = new Scenario(this, scenarioName, Scenario.Source.REUSABLE_COMPONENTS);
             reusableScenarios.add(scn);
             return scn;
@@ -1035,15 +1051,11 @@ public class Project {
 
     /**
      * Adds a new shared reusable scenario to the project.
-     * Checks for name uniqueness across all scopes before creating.
      * @param scenarioName name of the scenario to add
-     * @return the newly created shared reusable scenario, or null if already exists in any scope
+     * @return the newly created shared reusable scenario, or null if already exists in the Shared Reusable scope
      */
     public Scenario addSharedReusableScenario(String scenarioName) {
-        if (
-            getSharedReusableScenarioByName(scenarioName) == null &&
-            !scenarioExistsInAnyScope(scenarioName)
-        ) {
+        if (getSharedReusableScenarioByName(scenarioName) == null) {
             Scenario scn = new Scenario(
                 this,
                 scenarioName,
@@ -1130,6 +1142,40 @@ public class Project {
                 return true;
             }
         }
+        return false;
+    }
+
+    /**
+     * Checks whether a test case with the given name exists for the specified scenario
+     * name in any scope (Test Plan, Project Reusable, Shared Reusable), excluding an
+     * optional scenario instance.
+     * @param scenarioName the scenario name to search for across scopes
+     * @param excludeScenario scenario instance to exclude from the check (may be null)
+     * @param testCaseName test case name to check
+     * @return true if a test case with the given name exists for the same scenario name in another scope
+     */
+    public boolean testCaseExistsForScenarioNameAcrossScopes(
+        String scenarioName,
+        Scenario excludeScenario,
+        String testCaseName
+    ) {
+        Scenario sc;
+
+        sc = getTestPlanScenarioByName(scenarioName);
+        if (sc != null && sc != excludeScenario && sc.getTestCaseByName(testCaseName) != null) {
+            return true;
+        }
+
+        sc = getReusableScenarioByName(scenarioName);
+        if (sc != null && sc != excludeScenario && sc.getTestCaseByName(testCaseName) != null) {
+            return true;
+        }
+
+        sc = getSharedReusableScenarioByName(scenarioName);
+        if (sc != null && sc != excludeScenario && sc.getTestCaseByName(testCaseName) != null) {
+            return true;
+        }
+
         return false;
     }
 

@@ -890,7 +890,7 @@ public class SharedReusableTree extends ProjectTree {
             Notification.showWarning(
                 "Scenario '" +
                 scenarioName +
-                "' already exists in another scope (Test Plan, Reusable, or Shared Reusable)."
+                "' already exists in Shared Reusables. Please choose a different Shared Reusable scenario name."
             );
             return;
         }
@@ -1005,19 +1005,38 @@ public class SharedReusableTree extends ProjectTree {
      * @return unique scenario name
      */
     private String fetchNewSharedReusableScenarioName() {
-        String newScenarioName = "NewSharedScenario";
-        for (int i = 0;; i++) {
-            // Check if scenario exists in any scope
+        String base = "NewSharedScenario";
+        // prefer plain base name if available (and not present in the tree)
+        if (
+            getProject().getSharedReusableScenarioByName(base) == null && !treeHasScenarioName(base)
+        ) {
+            return base;
+        }
+        int i = 0;
+        String newScenarioName;
+        for (;;) {
+            newScenarioName = base + i;
             if (
-                getProject().getScenarioByName(newScenarioName) == null &&
-                getProject().getReusableScenarioByName(newScenarioName) == null &&
-                getProject().getSharedReusableScenarioByName(newScenarioName) == null
+                getProject().getSharedReusableScenarioByName(newScenarioName) == null &&
+                !treeHasScenarioName(newScenarioName)
             ) {
                 break;
             }
-            newScenarioName = "NewSharedScenario" + i;
+            i++;
         }
         return newScenarioName;
+    }
+
+    private boolean treeHasScenarioName(String name) {
+        if (getTreeModel() == null || getTreeModel().getRoot() == null) return false;
+        for (GroupNode group : GroupNode.toList(getTreeModel().getRoot().children())) {
+            for (ScenarioNode sc : ScenarioNode.toList(group.children())) {
+                if (sc.getScenario().getName().equalsIgnoreCase(name)) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     /**
@@ -1028,7 +1047,15 @@ public class SharedReusableTree extends ProjectTree {
     private String fetchNewSharedReusableTestCaseName(Scenario scenario) {
         String newTestCaseName = "NewSharedTestCase";
         for (int i = 0;; i++) {
-            if (scenario.getTestCaseByName(newTestCaseName) == null) {
+            if (
+                scenario.getTestCaseByName(newTestCaseName) == null &&
+                !getProject()
+                    .testCaseExistsForScenarioNameAcrossScopes(
+                        scenario.getName(),
+                        scenario,
+                        newTestCaseName
+                    )
+            ) {
                 break;
             }
             newTestCaseName = "NewSharedTestCase" + i;
