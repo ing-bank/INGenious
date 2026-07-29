@@ -52,6 +52,16 @@ public abstract class TestDataModel extends AbstractDataModel<Record> {
         return columnIndex > 4;
     }
 
+    @Override
+    public boolean isCellEditable(int rowIndex, int columnIndex) {
+        // Scope column (index 2) is read-only and auto-populated from Scenario/TestCase selection
+        // It cannot be edited by users via UI or API
+        if (columnIndex == 2) {
+            return false;
+        }
+        return super.isCellEditable(rowIndex, columnIndex);
+    }
+
     public Queue<Integer> getDataIteration(
         String scenario,
         String testcase,

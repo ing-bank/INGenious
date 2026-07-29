@@ -39,6 +39,10 @@ public class Record extends ArrayList<String> {
         return get(1);
     }
 
+    public String getScope() {
+        return get(2);
+    }
+
     public String getIteration() {
         return get(3);
     }
@@ -55,6 +59,10 @@ public class Record extends ArrayList<String> {
         set(1, testCase);
     }
 
+    public void setScope(String scope) {
+        set(2, scope);
+    }
+
     public void setIteration(String iteration) {
         set(3, iteration);
     }
@@ -66,6 +74,13 @@ public class Record extends ArrayList<String> {
     @Override
     public String set(int i, String e) {
         switch (i) {
+            case 2:
+                // Scope column validation: only allow "[Project]", "[Shared]", or empty string
+                if (!isValidScope(e)) {
+                    // Invalid scope value - keep existing value
+                    return get(i);
+                }
+                break;
             case 3:
             case 4:
                 if (!validIterRSubIteration(e)) {
@@ -78,6 +93,22 @@ public class Record extends ArrayList<String> {
                 break;
         }
         return super.set(i, e);
+    }
+
+    /**
+     * Validates that the scope value is one of the allowed values:
+     * - Empty string (for test plan scope)
+     * - "[Project]" (for project reusables)
+     * - "[Shared]" (for shared reusables)
+     *
+     * @param scope the scope value to validate
+     * @return true if the scope is valid, false otherwise
+     */
+    private boolean isValidScope(String scope) {
+        if (scope == null) {
+            return false;
+        }
+        return scope.isEmpty() || "[Project]".equals(scope) || "[Shared]".equals(scope);
     }
 
     private Boolean validIterRSubIteration(String value) {
