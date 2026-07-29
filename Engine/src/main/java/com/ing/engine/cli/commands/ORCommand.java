@@ -62,8 +62,8 @@ public class ORCommand implements Callable<Integer> {
                 }
 
                 List<String> headers = withCount
-                    ? Arrays.asList("Object Repository", "Format", "Objects")
-                    : Arrays.asList("Object Repository", "Format");
+                    ? Arrays.asList("Page", "Format", "Objects")
+                    : Arrays.asList("Page", "Format");
                 List<List<String>> rows = new ArrayList<>();
 
                 // Collect all .yaml / .yml pages recursively (the modern YAML OR format)
