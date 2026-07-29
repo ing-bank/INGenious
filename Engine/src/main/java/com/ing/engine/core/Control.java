@@ -286,6 +286,8 @@ public class Control {
             "testcase",
             "testset",
             "or",
+            "object",
+            "objects",
             "page",
             "pages",
             "data",

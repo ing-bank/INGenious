@@ -28,6 +28,7 @@ import picocli.CommandLine.Option;
         TestCaseCommand.class,
         TestSetCommand.class,
         ORCommand.class,
+        ObjectCommand.class,
         DataCommand.class,
         ActionCommand.class,
         RunCommand.class,
