@@ -15,6 +15,7 @@ import picocli.CommandLine.ParentCommand;
  */
 @Command(
     name = "config",
+    mixinStandardHelpOptions = true,
     description = "Configuration management",
     subcommands = {
         ConfigCommand.ShowCommand.class,

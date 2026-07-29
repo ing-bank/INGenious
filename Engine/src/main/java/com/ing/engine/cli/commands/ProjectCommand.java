@@ -28,6 +28,7 @@ import picocli.CommandLine.ParentCommand;
  */
 @Command(
     name = "project",
+    mixinStandardHelpOptions = true,
     description = "Project management commands",
     subcommands = {
         ProjectCommand.ListCommand.class,

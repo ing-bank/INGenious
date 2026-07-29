@@ -17,6 +17,7 @@ import picocli.CommandLine.ParentCommand;
  */
 @Command(
     name = "report",
+    mixinStandardHelpOptions = true,
     description = "Report management commands",
     subcommands = {
         ReportCommand.LatestCommand.class,

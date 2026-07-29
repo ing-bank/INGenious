@@ -15,6 +15,7 @@ import picocli.CommandLine.ParentCommand;
 @Command(
     name = "object",
     aliases = { "objects", "or" },
+    mixinStandardHelpOptions = true,
     description = "Object repository management",
     subcommands = {
         ObjectCommand.ListCommand.class,

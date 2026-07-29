@@ -14,6 +14,7 @@ import picocli.CommandLine.ParentCommand;
  */
 @Command(
     name = "testset",
+    mixinStandardHelpOptions = true,
     description = "Test set management commands",
     subcommands = {
         TestSetCommand.ListCommand.class,

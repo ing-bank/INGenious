@@ -19,8 +19,8 @@ import picocli.CommandLine.ParentCommand;
  *
  * <p>The simplest form auto-detects the executable type:
  * <pre>
- *   ingenious run &lt;Project&gt;/&lt;Scenario&gt;/&lt;TestCase&gt;   # runs a test case
- *   ingenious run &lt;Project&gt;/&lt;Release&gt;/&lt;TestSet&gt;     # runs a test set
+ *   ingenious run <Project>/<Scenario>/<TestCase>   # runs a test case
+ *   ingenious run <Project>/<Release>/<TestSet>     # runs a test set
  * </pre>
  *
  * <p>The {@code testcase / testset / tags / rerun} sub-subcommands remain
@@ -28,6 +28,7 @@ import picocli.CommandLine.ParentCommand;
  */
 @Command(
     name = "run",
+    mixinStandardHelpOptions = true,
     description = "Execute tests (auto-detects test case vs test set from <Project>/<X>/<Y>)",
     subcommands = {
         RunCommand.TestCaseRunCommand.class,
@@ -94,22 +95,7 @@ public class RunCommand implements Callable<Integer> {
         INGeniousCLI cli = INGeniousCLI.getInstance();
 
         if (autoPath == null || autoPath.isEmpty()) {
-            com.ing.engine.cli.output.Style s = cli.style();
-            cli.printHeader("Usage");
-            System.out.println(
-                "  " +
-                s.cyan(com.ing.engine.cli.output.Style.ICON_ARROW) +
-                " ingenious run " +
-                s.bold("<Project>/<Scenario>/<TestCase>")
-            );
-            System.out.println(
-                "  " +
-                s.cyan(com.ing.engine.cli.output.Style.ICON_ARROW) +
-                " ingenious run " +
-                s.bold("<Project>/<Release>/<TestSet>")
-            );
-            System.out.println();
-            System.out.println("  " + s.dim("For advanced options, see 'ingenious run --help'"));
+            System.out.println("See 'ingenious run --help' for usage.");
             return 0;
         }
 
