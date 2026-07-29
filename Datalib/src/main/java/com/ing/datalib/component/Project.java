@@ -1051,7 +1051,6 @@ public class Project {
 
     /**
      * Adds a new shared reusable scenario to the project.
-     * Checks for name uniqueness across all scopes before creating.
      * @param scenarioName name of the scenario to add
      * @return the newly created shared reusable scenario, or null if already exists in the Shared Reusable scope
      */
