@@ -10,26 +10,23 @@ import picocli.CommandLine.Parameters;
 import picocli.CommandLine.ParentCommand;
 
 /**
- * Page object/object repository management commands.
+ * Object repository management commands.
  */
 @Command(
-    name = "object",
-    aliases = { "objects", "or" },
+    name = "or",
+    mixinStandardHelpOptions = true,
     description = "Object repository management",
     subcommands = {
-        ObjectCommand.ListCommand.class,
-        ObjectCommand.ShowCommand.class,
-        ObjectCommand.SearchCommand.class,
-        ObjectCommand.CreateCommand.class
+        ORCommand.ListCommand.class, ORCommand.ShowCommand.class, ORCommand.SearchCommand.class
     }
 )
-public class ObjectCommand implements Callable<Integer> {
+public class ORCommand implements Callable<Integer> {
     @ParentCommand
     private INGeniousCLI parent;
 
     @Override
     public Integer call() {
-        System.out.println("Use 'ingenious object <subcommand>' - see 'ingenious object --help'");
+        System.out.println("Use 'ingenious or <subcommand>' - see 'ingenious or --help'");
         return 0;
     }
 
@@ -39,7 +36,7 @@ public class ObjectCommand implements Callable<Integer> {
     @Command(name = "list", description = "List pages in object repository")
     public static class ListCommand implements Callable<Integer> {
         @ParentCommand
-        private ObjectCommand parent;
+        private ORCommand parent;
 
         @Option(names = { "-p", "--project" }, description = "Project path")
         private String projectPath;
@@ -65,15 +62,14 @@ public class ObjectCommand implements Callable<Integer> {
                 }
 
                 List<String> headers = withCount
-                    ? Arrays.asList("Page", "Format", "Objects")
-                    : Arrays.asList("Page", "Format");
+                    ? Arrays.asList("Object Repository", "Format", "Objects")
+                    : Arrays.asList("Object Repository", "Format");
                 List<List<String>> rows = new ArrayList<>();
 
                 // Collect all .yaml / .yml pages recursively (the modern YAML OR format)
                 List<File> yamlPages = new ArrayList<>();
                 findFiles(orDir, yamlPages);
                 for (File page : yamlPages) {
-                    // Use relative path from ObjectRepository dir as the page name
                     String rel = orDir.toURI().relativize(page.toURI()).getPath();
                     String ext = "YAML";
                     if (rel.endsWith(".yaml")) {
@@ -122,9 +118,6 @@ public class ObjectCommand implements Callable<Integer> {
             }
         }
 
-        /**
-         * Recursively find all .yaml and .yml files under a directory.
-         */
         private void findFiles(File dir, List<File> result) {
             File[] files = dir.listFiles();
             if (files == null) return;
@@ -140,9 +133,6 @@ public class ObjectCommand implements Callable<Integer> {
             }
         }
 
-        /**
-         * Count the number of objects (top-level YAML keys) in a YAML page file.
-         */
         private int countYamlObjects(File page) {
             try (Scanner scanner = new Scanner(page)) {
                 int count = 0;
@@ -166,9 +156,6 @@ public class ObjectCommand implements Callable<Integer> {
             }
         }
 
-        /**
-         * Count CSV data rows (legacy).
-         */
         private int countObjects(File page) {
             try (Scanner scanner = new Scanner(page)) {
                 int count = 0;
@@ -194,7 +181,7 @@ public class ObjectCommand implements Callable<Integer> {
     @Command(name = "show", description = "Show objects in a page")
     public static class ShowCommand implements Callable<Integer> {
         @ParentCommand
-        private ObjectCommand parent;
+        private ORCommand parent;
 
         @Parameters(index = "0", description = "Page name")
         private String pageName;
@@ -269,7 +256,7 @@ public class ObjectCommand implements Callable<Integer> {
     @Command(name = "search", description = "Search for objects")
     public static class SearchCommand implements Callable<Integer> {
         @ParentCommand
-        private ObjectCommand parent;
+        private ORCommand parent;
 
         @Parameters(index = "0", description = "Search query")
         private String query;
@@ -340,101 +327,6 @@ public class ObjectCommand implements Callable<Integer> {
                 return 0;
             } catch (Exception e) {
                 cli.printError("Search failed: " + e.getMessage());
-                return 1;
-            }
-        }
-    }
-
-    /**
-     * Create a new page or object.
-     */
-    @Command(name = "create", description = "Create a new page or add object")
-    public static class CreateCommand implements Callable<Integer> {
-        @ParentCommand
-        private ObjectCommand parent;
-
-        @Option(names = { "--page" }, description = "Page name")
-        private String page;
-
-        @Option(names = { "--name", "-n" }, description = "Object name")
-        private String objectName;
-
-        @Option(names = { "--type" }, description = "Object type", defaultValue = "WebElement")
-        private String objectType;
-
-        @Option(names = { "--locator" }, description = "Locator type (id, css, xpath)")
-        private String locator;
-
-        @Option(names = { "--value" }, description = "Locator value")
-        private String value;
-
-        @Option(names = { "-p", "--project" }, description = "Project path")
-        private String projectPath;
-
-        @Override
-        public Integer call() {
-            INGeniousCLI cli = INGeniousCLI.getInstance();
-
-            String path = projectPath != null ? projectPath : cli.getProjectPath();
-            if (path == null || path.isEmpty()) {
-                cli.printError("Project path required.");
-                return 1;
-            }
-
-            if (page == null) {
-                cli.printError("Page name required. Use --page");
-                return 1;
-            }
-
-            try {
-                File orDir = new File(path, "ObjectRepository");
-                orDir.mkdirs();
-
-                File pageFile = new File(orDir, page + ".csv");
-
-                if (objectName == null) {
-                    // Create new page only
-                    if (pageFile.exists()) {
-                        cli.printError("Page already exists: " + page);
-                        return 1;
-                    }
-
-                    try (PrintWriter writer = new PrintWriter(pageFile)) {
-                        writer.println("Name,Type,Locator,Value,Description");
-                    }
-
-                    cli.printSuccess("Created page: " + page);
-                } else {
-                    // Add object to page
-                    if (!pageFile.exists()) {
-                        // Create page first
-                        try (PrintWriter writer = new PrintWriter(pageFile)) {
-                            writer.println("Name,Type,Locator,Value,Description");
-                        }
-                    }
-
-                    try (
-                        FileWriter fw = new FileWriter(pageFile, true);
-                        PrintWriter writer = new PrintWriter(fw)
-                    ) {
-                        writer.println(
-                            objectName +
-                            "," +
-                            objectType +
-                            "," +
-                            (locator != null ? locator : "") +
-                            "," +
-                            (value != null ? value : "") +
-                            ","
-                        );
-                    }
-
-                    cli.printSuccess("Added object " + objectName + " to page " + page);
-                }
-
-                return 0;
-            } catch (Exception e) {
-                cli.printError("Failed to create: " + e.getMessage());
                 return 1;
             }
         }

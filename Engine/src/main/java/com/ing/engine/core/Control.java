@@ -285,8 +285,6 @@ public class Control {
             "scenario",
             "testcase",
             "testset",
-            "object",
-            "objects",
             "or",
             "page",
             "pages",
