@@ -573,4 +573,37 @@ public class FXMenuBar extends JFXPanel {
             }
         );
     }
+
+    /**
+     * Closes all open menus in the menu bar.
+     * Called when the application window loses focus to prevent
+     * submenus from floating over other applications.
+     */
+    public void closeAllMenus() {
+        Platform.runLater(
+            () -> {
+                if (menuBar != null) {
+                    // Hide all open menus by setting hide on each menu
+                    for (Menu menu : menuBar.getMenus()) {
+                        menu.hide();
+                        // Also hide any submenus recursively
+                        hideSubmenus(menu);
+                    }
+                }
+            }
+        );
+    }
+
+    /**
+     * Recursively hides all submenus of a given menu.
+     */
+    private void hideSubmenus(Menu menu) {
+        for (MenuItem item : menu.getItems()) {
+            if (item instanceof Menu) {
+                Menu submenu = (Menu) item;
+                submenu.hide();
+                hideSubmenus(submenu);
+            }
+        }
+    }
 }

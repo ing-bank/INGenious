@@ -194,6 +194,25 @@ public class AppMainFrame extends JFrame {
                 }
             }
         );
+        // Close any open menus when the window loses focus to prevent
+        // submenus from floating over other applications when alt-tabbing
+        addWindowFocusListener(
+            new java.awt.event.WindowFocusListener() {
+
+                @Override
+                public void windowGainedFocus(WindowEvent e) {
+                    // No action needed
+                }
+
+                @Override
+                public void windowLostFocus(WindowEvent e) {
+                    // Close all open JavaFX menus
+                    if (fxMenuBar != null) {
+                        fxMenuBar.closeAllMenus();
+                    }
+                }
+            }
+        );
         progressed(90);
     }
 
