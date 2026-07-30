@@ -213,6 +213,20 @@ public class AppMainFrame extends JFrame {
                 }
             }
         );
+        // Close any open menus when the window is resized to prevent
+        // submenus from rendering incorrectly or floating during resize
+        addComponentListener(
+            new java.awt.event.ComponentAdapter() {
+
+                @Override
+                public void componentResized(java.awt.event.ComponentEvent e) {
+                    // Close all open JavaFX menus during window resize
+                    if (fxMenuBar != null) {
+                        fxMenuBar.closeAllMenus();
+                    }
+                }
+            }
+        );
         progressed(90);
     }
 
