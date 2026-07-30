@@ -159,7 +159,7 @@ public class TestStepRunner {
                     validateObjectReferencesForPolicy(context, resolvedScope);
 
                     try {
-                        executeTestCase(context, stc);
+                        executeTestCase(context, stc, resolvedScope);
                     } finally {
                         // Clear scope after reusable execution completes
                         context.setResolvedReusableScope(null);
@@ -194,12 +194,22 @@ public class TestStepRunner {
         );
     }
 
-    private void executeTestCase(TestCaseRunner context, TestCase stc)
+    private void executeTestCase(
+        TestCaseRunner context,
+        TestCase stc,
+        ReusableRef.Scope resolvedScope
+    )
         throws DataNotFoundException {
         try {
             parameter.setSubIteration(getSubIterationFromInput(context));
             context.getReport().startComponent(getStep().getAction(), getStep().getDescription());
-            new TestCaseRunner(context, stc, parameter).run();
+            // The reusable's own steps execute through this new runner instance, so the
+            // resolved scope must be set here too - it is NOT inherited from the parent
+            // context, and without it every data lookup inside the reusable falls back to
+            // unscoped resolution, defeating the Shared/Project data disambiguation.
+            TestCaseRunner reusableRunner = new TestCaseRunner(context, stc, parameter);
+            reusableRunner.setResolvedReusableScope(resolvedScope);
+            reusableRunner.run();
         } finally {
             context.getReport().endComponent(getStep().getAction());
         }
