@@ -5,6 +5,14 @@ import com.ing.engine.drivers.PlaywrightDriverFactory.Browser;
 public class RunContext {
     public String Scenario;
     public String TestCase;
+    /**
+     * Which scope the Scenario/TestCase names were resolved from when this run was
+     * requested: "PROJECT", "SHARED", or "" if unknown (e.g. a CLI run by name only).
+     * Lets {@code Task#getTestCase()} look up the exact intended test case directly,
+     * instead of guessing via a Test Plan -> Project -> Shared priority search that
+     * silently picks the wrong one when names collide across scopes.
+     */
+    public String ReusableScope = "";
     public String Description;
     public Browser Browser;
     public String BrowserName;
