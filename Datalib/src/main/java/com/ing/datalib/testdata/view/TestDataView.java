@@ -176,7 +176,7 @@ public abstract class TestDataView implements TestDataViewApi {
      */
     public Set<String> getIterations() {
         Set<String> iters = new LinkedHashSet<>();
-        for (Object iter : getFields(records(), Record.HEADERS[2])) {
+        for (Object iter : getFields(records(), Record.HEADERS[3])) {
             iters.add((String) iter);
         }
         return iters;
@@ -193,7 +193,7 @@ public abstract class TestDataView implements TestDataViewApi {
      */
     public Set<String> getSubIterations() {
         Set<String> iters = new LinkedHashSet<>();
-        for (Object iter : getFields(records(), Record.HEADERS[3])) {
+        for (Object iter : getFields(records(), Record.HEADERS[4])) {
             iters.add((String) iter);
         }
         return iters;
