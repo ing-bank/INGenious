@@ -133,6 +133,7 @@ Release Date: <insert date of release>
 - Fixed iframe element detection during live Playwright recording to correctly populate frame-related Object Repository attributes.
 - Fixed `Record From Here` recordings being inserted at the beginning of a test case instead of immediately after the selected step.
 - Fixed Live Recorder to prevent test case overwrite by appending suffix to duplicate names
+- Fixed Hard Assertions waiting for timeout instead of failing immediately
 
 ### Mobile App Testing
 
