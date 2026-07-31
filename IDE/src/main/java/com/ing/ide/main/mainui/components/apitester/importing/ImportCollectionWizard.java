@@ -56,7 +56,10 @@ public class ImportCollectionWizard extends JDialog {
     private final JComboBox<ImportOptions.ConflictPolicy> conflict = new JComboBox<>(
         ImportOptions.ConflictPolicy.values()
     );
-    private final JCheckBox importEnv = new JCheckBox("Import environments", true);
+    private final JComboBox<ImportOptions.NamingConvention> namingConvention = new JComboBox<>(
+        ImportOptions.NamingConvention.values()
+    );
+    private final JCheckBox importEnv = new JCheckBox("Import Environments", false);
 
     private final JRadioButton postmanRadio = new JRadioButton("Postman");
     private final JRadioButton brunoRadio = new JRadioButton("Bruno");
@@ -111,8 +114,12 @@ public class ImportCollectionWizard extends JDialog {
         fmt.add(brunoRadio);
         src.add(fmt);
 
-        JPanel chooser = new JPanel(new FlowLayout(FlowLayout.LEFT));
-        chooser.add(new JLabel("File / Folder:"));
+        JPanel chooser = new JPanel(new BorderLayout(5, 0));
+        JPanel labelPanel = new JPanel(new FlowLayout(FlowLayout.LEFT, 0, 0));
+        labelPanel.add(new JLabel("File / Folder:"));
+        chooser.add(labelPanel, BorderLayout.NORTH);
+
+        JPanel pathPanel = new JPanel(new BorderLayout(5, 0));
         fileField.setToolTipText("Type or paste a path, or use Browse…");
         fileField
             .getDocument()
@@ -141,10 +148,12 @@ public class ImportCollectionWizard extends JDialog {
                     }
                 }
             );
-        chooser.add(fileField);
-        JButton browse = new JButton("Browse…");
-        browse.addActionListener(e -> chooseFile());
-        chooser.add(browse);
+        pathPanel.add(fileField, BorderLayout.CENTER);
+        JButton browseBtn = new JButton("Browse");
+        browseBtn.addActionListener(e -> choosePath());
+        pathPanel.add(browseBtn, BorderLayout.EAST);
+        chooser.add(pathPanel, BorderLayout.CENTER);
+        chooser.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
         src.add(chooser);
 
         main.add(src, BorderLayout.NORTH);
@@ -164,6 +173,15 @@ public class ImportCollectionWizard extends JDialog {
 
         opts.add(new JLabel("Hierarchy strategy:"));
         opts.add(hierarchy);
+        opts.add(new JLabel("Naming convention:"));
+        opts.add(namingConvention);
+        namingConvention.setSelectedItem(ImportOptions.NamingConvention.SNAKE_CASE);
+        namingConvention.setToolTipText(
+            "<html>Naming style for generated scenarios, test cases, and datasheets:<br>" +
+            "- snake_case: customer_management_apis<br>" +
+            "- PascalCase: CustomerManagementApis<br>" +
+            "- camelCase: customerManagementApis</html>"
+        );
         opts.add(new JLabel("Scenario name prefix:"));
         opts.add(scenarioPrefix);
         opts.add(new JLabel("Target scenario (optional):"));
@@ -172,6 +190,13 @@ public class ImportCollectionWizard extends JDialog {
         opts.add(conflict);
         opts.add(new JLabel(""));
         opts.add(importEnv);
+        importEnv.setToolTipText(
+            "<html>When enabled:<br>" +
+            "- Creates a datasheet named after the collection<br>" +
+            "- Creates data environments for each Postman environment file<br>" +
+            "- Populates columns from environment variable keys<br>" +
+            "- Converts %var% and {{var}} to {Datasheet:Column} syntax</html>"
+        );
         conflict.setSelectedItem(ImportOptions.ConflictPolicy.RENAME_SUFFIX);
 
         main.add(opts, BorderLayout.CENTER);
@@ -216,26 +241,19 @@ public class ImportCollectionWizard extends JDialog {
         main.add(btns, BorderLayout.SOUTH);
 
         setContentPane(main);
-        setPreferredSize(new Dimension(640, 380));
+        setPreferredSize(new Dimension(640, 420));
     }
 
-    private void chooseFile() {
+    private void choosePath() {
         JFileChooser fc = new JFileChooser();
+        fc.setFileSelectionMode(JFileChooser.FILES_AND_DIRECTORIES);
         if (brunoRadio.isSelected()) {
-            fc.setFileSelectionMode(JFileChooser.FILES_AND_DIRECTORIES);
-            fc.setDialogTitle(
-                "Select Bruno collection folder (containing bruno.json) or bruno.json"
-            );
+            fc.setDialogTitle("Select Bruno collection file or folder");
         } else {
-            fc.setFileSelectionMode(JFileChooser.FILES_AND_DIRECTORIES);
-            fc.setFileFilter(
-                new FileNameExtensionFilter(
-                    "Postman Collection (*.json) or folder containing it",
-                    "json"
-                )
-            );
-            fc.setDialogTitle("Select Postman collection JSON or its folder");
+            fc.setDialogTitle("Select Postman collection file or folder");
         }
+        fc.setFileFilter(new FileNameExtensionFilter("JSON files (*.json)", "json"));
+        fc.setAcceptAllFileFilterUsed(true);
         if (fc.showOpenDialog(this) == JFileChooser.APPROVE_OPTION) {
             selectedFile = fc.getSelectedFile();
             fileField.setText(selectedFile.getAbsolutePath());
@@ -258,6 +276,7 @@ public class ImportCollectionWizard extends JDialog {
         ImportOptions o = new ImportOptions();
         o.setHierarchyStrategy((ImportOptions.HierarchyStrategy) hierarchy.getSelectedItem());
         o.setConflictPolicy((ImportOptions.ConflictPolicy) conflict.getSelectedItem());
+        o.setNamingConvention((ImportOptions.NamingConvention) namingConvention.getSelectedItem());
         o.setTargetType(
             targetTestCaseRadio.isSelected()
                 ? ImportOptions.TargetType.TEST_CASE
@@ -282,25 +301,120 @@ public class ImportCollectionWizard extends JDialog {
                 JDialog d = new JDialog(owner, "Import Result — " + nc.getName(), false);
                 JTextArea ta = new JTextArea();
                 ta.setEditable(false);
+                ta.setFont(new java.awt.Font("Monospaced", java.awt.Font.PLAIN, 12));
                 StringBuilder sb = new StringBuilder();
-                sb.append("Source: ").append(nc.getSource()).append('\n');
-                sb.append("Requests read: ").append(result.getRequestsRead()).append('\n');
-                sb.append("Items created: ").append(result.getReusablesCreated()).append('\n');
-                sb.append("Items skipped: ").append(result.getReusablesSkipped()).append('\n');
-                sb
-                    .append("Environments created: ")
-                    .append(result.getEnvironmentsCreated())
-                    .append('\n');
-                if (reportFile != null) {
-                    sb.append("Report: ").append(reportFile.getAbsolutePath()).append('\n');
+
+                // Header
+                sb.append("═══════════════════════════════════════════════════════════════\n");
+                sb.append("                    IMPORT RESULT SUMMARY\n");
+                sb.append("═══════════════════════════════════════════════════════════════\n\n");
+
+                // Collection Info
+                sb.append("► COLLECTION INFO\n");
+                sb.append("  ├─ Name: ").append(nc.getName()).append('\n');
+                sb.append("  ├─ Source: ").append(nc.getSource()).append('\n');
+                sb.append("  └─ Requests found: ").append(result.getRequestsRead()).append('\n');
+                sb.append('\n');
+
+                // Import Results
+                sb.append("► IMPORT RESULTS\n");
+                sb.append("  ├─ Items created: ").append(result.getReusablesCreated()).append('\n');
+                sb.append("  └─ Items skipped: ").append(result.getReusablesSkipped()).append('\n');
+                sb.append('\n');
+
+                // Created Scenarios
+                if (!result.getCreatedScenarios().isEmpty()) {
+                    sb.append("► CREATED SCENARIOS\n");
+                    for (int i = 0; i < result.getCreatedScenarios().size(); i++) {
+                        String prefix = (i == result.getCreatedScenarios().size() - 1)
+                            ? "  └─ "
+                            : "  ├─ ";
+                        sb.append(prefix).append(result.getCreatedScenarios().get(i)).append('\n');
+                    }
+                    sb.append('\n');
                 }
-                sb.append('\n').append("Warnings:\n");
-                if (result.getWarnings().isEmpty()) {
-                    sb.append("  (none)\n");
-                } else {
-                    for (ImportWarning w : result.getWarnings()) {
+
+                // Created Items
+                if (!result.getCreatedReusables().isEmpty()) {
+                    sb.append("► CREATED ITEMS\n");
+                    int limit = Math.min(result.getCreatedReusables().size(), 20);
+                    for (int i = 0; i < limit; i++) {
+                        String prefix = (
+                                i == limit - 1 && limit == result.getCreatedReusables().size()
+                            )
+                            ? "  └─ "
+                            : "  ├─ ";
+                        sb.append(prefix).append(result.getCreatedReusables().get(i)).append('\n');
+                    }
+                    if (result.getCreatedReusables().size() > 20) {
                         sb
-                            .append("  [")
+                            .append("  └─ ... and ")
+                            .append(result.getCreatedReusables().size() - 20)
+                            .append(" more\n");
+                    }
+                    sb.append('\n');
+                }
+
+                // Datasheet import results
+                if (result.getDatasheetsCreated() > 0 || result.getDataEnvironmentsCreated() > 0) {
+                    sb.append("► DATASHEET IMPORT\n");
+                    if (result.getDatasheetName() != null) {
+                        sb
+                            .append("  ├─ Datasheet name: ")
+                            .append(result.getDatasheetName())
+                            .append('\n');
+                    }
+                    sb
+                        .append("  ├─ Datasheets created: ")
+                        .append(result.getDatasheetsCreated())
+                        .append('\n');
+                    sb
+                        .append("  ├─ Data environments created: ")
+                        .append(result.getDataEnvironmentsCreated())
+                        .append('\n');
+                    sb
+                        .append("  ├─ Columns created: ")
+                        .append(result.getDatasheetColumnsCreated())
+                        .append('\n');
+                    sb
+                        .append("  └─ Rows created: ")
+                        .append(result.getDatasheetRowsCreated())
+                        .append('\n');
+                    sb.append('\n');
+
+                    if (!result.getCreatedDataEnvironments().isEmpty()) {
+                        sb.append("► DATA ENVIRONMENTS\n");
+                        for (int i = 0; i < result.getCreatedDataEnvironments().size(); i++) {
+                            String prefix = (i == result.getCreatedDataEnvironments().size() - 1)
+                                ? "  └─ "
+                                : "  ├─ ";
+                            sb
+                                .append(prefix)
+                                .append(result.getCreatedDataEnvironments().get(i))
+                                .append('\n');
+                        }
+                        sb.append('\n');
+                    }
+                }
+
+                // Report file
+                if (reportFile != null) {
+                    sb.append("► REPORT\n");
+                    sb.append("  └─ ").append(reportFile.getAbsolutePath()).append('\n');
+                    sb.append('\n');
+                }
+
+                // Warnings
+                sb.append("► WARNINGS\n");
+                if (result.getWarnings().isEmpty()) {
+                    sb.append("  └─ (none)\n");
+                } else {
+                    for (int i = 0; i < result.getWarnings().size(); i++) {
+                        ImportWarning w = result.getWarnings().get(i);
+                        String prefix = (i == result.getWarnings().size() - 1) ? "  └─ " : "  ├─ ";
+                        sb
+                            .append(prefix)
+                            .append("[")
                             .append(w.getSeverity())
                             .append("] ")
                             .append(w.getLocation())
@@ -309,7 +423,14 @@ public class ImportCollectionWizard extends JDialog {
                             .append('\n');
                     }
                 }
+
+                sb.append('\n');
+                sb.append("═══════════════════════════════════════════════════════════════\n");
+                sb.append("                      IMPORT COMPLETE\n");
+                sb.append("═══════════════════════════════════════════════════════════════\n");
+
                 ta.setText(sb.toString());
+                ta.setCaretPosition(0);
                 d.add(new JScrollPane(ta));
                 d
                     .getRootPane()
@@ -318,7 +439,7 @@ public class ImportCollectionWizard extends JDialog {
                         KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0),
                         JComponent.WHEN_IN_FOCUSED_WINDOW
                     );
-                d.setSize(700, 480);
+                d.setSize(750, 550);
                 d.setLocationRelativeTo(owner);
                 d.setVisible(true);
             }

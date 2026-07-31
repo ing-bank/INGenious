@@ -59,6 +59,44 @@ public class EnvTestData {
         }
     }
 
+    /**
+     * Reloads the environment configuration from disk.
+     * This method re-reads the environment.properties file and loads any
+     * new environments that have been created since the initial load.
+     * Useful for refreshing the UI after programmatic environment creation.
+     */
+    public void reloadEnvironments() {
+        File file = new File(getPropertiesLocation());
+        if (file.exists()) {
+            try (FileInputStream fis = new FileInputStream(file);) {
+                Properties freshProps = new Properties();
+                freshProps.load(fis);
+                String env = freshProps.getProperty("Environment");
+                if (env != null && !env.isEmpty()) {
+                    String[] envs = env.split(",");
+                    for (String envName : envs) {
+                        if (
+                            !envName.trim().isEmpty() &&
+                            !environmentTestData.containsKey(envName.trim())
+                        ) {
+                            loadForEnv(envName.trim());
+                            Logger
+                                .getLogger(EnvTestData.class.getName())
+                                .log(Level.INFO, "Loaded new environment: {0}", envName.trim());
+                        }
+                    }
+                }
+                // Update the cached properties
+                environmentProperties.clear();
+                environmentProperties.putAll(freshProps);
+            } catch (IOException ex) {
+                Logger
+                    .getLogger(EnvTestData.class.getName())
+                    .log(Level.WARNING, "Failed to reload environments from disk", ex);
+            }
+        }
+    }
+
     public String defEnv() {
         return "Default";
     }

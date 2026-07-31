@@ -11,6 +11,7 @@ import com.ing.datalib.api.importer.postman.PostmanImporter;
 import com.ing.datalib.api.importer.spi.CollectionImporter;
 import com.ing.ide.main.mainui.AppMainFrame;
 import java.io.File;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
@@ -21,7 +22,7 @@ import javax.swing.SwingWorker;
 /**
  * Orchestrates the "Tools → Import Collection" flow: opens the wizard, parses the
  * chosen source via an {@link CollectionImporter}, maps it through
- * {@link ReusableImportEngine}, and writes a Markdown report.
+ * {@link ReusableImportEngine}, and writes an HTML report with audit trail.
  */
 public class ImportCollectionAction {
     private static final Logger LOG = Logger.getLogger(ImportCollectionAction.class.getName());
@@ -55,9 +56,12 @@ public class ImportCollectionAction {
             File report;
             Throwable failure;
             final List<ImportWarning> parseWarnings = new ArrayList<>();
+            LocalDateTime startTime;
+            LocalDateTime endTime;
 
             @Override
             protected ImportResult doInBackground() {
+                startTime = LocalDateTime.now();
                 try {
                     CollectionImporter importer = (source == ImportSource.BRUNO)
                         ? new BrunoImporter()
@@ -70,9 +74,17 @@ public class ImportCollectionAction {
                     );
                     ImportResult res = engine.importAsReusables(nc, opts);
                     res.getWarnings().addAll(0, parseWarnings);
+                    endTime = LocalDateTime.now();
                     try {
                         report =
-                            ImportReportWriter.write(mainFrame.getProject().getLocation(), nc, res);
+                            ImportReportWriter.write(
+                                mainFrame.getProject().getLocation(),
+                                nc,
+                                res,
+                                opts,
+                                startTime,
+                                endTime
+                            );
                     } catch (Exception ex) {
                         LOG.log(Level.WARNING, "Failed to write import report", ex);
                     }
@@ -101,6 +113,10 @@ public class ImportCollectionAction {
                 try {
                     ImportResult res = get();
                     if (res == null) return;
+
+                    // Refresh all trees immediately after import
+                    refreshAllTrees(opts.isImportEnvironments());
+
                     ImportCollectionWizard.showResult(mainFrame, nc, res, report);
                 } catch (Exception ex) {
                     LOG.log(Level.SEVERE, "Import post-processing failed", ex);
@@ -108,5 +124,59 @@ public class ImportCollectionAction {
             }
         }
         .execute();
+    }
+
+    /**
+     * Refreshes all project trees (Test Cases, Reusables, and Test Data)
+     * to show newly imported items without requiring IDE restart.
+     *
+     * @param includeTestData whether to force refresh of Test Data environments
+     */
+    private void refreshAllTrees(boolean includeTestData) {
+        javax.swing.SwingUtilities.invokeLater(
+            () -> {
+                try {
+                    // Refresh project tree (Test Cases/Scenarios)
+                    if (mainFrame.getTestDesign() != null) {
+                        mainFrame.getTestDesign().getProjectTree().load();
+                        mainFrame.getTestDesign().getReusableTree().load();
+
+                        // Force reload of Test Data environments from disk
+                        if (includeTestData) {
+                            reloadTestDataFromDisk();
+                        }
+                        mainFrame.getTestDesign().getTestDatacomp().load();
+                    }
+                    // Refresh API Tester collection tree
+                    if (
+                        mainFrame.getAPITester() != null &&
+                        mainFrame.getAPITester().getAPITesterUI() != null
+                    ) {
+                        mainFrame.getAPITester().getAPITesterUI().refreshCollectionsTree();
+                    }
+                    LOG.info("Successfully refreshed all project trees after import");
+                } catch (Exception ex) {
+                    LOG.log(Level.WARNING, "Could not refresh trees after import", ex);
+                }
+            }
+        );
+    }
+
+    /**
+     * Forces a complete reload of the TestData component from disk.
+     * This ensures newly created data environments are visible in the UI.
+     */
+    private void reloadTestDataFromDisk() {
+        try {
+            // Re-read the environment configuration from disk
+            var project = mainFrame.getProject();
+            if (project != null && project.getTestData() != null) {
+                // Force the EnvTestData to reload its environment list from disk
+                project.getTestData().reloadEnvironments();
+                LOG.info("Reloaded test data environments from disk");
+            }
+        } catch (Exception ex) {
+            LOG.log(Level.WARNING, "Failed to reload test data from disk", ex);
+        }
     }
 }
