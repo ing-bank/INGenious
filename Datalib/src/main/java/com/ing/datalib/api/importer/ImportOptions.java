@@ -34,13 +34,45 @@ public class ImportOptions implements Serializable {
         TEST_CASE
     }
 
+    /**
+     * Naming convention to apply to all generated asset names.
+     */
+    public enum NamingConvention {
+        /** snake_case: words separated by underscores, all lowercase (default for backward compatibility) */
+        SNAKE_CASE("snake_case"),
+        /** PascalCase: each word capitalized, no separators */
+        PASCAL_CASE("PascalCase"),
+        /** camelCase: first word lowercase, subsequent words capitalized */
+        CAMEL_CASE("camelCase");
+
+        private final String displayName;
+
+        NamingConvention(String displayName) {
+            this.displayName = displayName;
+        }
+
+        @Override
+        public String toString() {
+            return displayName;
+        }
+    }
+
     private HierarchyStrategy hierarchyStrategy = HierarchyStrategy.FLATTEN;
     private ConflictPolicy conflictPolicy = ConflictPolicy.RENAME_SUFFIX;
     private TargetType targetType = TargetType.REUSABLE;
+    private NamingConvention namingConvention = NamingConvention.SNAKE_CASE;
     private String scenarioPrefix = "API_";
     /** When non-null, all reusables go into this existing scenario. */
     private String targetScenarioName;
-    private boolean importEnvironments = true;
+    /**
+     * When true, imports Postman environments as INGenious Test Data datasheets:
+     * - Creates a datasheet named after the collection
+     * - Creates data environment folders for each Postman environment
+     * - Populates columns from environment variable keys
+     * - Populates values from environment variable values
+     * - Converts %Variable% and {{Variable}} references in requests to {Datasheet:Column} syntax
+     */
+    private boolean importEnvironments = false;
 
     public HierarchyStrategy getHierarchyStrategy() {
         return hierarchyStrategy;
@@ -64,6 +96,14 @@ public class ImportOptions implements Serializable {
 
     public void setTargetType(TargetType targetType) {
         this.targetType = targetType;
+    }
+
+    public NamingConvention getNamingConvention() {
+        return namingConvention;
+    }
+
+    public void setNamingConvention(NamingConvention namingConvention) {
+        this.namingConvention = namingConvention;
     }
 
     public String getScenarioPrefix() {

@@ -63,6 +63,14 @@ public class Record extends ArrayList<String> {
         set(4, subIteration);
     }
 
+    public String getScope() {
+        return get(2);
+    }
+
+    public void setScope(String scope) {
+        set(2, scope);
+    }
+
     @Override
     public String set(int i, String e) {
         switch (i) {
