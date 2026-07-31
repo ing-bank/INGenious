@@ -459,15 +459,7 @@ public class ReusableTree extends ProjectTree {
     private String fetchNewReusableTestCaseName(Scenario scenario) {
         String newTestCaseName = "NewTestCase";
         for (int i = 0;; i++) {
-            if (
-                scenario.getTestCaseByName(newTestCaseName) == null &&
-                !getProject()
-                    .testCaseExistsForScenarioNameAcrossScopes(
-                        scenario.getName(),
-                        scenario,
-                        newTestCaseName
-                    )
-            ) {
+            if (scenario.getTestCaseByName(newTestCaseName) == null) {
                 break;
             }
             newTestCaseName = "NewTestCase" + i;

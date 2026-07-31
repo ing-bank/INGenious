@@ -313,6 +313,28 @@ public abstract class TestDataView implements TestDataViewApi {
 
     /**
      * finds the records and return view object with that subset of records for
+     * the given query args, filtered by scope.
+     * <br>
+     * use wildcard (.*) if needed
+     * <br>
+     *
+     * @param scn scenario
+     * @param tc testcase
+     * @param iter iteration
+     * @param scope the scope filter ([Project], [Shared], or empty for test plan)
+     * @return the view
+     */
+    public TestDataView withIterAndScope(String scn, String tc, String iter, String scope) {
+        String key = scn + "#" + tc + "#" + iter + "#scope:" + scope;
+        if (!VIEWS.containsKey(key)) {
+            return indexWithScope(key, scn, tc, iter, ALL, scope);
+        } else {
+            return toView(get(key));
+        }
+    }
+
+    /**
+     * finds the records and return view object with that subset of records for
      * the given query args.
      *
      * <br>

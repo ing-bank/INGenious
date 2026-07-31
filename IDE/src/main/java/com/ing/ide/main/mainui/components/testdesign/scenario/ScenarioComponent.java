@@ -83,7 +83,9 @@ public class ScenarioComponent extends JPanel implements ActionListener {
 
     public void refreshTitle() {
         if (getCurrentScenario() != null) {
-            toolBar.setPlaceHolderText(getCurrentScenario().getName());
+            toolBar.setPlaceHolderText(
+                getCurrentScenario().getName() + " (" + getCurrentScenario().getScopeLabel() + ")"
+            );
         }
     }
 

@@ -90,11 +90,15 @@ public class DataAccess extends DataAccessInternal {
         String nextSubIteration = (Integer.parseInt(subIter) + 1) + "";
         String val = null;
 
-        // Determine if we should use scope filtering:
-        // Only apply scope if querying the CURRENT context (reusable), not the ROOT (test plan)
+        // The root is normally the Test Plan entry (empty scope), but when a reusable is run
+        // standalone (no parent Execute step) it IS its own root, so it must be filtered by
+        // its own resolved scope, not an assumed-empty one - otherwise Param Loop end-of-data
+        // detection could match a same-named row from the other reusable scope.
         boolean isQueryingRoot =
             scn.equals(context.getRoot().scenario()) && tc.equals(context.getRoot().testcase());
-        String scopeFilter = isQueryingRoot ? "" : getScopeFilter(context);
+        String scopeFilter = isQueryingRoot
+            ? getScopeFilter(context.getRoot())
+            : getScopeFilter(context);
 
         TestDataModel env;
         TestDataModel def = getDefModel(context, sheet);
@@ -181,12 +185,13 @@ public class DataAccess extends DataAccessInternal {
         Object val = null;
         TestDataModel env;
         TestDataModel def = getDefModel(context, sheet);
+        String scope = getScopeFilter(context, scn, tc);
         if (validEnv(context)) {
             env = getModel(context, sheet);
-            val = getDataFromModel(env, field, scn, tc, iter, subIter);
+            val = getDataFromModelWithScope(env, field, scn, tc, iter, subIter, scope);
         }
         if (val == null) {
-            val = getDataFromModel(def, field, scn, tc, iter, subIter);
+            val = getDataFromModelWithScope(def, field, scn, tc, iter, subIter, scope);
         }
         if (val == null) {
             throwErrorWithCause(context, sheet, field, subIter);
@@ -226,12 +231,22 @@ public class DataAccess extends DataAccessInternal {
         throws DataNotFoundException {
         boolean updated = false;
         TestDataModel def = getDefModel(context, sheet);
+        String scope = getScopeFilter(context, scn, tc);
         if (validEnv(context)) {
             updated =
-                putDataToModel(getModel(context, sheet), field, newVal, scn, tc, iter, subIter);
+                putDataToModel(
+                    getModel(context, sheet),
+                    field,
+                    newVal,
+                    scn,
+                    tc,
+                    iter,
+                    subIter,
+                    scope
+                );
         }
         if (!updated) {
-            updated = putDataToModel(def, field, newVal, scn, tc, iter, subIter);
+            updated = putDataToModel(def, field, newVal, scn, tc, iter, subIter, scope);
         }
         if (!updated) {
             throwErrorWithCause(context, sheet, field, subIter);
@@ -426,7 +441,8 @@ public class DataAccess extends DataAccessInternal {
                     context.getRoot().scenario(),
                     context.getRoot().testcase(),
                     iter,
-                    subIter
+                    subIter,
+                    getScopeFilter(context.getRoot())
                 ) ||
                 putDataToModel(
                     env,
@@ -436,7 +452,8 @@ public class DataAccess extends DataAccessInternal {
                     context.scenario(),
                     context.testcase(),
                     iter,
-                    subIter
+                    subIter,
+                    getScopeFilter(context)
                 )
             );
         } else {
@@ -631,7 +648,8 @@ public class DataAccess extends DataAccessInternal {
                 context.getRoot().scenario(),
                 context.getRoot().testcase(),
                 iter,
-                subIter
+                subIter,
+                getScopeFilter(context.getRoot())
             ) ||
             putDataToModel(
                 model,
@@ -640,7 +658,8 @@ public class DataAccess extends DataAccessInternal {
                 context.scenario(),
                 context.testcase(),
                 iter,
-                subIter
+                subIter,
+                getScopeFilter(context)
             )
         );
     }

@@ -340,11 +340,12 @@ public class TestCaseComponent extends JPanel implements ActionListener {
         if (tcText.length() > 20) {
             tcText = tcText.substring(0, 20) + "...";
         }
+        String scopeLabel = getCurrentTestCase().getScenario().getScopeLabel();
         //        String toolTip
         //                = getCurrentTestCase().getScenario().getName()
         //                + " - "
         //                + getCurrentTestCase().getName();
-        toolBar.setPlaceHolderText(scText + " - " + tcText, null);
+        toolBar.setPlaceHolderText(scText + " - " + tcText + " (" + scopeLabel + ")", null);
     }
 
     public void load() {

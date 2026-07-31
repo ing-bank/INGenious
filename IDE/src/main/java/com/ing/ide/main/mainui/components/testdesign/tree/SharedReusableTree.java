@@ -1047,15 +1047,7 @@ public class SharedReusableTree extends ProjectTree {
     private String fetchNewSharedReusableTestCaseName(Scenario scenario) {
         String newTestCaseName = "NewSharedTestCase";
         for (int i = 0;; i++) {
-            if (
-                scenario.getTestCaseByName(newTestCaseName) == null &&
-                !getProject()
-                    .testCaseExistsForScenarioNameAcrossScopes(
-                        scenario.getName(),
-                        scenario,
-                        newTestCaseName
-                    )
-            ) {
+            if (scenario.getTestCaseByName(newTestCaseName) == null) {
                 break;
             }
             newTestCaseName = "NewSharedTestCase" + i;

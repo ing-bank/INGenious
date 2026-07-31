@@ -1085,19 +1085,6 @@ public class Project {
     }
 
     /**
-     * Checks if a scenario with the given name exists in any scope (Test Plan, Reusable, or Shared Reusable).
-     * @param scenarioName name to check
-     * @return true if scenario exists in any scope, false otherwise
-     */
-    private boolean scenarioExistsInAnyScope(String scenarioName) {
-        return (
-            getScenarioByName(scenarioName) != null ||
-            getReusableScenarioByName(scenarioName) != null ||
-            getSharedReusableScenarioByName(scenarioName) != null
-        );
-    }
-
-    /**
      * Checks if a scenario exists in reusable scopes only (project/shared reusable).
      */
     private boolean scenarioExistsInReusableScopes(String scenarioName) {
@@ -1119,64 +1106,6 @@ public class Project {
             return baseName;
         }
         return NamingUtils.generateUniqueName(baseName, this::scenarioExistsInReusableScopes);
-    }
-
-    /**
-     * Checks if a test case with the given name exists in any scenario across all scopes.
-     * @param testCaseName test case name to check
-     * @return true if test case exists in any scenario and any scope, false otherwise
-     */
-    public boolean testCaseExistsInAnyScope(String testCaseName) {
-        for (Scenario scenario : scenarios) {
-            if (scenario.getTestCaseByName(testCaseName) != null) {
-                return true;
-            }
-        }
-        for (Scenario scenario : reusableScenarios) {
-            if (scenario.getTestCaseByName(testCaseName) != null) {
-                return true;
-            }
-        }
-        for (Scenario scenario : sharedReusableScenarios) {
-            if (scenario.getTestCaseByName(testCaseName) != null) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    /**
-     * Checks whether a test case with the given name exists for the specified scenario
-     * name in any scope (Test Plan, Project Reusable, Shared Reusable), excluding an
-     * optional scenario instance.
-     * @param scenarioName the scenario name to search for across scopes
-     * @param excludeScenario scenario instance to exclude from the check (may be null)
-     * @param testCaseName test case name to check
-     * @return true if a test case with the given name exists for the same scenario name in another scope
-     */
-    public boolean testCaseExistsForScenarioNameAcrossScopes(
-        String scenarioName,
-        Scenario excludeScenario,
-        String testCaseName
-    ) {
-        Scenario sc;
-
-        sc = getTestPlanScenarioByName(scenarioName);
-        if (sc != null && sc != excludeScenario && sc.getTestCaseByName(testCaseName) != null) {
-            return true;
-        }
-
-        sc = getReusableScenarioByName(scenarioName);
-        if (sc != null && sc != excludeScenario && sc.getTestCaseByName(testCaseName) != null) {
-            return true;
-        }
-
-        sc = getSharedReusableScenarioByName(scenarioName);
-        if (sc != null && sc != excludeScenario && sc.getTestCaseByName(testCaseName) != null) {
-            return true;
-        }
-
-        return false;
     }
 
     /**

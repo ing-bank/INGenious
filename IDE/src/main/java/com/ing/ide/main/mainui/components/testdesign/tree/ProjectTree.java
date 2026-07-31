@@ -628,15 +628,7 @@ public class ProjectTree implements ActionListener {
     private String fetchNewTestCaseName(Scenario scenario) {
         String newTestCaseName = "NewTestCase";
         for (int i = 0;; i++) {
-            if (
-                scenario.getTestCaseByName(newTestCaseName) == null &&
-                !getProject()
-                    .testCaseExistsForScenarioNameAcrossScopes(
-                        scenario.getName(),
-                        scenario,
-                        newTestCaseName
-                    )
-            ) {
+            if (scenario.getTestCaseByName(newTestCaseName) == null) {
                 break;
             }
             newTestCaseName = "NewTestCase" + i;

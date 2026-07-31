@@ -124,6 +124,21 @@ public class Scenario extends DataModel {
     }
 
     /**
+     * Returns a short, human-readable label for this scenario's scope, for display purposes
+     * (e.g. the Test Design search box), reflecting which scope is currently active.
+     * @return "TestPlan", "Project", or "Shared"
+     */
+    public String getScopeLabel() {
+        if (source == Source.REUSABLE_COMPONENTS) {
+            return "Project";
+        }
+        if (source == Source.SHARED_REUSABLE_COMPONENTS) {
+            return "Shared";
+        }
+        return "TestPlan";
+    }
+
+    /**
      * Returns the parent project.
      * @return parent project
      */
@@ -268,10 +283,7 @@ public class Scenario extends DataModel {
      * @return the created test case, or null if it already exists in this scenario
      */
     public TestCase addTestCase(String testCaseName) {
-        if (
-            getTestCaseByName(testCaseName) == null &&
-            !getProject().testCaseExistsForScenarioNameAcrossScopes(getName(), this, testCaseName)
-        ) {
+        if (getTestCaseByName(testCaseName) == null) {
             TestCase tc = new TestCase(this, testCaseName);
             testCases.add(tc);
             tc.setSaved(false);
