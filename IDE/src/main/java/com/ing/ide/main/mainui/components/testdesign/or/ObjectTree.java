@@ -1826,12 +1826,27 @@ public abstract class ObjectTree implements ActionListener {
         ORObjectInf source = cb.getObject();
         boolean cut = cb.isCut();
         ORPageInf targetPage = getSelectedPage();
-        if (targetPage == null && getSelectedObjectGroup() != null) {
-            targetPage = getSelectedObjectGroup().getParent();
+
+        if (targetPage == null) {
+            ObjectGroup selectedGroup = getSelectedObjectGroup();
+
+            if (selectedGroup != null) {
+                targetPage = selectedGroup.getParent();
+            }
         }
+
+        if (targetPage == null) {
+            ORObjectInf selectedObject = getSelectedObject();
+
+            if (selectedObject != null) {
+                targetPage = selectedObject.getPage();
+            }
+        }
+
         if (targetPage == null || source == null) {
             return;
         }
+
         ORRootInf currentOR = getOR();
         ORRootInf sourceOR = (ORRootInf) source.getPage().getParent();
         ObjectGroup sourceGroup = source.getParent();
