@@ -109,6 +109,8 @@ Release Date: <insert date of release>
 - Fixed Test Data `Scope` being reset/mismatched on project reload for duplicate scenario/test case names across Test Plan, Project Reusables, and Shared Reusables, and ensured conversions between these locations update `Scope` explicitly.
 - Fixed HTML report step details disappearing from Detailed/Summary reports when Azure DevOps reporting is enabled, caused by `AzureTestCaseHandler` incorrectly becoming the primary report data source instead of `HtmlTestCaseHandler`.
 - Fixed shared HTML report assets (JS/CSS/fonts) never refreshing after an engine upgrade, which left migrated projects serving stale, incompatible report scripts.
+- Fixed copy-paste between Project and Shared SAP Objects
+- Fixed copy-paste behavior in Object Repository to mirror test cases
 
 ### Browser/Playwright Testing
 
