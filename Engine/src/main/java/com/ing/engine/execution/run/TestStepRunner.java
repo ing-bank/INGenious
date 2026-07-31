@@ -204,7 +204,9 @@ public class TestStepRunner {
         throws DataNotFoundException {
         try {
             parameter.setSubIteration(getSubIterationFromInput(context));
-            context.getReport().startComponent(getStep().getAction(), getStep().getDescription());
+            context
+                .getReport()
+                .startComponent(getStep().getAction(), getStep().getDescription(), resolvedScope);
             // The reusable's own steps execute through this new runner instance, so the
             // resolved scope must be set here too - it is NOT inherited from the parent
             // context, and without it every data lookup inside the reusable falls back to
