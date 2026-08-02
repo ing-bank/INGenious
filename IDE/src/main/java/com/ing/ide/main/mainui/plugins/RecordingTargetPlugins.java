@@ -34,7 +34,21 @@ public final class RecordingTargetPlugins {
      * @return a target, or {@code null} when no plugin has an answer and the user should choose
      */
     public static RecordingTarget currentTarget() {
-        for (RecordingTargetApi provider : load()) {
+        return currentTarget(load());
+    }
+
+    /**
+     * The target the first of the given plugins willing to answer proposes.
+     *
+     * <p>Package-private rather than inlined above so the "first answer wins, a throwing plugin
+     * is skipped" rule can be exercised without an installed plugin directory, in the same way
+     * {@code PluginLoader} exposes its search-path overload to its own test.
+     *
+     * @param providers the plugins to ask, in discovery order
+     * @return a target, or {@code null} when none of them has an answer
+     */
+    static RecordingTarget currentTarget(List<RecordingTargetApi> providers) {
+        for (RecordingTargetApi provider : providers) {
             RecordingTarget target;
             try {
                 target = provider.getRecordingTarget();

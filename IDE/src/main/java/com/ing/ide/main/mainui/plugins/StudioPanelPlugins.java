@@ -87,7 +87,17 @@ public final class StudioPanelPlugins {
         return cachedByIdentity.get(identity);
     }
 
-    private static Panel discover(Class<?> entryClass) {
+    /**
+     * Turns one plugin entry class into a panel declaration, or rejects it.
+     *
+     * <p>Package-private rather than private so the rejection paths can be exercised without an
+     * installed plugin directory, in the same way {@code PluginLoader} exposes its search-path
+     * overload to its own test.
+     *
+     * @param entryClass a class listed in a plugin JAR's {@code pluginEntryClasses} attribute
+     * @return the declaration, or {@code null} when the class is not a usable panel
+     */
+    static Panel discover(Class<?> entryClass) {
         if (!StudioPanelApi.class.isAssignableFrom(entryClass)) {
             LOG.log(Level.FINE, "Plugin entry is not a Studio panel: {0}", entryClass.getName());
             return null;
