@@ -123,7 +123,8 @@ public class HtmlSummaryHandler extends SummaryHandler implements PrimaryHandler
     }
 
     /**
-     * Ensures shared media assets exist once under the Results root.
+     * Ensures shared media assets under the Results root are in sync with the
+     * engine's bundled report templates.
      */
     private void ensureSharedMediaAssets() {
         String resultsRoot = FilePath.getResultsPath();
@@ -137,7 +138,7 @@ public class HtmlSummaryHandler extends SummaryHandler implements PrimaryHandler
         }
 
         try {
-            copyMissingDirectoryTree(templateMedia.toPath(), sharedMedia.toPath());
+            syncDirectoryTree(templateMedia.toPath(), sharedMedia.toPath());
         } catch (Exception ex) {
             LOGGER.log(Level.WARNING, "Failed to refresh shared media assets", ex);
         }
@@ -197,9 +198,13 @@ public class HtmlSummaryHandler extends SummaryHandler implements PrimaryHandler
     }
 
     /**
-     * Copies only missing files/directories from source to target.
+     * Mirrors source onto target, overwriting existing files. The shared media
+     * tree only ever holds engine-bundled report assets (JS/CSS/fonts/images),
+     * never test-run data, so it must always reflect the current engine build —
+     * copy-if-missing left projects permanently stuck on whatever assets existed
+     * the first time their Results/media folder was created (e.g. pre-upgrade).
      */
-    private void copyMissingDirectoryTree(Path sourceRoot, Path targetRoot) throws IOException {
+    private void syncDirectoryTree(Path sourceRoot, Path targetRoot) throws IOException {
         Files.createDirectories(targetRoot);
 
         try (Stream<Path> paths = Files.walk(sourceRoot)) {
@@ -212,11 +217,7 @@ public class HtmlSummaryHandler extends SummaryHandler implements PrimaryHandler
                     continue;
                 }
 
-                if (Files.exists(targetPath)) {
-                    continue;
-                }
-
-                Files.copy(sourcePath, targetPath);
+                Files.copy(sourcePath, targetPath, StandardCopyOption.REPLACE_EXISTING);
             }
         }
     }

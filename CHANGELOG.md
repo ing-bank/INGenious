@@ -102,7 +102,8 @@ Release Date: <insert date of release>
 - Added missing Test Manager option under TM Settings dropdown
 - Resolved issues with Test datasheet references in Reusable components.
 - Fixed the delete confirmation message for Impacted Assets to ensure correct notification and confirmation behavior during deletion actions.
-- 
+- Fixed HTML report step details disappearing from Detailed/Summary reports when Azure DevOps reporting is enabled, caused by `AzureTestCaseHandler` incorrectly becoming the primary report data source instead of `HtmlTestCaseHandler`.
+- Fixed shared HTML report assets (JS/CSS/fonts) never refreshing after an engine upgrade, which left migrated projects serving stale, incompatible report scripts.
 
 ### Browser/Playwright Testing
 

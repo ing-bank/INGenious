@@ -69,8 +69,12 @@ public final class TestCaseReport implements Report, TestCaseReportApi {
             register(new RPTestCaseHandler(this), true);
         }
         register(new HtmlTestCaseHandler(this), true);
+        // AzureTestCaseHandler's getData()/getFile() are stubbed (not implemented against
+        // the report schema HtmlSummaryHandler/the HTML templates rely on: STEPS, videoPath,
+        // tracePath, ...). Registered after Html, so it must not be primary or it silently
+        // becomes report.getData()'s source and step details vanish from aggregate reports.
         if (isAzureEnabled()) {
-            register(new AzureTestCaseHandler(this), true);
+            register(new AzureTestCaseHandler(this));
         }
     }
 
