@@ -347,9 +347,9 @@ public class PluginLoader {
         for (File jar : pluginJars) {
             fingerprint
                 .append(jar.getAbsolutePath())
-                .append(' ')
+                .append('\0')
                 .append(jar.length())
-                .append(' ')
+                .append('\0')
                 .append(jar.lastModified())
                 .append('\n');
         }
