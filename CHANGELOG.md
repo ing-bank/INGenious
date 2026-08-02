@@ -11,6 +11,14 @@ Release Date: <insert date of release>
 #### Added
 
 - Added a user-writable plugin search path with optional environment configuration and manifest-based plugin identity
+- Let a plugin contribute its own screen to Studio, shown beside Test Design and the API Workbench instead of in a separate companion application
+    - Introduced the `StudioPanelApi` contract, implemented on a plugin entry class and discovered at startup like any other plugin
+    - Read the panel's title, tooltip, order and surface from the JAR manifest, so a screen can be placed on the toolbar without instantiating the plugin
+    - Built the screen on first activation only, and kept a panel that fails to build from disturbing the rest of the toolbar
+- Let a plugin say which test case a recording belongs to, so a user who already chose one elsewhere is not asked a second time
+    - Introduced the `RecordingTargetApi` contract, asked before Studio's own recording target chooser opens
+    - Created the scenario and test case named by the plugin when they do not exist yet, and opened the test case in the editor
+    - Allowed a target to name the page the recording starts on, falling back to the project's recorder setting when it does not
 - Let a plugin read and write a test case's test data in the open project, so a plugin screen can record what it decided where the project keeps it
 - Implemented `Shared Reusable Components` for cross-project reusables
     - Added dedicated UI section for managing shared reusable components
