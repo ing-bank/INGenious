@@ -745,11 +745,11 @@ public class TestCaseComponent extends JPanel implements ActionListener {
         // The user was not asked where this goes, so the console has to say it.
         if (pluginTarget != null) {
             logPlaywright(
-                "🎯 Recording into " + target.getScenario().getName() + " / " + target.getName()
+                "Recording into " + target.getScenario().getName() + " / " + target.getName()
             );
         }
         if (startUrl != null) {
-            logPlaywright("🌐 Opening " + startUrl);
+            logPlaywright("Opening " + startUrl);
         }
         logPlaywright(
             "============================== Playwright Log Started =============================="
