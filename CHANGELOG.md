@@ -102,6 +102,7 @@ Release Date: <insert date of release>
 - Added missing Test Manager option under TM Settings dropdown
 - Resolved issues with Test datasheet references in Reusable components.
 - Fixed the delete confirmation message for Impacted Assets to ensure correct notification and confirmation behavior during deletion actions.
+- 
 
 ### Browser/Playwright Testing
 
