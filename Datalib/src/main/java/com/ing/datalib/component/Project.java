@@ -986,6 +986,29 @@ public class Project {
                 targetSource,
                 testCase
             );
+
+        // Explicitly set Scope to the new location as part of this conversion - this is intentional
+        // and must not be confused with (or blocked by) the reload-time "preserve existing Scope" logic.
+        testData.updateScope(
+            scenarioName,
+            testCaseName,
+            scopeToken(sourceType),
+            scopeToken(targetSource)
+        );
+    }
+
+    /**
+     * Maps a scenario source to the raw Scope token stored against Test Data entries:
+     * "" for Test Plan, "[Project]" for Project Reusables, "[Shared]" for Shared Reusables.
+     */
+    private String scopeToken(Scenario.Source source) {
+        if (source == Scenario.Source.REUSABLE_COMPONENTS) {
+            return "[Project]";
+        }
+        if (source == Scenario.Source.SHARED_REUSABLE_COMPONENTS) {
+            return "[Shared]";
+        }
+        return "";
     }
 
     /**
@@ -1256,6 +1279,16 @@ public class Project {
                     null
                 );
             cleanupEmptyScenario(sourceScenario);
+
+            // Explicitly set Scope to the new location as part of this conversion. Only applies to
+            // moves: a copy leaves the source test case (and its Test Data Scope) exactly where it was.
+            // Move never renames scenario/testcase (see uniqueNameInScenario), so old names still match.
+            testData.updateScope(
+                scenarioName,
+                testCaseName,
+                scopeToken(sourceType),
+                scopeToken(targetSource)
+            );
         }
 
         return targetTestCase;

@@ -190,4 +190,15 @@ public abstract class TestData {
             testDataList1.refactorTestCaseScenario(testCaseName, oldScenarioName, newScenarioName);
         }
     }
+
+    public void updateScope(
+        String scenarioName,
+        String testCaseName,
+        String oldScope,
+        String newScope
+    ) {
+        for (TestDataModel testDataList1 : testDataList) {
+            testDataList1.updateScope(scenarioName, testCaseName, oldScope, newScope);
+        }
+    }
 }

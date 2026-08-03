@@ -295,6 +295,21 @@ public class EnvTestData {
     }
 
     /**
+     * Updates the Scope of the test data entry for a scenario+testcase across all environments, as
+     * part of an explicit test case conversion between Test Plan / Project Reusables / Shared Reusables.
+     */
+    public void updateScope(
+        String scenarioName,
+        String testCaseName,
+        String oldScope,
+        String newScope
+    ) {
+        for (TestData testData : getAllEnvironments()) {
+            testData.updateScope(scenarioName, testCaseName, oldScope, newScope);
+        }
+    }
+
+    /**
      * Find all environments that contain a datasheet with the given name.
      *
      * @param datasheetName the name of the datasheet to search for

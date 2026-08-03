@@ -105,6 +105,7 @@ Release Date: <insert date of release>
 - Allow reuse of deleted scenarios in Project Reusable Components
 - Fix incorrect reference when executing test cases when resolving test datasheets with reusables components
 - Fix Param Loop error when using reusable compenents with test data
+- Fixed Test Data `Scope` being reset/mismatched on project reload for duplicate scenario/test case names across Test Plan, Project Reusables, and Shared Reusables, and ensured conversions between these locations update `Scope` explicitly.
 
 ### Browser/Playwright Testing
 

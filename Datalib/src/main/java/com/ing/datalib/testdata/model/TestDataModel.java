@@ -181,4 +181,35 @@ public abstract class TestDataModel extends AbstractDataModel<Record> {
             getRecords().clear();
         }
     }
+
+    /**
+     * Updates the Scope of the test data entry belonging to the given scenario+testcase, as part of
+     * an explicit test case conversion (Test Plan / Project Reusables / Shared Reusables move).
+     * Matches on the entry's current scope too, so that when the same scenario+testcase name exists
+     * in more than one scope, only the entry actually being converted (the one still carrying
+     * {@code oldScope}) is updated - the colliding entry elsewhere is left untouched.
+     */
+    public void updateScope(
+        String scenarioName,
+        String testCaseName,
+        String oldScope,
+        String newScope
+    ) {
+        Boolean clearOnExit = getRecords().isEmpty();
+        loadTableModel();
+        for (Record record : getRecords()) {
+            if (
+                record.getScenario().equals(scenarioName) &&
+                record.getTestcase().equals(testCaseName) &&
+                Objects.toString(record.getScope(), "").equals(oldScope)
+            ) {
+                record.setScope(newScope);
+                fireTableCellUpdated(getRecords().indexOf(record), 2);
+            }
+        }
+        if (clearOnExit) {
+            save();
+            getRecords().clear();
+        }
+    }
 }
