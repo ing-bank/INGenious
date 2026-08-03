@@ -281,8 +281,8 @@ public class GeneralWebservice extends Command implements WebservicePluginApi {
             httpClient.get(key).send(httpRequest.get(key), HttpResponse.BodyHandlers.ofString())
         );
 
-		String responseBody = (String)response.get(key).body();
-        if(responseBody.startsWith(")]}',")) {
+        String responseBody = (String) response.get(key).body();
+        if (responseBody.startsWith(")]}',")) {
             responsebodies.put(key, responseBody.replace(")]}',", "").trim());
         } else {
             responsebodies.put(key, responseBody);

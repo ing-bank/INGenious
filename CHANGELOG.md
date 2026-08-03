@@ -184,7 +184,6 @@ Release Date: <insert date of release>
 - Strengthened SSL/TLS certificate validation
 - Enhanced credential handling in API proxy configuration
 - Introduced API Workbench Environment Management to fully manage and use environments and environment variables
-- Added support for JSON responses containing the security prefix `)]}'`
 
 #### Changed
 
@@ -310,6 +309,7 @@ Release Date: <insert date of release>
 ### Contribution
 
 #### Added
+- by Bulearca, C.I. (Cristian - Irinel) [cristianbulearca-0588](https://github.com/cristianbulearca-0588): Added support for JSON responses containing the security prefix `)]}'` by automatically stripping the prefix before processing.
 #### Changed
 #### Deprecated
 #### Removed
