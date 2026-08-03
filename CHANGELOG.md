@@ -184,6 +184,7 @@ Release Date: <insert date of release>
 - Strengthened SSL/TLS certificate validation
 - Enhanced credential handling in API proxy configuration
 - Introduced API Workbench Environment Management to fully manage and use environments and environment variables
+- Added support for JSON responses containing the security prefix `)]}'`
 
 #### Changed
 
