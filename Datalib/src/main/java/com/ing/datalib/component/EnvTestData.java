@@ -121,7 +121,7 @@ public class EnvTestData {
             String key = entry.getKey();
             TestData sTestData = entry.getValue();
             if (!key.equals(envName)) {
-                if (sTestData.getByName(model.getName()) == null) {
+                if (sTestData.getByNameIgnoreCase(model.getName()) == null) {
                     TestDataModel newModel = sTestData.addTestData(
                         sTestData.getNewTestData(model.getName())
                     );
@@ -140,7 +140,7 @@ public class EnvTestData {
             String key = entry.getKey();
             TestData sTestData = entry.getValue();
             if (!key.equals(envName)) {
-                TestDataModel tdModel = sTestData.getByName(model.getName());
+                TestDataModel tdModel = sTestData.getByNameIgnoreCase(model.getName());
                 if (tdModel != null) {
                     for (String column : columns) {
                         tdModel.addColumn(column);
@@ -155,7 +155,7 @@ public class EnvTestData {
             String key = entry.getKey();
             TestData sTestData = entry.getValue();
             if (!key.equals(envName)) {
-                TestDataModel tdModel = sTestData.getByName(model.getName());
+                TestDataModel tdModel = sTestData.getByNameIgnoreCase(model.getName());
                 if (tdModel != null) {
                     for (int row : rows) {
                         tdModel.addRecord();
@@ -261,8 +261,8 @@ public class EnvTestData {
 
     public TestDataModel getTestDataByName(String sheetName) {
         for (TestData sTestData : getAllEnvironments()) {
-            if (sTestData.getByName(sheetName) != null) {
-                return sTestData.getByName(sheetName);
+            if (sTestData.getByNameIgnoreCase(sheetName) != null) {
+                return sTestData.getByNameIgnoreCase(sheetName);
             }
         }
         return null;
@@ -304,7 +304,7 @@ public class EnvTestData {
         List<String> environments = new ArrayList<>();
         for (Map.Entry<String, TestData> entry : environmentTestData.entrySet()) {
             TestData testData = entry.getValue();
-            if (testData.getByName(datasheetName) != null) {
+            if (testData.getByNameIgnoreCase(datasheetName) != null) {
                 environments.add(entry.getKey());
             }
         }
@@ -326,7 +326,9 @@ public class EnvTestData {
         for (Map.Entry<String, TestData> entry : environmentTestData.entrySet()) {
             String envName = entry.getKey();
             TestData testData = entry.getValue();
-            if (!envName.equals(currentEnv) && testData.getByName(datasheetName) != null) {
+            if (
+                !envName.equals(currentEnv) && testData.getByNameIgnoreCase(datasheetName) != null
+            ) {
                 environments.add(envName);
             }
         }
@@ -343,7 +345,8 @@ public class EnvTestData {
      */
     public Boolean renameTestData(String oldName, String newName, String envName) {
         TestData ntestData = sProject.getTestData().getTestDataFor(envName);
-        if (ntestData.getByName(newName) != null) {
+        TestDataModel existingByNewName = ntestData.getByNameIgnoreCase(newName);
+        if (existingByNewName != null && !existingByNewName.getName().equals(oldName)) {
             return false;
         }
 
@@ -372,7 +375,10 @@ public class EnvTestData {
         // First check if newName already exists in any of the target environments
         for (String envName : environments) {
             TestData testData = getTestDataFor(envName);
-            if (testData != null && testData.getByName(newName) != null) {
+            TestDataModel existingByNewName = testData == null
+                ? null
+                : testData.getByNameIgnoreCase(newName);
+            if (existingByNewName != null && !existingByNewName.getName().equals(oldName)) {
                 return false;
             }
         }

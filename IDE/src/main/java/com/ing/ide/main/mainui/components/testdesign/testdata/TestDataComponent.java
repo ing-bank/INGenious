@@ -977,7 +977,7 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
 
     public void importTestData(File file) {
         String name = org.apache.commons.io.FilenameUtils.getName(file.getName());
-        TestDataModel model = getCurrentEnviromentData().getByName(name);
+        TestDataModel model = getCurrentEnviromentData().getByNameIgnoreCase(name);
         if (model != null && model.getLocation().equals(file.getAbsolutePath())) {
             Notification.show("Datasheet already Present");
         } else if (model != null) {
