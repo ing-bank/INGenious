@@ -18,7 +18,9 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JCheckBox;
@@ -117,52 +119,160 @@ public class SharedReusableTree extends ProjectTree {
      */
     @Override
     protected void onDeleteAction() {
+        LOGGER.log(Level.INFO, "=== onDeleteAction() called ===");
         deleteGroups();
-        if (!getSelectedTestCaseNodes().isEmpty() || !getSelectedScenarioNodes().isEmpty()) {
+        LOGGER.log(Level.INFO, "After deleteGroups()");
+
+        // Collect test cases and scenarios for deletion with referencing projects check
+        List<TestCaseNode> testCaseNodes = getSelectedTestCaseNodes();
+        List<ScenarioNode> scenarioNodes = getSelectedScenarioNodes();
+
+        LOGGER.log(Level.INFO, "Selected test case nodes: {0}", testCaseNodes.size());
+        LOGGER.log(Level.INFO, "Selected scenario nodes: {0}", scenarioNodes.size());
+
+        if (!testCaseNodes.isEmpty() || !scenarioNodes.isEmpty()) {
+            LOGGER.log(Level.INFO, "Nodes found - proceeding with confirmation dialog");
             // collect scenario names referenced by the selection
             List<String> selectedScenarioNames = new ArrayList<>();
-            for (ScenarioNode sn : getSelectedScenarioNodes()) {
+            for (ScenarioNode sn : scenarioNodes) {
                 selectedScenarioNames.add(sn.getScenario().getName());
             }
-            for (TestCaseNode tcn : getSelectedTestCaseNodes()) {
+            for (TestCaseNode tcn : testCaseNodes) {
                 selectedScenarioNames.add(tcn.getTestCase().getScenario().getName());
             }
+
+            LOGGER.log(
+                Level.INFO,
+                "Delete action: collecting referencing projects for scenarios: {0}",
+                selectedScenarioNames
+            );
 
             // find projects that reference any of the selected shared scenarios
             List<String> referencingProjects = new ArrayList<>();
             for (String scnName : selectedScenarioNames) {
                 List<String> projs = findProjectsUsingSharedScenario(scnName);
+                LOGGER.log(
+                    Level.INFO,
+                    "Projects referencing scenario ''{0}'': {1}",
+                    new Object[] { scnName, projs }
+                );
                 for (String p : projs) {
                     if (!referencingProjects.contains(p)) referencingProjects.add(p);
                 }
             }
 
+            LOGGER.log(
+                Level.INFO,
+                "Total unique referencing projects found: {0}",
+                referencingProjects.size()
+            );
+
             String message;
             if (!referencingProjects.isEmpty()) {
+                // Build detailed message showing what's being deleted
+                StringBuilder itemsList = new StringBuilder();
+                for (ScenarioNode sn : scenarioNodes) {
+                    if (itemsList.length() > 0) itemsList.append("\n");
+                    itemsList.append("  - Scenario: ").append(sn.getScenario().getName());
+                }
+                for (TestCaseNode tcn : testCaseNodes) {
+                    if (itemsList.length() > 0) itemsList.append("\n");
+                    itemsList
+                        .append("  - Test Case: ")
+                        .append(tcn.getTestCase().getName())
+                        .append(" (Scenario: ")
+                        .append(tcn.getTestCase().getScenario().getName())
+                        .append(")");
+                }
+
                 message =
-                    "The selected shared reusable components are referenced by the following projects:\n\n" +
+                    "The following shared reusable components will be deleted:\n\n" +
+                    itemsList.toString() +
+                    "\n\n" +
+                    "These components are referenced by the following projects:\n\n" +
                     String.join("\n", referencingProjects) +
-                    "\n\nAre you sure you want to delete the selected shared reusable(s)?";
+                    "\n\nAre you sure you want to delete these shared reusable component(s)?";
+                LOGGER.log(Level.INFO, "Showing delete confirmation with detailed project list");
             } else {
-                message = "Warning: You are deleting Shared Reusable component(s). Continue?";
+                message =
+                    "Are you sure you want to delete the selected Shared Reusable component(s)?";
+                LOGGER.log(
+                    Level.WARNING,
+                    "No referencing projects found - showing generic warning"
+                );
             }
 
             int warning = JOptionPane.showConfirmDialog(
                 null,
                 message,
-                "Shared Reusable Delete Warning",
+                "Delete Shared Reusable Components",
                 JOptionPane.YES_NO_OPTION,
                 JOptionPane.WARNING_MESSAGE
             );
             if (warning != JOptionPane.YES_OPTION) {
+                LOGGER.log(Level.INFO, "Delete cancelled by user");
                 return;
             }
+
+            // User confirmed deletion - perform it here instead of calling super
+            LOGGER.log(Level.INFO, "Performing deletion of scenarios and test cases");
+
+            // Delete test cases first
+            if (!testCaseNodes.isEmpty()) {
+                Set<ScenarioNode> affectedScenarios = new HashSet<>();
+                for (TestCaseNode tcNode : testCaseNodes) {
+                    if (tcNode.getParent() instanceof ScenarioNode) {
+                        affectedScenarios.add((ScenarioNode) tcNode.getParent());
+                    }
+                }
+                for (TestCaseNode tcNode : testCaseNodes) {
+                    tcNode.getTestCase().delete();
+                    getTreeModel().removeNodeFromParent(tcNode);
+                }
+                for (ScenarioNode s : affectedScenarios) {
+                    persistSortOrder(s);
+                }
+            }
+
+            // Delete scenarios
+            if (!scenarioNodes.isEmpty()) {
+                Set<GroupNode> affectedGroups = new HashSet<>();
+                for (ScenarioNode scenarioNode : scenarioNodes) {
+                    if (scenarioNode.getParent() instanceof GroupNode) {
+                        affectedGroups.add((GroupNode) scenarioNode.getParent());
+                    }
+                }
+                for (ScenarioNode scenarioNode : scenarioNodes) {
+                    // Delete all test cases in the scenario first
+                    List<TestCaseNode> testCasesInScenario = TestCaseNode.toList(
+                        scenarioNode.children()
+                    );
+                    for (TestCaseNode tcNode : testCasesInScenario) {
+                        tcNode.getTestCase().delete();
+                        getTreeModel().removeNodeFromParent(tcNode);
+                    }
+                    // Then delete the scenario itself
+                    scenarioNode.getScenario().delete();
+                    getTreeModel().removeNodeFromParent(scenarioNode);
+                }
+                for (GroupNode g : affectedGroups) {
+                    persistSortOrder(g);
+                }
+            }
+
+            LOGGER.log(Level.INFO, "Deletion completed successfully");
+        } else {
+            LOGGER.log(
+                Level.INFO,
+                "No test cases or scenarios selected - skipping delete confirmation"
+            );
         }
-        super.onDeleteAction();
+        LOGGER.log(Level.INFO, "=== onDeleteAction() completed ===");
     }
 
     /**
      * Handles action events specific to shared reusable components.
+     * Intercepts delete operations to show referencing projects.
      * @param ae action event
      */
     @Override
@@ -174,12 +284,212 @@ public class SharedReusableTree extends ProjectTree {
             case "Add TestCase":
                 addSharedReusableTestCase();
                 break;
+            case "Delete Scenario":
+                handleDeleteScenarioWithReferences();
+                break;
+            case "Delete TestCase":
+                handleDeleteTestCaseWithReferences();
+                break;
             case "Make As Project Reusable":
             case "Move to Project Reusable":
                 moveToProjectReusable();
                 break;
             default:
                 super.actionPerformed(ae);
+        }
+    }
+
+    /**
+     * Handles delete scenario action with referencing projects confirmation.
+     */
+    private void handleDeleteScenarioWithReferences() {
+        List<ScenarioNode> scenarioNodes = getSelectedScenarioNodes();
+        LOGGER.log(
+            Level.INFO,
+            "handleDeleteScenarioWithReferences: {0} scenarios selected",
+            scenarioNodes.size()
+        );
+
+        if (scenarioNodes.isEmpty()) {
+            return;
+        }
+
+        // collect scenario names
+        List<String> selectedScenarioNames = new ArrayList<>();
+        for (ScenarioNode sn : scenarioNodes) {
+            selectedScenarioNames.add(sn.getScenario().getName());
+        }
+
+        // find projects that reference these scenarios
+        List<String> referencingProjects = new ArrayList<>();
+        for (String scnName : selectedScenarioNames) {
+            List<String> projs = findProjectsUsingSharedScenario(scnName);
+            LOGGER.log(
+                Level.INFO,
+                "Projects referencing scenario ''{0}'': {1}",
+                new Object[] { scnName, projs }
+            );
+            for (String p : projs) {
+                if (!referencingProjects.contains(p)) {
+                    referencingProjects.add(p);
+                }
+            }
+        }
+
+        String message;
+        if (!referencingProjects.isEmpty()) {
+            // Build detailed message with scenarios and referencing projects
+            StringBuilder itemsList = new StringBuilder();
+            for (ScenarioNode sn : scenarioNodes) {
+                if (itemsList.length() > 0) {
+                    itemsList.append("\n");
+                }
+                itemsList.append("  - Scenario: ").append(sn.getScenario().getName());
+            }
+
+            message =
+                "The following shared reusable components will be deleted:\n\n" +
+                itemsList.toString() +
+                "\n\nThese components are referenced by the following projects:\n\n" +
+                String.join("\n", referencingProjects) +
+                "\n\nAre you sure you want to delete these shared reusable scenario(s)?";
+            LOGGER.log(Level.INFO, "Showing delete scenario confirmation with projects list");
+        } else {
+            message = "Are you sure you want to delete the selected shared reusable scenario(s)?";
+            LOGGER.log(Level.WARNING, "No referencing projects found for scenarios");
+        }
+
+        int option = JOptionPane.showConfirmDialog(
+            null,
+            message,
+            "Delete Shared Reusable Scenarios",
+            JOptionPane.YES_NO_OPTION,
+            JOptionPane.WARNING_MESSAGE
+        );
+
+        if (option == JOptionPane.YES_OPTION) {
+            LOGGER.log(Level.INFO, "User confirmed delete - performing deletion");
+            // Delete scenarios directly
+            Set<GroupNode> affectedGroups = new HashSet<>();
+            for (ScenarioNode scenarioNode : scenarioNodes) {
+                if (scenarioNode.getParent() instanceof GroupNode) {
+                    affectedGroups.add((GroupNode) scenarioNode.getParent());
+                }
+            }
+            for (ScenarioNode scenarioNode : scenarioNodes) {
+                // Delete all test cases in the scenario first
+                List<TestCaseNode> testCasesInScenario = TestCaseNode.toList(
+                    scenarioNode.children()
+                );
+                for (TestCaseNode tcNode : testCasesInScenario) {
+                    tcNode.getTestCase().delete();
+                    getTreeModel().removeNodeFromParent(tcNode);
+                }
+                // Then delete the scenario itself
+                scenarioNode.getScenario().delete();
+                getTreeModel().removeNodeFromParent(scenarioNode);
+            }
+            for (GroupNode g : affectedGroups) {
+                persistSortOrder(g);
+            }
+            LOGGER.log(Level.INFO, "Scenario deletion completed");
+        } else {
+            LOGGER.log(Level.INFO, "User cancelled delete");
+        }
+    }
+
+    /**
+     * Handles delete test case action with referencing projects confirmation.
+     */
+    private void handleDeleteTestCaseWithReferences() {
+        List<TestCaseNode> testCaseNodes = getSelectedTestCaseNodes();
+        LOGGER.log(
+            Level.INFO,
+            "handleDeleteTestCaseWithReferences: {0} test cases selected",
+            testCaseNodes.size()
+        );
+
+        if (testCaseNodes.isEmpty()) {
+            return;
+        }
+
+        // collect scenario names referenced by test cases
+        List<String> selectedScenarioNames = new ArrayList<>();
+        for (TestCaseNode tcn : testCaseNodes) {
+            selectedScenarioNames.add(tcn.getTestCase().getScenario().getName());
+        }
+
+        // find projects that reference these scenarios
+        List<String> referencingProjects = new ArrayList<>();
+        for (String scnName : selectedScenarioNames) {
+            List<String> projs = findProjectsUsingSharedScenario(scnName);
+            LOGGER.log(
+                Level.INFO,
+                "Projects referencing test case scenario ''{0}'': {1}",
+                new Object[] { scnName, projs }
+            );
+            for (String p : projs) {
+                if (!referencingProjects.contains(p)) {
+                    referencingProjects.add(p);
+                }
+            }
+        }
+
+        String message;
+        if (!referencingProjects.isEmpty()) {
+            // Build detailed message with test cases and referencing projects
+            StringBuilder itemsList = new StringBuilder();
+            for (TestCaseNode tcn : testCaseNodes) {
+                if (itemsList.length() > 0) {
+                    itemsList.append("\n");
+                }
+                itemsList
+                    .append("  - Test Case: ")
+                    .append(tcn.getTestCase().getName())
+                    .append(" (Scenario: ")
+                    .append(tcn.getTestCase().getScenario().getName())
+                    .append(")");
+            }
+
+            message =
+                "The following shared reusable components will be deleted:\n\n" +
+                itemsList.toString() +
+                "\n\nThese components are referenced by the following projects:\n\n" +
+                String.join("\n", referencingProjects) +
+                "\n\nAre you sure you want to delete these shared reusable test case(s)?";
+            LOGGER.log(Level.INFO, "Showing delete test case confirmation with projects list");
+        } else {
+            message = "Are you sure you want to delete the selected shared reusable test case(s)?";
+            LOGGER.log(Level.WARNING, "No referencing projects found for test cases");
+        }
+
+        int option = JOptionPane.showConfirmDialog(
+            null,
+            message,
+            "Delete Shared Reusable Test Cases",
+            JOptionPane.YES_NO_OPTION,
+            JOptionPane.WARNING_MESSAGE
+        );
+
+        if (option == JOptionPane.YES_OPTION) {
+            LOGGER.log(Level.INFO, "User confirmed delete - performing deletion");
+            // Delete test cases directly
+            Set<ScenarioNode> affectedScenarios = new HashSet<>();
+            for (TestCaseNode tcNode : testCaseNodes) {
+                if (tcNode.getParent() instanceof ScenarioNode) {
+                    affectedScenarios.add((ScenarioNode) tcNode.getParent());
+                }
+            }
+            for (TestCaseNode tcNode : testCaseNodes) {
+                tcNode.getTestCase().delete();
+                getTreeModel().removeNodeFromParent(tcNode);
+            }
+            for (ScenarioNode s : affectedScenarios) {
+                persistSortOrder(s);
+            }
+            LOGGER.log(Level.INFO, "Test case deletion completed");
+        } else {
+            LOGGER.log(Level.INFO, "User cancelled delete");
         }
     }
 
@@ -203,13 +513,25 @@ public class SharedReusableTree extends ProjectTree {
             ScenarioNode scenarioNode = super.getSelectedScenarioNode();
             if (scenarioNode != null && !scenarioNode.toString().equals(name)) {
                 // Warn about projects that reference this shared reusable scenario
-                var projects = findProjectsUsingSharedScenario(
-                    scenarioNode.getScenario().getName()
+                String oldScenarioName = scenarioNode.getScenario().getName();
+                LOGGER.log(
+                    Level.INFO,
+                    "Rename scenario ''{0}'' to ''{1}'' - checking referencing projects",
+                    new Object[] { oldScenarioName, name }
                 );
+
+                var projects = findProjectsUsingSharedScenario(oldScenarioName);
+
+                LOGGER.log(
+                    Level.INFO,
+                    "Projects referencing scenario ''{0}'': {1}",
+                    new Object[] { oldScenarioName, projects }
+                );
+
                 if (!projects.isEmpty()) {
                     String msg =
                         "The shared reusable scenario '" +
-                        scenarioNode.getScenario().getName() +
+                        oldScenarioName +
                         "'\n" +
                         "is referenced by the following projects:\n\n" +
                         String.join("\n", projects) +
@@ -224,13 +546,29 @@ public class SharedReusableTree extends ProjectTree {
                         javax.swing.JOptionPane.WARNING_MESSAGE
                     );
                     if (opt != javax.swing.JOptionPane.YES_OPTION) {
+                        LOGGER.log(
+                            Level.INFO,
+                            "Rename cancelled by user for scenario ''{0}''",
+                            oldScenarioName
+                        );
                         return false;
                     }
+                } else {
+                    LOGGER.log(
+                        Level.WARNING,
+                        "No referencing projects found for scenario ''{0}'' - continuing with rename",
+                        oldScenarioName
+                    );
                 }
                 if (scenarioNode.getScenario().renameSharedReusable(name)) {
                     getTreeModel().reload(scenarioNode);
                     renameScenario(scenarioNode.getScenario());
                     super.getTestDesign().getScenarioComp().refreshTitle();
+                    LOGGER.log(
+                        Level.INFO,
+                        "Scenario successfully renamed from ''{0}'' to ''{1}''",
+                        new Object[] { oldScenarioName, name }
+                    );
                     return true;
                 } else {
                     Notification.show("Scenario " + name + " Already present");
@@ -240,16 +578,29 @@ public class SharedReusableTree extends ProjectTree {
             TestCaseNode testCaseNode = super.getSelectedTestCaseNode();
             if (testCaseNode != null && !testCaseNode.toString().equals(name)) {
                 // Warn about projects that reference this shared reusable test case's scenario
-                var projects = findProjectsUsingSharedScenario(
-                    testCaseNode.getTestCase().getScenario().getName()
+                String scenarioName = testCaseNode.getTestCase().getScenario().getName();
+                String oldTestCaseName = testCaseNode.getTestCase().getName();
+                LOGGER.log(
+                    Level.INFO,
+                    "Rename test case ''{0}'' to ''{1}'' in scenario ''{2}'' - checking referencing projects",
+                    new Object[] { oldTestCaseName, name, scenarioName }
                 );
+
+                var projects = findProjectsUsingSharedScenario(scenarioName);
+
+                LOGGER.log(
+                    Level.INFO,
+                    "Projects referencing test case scenario ''{0}'': {1}",
+                    new Object[] { scenarioName, projects }
+                );
+
                 if (!projects.isEmpty()) {
                     String msg =
                         "The shared reusable test case '" +
-                        testCaseNode.getTestCase().getName() +
+                        oldTestCaseName +
                         "'\n" +
                         "(scenario: '" +
-                        testCaseNode.getTestCase().getScenario().getName() +
+                        scenarioName +
                         "') is referenced by the following projects:\n\n" +
                         String.join("\n", projects) +
                         "\n\nDo you want to continue renaming it to '" +
@@ -263,12 +614,28 @@ public class SharedReusableTree extends ProjectTree {
                         javax.swing.JOptionPane.WARNING_MESSAGE
                     );
                     if (opt != javax.swing.JOptionPane.YES_OPTION) {
+                        LOGGER.log(
+                            Level.INFO,
+                            "Rename cancelled by user for test case ''{0}''",
+                            oldTestCaseName
+                        );
                         return false;
                     }
+                } else {
+                    LOGGER.log(
+                        Level.WARNING,
+                        "No referencing projects found for test case scenario ''{0}'' - continuing with rename",
+                        scenarioName
+                    );
                 }
                 if (testCaseNode.getTestCase().renameSharedReusable(name)) {
                     getTreeModel().reload(testCaseNode);
                     super.getTestDesign().getTestCaseComp().refreshTitle();
+                    LOGGER.log(
+                        Level.INFO,
+                        "Test case successfully renamed from ''{0}'' to ''{1}''",
+                        new Object[] { oldTestCaseName, name }
+                    );
                     return true;
                 } else {
                     Notification.show(
@@ -291,6 +658,7 @@ public class SharedReusableTree extends ProjectTree {
      * @param scenarioName shared reusable scenario name (not used for filtering, kept for compatibility)
      * @return list of project display names (excluding current project) that reference shared reusables
      */
+    @SuppressWarnings("unused")
     private List<String> findProjectsUsingSharedScenario(String scenarioName) {
         List<String> result = new ArrayList<>();
         try {
@@ -301,14 +669,50 @@ public class SharedReusableTree extends ProjectTree {
                 ? currentProject.getLocation()
                 : null;
 
-            Path projectsFile = Paths.get(
-                Project.getSharedReusableComponentsPath(),
-                "projects.items"
+            String sharedReusablePath = Project.getSharedReusableComponentsPath();
+            Path projectsFile = Paths.get(sharedReusablePath, "projects.items");
+
+            LOGGER.log(Level.INFO, "=== findProjectsUsingSharedScenario DEBUG START ===");
+            LOGGER.log(Level.INFO, "Scenario name: {0}", scenarioName);
+            LOGGER.log(Level.INFO, "System user.dir: {0}", System.getProperty("user.dir"));
+            LOGGER.log(Level.INFO, "Shared reusable path resolved to: {0}", sharedReusablePath);
+            LOGGER.log(
+                Level.INFO,
+                "Looking for projects.items at: {0}",
+                projectsFile.toAbsolutePath().toString()
             );
-            if (!Files.exists(projectsFile)) return result;
+            LOGGER.log(Level.INFO, "File exists: {0}", Files.exists(projectsFile));
+
+            if (!Files.exists(projectsFile)) {
+                LOGGER.log(
+                    Level.WARNING,
+                    "projects.items file NOT FOUND at: {0}",
+                    projectsFile.toAbsolutePath()
+                );
+                LOGGER.log(
+                    Level.INFO,
+                    "=== findProjectsUsingSharedScenario DEBUG END (file not found) ==="
+                );
+                return result;
+            }
 
             String content = new String(Files.readAllBytes(projectsFile), StandardCharsets.UTF_8);
-            if (content == null || content.trim().isEmpty()) return result;
+            LOGGER.log(Level.INFO, "File size: {0} bytes", content.length());
+
+            if (content == null || content.trim().isEmpty()) {
+                LOGGER.log(Level.WARNING, "projects.items file is EMPTY at: {0}", projectsFile);
+                LOGGER.log(
+                    Level.INFO,
+                    "=== findProjectsUsingSharedScenario DEBUG END (empty file) ==="
+                );
+                return result;
+            }
+
+            LOGGER.log(
+                Level.INFO,
+                "projects.items content (first 300 chars): {0}",
+                content.length() > 300 ? content.substring(0, 300) + "..." : content
+            );
 
             // Parse JSON array
             com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
@@ -319,31 +723,68 @@ public class SharedReusableTree extends ProjectTree {
                     .constructCollectionType(java.util.List.class, java.util.Map.class)
             );
 
+            LOGGER.log(
+                Level.INFO,
+                "Successfully parsed {0} projects from projects.items",
+                projects.size()
+            );
+            LOGGER.log(
+                Level.INFO,
+                "Current project to exclude: name={0}, path={1}",
+                new Object[] { currentProjectName, currentProjectPath }
+            );
+
             // Format and display all projects EXCEPT the currently loaded one
             for (java.util.Map<String, String> proj : projects) {
                 String projName = proj.get("name");
                 String projPath = proj.get("path");
-                if (projName == null || projName.isEmpty()) continue;
+                LOGGER.log(
+                    Level.INFO,
+                    "Processing project from file: name={0}, path={1}",
+                    new Object[] { projName, projPath }
+                );
+
+                if (projName == null || projName.isEmpty()) {
+                    LOGGER.log(Level.INFO, "Skipping project with null/empty name");
+                    continue;
+                }
 
                 // Skip if this is the currently loaded project
-                if (
+                boolean isCurrentProject =
                     projName.equals(currentProjectName) &&
                     projPath != null &&
-                    projPath.equals(currentProjectPath)
-                ) {
+                    projPath.equals(currentProjectPath);
+
+                if (isCurrentProject) {
+                    LOGGER.log(Level.INFO, "Skipping current project: {0}", projName);
                     continue;
                 }
 
                 // Add to results
                 if (projPath != null && !projPath.isEmpty()) {
-                    result.add(projName + " | " + projPath);
+                    String displayString = projName + " | " + projPath;
+                    result.add(displayString);
+                    LOGGER.log(Level.INFO, "Added to results: {0}", displayString);
                 } else {
                     result.add(projName);
+                    LOGGER.log(Level.INFO, "Added to results (no path): {0}", projName);
                 }
             }
+
+            LOGGER.log(
+                Level.INFO,
+                "Total referencing projects after filtering: {0}",
+                result.size()
+            );
+            for (String p : result) {
+                LOGGER.log(Level.INFO, "  Result item: {0}", p);
+            }
+            LOGGER.log(Level.INFO, "=== findProjectsUsingSharedScenario DEBUG END (success) ===");
         } catch (Exception e) {
-            // best-effort: ignore and return empty list
-            LOGGER.log(Level.FINE, "Failed to read Shared projects.items JSON", e);
+            // Log with WARNING level so it's visible in normal operations
+            LOGGER.log(Level.WARNING, "Failed to read Shared projects.items JSON", e);
+            LOGGER.log(Level.SEVERE, "Exception details: {0}", e.toString());
+            LOGGER.log(Level.INFO, "=== findProjectsUsingSharedScenario DEBUG END (exception) ===");
         }
         return result;
     }

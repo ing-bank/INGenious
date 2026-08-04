@@ -97,6 +97,8 @@ public class MobileORTable extends JPanel implements ActionListener {
      * reflects the selected platform's attribute list.
      */
     public void setActivePlatform(MobilePlatform platform) {
+        stopCellEditing();
+
         if (platform == null || platform == this.activePlatform) {
             return;
         }

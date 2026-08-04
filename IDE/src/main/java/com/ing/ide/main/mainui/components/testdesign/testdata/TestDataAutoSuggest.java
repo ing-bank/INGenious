@@ -3,6 +3,7 @@ package com.ing.ide.main.mainui.components.testdesign.testdata;
 import com.ing.datalib.component.Project;
 import com.ing.engine.util.data.fx.FParser;
 import com.ing.ide.main.utils.Utils;
+import com.ing.ide.main.utils.table.ReadOnlyCellEditor;
 import com.ing.ide.main.utils.table.autosuggest.AutoSuggest;
 import com.ing.ide.main.utils.table.autosuggest.AutoSuggestCellEditor;
 import com.ing.ide.main.utils.table.autosuggest.ComboSeparatorsRenderer;
@@ -82,7 +83,7 @@ public class TestDataAutoSuggest {
                         return;
                     }
                     javax.swing.JLabel lbl = (javax.swing.JLabel) comp;
-                    String raw = value.toString();
+                    String raw = removeOrderingPrefix(value.toString());
                     // show scenario name without scope prefix in the dropdown
                     lbl.setText(
                         raw.startsWith("[Project]") ||
@@ -116,30 +117,28 @@ public class TestDataAutoSuggest {
                 @Override
                 protected boolean addHeaderBefore(JList list, Object value, int index) {
                     if (value == null) return false;
-                    String current = value.toString();
+                    String current = removeOrderingPrefix(value.toString());
                     if (current.startsWith("[TestPlan]")) {
-                        return (
-                            index == 0 ||
-                            !Objects
-                                .toString(list.getModel().getElementAt(index - 1), "")
-                                .startsWith("[TestPlan]")
-                        );
+                        if (index == 0) return true;
+                        String prev = Objects.toString(list.getModel().getElementAt(index - 1), "");
+                        if (prev.matches("^[123]-.*")) {
+                            prev = prev.substring(2);
+                        }
+                        return !prev.startsWith("[TestPlan]");
                     }
                     if (current.startsWith("[Project]")) {
-                        return (
-                            index == 0 ||
-                            !Objects
-                                .toString(list.getModel().getElementAt(index - 1), "")
-                                .startsWith("[Project]")
+                        if (index == 0) return true;
+                        String prev = removeOrderingPrefix(
+                            Objects.toString(list.getModel().getElementAt(index - 1), "")
                         );
+                        return !prev.startsWith("[Project]");
                     }
                     if (current.startsWith("[Shared]")) {
-                        return (
-                            index == 0 ||
-                            !Objects
-                                .toString(list.getModel().getElementAt(index - 1), "")
-                                .startsWith("[Shared]")
+                        if (index == 0) return true;
+                        String prev = removeOrderingPrefix(
+                            Objects.toString(list.getModel().getElementAt(index - 1), "")
                         );
+                        return !prev.startsWith("[Shared]");
                     }
                     return false;
                 }
@@ -147,15 +146,14 @@ public class TestDataAutoSuggest {
                 @Override
                 protected boolean addSeparatorBefore(JList list, Object value, int index) {
                     if (value == null) return false;
-                    String current = value.toString();
+                    String current = removeOrderingPrefix(value.toString());
                     // Add a separator before the TestPlan group (i.e., when first TestPlan item appears)
                     if (current.startsWith("[TestPlan]")) {
-                        return (
-                            index == 0 ||
-                            !Objects
-                                .toString(list.getModel().getElementAt(index - 1), "")
-                                .startsWith("[TestPlan]")
+                        if (index == 0) return true;
+                        String prev = removeOrderingPrefix(
+                            Objects.toString(list.getModel().getElementAt(index - 1), "")
                         );
+                        return !prev.startsWith("[TestPlan]");
                     }
                     return false;
                 }
@@ -163,7 +161,7 @@ public class TestDataAutoSuggest {
                 @Override
                 protected String getHeaderLabel(JList list, Object value, int index) {
                     if (value == null) return "";
-                    String current = value.toString();
+                    String current = removeOrderingPrefix(value.toString());
                     if (current.startsWith("[TestPlan]")) return "Test plan";
                     if (current.startsWith("[Project]")) return "Project Reusable Components";
                     if (current.startsWith("[Shared]")) return "Shared Reusable Components";
@@ -178,7 +176,7 @@ public class TestDataAutoSuggest {
                     java.awt.Component comp
                 ) {
                     if (value == null) return Color.DARK_GRAY;
-                    String current = value.toString();
+                    String current = removeOrderingPrefix(value.toString());
                     if (current.startsWith("[Shared]")) return new Color(0, 128, 0);
                     if (current.startsWith("[TestPlan]")) return Color.DARK_GRAY;
                     return Color.BLACK;
@@ -187,11 +185,11 @@ public class TestDataAutoSuggest {
                 @Override
                 protected boolean addSeparatorAfter(JList list, Object value, int index) {
                     if (value == null) return false;
-                    String val = value.toString();
+                    String val = removeOrderingPrefix(value.toString());
                     if (index < list.getModel().getSize() - 1) {
                         Object nextValue = list.getModel().getElementAt(index + 1);
                         if (nextValue != null) {
-                            String next = nextValue.toString();
+                            String next = removeOrderingPrefix(nextValue.toString());
                             // separator between TestPlan -> Project and Project -> Shared
                             if (
                                 val.startsWith("[TestPlan]") && next.startsWith("[Project]")
@@ -209,16 +207,18 @@ public class TestDataAutoSuggest {
         scenarioSugg.addActionListener(
             (ActionListener) ae -> {
                 Object sel = scenarioSugg.getSelectedItem();
-                String s = Objects.toString(sel, "").trim();
+                String s = removeOrderingPrefix(Objects.toString(sel, "").trim());
                 // If a header was selected, try to move selection to the next real item
                 if (s.startsWith("__HEADER__:")) {
                     // find next non-header item in the popup model
                     for (int i = 0; i < scenarioSugg.getItemCount(); i++) {
-                        String it = Objects.toString(scenarioSugg.getItemAt(i), "");
+                        String it = removeOrderingPrefix(
+                            Objects.toString(scenarioSugg.getItemAt(i), "")
+                        );
                         if (!it.startsWith("__HEADER__:")) {
                             scenarioSugg.setSelectedIndex(i);
                             sel = scenarioSugg.getSelectedItem();
-                            s = Objects.toString(sel, "").trim();
+                            s = removeOrderingPrefix(Objects.toString(sel, "").trim());
                             break;
                         }
                     }
@@ -226,33 +226,15 @@ public class TestDataAutoSuggest {
                 if (s.isEmpty() || s.startsWith("__HEADER__:")) {
                     return;
                 }
-                String scopeVal = "";
-                String normalized = s;
-                if (s.startsWith("[Project] ")) {
-                    scopeVal = "[Project]";
-                    normalized = s.substring("[Project] ".length());
-                } else if (s.startsWith("[Shared] ")) {
-                    scopeVal = "[Shared]";
-                    normalized = s.substring("[Shared] ".length());
-                } else if (s.startsWith("[TestPlan] ")) {
-                    // Test plan selection: leave scope empty and normalize name
-                    scopeVal = "";
-                    normalized = s.substring("[TestPlan] ".length());
-                }
+                String scopeVal = extractScope(s);
+                String normalized = normalizeName(s);
                 int row = table.getSelectedRow();
                 if (row != -1) {
                     try {
                         // determine current normalized scenario to compare
                         Object currentObj = table.getModel().getValueAt(row, 0);
                         String currentStr = Objects.toString(currentObj, "");
-                        String currentNormalized = currentStr;
-                        if (currentNormalized.startsWith("[Project] ")) {
-                            currentNormalized = currentNormalized.substring("[Project] ".length());
-                        } else if (currentNormalized.startsWith("[Shared] ")) {
-                            currentNormalized = currentNormalized.substring("[Shared] ".length());
-                        } else if (currentNormalized.startsWith("[TestPlan] ")) {
-                            currentNormalized = currentNormalized.substring("[TestPlan] ".length());
-                        }
+                        String currentNormalized = normalizeName(currentStr);
 
                         // set Scenario cell to the selected normalized name (without prefix)
                         table.getModel().setValueAt(normalized, row, 0);
@@ -332,8 +314,43 @@ public class TestDataAutoSuggest {
         };
     }
 
+    /**
+     * Removes the ordering prefix (1-, 2-, or 3-) if present.
+     * Example: "2-[Project] Scenario" → "[Project] Scenario"
+     */
+    private String removeOrderingPrefix(String value) {
+        return value != null && value.matches("^[123]-.*") ? value.substring(2) : value;
+    }
+
+    /**
+     * Extracts the scope label ([Project], [Shared], or [TestPlan]) from a prefixed string.
+     * Example: "2-[Project] Scenario" → "[Project]"
+     * Returns empty string if no scope prefix found.
+     */
+    private String extractScope(String value) {
+        String normalized = removeOrderingPrefix(value);
+        if (normalized.startsWith("[Project] ")) return "[Project]";
+        if (normalized.startsWith("[Shared] ")) return "[Shared]";
+        if (normalized.startsWith("[TestPlan] ")) return "[TestPlan]";
+        return "";
+    }
+
+    /**
+     * Normalizes a string by removing both ordering prefix and scope label.
+     * Example: "2-[Project] Scenario" → "Scenario"
+     */
+    private String normalizeName(String value) {
+        String normalized = removeOrderingPrefix(value);
+        if (normalized.startsWith("[Project] ")) return normalized.substring("[Project] ".length());
+        if (normalized.startsWith("[Shared] ")) return normalized.substring("[Shared] ".length());
+        if (normalized.startsWith("[TestPlan] ")) return normalized.substring(
+            "[TestPlan] ".length()
+        );
+        return normalized;
+    }
+
     private void updateScenarios() {
-        Set<String> allScenarios = new LinkedHashSet<>();
+        List<String> allScenarios = new ArrayList<>();
 
         // Include test plan scenarios first, then project-scoped reusable scenarios, then shared-scoped
         List<String> testPlanList = new ArrayList<>();
@@ -357,16 +374,18 @@ public class TestDataAutoSuggest {
             }
         }
         Collections.sort(testPlanList, String.CASE_INSENSITIVE_ORDER);
+        // Prefix with "1-" to ensure Test Plan appears first after alphabetical sort
         for (String sc : testPlanList) {
-            allScenarios.add("[TestPlan] " + sc);
+            allScenarios.add("1-[TestPlan] " + sc);
         }
 
         // Add Project-scoped Reusable Component Test Scenarios to the autosuggest list (prefixed)
         List<String> reusableScenarioList = Utils.asStringList(sProject.getReusableScenarios());
         Collections.sort(reusableScenarioList, String.CASE_INSENSITIVE_ORDER);
         if (!reusableScenarioList.isEmpty()) {
+            // Prefix with "2-" to ensure Project appears second after alphabetical sort
             for (String sc : reusableScenarioList) {
-                allScenarios.add("[Project] " + sc);
+                allScenarios.add("2-[Project] " + sc);
             }
         }
 
@@ -374,12 +393,13 @@ public class TestDataAutoSuggest {
         List<String> sharedReusableScenarioList = Utils.asStringList(sProject.getSharedScenarios());
         Collections.sort(sharedReusableScenarioList, String.CASE_INSENSITIVE_ORDER);
         if (!sharedReusableScenarioList.isEmpty()) {
+            // Prefix with "3-" to ensure Shared appears third after alphabetical sort
             for (String sc : sharedReusableScenarioList) {
-                allScenarios.add("[Shared] " + sc);
+                allScenarios.add("3-[Shared] " + sc);
             }
         }
 
-        scenarioSugg.setSearchList(new ArrayList<String>(allScenarios));
+        scenarioSugg.setSearchList(allScenarios);
     }
 
     private void updateTestCases() {
@@ -395,14 +415,7 @@ public class TestDataAutoSuggest {
                 Set<String> allTestCases = new LinkedHashSet<>();
 
                 // Normalize scenario name by stripping known scope prefixes or test plan prefix
-                String normalized = scenario;
-                if (normalized.startsWith("[Project] ")) {
-                    normalized = normalized.substring("[Project] ".length());
-                } else if (normalized.startsWith("[Shared] ")) {
-                    normalized = normalized.substring("[Shared] ".length());
-                } else if (normalized.startsWith("[TestPlan] ")) {
-                    normalized = normalized.substring("[TestPlan] ".length());
-                }
+                String normalized = normalizeName(scenario);
 
                 // Read scope column (index 2) to decide which source to use
                 String scope = Objects.toString(
@@ -453,6 +466,8 @@ public class TestDataAutoSuggest {
                 updateTestCases();
                 return new AutoSuggestCellEditor(testCaseSugg);
             case 2:
+                // Scope column (column 2) is read-only and auto-populated from Scenario/TestCase selection
+                return new ReadOnlyCellEditor();
             case 3:
                 return cellEditor;
             default:

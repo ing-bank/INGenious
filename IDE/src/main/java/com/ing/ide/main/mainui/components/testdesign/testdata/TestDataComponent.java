@@ -977,7 +977,7 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
 
     public void importTestData(File file) {
         String name = org.apache.commons.io.FilenameUtils.getName(file.getName());
-        TestDataModel model = getCurrentEnviromentData().getByName(name);
+        TestDataModel model = getCurrentEnviromentData().getByNameIgnoreCase(name);
         if (model != null && model.getLocation().equals(file.getAbsolutePath())) {
             Notification.show("Datasheet already Present");
         } else if (model != null) {
@@ -1029,6 +1029,22 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
                             );
                         }
                         return super.getCellEditor(row, column);
+                    }
+
+                    @Override
+                    public boolean isCellEditable(int row, int column) {
+                        if (!isGlobalData) {
+                            // Scope column (model column 2) is always read-only and auto-populated
+                            if (column == 2) {
+                                return false;
+                            }
+                            // For frozen table columns in FrozenColumnScrollPane, check model column
+                            int modelColumn = column + frozenColumnCount;
+                            if (modelColumn == 2) {
+                                return false;
+                            }
+                        }
+                        return super.isCellEditable(row, column);
                     }
                 };
             if (isGlobalData) {

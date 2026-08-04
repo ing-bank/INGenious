@@ -55,7 +55,7 @@ Release Date: <insert date of release>
 - Enhanced Web Object Repository role selection with dynamic filtering based on user-entered text
 - Added cross-environment datasheet renaming functionality and its accompanying UI confirmation dialog
 - Action 'assertVariable' can now assert runtime and global variables
-  
+
 #### Changed
 
 - Enabled reordering of data tabs
@@ -63,7 +63,13 @@ Release Date: <insert date of release>
 - Reorganised Configurations menu with renames
 - Updated the Dashboard tree model to expand at Test Release level on load
 - Updated reports to reference resources in Results/media for storage optimization
+- Disabled edit mode on `Scope` field in Test datasheet to prevent user edits while maintaining visibility of the configured scope.
+- Updated the list and display order of test cases in Test Data and Test Plan to improve usability and maintain a consistent user experience.
+- Ensured Shared Reusables continue to correctly reference and inherit their associated Test Datasheet scope.
 - Enhanced all bulk Delete confirmation dialog to support scrolling, improving usability when deleting a large number of test cases, objects, releases and test sets
+- Disabled edit mode on `Scope` field in Test datasheet to prevent user edits while maintaining visibility of the configured scope.
+- Updated the list and display order of test cases in Test Data and Test Plan to improve usability and maintain a consistent user experience.
+- Ensured Shared Reusables continue to correctly reference and inherit their associated Test Datasheet scope.
 
 #### Deprecated
 
@@ -91,9 +97,12 @@ Release Date: <insert date of release>
 - Corrected Save button behavior that becomes disabled after switching applications using Alt+Tab, despite having unsaved changes.
 - Fixed behavior in the LambdaTest Remote URL field where the cursor unexpectedly jumped to the beginning of the text after typing characters beyond the @ symbol.
 - Add Row (+) button is restricted to the first column hover
-- Enhanced Object Repository object name validation to prevent the creation of duplicate object names, regardless of letter casing (e.g., LoginButton, loginbutton, and LOGINBUTTON are now treated as duplicates).
+- Enhanced Object Repository and Test Data sheet name validation to prevent the creation of duplicate names, regardless of letter casing (e.g., LoginButton, loginbutton, and LOGINBUTTON are now treated as duplicates)
 - Fix context menu options for Reusable Component Test Cases for `New Group` option
 - Added missing Test Manager option under TM Settings dropdown
+- Resolved issues with Test datasheet references in Reusable components.
+- Fixed the delete confirmation message for Impacted Assets to ensure correct notification and confirmation behavior during deletion actions.
+- Fixed "ghost submenu" whenever switching from INGenious to other applications
 
 ### Browser/Playwright Testing
 
@@ -125,6 +134,7 @@ Release Date: <insert date of release>
 - Fixed iframe element detection during live Playwright recording to correctly populate frame-related Object Repository attributes.
 - Fixed `Record From Here` recordings being inserted at the beginning of a test case instead of immediately after the selected step.
 - Fixed Live Recorder to prevent test case overwrite by appending suffix to duplicate names
+- Fixed Hard Assertions waiting for timeout instead of failing immediately
 
 ### Mobile App Testing
 
@@ -300,6 +310,7 @@ Release Date: <insert date of release>
 ### Contribution
 
 #### Added
+- by Bulearca, C.I. (Cristian - Irinel) [@cristianbulearca-0588](https://github.com/cristianbulearca-0588): Added support for JSON responses containing the security prefix `)]}'` by automatically stripping the prefix before processing.
 #### Changed
 #### Deprecated
 #### Removed
