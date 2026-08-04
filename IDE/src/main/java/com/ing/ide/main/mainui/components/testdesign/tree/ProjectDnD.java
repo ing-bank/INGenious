@@ -22,7 +22,9 @@ import java.awt.datatransfer.DataFlavor;
 import java.awt.datatransfer.Transferable;
 import java.awt.datatransfer.UnsupportedFlavorException;
 import java.io.IOException;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.JComponent;
@@ -253,11 +255,11 @@ public class ProjectDnD extends TransferHandler {
             }
             TestCaseNode newTestCaseNode;
             if (isCut) {
-                // For move/cut, preserve original name by removing source first.
-                // This avoids transient cross-scope uniqueness conflicts while moving.
+                // Name collisions in the destination are resolved with a "_n" suffix (same as
+                // copy) rather than rejected - remove the source first so a move onto the same
+                // scenario it already lives in doesn't collide with itself.
                 scenario.removeTestCase(testCase);
-                newTestCaseNode =
-                    addTestCase(dropscenario.getScenario(), testCaseNode.toString(), false);
+                newTestCaseNode = addTestCase(dropscenario.getScenario(), testCaseNode.toString());
                 if (newTestCaseNode == null || newTestCaseNode.getTestCase() == null) {
                     scenario.getTestCases().add(testCase);
                     Logger
@@ -271,8 +273,7 @@ public class ProjectDnD extends TransferHandler {
                     continue;
                 }
             } else {
-                newTestCaseNode =
-                    addTestCase(dropscenario.getScenario(), testCaseNode.toString(), true);
+                newTestCaseNode = addTestCase(dropscenario.getScenario(), testCaseNode.toString());
                 if (newTestCaseNode == null || newTestCaseNode.getTestCase() == null) {
                     Logger
                         .getLogger(ProjectDnD.class.getName())
@@ -290,10 +291,19 @@ public class ProjectDnD extends TransferHandler {
             newTestCaseNode.getTestCase().setReusable(testCase.getReusable());
             if (isCut) {
                 sourceTreeModel.removeNodeFromParent(testCaseNode);
+                String oldTestCaseName = testCaseNode.toString();
+                String newTestCaseName = newTestCaseNode.getTestCase().getName();
+                if (!oldTestCaseName.equals(newTestCaseName)) {
+                    // The suffix-on-conflict rename means any Execute step reference pointing at
+                    // the old name must be repointed at the new one before the scenario move.
+                    pTree
+                        .getProject()
+                        .refactorTestCase(scenario.getName(), oldTestCaseName, newTestCaseName);
+                }
                 pTree
                     .getProject()
                     .refactorTestCaseScenario(
-                        testCaseNode.toString(),
+                        newTestCaseName,
                         scenario.getName(),
                         dropscenario.toString()
                     );
@@ -308,22 +318,23 @@ public class ProjectDnD extends TransferHandler {
         Boolean isCut
     ) {
         int skipped = 0;
+        // Test cases pasted together from the same source scenario in this batch must land in
+        // the same newly created destination scenario rather than each minting their own copy.
+        Map<Scenario, Scenario> destinationScenarios = new HashMap<>();
         for (TestCaseNode testCaseNode : testCaseNodes) {
             Scenario scenario = testCaseNode.getTestCase().getScenario();
             TestCase testCase = testCaseNode.getTestCase();
-            Scenario destinationScenario = getOrCreateDestinationScenarioForRootPaste(scenario);
+            Scenario destinationScenario = destinationScenarios.computeIfAbsent(
+                scenario,
+                this::createDestinationScenarioForRootPaste
+            );
             if (destinationScenario == null) {
                 skipped++;
                 continue;
             }
             ScenarioNode scNode = dropGroup.addScenarioIfNotPresent(destinationScenario);
 
-            TestCaseNode inserted;
-            if (isCut) {
-                inserted = addTestCase(destinationScenario, testCaseNode.toString(), false);
-            } else {
-                inserted = addTestCase(destinationScenario, testCaseNode.toString(), true);
-            }
+            TestCaseNode inserted = addTestCase(destinationScenario, testCaseNode.toString());
 
             if (inserted == null || inserted.getTestCase() == null) {
                 skipped++;
@@ -344,65 +355,23 @@ public class ProjectDnD extends TransferHandler {
         showSkippedPasteNotification(skipped);
     }
 
-    private Scenario getOrCreateDestinationScenarioForRootPaste(Scenario sourceScenario) {
-        String scenarioName = sourceScenario.getName();
-        if (pTree.getTreeModel().getRoot() instanceof TestPlanNode) {
-            Scenario existing = sourceScenario.getProject().getTestPlanScenarioByName(scenarioName);
-            if (existing != null) {
-                return existing;
-            }
-            Scenario created = new Scenario(
-                sourceScenario.getProject(),
-                scenarioName,
-                Scenario.Source.TEST_PLAN
-            );
-            sourceScenario.getProject().getScenarios().add(created);
-            return created;
-        }
-        if (pTree.getTreeModel().getRoot() instanceof ReusableNode) {
-            Scenario existing = sourceScenario.getProject().getReusableScenarioByName(scenarioName);
-            if (existing != null) {
-                return existing;
-            }
-            Scenario created = new Scenario(
-                sourceScenario.getProject(),
-                scenarioName,
-                Scenario.Source.REUSABLE_COMPONENTS
-            );
-            sourceScenario.getProject().getReusableScenarios().add(created);
-            return created;
-        }
-        if (pTree.getTreeModel().getRoot() instanceof SharedReusableNode) {
-            Scenario existing = sourceScenario
-                .getProject()
-                .getSharedReusableScenarioByName(scenarioName);
-            if (existing != null) {
-                return existing;
-            }
-            Scenario created = new Scenario(
-                sourceScenario.getProject(),
-                scenarioName,
-                Scenario.Source.SHARED_REUSABLE_COMPONENTS
-            );
-            sourceScenario.getProject().getSharedScenarios().add(created);
-            return created;
-        }
-        return null;
+    /**
+     * Root-level (Group/tree-root drop target) paste of standalone test cases never merges into
+     * a pre-existing same-named scenario in the destination scope - it always creates a new,
+     * independently-suffixed scenario, same as copying a whole Scenario does. (The Live Recorder
+     * has its own separate, intentionally different, merge-by-name scenario resolution and is
+     * unaffected by this.)
+     */
+    private Scenario createDestinationScenarioForRootPaste(Scenario sourceScenario) {
+        String uniqueScenarioName = buildCopiedScenarioName(sourceScenario);
+        return createScenarioInDestinationScope(sourceScenario, uniqueScenarioName);
     }
 
-    private TestCaseNode addTestCase(Scenario scenario, String name, boolean allowCopySuffix) {
-        String newName = name;
-        if (allowCopySuffix) {
-            newName =
-                NamingUtils.generateUniqueName(
-                    name,
-                    candidate -> scenario.getTestCaseByName(candidate) != null
-                );
-        } else {
-            if (scenario.getTestCaseByName(newName) != null) {
-                return null;
-            }
-        }
+    private TestCaseNode addTestCase(Scenario scenario, String name) {
+        String newName = NamingUtils.generateUniqueName(
+            name,
+            candidate -> scenario.getTestCaseByName(candidate) != null
+        );
         TestCase created = scenario.addTestCase(newName);
         if (created == null) {
             return null;

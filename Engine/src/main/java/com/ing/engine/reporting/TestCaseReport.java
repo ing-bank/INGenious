@@ -353,6 +353,17 @@ public final class TestCaseReport implements Report, TestCaseReportApi {
     }
 
     @Override
+    public void startComponent(
+        String component,
+        String desc,
+        com.ing.datalib.component.ReusableRef.Scope resolvedScope
+    ) {
+        for (TestCaseHandler handler : handlers) {
+            handler.startComponent(component, desc, resolvedScope);
+        }
+    }
+
+    @Override
     public void endComponent(String component) {
         for (TestCaseHandler handler : handlers) {
             handler.endComponent(component);

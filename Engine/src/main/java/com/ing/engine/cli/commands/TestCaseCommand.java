@@ -18,6 +18,7 @@ import picocli.CommandLine.ParentCommand;
  */
 @Command(
     name = "testcase",
+    mixinStandardHelpOptions = true,
     description = "Test case management commands",
     subcommands = {
         TestCaseCommand.ListCommand.class,

@@ -85,11 +85,19 @@ public class DataAccessInternalTest {
         assertThat(DataAccessInternal.isNull("hello")).isFalse();
     }
 
-    // ---- getDataFromModel ----
+    // ---- getDataFromModelWithScope ----
 
     @Test
     public void testGetDataFromModelNullModel() {
-        String result = DataAccessInternal.getDataFromModel(null, "field", "scn", "tc", "1", "1");
+        String result = DataAccessInternal.getDataFromModelWithScope(
+            null,
+            "field",
+            "scn",
+            "tc",
+            "1",
+            "1",
+            ""
+        );
         assertThat(result).isNull();
     }
 
@@ -97,16 +105,17 @@ public class DataAccessInternalTest {
     public void testGetDataFromModelReturnsValue() {
         TestDataView subView = mock(TestDataView.class);
         when(envModel.view()).thenReturn(envView);
-        when(envView.withSubIter("scn1", "tc1", "1", "1")).thenReturn(subView);
+        when(envView.withSubIterAndScope("scn1", "tc1", "1", "1", "")).thenReturn(subView);
         when(subView.getField("myField")).thenReturn("foundValue");
 
-        String result = DataAccessInternal.getDataFromModel(
+        String result = DataAccessInternal.getDataFromModelWithScope(
             envModel,
             "myField",
             "scn1",
             "tc1",
             "1",
-            "1"
+            "1",
+            ""
         );
         assertThat(result).isEqualTo("foundValue");
     }
@@ -115,13 +124,14 @@ public class DataAccessInternalTest {
     public void testGetDataFromModelException() {
         when(envModel.view()).thenThrow(new RuntimeException("test error"));
 
-        String result = DataAccessInternal.getDataFromModel(
+        String result = DataAccessInternal.getDataFromModelWithScope(
             envModel,
             "field",
             "scn",
             "tc",
             "1",
-            "1"
+            "1",
+            ""
         );
         assertThat(result).isNull();
     }
@@ -137,7 +147,8 @@ public class DataAccessInternalTest {
             "scn",
             "tc",
             "1",
-            "1"
+            "1",
+            ""
         );
         assertThat(result).isFalse();
     }
@@ -146,7 +157,7 @@ public class DataAccessInternalTest {
     public void testPutDataToModelSuccess() {
         TestDataView subView = mock(TestDataView.class);
         when(envModel.view()).thenReturn(envView);
-        when(envView.withSubIter("scn1", "tc1", "1", "1", true)).thenReturn(subView);
+        when(envView.withSubIterAndScope("scn1", "tc1", "1", "1", "", true)).thenReturn(subView);
         when(subView.update("myField", "newVal")).thenReturn(true);
 
         boolean result = DataAccessInternal.putDataToModel(
@@ -156,7 +167,8 @@ public class DataAccessInternalTest {
             "scn1",
             "tc1",
             "1",
-            "1"
+            "1",
+            ""
         );
         assertThat(result).isTrue();
         verify(envModel).saveChanges();
@@ -166,7 +178,7 @@ public class DataAccessInternalTest {
     public void testPutDataToModelUpdateReturnsFalse() {
         TestDataView subView = mock(TestDataView.class);
         when(envModel.view()).thenReturn(envView);
-        when(envView.withSubIter("scn1", "tc1", "1", "1", true)).thenReturn(subView);
+        when(envView.withSubIterAndScope("scn1", "tc1", "1", "1", "", true)).thenReturn(subView);
         when(subView.update("myField", "newVal")).thenReturn(false);
 
         boolean result = DataAccessInternal.putDataToModel(
@@ -176,7 +188,8 @@ public class DataAccessInternalTest {
             "scn1",
             "tc1",
             "1",
-            "1"
+            "1",
+            ""
         );
         assertThat(result).isFalse();
         verify(envModel, never()).saveChanges();
@@ -192,8 +205,8 @@ public class DataAccessInternalTest {
 
         when(envModel.view()).thenReturn(envView);
         when(defModel.view()).thenReturn(defView);
-        when(envView.withSubIter("scn", "tc", "1", "1", true)).thenReturn(envSub);
-        when(defView.withSubIter("scn", "tc", "1", "1", true)).thenReturn(defSub);
+        when(envView.withSubIterAndScope("scn", "tc", "1", "1", "", true)).thenReturn(envSub);
+        when(defView.withSubIterAndScope("scn", "tc", "1", "1", "", true)).thenReturn(defSub);
         when(envSub.update("field", "val")).thenReturn(false);
         when(defSub.update("field", "val")).thenReturn(true);
 
@@ -205,7 +218,8 @@ public class DataAccessInternalTest {
             "scn",
             "tc",
             "1",
-            "1"
+            "1",
+            ""
         );
         assertThat(result).isTrue();
     }

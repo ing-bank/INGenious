@@ -14,6 +14,7 @@ import picocli.CommandLine.ParentCommand;
  */
 @Command(
     name = "testset",
+    mixinStandardHelpOptions = true,
     description = "Test set management commands",
     subcommands = {
         TestSetCommand.ListCommand.class,
@@ -57,16 +58,16 @@ public class TestSetCommand implements Callable<Integer> {
             }
 
             try {
-                File testMgmtDir = new File(path, "TestExecution");
-                if (!testMgmtDir.exists()) {
-                    cli.printWarning("No test sets found (TestExecution folder missing).");
+                File testLabDir = new File(path, "TestLab");
+                if (!testLabDir.exists()) {
+                    cli.printWarning("No test sets found (TestLab folder missing).");
                     return 0;
                 }
 
                 List<String> headers = Arrays.asList("Release", "Test Set", "Test Cases");
                 List<List<String>> rows = new ArrayList<>();
 
-                File[] releases = testMgmtDir.listFiles(File::isDirectory);
+                File[] releases = testLabDir.listFiles(File::isDirectory);
                 if (releases != null) {
                     for (File releaseDir : releases) {
                         if (release != null && !releaseDir.getName().contains(release)) {
@@ -74,11 +75,22 @@ public class TestSetCommand implements Callable<Integer> {
                         }
 
                         File[] testSets = releaseDir.listFiles(
-                            f -> f.isFile() && f.getName().endsWith(".csv")
+                            f ->
+                                f.isFile() &&
+                                (
+                                    f.getName().endsWith(".csv") ||
+                                    f.getName().endsWith(".yaml") ||
+                                    f.getName().endsWith(".yml")
+                                )
                         );
                         if (testSets != null) {
                             for (File ts : testSets) {
-                                String tsName = ts.getName().replace(".csv", "");
+                                String tsName = ts.getName();
+                                if (tsName.endsWith(".csv")) {
+                                    tsName = tsName.substring(0, tsName.length() - 4);
+                                } else if (tsName.endsWith(".yaml") || tsName.endsWith(".yml")) {
+                                    tsName = tsName.substring(0, tsName.lastIndexOf('.'));
+                                }
                                 int tcCount = countTestCases(ts);
                                 rows.add(
                                     Arrays.asList(
@@ -156,11 +168,14 @@ public class TestSetCommand implements Callable<Integer> {
             }
 
             try {
-                File testSetFile = new File(
-                    path,
-                    "TestExecution/" + parts[0] + "/" + parts[1] + ".csv"
-                );
-                if (!testSetFile.exists()) {
+                // Try .csv, .yaml, .yml under TestLab/
+                File csvFile = new File(path, "TestLab/" + parts[0] + "/" + parts[1] + ".csv");
+                File yamlFile = new File(path, "TestLab/" + parts[0] + "/" + parts[1] + ".yaml");
+                File ymlFile = new File(path, "TestLab/" + parts[0] + "/" + parts[1] + ".yml");
+                File testSetFile = csvFile.isFile()
+                    ? csvFile
+                    : yamlFile.isFile() ? yamlFile : ymlFile.isFile() ? ymlFile : null;
+                if (testSetFile == null) {
                     cli.printError("Test set not found: " + testSetPath);
                     return 1;
                 }
@@ -226,7 +241,7 @@ public class TestSetCommand implements Callable<Integer> {
             }
 
             try {
-                File releaseDir = new File(path, "TestExecution/" + parts[0]);
+                File releaseDir = new File(path, "TestLab/" + parts[0]);
                 releaseDir.mkdirs();
 
                 File testSetFile = new File(releaseDir, parts[1] + ".csv");
@@ -300,7 +315,7 @@ public class TestSetCommand implements Callable<Integer> {
             try {
                 File testSetFile = new File(
                     path,
-                    "TestExecution/" + tsParts[0] + "/" + tsParts[1] + ".csv"
+                    "TestLab/" + tsParts[0] + "/" + tsParts[1] + ".csv"
                 );
                 if (!testSetFile.exists()) {
                     cli.printError("Test set not found: " + testSetPath);

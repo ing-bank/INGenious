@@ -152,18 +152,20 @@ public class TestStepRunner {
                 TestCase stc = scn.getTestCaseByName(testcaseName);
                 if (stc != null) {
                     stc.setParentTestCase(context.getTestCase());
-                    // Set scope metadata in context for downstream consumers
-                    context.setResolvedReusableScope(resolvedScope);
 
                     // Phase 4: Validate object references against policy before execution
                     validateObjectReferencesForPolicy(context, resolvedScope);
 
-                    try {
-                        executeTestCase(context, stc);
-                    } finally {
-                        // Clear scope after reusable execution completes
-                        context.setResolvedReusableScope(null);
-                    }
+                    // Scope is set on the new reusableRunner only (see executeTestCase) - NOT
+                    // on `context`. `context` is the CALLING runner, which may itself be the
+                    // true root (TestCaseRunner.getRoot() walks the parent chain via this same
+                    // `context` link). Mutating context's scope here - even temporarily - is
+                    // visible through getRoot() to every data lookup made by the nested
+                    // reusable while it runs, corrupting the parent identity's own scope
+                    // (e.g. a Test Plan root becoming "[Project]"-scoped) for the whole nested
+                    // call, which breaks parent-data resolution for nested/looped/multi-level
+                    // reusables.
+                    executeTestCase(context, stc, resolvedScope);
                     return;
                 } else {
                     throw new ForcedException(
@@ -194,12 +196,24 @@ public class TestStepRunner {
         );
     }
 
-    private void executeTestCase(TestCaseRunner context, TestCase stc)
+    private void executeTestCase(
+        TestCaseRunner context,
+        TestCase stc,
+        ReusableRef.Scope resolvedScope
+    )
         throws DataNotFoundException {
         try {
             parameter.setSubIteration(getSubIterationFromInput(context));
-            context.getReport().startComponent(getStep().getAction(), getStep().getDescription());
-            new TestCaseRunner(context, stc, parameter).run();
+            context
+                .getReport()
+                .startComponent(getStep().getAction(), getStep().getDescription(), resolvedScope);
+            // The reusable's own steps execute through this new runner instance, so the
+            // resolved scope must be set here too - it is NOT inherited from the parent
+            // context, and without it every data lookup inside the reusable falls back to
+            // unscoped resolution, defeating the Shared/Project data disambiguation.
+            TestCaseRunner reusableRunner = new TestCaseRunner(context, stc, parameter);
+            reusableRunner.setResolvedReusableScope(resolvedScope);
+            reusableRunner.run();
         } finally {
             context.getReport().endComponent(getStep().getAction());
         }

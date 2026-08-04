@@ -97,11 +97,16 @@ Release Date: <insert date of release>
 - Corrected Save button behavior that becomes disabled after switching applications using Alt+Tab, despite having unsaved changes.
 - Fixed behavior in the LambdaTest Remote URL field where the cursor unexpectedly jumped to the beginning of the text after typing characters beyond the @ symbol.
 - Add Row (+) button is restricted to the first column hover
-- Enhanced Object Repository object name validation to prevent the creation of duplicate object names, regardless of letter casing (e.g., LoginButton, loginbutton, and LOGINBUTTON are now treated as duplicates).
+- Enhanced Object Repository and Test Data sheet name validation to prevent the creation of duplicate names, regardless of letter casing (e.g., LoginButton, loginbutton, and LOGINBUTTON are now treated as duplicates)
 - Fix context menu options for Reusable Component Test Cases for `New Group` option
 - Added missing Test Manager option under TM Settings dropdown
 - Resolved issues with Test datasheet references in Reusable components.
 - Fixed the delete confirmation message for Impacted Assets to ensure correct notification and confirmation behavior during deletion actions.
+- Fixed "ghost submenu" whenever switching from INGenious to other applications
+- Allow reuse of deleted scenarios in Project Reusable Components
+- Fix incorrect reference when executing test cases when resolving test datasheets with reusables components
+- Fix Param Loop error when using reusable compenents with test data
+- Fixed Test Data `Scope` being reset/mismatched on project reload for duplicate scenario/test case names across Test Plan, Project Reusables, and Shared Reusables, and ensured conversions between these locations update `Scope` explicitly.
 - Fixed HTML report step details disappearing from Detailed/Summary reports when Azure DevOps reporting is enabled, caused by `AzureTestCaseHandler` incorrectly becoming the primary report data source instead of `HtmlTestCaseHandler`.
 - Fixed shared HTML report assets (JS/CSS/fonts) never refreshing after an engine upgrade, which left migrated projects serving stale, incompatible report scripts.
 
@@ -311,6 +316,7 @@ Release Date: <insert date of release>
 ### Contribution
 
 #### Added
+- by Bulearca, C.I. (Cristian - Irinel) [@cristianbulearca-0588](https://github.com/cristianbulearca-0588): Added support for JSON responses containing the security prefix `)]}'` by automatically stripping the prefix before processing.
 #### Changed
 #### Deprecated
 #### Removed

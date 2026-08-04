@@ -276,6 +276,33 @@ public class EnvTestDataCrossEnvironmentRenameTest {
     }
 
     /**
+     * Test that renaming fails when target name differs only by case.
+     */
+    @Test
+    public void testRenameFailsIfNewNameExistsIgnoringCase() {
+        envTestData.createNewEnvironment("DEV");
+
+        envTestData
+            .getTestDataFor("DEV")
+            .addTestData(envTestData.getTestDataFor("DEV").getNewTestData("LOGIN"));
+        envTestData
+            .getTestDataFor("DEV")
+            .addTestData(envTestData.getTestDataFor("DEV").getNewTestData("Data2"));
+
+        boolean renamed = envTestData.renameTestData("Data2", "login", "DEV");
+
+        assertFalse(renamed, "Rename should fail because LOGIN already exists in DEV");
+        assertNotNull(
+            envTestData.getTestDataFor("DEV").getByName("LOGIN"),
+            "LOGIN should still exist"
+        );
+        assertNotNull(
+            envTestData.getTestDataFor("DEV").getByName("Data2"),
+            "Data2 should still exist"
+        );
+    }
+
+    /**
      * Test that cross-environment rename fails if new name exists in any target environment
      */
     @Test
@@ -314,6 +341,28 @@ public class EnvTestDataCrossEnvironmentRenameTest {
     }
 
     /**
+     * Test case-insensitive datasheet lookup across environments.
+     */
+    @Test
+    public void testFindEnvironmentsWithDatasheetIgnoringCase() {
+        envTestData.createNewEnvironment("DEV");
+        envTestData.createNewEnvironment("QA");
+
+        envTestData
+            .getTestDataFor("DEV")
+            .addTestData(envTestData.getTestDataFor("DEV").getNewTestData("LOGIN"));
+        envTestData
+            .getTestDataFor("QA")
+            .addTestData(envTestData.getTestDataFor("QA").getNewTestData("login"));
+
+        List<String> allEnvs = envTestData.findEnvironmentsWithDatasheet("LoGiN");
+
+        assertEquals(allEnvs.size(), 2, "Should match both environments ignoring case");
+        assertTrue(allEnvs.contains("DEV"), "Should include DEV");
+        assertTrue(allEnvs.contains("QA"), "Should include QA");
+    }
+
+    /**
      * Mock implementation of EnvTestData for testing purposes.
      * Provides the minimal functionality needed to test rename operations.
      */
@@ -331,7 +380,7 @@ public class EnvTestDataCrossEnvironmentRenameTest {
         public List<String> findEnvironmentsWithDatasheet(String datasheetName) {
             List<String> result = new ArrayList<>();
             for (Map.Entry<String, MockTestData> entry : environments.entrySet()) {
-                if (entry.getValue().getByName(datasheetName) != null) {
+                if (entry.getValue().getByNameIgnoreCase(datasheetName) != null) {
                     result.add(entry.getKey());
                 }
             }
@@ -346,7 +395,7 @@ public class EnvTestDataCrossEnvironmentRenameTest {
             for (Map.Entry<String, MockTestData> entry : environments.entrySet()) {
                 if (
                     !entry.getKey().equals(excludeEnv) &&
-                    entry.getValue().getByName(datasheetName) != null
+                    entry.getValue().getByNameIgnoreCase(datasheetName) != null
                 ) {
                     result.add(entry.getKey());
                 }
@@ -370,7 +419,7 @@ public class EnvTestDataCrossEnvironmentRenameTest {
             // Check if new name already exists in any target environment
             for (String env : envs) {
                 MockTestData testData = environments.get(env);
-                if (testData != null && testData.getByName(newName) != null) {
+                if (testData != null && testData.hasConflictForRename(oldName, newName)) {
                     return false;
                 }
             }
@@ -405,9 +454,23 @@ public class EnvTestDataCrossEnvironmentRenameTest {
             return data.get(name);
         }
 
+        public String getByNameIgnoreCase(String name) {
+            for (Map.Entry<String, String> entry : data.entrySet()) {
+                if (entry.getKey().equalsIgnoreCase(name)) {
+                    return entry.getValue();
+                }
+            }
+            return null;
+        }
+
+        public boolean hasConflictForRename(String oldName, String newName) {
+            String existing = getByNameIgnoreCase(newName);
+            return existing != null && !existing.equals(oldName);
+        }
+
         public boolean rename(String oldName, String newName) {
-            // Check if new name already exists
-            if (data.containsKey(newName)) {
+            // Check if new name already exists (case-insensitive), excluding same record
+            if (hasConflictForRename(oldName, newName)) {
                 return false;
             }
             // Check if old name exists

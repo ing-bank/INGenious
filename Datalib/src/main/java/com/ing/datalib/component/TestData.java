@@ -102,8 +102,7 @@ public abstract class TestData {
         String name = "TestData";
         int i = 0;
         String tdName = name + i;
-        List<String> names = getTestDataNames();
-        while (names.contains(tdName)) {
+        while (hasTestDataNameIgnoreCase(tdName)) {
             tdName = name + ++i;
         }
         return addTestData(getNewTestData(tdName));
@@ -134,6 +133,22 @@ public abstract class TestData {
             }
         }
         return null;
+    }
+
+    public TestDataModel getByNameIgnoreCase(String name) {
+        if (name == null) {
+            return null;
+        }
+        for (TestDataModel tData : testDataList) {
+            if (tData.getName().equalsIgnoreCase(name)) {
+                return tData;
+            }
+        }
+        return null;
+    }
+
+    public boolean hasTestDataNameIgnoreCase(String name) {
+        return getByNameIgnoreCase(name) != null;
     }
 
     public abstract TestDataModel getNewTestData(String name);
@@ -188,6 +203,17 @@ public abstract class TestData {
     ) {
         for (TestDataModel testDataList1 : testDataList) {
             testDataList1.refactorTestCaseScenario(testCaseName, oldScenarioName, newScenarioName);
+        }
+    }
+
+    public void updateScope(
+        String scenarioName,
+        String testCaseName,
+        String oldScope,
+        String newScope
+    ) {
+        for (TestDataModel testDataList1 : testDataList) {
+            testDataList1.updateScope(scenarioName, testCaseName, oldScope, newScope);
         }
     }
 }

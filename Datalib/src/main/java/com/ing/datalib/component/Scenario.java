@@ -124,6 +124,21 @@ public class Scenario extends DataModel {
     }
 
     /**
+     * Returns a short, human-readable label for this scenario's scope, for display purposes
+     * (e.g. the Test Design search box), reflecting which scope is currently active.
+     * @return "TestPlan", "Project", or "Shared"
+     */
+    public String getScopeLabel() {
+        if (source == Source.REUSABLE_COMPONENTS) {
+            return "Project";
+        }
+        if (source == Source.SHARED_REUSABLE_COMPONENTS) {
+            return "Shared";
+        }
+        return "TestPlan";
+    }
+
+    /**
      * Returns the parent project.
      * @return parent project
      */
@@ -691,16 +706,22 @@ public class Scenario extends DataModel {
     }
 
     /**
-     * Renames this scenario.
+     * Renames this scenario in Reusable Components.
+     * Removes stale scenarios whose directories no longer exist on disk before checking uniqueness.
      * @param newName new scenario name
      * @return true if successful, false if a scenario with the new name already exists
      */
 
     public Boolean renameReusable(String newName) {
-        Scenario existing = getProject().getReusableScenarioByName(newName);
+        Project p = getProject();
+        // Clean up stale reusable scenarios first
+        List<Scenario> reusables = p.getReusableScenarios();
+        reusables.removeIf(s -> !new File(s.getLocation()).exists());
+
+        Scenario existing = p.getReusableScenarioByName(newName);
         if (existing == null || existing == this) {
             if (FileUtils.renameFile(getLocation(), newName)) {
-                getProject().refactorScenario(name, newName);
+                p.refactorScenario(name, newName);
                 name = newName;
                 return true;
             }
@@ -711,13 +732,19 @@ public class Scenario extends DataModel {
 
     /**
      * Renames this shared reusable scenario.
+     * Removes stale scenarios whose directories no longer exist on disk before checking uniqueness.
      * @param newName new scenario name
      * @return true if successful, false if a scenario with the new name already exists
      */
     public Boolean renameSharedReusable(String newName) {
-        if (getProject().getSharedReusableScenarioByName(newName) == null) {
+        Project p = getProject();
+        // Clean up stale shared reusable scenarios first
+        List<Scenario> sharedReusables = p.getSharedScenarios();
+        sharedReusables.removeIf(s -> !new File(s.getLocation()).exists());
+
+        if (p.getSharedReusableScenarioByName(newName) == null) {
             if (FileUtils.renameFile(getLocation(), newName)) {
-                getProject().refactorScenario(name, newName);
+                p.refactorScenario(name, newName);
                 name = newName;
                 return true;
             }

@@ -46,7 +46,10 @@ import java.awt.event.MouseEvent;
 import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
@@ -526,7 +529,7 @@ public class ProjectTree implements ActionListener {
             Notification.showWarning(
                 "Scenario '" +
                 scenarioName +
-                "' already exists in another scope (Test Plan, Reusable, or Shared Reusable)."
+                "' already exists in the Test Plan. Please choose a different Test Plan scenario name."
             );
             return;
         }
@@ -546,19 +549,46 @@ public class ProjectTree implements ActionListener {
      * @return unique scenario name
      */
     private String fetchNewScenarioName() {
-        String newScenarioName = "NewScenario";
-        for (int i = 0;; i++) {
-            // Check if scenario exists in any scope
+        String base = "NewScenario";
+        // prefer plain base name if available
+        if (
+            testDesign.getProject().getTestPlanScenarioByName(base) == null &&
+            !treeHasScenarioName(base)
+        ) {
+            return base;
+        }
+        int i = 0;
+        String newScenarioName;
+        for (;;) {
+            newScenarioName = base + i;
             if (
-                testDesign.getProject().getScenarioByName(newScenarioName) == null &&
-                testDesign.getProject().getReusableScenarioByName(newScenarioName) == null &&
-                testDesign.getProject().getSharedReusableScenarioByName(newScenarioName) == null
+                testDesign.getProject().getTestPlanScenarioByName(newScenarioName) == null &&
+                !treeHasScenarioName(newScenarioName)
             ) {
                 break;
             }
-            newScenarioName = "NewScenario" + i;
+            i++;
         }
         return newScenarioName;
+    }
+
+    private boolean treeHasScenarioName(String name) {
+        if (treeModel == null || treeModel.getRoot() == null) return false;
+        javax.swing.tree.TreeNode rootNode = (javax.swing.tree.TreeNode) treeModel.getRoot();
+        for (javax.swing.tree.TreeNode child : Collections.list(rootNode.children())) {
+            if (child instanceof GroupNode) {
+                for (ScenarioNode sc : ScenarioNode.toList(((GroupNode) child).children())) {
+                    if (sc.getScenario().getName().equalsIgnoreCase(name)) {
+                        return true;
+                    }
+                }
+            } else if (child instanceof ScenarioNode) {
+                if (((ScenarioNode) child).getScenario().getName().equalsIgnoreCase(name)) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     /**
@@ -573,14 +603,20 @@ public class ProjectTree implements ActionListener {
             }
         }
         if (scenarioNode != null) {
-            TestCase testcase;
             String testCaseName = fetchNewTestCaseName(scenarioNode.getScenario());
-            testcase = scenarioNode.getScenario().addTestCase(testCaseName);
+            TestCase testcase = scenarioNode.getScenario().addTestCase(testCaseName);
+            if (testcase == null) {
+                Notification.showWarning(
+                    "Failed to add test case: a test case with this name already exists."
+                );
+                return;
+            }
             testDesign.loadTableModelForSelection(testcase);
-            selectAndScrollTo(
-                new TreePath(treeModel.addTestCase(scenarioNode, testcase).getPath())
-            );
-            persistSortOrder(scenarioNode);
+            TestCaseNode tcNode = treeModel.addTestCase(scenarioNode, testcase);
+            if (tcNode != null && tcNode.getTestCase() != null) {
+                selectAndScrollTo(new TreePath(tcNode.getPath()));
+                persistSortOrder(scenarioNode);
+            }
         }
     }
 
@@ -1429,6 +1465,9 @@ public class ProjectTree implements ActionListener {
             File scenarioDir = new File(scenarioNode.getScenario().getLocation());
             List<String> names = new ArrayList<>();
             for (TestCaseNode tcNode : TestCaseNode.toList(scenarioNode.children())) {
+                if (tcNode == null || tcNode.getTestCase() == null) {
+                    continue;
+                }
                 names.add(tcNode.getTestCase().getName());
             }
             SortOrderStore.save(scenarioDir, names);

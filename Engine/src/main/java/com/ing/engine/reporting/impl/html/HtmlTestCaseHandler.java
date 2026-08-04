@@ -453,6 +453,32 @@ public class HtmlTestCaseHandler extends TestCaseHandler implements PrimaryHandl
     }
 
     @Override
+    public void startComponent(
+        String component,
+        String desc,
+        com.ing.datalib.component.ReusableRef.Scope resolvedScope
+    ) {
+        startComponent(scopedComponentName(component, resolvedScope), desc);
+    }
+
+    private String scopedComponentName(
+        String component,
+        com.ing.datalib.component.ReusableRef.Scope resolvedScope
+    ) {
+        if (resolvedScope == null) {
+            return component;
+        }
+        switch (resolvedScope) {
+            case PROJECT:
+                return "[Project] " + component;
+            case SHARED:
+                return "[Shared] " + component;
+            default:
+                return component;
+        }
+    }
+
+    @Override
     public void endComponent(String string) {
         reusable.put(RDS.Step.END_TIME, DateTimeUtils.DateTimeNow());
         if (reusable.get(TestCase.STATUS).equals("")) {
