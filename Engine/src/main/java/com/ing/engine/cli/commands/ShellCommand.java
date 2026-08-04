@@ -16,6 +16,7 @@ import picocli.CommandLine.ParentCommand;
 @Command(
     name = "shell",
     aliases = { "interactive", "repl" },
+    mixinStandardHelpOptions = true,
     description = "Start interactive shell session"
 )
 public class ShellCommand implements Callable<Integer> {

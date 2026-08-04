@@ -17,6 +17,7 @@ import picocli.CommandLine.ParentCommand;
  */
 @Command(
     name = "server",
+    mixinStandardHelpOptions = true,
     description = "Start INGenious server for AI integration (MCP or REST)",
     subcommands = {
         ServerCommand.McpCommand.class,

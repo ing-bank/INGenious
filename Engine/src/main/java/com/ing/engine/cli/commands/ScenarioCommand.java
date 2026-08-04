@@ -18,6 +18,7 @@ import picocli.CommandLine.ParentCommand;
  */
 @Command(
     name = "scenario",
+    mixinStandardHelpOptions = true,
     description = "Scenario management commands",
     subcommands = {
         ScenarioCommand.ListCommand.class,
