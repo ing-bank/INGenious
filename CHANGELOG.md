@@ -103,6 +103,10 @@ Release Date: <insert date of release>
 - Resolved issues with Test datasheet references in Reusable components.
 - Fixed the delete confirmation message for Impacted Assets to ensure correct notification and confirmation behavior during deletion actions.
 - Fixed "ghost submenu" whenever switching from INGenious to other applications
+- Allow reuse of deleted scenarios in Project Reusable Components
+- Fix incorrect reference when executing test cases when resolving test datasheets with reusables components
+- Fix Param Loop error when using reusable compenents with test data
+- Fixed Test Data `Scope` being reset/mismatched on project reload for duplicate scenario/test case names across Test Plan, Project Reusables, and Shared Reusables, and ensured conversions between these locations update `Scope` explicitly.
 
 ### Browser/Playwright Testing
 

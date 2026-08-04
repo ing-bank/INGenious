@@ -23,6 +23,14 @@ public class CSVUtils {
     public static void load(File location, AbstractDataModel sAbstractData) {
         CSVHParser parser = FileUtils.getCSVHParser(location);
         if (parser != null) {
+            // A file loaded under an older schema (e.g. test data predating the Scope
+            // column) still has its rows laid out in the old column order - splice in the
+            // missing value at the same index the column list was migrated at, or every
+            // value from that point on would silently be read as the wrong column.
+            boolean needsScopeSplice =
+                (sAbstractData instanceof TestDataModel) &&
+                ((TestDataModel) sAbstractData).isScopeColumnMigrated();
+
             for (CSVRecord crecord : parser.getRecords()) {
                 List<String> record = (List<String>) sAbstractData.getNewRecord();
                 for (int i = 0; i < crecord.size(); i++) {
@@ -33,6 +41,9 @@ public class CSVUtils {
                     } else {
                         record.add(val);
                     }
+                }
+                if (needsScopeSplice) {
+                    record.add(Math.min(2, record.size()), "");
                 }
                 sAbstractData.addRecord((List) record);
             }

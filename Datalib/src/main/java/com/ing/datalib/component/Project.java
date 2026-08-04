@@ -462,14 +462,17 @@ public class Project {
     }
 
     /**
-     * Finds a reusable scenario by name.
+     * Finds a reusable scenario by name, excluding deleted scenarios.
      * @param name scenario name to search for (case-insensitive)
-     * @return the reusable scenario if found, null otherwise
+     * @return the reusable scenario if found and active, null otherwise
      */
     public Scenario getReusableScenarioByName(String name) {
         for (Scenario scenario : reusableScenarios) {
             if (scenario.getName().equalsIgnoreCase(name)) {
-                return scenario;
+                // Verify the scenario folder still exists on disk
+                if (new File(scenario.getLocation()).exists()) {
+                    return scenario;
+                }
             }
         }
         return null;
@@ -498,14 +501,17 @@ public class Project {
     }
 
     /**
-     * Finds a shared reusable scenario by name.
+     * Finds a shared reusable scenario by name, excluding deleted scenarios.
      * @param name scenario name to search for (case-insensitive)
-     * @return the shared reusable scenario if found, null otherwise
+     * @return the shared reusable scenario if found and active, null otherwise
      */
     public Scenario getSharedReusableScenarioByName(String name) {
         for (Scenario scenario : sharedReusableScenarios) {
             if (scenario.getName().equalsIgnoreCase(name)) {
-                return scenario;
+                // Verify the scenario folder still exists on disk
+                if (new File(scenario.getLocation()).exists()) {
+                    return scenario;
+                }
             }
         }
         return null;
@@ -913,9 +919,10 @@ public class Project {
 
         lastImpactedReusableReferenceUpdates = 0;
 
-        String scenarioName = testCase.getScenario().getName();
+        Scenario sourceScenario = testCase.getScenario();
+        String scenarioName = sourceScenario.getName();
         String testCaseName = testCase.getName();
-        Scenario.Source sourceType = testCase.getScenario().getSource();
+        Scenario.Source sourceType = sourceScenario.getSource();
         String targetName = targetSource == Scenario.Source.REUSABLE_COMPONENTS
             ? "Reusable Components"
             : "Test Plan";
@@ -951,6 +958,24 @@ public class Project {
             );
         }
 
+        // When moving TO Test Plan from a reusable source, remove the case from source and cleanup
+        if (sourceType != Scenario.Source.TEST_PLAN && targetSource == Scenario.Source.TEST_PLAN) {
+            sourceScenario.removeTestCase(testCase);
+            if (sourceType == Scenario.Source.REUSABLE_COMPONENTS) {
+                cleanupEmptyScenario(sourceScenario);
+            }
+        }
+
+        // When moving FROM Test Plan TO Project Reusable, remove the case from the Test Plan
+        // and cleanup the scenario if it becomes empty so the scenario name can be reused.
+        if (
+            sourceType == Scenario.Source.TEST_PLAN &&
+            targetSource == Scenario.Source.REUSABLE_COMPONENTS
+        ) {
+            sourceScenario.removeTestCase(testCase);
+            cleanupEmptyScenario(sourceScenario);
+        }
+
         lastImpactedReusableReferenceUpdates =
             refactorReusableReferencesAcrossProject(
                 scenarioName,
@@ -961,6 +986,29 @@ public class Project {
                 targetSource,
                 testCase
             );
+
+        // Explicitly set Scope to the new location as part of this conversion - this is intentional
+        // and must not be confused with (or blocked by) the reload-time "preserve existing Scope" logic.
+        testData.updateScope(
+            scenarioName,
+            testCaseName,
+            scopeToken(sourceType),
+            scopeToken(targetSource)
+        );
+    }
+
+    /**
+     * Maps a scenario source to the raw Scope token stored against Test Data entries:
+     * "" for Test Plan, "[Project]" for Project Reusables, "[Shared]" for Shared Reusables.
+     */
+    private String scopeToken(Scenario.Source source) {
+        if (source == Scenario.Source.REUSABLE_COMPONENTS) {
+            return "[Project]";
+        }
+        if (source == Scenario.Source.SHARED_REUSABLE_COMPONENTS) {
+            return "[Shared]";
+        }
+        return "";
     }
 
     /**
@@ -1002,7 +1050,7 @@ public class Project {
      * @return the created scenario, or null if a scenario with the same name already exists in any scope
      */
     public Scenario addScenario(String scenarioName) {
-        if (getScenarioByName(scenarioName) == null && !scenarioExistsInAnyScope(scenarioName)) {
+        if (getTestPlanScenarioByName(scenarioName) == null) {
             Scenario scn = new Scenario(this, scenarioName, Scenario.Source.TEST_PLAN);
             scenarios.add(scn);
             return scn;
@@ -1013,13 +1061,10 @@ public class Project {
     /**
      * Adds a new scenario to Reusable Components.
      * @param scenarioName name of the scenario to add
-     * @return the created scenario, or null if a scenario with the same name already exists in any scope
+     * @return the created scenario, or null if a scenario with the same name already exists in the Project Reusable scope
      */
     public Scenario addReusableScenario(String scenarioName) {
-        if (
-            getReusableScenarioByName(scenarioName) == null &&
-            !scenarioExistsInAnyScope(scenarioName)
-        ) {
+        if (getReusableScenarioByName(scenarioName) == null) {
             Scenario scn = new Scenario(this, scenarioName, Scenario.Source.REUSABLE_COMPONENTS);
             reusableScenarios.add(scn);
             return scn;
@@ -1030,13 +1075,10 @@ public class Project {
     /**
      * Adds a new shared reusable scenario to the project.
      * @param scenarioName name of the scenario to add
-     * @return the newly created shared reusable scenario, or null if already exists in any scope
+     * @return the newly created shared reusable scenario, or null if already exists in the Shared Reusable scope
      */
     public Scenario addSharedReusableScenario(String scenarioName) {
-        if (
-            getSharedReusableScenarioByName(scenarioName) == null &&
-            !scenarioExistsInAnyScope(scenarioName)
-        ) {
+        if (getSharedReusableScenarioByName(scenarioName) == null) {
             Scenario scn = new Scenario(
                 this,
                 scenarioName,
@@ -1066,19 +1108,6 @@ public class Project {
     }
 
     /**
-     * Checks if a scenario with the given name exists in any scope (Test Plan, Reusable, or Shared Reusable).
-     * @param scenarioName name to check
-     * @return true if scenario exists in any scope, false otherwise
-     */
-    private boolean scenarioExistsInAnyScope(String scenarioName) {
-        return (
-            getScenarioByName(scenarioName) != null ||
-            getReusableScenarioByName(scenarioName) != null ||
-            getSharedReusableScenarioByName(scenarioName) != null
-        );
-    }
-
-    /**
      * Checks if a scenario exists in reusable scopes only (project/shared reusable).
      */
     private boolean scenarioExistsInReusableScopes(String scenarioName) {
@@ -1100,30 +1129,6 @@ public class Project {
             return baseName;
         }
         return NamingUtils.generateUniqueName(baseName, this::scenarioExistsInReusableScopes);
-    }
-
-    /**
-     * Checks if a test case with the given name exists in any scenario across all scopes.
-     * @param testCaseName test case name to check
-     * @return true if test case exists in any scenario and any scope, false otherwise
-     */
-    public boolean testCaseExistsInAnyScope(String testCaseName) {
-        for (Scenario scenario : scenarios) {
-            if (scenario.getTestCaseByName(testCaseName) != null) {
-                return true;
-            }
-        }
-        for (Scenario scenario : reusableScenarios) {
-            if (scenario.getTestCaseByName(testCaseName) != null) {
-                return true;
-            }
-        }
-        for (Scenario scenario : sharedReusableScenarios) {
-            if (scenario.getTestCaseByName(testCaseName) != null) {
-                return true;
-            }
-        }
-        return false;
     }
 
     /**
@@ -1274,6 +1279,16 @@ public class Project {
                     null
                 );
             cleanupEmptyScenario(sourceScenario);
+
+            // Explicitly set Scope to the new location as part of this conversion. Only applies to
+            // moves: a copy leaves the source test case (and its Test Data Scope) exactly where it was.
+            // Move never renames scenario/testcase (see uniqueNameInScenario), so old names still match.
+            testData.updateScope(
+                scenarioName,
+                testCaseName,
+                scopeToken(sourceType),
+                scopeToken(targetSource)
+            );
         }
 
         return targetTestCase;

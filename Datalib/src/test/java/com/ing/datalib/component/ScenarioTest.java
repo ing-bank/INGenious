@@ -117,6 +117,34 @@ public class ScenarioTest {
         assertThat(scenario.toString()).isEqualTo("LoginScenario");
     }
 
+    // ---- getScopeLabel ----
+
+    @Test
+    public void testGetScopeLabel_testPlan() {
+        Scenario scenario = new Scenario(project, "LoginScenario", Scenario.Source.TEST_PLAN);
+        assertThat(scenario.getScopeLabel()).isEqualTo("TestPlan");
+    }
+
+    @Test
+    public void testGetScopeLabel_reusableComponents() {
+        Scenario scenario = new Scenario(
+            project,
+            "LoginScenario",
+            Scenario.Source.REUSABLE_COMPONENTS
+        );
+        assertThat(scenario.getScopeLabel()).isEqualTo("Project");
+    }
+
+    @Test
+    public void testGetScopeLabel_sharedReusableComponents() {
+        Scenario scenario = new Scenario(
+            project,
+            "LoginScenario",
+            Scenario.Source.SHARED_REUSABLE_COMPONENTS
+        );
+        assertThat(scenario.getScopeLabel()).isEqualTo("Shared");
+    }
+
     // ---- getTestCaseByName ----
 
     @Test

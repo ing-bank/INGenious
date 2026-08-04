@@ -176,7 +176,7 @@ public abstract class TestDataView implements TestDataViewApi {
      */
     public Set<String> getIterations() {
         Set<String> iters = new LinkedHashSet<>();
-        for (Object iter : getFields(records(), Record.HEADERS[2])) {
+        for (Object iter : getFields(records(), Record.HEADERS[3])) {
             iters.add((String) iter);
         }
         return iters;
@@ -193,7 +193,7 @@ public abstract class TestDataView implements TestDataViewApi {
      */
     public Set<String> getSubIterations() {
         Set<String> iters = new LinkedHashSet<>();
-        for (Object iter : getFields(records(), Record.HEADERS[3])) {
+        for (Object iter : getFields(records(), Record.HEADERS[4])) {
             iters.add((String) iter);
         }
         return iters;
@@ -307,6 +307,28 @@ public abstract class TestDataView implements TestDataViewApi {
             if (addIfNotPresent && get(key).isEmpty()) {
                 add(key, addRecord(scn, tc, iter, "1"));
             }
+            return toView(get(key));
+        }
+    }
+
+    /**
+     * finds the records and return view object with that subset of records for
+     * the given query args, filtered by scope.
+     * <br>
+     * use wildcard (.*) if needed
+     * <br>
+     *
+     * @param scn scenario
+     * @param tc testcase
+     * @param iter iteration
+     * @param scope the scope filter ([Project], [Shared], or empty for test plan)
+     * @return the view
+     */
+    public TestDataView withIterAndScope(String scn, String tc, String iter, String scope) {
+        String key = scn + "#" + tc + "#" + iter + "#scope:" + scope;
+        if (!VIEWS.containsKey(key)) {
+            return indexWithScope(key, scn, tc, iter, ALL, scope);
+        } else {
             return toView(get(key));
         }
     }

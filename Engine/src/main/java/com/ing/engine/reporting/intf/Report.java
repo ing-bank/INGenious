@@ -1,5 +1,6 @@
 package com.ing.engine.reporting.intf;
 
+import com.ing.datalib.component.ReusableRef;
 import com.ing.engine.core.RunContext;
 import com.ing.engine.drivers.PlaywrightDriverCreation;
 import com.ing.engine.drivers.WebDriverCreation;
@@ -22,6 +23,14 @@ public interface Report {
     public Status finalizeReport();
 
     public void startComponent(String component, String desc);
+
+    public default void startComponent(
+        String component,
+        String desc,
+        ReusableRef.Scope resolvedScope
+    ) {
+        startComponent(component, desc);
+    }
 
     public void startIteration(int iteration);
 

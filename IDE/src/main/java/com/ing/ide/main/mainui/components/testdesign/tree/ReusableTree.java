@@ -279,7 +279,7 @@ public class ReusableTree extends ProjectTree {
             Notification.showWarning(
                 "Scenario '" +
                 scenarioName +
-                "' already exists in another scope (Test Plan, Reusable, or Shared Reusable)."
+                "' already exists in Project Reusables. Please choose a different Project Reusable scenario name."
             );
             return;
         }
@@ -419,19 +419,36 @@ public class ReusableTree extends ProjectTree {
      * @return unique scenario name
      */
     private String fetchNewReusableScenarioName() {
-        String newScenarioName = "NewScenario";
-        for (int i = 0;; i++) {
-            // Check if scenario exists in Reusable scope
+        String base = "NewScenario";
+        // prefer plain base name if available (and not present in the tree)
+        if (getProject().getReusableScenarioByName(base) == null && !treeHasScenarioName(base)) {
+            return base;
+        }
+        int i = 0;
+        String newScenarioName;
+        for (;;) {
+            newScenarioName = base + i;
             if (
                 getProject().getReusableScenarioByName(newScenarioName) == null &&
-                getProject().getScenarioByName(newScenarioName) == null &&
-                getProject().getSharedReusableScenarioByName(newScenarioName) == null
+                !treeHasScenarioName(newScenarioName)
             ) {
                 break;
             }
-            newScenarioName = "NewScenario" + i;
+            i++;
         }
         return newScenarioName;
+    }
+
+    private boolean treeHasScenarioName(String name) {
+        if (getTreeModel() == null || getTreeModel().getRoot() == null) return false;
+        for (GroupNode group : GroupNode.toList(getTreeModel().getRoot().children())) {
+            for (ScenarioNode sc : ScenarioNode.toList(group.children())) {
+                if (sc.getScenario().getName().equalsIgnoreCase(name)) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 
     /**
