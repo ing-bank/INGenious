@@ -569,6 +569,7 @@ public class ReusableImportEngine {
                 opts.getNamingConvention()
             );
         }
+        // Preserve user-entered prefix exactly as provided (no normalization)
         String prefix = opts.getScenarioPrefix() == null ? "" : opts.getScenarioPrefix();
         String base;
         switch (opts.getHierarchyStrategy()) {
@@ -587,10 +588,12 @@ public class ReusableImportEngine {
                 base = nc.getName();
                 break;
         }
-        return ImportUtils.applyNamingConventionAndSanitize(
-            prefix + base,
+        // Apply naming convention only to base name, then prepend prefix as-is
+        String convertedBase = ImportUtils.applyNamingConventionAndSanitize(
+            base,
             opts.getNamingConvention()
         );
+        return prefix + convertedBase;
     }
 
     /** Builds the reusable test case name including any folder-flattening + conflict policy. */
