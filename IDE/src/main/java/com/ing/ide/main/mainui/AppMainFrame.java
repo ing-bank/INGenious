@@ -865,6 +865,9 @@ public class AppMainFrame extends JFrame {
         if (fxStatusBar != null) {
             fxStatusBar.setProjectName(sProject.getName());
         }
+        // Defer adjustUI to run after all pending EDT events (layout, repaint, etc.)
+        // This ensures split pane dividers are set correctly after views are fully populated
+        SwingUtilities.invokeLater(this::adjustUI);
     }
 
     public void adjustUI() {

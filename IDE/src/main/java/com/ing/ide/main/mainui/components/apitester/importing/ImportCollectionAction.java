@@ -114,8 +114,9 @@ public class ImportCollectionAction {
                     ImportResult res = get();
                     if (res == null) return;
 
-                    // Refresh all trees immediately after import
-                    refreshAllTrees(opts.isImportEnvironments());
+                    // Refresh all trees synchronously before showing result dialog
+                    // This ensures the UI is updated before the user sees the import report
+                    refreshAllTrees(res);
 
                     ImportCollectionWizard.showResult(mainFrame, nc, res, report);
                 } catch (Exception ex) {
@@ -130,53 +131,58 @@ public class ImportCollectionAction {
      * Refreshes all project trees (Test Cases, Reusables, and Test Data)
      * to show newly imported items without requiring IDE restart.
      *
-     * @param includeTestData whether to force refresh of Test Data environments
+     * <p>This method runs synchronously on the EDT (since it's called from SwingWorker.done())
+     * to ensure the UI is fully refreshed before the import result dialog appears.</p>
+     *
+     * @param result the import result containing lists of created environments and datasheets
      */
-    private void refreshAllTrees(boolean includeTestData) {
-        javax.swing.SwingUtilities.invokeLater(
-            () -> {
-                try {
-                    // Refresh project tree (Test Cases/Scenarios)
-                    if (mainFrame.getTestDesign() != null) {
-                        mainFrame.getTestDesign().getProjectTree().load();
-                        mainFrame.getTestDesign().getReusableTree().load();
-
-                        // Force reload of Test Data environments from disk
-                        if (includeTestData) {
-                            reloadTestDataFromDisk();
-                        }
-                        mainFrame.getTestDesign().getTestDatacomp().load();
-                    }
-                    // Refresh API Tester collection tree
-                    if (
-                        mainFrame.getAPITester() != null &&
-                        mainFrame.getAPITester().getAPITesterUI() != null
-                    ) {
-                        mainFrame.getAPITester().getAPITesterUI().refreshCollectionsTree();
-                    }
-                    LOG.info("Successfully refreshed all project trees after import");
-                } catch (Exception ex) {
-                    LOG.log(Level.WARNING, "Could not refresh trees after import", ex);
-                }
-            }
-        );
-    }
-
-    /**
-     * Forces a complete reload of the TestData component from disk.
-     * This ensures newly created data environments are visible in the UI.
-     */
-    private void reloadTestDataFromDisk() {
+    private void refreshAllTrees(ImportResult result) {
         try {
-            // Re-read the environment configuration from disk
-            var project = mainFrame.getProject();
-            if (project != null && project.getTestData() != null) {
-                // Force the EnvTestData to reload its environment list from disk
-                project.getTestData().reloadEnvironments();
-                LOG.info("Reloaded test data environments from disk");
+            // Refresh project tree (Test Cases/Scenarios)
+            if (mainFrame.getTestDesign() != null) {
+                mainFrame.getTestDesign().getProjectTree().load();
+                mainFrame.getTestDesign().getReusableTree().load();
+
+                // Handle Test Data UI refresh
+                var testDataComp = mainFrame.getTestDesign().getTestDatacomp();
+
+                // If environments were created, add them to the UI explicitly
+                List<String> createdEnvs = result.getCreatedDataEnvironments();
+                if (createdEnvs != null && !createdEnvs.isEmpty()) {
+                    LOG.info(
+                        "Adding " +
+                        createdEnvs.size() +
+                        " imported environments to UI: " +
+                        createdEnvs
+                    );
+                    testDataComp.addImportedEnvironments(createdEnvs);
+                }
+
+                // Also do a full load to ensure everything is in sync
+                testDataComp.load();
+
+                // Automatically show Multiple Environment view after environment import
+                // This provides immediate visibility of imported environments
+                if (createdEnvs != null && !createdEnvs.isEmpty()) {
+                    testDataComp.showMultipleEnvironmentView();
+                    LOG.info("Automatically opened Multiple Environment view after import");
+                }
+
+                LOG.info(
+                    "Refreshed Test Data UI - environments in model: " +
+                    mainFrame.getProject().getTestData().getEnvironments().size()
+                );
             }
+            // Refresh API Tester collection tree
+            if (
+                mainFrame.getAPITester() != null &&
+                mainFrame.getAPITester().getAPITesterUI() != null
+            ) {
+                mainFrame.getAPITester().getAPITesterUI().refreshCollectionsTree();
+            }
+            LOG.info("Successfully refreshed all project trees after import");
         } catch (Exception ex) {
-            LOG.log(Level.WARNING, "Failed to reload test data from disk", ex);
+            LOG.log(Level.WARNING, "Could not refresh trees after import", ex);
         }
     }
 }

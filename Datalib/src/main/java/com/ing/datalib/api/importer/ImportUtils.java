@@ -114,7 +114,7 @@ public final class ImportUtils {
         ImportOptions.NamingConvention convention
     ) {
         if (name == null || name.isEmpty()) return "unnamed";
-        if (convention == null) convention = ImportOptions.NamingConvention.SNAKE_CASE;
+        if (convention == null) convention = ImportOptions.NamingConvention.PASCAL_CASE;
 
         // First, split the name into words
         String[] words = splitIntoWords(name);

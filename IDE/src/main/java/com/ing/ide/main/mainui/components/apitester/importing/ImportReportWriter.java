@@ -100,6 +100,11 @@ public final class ImportReportWriter {
         sb.append("        <div class=\"subtitle\">").append(esc(nc.getName())).append("</div>\n");
         sb.append("    </header>\n");
 
+        // Determine dynamic labels based on target type
+        boolean isTestCase = options.getTargetType() == ImportOptions.TargetType.TEST_CASE;
+        String assetTypeLabel = isTestCase ? "TestCases" : "Reusables";
+        String assetTypeSingular = isTestCase ? "TestCase" : "Reusable";
+
         // Import Summary Section
         sb.append("    <section class=\"card\">\n");
         sb.append("        <h2><span class=\"icon\">📊</span> Import Summary</h2>\n");
@@ -116,7 +121,10 @@ public final class ImportReportWriter {
             .append("                <div class=\"stat-value\">")
             .append(result.getReusablesCreated())
             .append("</div>\n");
-        sb.append("                <div class=\"stat-label\">Items Created</div>\n");
+        sb
+            .append("                <div class=\"stat-label\">")
+            .append(assetTypeLabel)
+            .append(" Created</div>\n");
         sb.append("            </div>\n");
         sb
             .append("            <div class=\"stat-box ")
@@ -126,7 +134,10 @@ public final class ImportReportWriter {
             .append("                <div class=\"stat-value\">")
             .append(result.getReusablesSkipped())
             .append("</div>\n");
-        sb.append("                <div class=\"stat-label\">Items Skipped</div>\n");
+        sb
+            .append("                <div class=\"stat-label\">")
+            .append(assetTypeLabel)
+            .append(" Skipped</div>\n");
         sb.append("            </div>\n");
         sb.append("            <div class=\"stat-box\">\n");
         sb.append("                <div class=\"stat-value\">").append(duration).append("</div>\n");
@@ -142,6 +153,10 @@ public final class ImportReportWriter {
             .append("            <tr><td>Timestamp</td><td>")
             .append(timestamp.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")))
             .append("</td></tr>\n");
+        sb
+            .append("            <tr><td>Import As</td><td><strong>")
+            .append(assetTypeLabel)
+            .append("</strong></td></tr>\n");
         sb
             .append("            <tr><td>Naming Convention</td><td>")
             .append(options.getNamingConvention())
@@ -176,14 +191,36 @@ public final class ImportReportWriter {
         }
         if (!result.getCreatedReusables().isEmpty()) {
             sb
-                .append("        <h3>Items Created (")
+                .append("        <h3>")
+                .append(assetTypeLabel)
+                .append(" Created (")
                 .append(result.getCreatedReusables().size())
                 .append(")</h3>\n");
-            sb.append("        <ul class=\"item-list scrollable\">\n");
+            // Render as a table with Scenario and TestCase/Reusable columns
+            sb.append("        <table class=\"asset-mapping-table\">\n");
+            sb.append("            <thead>\n");
+            sb.append("                <tr>\n");
+            sb.append("                    <th>Scenario</th>\n");
+            sb.append("                    <th>").append(assetTypeSingular).append("</th>\n");
+            sb.append("                </tr>\n");
+            sb.append("            </thead>\n");
+            sb.append("            <tbody>\n");
             for (String item : result.getCreatedReusables()) {
-                sb.append("            <li>").append(esc(item)).append("</li>\n");
+                // Items are in format "ScenarioName / TestCaseName"
+                String scenario = "";
+                String testCase = item;
+                int separatorIdx = item.indexOf(" / ");
+                if (separatorIdx > 0) {
+                    scenario = item.substring(0, separatorIdx);
+                    testCase = item.substring(separatorIdx + 3);
+                }
+                sb.append("                <tr>\n");
+                sb.append("                    <td>").append(esc(scenario)).append("</td>\n");
+                sb.append("                    <td>").append(esc(testCase)).append("</td>\n");
+                sb.append("                </tr>\n");
             }
-            sb.append("        </ul>\n");
+            sb.append("            </tbody>\n");
+            sb.append("        </table>\n");
         }
         sb.append("    </section>\n");
 
@@ -551,6 +588,37 @@ public final class ImportReportWriter {
             "            font-family: monospace;\n" +
             "            margin-top: 4px;\n" +
             "        }\n" +
+            "        .asset-mapping-table {\n" +
+            "            width: 100%;\n" +
+            "            border-collapse: collapse;\n" +
+            "            margin-top: 12px;\n" +
+            "            font-size: 14px;\n" +
+            "        }\n" +
+            "        .asset-mapping-table thead {\n" +
+            "            background: var(--primary);\n" +
+            "            color: white;\n" +
+            "        }\n" +
+            "        .asset-mapping-table th {\n" +
+            "            padding: 12px 16px;\n" +
+            "            text-align: left;\n" +
+            "            font-weight: 600;\n" +
+            "        }\n" +
+            "        .asset-mapping-table tbody tr {\n" +
+            "            border-bottom: 1px solid var(--border);\n" +
+            "        }\n" +
+            "        .asset-mapping-table tbody tr:hover {\n" +
+            "            background: rgba(119,36,255,0.05);\n" +
+            "        }\n" +
+            "        .asset-mapping-table td {\n" +
+            "            padding: 10px 16px;\n" +
+            "        }\n" +
+            "        .asset-mapping-table td:first-child {\n" +
+            "            color: var(--text-muted);\n" +
+            "            font-weight: 500;\n" +
+            "        }\n" +
+            "        .asset-mapping-table td:last-child {\n" +
+            "            color: var(--primary);\n" +
+            "        }\n" +
             "    </style>\n"
         );
     }
@@ -607,7 +675,7 @@ public final class ImportReportWriter {
             "<head>\n" +
             "    <meta charset=\"UTF-8\">\n" +
             "    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0\">\n" +
-            "    <title>Import History — INGenious</title>\n" +
+            "    <title>Import History</title>\n" +
             "    <style>\n" +
             "        :root { --primary: #7724FF; --success: #28A745; --warning: #FFC107; }\n" +
             "        * { box-sizing: border-box; margin: 0; padding: 0; }\n" +
@@ -627,7 +695,6 @@ public final class ImportReportWriter {
             "</head>\n" +
             "<body>\n" +
             "    <header>\n" +
-            "        <div class=\"logo\">INGenious</div>\n" +
             "        <h1>Import History</h1>\n" +
             "    </header>\n" +
             "    <table>\n" +

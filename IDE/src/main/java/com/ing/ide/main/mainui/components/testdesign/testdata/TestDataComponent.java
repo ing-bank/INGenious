@@ -176,15 +176,79 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
         environmentPanel.reset();
         envTab.removeAll();
         loadTestData();
+        // Force UI refresh to ensure tabs are displayed
+        envTab.revalidate();
+        envTab.repaint();
     }
 
     private void loadTestData() {
         if (testDesign.getProject() != null) {
-            for (TestData sTestData : getEnvironmentsInSavedOrder()) {
+            var allEnvs = getEnvironmentsInSavedOrder();
+            Logger
+                .getLogger(TestDataComponent.class.getName())
+                .log(Level.FINE, "Loading {0} environments into Test Data UI", allEnvs.size());
+            for (TestData sTestData : allEnvs) {
                 envTab.addTab(sTestData.getEnviroment(), createNewTestDataTab(sTestData));
             }
             addAddNewTab();
         }
+    }
+
+    /**
+     * Adds newly imported environments to the UI without requiring a full reload.
+     * This method checks which environments exist in the data model but not in the UI tabs,
+     * and adds tabs for those missing environments.
+     *
+     * <p>This should be called after environment import to ensure the UI reflects
+     * all imported environments immediately.</p>
+     *
+     * @param importedEnvNames list of environment names that were imported
+     */
+    public void addImportedEnvironments(List<String> importedEnvNames) {
+        if (
+            testDesign.getProject() == null ||
+            importedEnvNames == null ||
+            importedEnvNames.isEmpty()
+        ) {
+            return;
+        }
+
+        // Get current UI tab names (excluding the "+" add tab)
+        Set<String> existingTabNames = new java.util.HashSet<>();
+        for (int i = 0; i < envTab.getTabCount(); i++) {
+            String title = envTab.getTitleAt(i);
+            if (title != null && !title.isEmpty()) {
+                existingTabNames.add(title);
+            }
+        }
+
+        // Add tabs for imported environments that don't have UI tabs yet
+        for (String envName : importedEnvNames) {
+            if (!existingTabNames.contains(envName)) {
+                TestData envTestData = testDesign
+                    .getProject()
+                    .getTestData()
+                    .getTestDataFor(envName);
+                if (envTestData != null) {
+                    // Insert before the "+" add tab (at tabCount - 1)
+                    int insertIndex = Math.max(0, envTab.getTabCount() - 1);
+                    envTab.insertTab(
+                        envTestData.getEnviroment(),
+                        null,
+                        createNewTestDataTab(envTestData),
+                        null,
+                        insertIndex
+                    );
+                    Logger
+                        .getLogger(TestDataComponent.class.getName())
+                        .log(Level.INFO, "Added imported environment tab: {0}", envName);
+                }
+            }
+        }
+
+        // Force UI refresh
+        envTab.revalidate();
+        envTab.repaint();
     }
 
     /**
@@ -846,6 +910,37 @@ public class TestDataComponent extends JPanel implements ChangeListener, ActionL
                     }
                     envTab.revalidate();
                     envTab.repaint();
+                }
+            }
+        );
+    }
+
+    /**
+     * Shows the Multiple Environment view, making all environment tabs visible.
+     * This is equivalent to manually selecting TestData → Multiple Environment,
+     * but only activates the view if it's not already shown (no toggling).
+     *
+     * <p>Use this method after environment imports to immediately show
+     * all imported environments without requiring user navigation.</p>
+     */
+    public void showMultipleEnvironmentView() {
+        SwingUtilities.invokeLater(
+            () -> {
+                // Only show if not already in Multiple Environment view
+                if (!envTab.isShowTabsHeader()) {
+                    envTab.setShowTabsHeader(true);
+                    // Select the first imported environment or Default if none
+                    for (int i = 0; i < envTab.getTabCount(); i++) {
+                        if (envTab.getTitleAt(i).equals("Default")) {
+                            envTab.setSelectedIndex(i);
+                            break;
+                        }
+                    }
+                    envTab.revalidate();
+                    envTab.repaint();
+                    Logger
+                        .getLogger(TestDataComponent.class.getName())
+                        .log(Level.INFO, "Switched to Multiple Environment view");
                 }
             }
         );

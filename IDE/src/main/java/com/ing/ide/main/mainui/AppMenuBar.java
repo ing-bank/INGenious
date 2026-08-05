@@ -275,6 +275,9 @@ public class AppMenuBar extends JMenuBar {
         importCollectionMenu.add(
             Utils.createMenuItem("Bruno", sActionListener, "Import Collection:Bruno")
         );
+        importCollectionMenu.add(
+            Utils.createMenuItem("Reports", sActionListener, "Import Collection:Reports")
+        );
         tools.add(importCollectionMenu);
 
         tools.add(

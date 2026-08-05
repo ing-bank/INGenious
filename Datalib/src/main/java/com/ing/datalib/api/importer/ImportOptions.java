@@ -9,19 +9,41 @@ public class ImportOptions implements Serializable {
     private static final long serialVersionUID = 1L;
 
     public enum HierarchyStrategy {
-        /** All requests become reusables in one scenario named after the collection (or {@link #scenarioPrefix} + collection name). */
-        FLATTEN,
         /** Each top-level folder of the source becomes its own reusable scenario. */
-        SCENARIO_PER_TOP_FOLDER
+        SCENARIO_PER_TOP_FOLDER("ScenariosPerTopFolder"),
+        /** All requests become reusables in one scenario named after the collection (or {@link #scenarioPrefix} + collection name). */
+        FLATTEN("Flatten");
+
+        private final String displayName;
+
+        HierarchyStrategy(String displayName) {
+            this.displayName = displayName;
+        }
+
+        @Override
+        public String toString() {
+            return displayName;
+        }
     }
 
     public enum ConflictPolicy {
         /** Skip the request if a reusable with the same name already exists. */
-        SKIP,
+        SKIP("Skip"),
         /** Append a numeric suffix to avoid collisions. */
-        RENAME_SUFFIX,
+        RENAME_SUFFIX("RenameSuffix"),
         /** Replace the existing reusable. */
-        OVERWRITE
+        OVERWRITE("Overwrite");
+
+        private final String displayName;
+
+        ConflictPolicy(String displayName) {
+            this.displayName = displayName;
+        }
+
+        @Override
+        public String toString() {
+            return displayName;
+        }
     }
 
     /**
@@ -38,12 +60,12 @@ public class ImportOptions implements Serializable {
      * Naming convention to apply to all generated asset names.
      */
     public enum NamingConvention {
-        /** snake_case: words separated by underscores, all lowercase (default for backward compatibility) */
-        SNAKE_CASE("snake_case"),
         /** PascalCase: each word capitalized, no separators */
         PASCAL_CASE("PascalCase"),
         /** camelCase: first word lowercase, subsequent words capitalized */
-        CAMEL_CASE("camelCase");
+        CAMEL_CASE("camelCase"),
+        /** snake_case: words separated by underscores, all lowercase */
+        SNAKE_CASE("snake_case");
 
         private final String displayName;
 
@@ -57,11 +79,11 @@ public class ImportOptions implements Serializable {
         }
     }
 
-    private HierarchyStrategy hierarchyStrategy = HierarchyStrategy.FLATTEN;
+    private HierarchyStrategy hierarchyStrategy = HierarchyStrategy.SCENARIO_PER_TOP_FOLDER;
     private ConflictPolicy conflictPolicy = ConflictPolicy.RENAME_SUFFIX;
     private TargetType targetType = TargetType.REUSABLE;
-    private NamingConvention namingConvention = NamingConvention.SNAKE_CASE;
-    private String scenarioPrefix = "API_";
+    private NamingConvention namingConvention = NamingConvention.PASCAL_CASE;
+    private String scenarioPrefix = "";
     /** When non-null, all reusables go into this existing scenario. */
     private String targetScenarioName;
     /**
