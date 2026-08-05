@@ -141,6 +141,7 @@ Release Date: <insert date of release>
 - Fixed `Record From Here` recordings being inserted at the beginning of a test case instead of immediately after the selected step.
 - Fixed Live Recorder to prevent test case overwrite by appending suffix to duplicate names
 - Fixed Hard Assertions waiting for timeout instead of failing immediately
+- Fixed Debug Mode resume behavior for reusable test case breakpoints
 
 ### Mobile App Testing
 

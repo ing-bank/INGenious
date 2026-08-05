@@ -66,6 +66,8 @@ public class TestCaseRunner {
     // Scope metadata for reusable resolution context
     private ReusableRef.Scope resolvedReusableScope = null; // PROJECT, SHARED, or null if not reusable
 
+    private boolean suppressDebugForReusableStepOver;
+
     //<editor-fold defaultstate="collapsed" desc="_init_">
     public TestCaseRunner(ProjectRunner exe, String scenario, String testCase) {
         this(exe, null, null, new Parameter());
@@ -204,6 +206,17 @@ public class TestCaseRunner {
 
     public boolean isReusable() {
         return context != null;
+    }
+
+    public void setSuppressDebugForReusableStepOver(boolean suppress) {
+        this.suppressDebugForReusableStepOver = suppress;
+    }
+
+    public boolean isDebugSuppressedForReusableStepOver() {
+        return (
+            suppressDebugForReusableStepOver ||
+            (context != null && context.isDebugSuppressedForReusableStepOver())
+        );
     }
 
     public TestCase getTestCase() {

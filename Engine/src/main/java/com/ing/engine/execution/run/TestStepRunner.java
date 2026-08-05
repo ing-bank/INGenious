@@ -1,4 +1,4 @@
-package com.ing.engine.execution.run;
+    package com.ing.engine.execution.run;
 
 import static java.lang.String.format;
 
@@ -13,6 +13,7 @@ import com.ing.engine.execution.data.Parameter;
 import com.ing.engine.execution.exception.DriverClosedException;
 import com.ing.engine.execution.exception.UnKnownError;
 import com.ing.engine.execution.exception.data.DataNotFoundException;
+import com.ing.engine.execution.policy.ObjectDependencyPolicyViolationException;
 import com.ing.engine.execution.policy.ObjectReferenceAnalyzer;
 import com.ing.engine.execution.resolver.ExecutionResolver;
 import com.ing.engine.execution.resolver.ScopedExecutionResolver;
@@ -33,6 +34,8 @@ public class TestStepRunner {
     private final Parameter parameter;
     private Step step;
 
+    private boolean releasedByNextStep;
+
     public TestStepRunner(TestStep testStep, Parameter parameter) {
         this.parameter = parameter;
         this.testStep = testStep;
@@ -46,7 +49,7 @@ public class TestStepRunner {
     public void run(TestCaseRunner context) throws DataNotFoundException, DriverClosedException {
         if (this.parameter != null && this.testStep != null) {
             if (context.executor().isDebugExe()) {
-                checkForDebug();
+                checkForDebug(context);
             }
             step = new Step(testStep, context);
             context.getReport().updateStepDetails(step);
@@ -63,11 +66,18 @@ public class TestStepRunner {
         }
     }
 
-    private void checkForDebug() {
+    private void checkForDebug(TestCaseRunner context) {
+        releasedByNextStep = false;
+
+        if (context.isDebugSuppressedForReusableStepOver()) {
+            return;
+        }
+
         SystemDefaults.nextStepflag.set(true);
         SystemDefaults.pauseExecution.set(
             getStep().hasBreakPoint() || SystemDefaults.pauseExecution.get()
         );
+
         while (
             SystemDefaults.pauseExecution.get() &&
             SystemDefaults.nextStepflag.get() &&
@@ -75,6 +85,11 @@ public class TestStepRunner {
         ) {
             SystemDefaults.pollWait();
         }
+
+        releasedByNextStep =
+            SystemDefaults.pauseExecution.get() &&
+            !SystemDefaults.nextStepflag.get() &&
+            !SystemDefaults.stopExecution.get();
     }
 
     private int getSubIterationFromInput(TestCaseRunner context) {
@@ -207,12 +222,12 @@ public class TestStepRunner {
             context
                 .getReport()
                 .startComponent(getStep().getAction(), getStep().getDescription(), resolvedScope);
-            // The reusable's own steps execute through this new runner instance, so the
-            // resolved scope must be set here too - it is NOT inherited from the parent
-            // context, and without it every data lookup inside the reusable falls back to
-            // unscoped resolution, defeating the Shared/Project data disambiguation.
+
+            // The reusable's own steps execute through this runner, so preserve both
+            // the resolved scope and the reusable step-over debug state.
             TestCaseRunner reusableRunner = new TestCaseRunner(context, stc, parameter);
             reusableRunner.setResolvedReusableScope(resolvedScope);
+            reusableRunner.setSuppressDebugForReusableStepOver(releasedByNextStep);
             reusableRunner.run();
         } finally {
             context.getReport().endComponent(getStep().getAction());
