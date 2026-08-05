@@ -10,9 +10,10 @@ import com.ing.ingenious.api.types.InputType;
 import com.ing.ingenious.api.types.ObjectType;
 import java.text.DecimalFormat;
 import java.time.Instant;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.logging.Level;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Matcher;
@@ -632,6 +633,97 @@ public class GeneralOperations extends General {
             Report.updateTestLog(
                 Action,
                 "Timestamp added in variable with value '" + epochTimestamp + "'",
+                Status.DONE
+            );
+        } catch (Exception e) {
+            Report.updateTestLog(Action, e.getMessage(), Status.FAIL);
+            Logger.getLogger(CommonMethods.class.getName()).log(Level.SEVERE, null, e);
+        }
+    }
+
+    /**
+     * Stores the current UTC timestamp in a specified variable.
+     *
+     * <p>
+     * This method captures the current UTC date/time and stores it
+     * in one of the supported formats.
+     * </p>
+     *
+     * @see #Data Contains the format option:
+     * "iso", "iso+milliseconds", or "date"
+     * @see #Condition Contains the variable name where the timestamp
+     * will be stored
+     *
+     * <p><b>Usage Examples:</b></p>
+     * <pre>
+     * Input (Data): @iso
+     * Condition: %UTCTime%
+     * Result: 2026-08-03T12:34:56Z
+     *
+     * Input (Data): @iso+milliseconds
+     * Condition: %UTCTimeMS%
+     * Result: 2026-08-03T12:34:56.123Z
+     *
+     * Input (Data): @date
+     * Condition: %UTCDate%
+     * Result: 2026-08-03
+     * </pre>
+     */
+    @Action(
+        object = ObjectType.GENERAL,
+        desc = "Store UTC Timestamp in variable",
+        input = InputType.YES,
+        condition = InputType.YES
+    )
+    public void storeUTCTimestampInVariable() {
+        if (Condition == null || Condition.isBlank() || Condition.equals("%%")) {
+            Report.updateTestLog(
+                Action,
+                "Variable name is required. Please provide a valid variable name in the Condition field.",
+                Status.FAIL
+            );
+            return;
+        }
+        if (Data == null || Data.isBlank()) {
+            Report.updateTestLog(
+                Action,
+                "Format option is required. Use: 'iso', 'iso+milliseconds', or 'date'.",
+                Status.FAIL
+            );
+            return;
+        }
+        try {
+            String utcTimestamp;
+            String option = Data.trim().toLowerCase();
+
+            ZonedDateTime nowUTC = ZonedDateTime.now(ZoneId.of("UTC"));
+
+            switch (option) {
+                case "iso":
+                    utcTimestamp =
+                        nowUTC.format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss'Z'"));
+                    break;
+                case "iso+milliseconds":
+                    utcTimestamp =
+                        nowUTC.format(DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'"));
+                    break;
+                case "date":
+                    utcTimestamp = nowUTC.format(DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+                    break;
+                default:
+                    Report.updateTestLog(
+                        Action,
+                        "Invalid input. Use: 'iso', 'iso+milliseconds', or 'date'.",
+                        Status.FAIL
+                    );
+                    return;
+            }
+
+            addVar(Condition, utcTimestamp);
+
+            Report.updateTestLog(
+                Action,
+                "UTC timestamp added in variable with value '" + utcTimestamp + "'",
                 Status.DONE
             );
         } catch (Exception e) {
