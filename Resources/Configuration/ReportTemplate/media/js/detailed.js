@@ -675,10 +675,19 @@ function renderStepsV2(iterations, showFailedOnly = false, stepFilter = '', keyP
     
     let html = '';
     (iterations || []).forEach((item, idx) => {
-        const keyPath = '' + idx;
-        if (item.type === 'step') html += renderStep(item, keyPath, null);
-        else if (item.type === 'reusable') html += renderReusable(item, keyPath);
+        // Include the iteration-specific prefix so every rendered element
+        // has a unique key across all iterations.
+        const keyPath = keyPrefix
+            ? keyPrefix + '-' + idx
+            : String(idx);
+
+        if (item.type === 'step') {
+            html += renderStep(item, keyPath, null);
+        } else if (item.type === 'reusable') {
+            html += renderReusable(item, keyPath);
+        }
     });
+
     return html;
 }
 
