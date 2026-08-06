@@ -36,6 +36,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.Timer;
 import java.util.TimerTask;
+import com.ing.ide.main.ui.ProfileDialog;
 
 public class AppActionListener implements ActionListener {
 
@@ -157,6 +158,9 @@ public class AppActionListener implements ActionListener {
                 break;
             case "Browser Configuration":
                 driverSettings.open();
+                break;
+            case "Profile":
+                openProfile();
                 break;
             case "AzureDevOps TestPlan Configuration":
                 tmSettings.open();
@@ -439,6 +443,11 @@ public class AppActionListener implements ActionListener {
         if (bddParser != null) {
             bddParser.closeEditor();
         }
+    }
+
+    private void openProfile() {
+        ProfileDialog dialog = new ProfileDialog(sMainFrame);
+        dialog.setVisible(true);
     }
 
 }

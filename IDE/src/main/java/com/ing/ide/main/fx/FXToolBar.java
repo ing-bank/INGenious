@@ -63,7 +63,8 @@ public class FXToolBar extends JFXPanel {
                 createButton("Browser Configuration", "BrowserConfiguration"),
                 new Separator(),
                 createAPITesterButton(),
-                createSpacer()
+                createSpacer(),
+                createProfileButton()
                 //, createDarkModeToggle()
         );
 
@@ -88,6 +89,21 @@ public class FXToolBar extends JFXPanel {
         }
 
         btn.setOnAction(e -> fireSwingAction(action));
+        return btn;
+    }
+
+    private Button createProfileButton() {
+        Button btn = new Button();
+        btn.setTooltip(new Tooltip("Profile - Configure System Under Test and PCode"));
+
+        org.kordamp.ikonli.javafx.FontIcon icon = INGIcons.fxColored("Profile", 18);
+        if (icon != null) {
+            btn.setGraphic(icon);
+        } else {
+            btn.setText("Profile");
+        }
+
+        btn.setOnAction(e -> fireSwingAction("Profile"));
         return btn;
     }
 

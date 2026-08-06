@@ -17,11 +17,18 @@ import com.ing.ingenious.api.status.Status;
 import com.ing.engine.support.methodInf.MethodInfoManager;
 import com.ing.engine.support.reflect.MethodExecutor;
 import com.ing.util.encryption.Encryption;
+import com.ing.util.matomo.MatomoTrackingService;
+import com.ing.util.matomo.MatomoTrackingService.MissingRequiredProfileFields;
+import java.awt.Frame;
+import java.awt.GraphicsEnvironment;
+import java.lang.reflect.Constructor;
+import java.lang.reflect.Method;
 import java.util.Date;
 import java.util.UUID;
 import java.util.concurrent.TimeUnit;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javax.swing.SwingUtilities;
 
 import com.ing.engine.drivers.WebDriverCreation;
 import com.ing.engine.drivers.WebDriverFactory;
@@ -122,8 +129,27 @@ public class Control {
     }
 
     private void startRun() {
+        MatomoTrackingService matomoTracker = null;
         try {
             initRun();
+            
+            // Track test execution to Matomo
+            try {
+                // String configLocation = exe.getProject().getProjectSettings().getLocation() + "/matomo.properties";
+                matomoTracker = new MatomoTrackingService(FilePath.getMatomoPropertiesPath(), FilePath.getUserProfilePath());
+
+                MissingRequiredProfileFields missingFields = matomoTracker.getMissingRequiredProfileFields();
+
+                if (missingFields.hasMissingValues()) {
+                    openProfileDialogForMissingValues(missingFields);
+                    return;
+                }
+
+                matomoTracker.trackTestExecution();
+            } catch (Exception e) {
+                LOG.log(Level.WARNING, "Failed to track test execution to Matomo", e);
+            }
+            
             TMIntegration.init(ReportManager);
             ReportManager.createReport(DateTimeUtils.DateTimeNow(), RunManager.queue().size());
             ThreadPool threadPool = new ThreadPool(
@@ -171,8 +197,66 @@ public class Control {
             }
 
             endExecution();
+            
+            // Clean up Matomo tracker
+            if (matomoTracker != null) {
+                try {
+                    matomoTracker.close();
+                } catch (Exception e) {
+                    LOG.log(Level.WARNING, "Error closing Matomo tracker", e);
+                }
+            }
 
         }
+    }
+
+    private void openProfileDialogForMissingValues(MissingRequiredProfileFields missingFields) {
+        String notificationMessage = buildMissingProfileMessage(missingFields);
+        LOG.log(Level.SEVERE, notificationMessage);
+
+        if (GraphicsEnvironment.isHeadless()) {
+            return;
+        }
+
+        try {
+            Runnable showDialogTask = () -> {
+                try {
+                    Class<?> dialogClass = Class.forName("com.ing.ide.main.ui.ProfileDialog");
+                    Constructor<?> constructor = dialogClass.getConstructor(Frame.class);
+                    Object dialog = constructor.newInstance((Frame) null);
+
+                    Method highlightMethod = dialogClass.getMethod(
+                            "highlightMissingRequiredFields", boolean.class, boolean.class);
+                    highlightMethod.invoke(dialog, missingFields.isSutMissing(), missingFields.isPcodeMissing());
+
+                    Method setVisibleMethod = dialogClass.getMethod("setVisible", boolean.class);
+                    setVisibleMethod.invoke(dialog, true);
+                } catch (Exception ex) {
+                    LOG.log(Level.WARNING, "Unable to open ProfileDialog for missing profile values", ex);
+                }
+            };
+
+            if (SwingUtilities.isEventDispatchThread()) {
+                showDialogTask.run();
+            } else {
+                SwingUtilities.invokeLater(showDialogTask);
+            }
+        } catch (Exception ex) {
+            LOG.log(Level.WARNING, "Unable to trigger ProfileDialog for missing profile values", ex);
+        }
+    }
+
+    private String buildMissingProfileMessage(MissingRequiredProfileFields missingFields) {
+        if (missingFields.isSutMissing() && missingFields.isPcodeMissing()) {
+            return "Please set \"System Under Test\" and \"PCode\" in userProfile.properties before running.";
+        }
+        if (missingFields.isSutMissing()) {
+            return "Please set \"System Under Test\" in userProfile.properties before running.";
+        }
+        if (missingFields.isPcodeMissing()) {
+            return "Please set \"PCode\" in userProfile.properties before running.";
+        }
+        return "Please verify userProfile.properties before running.";
     }
 
     static PlaywrightDriverCreation getPlaywrightDriver() {

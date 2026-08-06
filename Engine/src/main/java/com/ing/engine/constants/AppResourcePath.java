@@ -53,6 +53,9 @@ public class AppResourcePath {
 
     private final static String CHROME_ADDON = "Chrome" + File.separator + "ingenious.crx";
 
+    private final static String MATOMO_PROPERTIES = "matomo.properties";
+    private final static String USER_PROFILE = "userProfile.properties";
+
     private final static String STEPMAP_FILE = "StepMap.csv";
     private static final String APP_SETTINGS = "app.settings";
 
@@ -229,6 +232,14 @@ public class AppResourcePath {
 
     public static String getTime() {
         return time;
+    }
+
+    public static String getMatomoPropertiesPath() {
+        return getConfigurationPath() + File.separator + MATOMO_PROPERTIES;
+    }
+
+    public static String getUserProfilePath() {
+        return getConfigurationPath() + File.separator + USER_PROFILE;
     }
 
     /**
