@@ -73,6 +73,10 @@ public class DashBoardServer extends Thread {
         return "http://127.0.0.1:" + port();
     }
 
+    public boolean isRunning() {
+        return server != null && server.isStarted();
+    }
+
     public static int port() {
         return Integer.valueOf(AppSettings.get(AppSettings.APP_SETTINGS.HAR_PORT.getKey()));
     }

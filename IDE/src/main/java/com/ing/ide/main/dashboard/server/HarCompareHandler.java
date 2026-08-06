@@ -240,7 +240,10 @@ public class HarCompareHandler implements Handler {
     public static void init() throws Exception {
         conf = new JSONObject();
         if (DashBoardData.config().exists()) {
-            conf = (JSONObject) JSONValue.parse(Tools.readFile(DashBoardData.config()));
+            Object parsed = JSONValue.parse(Tools.readFile(DashBoardData.config()));
+            if (parsed instanceof JSONObject) {
+                conf = (JSONObject) parsed;
+            }
         } else if (DashBoardData.config().getParentFile().exists()) {
             DashBoardData.config().createNewFile();
         }

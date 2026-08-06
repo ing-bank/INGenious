@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.net.InetAddress;
+import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -98,8 +99,9 @@ public class Tools {
     }
 
     public static boolean verifyLocalPort(String server, int port) {
-        try {
-            new ServerSocket(port).close();
+        try (ServerSocket socket = new ServerSocket()) {
+            socket.setReuseAddress(true);
+            socket.bind(new InetSocketAddress(port));
             return false;
         } catch (IOException e) {
             throw new RuntimeException(
