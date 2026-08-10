@@ -5,7 +5,7 @@
     <version>3.0.0</version>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <playwright.version>1.58.0</playwright.version>
+        <playwright.version>1.56.0</playwright.version>
         <commons-cli.version>1.4</commons-cli.version>
         <javamail.version>1.4.7</javamail.version>
         <json-simple.version>1.1.1</json-simple.version>
@@ -102,16 +102,20 @@
         
         
      
-        <!-- <dependency>
-            <groupId>org.apache.kafka</groupId>
-            <artifactId>kafka-clients</artifactId>
-            <version>${kafka-clients.version}</version>
-        </dependency>
+        <!-- Dependency for kafka -->
+<!--
         <dependency>
-            <groupId>io.confluent</groupId>
-            <artifactId>kafka-avro-serializer</artifactId>
-            <version>${kafka-avro-serializer.version}</version>
-        </dependency> -->
+            <groupId>com.ing.apisdk</groupId>
+            <artifactId>toolkit-connectivity-kafka-avro-serialization_2.13</artifactId>
+            <version>28.2.2</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.glassfish.jersey.core</groupId>
+                    <artifactId>jersey-common</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>    
+--> 
         <dependency>
             <groupId>io.github.osobolev</groupId>
             <artifactId>jacob</artifactId>
@@ -454,6 +458,19 @@
             <groupId>de.vandermeer</groupId>
             <artifactId>asciitable</artifactId>
             <version>0.3.2</version>
+        </dependency>
+        
+        <!-- Matomo Tracking -->
+        <dependency>
+            <groupId>org.piwik.java.tracking</groupId>
+            <artifactId>matomo-java-tracker-core</artifactId>
+            <version>3.2.0</version>
+        </dependency>
+        
+        <dependency>
+            <groupId>org.piwik.java.tracking</groupId>
+            <artifactId>matomo-java-tracker-java11</artifactId>
+            <version>3.2.0</version>
         </dependency>
     
 		<dependency>

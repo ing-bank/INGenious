@@ -18,6 +18,7 @@ import com.ing.ide.main.ui.AboutUI;
 import com.ing.ide.main.ui.InjectScript;
 import com.ing.ide.main.ui.NewProject;
 import com.ing.ide.main.ui.Options;
+import com.ing.ide.main.ui.ProfileDialog;
 import com.ing.ide.main.utils.CMProjectCreator;
 import com.ing.ide.main.utils.Utils;
 import com.ing.ide.util.Notification;
@@ -33,7 +34,6 @@ import java.util.Timer;
 import java.util.TimerTask;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import com.ing.ide.main.ui.ProfileDialog;
 
 public class AppActionListener implements ActionListener {
     private final AppMainFrame sMainFrame;
@@ -530,10 +530,9 @@ public class AppActionListener implements ActionListener {
         );
         return scenarioDir.exists() || recordingFile.exists();
     }
-    
+
     private void openProfile() {
         ProfileDialog dialog = new ProfileDialog(sMainFrame);
         dialog.setVisible(true);
     }
-
 }

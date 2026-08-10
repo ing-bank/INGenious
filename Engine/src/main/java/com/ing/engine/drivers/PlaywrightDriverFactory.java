@@ -12,11 +12,11 @@ import com.microsoft.playwright.Browser.NewContextOptions;
 import com.microsoft.playwright.BrowserType.LaunchOptions;
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.File;
 import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
-import java.io.File;
 import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import java.net.URLEncoder;
 import java.nio.file.Path;
 import java.nio.file.Paths;
@@ -29,8 +29,8 @@ import java.util.List;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
-import java.util.logging.Logger;
 import java.util.Properties;
+import java.util.logging.Logger;
 import java.util.logging.Logger;
 
 public class PlaywrightDriverFactory {
@@ -166,12 +166,6 @@ public class PlaywrightDriverFactory {
         return Playwright.create(new Playwright.CreateOptions().setEnv(env));
     }
 
-    public static BrowserType createBrowserType(
-        Playwright playwright,
-        String browserName,
-        RunContext context,
-        ProjectSettings settings
-    ) {
     public static BrowserType createBrowserType(
         Playwright playwright,
         String browserName,

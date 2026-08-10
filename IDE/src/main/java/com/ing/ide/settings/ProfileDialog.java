@@ -37,14 +37,14 @@ public class ProfileDialog extends JDialog {
     private static final String PCODE_FORMAT = "^p\\d{5}$";
 
     private static final String SUT_INFO =
-        "<html><div style='width: 300px;'>"
-            + "<b>System Under Test (SUT)</b> is the business application, platform, or service you are testing. e.g. Move Money"
-            + "</div></html>";
+        "<html><div style='width: 300px;'>" +
+        "<b>System Under Test (SUT)</b> is the business application, platform, or service you are testing. e.g. Move Money" +
+        "</div></html>";
 
     private static final String ANALYTICS_NOTE =
-        "Your SUT and PCode help us understand INGenious usage, "
-            + "measure adoption, and prioritize improvements. This information is "
-            + "used for internal analytics and reporting purposes.";
+        "Your SUT and PCode help us understand INGenious usage, " +
+        "measure adoption, and prioritize improvements. This information is " +
+        "used for internal analytics and reporting purposes.";
 
     private static final Color MODERN_BG = new Color(255, 255, 255);
     private static final Color MODERN_PANEL_BG = new Color(248, 250, 252);
@@ -118,11 +118,12 @@ public class ProfileDialog extends JDialog {
         getRootPane().setDefaultButton(save);
 
         // ESC closes
-        getRootPane().registerKeyboardAction(
-            e -> dispose(),
-            KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0),
-            JComponent.WHEN_IN_FOCUSED_WINDOW
-        );
+        getRootPane()
+            .registerKeyboardAction(
+                e -> dispose(),
+                KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0),
+                JComponent.WHEN_IN_FOCUSED_WINDOW
+            );
 
         pack();
         setSize(480, getHeight());
@@ -132,6 +133,7 @@ public class ProfileDialog extends JDialog {
 
     private JTextPane createAnalyticsNote() {
         JTextPane analyticsNote = new JTextPane() {
+
             @Override
             public Dimension getPreferredSize() {
                 int width = getWidth() > 0 ? getWidth() : 432;
@@ -166,12 +168,7 @@ public class ProfileDialog extends JDialog {
         try {
             document.insertString(document.getLength(), "Note: ", boldStyle);
             document.insertString(document.getLength(), ANALYTICS_NOTE, null);
-            document.setParagraphAttributes(
-                0,
-                document.getLength(),
-                paragraphStyle,
-                false
-            );
+            document.setParagraphAttributes(0, document.getLength(), paragraphStyle, false);
         } catch (BadLocationException e) {
             throw new IllegalStateException("Unable to create analytics note", e);
         }
@@ -248,10 +245,12 @@ public class ProfileDialog extends JDialog {
 
         if (sutMissing || pcodeMissing) {
             JTextField focusField = sutMissing ? sutField : pcodeField;
-            SwingUtilities.invokeLater(() -> {
-                focusField.requestFocusInWindow();
-                focusField.selectAll();
-            });
+            SwingUtilities.invokeLater(
+                () -> {
+                    focusField.requestFocusInWindow();
+                    focusField.selectAll();
+                }
+            );
         }
     }
 
