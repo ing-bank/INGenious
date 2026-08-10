@@ -49,7 +49,7 @@
         <mac.version>mac-aarch64</mac.version>
         <setupDir>../Dist/release</setupDir>
         <resourceDir>../Resources</resourceDir>
-        <ingenious-api.version>3.0</ingenious-api.version>
+        <ingenious-api.version>3.0.0-ING</ingenious-api.version>
 
         <flatlaf.version>3.5.4</flatlaf.version>
         <ikonli.version>12.3.1</ikonli.version>
@@ -720,58 +720,6 @@
         <plugins>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-install-plugin</artifactId>
-                <version>3.1.1</version>
-                <executions>
-                    <execution>
-                        <id>install-ingenious-api</id>
-                        <phase>initialize</phase>
-                        <configuration>
-                            <file>${basedir}/lib/ingenious-api-${ingenious-api.version}.jar</file>
-                            <groupId>com.ing</groupId>
-                            <artifactId>ingenious-api</artifactId>
-                            <version>${ingenious-api.version}</version>
-                            <packaging>jar</packaging>
-                            <generatePom>true</generatePom>
-                        </configuration>
-                        <goals>
-                            <goal>install-file</goal>
-                        </goals>
-                    </execution>
-                    <execution>
-                        <id>install-datalib</id>
-                        <phase>initialize</phase>
-                        <configuration>
-                            <file>${basedir}/lib/ingenious-datalib-${project.version}.jar</file>
-                            <groupId>com.ing</groupId>
-                            <artifactId>ingenious-datalib</artifactId>
-                            <version>${project.version}</version>
-                            <packaging>jar</packaging>
-                            <generatePom>true</generatePom>
-                        </configuration>
-                        <goals>
-                            <goal>install-file</goal>
-                        </goals>
-                    </execution>
-                    <execution>
-                        <id>install-testdata-csv</id>
-                        <phase>initialize</phase>
-                        <configuration>
-                            <file>${basedir}/lib/ingenious-testdata-csv-${project.version}.jar</file>
-                            <groupId>com.ing</groupId>
-                            <artifactId>ingenious-testdata-csv</artifactId>
-                            <version>${project.version}</version>
-                            <packaging>jar</packaging>
-                            <generatePom>true</generatePom>
-                        </configuration>
-                        <goals>
-                            <goal>install-file</goal>
-                        </goals>
-                    </execution>
-                </executions>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-clean-plugin</artifactId>
                 <version>2.4.1</version>
                 <configuration>
@@ -830,8 +778,50 @@
             </plugin>
         </plugins>
     </build>
-    <repositories/>
-    <pluginRepositories/>
+
+    <repositories>
+        <!-- Repository for kafka -->
+        <!-- <repository>
+            <id>P00869-APISDK-releases</id>
+            <url>https://pkgs.dev.azure.com/INGCDaaS/IngOne/_packaging/P00869-APISDK-releases/maven/v1</url>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+            <snapshots>
+                <enabled>true</enabled>
+            </snapshots>
+        </repository> -->
+        <repository>
+            <id>P33148-incoming-mvn</id>
+            <url>https://pkgs.dev.azure.com/INGCDaaS/IngOne/_packaging/P33148-incoming-mvn/maven/v1</url>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+            <snapshots>
+                <enabled>true</enabled>
+            </snapshots>
+        </repository>
+        <repository>
+            <id>P33148-outgoing-mvn</id>
+            <url>https://pkgs.dev.azure.com/INGCDaaS/IngOne/_packaging/P33148-outgoing-mvn/maven/v1</url>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+            <snapshots>
+                <enabled>true</enabled>
+            </snapshots>
+        </repository>
+    </repositories>
+
+    <pluginRepositories>
+        <pluginRepository>
+            <id>P33148-incoming-mvn</id>
+            <url>
+                https://pkgs.dev.azure.com/INGCDaaS/IngOne/_packaging/P33148-incoming-mvn/maven/v1
+            </url>
+        </pluginRepository>
+    </pluginRepositories>
+    
     <dependencies>
         
         
