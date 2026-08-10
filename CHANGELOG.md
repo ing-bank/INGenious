@@ -55,6 +55,7 @@ Release Date: <insert date of release>
 - Enhanced Web Object Repository role selection with dynamic filtering based on user-entered text
 - Added cross-environment datasheet renaming functionality and its accompanying UI confirmation dialog
 - Action 'assertVariable' can now assert runtime and global variables
+- Added the JVM parameter `-Djdk.internal.httpclient.disableHostnameVerification=true` in ingenious.command and ingenious.bat startup scripts to allow connections to align behavior with Postman and Bruno when SSL verification is disabled.
 
 #### Changed
 
