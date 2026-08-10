@@ -6,7 +6,7 @@
 
     <groupId>com.ing</groupId>
     <artifactId>ingenious-api</artifactId>
-    <version>3.0</version>
+    <version>3.0.0-ING</version>
     <packaging>jar</packaging>
 
     <properties>
