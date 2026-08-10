@@ -1,0 +1,40 @@
+schemaVersion: 1
+testCase: Your plans
+scenario: MortgageFlow
+steps:
+  - step: 1
+    object: Within 3 to 6 months
+    description: "Check the [<Object>] element"
+    action: Check
+    reference: "[Project] Personal Situation"
+
+  - step: 2
+    object: "[Next] Button"
+    description: "Click the [<Object>] "
+    action: Click
+    reference: "[Project] Personal Situation"
+
+  - step: 3
+    object: Browser
+    description: Start Recorder from the current page
+    action: RecordFromHere
+    comment: true
+
+  - step: 4
+    object: Energy Label
+    description: "Assert if [<Object>] is visible"
+    action: assertElementIsVisible
+    reference: "[Project] Your plans"
+
+  - step: 5
+    object: Your plans Energy Label
+    description: "Select item in [<Object>] which has text: [<Data>]"
+    action: SelectSingleByText
+    input: Situation:Energy Label
+    reference: "[Project] Personal Situation"
+
+  - step: 6
+    object: "[Next] Button"
+    description: "Click the [<Object>] "
+    action: Click
+    reference: "[Project] Personal Situation"

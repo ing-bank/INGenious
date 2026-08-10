@@ -1,0 +1,13 @@
+schemaVersion: 1
+testCase: Payment
+scenario: Operations-API
+steps:
+  - step: 1
+    object: Execute
+    action: APIs:GET_brands
+    reference: "[Project]"
+
+  - step: 2
+    object: Execute
+    action: APIs:POST_Payment
+    reference: "[Project]"

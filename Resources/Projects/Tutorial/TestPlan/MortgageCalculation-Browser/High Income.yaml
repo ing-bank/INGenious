@@ -1,0 +1,38 @@
+schemaVersion: 1
+testCase: Tc1
+scenario: Sc1
+tags:
+  - '@smoke'
+  - '@uat'
+  - '@load'
+  - regression
+steps:
+  - step: 1
+    object: Execute
+    action: Common:Launch
+    reference: "[Project]"
+
+  - step: 2
+    object: Execute
+    action: MortgageFlow:Personal situation
+    reference: "[Project]"
+
+  - step: 3
+    object: Execute
+    action: MortgageFlow:Your plans
+    reference: "[Project]"
+
+  - step: 4
+    object: Execute
+    action: MortgageFlow:My income
+    reference: "[Project]"
+
+  - step: 5
+    object: Execute
+    action: MortgageFlow:Mandatory expenses
+    reference: "[Project]"
+
+  - step: 6
+    object: Execute
+    action: MortgageFlow:My maximum mortgage
+    reference: "[Project]"

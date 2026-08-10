@@ -1,0 +1,42 @@
+schemaVersion: 1
+testCase: POST_Payment
+scenario: APIs
+steps:
+  - step: 1
+    object: Webservice
+    description: Set API Endpoint
+    action: setEndPoint
+    input: '@https://api.practicesoftwaretesting.com/payment/check'
+
+  - step: 2
+    object: Webservice
+    description: "Add Header: accept"
+    action: addHeader
+    input: '@accept=application/json'
+
+  - step: 3
+    object: Webservice
+    description: "Add Header: Content-Type"
+    action: addHeader
+    input: '@Content-Type=application/json'
+
+  - step: 4
+    object: Webservice
+    description: Execute POST Request
+    action: postRestRequest
+    input: |-
+      {
+        "payment_method": "bank-transfer",
+        "payment_details": {
+          "bank_name": "{Payment:Bank Name}",
+          "account_name": "{Payment:Account Name}",
+          "account_number": "{Payment:Account Number}"
+        }
+      }
+
+  - step: 5
+    object: message
+    description: "Assert JSON: $.message"
+    action: assertJsonPathResultEquals
+    input: '@Payment was successful'
+    reference: "[Project] APIRequest"

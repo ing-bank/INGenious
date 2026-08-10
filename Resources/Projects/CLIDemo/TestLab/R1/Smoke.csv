@@ -1,3 +1,0 @@
-Execute,TestScenario,TestCase,Iteration,Status,Browser,BrowserVersion,Platform
-true,APIBasics,GetUsers,Single,New,Chromium,Default,Any
-true,APIBasics,GetSinglePost,Single,New,Chromium,Default,Any

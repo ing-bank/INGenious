@@ -1,0 +1,3 @@
+Scenario,Flow,Scope,Iteration,SubIteration,Age,Energy Label,Income,Debt,Max Mortgage,Buying Situation
+MortgageCalculation-Browser,High Income,,1,1,36,ENERGY_LABEL_A_4PLUS,100000,No,"€513,810",Alone
+MortgageCalculation-Browser,Low Income,,1,1,36,ENERGY_LABEL_A_4PLUS,30000,No,"€513,811",Alone

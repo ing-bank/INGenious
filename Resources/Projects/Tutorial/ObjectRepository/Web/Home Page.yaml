@@ -1,7 +1,0 @@
-page: Home Page
-scope: PROJECT
-elements:
-  Bank Accounts:
-    text: Bank Accounts
-  Bank Name:
-    text: ING Bank
