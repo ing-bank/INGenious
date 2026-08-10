@@ -116,7 +116,7 @@ public class FXMenuBar extends JFXPanel {
 
         bindAccelerator(
             KeyStroke.getKeyStroke(KeyEvent.VK_S, shortcutMask | InputEvent.ALT_DOWN_MASK),
-            "Run Settings"
+            "Settings"
         );
 
         bindAccelerator(
