@@ -18,6 +18,7 @@ import java.util.logging.Logger;
 import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.NoAlertPresentException;
 import org.openqa.selenium.UnsupportedCommandException;
+import org.openqa.selenium.WebDriverException;
 
 public class MobileGeneral extends Command implements MobilePluginApi {
 
@@ -173,7 +174,10 @@ public class MobileGeneral extends Command implements MobilePluginApi {
                 if (tryAndroidSensorShake()) {
                     return "using Android sensor emulation fallback";
                 }
-                return "skipped (shake is unsupported by the current device provider)";
+                throw new WebDriverException(
+                    "Shake is unsupported by the current device provider",
+                    mobileShakeException
+                );
             }
             throw mobileShakeException;
         }
@@ -221,24 +225,10 @@ public class MobileGeneral extends Command implements MobilePluginApi {
 
     private boolean trySensorSetVariants(List<Double> vector) {
         // Different Appium providers validate sensorSet payloads differently.
+        String sensorValue = vector.get(0) + ":" + vector.get(1) + ":" + vector.get(2);
         List<Map<String, Object>> variants = Arrays.asList(
-            Map.of("sensorType", "accelerometer", "value", vector),
-            Map.of(
-                "sensorType",
-                "accelerometer",
-                "value",
-                Map.of("x", vector.get(0), "y", vector.get(1), "z", vector.get(2))
-            ),
-            Map.of(
-                "sensorType",
-                "accelerometer",
-                "x",
-                vector.get(0),
-                "y",
-                vector.get(1),
-                "z",
-                vector.get(2)
-            )
+            Map.of("sensorType", "acceleration", "value", sensorValue),
+            Map.of("sensorType", "accelerometer", "value", sensorValue)
         );
 
         for (Map<String, Object> args : variants) {

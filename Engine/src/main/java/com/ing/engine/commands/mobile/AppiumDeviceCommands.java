@@ -457,6 +457,15 @@ public class AppiumDeviceCommands extends MobileGeneral {
     public void shake() {
         try {
             String executionMode = executeShakeGesture();
+            String normalizedMode = executionMode.toLowerCase();
+            if (normalizedMode.contains("skipped") || normalizedMode.contains("unsupported")) {
+                Report.updateTestLog(
+                    Action,
+                    "Unable to perform Shake operation, " + executionMode,
+                    Status.FAIL
+                );
+                return;
+            }
             Report.updateTestLog(Action, "Performed Shake Operation " + executionMode, Status.DONE);
         } catch (Exception e) {
             Logger.getLogger(this.getClass().getName()).log(Level.OFF, null, e);
