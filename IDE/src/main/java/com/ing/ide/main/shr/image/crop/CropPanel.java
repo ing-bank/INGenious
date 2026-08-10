@@ -1,4 +1,3 @@
-
 package com.ing.ide.main.shr.image.crop;
 
 import java.awt.BasicStroke;
@@ -20,7 +19,6 @@ import javax.swing.KeyStroke;
  *
  */
 public class CropPanel extends JPanel {
-
     Cropper sys;
     boolean cropping = false;
     private final Color rx = new Color(240, 236, 236, 120);
@@ -31,7 +29,6 @@ public class CropPanel extends JPanel {
         selection = new Rectangle2D.Double();
         init();
         initListener();
-
     }
 
     private void init() {
@@ -89,15 +86,12 @@ public class CropPanel extends JPanel {
     }
 
     private void drawSelection(Graphics2D g2d) {
-
         selection.setFrameFromDiagonal(sys.start, sys.end);
         Rectangle select = this.selection.getBounds();
-        g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
-                RenderingHints.VALUE_ANTIALIAS_OFF);
+        g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_OFF);
         g2d.setStroke(new BasicStroke(1.8f));
         g2d.setColor(Color.RED);
         g2d.drawRect(select.x, select.y, select.width, select.height);
-
     }
 
     private BufferedImage getSubimage(Rectangle select) {
@@ -106,5 +100,4 @@ public class CropPanel extends JPanel {
         }
         return null;
     }
-
 }

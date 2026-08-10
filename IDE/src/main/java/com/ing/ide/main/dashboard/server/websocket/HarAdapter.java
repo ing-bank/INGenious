@@ -1,20 +1,19 @@
-
 package com.ing.ide.main.dashboard.server.websocket;
 
 import com.ing.ide.main.dashboard.server.Handler;
 import com.ing.ide.main.dashboard.server.HarCompareHandler;
+import java.net.InetSocketAddress;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.eclipse.jetty.websocket.api.Session;
-import org.eclipse.jetty.websocket.api.WebSocketAdapter;
+import org.eclipse.jetty.ee8.websocket.api.Session;
+import org.eclipse.jetty.ee8.websocket.api.WebSocketAdapter;
 import org.json.simple.JSONObject;
 
 /**
  *
- * 
+ *
  */
 public class HarAdapter extends WebSocketAdapter {
-
     private static final Logger LOG = Logger.getLogger(HarAdapter.class.getName());
 
     Session session;
@@ -42,7 +41,14 @@ public class HarAdapter extends WebSocketAdapter {
 
     @Override
     public void onWebSocketError(Throwable cause) {
-        LOG.log(Level.SEVERE, "{0} : {1}", new Object[]{cause.getMessage(), session.getRemoteAddress().getHostString()});
+        LOG.log(
+            Level.SEVERE,
+            "{0} : {1}",
+            new Object[] {
+                cause.getMessage(),
+                ((InetSocketAddress) session.getRemoteAddress()).getHostString()
+            }
+        );
     }
 
     @Override
@@ -56,7 +62,7 @@ public class HarAdapter extends WebSocketAdapter {
 
     public void send(String data) {
         try {
-            getSession().getRemote().sendStringByFuture(data);
+            getSession().getRemote().sendString(data);
         } catch (Exception ex) {
             LOG.log(Level.SEVERE, ex.getMessage(), ex);
         }
@@ -64,7 +70,8 @@ public class HarAdapter extends WebSocketAdapter {
 
     public String IP() {
         if (getSession() != null) {
-            return getSession().getRemoteAddress().getAddress().getHostAddress();
+            return ((InetSocketAddress) getSession().getRemoteAddress()).getAddress()
+                .getHostAddress();
         } else {
             return "NA";
         }
@@ -73,5 +80,4 @@ public class HarAdapter extends WebSocketAdapter {
     public void stopServer(JSONObject data) throws Exception {
         throw new Exception("Access restricted.");
     }
-
 }

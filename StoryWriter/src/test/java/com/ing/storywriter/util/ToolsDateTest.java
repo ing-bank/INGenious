@@ -1,6 +1,7 @@
 package com.ing.storywriter.util;
 
 import static org.assertj.core.api.Assertions.assertThat;
+
 import java.io.File;
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -11,7 +12,6 @@ import org.testng.annotations.Test;
  * File I/O methods are excluded (need temp files and are side-effect heavy).
  */
 public class ToolsDateTest {
-
     private static final SimpleDateFormat formatter = new SimpleDateFormat("dd-MM-yyyy");
 
     @Test

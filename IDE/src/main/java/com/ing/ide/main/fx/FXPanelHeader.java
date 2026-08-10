@@ -1,5 +1,8 @@
 package com.ing.ide.main.fx;
 
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+import java.util.logging.Logger;
 import javafx.application.Platform;
 import javafx.embed.swing.JFXPanel;
 import javafx.geometry.Pos;
@@ -11,17 +14,12 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.Priority;
 
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
-import java.util.logging.Logger;
-
 /**
  * A reusable JavaFX-styled panel header for embedding in Swing panels.
  * Displays a modern styled label with optional action buttons.
  * Icons are rendered via Ikonli web font icons (INGIcons).
  */
 public class FXPanelHeader extends JFXPanel {
-
     private static final Logger LOG = Logger.getLogger(FXPanelHeader.class.getName());
 
     private final String title;
@@ -38,10 +36,12 @@ public class FXPanelHeader extends JFXPanel {
         this.title = title;
         this.actions = actions;
         CountDownLatch sceneReady = new CountDownLatch(1);
-        Platform.runLater(() -> {
-            initFX();
-            sceneReady.countDown();
-        });
+        Platform.runLater(
+            () -> {
+                initFX();
+                sceneReady.countDown();
+            }
+        );
         try {
             sceneReady.await(5, TimeUnit.SECONDS);
         } catch (InterruptedException e) {
@@ -80,11 +80,13 @@ public class FXPanelHeader extends JFXPanel {
                 btn.setText(action.tooltip);
             }
 
-            btn.setOnAction(e -> {
-                if (action.handler != null) {
-                    action.handler.run();
+            btn.setOnAction(
+                e -> {
+                    if (action.handler != null) {
+                        action.handler.run();
+                    }
                 }
-            });
+            );
             container.getChildren().add(btn);
         }
 

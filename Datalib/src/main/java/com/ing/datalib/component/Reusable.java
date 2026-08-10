@@ -1,4 +1,3 @@
-
 package com.ing.datalib.component;
 
 import com.ing.datalib.component.utils.XMLOperation;
@@ -10,10 +9,9 @@ import org.w3c.dom.NodeList;
 
 /**
  *
- * 
+ *
  */
 public class Reusable {
-
     private String executableType = "Executable";
 
     private String group;
@@ -93,5 +91,4 @@ public class Reusable {
             }
         }
     }
-
 }

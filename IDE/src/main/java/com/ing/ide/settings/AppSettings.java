@@ -1,4 +1,3 @@
-
 package com.ing.ide.settings;
 
 import java.io.File;
@@ -14,7 +13,6 @@ import java.util.logging.Logger;
  *
  */
 public class AppSettings {
-
     private static final File APPSETT = new File("Configuration" + File.separator + "app.settings");
     private static Properties settings;
 
@@ -33,7 +31,11 @@ public class AppSettings {
         ELEMENT_WAIT_TIME("elementWaitTime", "10"),
         LOAD_RECENT("loadRecentProject", "true"),
         STANDALONE_REPORT("standaloneReport", "false"),
-        HELP_DOC("helpdoc", "https://ing-bank.github.io/ingenious-doc/");
+        HELP_DOC("helpdoc", "https://ing-bank.github.io/ingenious-doc/"),
+        AI_GITHUB_TOKEN("githubModelsToken", ""),
+        AI_GITHUB_LOGIN("githubModelsLogin", ""),
+        AI_SELECTED_MODEL("githubModelsModel", "openai/gpt-4o-mini"),
+        AI_GITHUB_CLIENT_ID("githubOAuthClientId", "");
 
         private final String key;
         private final String val;
@@ -59,7 +61,6 @@ public class AppSettings {
             }
             return "";
         }
-
     }
 
     public static void load() {
@@ -123,5 +124,4 @@ public class AppSettings {
             load();
         }
     }
-
 }

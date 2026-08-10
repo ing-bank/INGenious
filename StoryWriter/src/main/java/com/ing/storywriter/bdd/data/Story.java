@@ -1,20 +1,19 @@
-
 package com.ing.storywriter.bdd.data;
 
+import static com.ing.storywriter.bdd.data.DS.LN;
 import static java.lang.String.format;
 import static java.lang.System.lineSeparator;
+import static java.util.regex.Pattern.compile;
+
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.regex.Matcher;
-import static java.util.regex.Pattern.compile;
 import org.json.simple.JSONObject;
-import static com.ing.storywriter.bdd.data.DS.LN;
 
 /**
  *
  */
 public class Story {
-
     public String type = "Feature", name, desc;
     Map<String, Object> meta;
 

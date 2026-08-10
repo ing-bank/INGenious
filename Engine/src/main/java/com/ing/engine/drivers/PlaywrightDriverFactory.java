@@ -15,14 +15,21 @@ import java.io.File;
 import java.io.InputStreamReader;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
+import java.io.File;
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
+import java.util.List;
 import java.util.Map;
+import java.util.Properties;
+import java.util.logging.Logger;
 import java.util.Properties;
 import java.util.logging.Logger;
 
@@ -165,6 +172,12 @@ public class PlaywrightDriverFactory {
         RunContext context,
         ProjectSettings settings
     ) {
+    public static BrowserType createBrowserType(
+        Playwright playwright,
+        String browserName,
+        RunContext context,
+        ProjectSettings settings
+    ) {
         Browser browser = Browser.fromString(browserName);
         BrowserType browserType;
 
@@ -200,9 +213,7 @@ public class PlaywrightDriverFactory {
         BrowserContext browserContext = null;
         if (isGrid) {
             String cdpURL = Control.exe.getExecSettings().getRunSettings().getRemoteGridURL();
-            if (!cdpURL.endsWith("/")) {
-                cdpURL = cdpURL + "/";
-            }
+            if (!cdpURL.endsWith("/")) cdpURL = cdpURL + "/";
             cdpURL =
                 cdpURL + "playwright?capabilities=" + lambdaTestCapabilities(context, capabilities);
             browserContext = browserType.connect(cdpURL).newContext(newContextOptions);

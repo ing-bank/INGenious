@@ -1,4 +1,3 @@
-
 package com.ing.engine.reporting.sync;
 
 import com.ing.engine.support.DLogger;
@@ -38,7 +37,6 @@ import org.apache.http.protocol.HttpContext;
 import org.json.simple.JSONObject;
 
 public class BasicHttpClient extends AbstractHttpClient {
-
     private static final Logger LOG = Logger.getLogger(BasicHttpClient.class.getName());
 
     public final URL url;
@@ -63,8 +61,8 @@ public class BasicHttpClient extends AbstractHttpClient {
             creds = new UsernamePasswordCredentials(userName, password);
             context = createContext(url.toURI(), creds);
             if (config != null && Boolean.valueOf(config.get("useProxy"))) {
-                this.proxy = new HttpHost(config.get("proxyHost"),
-                        Integer.valueOf(config.get("proxyPort")));
+                this.proxy =
+                    new HttpHost(config.get("proxyHost"), Integer.valueOf(config.get("proxyPort")));
             }
         } catch (Exception ex) {
             LOG.log(Level.SEVERE, "Error creating HttpClient!", ex);
@@ -91,12 +89,15 @@ public class BasicHttpClient extends AbstractHttpClient {
     @Override
     public CloseableHttpResponse execute(HttpUriRequest req) throws Exception {
         DLogger.Log(req.toString());
-        Optional.ofNullable(proxy).ifPresent((p)
-                -> ((HttpRequestBase) req).setConfig(RequestConfig.custom().setProxy(p).build()));
+        Optional
+            .ofNullable(proxy)
+            .ifPresent(
+                p -> ((HttpRequestBase) req).setConfig(RequestConfig.custom().setProxy(p).build())
+            );
         return client.execute(req, context);
     }
 
-// <editor-fold defaultstate="collapsed" desc="PUT implementation">
+    // <editor-fold defaultstate="collapsed" desc="PUT implementation">
     /**
      * Http Post request for given data as JSON string
      *
@@ -112,8 +113,9 @@ public class BasicHttpClient extends AbstractHttpClient {
         setHeader(httpput);
         return parseResponse(doPut(httpput));
     }
-    
-    public JSONObject put(URL targetUrl, String data, String accessKey, String value) throws Exception {
+
+    public JSONObject put(URL targetUrl, String data, String accessKey, String value)
+        throws Exception {
         HttpPut httpput = new HttpPut(targetUrl.toURI());
         setPutEntity(data, httpput);
         auth(httpput);
@@ -121,13 +123,12 @@ public class BasicHttpClient extends AbstractHttpClient {
         addHeader(httpput, accessKey, value);
         return parseResponse(doPut(httpput));
     }
-    
 
     private void addHeader(HttpPut httpput, String accessKey, String value) {
-    	httpput.addHeader(accessKey, value);
-	}
+        httpput.addHeader(accessKey, value);
+    }
 
-	/**
+    /**
      * custom header for respective client
      *
      * @param httpput
@@ -135,7 +136,7 @@ public class BasicHttpClient extends AbstractHttpClient {
     public void setHeader(HttpPut httpput) {
         httpput.addHeader("Accept", "application/json");
     }
-    
+
     public void addHeader(HttpGet httpGet, String Key, String Value) {
         httpGet.addHeader(Key, Value);
     }
@@ -147,9 +148,10 @@ public class BasicHttpClient extends AbstractHttpClient {
         }
         httpput.setEntity(input);
     }
-// </editor-fold>
 
-// <editor-fold defaultstate="collapsed" desc="POST implementation">
+    // </editor-fold>
+
+    // <editor-fold defaultstate="collapsed" desc="POST implementation">
     /**
      * Http Post request for given data as JSON string
      *
@@ -163,7 +165,7 @@ public class BasicHttpClient extends AbstractHttpClient {
         setPostEntity(payload, httppost);
         return parseResponse(doPost(httppost));
     }
-    
+
     /**
      * Http Post request for given data as JSON string
      *
@@ -174,7 +176,7 @@ public class BasicHttpClient extends AbstractHttpClient {
      */
     public JSONObject post(URL targetUrl, File toUplod, String key, String value) throws Exception {
         HttpPost httppost = new HttpPost(targetUrl.toURI());
-     //   setPostEntityJ(toUplod, httppost);
+        //   setPostEntityJ(toUplod, httppost);
         return parseResponse(doPost(httppost, key, value));
     }
 
@@ -188,13 +190,13 @@ public class BasicHttpClient extends AbstractHttpClient {
      */
     public JSONObject post(URL targetUrl, File toUplod) throws Exception {
         HttpPost httppost = new HttpPost(targetUrl.toURI());
-     //   setPostEntity(toUplod, httppost);
+        //   setPostEntity(toUplod, httppost);
         return parseResponse(doPost(httppost));
     }
-    
+
     public JSONObject put(URL targetUrl, File toUplod) throws Exception {
         HttpPut httpput = new HttpPut(targetUrl.toURI());
-     //   setPutEntity(toUplod, httpput);
+        //   setPutEntity(toUplod, httpput);
         return parseResponse(doPut(httpput));
     }
 
@@ -215,7 +217,7 @@ public class BasicHttpClient extends AbstractHttpClient {
      */
     public JSONObject post(URL targetUrl, String data, File toUplod) throws Exception {
         HttpPost httppost = new HttpPost(targetUrl.toURI());
-     //   setPostEntity(data, toUplod, httppost);
+        //   setPostEntity(data, toUplod, httppost);
         return parseResponse(doPost(httppost));
     }
 
@@ -234,8 +236,8 @@ public class BasicHttpClient extends AbstractHttpClient {
         setHeader(httpPost);
         return super.doPost(httpPost);
     }
-    
-   public HttpResponse doPost(HttpPost httpPost, String key, String value) throws Exception {
+
+    public HttpResponse doPost(HttpPost httpPost, String key, String value) throws Exception {
         auth(httpPost);
         setHeader(httpPost);
         addHeader(httpPost, key, value);
@@ -243,37 +245,38 @@ public class BasicHttpClient extends AbstractHttpClient {
     }
 
     private void addHeader(HttpPost httpPost, String key, String value) {
-    	httpPost.addHeader(key, value);
+        httpPost.addHeader(key, value);
     }
 
-//	public void setPostEntity(File toUplod, HttpPost httppost) {
-//        final MultipartEntityBuilder builder = MultipartEntityBuilder.create();
-//        builder.addBinaryBody("file", toUplod,
-//                ContentType.APPLICATION_OCTET_STREAM, toUplod.getName());
-//        httppost.setEntity(builder.build());
-//    }
-	
-//	public void setPutEntity(File toUplod, HttpPut httpput) {
-//        final MultipartEntityBuilder builder = MultipartEntityBuilder.create();
-//        builder.addBinaryBody("file", toUplod,
-//                ContentType.APPLICATION_OCTET_STREAM, toUplod.getName());
-//        httpput.setEntity(builder.build());
-//    }
-	
-//	public void setPostEntityJ(File toUplod, HttpPost httppost) {
-//		MultipartEntity entity = new MultipartEntity();
-//		entity.addPart("attachment", new FileBody(toUplod));
-//		httppost.setEntity(entity);
-//    }
+    //	public void setPostEntity(File toUplod, HttpPost httppost) {
+    //        final MultipartEntityBuilder builder = MultipartEntityBuilder.create();
+    //        builder.addBinaryBody("file", toUplod,
+    //                ContentType.APPLICATION_OCTET_STREAM, toUplod.getName());
+    //        httppost.setEntity(builder.build());
+    //    }
 
-//    public void setPostEntity(String data, File file, HttpPost httppost) {
-//        final MultipartEntityBuilder builder = MultipartEntityBuilder.create();
-//        builder.addBinaryBody("file", file, ContentType.APPLICATION_OCTET_STREAM, file.getName());
-//        builder.addTextBody("body", data, ContentType.APPLICATION_XML);
-//        httppost.setEntity(builder.build());
-//    }
+    //	public void setPutEntity(File toUplod, HttpPut httpput) {
+    //        final MultipartEntityBuilder builder = MultipartEntityBuilder.create();
+    //        builder.addBinaryBody("file", toUplod,
+    //                ContentType.APPLICATION_OCTET_STREAM, toUplod.getName());
+    //        httpput.setEntity(builder.build());
+    //    }
 
-    public void setPostEntity(String jsonStr, HttpPost httppost) throws UnsupportedEncodingException {
+    //	public void setPostEntityJ(File toUplod, HttpPost httppost) {
+    //		MultipartEntity entity = new MultipartEntity();
+    //		entity.addPart("attachment", new FileBody(toUplod));
+    //		httppost.setEntity(entity);
+    //    }
+
+    //    public void setPostEntity(String data, File file, HttpPost httppost) {
+    //        final MultipartEntityBuilder builder = MultipartEntityBuilder.create();
+    //        builder.addBinaryBody("file", file, ContentType.APPLICATION_OCTET_STREAM, file.getName());
+    //        builder.addTextBody("body", data, ContentType.APPLICATION_XML);
+    //        httppost.setEntity(builder.build());
+    //    }
+
+    public void setPostEntity(String jsonStr, HttpPost httppost)
+        throws UnsupportedEncodingException {
         StringEntity input = new StringEntity(jsonStr);
         input.setContentType("application/json");
         httppost.addHeader("accept", "application/json");
@@ -288,9 +291,10 @@ public class BasicHttpClient extends AbstractHttpClient {
             Logger.getLogger(BasicHttpClient.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
-// </editor-fold>
 
-// <editor-fold defaultstate="collapsed" desc="PATCH implementation">
+    // </editor-fold>
+
+    // <editor-fold defaultstate="collapsed" desc="PATCH implementation">
     public JSONObject patch(URL targetUrl, String payload) throws Exception {
         HttpPatch httppatch = new HttpPatch(targetUrl.toURI());
         auth(httppatch);
@@ -308,14 +312,16 @@ public class BasicHttpClient extends AbstractHttpClient {
         httppatch.addHeader("Accept", "application/json");
     }
 
-    public void setPatchEntity(String jsonStr, HttpPatch httppatch) throws UnsupportedEncodingException {
+    public void setPatchEntity(String jsonStr, HttpPatch httppatch)
+        throws UnsupportedEncodingException {
         StringEntity input = new StringEntity(jsonStr);
         input.setContentType("application/json");
         httppatch.setEntity(input);
     }
-// </editor-fold>
 
-// <editor-fold defaultstate="collapsed" desc="GET implementation">
+    // </editor-fold>
+
+    // <editor-fold defaultstate="collapsed" desc="GET implementation">
     /**
      * Http Get request for given url
      *
@@ -332,20 +338,18 @@ public class BasicHttpClient extends AbstractHttpClient {
         builder.setParameter(key, val);
         return Get(builder.build());
     }
-    
+
     public JSONObject Get(URL targetUrl, String key, String val, String empty) throws Exception {
         URIBuilder builder = new URIBuilder(targetUrl.toString());
         builder.setParameter(key, val);
         return Get(builder.build(), key, val);
     }
-    
-    public JSONObject Get(URL targetUrl, boolean isJwtToken, String key, String val ) throws Exception {
+
+    public JSONObject Get(URL targetUrl, boolean isJwtToken, String key, String val)
+        throws Exception {
         URIBuilder builder = new URIBuilder(targetUrl.toString());
         return Get(builder.build(), key, val);
     }
-    
-   
-    
 
     /**
      * Http Get request for given params as JSON string
@@ -357,7 +361,7 @@ public class BasicHttpClient extends AbstractHttpClient {
      */
     public JSONObject Get(URL targetUrl, String jsonStr) throws Exception {
         URIBuilder builder = new URIBuilder(targetUrl.toString());
-         setParams(builder, jsonStr);
+        setParams(builder, jsonStr);
         return Get(setParams(builder, jsonStr).build());
     }
 
@@ -376,7 +380,7 @@ public class BasicHttpClient extends AbstractHttpClient {
         setHeader(httpGet);
         return parseResponse(doGet(httpGet));
     }
-    
+
     private JSONObject Get(URI uri, String Key, String Value) throws Exception {
         HttpGet httpGet = new HttpGet(uri);
         auth(httpGet);
@@ -384,7 +388,6 @@ public class BasicHttpClient extends AbstractHttpClient {
         addHeader(httpGet, Key, Value);
         return parseResponse(doGet(httpGet));
     }
-    
-// </editor-fold>
+    // </editor-fold>
 
 }

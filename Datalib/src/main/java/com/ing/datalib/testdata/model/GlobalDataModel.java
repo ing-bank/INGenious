@@ -1,4 +1,3 @@
-
 package com.ing.datalib.testdata.model;
 
 import java.util.ArrayList;
@@ -7,7 +6,7 @@ import java.util.Objects;
 
 /**
  *
- * 
+ *
  */
 public abstract class GlobalDataModel extends AbstractDataModel<List<String>> {
 
@@ -18,7 +17,7 @@ public abstract class GlobalDataModel extends AbstractDataModel<List<String>> {
 
     private void afterConst() {
         if (getColumnCount() == 0) {
-            setColumns(new String[]{"GlobalDataID"});
+            setColumns(new String[] { "GlobalDataID" });
             setSaved(false);
         }
     }
@@ -73,12 +72,12 @@ public abstract class GlobalDataModel extends AbstractDataModel<List<String>> {
     @Override
     public void setValueAt(Object aValue, int rowIndex, int columnIndex) {
         if (columnIndex == 0) {
-            if (!Objects.toString(aValue, "").trim().isEmpty()
-                    && !aValue.toString().startsWith("#")) {
+            if (
+                !Objects.toString(aValue, "").trim().isEmpty() && !aValue.toString().startsWith("#")
+            ) {
                 aValue = "#" + aValue.toString();
             }
         }
         super.setValueAt(aValue, rowIndex, columnIndex);
     }
-
 }

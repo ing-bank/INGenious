@@ -5,10 +5,8 @@ import static org.mockito.Mockito.*;
 
 import com.ing.engine.core.CommandControl;
 import com.ing.engine.reporting.TestCaseReport;
-
 import java.lang.reflect.Field;
 import java.nio.file.Paths;
-
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.testng.annotations.AfterMethod;
@@ -20,10 +18,14 @@ import org.testng.annotations.Test;
  * to BrowserContext.storageState with correct path.
  */
 public class StorageStateTest {
+    @Mock
+    private TestCaseReport report;
 
-    @Mock private TestCaseReport report;
-    @Mock private CommandControl commander;
-    @Mock private com.microsoft.playwright.BrowserContext browserCtx;
+    @Mock
+    private CommandControl commander;
+
+    @Mock
+    private com.microsoft.playwright.BrowserContext browserCtx;
 
     private StorageState storageState;
     private AutoCloseable mocks;
@@ -50,12 +52,17 @@ public class StorageStateTest {
 
         storageState.StoreStorageState();
 
-        verify(browserCtx).storageState(argThat(opts -> {
-            // StorageStateOptions has a path set
-            return opts != null;
-        }));
-        verify(report).updateTestLog(eq("StoreStorageState"),
-                contains("successfully stored"), any());
+        verify(browserCtx)
+            .storageState(
+                argThat(
+                    opts -> {
+                        // StorageStateOptions has a path set
+                        return opts != null;
+                    }
+                )
+            );
+        verify(report)
+            .updateTestLog(eq("StoreStorageState"), contains("successfully stored"), any());
     }
 
     @Test
@@ -69,13 +76,13 @@ public class StorageStateTest {
             // ActionException expected
         }
 
-        verify(report).updateTestLog(eq("StoreStorageState"),
-                contains("Error storing"), any());
+        verify(report).updateTestLog(eq("StoreStorageState"), contains("Error storing"), any());
     }
 
     // ── Utility ─────────────────────────────────────────────────────────
 
-    private static void setField(Object target, Class<?> clazz, String fieldName, Object value) throws Exception {
+    private static void setField(Object target, Class<?> clazz, String fieldName, Object value)
+        throws Exception {
         Field f = clazz.getDeclaredField(fieldName);
         f.setAccessible(true);
         f.set(target, value);

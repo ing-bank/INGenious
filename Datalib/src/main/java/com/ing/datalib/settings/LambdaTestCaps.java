@@ -17,14 +17,12 @@ public class LambdaTestCaps extends AbstractPropSettings {
         put("console", "true");
         put("network", "true");
         put("resolution", "1920x1080");
-        put("visual","true");
-        put("tunnel","false");
-        put("tunnelName","");
-        put("geoLocation","");
-        put("idleTimeout","300");
-       // put("lambdaMaskCommands","");
-        put("useSpecificBundleVersion","false");
-        
+        put("visual", "true");
+        put("tunnel", "false");
+        put("tunnelName", "");
+        put("geoLocation", "");
+        put("idleTimeout", "300");
+        // put("lambdaMaskCommands","");
+        put("useSpecificBundleVersion", "false");
     }
-    
 }

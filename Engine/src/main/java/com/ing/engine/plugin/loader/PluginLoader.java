@@ -1,16 +1,14 @@
 package com.ing.engine.plugin.loader;
 
-import java.util.ArrayList;
-
 import com.ing.engine.constants.FilePath;
 import java.io.File;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.jar.Attributes;
 import java.util.jar.JarFile;
 import java.util.jar.Manifest;
-import java.util.Arrays;
-
 
 /**
  * PluginLoader is responsible for discovering and loading plugin entry classes
@@ -28,12 +26,14 @@ public class PluginLoader {
      * @return a list of loaded plugin entry classes
      * @throws IllegalArgumentException if the plugin directory is missing
      */
-    public static List<Class<?>> loadAllPluginsEntryClasses(){
+    public static List<Class<?>> loadAllPluginsEntryClasses() {
         List<Class<?>> classes = new ArrayList<>();
         File baseDir = new File(FilePath.getAppRoot() + "/plugins"); // root plugin directory
 
         if (!baseDir.exists() || !baseDir.isDirectory()) {
-            throw new IllegalArgumentException("Base plugin directory not found: " + baseDir.getAbsolutePath());
+            throw new IllegalArgumentException(
+                "Base plugin directory not found: " + baseDir.getAbsolutePath()
+            );
         }
 
         // Iterate over each plugin folder
@@ -51,7 +51,10 @@ public class PluginLoader {
             try {
                 jarUrls = collectPluginJarsUrls(libDir, jarFiles);
                 // Create child-first loader for this plugin
-                ClassLoader pluginClassLoader = new PluginClassLoader(jarUrls.toArray(new URL[0]), PluginLoader.class.getClassLoader());
+                ClassLoader pluginClassLoader = new PluginClassLoader(
+                    jarUrls.toArray(new URL[0]),
+                    PluginLoader.class.getClassLoader()
+                );
 
                 // get the entry classes for each plugin JAR
                 for (File pluginJar : jarFiles) {
@@ -62,14 +65,20 @@ public class PluginLoader {
                             classes.add(pluginClassLoader.loadClass(entryClass));
                         }
                     } catch (Exception ex) {
-                        System.err.println("Error loading entry classes from: " + pluginJar.getName() + " -> " + ex.getMessage());
+                        System.err.println(
+                            "Error loading entry classes from: " +
+                            pluginJar.getName() +
+                            " -> " +
+                            ex.getMessage()
+                        );
                     }
                 }
             } catch (Exception ex) {
-            System.getLogger(PluginLoader.class.getName()).log(System.Logger.Level.ERROR, (String) null, ex);
+                System
+                    .getLogger(PluginLoader.class.getName())
+                    .log(System.Logger.Level.ERROR, (String) null, ex);
             }
         }
-        System.out.println(classes);
         return classes;
     }
 
@@ -82,7 +91,8 @@ public class PluginLoader {
      * @return a list of URLs for all plugin and dependency JARs
      * @throws Exception if a JAR file is missing or cannot be converted to a URL
      */
-    private static List<URL> collectPluginJarsUrls(File libDir, File... pluginJars) throws Exception {
+    private static List<URL> collectPluginJarsUrls(File libDir, File... pluginJars)
+        throws Exception {
         List<URL> urls = new ArrayList<>();
 
         // Add all provided plugin JARs
@@ -90,7 +100,9 @@ public class PluginLoader {
             if (pluginJar.exists()) {
                 urls.add(pluginJar.toURI().toURL());
             } else {
-                throw new IllegalArgumentException("Plugin JAR not found: " + pluginJar.getAbsolutePath());
+                throw new IllegalArgumentException(
+                    "Plugin JAR not found: " + pluginJar.getAbsolutePath()
+                );
             }
         }
 
@@ -124,9 +136,6 @@ public class PluginLoader {
                 }
             }
         }
-        throw new IllegalStateException("No Plugin-Entry-Classes attribute found in manifest");
+        throw new IllegalStateException("No pluginEntryClasses attribute found in manifest");
     }
-
-    
-
 }

@@ -3,7 +3,6 @@ package com.ing.engine.commands.browser;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.lang.reflect.Method;
-
 import org.testng.annotations.DataProvider;
 import org.testng.annotations.Test;
 
@@ -18,15 +17,15 @@ public class PerformanceTest {
     @DataProvider(name = "escapeNames")
     public Object[][] escapeNamesData() {
         return new Object[][] {
-            { "Simple Page",       "Simple_Page" },
-            { "hello-world",       "hello-world" },
-            { "foo@bar#baz!!",     "foo_bar_baz_" },
-            { "a  b",             "a_b" },          // double space → double underscore → collapsed
-            { "",                 "" },
-            { null,               "" },
-            { "abc123",           "abc123" },
-            { "Hello___World",    "Hello_World" },   // triple underscore collapsed
-            { "test/page?q=1&x=2","test_page_q_1_x_2" },
+            { "Simple Page", "Simple_Page" },
+            { "hello-world", "hello-world" },
+            { "foo@bar#baz!!", "foo_bar_baz_" },
+            { "a  b", "a_b" }, // double space → double underscore → collapsed
+            { "", "" },
+            { null, "" },
+            { "abc123", "abc123" },
+            { "Hello___World", "Hello_World" }, // triple underscore collapsed
+            { "test/page?q=1&x=2", "test_page_q_1_x_2" }
         };
     }
 
@@ -64,7 +63,6 @@ public class PerformanceTest {
      * to avoid the CommandControl constructor requirement.
      */
     private Performance createPerformanceInstance() {
-        return org.mockito.Mockito.mock(Performance.class,
-                org.mockito.Mockito.CALLS_REAL_METHODS);
+        return org.mockito.Mockito.mock(Performance.class, org.mockito.Mockito.CALLS_REAL_METHODS);
     }
 }

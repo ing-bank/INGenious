@@ -1,6 +1,5 @@
 package com.ing.datalib.settings;
 
-
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -10,7 +9,6 @@ import java.util.*;
  *
  */
 public class ContextOptions {
-
     private static ArrayList<String> contextList = new ArrayList<>();
     private static String location;
     private final Map<String, Properties> contextOptions = new HashMap<>();
@@ -51,7 +49,10 @@ public class ContextOptions {
                     String contextAlias = contextfile.getName().replace(".properties", "");
                     if (!contextList.contains(contextAlias)) {
                         contextList.add(contextAlias);
-                        contextOptions.put(contextfile.getName().replace(".properties", ""), PropUtils.load(contextfile));
+                        contextOptions.put(
+                            contextfile.getName().replace(".properties", ""),
+                            PropUtils.load(contextfile)
+                        );
                     }
                 }
             }
@@ -71,7 +72,6 @@ public class ContextOptions {
         Properties prop = new Properties();
         prop = setBrowserContextOptions(prop, false);
         addContext(contextName, prop);
-
     }
 
     public void save() {
@@ -149,7 +149,5 @@ public class ContextOptions {
         prop.setProperty("setRecordVideoDir", "");
         prop.setProperty("pageTimeout", "30000");
         return prop;
-
     }
-
 }

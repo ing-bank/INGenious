@@ -1,7 +1,8 @@
-
 package com.ing.ide.main.playwrightrecording;
 
 import static com.ing.engine.constants.ObjectAttribute.frame;
+
+import com.ing.ide.main.fx.INGIcons;
 import com.ing.ide.main.utils.Utils;
 import java.awt.Image;
 import java.awt.event.WindowAdapter;
@@ -14,34 +15,33 @@ import java.time.Instant;
 import javax.swing.ImageIcon;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
-import com.ing.ide.main.fx.INGIcons;
 
 public class PlaywrightSpinner extends javax.swing.JFrame implements Runnable {
-
     /**
      * Creates new form PlaywriteSpinnerFinal
      */
-    boolean closeFlag=false;
+    boolean closeFlag = false;
+
     public PlaywrightSpinner() {
         initComponents();
         setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
-        Image icon=INGIcons.toImage("icon.ImportPlaywrightRecordingMenu", 32);
-     
+        Image icon = INGIcons.toImage("icon.ImportPlaywrightRecordingMenu", 32);
+
         setIconImage(icon);
-        addWindowListener(new WindowAdapter() {
-            //I skipped unused callbacks for readability
-            @Override
-            public void windowClosing(WindowEvent e) { 
-                    closeFlag=true;
+        addWindowListener(
+            new WindowAdapter() {
+
+                //I skipped unused callbacks for readability
+                @Override
+                public void windowClosing(WindowEvent e) {
+                    closeFlag = true;
                     setVisible(false);
-                    dispose(); 
-                    
-                    
+                    dispose();
+                }
             }
-        });
-        Thread t=new Thread(this); 
+        );
+        Thread t = new Thread(this);
         t.start();
-        
     }
 
     /**
@@ -52,7 +52,6 @@ public class PlaywrightSpinner extends javax.swing.JFrame implements Runnable {
     @SuppressWarnings("unchecked")
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
-
         jPanel1 = new javax.swing.JPanel();
         jLabel1 = new javax.swing.JLabel();
         jLabel2 = new javax.swing.JLabel();
@@ -61,58 +60,116 @@ public class PlaywrightSpinner extends javax.swing.JFrame implements Runnable {
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setResizable(false);
 
-        jPanel1.setBorder(new javax.swing.border.LineBorder(new java.awt.Color(255, 102, 0), 1, true));
+        jPanel1.setBorder(
+            new javax.swing.border.LineBorder(new java.awt.Color(255, 102, 0), 1, true)
+        );
 
         jLabel1.setFont(new java.awt.Font("Segoe UI", 1, 12)); // NOI18N
         jLabel1.setText("Please wait while the Playwright Recorder is being loaded");
 
-        jLabel3.setIcon(new javax.swing.ImageIcon(getClass().getResource("/playwrightrecorder/loading.gif"))); // NOI18N
+        jLabel3.setIcon(
+            new javax.swing.ImageIcon(getClass().getResource("/playwrightrecorder/loading.gif"))
+        ); // NOI18N
 
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
         jPanel1.setLayout(jPanel1Layout);
         jPanel1Layout.setHorizontalGroup(
-            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel1Layout.createSequentialGroup()
-                .addContainerGap(45, Short.MAX_VALUE)
-                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel1Layout.createSequentialGroup()
-                        .addComponent(jLabel2)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jLabel3)
-                        .addGap(144, 144, 144))
-                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel1Layout.createSequentialGroup()
-                        .addComponent(jLabel1)
-                        .addGap(37, 37, 37))))
+            jPanel1Layout
+                .createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                .addGroup(
+                    jPanel1Layout
+                        .createSequentialGroup()
+                        .addContainerGap(45, Short.MAX_VALUE)
+                        .addGroup(
+                            jPanel1Layout
+                                .createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                .addGroup(
+                                    javax.swing.GroupLayout.Alignment.TRAILING,
+                                    jPanel1Layout
+                                        .createSequentialGroup()
+                                        .addComponent(jLabel2)
+                                        .addPreferredGap(
+                                            javax.swing.LayoutStyle.ComponentPlacement.RELATED
+                                        )
+                                        .addComponent(jLabel3)
+                                        .addGap(144, 144, 144)
+                                )
+                                .addGroup(
+                                    javax.swing.GroupLayout.Alignment.TRAILING,
+                                    jPanel1Layout
+                                        .createSequentialGroup()
+                                        .addComponent(jLabel1)
+                                        .addGap(37, 37, 37)
+                                )
+                        )
+                )
         );
         jPanel1Layout.setVerticalGroup(
-            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel1Layout.createSequentialGroup()
-                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(jPanel1Layout.createSequentialGroup()
-                        .addGap(26, 26, 26)
-                        .addComponent(jLabel2, javax.swing.GroupLayout.PREFERRED_SIZE, 139, javax.swing.GroupLayout.PREFERRED_SIZE))
-                    .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, jPanel1Layout.createSequentialGroup()
-                        .addContainerGap()
-                        .addComponent(jLabel3)))
-                .addGap(27, 27, 27)
-                .addComponent(jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, 46, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(51, Short.MAX_VALUE))
+            jPanel1Layout
+                .createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                .addGroup(
+                    javax.swing.GroupLayout.Alignment.TRAILING,
+                    jPanel1Layout
+                        .createSequentialGroup()
+                        .addGroup(
+                            jPanel1Layout
+                                .createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                .addGroup(
+                                    jPanel1Layout
+                                        .createSequentialGroup()
+                                        .addGap(26, 26, 26)
+                                        .addComponent(
+                                            jLabel2,
+                                            javax.swing.GroupLayout.PREFERRED_SIZE,
+                                            139,
+                                            javax.swing.GroupLayout.PREFERRED_SIZE
+                                        )
+                                )
+                                .addGroup(
+                                    javax.swing.GroupLayout.Alignment.TRAILING,
+                                    jPanel1Layout
+                                        .createSequentialGroup()
+                                        .addContainerGap()
+                                        .addComponent(jLabel3)
+                                )
+                        )
+                        .addGap(27, 27, 27)
+                        .addComponent(
+                            jLabel1,
+                            javax.swing.GroupLayout.PREFERRED_SIZE,
+                            46,
+                            javax.swing.GroupLayout.PREFERRED_SIZE
+                        )
+                        .addContainerGap(51, Short.MAX_VALUE)
+                )
         );
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
-            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+            layout
+                .createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                .addComponent(
+                    jPanel1,
+                    javax.swing.GroupLayout.DEFAULT_SIZE,
+                    javax.swing.GroupLayout.DEFAULT_SIZE,
+                    Short.MAX_VALUE
+                )
         );
         layout.setVerticalGroup(
-            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+            layout
+                .createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                .addComponent(
+                    jPanel1,
+                    javax.swing.GroupLayout.DEFAULT_SIZE,
+                    javax.swing.GroupLayout.DEFAULT_SIZE,
+                    Short.MAX_VALUE
+                )
         );
 
         setSize(new java.awt.Dimension(419, 299));
         setLocationRelativeTo(null);
-    }// </editor-fold>//GEN-END:initComponents
+    } // </editor-fold>//GEN-END:initComponents
 
     /**
      * @param args the command line arguments
@@ -121,24 +178,32 @@ public class PlaywrightSpinner extends javax.swing.JFrame implements Runnable {
         /* Set the Nimbus look and feel */
         //<editor-fold defaultstate="collapsed" desc=" Look and feel setting code (optional) ">
         /* If Nimbus (introduced in Java SE 6) is not available, stay with the default look and feel.
-         * For details see http://download.oracle.com/javase/tutorial/uiswing/lookandfeel/plaf.html 
+         * For details see http://download.oracle.com/javase/tutorial/uiswing/lookandfeel/plaf.html
          */
         try {
             for (javax.swing.UIManager.LookAndFeelInfo info : javax.swing.UIManager.getInstalledLookAndFeels()) {
                 if ("Nimbus".equals(info.getName())) {
                     javax.swing.UIManager.setLookAndFeel(info.getClassName());
-                  
+
                     break;
                 }
             }
         } catch (ClassNotFoundException ex) {
-            java.util.logging.Logger.getLogger(PlaywrightSpinner.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            java
+                .util.logging.Logger.getLogger(PlaywrightSpinner.class.getName())
+                .log(java.util.logging.Level.SEVERE, null, ex);
         } catch (InstantiationException ex) {
-            java.util.logging.Logger.getLogger(PlaywrightSpinner.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            java
+                .util.logging.Logger.getLogger(PlaywrightSpinner.class.getName())
+                .log(java.util.logging.Level.SEVERE, null, ex);
         } catch (IllegalAccessException ex) {
-            java.util.logging.Logger.getLogger(PlaywrightSpinner.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            java
+                .util.logging.Logger.getLogger(PlaywrightSpinner.class.getName())
+                .log(java.util.logging.Level.SEVERE, null, ex);
         } catch (javax.swing.UnsupportedLookAndFeelException ex) {
-            java.util.logging.Logger.getLogger(PlaywrightSpinner.class.getName()).log(java.util.logging.Level.SEVERE, null, ex);
+            java
+                .util.logging.Logger.getLogger(PlaywrightSpinner.class.getName())
+                .log(java.util.logging.Level.SEVERE, null, ex);
         }
         //</editor-fold>
         //</editor-fold>
@@ -146,12 +211,14 @@ public class PlaywrightSpinner extends javax.swing.JFrame implements Runnable {
         //</editor-fold>
 
         /* Create and display the form */
-        java.awt.EventQueue.invokeLater(new Runnable() {
-            public void run() {
-                new PlaywrightSpinner().setVisible(true);  
-                
+        java.awt.EventQueue.invokeLater(
+            new Runnable() {
+
+                public void run() {
+                    new PlaywrightSpinner().setVisible(true);
+                }
             }
-        });
+        );
     }
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
@@ -159,58 +226,61 @@ public class PlaywrightSpinner extends javax.swing.JFrame implements Runnable {
     private javax.swing.JLabel jLabel2;
     private javax.swing.JLabel jLabel3;
     private javax.swing.JPanel jPanel1;
+
     // End of variables declaration//GEN-END:variables
 
     @Override
     public void run() {
-        
-         boolean playwrightFlag=false;
-          Instant start = Instant.now();
-          
-        while(!playwrightFlag&&!closeFlag)  
-        {  Duration timeElapsed;
-        try {
-             Instant end = Instant.now();
-             timeElapsed = Duration.between(start, end);
-             String os = System.getProperty("os.name").toLowerCase();
-             Process process;
-            if (os.contains("win")) {
-                // Windows specific command
-                process = Runtime.getRuntime().exec("cmd /c tasklist /fi \"windowtitle eq Playwright*\"");
-            } else if (os.contains("mac")) {
-                // Mac specific command
-                process = Runtime.getRuntime().exec(new String[] { "sh", "-c", "ps -ef | grep 'playwright_chromium'" });
-            } else {
-                throw new UnsupportedOperationException("Unsupported operating system: " + os);
-            }
+        boolean playwrightFlag = false;
+        Instant start = Instant.now();
 
-             InputStream taskListStream = process.getInputStream();
-             InputStreamReader streamReader = new InputStreamReader(taskListStream);
-             BufferedReader tasks = new BufferedReader(streamReader);
-             String line = null;
-            
-        while ((line = tasks.readLine()) != null) {
-            if(line.contains("chrome.exe") || line.contains("playwright_chromiumdev"))
-            {   
-                playwrightFlag=true;
-                dispose();
-                break;
+        while (!playwrightFlag && !closeFlag) {
+            Duration timeElapsed;
+            try {
+                Instant end = Instant.now();
+                timeElapsed = Duration.between(start, end);
+                String os = System.getProperty("os.name").toLowerCase();
+                Process process;
+                if (os.contains("win")) {
+                    // Windows specific command
+                    process =
+                        Runtime
+                            .getRuntime()
+                            .exec("cmd /c tasklist /fi \"windowtitle eq Playwright*\"");
+                } else if (os.contains("mac")) {
+                    // Mac specific command
+                    process =
+                        Runtime
+                            .getRuntime()
+                            .exec(
+                                new String[] { "sh", "-c", "ps -ef | grep 'playwright_chromium'" }
+                            );
+                } else {
+                    throw new UnsupportedOperationException("Unsupported operating system: " + os);
+                }
+
+                InputStream taskListStream = process.getInputStream();
+                InputStreamReader streamReader = new InputStreamReader(taskListStream);
+                BufferedReader tasks = new BufferedReader(streamReader);
+                String line = null;
+
+                while ((line = tasks.readLine()) != null) {
+                    if (line.contains("chrome.exe") || line.contains("playwright_chromiumdev")) {
+                        playwrightFlag = true;
+                        dispose();
+                        break;
+                    }
+                }
+                if ((int) timeElapsed.getSeconds() >= 150 && !playwrightFlag) {
+                    dispose();
+                    LoadingFail b = new LoadingFail();
+                    b.setAlwaysOnTop(true);
+                    b.setVisible(true);
+                    break;
+                }
+            } catch (Exception ex) {
+                //    Logger.getLogger(PlaywriteLoadingFrame.class.getName()).log(Level.SEVERE, null, ex);
             }
         }
-        if((int)timeElapsed.getSeconds()>=150&&!playwrightFlag)
-        {
-           dispose();
-           LoadingFail b=new LoadingFail();
-           b.setAlwaysOnTop(true);
-           b.setVisible(true);
-           break;
-        
-        }
-        } catch (Exception ex) {
-            //    Logger.getLogger(PlaywriteLoadingFrame.class.getName()).log(Level.SEVERE, null, ex);
-            }
-            
-        
-        }
-        }
+    }
 }

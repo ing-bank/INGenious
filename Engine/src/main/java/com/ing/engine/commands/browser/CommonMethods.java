@@ -1,10 +1,9 @@
-
 package com.ing.engine.commands.browser;
 
 import com.ing.engine.core.CommandControl;
+import com.ing.ingenious.api.annotation.Action;
 import com.ing.ingenious.api.exception.ActionException;
 import com.ing.ingenious.api.status.Status;
-import com.ing.ingenious.api.annotation.Action;
 import com.ing.ingenious.api.types.InputType;
 import com.ing.ingenious.api.types.ObjectType;
 import java.util.logging.Level;
@@ -25,7 +24,7 @@ public class CommonMethods extends General {
             Logger.getLogger(CommonMethods.class.getName()).log(Level.SEVERE, null, e);
         }
     }
-    
+
     @Action(object = ObjectType.PLAYWRIGHT, desc = "Take a Screen Shot of [<Object>]")
     public void TakeElementScreenshot() {
         try {
@@ -37,33 +36,53 @@ public class CommonMethods extends General {
             throw new ActionException(e);
         }
     }
-    
-    @Action(object = ObjectType.PLAYWRIGHT, desc = "Store Element count in Variable", input = InputType.YES)
+
+    @Action(
+        object = ObjectType.PLAYWRIGHT,
+        desc = "Store Element count in Variable",
+        input = InputType.YES
+    )
     public void StoreElementCount() {
         try {
             String variableName = Data;
             String count = String.valueOf(Locator.count());
             if (variableName.matches("%.*%")) {
                 addVar(variableName, count);
-                Report.updateTestLog(Action, "Element count ["+count+"] stored in variable ["+variableName+"]", Status.DONE);
+                Report.updateTestLog(
+                    Action,
+                    "Element count [" + count + "] stored in variable [" + variableName + "]",
+                    Status.DONE
+                );
             } else {
                 Report.updateTestLog(Action, "Variable format is not correct", Status.DEBUG);
             }
         } catch (Exception ex) {
             Logger.getLogger(this.getClass().getName()).log(Level.OFF, null, ex);
-            Report.updateTestLog(Action, "Error Storing Element count:" + "\n" + ex.getMessage(), Status.DEBUG);
+            Report.updateTestLog(
+                Action,
+                "Error Storing Element count:" + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
             throw new ActionException(ex);
         }
     }
-    
-    @Action(object = ObjectType.PLAYWRIGHT, desc = "Highlight the element [<Object>]", input = InputType.OPTIONAL)
-    public void Highlight() {        
+
+    @Action(
+        object = ObjectType.PLAYWRIGHT,
+        desc = "Highlight the element [<Object>]",
+        input = InputType.OPTIONAL
+    )
+    public void Highlight() {
         try {
             Locator.highlight();
-            Report.updateTestLog(Action, "Element ["+ ObjectName +"] Highlighted",Status.PASS);
-        } catch(Exception e) {
+            Report.updateTestLog(Action, "Element [" + ObjectName + "] Highlighted", Status.PASS);
+        } catch (Exception e) {
             Logger.getLogger(this.getClass().getName()).log(Level.OFF, null, e);
-            Report.updateTestLog("Could not perfom ["+Action+"] action", "Error: " + e.getMessage(),Status.FAIL);
+            Report.updateTestLog(
+                "Could not perfom [" + Action + "] action",
+                "Error: " + e.getMessage(),
+                Status.FAIL
+            );
             throw new ActionException(e);
         }
     }

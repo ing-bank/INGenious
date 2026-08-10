@@ -1,9 +1,8 @@
-
 package com.ing.datalib.model;
 
 /**
  *
- * 
+ *
  */
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -14,25 +13,23 @@ import java.util.List;
 import java.util.Objects;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
-@JsonPropertyOrder({
-    "type",
-    "name",
-    "desc",
-    "ref"
-})
+@JsonPropertyOrder({ "type", "name", "desc", "ref" })
 public class Meta {
-
     @JsonProperty("type")
     private String type;
+
     @JsonProperty("name")
     private String name;
+
     @JsonProperty("desc")
     private String desc;
+
     @JsonProperty("ref")
     private String ref;
 
     @JsonProperty("attributes")
     private com.ing.datalib.model.Attributes attributes = new com.ing.datalib.model.Attributes();
+
     @JsonProperty("tags")
     private com.ing.datalib.model.Tags tags = new com.ing.datalib.model.Tags();
 
@@ -107,15 +104,23 @@ public class Meta {
     }
 
     public enum Props {
-        attribute, tag
+        attribute,
+        tag
     }
 
     public enum Attributes {
-        type, scenario, testcase, reusable, release, testset
+        type,
+        scenario,
+        testcase,
+        reusable,
+        release,
+        testset
     }
 
     public enum Tags {
-        smoke, uat, load;
+        smoke,
+        uat,
+        load;
 
         @Override
         public String toString() {
@@ -132,7 +137,9 @@ public class Meta {
 
     public static Meta smoke() {
         Meta meta = createTag(Tags.smoke.toString());
-        meta.setDesc("Non-exhaustive set of tests that aim at ensuring that the most important functions work");
+        meta.setDesc(
+            "Non-exhaustive set of tests that aim at ensuring that the most important functions work"
+        );
         return meta;
     }
 
@@ -169,8 +176,7 @@ public class Meta {
 
     @JsonIgnore
     public boolean equals(Meta m) {
-        return Objects.equals(m.getType(), getType())
-                && Objects.equals(m.getName(), getName());
+        return Objects.equals(m.getType(), getType()) && Objects.equals(m.getName(), getName());
     }
 
     @JsonIgnore

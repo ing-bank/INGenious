@@ -1,4 +1,3 @@
-
 package com.ing.engine.galenWrapper;
 
 import com.galenframework.api.Galen;
@@ -11,12 +10,18 @@ import org.openqa.selenium.WebDriver;
 
 public class GalenWrapper extends Galen {
 
-    public synchronized static void dumpPage(PageValidationWrapper pageValidation, String pageName, String testCaseName, File reportFolder) throws IOException {
+    public static synchronized void dumpPage(
+        PageValidationWrapper pageValidation,
+        String pageName,
+        String testCaseName,
+        File reportFolder
+    )
+        throws IOException {
         GalenPageDumpWrapper dump = new GalenPageDumpWrapper(pageName);
         dump.dumpPage(pageValidation, testCaseName, reportFolder);
     }
 
-    public synchronized static File takeScreenShot(WebDriver Driver) {
+    public static synchronized File takeScreenShot(WebDriver Driver) {
         try {
             return GalenUtils.makeFullScreenshot(Driver);
         } catch (IOException | InterruptedException ex) {
@@ -24,5 +29,4 @@ public class GalenWrapper extends Galen {
         }
         return null;
     }
-
 }

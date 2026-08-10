@@ -1,4 +1,3 @@
-
 package com.ing.engine.constants;
 
 import java.io.IOException;
@@ -11,7 +10,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 public class SystemDefaults {
-
     public static Duration waitTime = Duration.ofSeconds(10);
     public static Duration elementWaitTime = Duration.ofSeconds(10);
     public static AtomicBoolean stopExecution = new AtomicBoolean();
@@ -29,7 +27,9 @@ public class SystemDefaults {
     static {
         buildProperties = new Properties();
         try {
-            buildProperties.load(SystemDefaults.class.getResourceAsStream("/engine/build.properties"));
+            buildProperties.load(
+                SystemDefaults.class.getResourceAsStream("/engine/build.properties")
+            );
         } catch (IOException ex) {
             Logger.getLogger(SystemDefaults.class.getName()).log(Level.SEVERE, ex.getMessage(), ex);
         }
@@ -49,7 +49,7 @@ public class SystemDefaults {
 
     public static void resetAll() {
         waitTime = Duration.ofSeconds(10);
-        elementWaitTime =  Duration.ofSeconds(10);
+        elementWaitTime = Duration.ofSeconds(10);
         stopExecution = new AtomicBoolean();
         debugMode = new AtomicBoolean();
         stopCurrentIteration = new AtomicBoolean();

@@ -1,6 +1,7 @@
 package com.ing.datalib.settings;
 
 import static org.assertj.core.api.Assertions.assertThat;
+
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -15,7 +16,6 @@ import org.testng.annotations.Test;
  * Tests for AbstractPropSettings — properties-file-backed settings base class.
  */
 public class AbstractPropSettingsTest {
-
     private Path tempDir;
 
     @BeforeMethod
@@ -25,22 +25,29 @@ public class AbstractPropSettingsTest {
 
     @AfterMethod
     public void tearDown() throws IOException {
-        Files.walk(tempDir)
-                .sorted(Comparator.reverseOrder())
-                .map(Path::toFile)
-                .forEach(File::delete);
+        Files
+            .walk(tempDir)
+            .sorted(Comparator.reverseOrder())
+            .map(Path::toFile)
+            .forEach(File::delete);
     }
 
     @Test
     public void testConstructorNoFile() {
         // No file exists — should create empty properties
-        AbstractPropSettings settings = new AbstractPropSettings(tempDir.toString(), "NoSuchSettings");
+        AbstractPropSettings settings = new AbstractPropSettings(
+            tempDir.toString(),
+            "NoSuchSettings"
+        );
         assertThat(settings).isEmpty();
     }
 
     @Test
     public void testGetLocationFormat() {
-        AbstractPropSettings settings = new AbstractPropSettings(tempDir.toString(), "TestSettings");
+        AbstractPropSettings settings = new AbstractPropSettings(
+            tempDir.toString(),
+            "TestSettings"
+        );
         String expected = tempDir.toString() + File.separator + "TestSettings.Properties";
         assertThat(settings.getLocation()).isEqualTo(expected);
     }

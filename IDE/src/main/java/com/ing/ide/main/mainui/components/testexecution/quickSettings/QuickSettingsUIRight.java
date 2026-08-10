@@ -1,4 +1,3 @@
-
 package com.ing.ide.main.mainui.components.testexecution.quickSettings;
 
 import com.ing.datalib.settings.RunSettings;
@@ -11,9 +10,9 @@ import javax.swing.AbstractAction;
 import javax.swing.DefaultComboBoxModel;
 import javax.swing.JTextField;
 import javax.swing.KeyStroke;
+import javax.swing.UIManager;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
-import javax.swing.UIManager;
 
 /**
  * QuickSettings panel for right side
@@ -23,7 +22,6 @@ import javax.swing.UIManager;
  *
  */
 public abstract class QuickSettingsUIRight extends QuickSettingsUI {
-
     RunSettings runSettings;
 
     /**
@@ -37,22 +35,27 @@ public abstract class QuickSettingsUIRight extends QuickSettingsUI {
     }
 
     private void listenToGridUrl() {
-        gridUrl.getDocument().addDocumentListener(new DocumentListener() {
-            @Override
-            public void insertUpdate(DocumentEvent de) {
-                changeGridUrl();
-            }
+        gridUrl
+            .getDocument()
+            .addDocumentListener(
+                new DocumentListener() {
 
-            @Override
-            public void removeUpdate(DocumentEvent de) {
-                changeGridUrl();
-            }
+                    @Override
+                    public void insertUpdate(DocumentEvent de) {
+                        changeGridUrl();
+                    }
 
-            @Override
-            public void changedUpdate(DocumentEvent de) {
-                changeGridUrl();
-            }
-        });
+                    @Override
+                    public void removeUpdate(DocumentEvent de) {
+                        changeGridUrl();
+                    }
+
+                    @Override
+                    public void changedUpdate(DocumentEvent de) {
+                        changeGridUrl();
+                    }
+                }
+            );
     }
 
     private void changeGridUrl() {
@@ -69,7 +72,6 @@ public abstract class QuickSettingsUIRight extends QuickSettingsUI {
     @SuppressWarnings("unchecked")
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
-
         buttonGroup1 = new javax.swing.ButtonGroup();
         jLabel4 = new javax.swing.JLabel();
         testEnv = new javax.swing.JComboBox<>();
@@ -92,23 +94,31 @@ public abstract class QuickSettingsUIRight extends QuickSettingsUI {
 
         testEnv.setFont(UIManager.getFont("Table.font"));
         testEnv.setForeground(new java.awt.Color(0, 0, 255));
-        testEnv.setModel(new javax.swing.DefaultComboBoxModel<>(new String[] { "Default", "QA", "UAT" }));
-        testEnv.addItemListener(new java.awt.event.ItemListener() {
-            public void itemStateChanged(java.awt.event.ItemEvent evt) {
-                testEnvItemStateChanged(evt);
+        testEnv.setModel(
+            new javax.swing.DefaultComboBoxModel<>(new String[] { "Default", "QA", "UAT" })
+        );
+        testEnv.addItemListener(
+            new java.awt.event.ItemListener() {
+
+                public void itemStateChanged(java.awt.event.ItemEvent evt) {
+                    testEnvItemStateChanged(evt);
+                }
             }
-        });
+        );
 
         qsParrelExelabel.setFont(UIManager.getFont("Table.font"));
         qsParrelExelabel.setText("Parallel Execution");
 
         threadCount.setFont(new java.awt.Font("sansserif", 0, 11)); // NOI18N
         threadCount.setModel(new javax.swing.SpinnerNumberModel(1, 1, 100, 1));
-        threadCount.addChangeListener(new javax.swing.event.ChangeListener() {
-            public void stateChanged(javax.swing.event.ChangeEvent evt) {
-                threadCountStateChanged(evt);
+        threadCount.addChangeListener(
+            new javax.swing.event.ChangeListener() {
+
+                public void stateChanged(javax.swing.event.ChangeEvent evt) {
+                    threadCountStateChanged(evt);
+                }
             }
-        });
+        );
 
         jLabel1.setText("Threads");
 
@@ -117,11 +127,14 @@ public abstract class QuickSettingsUIRight extends QuickSettingsUI {
 
         executionTimeOut.setFont(new java.awt.Font("sansserif", 0, 11)); // NOI18N
         executionTimeOut.setModel(new javax.swing.SpinnerNumberModel(300, 1, null, 1));
-        executionTimeOut.addChangeListener(new javax.swing.event.ChangeListener() {
-            public void stateChanged(javax.swing.event.ChangeEvent evt) {
-                executionTimeOutStateChanged(evt);
+        executionTimeOut.addChangeListener(
+            new javax.swing.event.ChangeListener() {
+
+                public void stateChanged(javax.swing.event.ChangeEvent evt) {
+                    executionTimeOutStateChanged(evt);
+                }
             }
-        });
+        );
 
         jLabel2.setText("Minutes");
 
@@ -130,11 +143,14 @@ public abstract class QuickSettingsUIRight extends QuickSettingsUI {
 
         reRunNo.setFont(new java.awt.Font("sansserif", 0, 11)); // NOI18N
         reRunNo.setModel(new javax.swing.SpinnerNumberModel(0, 0, 5, 1));
-        reRunNo.addChangeListener(new javax.swing.event.ChangeListener() {
-            public void stateChanged(javax.swing.event.ChangeEvent evt) {
-                reRunNoStateChanged(evt);
+        reRunNo.addChangeListener(
+            new javax.swing.event.ChangeListener() {
+
+                public void stateChanged(javax.swing.event.ChangeEvent evt) {
+                    reRunNoStateChanged(evt);
+                }
             }
-        });
+        );
 
         jLabel3.setText("Times");
 
@@ -149,124 +165,325 @@ public abstract class QuickSettingsUIRight extends QuickSettingsUI {
         gridMode.setFont(UIManager.getFont("TableMenu.font"));
         gridMode.setSelected(true);
         gridMode.setText("Grid");
-        gridMode.addItemListener(new java.awt.event.ItemListener() {
-            public void itemStateChanged(java.awt.event.ItemEvent evt) {
-                gridModeItemStateChanged(evt);
+        gridMode.addItemListener(
+            new java.awt.event.ItemListener() {
+
+                public void itemStateChanged(java.awt.event.ItemEvent evt) {
+                    gridModeItemStateChanged(evt);
+                }
             }
-        });
+        );
 
         gridUrl.setFont(UIManager.getFont("TableMenu.font"));
         gridUrl.setForeground(new java.awt.Color(0, 0, 255));
         gridUrl.setText("wss://cdp.lambdatest.com");
-        gridUrl.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                gridUrlActionPerformed(evt);
+        gridUrl.addActionListener(
+            new java.awt.event.ActionListener() {
+
+                public void actionPerformed(java.awt.event.ActionEvent evt) {
+                    gridUrlActionPerformed(evt);
+                }
             }
-        });
+        );
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
         layout.setHorizontalGroup(
-            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(layout.createSequentialGroup()
-                .addContainerGap()
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                    .addGroup(layout.createSequentialGroup()
-                        .addGap(1, 1, 1)
-                        .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                            .addGroup(layout.createSequentialGroup()
-                                .addComponent(jLabel4, javax.swing.GroupLayout.PREFERRED_SIZE, 111, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addComponent(testEnv, javax.swing.GroupLayout.PREFERRED_SIZE, 111, javax.swing.GroupLayout.PREFERRED_SIZE))
-                            .addGroup(layout.createSequentialGroup()
-                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
-                                    .addGroup(javax.swing.GroupLayout.Alignment.LEADING, layout.createSequentialGroup()
-                                        .addComponent(qsRetryExeLabel, javax.swing.GroupLayout.PREFERRED_SIZE, 111, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                        .addComponent(reRunNo))
-                                    .addGroup(javax.swing.GroupLayout.Alignment.LEADING, layout.createSequentialGroup()
-                                        .addComponent(qsExeTimoutLabel, javax.swing.GroupLayout.PREFERRED_SIZE, 111, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                        .addComponent(executionTimeOut))
-                                    .addGroup(javax.swing.GroupLayout.Alignment.LEADING, layout.createSequentialGroup()
-                                        .addComponent(qsParrelExelabel, javax.swing.GroupLayout.PREFERRED_SIZE, 111, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                        .addComponent(threadCount, javax.swing.GroupLayout.PREFERRED_SIZE, 71, javax.swing.GroupLayout.PREFERRED_SIZE)))
-                                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                                    .addComponent(jLabel2, javax.swing.GroupLayout.PREFERRED_SIZE, 46, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                    .addComponent(jLabel3, javax.swing.GroupLayout.PREFERRED_SIZE, 46, javax.swing.GroupLayout.PREFERRED_SIZE)
-                                    .addComponent(jLabel1)))))
-                    .addGroup(layout.createSequentialGroup()
-                        .addComponent(exeModeLabel, javax.swing.GroupLayout.PREFERRED_SIZE, 111, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                        .addComponent(localMode)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                        .addComponent(gridMode))
-                    .addComponent(gridUrl))
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+            layout
+                .createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                .addGroup(
+                    layout
+                        .createSequentialGroup()
+                        .addContainerGap()
+                        .addGroup(
+                            layout
+                                .createParallelGroup(
+                                    javax.swing.GroupLayout.Alignment.LEADING,
+                                    false
+                                )
+                                .addGroup(
+                                    layout
+                                        .createSequentialGroup()
+                                        .addGap(1, 1, 1)
+                                        .addGroup(
+                                            layout
+                                                .createParallelGroup(
+                                                    javax.swing.GroupLayout.Alignment.LEADING
+                                                )
+                                                .addGroup(
+                                                    layout
+                                                        .createSequentialGroup()
+                                                        .addComponent(
+                                                            jLabel4,
+                                                            javax.swing.GroupLayout.PREFERRED_SIZE,
+                                                            111,
+                                                            javax.swing.GroupLayout.PREFERRED_SIZE
+                                                        )
+                                                        .addPreferredGap(
+                                                            javax.swing.LayoutStyle.ComponentPlacement.RELATED
+                                                        )
+                                                        .addComponent(
+                                                            testEnv,
+                                                            javax.swing.GroupLayout.PREFERRED_SIZE,
+                                                            111,
+                                                            javax.swing.GroupLayout.PREFERRED_SIZE
+                                                        )
+                                                )
+                                                .addGroup(
+                                                    layout
+                                                        .createSequentialGroup()
+                                                        .addGroup(
+                                                            layout
+                                                                .createParallelGroup(
+                                                                    javax.swing.GroupLayout.Alignment.TRAILING,
+                                                                    false
+                                                                )
+                                                                .addGroup(
+                                                                    javax.swing.GroupLayout.Alignment.LEADING,
+                                                                    layout
+                                                                        .createSequentialGroup()
+                                                                        .addComponent(
+                                                                            qsRetryExeLabel,
+                                                                            javax.swing.GroupLayout.PREFERRED_SIZE,
+                                                                            111,
+                                                                            javax.swing.GroupLayout.PREFERRED_SIZE
+                                                                        )
+                                                                        .addPreferredGap(
+                                                                            javax.swing.LayoutStyle.ComponentPlacement.RELATED
+                                                                        )
+                                                                        .addComponent(reRunNo)
+                                                                )
+                                                                .addGroup(
+                                                                    javax.swing.GroupLayout.Alignment.LEADING,
+                                                                    layout
+                                                                        .createSequentialGroup()
+                                                                        .addComponent(
+                                                                            qsExeTimoutLabel,
+                                                                            javax.swing.GroupLayout.PREFERRED_SIZE,
+                                                                            111,
+                                                                            javax.swing.GroupLayout.PREFERRED_SIZE
+                                                                        )
+                                                                        .addPreferredGap(
+                                                                            javax.swing.LayoutStyle.ComponentPlacement.RELATED
+                                                                        )
+                                                                        .addComponent(
+                                                                            executionTimeOut
+                                                                        )
+                                                                )
+                                                                .addGroup(
+                                                                    javax.swing.GroupLayout.Alignment.LEADING,
+                                                                    layout
+                                                                        .createSequentialGroup()
+                                                                        .addComponent(
+                                                                            qsParrelExelabel,
+                                                                            javax.swing.GroupLayout.PREFERRED_SIZE,
+                                                                            111,
+                                                                            javax.swing.GroupLayout.PREFERRED_SIZE
+                                                                        )
+                                                                        .addPreferredGap(
+                                                                            javax.swing.LayoutStyle.ComponentPlacement.RELATED
+                                                                        )
+                                                                        .addComponent(
+                                                                            threadCount,
+                                                                            javax.swing.GroupLayout.PREFERRED_SIZE,
+                                                                            71,
+                                                                            javax.swing.GroupLayout.PREFERRED_SIZE
+                                                                        )
+                                                                )
+                                                        )
+                                                        .addPreferredGap(
+                                                            javax.swing.LayoutStyle.ComponentPlacement.RELATED
+                                                        )
+                                                        .addGroup(
+                                                            layout
+                                                                .createParallelGroup(
+                                                                    javax.swing.GroupLayout.Alignment.LEADING
+                                                                )
+                                                                .addComponent(
+                                                                    jLabel2,
+                                                                    javax.swing.GroupLayout.PREFERRED_SIZE,
+                                                                    46,
+                                                                    javax.swing.GroupLayout.PREFERRED_SIZE
+                                                                )
+                                                                .addComponent(
+                                                                    jLabel3,
+                                                                    javax.swing.GroupLayout.PREFERRED_SIZE,
+                                                                    46,
+                                                                    javax.swing.GroupLayout.PREFERRED_SIZE
+                                                                )
+                                                                .addComponent(jLabel1)
+                                                        )
+                                                )
+                                        )
+                                )
+                                .addGroup(
+                                    layout
+                                        .createSequentialGroup()
+                                        .addComponent(
+                                            exeModeLabel,
+                                            javax.swing.GroupLayout.PREFERRED_SIZE,
+                                            111,
+                                            javax.swing.GroupLayout.PREFERRED_SIZE
+                                        )
+                                        .addPreferredGap(
+                                            javax.swing.LayoutStyle.ComponentPlacement.UNRELATED
+                                        )
+                                        .addComponent(localMode)
+                                        .addPreferredGap(
+                                            javax.swing.LayoutStyle.ComponentPlacement.UNRELATED
+                                        )
+                                        .addComponent(gridMode)
+                                )
+                                .addComponent(gridUrl)
+                        )
+                        .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                )
         );
         layout.setVerticalGroup(
-            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(layout.createSequentialGroup()
-                .addContainerGap()
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(testEnv, javax.swing.GroupLayout.PREFERRED_SIZE, 29, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jLabel4, javax.swing.GroupLayout.PREFERRED_SIZE, 29, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addGap(18, 18, 18)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(qsParrelExelabel, javax.swing.GroupLayout.PREFERRED_SIZE, 29, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(threadCount, javax.swing.GroupLayout.PREFERRED_SIZE, 29, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jLabel1, javax.swing.GroupLayout.PREFERRED_SIZE, 29, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addGap(18, 18, 18)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(qsExeTimoutLabel, javax.swing.GroupLayout.PREFERRED_SIZE, 29, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(executionTimeOut, javax.swing.GroupLayout.PREFERRED_SIZE, 29, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jLabel2, javax.swing.GroupLayout.PREFERRED_SIZE, 29, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addGap(18, 18, 18)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(qsRetryExeLabel, javax.swing.GroupLayout.PREFERRED_SIZE, 29, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(reRunNo, javax.swing.GroupLayout.PREFERRED_SIZE, 29, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(jLabel3, javax.swing.GroupLayout.PREFERRED_SIZE, 29, javax.swing.GroupLayout.PREFERRED_SIZE))
-                .addGap(18, 18, 18)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(exeModeLabel, javax.swing.GroupLayout.PREFERRED_SIZE, 29, javax.swing.GroupLayout.PREFERRED_SIZE)
-                    .addComponent(localMode)
-                    .addComponent(gridMode))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addComponent(gridUrl, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
+            layout
+                .createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                .addGroup(
+                    layout
+                        .createSequentialGroup()
+                        .addContainerGap()
+                        .addGroup(
+                            layout
+                                .createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                                .addComponent(
+                                    testEnv,
+                                    javax.swing.GroupLayout.PREFERRED_SIZE,
+                                    29,
+                                    javax.swing.GroupLayout.PREFERRED_SIZE
+                                )
+                                .addComponent(
+                                    jLabel4,
+                                    javax.swing.GroupLayout.PREFERRED_SIZE,
+                                    29,
+                                    javax.swing.GroupLayout.PREFERRED_SIZE
+                                )
+                        )
+                        .addGap(18, 18, 18)
+                        .addGroup(
+                            layout
+                                .createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                                .addComponent(
+                                    qsParrelExelabel,
+                                    javax.swing.GroupLayout.PREFERRED_SIZE,
+                                    29,
+                                    javax.swing.GroupLayout.PREFERRED_SIZE
+                                )
+                                .addComponent(
+                                    threadCount,
+                                    javax.swing.GroupLayout.PREFERRED_SIZE,
+                                    29,
+                                    javax.swing.GroupLayout.PREFERRED_SIZE
+                                )
+                                .addComponent(
+                                    jLabel1,
+                                    javax.swing.GroupLayout.PREFERRED_SIZE,
+                                    29,
+                                    javax.swing.GroupLayout.PREFERRED_SIZE
+                                )
+                        )
+                        .addGap(18, 18, 18)
+                        .addGroup(
+                            layout
+                                .createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                                .addComponent(
+                                    qsExeTimoutLabel,
+                                    javax.swing.GroupLayout.PREFERRED_SIZE,
+                                    29,
+                                    javax.swing.GroupLayout.PREFERRED_SIZE
+                                )
+                                .addComponent(
+                                    executionTimeOut,
+                                    javax.swing.GroupLayout.PREFERRED_SIZE,
+                                    29,
+                                    javax.swing.GroupLayout.PREFERRED_SIZE
+                                )
+                                .addComponent(
+                                    jLabel2,
+                                    javax.swing.GroupLayout.PREFERRED_SIZE,
+                                    29,
+                                    javax.swing.GroupLayout.PREFERRED_SIZE
+                                )
+                        )
+                        .addGap(18, 18, 18)
+                        .addGroup(
+                            layout
+                                .createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                                .addComponent(
+                                    qsRetryExeLabel,
+                                    javax.swing.GroupLayout.PREFERRED_SIZE,
+                                    29,
+                                    javax.swing.GroupLayout.PREFERRED_SIZE
+                                )
+                                .addComponent(
+                                    reRunNo,
+                                    javax.swing.GroupLayout.PREFERRED_SIZE,
+                                    29,
+                                    javax.swing.GroupLayout.PREFERRED_SIZE
+                                )
+                                .addComponent(
+                                    jLabel3,
+                                    javax.swing.GroupLayout.PREFERRED_SIZE,
+                                    29,
+                                    javax.swing.GroupLayout.PREFERRED_SIZE
+                                )
+                        )
+                        .addGap(18, 18, 18)
+                        .addGroup(
+                            layout
+                                .createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                                .addComponent(
+                                    exeModeLabel,
+                                    javax.swing.GroupLayout.PREFERRED_SIZE,
+                                    29,
+                                    javax.swing.GroupLayout.PREFERRED_SIZE
+                                )
+                                .addComponent(localMode)
+                                .addComponent(gridMode)
+                        )
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addComponent(
+                            gridUrl,
+                            javax.swing.GroupLayout.PREFERRED_SIZE,
+                            javax.swing.GroupLayout.DEFAULT_SIZE,
+                            javax.swing.GroupLayout.PREFERRED_SIZE
+                        )
+                        .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                )
         );
-    }// </editor-fold>//GEN-END:initComponents
+    } // </editor-fold>//GEN-END:initComponents
 
-    private void threadCountStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_threadCountStateChanged
+    private void threadCountStateChanged(javax.swing.event.ChangeEvent evt) { //GEN-FIRST:event_threadCountStateChanged
         runSettings.setThreadCount(String.valueOf(threadCount.getValue()));
-    }//GEN-LAST:event_threadCountStateChanged
+    } //GEN-LAST:event_threadCountStateChanged
 
-    private void reRunNoStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_reRunNoStateChanged
+    private void reRunNoStateChanged(javax.swing.event.ChangeEvent evt) { //GEN-FIRST:event_reRunNoStateChanged
         runSettings.setRerunTimes(String.valueOf(reRunNo.getValue()));
-    }//GEN-LAST:event_reRunNoStateChanged
+    } //GEN-LAST:event_reRunNoStateChanged
 
-    private void executionTimeOutStateChanged(javax.swing.event.ChangeEvent evt) {//GEN-FIRST:event_executionTimeOutStateChanged
+    private void executionTimeOutStateChanged(javax.swing.event.ChangeEvent evt) { //GEN-FIRST:event_executionTimeOutStateChanged
         runSettings.setExecutionTimeOut(String.valueOf(executionTimeOut.getValue()));
-    }//GEN-LAST:event_executionTimeOutStateChanged
+    } //GEN-LAST:event_executionTimeOutStateChanged
 
-    private void testEnvItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_testEnvItemStateChanged
+    private void testEnvItemStateChanged(java.awt.event.ItemEvent evt) { //GEN-FIRST:event_testEnvItemStateChanged
         runSettings.setTestEnv(testEnv.getSelectedItem().toString());
-    }//GEN-LAST:event_testEnvItemStateChanged
+    } //GEN-LAST:event_testEnvItemStateChanged
 
-    private void gridModeItemStateChanged(java.awt.event.ItemEvent evt) {//GEN-FIRST:event_gridModeItemStateChanged
+    private void gridModeItemStateChanged(java.awt.event.ItemEvent evt) { //GEN-FIRST:event_gridModeItemStateChanged
         gridUrl.setEnabled(evt.getStateChange() == ItemEvent.SELECTED);
         if (gridMode.isSelected()) {
             runSettings.setExecutionMode("Grid");
         } else {
             runSettings.setExecutionMode("Local");
         }
-    }//GEN-LAST:event_gridModeItemStateChanged
+    } //GEN-LAST:event_gridModeItemStateChanged
 
-    private void gridUrlActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_gridUrlActionPerformed
+    private void gridUrlActionPerformed(java.awt.event.ActionEvent evt) { //GEN-FIRST:event_gridUrlActionPerformed
         // TODO add your handling code here:
-    }//GEN-LAST:event_gridUrlActionPerformed
+    } //GEN-LAST:event_gridUrlActionPerformed
 
     @Override
     protected void updateUI(RunSettings x) {
@@ -283,7 +500,7 @@ public abstract class QuickSettingsUIRight extends QuickSettingsUI {
             localMode.setSelected(true);
         }
     }
-    
+
     /**
      * Apply dark mode colors to all components
      */
@@ -291,105 +508,126 @@ public abstract class QuickSettingsUIRight extends QuickSettingsUI {
         Color panelBg = UIManager.getColor("Panel.background");
         Color panelFg = UIManager.getColor("Panel.foreground");
         Color separatorColor = UIManager.getColor("Separator.foreground");
-        
+
         // Ensure colors are set (use defaults if UIManager doesn't have them yet)
         if (panelBg == null) panelBg = new Color(37, 32, 48); // darkPanel
         if (panelFg == null) panelFg = new Color(232, 226, 229); // warmText
         if (separatorColor == null) separatorColor = new Color(58, 53, 69); // dividerGray
-        
+
         setBackground(panelBg);
         setOpaque(true);
         setForeground(panelFg);
-        
+
         // Apply foreground and background to labels
         jLabel4.setForeground(panelFg);
         jLabel4.setBackground(panelBg);
         jLabel4.setOpaque(true);
-        
+
         qsParrelExelabel.setForeground(panelFg);
         qsParrelExelabel.setBackground(panelBg);
         qsParrelExelabel.setOpaque(true);
-        
+
         jLabel1.setForeground(panelFg);
         jLabel1.setBackground(panelBg);
         jLabel1.setOpaque(true);
-        
+
         qsExeTimoutLabel.setForeground(panelFg);
         qsExeTimoutLabel.setBackground(panelBg);
         qsExeTimoutLabel.setOpaque(true);
-        
+
         jLabel2.setForeground(panelFg);
         jLabel2.setBackground(panelBg);
         jLabel2.setOpaque(true);
-        
+
         qsRetryExeLabel.setForeground(panelFg);
         qsRetryExeLabel.setBackground(panelBg);
         qsRetryExeLabel.setOpaque(true);
-        
+
         jLabel3.setForeground(panelFg);
         jLabel3.setBackground(panelBg);
         jLabel3.setOpaque(true);
-        
+
         exeModeLabel.setForeground(panelFg);
         exeModeLabel.setBackground(panelBg);
         exeModeLabel.setOpaque(true);
-        
+
         // Apply foreground and background to radio buttons
         localMode.setForeground(panelFg);
         localMode.setBackground(panelBg);
         localMode.setOpaque(true);
-        
+
         gridMode.setForeground(panelFg);
         gridMode.setBackground(panelBg);
         gridMode.setOpaque(true);
-        
+
         // Apply colors to spinners, combo boxes, and text field
         threadCount.setBackground(panelBg);
         threadCount.setForeground(panelFg);
         threadCount.setOpaque(true);
-        
+
         executionTimeOut.setBackground(panelBg);
         executionTimeOut.setForeground(panelFg);
         executionTimeOut.setOpaque(true);
-        
+
         reRunNo.setBackground(panelBg);
         reRunNo.setForeground(panelFg);
         reRunNo.setOpaque(true);
-        
+
         testEnv.setBackground(panelBg);
         testEnv.setForeground(panelFg);
         testEnv.setOpaque(true);
-        
+
         gridUrl.setBackground(panelBg);
         gridUrl.setForeground(panelFg);
         gridUrl.setCaretColor(panelFg);
     }
-    
+
     private void alterDefaultKeyBindings(JTextField textField) {
         // Customize key bindings
         int menuShortcutKeyMask = Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx();
 
         // Remove default Ctrl key bindings
-        textField.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_X, menuShortcutKeyMask), "none");
-        textField.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_C, menuShortcutKeyMask), "none");
-        textField.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_V, menuShortcutKeyMask), "none");
-        textField.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_A, menuShortcutKeyMask), "none");
+        textField
+            .getInputMap()
+            .put(KeyStroke.getKeyStroke(KeyEvent.VK_X, menuShortcutKeyMask), "none");
+        textField
+            .getInputMap()
+            .put(KeyStroke.getKeyStroke(KeyEvent.VK_C, menuShortcutKeyMask), "none");
+        textField
+            .getInputMap()
+            .put(KeyStroke.getKeyStroke(KeyEvent.VK_V, menuShortcutKeyMask), "none");
+        textField
+            .getInputMap()
+            .put(KeyStroke.getKeyStroke(KeyEvent.VK_A, menuShortcutKeyMask), "none");
 
         // Add Cmd key bindings
-        textField.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_X, menuShortcutKeyMask), "cut");
-        textField.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_C, menuShortcutKeyMask), "copy");
-        textField.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_V, menuShortcutKeyMask), "paste");
-        textField.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_A, menuShortcutKeyMask), "selectAll");
-        textField.getActionMap().put("selectAll", new AbstractAction() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                textField.selectAll();
-            }
-        });
+        textField
+            .getInputMap()
+            .put(KeyStroke.getKeyStroke(KeyEvent.VK_X, menuShortcutKeyMask), "cut");
+        textField
+            .getInputMap()
+            .put(KeyStroke.getKeyStroke(KeyEvent.VK_C, menuShortcutKeyMask), "copy");
+        textField
+            .getInputMap()
+            .put(KeyStroke.getKeyStroke(KeyEvent.VK_V, menuShortcutKeyMask), "paste");
+        textField
+            .getInputMap()
+            .put(KeyStroke.getKeyStroke(KeyEvent.VK_A, menuShortcutKeyMask), "selectAll");
+        textField
+            .getActionMap()
+            .put(
+                "selectAll",
+                new AbstractAction() {
 
+                    @Override
+                    public void actionPerformed(ActionEvent e) {
+                        textField.selectAll();
+                    }
+                }
+            );
     }
 
-     public abstract Object[] getEnvList() ;
+    public abstract Object[] getEnvList();
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.ButtonGroup buttonGroup1;

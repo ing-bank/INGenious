@@ -1,4 +1,3 @@
-
 package com.ing.ide.main.mainui.components.testdesign.or.sap;
 
 import com.ing.datalib.component.Project;
@@ -29,7 +28,6 @@ import javax.swing.tree.TreePath;
  * with SAP OR data in Test Design.
  */
 public class SapORPanel extends JPanel {
-
     private final SapObjectTree projectTree;
     private final SapObjectTree sharedTree;
     private final SapORTable objectTable;
@@ -41,7 +39,7 @@ public class SapORPanel extends JPanel {
     public SapORPanel(TestDesign testDesign) {
         this.testDesign = testDesign;
         this.projectTree = new SapObjectTree(this, SapObjectTree.ORSource.PROJECT);
-        this.sharedTree  = new SapObjectTree(this, SapObjectTree.ORSource.SHARED);
+        this.sharedTree = new SapObjectTree(this, SapObjectTree.ORSource.SHARED);
         this.objectTable = new SapORTable(this);
         init();
     }
@@ -57,12 +55,15 @@ public class SapORPanel extends JPanel {
         JComponent sharedTreeWithSearch = TreeSearch.installForOR(sharedTree.getTree());
         tabs.addTab("Shared", sharedTreeWithSearch);
 
-        tabs.addChangeListener(new ChangeListener() {
-            @Override
-            public void stateChanged(ChangeEvent e) {
-                updateTableForCurrentSelection();
+        tabs.addChangeListener(
+            new ChangeListener() {
+
+                @Override
+                public void stateChanged(ChangeEvent e) {
+                    updateTableForCurrentSelection();
+                }
             }
-        });
+        );
 
         splitPane = new JSplitPane(JSplitPane.VERTICAL_SPLIT);
         splitPane.setOneTouchExpandable(true);
@@ -71,28 +72,36 @@ public class SapORPanel extends JPanel {
         splitPane.setResizeWeight(0.5);
 
         add(splitPane, BorderLayout.CENTER);
-        
-        javax.swing.SwingUtilities.invokeLater(() -> {
-            splitPane.setDividerLocation(0.5);
-        });
+
+        javax.swing.SwingUtilities.invokeLater(
+            () -> {
+                splitPane.setDividerLocation(0.5);
+            }
+        );
 
         hookSelectionToTable(projectTree);
         hookSelectionToTable(sharedTree);
     }
 
     private void hookSelectionToTable(SapObjectTree tree) {
-        tree.getTree().addTreeSelectionListener(e -> {
-            if (isTreeOnCurrentTab(tree)) {
-                loadTableModelForSelection(getSelectedNodeUserObject(tree));
-            }
-        });
+        tree
+            .getTree()
+            .addTreeSelectionListener(
+                e -> {
+                    if (isTreeOnCurrentTab(tree)) {
+                        loadTableModelForSelection(getSelectedNodeUserObject(tree));
+                    }
+                }
+            );
     }
 
     private boolean isTreeOnCurrentTab(SapObjectTree tree) {
         int idx = tabs.getSelectedIndex();
         String title = (idx >= 0) ? tabs.getTitleAt(idx) : "";
-        return (tree == projectTree && "Project".equals(title))
-            || (tree == sharedTree  && "Shared".equals(title));
+        return (
+            (tree == projectTree && "Project".equals(title)) ||
+            (tree == sharedTree && "Shared".equals(title))
+        );
     }
 
     private Object getSelectedNodeUserObject(SapObjectTree tree) {
@@ -153,7 +162,9 @@ public class SapORPanel extends JPanel {
 
     public Boolean navigateToObject(String objectName, String pageName) {
         SapObjectTree active = getActiveTree();
-        if (active != null && Boolean.TRUE.equals(active.navigateToObject(objectName, pageName))) return true;
+        if (
+            active != null && Boolean.TRUE.equals(active.navigateToObject(objectName, pageName))
+        ) return true;
 
         SapObjectTree other = (active == projectTree) ? sharedTree : projectTree;
         return (other != null) ? other.navigateToObject(objectName, pageName) : false;
@@ -173,7 +184,6 @@ public class SapORPanel extends JPanel {
 
     public List<com.ing.datalib.or.common.ORObjectInf> getSelectedObjectsFromActiveTab() {
         SapObjectTree active = getActiveTree();
-        return (active != null) ? active.getSelectedObjects()
-                                : java.util.Collections.emptyList();
+        return (active != null) ? active.getSelectedObjects() : java.util.Collections.emptyList();
     }
 }

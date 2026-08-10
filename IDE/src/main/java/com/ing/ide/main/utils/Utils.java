@@ -1,8 +1,8 @@
-
 package com.ing.ide.main.utils;
 
-import com.ing.engine.support.DesktopApi;
 import static com.ing.ide.main.utils.INGeniousFileChooser.OPEN_PROJECT;
+
+import com.ing.engine.support.DesktopApi;
 import com.ing.ide.main.utils.filters.JavaCFilter;
 import java.awt.Component;
 import java.awt.HeadlessException;
@@ -39,9 +39,14 @@ import javax.swing.filechooser.FileNameExtensionFilter;
  *
  */
 public class Utils {
-
-    public static final Image FAVICON = new ImageIcon(Utils.class.getResource("/ui/resources/favicon.png")).getImage();
-    public static final Image FAVICON_OUTLINE = new ImageIcon(Utils.class.getResource("/ui/resources/favicon-outline.png")).getImage();
+    public static final Image FAVICON = new ImageIcon(
+        Utils.class.getResource("/ui/resources/favicon.png")
+    )
+    .getImage();
+    public static final Image FAVICON_OUTLINE = new ImageIcon(
+        Utils.class.getResource("/ui/resources/favicon-outline.png")
+    )
+    .getImage();
     private static final FileFilter JAVAC_FILTER = new JavaCFilter();
 
     public static List<Integer> getReverseSorted(int[] array) {
@@ -126,19 +131,30 @@ public class Utils {
         return btn;
     }
 
-    public static JButton createButton(String action, String icon, String tooltip, ActionListener actionlistener) {
+    public static JButton createButton(
+        String action,
+        String icon,
+        String tooltip,
+        ActionListener actionlistener
+    ) {
         JButton btn = new JButton();
         btn.setActionCommand(action);
         btn.setIcon(getIconByResourceName("/ui/resources/toolbar/" + icon));
         if (btn.getIcon() == null) {
             btn.setText(action);
         }
-        btn.setToolTipText("<html>" + action + (tooltip != null ? (" [" + tooltip + "]") : "") + "</html>");
+        btn.setToolTipText(
+            "<html>" + action + (tooltip != null ? (" [" + tooltip + "]") : "") + "</html>"
+        );
         btn.addActionListener(actionlistener);
         return btn;
     }
-    
-    public static JButton createLRButton(String action, String icon, ActionListener actionlistener) {
+
+    public static JButton createLRButton(
+        String action,
+        String icon,
+        ActionListener actionlistener
+    ) {
         JButton btn = new JButton();
         btn.setActionCommand(action);
         btn.setIcon(getIconByResourceName("/ui/resources/toolbar/" + icon));
@@ -149,11 +165,18 @@ public class Utils {
         return btn;
     }
 
-    public static JMenuItem createMenuItem(String action, String tooltip, KeyStroke keyStroke, ActionListener actionlistener) {
+    public static JMenuItem createMenuItem(
+        String action,
+        String tooltip,
+        KeyStroke keyStroke,
+        ActionListener actionlistener
+    ) {
         JMenuItem btn = new JMenuItem();
         btn.setActionCommand(action);
         btn.setText(action);
-        btn.setToolTipText("<html>" + action + (tooltip != null ? (" [" + tooltip + "]") : "") + "</html>");
+        btn.setToolTipText(
+            "<html>" + action + (tooltip != null ? (" [" + tooltip + "]") : "") + "</html>"
+        );
         btn.setAccelerator(keyStroke);
         btn.addActionListener(actionlistener);
         btn.setFont(UIManager.getFont("TableMenu.font"));
@@ -176,7 +199,11 @@ public class Utils {
      * @param actionCommand Action command to be sent when clicked
      * @return JMenuItem
      */
-    public static JMenuItem createMenuItem(String text, ActionListener actionlistener, String actionCommand) {
+    public static JMenuItem createMenuItem(
+        String text,
+        ActionListener actionlistener,
+        String actionCommand
+    ) {
         JMenuItem btn = new JMenuItem();
         btn.setActionCommand(actionCommand);
         btn.setText(text);
@@ -199,7 +226,9 @@ public class Utils {
 
     public static File saveDialog(String fileName) throws IOException {
         JFileChooser fileChooser = createFileChooser();
-        fileChooser.setCurrentDirectory(new File(new File(System.getProperty("user.dir")).getCanonicalPath()));
+        fileChooser.setCurrentDirectory(
+            new File(new File(System.getProperty("user.dir")).getCanonicalPath())
+        );
         fileChooser.setSelectedFile(new File(fileName));
         int option = fileChooser.showSaveDialog(null);
         if (option == JFileChooser.APPROVE_OPTION) {
@@ -214,7 +243,9 @@ public class Utils {
 
     public static File openDialog(String desc, String... fileFormat) throws IOException {
         JFileChooser fileChooser = createFileChooser();
-        fileChooser.setCurrentDirectory(new File(new File(System.getProperty("user.dir")).getCanonicalPath()));
+        fileChooser.setCurrentDirectory(
+            new File(new File(System.getProperty("user.dir")).getCanonicalPath())
+        );
         if (fileFormat != null && fileFormat.length > 0) {
             fileChooser.setFileFilter(new FileNameExtensionFilter(desc, fileFormat));
         }
@@ -231,6 +262,7 @@ public class Utils {
 
     private static JFileChooser createFileChooser() {
         JFileChooser jf = new JFileChooser() {
+
             @Override
             protected JDialog createDialog(Component parent) throws HeadlessException {
                 JDialog dialog = super.createDialog(parent);
@@ -260,23 +292,21 @@ public class Utils {
             Process proc = Runtime.getRuntime().exec("where javac");
             proc.waitFor();
             BufferedReader stdInput = new BufferedReader(
-                    new InputStreamReader(proc.getInputStream()));
+                new InputStreamReader(proc.getInputStream())
+            );
 
             List<String> jdkPaths = new ArrayList<>();
             String s;
             while ((s = stdInput.readLine()) != null) {
-                if (!s.trim().isEmpty()
-                        && s.contains("1.8")) {
+                if (!s.trim().isEmpty() && s.contains("1.8")) {
                     jdkPaths.add(s);
                 }
             }
             if (!jdkPaths.isEmpty()) {
                 return jdkPaths.get(0);
-
             }
         } catch (IOException | InterruptedException ex) {
-            Logger.getLogger(Utils.class
-                    .getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(Utils.class.getName()).log(Level.SEVERE, null, ex);
         }
         return null;
     }

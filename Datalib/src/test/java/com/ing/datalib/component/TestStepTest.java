@@ -1,6 +1,7 @@
 package com.ing.datalib.component;
 
 import static org.assertj.core.api.Assertions.assertThat;
+
 import org.testng.annotations.Test;
 
 public class TestStepTest {
@@ -16,8 +17,15 @@ public class TestStepTest {
     @Test
     public void testHeadersGetValues() {
         assertThat(TestStep.HEADERS.getValues())
-                .containsExactly("Step", "ObjectName", "Description", "Action",
-                        "Input", "Condition", "Reference");
+            .containsExactly(
+                "Step",
+                "ObjectName",
+                "Description",
+                "Action",
+                "Input",
+                "Condition",
+                "Reference"
+            );
     }
 
     @Test

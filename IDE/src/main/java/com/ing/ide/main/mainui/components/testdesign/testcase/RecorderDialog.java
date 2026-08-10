@@ -1,4 +1,3 @@
-
 package com.ing.ide.main.mainui.components.testdesign.testcase;
 
 import com.ing.ide.main.mainui.components.testdesign.TestDesign;
@@ -13,35 +12,43 @@ import java.awt.event.WindowEvent;
 import javax.swing.JFrame;
 import javax.swing.SwingUtilities;
 
-
 public class RecorderDialog extends JFrame {
-
     private final TestDesign testDesign;
 
     public RecorderDialog(TestDesign testDesign) {
         this.testDesign = testDesign;
         setAlwaysOnTop(true);
         setPreferredSize(new Dimension(500, 300));
-        setIconImage(com.ing.ide.main.fx.INGIcons.toImage(IconSettings.getIconSettings().getRecorderLarge()));
+        setIconImage(
+            com.ing.ide.main.fx.INGIcons.toImage(IconSettings.getIconSettings().getRecorderLarge())
+        );
         setLayout(new BorderLayout());
         setTitle("Recorder");
-        addWindowListener(new WindowAdapter() {
-            @Override
-            public void windowClosing(WindowEvent we) {
-                hideRecorder();
+        addWindowListener(
+            new WindowAdapter() {
+
+                @Override
+                public void windowClosing(WindowEvent we) {
+                    hideRecorder();
+                }
             }
-        });
+        );
         pack();
     }
 
     public void toggleRecorder() {
         if (isVisible()) {
-            SwingUtilities.invokeLater(new Runnable() {
-                @Override
-                public void run() {
-                    RecorderDialog.this.dispatchEvent(new WindowEvent(RecorderDialog.this, WindowEvent.WINDOW_CLOSING));
+            SwingUtilities.invokeLater(
+                new Runnable() {
+
+                    @Override
+                    public void run() {
+                        RecorderDialog.this.dispatchEvent(
+                                new WindowEvent(RecorderDialog.this, WindowEvent.WINDOW_CLOSING)
+                            );
+                    }
                 }
-            });
+            );
         } else {
             showRecorder();
         }
@@ -54,20 +61,22 @@ public class RecorderDialog extends JFrame {
         setSize(800, 300);
         setLocation();
         setVisible(true);
-//        testDesign.getsMainFrame().getSpyHealReco().startRecorder();
+        //        testDesign.getsMainFrame().getSpyHealReco().startRecorder();
     }
 
     private void setLocation() {
         GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
         GraphicsDevice defaultScreen = ge.getDefaultScreenDevice();
         Rectangle rect = defaultScreen.getDefaultConfiguration().getBounds();
-        setLocation((int) rect.getCenterX() - getWidth() / 2, (int) rect.getHeight() - getHeight() - 40);
+        setLocation(
+            (int) rect.getCenterX() - getWidth() / 2,
+            (int) rect.getHeight() - getHeight() - 40
+        );
     }
 
     private void hideRecorder() {
         testDesign.getsMainFrame().getTestDesign().getTestDesignUI().resetAfterRecorder();
         testDesign.getsMainFrame().setVisible(true);
-//       testDesign.getsMainFrame().getSpyHealReco().stopRecorder();
+        //       testDesign.getsMainFrame().getSpyHealReco().stopRecorder();
     }
-
 }

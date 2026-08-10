@@ -6,12 +6,10 @@ import static org.mockito.Mockito.*;
 import com.ing.engine.core.CommandControl;
 import com.ing.engine.reporting.TestCaseReport;
 import com.microsoft.playwright.options.Cookie;
-
 import java.lang.reflect.Field;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
-
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.testng.annotations.AfterMethod;
@@ -22,10 +20,14 @@ import org.testng.annotations.Test;
  * Tests for Cookies — cookie string formatting and variable pattern validation.
  */
 public class CookiesTest {
+    @Mock
+    private TestCaseReport report;
 
-    @Mock private TestCaseReport report;
-    @Mock private CommandControl commander;
-    @Mock private com.microsoft.playwright.BrowserContext browserCtx;
+    @Mock
+    private CommandControl commander;
+
+    @Mock
+    private com.microsoft.playwright.BrowserContext browserCtx;
 
     private Cookies cookies;
     private AutoCloseable mocks;
@@ -81,8 +83,8 @@ public class CookiesTest {
 
         cookies.storeCookiesInVariable();
 
-        verify(commander).addVar(eq("%allCookies%"), argThat(s ->
-                s.contains("Name=a") && s.contains("Name=b")));
+        verify(commander)
+            .addVar(eq("%allCookies%"), argThat(s -> s.contains("Name=a") && s.contains("Name=b")));
     }
 
     @Test
@@ -92,8 +94,8 @@ public class CookiesTest {
 
         cookies.storeCookiesInVariable();
 
-        verify(report).updateTestLog(eq("storeCookiesInVariable"),
-                eq("Invalid variable format"), any());
+        verify(report)
+            .updateTestLog(eq("storeCookiesInVariable"), eq("Invalid variable format"), any());
         verify(commander, never()).addVar(anyString(), anyString());
     }
 
@@ -114,13 +116,13 @@ public class CookiesTest {
         cookies.clearCookies();
 
         verify(browserCtx).clearCookies();
-        verify(report).updateTestLog(eq("clearCookies"),
-                contains("Cookies clear"), any());
+        verify(report).updateTestLog(eq("clearCookies"), contains("Cookies clear"), any());
     }
 
     // ── Utility ─────────────────────────────────────────────────────────
 
-    private static void setField(Object target, Class<?> clazz, String fieldName, Object value) throws Exception {
+    private static void setField(Object target, Class<?> clazz, String fieldName, Object value)
+        throws Exception {
         Field f = clazz.getDeclaredField(fieldName);
         f.setAccessible(true);
         f.set(target, value);

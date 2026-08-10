@@ -5,7 +5,15 @@ import com.ing.engine.support.DesktopApi;
 import com.ing.ide.main.mainui.components.testexecution.TestExecution;
 import com.ing.ide.main.mainui.components.testexecution.tree.model.ReleaseNode;
 import com.ing.ide.main.mainui.components.testexecution.tree.model.TestSetNode;
+import java.awt.BorderLayout;
+import java.io.File;
+import java.net.URI;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javafx.application.Platform;
+import javafx.beans.value.ChangeListener;
 import javafx.embed.swing.JFXPanel;
 import javafx.geometry.Orientation;
 import javafx.scene.Scene;
@@ -24,16 +32,8 @@ import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import javafx.scene.web.WebEngine;
 import javafx.scene.web.WebView;
-
 import javax.swing.tree.TreeModel;
 import javax.swing.tree.TreeNode;
-import java.awt.BorderLayout;
-import java.io.File;
-import java.net.URI;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  * Full JavaFX DashBoard replacing the old Swing DashBoard.
@@ -41,12 +41,16 @@ import java.util.logging.Logger;
  * within a styled SplitPane, all wrapped in a JFXPanel.
  */
 public class FXDashBoard extends javax.swing.JPanel {
-
     private static final Logger LOG = Logger.getLogger(FXDashBoard.class.getName());
+    private static final int TREE_DISCLOSURE_ICON_SIZE = 12;
 
-    private static final String ERR_HTML = "file:///"
-            + System.getProperty("user.dir") + File.separator + "Configuration"
-            + File.separator + "err.html";
+    private static final String ERR_HTML =
+        "file:///" +
+        System.getProperty("user.dir") +
+        File.separator +
+        "Configuration" +
+        File.separator +
+        "err.html";
 
     private final TestExecution testExecution;
     private final JFXPanel fxPanel;
@@ -74,10 +78,12 @@ public class FXDashBoard extends javax.swing.JPanel {
      */
     public void load() {
         CountDownLatch sceneReady = new CountDownLatch(1);
-        Platform.runLater(() -> {
-            initFX();
-            sceneReady.countDown();
-        });
+        Platform.runLater(
+            () -> {
+                initFX();
+                sceneReady.countDown();
+            }
+        );
         try {
             sceneReady.await(5, TimeUnit.SECONDS);
         } catch (InterruptedException e) {
@@ -92,8 +98,10 @@ public class FXDashBoard extends javax.swing.JPanel {
         treeView.setShowRoot(true);
         treeView.getStyleClass().add("dashboard-tree");
         treeView.setCellFactory(tv -> new DashBoardTreeCell());
-        treeView.getSelectionModel().selectedItemProperty().addListener(
-                (obs, oldVal, newVal) -> onTreeSelectionChanged(newVal));
+        treeView
+            .getSelectionModel()
+            .selectedItemProperty()
+            .addListener((obs, oldVal, newVal) -> onTreeSelectionChanged(newVal));
 
         Label treeHeader = new Label("Test Lab");
         treeHeader.getStyleClass().add("panel-header-label");
@@ -154,9 +162,16 @@ public class FXDashBoard extends javax.swing.JPanel {
         HBox.setHgrow(spacerRight, Priority.ALWAYS);
 
         javafx.scene.control.ToolBar toolbar = new javafx.scene.control.ToolBar(
-                spacerLeft, backBtn, new Separator(), latestBtn,
-                new Separator(), detailedBtn, new Separator(),
-                forwardBtn, spacerRight, openBtn
+            spacerLeft,
+            backBtn,
+            new Separator(),
+            latestBtn,
+            new Separator(),
+            detailedBtn,
+            new Separator(),
+            forwardBtn,
+            spacerRight,
+            openBtn
         );
         toolbar.getStyleClass().add("dashboard-nav-toolbar");
         return toolbar;
@@ -182,20 +197,26 @@ public class FXDashBoard extends javax.swing.JPanel {
      * Called after project change.
      */
     public void loadTree() {
-        Platform.runLater(() -> {
-            TreeModel swingModel = testExecution.getTestSetTree().getTree().getModel();
-            TreeItem<DashBoardItem> root = convertSwingTreeModel(swingModel);
-            treeView.setRoot(root);
-            root.setExpanded(true);
-            // Select first test set if available
-            selectFirstTestSet(root);
-        });
+        Platform.runLater(
+            () -> {
+                TreeModel swingModel = testExecution.getTestSetTree().getTree().getModel();
+                TreeItem<DashBoardItem> root = convertSwingTreeModel(swingModel);
+                treeView.setRoot(root);
+                root.setExpanded(true);
+                treeView.getSelectionModel().clearSelection();
+                webEngine.load(ERR_HTML);
+            }
+        );
     }
 
     private TreeItem<DashBoardItem> convertSwingTreeModel(TreeModel model) {
         Object rootObj = model.getRoot();
         DashBoardItem rootItem = new DashBoardItem(
-                rootObj.toString(), DashBoardItem.Type.ROOT, null, null);
+            rootObj.toString(),
+            DashBoardItem.Type.ROOT,
+            null,
+            null
+        );
         TreeItem<DashBoardItem> rootTreeItem = new TreeItem<>(rootItem);
         rootTreeItem.setExpanded(true);
 
@@ -207,7 +228,11 @@ public class FXDashBoard extends javax.swing.JPanel {
         return rootTreeItem;
     }
 
-    private void addSwingNodeToFXTree(TreeItem<DashBoardItem> parent, Object node, TreeModel model) {
+    private void addSwingNodeToFXTree(
+        TreeItem<DashBoardItem> parent,
+        Object node,
+        TreeModel model
+    ) {
         DashBoardItem.Type type;
         String releaseName = null;
         String testSetName = null;
@@ -226,24 +251,14 @@ public class FXDashBoard extends javax.swing.JPanel {
 
         DashBoardItem item = new DashBoardItem(node.toString(), type, releaseName, testSetName);
         TreeItem<DashBoardItem> treeItem = new TreeItem<>(item);
-        treeItem.setExpanded(true);
+        // Keep releases collapsed by default so test sets are hidden initially.
+        treeItem.setExpanded(false);
         parent.getChildren().add(treeItem);
 
         int childCount = model.getChildCount(node);
         for (int i = 0; i < childCount; i++) {
             Object child = model.getChild(node, i);
             addSwingNodeToFXTree(treeItem, child, model);
-        }
-    }
-
-    private void selectFirstTestSet(TreeItem<DashBoardItem> root) {
-        if (root == null) return;
-        for (TreeItem<DashBoardItem> release : root.getChildren()) {
-            if (!release.getChildren().isEmpty()) {
-                TreeItem<DashBoardItem> firstSet = release.getChildren().get(0);
-                treeView.getSelectionModel().select(firstSet);
-                return;
-            }
         }
     }
 
@@ -272,34 +287,51 @@ public class FXDashBoard extends javax.swing.JPanel {
         String url = latest ? getDetailedSummary() : getHistory();
         if (checkFile(url)) {
             webEngine.load(url);
-            if (!latest){
+            if (!latest) {
                 webEngine.getHistory().setMaxSize(0);
                 webEngine.executeScript("setTimeout(100);location.reload(true);");
                 webEngine.getHistory().setMaxSize(99);
             }
-            
         } else {
             webEngine.load(ERR_HTML);
         }
     }
-    
 
     private String getDetailedSummary() {
-        return getPrefix() + File.separator + release + File.separator + testSet
-                + File.separator + "Latest"
-                + File.separator + AppResourcePath.SUMMARY_HTML_V2;
+        return (
+            getPrefix() +
+            File.separator +
+            release +
+            File.separator +
+            testSet +
+            File.separator +
+            "Latest" +
+            File.separator +
+            AppResourcePath.SUMMARY_HTML_V2
+        );
     }
 
     private String getHistory() {
-        return getPrefix() + File.separator + release + File.separator + testSet
-                + File.separator + "ReportHistory.html";
+        return (
+            getPrefix() +
+            File.separator +
+            release +
+            File.separator +
+            testSet +
+            File.separator +
+            "ReportHistory.html"
+        );
     }
 
     private String getPrefix() {
-        return "file:///"
-                + testExecution.getProject().getLocation()
-                + File.separator + "Results"
-                + File.separator + "TestExecution";
+        return (
+            "file:///" +
+            testExecution.getProject().getLocation() +
+            File.separator +
+            "Results" +
+            File.separator +
+            "TestExecution"
+        );
     }
 
     private void goBack() {
@@ -347,7 +379,12 @@ public class FXDashBoard extends javax.swing.JPanel {
      * Represents a node in the DashBoard tree.
      */
     static class DashBoardItem {
-        enum Type { ROOT, RELEASE, TEST_SET }
+
+        enum Type {
+            ROOT,
+            RELEASE,
+            TEST_SET
+        }
 
         final String label;
         final Type type;
@@ -370,13 +407,43 @@ public class FXDashBoard extends javax.swing.JPanel {
     // ── Tree Cell with Icons ──
 
     private class DashBoardTreeCell extends TreeCell<DashBoardItem> {
+        private TreeItem<DashBoardItem> observedTreeItem;
+        private final ChangeListener<Boolean> expandedListener = (obs, oldVal, newVal) ->
+            refreshDisclosureIcon();
+
+        private void refreshDisclosureIcon() {
+            TreeItem<DashBoardItem> treeItem = getTreeItem();
+            if (treeItem == null || treeItem.isLeaf()) {
+                setDisclosureNode(null);
+                return;
+            }
+
+            boolean dark = FXTheme.isDark();
+            String iconKey = treeItem.isExpanded()
+                ? (dark ? "tree.expandedDark" : "tree.expandedLight")
+                : (dark ? "tree.collapsedDark" : "tree.collapsedLight");
+            setDisclosureNode(INGIcons.fxColored(iconKey, TREE_DISCLOSURE_ICON_SIZE));
+        }
 
         @Override
         protected void updateItem(DashBoardItem item, boolean empty) {
             super.updateItem(item, empty);
+
+            TreeItem<DashBoardItem> currentTreeItem = getTreeItem();
+            if (observedTreeItem != currentTreeItem) {
+                if (observedTreeItem != null) {
+                    observedTreeItem.expandedProperty().removeListener(expandedListener);
+                }
+                observedTreeItem = currentTreeItem;
+                if (observedTreeItem != null) {
+                    observedTreeItem.expandedProperty().addListener(expandedListener);
+                }
+            }
+
             if (empty || item == null) {
                 setText(null);
                 setGraphic(null);
+                setDisclosureNode(null);
             } else {
                 setText(item.label);
                 switch (item.type) {
@@ -390,6 +457,7 @@ public class FXDashBoard extends javax.swing.JPanel {
                         setGraphic(INGIcons.fxColored("testlab.TestSet", 16));
                         break;
                 }
+                refreshDisclosureIcon();
             }
         }
     }

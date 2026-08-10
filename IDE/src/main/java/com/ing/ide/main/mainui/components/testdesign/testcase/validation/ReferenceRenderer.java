@@ -1,11 +1,11 @@
 package com.ing.ide.main.mainui.components.testdesign.testcase.validation;
 
 import com.ing.datalib.component.TestStep;
-import com.ing.datalib.or.web.ResolvedWebObject;
-import com.ing.datalib.or.structureddata.ResolvedStructuredDataObject;
 import com.ing.datalib.or.mobile.ResolvedMobileObject;
-import com.ing.engine.support.ObjectTypeUtil;
 import com.ing.datalib.or.sap.ResolvedSapObject;
+import com.ing.datalib.or.structureddata.ResolvedStructuredDataObject;
+import com.ing.datalib.or.web.ResolvedWebObject;
+import com.ing.engine.support.ObjectTypeUtil;
 import java.awt.Color;
 import java.awt.Font;
 import java.util.Set;
@@ -19,7 +19,6 @@ import javax.swing.UIManager;
  *
  */
 public class ReferenceRenderer extends AbstractRenderer {
-
     private static final Set<String> CATEGORY_OBJECTS = Set.of(
         "Execute",
         "App",
@@ -70,7 +69,7 @@ public class ReferenceRenderer extends AbstractRenderer {
                 } else {
                     var sapref = ResolvedSapObject.PageRef.parse(ref);
                     var sapres = repo.resolveSapObject(sapref, step.getObject());
-                    
+
                     if (sapres != null) {
                         decorated = decorate(sapres, ref);
                     } else {
@@ -94,17 +93,32 @@ public class ReferenceRenderer extends AbstractRenderer {
                 } else {
                     setEmpty(comp);
                 }
-            } else if (step.isPageObjectStep()) {
-                if (isObjectPresent(step)) setDefault(comp);
-                else setNotPresent(comp, objNotPresent);
+            } else if (step.isPageObjectStep() && !step.isReusableStep()) {
+                if (isObjectPresent(step)) setDefault(comp); else setNotPresent(
+                    comp,
+                    objNotPresent
+                );
             } else {
                 setDefault(comp);
+            }
+
+            if (step.isReusableStep()) {
+                applyReusableScopeColor(comp, step.getReference());
             }
         } else {
             setDefault(comp);
             Color c = UIManager.getColor("ing.commentedForeground");
             comp.setForeground(c != null ? c : Color.lightGray);
             comp.setFont(new Font("Default", Font.ITALIC, 11));
+        }
+    }
+
+    private void applyReusableScopeColor(JComponent comp, String reference) {
+        String ref = reference == null ? "" : reference.trim();
+        if (ref.startsWith("[Shared]")) {
+            comp.setForeground(new Color(0, 128, 0));
+        } else if (ref.startsWith("[Project]")) {
+            comp.setForeground(Color.BLACK);
         }
     }
 
@@ -115,17 +129,14 @@ public class ReferenceRenderer extends AbstractRenderer {
             ResolvedWebObject wres = (ResolvedWebObject) res;
             if (wres.isFromShared()) return "[Shared] " + wres.getPageName();
             if (wres.isFromProject()) return "[Project] " + wres.getPageName();
-
         } else if (res instanceof ResolvedMobileObject) {
             ResolvedMobileObject mres = (ResolvedMobileObject) res;
             if (mres.isFromShared()) return "[Shared] " + mres.getPageName();
             if (mres.isFromProject()) return "[Project] " + mres.getPageName();
-
         } else if (res instanceof ResolvedStructuredDataObject) {
             ResolvedStructuredDataObject sres = (ResolvedStructuredDataObject) res;
             if (sres.isFromShared()) return "[Shared] " + sres.getPageName();
             if (sres.isFromProject()) return "[Project] " + sres.getPageName();
-
         } else if (res instanceof ResolvedSapObject) {
             ResolvedSapObject sapres = (ResolvedSapObject) res;
             if (sapres.isFromShared()) return "[Shared] " + sapres.getPageName();
@@ -157,30 +168,49 @@ public class ReferenceRenderer extends AbstractRenderer {
 
         // Check Web OR
         ResolvedWebObject.PageRef wref = ResolvedWebObject.PageRef.parse(pageToken);
-        if ((wref != null && wref.name != null && wref.scope != null) && (repo.resolveWebObject(wref, objectName) != null)
-                || (repo.resolveWebObjectWithScope(pageToken, objectName) != null)) {
+        if (
+            (wref != null && wref.name != null && wref.scope != null) &&
+            (repo.resolveWebObject(wref, objectName) != null) ||
+            (repo.resolveWebObjectWithScope(pageToken, objectName) != null)
+        ) {
             return true;
         }
-        
+
         ResolvedMobileObject.PageRef mref = ResolvedMobileObject.PageRef.parse(pageToken);
-        if ((mref != null && mref.name != null && mref.scope != null) && (repo.resolveMobileObject(mref, objectName) != null)
-                || (repo.resolveMobileObjectWithScope(pageToken, objectName) != null )) {
+        if (
+            (mref != null && mref.name != null && mref.scope != null) &&
+            (repo.resolveMobileObject(mref, objectName) != null) ||
+            (repo.resolveMobileObjectWithScope(pageToken, objectName) != null)
+        ) {
             return true;
         }
-        
-        ResolvedStructuredDataObject.PageRef aref = ResolvedStructuredDataObject.PageRef.parse(pageToken);
-        if ((aref != null && aref.name != null && aref.scope != null) && (repo.resolveStructuredDataObject(aref, objectName) != null)
-                || (repo.resolveStructuredDataObjectWithScope(pageToken, objectName) != null )) {
+
+        ResolvedStructuredDataObject.PageRef aref = ResolvedStructuredDataObject.PageRef.parse(
+            pageToken
+        );
+        if (
+            (aref != null && aref.name != null && aref.scope != null) &&
+            (repo.resolveStructuredDataObject(aref, objectName) != null) ||
+            (repo.resolveStructuredDataObjectWithScope(pageToken, objectName) != null)
+        ) {
             return true;
         }
 
         // Check SAP OR
         ResolvedSapObject.PageRef sref = ResolvedSapObject.PageRef.parse(pageToken);
-        if ((sref != null && sref.name != null && sref.scope != null) && (repo.resolveSapObject(sref, objectName) != null)
-                || (repo.resolveSapObjectWithScope(pageToken, objectName) != null)) {
+        if (
+            (sref != null && sref.name != null && sref.scope != null) &&
+            (repo.resolveSapObject(sref, objectName) != null) ||
+            (repo.resolveSapObjectWithScope(pageToken, objectName) != null)
+        ) {
             return true;
         }
 
         return false;
+    }
+
+    @Override
+    protected Object getColumnValue(TestStep step) {
+        return step.getReference();
     }
 }

@@ -1,4 +1,3 @@
-
 package com.ing.ide.main.mainui.components.testexecution.quickSettings;
 
 import com.ing.datalib.settings.RunSettings;
@@ -17,7 +16,6 @@ import javax.swing.JComponent;
  *
  */
 public class QuickSettings implements PropertyListener {
-
     private static final org.slf4j.Logger LOG = UILogger.getLogger(QuickSettings.class.getName());
     private RunSettings runSettings;
     private Action update;
@@ -30,13 +28,14 @@ public class QuickSettings implements PropertyListener {
 
     public QuickSettings(TestSetComponent view) {
         uiLeft = new QuickSettingsUILeft();
-        uiRight = new QuickSettingsUIRight() {
-            @Override
-            public Object[] getEnvList() {
-                return view.getProject()
-                        .getTestData().getEnvironments().toArray();
-            }
-        };
+        uiRight =
+            new QuickSettingsUIRight() {
+
+                @Override
+                public Object[] getEnvList() {
+                    return view.getProject().getTestData().getEnvironments().toArray();
+                }
+            };
         setListeners();
     }
 
@@ -52,7 +51,7 @@ public class QuickSettings implements PropertyListener {
      * @param value value
      */
     private void settingsUpdated(String prop, String value) {
-       if (update != null) {
+        if (update != null) {
             update.actionPerformed(new ActionEvent(this, 1, prop));
         }
     }
@@ -108,5 +107,4 @@ public class QuickSettings implements PropertyListener {
     public void onPropertyChange(String prop, String value) {
         settingsUpdated(prop, value);
     }
-
 }

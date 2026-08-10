@@ -1,4 +1,3 @@
-
 package com.ing.ide.main.mainui.components.testdesign.tree.model;
 
 import com.ing.datalib.component.Project;
@@ -13,11 +12,10 @@ import javax.swing.tree.TreeNode;
 
 /**
  *
- * 
+ *
  */
 public class ReusableNode extends CommonNode {
-
-    private static final String DEFAULT_GROUP = "Reusable Components";
+    private static final String DEFAULT_GROUP = "Project Reusable Components";
 
     Project project;
 
@@ -31,8 +29,9 @@ public class ReusableNode extends CommonNode {
         GroupNode groupNode = addGroupIfNotPresent(DEFAULT_GROUP);
         for (Scenario scenario : project.getReusableScenarios()) {
             for (TestCase testCase : scenario.getTestCases()) {
-                groupNode.addScenarioIfNotPresent(testCase.getScenario())
-                        .addTestCaseIfNotPresent(testCase);
+                groupNode
+                    .addScenarioIfNotPresent(testCase.getScenario())
+                    .addTestCaseIfNotPresent(testCase);
             }
         }
     }
@@ -62,12 +61,14 @@ public class ReusableNode extends CommonNode {
 
     @Override
     public String toString() {
-        return project != null ? project.getName() : "Reusable";
+        return project != null ? project.getName() : "Project Reusable Components";
     }
 
-   public static List<ReusableNode> toList(Enumeration<TreeNode> children){
-       return Collections.list(children).stream().map(tsNode -> (ReusableNode) tsNode).collect(Collectors.toList());
-       
-   }
-
+    public static List<ReusableNode> toList(Enumeration<TreeNode> children) {
+        return Collections
+            .list(children)
+            .stream()
+            .map(tsNode -> (ReusableNode) tsNode)
+            .collect(Collectors.toList());
+    }
 }

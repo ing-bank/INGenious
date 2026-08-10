@@ -1,4 +1,3 @@
-
 package com.ing.ide.main.utils.recentItem;
 
 import com.fasterxml.jackson.annotation.JsonAnyGetter;
@@ -13,16 +12,14 @@ import javax.annotation.processing.Generated;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @Generated("org.jsonschema2pojo")
-@JsonPropertyOrder({
-    "projectName",
-    "location"
-})
+@JsonPropertyOrder({ "projectName", "location" })
 public class RecentItem {
-
     @JsonProperty("projectName")
     private String projectName;
+
     @JsonProperty("location")
     private String location;
+
     @JsonIgnore
     private Map<String, Object> additionalProperties = new HashMap<String, Object>();
 
@@ -30,8 +27,7 @@ public class RecentItem {
      * No args constructor for use in serialization
      *
      */
-    public RecentItem() {
-    }
+    public RecentItem() {}
 
     /**
      *
@@ -93,5 +89,4 @@ public class RecentItem {
     public String toString() {
         return projectName + " - " + location;
     }
-
 }

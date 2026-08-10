@@ -1,5 +1,6 @@
-
 package com.ing.engine.reporting.sync;
+
+import static org.testng.Assert.*;
 
 import com.ing.engine.reporting.sync.BasicHttpClient;
 import java.io.BufferedReader;
@@ -14,17 +15,13 @@ import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import org.json.simple.JSONObject;
-import static org.testng.Assert.*;
 import org.testng.annotations.*;
 
 public class BasicHttpClientTest {
-
     private JSONObject getArgs;
     private static final int PORT = 3210;
-    
-    public BasicHttpClientTest() throws Exception {
 
-    }
+    public BasicHttpClientTest() throws Exception {}
 
     @BeforeMethod
     public void setUpMethod() throws Exception {
@@ -38,11 +35,11 @@ public class BasicHttpClientTest {
      * Test of Get method, of class BasicHttpClient.
      * @throws java.lang.Exception
      */
-    @Test(enabled = false,description = "http-get of remote address")
+    @Test(enabled = false, description = "http-get of remote address")
     public void testGetHttp() throws Exception {
         System.out.println("Get-http");
         URL targetUrl = new URL("http://postman-echo.com/get");
-        BasicHttpClient instance = new BasicHttpClient(targetUrl, "anon", "anon");        
+        BasicHttpClient instance = new BasicHttpClient(targetUrl, "anon", "anon");
         JSONObject result = instance.Get(targetUrl, getArgs.toJSONString());
         assertEquals(result.get("args"), getArgs);
     }
@@ -51,7 +48,7 @@ public class BasicHttpClientTest {
      * Test of Get method, of class BasicHttpClient.
      * @throws java.lang.Exception
      */
-    @Test(enabled = false,description = "https-get of remote address")
+    @Test(enabled = false, description = "https-get of remote address")
     public void testGetHttps() throws Exception {
         System.out.println("Get-https");
         URL targetUrl = new URL("https://postman-echo.com/get");
@@ -64,13 +61,12 @@ public class BasicHttpClientTest {
      * Test of Get method, of class BasicHttpClient.
      * @throws java.lang.Exception
      */
-    @Test(enabled = false,description = "http-get of local address")
+    @Test(enabled = false, description = "http-get of local address")
     public void testGetHttpLocal() throws Exception {
         System.out.println("Get-http-local");
         URL targetUrl = new URL("http://127.0.0.1:" + PORT);
-        BasicHttpClient instance = new BasicHttpClient(targetUrl, "anon", "anon");        
+        BasicHttpClient instance = new BasicHttpClient(targetUrl, "anon", "anon");
         JSONObject result = instance.Get(targetUrl, "data", "vola");
         assertEquals(result.toString(), "{\"data\":\"vola\"}");
     }
-
 }

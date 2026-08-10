@@ -1,4 +1,3 @@
-
 package com.ing.datalib.or.common;
 
 import java.util.Collections;
@@ -24,30 +23,41 @@ public class ORUtils {
     }
 
     public static void sort(ORRootInf root) {
-        Collections.sort(root.getPages(), new Comparator<ORPageInf>() {
-            @Override
-            public int compare(ORPageInf t, ORPageInf t1) {
-                return t.getName().compareToIgnoreCase(t1.getName());
+        Collections.sort(
+            root.getPages(),
+            new Comparator<ORPageInf>() {
+
+                @Override
+                public int compare(ORPageInf t, ORPageInf t1) {
+                    return t.getName().compareToIgnoreCase(t1.getName());
+                }
             }
-        });
+        );
     }
 
     public static void sort(ORPageInf page) {
-        Collections.sort(page.getObjectGroups(), new Comparator<ObjectGroup>() {
-            @Override
-            public int compare(ObjectGroup t, ObjectGroup t1) {
-                return t.getName().compareToIgnoreCase(t1.getName());
+        Collections.sort(
+            page.getObjectGroups(),
+            new Comparator<ObjectGroup>() {
+
+                @Override
+                public int compare(ObjectGroup t, ObjectGroup t1) {
+                    return t.getName().compareToIgnoreCase(t1.getName());
+                }
             }
-        });
+        );
     }
 
     public static void sort(ObjectGroup group) {
-        Collections.sort(group.getObjects(), new Comparator<ORObjectInf>() {
-            @Override
-            public int compare(ORObjectInf t, ORObjectInf t1) {
-                return t.getName().compareToIgnoreCase(t1.getName());
-            }
-        });
-    }
+        Collections.sort(
+            group.getObjects(),
+            new Comparator<ORObjectInf>() {
 
+                @Override
+                public int compare(ORObjectInf t, ORObjectInf t1) {
+                    return t.getName().compareToIgnoreCase(t1.getName());
+                }
+            }
+        );
+    }
 }

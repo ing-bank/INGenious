@@ -6,11 +6,9 @@ import static org.mockito.Mockito.*;
 import com.ing.engine.core.CommandControl;
 import com.ing.engine.drivers.AutomationObject;
 import com.ing.engine.reporting.TestCaseReport;
-
 import java.lang.reflect.Field;
 import java.util.HashMap;
 import java.util.Map;
-
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.testng.annotations.AfterMethod;
@@ -22,9 +20,11 @@ import org.testng.annotations.Test;
  * setglobalObjectProperty / setObjectProperty parsing.
  */
 public class DynamicObjectTest {
+    @Mock
+    private TestCaseReport report;
 
-    @Mock private TestCaseReport report;
-    @Mock private CommandControl commander;
+    @Mock
+    private CommandControl commander;
 
     private DynamicObject dynObj;
     private AutoCloseable mocks;
@@ -71,9 +71,9 @@ public class DynamicObjectTest {
         dynObj.setglobalObjectProperty();
 
         assertThat(AutomationObject.globalDynamicValue)
-                .containsEntry("k1", "v1")
-                .containsEntry("k2", "v2")
-                .containsEntry("k3", "v3");
+            .containsEntry("k1", "v1")
+            .containsEntry("k2", "v2")
+            .containsEntry("k3", "v3");
     }
 
     @Test
@@ -85,8 +85,7 @@ public class DynamicObjectTest {
 
         dynObj.setglobalObjectProperty();
 
-        assertThat(AutomationObject.globalDynamicValue)
-                .containsEntry("url", "http://host?a=1");
+        assertThat(AutomationObject.globalDynamicValue).containsEntry("url", "http://host?a=1");
     }
 
     @Test
@@ -96,8 +95,8 @@ public class DynamicObjectTest {
 
         dynObj.setglobalObjectProperty();
 
-        verify(report).updateTestLog(eq("setglobalObjectProperty"),
-                eq("Input should not be empty"), any());
+        verify(report)
+            .updateTestLog(eq("setglobalObjectProperty"), eq("Input should not be empty"), any());
     }
 
     // ── setObjectProperty ───────────────────────────────────────────────
@@ -112,12 +111,10 @@ public class DynamicObjectTest {
 
         dynObj.setObjectProperty();
 
-        assertThat(AutomationObject.dynamicValue)
-                .containsKey("Page1");
-        assertThat(AutomationObject.dynamicValue.get("Page1"))
-                .containsKey("Btn1");
+        assertThat(AutomationObject.dynamicValue).containsKey("Page1");
+        assertThat(AutomationObject.dynamicValue.get("Page1")).containsKey("Btn1");
         assertThat(AutomationObject.dynamicValue.get("Page1").get("Btn1"))
-                .containsEntry("propKey", "someVal");
+            .containsEntry("propKey", "someVal");
     }
 
     @Test
@@ -155,7 +152,7 @@ public class DynamicObjectTest {
         assertThat(AutomationObject.dynamicValue.get("Ref1")).containsKey("ObjA");
         // ObjB added
         assertThat(AutomationObject.dynamicValue.get("Ref1").get("ObjB"))
-                .containsEntry("newKey", "newVal");
+            .containsEntry("newKey", "newVal");
     }
 
     @Test
@@ -175,8 +172,7 @@ public class DynamicObjectTest {
 
         dynObj.setObjectProperty();
 
-        assertThat(AutomationObject.dynamicValue.get("Ref1").get("Obj1"))
-                .containsEntry("a", "new");
+        assertThat(AutomationObject.dynamicValue.get("Ref1").get("Obj1")).containsEntry("a", "new");
     }
 
     @Test
@@ -186,13 +182,14 @@ public class DynamicObjectTest {
 
         dynObj.setObjectProperty();
 
-        verify(report).updateTestLog(eq("setObjectProperty"),
-                eq("Input should not be empty"), any());
+        verify(report)
+            .updateTestLog(eq("setObjectProperty"), eq("Input should not be empty"), any());
     }
 
     // ── Utility ─────────────────────────────────────────────────────────
 
-    private static void setField(Object target, Class<?> clazz, String fieldName, Object value) throws Exception {
+    private static void setField(Object target, Class<?> clazz, String fieldName, Object value)
+        throws Exception {
         Field f = clazz.getDeclaredField(fieldName);
         f.setAccessible(true);
         f.set(target, value);

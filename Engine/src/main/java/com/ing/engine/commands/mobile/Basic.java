@@ -2,11 +2,11 @@ package com.ing.engine.commands.mobile;
 
 import com.ing.engine.constants.SystemDefaults;
 import com.ing.engine.core.CommandControl;
+import com.ing.ingenious.api.annotation.Action;
 import com.ing.ingenious.api.exception.ForcedException;
 import com.ing.ingenious.api.exception.mobile.ElementException;
 import com.ing.ingenious.api.exception.mobile.ElementException.ExceptionType;
 import com.ing.ingenious.api.status.Status;
-import com.ing.ingenious.api.annotation.Action;
 import com.ing.ingenious.api.types.InputType;
 import com.ing.ingenious.api.types.ObjectType;
 import com.ing.util.encryption.Encryption;
@@ -33,7 +33,6 @@ public class Basic extends MobileGeneral {
         if (elementEnabled()) {
             Element.click();
             Report.updateTestLog(Action, "Taping on " + ObjectName, Status.DONE);
-
         } else {
             throw new ElementException(ExceptionType.Element_Not_Enabled, ObjectName);
         }
@@ -54,7 +53,11 @@ public class Basic extends MobileGeneral {
             if (Element.isDisplayed()) {
                 Tap();
             } else {
-                Report.updateTestLog(Action, "Element [" + ObjectName + "] not Visible", Status.DONE);
+                Report.updateTestLog(
+                    Action,
+                    "Element [" + ObjectName + "] not Visible",
+                    Status.DONE
+                );
             }
         } else {
             Report.updateTestLog(Action, "Element [" + ObjectName + "] not Exists", Status.DONE);
@@ -65,8 +68,11 @@ public class Basic extends MobileGeneral {
     public void Submit() {
         if (elementEnabled()) {
             Element.submit();
-            Report.updateTestLog(Action, "[" + ObjectName + "] Submitted successfully ", Status.DONE);
-
+            Report.updateTestLog(
+                Action,
+                "[" + ObjectName + "] Submitted successfully ",
+                Status.DONE
+            );
         } else {
             throw new ElementException(ExceptionType.Element_Not_Enabled, ObjectName);
         }
@@ -81,19 +87,30 @@ public class Basic extends MobileGeneral {
         }
     }
 
-    @Action(object = ObjectType.APP, desc = "Enter the value [<Data>] in the Field [<Object>]", input = InputType.YES)
+    @Action(
+        object = ObjectType.APP,
+        desc = "Enter the value [<Data>] in the Field [<Object>]",
+        input = InputType.YES
+    )
     public void Set() {
         if (elementEnabled()) {
             Element.clear();
             Element.sendKeys(Data);
-            Report.updateTestLog(Action, "Entered Text '" + Data + "' on '"
-                    + ObjectName + "'", Status.DONE);
+            Report.updateTestLog(
+                Action,
+                "Entered Text '" + Data + "' on '" + ObjectName + "'",
+                Status.DONE
+            );
         } else {
             throw new ElementException(ExceptionType.Element_Not_Enabled, ObjectName);
         }
     }
 
-    @Action(object = ObjectType.APP, desc = "Enter the value [<Data>] in the [<Object>] if it exists", input = InputType.YES)
+    @Action(
+        object = ObjectType.APP,
+        desc = "Enter the value [<Data>] in the [<Object>] if it exists",
+        input = InputType.YES
+    )
     public void SetIfExists() {
         if (Element != null) {
             Set();
@@ -102,17 +119,27 @@ public class Basic extends MobileGeneral {
         }
     }
 
-    @Action(object = ObjectType.APP, desc = "Enter the value [<Data>] in the Field [<Object>] and check [<Data>] matches with [<Object>] value", input = InputType.YES)
+    @Action(
+        object = ObjectType.APP,
+        desc = "Enter the value [<Data>] in the Field [<Object>] and check [<Data>] matches with [<Object>] value",
+        input = InputType.YES
+    )
     public void SetAndCheck() {
         if (elementEnabled()) {
             Element.clear();
             Element.sendKeys(Data);
             if (Element.getAttribute("value").equals(Data)) {
-                Report.updateTestLog("Set", "Entered Text '" + Data + "' on '"
-                        + ObjectName + "'", Status.DONE);
+                Report.updateTestLog(
+                    "Set",
+                    "Entered Text '" + Data + "' on '" + ObjectName + "'",
+                    Status.DONE
+                );
             } else {
-                Report.updateTestLog("Set", "Unable Enter Text '" + Data
-                        + "' on '" + ObjectName + "'", Status.FAIL);
+                Report.updateTestLog(
+                    "Set",
+                    "Unable Enter Text '" + Data + "' on '" + ObjectName + "'",
+                    Status.FAIL
+                );
             }
         } else {
             throw new ElementException(ExceptionType.Element_Not_Enabled, ObjectName);
@@ -129,7 +156,11 @@ public class Basic extends MobileGeneral {
         }
     }
 
-    @Action(object = ObjectType.APP, desc = "Enter the Decrypted value [<Data>] in the Field [<Object>]", input = InputType.YES)
+    @Action(
+        object = ObjectType.APP,
+        desc = "Enter the Decrypted value [<Data>] in the Field [<Object>]",
+        input = InputType.YES
+    )
     public void setEncrypted() {
         if (Data != null && Data.matches(".* Enc")) {
             if (elementEnabled()) {
@@ -138,7 +169,11 @@ public class Basic extends MobileGeneral {
                     Data = Data.substring(0, Data.lastIndexOf(" Enc"));
                     byte[] valueDecoded = Encryption.getInstance().decrypt(Data).getBytes();
                     Element.sendKeys(new String(valueDecoded));
-                    Report.updateTestLog(Action, "Entered Encrypted Text " + Data + " on " + ObjectName, Status.DONE);
+                    Report.updateTestLog(
+                        Action,
+                        "Entered Encrypted Text " + Data + " on " + ObjectName,
+                        Status.DONE
+                    );
                 } catch (Exception ex) {
                     Report.updateTestLog("setEncrypted", ex.getMessage(), Status.FAIL);
                     Logger.getLogger(Basic.class.getName()).log(Level.SEVERE, null, ex);
@@ -151,8 +186,10 @@ public class Basic extends MobileGeneral {
         }
     }
 
-    @Action(object = ObjectType.APP,
-            desc = "Move the Browser View to the specified element [<Object>]")
+    @Action(
+        object = ObjectType.APP,
+        desc = "Move the Browser View to the specified element [<Object>]"
+    )
     public void moveTo() {
         if (elementDisplayed()) {
             if (Data != null && Data.matches("(\\d)+,(\\d)+")) {
@@ -176,41 +213,54 @@ public class Basic extends MobileGeneral {
         }
     }
 
-    @Action(object = ObjectType.MOBILE, desc = "changing wait time by [<Data>] seconds", input = InputType.YES)
+    @Action(
+        object = ObjectType.MOBILE,
+        desc = "changing wait time by [<Data>] seconds",
+        input = InputType.YES
+    )
     public void changeWaitTime() {
         try {
             Duration t = Duration.ofSeconds(Integer.parseInt(Data));
             if (Integer.parseInt(Data) > 0) {
                 SystemDefaults.waitTime = t;
-                Report.updateTestLog("changeWaitTime", "Wait time changed to "
-                        + Data + " second/s", Status.DONE);
+                Report.updateTestLog(
+                    "changeWaitTime",
+                    "Wait time changed to " + Data + " second/s",
+                    Status.DONE
+                );
             } else {
-                Report.updateTestLog("changeWaitTime",
-                        "Couldn't change Wait time (invalid input)",
-                        Status.DEBUG);
+                Report.updateTestLog(
+                    "changeWaitTime",
+                    "Couldn't change Wait time (invalid input)",
+                    Status.DEBUG
+                );
             }
-
         } catch (NumberFormatException ex) {
-            Report.updateTestLog("changeWaitTime",
-                    "Couldn't change Wait time ", Status.DEBUG);
+            Report.updateTestLog("changeWaitTime", "Couldn't change Wait time ", Status.DEBUG);
             Logger.getLogger(Basic.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
 
-    @Action(object = ObjectType.MOBILE,
-            desc = "Change Default Element finding wait time by [<Data>] seconds",
-            input = InputType.YES)
+    @Action(
+        object = ObjectType.MOBILE,
+        desc = "Change Default Element finding wait time by [<Data>] seconds",
+        input = InputType.YES
+    )
     public void setElementTimeOut() {
         if (Data != null && Data.matches("[0-9]+")) {
             SystemDefaults.elementWaitTime = Duration.ofSeconds(Integer.valueOf(Data));
-            Report.updateTestLog(Action, "Element Wait time changed to "
-                    + Data + " second/s", Status.DONE);
+            Report.updateTestLog(
+                Action,
+                "Element Wait time changed to " + Data + " second/s",
+                Status.DONE
+            );
         } else {
-            Report.updateTestLog(Action,
-                    "Couldn't change Element Wait time (invalid input) " + Data,
-                    Status.DEBUG);
+            Report.updateTestLog(
+                Action,
+                "Couldn't change Element Wait time (invalid input) " + Data,
+                Status.DEBUG
+            );
         }
-
     }
     /*
 

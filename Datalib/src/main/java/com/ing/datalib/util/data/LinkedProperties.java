@@ -1,4 +1,3 @@
-
 package com.ing.datalib.util.data;
 
 import java.util.Collections;
@@ -8,11 +7,9 @@ import java.util.LinkedHashSet;
 import java.util.Properties;
 
 public class LinkedProperties extends Properties {
-
     private final HashSet<Object> keys = new LinkedHashSet<>();
 
-    public LinkedProperties() {
-    }
+    public LinkedProperties() {}
 
     public Iterable<Object> orderedKeys() {
         return Collections.list(keys());
@@ -40,5 +37,4 @@ public class LinkedProperties extends Properties {
         super.clear();
         keys.clear();
     }
-
 }

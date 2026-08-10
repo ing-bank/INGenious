@@ -1,5 +1,6 @@
 package com.ing.datalib.settings;
 
+import com.ing.datalib.util.data.LinkedProperties;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
@@ -10,8 +11,6 @@ import java.util.Map;
 import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
-import com.ing.datalib.util.data.LinkedProperties;
 
 /**
  *
@@ -42,7 +41,11 @@ public class PropUtils {
 
     private static void saveProperties(Properties prop, String filename) {
         File file = new File(filename);
-        try (BufferedWriter bw = new BufferedWriter(new OutputStreamWriter(new FileOutputStream(file), "ISO_8859_1"))) {
+        try (
+            BufferedWriter bw = new BufferedWriter(
+                new OutputStreamWriter(new FileOutputStream(file), "ISO_8859_1")
+            )
+        ) {
             synchronized (prop) {
                 for (Map.Entry<Object, Object> e : prop.entrySet()) {
                     String key = (String) e.getKey();
@@ -56,9 +59,8 @@ public class PropUtils {
         } catch (IOException ex) {
             Logger.getLogger(PropUtils.class.getName()).log(Level.SEVERE, filename, ex);
         }
-
     }
-    
+
     private static String escapeSpecialCharacters(String input) {
         StringBuilder sb = new StringBuilder();
         for (char c : input.toCharArray()) {

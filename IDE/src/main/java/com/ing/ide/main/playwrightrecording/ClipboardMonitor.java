@@ -17,13 +17,11 @@ import java.time.format.DateTimeFormatter;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-
 public class ClipboardMonitor {
-
     private static String lastContent = "";
-    
+
     private final AppMainFrame sMainFrame;
-    
+
     private volatile boolean running = false;
 
     public ClipboardMonitor(AppMainFrame sMainFrame) {
@@ -33,52 +31,82 @@ public class ClipboardMonitor {
     public void startMonitoring() {
         if (running) return;
         running = true;
-        
+
         System.out.println("Clipboard monitoring: " + running);
-        Thread monitorThread = new Thread(() -> {
-            try {
-                Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
-
+        Thread monitorThread = new Thread(
+            () -> {
                 try {
-                    Transferable contents = clipboard.getContents(null);
-                    if (contents != null && contents.isDataFlavorSupported(DataFlavor.stringFlavor)) {
-                        lastContent = (String) contents.getTransferData(DataFlavor.stringFlavor);
-                    }
-                } catch (UnsupportedFlavorException | IOException e) {
-                    lastContent = "";
-                }
+                    Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
 
-                String projectLocation = sMainFrame.getProject().getLocation();
-                Path recordingsDir = Paths.get(projectLocation, "Recording");
-
-                if (!Files.exists(recordingsDir)) {
-                    Files.createDirectories(recordingsDir);
-                }
-
-                while (running) {
                     try {
                         Transferable contents = clipboard.getContents(null);
-                        if (contents != null && contents.isDataFlavorSupported(DataFlavor.stringFlavor)) {
-                            String currentContent = (String) contents.getTransferData(DataFlavor.stringFlavor);
-                            String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss"));
-                            if (!currentContent.equals(lastContent) && !currentContent.trim().isEmpty()) {
-                                if (currentContent.contains("import com.microsoft.playwright.*;")) {
-                                    lastContent = currentContent;
-                                    Path filePath = recordingsDir.resolve("recording_" + timestamp + ".txt");
-                                    Files.writeString(filePath, currentContent, StandardOpenOption.CREATE);
-                                    Notification.show("Saved recorded steps to temporary file: " + filePath);
+                        if (
+                            contents != null &&
+                            contents.isDataFlavorSupported(DataFlavor.stringFlavor)
+                        ) {
+                            lastContent =
+                                (String) contents.getTransferData(DataFlavor.stringFlavor);
+                        }
+                    } catch (UnsupportedFlavorException | IOException e) {
+                        lastContent = "";
+                    }
+
+                    String projectLocation = sMainFrame.getProject().getLocation();
+                    Path recordingsDir = Paths.get(projectLocation, "Recording");
+
+                    if (!Files.exists(recordingsDir)) {
+                        Files.createDirectories(recordingsDir);
+                    }
+
+                    while (running) {
+                        try {
+                            Transferable contents = clipboard.getContents(null);
+                            if (
+                                contents != null &&
+                                contents.isDataFlavorSupported(DataFlavor.stringFlavor)
+                            ) {
+                                String currentContent = (String) contents.getTransferData(
+                                    DataFlavor.stringFlavor
+                                );
+                                String timestamp = LocalDateTime
+                                    .now()
+                                    .format(DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss"));
+                                if (
+                                    !currentContent.equals(lastContent) &&
+                                    !currentContent.trim().isEmpty()
+                                ) {
+                                    if (
+                                        currentContent.contains(
+                                            "import com.microsoft.playwright.*;"
+                                        )
+                                    ) {
+                                        lastContent = currentContent;
+                                        Path filePath = recordingsDir.resolve(
+                                            "recording_" + timestamp + ".txt"
+                                        );
+                                        Files.writeString(
+                                            filePath,
+                                            currentContent,
+                                            StandardOpenOption.CREATE
+                                        );
+                                        Notification.show(
+                                            "Saved recorded steps to temporary file: " + filePath
+                                        );
+                                    }
                                 }
                             }
+                            Thread.sleep(250);
+                        } catch (UnsupportedFlavorException | IOException e) {
+                            Logger
+                                .getLogger(ClipboardMonitor.class.getName())
+                                .log(Level.WARNING, "Clipboard access failed", e);
                         }
-                        Thread.sleep(250);
-                    } catch (UnsupportedFlavorException | IOException e) {
-                        Logger.getLogger(ClipboardMonitor.class.getName()).log(Level.WARNING, "Clipboard access failed", e);
                     }
+                } catch (Exception e) {
+                    e.printStackTrace();
                 }
-            } catch (Exception e) {
-                e.printStackTrace();
             }
-        });
+        );
 
         monitorThread.setDaemon(true);
         monitorThread.start();
@@ -89,4 +117,3 @@ public class ClipboardMonitor {
         System.out.println("Clipboard monitoring: " + running);
     }
 }
-

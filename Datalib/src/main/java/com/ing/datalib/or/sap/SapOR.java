@@ -1,14 +1,4 @@
-
 package com.ing.datalib.or.sap;
-
-import java.io.File;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Enumeration;
-import java.util.List;
-
-import javax.swing.tree.TreeNode;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -18,16 +8,20 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
 import com.ing.datalib.or.ObjectRepository;
 import com.ing.datalib.or.common.ORRootInf;
 import com.ing.datalib.or.common.ORUtils;
+import java.io.File;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.Enumeration;
+import java.util.List;
+import javax.swing.tree.TreeNode;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JacksonXmlRootElement(localName = "Root")
 public class SapOR implements ORRootInf<SapORPage> {
-
-    public final static List<String> OBJECT_PROPS
-            = new ArrayList<>(Arrays.asList(
-                    "id",
-                    "name",
-                    "Text"));
+    public static final List<String> OBJECT_PROPS = new ArrayList<>(
+        Arrays.asList("id", "name", "Text")
+    );
 
     @JacksonXmlProperty(isAttribute = true, localName = "ref")
     private String name;
@@ -38,10 +32,10 @@ public class SapOR implements ORRootInf<SapORPage> {
 
     @JacksonXmlProperty(isAttribute = true)
     private String type;
-    
+
     @JacksonXmlProperty(isAttribute = true)
     private ORScope scope = ORScope.PROJECT;
-    
+
     @JsonInclude(JsonInclude.Include.NON_EMPTY)
     @JacksonXmlElementWrapper(localName = "projects")
     @JacksonXmlProperty(localName = "project")
@@ -52,7 +46,7 @@ public class SapOR implements ORRootInf<SapORPage> {
 
     @JsonIgnore
     private Boolean saved = true;
-    
+
     @JsonIgnore
     private String repLocationOverride;
 
@@ -136,7 +130,7 @@ public class SapOR implements ORRootInf<SapORPage> {
                 new File(page.getRepLocation()).mkdirs();
             }
             setSaved(false);
-            
+
             // Auto-save for YAML format
             if (objectRepository != null && objectRepository.isUsingYamlFormat()) {
                 objectRepository.saveSapPageNow(page);
@@ -177,8 +171,7 @@ public class SapOR implements ORRootInf<SapORPage> {
     @JsonIgnore
     @Override
     public int getChildCount() {
-        return pages == null ? 0
-                : pages.size();
+        return pages == null ? 0 : pages.size();
     }
 
     @JsonIgnore
@@ -231,7 +224,7 @@ public class SapOR implements ORRootInf<SapORPage> {
     @JsonIgnore
     @Override
     public TreeNode[] getPath() {
-        return new TreeNode[]{this};
+        return new TreeNode[] { this };
     }
 
     @JsonIgnore
@@ -243,8 +236,8 @@ public class SapOR implements ORRootInf<SapORPage> {
     @Override
     public String getRepLocation() {
         return repLocationOverride != null
-                ? repLocationOverride
-                : getObjectRepository().getORRepLocation();
+            ? repLocationOverride
+            : getObjectRepository().getORRepLocation();
     }
 
     @JsonIgnore
@@ -252,29 +245,30 @@ public class SapOR implements ORRootInf<SapORPage> {
     public void sort() {
         ORUtils.sort(this);
     }
-    
-    public enum ORScope { 
-        PROJECT, SHARED 
+
+    public enum ORScope {
+        PROJECT,
+        SHARED
     }
 
     @JsonIgnore
-    public ORScope getScope() { 
-        return scope; 
+    public ORScope getScope() {
+        return scope;
     }
-    
-    public void setScope(ORScope scope) { 
-        this.scope = scope; 
+
+    public void setScope(ORScope scope) {
+        this.scope = scope;
     }
 
     @JsonIgnore
-    public boolean isShared() { 
-        return scope == ORScope.SHARED; 
+    public boolean isShared() {
+        return scope == ORScope.SHARED;
     }
-    
+
     public List<String> getProjects() {
         return projects;
     }
-    
+
     public void setProjects(List<String> projects) {
         this.projects = (projects == null) ? new ArrayList<>() : projects;
     }
@@ -282,7 +276,7 @@ public class SapOR implements ORRootInf<SapORPage> {
     public List<String> getSharedProjects() {
         return isShared() ? projects : Collections.emptyList();
     }
-    
+
     public void setSharedProjects(List<String> projects) {
         this.projects = projects;
     }

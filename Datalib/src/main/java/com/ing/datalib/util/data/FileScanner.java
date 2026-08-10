@@ -1,4 +1,3 @@
-
 package com.ing.datalib.util.data;
 
 import java.io.File;
@@ -10,7 +9,7 @@ import java.util.logging.Logger;
 
 /**
  *
- * 
+ *
  */
 public class FileScanner {
 

@@ -1,4 +1,3 @@
-
 package com.ing.datalib.model;
 
 import java.util.ArrayList;
@@ -9,7 +8,7 @@ import java.util.function.Supplier;
 
 /**
  *
- * 
+ *
  */
 public class Data extends ArrayList<DataItem> {
 
@@ -37,14 +36,15 @@ public class Data extends ArrayList<DataItem> {
     }
 
     public Optional<DataItem> find(String name) {
-        return stream().filter(attr -> equals(attr::getName, name))
-                .findFirst();
+        return stream().filter(attr -> equals(attr::getName, name)).findFirst();
     }
 
     public Optional<DataItem> find(String name, String aName, String aVal) {
-        return stream().filter(data -> equals(data::getName, name)
-                && data.getAttributes().contains(aName, aVal))
-                .findFirst();
+        return stream()
+            .filter(
+                data -> equals(data::getName, name) && data.getAttributes().contains(aName, aVal)
+            )
+            .findFirst();
     }
 
     public Optional<DataItem> find(String name, String scn) {

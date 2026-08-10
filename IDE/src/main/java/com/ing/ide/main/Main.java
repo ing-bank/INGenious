@@ -1,65 +1,62 @@
-
 package com.ing.ide.main;
 
+import com.formdev.flatlaf.FlatDarkLaf;
+import com.formdev.flatlaf.FlatLaf;
+import com.formdev.flatlaf.FlatLightLaf;
 import com.ing.datalib.testdata.TestDataFactory;
 import com.ing.engine.cli.LookUp;
 import com.ing.engine.constants.SystemDefaults;
 import com.ing.engine.support.methodInf.MethodInfoManager;
 import com.ing.exceptions.DuplicateMethodException;
 import com.ing.ide.main.cli.UICli;
+import com.ing.ide.main.fx.FXTheme;
+import com.ing.ide.main.fx.INGIcons;
 import com.ing.ide.main.mainui.AppMainFrame;
 import com.ing.ide.main.mainui.ModernSplash;
 import com.ing.ide.main.ui.About;
 import com.ing.ide.main.utils.AppIcon;
 import com.ing.ide.util.logging.UILogger;
 import com.ing.util.encryption.Encryption;
-import com.ing.ide.main.fx.FXTheme;
-import com.ing.ide.main.fx.INGIcons;
-import com.formdev.flatlaf.FlatDarkLaf;
-import com.formdev.flatlaf.FlatLaf;
-import com.formdev.flatlaf.FlatLightLaf;
 import java.awt.Color;
 import java.awt.Dimension;
-import java.awt.Insets;
-import javax.swing.Timer;
-
 import java.awt.Font;
 import java.awt.FontFormatException;
-
 import java.awt.GraphicsEnvironment;
+import java.awt.Insets;
 import java.awt.Toolkit;
 import java.io.File;
-
 import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import javax.swing.JFrame;
-import javax.swing.SwingUtilities;
-import javax.swing.UIManager;
 import javafx.application.Platform;
 import javafx.embed.swing.JFXPanel;
+import javax.swing.JFrame;
+import javax.swing.SwingUtilities;
+import javax.swing.Timer;
+import javax.swing.UIManager;
 import org.apache.commons.lang3.time.StopWatch;
 
 public class Main {
-
     private static final StopWatch STOP_WATCH = new StopWatch();
     private static boolean isDarkMode = false;
 
     // ING Standard Brand Colors
-    private static final Color ING_ORANGE     = Color.decode("#FF6200");
-    private static final Color ING_PURPLE     = Color.decode("#7724FF");
+    private static final Color ING_ORANGE = Color.decode("#FF6200");
+    private static final Color ING_PURPLE = Color.decode("#7724FF");
     private static final Color ING_LIGHT_BLUE = Color.decode("#89D6FD");
-    private static final Color ING_BURGUNDY   = Color.decode("#4D0020");
+    private static final Color ING_BURGUNDY = Color.decode("#4D0020");
 
     static {
         // Suppress JavaFX warnings about unnamed modules
-        System.setProperty("java.util.logging.SimpleFormatter.format",
-                "%1$tY-%1$tm-%1$td %1$tH:%1$tM:%1$tS:%1$tmS %1$tz [%4$-4s] %2$s:%5$s%6$s%n");
-        
+        System.setProperty(
+            "java.util.logging.SimpleFormatter.format",
+            "%1$tY-%1$tm-%1$td %1$tH:%1$tM:%1$tS:%1$tmS %1$tz [%4$-4s] %2$s:%5$s%6$s%n"
+        );
+
         // Configure SLF4J simple logger to be quiet during startup
         System.setProperty("org.slf4j.simpleLogger.defaultLogLevel", "warn");
         System.setProperty("org.slf4j.simpleLogger.log.com.ing", "info");
-        
+
         // Suppress JavaFX warnings
         System.setProperty("javafx.verbose", "false");
         System.setProperty("prism.verbose", "false");
@@ -71,7 +68,7 @@ public class Main {
         } else {
             // Print beautiful banner first
             printBanner();
-            
+
             UILogger.get();
             STOP_WATCH.start();
             launchUI();
@@ -97,28 +94,154 @@ public class Main {
      */
     private static void printBanner() {
         // Color #7724FF (Purple/Violet) using 24-bit ANSI escape
-        String p = "\u001b[38;2;119;36;255m";    // purple #7724FF
-        String b = "\u001b[38;2;147;92;255m";    // bright purple
-        String l = "\u001b[38;2;180;140;255m";   // light purple
-        String w = "\u001b[38;2;255;255;255m";   // white
-        String r = "\u001b[0m";                   // reset
-        String bo = "\u001b[1m";                  // bold
-        
+        String p = "\u001b[38;2;119;36;255m"; // purple #7724FF
+        String b = "\u001b[38;2;147;92;255m"; // bright purple
+        String l = "\u001b[38;2;180;140;255m"; // light purple
+        String w = "\u001b[38;2;255;255;255m"; // white
+        String r = "\u001b[0m"; // reset
+        String bo = "\u001b[1m"; // bold
+
         System.out.println();
-        System.out.println(p + "    ██╗" + b + "███╗   ██╗" + p + " ██████╗ " + b + "███████╗" + p + "███╗   ██╗" + b + "██╗" + p + " ██████╗ " + b + "██╗   ██╗" + p + "███████╗" + r);
-        System.out.println(p + "    ██║" + b + "████╗  ██║" + p + "██╔════╝ " + b + "██╔════╝" + p + "████╗  ██║" + b + "██║" + p + "██╔═══██╗" + b + "██║   ██║" + p + "██╔════╝" + r);
-        System.out.println(b + "    ██║" + l + "██╔██╗ ██║" + b + "██║  ███╗" + l + "█████╗  " + b + "██╔██╗ ██║" + l + "██║" + b + "██║   ██║" + l + "██║   ██║" + b + "███████╗" + r);
-        System.out.println(b + "    ██║" + p + "██║╚██╗██║" + b + "██║   ██║" + p + "██╔══╝  " + b + "██║╚██╗██║" + p + "██║" + b + "██║   ██║" + p + "██║   ██║" + b + "╚════██║" + r);
-        System.out.println(l + "    ██║" + b + "██║ ╚████║" + l + "╚██████╔╝" + b + "███████╗" + l + "██║ ╚████║" + b + "██║" + l + "╚██████╔╝" + b + "╚██████╔╝" + l + "███████║" + r);
-        System.out.println(p + "    ╚═╝" + l + "╚═╝  ╚═══╝" + p + " ╚═════╝ " + l + "╚══════╝" + p + "╚═╝  ╚═══╝" + l + "╚═╝" + p + " ╚═════╝ " + l + " ╚═════╝ " + p + "╚══════╝" + r);
+        System.out.println(
+            p +
+            "    ██╗" +
+            b +
+            "███╗   ██╗" +
+            p +
+            " ██████╗ " +
+            b +
+            "███████╗" +
+            p +
+            "███╗   ██╗" +
+            b +
+            "██╗" +
+            p +
+            " ██████╗ " +
+            b +
+            "██╗   ██╗" +
+            p +
+            "███████╗" +
+            r
+        );
+        System.out.println(
+            p +
+            "    ██║" +
+            b +
+            "████╗  ██║" +
+            p +
+            "██╔════╝ " +
+            b +
+            "██╔════╝" +
+            p +
+            "████╗  ██║" +
+            b +
+            "██║" +
+            p +
+            "██╔═══██╗" +
+            b +
+            "██║   ██║" +
+            p +
+            "██╔════╝" +
+            r
+        );
+        System.out.println(
+            b +
+            "    ██║" +
+            l +
+            "██╔██╗ ██║" +
+            b +
+            "██║  ███╗" +
+            l +
+            "█████╗  " +
+            b +
+            "██╔██╗ ██║" +
+            l +
+            "██║" +
+            b +
+            "██║   ██║" +
+            l +
+            "██║   ██║" +
+            b +
+            "███████╗" +
+            r
+        );
+        System.out.println(
+            b +
+            "    ██║" +
+            p +
+            "██║╚██╗██║" +
+            b +
+            "██║   ██║" +
+            p +
+            "██╔══╝  " +
+            b +
+            "██║╚██╗██║" +
+            p +
+            "██║" +
+            b +
+            "██║   ██║" +
+            p +
+            "██║   ██║" +
+            b +
+            "╚════██║" +
+            r
+        );
+        System.out.println(
+            l +
+            "    ██║" +
+            b +
+            "██║ ╚████║" +
+            l +
+            "╚██████╔╝" +
+            b +
+            "███████╗" +
+            l +
+            "██║ ╚████║" +
+            b +
+            "██║" +
+            l +
+            "╚██████╔╝" +
+            b +
+            "╚██████╔╝" +
+            l +
+            "███████║" +
+            r
+        );
+        System.out.println(
+            p +
+            "    ╚═╝" +
+            l +
+            "╚═╝  ╚═══╝" +
+            p +
+            " ╚═════╝ " +
+            l +
+            "╚══════╝" +
+            p +
+            "╚═╝  ╚═══╝" +
+            l +
+            "╚═╝" +
+            p +
+            " ╚═════╝ " +
+            l +
+            " ╚═════╝ " +
+            p +
+            "╚══════╝" +
+            r
+        );
         System.out.println();
-        System.out.println(bo + l + "              ═══════════════════════════════════════════════════════════" + r);
+        System.out.println(
+            bo + l + "              ═══════════════════════════════════════════════════════════" + r
+        );
         System.out.println(bo + w + "               ✦  P L A Y W R I G H T   S T U D I O  ✦" + r);
-        System.out.println(bo + b + "                              Version 3.0.0-preview" + r);
-        System.out.println(bo + l + "              ═══════════════════════════════════════════════════════════" + r);
+        System.out.println(
+            bo + b + "                              Version " + About.getBuildVersion() + r
+        );
+        System.out.println(
+            bo + l + "              ═══════════════════════════════════════════════════════════" + r
+        );
         System.out.println();
     }
-    
+
     private static void launchUI() {
         // Temporarily suppress system warnings during initialization
         java.io.PrintStream originalErr = System.err;
@@ -126,16 +249,16 @@ public class Main {
         try {
             // Redirect stderr to suppress JavaFX and OpenGL warnings
             System.setErr(new java.io.PrintStream(new java.io.ByteArrayOutputStream()));
-            
+
             // Initialize elegant dock/taskbar icon for macOS and Windows
             AppIcon.initialize();
-            
+
             splash = new ModernSplash();
             splash.setVisible(true);
             // Initialize JavaFX toolkit early so JFXPanels can be created safely
             new JFXPanel();
             Platform.setImplicitExit(false);
-            
+
             // Restore stderr after initialization
             System.setErr(originalErr);
         } catch (Exception e) {
@@ -144,63 +267,75 @@ public class Main {
             throw e;
         }
         final ModernSplash finalSplash = splash;
-        new Thread(() -> {
-            setUpFlatLafUI();
-            finalSplash.progressed(10);
-            initDependencies();
-            finalSplash.progressed(20);
-            // Build & show UI on the EDT (required for safe Swing + JFXPanel interop)
-            SwingUtilities.invokeLater(() -> {
-                AppMainFrame mainFrame = null;
-                try {
-                    mainFrame = new AppMainFrame(finalSplash::progressed);
-                } catch (IOException ex) {
-                    Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
-                }
-                mainFrame.setVisible(false);
-                mainFrame.setMinimumSize(new Dimension(800, 400));
-                mainFrame.setPreferredSize(new Dimension(800, 400));
-                mainFrame.setLocationRelativeTo(null);
-                finalSplash.progressed(100);
-                
-                // Wait for splash animation to reach 100% before hiding
-                final AppMainFrame frame = mainFrame;
-                Timer delayTimer = new Timer(600, e -> {
-                    finalSplash.setVisible(false);
-                    frame.checkAndLoadRecent();
-                    frame.setDefaultCloseOperation(AppMainFrame.DO_NOTHING_ON_CLOSE);
-                    Boolean IS_MAXI_SUPPORTED = Toolkit.getDefaultToolkit().isFrameStateSupported(JFrame.MAXIMIZED_BOTH);
-                    if (IS_MAXI_SUPPORTED) {
-                        frame.setExtendedState(JFrame.MAXIMIZED_BOTH);
-                    }
-                    finalSplash.dispose();
-                    frame.setVisible(true);
-                    // Swap Swing chrome for JavaFX CSS-styled chrome
-                    frame.initFXChrome();
-                });
-                delayTimer.setRepeats(false);
-                delayTimer.start();
-            });
-        }, "UI:MainUI").start();
+        new Thread(
+            () -> {
+                setUpFlatLafUI();
+                finalSplash.progressed(10);
+                initDependencies();
+                finalSplash.progressed(20);
+                // Build & show UI on the EDT (required for safe Swing + JFXPanel interop)
+                SwingUtilities.invokeLater(
+                    () -> {
+                        AppMainFrame mainFrame = null;
+                        try {
+                            mainFrame = new AppMainFrame(finalSplash::progressed);
+                        } catch (IOException ex) {
+                            Logger.getLogger(Main.class.getName()).log(Level.SEVERE, null, ex);
+                        }
+                        mainFrame.setVisible(false);
+                        mainFrame.setMinimumSize(new Dimension(800, 400));
+                        mainFrame.setPreferredSize(new Dimension(800, 400));
+                        mainFrame.setLocationRelativeTo(null);
+                        finalSplash.progressed(100);
 
+                        // Wait for splash animation to reach 100% before hiding
+                        final AppMainFrame frame = mainFrame;
+                        Timer delayTimer = new Timer(
+                            600,
+                            e -> {
+                                finalSplash.setVisible(false);
+                                frame.checkAndLoadRecent();
+                                frame.setDefaultCloseOperation(AppMainFrame.DO_NOTHING_ON_CLOSE);
+                                Boolean IS_MAXI_SUPPORTED = Toolkit
+                                    .getDefaultToolkit()
+                                    .isFrameStateSupported(JFrame.MAXIMIZED_BOTH);
+                                if (IS_MAXI_SUPPORTED) {
+                                    frame.setExtendedState(JFrame.MAXIMIZED_BOTH);
+                                }
+                                finalSplash.dispose();
+                                frame.setVisible(true);
+                                // Swap Swing chrome for JavaFX CSS-styled chrome
+                                frame.initFXChrome();
+                            }
+                        );
+                        delayTimer.setRepeats(false);
+                        delayTimer.start();
+                    }
+                );
+            },
+            "UI:MainUI"
+        )
+        .start();
     }
 
     /**
      * Initializes all dependencies required for the application.
      * This includes common dependencies and method or actions from INGenious command package or plugins.
-     * 
+     *
      * @throws DuplicateMethodException if duplicate methods are detected during loading,
      *         which will cause the application to exit with error code 1
      */
     private static void initDependencies() {
         initCommonDependencies();
-       try {
-           MethodInfoManager.load();
-           //ByObjectProp.load();
-       } catch (DuplicateMethodException ex) {
-           System.getLogger(Main.class.getName()).log(System.Logger.Level.ERROR, (String) null, ex);
-           System.exit(1);
-       }
+        try {
+            MethodInfoManager.load();
+            //ByObjectProp.load();
+        } catch (DuplicateMethodException ex) {
+            System
+                .getLogger(Main.class.getName())
+                .log(System.Logger.Level.ERROR, (String) null, ex);
+            System.exit(1);
+        }
     }
 
     // ── Theme API ──
@@ -241,29 +376,31 @@ public class Main {
         try {
             // FlatLaf global properties - must be set BEFORE setup()
             UIManager.put("flatlaf.useWindowDecorations", false);
-            
+
             // Filled triangle style for split pane and combo box arrows
             UIManager.put("Component.arrowType", "triangle");
-            
+
             // Tree expand/collapse icons - set BEFORE FlatLaf.setup() for proper theming
-            String expandedKey  = isDarkMode ? "tree.expandedDark"  : "tree.expandedLight";
+            String expandedKey = isDarkMode ? "tree.expandedDark" : "tree.expandedLight";
             String collapsedKey = isDarkMode ? "tree.collapsedDark" : "tree.collapsedLight";
-            javax.swing.Icon expandedIcon  = INGIcons.swingColored(expandedKey, 12);
+            javax.swing.Icon expandedIcon = INGIcons.swingColored(expandedKey, 12);
             javax.swing.Icon collapsedIcon = INGIcons.swingColored(collapsedKey, 12);
             UIManager.put("Tree.expandedIcon", expandedIcon);
             UIManager.put("Tree.collapsedIcon", collapsedIcon);
 
             FlatLightLaf.setup();
-            
+
             // Re-apply tree icons after setup to override FlatLaf defaults
             UIManager.put("Tree.expandedIcon", expandedIcon);
             UIManager.put("Tree.collapsedIcon", collapsedIcon);
             UIManager.getLookAndFeelDefaults().put("Tree.expandedIcon", expandedIcon);
             UIManager.getLookAndFeelDefaults().put("Tree.collapsedIcon", collapsedIcon);
-            
+
             applyCustomColors();
         } catch (Exception ex) {
-            Logger.getLogger(Main.class.getName()).log(Level.SEVERE, "Failed to set up FlatLaf", ex);
+            Logger
+                .getLogger(Main.class.getName())
+                .log(Level.SEVERE, "Failed to set up FlatLaf", ex);
         }
     }
 
@@ -285,14 +422,14 @@ public class Main {
      */
     private static void applyLightColors() {
         // Warm base (no grey)
-        Color warmBg      = Color.decode("#FAFAF8");
+        Color warmBg = Color.decode("#FAFAF8");
         Color warmControl = Color.decode("#F5F4F1");
 
         // Derived tints from ING brand
-        Color purpleLight   = Color.decode("#E5D6FF");
-        Color purpleVLight  = Color.decode("#F5F0FF");
-        Color orangeLight   = Color.decode("#FFE0CC");
-        Color orangeVLight  = Color.decode("#FFF5EE");
+        Color purpleLight = Color.decode("#E5D6FF");
+        Color purpleVLight = Color.decode("#F5F0FF");
+        Color orangeLight = Color.decode("#FFE0CC");
+        Color orangeVLight = Color.decode("#FFF5EE");
 
         // ── Warm backgrounds (removes cold grey) ──
         UIManager.put("Panel.background", warmBg);
@@ -407,7 +544,7 @@ public class Main {
         UIManager.put("TableHeader.bottomSeparatorColor", Color.decode("#D0D7DE"));
 
         // ── Buttons ──
-        
+
         putLafColor("Button.default.background", Color.WHITE);
         putLafColor("Button.default.foreground", Color.BLACK);
 
@@ -419,7 +556,6 @@ public class Main {
 
         putLafColor("Button.default.pressedBackground", Color.decode("#5212C0"));
         putLafColor("Button.default.pressedForeground", Color.WHITE);
-
 
         // ── Scrollbar (warm neutral, not grey) ──
         UIManager.put("ScrollBar.thumbColor", Color.decode("#D5D0CC"));
@@ -457,22 +593,22 @@ public class Main {
      */
     private static void applyDarkColors() {
         // Elegant purplish dark colors (matching toolbar/menu bar)
-        Color darkBg      = Color.decode("#1E1A24");
-        Color darkPanel   = Color.decode("#252030");
+        Color darkBg = Color.decode("#1E1A24");
+        Color darkPanel = Color.decode("#252030");
         Color darkSurface = Color.decode("#2D2838");
-        Color warmText    = Color.decode("#E8E2E5");
-        
+        Color warmText = Color.decode("#E8E2E5");
+
         // Sidebar colors (purplish dark, matching main theme)
         Color sidebarDark = Color.decode("#1E1A24");
-        Color editorDark  = Color.decode("#252030");
+        Color editorDark = Color.decode("#252030");
         Color dividerGray = Color.decode("#3A3545");
 
         // Muted tints for dark
-        Color orangeDark   = Color.decode("#4D2800");
-        Color orangeMuted  = Color.decode("#3D2010");
-        Color purpleDark   = Color.decode("#2D1A45");
-        Color blueDark     = Color.decode("#1A2A3D");
-        Color blueMuted    = Color.decode("#1D2535");
+        Color orangeDark = Color.decode("#4D2800");
+        Color orangeMuted = Color.decode("#3D2010");
+        Color purpleDark = Color.decode("#2D1A45");
+        Color blueDark = Color.decode("#1A2A3D");
+        Color blueMuted = Color.decode("#1D2535");
 
         // ── Dark backgrounds ──
         UIManager.put("Panel.background", darkBg);
@@ -519,18 +655,18 @@ public class Main {
         UIManager.put("execPanel", orangeMuted);
         UIManager.put("execToolBar", orangeDark);
         UIManager.put("BDDEditor", purpleDark);
-        UIManager.put("searchBox", darkSurface);  // Search box with dark background
+        UIManager.put("searchBox", darkSurface); // Search box with dark background
         UIManager.put("shadow", new Color(0, 0, 0, 80));
         UIManager.put("exec", ING_ORANGE);
         UIManager.put("text", warmText);
-        UIManager.put("foreground", warmText);  // Generic foreground for components
+        UIManager.put("foreground", warmText); // Generic foreground for components
         UIManager.put("gridColor", blueMuted);
         UIManager.put("designTableHeader", blueDark);
         UIManager.put("execTableHeader", orangeDark);
         UIManager.put("execColor", blueDark);
         UIManager.put("designColor", blueDark);
         UIManager.put("execTableColor", orangeMuted);
-        
+
         // Set generic foreground in L&F defaults as well
         UIManager.getLookAndFeelDefaults().put("foreground", warmText);
 
@@ -579,9 +715,9 @@ public class Main {
         UIManager.put("CheckBoxMenuItem.selectionForeground", Color.WHITE);
 
         // ── Selection colors (subtle gray, not violet) ──
-        Color subtleSelection = Color.decode("#33333D");  // Very subtle, nearly gray
+        Color subtleSelection = Color.decode("#33333D"); // Very subtle, nearly gray
         Color subtleSelectionInactive = Color.decode("#2A2A32");
-        
+
         // Set in both UIManager and L&F defaults to ensure FlatLaf picks them up
         UIManager.put("List.selectionBackground", subtleSelection);
         UIManager.put("List.selectionForeground", warmText);
@@ -595,21 +731,26 @@ public class Main {
         UIManager.put("Table.selectionForeground", warmText);
         UIManager.put("Table.background", editorDark);
         UIManager.put("Table.foreground", warmText);
-        
+
         // Also set in LookAndFeelDefaults to ensure FlatLaf uses them for row painting
         UIManager.getLookAndFeelDefaults().put("Tree.selectionBackground", subtleSelection);
-        UIManager.getLookAndFeelDefaults().put("Tree.selectionInactiveBackground", subtleSelectionInactive);
+        UIManager
+            .getLookAndFeelDefaults()
+            .put("Tree.selectionInactiveBackground", subtleSelectionInactive);
         UIManager.getLookAndFeelDefaults().put("List.selectionBackground", subtleSelection);
         UIManager.getLookAndFeelDefaults().put("Table.selectionBackground", subtleSelection);
 
         // ── Table appearance ──
-        Color subtleGridLine = Color.decode("#3A3545");  // Subtle gray grid lines
+        Color subtleGridLine = Color.decode("#3A3545"); // Subtle gray grid lines
         UIManager.put("Table.alternateRowColor", Color.decode("#221D2A"));
         UIManager.put("Table.showHorizontalLines", true);
         UIManager.put("Table.showVerticalLines", true);
         UIManager.put("Table.gridColor", subtleGridLine);
         UIManager.put("Table.cellFocusColor", subtleGridLine);
-        UIManager.put("Table.focusCellHighlightBorder", javax.swing.BorderFactory.createLineBorder(subtleGridLine));
+        UIManager.put(
+            "Table.focusCellHighlightBorder",
+            javax.swing.BorderFactory.createLineBorder(subtleGridLine)
+        );
         UIManager.put("TableHeader.background", darkSurface);
         UIManager.put("TableHeader.foreground", warmText);
         UIManager.put("TableHeader.separatorColor", subtleGridLine);
@@ -644,10 +785,10 @@ public class Main {
         // ── Buttons ──
         UIManager.put("Button.background", darkSurface);
         UIManager.put("Button.foreground", warmText);
-        UIManager.put("Button.disabledForeground", Color.decode("#6E6878"));  // Muted text for disabled buttons
+        UIManager.put("Button.disabledForeground", Color.decode("#6E6878")); // Muted text for disabled buttons
         UIManager.put("Button.selectedForeground", warmText);
-        UIManager.put("Button.unfocusedForeground", warmText);  // Ensure unfocused buttons also have light text
-        
+        UIManager.put("Button.unfocusedForeground", warmText); // Ensure unfocused buttons also have light text
+
         putLafColor("Button.default.background", ING_ORANGE);
         putLafColor("Button.default.foreground", Color.WHITE);
 
@@ -661,10 +802,12 @@ public class Main {
         putLafColor("Button.default.pressedForeground", Color.WHITE);
 
         putLafColor("Button.default.disabledForeground", Color.decode("#6E6878"));
-        
+
         // Set button colors in L&F defaults to ensure FlatLaf picks them up
         UIManager.getLookAndFeelDefaults().put("Button.foreground", warmText);
-        UIManager.getLookAndFeelDefaults().put("Button.disabledForeground", Color.decode("#6E6878"));
+        UIManager
+            .getLookAndFeelDefaults()
+            .put("Button.disabledForeground", Color.decode("#6E6878"));
         UIManager.getLookAndFeelDefaults().put("Button.default.foreground", Color.WHITE);
 
         // ── Scrollbar ──
@@ -682,7 +825,7 @@ public class Main {
         UIManager.put("TitledBorder.titleColor", warmText);
         UIManager.put("CheckBox.foreground", warmText);
         UIManager.put("RadioButton.foreground", warmText);
-        
+
         // Set in L&F defaults to ensure FlatLaf components use these colors
         UIManager.getLookAndFeelDefaults().put("Label.foreground", warmText);
         UIManager.getLookAndFeelDefaults().put("CheckBox.foreground", warmText);
@@ -719,7 +862,7 @@ public class Main {
         UIManager.put("ing.borderThumbHover", Color.decode("#5A5565"));
         UIManager.put("ing.borderThumbSelected", Color.decode("#6A6575"));
     }
-    
+
     /**
      * Stores a color value in both the global UIManager defaults and the active Look and Feel defaults.
      *
@@ -747,9 +890,9 @@ public class Main {
         UIManager.put("ProgressBar.foreground", ING_PURPLE);
 
         // ── Tree expand/collapse icons (elegant chevrons) ──
-        String expandedKey  = isDarkMode ? "tree.expandedDark"  : "tree.expandedLight";
+        String expandedKey = isDarkMode ? "tree.expandedDark" : "tree.expandedLight";
         String collapsedKey = isDarkMode ? "tree.collapsedDark" : "tree.collapsedLight";
-        javax.swing.Icon expandedIcon  = INGIcons.swingColored(expandedKey, 12);
+        javax.swing.Icon expandedIcon = INGIcons.swingColored(expandedKey, 12);
         javax.swing.Icon collapsedIcon = INGIcons.swingColored(collapsedKey, 12);
         // Set in both UIManager and L&F defaults to ensure FlatLaf respects them
         UIManager.put("Tree.expandedIcon", expandedIcon);
@@ -761,7 +904,7 @@ public class Main {
         registerCustomFont();
 
         Font ingMeRegular = new Font("ING Me", Font.PLAIN, 12);
-        Font ingMeBold    = new Font("ING Me", Font.BOLD, 12);
+        Font ingMeBold = new Font("ING Me", Font.BOLD, 12);
 
         UIManager.put("defaultFont", ingMeRegular);
         UIManager.put("TableMenu.font", new Font("ING Me", Font.PLAIN, 11));
@@ -785,19 +928,27 @@ public class Main {
      */
     private static void registerCustomFont() {
         try {
-            Font customFont = Font.createFont(Font.TRUETYPE_FONT,
-                    new File("resources/ui/resources/fonts/ingme_regular.ttf"));
+            Font customFont = Font.createFont(
+                Font.TRUETYPE_FONT,
+                new File("resources/ui/resources/fonts/ingme_regular.ttf")
+            );
             GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
             ge.registerFont(customFont);
         } catch (IOException | FontFormatException e) {
-            Logger.getLogger(Main.class.getName()).log(Level.FINE, "Custom font not found, using defaults", e);
+            Logger
+                .getLogger(Main.class.getName())
+                .log(Level.FINE, "Custom font not found, using defaults", e);
         }
     }
 
     public static void finish() {
-       STOP_WATCH.stop();
-       Logger.getLogger(Main.class.getName()).log(Level.INFO, "INGenious Playwright Studio has been Terminated - [ Total Time : {0} ]", STOP_WATCH.toString());
+        STOP_WATCH.stop();
+        Logger
+            .getLogger(Main.class.getName())
+            .log(
+                Level.INFO,
+                "INGenious Playwright Studio has been Terminated - [ Total Time : {0} ]",
+                STOP_WATCH.toString()
+            );
     }
-     
 }
-

@@ -1,7 +1,6 @@
 package com.ing.datalib.settings;
 
 import com.ing.datalib.util.data.LinkedProperties;
-
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -11,7 +10,6 @@ import java.util.*;
  *
  */
 public class DBProperties {
-
     private final Map<String, Properties> dbProperties = new HashMap<>();
 
     private static String location;
@@ -45,7 +43,10 @@ public class DBProperties {
                     String dbAlias = dbfile.getName().replace(".properties", "");
                     if (!dbList.contains(dbAlias)) {
                         dbList.add(dbAlias);
-                        dbProperties.put(dbfile.getName().replace(".properties", ""), PropUtils.load(dbfile));
+                        dbProperties.put(
+                            dbfile.getName().replace(".properties", ""),
+                            PropUtils.load(dbfile)
+                        );
                     }
                 }
             }
@@ -56,26 +57,35 @@ public class DBProperties {
         dbList.add(dbName);
     }
 
-
     public void addDB(String dbName, Properties prop) {
         dbProperties.put(dbName, prop);
         save();
     }
 
     public void addDBProperty(String dbName) {
-        addDBProperty(dbName, "com.mysql.cj.jdbc.Driver", "jdbc:<Database>://<Host>:<Port>/<Database name>", "30", "false");
+        addDBProperty(
+            dbName,
+            "com.mysql.cj.jdbc.Driver",
+            "jdbc:<Database>://<Host>:<Port>/<Database name>",
+            "30",
+            "false"
+        );
     }
 
-    public void addDBProperty(String dbName, String driver, String connectionString, String timeout, String commit) {
+    public void addDBProperty(
+        String dbName,
+        String driver,
+        String connectionString,
+        String timeout,
+        String commit
+    ) {
         Properties prop = new Properties();
         prop = setDatabaseProperties(prop);
         addDB(dbName, prop);
-
     }
 
-
     public void save() {
-       // createDBFolder();
+        // createDBFolder();
         for (Map.Entry<String, Properties> entry : dbProperties.entrySet()) {
             String dbName = entry.getKey();
             Properties dbProp = entry.getValue();
@@ -84,7 +94,7 @@ public class DBProperties {
     }
 
     public void save(String dbName) {
-       // createDBFolder();
+        // createDBFolder();
         if (dbProperties.containsKey(dbName)) {
             PropUtils.save(dbProperties.get(dbName), getDBLocation(dbName));
         }
@@ -136,7 +146,7 @@ public class DBProperties {
             System.out.println("default.properties file already exists: " + location);
         }
     }
-    
+
     private Properties setDatabaseProperties(Properties prop) {
         prop.setProperty("db.alias", "default");
         prop.setProperty("user", "");
@@ -146,8 +156,5 @@ public class DBProperties {
         prop.setProperty("timeout", "30");
         prop.setProperty("commit", "false");
         return prop;
-
     }
-
-
 }

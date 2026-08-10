@@ -22,15 +22,15 @@ public class DefectModulesTest {
     @Test
     public void testCheckServerNullThrows() {
         assertThatThrownBy(() -> Data.checkServer(null))
-                .isInstanceOf(Exception.class)
-                .hasMessage("Server URL is Empty!!");
+            .isInstanceOf(Exception.class)
+            .hasMessage("Server URL is Empty!!");
     }
 
     @Test
     public void testCheckServerEmptyThrows() {
         assertThatThrownBy(() -> Data.checkServer(""))
-                .isInstanceOf(Exception.class)
-                .hasMessage("Server URL is Empty!!");
+            .isInstanceOf(Exception.class)
+            .hasMessage("Server URL is Empty!!");
     }
 
     @Test

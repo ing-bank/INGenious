@@ -1,23 +1,23 @@
 package com.ing.engine.commands.browser;
 
 import com.ing.engine.core.CommandControl;
+import com.ing.engine.core.Control;
+import com.ing.ingenious.api.annotation.Action;
 import com.ing.ingenious.api.exception.ActionException;
 import com.ing.ingenious.api.status.Status;
-import com.ing.ingenious.api.annotation.Action;
 import com.ing.ingenious.api.types.InputType;
 import com.ing.ingenious.api.types.ObjectType;
-import com.ing.engine.core.Control;
 import com.ing.util.encryption.Encryption;
 import com.microsoft.playwright.*;
 import java.awt.Dimension;
 import java.awt.Toolkit;
 import java.nio.file.Files;
-import java.util.List;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.List;
 import java.util.Properties;
 import org.apache.commons.lang3.StringUtils;
 
@@ -33,9 +33,12 @@ public class Switch extends Command {
             Page.WaitForPopupOptions options = new Page.WaitForPopupOptions();
             options.setTimeout(getTimeoutValue());
 
-            Page popup = Page.waitForPopup(options, () -> {
-                Locator.click();
-            });
+            Page popup = Page.waitForPopup(
+                options,
+                () -> {
+                    Locator.click();
+                }
+            );
 
             BrowserContext = popup.context();
             AObject.setPage(popup);
@@ -61,24 +64,35 @@ public class Switch extends Command {
             Page.bringToFront();
             Driver.setPage(page);
 
-            Report.updateTestLog(Action, "Successfully switched to new Page with URL: " + Data, Status.DONE);
+            Report.updateTestLog(
+                Action,
+                "Successfully switched to new Page with URL: " + Data,
+                Status.DONE
+            );
         } catch (Exception e) {
             Report.updateTestLog(Action, "Something went wrong" + e.getMessage(), Status.DEBUG);
             throw new ActionException(e);
         }
     }
 
-    @Action(object = ObjectType.BROWSER, desc = "Switch to new Browser Context", input = InputType.YES, condition = InputType.YES)
+    @Action(
+        object = ObjectType.BROWSER,
+        desc = "Switch to new Browser Context",
+        input = InputType.YES,
+        condition = InputType.YES
+    )
     public void createAndSwitchToNewContext() {
         try {
             Browser.NewContextOptions newContextOptions = new Browser.NewContextOptions();
             Page.NavigateOptions options = new Page.NavigateOptions();
             if (!Condition.startsWith("#")) {
                 options.setTimeout(getTimeoutValue());
-            } else {                
+            } else {
                 String contextAlias = Condition.replace("#", "");
-                newContextOptions = enhancedContextOptions(newContextOptions,contextAlias);
-                options.setTimeout(Double.parseDouble(getSpecificContextValue(contextAlias,"pageTimeout")));
+                newContextOptions = enhancedContextOptions(newContextOptions, contextAlias);
+                options.setTimeout(
+                    Double.parseDouble(getSpecificContextValue(contextAlias, "pageTimeout"))
+                );
             }
             Browser browser = BrowserContext.browser();
             BrowserContext = browser.newContext(newContextOptions);
@@ -88,7 +102,11 @@ public class Switch extends Command {
             Page.bringToFront();
             Driver.setPage(Page);
 
-            Report.updateTestLog(Action, "Successfully switched to new Context with URL: " + Data, Status.DONE);
+            Report.updateTestLog(
+                Action,
+                "Successfully switched to new Context with URL: " + Data,
+                Status.DONE
+            );
         } catch (Exception e) {
             Report.updateTestLog(Action, "Something went wrong" + e.getMessage(), Status.DEBUG);
             throw new ActionException(e);
@@ -104,18 +122,29 @@ public class Switch extends Command {
             Page = pages.get(index);
             Page.bringToFront();
             Driver.setPage(pages.get(index));
-            Report.updateTestLog(Action, "Successfully switched to Page [" + index + "]", Status.DONE);
+            Report.updateTestLog(
+                Action,
+                "Successfully switched to Page [" + index + "]",
+                Status.DONE
+            );
         } catch (Exception e) {
             Report.updateTestLog(Action, "Something went wrong" + e.getMessage(), Status.DEBUG);
             throw new ActionException(e);
         }
     }
 
-    @Action(object = ObjectType.BROWSER, desc = "Switch to Context by index", input = InputType.YES, condition = InputType.OPTIONAL)
+    @Action(
+        object = ObjectType.BROWSER,
+        desc = "Switch to Context by index",
+        input = InputType.YES,
+        condition = InputType.OPTIONAL
+    )
     public void switchToContextByIndex() throws InterruptedException {
         try {
             int index = Integer.parseInt(Data);
-            List<com.microsoft.playwright.BrowserContext> contexts = BrowserContext.browser().contexts();
+            List<com.microsoft.playwright.BrowserContext> contexts = BrowserContext
+                .browser()
+                .contexts();
             BrowserContext = contexts.get(index);
             Thread.sleep(500);
             int pageIndex = 0;
@@ -126,17 +155,28 @@ public class Switch extends Command {
             AObject.setPage(Page);
             Page.bringToFront();
             Driver.setPage(Page);
-            Report.updateTestLog(Action, "Successfully switched to Context [" + index + "]", Status.DONE);
+            Report.updateTestLog(
+                Action,
+                "Successfully switched to Context [" + index + "]",
+                Status.DONE
+            );
         } catch (Exception e) {
             Report.updateTestLog(Action, "Something went wrong" + e.getMessage(), Status.DEBUG);
             throw new ActionException(e);
         }
     }
 
-    @Action(object = ObjectType.BROWSER, desc = "Switch to Context by Page Title", input = InputType.YES, condition = InputType.OPTIONAL)
+    @Action(
+        object = ObjectType.BROWSER,
+        desc = "Switch to Context by Page Title",
+        input = InputType.YES,
+        condition = InputType.OPTIONAL
+    )
     public void switchToContextByPageTitle() {
         try {
-            List<com.microsoft.playwright.BrowserContext> contexts = BrowserContext.browser().contexts();
+            List<com.microsoft.playwright.BrowserContext> contexts = BrowserContext
+                .browser()
+                .contexts();
             int pageIndex = 0;
             boolean found = false;
             if (!Condition.isEmpty()) {
@@ -150,12 +190,20 @@ public class Switch extends Command {
                     Page.bringToFront();
                     Driver.setPage(Page);
                     found = true;
-                    Report.updateTestLog(Action, "Successfully switched to Context with Page title matching [" + Data + "]", Status.DONE);
+                    Report.updateTestLog(
+                        Action,
+                        "Successfully switched to Context with Page title matching [" + Data + "]",
+                        Status.DONE
+                    );
                     break;
                 }
             }
             if (!found) {
-                Report.updateTestLog(Action, "Context with Page title matching [" + Data + "] could not be found", Status.FAIL);
+                Report.updateTestLog(
+                    Action,
+                    "Context with Page title matching [" + Data + "] could not be found",
+                    Status.FAIL
+                );
             }
         } catch (Exception e) {
             Report.updateTestLog(Action, "Something went wrong" + e.getMessage(), Status.DEBUG);
@@ -163,10 +211,17 @@ public class Switch extends Command {
         }
     }
 
-    @Action(object = ObjectType.BROWSER, desc = "Switch to Context by Page URL", input = InputType.YES, condition = InputType.OPTIONAL)
+    @Action(
+        object = ObjectType.BROWSER,
+        desc = "Switch to Context by Page URL",
+        input = InputType.YES,
+        condition = InputType.OPTIONAL
+    )
     public void switchToContextByPageURL() {
         try {
-            List<com.microsoft.playwright.BrowserContext> contexts = BrowserContext.browser().contexts();
+            List<com.microsoft.playwright.BrowserContext> contexts = BrowserContext
+                .browser()
+                .contexts();
             int pageIndex = 0;
             boolean found = false;
             if (!Condition.isEmpty()) {
@@ -180,12 +235,20 @@ public class Switch extends Command {
                     Page.bringToFront();
                     Driver.setPage(Page);
                     found = true;
-                    Report.updateTestLog(Action, "Successfully switched to Context with Page URL matching [" + Data + "]", Status.DONE);
+                    Report.updateTestLog(
+                        Action,
+                        "Successfully switched to Context with Page URL matching [" + Data + "]",
+                        Status.DONE
+                    );
                     break;
                 }
             }
             if (!found) {
-                Report.updateTestLog(Action, "Context with Page URL matching [" + Data + "] could not be found", Status.FAIL);
+                Report.updateTestLog(
+                    Action,
+                    "Context with Page URL matching [" + Data + "] could not be found",
+                    Status.FAIL
+                );
             }
         } catch (Exception e) {
             Report.updateTestLog(Action, "Something went wrong" + e.getMessage(), Status.DEBUG);
@@ -214,8 +277,11 @@ public class Switch extends Command {
             try {
                 timeout = Double.parseDouble(Condition.trim());
             } catch (NumberFormatException e) {
-                Report.updateTestLog(Action,
-                        "'" + Condition + "' cannot be converted to timeout of type Double", Status.DEBUG);
+                Report.updateTestLog(
+                    Action,
+                    "'" + Condition + "' cannot be converted to timeout of type Double",
+                    Status.DEBUG
+                );
             }
         }
         return timeout;
@@ -228,30 +294,35 @@ public class Switch extends Command {
     private static final String STORAGE_STATE_PATH = "storageStatePath";
     private static final String ENC_SUFFIX = " Enc";
 
-    private Browser.NewContextOptions enhancedContextOptions(Browser.NewContextOptions newContextOptions, String contextAlias) {
-        
-            Properties contextDetails = getContextDetails(contextAlias);
-            configureAuthentication(newContextOptions, contextDetails);
-            configureStorageState(newContextOptions, contextDetails);
+    private Browser.NewContextOptions enhancedContextOptions(
+        Browser.NewContextOptions newContextOptions,
+        String contextAlias
+    ) {
+        Properties contextDetails = getContextDetails(contextAlias);
+        configureAuthentication(newContextOptions, contextDetails);
+        configureStorageState(newContextOptions, contextDetails);
 
-            List<String> contextOptions = getContextOptions(contextAlias);
-            if (contextOptions != null && !contextOptions.isEmpty()) {
-                for (String prop : contextOptions) {
-                    String[] keyValue = prop.split("=", 2);
-                    if (keyValue.length == 2) {
-                        configureContextOption(newContextOptions, keyValue[0], keyValue[1]);
-                    }
+        List<String> contextOptions = getContextOptions(contextAlias);
+        if (contextOptions != null && !contextOptions.isEmpty()) {
+            for (String prop : contextOptions) {
+                String[] keyValue = prop.split("=", 2);
+                if (keyValue.length == 2) {
+                    configureContextOption(newContextOptions, keyValue[0], keyValue[1]);
                 }
             }
+        }
 
         return newContextOptions;
     }
 
-    private void configureAuthentication(Browser.NewContextOptions newContextOptions, Properties contextDetails) {
+    private void configureAuthentication(
+        Browser.NewContextOptions newContextOptions,
+        Properties contextDetails
+    ) {
         if (Boolean.parseBoolean(contextDetails.getProperty(AUTHENTICATE_CONTEXT))) {
             String userID = handleVariablesOrDatasheet(contextDetails.getProperty(USER_ID));
             String password = handleVariablesOrDatasheet(contextDetails.getProperty(PASSWORD));
-            
+
             if (password.endsWith(ENC_SUFFIX)) {
                 password = password.substring(0, password.lastIndexOf(ENC_SUFFIX));
                 password = new String(Encryption.getInstance().decrypt(password).getBytes());
@@ -260,20 +331,32 @@ public class Switch extends Command {
         }
     }
 
-    private void configureStorageState(Browser.NewContextOptions newContextOptions, Properties contextDetails) {
+    private void configureStorageState(
+        Browser.NewContextOptions newContextOptions,
+        Properties contextDetails
+    ) {
         if (Boolean.parseBoolean(contextDetails.getProperty(USE_STORAGE_STATE))) {
             String storageStatePath = contextDetails.getProperty(STORAGE_STATE_PATH);
             Path filePath = Paths.get(storageStatePath);
             if (Files.exists(filePath)) {
-                System.out.printf("\n========================\nStorage State used: '%s'\n========================\n", storageStatePath);
+                System.out.printf(
+                    "\n========================\nStorage State used: '%s'\n========================\n",
+                    storageStatePath
+                );
                 newContextOptions.setStorageStatePath(filePath);
             } else {
-                System.out.println("\n========================\nStorage State Path does not exist. Skipping setting Storage State\n========================\n");
+                System.out.println(
+                    "\n========================\nStorage State Path does not exist. Skipping setting Storage State\n========================\n"
+                );
             }
         }
     }
 
-    private void configureContextOption(Browser.NewContextOptions newContextOptions, String key, String value) {
+    private void configureContextOption(
+        Browser.NewContextOptions newContextOptions,
+        String key,
+        String value
+    ) {
         if (value == null || value.isEmpty()) {
             return;
         }
@@ -296,13 +379,13 @@ public class Switch extends Command {
                 break;
             case "setrecordvideodir":
                 newContextOptions.setRecordVideoDir(Paths.get(value));
-                break;    
+                break;
             case "setscreensize":
                 setScreenSize(newContextOptions, value);
                 break;
             case "setrecordvideosize":
                 setRecordVideoSize(newContextOptions, value);
-                break;    
+                break;
             case "setuseragent":
                 newContextOptions.setUserAgent(value);
                 break;
@@ -320,11 +403,14 @@ public class Switch extends Command {
                 break;
         }
     }
-    
+
     private static void setViewportSize(Browser.NewContextOptions newContextOptions, String value) {
         if (value.equals("maximized")) {
             Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
-            newContextOptions.setViewportSize((int) screenSize.getWidth(), (int) screenSize.getHeight());
+            newContextOptions.setViewportSize(
+                (int) screenSize.getWidth(),
+                (int) screenSize.getHeight()
+            );
         } else {
             String[] dimensions = value.split(",");
             int width = Integer.parseInt(dimensions[0]);
@@ -332,12 +418,14 @@ public class Switch extends Command {
             newContextOptions.setViewportSize(width, height);
         }
     }
-    
+
     private static void setGeolocation(Browser.NewContextOptions newContextOptions, String value) {
         String[] coordinates = value.split(",");
         double latitude = Double.parseDouble(coordinates[0]);
         double longitude = Double.parseDouble(coordinates[1]);
-        newContextOptions.setGeolocation(latitude, longitude).setPermissions(Arrays.asList("geolocation"));
+        newContextOptions
+            .setGeolocation(latitude, longitude)
+            .setPermissions(Arrays.asList("geolocation"));
     }
 
     private static void setScreenSize(Browser.NewContextOptions newContextOptions, String value) {
@@ -347,7 +435,10 @@ public class Switch extends Command {
         newContextOptions.setScreenSize(width, height);
     }
 
-    private static void setRecordVideoSize(Browser.NewContextOptions newContextOptions, String value) {
+    private static void setRecordVideoSize(
+        Browser.NewContextOptions newContextOptions,
+        String value
+    ) {
         String[] dimensions = value.split(",");
         int width = Integer.parseInt(dimensions[0]);
         int height = Integer.parseInt(dimensions[1]);
@@ -355,42 +446,64 @@ public class Switch extends Command {
     }
 
     private static List<String> getContextOptions(String contextName) {
-        Properties prop = Control.getCurrentProject().getProjectSettings().getContextSettings()
-                .getContextOptionsFor(contextName);
+        Properties prop = Control
+            .getCurrentProject()
+            .getProjectSettings()
+            .getContextSettings()
+            .getContextOptionsFor(contextName);
         List<String> options = new ArrayList<>();
         if (prop != null) {
-            prop.keySet().stream().forEach((key) -> {
-                if (prop.getProperty(key.toString()) == null) {
-                } else {
-                    options.add(key.toString() + "=" + prop.getProperty(key.toString()));
-                }
-            });
+            prop
+                .keySet()
+                .stream()
+                .forEach(
+                    key -> {
+                        if (prop.getProperty(key.toString()) == null) {} else {
+                            options.add(key.toString() + "=" + prop.getProperty(key.toString()));
+                        }
+                    }
+                );
         }
         return options;
     }
 
     private static Properties getContextDetails(String contextAlias) {
-        return Control.getCurrentProject().getProjectSettings().getContextSettings().getContextOptionsFor(contextAlias);
+        return Control
+            .getCurrentProject()
+            .getProjectSettings()
+            .getContextSettings()
+            .getContextOptionsFor(contextAlias);
     }
-    
+
     private static String getSpecificContextValue(String contextAlias, String option) {
-        Properties contextDetails = Control.getCurrentProject().getProjectSettings().getContextSettings().getContextOptionsFor(contextAlias);
+        Properties contextDetails = Control
+            .getCurrentProject()
+            .getProjectSettings()
+            .getContextSettings()
+            .getContextOptionsFor(contextAlias);
         return contextDetails.getProperty(option);
-        
     }
-    
+
     private String handleDataSheet(String value) {
-        List<String> sheetlist = Control.getCurrentProject().getTestData().getTestDataFor(Control.exe.runEnv())
-                .getTestDataNames();
+        List<String> sheetlist = Control
+            .getCurrentProject()
+            .getTestData()
+            .getTestDataFor(Control.exe.runEnv())
+            .getTestDataNames();
         for (int sheet = 0; sheet < sheetlist.size(); sheet++) {
             if (value.contains("{" + sheetlist.get(sheet) + ":")) {
-                com.ing.datalib.testdata.model.TestDataModel tdModel = Control.getCurrentProject()
-                        .getTestData().getTestDataByName(sheetlist.get(sheet));
+                com.ing.datalib.testdata.model.TestDataModel tdModel = Control
+                    .getCurrentProject()
+                    .getTestData()
+                    .getTestDataByName(sheetlist.get(sheet));
                 List<String> columns = tdModel.getColumns();
                 for (int col = 0; col < columns.size(); col++) {
                     if (value.contains("{" + sheetlist.get(sheet) + ":" + columns.get(col) + "}")) {
-                        value = value.replace("{" + sheetlist.get(sheet) + ":" + columns.get(col) + "}",
-                                userData.getData(sheetlist.get(sheet), columns.get(col)));
+                        value =
+                            value.replace(
+                                "{" + sheetlist.get(sheet) + ":" + columns.get(col) + "}",
+                                userData.getData(sheetlist.get(sheet), columns.get(col))
+                            );
                     }
                 }
             }
@@ -399,21 +512,27 @@ public class Switch extends Command {
     }
 
     private String handleUserDefinedVariables(String value) {
-        Collection<Object> keys = Control.getCurrentProject().getProjectSettings().getUserDefinedSettings().keySet();
+        Collection<Object> keys = Control
+            .getCurrentProject()
+            .getProjectSettings()
+            .getUserDefinedSettings()
+            .keySet();
         for (Object key : keys) {
-            if (value.equals("%"+key+"%")) {   
-                return Control.getCurrentProject().getProjectSettings().getUserDefinedSettings().getProperty(key.toString());
+            if (value.equals("%" + key + "%")) {
+                return Control
+                    .getCurrentProject()
+                    .getProjectSettings()
+                    .getUserDefinedSettings()
+                    .getProperty(key.toString());
             }
         }
         return value;
     }
-    
+
     private String handleVariablesOrDatasheet(String value) {
-        
         value = handleDataSheet(value);
         value = handleUserDefinedVariables(value);
-        
+
         return value;
     }
-
 }

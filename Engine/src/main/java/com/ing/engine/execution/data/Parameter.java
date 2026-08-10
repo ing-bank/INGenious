@@ -1,13 +1,10 @@
-
 package com.ing.engine.execution.data;
-
 
 /**
  *
- * 
+ *
  */
 public class Parameter {
-
     private int iteration;
     private int subIteration;
 
@@ -62,8 +59,12 @@ public class Parameter {
     }
 
     public static int resolveStartIter(String iter) {
-        if (iter == null || iter.isEmpty() || "Single".equalsIgnoreCase(iter)
-                || "All".equalsIgnoreCase(iter)) {
+        if (
+            iter == null ||
+            iter.isEmpty() ||
+            "Single".equalsIgnoreCase(iter) ||
+            "All".equalsIgnoreCase(iter)
+        ) {
             return 1;
         } else if (iter.matches("\\d+")) {
             return Integer.valueOf(iter);
@@ -73,8 +74,7 @@ public class Parameter {
             return 1;
         }
     }
-    
-    
+
     //<editor-fold defaultstate="collapsed" desc="param loops">
     public static boolean startParamRLoop(String condition) {
         return condition.matches("Start (Param|Loop).*");
@@ -87,10 +87,11 @@ public class Parameter {
     public static boolean endParamRLoop(String condition) {
         return condition.matches("End (Param|Loop).*");
     }
-//</editor-fold>
+
+    //</editor-fold>
 
     @Override
-    public String toString(){
-    	return String.format("%s:%s", iteration,subIteration);
+    public String toString() {
+        return String.format("%s:%s", iteration, subIteration);
     }
 }

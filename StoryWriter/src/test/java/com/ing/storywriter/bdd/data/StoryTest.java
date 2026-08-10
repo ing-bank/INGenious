@@ -1,6 +1,7 @@
 package com.ing.storywriter.bdd.data;
 
 import static org.assertj.core.api.Assertions.assertThat;
+
 import org.json.simple.JSONObject;
 import org.testng.annotations.Test;
 

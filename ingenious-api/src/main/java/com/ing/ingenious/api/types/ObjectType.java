@@ -43,7 +43,7 @@ public class ObjectType {
     /** Queue messaging object type */
     public static final String QUEUE = "Queue";
     /** Synthetic data generation object type */
-    public static final String DATA = "Data";
+    public static final String DATA = "Synthetic Data";
     /** General utility operations object type */
     public static final String GENERAL = "General";
     /** String manipulation operations object type */

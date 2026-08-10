@@ -1,11 +1,20 @@
-
 package com.ing.storywriter.bdd.ui;
 
+import com.ing.storywriter.bdd.data.BDDProject;
+import com.ing.storywriter.bdd.data.Story;
+import com.ing.storywriter.bdd.data.StoryParser;
+import com.ing.storywriter.bdd.ui.handlers.FeatureListTransferHandler;
+import com.ing.storywriter.util.Notification.Msg;
+import com.ing.storywriter.util.SLogger;
+import com.ing.storywriter.util.Tools;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseListener;
 import java.io.File;
+import java.io.IOException;
 import java.io.InputStream;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.logging.Level;
 import java.util.logging.LogManager;
 import java.util.logging.Logger;
@@ -13,22 +22,11 @@ import javax.swing.JFileChooser;
 import javax.swing.TransferHandler;
 import javax.swing.UIManager;
 import javax.swing.event.ListSelectionEvent;
-import com.ing.storywriter.bdd.data.Story;
-import com.ing.storywriter.bdd.data.BDDProject;
-import com.ing.storywriter.bdd.data.StoryParser;
-import com.ing.storywriter.bdd.ui.handlers.FeatureListTransferHandler;
-import com.ing.storywriter.util.Notification.Msg;
-import com.ing.storywriter.util.SLogger;
-import com.ing.storywriter.util.Tools;
-import java.io.IOException;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 
 /**
  *
  */
 public final class UIControl {
-
     BDDProject project;
     String path = "projects/test.json";
     public UI2 ui;
@@ -88,7 +86,6 @@ public final class UIControl {
     }
 
     public static void main(String[] args) throws IOException {
-
         try {
             LogManager logManager = LogManager.getLogManager();
             try (InputStream is = UIManager.class.getResourceAsStream("/log.config")) {
@@ -104,29 +101,38 @@ public final class UIControl {
                     break;
                 }
             }
-        } catch (ClassNotFoundException | InstantiationException | IllegalAccessException | javax.swing.UnsupportedLookAndFeelException ex) {
+        } catch (
+            ClassNotFoundException
+            | InstantiationException
+            | IllegalAccessException
+            | javax.swing.UnsupportedLookAndFeelException ex
+        ) {
             LOGGER.log(Level.SEVERE, null, ex);
         }
         ctrl = new UIControl();
-
     }
 
     /**
      * initialize listeners
      */
     private void initListeners() {
-        ui.featureList.addListSelectionListener((ListSelectionEvent e) -> {
-            storyChanged();
-        });
-        sClick = (new MouseAdapter() {
-            @Override
-            public void mouseClicked(MouseEvent e) {
-                if (e.getClickCount() == 2) {
-                    startEdit((Story) ui.featureList.getSelectedValue());
-                }
+        ui.featureList.addListSelectionListener(
+            (ListSelectionEvent e) -> {
+                storyChanged();
             }
-        });
+        );
+        sClick =
+            (
+                new MouseAdapter() {
 
+                    @Override
+                    public void mouseClicked(MouseEvent e) {
+                        if (e.getClickCount() == 2) {
+                            startEdit((Story) ui.featureList.getSelectedValue());
+                        }
+                    }
+                }
+            );
     }
 
     /**
@@ -168,7 +174,6 @@ public final class UIControl {
                 ui.featureList.setSelectedIndex(index);
             }
         }
-
     }
 
     /**
@@ -216,7 +221,6 @@ public final class UIControl {
             rItems.updateMenu(ui.recentsMenu);
             SLogger.LOGA(openProj.getSelectedFile().getAbsolutePath());
             LOGGER.info(openProj.getSelectedFile().getAbsolutePath());
-
         }
     }
 
@@ -226,10 +230,14 @@ public final class UIControl {
     void addStory() {
         String name = ui.storyName.getText();
         if (editStory) {
-             LOGGER.info(String.format("Updating Feature %s", ((Story) ui.featureList.getSelectedValue()).name));
+            LOGGER.info(
+                String.format(
+                    "Updating Feature %s",
+                    ((Story) ui.featureList.getSelectedValue()).name
+                )
+            );
             ((Story) ui.featureList.getSelectedValue()).name = ui.storyName.getText();
-           
-        } else if (name != null && !"".equals(name)) {            
+        } else if (name != null && !"".equals(name)) {
             Story s = new Story(name, ui.storyDesc.getText());
             LOGGER.info(String.format("Adding Feature %s", s.name));
             addStory(s);
@@ -250,12 +258,12 @@ public final class UIControl {
     /**
      * creates new project
      */
-    
+
     private static String sanitizePathTraversal(String filename) {
         Path p = Paths.get(filename);
         return p.getFileName().toString();
     }
-    
+
     void createNewProject() {
         String name = sanitizePathTraversal(ui.npName.getText());
         if (!name.isEmpty()) {
@@ -273,7 +281,6 @@ public final class UIControl {
                 LOGGER.log(Level.WARNING, "Project Exist! {0}", f.getAbsolutePath());
             }
         }
-
     }
 
     /**
@@ -281,7 +288,6 @@ public final class UIControl {
      */
     private void clearAll() {
         ui.storydata.clear();
-
     }
 
     /**
@@ -300,7 +306,6 @@ public final class UIControl {
      * @param feature
      */
     public void importFeature(File feature) {
-
         try {
             LOGGER.log(Level.INFO, "Importing {0}", feature.getName());
             StoryParser sp = new StoryParser(feature);
@@ -318,5 +323,4 @@ public final class UIControl {
         cStory.setData(text);
         ui.updateAutoComplete();
     }
-
 }

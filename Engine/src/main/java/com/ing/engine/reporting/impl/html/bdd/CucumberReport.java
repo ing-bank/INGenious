@@ -1,6 +1,9 @@
-
 package com.ing.engine.reporting.impl.html.bdd;
 
+import static java.util.stream.Collectors.groupingBy;
+import static java.util.stream.Collectors.toList;
+
+import com.google.gson.Gson;
 import com.ing.datalib.model.Attribute;
 import com.ing.datalib.model.Attributes;
 import com.ing.datalib.model.DataItem;
@@ -8,7 +11,6 @@ import com.ing.datalib.model.Meta;
 import com.ing.datalib.model.ProjectInfo;
 import com.ing.datalib.model.Tag;
 import com.ing.engine.core.Control;
-import com.google.gson.Gson;
 import java.io.File;
 import java.io.FileReader;
 import java.io.FileWriter;
@@ -24,8 +26,6 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import static java.util.stream.Collectors.groupingBy;
-import static java.util.stream.Collectors.toList;
 import java.util.stream.Stream;
 
 /**
@@ -42,7 +42,6 @@ import java.util.stream.Stream;
  * </ul>
  */
 public class CucumberReport {
-
     private static final CucumberReport INS = new CucumberReport();
 
     private File bddReport;
@@ -86,7 +85,11 @@ public class CucumberReport {
      */
     private void toCucumberReport(Report reportData, File bddReport) throws Exception {
         saveAs(bddReport, convert(reportData));
-        CucumberReport.get().ifPresent(reporter -> reporter.toCucumberHtmlReport(bddReport, reportData.projectName));
+        CucumberReport
+            .get()
+            .ifPresent(
+                reporter -> reporter.toCucumberHtmlReport(bddReport, reportData.projectName)
+            );
     }
 
     /**
@@ -157,8 +160,14 @@ public class CucumberReport {
      * @return List of FeatureReport objects
      */
     private List<FeatureReport> toCucumberReport(Report reportData) {
-        return reportData.getEXECUTIONS().stream().collect(groupingBy(Report.Execution::getScenarioName))
-                .entrySet().stream().map(To::FeatureReport).collect(toList());
+        return reportData
+            .getEXECUTIONS()
+            .stream()
+            .collect(groupingBy(Report.Execution::getScenarioName))
+            .entrySet()
+            .stream()
+            .map(To::FeatureReport)
+            .collect(toList());
     }
 
     /**
@@ -196,10 +205,17 @@ public class CucumberReport {
          * @return FeatureReport.Element object
          */
         private static FeatureReport.Element Element(Report.Execution exe) {
-            return new FeatureReport.Element(getKeyword(exe),
-                    getName(exe.description, exe.testcaseName), exe.description,
-                    getLine(findTC(exe.testcaseName, exe.scenarioName).getAttributes(), "feature.children.line"),
-                    getSteps(exe), getTags(exe.testcaseName, exe.scenarioName));
+            return new FeatureReport.Element(
+                getKeyword(exe),
+                getName(exe.description, exe.testcaseName),
+                exe.description,
+                getLine(
+                    findTC(exe.testcaseName, exe.scenarioName).getAttributes(),
+                    "feature.children.line"
+                ),
+                getSteps(exe),
+                getTags(exe.testcaseName, exe.scenarioName)
+            );
         }
 
         /**
@@ -209,8 +225,10 @@ public class CucumberReport {
          */
         private static String getKeyword(Report.Execution exe) {
             return findTC(exe.testcaseName, exe.scenarioName)
-                    .getAttributes().find("feature.children.keyword").orElse(Attribute.create("#", "Scenario"))
-                    .getValue();
+                .getAttributes()
+                .find("feature.children.keyword")
+                .orElse(Attribute.create("#", "Scenario"))
+                .getValue();
         }
 
         /**
@@ -229,8 +247,14 @@ public class CucumberReport {
          * @return List of FeatureReport.Step objects
          */
         private static List<FeatureReport.Step> getSteps(Report.Execution exe) {
-            return exe.getIterData().get(0).getSteps().stream()
-                    .filter(By::Reusable).map(To::Step).collect(toList());
+            return exe
+                .getIterData()
+                .get(0)
+                .getSteps()
+                .stream()
+                .filter(By::Reusable)
+                .map(To::Step)
+                .collect(toList());
         }
 
         /**
@@ -285,11 +309,21 @@ public class CucumberReport {
          * @return FeatureReport.Step object
          */
         private static FeatureReport.Step Step(Report.Step r) {
-            return new FeatureReport.Step(getName(r.description, RC(r.name)[1]),
-                    Result(r),
-                    getLine(findTC(RC(r.name)[1], RC(r.name)[0]).getAttributes(), "feature.children.step.line"))
-                    .withMatch(new FeatureReport.Match(String.format("//TestPlan/%s/%s.csv", (Object[]) RC(r.name))))
-                    .addEmbeddings(getDesc(r.data)).addEmbeddings(getImages(r.data));
+            return new FeatureReport.Step(
+                getName(r.description, RC(r.name)[1]),
+                Result(r),
+                getLine(
+                    findTC(RC(r.name)[1], RC(r.name)[0]).getAttributes(),
+                    "feature.children.step.line"
+                )
+            )
+                .withMatch(
+                    new FeatureReport.Match(
+                        String.format("//TestPlan/%s/%s.csv", (Object[]) RC(r.name))
+                    )
+                )
+                .addEmbeddings(getDesc(r.data))
+                .addEmbeddings(getImages(r.data));
         }
 
         /**
@@ -298,9 +332,13 @@ public class CucumberReport {
          * @return List of text FeatureReport.Embedding objects
          */
         private static List<FeatureReport.Embedding> getDesc(Object data) {
-            return dataStream(data).map(Report.Data::getDescription).map(To::Pure)
-                    .map(String::getBytes).map(To::Base64).map(To::TxtEmbedding)
-                    .collect(toList());
+            return dataStream(data)
+                .map(Report.Data::getDescription)
+                .map(To::Pure)
+                .map(String::getBytes)
+                .map(To::Base64)
+                .map(To::TxtEmbedding)
+                .collect(toList());
         }
 
         /**
@@ -309,10 +347,14 @@ public class CucumberReport {
          * @return List of image FeatureReport.Embedding objects
          */
         private static List<FeatureReport.Embedding> getImages(Object data) {
-            return dataStream(data).filter(By::Image)
-                    .map(Report.Data::getLink).map(To::File).map(To::Byte)
-                    .map(To::Base64).map(To::PngEmbedding)
-                    .collect(toList());
+            return dataStream(data)
+                .filter(By::Image)
+                .map(Report.Data::getLink)
+                .map(To::File)
+                .map(To::Byte)
+                .map(To::Base64)
+                .map(To::PngEmbedding)
+                .collect(toList());
         }
 
         /**
@@ -429,7 +471,9 @@ public class CucumberReport {
          * @return "passed" or "failed"
          */
         private static String Status(String status) {
-            return Objects.nonNull(status) && status.toLowerCase().startsWith("pass") ? "passed" : "failed";
+            return Objects.nonNull(status) && status.toLowerCase().startsWith("pass")
+                ? "passed"
+                : "failed";
         }
 
         /**
@@ -439,7 +483,9 @@ public class CucumberReport {
          * @return Step name or description
          */
         private static String getName(String desc, String name) {
-            return Objects.nonNull(desc) && !desc.isEmpty() && !desc.equals("Test Run") ? desc : name;
+            return Objects.nonNull(desc) && !desc.isEmpty() && !desc.equals("Test Run")
+                ? desc
+                : name;
         }
 
         /**
@@ -477,8 +523,7 @@ public class CucumberReport {
         private static long calcDuration(Report.Step step) throws Exception {
             List<Map<String, Object>> data = (List<Map<String, Object>>) step.data;
             if (data.size() > 1) {
-                return Math.max(1,
-                        getTime(data.get(data.size() - 1)) - getTime(data.get(0)));
+                return Math.max(1, getTime(data.get(data.size() - 1)) - getTime(data.get(0)));
             } else {
                 return 1l;
             }
@@ -491,8 +536,9 @@ public class CucumberReport {
          * @throws ParseException if parsing fails
          */
         private static long getTime(Map<String, Object> step) throws ParseException {
-            return parseTime(((Map<String, String>) step.get("data"))
-                    .get(Report.Step.StepInfo.tStamp.name()));
+            return parseTime(
+                ((Map<String, String>) step.get("data")).get(Report.Step.StepInfo.tStamp.name())
+            );
         }
 
         /**
@@ -504,7 +550,6 @@ public class CucumberReport {
         private static long parseTime(String val) throws ParseException {
             return new SimpleDateFormat("dd-MMM-yyyy HH:mm:ss.sss").parse(val).getTime();
         }
-
     }
 
     /**
@@ -530,5 +575,4 @@ public class CucumberReport {
             return d.link != null;
         }
     }
-
 }

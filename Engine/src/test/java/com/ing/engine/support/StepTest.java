@@ -1,6 +1,7 @@
 package com.ing.engine.support;
 
 import static org.assertj.core.api.Assertions.assertThat;
+
 import org.testng.annotations.Test;
 
 /**
@@ -96,11 +97,12 @@ public class StepTest {
 
     @Test
     public void testFluentChaining() {
-        Step s = Step.create(1)
-                .object("Button", "Page1")
-                .action("click")
-                .condition("isEnabled")
-                .input("test");
+        Step s = Step
+            .create(1)
+            .object("Button", "Page1")
+            .action("click")
+            .condition("isEnabled")
+            .input("test");
         assertThat(s.ObjectName).isEqualTo("Button");
         assertThat(s.Reference).isEqualTo("Page1");
         assertThat(s.Action).isEqualTo("click");

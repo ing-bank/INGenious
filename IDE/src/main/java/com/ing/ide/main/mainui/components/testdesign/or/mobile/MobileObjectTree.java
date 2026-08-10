@@ -24,7 +24,6 @@ import javax.swing.tree.TreePath;
  * It acts as the controller between tree selections and OR object presentation.
  */
 public class MobileObjectTree extends ObjectTree {
-
     private final MobileORPanel oRPanel;
     private final ORSource source;
 
@@ -47,7 +46,11 @@ public class MobileObjectTree extends ObjectTree {
     }
 
     @Override
-    public void showImpactedTestCases(List<TestCase> testcases, String pageName, String objectName) {
+    public void showImpactedTestCases(
+        List<TestCase> testcases,
+        String pageName,
+        String objectName
+    ) {
         oRPanel.getTestDesign().getImpactUI().loadForObject(testcases, pageName, objectName);
     }
 
@@ -70,14 +73,15 @@ public class MobileObjectTree extends ObjectTree {
         return oRPanel.getObjectTable().getObject();
     }
 
-    public enum ORSource { 
-        PROJECT, SHARED 
+    public enum ORSource {
+        PROJECT,
+        SHARED
     }
 
-    public ORSource getSource() { 
-        return source; 
+    public ORSource getSource() {
+        return source;
     }
-    
+
     public MobileORPanel getORPanel() {
         return oRPanel;
     }

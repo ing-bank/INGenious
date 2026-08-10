@@ -1,6 +1,7 @@
 package com.ing.datalib.settings;
 
 import static org.assertj.core.api.Assertions.assertThat;
+
 import com.ing.datalib.util.data.LinkedProperties;
 import java.io.File;
 import java.io.IOException;
@@ -16,7 +17,6 @@ import org.testng.annotations.Test;
  * Tests for Capabilities — browser capability folder management.
  */
 public class CapabilitiesTest {
-
     private Path tempDir;
 
     @BeforeMethod
@@ -26,10 +26,11 @@ public class CapabilitiesTest {
 
     @AfterMethod
     public void tearDown() throws IOException {
-        Files.walk(tempDir)
-                .sorted(Comparator.reverseOrder())
-                .map(Path::toFile)
-                .forEach(File::delete);
+        Files
+            .walk(tempDir)
+            .sorted(Comparator.reverseOrder())
+            .map(Path::toFile)
+            .forEach(File::delete);
     }
 
     @Test
@@ -150,7 +151,8 @@ public class CapabilitiesTest {
         caps.save("Chromium");
 
         Capabilities reloaded = new Capabilities(tempDir.toString());
-        assertThat(reloaded.getCapabiltiesFor("Chromium").getProperty("setHeadless")).isEqualTo("true");
+        assertThat(reloaded.getCapabiltiesFor("Chromium").getProperty("setHeadless"))
+            .isEqualTo("true");
     }
 
     @Test
@@ -166,13 +168,19 @@ public class CapabilitiesTest {
     @Test
     public void testGetLocation() {
         Capabilities caps = new Capabilities(tempDir.toString());
-        assertThat(caps.getLocation()).isEqualTo(tempDir.toString() + File.separator + "Capabilities");
+        assertThat(caps.getLocation())
+            .isEqualTo(tempDir.toString() + File.separator + "Capabilities");
     }
 
     @Test
     public void testGetCapLocation() {
         Capabilities caps = new Capabilities(tempDir.toString());
-        String expected = tempDir.toString() + File.separator + "Capabilities" + File.separator + "Test.properties";
+        String expected =
+            tempDir.toString() +
+            File.separator +
+            "Capabilities" +
+            File.separator +
+            "Test.properties";
         assertThat(caps.getCapLocation("Test")).isEqualTo(expected);
     }
 

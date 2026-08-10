@@ -1,4 +1,3 @@
-
 package com.ing.ide.main.mainui.components.testdesign.testdata;
 
 import com.ing.ide.main.utils.SearchBox;
@@ -14,10 +13,9 @@ import javax.swing.UIManager;
 
 /**
  *
- * 
+ *
  */
 public class TestDataToolBar extends JToolBar {
-
     private final ActionListener actionListener;
 
     private JMenuItem addColumn;
@@ -31,7 +29,15 @@ public class TestDataToolBar extends JToolBar {
         this.actionListener = tdProxy;
         setFloatable(false);
         setOpaque(false);
-        setBorder(javax.swing.BorderFactory.createMatteBorder(0, 0, 1, 0, UIManager.getColor("Separator.foreground")));
+        setBorder(
+            javax.swing.BorderFactory.createMatteBorder(
+                0,
+                0,
+                1,
+                0,
+                UIManager.getColor("Separator.foreground")
+            )
+        );
         setLayout(new javax.swing.BoxLayout(this, javax.swing.BoxLayout.X_AXIS));
         init();
     }
@@ -58,16 +64,12 @@ public class TestDataToolBar extends JToolBar {
         if (tcText.length() > 20) {
             tcText = tcText.substring(0, 20) + "...";
         }
-        String text
-                = scText
-                + " ["
-                + tcText
-                + " ]";
-//        String toolTip
-//                = tdName
-//                + " ["
-//                + envName
-//                + " ]";
+        String text = scText + " [" + tcText + " ]";
+        //        String toolTip
+        //                = tdName
+        //                + " ["
+        //                + envName
+        //                + " ]";
         searchField.setPlaceHolder(text, null);
     }
 
@@ -75,19 +77,26 @@ public class TestDataToolBar extends JToolBar {
         searchField = new SearchBox(actionListener);
         add(searchField);
         addSeparator();
-        JMenuItem addRowButton = Utils.createMenuItem("Add Row", "Ctrl+Plus to add a row at last"
-                + "<br>"
-                + "Ctrl+I to insert a row before the selected row"
-                + "<br>"
-                + "Ctrl+R to replicate the row", Keystroke.ADD_ROWP, actionListener);
-        addColumn = Utils.createMenuItem("Add Column", "Alt+Plus", Keystroke.ADD_COLP, actionListener);
+        JMenuItem addRowButton = Utils.createMenuItem(
+            "Add Row",
+            "Ctrl+Plus to add a row at last" +
+            "<br>" +
+            "Ctrl+I to insert a row before the selected row" +
+            "<br>" +
+            "Ctrl+R to replicate the row",
+            Keystroke.ADD_ROWP,
+            actionListener
+        );
+        addColumn =
+            Utils.createMenuItem("Add Column", "Alt+Plus", Keystroke.ADD_COLP, actionListener);
 
         JDropDownButton addSplitButton = new JDropDownButton("Add Row");
-        addSplitButton.setToolTipText("Add Rows/Columns"
-                + "\n[Alt+Plus to add a column"
-                + "\n Ctrl+Plus to add a row at last"
-                + "\n Ctrl+I to insert a row before the selected row"
-                + "\n Ctrl+R to replicate the row]"
+        addSplitButton.setToolTipText(
+            "Add Rows/Columns" +
+            "\n[Alt+Plus to add a column" +
+            "\n Ctrl+Plus to add a row at last" +
+            "\n Ctrl+I to insert a row before the selected row" +
+            "\n Ctrl+R to replicate the row]"
         );
         addSplitButton.setIcon(Utils.getIconByResourceName("/ui/resources/toolbar/add"));
         addSplitButton.addMenu(addRowButton);
@@ -95,9 +104,16 @@ public class TestDataToolBar extends JToolBar {
 
         add(addSplitButton);
 
-        removeRow = Utils.createMenuItem("Delete Rows", "Ctrl+Minus", Keystroke.REMOVE_ROW, actionListener);
+        removeRow =
+            Utils.createMenuItem("Delete Rows", "Ctrl+Minus", Keystroke.REMOVE_ROW, actionListener);
 
-        removeColumn = Utils.createMenuItem("Delete Columns", "Alt+Minus", Keystroke.REMOVE_COL, actionListener);
+        removeColumn =
+            Utils.createMenuItem(
+                "Delete Columns",
+                "Alt+Minus",
+                Keystroke.REMOVE_COL,
+                actionListener
+            );
 
         JDropDownButton removeSplitButton = new JDropDownButton("Delete Rows");
         removeSplitButton.setToolTipText("Remove Rows/Columns");
@@ -116,14 +132,19 @@ public class TestDataToolBar extends JToolBar {
         addSeparator();
         add(saveButton = Utils.createButton("Save", "save", "Ctrl+S", actionListener));
         add(Utils.createButton("Reload", "reload", "F5", actionListener));
-        add(Utils.createButton("Open with System Editor", "openwithsystemeditor", "Ctrl+Alt+O", actionListener));
+        add(
+            Utils.createButton(
+                "Open with System Editor",
+                "openwithsystemeditor",
+                "Ctrl+Alt+O",
+                actionListener
+            )
+        );
         saveButton.setEnabled(false);
     }
-
 }
 
 class JDropDownButton extends JButton implements ActionListener {
-
     private final JPopupMenu dropDownMenu = new JPopupMenu();
 
     public JDropDownButton(String text) {
@@ -138,5 +159,4 @@ class JDropDownButton extends JButton implements ActionListener {
     public void actionPerformed(ActionEvent e) {
         dropDownMenu.show(this, 0, this.getHeight());
     }
-
 }

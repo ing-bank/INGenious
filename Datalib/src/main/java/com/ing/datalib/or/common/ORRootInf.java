@@ -1,18 +1,16 @@
-
 package com.ing.datalib.or.common;
 
-import com.ing.datalib.or.ObjectRepository;
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.ing.datalib.or.ObjectRepository;
 import java.util.List;
 import javax.swing.tree.TreeNode;
 
 /**
  *
- * 
+ *
  * @param <T>
  */
 public interface ORRootInf<T extends ORPageInf> extends TreeNode {
-
     @JsonIgnore
     public T addPage();
 

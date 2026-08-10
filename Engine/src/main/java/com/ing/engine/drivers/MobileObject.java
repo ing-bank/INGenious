@@ -6,36 +6,35 @@ import com.ing.datalib.or.common.ObjectGroup;
 import com.ing.datalib.or.image.ImageORObject;
 import com.ing.datalib.or.mobile.MobileORObject;
 import com.ing.datalib.or.mobile.MobileORPage;
+import com.ing.datalib.or.mobile.MobilePlatform;
 import com.ing.datalib.or.mobile.ResolvedMobileObject;
 import com.ing.datalib.or.web.WebORObject;
 import com.ing.datalib.or.web.WebORPage;
 import com.ing.engine.constants.SystemDefaults;
+import com.ing.engine.core.CommandControl;
 import com.ing.engine.core.Control;
 import com.ing.engine.drivers.findObjectBy.support.ByObjectProp;
-import com.ing.engine.core.CommandControl;
 import com.ing.ingenious.api.contract.drivers.MobileObjectApi;
 import io.appium.java_client.android.AndroidDriver;
 import java.time.Duration;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
-
 import org.openqa.selenium.By;
+//import org.openqa.selenium.support.ui.WebDriverWait;
+//import org.jsoup.Jsoup;
+//import org.jsoup.nodes.Document;
+//import org.jsoup.nodes.Element;
+import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.SearchContext;
 import org.openqa.selenium.TimeoutException;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
 import org.openqa.selenium.support.ui.ExpectedCondition;
 import org.openqa.selenium.support.ui.ExpectedConditions;
-//import org.openqa.selenium.support.ui.WebDriverWait;
-//import org.jsoup.Jsoup;
-//import org.jsoup.nodes.Document;
-//import org.jsoup.nodes.Element;
-import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.support.ui.WebDriverWait;
 
 public class MobileObject implements MobileObjectApi {
@@ -55,8 +54,7 @@ public class MobileObject implements MobileObjectApi {
     public static HashMap<String, String> globalDynamicValue = new HashMap<>();
     public static String Action = "";
 
-    public MobileObject() {
-    }
+    public MobileObject() {}
 
     public MobileObject(WebDriver Driver) {
         this.driver = Driver;
@@ -81,7 +79,12 @@ public class MobileObject implements MobileObjectApi {
      * @return
      */
     public boolean isAutoHealEnabled() {
-        return Control.getCurrentProject().getProjectSettings().getExecSettings().getRunSettings().isAutoHealEnabled();
+        return Control
+            .getCurrentProject()
+            .getProjectSettings()
+            .getExecSettings()
+            .getRunSettings()
+            .isAutoHealEnabled();
     }
 
     public WebElement findElement(SearchContext element, String objectKey, String pageKey) {
@@ -92,31 +95,63 @@ public class MobileObject implements MobileObjectApi {
         return findElement(objectKey, pageKey, Attribute, MobileObjectApi.FindmType.DEFAULT);
     }
 
-    public WebElement findElement(SearchContext element, String objectKey, String pageKey, String Attribute) {
-        return findElement(element, objectKey, pageKey, Attribute, MobileObjectApi.FindmType.DEFAULT);
+    public WebElement findElement(
+        SearchContext element,
+        String objectKey,
+        String pageKey,
+        String Attribute
+    ) {
+        return findElement(
+            element,
+            objectKey,
+            pageKey,
+            Attribute,
+            MobileObjectApi.FindmType.DEFAULT
+        );
     }
 
-    public WebElement findElement(String objectKey, String pageKey, MobileObjectApi.FindmType condition) {
+    public WebElement findElement(
+        String objectKey,
+        String pageKey,
+        MobileObjectApi.FindmType condition
+    ) {
         return findElement(driver, objectKey, pageKey, condition);
     }
 
-    public WebElement findElement(SearchContext element, String objectKey, String pageKey, MobileObjectApi.FindmType condition) {
+    public WebElement findElement(
+        SearchContext element,
+        String objectKey,
+        String pageKey,
+        MobileObjectApi.FindmType condition
+    ) {
         pageName = pageKey;
         objectName = objectKey;
         findType = condition;
         return getElementFromList(findElements(element, getORObject(pageKey, objectKey), null));
     }
 
-    public WebElement findElement(String objectKey, String pageKey, String Attribute, MobileObjectApi.FindmType condition) {
+    public WebElement findElement(
+        String objectKey,
+        String pageKey,
+        String Attribute,
+        MobileObjectApi.FindmType condition
+    ) {
         return findElement(driver, objectKey, pageKey, Attribute, condition);
     }
 
-    public WebElement findElement(SearchContext element, String objectKey, String pageKey, String Attribute,
-            MobileObjectApi.FindmType condition) {
+    public WebElement findElement(
+        SearchContext element,
+        String objectKey,
+        String pageKey,
+        String Attribute,
+        MobileObjectApi.FindmType condition
+    ) {
         pageName = pageKey;
         objectName = objectKey;
         findType = condition;
-        return getElementFromList(findElements(element, getORObject(pageKey, objectKey), Attribute));
+        return getElementFromList(
+            findElements(element, getORObject(pageKey, objectKey), Attribute)
+        );
     }
 
     public List<WebElement> findElements(String objectKey, String pageKey) {
@@ -127,11 +162,20 @@ public class MobileObject implements MobileObjectApi {
         return findElements(objectKey, pageKey, Attribute, MobileObjectApi.FindmType.DEFAULT);
     }
 
-    public List<WebElement> findElements(String objectKey, String pageKey, MobileObjectApi.FindmType condition) {
+    public List<WebElement> findElements(
+        String objectKey,
+        String pageKey,
+        MobileObjectApi.FindmType condition
+    ) {
         return findElements(driver, objectKey, pageKey, condition);
     }
 
-    public List<WebElement> findElements(String objectKey, String pageKey, String Attribute, MobileObjectApi.FindmType condition) {
+    public List<WebElement> findElements(
+        String objectKey,
+        String pageKey,
+        String Attribute,
+        MobileObjectApi.FindmType condition
+    ) {
         return findElements(driver, objectKey, pageKey, Attribute, condition);
     }
 
@@ -139,19 +183,40 @@ public class MobileObject implements MobileObjectApi {
         return findElements(element, objectKey, pageKey, MobileObjectApi.FindmType.DEFAULT);
     }
 
-    public List<WebElement> findElements(SearchContext element, String objectKey, String pageKey, String Attribute) {
-        return findElements(element, objectKey, pageKey, Attribute, MobileObjectApi.FindmType.DEFAULT);
+    public List<WebElement> findElements(
+        SearchContext element,
+        String objectKey,
+        String pageKey,
+        String Attribute
+    ) {
+        return findElements(
+            element,
+            objectKey,
+            pageKey,
+            Attribute,
+            MobileObjectApi.FindmType.DEFAULT
+        );
     }
 
-    public List<WebElement> findElements(SearchContext element, String objectKey, String pageKey, MobileObjectApi.FindmType condition) {
+    public List<WebElement> findElements(
+        SearchContext element,
+        String objectKey,
+        String pageKey,
+        MobileObjectApi.FindmType condition
+    ) {
         pageName = pageKey;
         objectName = objectKey;
         findType = condition;
         return findElements(element, getORObject(pageKey, objectKey), null);
     }
 
-    public List<WebElement> findElements(SearchContext element, String objectKey, String pageKey, String Attribute,
-            MobileObjectApi.FindmType condition) {
+    public List<WebElement> findElements(
+        SearchContext element,
+        String objectKey,
+        String pageKey,
+        String Attribute,
+        MobileObjectApi.FindmType condition
+    ) {
         pageName = pageKey;
         objectName = objectKey;
         findType = condition;
@@ -165,20 +230,27 @@ public class MobileObject implements MobileObjectApi {
     public ObjectGroup<?> getORObject(String page, String object) {
         ObjectRepository objRep = Control.getCurrentProject().getObjectRepository();
         try {
-            com.ing.datalib.or.mobile.ResolvedMobileObject.PageRef mref = com.ing.datalib.or.mobile.ResolvedMobileObject.PageRef.parse(page);
-            com.ing.datalib.or.mobile.ResolvedMobileObject mresolved = objRep.resolveMobileObject(mref, object);
+            com.ing.datalib.or.mobile.ResolvedMobileObject.PageRef mref = com.ing.datalib.or.mobile.ResolvedMobileObject.PageRef.parse(
+                page
+            );
+            com.ing.datalib.or.mobile.ResolvedMobileObject mresolved = objRep.resolveMobileObject(
+                mref,
+                object
+            );
             if (mresolved != null && mresolved.getGroup() != null) {
                 return mresolved.getGroup();
             }
-        } catch (Exception ignore) {
-        }
+        } catch (Exception ignore) {}
         if (objRep.getWebSharedOR().getPageByName(page) != null) {
             return objRep.getWebSharedOR().getPageByName(page).getObjectGroupByName(object);
         } else if (objRep.getWebOR().getPageByName(page) != null) {
             return objRep.getWebOR().getPageByName(page).getObjectGroupByName(object);
         } else if (objRep.getMobileOR().getPageByName(page) != null) {
             return objRep.getMobileOR().getPageByName(page).getObjectGroupByName(object);
-        } else if (objRep.getMobileSharedOR() != null && objRep.getMobileSharedOR().getPageByName(page) != null) {
+        } else if (
+            objRep.getMobileSharedOR() != null &&
+            objRep.getMobileSharedOR().getPageByName(page) != null
+        ) {
             return objRep.getMobileSharedOR().getPageByName(page).getObjectGroupByName(object);
         }
         return null;
@@ -201,9 +273,19 @@ public class MobileObject implements MobileObjectApi {
     public WebORObject getWebObject(String page, String object) {
         ObjectRepository objRep = Control.getCurrentProject().getObjectRepository();
         if (objRep.getWebSharedOR().getPageByName(page) != null) {
-            return objRep.getWebSharedOR().getPageByName(page).getObjectGroupByName(object).getObjects().get(0);
+            return objRep
+                .getWebSharedOR()
+                .getPageByName(page)
+                .getObjectGroupByName(object)
+                .getObjects()
+                .get(0);
         } else if (objRep.getWebOR().getPageByName(page) != null) {
-            return objRep.getWebOR().getPageByName(page).getObjectGroupByName(object).getObjects().get(0);
+            return objRep
+                .getWebOR()
+                .getPageByName(page)
+                .getObjectGroupByName(object)
+                .getObjects()
+                .get(0);
         }
         return null;
     }
@@ -212,7 +294,10 @@ public class MobileObject implements MobileObjectApi {
         ObjectRepository objRep = Control.getCurrentProject().getObjectRepository();
         if (objRep.getMobileOR().getPageByName(page) != null) {
             return objRep.getMobileOR().getPageByName(page).getObjectGroupByName(object);
-        } else if (objRep.getMobileSharedOR() != null && objRep.getMobileSharedOR().getPageByName(page) != null) {
+        } else if (
+            objRep.getMobileSharedOR() != null &&
+            objRep.getMobileSharedOR().getPageByName(page) != null
+        ) {
             return objRep.getMobileSharedOR().getPageByName(page).getObjectGroupByName(object);
         }
         return null;
@@ -221,15 +306,32 @@ public class MobileObject implements MobileObjectApi {
     public MobileORObject getMobileObject(String page, String object) {
         ObjectRepository objRep = Control.getCurrentProject().getObjectRepository();
         if (objRep.getMobileOR().getPageByName(page) != null) {
-            return objRep.getMobileOR().getPageByName(page).getObjectGroupByName(object).getObjects().get(0);
-        } else if (objRep.getMobileSharedOR() != null && objRep.getMobileSharedOR().getPageByName(page) != null) {
-            return objRep.getMobileSharedOR().getPageByName(page).getObjectGroupByName(object).getObjects().get(0);
+            return objRep
+                .getMobileOR()
+                .getPageByName(page)
+                .getObjectGroupByName(object)
+                .getObjects()
+                .get(0);
+        } else if (
+            objRep.getMobileSharedOR() != null &&
+            objRep.getMobileSharedOR().getPageByName(page) != null
+        ) {
+            return objRep
+                .getMobileSharedOR()
+                .getPageByName(page)
+                .getObjectGroupByName(object)
+                .getObjects()
+                .get(0);
         }
         return null;
     }
 
-    @SuppressWarnings({"unchecked", "rawtypes"})
-    private synchronized List<WebElement> findElements(SearchContext context, ObjectGroup objectGroup, String prop) {
+    @SuppressWarnings({ "unchecked", "rawtypes" })
+    private synchronized List<WebElement> findElements(
+        SearchContext context,
+        ObjectGroup objectGroup,
+        String prop
+    ) {
         if (objectGroup != null && !objectGroup.getObjects().isEmpty()) {
             if (objectGroup.getObjects().get(0) instanceof WebORObject) {
                 return getWElements(context, objectGroup, prop);
@@ -240,7 +342,11 @@ public class MobileObject implements MobileObjectApi {
         return null;
     }
 
-    private List<WebElement> getWElements(SearchContext context, ObjectGroup<WebORObject> objectGroup, String prop) {
+    private List<WebElement> getWElements(
+        SearchContext context,
+        ObjectGroup<WebORObject> objectGroup,
+        String prop
+    ) {
         long startTime = System.nanoTime();
         List<WebElement> elements = null;
         for (WebORObject object : objectGroup.getObjects()) {
@@ -254,11 +360,30 @@ public class MobileObject implements MobileObjectApi {
         return elements;
     }
 
-    private List<WebElement> getMElements(SearchContext context, ObjectGroup<MobileORObject> objectGroup, String prop) {
+    private List<WebElement> getMElements(
+        SearchContext context,
+        ObjectGroup<MobileORObject> objectGroup,
+        String prop
+    ) {
         long startTime = System.nanoTime();
         List<WebElement> elements = null;
+        MobilePlatform platform = resolvePlatform();
         for (MobileORObject object : objectGroup.getObjects()) {
-            elements = getElements(context, object.getAttributes(), prop);
+            List<ORAttribute> attrs = object.getAttributes(platform);
+            // Backward-compatibility safety net: if the target platform's locator
+            // list has no usable value (e.g. legacy object only filled in via the
+            // Mobile Spy with the other platform active), fall back to the other
+            // platform's attributes so the lookup still works.
+            if (!hasUsableValue(attrs)) {
+                MobilePlatform other = platform == MobilePlatform.IOS
+                    ? MobilePlatform.ANDROID
+                    : MobilePlatform.IOS;
+                List<ORAttribute> otherAttrs = object.getAttributes(other);
+                if (hasUsableValue(otherAttrs)) {
+                    attrs = otherAttrs;
+                }
+            }
+            elements = getElements(context, attrs, prop);
             if (elements != null && !elements.isEmpty()) {
                 break;
             }
@@ -267,7 +392,40 @@ public class MobileObject implements MobileObjectApi {
         return elements;
     }
 
-    private void printStats(List<?> elements, ObjectGroup<?> objectGroup, long startTime, long stopTime) {
+    private static boolean hasUsableValue(List<ORAttribute> attrs) {
+        if (attrs == null) {
+            return false;
+        }
+        for (ORAttribute a : attrs) {
+            if (a != null && a.getValue() != null && !a.getValue().trim().isEmpty()) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Determines which mobile platform's locator attributes to use for the
+     * current execution. Falls back to Android when the driver type cannot
+     * be detected, preserving legacy behaviour.
+     */
+    private MobilePlatform resolvePlatform() {
+        try {
+            if (driver instanceof io.appium.java_client.ios.IOSDriver) {
+                return MobilePlatform.IOS;
+            }
+        } catch (Throwable ignore) {
+            // io.appium not on classpath in some contexts – fall back.
+        }
+        return MobilePlatform.ANDROID;
+    }
+
+    private void printStats(
+        List<?> elements,
+        ObjectGroup<?> objectGroup,
+        long startTime,
+        long stopTime
+    ) {
         if (elements != null) {
             System.out.println(foundElementIn(objectGroup, stopTime, startTime));
         } else {
@@ -279,90 +437,116 @@ public class MobileObject implements MobileObjectApi {
         return String.format("Using @%s [%s], ", attr, val);
     }
 
-    private static String foundElementIn(ObjectGroup<?> objectGroup, long stopTime, long startTime) {
-        return String.format("Object '%s' Found in %s ms", objectGroup.getName(), (stopTime - startTime) / 1000000);
+    private static String foundElementIn(
+        ObjectGroup<?> objectGroup,
+        long stopTime,
+        long startTime
+    ) {
+        return String.format(
+            "Object '%s' Found in %s ms",
+            objectGroup.getName(),
+            (stopTime - startTime) / 1000000
+        );
     }
 
     private String notFoundIn(ObjectGroup<?> objectGroup) {
-        return String.format("Couldn't find Object '%s' in stipulated Time '%s' Seconds", objectGroup.getName(),
-                String.valueOf(getWaitTime().toSeconds()));
+        return String.format(
+            "Couldn't find Object '%s' in stipulated Time '%s' Seconds",
+            objectGroup.getName(),
+            String.valueOf(getWaitTime().toSeconds())
+        );
     }
 
-    private List<WebElement> getElements(final SearchContext context, final List<ORAttribute> attributes,
-            final String prop) {
+    private List<WebElement> getElements(
+        final SearchContext context,
+        final List<ORAttribute> attributes,
+        final String prop
+    ) {
         WebDriverWait wait = new WebDriverWait(driver, getWaitTime());
 
         try {
-            return wait.until((ExpectedCondition<List<WebElement>>) (WebDriver driver) -> {
-                String found = "no";
-                String elementString = "";
-                String tagName = "";
-                String tag = "";
-                String value = "";
-                List<WebElement> elements = new ArrayList<WebElement>();
-                elements = null;
-                for (ORAttribute attr : attributes) {
-                    if (!attr.getValue().trim().isEmpty()) {
-                        tag = attr.getName();
-                        value = getRuntimeValue(attr.getValue());
-                        if (tag.equals("NLP_locator")) {
-                            elements = NLP_located_element(attributes, Action, value);
-                            if (elements != null) {
-                                storeElementDetailsinOR(attributes, "tagName", elements.get(0).getTagName());
-                                storeElementDetailsinOR(attributes, "outerHTML",
-                                        elements.get(0).getAttribute("outerHTML"));
-                            }
-                        }
-                        if (tag.equals("outerHTML")) {
-                            elementString = attr.getValue();
-                            continue;
-                        }
-                        if (tag.equals("tagName")) {
-                            tagName = attr.getValue();
-                            continue;
-                        }
-                        //JSPath********'
-                        if (tag.equals("JSPath")) {
-                            if (!attr.getValue().trim().isEmpty()) {
-                                JavascriptExecutor js = (JavascriptExecutor) driver;
-                                elements = new ArrayList<WebElement>();
-                                elements.add((WebElement) js.executeScript("return " + attr.getValue()));
-                            }
-                        }
-
-                        if (elements != null) {
-                            return elements;
-                        } else if (elements == null) {
-                            By by = ByObjectProp.get().getBy(tag, value);
-                            if (by != null) {
-
-                                try {
-                                    elements = wait.until(ExpectedConditions.presenceOfAllElementsLocatedBy(by));
-                                } catch (TimeoutException ex) {
-                                    System.out.println("Element could not be identified with [" + tag + "] : [" + value + "]");
-                                    System.out.println(ex.getLocalizedMessage().substring(0, ex.getLocalizedMessage().indexOf("Build info")));
-                                    found = "no";
-                                    continue;
+            return wait.until(
+                (ExpectedCondition<List<WebElement>>) (WebDriver driver) -> {
+                    String found = "no";
+                    String elementString = "";
+                    String tag = "";
+                    String value = "";
+                    List<WebElement> elements = new ArrayList<WebElement>();
+                    elements = null;
+                    for (ORAttribute attr : attributes) {
+                        if (!attr.getValue().trim().isEmpty()) {
+                            tag = attr.getName();
+                            value = getRuntimeValue(attr.getValue());
+                            if (tag.equals("NLP_locator")) {
+                                elements = NLP_located_element(attributes, Action, value);
+                                if (elements != null) {
+                                    safeStoreOuterHTML(attributes, elements.get(0));
                                 }
+                            }
+                            if (tag.equals("outerHTML")) {
+                                elementString = attr.getValue();
+                                continue;
+                            }
+                            //JSPath********'
+                            if (tag.equals("JSPath")) {
+                                if (!attr.getValue().trim().isEmpty()) {
+                                    JavascriptExecutor js = (JavascriptExecutor) driver;
+                                    elements = new ArrayList<WebElement>();
+                                    elements.add(
+                                        (WebElement) js.executeScript("return " + attr.getValue())
+                                    );
+                                }
+                            }
 
-                                if (elements.size() == 1) {
-                                    System.out.print(foundElementBy(tag, value));
-                                    found = "yes";
-                                    if (!attributes.toString().contains("UiAutomator")) {
-                                        storeElementDetailsinOR(attributes, "tagName", elements.get(0).getTagName());
-                                        storeElementDetailsinOR(attributes, "outerHTML",
-                                                elements.get(0).getAttribute("outerHTML"));
+                            if (elements != null) {
+                                return elements;
+                            } else if (elements == null) {
+                                By by = ByObjectProp.get().getBy(tag, value);
+                                if (by != null) {
+                                    try {
+                                        elements =
+                                            wait.until(
+                                                ExpectedConditions.presenceOfAllElementsLocatedBy(
+                                                    by
+                                                )
+                                            );
+                                    } catch (TimeoutException ex) {
+                                        System.out.println(
+                                            "Element could not be identified with [" +
+                                            tag +
+                                            "] : [" +
+                                            value +
+                                            "]"
+                                        );
+                                        System.out.println(
+                                            ex
+                                                .getLocalizedMessage()
+                                                .substring(
+                                                    0,
+                                                    ex.getLocalizedMessage().indexOf("Build info")
+                                                )
+                                        );
+                                        found = "no";
+                                        continue;
                                     }
-                                    return elements;
-                                } else if (elements.size() > 1 || elements.size() == 0) {
-                                    found = "no";
+
+                                    if (elements.size() == 1) {
+                                        System.out.print(foundElementBy(tag, value));
+                                        found = "yes";
+                                        if (!attributes.toString().contains("UiAutomator")) {
+                                            safeStoreOuterHTML(attributes, elements.get(0));
+                                        }
+                                        return elements;
+                                    } else if (elements.size() > 1 || elements.size() == 0) {
+                                        found = "no";
+                                    }
                                 }
                             }
                         }
                     }
+                    return null;
                 }
-                return null;
-            });
+            );
         } catch (Exception ex) {
             //Logger.getLogger(this.getClass().getName()).log(Level.OFF, null, ex);
             return null;
@@ -379,7 +563,6 @@ public class MobileObject implements MobileObjectApi {
                     WebDriverWait wait = new WebDriverWait(driver, SystemDefaults.waitTime);
                     wait.until(ExpectedConditions.frameToBeAvailableAndSwitchToIt(frameData));
                 }
-
             }
         } catch (Exception ex) {
             // Error while switching to frame
@@ -392,7 +575,9 @@ public class MobileObject implements MobileObjectApi {
                 value = value.replace(Key, globalDynamicValue.get(Key));
             }
         }
-        if (dynamicValue.containsKey(pageName) && dynamicValue.get(pageName).containsKey(objectName)) {
+        if (
+            dynamicValue.containsKey(pageName) && dynamicValue.get(pageName).containsKey(objectName)
+        ) {
             for (String Key : dynamicValue.get(pageName).get(objectName).keySet()) {
                 value = value.replace(Key, dynamicValue.get(pageName).get(objectName).get(Key));
             }
@@ -403,7 +588,6 @@ public class MobileObject implements MobileObjectApi {
 
     public void setDriver(AndroidDriver driver) {
         this.driver = (AndroidDriver) driver;
-
     }
 
     /**
@@ -437,7 +621,9 @@ public class MobileObject implements MobileObjectApi {
         if (wPage != null) {
             for (ObjectGroup<WebORObject> objectgroup : wPage.getObjectGroups()) {
                 if (objectgroup.getName().matches(regexObject)) {
-                    WebElement element = getElementFromList(getWElements(driver, objectgroup, null));
+                    WebElement element = getElementFromList(
+                        getWElements(driver, objectgroup, null)
+                    );
                     if (element != null) {
                         elementList.put(objectgroup.getName(), element);
                     }
@@ -446,7 +632,9 @@ public class MobileObject implements MobileObjectApi {
         } else if (mPage != null) {
             for (ObjectGroup<MobileORObject> objectgroup : mPage.getObjectGroups()) {
                 if (objectgroup.getName().matches(regexObject)) {
-                    WebElement element = getElementFromList(getMElements(driver, objectgroup, null));
+                    WebElement element = getElementFromList(
+                        getMElements(driver, objectgroup, null)
+                    );
                     if (element != null) {
                         elementList.put(objectgroup.getName(), element);
                     }
@@ -502,206 +690,279 @@ public class MobileObject implements MobileObjectApi {
         return this.waitTime != null ? this.waitTime : SystemDefaults.elementWaitTime;
     }
 
-    public List<WebElement> NLP_located_element(List<ORAttribute> attributes, String Action, String text) {
+    public List<WebElement> NLP_located_element(
+        List<ORAttribute> attributes,
+        String Action,
+        String text
+    ) {
         WebDriverWait wait = new WebDriverWait(driver, getWaitTime());
-        boolean isSetOperation = Pattern.compile("set", Pattern.CASE_INSENSITIVE + Pattern.LITERAL).matcher(Action)
-                .find();
-        boolean isSelectOperation = Pattern.compile("select", Pattern.CASE_INSENSITIVE + Pattern.LITERAL)
-                .matcher(Action).find();
-        boolean isclickOperation = Pattern.compile("click", Pattern.CASE_INSENSITIVE + Pattern.LITERAL).matcher(Action)
-                .find();
-        boolean isRelativeObject = Pattern.compile(".* for .*").matcher(text).find() || Pattern.compile(".* next to .*").matcher(text).find() || Pattern.compile(".* after .*").matcher(text).find();
+        boolean isSetOperation = Pattern
+            .compile("set", Pattern.CASE_INSENSITIVE + Pattern.LITERAL)
+            .matcher(Action)
+            .find();
+        boolean isSelectOperation = Pattern
+            .compile("select", Pattern.CASE_INSENSITIVE + Pattern.LITERAL)
+            .matcher(Action)
+            .find();
+        boolean isclickOperation = Pattern
+            .compile("click", Pattern.CASE_INSENSITIVE + Pattern.LITERAL)
+            .matcher(Action)
+            .find();
+        boolean isRelativeObject =
+            Pattern.compile(".* for .*").matcher(text).find() ||
+            Pattern.compile(".* next to .*").matcher(text).find() ||
+            Pattern.compile(".* after .*").matcher(text).find();
         boolean isBeforeObject = Pattern.compile(".* before .*").matcher(text).find();
 
         try {
-
-            return wait.until((ExpectedCondition<List<WebElement>>) (WebDriver driver) -> {
-
-                if (isSetOperation) {
-                    String parentXpath = "//*[contains(text(),'" + text + "')]";
-                    String labelxpath = "./following::input[1]";
-                    String placeholderXpath = "//*[@placeholder='" + text + "']";
-                    if (getAttributeValue(attributes, "tagName").contains("textarea")) {
-                        labelxpath = "./following::textarea[1]";
-                    }
-
-                    if (isRelativeObject) {
-
-                        String targetElement = "";
-                        String parentElement = "";
-                        String splitPhrase = "";
-
-                        if (text.contains(" for ")) {
-                            splitPhrase = " for ";
-                        }
-                        if (text.contains(" next to ")) {
-                            splitPhrase = " next to ";
-                        }
-                        if (text.contains(" after ")) {
-                            splitPhrase = " after ";
-                        }
-
-                        targetElement = text.split(splitPhrase)[0].replace("\"", "");
-                        parentElement = text.split(splitPhrase)[1].replace("\"", "");
-
-                        parentXpath = "//*[contains(text(),'" + parentElement + "')]";
-                        labelxpath = "./following::input[contains(text(),'" + targetElement + "')][1]";
-                        placeholderXpath = "//*[contains(text(),'" + parentElement + "')]/following::*[@placeholder='"
-                                + targetElement + "']";
+            return wait.until(
+                (ExpectedCondition<List<WebElement>>) (WebDriver driver) -> {
+                    if (isSetOperation) {
+                        String parentXpath = "//*[contains(text(),'" + text + "')]";
+                        String labelxpath = "./following::input[1]";
+                        String placeholderXpath = "//*[@placeholder='" + text + "']";
                         if (getAttributeValue(attributes, "tagName").contains("textarea")) {
-                            labelxpath = "./following::textarea[contains(text(),'" + targetElement + "')][1]";
+                            labelxpath = "./following::textarea[1]";
                         }
-                    }
 
-                    if (isBeforeObject) {
+                        if (isRelativeObject) {
+                            String targetElement = "";
+                            String parentElement = "";
+                            String splitPhrase = "";
 
-                        String targetElement = text.split(" before ")[0].replace("\"", "");
-                        String parentElement = text.split(" before ")[1].replace("\"", "");
-                        parentXpath = "//*[contains(text(),'" + parentElement + "')]";
-                        labelxpath = "./preceding::input[contains(text(),'" + targetElement + "')][1]";
-                        placeholderXpath = "//*[contains(text(),'" + parentElement + "')]/preceding::*[@placeholder='"
-                                + targetElement + "']";
-                        if (getAttributeValue(attributes, "tagName").contains("textarea")) {
-                            labelxpath = "./preceding::textarea[contains(text(),'" + targetElement + "')][1]";
+                            if (text.contains(" for ")) {
+                                splitPhrase = " for ";
+                            }
+                            if (text.contains(" next to ")) {
+                                splitPhrase = " next to ";
+                            }
+                            if (text.contains(" after ")) {
+                                splitPhrase = " after ";
+                            }
+
+                            targetElement = text.split(splitPhrase)[0].replace("\"", "");
+                            parentElement = text.split(splitPhrase)[1].replace("\"", "");
+
+                            parentXpath = "//*[contains(text(),'" + parentElement + "')]";
+                            labelxpath =
+                                "./following::input[contains(text(),'" + targetElement + "')][1]";
+                            placeholderXpath =
+                                "//*[contains(text(),'" +
+                                parentElement +
+                                "')]/following::*[@placeholder='" +
+                                targetElement +
+                                "']";
+                            if (getAttributeValue(attributes, "tagName").contains("textarea")) {
+                                labelxpath =
+                                    "./following::textarea[contains(text(),'" +
+                                    targetElement +
+                                    "')][1]";
+                            }
                         }
-                    }
 
-                    if (driver.findElements(By.xpath(placeholderXpath)).size() != 0) {
-                        for (WebElement element : driver.findElements(By.xpath(placeholderXpath))) {
-                            if (element.isDisplayed()) {
-                                System.out.print(foundElementBy("xpath", placeholderXpath));
-                                return driver.findElements(By.xpath(placeholderXpath));
+                        if (isBeforeObject) {
+                            String targetElement = text.split(" before ")[0].replace("\"", "");
+                            String parentElement = text.split(" before ")[1].replace("\"", "");
+                            parentXpath = "//*[contains(text(),'" + parentElement + "')]";
+                            labelxpath =
+                                "./preceding::input[contains(text(),'" + targetElement + "')][1]";
+                            placeholderXpath =
+                                "//*[contains(text(),'" +
+                                parentElement +
+                                "')]/preceding::*[@placeholder='" +
+                                targetElement +
+                                "']";
+                            if (getAttributeValue(attributes, "tagName").contains("textarea")) {
+                                labelxpath =
+                                    "./preceding::textarea[contains(text(),'" +
+                                    targetElement +
+                                    "')][1]";
+                            }
+                        }
+
+                        if (driver.findElements(By.xpath(placeholderXpath)).size() != 0) {
+                            for (WebElement element : driver.findElements(
+                                By.xpath(placeholderXpath)
+                            )) {
+                                if (element.isDisplayed()) {
+                                    System.out.print(foundElementBy("xpath", placeholderXpath));
+                                    return driver.findElements(By.xpath(placeholderXpath));
+                                }
+                            }
+                        }
+
+                        if (driver.findElements(By.xpath(parentXpath)).size() != 0) {
+                            for (WebElement element : driver.findElements(By.xpath(parentXpath))) {
+                                if (element.isDisplayed()) {
+                                    System.out.print(
+                                        foundElementBy(
+                                            "xpath",
+                                            parentXpath + labelxpath.substring(1)
+                                        )
+                                    );
+                                    return element.findElements(By.xpath(labelxpath));
+                                }
+                            }
+                        }
+                    } else if (isSelectOperation) {
+                        String parentXpath = "//*[contains(text(),'" + text + "')]";
+                        String labelSelectXpath = "./following::select[1]";
+                        if (isRelativeObject) {
+                            String targetElement = "";
+                            String parentElement = "";
+                            String splitPhrase = "";
+
+                            if (text.contains(" for ")) {
+                                splitPhrase = " for ";
+                            }
+                            if (text.contains(" next to ")) {
+                                splitPhrase = " next to ";
+                            }
+                            if (text.contains(" after ")) {
+                                splitPhrase = " after ";
+                            }
+
+                            targetElement = text.split(splitPhrase)[0].replace("\"", "");
+                            parentElement = text.split(splitPhrase)[1].replace("\"", "");
+
+                            parentXpath = "//*[contains(text(),'" + parentElement + "')]";
+                            labelSelectXpath =
+                                "./following::select[contains(text(),'" + targetElement + "')][1]";
+                        }
+                        if (isBeforeObject) {
+                            String targetElement = text.split(" before ")[0].replace("\"", "");
+                            String parentElement = text.split(" before ")[1].replace("\"", "");
+                            parentXpath = "//*[contains(text(),'" + parentElement + "')]";
+                            labelSelectXpath =
+                                "./preceding::select[contains(text(),'" + targetElement + "')][1]";
+                        }
+
+                        if (driver.findElements(By.xpath(parentXpath)).size() != 0) {
+                            for (WebElement element : driver.findElements(By.xpath(parentXpath))) {
+                                if (element.isDisplayed()) {
+                                    System.out.print(
+                                        foundElementBy(
+                                            "xpath",
+                                            parentXpath + labelSelectXpath.substring(1)
+                                        )
+                                    );
+                                    return element.findElements(By.xpath(labelSelectXpath));
+                                }
+                            }
+                        }
+                    } else {
+                        String labelClickXpath = "//*[contains(text(),'" + text + "')][1]";
+                        String valueClickXpath = "//*[contains(@value,'" + text + "')][1]";
+                        if (isRelativeObject) {
+                            String targetElement = "";
+                            String parentElement = "";
+                            String splitPhrase = "";
+
+                            if (text.contains(" for ")) {
+                                splitPhrase = " for ";
+                            }
+                            if (text.contains(" next to ")) {
+                                splitPhrase = " next to ";
+                            }
+                            if (text.contains(" after ")) {
+                                splitPhrase = " after ";
+                            }
+
+                            targetElement = text.split(splitPhrase)[0].replace("\"", "");
+                            parentElement = text.split(splitPhrase)[1].replace("\"", "");
+
+                            labelClickXpath =
+                                "//*[contains(text(),'" +
+                                parentElement +
+                                "')]/following::*[contains(text(),'" +
+                                targetElement +
+                                "')][1]";
+                            valueClickXpath =
+                                "//*[contains(@value,'" +
+                                parentElement +
+                                "')]/following::*[contains(text(),'" +
+                                targetElement +
+                                "')][1]";
+                        }
+
+                        if (isBeforeObject) {
+                            String targetElement = text.split(" before ")[0].replace("\"", "");
+                            String parentElement = text.split(" before ")[1].replace("\"", "");
+
+                            labelClickXpath =
+                                "//*[contains(text(),'" +
+                                parentElement +
+                                "')]/preceding::*[contains(text(),'" +
+                                targetElement +
+                                "')][1]";
+                            valueClickXpath =
+                                "//*[contains(@value,'" +
+                                parentElement +
+                                "')]/preceding::*[contains(text(),'" +
+                                targetElement +
+                                "')][1]";
+                        }
+
+                        if (driver.findElements(By.xpath(labelClickXpath)).size() != 0) {
+                            for (WebElement element : driver.findElements(
+                                By.xpath(labelClickXpath)
+                            )) {
+                                if (element.isDisplayed()) {
+                                    System.out.print(foundElementBy("xpath", labelClickXpath));
+                                    return driver.findElements(By.xpath(labelClickXpath));
+                                }
+                            }
+                        }
+
+                        if (driver.findElements(By.xpath(valueClickXpath)).size() != 0) {
+                            for (WebElement element : driver.findElements(
+                                By.xpath(valueClickXpath)
+                            )) {
+                                if (element.isDisplayed()) {
+                                    System.out.print(foundElementBy("xpath", valueClickXpath));
+                                    return driver.findElements(By.xpath(valueClickXpath));
+                                }
                             }
                         }
                     }
-
-                    if (driver.findElements(By.xpath(parentXpath)).size() != 0) {
-                        for (WebElement element : driver.findElements(By.xpath(parentXpath))) {
-                            if (element.isDisplayed()) {
-                                System.out.print(foundElementBy("xpath", parentXpath + labelxpath.substring(1)));
-                                return element.findElements(By.xpath(labelxpath));
-                            }
-                        }
-                    }
-
-                } else if (isSelectOperation) {
-                    String parentXpath = "//*[contains(text(),'" + text + "')]";
-                    String labelSelectXpath = "./following::select[1]";
-                    if (isRelativeObject) {
-
-                        String targetElement = "";
-                        String parentElement = "";
-                        String splitPhrase = "";
-
-                        if (text.contains(" for ")) {
-                            splitPhrase = " for ";
-                        }
-                        if (text.contains(" next to ")) {
-                            splitPhrase = " next to ";
-                        }
-                        if (text.contains(" after ")) {
-                            splitPhrase = " after ";
-                        }
-
-                        targetElement = text.split(splitPhrase)[0].replace("\"", "");
-                        parentElement = text.split(splitPhrase)[1].replace("\"", "");
-
-                        parentXpath = "//*[contains(text(),'" + parentElement + "')]";
-                        labelSelectXpath = "./following::select[contains(text(),'" + targetElement + "')][1]";
-                    }
-                    if (isBeforeObject) {
-
-                        String targetElement = text.split(" before ")[0].replace("\"", "");
-                        String parentElement = text.split(" before ")[1].replace("\"", "");
-                        parentXpath = "//*[contains(text(),'" + parentElement + "')]";
-                        labelSelectXpath = "./preceding::select[contains(text(),'" + targetElement + "')][1]";
-                    }
-
-                    if (driver.findElements(By.xpath(parentXpath)).size() != 0) {
-                        for (WebElement element : driver.findElements(By.xpath(parentXpath))) {
-                            if (element.isDisplayed()) {
-                                System.out.print(foundElementBy("xpath", parentXpath + labelSelectXpath.substring(1)));
-                                return element.findElements(By.xpath(labelSelectXpath));
-                            }
-                        }
-                    }
-                } else {
-
-                    String labelClickXpath = "//*[contains(text(),'" + text + "')][1]";
-                    String valueClickXpath = "//*[contains(@value,'" + text + "')][1]";
-                    if (isRelativeObject) {
-
-                        String targetElement = "";
-                        String parentElement = "";
-                        String splitPhrase = "";
-
-                        if (text.contains(" for ")) {
-                            splitPhrase = " for ";
-                        }
-                        if (text.contains(" next to ")) {
-                            splitPhrase = " next to ";
-                        }
-                        if (text.contains(" after ")) {
-                            splitPhrase = " after ";
-                        }
-
-                        targetElement = text.split(splitPhrase)[0].replace("\"", "");
-                        parentElement = text.split(splitPhrase)[1].replace("\"", "");
-
-                        labelClickXpath = "//*[contains(text(),'" + parentElement + "')]/following::*[contains(text(),'"
-                                + targetElement + "')][1]";
-                        valueClickXpath = "//*[contains(@value,'" + parentElement + "')]/following::*[contains(text(),'"
-                                + targetElement + "')][1]";
-                    }
-
-                    if (isBeforeObject) {
-
-                        String targetElement = text.split(" before ")[0].replace("\"", "");
-                        String parentElement = text.split(" before ")[1].replace("\"", "");
-
-                        labelClickXpath = "//*[contains(text(),'" + parentElement + "')]/preceding::*[contains(text(),'"
-                                + targetElement + "')][1]";
-                        valueClickXpath = "//*[contains(@value,'" + parentElement + "')]/preceding::*[contains(text(),'"
-                                + targetElement + "')][1]";
-                    }
-
-                    if (driver.findElements(By.xpath(labelClickXpath)).size() != 0) {
-                        for (WebElement element : driver.findElements(By.xpath(labelClickXpath))) {
-                            if (element.isDisplayed()) {
-                                System.out.print(foundElementBy("xpath", labelClickXpath));
-                                return driver.findElements(By.xpath(labelClickXpath));
-                            }
-                        }
-                    }
-
-                    if (driver.findElements(By.xpath(valueClickXpath)).size() != 0) {
-                        for (WebElement element : driver.findElements(By.xpath(valueClickXpath))) {
-                            if (element.isDisplayed()) {
-                                System.out.print(foundElementBy("xpath", valueClickXpath));
-                                return driver.findElements(By.xpath(valueClickXpath));
-                            }
-                        }
-                    }
+                    return null;
                 }
-                return null;
-            });
+            );
         } catch (TimeoutException ex) {
-            System.out.println("\n------------------------------------------------------------------------------------");
-            System.out.println("Element could not be identified with NLP Locator : [" + text + "]" + "\n");
+            System.out.println(
+                "\n------------------------------------------------------------------------------------"
+            );
+            System.out.println(
+                "Element could not be identified with NLP Locator : [" + text + "]" + "\n"
+            );
             //Logger.getLogger(this.getClass().getName()).log(Level.OFF, null, ex);
             return null;
         }
-
     }
 
-
-
-    public void storeElementDetailsinOR(List<ORAttribute> attributes, String attribute, String value) {
+    public void storeElementDetailsinOR(
+        List<ORAttribute> attributes,
+        String attribute,
+        String value
+    ) {
         for (ORAttribute attr : attributes) {
             if (attr.getName().contentEquals(attribute)) {
                 attr.setValue(value);
                 break;
             }
+        }
+    }
+
+    /**
+     * Stores the outerHTML diagnostic on the OR attributes without letting a
+     * failed remote driver call (e.g. native iOS Appium does not support the
+     * {@code outerHTML} attribute) discard a successful element lookup.
+     */
+    private void safeStoreOuterHTML(List<ORAttribute> attributes, WebElement element) {
+        try {
+            storeElementDetailsinOR(attributes, "outerHTML", element.getAttribute("outerHTML"));
+        } catch (Exception ignore) {
+            // outerHTML not supported (e.g. native iOS Appium)
         }
     }
 
@@ -728,7 +989,7 @@ public class MobileObject implements MobileObjectApi {
     }
 
     // ===== API Interface Implementations (Object type wrappers) =====
-    
+
     /**
      * Sets the WebDriver instance for this mobile object.
      * <p>
@@ -744,7 +1005,7 @@ public class MobileObject implements MobileObjectApi {
             this.driver = (WebDriver) driver;
         }
     }
-    
+
     /**
      * Find element - API wrapper returning Object
      * @param element SearchContext as Object
@@ -756,7 +1017,7 @@ public class MobileObject implements MobileObjectApi {
     public Object findElement(Object element, String objectKey, String pageKey) {
         return findElement((SearchContext) element, objectKey, pageKey);
     }
-    
+
     /**
      * Find element with attribute - API wrapper returning Object
      * @param element SearchContext as Object
@@ -769,7 +1030,7 @@ public class MobileObject implements MobileObjectApi {
     public Object findElement(Object element, String objectKey, String pageKey, String attribute) {
         return findElement((SearchContext) element, objectKey, pageKey, attribute);
     }
-    
+
     /**
      * Find element with condition - API wrapper returning Object
      * @param element SearchContext as Object
@@ -779,10 +1040,15 @@ public class MobileObject implements MobileObjectApi {
      * @return WebElement as Object
      */
     @Override
-    public Object findElement(Object element, String objectKey, String pageKey, MobileObjectApi.FindmType condition) {
+    public Object findElement(
+        Object element,
+        String objectKey,
+        String pageKey,
+        MobileObjectApi.FindmType condition
+    ) {
         return findElement((SearchContext) element, objectKey, pageKey, condition);
     }
-    
+
     /**
      * Find element with attribute and condition - API wrapper returning Object
      * @param element SearchContext as Object
@@ -793,10 +1059,16 @@ public class MobileObject implements MobileObjectApi {
      * @return WebElement as Object
      */
     @Override
-    public Object findElement(Object element, String objectKey, String pageKey, String attribute, MobileObjectApi.FindmType condition) {
+    public Object findElement(
+        Object element,
+        String objectKey,
+        String pageKey,
+        String attribute,
+        MobileObjectApi.FindmType condition
+    ) {
         return findElement((SearchContext) element, objectKey, pageKey, attribute, condition);
     }
-    
+
     /**
      * Find elements list - API wrapper returning List<Object>
      * <p>
@@ -810,7 +1082,7 @@ public class MobileObject implements MobileObjectApi {
     public List<Object> findElementsList(String objectKey, String pageKey) {
         return new ArrayList<>(findElements(objectKey, pageKey));
     }
-    
+
     /**
      * Find elements list with attribute - API wrapper returning List<Object>
      * @param objectKey Object name in OR
@@ -822,7 +1094,7 @@ public class MobileObject implements MobileObjectApi {
     public List<Object> findElementsList(String objectKey, String pageKey, String attribute) {
         return new ArrayList<>(findElements(objectKey, pageKey, attribute));
     }
-    
+
     /**
      * Find elements list with condition - API wrapper returning List<Object>
      * @param objectKey Object name in OR
@@ -831,10 +1103,14 @@ public class MobileObject implements MobileObjectApi {
      * @return List of WebElements as List<Object>
      */
     @Override
-    public List<Object> findElementsList(String objectKey, String pageKey, MobileObjectApi.FindmType condition) {
+    public List<Object> findElementsList(
+        String objectKey,
+        String pageKey,
+        MobileObjectApi.FindmType condition
+    ) {
         return new ArrayList<>(findElements(objectKey, pageKey, condition));
     }
-    
+
     /**
      * Find elements list with attribute and condition - API wrapper returning List<Object>
      * @param objectKey Object name in OR
@@ -844,10 +1120,15 @@ public class MobileObject implements MobileObjectApi {
      * @return List of WebElements as List<Object>
      */
     @Override
-    public List<Object> findElementsList(String objectKey, String pageKey, String attribute, MobileObjectApi.FindmType condition) {
+    public List<Object> findElementsList(
+        String objectKey,
+        String pageKey,
+        String attribute,
+        MobileObjectApi.FindmType condition
+    ) {
         return new ArrayList<>(findElements(objectKey, pageKey, attribute, condition));
     }
-    
+
     /**
      * Find elements list with SearchContext - API wrapper returning List<Object>
      * @param element SearchContext as Object
@@ -859,7 +1140,7 @@ public class MobileObject implements MobileObjectApi {
     public List<Object> findElementsList(Object element, String objectKey, String pageKey) {
         return new ArrayList<>(findElements((SearchContext) element, objectKey, pageKey));
     }
-    
+
     /**
      * Find elements list with SearchContext and attribute - API wrapper returning List<Object>
      * @param element SearchContext as Object
@@ -869,10 +1150,17 @@ public class MobileObject implements MobileObjectApi {
      * @return List of WebElements as List<Object>
      */
     @Override
-    public List<Object> findElementsList(Object element, String objectKey, String pageKey, String attribute) {
-        return new ArrayList<>(findElements((SearchContext) element, objectKey, pageKey, attribute));
+    public List<Object> findElementsList(
+        Object element,
+        String objectKey,
+        String pageKey,
+        String attribute
+    ) {
+        return new ArrayList<>(
+            findElements((SearchContext) element, objectKey, pageKey, attribute)
+        );
     }
-    
+
     /**
      * Find elements list with SearchContext and condition - API wrapper returning List<Object>
      * @param element SearchContext as Object
@@ -882,10 +1170,17 @@ public class MobileObject implements MobileObjectApi {
      * @return List of WebElements as List<Object>
      */
     @Override
-    public List<Object> findElementsList(Object element, String objectKey, String pageKey, MobileObjectApi.FindmType condition) {
-        return new ArrayList<>(findElements((SearchContext) element, objectKey, pageKey, condition));
+    public List<Object> findElementsList(
+        Object element,
+        String objectKey,
+        String pageKey,
+        MobileObjectApi.FindmType condition
+    ) {
+        return new ArrayList<>(
+            findElements((SearchContext) element, objectKey, pageKey, condition)
+        );
     }
-    
+
     /**
      * Find elements list with SearchContext, attribute and condition - API wrapper returning List<Object>
      * @param element SearchContext as Object
@@ -896,10 +1191,18 @@ public class MobileObject implements MobileObjectApi {
      * @return List of WebElements as List<Object>
      */
     @Override
-    public List<Object> findElementsList(Object element, String objectKey, String pageKey, String attribute, MobileObjectApi.FindmType condition) {
-        return new ArrayList<>(findElements((SearchContext) element, objectKey, pageKey, attribute, condition));
+    public List<Object> findElementsList(
+        Object element,
+        String objectKey,
+        String pageKey,
+        String attribute,
+        MobileObjectApi.FindmType condition
+    ) {
+        return new ArrayList<>(
+            findElements((SearchContext) element, objectKey, pageKey, attribute, condition)
+        );
     }
-    
+
     /**
      * Find all elements from page - API wrapper returning Map<String, Object>
      * @param page Page name in OR
@@ -909,7 +1212,7 @@ public class MobileObject implements MobileObjectApi {
     public Map<String, Object> findAllElementsFromPageMap(String page) {
         return new HashMap<>(findAllElementsFromPage(page));
     }
-    
+
     /**
      * Find elements by regex - API wrapper returning Map<String, Object>
      * @param regexObject Regex pattern for object names
@@ -920,7 +1223,7 @@ public class MobileObject implements MobileObjectApi {
     public Map<String, Object> findElementsByRegexMap(String regexObject, String page) {
         return new HashMap<>(findElementsByRegex(regexObject, page));
     }
-    
+
     /**
      * Store element details in OR - API wrapper accepting Object for attributes list
      * @param attributes List of ORAttribute as Object
@@ -932,7 +1235,7 @@ public class MobileObject implements MobileObjectApi {
     public void storeElementDetailsinOR(Object attributes, String attribute, String value) {
         storeElementDetailsinOR((List<ORAttribute>) attributes, attribute, value);
     }
-    
+
     /**
      * Get attribute value - API wrapper accepting Object for attributes list
      * @param attributes List of ORAttribute as Object
@@ -944,7 +1247,7 @@ public class MobileObject implements MobileObjectApi {
     public String getAttributeValue(Object attributes, String attribute) {
         return getAttributeValue((List<ORAttribute>) attributes, attribute);
     }
-    
+
     /**
      * NLP located element list - API wrapper returning List<Object>
      * @param attributes List of ORAttribute as Object
@@ -955,8 +1258,11 @@ public class MobileObject implements MobileObjectApi {
     @Override
     @SuppressWarnings("unchecked")
     public List<Object> NLP_located_elementList(Object attributes, String action, String text) {
-        List<WebElement> elements = NLP_located_element((List<ORAttribute>) attributes, action, text);
+        List<WebElement> elements = NLP_located_element(
+            (List<ORAttribute>) attributes,
+            action,
+            text
+        );
         return elements != null ? new ArrayList<>(elements) : null;
     }
-
 }

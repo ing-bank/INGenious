@@ -1,19 +1,18 @@
-
 package com.ing.engine.commands.galenCommands;
 
+import com.galenframework.specs.SpecCentered;
 import com.ing.engine.core.CommandControl;
 import com.ing.engine.galenWrapper.SpecValidation.SpecReader;
 import com.ing.ingenious.api.annotation.Action;
 import com.ing.ingenious.api.types.InputType;
 import com.ing.ingenious.api.types.ObjectType;
-import com.galenframework.specs.SpecCentered;
 
 public class Centered extends General {
 
     public Centered(CommandControl cc) {
         super(cc);
     }
-/*
+    /*
     private void assertElementCentered(SpecCentered.Alignment alignment, SpecCentered.Location location) {
         SpecCentered spec = SpecReader.reader().getSpecCentered(Condition, Data, location, alignment);
         spec.setOriginalText(getMessage(alignment, location, spec.getErrorRate()));

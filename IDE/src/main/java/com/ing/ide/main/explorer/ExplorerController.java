@@ -1,6 +1,4 @@
-
 package com.ing.ide.main.explorer;
-
 
 import com.ing.ide.main.explorer.settings.Settings;
 import com.ing.ide.main.shr.image.crop.CropUIController;
@@ -24,12 +22,12 @@ import javax.swing.AbstractAction;
 import javax.swing.JButton;
 import javax.swing.JFileChooser;
 import javax.swing.JPanel;
+
 /**
  *
- * 
+ *
  */
 public class ExplorerController {
-
     private final AbstractAction saveCropped, saveScreen, showGallery, showStep, showDefect;
     private AbstractAction action;
     CropUIController cropControl = CropUIController.getInstance();
@@ -37,10 +35,11 @@ public class ExplorerController {
     private static final String FORMAT = "png";
     private BaseEditor bedit;
     private ExplorerBar explorerBar;
-    private String userDir="";
+    private String userDir = "";
     private final JFileChooser export = new JFileChooser(this.userDir);
     private Image latestCroped;
     private ImageGallery igalllery = new ImageGallery(FORMAT) {
+
         @Override
         public void Hide() {
             bedit.setVisible(false);
@@ -56,7 +55,6 @@ public class ExplorerController {
         public void Show() {
             explorerBar.setVisible(true);
             bedit.setVisible(true);
-
         }
     };
 
@@ -73,72 +71,74 @@ public class ExplorerController {
         cropControl.setFrame(frame);
         cropControl.setRightClickDisArm(false);
         export.setLocation(Canvas.Window.screenCenter.width, Canvas.Window.screenCenter.height);
-        saveCropped = new AbstractAction() {
+        saveCropped =
+            new AbstractAction() {
 
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                if (cropControl.getCroppedImage() != null) {
-                    if (latestCroped != cropControl.getCroppedImage()) {
-                        latestCroped = cropControl.getCroppedImage();
-                        saveimage(latestCroped);
-                        Notification.show("Image Saved succesfully \nTo view the saved image click on Screenshots");
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    if (cropControl.getCroppedImage() != null) {
+                        if (latestCroped != cropControl.getCroppedImage()) {
+                            latestCroped = cropControl.getCroppedImage();
+                            saveimage(latestCroped);
+                            Notification.show(
+                                "Image Saved succesfully \nTo view the saved image click on Screenshots"
+                            );
+                        } else {
+                            Notification.show("Image already Added!!!");
+                        }
                     } else {
-                        Notification.show("Image already Added!!!");
+                        Notification.show("Please Crop any Image to Save!!!");
                     }
-                } else {
-                    Notification.show("Please Crop any Image to Save!!!");
                 }
+            };
+        saveScreen =
+            new AbstractAction() {
 
-            }
-        };
-        saveScreen = new AbstractAction() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    saveimage(cropControl.getScreen());
+                }
+            };
+        showGallery =
+            new AbstractAction() {
 
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                saveimage(cropControl.getScreen());
-            }
-        };
-        showGallery = new AbstractAction() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    if (igalllery.load(Settings.getScreenShotLoc())) {
+                        bedit.setComponent(igalllery);
+                        bedit.setIconImage(Canvas.iconToImage(((JButton) e.getSource()).getIcon()));
+                    } else {
+                        ((JButton) e.getSource()).setSelected(false);
+                    }
+                }
+            };
+        showStep =
+            new AbstractAction() {
 
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                if (igalllery.load(Settings.getScreenShotLoc())) {
-                    bedit.setComponent(igalllery);
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    bedit.setComponent(
+                        explorerBar.sMainFrame.getTestDesign().getTestCasePanelForExploratory()
+                    );
+                    bedit.setTitle("Test Steps");
                     bedit.setIconImage(Canvas.iconToImage(((JButton) e.getSource()).getIcon()));
-                } else {
-                    ((JButton) e.getSource()).setSelected(false);
                 }
+            };
+        showDefect =
+            new AbstractAction() {
 
-            }
-        };
-        showStep = new AbstractAction() {
-
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                bedit.setComponent(explorerBar.sMainFrame.getTestDesign().getTestCasePanelForExploratory());
-                bedit.setTitle("Test Steps");
-                bedit.setIconImage(Canvas.iconToImage(((JButton) e.getSource()).getIcon()));
-            }
-
-        };
-        showDefect = new AbstractAction() {
-
-            @Override
-            public void actionPerformed(ActionEvent e) {
-//                JPanel p = ReportDefect.getreportDefectPanel(bedit);
-//                ReportDefect.setSelectedImages(igalllery.getSelectedImages());
-//                ReportDefect.setExplorer(explorerBar);
-//                bedit.setComponent(p);
-//                bedit.setIconImage(Canvas.iconToImage(((JButton) e.getSource()).getIcon()));
-            }
-
-        };
-
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    //                JPanel p = ReportDefect.getreportDefectPanel(bedit);
+                    //                ReportDefect.setSelectedImages(igalllery.getSelectedImages());
+                    //                ReportDefect.setExplorer(explorerBar);
+                    //                bedit.setComponent(p);
+                    //                bedit.setIconImage(Canvas.iconToImage(((JButton) e.getSource()).getIcon()));
+                }
+            };
     }
 
-    public void setWindows(boolean visible) {
-
-    }
+    public void setWindows(boolean visible) {}
 
     /**
      * hides/disposes the UI and controller components
@@ -154,7 +154,6 @@ public class ExplorerController {
      * @param img
      */
     public void saveimage(Image img) {
-
         try {
             ImageIO.write((RenderedImage) img, FORMAT, getSaveFile());
         } catch (IOException ex) {
@@ -178,7 +177,7 @@ public class ExplorerController {
     public void saveScreen(ActionEvent e) {
         explorerBar.setVisible(false);
         try {
-            Thread.sleep(500);//some time for the bar to hide[in some cases like live meeting]
+            Thread.sleep(500); //some time for the bar to hide[in some cases like live meeting]
         } catch (InterruptedException ex) {
             Logger.getLogger(ExplorerController.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -228,13 +227,9 @@ public class ExplorerController {
      * @param evt
      */
     void showScriptExporter(ActionEvent evt) {
-
         File output = getSaveScriptFile();
         if (output != null) {
-            explorerBar.sMainFrame.getStepMap()
-                    .convertTestCase(
-                            output,
-                            explorerBar.testCase);
+            explorerBar.sMainFrame.getStepMap().convertTestCase(output, explorerBar.testCase);
         }
     }
 
@@ -253,7 +248,6 @@ public class ExplorerController {
      */
     public void hideBase() {
         bedit.setVisible(false);
-
     }
 
     /**
@@ -295,7 +289,6 @@ public class ExplorerController {
      * @return - test steps file to save
      */
     private File getSaveScriptFile() {
-
         File f = new File("ManualTestSteps.csv");
         export.setSelectedFile(f);
         export.setFileFilter(Utility.csvFIlter);
@@ -310,13 +303,10 @@ public class ExplorerController {
             f = null;
         }
         return f;
-
     }
 
     /**
      * displays the settings UI window
      */
-    void launchSettings() {
-    }
-
+    void launchSettings() {}
 }

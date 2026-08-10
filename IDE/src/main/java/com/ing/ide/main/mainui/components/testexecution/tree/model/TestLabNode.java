@@ -1,4 +1,3 @@
-
 package com.ing.ide.main.mainui.components.testexecution.tree.model;
 
 import com.ing.datalib.component.Project;
@@ -10,10 +9,9 @@ import javax.swing.tree.TreeNode;
 
 /**
  *
- * 
+ *
  */
 public class TestLabNode extends CommonNode {
-
     Project project;
 
     public void setProject(Project project) {
@@ -46,8 +44,8 @@ public class TestLabNode extends CommonNode {
 
     public ReleaseNode getReleaseBy(Release release) {
         for (TreeNode releaseNode : Collections.list(children())) {
-            if (((ReleaseNode)releaseNode).getRelease().equals(release)) {
-                return (ReleaseNode)releaseNode;
+            if (((ReleaseNode) releaseNode).getRelease().equals(release)) {
+                return (ReleaseNode) releaseNode;
             }
         }
         return null;
@@ -57,5 +55,4 @@ public class TestLabNode extends CommonNode {
     public String toString() {
         return project != null ? project.getName() : "Reusable";
     }
-
 }

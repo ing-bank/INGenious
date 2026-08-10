@@ -1,4 +1,3 @@
-
 package com.ing.testdata.csv;
 
 import com.ing.datalib.testdata.model.AbstractDataModel;
@@ -19,7 +18,11 @@ public class CsvTestData extends TestDataModel {
 
     @Override
     public Record getNewRecord() {
-        return new Record();
+        // Record() by default initializes with placeholder header-sized empty values.
+        // Tests expect a new record to be an empty list; create and clear that default.
+        Record r = new Record();
+        r.clear();
+        return r;
     }
 
     @Override
@@ -78,5 +81,4 @@ public class CsvTestData extends TestDataModel {
         }
         return true;
     }
-
 }

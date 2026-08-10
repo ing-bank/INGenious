@@ -1,4 +1,3 @@
-
 package com.ing.ide.main.mainui.components.testexecution;
 
 import com.ing.datalib.component.Project;
@@ -8,10 +7,9 @@ import com.ing.ide.main.mainui.components.testexecution.tree.TestSetTree;
 
 /**
  *
- * 
+ *
  */
 public class TestExecution {
-
     private final TestExecutionUI testExecutionUI;
 
     private final TestSetComponent testSetComp;

@@ -1,4 +1,3 @@
-
 package com.ing.storywriter.util;
 
 import java.io.File;
@@ -15,14 +14,14 @@ import java.util.logging.Level;
  *
  */
 public class FileLogger {
-
     static PrintStream fileStream, consoleStream, logStream;
     private static FileLogger logger;
     private static String logfile;
     private static double maxFileSize;
     private static String logBackupLoc;
-    final static SimpleDateFormat Datefileformat = new SimpleDateFormat("MM-dd-yyyy"),
-            Timefileformat = new SimpleDateFormat("hh-mm-ss a");
+    static final SimpleDateFormat Datefileformat = new SimpleDateFormat(
+        "MM-dd-yyyy"
+    ), Timefileformat = new SimpleDateFormat("hh-mm-ss a");
 
     private FileLogger() {
         try {
@@ -32,17 +31,18 @@ public class FileLogger {
             consoleStream = System.out;
             checkFileBackup();
             OutputStream logf = new FileOutputStream(logfile, true);
-            fileStream = new PrintStream(logf, true) {
-                @Override
-                public void println(String x) {
-                    consoleStream.println(x);
-                    x = ("@" + new Date().toString() + ": ") + x;
-                    super.println(x);
-                }
-            };
+            fileStream =
+                new PrintStream(logf, true) {
+
+                    @Override
+                    public void println(String x) {
+                        consoleStream.println(x);
+                        x = ("@" + new Date().toString() + ": ") + x;
+                        super.println(x);
+                    }
+                };
             // fileStream = consoleStream;//for dev debugg
             logStream = fileStream;
-
         } catch (Exception ex) {
             logStream = consoleStream;
         }
@@ -85,7 +85,6 @@ public class FileLogger {
     public void setStream(PrintStream stream) {
         System.setOut(stream);
         System.setErr(stream);
-
     }
 
     /**
@@ -115,7 +114,9 @@ public class FileLogger {
             String filename = "log-" + getdatetimeString() + ".txt";
             Files.move(new File(logfile).toPath(), new File(bkp, filename).toPath());
         } catch (IOException ex) {
-            java.util.logging.Logger.getLogger(FileLogger.class.getName()).log(Level.SEVERE, null, ex);
+            java
+                .util.logging.Logger.getLogger(FileLogger.class.getName())
+                .log(Level.SEVERE, null, ex);
         }
     }
 

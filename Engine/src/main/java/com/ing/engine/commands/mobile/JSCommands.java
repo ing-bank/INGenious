@@ -1,15 +1,13 @@
-
 package com.ing.engine.commands.mobile;
 
 import com.ing.engine.commands.browser.General;
 import com.ing.engine.core.CommandControl;
+import com.ing.ingenious.api.annotation.Action;
 import com.ing.ingenious.api.exception.mobile.ElementException;
 import com.ing.ingenious.api.status.Status;
-import com.ing.ingenious.api.annotation.Action;
 import com.ing.ingenious.api.types.InputType;
 import com.ing.ingenious.api.types.ObjectType;
 import com.ing.util.encryption.Encryption;
-
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.apache.commons.codec.binary.Base64;
@@ -17,14 +15,14 @@ import org.openqa.selenium.JavascriptExecutor;
 
 /**
  *
- * 
+ *
  */
 public class JSCommands extends General {
 
     public JSCommands(CommandControl cc) {
         super(cc);
     }
-/*
+    /*
     @Action(object = ObjectType.MOBILE, desc = "Click on [<Object>]")
     public void TapByJS() {
         if (elementPresent()) {

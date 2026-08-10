@@ -1,4 +1,3 @@
-
 package com.ing.ide.main.utils.tree;
 
 import com.ing.datalib.component.Project;
@@ -8,7 +7,7 @@ import javax.swing.tree.TreeNode;
 
 /**
  *
- * 
+ *
  */
 public abstract class CommonTreeModel extends DefaultTreeModel {
 

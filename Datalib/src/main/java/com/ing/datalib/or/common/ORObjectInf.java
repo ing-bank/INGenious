@@ -1,4 +1,3 @@
-
 package com.ing.datalib.or.common;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -8,10 +7,9 @@ import javax.swing.tree.TreePath;
 
 /**
  *
- * 
+ *
  */
 public interface ORObjectInf extends TreeNode, TableModel {
-
     public String getName();
 
     public void setName(String name);
@@ -46,5 +44,4 @@ public interface ORObjectInf extends TreeNode, TableModel {
 
     @JsonIgnore
     public Boolean isEqualOf(ORObjectInf object);
-
 }

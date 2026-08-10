@@ -1,10 +1,11 @@
 package com.ing.ide.main.mainui.components.testdesign.or.structureddata;
 
+import com.ing.datalib.or.common.ORObjectInf;
+import com.ing.datalib.or.common.ObjectGroup;
 import com.ing.datalib.or.structureddata.StructuredDataAttribute;
 import com.ing.datalib.or.structureddata.StructuredDataORObject;
 import com.ing.datalib.or.structureddata.StructuredDataORPage;
-import com.ing.datalib.or.common.ORObjectInf;
-import com.ing.datalib.or.common.ObjectGroup;
+import com.ing.ide.main.mainui.components.testdesign.or.ORTableInsertRowPrompt;
 import com.ing.ide.main.utils.Utils;
 import com.ing.ide.main.utils.table.PropertyAttributeRenderer;
 import com.ing.ide.main.utils.table.XTable;
@@ -30,7 +31,6 @@ import javax.swing.table.TableColumn;
  * Shows JsonPath and Xpath attributes (2 columns: Attribute, Value).
  */
 public class StructuredDataORTable extends JPanel implements ActionListener {
-
     private final XTable table;
 
     private final StructuredDataORPanel structuredDataOR;
@@ -38,7 +38,6 @@ public class StructuredDataORTable extends JPanel implements ActionListener {
     private final PopupMenu popupMenu;
 
     public StructuredDataORTable(StructuredDataORPanel structuredDataOR) {
-
         this.structuredDataOR = structuredDataOR;
         table = new XTable();
         toolBar = new ToolBar();
@@ -53,6 +52,14 @@ public class StructuredDataORTable extends JPanel implements ActionListener {
         add(panel, BorderLayout.CENTER);
         add(toolBar, BorderLayout.NORTH);
         table.setComponentPopupMenu(popupMenu);
+
+        ORTableInsertRowPrompt.install(
+            table,
+            this::stopCellEditing,
+            this::getObject,
+            StructuredDataORObject::getRowCount,
+            (object, modelInsertIndex) -> object.addNewAttributeAt(modelInsertIndex)
+        );
     }
 
     public XTable getTable() {
@@ -60,6 +67,9 @@ public class StructuredDataORTable extends JPanel implements ActionListener {
     }
 
     public void loadObject(StructuredDataORObject object) {
+        if (table.isEditing()) {
+            table.getCellEditor().stopCellEditing();
+        }
         table.setModel(object);
         configureColumns();
 
@@ -75,7 +85,7 @@ public class StructuredDataORTable extends JPanel implements ActionListener {
             attrCol.setPreferredWidth(100);
             attrCol.setMinWidth(80);
             attrCol.setMaxWidth(150);
-            
+
             // Column 1: Value - takes remaining space
             TableColumn valueCol = table.getColumnModel().getColumn(1);
             valueCol.setPreferredWidth(300);
@@ -83,6 +93,7 @@ public class StructuredDataORTable extends JPanel implements ActionListener {
     }
 
     public void reset() {
+        stopCellEditing();
         table.setModel(new DefaultTableModel());
     }
 
@@ -144,7 +155,33 @@ public class StructuredDataORTable extends JPanel implements ActionListener {
 
     private void addRow() {
         stopCellEditing();
-        getObject().addNewAttribute();
+
+        StructuredDataORObject object = getObject();
+        if (object == null) {
+            return;
+        }
+
+        int insertAt = object.getRowCount();
+
+        int[] selectedRows = table.getSelectedRows();
+        if (selectedRows.length > 0) {
+            int lastSelectedModelRow = -1;
+
+            for (int selectedRow : selectedRows) {
+                int modelRow = table.convertRowIndexToModel(selectedRow);
+                lastSelectedModelRow = Math.max(lastSelectedModelRow, modelRow);
+            }
+
+            insertAt = lastSelectedModelRow + 1;
+        }
+
+        int insertedRow = object.addNewAttributeAt(insertAt);
+
+        if (insertedRow >= 0) {
+            int viewRow = table.convertRowIndexToView(insertedRow);
+            table.getSelectionModel().setSelectionInterval(viewRow, viewRow);
+            table.scrollRectToVisible(table.getCellRect(viewRow, 0, true));
+        }
     }
 
     private void removeRow() {
@@ -346,8 +383,10 @@ public class StructuredDataORTable extends JPanel implements ActionListener {
         for (ORObjectInf object : selected) {
             if (object instanceof StructuredDataORObject) {
                 if (currObj != null) {
-                    reorderAttributes(currObj.getAttributes(),
-                            ((StructuredDataORObject) object).getAttributes());
+                    reorderAttributes(
+                        currObj.getAttributes(),
+                        ((StructuredDataORObject) object).getAttributes()
+                    );
                 }
             }
         }
@@ -369,7 +408,10 @@ public class StructuredDataORTable extends JPanel implements ActionListener {
         }
     }
 
-    private void reorderAttributes(List<StructuredDataAttribute> source, List<StructuredDataAttribute> dest) {
+    private void reorderAttributes(
+        List<StructuredDataAttribute> source,
+        List<StructuredDataAttribute> dest
+    ) {
         for (int i = 0, c = 0; i < source.size(); i++) {
             StructuredDataAttribute val = source.get(i);
             for (int j = c; j < dest.size(); j++) {
@@ -396,10 +438,18 @@ public class StructuredDataORTable extends JPanel implements ActionListener {
 
     class ToolBar extends JToolBar {
         private JLabel titleLabel;
-        
+
         public ToolBar() {
             init();
-            setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, UIManager.getColor("Separator.foreground")));
+            setBorder(
+                BorderFactory.createMatteBorder(
+                    0,
+                    0,
+                    1,
+                    0,
+                    UIManager.getColor("Separator.foreground")
+                )
+            );
         }
 
         private void init() {
@@ -407,26 +457,49 @@ public class StructuredDataORTable extends JPanel implements ActionListener {
             setFloatable(false);
             setOpaque(false);
 
-            add(new javax.swing.Box.Filler(new java.awt.Dimension(10, 0),
+            add(
+                new javax.swing.Box.Filler(
                     new java.awt.Dimension(10, 0),
-                    new java.awt.Dimension(10, 32767)));
+                    new java.awt.Dimension(10, 0),
+                    new java.awt.Dimension(10, 32767)
+                )
+            );
             titleLabel = new JLabel("Properties");
             titleLabel.setFont(new Font("Default", Font.BOLD, 12));
             add(titleLabel);
 
-            add(new javax.swing.Box.Filler(new java.awt.Dimension(0, 0), new java.awt.Dimension(0, 0), new java.awt.Dimension(32767, 32767)));
+            add(
+                new javax.swing.Box.Filler(
+                    new java.awt.Dimension(0, 0),
+                    new java.awt.Dimension(0, 0),
+                    new java.awt.Dimension(32767, 32767)
+                )
+            );
 
             add(Utils.createButton("Add Row", "add", "Ctrl+Plus", StructuredDataORTable.this));
-            add(Utils.createButton("Delete Rows", "remove", "Ctrl+Minus", StructuredDataORTable.this));
+            add(
+                Utils.createButton(
+                    "Delete Rows",
+                    "remove",
+                    "Ctrl+Minus",
+                    StructuredDataORTable.this
+                )
+            );
             addSeparator();
             add(Utils.createButton("Move Rows Up", "up", "Ctrl+Up", StructuredDataORTable.this));
-            add(Utils.createButton("Move Rows Down", "down", "Ctrl+Down", StructuredDataORTable.this));
+            add(
+                Utils.createButton(
+                    "Move Rows Down",
+                    "down",
+                    "Ctrl+Down",
+                    StructuredDataORTable.this
+                )
+            );
         }
-        
+
         public void setTitleSuffix(String suffix) {
             titleLabel.setText("Properties " + suffix);
         }
-
     }
 
     class PopupMenu extends JPopupMenu {
@@ -441,9 +514,15 @@ public class StructuredDataORTable extends JPanel implements ActionListener {
             JMenu clearProp = new JMenu("Clear Property");
             JMenu deleteProp = new JMenu("Remove Property");
 
-            setPriority.add(Utils.createMenuItem("Set Priority to Page", StructuredDataORTable.this));
-            setPriority.add(Utils.createMenuItem("Set Priority to All", StructuredDataORTable.this));
-            setPriority.add(Utils.createMenuItem("Set Priority to Selected", StructuredDataORTable.this));
+            setPriority.add(
+                Utils.createMenuItem("Set Priority to Page", StructuredDataORTable.this)
+            );
+            setPriority.add(
+                Utils.createMenuItem("Set Priority to All", StructuredDataORTable.this)
+            );
+            setPriority.add(
+                Utils.createMenuItem("Set Priority to Selected", StructuredDataORTable.this)
+            );
             add(setPriority);
             clearProp.add(Utils.createMenuItem("Clear from Page", StructuredDataORTable.this));
             clearProp.add(Utils.createMenuItem("Clear from All", StructuredDataORTable.this));
@@ -451,13 +530,14 @@ public class StructuredDataORTable extends JPanel implements ActionListener {
             add(clearProp);
             deleteProp.add(Utils.createMenuItem("Remove from Page", StructuredDataORTable.this));
             deleteProp.add(Utils.createMenuItem("Remove from All", StructuredDataORTable.this));
-            deleteProp.add(Utils.createMenuItem("Remove from Selected", StructuredDataORTable.this));
+            deleteProp.add(
+                Utils.createMenuItem("Remove from Selected", StructuredDataORTable.this)
+            );
             add(deleteProp);
             addProp.add(Utils.createMenuItem("Add to Page", StructuredDataORTable.this));
             addProp.add(Utils.createMenuItem("Add to All", StructuredDataORTable.this));
             addProp.add(Utils.createMenuItem("Add to Selected", StructuredDataORTable.this));
             add(addProp);
         }
-
     }
 }

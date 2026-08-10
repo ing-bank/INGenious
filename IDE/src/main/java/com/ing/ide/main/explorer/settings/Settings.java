@@ -1,4 +1,3 @@
-
 package com.ing.ide.main.explorer.settings;
 
 import com.ing.ide.util.Notification;
@@ -17,13 +16,21 @@ import javax.swing.filechooser.FileSystemView;
 
 /**
  *
- * 
+ *
  */
 public class Settings {
-
-    final static FileSystemView FSV = null;
+    static final FileSystemView FSV = null;
     public static final JFileChooser FC_IMG_EDITOR = new JFileChooser("", FSV);
-    public static final String[] SETTINGS = {"ImageEditor", "EditorArguments", "DefectModule", "URL", "UserName", "Password", "Domain", "Project"};
+    public static final String[] SETTINGS = {
+        "ImageEditor",
+        "EditorArguments",
+        "DefectModule",
+        "URL",
+        "UserName",
+        "Password",
+        "Domain",
+        "Project"
+    };
     public static final File CONFIG_FILE = new File(getConfigFileLoc());
     static Properties prop = new Properties();
     static Map<String, String> settingsMap = new LinkedHashMap();
@@ -36,7 +43,13 @@ public class Settings {
 
     static String getConfigFileLoc() {
         try {
-            return getAppDir() + File.separator + "Configuration" + File.separator + "ExplorerConfig.properties";
+            return (
+                getAppDir() +
+                File.separator +
+                "Configuration" +
+                File.separator +
+                "ExplorerConfig.properties"
+            );
         } catch (IOException ex) {
             Logger.getLogger(Settings.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -52,14 +65,14 @@ public class Settings {
             checkFile(CONFIG_FILE);
             StringBuilder sb = new StringBuilder();
             for (String key : settingsMap.keySet()) {
-               // prop.setProperty(key, settingsMap.get(key));
-               sb.append(key+"="+settingsMap.get(key)+"\n");
+                // prop.setProperty(key, settingsMap.get(key));
+                sb.append(key + "=" + settingsMap.get(key) + "\n");
             }
-           BufferedWriter writer = new BufferedWriter(new FileWriter(CONFIG_FILE));
-           writer.write(sb.toString());
-           writer.close();
-           
-          //  prop.store(new FileWriter(CONFIG_FILE), "Exploratory Module Settings!!");
+            BufferedWriter writer = new BufferedWriter(new FileWriter(CONFIG_FILE));
+            writer.write(sb.toString());
+            writer.close();
+
+            //  prop.store(new FileWriter(CONFIG_FILE), "Exploratory Module Settings!!");
             Notification.show("Settings Successfully Saved!!");
         } catch (IOException ex) {
             Logger.getLogger(Settings.class.getName()).log(Level.SEVERE, null, ex);
@@ -79,7 +92,6 @@ public class Settings {
             for (Object key : prop.keySet()) {
                 settingsMap.put(key.toString(), prop.getProperty(key.toString()));
             }
-
         } catch (IOException ex) {
             Logger.getLogger(Settings.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -127,5 +139,4 @@ public class Settings {
     public static String getImageEditorArgs() {
         return settingsMap.get(SETTINGS[1]);
     }
-
 }

@@ -1,4 +1,3 @@
-
 package com.ing.ide.settings;
 
 import com.ing.ide.main.fx.INGIcons;
@@ -10,13 +9,13 @@ import javax.swing.ImageIcon;
  * Icons are now Ikonli font icons via INGIcons, with PNG fallbacks.
  */
 public class IconSettings {
-
     private static final int TREE_SIZE = 16;
     private static final int TOOLBAR_SIZE = 18;
     private static final int LARGE_SIZE = 24;
 
     private final Icon testPlanRoot = icon("testplan.Root", TREE_SIZE);
     private final Icon testPlanScenario = icon("testplan.Scenario", TREE_SIZE);
+    private final Icon testPlanGroup = icon("testplan.Group", TREE_SIZE);
     private final Icon testPlanTestCase = icon("testplan.TestCase", TREE_SIZE);
     private final Icon testLabRoot = icon("testlab.Root", TREE_SIZE);
     private final Icon testLabRelease = icon("testlab.Release", TREE_SIZE);
@@ -67,6 +66,10 @@ public class IconSettings {
 
     public Icon getTestPlanScenario() {
         return testPlanScenario;
+    }
+
+    public Icon getTestPlanGroup() {
+        return testPlanGroup;
     }
 
     public Icon getTestPlanTestCase() {

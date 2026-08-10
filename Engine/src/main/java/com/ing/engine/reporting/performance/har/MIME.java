@@ -1,18 +1,17 @@
-
 package com.ing.engine.reporting.performance.har;
 
 /**
  * MIME helper class for har
  *
- * 
- * 
+ *
+ *
  */
 public enum MIME {
-
     HTML("text/html", ".html"),
     PNG("image/png", ".png"),
     JS("application/javascript", ".js"),
     CSS("text/css", ".css");
+
     /**
      * need to be added
      */
@@ -26,5 +25,4 @@ public enum MIME {
     public String val() {
         return val;
     }
-
 }

@@ -1,4 +1,3 @@
-
 package com.ing.ide.main.mainui.components.testdesign.scenario;
 
 import com.ing.datalib.component.Project;
@@ -12,10 +11,9 @@ import javax.swing.JTable;
 
 /**
  *
- * 
+ *
  */
 public class ScenarioAutoSuggest {
-
     private final Project sProject;
 
     private final JTable table;
@@ -29,13 +27,14 @@ public class ScenarioAutoSuggest {
     }
 
     private void initAutoSuggest() {
-        reusableAutoSuggest = new AutoSuggest() {
-            @Override
-            public void beforeSearch(String text) {
-                setSearchList(getReusables());
-            }
+        reusableAutoSuggest =
+            new AutoSuggest() {
 
-        };
+                @Override
+                public void beforeSearch(String text) {
+                    setSearchList(getReusables());
+                }
+            };
     }
 
     private List<String> getReusables() {

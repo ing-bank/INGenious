@@ -1,4 +1,3 @@
-
 package com.ing.engine.reporting.sync.azure;
 
 import com.ing.engine.reporting.sync.BasicHttpClient;
@@ -11,20 +10,18 @@ import org.apache.http.client.methods.HttpPatch;
 import org.apache.http.client.methods.HttpPost;
 
 public class AzureHttpClient extends BasicHttpClient {
-
     final String ACCESSTOKEN;
 
     final String encodedToken;
 
-    public AzureHttpClient(URL urL, String PAT,Map config) {
-        super(urL, "", "",config);
+    public AzureHttpClient(URL urL, String PAT, Map config) {
+        super(urL, "", "", config);
         ACCESSTOKEN = PAT;
-        encodedToken = java.util.Base64.getEncoder().encodeToString((":"+ACCESSTOKEN).getBytes());
+        encodedToken = java.util.Base64.getEncoder().encodeToString((":" + ACCESSTOKEN).getBytes());
     }
 
     @Override
-    public void auth(HttpRequest req) throws AuthenticationException {
-    }
+    public void auth(HttpRequest req) throws AuthenticationException {}
 
     @Override
     public void setHeader(HttpGet httpget) {
@@ -43,5 +40,4 @@ public class AzureHttpClient extends BasicHttpClient {
         httppatch.setHeader("Authorization", "Basic " + encodedToken);
         httppatch.setHeader("Content-Type", "application/json");
     }
-
 }

@@ -1,4 +1,3 @@
-
 package com.ing.datalib.settings;
 
 //# Deprecated as of Sept 2025
@@ -6,7 +5,6 @@ package com.ing.datalib.settings;
 //# Retained for reference in case rollback is needed
 //# Dev : Renz
 public class DriverSettings extends AbstractPropSettings {
-
     private static String geckoDriverPath, chromeDriverPath;
 
     static {
@@ -28,12 +26,10 @@ public class DriverSettings extends AbstractPropSettings {
         setSelfSigned(getSelfSigned());
         setKeyStorePath(getKeyStorePath());
         setKeyStorePassword(getKeyStorePassword());
-        
     }
 
     private static void setDriverPath() {
-        if (System.getProperty("os.name", "")
-                .toLowerCase().contains("win")) {
+        if (System.getProperty("os.name", "").toLowerCase().contains("win")) {
             geckoDriverPath = "./lib/Drivers/geckodriver.exe";
             chromeDriverPath = "./lib/Drivers/chromedriver.exe";
         } else {
@@ -85,8 +81,7 @@ public class DriverSettings extends AbstractPropSettings {
     public Boolean useProxy() {
         return Boolean.valueOf(getProperty("useProxy", "false"));
     }
-    
-    
+
     public void setUseProxy(String value) {
         setProperty("useProxy", value);
     }
@@ -110,7 +105,7 @@ public class DriverSettings extends AbstractPropSettings {
     public String getProxyPort() {
         return getProperty("proxyPort", "");
     }
-    
+
     public void setSSLCertificateVerification(String value) {
         setProperty("sslCertificateVerification", value);
     }
@@ -118,11 +113,11 @@ public class DriverSettings extends AbstractPropSettings {
     public String getSSLCertificateVerification() {
         return getProperty("sslCertificateVerification", "false");
     }
-    
+
     public Boolean sslCertificateVerification() {
         return Boolean.valueOf(getProperty("sslCertificateVerification", "false"));
-    }  
-    
+    }
+
     public void setSelfSigned(String value) {
         setProperty("selfSigned", value);
     }
@@ -130,15 +125,15 @@ public class DriverSettings extends AbstractPropSettings {
     public String getSelfSigned() {
         return getProperty("selfSigned", "false");
     }
-    
+
     public Boolean selfSigned() {
         return Boolean.valueOf(getProperty("selfSigned", "false"));
-    }  
-    
+    }
+
     public void setKeyStorePath(String path) {
         setProperty("keyStorePath", path);
     }
-     
+
     public String getKeyStorePath() {
         return getProperty("keyStorePath", "");
     }
@@ -146,9 +141,8 @@ public class DriverSettings extends AbstractPropSettings {
     public void setKeyStorePassword(String value) {
         setProperty("keyStorePassword", value);
     }
-     
+
     public String getKeyStorePassword() {
         return getProperty("keyStorePassword", "");
     }
-
 }

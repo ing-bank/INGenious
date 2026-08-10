@@ -1,8 +1,8 @@
-
 package com.ing.ide.main.explorer;
 
 import com.ing.datalib.component.TestCase;
 import com.ing.ide.main.explorer.settings.Settings;
+import com.ing.ide.main.fx.INGIcons;
 import com.ing.ide.main.mainui.AppMainFrame;
 import com.ing.ide.util.Canvas;
 import java.awt.Color;
@@ -15,14 +15,12 @@ import java.util.Date;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JOptionPane;
-import com.ing.ide.main.fx.INGIcons;
 
 /**
  *
- * 
+ *
  */
 public class ExplorerBar extends javax.swing.JFrame {
-
     /**
      * Creates new form ExplorerBar
      */
@@ -41,7 +39,9 @@ public class ExplorerBar extends javax.swing.JFrame {
             expBar = new ExplorerBar(sMainFrame);
         }
         //sets up the location to save screenshot
-        Settings.setScreenShotLoc(sMainFrame.getProject().getLocation() + File.separator + "Explorer");
+        Settings.setScreenShotLoc(
+            sMainFrame.getProject().getLocation() + File.separator + "Explorer"
+        );
         expBar.init();
         expBar.setVisible(true);
         sMainFrame.setVisible(false);
@@ -58,7 +58,9 @@ public class ExplorerBar extends javax.swing.JFrame {
 
         SimpleDateFormat sdf = new SimpleDateFormat("MMM_dd_yy_k_m_s");
 
-        testCase = sMainFrame.getProject()
+        testCase =
+            sMainFrame
+                .getProject()
                 .getScenarioByName("ExploratoryScenario")
                 .addTestCase("New TestCase_" + sdf.format(new Date()));
         sMainFrame.getTestDesign().getTestCaseComp().loadTableModelForSelection(testCase);
@@ -72,12 +74,14 @@ public class ExplorerBar extends javax.swing.JFrame {
         done.setVisible(false);
         this.setLocation(Canvas.Window.winStart);
         this.setAlwaysOnTop(true);
-        controller = new ExplorerController(this) {
-            @Override
-            public void setWindows(boolean visible) {
-                selected.setSelected(visible);
-            }
-        };
+        controller =
+            new ExplorerController(this) {
+
+                @Override
+                public void setWindows(boolean visible) {
+                    selected.setSelected(visible);
+                }
+            };
         setIconImage(INGIcons.toImage(icon));
     }
 
@@ -111,13 +115,10 @@ public class ExplorerBar extends javax.swing.JFrame {
      */
     void closeExplorer() {
         reset();
-        if (testCase != null
-                && !testCase.getTestSteps().isEmpty()) {
-            int option = JOptionPane.showConfirmDialog(
-                    null, "Do you want to save the flow?");
+        if (testCase != null && !testCase.getTestSteps().isEmpty()) {
+            int option = JOptionPane.showConfirmDialog(null, "Do you want to save the flow?");
             if (option == JOptionPane.YES_OPTION) {
-                sMainFrame.getTestDesign().getProjectTree()
-                        .getTreeModel().addTestCase(testCase);
+                sMainFrame.getTestDesign().getProjectTree().getTreeModel().addTestCase(testCase);
             } else {
                 testCase.getScenario().removeTestCase(testCase);
             }
@@ -136,7 +137,6 @@ public class ExplorerBar extends javax.swing.JFrame {
     @SuppressWarnings("unchecked")
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
-
         jButton8 = new javax.swing.JButton();
         done = new javax.swing.JButton();
         bar = new javax.swing.JPanel();
@@ -146,302 +146,343 @@ public class ExplorerBar extends javax.swing.JFrame {
         closeBtn = new javax.swing.JButton();
         toolbarWest = new javax.swing.JToolBar();
         jSeparator1 = new javax.swing.JToolBar.Separator();
-        snapscreenBtn = new javax.swing.JButton(){
-
-        };
+        snapscreenBtn = new javax.swing.JButton() {};
         jSeparator4 = new javax.swing.JToolBar.Separator();
-        cropscreenBtn = new javax.swing.JButton(){
-            @Override
-            public void setSelected(boolean sel) {
-                setForeground(sel?Color.blue:Color.black);
-                super.setSelected(sel);
-                addBtn.setVisible(sel);
-                done.setVisible(sel);
-                if(!sel && controller!=null) {
-                    controller.doneCrop(null);
+        cropscreenBtn =
+            new javax.swing.JButton() {
+
+                @Override
+                public void setSelected(boolean sel) {
+                    setForeground(sel ? Color.blue : Color.black);
+                    super.setSelected(sel);
+                    addBtn.setVisible(sel);
+                    done.setVisible(sel);
+                    if (!sel && controller != null) {
+                        controller.doneCrop(null);
+                    }
                 }
-            }
-        };
+            };
         jSeparator2 = new javax.swing.JToolBar.Separator();
-        screenshotsBtn = new javax.swing.JButton(){
-            @Override
-            public void setSelected(boolean sel)    {
-                setForeground(sel?Color.blue:Color.black);
-                super.setSelected(sel);
-                if(!sel && controller!=null)  {
-                    controller.hideBase();
-                }
-            }
-        };
-        jSeparator8 = new javax.swing.JToolBar.Separator();
-        recordBtn = new javax.swing.JButton(){
-            @Override
-            public void setSelected(boolean sel){
-                setForeground(sel?Color.blue:Color.black);
-                super.setSelected(sel);
-                if (sel) {
-                    //sMainFrame.getSpyHealReco().startRecorder();
-                } else {
-                    // sMainFrame.getSpyHealReco().stopRecorder();
-                }
-            }
-        };
-        jSeparator5 = new javax.swing.JToolBar.Separator();
-        teststepsBtn = new javax.swing.JButton(){
-            @Override
-            public void setSelected(boolean sel)    {
-                setForeground(sel?Color.blue:Color.black);
-                super.setSelected(sel);
-                if(!sel && controller!=null)        {
-                    controller.hideBase();
-                }}
-            };
-            jSeparator3 = new javax.swing.JToolBar.Separator();
-            exportBtn = new javax.swing.JButton(){
+        screenshotsBtn =
+            new javax.swing.JButton() {
+
                 @Override
-                public void setSelected(boolean sel){
+                public void setSelected(boolean sel) {
+                    setForeground(sel ? Color.blue : Color.black);
                     super.setSelected(sel);
-                }
-            };
-            jSeparator6 = new javax.swing.JToolBar.Separator();
-            bugBtn = new javax.swing.JButton(){
-                @Override
-                public void setSelected(boolean sel){
-                    setForeground(sel?Color.blue:Color.black);
-                    super.setSelected(sel);
-                    if(!sel && controller!=null) {
+                    if (!sel && controller != null) {
                         controller.hideBase();
                     }
-
                 }
             };
-            jSeparator7 = new javax.swing.JToolBar.Separator();
+        jSeparator8 = new javax.swing.JToolBar.Separator();
+        recordBtn =
+            new javax.swing.JButton() {
 
-            jButton8.setText("jButton8");
+                @Override
+                public void setSelected(boolean sel) {
+                    setForeground(sel ? Color.blue : Color.black);
+                    super.setSelected(sel);
+                    if (sel) {
+                        //sMainFrame.getSpyHealReco().startRecorder();
+                    } else {
+                        // sMainFrame.getSpyHealReco().stopRecorder();
+                    }
+                }
+            };
+        jSeparator5 = new javax.swing.JToolBar.Separator();
+        teststepsBtn =
+            new javax.swing.JButton() {
 
-            done.setIcon(INGIcons.swingColored("icon.done", 16));
-            done.setText("Done");
-            done.setContentAreaFilled(false);
-            done.setFocusPainted(false);
-            done.setFocusable(false);
-            done.setSelectedIcon(INGIcons.swingColored("icon.selected_done", 16));
-            done.setVerticalAlignment(javax.swing.SwingConstants.TOP);
-            done.addActionListener(new java.awt.event.ActionListener() {
+                @Override
+                public void setSelected(boolean sel) {
+                    setForeground(sel ? Color.blue : Color.black);
+                    super.setSelected(sel);
+                    if (!sel && controller != null) {
+                        controller.hideBase();
+                    }
+                }
+            };
+        jSeparator3 = new javax.swing.JToolBar.Separator();
+        exportBtn =
+            new javax.swing.JButton() {
+
+                @Override
+                public void setSelected(boolean sel) {
+                    super.setSelected(sel);
+                }
+            };
+        jSeparator6 = new javax.swing.JToolBar.Separator();
+        bugBtn =
+            new javax.swing.JButton() {
+
+                @Override
+                public void setSelected(boolean sel) {
+                    setForeground(sel ? Color.blue : Color.black);
+                    super.setSelected(sel);
+                    if (!sel && controller != null) {
+                        controller.hideBase();
+                    }
+                }
+            };
+        jSeparator7 = new javax.swing.JToolBar.Separator();
+
+        jButton8.setText("jButton8");
+
+        done.setIcon(INGIcons.swingColored("icon.done", 16));
+        done.setText("Done");
+        done.setContentAreaFilled(false);
+        done.setFocusPainted(false);
+        done.setFocusable(false);
+        done.setSelectedIcon(INGIcons.swingColored("icon.selected_done", 16));
+        done.setVerticalAlignment(javax.swing.SwingConstants.TOP);
+        done.addActionListener(
+            new java.awt.event.ActionListener() {
+
                 public void actionPerformed(java.awt.event.ActionEvent evt) {
                     doneActionPerformed(evt);
                 }
-            });
+            }
+        );
 
-            setDefaultCloseOperation(javax.swing.WindowConstants.DO_NOTHING_ON_CLOSE);
-            setTitle("Explorer");
-            setUndecorated(true);
-            setSize(new java.awt.Dimension(0, 0));
-            addWindowListener(new java.awt.event.WindowAdapter() {
+        setDefaultCloseOperation(javax.swing.WindowConstants.DO_NOTHING_ON_CLOSE);
+        setTitle("Explorer");
+        setUndecorated(true);
+        setSize(new java.awt.Dimension(0, 0));
+        addWindowListener(
+            new java.awt.event.WindowAdapter() {
+
                 public void windowClosing(java.awt.event.WindowEvent evt) {
                     formWindowClosing(evt);
                 }
-            });
+            }
+        );
 
-            bar.setBorder(javax.swing.BorderFactory.createLineBorder(new java.awt.Color(153, 153, 153), 2));
-            bar.setLayout(new java.awt.BorderLayout());
+        bar.setBorder(
+            javax.swing.BorderFactory.createLineBorder(new java.awt.Color(153, 153, 153), 2)
+        );
+        bar.setLayout(new java.awt.BorderLayout());
 
-            toolbarEast.setRollover(true);
-            toolbarEast.setBorderPainted(false);
+        toolbarEast.setRollover(true);
+        toolbarEast.setBorderPainted(false);
 
-            addBtn.setIcon(INGIcons.swingColored("icon.add", 16)); // NOI18N
-            addBtn.setText("Add Image");
-            addBtn.setContentAreaFilled(false);
-            addBtn.setFocusPainted(false);
-            addBtn.setFocusable(false);
-            addBtn.setSelectedIcon(INGIcons.swingColored("icon.selected_add", 16));
-            addBtn.setVerticalAlignment(javax.swing.SwingConstants.TOP);
-            addBtn.addActionListener(new java.awt.event.ActionListener() {
+        addBtn.setIcon(INGIcons.swingColored("icon.add", 16)); // NOI18N
+        addBtn.setText("Add Image");
+        addBtn.setContentAreaFilled(false);
+        addBtn.setFocusPainted(false);
+        addBtn.setFocusable(false);
+        addBtn.setSelectedIcon(INGIcons.swingColored("icon.selected_add", 16));
+        addBtn.setVerticalAlignment(javax.swing.SwingConstants.TOP);
+        addBtn.addActionListener(
+            new java.awt.event.ActionListener() {
+
                 public void actionPerformed(java.awt.event.ActionEvent evt) {
                     addBtnActionPerformed(evt);
                 }
-            });
-            toolbarEast.add(addBtn);
+            }
+        );
+        toolbarEast.add(addBtn);
 
-            settingsBtn.setIcon(INGIcons.swingColored("icon.exploreSettings", 16));
-            settingsBtn.setText("Settings");
-            settingsBtn.setContentAreaFilled(false);
-            settingsBtn.setFocusable(false);
-            settingsBtn.setSelectedIcon(INGIcons.swingColored("icon.exploreSettingsSel", 16));
-            settingsBtn.addActionListener(new java.awt.event.ActionListener() {
+        settingsBtn.setIcon(INGIcons.swingColored("icon.exploreSettings", 16));
+        settingsBtn.setText("Settings");
+        settingsBtn.setContentAreaFilled(false);
+        settingsBtn.setFocusable(false);
+        settingsBtn.setSelectedIcon(INGIcons.swingColored("icon.exploreSettingsSel", 16));
+        settingsBtn.addActionListener(
+            new java.awt.event.ActionListener() {
+
                 public void actionPerformed(java.awt.event.ActionEvent evt) {
                     settingsBtnActionPerformed(evt);
                 }
-            });
-            toolbarEast.add(settingsBtn);
+            }
+        );
+        toolbarEast.add(settingsBtn);
 
-            closeBtn.setIcon(INGIcons.swingColored("icon.close", 16));
-            closeBtn.setText("Close");
-            closeBtn.setContentAreaFilled(false);
-            closeBtn.setFocusable(false);
-            closeBtn.setSelectedIcon(INGIcons.swingColored("icon.selected_close", 16));
-            closeBtn.setVerticalAlignment(javax.swing.SwingConstants.TOP);
-            closeBtn.addActionListener(new java.awt.event.ActionListener() {
+        closeBtn.setIcon(INGIcons.swingColored("icon.close", 16));
+        closeBtn.setText("Close");
+        closeBtn.setContentAreaFilled(false);
+        closeBtn.setFocusable(false);
+        closeBtn.setSelectedIcon(INGIcons.swingColored("icon.selected_close", 16));
+        closeBtn.setVerticalAlignment(javax.swing.SwingConstants.TOP);
+        closeBtn.addActionListener(
+            new java.awt.event.ActionListener() {
+
                 public void actionPerformed(java.awt.event.ActionEvent evt) {
                     closeBtnActionPerformed(evt);
                 }
-            });
-            toolbarEast.add(closeBtn);
+            }
+        );
+        toolbarEast.add(closeBtn);
 
-            bar.add(toolbarEast, java.awt.BorderLayout.EAST);
+        bar.add(toolbarEast, java.awt.BorderLayout.EAST);
 
-            toolbarWest.setBorder(null);
-            toolbarWest.setRollover(true);
-            toolbarWest.setBorderPainted(false);
-            toolbarWest.add(jSeparator1);
+        toolbarWest.setBorder(null);
+        toolbarWest.setRollover(true);
+        toolbarWest.setBorderPainted(false);
+        toolbarWest.add(jSeparator1);
 
-            snapscreenBtn.setIcon(INGIcons.swingColored("icon.snap", 16));
-            snapscreenBtn.setText("Snap Screen  ");
-            snapscreenBtn.setAlignmentX(0.2F);
-            snapscreenBtn.setContentAreaFilled(false);
-            snapscreenBtn.setFocusPainted(false);
-            snapscreenBtn.setFocusable(false);
-            snapscreenBtn.setSelectedIcon(INGIcons.swingColored("icon.selected_snap", 16));
-            snapscreenBtn.setVerticalAlignment(javax.swing.SwingConstants.TOP);
-            snapscreenBtn.addActionListener(new java.awt.event.ActionListener() {
+        snapscreenBtn.setIcon(INGIcons.swingColored("icon.snap", 16));
+        snapscreenBtn.setText("Snap Screen  ");
+        snapscreenBtn.setAlignmentX(0.2F);
+        snapscreenBtn.setContentAreaFilled(false);
+        snapscreenBtn.setFocusPainted(false);
+        snapscreenBtn.setFocusable(false);
+        snapscreenBtn.setSelectedIcon(INGIcons.swingColored("icon.selected_snap", 16));
+        snapscreenBtn.setVerticalAlignment(javax.swing.SwingConstants.TOP);
+        snapscreenBtn.addActionListener(
+            new java.awt.event.ActionListener() {
+
                 public void actionPerformed(java.awt.event.ActionEvent evt) {
                     snapscreenBtnActionPerformed(evt);
                 }
-            });
-            toolbarWest.add(snapscreenBtn);
-            toolbarWest.add(jSeparator4);
+            }
+        );
+        toolbarWest.add(snapscreenBtn);
+        toolbarWest.add(jSeparator4);
 
-            cropscreenBtn.setIcon(INGIcons.swingColored("icon.crop", 16));
-            cropscreenBtn.setText("Crop Screen  ");
-            cropscreenBtn.setAlignmentX(0.2F);
-            cropscreenBtn.setContentAreaFilled(false);
-            cropscreenBtn.setFocusPainted(false);
-            cropscreenBtn.setFocusable(false);
-            cropscreenBtn.setSelectedIcon(INGIcons.swingColored("icon.selected_crop", 16));
-            cropscreenBtn.setVerticalAlignment(javax.swing.SwingConstants.TOP);
-            cropscreenBtn.addActionListener(new java.awt.event.ActionListener() {
+        cropscreenBtn.setIcon(INGIcons.swingColored("icon.crop", 16));
+        cropscreenBtn.setText("Crop Screen  ");
+        cropscreenBtn.setAlignmentX(0.2F);
+        cropscreenBtn.setContentAreaFilled(false);
+        cropscreenBtn.setFocusPainted(false);
+        cropscreenBtn.setFocusable(false);
+        cropscreenBtn.setSelectedIcon(INGIcons.swingColored("icon.selected_crop", 16));
+        cropscreenBtn.setVerticalAlignment(javax.swing.SwingConstants.TOP);
+        cropscreenBtn.addActionListener(
+            new java.awt.event.ActionListener() {
+
                 public void actionPerformed(java.awt.event.ActionEvent evt) {
                     cropscreenBtnActionPerformed(evt);
                 }
-            });
-            toolbarWest.add(cropscreenBtn);
-            toolbarWest.add(jSeparator2);
+            }
+        );
+        toolbarWest.add(cropscreenBtn);
+        toolbarWest.add(jSeparator2);
 
-            screenshotsBtn.setIcon(INGIcons.swingColored("icon.iedit", 16));
-            screenshotsBtn.setText("Screen Shots  ");
-            screenshotsBtn.setAlignmentX(0.2F);
-            screenshotsBtn.setContentAreaFilled(false);
-            screenshotsBtn.setFocusPainted(false);
-            screenshotsBtn.setFocusable(false);
-            screenshotsBtn.setSelectedIcon(INGIcons.swingColored("icon.selected_iedit", 16));
-            screenshotsBtn.setVerticalAlignment(javax.swing.SwingConstants.TOP);
-            screenshotsBtn.addActionListener(new java.awt.event.ActionListener() {
+        screenshotsBtn.setIcon(INGIcons.swingColored("icon.iedit", 16));
+        screenshotsBtn.setText("Screen Shots  ");
+        screenshotsBtn.setAlignmentX(0.2F);
+        screenshotsBtn.setContentAreaFilled(false);
+        screenshotsBtn.setFocusPainted(false);
+        screenshotsBtn.setFocusable(false);
+        screenshotsBtn.setSelectedIcon(INGIcons.swingColored("icon.selected_iedit", 16));
+        screenshotsBtn.setVerticalAlignment(javax.swing.SwingConstants.TOP);
+        screenshotsBtn.addActionListener(
+            new java.awt.event.ActionListener() {
+
                 public void actionPerformed(java.awt.event.ActionEvent evt) {
                     screenshotsBtnActionPerformed(evt);
                 }
-            });
-            toolbarWest.add(screenshotsBtn);
-            toolbarWest.add(jSeparator8);
+            }
+        );
+        toolbarWest.add(screenshotsBtn);
+        toolbarWest.add(jSeparator8);
 
-            recordBtn.setIcon(INGIcons.swingColored("icon.record_off", 16));
-            recordBtn.setText("Record");
-            recordBtn.setToolTipText("Toggle Recording");
-            recordBtn.setAlignmentX(0.2F);
-            recordBtn.setContentAreaFilled(false);
-            recordBtn.setFocusable(false);
-            recordBtn.setSelectedIcon(INGIcons.swingColored("icon.record_on", 16));
-            recordBtn.setVerticalAlignment(javax.swing.SwingConstants.TOP);
-            recordBtn.addActionListener(new java.awt.event.ActionListener() {
+        recordBtn.setIcon(INGIcons.swingColored("icon.record_off", 16));
+        recordBtn.setText("Record");
+        recordBtn.setToolTipText("Toggle Recording");
+        recordBtn.setAlignmentX(0.2F);
+        recordBtn.setContentAreaFilled(false);
+        recordBtn.setFocusable(false);
+        recordBtn.setSelectedIcon(INGIcons.swingColored("icon.record_on", 16));
+        recordBtn.setVerticalAlignment(javax.swing.SwingConstants.TOP);
+        recordBtn.addActionListener(
+            new java.awt.event.ActionListener() {
+
                 public void actionPerformed(java.awt.event.ActionEvent evt) {
                     recordBtnActionPerformed(evt);
                 }
-            });
-            toolbarWest.add(recordBtn);
-            toolbarWest.add(jSeparator5);
+            }
+        );
+        toolbarWest.add(recordBtn);
+        toolbarWest.add(jSeparator5);
 
-            teststepsBtn.setIcon(INGIcons.swingColored("icon.testedit", 16));
-            teststepsBtn.setText("Test Steps  ");
-            teststepsBtn.setAlignmentX(0.2F);
-            teststepsBtn.setContentAreaFilled(false);
-            teststepsBtn.setFocusable(false);
-            teststepsBtn.setSelectedIcon(INGIcons.swingColored("icon.selected_testedit", 16));
-            teststepsBtn.setVerticalAlignment(javax.swing.SwingConstants.TOP);
-            teststepsBtn.addActionListener(new java.awt.event.ActionListener() {
+        teststepsBtn.setIcon(INGIcons.swingColored("icon.testedit", 16));
+        teststepsBtn.setText("Test Steps  ");
+        teststepsBtn.setAlignmentX(0.2F);
+        teststepsBtn.setContentAreaFilled(false);
+        teststepsBtn.setFocusable(false);
+        teststepsBtn.setSelectedIcon(INGIcons.swingColored("icon.selected_testedit", 16));
+        teststepsBtn.setVerticalAlignment(javax.swing.SwingConstants.TOP);
+        teststepsBtn.addActionListener(
+            new java.awt.event.ActionListener() {
+
                 public void actionPerformed(java.awt.event.ActionEvent evt) {
                     teststepsBtnActionPerformed(evt);
                 }
-            });
-            toolbarWest.add(teststepsBtn);
-            toolbarWest.add(jSeparator3);
+            }
+        );
+        toolbarWest.add(teststepsBtn);
+        toolbarWest.add(jSeparator3);
 
-            exportBtn.setIcon(INGIcons.swingColored("icon.export", 16));
-            exportBtn.setText("Export  ");
-            exportBtn.setAlignmentX(0.2F);
-            exportBtn.setContentAreaFilled(false);
-            exportBtn.setFocusable(false);
-            exportBtn.setSelectedIcon(INGIcons.swingColored("icon.selected_export", 16));
-            exportBtn.setVerticalAlignment(javax.swing.SwingConstants.TOP);
-            exportBtn.addActionListener(new java.awt.event.ActionListener() {
+        exportBtn.setIcon(INGIcons.swingColored("icon.export", 16));
+        exportBtn.setText("Export  ");
+        exportBtn.setAlignmentX(0.2F);
+        exportBtn.setContentAreaFilled(false);
+        exportBtn.setFocusable(false);
+        exportBtn.setSelectedIcon(INGIcons.swingColored("icon.selected_export", 16));
+        exportBtn.setVerticalAlignment(javax.swing.SwingConstants.TOP);
+        exportBtn.addActionListener(
+            new java.awt.event.ActionListener() {
+
                 public void actionPerformed(java.awt.event.ActionEvent evt) {
                     exportBtnActionPerformed(evt);
                 }
-            });
-            toolbarWest.add(exportBtn);
-            toolbarWest.add(jSeparator6);
+            }
+        );
+        toolbarWest.add(exportBtn);
+        toolbarWest.add(jSeparator6);
 
-            bugBtn.setIcon(INGIcons.swingColored("icon.bug", 16));
-            bugBtn.setText("Report Bug  ");
-            bugBtn.setAlignmentX(0.2F);
-            bugBtn.setContentAreaFilled(false);
-            bugBtn.setFocusPainted(false);
-            bugBtn.setFocusable(false);
-            bugBtn.setSelectedIcon(INGIcons.swingColored("icon.selected_bug", 16));
-            bugBtn.setVerticalAlignment(javax.swing.SwingConstants.TOP);
-            bugBtn.addActionListener(new java.awt.event.ActionListener() {
+        bugBtn.setIcon(INGIcons.swingColored("icon.bug", 16));
+        bugBtn.setText("Report Bug  ");
+        bugBtn.setAlignmentX(0.2F);
+        bugBtn.setContentAreaFilled(false);
+        bugBtn.setFocusPainted(false);
+        bugBtn.setFocusable(false);
+        bugBtn.setSelectedIcon(INGIcons.swingColored("icon.selected_bug", 16));
+        bugBtn.setVerticalAlignment(javax.swing.SwingConstants.TOP);
+        bugBtn.addActionListener(
+            new java.awt.event.ActionListener() {
+
                 public void actionPerformed(java.awt.event.ActionEvent evt) {
                     bugBtnActionPerformed(evt);
                 }
-            });
-            toolbarWest.add(bugBtn);
-            toolbarWest.add(jSeparator7);
+            }
+        );
+        toolbarWest.add(bugBtn);
+        toolbarWest.add(jSeparator7);
 
-            bar.add(toolbarWest, java.awt.BorderLayout.WEST);
+        bar.add(toolbarWest, java.awt.BorderLayout.WEST);
 
-            getContentPane().add(bar, java.awt.BorderLayout.CENTER);
+        getContentPane().add(bar, java.awt.BorderLayout.CENTER);
 
-            pack();
-        }// </editor-fold>//GEN-END:initComponents
+        pack();
+    } // </editor-fold>//GEN-END:initComponents
 
-    private void cropscreenBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_cropscreenBtnActionPerformed
-
+    private void cropscreenBtnActionPerformed(java.awt.event.ActionEvent evt) { //GEN-FIRST:event_cropscreenBtnActionPerformed
         if (!cropscreenBtn.isSelected()) {
             selected.setSelected(false);
             selected = cropscreenBtn;
             controller.cropScreen();
         }
         cropscreenBtn.setSelected(!cropscreenBtn.isSelected());
+    } //GEN-LAST:event_cropscreenBtnActionPerformed
 
-
-    }//GEN-LAST:event_cropscreenBtnActionPerformed
-
-    private void doneActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_doneActionPerformed
+    private void doneActionPerformed(java.awt.event.ActionEvent evt) { //GEN-FIRST:event_doneActionPerformed
         controller.doneCrop(evt);
-    }//GEN-LAST:event_doneActionPerformed
+    } //GEN-LAST:event_doneActionPerformed
 
-    private void addBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_addBtnActionPerformed
+    private void addBtnActionPerformed(java.awt.event.ActionEvent evt) { //GEN-FIRST:event_addBtnActionPerformed
         controller.saveCropped(evt);
+    } //GEN-LAST:event_addBtnActionPerformed
 
-    }//GEN-LAST:event_addBtnActionPerformed
-
-    private void snapscreenBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_snapscreenBtnActionPerformed
-
+    private void snapscreenBtnActionPerformed(java.awt.event.ActionEvent evt) { //GEN-FIRST:event_snapscreenBtnActionPerformed
         selected.setSelected(false);
         selected = snapscreenBtn;
         controller.saveScreen(evt);
+    } //GEN-LAST:event_snapscreenBtnActionPerformed
 
-    }//GEN-LAST:event_snapscreenBtnActionPerformed
-
-    private void screenshotsBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_screenshotsBtnActionPerformed
-
+    private void screenshotsBtnActionPerformed(java.awt.event.ActionEvent evt) { //GEN-FIRST:event_screenshotsBtnActionPerformed
         if (!screenshotsBtn.isSelected()) {
             selected.setSelected(false);
             selected = screenshotsBtn;
@@ -450,22 +491,22 @@ public class ExplorerBar extends javax.swing.JFrame {
         } else {
             selected.setSelected(false);
         }
-    }//GEN-LAST:event_screenshotsBtnActionPerformed
+    } //GEN-LAST:event_screenshotsBtnActionPerformed
 
-    private void teststepsBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_teststepsBtnActionPerformed
+    private void teststepsBtnActionPerformed(java.awt.event.ActionEvent evt) { //GEN-FIRST:event_teststepsBtnActionPerformed
         if (!teststepsBtn.isSelected()) {
             selected.setSelected(false);
             selected = teststepsBtn;
             controller.showStepEdtor(evt);
         }
         teststepsBtn.setSelected(!teststepsBtn.isSelected());
-    }//GEN-LAST:event_teststepsBtnActionPerformed
+    } //GEN-LAST:event_teststepsBtnActionPerformed
 
-    private void closeBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_closeBtnActionPerformed
+    private void closeBtnActionPerformed(java.awt.event.ActionEvent evt) { //GEN-FIRST:event_closeBtnActionPerformed
         closeExplorer();
-    }//GEN-LAST:event_closeBtnActionPerformed
+    } //GEN-LAST:event_closeBtnActionPerformed
 
-    private void bugBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_bugBtnActionPerformed
+    private void bugBtnActionPerformed(java.awt.event.ActionEvent evt) { //GEN-FIRST:event_bugBtnActionPerformed
         // ReportDefect
         if (!bugBtn.isSelected()) {
             selected.setSelected(false);
@@ -473,31 +514,29 @@ public class ExplorerBar extends javax.swing.JFrame {
             controller.showDefectReporter(evt);
         }
         bugBtn.setSelected(!bugBtn.isSelected());
+    } //GEN-LAST:event_bugBtnActionPerformed
 
-    }//GEN-LAST:event_bugBtnActionPerformed
-
-    private void settingsBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_settingsBtnActionPerformed
+    private void settingsBtnActionPerformed(java.awt.event.ActionEvent evt) { //GEN-FIRST:event_settingsBtnActionPerformed
         selected.setSelected(false);
         controller.launchSettings();
-    }//GEN-LAST:event_settingsBtnActionPerformed
+    } //GEN-LAST:event_settingsBtnActionPerformed
 
-    private void exportBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_exportBtnActionPerformed
+    private void exportBtnActionPerformed(java.awt.event.ActionEvent evt) { //GEN-FIRST:event_exportBtnActionPerformed
         if (!exportBtn.isSelected()) {
             selected.setSelected(false);
             selected = exportBtn;
             controller.showScriptExporter(evt);
         }
         exportBtn.setSelected(false);
-    }//GEN-LAST:event_exportBtnActionPerformed
+    } //GEN-LAST:event_exportBtnActionPerformed
 
-    private void formWindowClosing(java.awt.event.WindowEvent evt) {//GEN-FIRST:event_formWindowClosing
+    private void formWindowClosing(java.awt.event.WindowEvent evt) { //GEN-FIRST:event_formWindowClosing
         closeExplorer();
-    }//GEN-LAST:event_formWindowClosing
+    } //GEN-LAST:event_formWindowClosing
 
-    private void recordBtnActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_recordBtnActionPerformed
+    private void recordBtnActionPerformed(java.awt.event.ActionEvent evt) { //GEN-FIRST:event_recordBtnActionPerformed
         recordBtn.setSelected(!recordBtn.isSelected());
-
-    }//GEN-LAST:event_recordBtnActionPerformed
+    } //GEN-LAST:event_recordBtnActionPerformed
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton addBtn;

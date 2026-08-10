@@ -1,14 +1,13 @@
-
 package com.ing.datalib.or.image;
 
-import com.ing.datalib.component.utils.FileUtils;
-import com.ing.datalib.or.common.ORPageInf;
-import com.ing.datalib.or.common.ORUtils;
-import com.ing.datalib.or.common.ObjectGroup;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.ing.datalib.component.utils.FileUtils;
+import com.ing.datalib.or.common.ORPageInf;
+import com.ing.datalib.or.common.ORUtils;
+import com.ing.datalib.or.common.ObjectGroup;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -19,7 +18,6 @@ import javax.swing.tree.TreePath;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class ImageORPage implements ORPageInf<ImageORObject, ImageOR> {
-
     @JacksonXmlProperty(isAttribute = true, localName = "ref")
     private String name;
 
@@ -172,8 +170,7 @@ public class ImageORPage implements ORPageInf<ImageORObject, ImageOR> {
     @JsonIgnore
     @Override
     public int getChildCount() {
-        return objectGroups == null ? 0
-                : objectGroups.size();
+        return objectGroups == null ? 0 : objectGroups.size();
     }
 
     @JsonIgnore
@@ -237,7 +234,8 @@ public class ImageORPage implements ORPageInf<ImageORObject, ImageOR> {
 
     @Override
     public Boolean rename(String newName) {
-        if (getParent().getPageByName(newName) == null) {
+        ImageORPage existing = getParent().getPageByName(newName);
+        if (existing == null || existing == this) {
             if (FileUtils.renameFile(getRepLocation(), newName)) {
                 getRoot().getObjectRepository().renamePage(this, newName);
                 setName(newName);

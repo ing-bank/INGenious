@@ -1,4 +1,3 @@
-
 package com.ing.datalib.or.structureddata;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -7,7 +6,6 @@ import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 
 @JsonInclude(JsonInclude.Include.NON_DEFAULT)
 public class StructuredDataAttribute {
-
     @JacksonXmlProperty(isAttribute = true, localName = "ref")
     private String name;
 
@@ -16,9 +14,8 @@ public class StructuredDataAttribute {
 
     @JacksonXmlProperty(isAttribute = true, localName = "pref")
     private String preference;
-    
-    public StructuredDataAttribute() {
-    }
+
+    public StructuredDataAttribute() {}
 
     public StructuredDataAttribute(String name, int preference) {
         this.name = name;

@@ -3,8 +3,8 @@ package com.ing.engine.commands.mobile;
 import com.ing.engine.commands.browser.Command;
 import com.ing.engine.core.CommandControl;
 import com.ing.engine.drivers.MobileObject;
-import com.ing.ingenious.api.status.Status;
 import com.ing.ingenious.api.annotation.Action;
+import com.ing.ingenious.api.status.Status;
 import com.ing.ingenious.api.types.InputType;
 import com.ing.ingenious.api.types.ObjectType;
 import java.util.HashMap;
@@ -16,7 +16,12 @@ public class DynamicObject extends Command {
         super(cc);
     }
 
-    @Action(object = ObjectType.MOBILE, desc = "Set  all objects property to [<Data>] at runtime.", input = InputType.YES, condition = InputType.YES)
+    @Action(
+        object = ObjectType.MOBILE,
+        desc = "Set  all objects property to [<Data>] at runtime.",
+        input = InputType.YES,
+        condition = InputType.YES
+    )
     public void setMobileglobalObjectProperty() {
         if (!Data.isEmpty()) {
             if (Condition.isEmpty()) {
@@ -28,14 +33,23 @@ public class DynamicObject extends Command {
             } else {
                 MobileObject.globalDynamicValue.put(Condition, Data);
             }
-            String text = String.format("Setting Global Object Property for %s with %s", Condition, Data);
+            String text = String.format(
+                "Setting Global Object Property for %s with %s",
+                Condition,
+                Data
+            );
             Report.updateTestLog(Action, text, Status.DONE);
         } else {
             Report.updateTestLog(Action, "Input should not be empty", Status.FAILNS);
         }
     }
 
-    @Action(object = ObjectType.APP, desc = "Set object [<Object>] property  as [<Data>] at runtime", input = InputType.YES, condition = InputType.YES)
+    @Action(
+        object = ObjectType.APP,
+        desc = "Set object [<Object>] property  as [<Data>] at runtime",
+        input = InputType.YES,
+        condition = InputType.YES
+    )
     public void setMobileObjectProperty() {
         if (!Data.isEmpty()) {
             if (Condition.isEmpty()) {
@@ -47,8 +61,13 @@ public class DynamicObject extends Command {
             } else {
                 setProperty(Condition, Data);
             }
-            String text = String.format("Setting Object Property for %s with %s for Object [%s - %s]",
-                    Condition, Data, Reference, ObjectName);
+            String text = String.format(
+                "Setting Object Property for %s with %s for Object [%s - %s]",
+                Condition,
+                Data,
+                Reference,
+                ObjectName
+            );
             Report.updateTestLog(Action, text, Status.DONE);
         } else {
             Report.updateTestLog(Action, "Input should not be empty", Status.FAILNS);

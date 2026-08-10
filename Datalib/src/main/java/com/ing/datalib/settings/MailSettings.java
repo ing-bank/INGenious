@@ -1,9 +1,8 @@
-
 package com.ing.datalib.settings;
 
 /**
  *
- * 
+ *
  */
 public class MailSettings extends AbstractPropSettings {
 
@@ -34,5 +33,4 @@ public class MailSettings extends AbstractPropSettings {
         put("mail.smtp.connectiontimeout", "10000");
         put("mail.debug", "false");
     }
-
 }

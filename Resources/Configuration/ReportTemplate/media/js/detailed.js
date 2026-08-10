@@ -250,6 +250,133 @@ function escapeHtml(text) {
             .replace(/'/g, '&#39;');
 }
 
+// Split a saved response payload into its body and headers blocks.
+// The Engine writes responses to disk as: <body>\n\n--- Response Headers ---\n<headers>
+function splitResponsePayload(rawResponse) {
+    if (!rawResponse) return { body: '', headers: '' };
+    const marker = '--- Response Headers ---';
+    const idx = rawResponse.indexOf(marker);
+    if (idx === -1) return { body: rawResponse, headers: '' };
+    const body = rawResponse.substring(0, idx).replace(/\s+$/, '');
+    const headers = rawResponse.substring(idx + marker.length).replace(/^\s+/, '');
+    return { body, headers };
+}
+
+// Parse a java.net.http.HttpHeaders#toString() output of the form
+// "{ name=[value], name2=[value1, value2] }" into [{name, value}] entries.
+function parseHttpHeaders(headersText) {
+    if (!headersText) return [];
+    let text = headersText.trim();
+    if (text.startsWith('{')) text = text.substring(1);
+    if (text.endsWith('}')) text = text.substring(0, text.length - 1);
+    text = text.trim();
+    if (!text) return [];
+    const entries = [];
+    const regex = /([A-Za-z0-9!#$%&'*+.^_`|~-]+)\s*=\s*\[([^\]]*)\]/g;
+    let match;
+    while ((match = regex.exec(text)) !== null) {
+    entries.push({ name: match[1], value: match[2] });
+    }
+    return entries;
+}
+
+function renderHeadersSection(headersText) {
+    if (!headersText) return '';
+    const entries = this.parseHttpHeaders(headersText);
+    let rowsHtml;
+    let plainText;
+    if (entries.length === 0) {
+    rowsHtml = `<pre style="margin: 0; white-space: pre-wrap; word-wrap: break-word; color: #e5e7eb; font-size: 0.85rem; line-height: 1.4;">${this.escapeHtml(headersText)}</pre>`;
+    plainText = headersText;
+    } else {
+    rowsHtml = '<div style="display: grid; grid-template-columns: minmax(160px, max-content) 1fr; gap: 0.35rem 1rem;">'
+        + entries.map(e => `
+            <div style="color: #C6A6FF; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 0.85rem; word-break: break-word;">${this.escapeHtml(e.name)}</div>
+            <div style="color: #e5e7eb; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 0.85rem; word-break: break-word;">${this.escapeHtml(e.value)}</div>
+        `).join('')
+        + '</div>';
+    plainText = entries.map(e => `${e.name}: ${e.value}`).join('\n');
+    }
+    return `
+        <div style="margin-bottom: 1.5rem;">
+        ${renderPayloadSectionHeader('Response Headers', plainText)}
+        <div style="background: rgba(255, 255, 255, 0.06); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 0.75rem; padding: 1rem;">${rowsHtml}</div>
+        </div>
+    `;
+}
+
+// Encode arbitrary UTF-8 text as base64 so it can be safely embedded in an HTML attribute.
+function encodePayloadForCopy(text) {
+    if (!text) return '';
+    try {
+    return btoa(unescape(encodeURIComponent(text)));
+    } catch (error) {
+    return '';
+    }
+}
+
+// Render a section header with a "Copy" button. The text to copy is embedded as
+// a base64 data attribute on the button and read back by copyPayloadFromButton.
+function renderPayloadSectionHeader(title, copyText) {
+    const encoded = encodePayloadForCopy(copyText || '');
+    const copyBtn = encoded
+    ? `<button type="button" onclick="copyPayloadFromButton(this)" data-copy-text-b64="${encoded}" data-copy-label="Copy" style="background: rgba(180, 135, 255, 0.18); border: 1px solid rgba(180, 135, 255, 0.45); color: #ffffff; border-radius: 0.5rem; padding: 0.25rem 0.65rem; font-size: 0.75rem; font-weight: 500; cursor: pointer; display: inline-flex; align-items: center; gap: 0.35rem;" title="Copy to clipboard">
+        <svg style="width: 0.85rem; height: 0.85rem;" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z"/>
+        </svg>
+        <span data-copy-label-text>Copy</span>
+        </button>`
+    : '';
+    return `
+        <div style="display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; margin: 0 0 0.5rem 0;">
+        <h3 style="color: #ffffff; margin: 0; font-size: 1rem; font-weight: 600;">${title}</h3>
+        ${copyBtn}
+        </div>
+    `;
+}
+
+// Decode the base64 payload from a copy button, write it to the clipboard,
+// and briefly flash "Copied!" feedback on the button.
+function copyPayloadFromButton(btn) {
+    if (!btn) return;
+    const encoded = btn.getAttribute('data-copy-text-b64') || '';
+    let text = '';
+    try {
+    text = decodeURIComponent(escape(atob(encoded)));
+    } catch (error) {
+    text = '';
+    }
+    const flash = (label) => {
+    const labelEl = btn.querySelector('[data-copy-label-text]');
+    if (labelEl) labelEl.textContent = label;
+    setTimeout(() => {
+        const reset = btn.getAttribute('data-copy-label') || 'Copy';
+        const el = btn.querySelector('[data-copy-label-text]');
+        if (el) el.textContent = reset;
+    }, 1500);
+    };
+    const fallback = () => {
+    try {
+        const ta = document.createElement('textarea');
+        ta.value = text;
+        ta.style.position = 'fixed';
+        ta.style.opacity = '0';
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand('copy');
+        document.body.removeChild(ta);
+        flash('Copied!');
+    } catch (error) {
+        flash('Copy failed');
+    }
+    };
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text).then(() => flash('Copied!')).catch(fallback);
+    } else {
+    fallback();
+    }
+}
+
 async function openPayloadModal(link, stepJson) {
     if (!link) return;
     const step = JSON.parse(decodeURIComponent(escape(atob(stepJson))));
@@ -282,9 +409,13 @@ async function openPayloadModal(link, stepJson) {
     }
 
     const requestText = this.formatPayload(rawRequest);
-    const responseText = this.formatPayload(rawResponse);
+    const requestPlain = this.formatPayload(rawRequest, false);
+    const { body: rawResponseBody, headers: rawResponseHeaders } = this.splitResponsePayload(rawResponse);
+    const responseText = this.formatPayload(rawResponseBody);
+    const responsePlain = this.formatPayload(rawResponseBody, false);
     const showRequest = !!requestText && (!method || ['POST', 'PUT', 'PATCH'].includes(method));
     const showResponse = !!responseText;
+    const headersSectionHtml = this.renderHeadersSection(rawResponseHeaders);
 
     const modal = document.createElement('div');
     modal.className = 'payload-modal-overlay';
@@ -292,7 +423,7 @@ async function openPayloadModal(link, stepJson) {
     const requestHtml = showRequest
     ? `
         <div style="margin-bottom: 1.5rem;">
-        <h3 style="color: #ffffff; margin: 0 0 0.5rem 0; font-size: 1rem; font-weight: 600;">Request Payload</h3>
+        ${renderPayloadSectionHeader('Request Payload', requestPlain)}
         <pre style="white-space: pre-wrap; word-wrap: break-word; background: rgba(255, 255, 255, 0.06); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 0.75rem; padding: 1rem; color: #e5e7eb; font-size: 0.875rem; line-height: 1.4;">${requestText}</pre>
         </div>
     `
@@ -301,7 +432,7 @@ async function openPayloadModal(link, stepJson) {
     const responseHtml = showResponse
     ? `
         <div style="margin-bottom: 1.5rem;">
-        <h3 style="color: #ffffff; margin: 0 0 0.5rem 0; font-size: 1rem; font-weight: 600;">Response Payload</h3>
+        ${renderPayloadSectionHeader('Response Payload', responsePlain)}
         <pre style="white-space: pre-wrap; word-wrap: break-word; background: rgba(255, 255, 255, 0.06); border: 1px solid rgba(255, 255, 255, 0.1); border-radius: 0.75rem; padding: 1rem; color: #e5e7eb; font-size: 0.875rem; line-height: 1.4;">${responseText}</pre>
         </div>
     `
@@ -324,6 +455,7 @@ async function openPayloadModal(link, stepJson) {
         </div>
         ${requestHtml}
         ${responseHtml}
+        ${headersSectionHtml}
         </div>
     </div>
     `;
@@ -367,7 +499,7 @@ function collapseAllSteps() {
 }
 
 // Modern recursive renderer for detailed-v2.html
-function renderStepsV2(iterations, showFailedOnly = false, stepFilter = '') {
+function renderStepsV2(iterations, showFailedOnly = false, stepFilter = '', keyPrefix = '') {
     function escapeHtml(unsafe) {
         if (!unsafe) return '';
         return unsafe.toString()
@@ -381,7 +513,7 @@ function renderStepsV2(iterations, showFailedOnly = false, stepFilter = '') {
         return (name || '').toLowerCase().includes(filter) || (description || '').toLowerCase().includes(filter);
     }
     
-    function renderStep(step, keyPath) {
+    function renderStep(step, keyPath, reusableContext) {
         const data = step.data || {};
         const status = (data.status || '').toLowerCase();
         if (showFailedOnly && status !== 'fail') return '';
@@ -495,11 +627,14 @@ function renderStepsV2(iterations, showFailedOnly = false, stepFilter = '') {
             detailsHtml += `</div>`;
         }
         if (isTestAccessibilityStep(step)){
+            // Determine which name to use for the aXe report path:
+            // If inside a reusable, use the reusable name; otherwise use the test case name
+            const contextName = reusableContext || Params.TC;
             detailsHtml += `<div class="flex gap-3 flex-wrap mt-4">
-                <button @click="openAxeReportModal('${Params.TC}', getReusableAxeReportPath('${Params.TC}'))"
-                    :disabled="!getReusableAxeReportPath('${Params.TC}')"
+                <button @click="openAxeReportModal('${contextName}', getReusableAxeReportPath('${contextName}'))"
+                    :disabled="!getReusableAxeReportPath('${contextName}')"
                     class="btn btn--secondary btn--sm"
-                    :style="getReusableAxeReportPath('${Params.TC}') ? {
+                    :style="getReusableAxeReportPath('${contextName}') ? {
                         'background-color': '#7724FF',
                         'color': '#FFFFFF',
                         'border-color': 'rgba(119, 36, 255, 0.5)',
@@ -523,9 +658,16 @@ function renderStepsV2(iterations, showFailedOnly = false, stepFilter = '') {
     function renderReusable(reusable, keyPath) {
         const status = (reusable.status || '').toLowerCase();
         const statusIcon = status === 'pass' ? '<svg class="w-5 h-5 text-green-600 dark:text-green-400" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/></svg>' : '<svg class="w-5 h-5 text-red-600 dark:text-red-400" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clip-rule="evenodd"/></svg>';
+        
+        // Extract the reusable name from the full path (e.g., "Scenario:ReusableName" -> "ReusableName")
+        const reusableName = (reusable.name || '').includes(':') 
+            ? reusable.name.split(':')[1].trim() 
+            : reusable.name;
+        
         let html = `<div class="reusable-component rounded-lg overflow-visible ${status === 'pass' ? 'reusable-header--passed' : 'reusable-header--failed'}" data-key="${keyPath}"><div class="flex items-center gap-3 p-4 cursor-pointer bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors" onclick="toggleReusableV2('${keyPath}')"><div class="flex items-center justify-center flex-shrink-0">${statusIcon}</div><div class="flex-1"><div class="font-semibold text-gray-800 dark:text-gray-200">${escapeHtml(reusable.name)}</div>${reusable.description ? `<div class="text-sm text-gray-600 dark:text-gray-400">${escapeHtml(reusable.description)}</div>` : ''}</div><div class="flex items-center gap-2"><span class="badge text-xs badge--${status}">${escapeHtml(reusable.status || '')}</span><svg class="w-5 h-5 text-gray-400 transition-transform duration-200 reusable-arrow" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg></div></div><div class="border-t border-gray-200 dark:border-gray-700 p-4 bg-gray-50 dark:bg-gray-900" style="display: none;" data-reusable-body="${keyPath}"><div class="step-timeline">`;
         (reusable.data || []).forEach((child, idx) => {
-            if (child.type === 'step') html += renderStep(child, keyPath + '-' + idx);
+            // Pass the reusable name as context to child steps so they can find the correct aXe report
+            if (child.type === 'step') html += renderStep(child, keyPath + '-' + idx, reusableName);
             else if (child.type === 'reusable') html += renderReusable(child, keyPath + '-' + idx);
         });
         return html + '</div></div></div>';
@@ -533,10 +675,19 @@ function renderStepsV2(iterations, showFailedOnly = false, stepFilter = '') {
     
     let html = '';
     (iterations || []).forEach((item, idx) => {
-        const keyPath = '' + idx;
-        if (item.type === 'step') html += renderStep(item, keyPath);
-        else if (item.type === 'reusable') html += renderReusable(item, keyPath);
+        // Include the iteration-specific prefix so every rendered element
+        // has a unique key across all iterations.
+        const keyPath = keyPrefix
+            ? keyPrefix + '-' + idx
+            : String(idx);
+
+        if (item.type === 'step') {
+            html += renderStep(item, keyPath, null);
+        } else if (item.type === 'reusable') {
+            html += renderReusable(item, keyPath);
+        }
     });
+
     return html;
 }
 
@@ -609,7 +760,7 @@ function injectStepsV2(showFailedOnly = false, stepFilter = '', scenarioName = n
     let html = '';
     stepsToRender.forEach(function(iteration, idx) {
         if (showFailedOnly && iteration.status !== 'FAIL') return;
-        html += `<div class="mb-6 pb-6 border-b border-gray-200 dark:border-gray-700 last:border-b-0"><div class="flex items-center gap-3 mb-4"><div class="px-3 py-1 rounded-full text-sm font-semibold ${iteration.status === 'PASS' ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' : 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'}">${iteration.name || 'Iteration'}</div><span class="text-sm text-muted">${iteration.status || ''}</span></div><div class="step-timeline">${renderStepsV2(iteration.data, showFailedOnly, stepFilter)}</div></div>`;
+        html += `<div class="mb-6 pb-6 border-b border-gray-200 dark:border-gray-700 last:border-b-0"><div class="flex items-center gap-3 mb-4"><div class="px-3 py-1 rounded-full text-sm font-semibold ${iteration.status === 'PASS' ? 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400' : 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'}">${iteration.name || 'Iteration'}</div><span class="text-sm text-muted">${iteration.status || ''}</span></div><div class="step-timeline">${renderStepsV2(iteration.data, showFailedOnly, stepFilter, 'iter' + idx)}</div></div>`;
     });
     
     // Handle empty steps

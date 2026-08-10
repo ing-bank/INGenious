@@ -1,4 +1,3 @@
-
 package com.ing.ide.main.mainui.components.testexecution.tree.model;
 
 import com.ing.datalib.component.Release;
@@ -12,10 +11,9 @@ import javax.swing.tree.TreeNode;
 
 /**
  *
- * 
+ *
  */
 public class ReleaseNode extends CommonNode {
-
     Release release;
 
     public ReleaseNode(Release release) {
@@ -40,7 +38,7 @@ public class ReleaseNode extends CommonNode {
         return null;
     }
 
-     public TestSetNode getTestSetBy(TestSet testSet) {
+    public TestSetNode getTestSetBy(TestSet testSet) {
         for (TestSetNode testSetNode : TestSetNode.toList(children())) {
             if (testSetNode.getTestSet().equals(testSet)) {
                 return testSetNode;
@@ -54,8 +52,11 @@ public class ReleaseNode extends CommonNode {
         return release.getName();
     }
 
-   public static List<ReleaseNode> toList(Enumeration<TreeNode> children){
-       return Collections.list(children).stream().map(tsNode -> (ReleaseNode) tsNode).collect(Collectors.toList());
-       
-   }
+    public static List<ReleaseNode> toList(Enumeration<TreeNode> children) {
+        return Collections
+            .list(children)
+            .stream()
+            .map(tsNode -> (ReleaseNode) tsNode)
+            .collect(Collectors.toList());
+    }
 }

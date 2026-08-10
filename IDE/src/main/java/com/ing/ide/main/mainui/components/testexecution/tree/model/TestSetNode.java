@@ -1,4 +1,3 @@
-
 package com.ing.ide.main.mainui.components.testexecution.tree.model;
 
 import com.ing.datalib.component.TestSet;
@@ -11,10 +10,9 @@ import javax.swing.tree.TreeNode;
 
 /**
  *
- * 
+ *
  */
 public class TestSetNode extends CommonNode {
-
     TestSet testSet;
 
     public TestSetNode(TestSet testSet) {
@@ -30,7 +28,11 @@ public class TestSetNode extends CommonNode {
         return testSet.getName();
     }
 
-   public static List<TestSetNode> toList(Enumeration<TreeNode> children){
-       return Collections.list(children).stream().map(tsNode -> (TestSetNode) tsNode).collect(Collectors.toList());       
-   }
+    public static List<TestSetNode> toList(Enumeration<TreeNode> children) {
+        return Collections
+            .list(children)
+            .stream()
+            .map(tsNode -> (TestSetNode) tsNode)
+            .collect(Collectors.toList());
+    }
 }

@@ -1,4 +1,3 @@
-
 package com.ing.ide.main.shr.mobile.android;
 
 import com.ing.datalib.component.utils.XMLOperation;
@@ -12,10 +11,9 @@ import org.w3c.dom.NodeList;
 
 /**
  *
- * 
+ *
  */
 public class AndroidTree extends MobileTree {
-
     private static AndroidTree andTree;
     private String rotation;
 
@@ -46,8 +44,7 @@ public class AndroidTree extends MobileTree {
         NodeList nodeList = parent.getChildNodes();
         int maxcount = 2000;
         int loopcount = nodeList.getLength();
-        if(loopcount>maxcount)
-            loopcount = maxcount;
+        if (loopcount > maxcount) loopcount = maxcount;
         for (int i = 0; i < loopcount; i++) {
             Node node = nodeList.item(i);
             if (Node.ELEMENT_NODE == node.getNodeType()) {

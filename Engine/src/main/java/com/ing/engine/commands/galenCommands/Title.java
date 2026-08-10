@@ -1,25 +1,24 @@
-
 package com.ing.engine.commands.galenCommands;
 
+import com.galenframework.specs.SpecText;
 import com.ing.engine.core.CommandControl;
 import com.ing.engine.galenWrapper.SpecValidation.SpecReader;
 import com.ing.engine.galenWrapper.SpecValidation.SpecTitle;
 import com.ing.ingenious.api.annotation.Action;
 import com.ing.ingenious.api.types.InputType;
 import com.ing.ingenious.api.types.ObjectType;
-import com.galenframework.specs.SpecText;
 import java.util.Arrays;
 
 /**
  *
- * 
+ *
  */
 public class Title extends General {
 
     public Title(CommandControl cc) {
         super(cc);
     }
-/*
+    /*
     private void assertTitle(SpecText.Type type) {
         SpecTitle spec = SpecReader.reader().getSpecTitle(type, Data);
         spec.setOriginalText(getMessage(type));

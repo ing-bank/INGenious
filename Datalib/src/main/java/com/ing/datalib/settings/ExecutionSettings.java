@@ -1,16 +1,14 @@
-
 package com.ing.datalib.settings;
 
 /**
  *
- * 
+ *
  */
 public class ExecutionSettings {
-
     private final RunSettings runSettings;
 
     private final TestMgmtSettings testMgmgtSettings;
-    
+
     private final KafkaSSLConfigurations kafkaSSLConfigurations;
 
     public ExecutionSettings(String location) {
@@ -27,9 +25,10 @@ public class ExecutionSettings {
         return testMgmgtSettings;
     }
 
-     public KafkaSSLConfigurations getKafkasslConfiguration() {
+    public KafkaSSLConfigurations getKafkasslConfiguration() {
         return kafkaSSLConfigurations;
-    }     
+    }
+
     public void setLocation(String location) {
         runSettings.setLocation(location);
         testMgmgtSettings.setLocation(location);

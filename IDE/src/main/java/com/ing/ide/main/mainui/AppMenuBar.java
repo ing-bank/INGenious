@@ -1,12 +1,17 @@
-
 package com.ing.ide.main.mainui;
 
+import com.ing.ide.main.fx.INGIcons;
 import com.ing.ide.main.utils.Utils;
 import com.ing.ide.util.Canvas;
-import java.awt.Insets;
+import java.awt.BasicStroke;
+import java.awt.Color;
 import java.awt.Font;
 import java.awt.FontFormatException;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
 import java.awt.GraphicsEnvironment;
+import java.awt.Insets;
+import java.awt.RenderingHints;
 import java.awt.Toolkit;
 import java.awt.event.KeyEvent;
 import java.io.File;
@@ -21,7 +26,6 @@ import javax.swing.KeyStroke;
 import javax.swing.UIManager;
 
 public class AppMenuBar extends JMenuBar {
-
     AppActionListener sActionListener;
 
     Map<String, KeyStroke> shortcuts;
@@ -36,7 +40,7 @@ public class AppMenuBar extends JMenuBar {
 
     private void init() {
         initShortcut();
-        setMargin(new Insets(0,0,0,5));
+        setMargin(new Insets(0, 0, 0, 5));
         add(changeFont(createFileMenu()));
         add(changeFont(createTestDataMenu()));
         add(changeFont(createConfigurationMenu()));
@@ -47,33 +51,54 @@ public class AppMenuBar extends JMenuBar {
 
     private void initShortcut() {
         int SHORTCUT = Toolkit.getDefaultToolkit().getMenuShortcutKeyMask();
-        shortcuts.put("New Project", KeyStroke.getKeyStroke(
-                KeyEvent.VK_N, SHORTCUT | KeyEvent.SHIFT_DOWN_MASK));
-        shortcuts.put("Open Project", KeyStroke.getKeyStroke(
-                KeyEvent.VK_O, SHORTCUT | KeyEvent.SHIFT_DOWN_MASK));
-        shortcuts.put("Save Project", KeyStroke.getKeyStroke(
-                KeyEvent.VK_S, SHORTCUT | KeyEvent.SHIFT_DOWN_MASK));
-        shortcuts.put("Quit", KeyStroke.getKeyStroke(
-                KeyEvent.VK_X, KeyEvent.ALT_MASK));
+        shortcuts.put(
+            "New Project",
+            KeyStroke.getKeyStroke(KeyEvent.VK_N, SHORTCUT | KeyEvent.SHIFT_DOWN_MASK)
+        );
+        shortcuts.put(
+            "Open Project",
+            KeyStroke.getKeyStroke(KeyEvent.VK_O, SHORTCUT | KeyEvent.SHIFT_DOWN_MASK)
+        );
+        shortcuts.put(
+            "Save Project",
+            KeyStroke.getKeyStroke(KeyEvent.VK_S, SHORTCUT | KeyEvent.SHIFT_DOWN_MASK)
+        );
+        shortcuts.put("Quit", KeyStroke.getKeyStroke(KeyEvent.VK_X, KeyEvent.ALT_MASK));
 
-        shortcuts.put("Run Settings", KeyStroke.getKeyStroke(
-                KeyEvent.VK_S, SHORTCUT | KeyEvent.ALT_DOWN_MASK));
+        shortcuts.put(
+            "Settings",
+            KeyStroke.getKeyStroke(KeyEvent.VK_S, SHORTCUT | KeyEvent.ALT_DOWN_MASK)
+        );
 
-        shortcuts.put("Exploratory", KeyStroke.getKeyStroke(
-                KeyEvent.VK_E, SHORTCUT | KeyEvent.SHIFT_DOWN_MASK));
-        shortcuts.put("Har Compare", KeyStroke.getKeyStroke(
-                KeyEvent.VK_H, SHORTCUT | KeyEvent.SHIFT_DOWN_MASK));
+        shortcuts.put(
+            "Exploratory",
+            KeyStroke.getKeyStroke(KeyEvent.VK_E, SHORTCUT | KeyEvent.SHIFT_DOWN_MASK)
+        );
+        shortcuts.put(
+            "Har Compare",
+            KeyStroke.getKeyStroke(KeyEvent.VK_H, SHORTCUT | KeyEvent.SHIFT_DOWN_MASK)
+        );
 
-        shortcuts.put("Test Design", KeyStroke.getKeyStroke(
-                KeyEvent.VK_N, KeyEvent.SHIFT_DOWN_MASK | KeyEvent.ALT_DOWN_MASK));
-        shortcuts.put("Test Execution", KeyStroke.getKeyStroke(
-                KeyEvent.VK_E, KeyEvent.SHIFT_DOWN_MASK | KeyEvent.ALT_DOWN_MASK));
-        shortcuts.put("Dashboard", KeyStroke.getKeyStroke(
-                KeyEvent.VK_D, KeyEvent.SHIFT_DOWN_MASK | KeyEvent.ALT_DOWN_MASK));
-        shortcuts.put("API Workbench", KeyStroke.getKeyStroke(
-                KeyEvent.VK_T, KeyEvent.SHIFT_DOWN_MASK | KeyEvent.ALT_DOWN_MASK));
-        shortcuts.put("AdjustUI", KeyStroke.getKeyStroke(
-                KeyEvent.VK_A, KeyEvent.SHIFT_DOWN_MASK | KeyEvent.ALT_DOWN_MASK));
+        shortcuts.put(
+            "Test Design",
+            KeyStroke.getKeyStroke(KeyEvent.VK_N, KeyEvent.SHIFT_DOWN_MASK | KeyEvent.ALT_DOWN_MASK)
+        );
+        shortcuts.put(
+            "Test Execution",
+            KeyStroke.getKeyStroke(KeyEvent.VK_E, KeyEvent.SHIFT_DOWN_MASK | KeyEvent.ALT_DOWN_MASK)
+        );
+        shortcuts.put(
+            "Dashboard",
+            KeyStroke.getKeyStroke(KeyEvent.VK_D, KeyEvent.SHIFT_DOWN_MASK | KeyEvent.ALT_DOWN_MASK)
+        );
+        shortcuts.put(
+            "API Workbench",
+            KeyStroke.getKeyStroke(KeyEvent.VK_W, KeyEvent.SHIFT_DOWN_MASK | KeyEvent.ALT_DOWN_MASK)
+        );
+        shortcuts.put(
+            "AdjustUI",
+            KeyStroke.getKeyStroke(KeyEvent.VK_A, KeyEvent.SHIFT_DOWN_MASK | KeyEvent.ALT_DOWN_MASK)
+        );
 
         shortcuts.put("Help", KeyStroke.getKeyStroke(KeyEvent.VK_F1, 0));
         shortcuts.put("About", KeyStroke.getKeyStroke(KeyEvent.VK_F3, 0));
@@ -81,49 +106,59 @@ public class AppMenuBar extends JMenuBar {
     }
 
     private JMenu changeFont(JMenu menu) {
-      //  menu.setFont(new Font("Default", Font.BOLD, 11));
-      //  return menu;
-      try {
+        //  menu.setFont(new Font("Default", Font.BOLD, 11));
+        //  return menu;
+        try {
             //create the font to use. Specify the size!
-            Font customFont = Font.createFont(Font.TRUETYPE_FONT, new File("resources/ui/resources/fonts/ingme_regular.ttf"));//.deriveFont(12f);
+            Font customFont = Font.createFont(
+                Font.TRUETYPE_FONT,
+                new File("resources/ui/resources/fonts/ingme_regular.ttf")
+            ); //.deriveFont(12f);
             GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
             //register the font
             ge.registerFont(customFont);
         } catch (IOException | FontFormatException e) {
-          //  e.printStackTrace();
+            //  e.printStackTrace();
         }
-      
-       // menu.setFont(new Font("Courier", Font.BOLD, 12));
-       menu.setFont(new Font("ING Me", Font.BOLD, 12));
-        menu.setMargin(new Insets(5,3,5,3));
-       return menu;
+
+        // menu.setFont(new Font("Courier", Font.BOLD, 12));
+        menu.setFont(new Font("ING Me", Font.BOLD, 12));
+        menu.setMargin(new Insets(5, 3, 5, 3));
+        return menu;
     }
 
     private JMenu createFileMenu() {
         JMenu file = new JMenu("File");
         file.setMnemonic('F');
 
-        file.add(withMnemonics(
-                withShortCut(
-                        withIcon(
-                                Utils.createMenuItem("New Project", sActionListener))), 'N'));
-        file.add(withMnemonics(
-                withShortCut(
-                        withIcon(
-                                Utils.createMenuItem("Open Project", sActionListener))), 'O'));
-        file.add(withMnemonics(
-                withShortCut(
-                        withIcon(
-                                Utils.createMenuItem("Save Project", sActionListener))), 'S'));
+        file.add(
+            withMnemonics(
+                withShortCut(withIcon(Utils.createMenuItem("New Project", sActionListener))),
+                'N'
+            )
+        );
+        file.add(
+            withMnemonics(
+                withShortCut(withIcon(Utils.createMenuItem("Open Project", sActionListener))),
+                'O'
+            )
+        );
+        file.add(
+            withMnemonics(
+                withShortCut(withIcon(Utils.createMenuItem("Save Project", sActionListener))),
+                'S'
+            )
+        );
         file.addSeparator();
 
         file.add(sActionListener.getMainFrame().getRecentItems());
-        file.add(sActionListener.getMainFrame().getTestDesign().getTestCaseComp().getTestCaseHistory());
+        file.add(
+            sActionListener.getMainFrame().getTestDesign().getTestCaseComp().getTestCaseHistory()
+        );
 
         file.add(Utils.createMenuItem("Restart", sActionListener));
 
-        file.add(withShortCut(
-                Utils.createMenuItem("Quit", sActionListener)));
+        file.add(withShortCut(Utils.createMenuItem("Quit", sActionListener)));
 
         return file;
     }
@@ -133,8 +168,7 @@ public class AppMenuBar extends JMenuBar {
 
         testData.setMnemonic('D');
 
-        testData.add(withMnemonics(
-                Utils.createMenuItem("Import TestData", sActionListener), 'I'));
+        testData.add(withMnemonics(Utils.createMenuItem("Import TestData", sActionListener), 'I'));
 
         JCheckBoxMenuItem item = new JCheckBoxMenuItem("Multiple Environment");
         item.setFont(UIManager.getFont("TableMenu.font"));
@@ -150,39 +184,39 @@ public class AppMenuBar extends JMenuBar {
         configure.setMnemonic('C');
 
         configure.add(
-                withMnemonics(
-                        withShortCut(
-                                withIcon(
-                                        Utils.createMenuItem("Run Settings", sActionListener))), 'R'));
+            withMnemonics(
+                withShortCut(withIcon(Utils.createMenuItem("Settings", sActionListener))),
+                'S'
+            )
+        );
         configure.add(
-                withMnemonics(
-                        withIcon(
-                                Utils.createMenuItem("Browser Configuration", sActionListener)), 'B'));
-     //   configure.add(
-     //           withMnemonics(
-     //                   withIcon(
-     //                           Utils.createMenuItem("AzureDevOps TestPlan Configuration", sActionListener)), 'T'));
+            withMnemonics(
+                withIcon(Utils.createMenuItem("Archetype Configurations", sActionListener)),
+                'A'
+            )
+        );
+        //   configure.add(
+        //           withMnemonics(
+        //                   withIcon(
+        //                           Utils.createMenuItem("AzureDevOps TestPlan Configuration", sActionListener)), 'T'));
         configure.addSeparator();
 
-      //  configure.add(
-      //          withMnemonics(
-      //                  Utils.createMenuItem("Schedule Run", sActionListener), 'S'));
-       // configure.add(
-         //       withMnemonics(
-           //             Utils.createMenuItem("Start Server", sActionListener), 't'));
+        //  configure.add(
+        //          withMnemonics(
+        //                  Utils.createMenuItem("Schedule Run", sActionListener), 'S'));
+        // configure.add(
+        //       withMnemonics(
+        //             Utils.createMenuItem("Start Server", sActionListener), 't'));
 
         configure.addSeparator();
-        configure.add(
-                withMnemonics(
-                        Utils.createMenuItem("Options", sActionListener), 'O'));
-        
-        
+        configure.add(withMnemonics(Utils.createMenuItem("Options", sActionListener), 'O'));
+
         // JCheckBoxMenuItem darkModeItem = new JCheckBoxMenuItem("Dark Mode");
         // darkModeItem.setFont(UIManager.getFont("TableMenu.font"));
         // darkModeItem.addActionListener(sActionListener);
         // configure.add(withMnemonics(darkModeItem, 'D'));
-    
-     return configure;
+
+        return configure;
     }
 
     private JMenu createToolsMenu() {
@@ -190,44 +224,63 @@ public class AppMenuBar extends JMenuBar {
         tools.setMnemonic('T');
 
         tools.add(
-                withMnemonics(
-                        withShortCut(
-                                withIcon(
-                                        Utils.createMenuItem("Exploratory", sActionListener))), 'E'));
+            withMnemonics(
+                withShortCut(withIcon(Utils.createMenuItem("Exploratory", sActionListener))),
+                'E'
+            )
+        );
         JMenu optionsMenu = new JMenu("BDD");
         optionsMenu.add(Utils.createMenuItem("Import Feature File", sActionListener));
         optionsMenu.add(Utils.createMenuItem("Open Feature Editor", sActionListener));
 
         tools.add(optionsMenu);
 
-//        JMenu chromeOptionsMenu = new JMenu("Import Chrome Recording");
-//        chromeOptionsMenu.add(withIcon(chromeOptionsMenu));
-//        chromeOptionsMenu.add(withMnemonics(chromeOptionsMenu, 'I'));
-//        chromeOptionsMenu.add(Utils.createMenuItem("Import JSON", sActionListener));
-//        tools.add(chromeOptionsMenu);
-        
+        //        JMenu chromeOptionsMenu = new JMenu("Import Chrome Recording");
+        //        chromeOptionsMenu.add(withIcon(chromeOptionsMenu));
+        //        chromeOptionsMenu.add(withMnemonics(chromeOptionsMenu, 'I'));
+        //        chromeOptionsMenu.add(Utils.createMenuItem("Import JSON", sActionListener));
+        //        tools.add(chromeOptionsMenu);
+
         JMenu playwrightOptionsMenu = new JMenu("Import Playwright Recording");
         playwrightOptionsMenu.add(withIcon(playwrightOptionsMenu));
         playwrightOptionsMenu.add(withMnemonics(playwrightOptionsMenu, 'I'));
-        playwrightOptionsMenu.add(Utils.createMenuItem("Import Playwright Recording", sActionListener));
+        playwrightOptionsMenu.add(
+            Utils.createMenuItem("Import Playwright Recording", sActionListener)
+        );
         tools.add(playwrightOptionsMenu);
-        
+
         JMenu sapOptionsMenu = new JMenu("Import SAP Recording");
         // sapOptionsMenu.add(Utils.createMenuItem("VBScript (.vbs, .vba)", sActionListener, "Import SAP Recording:VBScript"));
         // sapOptionsMenu.add(Utils.createMenuItem("JavaScript (.js)", sActionListener, "Import SAP Recording:JavaScript"));
-        sapOptionsMenu.add(Utils.createMenuItem("PowerShell (.ps1)", sActionListener, "Import SAP Recording:PowerShell"));
+        sapOptionsMenu.add(
+            Utils.createMenuItem(
+                "PowerShell (.ps1)",
+                sActionListener,
+                "Import SAP Recording:PowerShell"
+            )
+        );
         // sapOptionsMenu.add(Utils.createMenuItem("Python (.py)", sActionListener, "Import SAP Recording:Python"));
         // sapOptionsMenu.add(Utils.createMenuItem("AutoIt (.au3)", sActionListener, "Import SAP Recording:AutoIt"));
         // sapOptionsMenu.add(Utils.createMenuItem("C# (.cs)", sActionListener, "Import SAP Recording:CSharp"));
         // sapOptionsMenu.add(Utils.createMenuItem("VB.NET (.vb)", sActionListener, "Import SAP Recording:VBNet"));
-        sapOptionsMenu.add(Utils.createMenuItem("Java (.java, .jsh)", sActionListener, "Import SAP Recording:Java"));
+        sapOptionsMenu.add(
+            Utils.createMenuItem("Java (.java, .jsh)", sActionListener, "Import SAP Recording:Java")
+        );
         tools.add(sapOptionsMenu);
-        
+
+        JMenu importCollectionMenu = new JMenu("Import Collection");
+        importCollectionMenu.add(
+            Utils.createMenuItem("Postman", sActionListener, "Import Collection:Postman")
+        );
+        importCollectionMenu.add(
+            Utils.createMenuItem("Bruno", sActionListener, "Import Collection:Bruno")
+        );
+        tools.add(importCollectionMenu);
+
         tools.add(
-                withMnemonics(
-                        withShortCut(
-                                Utils.createMenuItem("Har Compare", sActionListener)), 'H'));
-        
+            withMnemonics(withShortCut(Utils.createMenuItem("Har Compare", sActionListener)), 'H')
+        );
+
         return tools;
     }
 
@@ -236,18 +289,15 @@ public class AppMenuBar extends JMenuBar {
         help.setMnemonic('H');
 
         help.add(
-                withMnemonics(
-                        withEmptyIcon(
-                                withShortCut(
-                                        Utils.createMenuItem("Help", sActionListener))), 'H'));
+            withMnemonics(
+                withEmptyIcon(withShortCut(Utils.createMenuItem("Help", sActionListener))),
+                'H'
+            )
+        );
+        help.add(withMnemonics(withShortCut(Utils.createMenuItem("About", sActionListener)), 'A'));
         help.add(
-                withMnemonics(
-                        withShortCut(
-                                Utils.createMenuItem("About", sActionListener)), 'A'));
-        help.add(
-                withMnemonics(
-                        withShortCut(
-                                Utils.createMenuItem("Show Log", sActionListener)), 'o'));
+            withMnemonics(withShortCut(Utils.createMenuItem("Show Log", sActionListener)), 'o')
+        );
 
         return help;
     }
@@ -257,30 +307,86 @@ public class AppMenuBar extends JMenuBar {
         window.setMnemonic('W');
 
         window.add(
-                withMnemonics(
-                        withEmptyIcon(
-                                withShortCut(Utils.createMenuItem("Test Design", sActionListener))), 'T'));
+            withMnemonics(
+                withEmptyIcon(withShortCut(Utils.createMenuItem("Test Design", sActionListener))),
+                'T'
+            )
+        );
 
         window.add(
-                withMnemonics(
-                        withShortCut(
-                                Utils.createMenuItem("Test Execution", sActionListener)), 'E'));
+            withMnemonics(
+                withShortCut(Utils.createMenuItem("Test Execution", sActionListener)),
+                'E'
+            )
+        );
         window.add(
-                withMnemonics(
-                        withShortCut(
-                                Utils.createMenuItem("Dashboard", sActionListener)), 'D'));
+            withMnemonics(withShortCut(Utils.createMenuItem("Dashboard", sActionListener)), 'D')
+        );
+
+        window.add(createAPIWorkbenchMenuItem());
 
         window.add(
-                withMnemonics(
-                        withShortCut(
-                                Utils.createMenuItem("API Workbench", sActionListener)), 'P'));
+            withMnemonics(
+                withShortCut(
+                    withCopilotIcon(Utils.createMenuItem("AI Assistant", sActionListener))
+                ),
+                'I'
+            )
+        );
 
         window.add(
-                withMnemonics(
-                        withShortCut(
-                                Utils.createMenuItem("AdjustUI", sActionListener)), 'A'));
+            withMnemonics(withShortCut(Utils.createMenuItem("AdjustUI", sActionListener)), 'A')
+        );
 
         return window;
+    }
+
+    /**
+     * Creates the API Workbench menu item with a solid purple style,
+     * bold outline, white icon/text, hover effect, and drop shadow.
+     */
+    private JMenuItem createAPIWorkbenchMenuItem() {
+        final Color BG_NORMAL = Color.decode("#7724FF");
+        final Color BG_HOVER = Color.decode("#5F18D8");
+        final Color BORDER = Color.decode("#FFFFFF");
+
+        JMenuItem item = new JMenuItem("Workbench") {
+
+            @Override
+            public void paintComponent(Graphics g) {
+                Graphics2D g2d = (Graphics2D) g.create();
+                g2d.setRenderingHint(
+                    RenderingHints.KEY_ANTIALIASING,
+                    RenderingHints.VALUE_ANTIALIAS_ON
+                );
+
+                // Shadow for prominence
+                g2d.setColor(new Color(0, 0, 0, 85));
+                g2d.fillRoundRect(4, 3, getWidth() - 6, getHeight() - 5, 9, 9);
+
+                // Solid background
+                g2d.setColor(isArmed() ? BG_HOVER : BG_NORMAL);
+                g2d.fillRoundRect(3, 2, getWidth() - 6, getHeight() - 4, 8, 8);
+
+                // Bold coloured outline
+                g2d.setColor(BORDER);
+                g2d.setStroke(new BasicStroke(2.3f));
+                g2d.drawRoundRect(3, 2, getWidth() - 7, getHeight() - 5, 8, 8);
+
+                g2d.dispose();
+                // Let L&F draw icon + text on top of our background
+                super.paintComponent(g);
+            }
+        };
+        item.setOpaque(false);
+        item.setFont(item.getFont().deriveFont(Font.BOLD));
+        item.setForeground(Color.WHITE);
+        item.setIcon(INGIcons.swing("apidock", 15, Color.WHITE));
+        item.setActionCommand("API Workbench");
+        item.addActionListener(sActionListener);
+        item.setAccelerator(shortcuts.get("API Workbench"));
+        item.setMnemonic('W');
+        return item;
     }
 
     private JMenuItem withEmptyIcon(JMenuItem menuItem) {
@@ -289,7 +395,16 @@ public class AppMenuBar extends JMenuBar {
     }
 
     private JMenuItem withIcon(JMenuItem menuItem) {
-        menuItem.setIcon(Utils.getIconByResourceName("/ui/resources/main/" + menuItem.getText().replace(" ", "") + "Menu"));
+        menuItem.setIcon(
+            Utils.getIconByResourceName(
+                "/ui/resources/main/" + menuItem.getText().replace(" ", "") + "Menu"
+            )
+        );
+        return menuItem;
+    }
+
+    private JMenuItem withCopilotIcon(JMenuItem menuItem) {
+        menuItem.setIcon(com.ing.ide.main.fx.INGIcons.swingColored("AICopilot", 16));
         return menuItem;
     }
 
@@ -304,11 +419,10 @@ public class AppMenuBar extends JMenuBar {
     }
 
     public void setMultiEnvironment() {
-        Boolean isMulti = sActionListener.getMainFrame().getProject().getTestData().getNoOfEnvironments() > 1;
-        if ((isMulti && !multiEnv.isSelected())
-                || (!isMulti && multiEnv.isSelected())) {
+        Boolean isMulti =
+            sActionListener.getMainFrame().getProject().getTestData().getNoOfEnvironments() > 1;
+        if ((isMulti && !multiEnv.isSelected()) || (!isMulti && multiEnv.isSelected())) {
             multiEnv.doClick();
         }
     }
-
 }
