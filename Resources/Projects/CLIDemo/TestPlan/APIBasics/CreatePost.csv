@@ -1,6 +1,0 @@
-Step,ObjectName,Description,Action,Input,Condition,Reference
-1,Webservice,"Set End Point",setEndPoint,@https://jsonplaceholder.typicode.com/posts,,
-2,Webservice,"Add Header",addHeader,@Content-Type=application/json,,
-3,Webservice,"POST Rest Request",postRestRequest,"{ ""title"": ""INGenious CLI demo"", ""body"": ""Created from the new CLI"", ""userId"": 1 }",,
-4,Webservice,"Assert Response Code",assertResponseCode,@201,,
-5,Webservice,"Store JSON Element",storeJSONelementInDataSheet,API:PostID,$.id,

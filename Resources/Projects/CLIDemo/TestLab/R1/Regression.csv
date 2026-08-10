@@ -1,7 +1,0 @@
-Execute,TestScenario,TestCase,Iteration,Status,Browser,BrowserVersion,Platform
-true,APIBasics,GetUsers,Single,New,Chromium,Default,Any
-true,APIBasics,GetSinglePost,Single,New,Chromium,Default,Any
-true,APIBasics,CreatePost,Single,New,Chromium,Default,Any
-true,APIBasics,UpdatePost,Single,New,Chromium,Default,Any
-true,APIBasics,DeletePost,Single,New,Chromium,Default,Any
-true,DataDriven,LookupUserById,All,New,Chromium,Default,Any

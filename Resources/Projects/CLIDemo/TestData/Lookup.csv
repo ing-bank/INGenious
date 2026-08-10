@@ -1,4 +1,0 @@
-Scenario,Flow,Iteration,SubIteration,UserId,ExpectedName
-DataDriven,LookupUserById,1,1,1,Leanne Graham
-DataDriven,LookupUserById,2,1,2,Ervin Howell
-DataDriven,LookupUserById,3,1,3,Clementine Bauch

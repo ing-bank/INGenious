@@ -1,3 +1,0 @@
-Execute,TestScenario,TestCase,Iteration,Status,Browser,BrowserVersion,Platform
-true,Payment Operations,Pay money to an existing contact,Single,Passed,Chromium,Default,Any
-true,Payment Operations,Request money from existing contact,Single,Passed,Chromium,Default,Any

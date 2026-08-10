@@ -1,0 +1,20 @@
+schemaVersion: 1
+name: TutorialSet
+release: ReleaseAug10
+executions:
+  - execute: true
+    testScenario: MortgageCalculation-Browser
+    testCase: High Income
+    iteration: Single
+    status: Passed
+    browser: Chromium
+    browserVersion: Default
+    platform: Any
+  - execute: true
+    testScenario: MortgageCalculation-Browser
+    testCase: Low Income
+    iteration: Single
+    status: Passed
+    browser: Chromium
+    browserVersion: Default
+    platform: Any
