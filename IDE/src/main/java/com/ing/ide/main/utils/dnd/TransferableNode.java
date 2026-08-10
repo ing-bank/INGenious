@@ -1,4 +1,3 @@
-
 package com.ing.ide.main.utils.dnd;
 
 import java.awt.datatransfer.DataFlavor;
@@ -8,11 +7,10 @@ import java.io.IOException;
 
 /**
  *
- * 
+ *
  * @param <T>
  */
 public class TransferableNode<T> implements Transferable {
-
     private final T sourceNode;
     private final DataFlavor dataFlavor;
 
@@ -23,8 +21,7 @@ public class TransferableNode<T> implements Transferable {
 
     @Override
     public DataFlavor[] getTransferDataFlavors() {
-
-        return new DataFlavor[]{dataFlavor};
+        return new DataFlavor[] { dataFlavor };
     }
 
     @Override
@@ -33,9 +30,7 @@ public class TransferableNode<T> implements Transferable {
     }
 
     @Override
-    public T getTransferData(DataFlavor flavor)
-            throws UnsupportedFlavorException, IOException {
-
+    public T getTransferData(DataFlavor flavor) throws UnsupportedFlavorException, IOException {
         if (flavor.equals(dataFlavor)) {
             return sourceNode;
         } else {

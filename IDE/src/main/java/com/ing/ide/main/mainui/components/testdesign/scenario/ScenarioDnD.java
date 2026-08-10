@@ -1,4 +1,3 @@
-
 package com.ing.ide.main.mainui.components.testdesign.scenario;
 
 import com.ing.datalib.component.Scenario;
@@ -15,10 +14,9 @@ import javax.swing.TransferHandler;
 
 /**
  *
- * 
+ *
  */
 public class ScenarioDnD extends TransferHandler {
-
     private transient Object dropObject;
 
     @Override
@@ -57,8 +55,7 @@ public class ScenarioDnD extends TransferHandler {
         }
 
         Scenario scenario = (Scenario) table.getModel();
-        TestCase testCase = scenario.getTestCaseByName(
-                table.getValueAt(row, 0).toString());
+        TestCase testCase = scenario.getTestCaseByName(table.getValueAt(row, 0).toString());
 
         if (dropObject instanceof TestCaseDnD) {
             putReusables(testCase, tcRow);
@@ -71,13 +68,12 @@ public class ScenarioDnD extends TransferHandler {
     private void putReusables(TestCase testCase, int row) {
         TestCaseDnD testCaseDnD = (TestCaseDnD) dropObject;
         if (!testCaseDnD.getTestCaseList().isEmpty()) {
-            testCase.removeSteps(new int[]{row});
+            testCase.removeSteps(new int[] { row });
             for (TestCaseNode testCaseNode : testCaseDnD.getTestCaseList()) {
-                String reusable = testCaseNode.getParent().toString() + ":"
-                        + testCaseNode.toString();
+                String reusable =
+                    testCaseNode.getParent().toString() + ":" + testCaseNode.toString();
                 testCase.addReusableStep(row, reusable);
             }
         }
     }
-
 }

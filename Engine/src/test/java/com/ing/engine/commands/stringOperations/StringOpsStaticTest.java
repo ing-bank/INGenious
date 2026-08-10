@@ -1,6 +1,7 @@
 package com.ing.engine.commands.stringOperations;
 
 import static org.assertj.core.api.Assertions.assertThat;
+
 import org.testng.annotations.Test;
 
 /**

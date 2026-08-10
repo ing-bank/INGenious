@@ -1,4 +1,3 @@
-
 package com.ing.ide.main.utils.toasterNotification;
 
 import java.awt.Color;
@@ -12,10 +11,9 @@ import java.util.logging.Logger;
 
 /**
  *
- * 
+ *
  */
 public class Toaster {
-
     // Width of the toster
     private int toasterWidth = 300;
 
@@ -67,7 +65,7 @@ public class Toaster {
     public void showToaster(Component parent, String msg) {
         showToaster(parent, msg, ToasterDialog.TYPE_INFO);
     }
-    
+
     public void showToaster(Component parent, String msg, int notificationType) {
         ToasterDialog singleToaster = new ToasterDialog(notificationType);
         singleToaster.pack();
@@ -75,19 +73,19 @@ public class Toaster {
         singleToaster.message.setText(msg);
         (new Animation(singleToaster)).start();
     }
-    
+
     public void showSuccessToaster(Component parent, String msg) {
         showToaster(parent, msg, ToasterDialog.TYPE_SUCCESS);
     }
-    
+
     public void showInfoToaster(Component parent, String msg) {
         showToaster(parent, msg, ToasterDialog.TYPE_INFO);
     }
-    
+
     public void showWarningToaster(Component parent, String msg) {
         showToaster(parent, msg, ToasterDialog.TYPE_WARNING);
     }
-    
+
     public void showErrorToaster(Component parent, String msg) {
         showToaster(parent, msg, ToasterDialog.TYPE_ERROR);
     }
@@ -244,7 +242,6 @@ public class Toaster {
     }
 
     class Animation extends Thread {
-
         ToasterDialog toaster;
 
         public Animation(ToasterDialog toaster) {
@@ -280,8 +277,7 @@ public class Toaster {
         public void run() {
             try {
                 boolean animateFromBottom = true;
-                GraphicsEnvironment ge = GraphicsEnvironment
-                        .getLocalGraphicsEnvironment();
+                GraphicsEnvironment ge = GraphicsEnvironment.getLocalGraphicsEnvironment();
                 Rectangle screenRect = ge.getMaximumWindowBounds();
 
                 int screenHeight = (int) screenRect.height;
@@ -307,7 +303,8 @@ public class Toaster {
                     startYPosition = screenHeight;
                     stopYPosition = startYPosition - toasterHeight - 1;
                     if (currentNumberOfToaster > 0) {
-                        stopYPosition = stopYPosition - (maxToaster % maxToasterInSceen * toasterHeight);
+                        stopYPosition =
+                            stopYPosition - (maxToaster % maxToasterInSceen * toasterHeight);
                     } else {
                         maxToaster = 0;
                     }
@@ -316,7 +313,8 @@ public class Toaster {
                     stopYPosition = screenRect.y;
 
                     if (currentNumberOfToaster > 0) {
-                        stopYPosition = stopYPosition + (maxToaster % maxToasterInSceen * toasterHeight);
+                        stopYPosition =
+                            stopYPosition + (maxToaster % maxToasterInSceen * toasterHeight);
                     } else {
                         maxToaster = 0;
                     }

@@ -12,7 +12,6 @@ import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 public class ObjectGroupTest {
-
     private ObjectGroup<WebORObject> group;
     private ORPageInf mockPage;
     private ORRootInf mockRoot;

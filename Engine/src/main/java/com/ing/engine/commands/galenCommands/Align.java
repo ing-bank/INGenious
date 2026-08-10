@@ -1,24 +1,23 @@
-
 package com.ing.engine.commands.galenCommands;
 
+import com.galenframework.specs.SpecHorizontally;
+import com.galenframework.specs.SpecVertically;
 import com.ing.engine.core.CommandControl;
 import com.ing.engine.galenWrapper.SpecValidation.SpecReader;
 import com.ing.ingenious.api.annotation.Action;
 import com.ing.ingenious.api.types.InputType;
 import com.ing.ingenious.api.types.ObjectType;
-import com.galenframework.specs.SpecHorizontally;
-import com.galenframework.specs.SpecVertically;
 
 /**
  *
- * 
+ *
  */
 public class Align extends General {
 
     public Align(CommandControl cc) {
         super(cc);
     }
-/*
+    /*
     @Action(object = ObjectType.APP, desc ="Assert if [<Object>] is aligned horizontally [<Data>] with [<Object2>]", input =InputType.YES, condition = InputType.YES)
     public void assertElementAlignedHoriz() {
         SpecHorizontally spec = SpecReader.reader().getSpecHorizontally(Condition, Data);

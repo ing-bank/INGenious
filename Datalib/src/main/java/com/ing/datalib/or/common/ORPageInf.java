@@ -1,4 +1,3 @@
-
 package com.ing.datalib.or.common;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -8,12 +7,11 @@ import javax.swing.tree.TreePath;
 
 /**
  *
- * 
+ *
  * @param <T>
  * @param <R>
  */
 public interface ORPageInf<T extends ORObjectInf, R extends ORRootInf> extends TreeNode {
-
     @JsonIgnore
     public T addObject();
 

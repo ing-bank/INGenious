@@ -1,4 +1,3 @@
-
 package com.ing.ide.main.shr.mobile;
 
 import com.ing.datalib.or.mobile.MobileORPage;
@@ -9,10 +8,9 @@ import javax.swing.JTree;
 
 /**
  *
- * 
+ *
  */
 public interface MobileUtils {
-
     public void setValues(JTree jTree1, JLabel jLabel1, JTable jTable1);
 
     public Rect loadValuesToTable();
@@ -30,5 +28,4 @@ public interface MobileUtils {
     public void saveImageTo(MobileORPage mObject);
 
     public String[] getResourcesFor(MobileORPage mObject);
-    
 }

@@ -1,36 +1,35 @@
 package com.ing.engine.core;
 
+import static com.ing.engine.commands.browser.Command.faker;
+
 import com.github.javafaker.Faker;
 import com.ing.datalib.component.Project;
+import com.ing.datalib.component.ReusableRef;
 import com.ing.datalib.component.Scenario;
 import com.ing.datalib.component.TestCase;
 import com.ing.datalib.settings.RunSettings;
-import static com.ing.engine.commands.browser.Command.faker;
 import com.ing.engine.constants.SystemDefaults;
 import com.ing.engine.drivers.PlaywrightDriverCreation;
 import com.ing.engine.drivers.SAPSessionCreation;
+import com.ing.engine.drivers.WebDriverCreation;
 import com.ing.engine.execution.data.Parameter;
 import com.ing.engine.execution.data.UserDataAccess;
 import com.ing.engine.execution.exception.DriverClosedException;
 import com.ing.engine.execution.exception.TestFailedException;
 import com.ing.engine.execution.exception.UnCaughtException;
+import com.ing.engine.execution.exception.data.DataNotFoundException;
 import com.ing.engine.execution.run.TestCaseRunner;
 import com.ing.engine.reporting.TestCaseReport;
 import com.ing.engine.reporting.util.DateTimeUtils;
 import com.ing.ingenious.api.status.Status;
-
+import java.io.UnsupportedEncodingException;
 import java.util.Date;
+import java.util.Locale;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
-import com.ing.engine.drivers.WebDriverCreation;
-import com.ing.engine.execution.exception.data.DataNotFoundException;
-import java.io.UnsupportedEncodingException;
-import java.util.Locale;
 import org.openqa.selenium.JavascriptExecutor;
 
 public class Task implements Runnable {
-
     TestCaseReport report;
     RunContext runContext;
     PlaywrightDriverCreation playwrightDriver;
@@ -59,12 +58,15 @@ public class Task implements Runnable {
         TestCase stc = getTestCase();
         if (stc != null) {
             runner = new TestCaseRunner(Control.exe, stc);
+            // Running a Project/Shared reusable standalone (not nested under an "Execute"
+            // step) makes it its OWN root - without this, its resolved scope would stay
+            // null and data lookups could match a same-named row from the other scope.
+            runner.setResolvedReusableScope(resolvedScopeOf(stc));
         } else {
-            runner = new TestCaseRunner(Control.exe, runContext.Scenario,
-                    runContext.TestCase);
+            runner = new TestCaseRunner(Control.exe, runContext.Scenario, runContext.TestCase);
         }
         report.createReport(runContext, DateTimeUtils.DateTimeNow());
-        
+
         int iter = 1;
         Date startexecDate = new Date();
         if (RunManager.getGlobalSettings().isTestRun()) {
@@ -89,17 +91,16 @@ public class Task implements Runnable {
         if (report != null) {
             Status s = report.finalizeReport();
             //setLambdaTags();
-            if(!isLocalExecution()){
-                if (s.toString().equals("PASS"))
-                    setLambdaStatus("passed", "");
-                else
-                    setLambdaStatus("failed", "");
-           }
+            if (!isLocalExecution()) {
+                if (s.toString().equals("PASS")) setLambdaStatus(
+                    "passed",
+                    ""
+                ); else setLambdaStatus("failed", "");
+            }
             Control.ReportManager.startDate = startexecDate;
             Control.ReportManager.endDate = endEexcDate;
             Control.ReportManager.updateTestCaseResults(runContext, report, s, runTime.timeRun());
             SystemDefaults.reportComplete.set(false);
-            
         }
     }
 
@@ -114,35 +115,102 @@ public class Task implements Runnable {
 
     private TestCase getTestCase() {
         try {
-            Scenario scn = project().getScenarioByName(runContext.Scenario);
-            if (scn == null) {
-                LOG.log(Level.WARNING, "Scenario [{0}] not found", runContext.Scenario);
-                return null;
+            // When the caller knows exactly which scope this run was requested from
+            // (e.g. the IDE run button on an open Project/Shared reusable tab), look up
+            // that scope directly. This avoids Project.getScenarioByName(), which searches
+            // Test Plan + Project Reusable + Shared Reusable combined and would otherwise
+            // silently return the wrong scope's test case when names collide.
+            if ("PROJECT".equalsIgnoreCase(runContext.ReusableScope)) {
+                return testCaseFrom(
+                    project().getReusableScenarioByName(runContext.Scenario),
+                    "project reusable"
+                );
             }
-            
-            TestCase stc = scn.getTestCaseByName(runContext.TestCase);
-            if (stc == null) {
-                // Try reusable scenario as fallback
-                Scenario scnR = project().getReusableScenarioByName(runContext.Scenario);
-                if (scnR == null) {
-                    LOG.log(Level.WARNING, "Reusable scenario [{0}] not found", runContext.Scenario);
-                    return null;
-                } 
-                
-                TestCase stcR = scnR.getTestCaseByName(runContext.TestCase);
-                if (stcR == null) {
-                    LOG.log(Level.WARNING, "Testcase [{0}] not found in scenario [{1}]", new Object[]{runContext.TestCase, scn.getName()});
-                    return null;
-                }
+            if ("SHARED".equalsIgnoreCase(runContext.ReusableScope)) {
+                return testCaseFrom(
+                    project().getSharedReusableScenarioByName(runContext.Scenario),
+                    "shared reusable"
+                );
+            }
+
+            // No scope hint (e.g. a CLI run by name only): fall back to an explicit
+            // Test Plan -> Project Reusable -> Shared Reusable priority search.
+            TestCase stc = testCaseFrom(
+                project().getTestPlanScenarioByName(runContext.Scenario),
+                "test plan"
+            );
+            if (stc != null) {
+                return stc;
+            }
+
+            TestCase stcR = testCaseFrom(
+                project().getReusableScenarioByName(runContext.Scenario),
+                "project reusable"
+            );
+            if (stcR != null) {
                 return stcR;
             }
-            return stc;
+
+            TestCase stcS = testCaseFrom(
+                project().getSharedReusableScenarioByName(runContext.Scenario),
+                "shared reusable"
+            );
+            if (stcS != null) {
+                return stcS;
+            }
+
+            // Nothing matched — produce a clearer warning listing where we looked
+            LOG.log(
+                Level.WARNING,
+                "Testcase [{0}] not found in scenario [{1}] (searched test plan, project reusable and shared reusable)",
+                new Object[] { runContext.TestCase, runContext.Scenario }
+            );
+            return null;
         } catch (Exception ex) {
             LOG.log(Level.WARNING, "Unable to load TestCase", ex);
             return null;
         }
     }
-    
+
+    private TestCase testCaseFrom(Scenario scn, String scopeLabel) {
+        if (scn == null) {
+            return null;
+        }
+        TestCase stc = scn.getTestCaseByName(runContext.TestCase);
+        if (stc == null) {
+            LOG.log(
+                Level.FINE,
+                "Testcase [{0}] not found in {1} scenario [{2}]",
+                new Object[] { runContext.TestCase, scopeLabel, runContext.Scenario }
+            );
+        }
+        return stc;
+    }
+
+    /**
+     * Determines the reusable scope of a resolved TestCase from its owning scenario's
+     * source, so a standalone run of a Project/Shared reusable carries the same scope
+     * information that a nested "Execute" call would resolve for it.
+     *
+     * @param stc the resolved test case
+     * @return PROJECT/SHARED for a reusable component, null for a Test Plan test case
+     */
+    private ReusableRef.Scope resolvedScopeOf(TestCase stc) {
+        Scenario scn = stc.getScenario();
+        if (scn == null) {
+            return null;
+        }
+        switch (scn.getSource()) {
+            case REUSABLE_COMPONENTS:
+                return ReusableRef.Scope.PROJECT;
+            case SHARED_REUSABLE_COMPONENTS:
+                return ReusableRef.Scope.SHARED;
+            case TEST_PLAN:
+            default:
+                return null;
+        }
+    }
+
     private static final Logger LOG = Logger.getLogger(Task.class.getName());
 
     public boolean runIteration(int iter) {
@@ -153,11 +221,11 @@ public class Task implements Runnable {
             faker.put(runContext.Scenario + runContext.TestCase, new Faker(new Locale("en-US")));
             if (isPlaywrightExecution()) {
                 playwrightDriver = getPlaywrightDriver();
-                launchPlaywright();            
-            } else if(isSAPExecution()){
+                launchPlaywright();
+            } else if (isSAPExecution()) {
                 session = getSAPSession();
-                launchSap();            
-            } else  {
+                launchSap();
+            } else {
                 webDriver = getWebDriver();
                 launchWebDriver();
             }
@@ -165,7 +233,7 @@ public class Task implements Runnable {
             runner.run(createControl(), iter);
             success = true;
         } catch (DataNotFoundException ex) {
-            if (!ex.cause.isEndData()){
+            if (!ex.cause.isEndData()) {
                 LOG.log(Level.SEVERE, ex.getMessage(), ex);
                 report.updateTestLog("DataNotFoundException", ex.getMessage(), Status.DEBUG);
             }
@@ -180,11 +248,11 @@ public class Task implements Runnable {
             onError(ex, "Error", ex.getMessage());
         } finally {
             if (isPlaywrightExecution()) {
-              closePlaywrightDriver();
+                closePlaywrightDriver();
             } else if (isSAPExecution()) {
                 // Do nothing
             } else {
-                    if (webDriver.isLambdaTestExecutionPlatform()) {
+                if (webDriver.isLambdaTestExecutionPlatform()) {
                     JavascriptExecutor js = (JavascriptExecutor) webDriver.driver;
                     if (report.finalizeReport().toString().equalsIgnoreCase("PASS")) {
                         js.executeScript("lambda-status=passed");
@@ -194,7 +262,7 @@ public class Task implements Runnable {
                 }
                 closeWebDriver();
             }
-                
+
             report.endIteration(iter);
         }
 
@@ -202,7 +270,9 @@ public class Task implements Runnable {
     }
 
     private void closePlaywrightDriver() {
-        if (playwrightDriver != null && !getRunSettings().useExistingDriver() && isLocalExecution()) {
+        if (
+            playwrightDriver != null && !getRunSettings().useExistingDriver() && isLocalExecution()
+        ) {
             try {
                 playwrightDriver.closeBrowser();
             } catch (Exception ex) {
@@ -212,7 +282,7 @@ public class Task implements Runnable {
             }
         }
     }
-    
+
     private void closeWebDriver() {
         if (webDriver.driver != null && !getRunSettings().useExistingDriver()) {
             try {
@@ -247,7 +317,15 @@ public class Task implements Runnable {
     }
 
     private CommandControl createControl() {
-        return new CommandControl(playwrightDriver, playwrightDriver, playwrightDriver, webDriver, session, report) {
+        return new CommandControl(
+            playwrightDriver,
+            playwrightDriver,
+            playwrightDriver,
+            webDriver,
+            session,
+            report
+        ) {
+
             @Override
             public void execute(String com, int sub) {
                 runner.runTestCase(com, sub);
@@ -268,7 +346,6 @@ public class Task implements Runnable {
     private void onError(Throwable ex, String err, String desc) {
         onError(ex, err, desc, Status.DEBUG);
     }
-    
 
     private void onFail(Throwable ex, String desc, Status s) {
         onError(ex, "[Breaking execution!]", desc, s);
@@ -285,8 +362,7 @@ public class Task implements Runnable {
 
     private PlaywrightDriverCreation getPlaywrightDriver() {
         PlaywrightDriverCreation playwrightDriver;
-        if (!getRunSettings().useExistingDriver()
-                || Control.getPlaywrightDriver() == null) {
+        if (!getRunSettings().useExistingDriver() || Control.getPlaywrightDriver() == null) {
             playwrightDriver = new PlaywrightDriverCreation();
             Control.setPlaywrightDriver(playwrightDriver);
         } else {
@@ -297,8 +373,7 @@ public class Task implements Runnable {
 
     private WebDriverCreation getWebDriver() {
         WebDriverCreation webDriver;
-        if (!getRunSettings().useExistingDriver()
-                || Control.getWebDriver() == null) {
+        if (!getRunSettings().useExistingDriver() || Control.getWebDriver() == null) {
             webDriver = new WebDriverCreation();
             Control.setWebDriver(webDriver);
         } else {
@@ -309,8 +384,7 @@ public class Task implements Runnable {
 
     private SAPSessionCreation getSAPSession() {
         SAPSessionCreation sapSession;
-        if (!getRunSettings().useExistingDriver()
-                || Control.getSapSession() == null) {
+        if (!getRunSettings().useExistingDriver() || Control.getSapSession() == null) {
             session = new SAPSessionCreation();
             Control.setSapSession(session);
         } else {
@@ -320,14 +394,18 @@ public class Task implements Runnable {
     }
 
     public boolean isLocalExecution() {
-            return !Control.exe.getExecSettings().getRunSettings().isGridExecution();
+        return !Control.exe.getExecSettings().getRunSettings().isGridExecution();
     }
-    
+
     public boolean isPlaywrightExecution() {
         boolean isBrowserExecution = false;
         try {
             String browserName = runContext.BrowserName;
-            if (browserName.equals("Chromium") || browserName.equals("WebKit") || browserName.equals("Firefox")) {
+            if (
+                browserName.equals("Chromium") ||
+                browserName.equals("WebKit") ||
+                browserName.equals("Firefox")
+            ) {
                 isBrowserExecution = true;
             }
         } catch (Exception ex) {
@@ -350,12 +428,19 @@ public class Task implements Runnable {
     }
 
     public boolean isWebDriverExecution() {
-         return !isPlaywrightExecution();
-    }
-    
-    public void setLambdaStatus(String status, String remark)
-    {
-      playwrightDriver.page.evaluate("_ => {}", "lambdatest_action: { \"action\": \"setTestStatus\", \"arguments\": { \"status\": \"" + status + "\", \"remark\": \"" + remark + "\"}}");
+        return !isPlaywrightExecution();
     }
 
+    public void setLambdaStatus(String status, String remark) {
+        if (playwrightDriver != null && playwrightDriver.page != null) {
+            playwrightDriver.page.evaluate(
+                "_ => {}",
+                "lambdatest_action: { \"action\": \"setTestStatus\", \"arguments\": { \"status\": \"" +
+                status +
+                "\", \"remark\": \"" +
+                remark +
+                "\"}}"
+            );
+        }
+    }
 }

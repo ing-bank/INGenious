@@ -1,23 +1,22 @@
 package com.ing.engine.commands.general;
 
-import java.text.DecimalFormat;
-import java.time.Instant;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
-
 import com.ing.engine.commands.browser.CommonMethods;
 import com.ing.engine.commands.browser.General;
 import com.ing.engine.core.CommandControl;
+import com.ing.ingenious.api.annotation.Action;
 import com.ing.ingenious.api.exception.ForcedException;
 import com.ing.ingenious.api.status.Status;
-import com.ing.ingenious.api.annotation.Action;
 import com.ing.ingenious.api.types.InputType;
 import com.ing.ingenious.api.types.ObjectType;
+import java.text.DecimalFormat;
+import java.time.Instant;
+import java.util.logging.Level;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.logging.Logger;
 import java.util.regex.Matcher;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 import java.util.regex.Pattern;
 
 public class GeneralOperations extends General {
@@ -27,9 +26,7 @@ public class GeneralOperations extends General {
     }
 
     @Action(object = ObjectType.GENERAL, desc = "This a dummy function helpful with testing.")
-    public void filler() {
-
-    }
+    public void filler() {}
 
     @Action(object = ObjectType.GENERAL, desc = "print the data [<Data>]", input = InputType.YES)
     public void print() {
@@ -37,7 +34,11 @@ public class GeneralOperations extends General {
         Report.updateTestLog("print", String.format("printed %s", Data), Status.DONE);
     }
 
-    @Action(object = ObjectType.GENERAL, desc = "Wait for [<Data>] milli seconds", input = InputType.YES)
+    @Action(
+        object = ObjectType.GENERAL,
+        desc = "Wait for [<Data>] milli seconds",
+        input = InputType.YES
+    )
     public void pause() {
         try {
             Thread.sleep(Long.parseLong(Data));
@@ -46,12 +47,13 @@ public class GeneralOperations extends General {
             Report.updateTestLog(Action, e.getMessage(), Status.FAIL);
             Logger.getLogger(CommonMethods.class.getName()).log(Level.SEVERE, null, e);
         }
-
     }
 
-    @Action(object = ObjectType.GENERAL,
-            desc = "Assert if Key:Value -> [<Data>] is valid",
-            input = InputType.YES)
+    @Action(
+        object = ObjectType.GENERAL,
+        desc = "Assert if Key:Value -> [<Data>] is valid",
+        input = InputType.YES
+    )
     public void assertVariable() throws RuntimeException {
         try {
             String strObj = Data;
@@ -59,13 +61,18 @@ public class GeneralOperations extends General {
             String strAns = strTemp[0].matches("%.+%") ? getVar(strTemp[0]) : strTemp[0];
             if (strAns.equals(strTemp[1])) {
                 System.out.println("Condition '" + Input + "' is true ");
-                Report.updateTestLog("assertVariable",
-                        "Variable value matches with provided data " + strTemp[1], Status.PASSNS);
-
+                Report.updateTestLog(
+                    "assertVariable",
+                    "Variable value matches with provided data " + strTemp[1],
+                    Status.PASSNS
+                );
             } else {
                 System.out.println("Condition '" + Input + "' is false ");
-                Report.updateTestLog("assertVariable",
-                        "Variable value is " + strAns + " but expected value is " + strTemp[1], Status.FAILNS);
+                Report.updateTestLog(
+                    "assertVariable",
+                    "Variable value is " + strAns + " but expected value is " + strTemp[1],
+                    Status.FAILNS
+                );
             }
         } catch (Exception ex) {
             Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, null, ex);
@@ -73,24 +80,25 @@ public class GeneralOperations extends General {
         }
     }
 
-    @Action(object = ObjectType.GENERAL,
-            desc = "Assert if  the  variable value matches with given value from datasheet(variable:datasheet->  [<Data>] )",
-            input = InputType.YES,
-            condition = InputType.YES)
+    @Action(
+        object = ObjectType.GENERAL,
+        desc = "Assert if  the  variable value matches with given value from datasheet(variable:datasheet->  [<Data>] )",
+        input = InputType.YES,
+        condition = InputType.YES
+    )
     public void assertVariableFromDataSheet() throws RuntimeException {
         try {
             String strAns = getVar(Condition);
             if (strAns.equals(Data)) {
-                System.out.println("Variable " + Condition + " equals "
-                        + Input);
-                Report.updateTestLog(Action,
-                        "Variable is matched with the expected result", Status.DONE);
-
+                System.out.println("Variable " + Condition + " equals " + Input);
+                Report.updateTestLog(
+                    Action,
+                    "Variable is matched with the expected result",
+                    Status.DONE
+                );
             } else {
-                System.out.println("Variable " + Condition + " is not equal "
-                        + Input);
-                throw new ForcedException(Action,
-                        "Variable did not match with provided data");
+                System.out.println("Variable " + Condition + " is not equal " + Input);
+                throw new ForcedException(Action, "Variable did not match with provided data");
             }
         } catch (Exception e) {
             Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, null, e);
@@ -98,7 +106,12 @@ public class GeneralOperations extends General {
         }
     }
 
-    @Action(object = ObjectType.GENERAL, desc = "Add a variable to access within testcase", input = InputType.YES, condition = InputType.YES)
+    @Action(
+        object = ObjectType.GENERAL,
+        desc = "Add a variable to access within testcase",
+        input = InputType.YES,
+        condition = InputType.YES
+    )
     public void AddVar() {
         if (Input.startsWith("=Replace(")) {
             replaceFunction();
@@ -111,25 +124,41 @@ public class GeneralOperations extends General {
         }
 
         if (getVar(Condition) != null) {
-            Report.updateTestLog("addVar", "Variable " + Condition + " added with value [" + Data +"]", Status.DONE);
+            Report.updateTestLog(
+                "addVar",
+                "Variable " + Condition + " added with value [" + Data + "]",
+                Status.DONE
+            );
         } else {
             Report.updateTestLog("addVar", "Variable " + Condition + " not added ", Status.DEBUG);
         }
     }
 
-    @Action(object = ObjectType.GENERAL, desc = "Add a Global variable to access across test set", input = InputType.YES, condition = InputType.YES)
+    @Action(
+        object = ObjectType.GENERAL,
+        desc = "Add a Global variable to access across test set",
+        input = InputType.YES,
+        condition = InputType.YES
+    )
     public void AddGlobalVar() {
         addGlobalVar(Condition, Data);
         if (getVar(Condition) != null) {
-            Report.updateTestLog(Action, "Variable " + Condition
-                    + " added with value " + Data, Status.DONE);
+            Report.updateTestLog(
+                Action,
+                "Variable " + Condition + " added with value " + Data,
+                Status.DONE
+            );
         } else {
-            Report.updateTestLog(Action, "Variable " + Condition
-                    + " not added ", Status.DEBUG);
+            Report.updateTestLog(Action, "Variable " + Condition + " not added ", Status.DEBUG);
         }
     }
 
-    @Action(object = ObjectType.GENERAL, desc = "store variable value [<Condition>] in data sheet[<Data>]", input = InputType.YES, condition = InputType.YES)
+    @Action(
+        object = ObjectType.GENERAL,
+        desc = "store variable value [<Condition>] in data sheet[<Data>]",
+        input = InputType.YES,
+        condition = InputType.YES
+    )
     public void storeVariableInDataSheet() {
         if (Input != null && Condition != null) {
             if (!getVar(Condition).isEmpty()) {
@@ -138,10 +167,17 @@ public class GeneralOperations extends General {
                 String sheetName = sheetDetail[0];
                 String columnName = sheetDetail[1];
                 userData.putData(sheetName, columnName, getVar(Condition));
-                Report.updateTestLog(Action,
-                        "Value of variable " + Condition + " has been stored into " + "the data sheet", Status.DONE);
+                Report.updateTestLog(
+                    Action,
+                    "Value of variable " + Condition + " has been stored into " + "the data sheet",
+                    Status.DONE
+                );
             } else {
-                Report.updateTestLog(Action, "The variable " + Condition + " does not contain any value", Status.FAIL);
+                Report.updateTestLog(
+                    Action,
+                    "The variable " + Condition + " does not contain any value",
+                    Status.FAIL
+                );
             }
         } else {
             Report.updateTestLog(Action, "Incorrect input format", Status.DEBUG);
@@ -189,7 +225,6 @@ public class GeneralOperations extends General {
                     op = original.replace(targetString, replaceString);
                 }
             }
-
         } catch (Exception ex) {
             ex.printStackTrace();
         }
@@ -286,96 +321,148 @@ public class GeneralOperations extends General {
      *
      * ******************************************
      */
-    @Action(object = ObjectType.MOBILE, desc = "Verify if the specific [<Data>] is present", input = InputType.YES)
+    @Action(
+        object = ObjectType.MOBILE,
+        desc = "Verify if the specific [<Data>] is present",
+        input = InputType.YES
+    )
     public void verifyVariable() {
         String strObj = Data;
         String[] strTemp = strObj.split("=", 2);
         String strAns = getVar(strTemp[0]);
         if (strAns.equals(strTemp[1])) {
-            System.out.println("Variable " + strTemp[0] + " equals "
-                    + strTemp[1]);
-            Report.updateTestLog(Action,
-                    "Variable is matched with the expected result", Status.PASS);
+            System.out.println("Variable " + strTemp[0] + " equals " + strTemp[1]);
+            Report.updateTestLog(
+                Action,
+                "Variable is matched with the expected result",
+                Status.PASS
+            );
         } else {
-            System.out.println("Variable " + strTemp[0] + " not equals "
-                    + strTemp[1]);
-            Report.updateTestLog(Action,
-                    "Variable doesn't match with the expected result",
-                    Status.FAIL);
+            System.out.println("Variable " + strTemp[0] + " not equals " + strTemp[1]);
+            Report.updateTestLog(
+                Action,
+                "Variable doesn't match with the expected result",
+                Status.FAIL
+            );
         }
     }
 
-    @Action(object = ObjectType.MOBILE, desc = "Verify of variable [<Data>] from given datasheet", input = InputType.YES, condition = InputType.YES)
+    @Action(
+        object = ObjectType.MOBILE,
+        desc = "Verify of variable [<Data>] from given datasheet",
+        input = InputType.YES,
+        condition = InputType.YES
+    )
     public void verifyVariableFromDataSheet() {
         String strAns = getVar(Condition);
         if (strAns.equals(Data)) {
-            System.out.println("Variable " + Condition + " equals "
-                    + Input);
-            Report.updateTestLog(Action,
-                    "Variable is matched with the expected result", Status.DONE);
-
+            System.out.println("Variable " + Condition + " equals " + Input);
+            Report.updateTestLog(
+                Action,
+                "Variable is matched with the expected result",
+                Status.DONE
+            );
         } else {
-            System.out.println("Variable " + Condition + " is not equal "
-                    + Input);
-            Report.updateTestLog(Action,
-                    "Variable doesn't matched with the expected result",
-                    Status.DEBUG);
+            System.out.println("Variable " + Condition + " is not equal " + Input);
+            Report.updateTestLog(
+                Action,
+                "Variable doesn't matched with the expected result",
+                Status.DEBUG
+            );
         }
     }
-    
+
     /**
-    * Stores data from a previous test case into either a runtime variable or a target datasheet.
-    * <p>
-    * This method retrieves the value from a specified source datasheet column using the context of a previous
-    * test case ({@code %PreviousScenario%}, {@code %PreviousTestCase%}, {@code %PreviousIteration%} and {@code %PreviousSubIteration%}). 
-    * The retrieved value is then stored based on the format of the {@code Input} parameter:
-    * <ul>
-    *     <li>If {@code Input} is a runtime variable (e.g., "%VarName%"), the value is stored in that variable.</li>
-    *     <li>If {@code Input} is a datasheet reference (e.g., "SheetName:ColumnName"), the value is stored in the specified column.</li>
-    * </ul>
-    * <p>
-    * 
-    * After execution, it resets the runtime variables related to the previous test case context.
-    */
-    @Action(object = ObjectType.GENERAL, desc = "Store Data from Previous Test Case Data", input = InputType.YES, condition = InputType.YES)
+     * Stores data from a previous test case into either a runtime variable or a target datasheet.
+     * <p>
+     * This method retrieves the value from a specified source datasheet column using the context of a previous
+     * test case ({@code %PreviousScenario%}, {@code %PreviousTestCase%}, {@code %PreviousIteration%} and {@code %PreviousSubIteration%}).
+     * The retrieved value is then stored based on the format of the {@code Input} parameter:
+     * <ul>
+     *     <li>If {@code Input} is a runtime variable (e.g., "%VarName%"), the value is stored in that variable.</li>
+     *     <li>If {@code Input} is a datasheet reference (e.g., "SheetName:ColumnName"), the value is stored in the specified column.</li>
+     * </ul>
+     * <p>
+     *
+     * After execution, it resets the runtime variables related to the previous test case context.
+     */
+    @Action(
+        object = ObjectType.GENERAL,
+        desc = "Store Data from Previous Test Case Data",
+        input = InputType.YES,
+        condition = InputType.YES
+    )
     public void storeDataFromPreviousTestCaseData() {
-        if (Input.isBlank()) { 
-            Report.updateTestLog(Action, "Input is required to get the source Datasheet.", Status.FAIL);
+        if (Input.isBlank()) {
+            Report.updateTestLog(
+                Action,
+                "Input is required to get the source Datasheet.",
+                Status.FAIL
+            );
         } else if (Condition.isBlank()) {
-            Report.updateTestLog(Action, "Condition is required for the target Datasheet.", Status.FAIL);
-        } else if (!Input.isBlank() && !Condition.isBlank()){
+            Report.updateTestLog(
+                Action,
+                "Condition is required for the target Datasheet.",
+                Status.FAIL
+            );
+        } else if (!Input.isBlank() && !Condition.isBlank()) {
             String prevScenarioVar = getRuntimeVar("%PreviousScenario%");
             String prevTestCaseVar = getRuntimeVar("%PreviousTestCase%");
             String prevIterationVar = getRuntimeVar("%PreviousIteration%");
             String prevSubIterationVar = getRuntimeVar("%PreviousSubIteration%");
-            String sourceScenario = prevScenarioVar != null ? prevScenarioVar : userData.getScenario(); 
-            String sourceTestCase = prevTestCaseVar != null ? prevTestCaseVar : userData.getTestCase(); 
-            String sourceIteration = prevIterationVar != null ? prevIterationVar : userData.getIteration(); 
-            String sourceSubIteration = prevSubIterationVar != null ? prevSubIterationVar : userData.getSubIteration();
+            String sourceScenario = prevScenarioVar != null
+                ? prevScenarioVar
+                : userData.getScenario();
+            String sourceTestCase = prevTestCaseVar != null
+                ? prevTestCaseVar
+                : userData.getTestCase();
+            String sourceIteration = prevIterationVar != null
+                ? prevIterationVar
+                : userData.getIteration();
+            String sourceSubIteration = prevSubIterationVar != null
+                ? prevSubIterationVar
+                : userData.getSubIteration();
             String sourceDataSheet = Condition;
-            String sourceSheetName = sourceDataSheet.split(":",2)[0];
-            String sourceColumnName = sourceDataSheet.split(":",2)[1];
+            String sourceSheetName = sourceDataSheet.split(":", 2)[0];
+            String sourceColumnName = sourceDataSheet.split(":", 2)[1];
             String reportDescription = "";
-            String value = userData.getData(sourceSheetName, sourceColumnName, sourceScenario, sourceTestCase,
-              sourceIteration, sourceSubIteration);
+            String value = userData.getData(
+                sourceSheetName,
+                sourceColumnName,
+                sourceScenario,
+                sourceTestCase,
+                sourceIteration,
+                sourceSubIteration
+            );
 
-            if (Input.matches("%.*%")) { 
-             addVar(Input, value);
-             reportDescription = Input.replaceAll("%", "");
-            } else { 
+            if (Input.matches("%.*%")) {
+                addVar(Input, value);
+                reportDescription = Input.replaceAll("%", "");
+            } else {
                 String targetDataSheet = Input;
-                String targetSheetName = targetDataSheet.split(":",2)[0];
-                String targetColumnName = targetDataSheet.split(":",2)[1];
+                String targetSheetName = targetDataSheet.split(":", 2)[0];
+                String targetColumnName = targetDataSheet.split(":", 2)[1];
                 reportDescription = targetColumnName;
-                userData.putData(targetSheetName, targetColumnName, value, userData.getScenario(), userData.getTestCase(),
-                userData.getIteration(), userData.getSubIteration());
-            } 
-            Report.updateTestLog(reportDescription, "Value [" + value + "] is successfully stored to [" + Input + "]", Status.DONE);  
+                userData.putData(
+                    targetSheetName,
+                    targetColumnName,
+                    value,
+                    userData.getScenario(),
+                    userData.getTestCase(),
+                    userData.getIteration(),
+                    userData.getSubIteration()
+                );
+            }
+            Report.updateTestLog(
+                reportDescription,
+                "Value [" + value + "] is successfully stored to [" + Input + "]",
+                Status.DONE
+            );
         }
     }
-    
+
     /**
-     * Reset required variables for storeDataFromPreviousTestCaseData action to null 
+     * Reset required variables for storeDataFromPreviousTestCaseData action to null
      *  <ul>
      *     <li>{@code %PreviousScenario%}</li>
      *     <li>{@code %PreviousTestCase%}</li>
@@ -383,48 +470,64 @@ public class GeneralOperations extends General {
      *     <li>{@code %PreviousSubIteration%}</li>
      * </ul>
      */
-    @Action(object = ObjectType.GENERAL, desc = "Reset Required Variables for storeDataFromPreviousTestCaseData action", input = InputType.OPTIONAL)
+    @Action(
+        object = ObjectType.GENERAL,
+        desc = "Reset Required Variables for storeDataFromPreviousTestCaseData action",
+        input = InputType.OPTIONAL
+    )
     public void resetPreviousTestCaseDataVariables() {
         // Reset Variables
         addVar("%PreviousScenario%", null);
         addVar("%PreviousTestCase%", null);
         addVar("%PreviousIteration%", null);
         addVar("%PreviousSubIteration%", null);
-        
-        Report.updateTestLog("resetPreviousTestCaseDataVariables", " Variables %PreviousScenario%, %PreviousTestCase%, %PreviousIteration% and %PreviousSubIteration% has been reset." + Input, Status.DONE);  
+
+        Report.updateTestLog(
+            "resetPreviousTestCaseDataVariables",
+            " Variables %PreviousScenario%, %PreviousTestCase%, %PreviousIteration% and %PreviousSubIteration% has been reset." +
+            Input,
+            Status.DONE
+        );
     }
-    
+
     /**
      * Stores a value in the global datasheet.
      * <p>
      * This method stores data that can be accessed across different test scenarios and test cases.
      * The global datasheet is identified by a unique ID and column name combination.
      * </p>
-     * 
+     *
      * @see #Data Contains the value to be stored in the global datasheet
      * @see #Condition Contains the global datasheet reference in format "GlobalDataID:ColumnName"
-     * 
+     *
      * <p><b>Usage Example:</b></p>
      * <pre>
      * Input (Data): myValue123
      * Condition: GlobalSheet:UserData
      * </pre>
-     * 
+     *
      * <p><b>Behavior:</b></p>
      * <ul>
      *     <li>If Condition is null or invalid, reports an error with Status.DEBUG</li>
      *     <li>If successful, stores the value with Status.DONE</li>
      * </ul>
      */
-    @Action(object = ObjectType.GENERAL, desc = "store in Global Datasheet", input = InputType.YES, condition = InputType.YES)
+    @Action(
+        object = ObjectType.GENERAL,
+        desc = "store in Global Datasheet",
+        input = InputType.YES,
+        condition = InputType.YES
+    )
     public void storeInGlobalDataSheet() {
         if (Condition != null) {
-
             String globalDataID = Condition.split(":")[0];
             String globalcolumnName = Condition.split(":")[1];
-            userData.putGlobalData("#"+globalDataID, globalcolumnName, Data);
-            Report.updateTestLog(Action,
-                    "Global Value: " + Data + " has been stored into " + "the Global data sheet", Status.DONE);
+            userData.putGlobalData("#" + globalDataID, globalcolumnName, Data);
+            Report.updateTestLog(
+                Action,
+                "Global Value: " + Data + " has been stored into " + "the Global data sheet",
+                Status.DONE
+            );
         } else {
             Report.updateTestLog(Action, "Incorrect input format", Status.DEBUG);
             System.out.println("Incorrect input format " + Condition);
@@ -438,32 +541,32 @@ public class GeneralOperations extends General {
      * (time since January 1, 1970, 00:00:00 UTC) in one of three formats:
      * seconds, milliseconds, or seconds with millisecond precision.
      * </p>
-     * 
+     *
      * @see #Data Contains the format option: "Seconds", "Milliseconds", or "Seconds+Milliseconds"
      * @see #Condition Contains the variable name where the timestamp will be stored
-     * 
+     *
      * <p><b>Usage Examples:</b></p>
      * <pre>
      * Input (Data): @seconds
      * Condition: %EpochSeconds%
      * Result: Variable %EpochSeconds% contains epoch seconds (e.g., 1714176000)
-     * 
+     *
      * Input (Data): @milliseconds
      * Condition: %EpochMillis%
      * Result: Variable %EpochMillis% contains epoch milliseconds (e.g., 1714176000000)
-     * 
+     *
      * Input (Data): @seconds+milliseconds
      * Condition: %EpochPrecise%
      * Result: Variable %EpochPrecise% contains seconds with 3 decimal places (e.g., 1714176000.123)
      * </pre>
-     * 
+     *
      * <p><b>Validation:</b></p>
      * <ul>
      *     <li>Data must be one of: "seconds", "milliseconds", or "seconds+milliseconds" (case-insensitive)</li>
      *     <li>Condition must contain a valid variable name</li>
      *     <li>If validation fails, reports error with Status.FAIL and does not continue</li>
      * </ul>
-     * 
+     *
      * <p><b>Behavior:</b></p>
      * <ul>
      *     <li>Uses {@link Instant#now()} to get current system time</li>
@@ -474,18 +577,31 @@ public class GeneralOperations extends General {
      *     <li>Reports success with Status.DONE or failure with Status.FAIL</li>
      * </ul>
      */
-    @Action(object = ObjectType.GENERAL, desc = "Store Epoch Timestamp in variable", input = InputType.YES, condition = InputType.YES)
+    @Action(
+        object = ObjectType.GENERAL,
+        desc = "Store Epoch Timestamp in variable",
+        input = InputType.YES,
+        condition = InputType.YES
+    )
     public void storeEpochTimestampInVariable() {
         if (Condition == null || Condition.isBlank() || Condition.equals("%%")) {
-            Report.updateTestLog(Action, "Variable name is required. Please provide a valid variable name in the Condition field.", Status.FAIL);
+            Report.updateTestLog(
+                Action,
+                "Variable name is required. Please provide a valid variable name in the Condition field.",
+                Status.FAIL
+            );
             return;
         }
-        
+
         if (Data == null || Data.isBlank()) {
-            Report.updateTestLog(Action, "Format option is required. Use: 'seconds', 'milliseconds', or 'seconds+milliseconds'.", Status.FAIL);
+            Report.updateTestLog(
+                Action,
+                "Format option is required. Use: 'seconds', 'milliseconds', or 'seconds+milliseconds'.",
+                Status.FAIL
+            );
             return;
         }
-        
+
         try {
             String epochTimestamp = "";
             String option = Data.trim().toLowerCase();
@@ -494,31 +610,33 @@ public class GeneralOperations extends General {
                 case "seconds":
                     epochTimestamp = String.valueOf(Instant.now().getEpochSecond());
                     break;
-
                 case "milliseconds":
                     epochTimestamp = String.valueOf(Instant.now().toEpochMilli());
                     break;
-
                 case "seconds+milliseconds":
                     DecimalFormat df = new DecimalFormat("0.000");
                     df.setMaximumFractionDigits(3);
                     double epochWithMs = Instant.now().toEpochMilli() / 1000.0;
                     epochTimestamp = df.format(epochWithMs);
                     break;
-
                 default:
-                    Report.updateTestLog(Action, "Invalid input. Use: 'seconds', 'milliseconds', or 'seconds+milliseconds'.", Status.FAIL);
+                    Report.updateTestLog(
+                        Action,
+                        "Invalid input. Use: 'seconds', 'milliseconds', or 'seconds+milliseconds'.",
+                        Status.FAIL
+                    );
                     return;
             }
 
             addVar(Condition, epochTimestamp);
-            Report.updateTestLog(Action, "Timestamp added in variable with value '" + epochTimestamp + "'", Status.DONE);
-
+            Report.updateTestLog(
+                Action,
+                "Timestamp added in variable with value '" + epochTimestamp + "'",
+                Status.DONE
+            );
         } catch (Exception e) {
             Report.updateTestLog(Action, e.getMessage(), Status.FAIL);
             Logger.getLogger(CommonMethods.class.getName()).log(Level.SEVERE, null, e);
         }
-
     }
- 
 }

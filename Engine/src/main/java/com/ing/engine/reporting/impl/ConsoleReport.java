@@ -1,4 +1,3 @@
-
 package com.ing.engine.reporting.impl;
 
 import com.ing.engine.constants.FilePath;
@@ -17,10 +16,9 @@ import java.util.logging.Logger;
 
 /**
  *
- * 
+ *
  */
 public class ConsoleReport {
-
     private static FileOutputStream fout, ferr;
 
     public static File consoleFile;
@@ -76,12 +74,15 @@ public class ConsoleReport {
         consoleHandler = new ConsoleHandler();
         rootLogger.addHandler(consoleHandler);
         consoleHandler.setLevel(Level.ALL);
-        consoleHandler.setFilter(new Filter() {
-            @Override
-            public boolean isLoggable(LogRecord lr) {
-                return !Objects.toString(lr.getMessage(), "").startsWith("Augmenter should be");
+        consoleHandler.setFilter(
+            new Filter() {
+
+                @Override
+                public boolean isLoggable(LogRecord lr) {
+                    return !Objects.toString(lr.getMessage(), "").startsWith("Augmenter should be");
+                }
             }
-        });
+        );
     }
 
     public static class PrintStreamOut extends PrintStream {
@@ -94,11 +95,9 @@ public class ConsoleReport {
         public void println(String a) {
             super.println(a);
         }
-
     }
 
     public static class MultiOutputStream extends OutputStream {
-
         OutputStream[] outputStreams;
 
         public MultiOutputStream(OutputStream... outputStreams) {

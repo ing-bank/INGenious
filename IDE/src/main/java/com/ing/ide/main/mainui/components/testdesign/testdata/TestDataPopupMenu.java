@@ -1,6 +1,4 @@
-
 package com.ing.ide.main.mainui.components.testdesign.testdata;
-
 
 import com.ing.ide.main.utils.Utils;
 import com.ing.ide.main.utils.keys.Keystroke;
@@ -11,10 +9,9 @@ import javax.swing.JPopupMenu;
 
 /**
  *
- * 
+ *
  */
 public class TestDataPopupMenu extends JPopupMenu {
-
     private final ActionListener actionListener;
     private JMenuItem saveMenuItem;
 
@@ -28,18 +25,32 @@ public class TestDataPopupMenu extends JPopupMenu {
     }
 
     private void init() {
-        JMenuItem addRowButton = Utils.createMenuItem("Add Row", ""
-                + "Ctrl+Plus to add a row at last"
-                + "<br>"
-                + "Ctrl+I to insert a row before the selected row"
-                + "<br>"
-                + "Ctrl+R to replicate the row", Keystroke.ADD_ROWP, actionListener);
+        JMenuItem addRowButton = Utils.createMenuItem(
+            "Add Row",
+            "" +
+            "Ctrl+Plus to add a row at last" +
+            "<br>" +
+            "Ctrl+I to insert a row before the selected row" +
+            "<br>" +
+            "Ctrl+R to replicate the row",
+            Keystroke.ADD_ROWP,
+            actionListener
+        );
         add(addRowButton);
-        add(Utils.createMenuItem("Delete Rows", "Ctrl+Minus", Keystroke.REMOVE_ROW, actionListener));
+        add(
+            Utils.createMenuItem("Delete Rows", "Ctrl+Minus", Keystroke.REMOVE_ROW, actionListener)
+        );
         addSeparator();
 
         add(Utils.createMenuItem("Add Column", "Alt+Plus", Keystroke.ADD_COLP, actionListener));
-        add(Utils.createMenuItem("Delete Columns", "Alt+Minus", Keystroke.REMOVE_COL, actionListener));
+        add(
+            Utils.createMenuItem(
+                "Delete Columns",
+                "Alt+Minus",
+                Keystroke.REMOVE_COL,
+                actionListener
+            )
+        );
         addSeparator();
 
         add(Utils.createMenuItem("Create Selected Column's In All Env", "", null, actionListener));

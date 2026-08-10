@@ -1,4 +1,3 @@
-
 package com.ing.datalib.settings;
 
 import com.ing.datalib.util.data.LinkedProperties;
@@ -7,10 +6,9 @@ import java.util.Properties;
 
 /**
  *
- * 
+ *
  */
-    public class AbstractPropSettings extends LinkedProperties {
-
+public class AbstractPropSettings extends LinkedProperties {
     private String location;
 
     private String name;
@@ -50,5 +48,4 @@ import java.util.Properties;
     public void setName(String name) {
         this.name = name;
     }
-
 }

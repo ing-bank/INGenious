@@ -28,28 +28,28 @@
       font-style: normal;
       font-weight: 400;
       font-display: swap;
-      src: url('../media/fonts/vendor/inter/Inter-Regular.woff2') format('woff2');
+      src: url('media/fonts/vendor/inter/Inter-Regular.woff2') format('woff2');
     }
     @font-face {
       font-family: 'Inter';
       font-style: normal;
       font-weight: 500;
       font-display: swap;
-      src: url('../media/fonts/vendor/inter/Inter-Medium.woff2') format('woff2');
+      src: url('media/fonts/vendor/inter/Inter-Medium.woff2') format('woff2');
     }
     @font-face {
       font-family: 'Inter';
       font-style: normal;
       font-weight: 600;
       font-display: swap;
-      src: url('../media/fonts/vendor/inter/Inter-SemiBold.woff2') format('woff2');
+      src: url('media/fonts/vendor/inter/Inter-SemiBold.woff2') format('woff2');
     }
     @font-face {
       font-family: 'Inter';
       font-style: normal;
       font-weight: 700;
       font-display: swap;
-      src: url('../media/fonts/vendor/inter/Inter-Bold.woff2') format('woff2');
+      src: url('media/fonts/vendor/inter/Inter-Bold.woff2') format('woff2');
     }
 
     /* Global font family override */
@@ -91,6 +91,7 @@
       border-bottom: 1px solid var(--border-subtle);
       background: #ffffff !important;
       color: #1f2937 !important;
+      cursor: pointer;
     }
     .tabulator-row .tabulator-cell {
       background: transparent;
@@ -526,7 +527,7 @@
         </a>
       </template>
       
-      <a href="console.txt" target="_blank" class="btn btn--secondary btn--sm" title="Console Log">
+      <a href="javascript:void(0)" onclick="ingConsoleOpen(); return false;" class="btn btn--secondary btn--sm" title="View Console Log">
         <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 9l3 3-3 3m5 0h3M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
         </svg>
@@ -793,6 +794,16 @@
                 { column: 'status', dir: 'desc' }
               ]
             });
+
+            // Make the entire row clickable, navigating to the same detailed report
+            // as the Test Case column link. Anchor clicks are ignored so the link's
+            // native behavior (incl. Cmd/Ctrl-click to open in a new tab) is preserved.
+            this.executionsTable.on('rowClick', (e, row) => {
+              if (e.target && e.target.closest && e.target.closest('a')) return;
+              const data = row.getData();
+              const link = this.getDetailedLink(data);
+              if (link) window.location.href = link;
+            });
           }
           
           // Initialize Group View Table (if needed)
@@ -885,6 +896,14 @@
               ...browserColumns
             ]
           });
+
+          // Make the entire row clickable in the group view too.
+          this.groupTable.on('rowClick', (e, row) => {
+            if (e.target && e.target.closest && e.target.closest('a')) return;
+            const data = row.getData();
+            const link = `detailed.html?SC=${encodeURIComponent(data.scenarioName || '')}&TC=${encodeURIComponent(data.testcaseName || '')}&BRO=ALL`;
+            window.location.href = link;
+          });
         },
         
         filterTable() {
@@ -931,6 +950,88 @@
       };
     }
   </script>
-  
+
+  <!-- ============================================================
+       INGenious Console Viewer (shared snippet)
+       Adds a floating "Console" button and an in-page modal that
+       displays this run's console.txt with filter / copy / download.
+       ============================================================ -->
+  <button id="ing-console-fab" type="button" title="View Console Log" aria-label="View Console Log" onclick="ingConsoleOpen()">
+    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 17l6-6-6-6"></path><path d="M12 19h8"></path></svg>
+    <span>Console</span>
+  </button>
+  <div id="ing-console-modal" role="dialog" aria-modal="true" aria-labelledby="ing-console-title" hidden>
+    <div class="ing-console-backdrop" onclick="ingConsoleClose()"></div>
+    <div class="ing-console-window">
+      <div class="ing-console-header">
+        <div class="ing-console-title-wrap">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 17l6-6-6-6"></path><path d="M12 19h8"></path></svg>
+          <h2 id="ing-console-title">Console Log</h2>
+          <span class="ing-console-file">console.txt</span>
+        </div>
+        <div class="ing-console-actions">
+          <input id="ing-console-filter" type="search" placeholder="Filter lines…" aria-label="Filter lines" oninput="ingConsoleFilter(this.value)">
+          <button type="button" id="ing-console-copy-btn" onclick="ingConsoleCopy()" title="Copy to clipboard">Copy</button>
+          <a href="console.txt" download="console.txt" title="Download">Download</a>
+          <a href="console.txt" target="_blank" rel="noopener" title="Open in new tab">Open</a>
+          <button type="button" class="ing-console-close" onclick="ingConsoleClose()" title="Close" aria-label="Close">×</button>
+        </div>
+      </div>
+      <div class="ing-console-body">
+        <pre id="ing-console-pre" hidden></pre>
+        <iframe id="ing-console-iframe" title="Console output" hidden></iframe>
+        <div id="ing-console-empty" class="ing-console-empty" hidden>No console output captured.</div>
+        <div id="ing-console-loading" class="ing-console-empty">Loading…</div>
+        <script type="text/plain" id="ing-console-data">__INGENIOUS_CONSOLE_DATA__</script>
+      </div>
+    </div>
+  </div>
+  <style>
+    #ing-console-fab{position:fixed;bottom:1.5rem;left:1.5rem;z-index:9998;display:inline-flex;align-items:center;gap:.5rem;padding:.6rem .95rem;background:linear-gradient(135deg,#1f2937 0%,#111827 100%);color:#f9fafb;border:1px solid rgba(255,255,255,.08);border-radius:999px;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif;font-size:.85rem;font-weight:600;line-height:1;cursor:pointer;box-shadow:0 10px 30px -8px rgba(0,0,0,.35);transition:transform .15s ease,box-shadow .15s ease,background .2s ease}
+    #ing-console-fab:hover{transform:translateY(-1px);background:linear-gradient(135deg,#111827 0%,#000 100%)}
+    @media print{#ing-console-fab,#ing-console-modal{display:none!important}}
+    #ing-console-modal{position:fixed;inset:0;z-index:10000}
+    #ing-console-modal[hidden]{display:none}
+    .ing-console-backdrop{position:absolute;inset:0;background:rgba(15,23,42,.55);backdrop-filter:blur(2px)}
+    .ing-console-window{position:relative;margin:3vh auto;width:min(1100px,94vw);height:92vh;background:#0b1020;color:#e5e7eb;border-radius:12px;box-shadow:0 25px 60px -10px rgba(0,0,0,.6);display:flex;flex-direction:column;overflow:hidden;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif}
+    .ing-console-header{display:flex;align-items:center;justify-content:space-between;gap:.75rem;padding:.85rem 1rem;background:linear-gradient(180deg,#111827 0%,#0b1020 100%);border-bottom:1px solid rgba(255,255,255,.06)}
+    .ing-console-title-wrap{display:flex;align-items:center;gap:.6rem;min-width:0}
+    .ing-console-title-wrap h2{margin:0;font-size:1rem;font-weight:600;color:#f9fafb}
+    .ing-console-file{color:#9ca3af;font-size:.78rem;font-family:ui-monospace,SFMono-Regular,Menlo,monospace;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+    .ing-console-actions{display:flex;align-items:center;gap:.5rem;flex-shrink:0;flex-wrap:wrap;justify-content:flex-end}
+    .ing-console-actions input[type="search"]{background:#1f2937;color:#e5e7eb;border:1px solid rgba(255,255,255,.08);border-radius:6px;padding:.35rem .55rem;font-size:.8rem;width:200px;outline:none}
+    .ing-console-actions input[type="search"]:focus{border-color:#6366f1}
+    .ing-console-actions button,.ing-console-actions a{background:#1f2937;color:#e5e7eb;border:1px solid rgba(255,255,255,.08);border-radius:6px;padding:.35rem .7rem;font-size:.8rem;cursor:pointer;text-decoration:none;font-family:inherit;line-height:1.2}
+    .ing-console-actions button:hover,.ing-console-actions a:hover{background:#374151}
+    .ing-console-actions .ing-console-close{font-size:1.2rem;line-height:1;padding:.15rem .55rem}
+    .ing-console-body{flex:1;position:relative;background:#0b1020;overflow:hidden}
+    #ing-console-pre{margin:0;padding:1rem 1.1rem;height:100%;overflow:auto;font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:.82rem;line-height:1.55;color:#e5e7eb;background:#0b1020;white-space:pre-wrap;word-break:break-word}
+    #ing-console-pre .ing-line{display:block}
+    #ing-console-pre .ing-line.ing-hide{display:none}
+    #ing-console-pre .ing-line.ing-hit{background:rgba(99,102,241,.15)}
+    #ing-console-iframe{width:100%;height:100%;border:0;background:#fff}
+    .ing-console-empty{padding:2rem;text-align:center;color:#9ca3af;font-size:.95rem}
+    @media (max-width:640px){.ing-console-actions input[type="search"]{width:120px}.ing-console-window{margin:0;width:100vw;height:100vh;border-radius:0}#ing-console-fab span{display:none}#ing-console-fab{padding:.7rem}}
+  </style>
+  <script>
+    (function(){
+      var loaded=false,preEl,iframeEl,emptyEl,filterEl,modalEl,loadingEl,copyBtn;
+      function refs(){preEl=document.getElementById('ing-console-pre');iframeEl=document.getElementById('ing-console-iframe');emptyEl=document.getElementById('ing-console-empty');filterEl=document.getElementById('ing-console-filter');modalEl=document.getElementById('ing-console-modal');loadingEl=document.getElementById('ing-console-loading');copyBtn=document.getElementById('ing-console-copy-btn');}
+      function renderText(text){loadingEl.hidden=true;if(!text||!text.trim()){preEl.hidden=true;iframeEl.hidden=true;emptyEl.hidden=false;return;}var lines=text.split(/\r?\n/),frag=document.createDocumentFragment();for(var i=0;i<lines.length;i++){var s=document.createElement('span');s.className='ing-line';s.textContent=lines[i]+'\n';frag.appendChild(s);}preEl.innerHTML='';preEl.appendChild(frag);preEl.hidden=false;iframeEl.hidden=true;emptyEl.hidden=true;}
+      function fallbackIframe(){loadingEl.hidden=true;iframeEl.src='console.txt?ts='+Date.now();iframeEl.hidden=false;preEl.hidden=true;emptyEl.hidden=true;}
+      function viaInline(){return new Promise(function(res,rej){var d=document.getElementById('ing-console-data');if(!d){rej();return;}var t=d.textContent||'';if(!t||t.indexOf('__INGENIOUS_CONSOLE_DATA__')===0){rej();return;}t=t.replace(/<\\\/script/gi,'<\/script');renderText(t);res();});}
+      function viaFetch(){return new Promise(function(res,rej){try{if(typeof fetch!=='function'){rej();return;}fetch('console.txt?ts='+Date.now(),{cache:'no-store'}).then(function(r){if(!r.ok)throw new Error('HTTP '+r.status);return r.text();}).then(function(t){if(t&&t.length){renderText(t);res();}else{rej();}}).catch(rej);}catch(e){rej(e);}});}
+      function viaXHR(){return new Promise(function(res,rej){try{var x=new XMLHttpRequest();x.open('GET','console.txt?ts='+Date.now(),true);x.onload=function(){if((x.status===0||x.status===200)&&x.responseText){renderText(x.responseText);res();}else{rej();}};x.onerror=function(){rej();};x.send();}catch(e){rej(e);}});}
+      function viaHiddenIframe(){return new Promise(function(res,rej){try{var f=document.createElement('iframe');f.style.cssText='position:absolute;left:-9999px;top:-9999px;width:0;height:0;border:0;visibility:hidden';f.src='console.txt?ts='+Date.now();f.onload=function(){try{var doc=f.contentDocument||(f.contentWindow&&f.contentWindow.document);var text=doc&&doc.body?(doc.body.innerText||doc.body.textContent||''):'';try{document.body.removeChild(f);}catch(_){}if(text){renderText(text);res();}else{rej();}}catch(e){try{document.body.removeChild(f);}catch(_){}rej(e);}};f.onerror=function(){try{document.body.removeChild(f);}catch(_){}rej();};document.body.appendChild(f);}catch(e){rej(e);}});}
+      function load(){refs();if(loaded)return;loaded=true;viaInline().catch(viaFetch).catch(viaXHR).catch(viaHiddenIframe).catch(fallbackIframe);}
+      window.ingConsoleOpen=function(){refs();modalEl.hidden=false;document.body.style.overflow='hidden';load();};
+      window.ingConsoleClose=function(){refs();modalEl.hidden=true;document.body.style.overflow='';};
+      window.ingConsoleFilter=function(q){refs();if(preEl.hidden){if(filterEl){filterEl.style.borderColor='#f59e0b';filterEl.title='Console loaded in fallback iframe; filtering unavailable. Re-run the test to use the rich viewer.';}return;}var query=(q||'').toLowerCase().trim(),c=preEl.children,first=null,count=0;for(var i=0;i<c.length;i++){var el=c[i],t=el.textContent.toLowerCase();if(!query||t.indexOf(query)!==-1){el.classList.remove('ing-hide');if(query){el.classList.add('ing-hit');if(!first)first=el;count++;}else{el.classList.remove('ing-hit');}}else{el.classList.add('ing-hide');el.classList.remove('ing-hit');}}if(filterEl){filterEl.style.borderColor=query?(count?'#10b981':'#ef4444'):'';filterEl.title=query?(count+' match'+(count===1?'':'es')):'';}if(first&&first.scrollIntoView){try{first.scrollIntoView({block:'center',behavior:'smooth'});}catch(e){first.scrollIntoView();}}};
+      window.ingConsoleCopy=function(){refs();var text='';if(!preEl.hidden){var parts=[],c=preEl.children;for(var i=0;i<c.length;i++){if(!c[i].classList.contains('ing-hide'))parts.push(c[i].textContent);}text=parts.join('');}if(!text){alert('Console text not available in this browser. Use "Open" to view the raw file.');return;}var done=function(ok){if(!copyBtn)return;var prev=copyBtn.textContent;copyBtn.textContent=ok?'Copied!':'Failed';setTimeout(function(){copyBtn.textContent='Copy';},1200);};if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(text).then(function(){done(true);},function(){done(false);});}else{try{var ta=document.createElement('textarea');ta.value=text;document.body.appendChild(ta);ta.select();document.execCommand('copy');document.body.removeChild(ta);done(true);}catch(e){done(false);}}};
+      document.addEventListener('keydown',function(e){if(e.key==='Escape'){var m=document.getElementById('ing-console-modal');if(m&&!m.hidden)window.ingConsoleClose();}});
+    })();
+  </script>
+  <!-- /INGenious Console Viewer -->
+
 </body>
 </html>

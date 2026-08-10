@@ -3,6 +3,16 @@ package com.ing.ide.main.fx;
 import com.ing.ide.main.mainui.AppActionListener;
 import com.ing.ide.main.utils.recentItem.RecentItem;
 import com.ing.ide.util.Notification;
+import java.awt.Toolkit;
+import java.awt.event.ActionEvent;
+import java.awt.event.InputEvent;
+import java.awt.event.KeyEvent;
+import java.io.File;
+import java.util.List;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import javafx.application.Platform;
 import javafx.embed.swing.JFXPanel;
 import javafx.scene.Scene;
@@ -19,16 +29,6 @@ import javax.swing.AbstractAction;
 import javax.swing.JComponent;
 import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
-import java.awt.Toolkit;
-import java.awt.event.ActionEvent;
-import java.awt.event.InputEvent;
-import java.awt.event.KeyEvent;
-import java.io.File;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
-import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 /**
  * JavaFX-based MenuBar wrapped in a JFXPanel for embedding in Swing.
@@ -37,7 +37,6 @@ import java.util.logging.Logger;
  * Actions are bridged to the existing AppActionListener via SwingUtilities.invokeLater().
  */
 public class FXMenuBar extends JFXPanel {
-
     private static final Logger LOG = Logger.getLogger(FXMenuBar.class.getName());
 
     private final AppActionListener actionListener;
@@ -52,10 +51,12 @@ public class FXMenuBar extends JFXPanel {
         // Prevents macOS NSTrackingRectTag crash when JFXPanel is resized
         // before its Glass view tracking rects are initialised.
         CountDownLatch sceneReady = new CountDownLatch(1);
-        Platform.runLater(() -> {
-            initFX();
-            sceneReady.countDown();
-        });
+        Platform.runLater(
+            () -> {
+                initFX();
+                sceneReady.countDown();
+            }
+        );
         try {
             sceneReady.await(5, TimeUnit.SECONDS);
         } catch (InterruptedException e) {
@@ -68,14 +69,16 @@ public class FXMenuBar extends JFXPanel {
         menuBar = new MenuBar();
         menuBar.setUseSystemMenuBar(false);
 
-        menuBar.getMenus().addAll(
+        menuBar
+            .getMenus()
+            .addAll(
                 createFileMenu(),
                 createTestDataMenu(),
                 createConfigurationMenu(),
                 createToolsMenu(),
                 createWindowMenu(),
                 createHelpMenu()
-        );
+            );
 
         // Set colored icons on top-level menus
         setMenuGraphic(menuBar.getMenus().get(0), "FileMenu", 14);
@@ -97,25 +100,76 @@ public class FXMenuBar extends JFXPanel {
         setFocusable(true);
         int shortcutMask = Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx();
 
-        bindAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_N, shortcutMask | InputEvent.SHIFT_DOWN_MASK), "New Project");
-        bindAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_O, shortcutMask | InputEvent.SHIFT_DOWN_MASK), "Open Project");
-        bindAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S, shortcutMask | InputEvent.SHIFT_DOWN_MASK), "Save Project");
+        bindAccelerator(
+            KeyStroke.getKeyStroke(KeyEvent.VK_N, shortcutMask | InputEvent.SHIFT_DOWN_MASK),
+            "New Project"
+        );
+        bindAccelerator(
+            KeyStroke.getKeyStroke(KeyEvent.VK_O, shortcutMask | InputEvent.SHIFT_DOWN_MASK),
+            "Open Project"
+        );
+        bindAccelerator(
+            KeyStroke.getKeyStroke(KeyEvent.VK_S, shortcutMask | InputEvent.SHIFT_DOWN_MASK),
+            "Save Project"
+        );
         bindAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_X, InputEvent.ALT_DOWN_MASK), "Quit");
 
-        bindAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_P, shortcutMask | InputEvent.ALT_DOWN_MASK), "Object Spy");
-        bindAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_H, shortcutMask | InputEvent.ALT_DOWN_MASK), "Object Heal");
-        bindAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_I, shortcutMask | InputEvent.ALT_DOWN_MASK), "Image Spy");
-        bindAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_M, shortcutMask | InputEvent.ALT_DOWN_MASK), "Mobile Spy");
-        bindAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_S, shortcutMask | InputEvent.ALT_DOWN_MASK), "Run Settings");
+        bindAccelerator(
+            KeyStroke.getKeyStroke(KeyEvent.VK_S, shortcutMask | InputEvent.ALT_DOWN_MASK),
+            "Run Settings"
+        );
 
-        bindAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_E, shortcutMask | InputEvent.SHIFT_DOWN_MASK), "Exploratory");
-        bindAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_H, shortcutMask | InputEvent.SHIFT_DOWN_MASK), "Har Compare");
+        bindAccelerator(
+            KeyStroke.getKeyStroke(KeyEvent.VK_E, shortcutMask | InputEvent.SHIFT_DOWN_MASK),
+            "Exploratory"
+        );
+        bindAccelerator(
+            KeyStroke.getKeyStroke(KeyEvent.VK_H, shortcutMask | InputEvent.SHIFT_DOWN_MASK),
+            "Har Compare"
+        );
 
-        bindAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_N, InputEvent.SHIFT_DOWN_MASK | InputEvent.ALT_DOWN_MASK), "Test Design");
-        bindAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_E, InputEvent.SHIFT_DOWN_MASK | InputEvent.ALT_DOWN_MASK), "Test Execution");
-        bindAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_D, InputEvent.SHIFT_DOWN_MASK | InputEvent.ALT_DOWN_MASK), "Dashboard");
-        bindAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_T, InputEvent.SHIFT_DOWN_MASK | InputEvent.ALT_DOWN_MASK), "API Tester");
-        bindAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_A, InputEvent.SHIFT_DOWN_MASK | InputEvent.ALT_DOWN_MASK), "AdjustUI");
+        bindAccelerator(
+            KeyStroke.getKeyStroke(
+                KeyEvent.VK_N,
+                InputEvent.SHIFT_DOWN_MASK | InputEvent.ALT_DOWN_MASK
+            ),
+            "Test Design"
+        );
+        bindAccelerator(
+            KeyStroke.getKeyStroke(
+                KeyEvent.VK_E,
+                InputEvent.SHIFT_DOWN_MASK | InputEvent.ALT_DOWN_MASK
+            ),
+            "Test Execution"
+        );
+        bindAccelerator(
+            KeyStroke.getKeyStroke(
+                KeyEvent.VK_D,
+                InputEvent.SHIFT_DOWN_MASK | InputEvent.ALT_DOWN_MASK
+            ),
+            "Dashboard"
+        );
+        bindAccelerator(
+            KeyStroke.getKeyStroke(
+                KeyEvent.VK_W,
+                InputEvent.SHIFT_DOWN_MASK | InputEvent.ALT_DOWN_MASK
+            ),
+            "API Workbench"
+        );
+        bindAccelerator(
+            KeyStroke.getKeyStroke(
+                KeyEvent.VK_I,
+                InputEvent.SHIFT_DOWN_MASK | InputEvent.ALT_DOWN_MASK
+            ),
+            "AI Assistant"
+        );
+        bindAccelerator(
+            KeyStroke.getKeyStroke(
+                KeyEvent.VK_A,
+                InputEvent.SHIFT_DOWN_MASK | InputEvent.ALT_DOWN_MASK
+            ),
+            "AdjustUI"
+        );
 
         bindAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_F1, 0), "Help");
         bindAccelerator(KeyStroke.getKeyStroke(KeyEvent.VK_F3, 0), "About");
@@ -124,12 +178,17 @@ public class FXMenuBar extends JFXPanel {
 
     private void bindAccelerator(KeyStroke keyStroke, String command) {
         getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(keyStroke, command);
-        getActionMap().put(command, new AbstractAction() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                fireSwingAction(command);
-            }
-        });
+        getActionMap()
+            .put(
+                command,
+                new AbstractAction() {
+
+                    @Override
+                    public void actionPerformed(ActionEvent e) {
+                        fireSwingAction(command);
+                    }
+                }
+            );
     }
 
     private void setMenuGraphic(Menu menu, String iconName, int size) {
@@ -141,21 +200,41 @@ public class FXMenuBar extends JFXPanel {
 
     private Menu createFileMenu() {
         Menu file = new Menu("File");
-        
+
         // Create Recent Projects submenu
         recentProjectsMenu = new Menu("Recent Projects");
         updateRecentProjectsMenu(null); // Initialize as empty
-        
-        file.getItems().addAll(
-                menuItem("New Project", "NewProject", KeyCode.N, KeyCombination.SHORTCUT_DOWN, KeyCombination.SHIFT_DOWN),
-                menuItem("Open Project", "OpenProject", KeyCode.O, KeyCombination.SHORTCUT_DOWN, KeyCombination.SHIFT_DOWN),
-                menuItem("Save Project", "SaveProject", KeyCode.S, KeyCombination.SHORTCUT_DOWN, KeyCombination.SHIFT_DOWN),
+
+        file
+            .getItems()
+            .addAll(
+                menuItem(
+                    "New Project",
+                    "NewProject",
+                    KeyCode.N,
+                    KeyCombination.SHORTCUT_DOWN,
+                    KeyCombination.SHIFT_DOWN
+                ),
+                menuItem(
+                    "Open Project",
+                    "OpenProject",
+                    KeyCode.O,
+                    KeyCombination.SHORTCUT_DOWN,
+                    KeyCombination.SHIFT_DOWN
+                ),
+                menuItem(
+                    "Save Project",
+                    "SaveProject",
+                    KeyCode.S,
+                    KeyCombination.SHORTCUT_DOWN,
+                    KeyCombination.SHIFT_DOWN
+                ),
                 new SeparatorMenuItem(),
                 recentProjectsMenu,
                 new SeparatorMenuItem(),
                 menuItem("Restart", "refresh"),
                 menuItem("Quit", "close", KeyCode.X, KeyCombination.ALT_DOWN)
-        );
+            );
         return file;
     }
 
@@ -176,12 +255,20 @@ public class FXMenuBar extends JFXPanel {
 
     private Menu createConfigurationMenu() {
         Menu config = new Menu("Configurations");
-        config.getItems().addAll(
-                menuItem("Run Settings", "settings", KeyCode.S, KeyCombination.SHORTCUT_DOWN, KeyCombination.ALT_DOWN),
-                menuItem("Browser Configuration", "BrowserConfiguration"),
+        config
+            .getItems()
+            .addAll(
+                menuItem(
+                    "Settings",
+                    "settings",
+                    KeyCode.S,
+                    KeyCombination.SHORTCUT_DOWN,
+                    KeyCombination.ALT_DOWN
+                ),
+                menuItem("Archetype Configurations", "BrowserConfiguration"),
                 new SeparatorMenuItem(),
                 menuItem("Options", "settings")
-        );
+            );
 
         // darkModeItem = new CheckMenuItem("Dark Mode");
         // darkModeItem.setOnAction(e -> fireSwingAction("Dark Mode"));
@@ -194,14 +281,25 @@ public class FXMenuBar extends JFXPanel {
 
     private Menu createToolsMenu() {
         Menu tools = new Menu("Tools");
-        tools.getItems().add(
-                menuItem("Exploratory", "explorer", KeyCode.E, KeyCombination.SHORTCUT_DOWN, KeyCombination.SHIFT_DOWN));
+        tools
+            .getItems()
+            .add(
+                menuItem(
+                    "Exploratory",
+                    "explorer",
+                    KeyCode.E,
+                    KeyCombination.SHORTCUT_DOWN,
+                    KeyCombination.SHIFT_DOWN
+                )
+            );
 
         Menu bdd = new Menu("BDD");
-        bdd.getItems().addAll(
+        bdd
+            .getItems()
+            .addAll(
                 menuItem("Import Feature File", "Inject"),
                 menuItem("Open Feature Editor", "testdesign")
-        );
+            );
         tools.getItems().add(bdd);
 
         Menu playwright = new Menu("Import Playwright Recording");
@@ -209,13 +307,31 @@ public class FXMenuBar extends JFXPanel {
         tools.getItems().add(playwright);
 
         Menu sapRecording = new Menu("Import SAP Recording");
-        sapRecording.getItems().addAll(
-                createSapImportItem("Java (.java, .jsh)", "recorder", "Java")
-        );
+        sapRecording
+            .getItems()
+            .addAll(createSapImportItem("Java (.java, .jsh)", "recorder", "Java"));
         tools.getItems().add(sapRecording);
 
-        tools.getItems().add(
-                menuItem("Har Compare", "search", KeyCode.H, KeyCombination.SHORTCUT_DOWN, KeyCombination.SHIFT_DOWN));
+        Menu importCollection = new Menu("Import Collection");
+        importCollection
+            .getItems()
+            .addAll(
+                createImportCollectionItem("Postman", "recorder", "Postman"),
+                createImportCollectionItem("Bruno", "recorder", "Bruno")
+            );
+        tools.getItems().add(importCollection);
+
+        tools
+            .getItems()
+            .add(
+                menuItem(
+                    "Har Compare",
+                    "search",
+                    KeyCode.H,
+                    KeyCombination.SHORTCUT_DOWN,
+                    KeyCombination.SHIFT_DOWN
+                )
+            );
 
         return tools;
     }
@@ -224,13 +340,52 @@ public class FXMenuBar extends JFXPanel {
 
     private Menu createWindowMenu() {
         Menu window = new Menu("Window");
-        window.getItems().addAll(
-                menuItem("Test Design", "testdesign", KeyCode.N, KeyCombination.SHIFT_DOWN, KeyCombination.ALT_DOWN),
-                menuItem("Test Execution", "testexecution", KeyCode.E, KeyCombination.SHIFT_DOWN, KeyCombination.ALT_DOWN),
-                menuItem("Dashboard", "dashboard", KeyCode.D, KeyCombination.SHIFT_DOWN, KeyCombination.ALT_DOWN),
-                menuItem("API Workbench", "APITester", KeyCode.T, KeyCombination.SHIFT_DOWN, KeyCombination.ALT_DOWN),
-                menuItem("AdjustUI", "settings", KeyCode.A, KeyCombination.SHIFT_DOWN, KeyCombination.ALT_DOWN)
-        );
+        window
+            .getItems()
+            .addAll(
+                menuItem(
+                    "Test Design",
+                    "testdesign",
+                    KeyCode.N,
+                    KeyCombination.SHIFT_DOWN,
+                    KeyCombination.ALT_DOWN
+                ),
+                menuItem(
+                    "Test Execution",
+                    "testexecution",
+                    KeyCode.E,
+                    KeyCombination.SHIFT_DOWN,
+                    KeyCombination.ALT_DOWN
+                ),
+                menuItem(
+                    "Dashboard",
+                    "dashboard",
+                    KeyCode.D,
+                    KeyCombination.SHIFT_DOWN,
+                    KeyCombination.ALT_DOWN
+                ),
+                menuItem(
+                    "API Workbench",
+                    "APITester",
+                    KeyCode.W,
+                    KeyCombination.SHIFT_DOWN,
+                    KeyCombination.ALT_DOWN
+                ),
+                /*  menuItem(
+                    "AI Assistant",
+                    "AICopilot",
+                    KeyCode.I,
+                    KeyCombination.SHIFT_DOWN,
+                    KeyCombination.ALT_DOWN
+                ),*/
+                menuItem(
+                    "AdjustUI",
+                    "settings",
+                    KeyCode.A,
+                    KeyCombination.SHIFT_DOWN,
+                    KeyCombination.ALT_DOWN
+                )
+            );
         return window;
     }
 
@@ -238,17 +393,24 @@ public class FXMenuBar extends JFXPanel {
 
     private Menu createHelpMenu() {
         Menu help = new Menu("Help");
-        help.getItems().addAll(
+        help
+            .getItems()
+            .addAll(
                 menuItem("Help", "help", KeyCode.F1),
                 menuItem("About", "info", KeyCode.F3),
                 menuItem("Show Log", "console", KeyCode.F9)
-        );
+            );
         return help;
     }
 
     // ── Factory Methods ──
 
-    private MenuItem menuItem(String text, String iconName, KeyCode key, KeyCombination.Modifier... modifiers) {
+    private MenuItem menuItem(
+        String text,
+        String iconName,
+        KeyCode key,
+        KeyCombination.Modifier... modifiers
+    ) {
         MenuItem item = new MenuItem(text);
         if (iconName != null) {
             org.kordamp.ikonli.javafx.FontIcon icon = INGIcons.fxColored(iconName, 14);
@@ -291,6 +453,21 @@ public class FXMenuBar extends JFXPanel {
         return item;
     }
 
+    /**
+     * Creates a menu item for Import Collection with format-specific action command.
+     */
+    private MenuItem createImportCollectionItem(String text, String iconName, String format) {
+        MenuItem item = new MenuItem(text);
+        if (iconName != null) {
+            org.kordamp.ikonli.javafx.FontIcon icon = INGIcons.fxColored(iconName, 14);
+            if (icon != null) {
+                item.setGraphic(icon);
+            }
+        }
+        item.setOnAction(e -> fireSwingAction("Import Collection:" + format));
+        return item;
+    }
+
     // ── Swing Bridge ──
 
     /**
@@ -298,11 +475,16 @@ public class FXMenuBar extends JFXPanel {
      * This bridges JavaFX menu clicks to the existing AppActionListener.
      */
     private void fireSwingAction(String command) {
-        SwingUtilities.invokeLater(() -> {
-            java.awt.event.ActionEvent swingEvent = new java.awt.event.ActionEvent(
-                    this, java.awt.event.ActionEvent.ACTION_PERFORMED, command);
-            actionListener.actionPerformed(swingEvent);
-        });
+        SwingUtilities.invokeLater(
+            () -> {
+                java.awt.event.ActionEvent swingEvent = new java.awt.event.ActionEvent(
+                    this,
+                    java.awt.event.ActionEvent.ACTION_PERFORMED,
+                    command
+                );
+                actionListener.actionPerformed(swingEvent);
+            }
+        );
     }
 
     // ── Public API ──
@@ -329,40 +511,51 @@ public class FXMenuBar extends JFXPanel {
         if (recentProjectsMenu == null) {
             return;
         }
-        
+
         recentProjectsMenu.getItems().clear();
-        
+
         if (recentItems == null || recentItems.isEmpty()) {
             MenuItem emptyItem = new MenuItem("(No recent projects)");
             emptyItem.setDisable(true);
             recentProjectsMenu.getItems().add(emptyItem);
             return;
         }
-        
+
         for (RecentItem item : recentItems) {
             String projectName = item.getProjectName();
             String location = item.getLocation();
-            
+
             MenuItem projectItem = new MenuItem(projectName);
-            
+
             // Add action to load the project with validation
-            projectItem.setOnAction(e -> {
-                // Validate that the project path exists
-                if (!new File(location).exists()) {
-                    SwingUtilities.invokeLater(() -> {
-                        Notification.show("Project path no longer exists: " + location);
-                        actionListener.getMainFrame().getRecentItems().removeItemByLocation(location);
-                        actionListener.getMainFrame().getRecentItems().save();
-                        updateRecentProjects(actionListener.getMainFrame().getRecentItems().getRECENT_ITEMS());
-                    });
-                    return;
+            projectItem.setOnAction(
+                e -> {
+                    // Validate that the project path exists
+                    if (!new File(location).exists()) {
+                        SwingUtilities.invokeLater(
+                            () -> {
+                                Notification.show("Project path no longer exists: " + location);
+                                actionListener
+                                    .getMainFrame()
+                                    .getRecentItems()
+                                    .removeItemByLocation(location);
+                                actionListener.getMainFrame().getRecentItems().save();
+                                updateRecentProjects(
+                                    actionListener.getMainFrame().getRecentItems().getRECENT_ITEMS()
+                                );
+                            }
+                        );
+                        return;
+                    }
+
+                    SwingUtilities.invokeLater(
+                        () -> {
+                            actionListener.getMainFrame().loadProject(location);
+                        }
+                    );
                 }
-                
-                SwingUtilities.invokeLater(() -> {
-                    actionListener.getMainFrame().loadProject(location);
-                });
-            });
-            
+            );
+
             recentProjectsMenu.getItems().add(projectItem);
         }
     }
@@ -372,10 +565,45 @@ public class FXMenuBar extends JFXPanel {
      * Called from AppMainFrame.afterProjectChange().
      */
     public void setMultiEnvironment(boolean selected) {
-        Platform.runLater(() -> {
-            if (multiEnvItem != null) {
-                multiEnvItem.setSelected(selected);
+        Platform.runLater(
+            () -> {
+                if (multiEnvItem != null) {
+                    multiEnvItem.setSelected(selected);
+                }
             }
-        });
+        );
+    }
+
+    /**
+     * Closes all open menus in the menu bar.
+     * Called when the application window loses focus to prevent
+     * submenus from floating over other applications.
+     */
+    public void closeAllMenus() {
+        Platform.runLater(
+            () -> {
+                if (menuBar != null) {
+                    // Hide all open menus by setting hide on each menu
+                    for (Menu menu : menuBar.getMenus()) {
+                        menu.hide();
+                        // Also hide any submenus recursively
+                        hideSubmenus(menu);
+                    }
+                }
+            }
+        );
+    }
+
+    /**
+     * Recursively hides all submenus of a given menu.
+     */
+    private void hideSubmenus(Menu menu) {
+        for (MenuItem item : menu.getItems()) {
+            if (item instanceof Menu) {
+                Menu submenu = (Menu) item;
+                submenu.hide();
+                hideSubmenus(submenu);
+            }
+        }
     }
 }

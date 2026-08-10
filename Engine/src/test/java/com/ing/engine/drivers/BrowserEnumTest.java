@@ -1,6 +1,7 @@
 package com.ing.engine.drivers;
 
 import static org.assertj.core.api.Assertions.assertThat;
+
 import java.util.ArrayList;
 import org.testng.annotations.Test;
 
@@ -8,7 +9,8 @@ public class BrowserEnumTest {
 
     @Test
     public void testChromiumValue() {
-        assertThat(PlaywrightDriverFactory.Browser.Chromium.getBrowserValue()).isEqualTo("Chromium");
+        assertThat(PlaywrightDriverFactory.Browser.Chromium.getBrowserValue())
+            .isEqualTo("Chromium");
     }
 
     @Test
@@ -35,15 +37,15 @@ public class BrowserEnumTest {
     @Test
     public void testFromStringExact() {
         assertThat(PlaywrightDriverFactory.Browser.fromString("Chromium"))
-                .isEqualTo(PlaywrightDriverFactory.Browser.Chromium);
+            .isEqualTo(PlaywrightDriverFactory.Browser.Chromium);
     }
 
     @Test
     public void testFromStringCaseInsensitive() {
         assertThat(PlaywrightDriverFactory.Browser.fromString("chromium"))
-                .isEqualTo(PlaywrightDriverFactory.Browser.Chromium);
+            .isEqualTo(PlaywrightDriverFactory.Browser.Chromium);
         assertThat(PlaywrightDriverFactory.Browser.fromString("FIREFOX"))
-                .isEqualTo(PlaywrightDriverFactory.Browser.Firefox);
+            .isEqualTo(PlaywrightDriverFactory.Browser.Firefox);
     }
 
     @Test

@@ -1,4 +1,3 @@
-
 package com.ing.datalib.component.utils;
 
 import java.io.File;
@@ -27,7 +26,7 @@ import org.xml.sax.SAXException;
 
 /**
  *
- * 
+ *
  */
 public class XMLOperation {
 
@@ -35,6 +34,7 @@ public class XMLOperation {
         Path p = Paths.get(filepath);
         return p.toAbsolutePath().toString();
     }
+
     public static Document initTreeOp() {
         try {
             DocumentBuilderFactory docFactory = DocumentBuilderFactory.newInstance();
@@ -44,7 +44,6 @@ public class XMLOperation {
             Logger.getLogger(XMLOperation.class.getName()).log(Level.SEVERE, null, ex);
         }
         return null;
-
     }
 
     public static Document initTreeOp(String xmlPath) {
@@ -52,9 +51,9 @@ public class XMLOperation {
             if (new File(sanitizePathTraversal(xmlPath)).exists()) {
                 DocumentBuilderFactory docFactory = DocumentBuilderFactory.newInstance();
                 docFactory.setFeature("http://apache.org/xml/features/disallow-doctype-decl", true);
-          
+
                 DocumentBuilder docBuilder = docFactory.newDocumentBuilder();
-                
+
                 return docBuilder.parse(xmlPath);
             }
         } catch (ParserConfigurationException | SAXException | IOException ex) {
@@ -75,12 +74,20 @@ public class XMLOperation {
         return null;
     }
 
-    public static Element getElement(String value, Element rootElement, String tag, String reference) {
+    public static Element getElement(
+        String value,
+        Element rootElement,
+        String tag,
+        String reference
+    ) {
         NodeList child = rootElement.getChildNodes();
         Element parentElement = null;
         int totalnodes = child.getLength();
         for (int i = 0; i < totalnodes; i++) {
-            if (child.item(i).getNodeName().equalsIgnoreCase(tag) && child.item(i).getAttributes().getNamedItem(reference).getTextContent().equals(value)) {
+            if (
+                child.item(i).getNodeName().equalsIgnoreCase(tag) &&
+                child.item(i).getAttributes().getNamedItem(reference).getTextContent().equals(value)
+            ) {
                 parentElement = (Element) child.item(i);
                 return parentElement;
             }

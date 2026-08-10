@@ -1,5 +1,6 @@
-
 package com.ing.ide.main.utils.tree;
+
+import static javax.swing.Action.ACTION_COMMAND_KEY;
 
 import com.ing.datalib.or.common.ORObjectInf;
 import com.ing.ide.main.utils.Utils;
@@ -9,7 +10,6 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import javax.swing.AbstractAction;
-import static javax.swing.Action.ACTION_COMMAND_KEY;
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
 import javax.swing.JComponent;
@@ -19,9 +19,9 @@ import javax.swing.JScrollPane;
 import javax.swing.JTextField;
 import javax.swing.JToolBar;
 import javax.swing.JTree;
-import javax.swing.UIManager;
 import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
+import javax.swing.UIManager;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.tree.TreeNode;
@@ -29,10 +29,9 @@ import javax.swing.tree.TreePath;
 
 /**
  *
- * 
+ *
  */
 public class TreeSearch extends JPanel implements ActionListener {
-
     JToolBar searchBar;
     JTextField searchField;
     JTree tree;
@@ -43,6 +42,7 @@ public class TreeSearch extends JPanel implements ActionListener {
 
     public static TreeSearch installForOR(JTree tree) {
         return new TreeSearch(tree) {
+
             @Override
             public void selectAndSrollTo(TreeNode node) {
                 if (node instanceof ORObjectInf) {
@@ -76,7 +76,9 @@ public class TreeSearch extends JPanel implements ActionListener {
         searchBar.setFloatable(false);
         searchBar.setOpaque(false);
         searchBar.setLayout(new BoxLayout(searchBar, BoxLayout.X_AXIS));
-        searchBar.setBorder(BorderFactory.createMatteBorder(0, 0, 1, 0, UIManager.getColor("Separator.foreground")));
+        searchBar.setBorder(
+            BorderFactory.createMatteBorder(0, 0, 1, 0, UIManager.getColor("Separator.foreground"))
+        );
 
         JLabel searchLabel = new JLabel(Utils.getIconByResourceName("/ui/resources/search"));
 
@@ -85,35 +87,42 @@ public class TreeSearch extends JPanel implements ActionListener {
         searchField.addActionListener(this);
         alterDefaultKeyBindings();
         searchBar.add(searchLabel);
-        searchBar.add(new javax.swing.Box.Filler(new java.awt.Dimension(5, 0),
+        searchBar.add(
+            new javax.swing.Box.Filler(
                 new java.awt.Dimension(5, 0),
-                new java.awt.Dimension(5, 32767)));
+                new java.awt.Dimension(5, 0),
+                new java.awt.Dimension(5, 32767)
+            )
+        );
         searchBar.add(searchField);
-
     }
 
     private void addSearchListener() {
+        searchField
+            .getDocument()
+            .addDocumentListener(
+                new DocumentListener() {
 
-        searchField.getDocument().addDocumentListener(new DocumentListener() {
-            @Override
-            public void insertUpdate(DocumentEvent de) {
-                search();
-            }
+                    @Override
+                    public void insertUpdate(DocumentEvent de) {
+                        search();
+                    }
 
-            @Override
-            public void removeUpdate(DocumentEvent de) {
-                search();
-            }
+                    @Override
+                    public void removeUpdate(DocumentEvent de) {
+                        search();
+                    }
 
-            @Override
-            public void changedUpdate(DocumentEvent de) {
-                search();
-            }
-
-        });
+                    @Override
+                    public void changedUpdate(DocumentEvent de) {
+                        search();
+                    }
+                }
+            );
 
         searchField.getInputMap(JComponent.WHEN_FOCUSED).put(KeyStroke.getKeyStroke("F3"), "Next");
         AbstractAction nextAction = new AbstractAction() {
+
             @Override
             public void actionPerformed(ActionEvent ae) {
                 TreeSearch.this.actionPerformed(ae);
@@ -122,8 +131,11 @@ public class TreeSearch extends JPanel implements ActionListener {
         nextAction.putValue(ACTION_COMMAND_KEY, "Next");
         searchField.getActionMap().put("Next", nextAction);
 
-        searchField.getInputMap(JComponent.WHEN_FOCUSED).put(KeyStroke.getKeyStroke("shift F3"), "Previous");
+        searchField
+            .getInputMap(JComponent.WHEN_FOCUSED)
+            .put(KeyStroke.getKeyStroke("shift F3"), "Previous");
         AbstractAction prevAction = new AbstractAction() {
+
             @Override
             public void actionPerformed(ActionEvent ae) {
                 TreeSearch.this.actionPerformed(ae);
@@ -132,63 +144,83 @@ public class TreeSearch extends JPanel implements ActionListener {
         prevAction.putValue(ACTION_COMMAND_KEY, "Previous");
         searchField.getActionMap().put("Previous", prevAction);
 
-        searchField.getInputMap(JComponent.WHEN_FOCUSED).put(KeyStroke.getKeyStroke("ESCAPE"), "Hide");
-        searchField.getActionMap().put("Hide", new AbstractAction() {
-            @Override
-            public void actionPerformed(ActionEvent ae) {
-                searchBar.setVisible(false);
-                tree.requestFocusInWindow();
-            }
-        });
+        searchField
+            .getInputMap(JComponent.WHEN_FOCUSED)
+            .put(KeyStroke.getKeyStroke("ESCAPE"), "Hide");
+        searchField
+            .getActionMap()
+            .put(
+                "Hide",
+                new AbstractAction() {
 
-        searchField.setToolTipText("<html>"
-                + "Press <b>F3</b> to go to next search"
-                + "<br/>"
-                + "Press <b>Shift+F3</b> to go to previous search"
-                + "<br/>"
-                + "Press <b>Escape</b> to hide the searchBox"
-                + "<br/>"
-                //                + "To perfrom regex search add <b>$</b> before the search string"
-                //                + "<br/>"
-                + "</html>");
+                    @Override
+                    public void actionPerformed(ActionEvent ae) {
+                        searchBar.setVisible(false);
+                        tree.requestFocusInWindow();
+                    }
+                }
+            );
+
+        searchField.setToolTipText(
+            "<html>" +
+            "Press <b>F3</b> to go to next search" +
+            "<br/>" +
+            "Press <b>Shift+F3</b> to go to previous search" +
+            "<br/>" +
+            "Press <b>Escape</b> to hide the searchBox" +
+            "<br/>" +
+            //                + "To perfrom regex search add <b>$</b> before the search string"
+            //                + "<br/>"
+            "</html>"
+        );
     }
 
     private void addTreeListener() {
-
         int menuShortcutKeyMask = Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx();
-        tree.getInputMap(JComponent.WHEN_FOCUSED).put(KeyStroke.getKeyStroke(KeyEvent.VK_F, menuShortcutKeyMask), "Search");
+        tree
+            .getInputMap(JComponent.WHEN_FOCUSED)
+            .put(KeyStroke.getKeyStroke(KeyEvent.VK_F, menuShortcutKeyMask), "Search");
 
-        tree.getActionMap().put("Search", new AbstractAction() {
+        tree
+            .getActionMap()
+            .put(
+                "Search",
+                new AbstractAction() {
 
-            @Override
-            public void actionPerformed(ActionEvent ae) {
-                searchBar.setVisible(true);
-                searchField.requestFocusInWindow();
-                searchField.selectAll();
-            }
-        });
+                    @Override
+                    public void actionPerformed(ActionEvent ae) {
+                        searchBar.setVisible(true);
+                        searchField.requestFocusInWindow();
+                        searchField.selectAll();
+                    }
+                }
+            );
 
         tree.getInputMap(JComponent.WHEN_FOCUSED).put(KeyStroke.getKeyStroke("ESCAPE"), "Hide");
 
-        tree.getActionMap().put("Hide", new AbstractAction() {
+        tree
+            .getActionMap()
+            .put(
+                "Hide",
+                new AbstractAction() {
 
-            @Override
-            public void actionPerformed(ActionEvent ae) {
-                searchBar.setVisible(false);
-                tree.requestFocusInWindow();
-            }
-        });
-
-//        tree.addKeyListener(new KeyAdapter() {
-//            @Override
-//            public void keyTyped(KeyEvent ke) {
-//                if (!searchBar.isVisible()) {
-//                    searchBar.setVisible(true);
-//                    searchField.setText("" + ke.getKeyChar());
-//                    searchField.requestFocusInWindow();
-//                }
-//            }
-//        });
+                    @Override
+                    public void actionPerformed(ActionEvent ae) {
+                        searchBar.setVisible(false);
+                        tree.requestFocusInWindow();
+                    }
+                }
+            );
+        //        tree.addKeyListener(new KeyAdapter() {
+        //            @Override
+        //            public void keyTyped(KeyEvent ke) {
+        //                if (!searchBar.isVisible()) {
+        //                    searchBar.setVisible(true);
+        //                    searchField.setText("" + ke.getKeyChar());
+        //                    searchField.requestFocusInWindow();
+        //                }
+        //            }
+        //        });
     }
 
     @Override
@@ -207,30 +239,39 @@ public class TreeSearch extends JPanel implements ActionListener {
     }
 
     private void search() {
-        SwingUtilities.invokeLater(new Runnable() {
-            @Override
-            public void run() {
-                search(searchField.getText());
+        SwingUtilities.invokeLater(
+            new Runnable() {
+
+                @Override
+                public void run() {
+                    search(searchField.getText());
+                }
             }
-        });
+        );
     }
 
     private void goToNext() {
-        SwingUtilities.invokeLater(new Runnable() {
-            @Override
-            public void run() {
-                goToNext(searchField.getText());
+        SwingUtilities.invokeLater(
+            new Runnable() {
+
+                @Override
+                public void run() {
+                    goToNext(searchField.getText());
+                }
             }
-        });
+        );
     }
 
     private void goToPrevious() {
-        SwingUtilities.invokeLater(new Runnable() {
-            @Override
-            public void run() {
-                goToPrevious(searchField.getText());
+        SwingUtilities.invokeLater(
+            new Runnable() {
+
+                @Override
+                public void run() {
+                    goToPrevious(searchField.getText());
+                }
             }
-        });
+        );
     }
 
     private TreeNode getSelectedNode() {
@@ -348,7 +389,7 @@ public class TreeSearch extends JPanel implements ActionListener {
         if (myParent == null) {
             retval = null;
         } else {
-            retval = getChildAfter(myParent, node);      // linear search
+            retval = getChildAfter(myParent, node); // linear search
         }
 
         if (retval != null && !isNodeSibling(node, retval)) {
@@ -379,7 +420,7 @@ public class TreeSearch extends JPanel implements ActionListener {
             throw new IllegalArgumentException("argument is null");
         }
 
-        int index = parent.getIndex(aChild);           // linear search
+        int index = parent.getIndex(aChild); // linear search
 
         if (index == -1) {
             throw new IllegalArgumentException("node is not a child");
@@ -441,11 +482,11 @@ public class TreeSearch extends JPanel implements ActionListener {
         if (myParent == null) {
             retval = null;
         } else {
-            retval = getChildBefore(myParent, node);     // linear search
+            retval = getChildBefore(myParent, node); // linear search
         }
 
         if (retval != null && !isNodeSibling(node, retval)) {
-//            throw new Error("child of parent is not a sibling");
+            //            throw new Error("child of parent is not a sibling");
         }
 
         return retval;
@@ -470,7 +511,7 @@ public class TreeSearch extends JPanel implements ActionListener {
             throw new IllegalArgumentException("argument is null");
         }
 
-        int index = parent.getIndex(aChild);           // linear search
+        int index = parent.getIndex(aChild); // linear search
 
         if (index == -1) {
             throw new IllegalArgumentException("argument is not a child");
@@ -494,7 +535,6 @@ public class TreeSearch extends JPanel implements ActionListener {
      * @return the last leaf in the subtree rooted at this node
      */
     public TreeNode getLastLeaf(TreeNode node) {
-
         while (!node.isLeaf()) {
             node = getLastChild(node);
         }
@@ -608,29 +648,49 @@ public class TreeSearch extends JPanel implements ActionListener {
         }
         return retNodes;
     }
-    
+
     private void alterDefaultKeyBindings() {
         // Customize key bindings
         int menuShortcutKeyMask = Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx();
 
         // Remove default Ctrl key bindings
-        searchField.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_X, menuShortcutKeyMask), "none");
-        searchField.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_C, menuShortcutKeyMask), "none");
-        searchField.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_V, menuShortcutKeyMask), "none");
-        searchField.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_A, menuShortcutKeyMask), "none");
+        searchField
+            .getInputMap()
+            .put(KeyStroke.getKeyStroke(KeyEvent.VK_X, menuShortcutKeyMask), "none");
+        searchField
+            .getInputMap()
+            .put(KeyStroke.getKeyStroke(KeyEvent.VK_C, menuShortcutKeyMask), "none");
+        searchField
+            .getInputMap()
+            .put(KeyStroke.getKeyStroke(KeyEvent.VK_V, menuShortcutKeyMask), "none");
+        searchField
+            .getInputMap()
+            .put(KeyStroke.getKeyStroke(KeyEvent.VK_A, menuShortcutKeyMask), "none");
 
         // Add Cmd key bindings
-        searchField.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_X, menuShortcutKeyMask), "cut");
-        searchField.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_C, menuShortcutKeyMask), "copy");
-        searchField.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_V, menuShortcutKeyMask), "paste");
-        searchField.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_A, menuShortcutKeyMask), "selectAll");
-        searchField.getActionMap().put("selectAll", new AbstractAction() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                searchField.selectAll();
-            }
-        });
+        searchField
+            .getInputMap()
+            .put(KeyStroke.getKeyStroke(KeyEvent.VK_X, menuShortcutKeyMask), "cut");
+        searchField
+            .getInputMap()
+            .put(KeyStroke.getKeyStroke(KeyEvent.VK_C, menuShortcutKeyMask), "copy");
+        searchField
+            .getInputMap()
+            .put(KeyStroke.getKeyStroke(KeyEvent.VK_V, menuShortcutKeyMask), "paste");
+        searchField
+            .getInputMap()
+            .put(KeyStroke.getKeyStroke(KeyEvent.VK_A, menuShortcutKeyMask), "selectAll");
+        searchField
+            .getActionMap()
+            .put(
+                "selectAll",
+                new AbstractAction() {
 
+                    @Override
+                    public void actionPerformed(ActionEvent e) {
+                        searchField.selectAll();
+                    }
+                }
+            );
     }
-
 }

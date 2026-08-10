@@ -3,32 +3,17 @@ package com.ing.engine.commands.webservice;
 import com.ing.datalib.settings.DriverProperties;
 import com.ing.engine.core.CommandControl;
 import com.ing.engine.core.Control;
-import com.ing.ingenious.api.status.Status;
 import com.ing.ingenious.api.annotation.Action;
+import com.ing.ingenious.api.status.Status;
 import com.ing.ingenious.api.types.InputType;
 import com.ing.ingenious.api.types.ObjectType;
 import com.ing.ingenious.api.types.RequestMethodType;
-import java.util.logging.Level;
-import java.util.logging.Logger;
+import com.jayway.jsonpath.*;
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import java.util.Collection;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.DocumentBuilder;
-import javax.xml.xpath.XPath;
-import javax.xml.xpath.XPathConstants;
-import javax.xml.xpath.XPathFactory;
-import com.jayway.jsonpath.*;
-import java.util.ArrayList;
-import java.util.List;
-import org.w3c.dom.Document;
-import org.w3c.dom.NodeList;
-import org.w3c.dom.Node;
-import org.xml.sax.InputSource;
 import java.io.StringReader;
 import java.net.URLEncoder;
 import java.net.http.HttpClient;
-
 import java.net.http.HttpHeaders;
 import java.net.http.HttpRequest;
 import java.net.http.HttpRequest.BodyPublisher;
@@ -41,23 +26,36 @@ import java.security.SecureRandom;
 import java.security.cert.X509Certificate;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
-
-import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPath;
 import javax.xml.xpath.XPathConstants;
-import javax.xml.xpath.XPathFactory;
-import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.xpath.XPathConstants;
 import javax.xml.xpath.XPathExpressionException;
+import javax.xml.xpath.XPathFactory;
+import javax.xml.xpath.XPathFactory;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.JSONParser;
 import org.w3c.dom.DOMException;
+import org.w3c.dom.Document;
+import org.w3c.dom.Node;
+import org.w3c.dom.NodeList;
+import org.xml.sax.InputSource;
 import org.xml.sax.SAXException;
 
 /**
@@ -92,14 +90,23 @@ public class Webservice extends GeneralWebservice {
      *
      * @see #setEndPoint()
      */
-    @Action(object = ObjectType.WEBSERVICE, desc = "PUT Rest Request ", input = InputType.YES, condition = InputType.OPTIONAL)
+    @Action(
+        object = ObjectType.WEBSERVICE,
+        desc = "PUT Rest Request ",
+        input = InputType.YES,
+        condition = InputType.OPTIONAL
+    )
     public void putRestRequest() {
         try {
             createHttpRequest(RequestMethodType.PUT);
         } catch (Exception e) {
-            Report.updateTestLog(Action,
-                    "An unexpected error occurred while executing the request : " + "\n" + e.getMessage(),
-                    Status.FAIL);
+            Report.updateTestLog(
+                Action,
+                "An unexpected error occurred while executing the request : " +
+                "\n" +
+                e.getMessage(),
+                Status.FAIL
+            );
         }
     }
 
@@ -117,14 +124,23 @@ public class Webservice extends GeneralWebservice {
      * @see #setEndPoint()
      */
 
-    @Action(object = ObjectType.WEBSERVICE, desc = "POST Rest Request ", input = InputType.OPTIONAL, condition = InputType.OPTIONAL)
+    @Action(
+        object = ObjectType.WEBSERVICE,
+        desc = "POST Rest Request ",
+        input = InputType.OPTIONAL,
+        condition = InputType.OPTIONAL
+    )
     public void postRestRequest() {
         try {
             createHttpRequest(RequestMethodType.POST);
         } catch (Exception e) {
-            Report.updateTestLog(Action,
-                    "An unexpected error occurred while executing the request : " + "\n" + e.getMessage(),
-                    Status.FAIL);
+            Report.updateTestLog(
+                Action,
+                "An unexpected error occurred while executing the request : " +
+                "\n" +
+                e.getMessage(),
+                Status.FAIL
+            );
         }
     }
 
@@ -140,14 +156,23 @@ public class Webservice extends GeneralWebservice {
      *
      * @see #setEndPoint()
      */
-    @Action(object = ObjectType.WEBSERVICE, desc = "POST SOAP Request ", input = InputType.YES, condition = InputType.OPTIONAL)
+    @Action(
+        object = ObjectType.WEBSERVICE,
+        desc = "POST SOAP Request ",
+        input = InputType.YES,
+        condition = InputType.OPTIONAL
+    )
     public void postSoapRequest() {
         try {
             createHttpRequest(RequestMethodType.POST);
         } catch (Exception e) {
-            Report.updateTestLog(Action,
-                    "An unexpected error occurred while executing the request : " + "\n" + e.getMessage(),
-                    Status.FAIL);
+            Report.updateTestLog(
+                Action,
+                "An unexpected error occurred while executing the request : " +
+                "\n" +
+                e.getMessage(),
+                Status.FAIL
+            );
         }
     }
 
@@ -163,14 +188,23 @@ public class Webservice extends GeneralWebservice {
      *
      * @see #setEndPoint()
      */
-    @Action(object = ObjectType.WEBSERVICE, desc = "PATCH Rest Request ", input = InputType.YES, condition = InputType.OPTIONAL)
+    @Action(
+        object = ObjectType.WEBSERVICE,
+        desc = "PATCH Rest Request ",
+        input = InputType.YES,
+        condition = InputType.OPTIONAL
+    )
     public void patchRestRequest() {
         try {
             createHttpRequest(RequestMethodType.PATCH);
         } catch (Exception e) {
-            Report.updateTestLog(Action,
-                    "An unexpected error occurred while executing the request : " + "\n" + e.getMessage(),
-                    Status.FAIL);
+            Report.updateTestLog(
+                Action,
+                "An unexpected error occurred while executing the request : " +
+                "\n" +
+                e.getMessage(),
+                Status.FAIL
+            );
         }
     }
 
@@ -186,14 +220,23 @@ public class Webservice extends GeneralWebservice {
      *
      * @see #setEndPoint()
      */
-    @Action(object = ObjectType.WEBSERVICE, desc = "GET Rest Request ", input = InputType.NO, condition = InputType.OPTIONAL)
+    @Action(
+        object = ObjectType.WEBSERVICE,
+        desc = "GET Rest Request ",
+        input = InputType.NO,
+        condition = InputType.OPTIONAL
+    )
     public void getRestRequest() {
         try {
             createHttpRequest(RequestMethodType.GET);
         } catch (Exception e) {
-            Report.updateTestLog(Action,
-                    "An unexpected error occurred while executing the request : " + "\n" + e.getMessage(),
-                    Status.FAIL);
+            Report.updateTestLog(
+                Action,
+                "An unexpected error occurred while executing the request : " +
+                "\n" +
+                e.getMessage(),
+                Status.FAIL
+            );
         }
     }
 
@@ -212,9 +255,13 @@ public class Webservice extends GeneralWebservice {
         try {
             createHttpRequest(RequestMethodType.DELETE);
         } catch (Exception e) {
-            Report.updateTestLog(Action,
-                    "An unexpected error occurred while executing the request : " + "\n" + e.getMessage(),
-                    Status.FAIL);
+            Report.updateTestLog(
+                Action,
+                "An unexpected error occurred while executing the request : " +
+                "\n" +
+                e.getMessage(),
+                Status.FAIL
+            );
         }
     }
 
@@ -234,9 +281,13 @@ public class Webservice extends GeneralWebservice {
         try {
             createHttpRequest(RequestMethodType.DELETEWITHPAYLOAD);
         } catch (Exception e) {
-            Report.updateTestLog(Action,
-                    "An unexpected error occurred while executing the request : " + "\n" + e.getMessage(),
-                    Status.FAIL);
+            Report.updateTestLog(
+                Action,
+                "An unexpected error occurred while executing the request : " +
+                "\n" +
+                e.getMessage(),
+                Status.FAIL
+            );
         }
     }
 
@@ -254,12 +305,19 @@ public class Webservice extends GeneralWebservice {
             if (responsecodes.get(key).equals(Data)) {
                 Report.updateTestLog(Action, "Status code is : " + Data, Status.PASSNS);
             } else {
-                Report.updateTestLog(Action, "Status code is : " + responsecodes.get(key) + " but should be " + Data,
-                        Status.FAILNS);
+                Report.updateTestLog(
+                    Action,
+                    "Status code is : " + responsecodes.get(key) + " but should be " + Data,
+                    Status.FAILNS
+                );
             }
         } catch (Exception ex) {
             Logger.getLogger(this.getClass().getName()).log(Level.OFF, null, ex);
-            Report.updateTestLog(Action, "Error in validating response code :" + "\n" + ex.getMessage(), Status.DEBUG);
+            Report.updateTestLog(
+                Action,
+                "Error in validating response code :" + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
@@ -272,17 +330,29 @@ public class Webservice extends GeneralWebservice {
      *   <li>Input: Expected substring to find in response body</li>
      * </ul>
      */
-    @Action(object = ObjectType.WEBSERVICE, desc = "Assert Response Body contains ", input = InputType.YES)
+    @Action(
+        object = ObjectType.WEBSERVICE,
+        desc = "Assert Response Body contains ",
+        input = InputType.YES
+    )
     public void assertResponsebodycontains() {
         try {
             if (responsebodies.get(key).contains(Data)) {
                 Report.updateTestLog(Action, "Response body contains : " + Data, Status.PASSNS);
             } else {
-                Report.updateTestLog(Action, "Response body does not contain : " + Data, Status.FAILNS);
+                Report.updateTestLog(
+                    Action,
+                    "Response body does not contain : " + Data,
+                    Status.FAILNS
+                );
             }
         } catch (Exception ex) {
             Logger.getLogger(this.getClass().getName()).log(Level.OFF, null, ex);
-            Report.updateTestLog(Action, "Error in validating response body :" + "\n" + ex.getMessage(), Status.DEBUG);
+            Report.updateTestLog(
+                Action,
+                "Error in validating response body :" + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
@@ -296,21 +366,37 @@ public class Webservice extends GeneralWebservice {
      *   <li>Input: Expected value</li>
      * </ul>
      */
-    @Action(object = ObjectType.WEBSERVICE, desc = "Assert JSON Element Equals ", input = InputType.YES, condition = InputType.YES)
+    @Action(
+        object = ObjectType.WEBSERVICE,
+        desc = "Assert JSON Element Equals ",
+        input = InputType.YES,
+        condition = InputType.YES
+    )
     public void assertJSONelementEquals() {
         try {
             String response = responsebodies.get(key);
             String jsonpath = Condition;
             String value = JsonPath.read(response, jsonpath).toString();
             if (value.equals(Data)) {
-                Report.updateTestLog(Action, "Element text [" + value + "] is as expected", Status.PASSNS);
+                Report.updateTestLog(
+                    Action,
+                    "Element text [" + value + "] is as expected",
+                    Status.PASSNS
+                );
             } else {
-                Report.updateTestLog(Action, "Element text is [" + value + "] but is expected to be [" + Data + "]",
-                        Status.FAILNS);
+                Report.updateTestLog(
+                    Action,
+                    "Element text is [" + value + "] but is expected to be [" + Data + "]",
+                    Status.FAILNS
+                );
             }
         } catch (Exception ex) {
             Logger.getLogger(this.getClass().getName()).log(Level.OFF, null, ex);
-            Report.updateTestLog(Action, "Error in validating JSON element :" + "\n" + ex.getMessage(), Status.DEBUG);
+            Report.updateTestLog(
+                Action,
+                "Error in validating JSON element :" + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
@@ -324,21 +410,37 @@ public class Webservice extends GeneralWebservice {
      *   <li>Input: Expected substring</li>
      * </ul>
      */
-    @Action(object = ObjectType.WEBSERVICE, desc = "Assert JSON Element Contains ", input = InputType.YES, condition = InputType.YES)
+    @Action(
+        object = ObjectType.WEBSERVICE,
+        desc = "Assert JSON Element Contains ",
+        input = InputType.YES,
+        condition = InputType.YES
+    )
     public void assertJSONelementContains() {
         try {
             String response = responsebodies.get(key);
             String jsonpath = Condition;
             String value = JsonPath.read(response, jsonpath).toString();
             if (value.contains(Data)) {
-                Report.updateTestLog(Action, "Element text contains [" + Data + "] is as expected", Status.PASSNS);
+                Report.updateTestLog(
+                    Action,
+                    "Element text contains [" + Data + "] is as expected",
+                    Status.PASSNS
+                );
             } else {
-                Report.updateTestLog(Action, "Element text [" + value + "] does not contain [" + Data + "]",
-                        Status.FAILNS);
+                Report.updateTestLog(
+                    Action,
+                    "Element text [" + value + "] does not contain [" + Data + "]",
+                    Status.FAILNS
+                );
             }
         } catch (Exception ex) {
             Logger.getLogger(this.getClass().getName()).log(Level.OFF, null, ex);
-            Report.updateTestLog(Action, "Error in validating JSON element :" + "\n" + ex.getMessage(), Status.DEBUG);
+            Report.updateTestLog(
+                Action,
+                "Error in validating JSON element :" + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
@@ -352,35 +454,55 @@ public class Webservice extends GeneralWebservice {
      *   <li>Input: sheetName:ColumnName</li>
      * </ul>
      */
-    @Action(object = ObjectType.WEBSERVICE, desc = "Store JSON Element In DataSheet ", input = InputType.YES, condition = InputType.YES)
+    @Action(
+        object = ObjectType.WEBSERVICE,
+        desc = "Store JSON Element In DataSheet ",
+        input = InputType.YES,
+        condition = InputType.YES
+    )
     public void storeJSONelementInDataSheet() {
-
         try {
             String strObj = Input;
             if (strObj.matches(".*:.*")) {
                 try {
-                    System.out.println("Updating value in SubIteration " + userData.getSubIteration());
+                    System.out.println(
+                        "Updating value in SubIteration " + userData.getSubIteration()
+                    );
                     String sheetName = strObj.split(":", 2)[0];
                     String columnName = strObj.split(":", 2)[1];
                     String response = responsebodies.get(key);
                     String jsonpath = Condition;
                     String value = JsonPath.read(response, jsonpath).toString();
                     userData.putData(sheetName, columnName, value);
-                    Report.updateTestLog(Action, "Element text [" + value + "] is stored in " + strObj, Status.DONE);
+                    Report.updateTestLog(
+                        Action,
+                        "Element text [" + value + "] is stored in " + strObj,
+                        Status.DONE
+                    );
                 } catch (Exception ex) {
                     Logger.getLogger(this.getClass().getName()).log(Level.OFF, ex.getMessage(), ex);
-                    Report.updateTestLog(Action, "Error Storing JSON element in datasheet :" + "\n" + ex.getMessage(),
-                            Status.DEBUG);
+                    Report.updateTestLog(
+                        Action,
+                        "Error Storing JSON element in datasheet :" + "\n" + ex.getMessage(),
+                        Status.DEBUG
+                    );
                 }
             } else {
-                Report.updateTestLog(Action,
-                        "Given input [" + Input + "] format is invalid. It should be [sheetName:ColumnName]",
-                        Status.DEBUG);
+                Report.updateTestLog(
+                    Action,
+                    "Given input [" +
+                    Input +
+                    "] format is invalid. It should be [sheetName:ColumnName]",
+                    Status.DEBUG
+                );
             }
         } catch (Exception ex) {
             Logger.getLogger(this.getClass().getName()).log(Level.OFF, null, ex);
-            Report.updateTestLog(Action, "Error Storing JSON element in datasheet :" + "\n" + ex.getMessage(),
-                    Status.DEBUG);
+            Report.updateTestLog(
+                Action,
+                "Error Storing JSON element in datasheet :" + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
@@ -394,14 +516,20 @@ public class Webservice extends GeneralWebservice {
      *   <li>Input: sheetName:ColumnName</li>
      * </ul>
      */
-    @Action(object = ObjectType.WEBSERVICE, desc = "Store XML Element In DataSheet ", input = InputType.YES, condition = InputType.YES)
+    @Action(
+        object = ObjectType.WEBSERVICE,
+        desc = "Store XML Element In DataSheet ",
+        input = InputType.YES,
+        condition = InputType.YES
+    )
     public void storeXMLelementInDataSheet() {
-
         try {
             String strObj = Input;
             if (strObj.matches(".*:.*")) {
                 try {
-                    System.out.println("Updating value in SubIteration " + userData.getSubIteration());
+                    System.out.println(
+                        "Updating value in SubIteration " + userData.getSubIteration()
+                    );
                     String sheetName = strObj.split(":", 2)[0];
                     String columnName = strObj.split(":", 2)[1];
                     String xmlText = responsebodies.get(key);
@@ -414,26 +542,47 @@ public class Webservice extends GeneralWebservice {
                     doc.getDocumentElement().normalize();
                     XPath xPath = XPathFactory.newInstance().newXPath();
                     String expression = Condition;
-                    NodeList nodeList = (NodeList) xPath.compile(expression).evaluate(doc, XPathConstants.NODESET);
+                    NodeList nodeList = (NodeList) xPath
+                        .compile(expression)
+                        .evaluate(doc, XPathConstants.NODESET);
                     Node nNode = nodeList.item(0);
                     String value = nNode.getNodeValue();
                     userData.putData(sheetName, columnName, value);
-                    Report.updateTestLog(Action, "Element text [" + value + "] is stored in " + strObj, Status.DONE);
-                } catch (IOException | ParserConfigurationException | XPathExpressionException | DOMException
-                        | SAXException ex) {
+                    Report.updateTestLog(
+                        Action,
+                        "Element text [" + value + "] is stored in " + strObj,
+                        Status.DONE
+                    );
+                } catch (
+                    IOException
+                    | ParserConfigurationException
+                    | XPathExpressionException
+                    | DOMException
+                    | SAXException ex
+                ) {
                     Logger.getLogger(this.getClass().getName()).log(Level.OFF, ex.getMessage(), ex);
-                    Report.updateTestLog(Action, "Error Storing XML element in datasheet :" + "\n" + ex.getMessage(),
-                            Status.DEBUG);
+                    Report.updateTestLog(
+                        Action,
+                        "Error Storing XML element in datasheet :" + "\n" + ex.getMessage(),
+                        Status.DEBUG
+                    );
                 }
             } else {
-                Report.updateTestLog(Action,
-                        "Given input [" + Input + "] format is invalid. It should be [sheetName:ColumnName]",
-                        Status.DEBUG);
+                Report.updateTestLog(
+                    Action,
+                    "Given input [" +
+                    Input +
+                    "] format is invalid. It should be [sheetName:ColumnName]",
+                    Status.DEBUG
+                );
             }
         } catch (Exception ex) {
             Logger.getLogger(this.getClass().getName()).log(Level.OFF, null, ex);
-            Report.updateTestLog(Action, "Error Storing XML element in datasheet :" + "\n" + ex.getMessage(),
-                    Status.DEBUG);
+            Report.updateTestLog(
+                Action,
+                "Error Storing XML element in datasheet :" + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
@@ -446,7 +595,12 @@ public class Webservice extends GeneralWebservice {
      *   <li>Input: JSONPath expression (e.g., $.data.token)</li>
      * </ul>
      */
-    @Action(object = ObjectType.WEBSERVICE, desc = "Store JSON Element", input = InputType.YES, condition = InputType.YES)
+    @Action(
+        object = ObjectType.WEBSERVICE,
+        desc = "Store JSON Element",
+        input = InputType.YES,
+        condition = InputType.YES
+    )
     public void storeJSONelement() {
         try {
             String variableName = Condition;
@@ -459,7 +613,11 @@ public class Webservice extends GeneralWebservice {
             }
         } catch (Exception ex) {
             Logger.getLogger(this.getClass().getName()).log(Level.OFF, null, ex);
-            Report.updateTestLog(Action, "Error Storing JSON element :" + "\n" + ex.getMessage(), Status.DEBUG);
+            Report.updateTestLog(
+                Action,
+                "Error Storing JSON element :" + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
@@ -472,7 +630,12 @@ public class Webservice extends GeneralWebservice {
      *   <li>Input: XPath expression (e.g., //response/token)</li>
      * </ul>
      */
-    @Action(object = ObjectType.WEBSERVICE, desc = "Store XML Element", input = InputType.YES, condition = InputType.YES)
+    @Action(
+        object = ObjectType.WEBSERVICE,
+        desc = "Store XML Element",
+        input = InputType.YES,
+        condition = InputType.YES
+    )
     public void storeXMLelement() {
         try {
             String variableName = Condition;
@@ -486,7 +649,9 @@ public class Webservice extends GeneralWebservice {
                 Document doc = dBuilder.parse(inputSource);
                 doc.getDocumentElement().normalize();
                 XPath xPath = XPathFactory.newInstance().newXPath();
-                NodeList nodeList = (NodeList) xPath.compile(expression).evaluate(doc, XPathConstants.NODESET);
+                NodeList nodeList = (NodeList) xPath
+                    .compile(expression)
+                    .evaluate(doc, XPathConstants.NODESET);
                 Node nNode = nodeList.item(0);
                 String value = nNode.getNodeValue();
                 addVar(variableName, value);
@@ -494,10 +659,19 @@ public class Webservice extends GeneralWebservice {
             } else {
                 Report.updateTestLog(Action, "Variable format is not correct", Status.DEBUG);
             }
-        } catch (IOException | ParserConfigurationException | XPathExpressionException | DOMException
-                | SAXException ex) {
+        } catch (
+            IOException
+            | ParserConfigurationException
+            | XPathExpressionException
+            | DOMException
+            | SAXException ex
+        ) {
             Logger.getLogger(this.getClass().getName()).log(Level.OFF, null, ex);
-            Report.updateTestLog(Action, "Error Storing XML element :" + "\n" + ex.getMessage(), Status.DEBUG);
+            Report.updateTestLog(
+                Action,
+                "Error Storing XML element :" + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
@@ -510,33 +684,53 @@ public class Webservice extends GeneralWebservice {
      *   <li>Input: sheetName:ColumnName</li>
      * </ul>
      */
-    @Action(object = ObjectType.WEBSERVICE, desc = "Store Response Message In DataSheet ", input = InputType.YES)
+    @Action(
+        object = ObjectType.WEBSERVICE,
+        desc = "Store Response Message In DataSheet ",
+        input = InputType.YES
+    )
     public void storeResponseBodyInDataSheet() {
         try {
             String strObj = Input;
             if (strObj.matches(".*:.*")) {
                 try {
-                    System.out.println("Updating value in SubIteration " + userData.getSubIteration());
+                    System.out.println(
+                        "Updating value in SubIteration " + userData.getSubIteration()
+                    );
                     String sheetName = strObj.split(":", 2)[0];
                     String columnName = strObj.split(":", 2)[1];
                     userData.putData(sheetName, columnName, responsebodies.get(key));
-                    Report.updateTestLog(Action, "Response body is stored in " + strObj, Status.DONE);
+                    Report.updateTestLog(
+                        Action,
+                        "Response body is stored in " + strObj,
+                        Status.DONE
+                    );
                 } catch (Exception ex) {
                     Logger.getLogger(this.getClass().getName()).log(Level.OFF, ex.getMessage(), ex);
-                    Report.updateTestLog(Action, "Error Storing text in datasheet :" + ex.getMessage(), Status.DEBUG);
+                    Report.updateTestLog(
+                        Action,
+                        "Error Storing text in datasheet :" + ex.getMessage(),
+                        Status.DEBUG
+                    );
                 }
             } else {
-                Report.updateTestLog(Action,
-                        "Given input [" + Input + "] format is invalid. It should be [sheetName:ColumnName]",
-                        Status.DEBUG);
+                Report.updateTestLog(
+                    Action,
+                    "Given input [" +
+                    Input +
+                    "] format is invalid. It should be [sheetName:ColumnName]",
+                    Status.DEBUG
+                );
             }
         } catch (Exception ex) {
             Logger.getLogger(this.getClass().getName()).log(Level.OFF, null, ex);
-            Report.updateTestLog(Action, "Error Storing response body in datasheet :" + "\n" + ex.getMessage(),
-                    Status.DEBUG);
+            Report.updateTestLog(
+                Action,
+                "Error Storing response body in datasheet :" + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
-
 
     /**
      * Asserts that an XML element value equals the expected value.
@@ -548,9 +742,13 @@ public class Webservice extends GeneralWebservice {
      *   <li>Input: Expected value</li>
      * </ul>
      */
-    @Action(object = ObjectType.WEBSERVICE, desc = "Assert XML Element Equals ", input = InputType.YES, condition = InputType.YES)
+    @Action(
+        object = ObjectType.WEBSERVICE,
+        desc = "Assert XML Element Equals ",
+        input = InputType.YES,
+        condition = InputType.YES
+    )
     public void assertXMLelementEquals() {
-
         try {
             DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
             DocumentBuilder dBuilder;
@@ -561,18 +759,37 @@ public class Webservice extends GeneralWebservice {
             doc.getDocumentElement().normalize();
             XPath xPath = XPathFactory.newInstance().newXPath();
             String expression = Condition;
-            NodeList nodeList = (NodeList) xPath.compile(expression).evaluate(doc, XPathConstants.NODESET);
+            NodeList nodeList = (NodeList) xPath
+                .compile(expression)
+                .evaluate(doc, XPathConstants.NODESET);
             Node nNode = nodeList.item(0);
             String value = nNode.getNodeValue();
             if (value.equals(Data)) {
-                Report.updateTestLog(Action, "Element text [" + value + "] is as expected", Status.PASSNS);
+                Report.updateTestLog(
+                    Action,
+                    "Element text [" + value + "] is as expected",
+                    Status.PASSNS
+                );
             } else {
-                Report.updateTestLog(Action, "Element text [" + value + "] is not as expected", Status.FAILNS);
+                Report.updateTestLog(
+                    Action,
+                    "Element text [" + value + "] is not as expected",
+                    Status.FAILNS
+                );
             }
-        } catch (IOException | ParserConfigurationException | XPathExpressionException | DOMException
-                | SAXException ex) {
+        } catch (
+            IOException
+            | ParserConfigurationException
+            | XPathExpressionException
+            | DOMException
+            | SAXException ex
+        ) {
             Logger.getLogger(this.getClass().getName()).log(Level.OFF, null, ex);
-            Report.updateTestLog(Action, "Error validating XML element :" + "\n" + ex.getMessage(), Status.DEBUG);
+            Report.updateTestLog(
+                Action,
+                "Error validating XML element :" + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
@@ -586,9 +803,13 @@ public class Webservice extends GeneralWebservice {
      *   <li>Input: Expected substring</li>
      * </ul>
      */
-    @Action(object = ObjectType.WEBSERVICE, desc = "Assert XML Element Contains ", input = InputType.YES, condition = InputType.YES)
+    @Action(
+        object = ObjectType.WEBSERVICE,
+        desc = "Assert XML Element Contains ",
+        input = InputType.YES,
+        condition = InputType.YES
+    )
     public void assertXMLelementContains() {
-
         try {
             DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
             DocumentBuilder dBuilder;
@@ -599,19 +820,37 @@ public class Webservice extends GeneralWebservice {
             doc.getDocumentElement().normalize();
             XPath xPath = XPathFactory.newInstance().newXPath();
             String expression = Condition;
-            NodeList nodeList = (NodeList) xPath.compile(expression).evaluate(doc, XPathConstants.NODESET);
+            NodeList nodeList = (NodeList) xPath
+                .compile(expression)
+                .evaluate(doc, XPathConstants.NODESET);
             Node nNode = nodeList.item(0);
             String value = nNode.getNodeValue();
             if (value.contains(Data)) {
-                Report.updateTestLog(Action, "Element text contains [" + Data + "] is as expected", Status.PASSNS);
+                Report.updateTestLog(
+                    Action,
+                    "Element text contains [" + Data + "] is as expected",
+                    Status.PASSNS
+                );
             } else {
-                Report.updateTestLog(Action, "Element text [" + value + "] does not contain [" + Data + "]",
-                        Status.FAILNS);
+                Report.updateTestLog(
+                    Action,
+                    "Element text [" + value + "] does not contain [" + Data + "]",
+                    Status.FAILNS
+                );
             }
-        } catch (IOException | ParserConfigurationException | XPathExpressionException | DOMException
-                | SAXException ex) {
+        } catch (
+            IOException
+            | ParserConfigurationException
+            | XPathExpressionException
+            | DOMException
+            | SAXException ex
+        ) {
             Logger.getLogger(this.getClass().getName()).log(Level.OFF, null, ex);
-            Report.updateTestLog(Action, "Error validating XML element :" + "\n" + ex.getMessage(), Status.DEBUG);
+            Report.updateTestLog(
+                Action,
+                "Error validating XML element :" + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
@@ -626,20 +865,30 @@ public class Webservice extends GeneralWebservice {
      *   <li>Condition: Optional API config alias starting with # (e.g., #production)</li>
      * </ul>
      */
-    @Action(object = ObjectType.WEBSERVICE, desc = "Set End Point ", input = InputType.YES, condition = InputType.OPTIONAL)
+    @Action(
+        object = ObjectType.WEBSERVICE,
+        desc = "Set End Point ",
+        input = InputType.YES,
+        condition = InputType.OPTIONAL
+    )
     public void setEndPoint() {
         try {
             String apiConfigName = Condition;
-            DriverProperties driverProperties = Control.getCurrentProject().getProjectSettings().getDriverSettings();
+            DriverProperties driverProperties = Control
+                .getCurrentProject()
+                .getProjectSettings()
+                .getDriverSettings();
             if (apiConfigName.startsWith("#")) {
                 apiConfigName = apiConfigName.replace("#", "");
             } else {
                 apiConfigName = ""; //This means that the Condtion is not an API Config Alias
             }
 
-            String configToLoad = driverProperties.doesAPIconfigExist(apiConfigName) ? apiConfigName : "default";
+            String configToLoad = driverProperties.doesAPIconfigExist(apiConfigName)
+                ? apiConfigName
+                : "default";
             driverProperties.setCurrLoadedAPIConfig(configToLoad);
-            
+
             String resource = handlePayloadorEndpoint(Data);
             endPoints.put(key, resource);
             httpAgentCheck();
@@ -647,7 +896,11 @@ public class Webservice extends GeneralWebservice {
             Report.updateTestLog(Action, "End point set : " + resource, Status.DONE);
         } catch (FileNotFoundException ex) {
             Logger.getLogger(this.getClass().getName()).log(Level.OFF, null, ex);
-            Report.updateTestLog(Action, "Error setting the end point :" + "\n" + ex.getMessage(), Status.DEBUG);
+            Report.updateTestLog(
+                Action,
+                "Error setting the end point :" + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
@@ -661,9 +914,13 @@ public class Webservice extends GeneralWebservice {
      *   <li>Input: Expected count (integer)</li>
      * </ul>
      */
-    @Action(object = ObjectType.WEBSERVICE, desc = "Assert JSON Element Count ", input = InputType.YES, condition = InputType.YES)
+    @Action(
+        object = ObjectType.WEBSERVICE,
+        desc = "Assert JSON Element Count ",
+        input = InputType.YES,
+        condition = InputType.YES
+    )
     public void assertJSONelementCount() {
-
         try {
             String response = responsebodies.get(key);
             int actualObjectCount = 0;
@@ -689,14 +946,29 @@ public class Webservice extends GeneralWebservice {
 
             int expectedObjectCount = Integer.parseInt(Data);
             if (actualObjectCount == expectedObjectCount) {
-                Report.updateTestLog(Action, "Element count [" + expectedObjectCount + "] is as expected", Status.PASSNS);
+                Report.updateTestLog(
+                    Action,
+                    "Element count [" + expectedObjectCount + "] is as expected",
+                    Status.PASSNS
+                );
             } else {
-                Report.updateTestLog(Action, "Element count is [" + actualObjectCount + "] but is expected to be [" + expectedObjectCount + "]", Status.FAILNS);
+                Report.updateTestLog(
+                    Action,
+                    "Element count is [" +
+                    actualObjectCount +
+                    "] but is expected to be [" +
+                    expectedObjectCount +
+                    "]",
+                    Status.FAILNS
+                );
             }
-
         } catch (Exception ex) {
             Logger.getLogger(this.getClass().getName()).log(Level.OFF, null, ex);
-            Report.updateTestLog(Action, "Error in validating JSON element :" + "\n" + ex.getMessage(), Status.DEBUG);
+            Report.updateTestLog(
+                Action,
+                "Error in validating JSON element :" + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
@@ -709,37 +981,53 @@ public class Webservice extends GeneralWebservice {
      *   <li>Input: JSONPath expression (e.g., $.items[*])</li>
      * </ul>
      */
-    @Action(object = ObjectType.WEBSERVICE, desc = "Store JSON Element count in variable ", input = InputType.YES, condition = InputType.YES)
+    @Action(
+        object = ObjectType.WEBSERVICE,
+        desc = "Store JSON Element count in variable ",
+        input = InputType.YES,
+        condition = InputType.YES
+    )
     public void storeJsonElementCount() {
-
         try {
             String variableName = Condition;
             Condition = Data;
 
             if (variableName.matches("%.*%")) {
                 try {
-                    System.out.println("Updating value in SubIteration " + userData.getSubIteration());
-                    int actualObjectCountInteger = 1;                                                       //getJsonElementCount();
+                    System.out.println(
+                        "Updating value in SubIteration " + userData.getSubIteration()
+                    );
+                    int actualObjectCountInteger = 1; //getJsonElementCount();
                     String actualObjectCount = Integer.toString(actualObjectCountInteger);
                     addVar(variableName, actualObjectCount);
-                    Report.updateTestLog(Action, "Element count [" + actualObjectCount + "] is stored in " + variableName,
-                            Status.DONE);
+                    Report.updateTestLog(
+                        Action,
+                        "Element count [" + actualObjectCount + "] is stored in " + variableName,
+                        Status.DONE
+                    );
                 } catch (Exception ex) {
                     Logger.getLogger(this.getClass().getName()).log(Level.OFF, ex.getMessage(), ex);
-                    Report.updateTestLog(Action, "Error Storing JSON element in Variable :" + "\n" + ex.getMessage(),
-                            Status.DEBUG);
+                    Report.updateTestLog(
+                        Action,
+                        "Error Storing JSON element in Variable :" + "\n" + ex.getMessage(),
+                        Status.DEBUG
+                    );
                 }
             } else {
-                Report.updateTestLog(Action,
-                        "Given condition [" + Condition + "] format is invalid. It should be [%Var%]",
-                        Status.DEBUG);
+                Report.updateTestLog(
+                    Action,
+                    "Given condition [" + Condition + "] format is invalid. It should be [%Var%]",
+                    Status.DEBUG
+                );
             }
         } catch (Exception ex) {
             Logger.getLogger(this.getClass().getName()).log(Level.OFF, null, ex);
-            Report.updateTestLog(Action, "Error Storing JSON element in Variable :" + "\n" + ex.getMessage(),
-                    Status.DEBUG);
+            Report.updateTestLog(
+                Action,
+                "Error Storing JSON element in Variable :" + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
-
     }
 
     /**
@@ -752,7 +1040,6 @@ public class Webservice extends GeneralWebservice {
      * @throws org.json.simple.parser.ParseException if JSON parsing fails
      */
     public int getJsonElementCount() throws org.json.simple.parser.ParseException {
-
         int actualObjectCount = 0;
 
         JSONParser parser = new JSONParser();
@@ -789,37 +1076,55 @@ public class Webservice extends GeneralWebservice {
      *   <li>Input: sheetName:ColumnName</li>
      * </ul>
      */
-    @Action(object = ObjectType.WEBSERVICE, desc = "Store JSON Element count in Datasheet ", input = InputType.YES, condition = InputType.YES)
+    @Action(
+        object = ObjectType.WEBSERVICE,
+        desc = "Store JSON Element count in Datasheet ",
+        input = InputType.YES,
+        condition = InputType.YES
+    )
     public void storeJsonElementCountInDataSheet() {
-
         try {
             String strObj = Input;
             if (strObj.matches(".*:.*")) {
                 try {
-                    System.out.println("Updating value in SubIteration " + userData.getSubIteration());
+                    System.out.println(
+                        "Updating value in SubIteration " + userData.getSubIteration()
+                    );
                     String sheetName = strObj.split(":", 2)[0];
                     String columnName = strObj.split(":", 2)[1];
-                    int actualObjectCountInteger = 1;                                                                         //getJsonElementCount();
+                    int actualObjectCountInteger = 1; //getJsonElementCount();
                     String actualObjectCount = Integer.toString(actualObjectCountInteger);
                     userData.putData(sheetName, columnName, actualObjectCount);
-                    Report.updateTestLog(Action, "Element count [" + actualObjectCount + "] is stored in " + strObj,
-                            Status.DONE);
+                    Report.updateTestLog(
+                        Action,
+                        "Element count [" + actualObjectCount + "] is stored in " + strObj,
+                        Status.DONE
+                    );
                 } catch (Exception ex) {
                     Logger.getLogger(this.getClass().getName()).log(Level.OFF, ex.getMessage(), ex);
-                    Report.updateTestLog(Action, "Error Storing JSON element in datasheet :" + "\n" + ex.getMessage(),
-                            Status.DEBUG);
+                    Report.updateTestLog(
+                        Action,
+                        "Error Storing JSON element in datasheet :" + "\n" + ex.getMessage(),
+                        Status.DEBUG
+                    );
                 }
             } else {
-                Report.updateTestLog(Action,
-                        "Given input [" + Input + "] format is invalid. It should be [sheetName:ColumnName]",
-                        Status.DEBUG);
+                Report.updateTestLog(
+                    Action,
+                    "Given input [" +
+                    Input +
+                    "] format is invalid. It should be [sheetName:ColumnName]",
+                    Status.DEBUG
+                );
             }
         } catch (Exception ex) {
             Logger.getLogger(this.getClass().getName()).log(Level.OFF, null, ex);
-            Report.updateTestLog(Action, "Error Storing JSON element in datasheet :" + "\n" + ex.getMessage(),
-                    Status.DEBUG);
+            Report.updateTestLog(
+                Action,
+                "Error Storing JSON element in datasheet :" + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
-
     }
 
     /**
@@ -836,25 +1141,37 @@ public class Webservice extends GeneralWebservice {
     @Action(object = ObjectType.WEBSERVICE, desc = "Add Header ", input = InputType.YES)
     public void addHeader() {
         try {
-
-            List<String> sheetlist = Control.getCurrentProject().getTestData().getTestDataFor(Control.exe.runEnv())
-                    .getTestDataNames();
+            List<String> sheetlist = Control
+                .getCurrentProject()
+                .getTestData()
+                .getTestDataFor(Control.exe.runEnv())
+                .getTestDataNames();
             for (int sheet = 0; sheet < sheetlist.size(); sheet++) {
                 if (Data.contains("{" + sheetlist.get(sheet) + ":")) {
-                    com.ing.datalib.testdata.model.TestDataModel tdModel = Control.getCurrentProject().getTestData()
-                            .getTestDataByName(sheetlist.get(sheet));
+                    com.ing.datalib.testdata.model.TestDataModel tdModel = Control
+                        .getCurrentProject()
+                        .getTestData()
+                        .getTestDataByName(sheetlist.get(sheet));
                     List<String> columns = tdModel.getColumns();
                     for (int col = 0; col < columns.size(); col++) {
-                        if (Data.contains("{" + sheetlist.get(sheet) + ":" + columns.get(col) + "}")) {
-                            Data = Data.replace("{" + sheetlist.get(sheet) + ":" + columns.get(col) + "}",
-                                    userData.getData(sheetlist.get(sheet), columns.get(col)));
+                        if (
+                            Data.contains("{" + sheetlist.get(sheet) + ":" + columns.get(col) + "}")
+                        ) {
+                            Data =
+                                Data.replace(
+                                    "{" + sheetlist.get(sheet) + ":" + columns.get(col) + "}",
+                                    userData.getData(sheetlist.get(sheet), columns.get(col))
+                                );
                         }
                     }
                 }
             }
 
-            Collection<Object> valuelist = Control.getCurrentProject().getProjectSettings().getUserDefinedSettings()
-                    .values();
+            Collection<Object> valuelist = Control
+                .getCurrentProject()
+                .getProjectSettings()
+                .getUserDefinedSettings()
+                .values();
             for (Object prop : valuelist) {
                 if (Data.contains("{" + prop + "}")) {
                     Data = Data.replace("{" + prop + "}", prop.toString());
@@ -869,7 +1186,11 @@ public class Webservice extends GeneralWebservice {
                 if (getVar(variable) != null) {
                     Data = Data.replaceAll(variable, getVar(variable));
                 } else {
-                    Report.updateTestLog(Action, "Variable " + variable + " not found", Status.DEBUG);
+                    Report.updateTestLog(
+                        Action,
+                        "Variable " + variable + " not found",
+                        Status.DEBUG
+                    );
                 }
             }
 
@@ -880,11 +1201,22 @@ public class Webservice extends GeneralWebservice {
                 toBeAdded.add(Data);
                 headers.put(key, toBeAdded);
             }
-            
-            Report.updateTestLog(Action, "Header added [" + Data + "]", Status.DONE);
+            if (Data.toLowerCase().contains("bearer")) {
+                Report.updateTestLog(
+                    Action,
+                    "Header added [Authorization: Bearer *****]",
+                    Status.DONE
+                );
+            } else {
+                Report.updateTestLog(Action, "Header added [" + Data + "]", Status.DONE);
+            }
         } catch (Exception ex) {
             Logger.getLogger(this.getClass().getName()).log(Level.OFF, null, ex);
-            Report.updateTestLog(Action, "Error adding Header :" + "\n" + ex.getMessage(), Status.DEBUG);
+            Report.updateTestLog(
+                Action,
+                "Error adding Header :" + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
@@ -899,7 +1231,6 @@ public class Webservice extends GeneralWebservice {
      */
     @Action(object = ObjectType.WEBSERVICE, desc = "Add Parameters ", input = InputType.YES)
     public void addURLParam() {
-
         try {
             if (urlParams.containsKey(key)) {
                 urlParams.get(key).add(Data);
@@ -911,9 +1242,12 @@ public class Webservice extends GeneralWebservice {
             Report.updateTestLog(Action, "URl Param added " + Data, Status.DONE);
         } catch (Exception ex) {
             Logger.getLogger(this.getClass().getName()).log(Level.OFF, null, ex);
-            Report.updateTestLog(Action, "Error adding Header :" + "\n" + ex.getMessage(), Status.DEBUG);
+            Report.updateTestLog(
+                Action,
+                "Error adding Header :" + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
-
     }
 
     /**
@@ -925,18 +1259,31 @@ public class Webservice extends GeneralWebservice {
      *   <li>Data: Header name (e.g., "Content-Type")</li>
      * </ul>
      */
-    @Action(object = ObjectType.WEBSERVICE, desc = "Store Header Element in Variable", input = InputType.YES, condition = InputType.YES)
+    @Action(
+        object = ObjectType.WEBSERVICE,
+        desc = "Store Header Element in Variable",
+        input = InputType.YES,
+        condition = InputType.YES
+    )
     public void storeHeaderByNameInVariable() {
         try {
             String variableName = Condition; // e.g., %Variable Name%
-            String headerName = Data;        // e.g., "Content-Type"
+            String headerName = Data; // e.g., "Content-Type"
 
             // storeAllHeadersInMap() will populate headerKeyValueMap with headers for the current scenario/test case (key)
             storeAllHeadersInMap();
 
             // Check if headers exist for this key
             if (!headerKeyValueMap.containsKey(key) || headerKeyValueMap.get(key).isEmpty()) {
-                Report.updateTestLog(Action, "No headers found for scenario: [" + userData.getScenario() + "] and test case: [" + userData.getTestCase() + "]", Status.DEBUG);
+                Report.updateTestLog(
+                    Action,
+                    "No headers found for scenario: [" +
+                    userData.getScenario() +
+                    "] and test case: [" +
+                    userData.getTestCase() +
+                    "]",
+                    Status.DEBUG
+                );
                 return;
             }
 
@@ -945,7 +1292,17 @@ public class Webservice extends GeneralWebservice {
 
             // Check if requested header exists
             if (!currentHeaders.containsKey(headerName)) {
-                Report.updateTestLog(Action, "Header '" + headerName + "' does not exist in available headers for scenario: [" + userData.getScenario() + "] and test case: [" + userData.getTestCase() + "]", Status.DEBUG);
+                Report.updateTestLog(
+                    Action,
+                    "Header '" +
+                    headerName +
+                    "' does not exist in available headers for scenario: [" +
+                    userData.getScenario() +
+                    "] and test case: [" +
+                    userData.getTestCase() +
+                    "]",
+                    Status.DEBUG
+                );
                 return;
             }
 
@@ -953,14 +1310,26 @@ public class Webservice extends GeneralWebservice {
             if (variableName.matches("%.*%")) {
                 String headerValue = currentHeaders.get(headerName);
                 addVar(variableName, headerValue);
-                Report.updateTestLog(Action, "Header '" + headerName + "' stored in variable '" + variableName + "' with value: " + headerValue, Status.DONE);
+                Report.updateTestLog(
+                    Action,
+                    "Header '" +
+                    headerName +
+                    "' stored in variable '" +
+                    variableName +
+                    "' with value: " +
+                    headerValue,
+                    Status.DONE
+                );
             } else {
                 Report.updateTestLog(Action, "Variable format is not correct", Status.DEBUG);
             }
-
         } catch (Exception ex) {
             Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, null, ex);
-            Report.updateTestLog(Action, "Error storing header value: " + ex.getMessage(), Status.DEBUG);
+            Report.updateTestLog(
+                Action,
+                "Error storing header value: " + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
@@ -973,7 +1342,12 @@ public class Webservice extends GeneralWebservice {
      *   <li>Input: sheetName:ColumnName</li>
      * </ul>
      */
-    @Action(object = ObjectType.WEBSERVICE, desc = "Store Header value in Datasheet", input = InputType.YES, condition = InputType.YES)
+    @Action(
+        object = ObjectType.WEBSERVICE,
+        desc = "Store Header value in Datasheet",
+        input = InputType.YES,
+        condition = InputType.YES
+    )
     public void storeHeaderByNameInDatasheet() {
         try {
             String headerName = Condition; // e.g., "Content-Type"
@@ -983,7 +1357,15 @@ public class Webservice extends GeneralWebservice {
 
             // Check if headers exist for this key
             if (!headerKeyValueMap.containsKey(key) || headerKeyValueMap.get(key).isEmpty()) {
-                Report.updateTestLog(Action, "No headers found for scenario: [" + userData.getScenario() + "] and test case: [" + userData.getTestCase() + "]", Status.DEBUG);
+                Report.updateTestLog(
+                    Action,
+                    "No headers found for scenario: [" +
+                    userData.getScenario() +
+                    "] and test case: [" +
+                    userData.getTestCase() +
+                    "]",
+                    Status.DEBUG
+                );
                 return;
             }
 
@@ -992,13 +1374,27 @@ public class Webservice extends GeneralWebservice {
 
             // Check if requested header exists
             if (!currentHeaders.containsKey(headerName)) {
-                Report.updateTestLog(Action, "Header '" + headerName + "' does not exist in available headers for scenario: [" + userData.getScenario() + "] and test case: [" + userData.getTestCase() + "]", Status.DEBUG);
+                Report.updateTestLog(
+                    Action,
+                    "Header '" +
+                    headerName +
+                    "' does not exist in available headers for scenario: [" +
+                    userData.getScenario() +
+                    "] and test case: [" +
+                    userData.getTestCase() +
+                    "]",
+                    Status.DEBUG
+                );
                 return;
             }
 
             // Early return if input format is invalid
             if (!Input.matches(".*:.*")) {
-                Report.updateTestLog(Action, "Invalid input format [" + Input + "]. Expected format: sheetName:ColumnName", Status.DEBUG);
+                Report.updateTestLog(
+                    Action,
+                    "Invalid input format [" + Input + "]. Expected format: sheetName:ColumnName",
+                    Status.DEBUG
+                );
                 return;
             }
 
@@ -1010,15 +1406,32 @@ public class Webservice extends GeneralWebservice {
                 // Store header value in datasheet
                 userData.putData(sheetName, columnName, headerValue);
 
-                Report.updateTestLog(Action, "Header value [" + headerValue + "] stored in datasheet [" + sheetName + ":" + columnName + "]", Status.DONE);
+                Report.updateTestLog(
+                    Action,
+                    "Header value [" +
+                    headerValue +
+                    "] stored in datasheet [" +
+                    sheetName +
+                    ":" +
+                    columnName +
+                    "]",
+                    Status.DONE
+                );
             } catch (Exception ex) {
                 Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, ex.getMessage(), ex);
-                Report.updateTestLog(Action, "Error storing header value in datasheet: " + ex.getMessage(), Status.DEBUG);
+                Report.updateTestLog(
+                    Action,
+                    "Error storing header value in datasheet: " + ex.getMessage(),
+                    Status.DEBUG
+                );
             }
-
         } catch (Exception ex) {
             Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, null, ex);
-            Report.updateTestLog(Action, "Error storing header value in datasheet: " + ex.getMessage(), Status.DEBUG);
+            Report.updateTestLog(
+                Action,
+                "Error storing header value in datasheet: " + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
@@ -1031,7 +1444,12 @@ public class Webservice extends GeneralWebservice {
      *   <li>Data: Expected substring</li>
      * </ul>
      */
-    @Action(object = ObjectType.WEBSERVICE, desc = "Assert header", input = InputType.YES, condition = InputType.YES)
+    @Action(
+        object = ObjectType.WEBSERVICE,
+        desc = "Assert header",
+        input = InputType.YES,
+        condition = InputType.YES
+    )
     public void assertHeaderValueContains() {
         try {
             String headerName = Condition; // e.g., "Content-Type"
@@ -1041,7 +1459,15 @@ public class Webservice extends GeneralWebservice {
 
             // Check if headers exist for this key
             if (!headerKeyValueMap.containsKey(key) || headerKeyValueMap.get(key).isEmpty()) {
-                Report.updateTestLog(Action, "No headers found for scenario: [" + userData.getScenario() + "] and test case: [" + userData.getTestCase() + "]", Status.FAILNS);
+                Report.updateTestLog(
+                    Action,
+                    "No headers found for scenario: [" +
+                    userData.getScenario() +
+                    "] and test case: [" +
+                    userData.getTestCase() +
+                    "]",
+                    Status.FAILNS
+                );
                 return;
             }
 
@@ -1050,20 +1476,39 @@ public class Webservice extends GeneralWebservice {
 
             // Check if requested header exists
             if (!currentHeaders.containsKey(headerName)) {
-                Report.updateTestLog(Action, "Header '" + headerName + "' does not exist in available headers.", Status.FAILNS);
+                Report.updateTestLog(
+                    Action,
+                    "Header '" + headerName + "' does not exist in available headers.",
+                    Status.FAILNS
+                );
                 return;
-            } 
-                
+            }
+
             String headerValue = headerKeyValueMap.get(key).get(headerName);
             if (headerValue.contains(Data)) {
-                Report.updateTestLog(Action, "Header value [" + headerValue + "] contains expected text [" + Data + "]", Status.PASSNS);
+                Report.updateTestLog(
+                    Action,
+                    "Header value [" + headerValue + "] contains expected text [" + Data + "]",
+                    Status.PASSNS
+                );
             } else {
-                Report.updateTestLog(Action, "Header value [" + headerValue + "] does not contain expected text [" + Data + "]", Status.FAILNS);
+                Report.updateTestLog(
+                    Action,
+                    "Header value [" +
+                    headerValue +
+                    "] does not contain expected text [" +
+                    Data +
+                    "]",
+                    Status.FAILNS
+                );
             }
-            
         } catch (Exception ex) {
             Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, null, ex);
-            Report.updateTestLog(Action, "Error to assert header value : " + ex.getMessage(), Status.FAILNS);
+            Report.updateTestLog(
+                Action,
+                "Error to assert header value : " + ex.getMessage(),
+                Status.FAILNS
+            );
         }
     }
 
@@ -1076,7 +1521,12 @@ public class Webservice extends GeneralWebservice {
      *   <li>Data: Expected value</li>
      * </ul>
      */
-    @Action(object = ObjectType.WEBSERVICE, desc = "Assert header", input = InputType.YES, condition = InputType.YES)
+    @Action(
+        object = ObjectType.WEBSERVICE,
+        desc = "Assert header",
+        input = InputType.YES,
+        condition = InputType.YES
+    )
     public void assertHeaderValueEquals() {
         try {
             String headerName = Condition; // e.g., "Content-Type"
@@ -1086,7 +1536,15 @@ public class Webservice extends GeneralWebservice {
 
             // Check if headers exist for this key
             if (!headerKeyValueMap.containsKey(key) || headerKeyValueMap.get(key).isEmpty()) {
-                Report.updateTestLog(Action, "No headers found for scenario: [" + userData.getScenario() + "] and test case: [" + userData.getTestCase() + "]", Status.FAILNS);
+                Report.updateTestLog(
+                    Action,
+                    "No headers found for scenario: [" +
+                    userData.getScenario() +
+                    "] and test case: [" +
+                    userData.getTestCase() +
+                    "]",
+                    Status.FAILNS
+                );
                 return;
             }
 
@@ -1095,20 +1553,39 @@ public class Webservice extends GeneralWebservice {
 
             // Check if requested header exists
             if (!currentHeaders.containsKey(headerName)) {
-                Report.updateTestLog(Action, "Header '" + headerName + "' does not exist in available headers.", Status.FAILNS);
+                Report.updateTestLog(
+                    Action,
+                    "Header '" + headerName + "' does not exist in available headers.",
+                    Status.FAILNS
+                );
                 return;
-            } 
-                
+            }
+
             String headerValue = headerKeyValueMap.get(key).get(headerName);
             if (headerValue.equals(Data)) {
-                Report.updateTestLog(Action, "Header value [" + headerValue + "] equals expected text [" + Data + "]", Status.PASSNS);
+                Report.updateTestLog(
+                    Action,
+                    "Header value [" + headerValue + "] equals expected text [" + Data + "]",
+                    Status.PASSNS
+                );
             } else {
-                Report.updateTestLog(Action, "Header value [" + headerValue + "] does not equal expected text [" + Data + "]", Status.FAILNS);
+                Report.updateTestLog(
+                    Action,
+                    "Header value [" +
+                    headerValue +
+                    "] does not equal expected text [" +
+                    Data +
+                    "]",
+                    Status.FAILNS
+                );
             }
-            
         } catch (Exception ex) {
             Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, null, ex);
-            Report.updateTestLog(Action, "Error to assert header value : " + ex.getMessage(), Status.FAILNS);
+            Report.updateTestLog(
+                Action,
+                "Error to assert header value : " + ex.getMessage(),
+                Status.FAILNS
+            );
         }
     }
 
@@ -1130,14 +1607,15 @@ public class Webservice extends GeneralWebservice {
             headerMap.clear();
 
             // Populate headerMap with combined values
-            headersMap.forEach((headerName, values) -> {
-                String combinedValues = String.join(", ", values); // Append all values
-                headerMap.put(headerName, combinedValues);
-            });
+            headersMap.forEach(
+                (headerName, values) -> {
+                    String combinedValues = String.join(", ", values); // Append all values
+                    headerMap.put(headerName, combinedValues);
+                }
+            );
 
             // Tag this headerMap with scenario/test case key
             headerKeyValueMap.put(key, new HashMap<>(headerMap));
-
         } catch (Exception ex) {
             Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, null, ex);
         }
@@ -1165,10 +1643,13 @@ public class Webservice extends GeneralWebservice {
             Report.updateTestLog(Action, "Connection is closed", Status.DONE);
         } catch (Exception ex) {
             Logger.getLogger(this.getClass().getName()).log(Level.OFF, null, ex);
-            Report.updateTestLog(Action, "Error closing connection :" + "\n" + ex.getMessage(), Status.DEBUG);
+            Report.updateTestLog(
+                Action,
+                "Error closing connection :" + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
-
 
     /**
      * Extracts a cookie value from the HTTP response headers and stores it in a variable.
@@ -1185,31 +1666,50 @@ public class Webservice extends GeneralWebservice {
      *
      * @see #addVar(String, String)
      */
-    @Action(object = ObjectType.WEBSERVICE, desc = "Store Cookies In Variable ", input = InputType.YES, condition = InputType.YES)
+    @Action(
+        object = ObjectType.WEBSERVICE,
+        desc = "Store Cookies In Variable ",
+        input = InputType.YES,
+        condition = InputType.YES
+    )
     public void storeResponseCookiesInVariable() {
         try {
             String cookieKey = Data;
             String variableName = Condition;
-            
+
             if (!variableName.matches("%.*%")) {
-                Report.updateTestLog(Action, "Variable format is not correct. Should be %variableName%", Status.DEBUG);
+                Report.updateTestLog(
+                    Action,
+                    "Variable format is not correct. Should be %variableName%",
+                    Status.DEBUG
+                );
                 return;
             }
-            
+
             variableName = variableName.substring(1, variableName.length() - 1);
 
             if (!response.containsKey(key) && response.get(key) == null) {
-                Report.updateTestLog(Action, "Response did not contain a valid HttpResponse for key [" + key + "]", Status.FAIL);
+                Report.updateTestLog(
+                    Action,
+                    "Response did not contain a valid HttpResponse for key [" + key + "]",
+                    Status.FAIL
+                );
                 return;
             }
 
             HttpResponse<?> httpResponse = response.get(key);
             HttpHeaders responseHeaders = httpResponse.headers();
 
-            List<String> cookieHeaders = !responseHeaders.allValues("set-cookie").isEmpty() ? responseHeaders.allValues("set-cookie") : responseHeaders.allValues("Set-Cookie");
-            
+            List<String> cookieHeaders = !responseHeaders.allValues("set-cookie").isEmpty()
+                ? responseHeaders.allValues("set-cookie")
+                : responseHeaders.allValues("Set-Cookie");
+
             if (cookieHeaders.isEmpty()) {
-                Report.updateTestLog(Action, "No cookies were retrieved from the endpoint", Status.FAIL);
+                Report.updateTestLog(
+                    Action,
+                    "No cookies were retrieved from the endpoint",
+                    Status.FAIL
+                );
                 return;
             }
 
@@ -1222,22 +1722,31 @@ public class Webservice extends GeneralWebservice {
                 String[] keyValue = cookieParts[0].trim().split("=", 2);
                 if (keyValue.length != 2) continue;
 
-                String cookieName  = keyValue[0].trim();
+                String cookieName = keyValue[0].trim();
                 String cookieValue = keyValue[1].trim();
 
                 if (cookieName.equals(cookieKey)) {
                     addVar(variableName, cookieValue);
                     Report.updateTestLog(
                         Action,
-                        "Cookies with name [" + cookieKey + "] has been added in variable [" 
-                            + variableName + "] with value [" + cookieValue + "] ",
+                        "Cookies with name [" +
+                        cookieKey +
+                        "] has been added in variable [" +
+                        variableName +
+                        "] with value [" +
+                        cookieValue +
+                        "] ",
                         Status.DONE
                     );
                     return; // early exit on success
                 }
             }
         } catch (Exception ex) {
-            Report.updateTestLog(Action, "Error in storing cookies with name in variable :"+ex.getMessage(), Status.FAIL);
+            Report.updateTestLog(
+                Action,
+                "Error in storing cookies with name in variable :" + ex.getMessage(),
+                Status.FAIL
+            );
             ex.printStackTrace();
         }
     }
@@ -1253,21 +1762,37 @@ public class Webservice extends GeneralWebservice {
      *   <li>Input: Substring that should NOT be present</li>
      * </ul>
      */
-    @Action(object = ObjectType.WEBSERVICE, desc = "Assert JSON Element Not Contains ", input = InputType.YES, condition = InputType.YES)
+    @Action(
+        object = ObjectType.WEBSERVICE,
+        desc = "Assert JSON Element Not Contains ",
+        input = InputType.YES,
+        condition = InputType.YES
+    )
     public void assertJSONelementNotContains() {
         try {
             String response = responsebodies.get(key);
             String jsonpath = Condition;
             String value = JsonPath.read(response, jsonpath).toString();
             if (!value.contains(Data)) {
-                Report.updateTestLog(Action, "Element text [" + value + "] does not contain [" + Data + "] as expected", Status.PASSNS);
+                Report.updateTestLog(
+                    Action,
+                    "Element text [" + value + "] does not contain [" + Data + "] as expected",
+                    Status.PASSNS
+                );
             } else {
-                Report.updateTestLog(Action, "Element text [" + value + "] contains [" + Data + "] but should not",
-                        Status.FAILNS);
+                Report.updateTestLog(
+                    Action,
+                    "Element text [" + value + "] contains [" + Data + "] but should not",
+                    Status.FAILNS
+                );
             }
         } catch (Exception ex) {
             Logger.getLogger(this.getClass().getName()).log(Level.OFF, null, ex);
-            Report.updateTestLog(Action, "Error in validating JSON element :" + "\n" + ex.getMessage(), Status.DEBUG);
+            Report.updateTestLog(
+                Action,
+                "Error in validating JSON element :" + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
@@ -1282,21 +1807,37 @@ public class Webservice extends GeneralWebservice {
      *   <li>Input: Value that should NOT match</li>
      * </ul>
      */
-    @Action(object = ObjectType.WEBSERVICE, desc = "Assert JSON Element Not Equals ", input = InputType.YES, condition = InputType.YES)
+    @Action(
+        object = ObjectType.WEBSERVICE,
+        desc = "Assert JSON Element Not Equals ",
+        input = InputType.YES,
+        condition = InputType.YES
+    )
     public void assertJSONelementNotEquals() {
         try {
             String response = responsebodies.get(key);
             String jsonpath = Condition;
             String value = JsonPath.read(response, jsonpath).toString();
             if (!value.equals(Data)) {
-                Report.updateTestLog(Action, "Element text [" + value + "] is not equal to [" + Data + "] as expected", Status.PASSNS);
+                Report.updateTestLog(
+                    Action,
+                    "Element text [" + value + "] is not equal to [" + Data + "] as expected",
+                    Status.PASSNS
+                );
             } else {
-                Report.updateTestLog(Action, "Element text is [" + value + "] but should not be equal to [" + Data + "]",
-                        Status.FAILNS);
+                Report.updateTestLog(
+                    Action,
+                    "Element text is [" + value + "] but should not be equal to [" + Data + "]",
+                    Status.FAILNS
+                );
             }
         } catch (Exception ex) {
             Logger.getLogger(this.getClass().getName()).log(Level.OFF, null, ex);
-            Report.updateTestLog(Action, "Error in validating JSON element :" + "\n" + ex.getMessage(), Status.DEBUG);
+            Report.updateTestLog(
+                Action,
+                "Error in validating JSON element :" + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
@@ -1311,9 +1852,13 @@ public class Webservice extends GeneralWebservice {
      *   <li>Input: Value that should NOT match</li>
      * </ul>
      */
-    @Action(object = ObjectType.WEBSERVICE, desc = "Assert XML Element Not Equals ", input = InputType.YES, condition = InputType.YES)
+    @Action(
+        object = ObjectType.WEBSERVICE,
+        desc = "Assert XML Element Not Equals ",
+        input = InputType.YES,
+        condition = InputType.YES
+    )
     public void assertXMLelementNotEquals() {
-
         try {
             DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
             DocumentBuilder dBuilder;
@@ -1324,18 +1869,37 @@ public class Webservice extends GeneralWebservice {
             doc.getDocumentElement().normalize();
             XPath xPath = XPathFactory.newInstance().newXPath();
             String expression = Condition;
-            NodeList nodeList = (NodeList) xPath.compile(expression).evaluate(doc, XPathConstants.NODESET);
+            NodeList nodeList = (NodeList) xPath
+                .compile(expression)
+                .evaluate(doc, XPathConstants.NODESET);
             Node nNode = nodeList.item(0);
             String value = nNode.getNodeValue();
             if (!value.equals(Data)) {
-                Report.updateTestLog(Action, "Element text [" + value + "] is not equal to [" + Data + "] as expected", Status.PASSNS);
+                Report.updateTestLog(
+                    Action,
+                    "Element text [" + value + "] is not equal to [" + Data + "] as expected",
+                    Status.PASSNS
+                );
             } else {
-                Report.updateTestLog(Action, "Element text [" + value + "] should not be equal to [" + Data + "]", Status.FAILNS);
+                Report.updateTestLog(
+                    Action,
+                    "Element text [" + value + "] should not be equal to [" + Data + "]",
+                    Status.FAILNS
+                );
             }
-        } catch (IOException | ParserConfigurationException | XPathExpressionException | DOMException
-                | SAXException ex) {
+        } catch (
+            IOException
+            | ParserConfigurationException
+            | XPathExpressionException
+            | DOMException
+            | SAXException ex
+        ) {
             Logger.getLogger(this.getClass().getName()).log(Level.OFF, null, ex);
-            Report.updateTestLog(Action, "Error validating XML element :" + "\n" + ex.getMessage(), Status.DEBUG);
+            Report.updateTestLog(
+                Action,
+                "Error validating XML element :" + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
@@ -1350,9 +1914,13 @@ public class Webservice extends GeneralWebservice {
      *   <li>Input: Substring that should NOT be present</li>
      * </ul>
      */
-    @Action(object = ObjectType.WEBSERVICE, desc = "Assert XML Element Not Contains ", input = InputType.YES, condition = InputType.YES)
+    @Action(
+        object = ObjectType.WEBSERVICE,
+        desc = "Assert XML Element Not Contains ",
+        input = InputType.YES,
+        condition = InputType.YES
+    )
     public void assertXMLelementNotContains() {
-
         try {
             DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
             DocumentBuilder dBuilder;
@@ -1363,19 +1931,37 @@ public class Webservice extends GeneralWebservice {
             doc.getDocumentElement().normalize();
             XPath xPath = XPathFactory.newInstance().newXPath();
             String expression = Condition;
-            NodeList nodeList = (NodeList) xPath.compile(expression).evaluate(doc, XPathConstants.NODESET);
+            NodeList nodeList = (NodeList) xPath
+                .compile(expression)
+                .evaluate(doc, XPathConstants.NODESET);
             Node nNode = nodeList.item(0);
             String value = nNode.getNodeValue();
             if (!value.contains(Data)) {
-                Report.updateTestLog(Action, "Element text [" + value + "] does not contain [" + Data + "] as expected", Status.PASSNS);
+                Report.updateTestLog(
+                    Action,
+                    "Element text [" + value + "] does not contain [" + Data + "] as expected",
+                    Status.PASSNS
+                );
             } else {
-                Report.updateTestLog(Action, "Element text [" + value + "] contains [" + Data + "] but should not",
-                        Status.FAILNS);
+                Report.updateTestLog(
+                    Action,
+                    "Element text [" + value + "] contains [" + Data + "] but should not",
+                    Status.FAILNS
+                );
             }
-        } catch (IOException | ParserConfigurationException | XPathExpressionException | DOMException
-                | SAXException ex) {
+        } catch (
+            IOException
+            | ParserConfigurationException
+            | XPathExpressionException
+            | DOMException
+            | SAXException ex
+        ) {
             Logger.getLogger(this.getClass().getName()).log(Level.OFF, null, ex);
-            Report.updateTestLog(Action, "Error validating XML element :" + "\n" + ex.getMessage(), Status.DEBUG);
+            Report.updateTestLog(
+                Action,
+                "Error validating XML element :" + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
@@ -1389,26 +1975,48 @@ public class Webservice extends GeneralWebservice {
      *   <li>Input: Substring that should NOT be present in the response body</li>
      * </ul>
      */
-    @Action(object = ObjectType.WEBSERVICE, desc = "Assert Response Body Not Contains ", input = InputType.YES)
+    @Action(
+        object = ObjectType.WEBSERVICE,
+        desc = "Assert Response Body Not Contains ",
+        input = InputType.YES
+    )
     public void assertResponsebodyNotContains() {
         try {
             if (!responsebodies.get(key).contains(Data)) {
-                Report.updateTestLog(Action, "Response body does not contain : " + Data + " as expected", Status.PASSNS);
+                Report.updateTestLog(
+                    Action,
+                    "Response body does not contain : " + Data + " as expected",
+                    Status.PASSNS
+                );
             } else {
-                Report.updateTestLog(Action, "Response body contains : " + Data + " but should not", Status.FAILNS);
+                Report.updateTestLog(
+                    Action,
+                    "Response body contains : " + Data + " but should not",
+                    Status.FAILNS
+                );
             }
         } catch (Exception ex) {
             Logger.getLogger(this.getClass().getName()).log(Level.OFF, null, ex);
-            Report.updateTestLog(Action, "Error in validating response body :" + "\n" + ex.getMessage(), Status.DEBUG);
+            Report.updateTestLog(
+                Action,
+                "Error in validating response body :" + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    private void addFilePartToMultipart(ArrayList<byte[]> byteArrays, String boundary, String filePathVar, String fieldName) throws IOException {
+    private void addFilePartToMultipart(
+        ArrayList<byte[]> byteArrays,
+        String boundary,
+        String filePathVar,
+        String fieldName
+    )
+        throws IOException {
         Path filePath = Path.of(filePathVar);
         if (!filePath.isAbsolute()) {
-            String currentWorkingDir = System.getProperty("user.dir");           
-            filePath = Path.of(currentWorkingDir, filePathVar);   
-        } 
+            String currentWorkingDir = System.getProperty("user.dir");
+            filePath = Path.of(currentWorkingDir, filePathVar);
+        }
 
         if (!Files.exists(filePath)) {
             Report.updateTestLog(Action, "File not found at path: " + filePath, Status.FAIL);
@@ -1423,10 +2031,17 @@ public class Webservice extends GeneralWebservice {
         }
         String fileName = filePath.getFileName().toString();
         byteArrays.add(("--" + boundary + "\r\n").getBytes(StandardCharsets.UTF_8));
-        byteArrays.add(("Content-Disposition: form-data; name=\"" + fieldName + "\"; filename=\"" + fileName + "\"\r\n").getBytes(StandardCharsets.UTF_8));
+        byteArrays.add(
+            (
+                "Content-Disposition: form-data; name=\"" +
+                fieldName +
+                "\"; filename=\"" +
+                fileName +
+                "\"\r\n"
+            ).getBytes(StandardCharsets.UTF_8)
+        );
         byteArrays.add(("Content-Type: " + mimeType + "\r\n\r\n").getBytes(StandardCharsets.UTF_8));
         byteArrays.add(Files.readAllBytes(filePath));
         byteArrays.add(("\r\n").getBytes(StandardCharsets.UTF_8));
     }
-
 }

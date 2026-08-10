@@ -143,6 +143,16 @@ public interface TestDataViewApi {
     TestDataViewApi withTestcase(String scn, String tc);
 
     /**
+     * Filters the test data view by scenario, testcase, and scope.
+     * Used for scope-aware test data filtering for reusable components.
+     * @param scn the scenario name
+     * @param tc the testcase name
+     * @param scope the scope filter ([Project], [Shared], or empty for test plan)
+     * @return a filtered TestDataViewApi instance
+     */
+    TestDataViewApi withTestcaseAndScope(String scn, String tc, String scope);
+
+    /**
      * Filters the test data view by scenario, testcase, and iteration.
      * @param scn the scenario name
      * @param tc the testcase name
@@ -181,4 +191,29 @@ public interface TestDataViewApi {
      * @return a filtered TestDataViewApi instance
      */
     TestDataViewApi withSubIter(String scn, String tc, String iter, String subIter, Boolean addIfNotPresent);
+
+    /**
+     * Filters the test data view by scenario, testcase, iteration, sub-iteration, and scope.
+     * Used for scope-aware test data filtering for reusable components at sub-iteration level.
+     * @param scn the scenario name
+     * @param tc the testcase name
+     * @param iter the iteration value
+     * @param subIter the sub-iteration value
+     * @param scope the scope filter ([Project], [Shared], or empty for test plan)
+     * @return a filtered TestDataViewApi instance
+     */
+    TestDataViewApi withSubIterAndScope(String scn, String tc, String iter, String subIter, String scope);
+
+    /**
+     * Filters the test data view by scenario, testcase, iteration, sub-iteration, and scope,
+     * with option to add if not present.
+     * @param scn the scenario name
+     * @param tc the testcase name
+     * @param iter the iteration value
+     * @param subIter the sub-iteration value
+     * @param scope the scope filter ([Project], [Shared], or empty for test plan)
+     * @param addIfNotPresent true to add the record if not present
+     * @return a filtered TestDataViewApi instance
+     */
+    TestDataViewApi withSubIterAndScope(String scn, String tc, String iter, String subIter, String scope, Boolean addIfNotPresent);
 }

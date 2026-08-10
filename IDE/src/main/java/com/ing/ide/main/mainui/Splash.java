@@ -1,4 +1,3 @@
-
 package com.ing.ide.main.mainui;
 
 import java.awt.Color;
@@ -10,9 +9,9 @@ import javax.swing.border.Border;
  *
  */
 public class Splash extends javax.swing.JFrame {
-
     private static final long serialVersionUID = 1L;
-    javax.swing.JProgressBar  pbar;
+    javax.swing.JProgressBar pbar;
+
     /**
      * creates a Splash Screen instance with <code> splasScreen</code> image and
      * starts progress bar in a separate thread
@@ -24,14 +23,21 @@ public class Splash extends javax.swing.JFrame {
             BorderFactory.createLineBorder(Color.WHITE),
             BorderFactory.createEmptyBorder(1, 1, 1, 1)
         );
-        
-        javax.swing.ImageIcon icon = new javax.swing.ImageIcon(getClass().getResource("/ui/resources/favicon.png"));
-        javax.swing.ImageIcon splasScreen = new javax.swing.ImageIcon(getClass().getResource("/ui/resources/splash.png"));
+
+        javax.swing.ImageIcon icon = new javax.swing.ImageIcon(
+            getClass().getResource("/ui/resources/favicon.png")
+        );
+        javax.swing.ImageIcon splasScreen = new javax.swing.ImageIcon(
+            getClass().getResource("/ui/resources/splash.png")
+        );
         int topbar = 0;
         setDefaultCloseOperation(javax.swing.JFrame.DISPOSE_ON_CLOSE);
         setUndecorated(true);
         setIconImage(icon.getImage());
-        setSize(splasScreen.getIconWidth(), splasScreen.getIconHeight() + progreessBarHeight() + topbar);
+        setSize(
+            splasScreen.getIconWidth(),
+            splasScreen.getIconHeight() + progreessBarHeight() + topbar
+        );
         setLayout(null);
         setLocationRelativeTo(null);
         javax.swing.JLabel imglabel = new javax.swing.JLabel(splasScreen);
@@ -39,13 +45,25 @@ public class Splash extends javax.swing.JFrame {
         pbar.setStringPainted(false);
         pbar.setBorderPainted(false);
         //pbar.setBorder(null);
-        
+
         pbar.setBorder(border);
-        imglabel.setBounds(0, topbar, splasScreen.getIconWidth(), splasScreen.getIconHeight() - topbar);
+        imglabel.setBounds(
+            0,
+            topbar,
+            splasScreen.getIconWidth(),
+            splasScreen.getIconHeight() - topbar
+        );
         pbar.setForeground(java.awt.Color.decode("#FF6200"));
         pbar.setBackground(java.awt.Color.BLACK);
-        pbar.setPreferredSize(new java.awt.Dimension(splasScreen.getIconWidth(), progreessBarHeight()));
-        pbar.setBounds(0, splasScreen.getIconHeight() + topbar, splasScreen.getIconWidth(), progreessBarHeight());
+        pbar.setPreferredSize(
+            new java.awt.Dimension(splasScreen.getIconWidth(), progreessBarHeight())
+        );
+        pbar.setBounds(
+            0,
+            splasScreen.getIconHeight() + topbar,
+            splasScreen.getIconWidth(),
+            progreessBarHeight()
+        );
         add(pbar);
         add(imglabel);
     }
@@ -57,5 +75,4 @@ public class Splash extends javax.swing.JFrame {
     public void progressed(int val) {
         pbar.setValue(val);
     }
-
 }

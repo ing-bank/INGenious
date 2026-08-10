@@ -1,4 +1,3 @@
-
 package com.ing.ide.main.mainui.components.testdesign.tree.model;
 
 import com.ing.datalib.component.Scenario;
@@ -12,10 +11,9 @@ import javax.swing.tree.TreeNode;
 
 /**
  *
- * 
+ *
  */
 public class ScenarioNode extends CommonNode {
-
     Scenario scenario;
 
     public ScenarioNode(Scenario scenario) {
@@ -51,13 +49,14 @@ public class ScenarioNode extends CommonNode {
 
     @Override
     public String toString() {
-        return scenario.getName();
+        return scenario != null ? scenario.getName() : "<invalid-scenario>";
     }
 
-   public static List<ScenarioNode> toList(Enumeration<TreeNode> children){
-       return Collections.list(children).stream().map(tsNode -> (ScenarioNode) tsNode).collect(Collectors.toList());
-       
-   }
-   
- 
+    public static List<ScenarioNode> toList(Enumeration<TreeNode> children) {
+        return Collections
+            .list(children)
+            .stream()
+            .map(tsNode -> (ScenarioNode) tsNode)
+            .collect(Collectors.toList());
+    }
 }

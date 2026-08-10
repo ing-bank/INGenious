@@ -1,4 +1,3 @@
-
 package com.ing.datalib.component;
 
 import com.ing.datalib.or.mobile.ResolvedMobileObject;
@@ -7,7 +6,9 @@ import com.ing.datalib.or.web.ResolvedWebObject;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Locale;
 import java.util.Objects;
+import java.util.Set;
 import org.apache.commons.csv.CSVRecord;
 
 /**
@@ -17,13 +18,32 @@ import org.apache.commons.csv.CSVRecord;
  * and breakpoint toggling.
  */
 public class TestStep {
-
     private static String BREAKPOINT = "*";
     private static String COMMENT = "//";
+    private static String HARD_ASSERTION = "~";
+    private static final Set<String> NON_PAGE_OBJECTS = Set.of(
+        "execute",
+        "app",
+        "browser",
+        "mobile",
+        "database",
+        "webservice",
+        "kafka",
+        "synthetic data",
+        "queue",
+        "file",
+        "general",
+        "string operations"
+    );
 
     public enum HEADERS {
-
-        Step(0), ObjectName(1), Description(2), Action(3), Input(4), Condition(5), Reference(6);
+        Step(0),
+        ObjectName(1),
+        Description(2),
+        Action(3),
+        Input(4),
+        Condition(5),
+        Reference(6);
 
         private final int index;
 
@@ -46,30 +66,51 @@ public class TestStep {
         public static int size() {
             return HEADERS.values().length;
         }
-
     }
 
     private final TestCase testCase;
 
-    List<String> stepDetails = Collections.synchronizedList(new ArrayList<String>(HEADERS.values().length) {
-        @Override
-        public String set(int index, String element) {
-            String val = super.set(index, element);
-            if (testCase != null && testCase.getTestSteps().contains(TestStep.this)) {
-                testCase.fireTableCellUpdated(testCase.getTestSteps().indexOf(TestStep.this),
-                        index);
+    /**
+     * Transient, in-memory only flag marking a step that was just added by the live
+     * Playwright recorder. Used by the editor to highlight freshly recorded steps; it is
+     * never persisted to disk and is cleared when the user explicitly saves the test case.
+     */
+    private transient boolean newlyRecorded = false;
+
+    List<String> stepDetails = Collections.synchronizedList(
+        new ArrayList<String>(HEADERS.values().length) {
+
+            @Override
+            public String set(int index, String element) {
+                String val = super.set(index, element);
+                if (testCase != null && testCase.getTestSteps().contains(TestStep.this)) {
+                    testCase.fireTableCellUpdated(
+                        testCase.getTestSteps().indexOf(TestStep.this),
+                        index
+                    );
+                }
+                return val;
             }
-            return val;
         }
-    });
-    
-    public List<String> getStepDetails(){
+    );
+
+    public List<String> getStepDetails() {
         return this.stepDetails;
     }
 
     public TestStep(TestCase testcase, CSVRecord record) {
         this.testCase = testcase;
         loadStep(record);
+    }
+
+    /**
+     * Constructs a step from a pre-parsed row of values (format-agnostic).
+     * Used by the YAML loader; the row is expected to be aligned with
+     * {@link HEADERS} and is padded/truncated to the header count.
+     */
+    public TestStep(TestCase testcase, List<String> row) {
+        this.testCase = testcase;
+        loadStep(row);
     }
 
     public TestStep(TestCase testcase) {
@@ -156,6 +197,17 @@ public class TestStep {
         }
     }
 
+    private void loadStep(List<String> row) {
+        int target = HEADERS.values().length;
+        for (int i = 0; i < Math.min(row.size(), target); i++) {
+            String value = row.get(i);
+            stepDetails.add(value == null ? "" : value);
+        }
+        while (stepDetails.size() < target) {
+            stepDetails.add("");
+        }
+    }
+
     private void loadEmptyStep() {
         for (HEADERS value : HEADERS.values()) {
             stepDetails.add("");
@@ -181,12 +233,13 @@ public class TestStep {
     @Override
     public String toString() {
         StringBuilder builder = new StringBuilder();
-        builder.append("TestStep - ")
-                .append(getAction())
-                .append(" | ")
-                .append(getObject())
-                .append(" | ")
-                .append(getInput());
+        builder
+            .append("TestStep - ")
+            .append(getAction())
+            .append(" | ")
+            .append(getObject())
+            .append(" | ")
+            .append(getInput());
         return builder.toString();
     }
 
@@ -210,22 +263,14 @@ public class TestStep {
 
     public TestStep asObjectStep(ResolvedWebObject rwo) {
         setObject(rwo.getObjectName());
-        setReference(
-            new ResolvedWebObject.PageRef(
-                rwo.getPageName(),
-                rwo.getScope()
-            ).qualified()
-        );
+        setReference(new ResolvedWebObject.PageRef(rwo.getPageName(), rwo.getScope()).qualified());
         return this;
     }
 
     public TestStep asObjectStep(ResolvedMobileObject rmo) {
         setObject(rmo.getObjectName());
         setReference(
-            new ResolvedMobileObject.PageRef(
-                rmo.getPageName(),
-                rmo.getScope()
-            ).qualified()
+            new ResolvedMobileObject.PageRef(rmo.getPageName(), rmo.getScope()).qualified()
         );
         return this;
     }
@@ -233,10 +278,8 @@ public class TestStep {
     public TestStep asObjectStep(ResolvedStructuredDataObject rsdo) {
         setObject(rsdo.getObjectName());
         setReference(
-            new ResolvedStructuredDataObject.PageRef(
-                rsdo.getPageName(),
-                rsdo.getScope()
-            ).qualified()
+            new ResolvedStructuredDataObject.PageRef(rsdo.getPageName(), rsdo.getScope())
+            .qualified()
         );
         return this;
     }
@@ -248,9 +291,13 @@ public class TestStep {
     }
 
     public Boolean isPageObjectStep() {
-        return !getObject().equals("Browser")
-                && !getObject().isEmpty()
-                && !getReference().isEmpty();
+        String objectName = Objects.toString(getObject(), "").trim();
+        String reference = Objects.toString(getReference(), "").trim();
+        return (
+            !objectName.isEmpty() &&
+            !reference.isEmpty() &&
+            !NON_PAGE_OBJECTS.contains(objectName.toLowerCase(Locale.ROOT))
+        );
     }
 
     public Boolean isReusableStep() {
@@ -258,14 +305,11 @@ public class TestStep {
     }
 
     public Boolean isTestDataStep() {
-       if (getInput().startsWith("<") || getInput().startsWith("{") || getInput().startsWith("["))
-            return false;
-       else if (getInput().matches("(?!(@|=|%)).+:.+"))
-	// return getInput().matches("(?!(@|=|%)).+:.+");
-            return true; 
-       else
-            return false;
-        
+        if (
+            getInput().startsWith("<") || getInput().startsWith("{") || getInput().startsWith("[")
+        ) return false; else if (
+            getInput().matches("(?!(@|=|%)).+:.+")
+        ) return true; else return false; // return getInput().matches("(?!(@|=|%)).+:.+");
     }
 
     public Boolean isEmpty() {
@@ -307,15 +351,105 @@ public class TestStep {
         return getTag().startsWith(COMMENT);
     }
 
+    /**
+     * @return {@code true} when this step's action is an assertion (its action
+     *         name starts with {@code assert}, case-insensitive).
+     */
+    public Boolean isAssertStep() {
+        return getAction().toLowerCase().startsWith("assert");
+    }
+
+    /**
+     * @return {@code true} when this assertion step is marked as a hard
+     *         assertion. All assertions are soft by default; a hard assertion
+     *         stops the current data iteration on failure.
+     */
+    public Boolean isHardAssertion() {
+        return getTag().contains(HARD_ASSERTION);
+    }
+
+    /**
+     * Marks (or unmarks) this step as a hard assertion. The flag is stored as a
+     * marker in the step tag, mirroring how comment and breakpoint markers are
+     * persisted, so it survives save/load without a schema change.
+     *
+     * @param hard {@code true} for hard assertion, {@code false} for soft
+     *             (the default).
+     */
+    public void setHardAssertion(boolean hard) {
+        boolean current = getTag().contains(HARD_ASSERTION);
+        if (hard && !current) {
+            setTag(getTag().concat(HARD_ASSERTION));
+        } else if (!hard && current) {
+            setTag(getTag().replace(HARD_ASSERTION, ""));
+        }
+    }
+
+    /**
+     * @return {@code true} when this step was just added by the live recorder and has not yet
+     *         been saved by the user. Highlighted in the editor while {@code true}.
+     */
+    public boolean isNewlyRecorded() {
+        return newlyRecorded;
+    }
+
+    public void setNewlyRecorded(boolean newlyRecorded) {
+        this.newlyRecorded = newlyRecorded;
+    }
+
     public String[] getReusableData() {
         if (isReusableStep()) {
-            return getAction().split(":");
+            try {
+                ReusableRef ref = getEffectiveReusableRef();
+                return new String[] { ref.getScenarioName(), ref.getTestCaseName() };
+            } catch (IllegalArgumentException ex) {
+                String[] parts = getAction().split(":", 2);
+                if (parts.length == 2) {
+                    return parts;
+                }
+            }
         }
         return null;
     }
 
+    /**
+     * Returns reusable reference parsed from action and enriched with scope from Reference column
+     * when action is unscoped legacy format.
+     */
+    public ReusableRef getEffectiveReusableRef() {
+        if (!isReusableStep()) {
+            return null;
+        }
+
+        ReusableRef parsed = ReusableRef.parse(getAction());
+        if (parsed.getScope() != ReusableRef.Scope.UNSCOPED) {
+            return parsed;
+        }
+
+        ReusableRef.Scope scopedFromReference = parseReusableScopeFromReference(getReference());
+        if (scopedFromReference == ReusableRef.Scope.UNSCOPED) {
+            return parsed;
+        }
+        return new ReusableRef(
+            scopedFromReference,
+            parsed.getScenarioName(),
+            parsed.getTestCaseName()
+        );
+    }
+
+    private ReusableRef.Scope parseReusableScopeFromReference(String reference) {
+        String ref = Objects.toString(reference, "").trim();
+        if (ref.startsWith("[Project]")) {
+            return ReusableRef.Scope.PROJECT;
+        }
+        if (ref.startsWith("[Shared]")) {
+            return ReusableRef.Scope.SHARED;
+        }
+        return ReusableRef.Scope.UNSCOPED;
+    }
+
     public String[] getTestDataFromInput() {
-        if (isTestDataStep() ) {
+        if (isTestDataStep()) {
             return getInput().split(":");
         }
         return null;
@@ -323,7 +457,7 @@ public class TestStep {
 
     public String[] getPageObject() {
         if (isPageObjectStep()) {
-            return new String[]{getObject(), getReference()};
+            return new String[] { getObject(), getReference() };
         }
         return null;
     }
@@ -340,28 +474,32 @@ public class TestStep {
     public Boolean isDatabaseStep() {
         return getObject().equals("Database");
     }
-	
+
     public Boolean isWebserviceStep() {
         return getObject().equals("Webservice");
     }
-         public Boolean isBrowserStep() {
+
+    public Boolean isBrowserStep() {
         return getObject().equals("Browser");
     }
-    
+
     public Boolean isFileStep() {
         return getObject().equals("File");
     }
-    
+
     public Boolean isMessageStep() {
         return getObject().equals("Queue") || getObject().equals("Kafka");
     }
-    
+
     public Boolean isSetTextStep() {
-        return (getObject().equals("Queue") && getAction().contains("setText")) || (getObject().equals("Kafka") && getAction().contains("produceMessage"));
+        return (
+            (getObject().equals("Queue") && getAction().contains("setText")) ||
+            (getObject().equals("Kafka") && getAction().contains("produceMessage"))
+        );
     }
 
     public Boolean isWebserviceRequestStep() {
-        String requests[] = new String[]{"get", "delete", "post", "put", "patch"};
+        String requests[] = new String[] { "get", "delete", "post", "put", "patch" };
         boolean isWebserviceRequestStep = false;
         if (getObject().equals("Webservice")) {
             for (String request : requests) {
@@ -381,7 +519,7 @@ public class TestStep {
     public Boolean isWebserviceStopStep() {
         return (getObject().equals("Webservice") && getAction().contains("closeConnection"));
     }
-    
+
     public Boolean isStringOperationsStep() {
         return getObject().equals("String Operations");
     }

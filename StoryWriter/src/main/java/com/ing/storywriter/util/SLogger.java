@@ -1,11 +1,9 @@
-
 package com.ing.storywriter.util;
 
 /**
  *
  */
 public class SLogger {
-
     public static boolean debug = true;
 
     public static void LOG(String HD, String MSG) {

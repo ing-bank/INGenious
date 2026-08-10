@@ -1,10 +1,9 @@
-
 package com.ing.engine.commands.mobile;
 
 import com.ing.engine.commands.browser.Command;
 import com.ing.engine.core.CommandControl;
-import com.ing.ingenious.api.status.Status;
 import com.ing.ingenious.api.annotation.Action;
+import com.ing.ingenious.api.status.Status;
 import com.ing.ingenious.api.types.InputType;
 import com.ing.ingenious.api.types.ObjectType;
 import java.util.List;
@@ -16,7 +15,7 @@ public class Table extends Command {
     public Table(CommandControl cc) {
         super(cc);
     }
-/*
+    /*
     @Action(object = ObjectType.MOBILE,desc ="Get data from the desired cell of the web table and store it in a variable", input =InputType.YES)
     public void getCellValue() {
         if (Element != null) {

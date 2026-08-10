@@ -1,4 +1,3 @@
-
 package com.ing.engine.support;
 
 import java.awt.Desktop;
@@ -12,7 +11,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class DesktopApi {
-
     private static final Logger LOG = LoggerFactory.getLogger(DesktopApi.class.getName());
 
     public static boolean browse(URI uri) {
@@ -31,7 +29,6 @@ public class DesktopApi {
     }
 
     public static boolean edit(File file) {
-
         // you can try something like
         // runCommand("gimp", "%s", file.getPath())
         // based on user preferences.
@@ -42,7 +39,6 @@ public class DesktopApi {
     }
 
     private static boolean openSystemSpecific(String what) {
-
         EnumOS os = getOs();
 
         if (os.isLinux()) {
@@ -73,7 +69,6 @@ public class DesktopApi {
     }
 
     private static boolean browseDESKTOP(URI uri) {
-
         logOut("Trying to use Desktop.getDesktop().browse() with " + uri.toString());
         try {
             if (!Desktop.isDesktopSupported()) {
@@ -96,7 +91,6 @@ public class DesktopApi {
     }
 
     private static boolean openDESKTOP(File file) {
-
         logOut("Trying to use Desktop.getDesktop().open() with " + file.toString());
         try {
             if (!Desktop.isDesktopSupported()) {
@@ -119,7 +113,6 @@ public class DesktopApi {
     }
 
     private static boolean editDESKTOP(File file) {
-
         logOut("Trying to use Desktop.getDesktop().edit() with " + file);
         try {
             if (!Desktop.isDesktopSupported()) {
@@ -142,15 +135,14 @@ public class DesktopApi {
     }
 
     private static boolean runCommand(String command, String args, String file) {
-
-        logOut(String.format("Trying to exec: [%s] [%s] [%s]", command,args,file));
+        logOut(String.format("Trying to exec: [%s] [%s] [%s]", command, args, file));
 
         String[] parts = prepareCommand(command, args, file);
         Process p = null;
         try {
             //String location =
-            if(!Pattern.matches("[0-9A-Za-z@.]+", parts.toString()))
-             p = Runtime.getRuntime().exec(parts);
+            if (!Pattern.matches("[0-9A-Za-z@.]+", parts.toString())) p =
+                Runtime.getRuntime().exec(parts);
             if (p == null) {
                 logErr("Process Not Created.");
                 return false;
@@ -176,7 +168,6 @@ public class DesktopApi {
     }
 
     private static String[] prepareCommand(String command, String args, String file) {
-
         List<String> parts = new ArrayList<>();
         parts.add(command);
 
@@ -200,31 +191,33 @@ public class DesktopApi {
     }
 
     private static void logOut(String msg) {
-        LOG.info(msg);
+        // Diagnostic "Trying to ..." messages from the cross-platform desktop
+        // launcher. Kept at DEBUG so they don't clutter normal console output
+        // (visible only when the logger is configured at DEBUG/TRACE).
+        LOG.debug(msg);
     }
 
     public static enum EnumOS {
-
-        linux, macos, solaris, unknown, windows;
+        linux,
+        macos,
+        solaris,
+        unknown,
+        windows;
 
         public boolean isLinux() {
-
             return this == linux || this == solaris;
         }
 
         public boolean isMac() {
-
             return this == macos;
         }
 
         public boolean isWindows() {
-
             return this == windows;
         }
     }
 
     public static EnumOS getOs() {
-
         String s = System.getProperty("os.name").toLowerCase();
 
         if (s.contains("win")) {

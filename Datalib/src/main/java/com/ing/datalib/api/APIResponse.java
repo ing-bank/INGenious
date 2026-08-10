@@ -13,7 +13,6 @@ import java.util.Map;
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class APIResponse implements Serializable {
-
     private static final long serialVersionUID = 1L;
 
     private int statusCode;
@@ -35,7 +34,12 @@ public class APIResponse implements Serializable {
         this.timestamp = Instant.now().toEpochMilli();
     }
 
-    public APIResponse(int statusCode, String body, Map<String, List<String>> headers, long responseTimeMs) {
+    public APIResponse(
+        int statusCode,
+        String body,
+        Map<String, List<String>> headers,
+        long responseTimeMs
+    ) {
         this();
         this.statusCode = statusCode;
         this.body = body;
@@ -43,7 +47,7 @@ public class APIResponse implements Serializable {
         this.responseTimeMs = responseTimeMs;
         this.statusText = getStatusTextForCode(statusCode);
         this.responseSizeBytes = body != null ? body.getBytes().length : 0;
-        
+
         // Extract content type from headers
         if (this.headers.containsKey("content-type")) {
             List<String> ct = this.headers.get("content-type");
@@ -195,8 +199,10 @@ public class APIResponse implements Serializable {
         }
         if (body != null) {
             String trimmed = body.trim();
-            return (trimmed.startsWith("{") && trimmed.endsWith("}")) ||
-                   (trimmed.startsWith("[") && trimmed.endsWith("]"));
+            return (
+                (trimmed.startsWith("{") && trimmed.endsWith("}")) ||
+                (trimmed.startsWith("[") && trimmed.endsWith("]"))
+            );
         }
         return false;
     }
@@ -205,7 +211,10 @@ public class APIResponse implements Serializable {
      * Returns true if body appears to be XML.
      */
     public boolean isXmlBody() {
-        if (contentType != null && (contentType.contains("application/xml") || contentType.contains("text/xml"))) {
+        if (
+            contentType != null &&
+            (contentType.contains("application/xml") || contentType.contains("text/xml"))
+        ) {
             return true;
         }
         if (body != null) {
@@ -234,13 +243,13 @@ public class APIResponse implements Serializable {
      */
     public String getHeader(String name) {
         if (headers == null) return null;
-        
+
         // Try exact match
         List<String> values = headers.get(name);
         if (values != null && !values.isEmpty()) {
             return values.get(0);
         }
-        
+
         // Try case-insensitive match
         for (Map.Entry<String, List<String>> entry : headers.entrySet()) {
             if (entry.getKey().equalsIgnoreCase(name)) {
@@ -305,34 +314,62 @@ public class APIResponse implements Serializable {
 
     private static String getStatusTextForCode(int code) {
         switch (code) {
-            case 100: return "Continue";
-            case 101: return "Switching Protocols";
-            case 200: return "OK";
-            case 201: return "Created";
-            case 202: return "Accepted";
-            case 204: return "No Content";
-            case 301: return "Moved Permanently";
-            case 302: return "Found";
-            case 304: return "Not Modified";
-            case 307: return "Temporary Redirect";
-            case 308: return "Permanent Redirect";
-            case 400: return "Bad Request";
-            case 401: return "Unauthorized";
-            case 403: return "Forbidden";
-            case 404: return "Not Found";
-            case 405: return "Method Not Allowed";
-            case 408: return "Request Timeout";
-            case 409: return "Conflict";
-            case 410: return "Gone";
-            case 415: return "Unsupported Media Type";
-            case 422: return "Unprocessable Entity";
-            case 429: return "Too Many Requests";
-            case 500: return "Internal Server Error";
-            case 501: return "Not Implemented";
-            case 502: return "Bad Gateway";
-            case 503: return "Service Unavailable";
-            case 504: return "Gateway Timeout";
-            default: return "";
+            case 100:
+                return "Continue";
+            case 101:
+                return "Switching Protocols";
+            case 200:
+                return "OK";
+            case 201:
+                return "Created";
+            case 202:
+                return "Accepted";
+            case 204:
+                return "No Content";
+            case 301:
+                return "Moved Permanently";
+            case 302:
+                return "Found";
+            case 304:
+                return "Not Modified";
+            case 307:
+                return "Temporary Redirect";
+            case 308:
+                return "Permanent Redirect";
+            case 400:
+                return "Bad Request";
+            case 401:
+                return "Unauthorized";
+            case 403:
+                return "Forbidden";
+            case 404:
+                return "Not Found";
+            case 405:
+                return "Method Not Allowed";
+            case 408:
+                return "Request Timeout";
+            case 409:
+                return "Conflict";
+            case 410:
+                return "Gone";
+            case 415:
+                return "Unsupported Media Type";
+            case 422:
+                return "Unprocessable Entity";
+            case 429:
+                return "Too Many Requests";
+            case 500:
+                return "Internal Server Error";
+            case 501:
+                return "Not Implemented";
+            case 502:
+                return "Bad Gateway";
+            case 503:
+                return "Service Unavailable";
+            case 504:
+                return "Gateway Timeout";
+            default:
+                return "";
         }
     }
 
@@ -341,7 +378,7 @@ public class APIResponse implements Serializable {
      */
     public static class AssertionResult implements Serializable {
         private static final long serialVersionUID = 1L;
-        
+
         private String assertionId;
         private String assertionName;
         private boolean passed;
@@ -351,7 +388,12 @@ public class APIResponse implements Serializable {
 
         public AssertionResult() {}
 
-        public AssertionResult(String assertionId, String assertionName, boolean passed, String message) {
+        public AssertionResult(
+            String assertionId,
+            String assertionName,
+            boolean passed,
+            String message
+        ) {
             this.assertionId = assertionId;
             this.assertionName = assertionName;
             this.passed = passed;

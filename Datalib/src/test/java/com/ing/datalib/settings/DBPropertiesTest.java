@@ -1,6 +1,7 @@
 package com.ing.datalib.settings;
 
 import static org.assertj.core.api.Assertions.assertThat;
+
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -17,7 +18,6 @@ import org.testng.annotations.Test;
  * Note: DBProperties uses static fields, so tests must run sequentially.
  */
 public class DBPropertiesTest {
-
     private Path tempDir;
 
     @BeforeMethod
@@ -27,10 +27,11 @@ public class DBPropertiesTest {
 
     @AfterMethod
     public void tearDown() throws IOException {
-        Files.walk(tempDir)
-                .sorted(Comparator.reverseOrder())
-                .map(Path::toFile)
-                .forEach(File::delete);
+        Files
+            .walk(tempDir)
+            .sorted(Comparator.reverseOrder())
+            .map(Path::toFile)
+            .forEach(File::delete);
     }
 
     @Test
@@ -69,7 +70,13 @@ public class DBPropertiesTest {
     @Test
     public void testAddDBPropertyWithParams() {
         DBProperties dbp = new DBProperties(tempDir.toString());
-        dbp.addDBProperty("customDB", "org.postgresql.Driver", "jdbc:postgresql://localhost/test", "60", "true");
+        dbp.addDBProperty(
+            "customDB",
+            "org.postgresql.Driver",
+            "jdbc:postgresql://localhost/test",
+            "60",
+            "true"
+        );
 
         assertThat(dbp.getDBProperties()).containsKey("customDB");
     }
@@ -81,7 +88,8 @@ public class DBPropertiesTest {
         props.setProperty("driver", "custom.Driver");
         dbp.addDB("manualDB", props);
 
-        assertThat(dbp.getDBPropertiesFor("manualDB").getProperty("driver")).isEqualTo("custom.Driver");
+        assertThat(dbp.getDBPropertiesFor("manualDB").getProperty("driver"))
+            .isEqualTo("custom.Driver");
     }
 
     @Test

@@ -1,21 +1,21 @@
 package com.ing.engine.drivers;
 
 import com.ing.datalib.or.ObjectRepository;
-import com.ing.datalib.or.structureddata.StructuredDataAttribute;
-import com.ing.datalib.or.structureddata.StructuredDataORObject;
-import com.ing.datalib.or.structureddata.StructuredDataORPage;
-import com.ing.datalib.or.structureddata.ResolvedStructuredDataObject;
 import com.ing.datalib.or.common.ORAttribute;
 import com.ing.datalib.or.common.ObjectGroup;
 import com.ing.datalib.or.mobile.MobileORObject;
 import com.ing.datalib.or.mobile.MobileORPage;
 import com.ing.datalib.or.mobile.ResolvedMobileObject;
+import com.ing.datalib.or.structureddata.ResolvedStructuredDataObject;
+import com.ing.datalib.or.structureddata.StructuredDataAttribute;
+import com.ing.datalib.or.structureddata.StructuredDataORObject;
+import com.ing.datalib.or.structureddata.StructuredDataORPage;
+import com.ing.datalib.or.web.ResolvedWebObject;
 import com.ing.datalib.or.web.WebORObject;
 import com.ing.datalib.or.web.WebORPage;
-import com.ing.datalib.or.web.ResolvedWebObject;
 import com.ing.engine.constants.SystemDefaults;
-import com.ing.engine.core.Control;
 import com.ing.engine.core.CommandControl;
+import com.ing.engine.core.Control;
 import com.microsoft.playwright.BrowserContext;
 import com.microsoft.playwright.FrameLocator;
 import com.microsoft.playwright.Locator;
@@ -61,7 +61,8 @@ public class StructuredDataObject {
     public static final Map<String, List<String>> locatorFiltersMap = new HashMap<>();
 
     public enum FindType {
-        GLOBAL_OBJECT, DEFAULT;
+        GLOBAL_OBJECT,
+        DEFAULT;
 
         public static FindType fromString(String val) {
             switch (val.toLowerCase()) {
@@ -73,8 +74,7 @@ public class StructuredDataObject {
         }
     }
 
-    public StructuredDataObject() {
-    }
+    public StructuredDataObject() {}
 
     public StructuredDataObject(Page Page) {
         this.page = Page;
@@ -119,7 +119,12 @@ public class StructuredDataObject {
         return getElementFromList(findElements(getORObject(pageKey, objectKey), null));
     }
 
-    public String findElement(String objectKey, String pageKey, String Attribute, FindType condition) {
+    public String findElement(
+        String objectKey,
+        String pageKey,
+        String Attribute,
+        FindType condition
+    ) {
         pageName = pageKey;
         objectName = objectKey;
         findType = condition;
@@ -140,12 +145,16 @@ public class StructuredDataObject {
         return findElements(objectKey, pageKey, null, condition);
     }
 
-    public List<String> findElements(String objectKey, String pageKey, String Attribute, FindType condition) {
+    public List<String> findElements(
+        String objectKey,
+        String pageKey,
+        String Attribute,
+        FindType condition
+    ) {
         return findElements(objectKey, pageKey, Attribute, condition);
     }
 
     private String getElementFromList(List<String> elements) {
-
         return elements != null && !elements.isEmpty() ? elements.get(0) : null;
     }
 
@@ -157,50 +166,72 @@ public class StructuredDataObject {
             if (wresolved != null && wresolved.getGroup() != null) {
                 return wresolved.getGroup();
             }
-        } catch (Exception ignore) { }
+        } catch (Exception ignore) {}
         try {
             ResolvedMobileObject.PageRef mref = ResolvedMobileObject.PageRef.parse(page);
             ResolvedMobileObject mresolved = objRep.resolveMobileObject(mref, object);
             if (mresolved != null && mresolved.getGroup() != null) {
                 return mresolved.getGroup();
             }
-        } catch (Exception ignore) { }
+        } catch (Exception ignore) {}
         try {
-            ResolvedStructuredDataObject.PageRef aref = ResolvedStructuredDataObject.PageRef.parse(page);
-            ResolvedStructuredDataObject aresolved = objRep.resolveStructuredDataObject(aref, object);
+            ResolvedStructuredDataObject.PageRef aref = ResolvedStructuredDataObject.PageRef.parse(
+                page
+            );
+            ResolvedStructuredDataObject aresolved = objRep.resolveStructuredDataObject(
+                aref,
+                object
+            );
             if (aresolved != null && aresolved.getGroup() != null) {
                 return aresolved.getGroup();
             }
-        } catch (Exception ignore) { }
+        } catch (Exception ignore) {}
         if (objRep.getWebOR() != null && objRep.getWebOR().getPageByName(page) != null) {
             return objRep.getWebOR().getPageByName(page).getObjectGroupByName(object);
-        } else if (objRep.getWebSharedOR() != null && objRep.getWebSharedOR().getPageByName(page) != null) {
+        } else if (
+            objRep.getWebSharedOR() != null && objRep.getWebSharedOR().getPageByName(page) != null
+        ) {
             return objRep.getWebSharedOR().getPageByName(page).getObjectGroupByName(object);
-        } else if (objRep.getMobileOR() != null && objRep.getMobileOR().getPageByName(page) != null) {
+        } else if (
+            objRep.getMobileOR() != null && objRep.getMobileOR().getPageByName(page) != null
+        ) {
             return objRep.getMobileOR().getPageByName(page).getObjectGroupByName(object);
-        } else if (objRep.getMobileSharedOR() != null && objRep.getMobileSharedOR().getPageByName(page) != null) {
+        } else if (
+            objRep.getMobileSharedOR() != null &&
+            objRep.getMobileSharedOR().getPageByName(page) != null
+        ) {
             return objRep.getMobileSharedOR().getPageByName(page).getObjectGroupByName(object);
-        } else if (objRep.getStructuredDataOR() != null && objRep.getStructuredDataOR().getPageByName(page) != null) {
+        } else if (
+            objRep.getStructuredDataOR() != null &&
+            objRep.getStructuredDataOR().getPageByName(page) != null
+        ) {
             return objRep.getStructuredDataOR().getPageByName(page).getObjectGroupByName(object);
-        } else if (objRep.getStructuredDataSharedOR() != null && objRep.getStructuredDataSharedOR().getPageByName(page) != null) {
-            return objRep.getStructuredDataSharedOR().getPageByName(page).getObjectGroupByName(object);
+        } else if (
+            objRep.getStructuredDataSharedOR() != null &&
+            objRep.getStructuredDataSharedOR().getPageByName(page) != null
+        ) {
+            return objRep
+                .getStructuredDataSharedOR()
+                .getPageByName(page)
+                .getObjectGroupByName(object);
         }
         return null;
     }
 
-    @SuppressWarnings({"unchecked", "rawtypes"})
+    @SuppressWarnings({ "unchecked", "rawtypes" })
     private synchronized List<String> findElements(ObjectGroup objectGroup, String prop) {
-
         if (objectGroup != null && !objectGroup.getObjects().isEmpty()) {
             if (objectGroup.getObjects().get(0) instanceof StructuredDataORObject) {
-
                 return getAPIElements(objectGroup, prop);
             }
         }
         return null;
     }
 
-    private List<String> getAPIElements(ObjectGroup<StructuredDataORObject> objectGroup, String prop) {
+    private List<String> getAPIElements(
+        ObjectGroup<StructuredDataORObject> objectGroup,
+        String prop
+    ) {
         long startTime = System.nanoTime();
         List<String> elements = null;
         for (StructuredDataORObject object : objectGroup.getObjects()) {
@@ -213,7 +244,12 @@ public class StructuredDataObject {
         return elements;
     }
 
-    private void printStats(List<String> elements, ObjectGroup<?> objectGroup, long startTime, long stopTime) {
+    private void printStats(
+        List<String> elements,
+        ObjectGroup<?> objectGroup,
+        long startTime,
+        long stopTime
+    ) {
         if (getElementFromList(elements) != null) {
             System.out.println(elements);
             System.out.println(foundElementIn(objectGroup, stopTime, startTime));
@@ -226,59 +262,70 @@ public class StructuredDataObject {
         return String.format("Object being identified with [%s] = [%s], ", attr, val);
     }
 
-    private static String foundElementIn(ObjectGroup<?> objectGroup, long stopTime, long startTime) {
-        return String.format("Object [%s] found in [%s] ms", objectGroup.getName(), (stopTime - startTime) / 1000000);
+    private static String foundElementIn(
+        ObjectGroup<?> objectGroup,
+        long stopTime,
+        long startTime
+    ) {
+        return String.format(
+            "Object [%s] found in [%s] ms",
+            objectGroup.getName(),
+            (stopTime - startTime) / 1000000
+        );
     }
 
     private String notFoundIn(ObjectGroup<?> objectGroup) {
-        return String.format("Couldn't find Object '%s' in stipulated Time '%s' Seconds", objectGroup.getName(),
-                String.valueOf(getWaitTime().toSeconds()));
+        return String.format(
+            "Couldn't find Object '%s' in stipulated Time '%s' Seconds",
+            objectGroup.getName(),
+            String.valueOf(getWaitTime().toSeconds())
+        );
     }
 
     private List<String> getElements(final List<StructuredDataAttribute> attributes) {
         return getElementsInternal(attributes);
-//        return getElementsInternal(attributes -> {
-//            String el = null;
-////            switch (tag) {
-////                case "Text":
-////                    locator = this.page.getByText(value, (Page.GetByTextOptions) options);
-////                    break;
-////                case "Label":
-////                    locator = this.page.getByLabel(value, (Page.GetByLabelOptions) options);
-////                    break;
-////                case "Placeholder":
-////                    locator = this.page.getByPlaceholder(value, (Page.GetByPlaceholderOptions) options);
-////                    break;
-////                case "AltText":
-////                    locator = this.page.getByAltText(value, (Page.GetByAltTextOptions) options);
-////                    break;
-////                case "Title":
-////                    locator = this.page.getByTitle(value, (Page.GetByTitleOptions) options);
-////                    break;
-////                case "TestId":
-////                    locator = this.page.getByTestId(value);
-////                    break;
-////                case "css":
-////                    locator = this.page.locator("css=" + value);
-////                    break;
-////                case "xpath":
-////                    locator = this.page.locator("xpath=" + value);
-////                    break;
-////                case "Role":
-////                    locator = createRoleLocator(value, this.page);
-////                    break;
-////                case "ChainedLocator":
-////                    locator = createChainedLocator(value, this.page);
-////                    break;
-////                default:
-////                    locator = null;
-////            }
-////            // Apply filter if required
-////            if (locator != null) {
-////                locator = setFilter(locator);
-////            }
-//            return el;
-//        });
+        //        return getElementsInternal(attributes -> {
+        //            String el = null;
+        ////            switch (tag) {
+        ////                case "Text":
+        ////                    locator = this.page.getByText(value, (Page.GetByTextOptions) options);
+        ////                    break;
+        ////                case "Label":
+        ////                    locator = this.page.getByLabel(value, (Page.GetByLabelOptions) options);
+        ////                    break;
+        ////                case "Placeholder":
+        ////                    locator = this.page.getByPlaceholder(value, (Page.GetByPlaceholderOptions) options);
+        ////                    break;
+        ////                case "AltText":
+        ////                    locator = this.page.getByAltText(value, (Page.GetByAltTextOptions) options);
+        ////                    break;
+        ////                case "Title":
+        ////                    locator = this.page.getByTitle(value, (Page.GetByTitleOptions) options);
+        ////                    break;
+        ////                case "TestId":
+        ////                    locator = this.page.getByTestId(value);
+        ////                    break;
+        ////                case "css":
+        ////                    locator = this.page.locator("css=" + value);
+        ////                    break;
+        ////                case "xpath":
+        ////                    locator = this.page.locator("xpath=" + value);
+        ////                    break;
+        ////                case "Role":
+        ////                    locator = createRoleLocator(value, this.page);
+        ////                    break;
+        ////                case "ChainedLocator":
+        ////                    locator = createChainedLocator(value, this.page);
+        ////                    break;
+        ////                default:
+        ////                    locator = null;
+        ////            }
+        ////            // Apply filter if required
+        ////            if (locator != null) {
+        ////                locator = setFilter(locator);
+        ////            }
+        //            return el;
+        //        });
     }
 
     private String getRuntimeValue(String value) {
@@ -287,7 +334,9 @@ public class StructuredDataObject {
                 value = value.replace(Key, globalDynamicValue.get(Key));
             }
         }
-        if (dynamicValue.containsKey(pageName) && dynamicValue.get(pageName).containsKey(objectName)) {
+        if (
+            dynamicValue.containsKey(pageName) && dynamicValue.get(pageName).containsKey(objectName)
+        ) {
             for (String Key : dynamicValue.get(pageName).get(objectName).keySet()) {
                 value = value.replace(Key, dynamicValue.get(pageName).get(objectName).get(Key));
             }
@@ -329,7 +378,6 @@ public class StructuredDataObject {
                 wPage = objRep.getWebOR().getPageByName(ref.name);
                 if (wPage == null) wPage = objRep.getWebSharedOR().getPageByName(ref.name);
             }
-
         } catch (Exception ignore) {
             // If parsing fails, treat as plain page name
             wPage = objRep.getWebOR().getPageByName(page);
@@ -339,7 +387,7 @@ public class StructuredDataObject {
         if (wPage == null && objRep.getMobileOR().getPageByName(stripScope(page)) != null) {
             mPage = objRep.getMobileOR().getPageByName(stripScope(page));
         }
-        
+
         if (mPage == null && objRep.getStructuredDataOR().getPageByName(stripScope(page)) != null) {
             aPage = objRep.getStructuredDataOR().getPageByName(stripScope(page));
         }
@@ -382,7 +430,11 @@ public class StructuredDataObject {
         return this.waitTime != null ? this.waitTime : SystemDefaults.elementWaitTime;
     }
 
-    public void storeElementDetailsinOR(List<ORAttribute> attributes, String attribute, String value) {
+    public void storeElementDetailsinOR(
+        List<ORAttribute> attributes,
+        String attribute,
+        String value
+    ) {
         for (ORAttribute attr : attributes) {
             if (attr.getName().contentEquals(attribute)) {
                 attr.setValue(value);
@@ -426,10 +478,8 @@ public class StructuredDataObject {
             if (value.trim().isEmpty()) continue;
             elements.add(value);
             break; // Only first valid locator
-//            }
+            //            }
         }
         return elements.isEmpty() ? null : elements;
     }
-
-
 }

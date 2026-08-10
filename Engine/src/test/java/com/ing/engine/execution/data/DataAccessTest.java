@@ -9,7 +9,6 @@ import com.ing.datalib.testdata.model.TestDataModel;
 import com.ing.datalib.testdata.view.TestDataView;
 import com.ing.engine.execution.run.ProjectRunner;
 import com.ing.engine.execution.run.TestCaseRunner;
-
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import org.testng.annotations.AfterMethod;
@@ -22,12 +21,20 @@ import org.testng.annotations.Test;
  * using mocked TestCaseRunner and data providers.
  */
 public class DataAccessTest {
+    @Mock
+    private TestCaseRunner context;
 
-    @Mock private TestCaseRunner context;
-    @Mock private TestCaseRunner rootContext;
-    @Mock private ProjectRunner executor;
-    @Mock private EnvTestData dataProvider;
-    @Mock private TestData defData;
+    @Mock
+    private TestCaseRunner rootContext;
+
+    @Mock
+    private ProjectRunner executor;
+
+    @Mock
+    private EnvTestData dataProvider;
+
+    @Mock
+    private TestData defData;
 
     private AutoCloseable mocks;
 
@@ -63,7 +70,7 @@ public class DataAccessTest {
         when(rootContext.testcase()).thenReturn("TC1");
         when(context.scenario()).thenReturn("Scn1");
         when(context.testcase()).thenReturn("TC1");
-        when(view.withTestcase(anyString(), anyString())).thenReturn(view);
+        when(view.withTestcaseAndScope(anyString(), anyString(), anyString())).thenReturn(view);
         when(view.getIterations()).thenReturn(new java.util.LinkedHashSet<>());
 
         DataAccessInternal.getIterations(context, "Sheet1");

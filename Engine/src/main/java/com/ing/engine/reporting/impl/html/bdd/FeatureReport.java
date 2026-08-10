@@ -1,15 +1,14 @@
-
 package com.ing.engine.reporting.impl.html.bdd;
+
+import static java.util.stream.Collectors.joining;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
-import static java.util.stream.Collectors.joining;
 
 public class FeatureReport {
-
     String id;
     String name;
     String keyword;
@@ -19,8 +18,15 @@ public class FeatureReport {
     List<Tag> tags;
     List<Element> elements;
 
-    public FeatureReport(String id, String name, String desc, String uri,
-            int line, List<Element> elements, List<Tag> tags) {
+    public FeatureReport(
+        String id,
+        String name,
+        String desc,
+        String uri,
+        int line,
+        List<Element> elements,
+        List<Tag> tags
+    ) {
         this.id = id;
         this.name = name;
         this.description = desc;
@@ -53,7 +59,6 @@ public class FeatureReport {
     }
 
     public static class Element {
-
         String type;
         String keyword;
         String name;
@@ -62,8 +67,14 @@ public class FeatureReport {
         List<Tag> tags;
         List<Step> steps;
 
-        public Element(String keyword, String name, String desc,
-                int line, List<Step> steps, List<Tag> tags) {
+        public Element(
+            String keyword,
+            String name,
+            String desc,
+            int line,
+            List<Step> steps,
+            List<Tag> tags
+        ) {
             this.keyword = keyword;
             this.type = "scenario";
             this.name = name;
@@ -89,16 +100,18 @@ public class FeatureReport {
 
         @Override
         public String toString() {
-            return String.format("%s\n%2s%s: %s\n%s",
-                    tags.stream().map(Tag::getName).collect(joining(" ")),
-                    " ", type, keyword,
-                    steps.stream().map(Step::toString).collect(joining("\n")));
+            return String.format(
+                "%s\n%2s%s: %s\n%s",
+                tags.stream().map(Tag::getName).collect(joining(" ")),
+                " ",
+                type,
+                keyword,
+                steps.stream().map(Step::toString).collect(joining("\n"))
+            );
         }
-
     }
 
     public static class Step {
-
         String name;
         String keyword;
         Result result;
@@ -136,21 +149,17 @@ public class FeatureReport {
             this.embeddings.addAll(embeddings);
             return this;
         }
-
     }
 
     public static class Match {
-
         String location;
 
         public Match(String location) {
             this.location = location;
         }
-
     }
 
     public static class Result {
-
         long duration;
         String status;
 
@@ -161,7 +170,6 @@ public class FeatureReport {
     }
 
     public static class Tag {
-
         String name;
 
         public Tag(String name) {
@@ -174,7 +182,6 @@ public class FeatureReport {
     }
 
     public static class Embedding {
-
         String mime_type;
         String data;
 
@@ -183,5 +190,4 @@ public class FeatureReport {
             this.data = data;
         }
     }
-
 }

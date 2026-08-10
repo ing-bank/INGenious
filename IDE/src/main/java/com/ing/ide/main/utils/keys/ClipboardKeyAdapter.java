@@ -1,4 +1,3 @@
-
 package com.ing.ide.main.utils.keys;
 
 import com.ing.ide.main.utils.table.XTableUtils;
@@ -9,10 +8,9 @@ import org.jline.utils.Log;
 
 /**
  *
- * 
+ *
  */
 public class ClipboardKeyAdapter extends KeyAdapter {
-
     private final JTable table;
 
     public ClipboardKeyAdapter(JTable table) {
@@ -42,7 +40,6 @@ public class ClipboardKeyAdapter extends KeyAdapter {
                     break;
             }
         }
-
     }
 
     private void cancelEditing() {
@@ -50,7 +47,4 @@ public class ClipboardKeyAdapter extends KeyAdapter {
             table.getCellEditor().cancelCellEditing();
         }
     }
-    
-    
-
 }

@@ -1,8 +1,7 @@
-
 package com.ing.engine.reporting.sync.sapi;
 
-import com.ing.engine.constants.SystemDefaults;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.ing.engine.constants.SystemDefaults;
 import java.net.MalformedURLException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -10,20 +9,17 @@ import org.json.simple.JSONObject;
 
 /**
  *
- * 
+ *
  */
 public class ApiLink {
-
     private final RunStatus status;
     private final SAPIClient client;
 
     public ApiLink() throws MalformedURLException {
         status = new RunStatus();
-        status.nopassTests = status.nofailTests = 0;      
+        status.nopassTests = status.nofailTests = 0;
         client = new SAPIClient(SystemDefaults.EnvVars);
-
     }
-    
 
     public void setNoTests(int nos) {
         status.noTests = nos;
@@ -74,5 +70,4 @@ public class ApiLink {
     public void clientData(JSONObject testSetData) {
         status.data = testSetData;
     }
-
 }

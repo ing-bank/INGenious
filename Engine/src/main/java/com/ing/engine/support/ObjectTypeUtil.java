@@ -1,12 +1,11 @@
 package com.ing.engine.support;
 
+import com.ing.ingenious.api.types.ObjectType;
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashSet;
-import java.util.Set;
 import java.util.List;
-import java.util.ArrayList;
-
-import com.ing.ingenious.api.types.ObjectType;
+import java.util.Set;
 
 /**
  * Utility class for managing and querying object types at runtime.
@@ -30,9 +29,12 @@ public final class ObjectTypeUtil {
      * @see #getAllTypesForIDE()
      */
     public static void registerObjectTypefromPlugin(String type) {
-        if (type != null && !type.isEmpty() 
-                && !ObjectType.initialObjectTypes.contains(type)
-                && !pluginObjectTypes.contains(type)) {
+        if (
+            type != null &&
+            !type.isEmpty() &&
+            !ObjectType.initialObjectTypes.contains(type) &&
+            !pluginObjectTypes.contains(type)
+        ) {
             pluginObjectTypes.add(type);
             System.out.println("Registered new object type: " + type);
         }
@@ -52,10 +54,9 @@ public final class ObjectTypeUtil {
         if (type == null) {
             return false;
         }
-        return objectTypesforIDEDropdown.stream()
-                .anyMatch(t -> t.equalsIgnoreCase(type));
+        return objectTypesforIDEDropdown.stream().anyMatch(t -> t.equalsIgnoreCase(type));
     }
-    
+
     /**
      * Returns a list of all object types available for display in the IDE.
      * <p>
@@ -76,10 +77,10 @@ public final class ObjectTypeUtil {
         objectTypesforIDEDropdown.add(ObjectType.DATABASE);
         objectTypesforIDEDropdown.add(ObjectType.KAFKA);
         objectTypesforIDEDropdown.add(ObjectType.QUEUE);
-        objectTypesforIDEDropdown.add("Synthetic Data");
+        objectTypesforIDEDropdown.add(ObjectType.DATA);
         objectTypesforIDEDropdown.add(ObjectType.FILE);
         objectTypesforIDEDropdown.add(ObjectType.GENERAL);
-        objectTypesforIDEDropdown.add("EXECUTE");
+        objectTypesforIDEDropdown.add("Execute");
         objectTypesforIDEDropdown.add(ObjectType.STRINGOPERATIONS);
         objectTypesforIDEDropdown.addAll(pluginObjectTypes);
         return Collections.unmodifiableList(objectTypesforIDEDropdown);

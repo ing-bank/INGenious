@@ -1,6 +1,7 @@
 package com.ing.storywriter.util;
 
 import static org.assertj.core.api.Assertions.assertThat;
+
 import java.util.Date;
 import org.testng.annotations.Test;
 

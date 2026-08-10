@@ -1,4 +1,3 @@
-
 package com.ing.storywriter.bdd.ui.handlers;
 
 import java.io.File;
@@ -8,8 +7,7 @@ import java.io.FileFilter;
  *
  */
 public class FeatureFilter implements FileFilter {
-
-    private final static FileFilter FEATURE_FILTER = new FeatureFilter();
+    private static final FileFilter FEATURE_FILTER = new FeatureFilter();
 
     public static FileFilter get() {
         return FEATURE_FILTER;
@@ -19,5 +17,4 @@ public class FeatureFilter implements FileFilter {
     public boolean accept(File file) {
         return file.isFile() && file.getName().endsWith(".feature");
     }
-
 }

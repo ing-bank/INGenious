@@ -1,4 +1,3 @@
-
 package com.ing.ide.main.utils;
 
 import java.awt.Dimension;
@@ -24,13 +23,12 @@ import javax.swing.SwingUtilities;
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 
-
 public class TabTitleEditListener extends MouseAdapter implements ChangeListener {
-
     private final JTabbedPane tabbedPane;
     private final RenamePopup rPopup;
 
     private int editingIdx = -1;
+    private boolean isProcessingRename = false;
 
     private final Action onRenameAction;
 
@@ -38,22 +36,34 @@ public class TabTitleEditListener extends MouseAdapter implements ChangeListener
 
     private final int[] dontEdit;
 
-    public TabTitleEditListener(final JTabbedPane tabbedPane, Action onrenameAction, int... dontEdit) {
+    public TabTitleEditListener(
+        final JTabbedPane tabbedPane,
+        Action onrenameAction,
+        int... dontEdit
+    ) {
         super();
         this.tabbedPane = tabbedPane;
         rPopup = new RenamePopup();
         this.dontEdit = dontEdit;
         this.onRenameAction = onrenameAction;
-        tabbedPane.getInputMap(JComponent.WHEN_FOCUSED).put(KeyStroke.getKeyStroke(KeyEvent.VK_F2, 0), "start-editing");
-                
-        tabbedPane.getActionMap().put("start-editing", new AbstractAction() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                if (checkIndexContains()) {
-                    startEditing();
+        tabbedPane
+            .getInputMap(JComponent.WHEN_FOCUSED)
+            .put(KeyStroke.getKeyStroke(KeyEvent.VK_F2, 0), "start-editing");
+
+        tabbedPane
+            .getActionMap()
+            .put(
+                "start-editing",
+                new AbstractAction() {
+
+                    @Override
+                    public void actionPerformed(ActionEvent e) {
+                        if (checkIndexContains()) {
+                            startEditing();
+                        }
+                    }
                 }
-            }
-        });
+            );
     }
 
     private Boolean checkIndexContains() {
@@ -75,7 +85,9 @@ public class TabTitleEditListener extends MouseAdapter implements ChangeListener
     @Override
     public void mouseClicked(MouseEvent e) {
         if (tabbedPane.getSelectedIndex() != -1) {
-            Rectangle rect = tabbedPane.getUI().getTabBounds(tabbedPane, tabbedPane.getSelectedIndex());
+            Rectangle rect = tabbedPane
+                .getUI()
+                .getTabBounds(tabbedPane, tabbedPane.getSelectedIndex());
             if (rect.contains(e.getPoint())) {
                 if (SwingUtilities.isLeftMouseButton(e) && e.getClickCount() == 2) {
                     if (checkIndexContains()) {
@@ -86,7 +98,6 @@ public class TabTitleEditListener extends MouseAdapter implements ChangeListener
                         onMiddleClickAction.actionPerformed(null);
                     }
                 }
-
             } else {
                 renameTabTitle();
             }
@@ -111,15 +122,25 @@ public class TabTitleEditListener extends MouseAdapter implements ChangeListener
     }
 
     private void renameTabTitle() {
+        // Prevent multiple rename calls when modal dialogs are shown
+        if (isProcessingRename) {
+            return;
+        }
+
         String title = rPopup.editor.getText().trim();
         if (editingIdx >= 0 && !title.isEmpty()) {
             String prevTitle = tabbedPane.getTitleAt(editingIdx);
             if (!prevTitle.equals(title)) {
-                onRenameAction.putValue("oldValue", prevTitle);
-                onRenameAction.putValue("newValue", title);
-                onRenameAction.actionPerformed(null);
-                if (onRenameAction.getValue("rename").equals(true)) {
-                    tabbedPane.setTitleAt(editingIdx, title);
+                isProcessingRename = true;
+                try {
+                    onRenameAction.putValue("oldValue", prevTitle);
+                    onRenameAction.putValue("newValue", title);
+                    onRenameAction.actionPerformed(null);
+                    if (onRenameAction.getValue("rename").equals(true)) {
+                        tabbedPane.setTitleAt(editingIdx, title);
+                    }
+                } finally {
+                    isProcessingRename = false;
                 }
             }
         }
@@ -127,7 +148,6 @@ public class TabTitleEditListener extends MouseAdapter implements ChangeListener
     }
 
     class RenamePopup extends JPopupMenu {
-
         JTextField editor = new JTextField();
 
         public RenamePopup() {
@@ -138,30 +158,39 @@ public class TabTitleEditListener extends MouseAdapter implements ChangeListener
         private void init() {
             setBorder(BorderFactory.createEmptyBorder());
             editor.setBorder(BorderFactory.createEmptyBorder());
-            editor.addFocusListener(new FocusAdapter() {
-                @Override
-                public void focusLost(FocusEvent e) {
-                    hidePopup();
-                    renameTabTitle();
-                }
-            });
-            editor.addActionListener(new ActionListener() {
-                @Override
-                public void actionPerformed(ActionEvent ae) {
-                    hidePopup();
-                    renameTabTitle();
-                }
-            });
-            editor.addKeyListener(new KeyAdapter() {
-                @Override
-                public void keyPressed(KeyEvent e) {
-                    switch (e.getKeyCode()) {
-                        case KeyEvent.VK_ESCAPE:
-                            cancelEditing();
-                            break;
+            editor.addFocusListener(
+                new FocusAdapter() {
+
+                    @Override
+                    public void focusLost(FocusEvent e) {
+                        hidePopup();
+                        renameTabTitle();
                     }
                 }
-            });
+            );
+            editor.addActionListener(
+                new ActionListener() {
+
+                    @Override
+                    public void actionPerformed(ActionEvent ae) {
+                        hidePopup();
+                        renameTabTitle();
+                    }
+                }
+            );
+            editor.addKeyListener(
+                new KeyAdapter() {
+
+                    @Override
+                    public void keyPressed(KeyEvent e) {
+                        switch (e.getKeyCode()) {
+                            case KeyEvent.VK_ESCAPE:
+                                cancelEditing();
+                                break;
+                        }
+                    }
+                }
+            );
         }
 
         public void showPopup() {
@@ -177,6 +206,5 @@ public class TabTitleEditListener extends MouseAdapter implements ChangeListener
         public void hidePopup() {
             setVisible(false);
         }
-
     }
 }

@@ -1,6 +1,7 @@
 package com.ing.datalib.settings;
 
 import static org.assertj.core.api.Assertions.assertThat;
+
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -16,7 +17,6 @@ import org.testng.annotations.Test;
  * Note: DriverProperties uses static fields, so tests must run sequentially.
  */
 public class DriverPropertiesTest {
-
     private Path tempDir;
 
     @BeforeMethod
@@ -26,10 +26,11 @@ public class DriverPropertiesTest {
 
     @AfterMethod
     public void tearDown() throws IOException {
-        Files.walk(tempDir)
-                .sorted(Comparator.reverseOrder())
-                .map(Path::toFile)
-                .forEach(File::delete);
+        Files
+            .walk(tempDir)
+            .sorted(Comparator.reverseOrder())
+            .map(Path::toFile)
+            .forEach(File::delete);
     }
 
     @Test
@@ -126,7 +127,8 @@ public class DriverPropertiesTest {
     @Test
     public void testGetLocation() {
         DriverProperties dp = new DriverProperties(tempDir.toString());
-        assertThat(DriverProperties.getLocation()).isEqualTo(tempDir.toString() + File.separator + "API");
+        assertThat(DriverProperties.getLocation())
+            .isEqualTo(tempDir.toString() + File.separator + "API");
     }
 
     @Test

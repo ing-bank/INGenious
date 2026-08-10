@@ -1,13 +1,13 @@
 package com.ing.datalib.or.structureddata;
 
-import com.ing.datalib.or.ObjectRepository;
-import com.ing.datalib.or.common.ORRootInf;
-import com.ing.datalib.or.common.ORUtils;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import com.ing.datalib.or.ObjectRepository;
+import com.ing.datalib.or.common.ORRootInf;
+import com.ing.datalib.or.common.ORUtils;
 import com.ing.datalib.or.web.WebOR;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -23,11 +23,9 @@ import javax.swing.tree.TreeNode;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JacksonXmlRootElement(localName = "Root")
 public class StructuredDataOR implements ORRootInf<StructuredDataORPage> {
-
-    public final static List<String> OBJECT_PROPS
-            = new ArrayList<>(Arrays.asList(
-                    "JsonPath",
-                    "Xpath"));
+    public static final List<String> OBJECT_PROPS = new ArrayList<>(
+        Arrays.asList("JsonPath", "Xpath")
+    );
 
     @JacksonXmlProperty(isAttribute = true, localName = "ref")
     private String name;
@@ -41,7 +39,7 @@ public class StructuredDataOR implements ORRootInf<StructuredDataORPage> {
 
     @JacksonXmlProperty(isAttribute = true)
     private ORScope scope = ORScope.PROJECT;
-    
+
     @JacksonXmlElementWrapper(localName = "projects")
     @JacksonXmlProperty(localName = "project")
     private List<String> projects = new ArrayList<>();
@@ -72,7 +70,7 @@ public class StructuredDataOR implements ORRootInf<StructuredDataORPage> {
         this.name = name;
     }
 
-    @Override 
+    @Override
     public List<StructuredDataORPage> getPages() {
         return pages;
     }
@@ -135,7 +133,7 @@ public class StructuredDataOR implements ORRootInf<StructuredDataORPage> {
             pages.add(page);
             // Structured Data OR uses YAML format - no folder creation needed
             setSaved(false);
-            
+
             // Auto-save for YAML format
             if (objectRepository != null && objectRepository.isUsingYamlFormat()) {
                 objectRepository.saveStructuredDataPageNow(page);
@@ -176,8 +174,7 @@ public class StructuredDataOR implements ORRootInf<StructuredDataORPage> {
     @JsonIgnore
     @Override
     public int getChildCount() {
-        return pages == null ? 0
-                : pages.size();
+        return pages == null ? 0 : pages.size();
     }
 
     @JsonIgnore
@@ -230,7 +227,7 @@ public class StructuredDataOR implements ORRootInf<StructuredDataORPage> {
     @JsonIgnore
     @Override
     public TreeNode[] getPath() {
-        return new TreeNode[]{this};
+        return new TreeNode[] { this };
     }
 
     @JsonIgnore
@@ -244,25 +241,26 @@ public class StructuredDataOR implements ORRootInf<StructuredDataORPage> {
     public void sort() {
         ORUtils.sort(this);
     }
-    
-    public enum ORScope { 
-        PROJECT, SHARED 
+
+    public enum ORScope {
+        PROJECT,
+        SHARED
     }
 
     @JsonIgnore
-    public ORScope getScope() { 
-        return scope; 
+    public ORScope getScope() {
+        return scope;
     }
-    
-    public void setScope(ORScope scope) { 
-        this.scope = scope; 
+
+    public void setScope(ORScope scope) {
+        this.scope = scope;
     }
 
     @JsonIgnore
-    public boolean isShared() { 
-        return scope == ORScope.SHARED; 
+    public boolean isShared() {
+        return scope == ORScope.SHARED;
     }
-    
+
     public List<String> getSharedProjects() {
         return isShared() ? projects : Collections.emptyList();
     }

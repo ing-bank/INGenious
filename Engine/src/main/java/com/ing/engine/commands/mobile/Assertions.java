@@ -1,14 +1,15 @@
 package com.ing.engine.commands.mobile;
 
 import com.ing.engine.core.CommandControl;
+import com.ing.ingenious.api.annotation.Action;
 import com.ing.ingenious.api.exception.ForcedException;
 import com.ing.ingenious.api.status.Status;
-import com.ing.ingenious.api.annotation.Action;
 import com.ing.ingenious.api.types.InputType;
 import com.ing.ingenious.api.types.ObjectType;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.openqa.selenium.By;
+
 //import org.openqa.selenium.JavascriptExecutor;
 
 public class Assertions extends MobileGeneral {
@@ -22,26 +23,25 @@ public class Assertions extends MobileGeneral {
      * Function to assert if a given Text is Present in the WebPage
      * ******************************************
      */
-    @Action(object = ObjectType.MOBILE,
-            desc = "Assert if text: [<Data>] is present on the page",
-            input = InputType.YES)
+    @Action(
+        object = ObjectType.MOBILE,
+        desc = "Assert if text: [<Data>] is present on the page",
+        input = InputType.YES
+    )
     public void assertTextPresentInPage() throws RuntimeException {
-
         try {
             String strObj = Data;
-            if (mDriver.findElement(By.tagName("html")).getText()
-                    .contains(strObj)) {
+            if (mDriver.findElement(By.tagName("html")).getText().contains(strObj)) {
                 System.out.println("assertTextPresent passed");
-                Report.updateTestLog("assertTextPresentInPage",
-                        "Expected text '" + strObj
-                        + "' is  present in the page", Status.PASS);
-
+                Report.updateTestLog(
+                    "assertTextPresentInPage",
+                    "Expected text '" + strObj + "' is  present in the page",
+                    Status.PASS
+                );
             } else {
                 System.out.println("assertTextPresentInPage failed");
-                throw new Exception("Expected text  '" + strObj
-                        + "' is not present in the page");
+                throw new Exception("Expected text  '" + strObj + "' is not present in the page");
             }
-
         } catch (Exception e) {
             Logger.getLogger(this.getClass().getName()).log(Level.OFF, null, e);
             throw new ForcedException("assertTextPresentInPage", e.getMessage());
@@ -54,18 +54,23 @@ public class Assertions extends MobileGeneral {
      *
      * ******************************************
      */
-    @Action(object = ObjectType.MOBILE, desc = "Assert if cookie name: [<Data>] is present", input = InputType.YES)
+    @Action(
+        object = ObjectType.MOBILE,
+        desc = "Assert if cookie name: [<Data>] is present",
+        input = InputType.YES
+    )
     public void assertCookiePresent() {
         try {
             String strCookieName = Data;
             if ((mDriver.manage().getCookieNamed(strCookieName) != null)) {
                 System.out.println("assertCookiePresent Passed");
-                Report.updateTestLog("assertCookiePresent",
-                        "Cookie name matched with the data provided",
-                        Status.PASS);
+                Report.updateTestLog(
+                    "assertCookiePresent",
+                    "Cookie name matched with the data provided",
+                    Status.PASS
+                );
             } else {
-                throw new Exception(
-                        "Cookie name did not match with data provided");
+                throw new Exception("Cookie name did not match with data provided");
             }
         } catch (Exception ex) {
             System.out.println("assertCookiePresent Failed");
@@ -79,27 +84,36 @@ public class Assertions extends MobileGeneral {
      * Function to assert cookies by name
      * ******************************************
      */
-    @Action(object = ObjectType.MOBILE, desc = "Assert if cookie: [<Object>] has name: [<Data>]", input = InputType.YES)
+    @Action(
+        object = ObjectType.MOBILE,
+        desc = "Assert if cookie: [<Object>] has name: [<Data>]",
+        input = InputType.YES
+    )
     public void assertCookieByName() {
         try {
-
             String strCookieName = Data.split(":", 2)[0];
             String strCookieValue = Data.split(":", 2)[1];
             if (mDriver.manage().getCookieNamed(strCookieName) != null) {
-                if ((mDriver.manage().getCookieNamed(strCookieName).getValue()
-                        .equals(strCookieValue))) {
+                if (
+                    (
+                        mDriver
+                            .manage()
+                            .getCookieNamed(strCookieName)
+                            .getValue()
+                            .equals(strCookieValue)
+                    )
+                ) {
                     System.out.println("assertCookieByName Passed");
-                    Report.updateTestLog("assertCookieByName",
-                            "Cookie name matched with provided data",
-                            Status.PASS);
-
+                    Report.updateTestLog(
+                        "assertCookieByName",
+                        "Cookie name matched with provided data",
+                        Status.PASS
+                    );
                 } else {
-                    throw new Exception(
-                            "Cookie value did not match with provided data");
+                    throw new Exception("Cookie value did not match with provided data");
                 }
             } else {
-                throw new Exception("Cookie  with the name '" + strCookieName
-                        + "' did not exist");
+                throw new Exception("Cookie  with the name '" + strCookieName + "' did not exist");
             }
         } catch (Exception ex) {
             System.out.println("assertCookieByName Failed");
@@ -107,7 +121,6 @@ public class Assertions extends MobileGeneral {
             throw new ForcedException("assertCookieByName", ex.getMessage());
         }
     }
-
     /*
      @Action(object = ObjectType.MOBILE,desc = "Assert if the evaluated javascript expression equals [<Data>]",
             input = InputType.YES)

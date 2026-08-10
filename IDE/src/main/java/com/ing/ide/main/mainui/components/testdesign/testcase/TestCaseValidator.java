@@ -1,4 +1,3 @@
-
 package com.ing.ide.main.mainui.components.testdesign.testcase;
 
 import com.ing.datalib.component.TestStep;
@@ -12,7 +11,6 @@ import javax.swing.JTable;
 import javax.swing.SwingUtilities;
 
 public class TestCaseValidator {
-
     StepRenderer stepRenderer;
     ObjectRenderer objectRenderer;
     ReferenceRenderer referenceRenderer;
@@ -42,33 +40,57 @@ public class TestCaseValidator {
     }
 
     private void setValidations() {
-        testCaseTable.getColumnModel().getColumn(TestStep.HEADERS.Step.getIndex())
-                .setCellRenderer(stepRenderer);
-        testCaseTable.getColumnModel().getColumn(TestStep.HEADERS.ObjectName.getIndex())
-                .setCellRenderer(objectRenderer);
-        testCaseTable.getColumnModel().getColumn(TestStep.HEADERS.Reference.getIndex())
-                .setCellRenderer(referenceRenderer);
-        testCaseTable.getColumnModel().getColumn(TestStep.HEADERS.Action.getIndex())
-                .setCellRenderer(actionRenderer);
-        testCaseTable.getColumnModel().getColumn(TestStep.HEADERS.Input.getIndex())
-                .setCellRenderer(inputRenderer);
-        testCaseTable.getColumnModel().getColumn(TestStep.HEADERS.Condition.getIndex())
-                .setCellRenderer(conditionRenderer);
+        testCaseTable
+            .getColumnModel()
+            .getColumn(TestStep.HEADERS.Step.getIndex())
+            .setCellRenderer(stepRenderer);
+        testCaseTable
+            .getColumnModel()
+            .getColumn(TestStep.HEADERS.ObjectName.getIndex())
+            .setCellRenderer(objectRenderer);
+        testCaseTable
+            .getColumnModel()
+            .getColumn(TestStep.HEADERS.Reference.getIndex())
+            .setCellRenderer(referenceRenderer);
+        testCaseTable
+            .getColumnModel()
+            .getColumn(TestStep.HEADERS.Action.getIndex())
+            .setCellRenderer(actionRenderer);
+        testCaseTable
+            .getColumnModel()
+            .getColumn(TestStep.HEADERS.Input.getIndex())
+            .setCellRenderer(inputRenderer);
+        testCaseTable
+            .getColumnModel()
+            .getColumn(TestStep.HEADERS.Condition.getIndex())
+            .setCellRenderer(conditionRenderer);
     }
 
     private void removeValidations() {
-        testCaseTable.getColumnModel().getColumn(TestStep.HEADERS.Step.getIndex())
-                .setCellRenderer(null);
-        testCaseTable.getColumnModel().getColumn(TestStep.HEADERS.ObjectName.getIndex())
-                .setCellRenderer(null);
-        testCaseTable.getColumnModel().getColumn(TestStep.HEADERS.Reference.getIndex())
-                .setCellRenderer(null);
-        testCaseTable.getColumnModel().getColumn(TestStep.HEADERS.Action.getIndex())
-                .setCellRenderer(null);
-        testCaseTable.getColumnModel().getColumn(TestStep.HEADERS.Input.getIndex())
-                .setCellRenderer(null);
-        testCaseTable.getColumnModel().getColumn(TestStep.HEADERS.Condition.getIndex())
-                .setCellRenderer(null);
+        testCaseTable
+            .getColumnModel()
+            .getColumn(TestStep.HEADERS.Step.getIndex())
+            .setCellRenderer(null);
+        testCaseTable
+            .getColumnModel()
+            .getColumn(TestStep.HEADERS.ObjectName.getIndex())
+            .setCellRenderer(null);
+        testCaseTable
+            .getColumnModel()
+            .getColumn(TestStep.HEADERS.Reference.getIndex())
+            .setCellRenderer(null);
+        testCaseTable
+            .getColumnModel()
+            .getColumn(TestStep.HEADERS.Action.getIndex())
+            .setCellRenderer(null);
+        testCaseTable
+            .getColumnModel()
+            .getColumn(TestStep.HEADERS.Input.getIndex())
+            .setCellRenderer(null);
+        testCaseTable
+            .getColumnModel()
+            .getColumn(TestStep.HEADERS.Condition.getIndex())
+            .setCellRenderer(null);
     }
 
     public final void enableValidation() {
@@ -87,17 +109,19 @@ public class TestCaseValidator {
     }
 
     private void validate() {
-        SwingUtilities.invokeLater(new Runnable() {
-            @Override
-            public void run() {
-                if (validate) {
-                    setValidations();
-                } else {
-                    removeValidations();
-                }
-                testCaseTable.repaint();
-            }
-        });
-    }
+        SwingUtilities.invokeLater(
+            new Runnable() {
 
+                @Override
+                public void run() {
+                    if (validate) {
+                        setValidations();
+                    } else {
+                        removeValidations();
+                    }
+                    testCaseTable.repaint();
+                }
+            }
+        );
+    }
 }

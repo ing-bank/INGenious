@@ -1,4 +1,3 @@
-
 package com.ing.ide.main.shr.mobile;
 
 import com.ing.ide.main.shr.mobile.android.AndroidTreeNode;

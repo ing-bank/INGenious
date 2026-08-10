@@ -8,7 +8,6 @@ import com.ing.engine.reporting.sync.Sync;
 import com.ing.engine.reporting.sync.Unknown;
 import com.ing.engine.reporting.sync.azure.AzureSync;
 import com.ing.util.encryption.Encryption;
-
 import org.mockito.MockedStatic;
 import org.testng.annotations.Test;
 

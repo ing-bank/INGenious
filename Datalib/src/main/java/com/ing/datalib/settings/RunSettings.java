@@ -1,4 +1,3 @@
-
 package com.ing.datalib.settings;
 
 /**
@@ -70,7 +69,7 @@ public class RunSettings extends AbstractPropSettings {
     public Boolean isPerformanceLogEnabled() {
         return Boolean.valueOf(getProperty("reportPerformanceLog", "false"));
     }
-    
+
     public void setVideoEnabled(Boolean value) {
         setProperty("recordVideo", String.valueOf(value));
     }
@@ -78,11 +77,11 @@ public class RunSettings extends AbstractPropSettings {
     public Boolean isVideoEnabled() {
         return Boolean.valueOf(getProperty("recordVideo", "false"));
     }
-    
+
     public void setTracingEnabled(Boolean value) {
         setProperty("enableTracing", String.valueOf(value));
     }
-    
+
     public Boolean isTracingEnabled() {
         return Boolean.valueOf(getProperty("enableTracing", "false"));
     }
@@ -94,8 +93,7 @@ public class RunSettings extends AbstractPropSettings {
     public Boolean isHARrecordingEnabled() {
         return Boolean.valueOf(getProperty("enableHAR", "false"));
     }
-    
-    
+
     public void setBddReport(Boolean value) {
         setProperty("bddReport", String.valueOf(value));
     }
@@ -151,7 +149,7 @@ public class RunSettings extends AbstractPropSettings {
     public void setExcelReport(Boolean value) {
         setProperty("excelReport", String.valueOf(value));
     }
-    
+
     public Boolean isRPUpdate() {
         return Boolean.valueOf(getProperty("ReportPortal", "false"));
     }
@@ -159,19 +157,19 @@ public class RunSettings extends AbstractPropSettings {
     public void setRPUpdate(Boolean value) {
         setProperty("ReportPortal", String.valueOf(value));
     }
-    
+
     public Boolean isAutoHealEnabled() {
         return Boolean.valueOf(getProperty("AutoHealMode", "false"));
     }
-    
+
     public void setAutoHealMode(Boolean value) {
         setProperty("AutoHealMode", String.valueOf(value));
     }
-    
+
     public Boolean isExtentReport() {
         return Boolean.valueOf(getProperty("ExtentReport", "false"));
     }
-    
+
     public Boolean isAzureEnabled() {
         return Boolean.valueOf(getProperty("AzureReport", "false"));
     }
@@ -179,19 +177,19 @@ public class RunSettings extends AbstractPropSettings {
     public void setExtentReport(Boolean value) {
         setProperty("ExtentReport", String.valueOf(value));
     }
-    
+
     public void setAzureReport(Boolean value) {
         setProperty("AzureReport", String.valueOf(value));
     }
-    
-    public Boolean isSendNotification(){
+
+    public Boolean isSendNotification() {
         return Boolean.valueOf(getProperty("slacknotify", "false"));
     }
-    
+
     public void setSlackNotification(Boolean value) {
         setProperty("slacknotify", String.valueOf(value));
     }
-    
+
     /**
      * Check if modern HTML report (v2) is enabled
      * Uses Alpine.js, Tailwind CSS, Chart.js instead of legacy AngularJS/Bootstrap
@@ -200,7 +198,7 @@ public class RunSettings extends AbstractPropSettings {
     public Boolean isModernReport() {
         return Boolean.valueOf(getProperty("ModernReport", "true"));
     }
-    
+
     /**
      * Enable or disable modern HTML report style
      * @param value true to use modern v2 templates, false for classic templates

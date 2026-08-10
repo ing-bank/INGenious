@@ -1,4 +1,3 @@
-
 package com.ing.engine.reporting.util;
 
 import java.text.SimpleDateFormat;
@@ -6,7 +5,6 @@ import java.util.*;
 import java.util.concurrent.TimeUnit;
 
 public class DateTimeUtils {
-
     private static final String DATE_FORMAT_NOW = "dd-MMM-yyyy";
 
     private static final String TIME_FORMAT_NOW = "HH:mm:ss.SSS";
@@ -26,7 +24,6 @@ public class DateTimeUtils {
         SimpleDateFormat sdf = new SimpleDateFormat(TIME_FORMAT_NOW);
         return sdf.format(cal.getTime());
     }
-   
 
     public static String DateNow() {
         Calendar cal = Calendar.getInstance();
@@ -60,13 +57,13 @@ public class DateTimeUtils {
     }
 
     public static String parseTime(long milliseconds) {
-        return String.format(FORMAT,
-                TimeUnit.MILLISECONDS.toHours(milliseconds),
-                TimeUnit.MILLISECONDS.toMinutes(milliseconds) - TimeUnit.HOURS.toMinutes(
-                        TimeUnit.MILLISECONDS.toHours(milliseconds)),
-                TimeUnit.MILLISECONDS.toSeconds(milliseconds) - TimeUnit.MINUTES.toSeconds(
-                        TimeUnit.MILLISECONDS.toMinutes(milliseconds)));
+        return String.format(
+            FORMAT,
+            TimeUnit.MILLISECONDS.toHours(milliseconds),
+            TimeUnit.MILLISECONDS.toMinutes(milliseconds) -
+            TimeUnit.HOURS.toMinutes(TimeUnit.MILLISECONDS.toHours(milliseconds)),
+            TimeUnit.MILLISECONDS.toSeconds(milliseconds) -
+            TimeUnit.MINUTES.toSeconds(TimeUnit.MILLISECONDS.toMinutes(milliseconds))
+        );
     }
-
-
 }

@@ -1,19 +1,18 @@
 package com.ing.ide.main.fx;
 
-import javafx.application.Platform;
-import javafx.scene.Parent;
-import javafx.scene.Scene;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javafx.application.Platform;
+import javafx.scene.Parent;
+import javafx.scene.Scene;
 
 /**
  * Manages the JavaFX CSS theme for the application.
  * Handles light/dark mode toggling across all registered scenes.
  */
 public class FXTheme {
-
     private static final Logger LOG = Logger.getLogger(FXTheme.class.getName());
     private static final List<Scene> scenes = new ArrayList<>();
     private static boolean isDark = false;

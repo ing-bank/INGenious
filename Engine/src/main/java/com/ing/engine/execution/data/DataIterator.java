@@ -1,4 +1,3 @@
-
 package com.ing.engine.execution.data;
 
 import java.util.HashMap;
@@ -7,10 +6,9 @@ import java.util.Set;
 
 /**
  *
- * 
+ *
  */
 public class DataIterator {
-
     private final Map<String, Integer> dataIter;
     private int maxIter = -1;
 
@@ -34,7 +32,6 @@ public class DataIterator {
     public Integer getMaxIter() {
         return Math.max(1, maxIter);
     }
-
 
     @Override
     public String toString() {

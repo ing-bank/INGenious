@@ -1,6 +1,7 @@
 package com.ing.datalib.settings;
 
 import static org.assertj.core.api.Assertions.assertThat;
+
 import com.ing.datalib.settings.emulators.Emulator;
 import java.io.File;
 import java.io.IOException;
@@ -16,7 +17,6 @@ import org.testng.annotations.Test;
  * Tests for Emulators — JSON-based emulator configuration management.
  */
 public class EmulatorsTest {
-
     private Path tempDir;
 
     @BeforeMethod
@@ -26,10 +26,11 @@ public class EmulatorsTest {
 
     @AfterMethod
     public void tearDown() throws IOException {
-        Files.walk(tempDir)
-                .sorted(Comparator.reverseOrder())
-                .map(Path::toFile)
-                .forEach(File::delete);
+        Files
+            .walk(tempDir)
+            .sorted(Comparator.reverseOrder())
+            .map(Path::toFile)
+            .forEach(File::delete);
     }
 
     @Test
@@ -167,7 +168,8 @@ public class EmulatorsTest {
     @Test
     public void testGetLocation() {
         Emulators em = new Emulators(tempDir.toString());
-        assertThat(em.getLocation()).isEqualTo(tempDir.toString() + File.separator + "Emulators.json");
+        assertThat(em.getLocation())
+            .isEqualTo(tempDir.toString() + File.separator + "Emulators.json");
     }
 
     @Test

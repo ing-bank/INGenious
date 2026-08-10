@@ -8,37 +8,52 @@ import javax.swing.JOptionPane;
  * Provides convenience methods that match JOptionPane signatures for easy migration.
  */
 public class StyledDialogs {
-    
+
     /**
      * Show a confirmation dialog (Yes/No).
      * Drop-in replacement for JOptionPane.showConfirmDialog.
      */
-    public static int showConfirmDialog(Component parent, String message, String title, 
-                                       int optionType, int messageType) {
+    public static int showConfirmDialog(
+        Component parent,
+        String message,
+        String title,
+        int optionType,
+        int messageType
+    ) {
         int dialogType = convertMessageType(messageType);
         int result = StyledConfirmDialog.showYesNo(parent, message, title, dialogType);
         return result; // Returns YES_OPTION, NO_OPTION, or CANCEL_OPTION
     }
-    
+
     /**
      * Show a confirmation dialog (Yes/No) with default title.
      */
     public static int showConfirmDialog(Component parent, String message) {
-        return showConfirmDialog(parent, message, "Confirm", 
-                               JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
+        return showConfirmDialog(
+            parent,
+            message,
+            "Confirm",
+            JOptionPane.YES_NO_OPTION,
+            JOptionPane.QUESTION_MESSAGE
+        );
     }
-    
+
     /**
      * Show a message dialog (OK only) - uses toast notification instead.
      */
     public static void showMessageDialog(Component parent, String message) {
         Notification.show(parent, message);
     }
-    
+
     /**
      * Show a message dialog with title - uses toast notification instead.
      */
-    public static void showMessageDialog(Component parent, String message, String title, int messageType) {
+    public static void showMessageDialog(
+        Component parent,
+        String message,
+        String title,
+        int messageType
+    ) {
         // Use appropriate notification type based on message type
         switch (messageType) {
             case JOptionPane.ERROR_MESSAGE:
@@ -54,32 +69,50 @@ public class StyledDialogs {
                 Notification.show(parent, message);
         }
     }
-    
+
     /**
      * Show an input dialog.
      * Note: This still uses JOptionPane as it requires text input.
      */
-    public static String showInputDialog(Component parent, String message, String title, int messageType) {
+    public static String showInputDialog(
+        Component parent,
+        String message,
+        String title,
+        int messageType
+    ) {
         return JOptionPane.showInputDialog(parent, message, title, messageType);
     }
-    
+
     /**
      * Show an input dialog.
      */
     public static String showInputDialog(Component parent, String message) {
         return JOptionPane.showInputDialog(parent, message);
     }
-    
+
     /**
      * Show an input dialog with options (dropdown).
      */
-    public static Object showInputDialog(Component parent, String message, String title, 
-                                        int messageType, Object icon, Object[] options, 
-                                        Object initialValue) {
-        return JOptionPane.showInputDialog(parent, message, title, messageType, 
-                                          (javax.swing.Icon) icon, options, initialValue);
+    public static Object showInputDialog(
+        Component parent,
+        String message,
+        String title,
+        int messageType,
+        Object icon,
+        Object[] options,
+        Object initialValue
+    ) {
+        return JOptionPane.showInputDialog(
+            parent,
+            message,
+            title,
+            messageType,
+            (javax.swing.Icon) icon,
+            options,
+            initialValue
+        );
     }
-    
+
     /**
      * Convert JOptionPane message type to StyledConfirmDialog type.
      */
@@ -96,7 +129,7 @@ public class StyledDialogs {
                 return StyledConfirmDialog.CONFIRM;
         }
     }
-    
+
     // JOptionPane constants for compatibility
     public static final int YES_OPTION = JOptionPane.YES_OPTION;
     public static final int NO_OPTION = JOptionPane.NO_OPTION;

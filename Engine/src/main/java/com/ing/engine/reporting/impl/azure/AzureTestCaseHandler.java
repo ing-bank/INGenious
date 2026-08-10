@@ -1,25 +1,5 @@
 package com.ing.engine.reporting.impl.azure;
 
-import java.io.File;
-import java.io.IOException;
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Stack;
-import java.util.TimeZone;
-import java.util.UUID;
-
-import org.apache.http.client.ClientProtocolException;
-import org.apache.http.client.HttpClient;
-
-import org.apache.http.impl.client.HttpClientBuilder;
-import org.json.simple.JSONArray;
-import org.json.simple.JSONObject;
-import org.json.simple.parser.ParseException;
-
 import com.ing.engine.constants.AppResourcePath;
 import com.ing.engine.constants.FilePath;
 import com.ing.engine.core.Control;
@@ -36,12 +16,28 @@ import com.ing.engine.reporting.util.RDS;
 import com.ing.engine.reporting.util.RDS.TestCase;
 import com.ing.engine.reporting.util.ReportUtils;
 import com.ing.ingenious.api.status.Status;
+import java.io.File;
+import java.io.IOException;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Stack;
+import java.util.TimeZone;
+import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.apache.http.client.ClientProtocolException;
+import org.apache.http.client.HttpClient;
+import org.apache.http.impl.client.HttpClientBuilder;
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
+import org.json.simple.parser.ParseException;
 
-@SuppressWarnings({"unchecked"})
+@SuppressWarnings({ "unchecked" })
 public class AzureTestCaseHandler extends TestCaseHandler implements PrimaryHandler {
-
     private static final Logger LOGGER = Logger.getLogger(AzureTestCaseHandler.class.getName());
 
     JSONObject testCaseData = new JSONObject();
@@ -82,8 +78,15 @@ public class AzureTestCaseHandler extends TestCaseHandler implements PrimaryHand
 
     public boolean isAzureEnabled() {
         if (!RunManager.getGlobalSettings().isTestRun()) {
-            return Control.getCurrentProject().getProjectSettings()
-                    .getExecSettings(RunManager.getGlobalSettings().getRelease(), RunManager.getGlobalSettings().getTestSet()).getRunSettings().isAzureEnabled();
+            return Control
+                .getCurrentProject()
+                .getProjectSettings()
+                .getExecSettings(
+                    RunManager.getGlobalSettings().getRelease(),
+                    RunManager.getGlobalSettings().getTestSet()
+                )
+                .getRunSettings()
+                .isAzureEnabled();
         }
         return false;
     }
@@ -91,11 +94,26 @@ public class AzureTestCaseHandler extends TestCaseHandler implements PrimaryHand
     @Override
     public void setPlaywrightDriver(PlaywrightDriverCreation driver) {
         testCaseData.put(TestCase.B_VERSION, getPlaywrightDriver().getBrowserVersion());
-        platform = System.getProperty("os.name") + " " + System.getProperty("os.version") + " " + System.getProperty("os.arch");
+        platform =
+            System.getProperty("os.name") +
+            " " +
+            System.getProperty("os.version") +
+            " " +
+            System.getProperty("os.arch");
         browserName = getPlaywrightDriver().getCurrentBrowser();
         testCaseData.put(TestCase.BROWSER, getPlaywrightDriver().getCurrentBrowser());
-        testCaseData.put("browserTypeLabel", resolveBrowserTypeLabel(driver != null ? driver.getRunContext() : null, false));
-        testCaseData.put(TestCase.PLATFORM, System.getProperty("os.name")+ " " +System.getProperty("os.version")+ " " +System.getProperty("os.arch"));
+        testCaseData.put(
+            "browserTypeLabel",
+            resolveBrowserTypeLabel(driver != null ? driver.getRunContext() : null, false)
+        );
+        testCaseData.put(
+            TestCase.PLATFORM,
+            System.getProperty("os.name") +
+            " " +
+            System.getProperty("os.version") +
+            " " +
+            System.getProperty("os.arch")
+        );
     }
 
     @Override
@@ -104,7 +122,13 @@ public class AzureTestCaseHandler extends TestCaseHandler implements PrimaryHand
         platform = getWebDriver().getPlatform();
         browserName = getWebDriver().getCurrentBrowser();
         testCaseData.put(TestCase.BROWSER, getWebDriver().getCurrentBrowser());
-        testCaseData.put("browserTypeLabel", resolveBrowserTypeLabel(driver != null ? driver.getRunContext() : null, driver != null && driver.isMobileExecution()));
+        testCaseData.put(
+            "browserTypeLabel",
+            resolveBrowserTypeLabel(
+                driver != null ? driver.getRunContext() : null,
+                driver != null && driver.isMobileExecution()
+            )
+        );
         testCaseData.put(TestCase.PLATFORM, getWebDriver().getPlatform());
     }
 
@@ -118,11 +142,17 @@ public class AzureTestCaseHandler extends TestCaseHandler implements PrimaryHand
         try {
             if (runContext != null) {
                 String browserName = runContext.BrowserName;
-                if (isMobile || "Android".equalsIgnoreCase(browserName) || "iOS".equalsIgnoreCase(browserName)) {
+                if (
+                    isMobile ||
+                    "Android".equalsIgnoreCase(browserName) ||
+                    "iOS".equalsIgnoreCase(browserName)
+                ) {
                     return "Device";
-                } else if ("Chromium".equalsIgnoreCase(browserName) ||
-                        "WebKit".equalsIgnoreCase(browserName) ||
-                        "Firefox".equalsIgnoreCase(browserName)) {
+                } else if (
+                    "Chromium".equalsIgnoreCase(browserName) ||
+                    "WebKit".equalsIgnoreCase(browserName) ||
+                    "Firefox".equalsIgnoreCase(browserName)
+                ) {
                     return "Browser";
                 } else {
                     return "Browser/Device";
@@ -133,7 +163,7 @@ public class AzureTestCaseHandler extends TestCaseHandler implements PrimaryHand
         }
         return "Browser/Device";
     }
-    
+
     @Override
     public void setSapSession(com.ing.engine.drivers.SAPSessionCreation session) {
         if (session != null) {
@@ -175,13 +205,17 @@ public class AzureTestCaseHandler extends TestCaseHandler implements PrimaryHand
     }
 
     @Override
-    public void updateTestLog(String stepName, String stepDescription, Status state, String link, List<String> links) {
-
+    public void updateTestLog(
+        String stepName,
+        String stepDescription,
+        Status state,
+        String link,
+        List<String> links
+    ) {
         String time = DateTimeUtils.DateTimeNow();
         String stepData = "";
         JSONObject step;
         try {
-
             step = RDS.getNewStep(getStep().Description);
             JSONObject data = (JSONObject) step.get(RDS.Step.DATA);
             data.put(RDS.Step.Data.STEP_NO, getStepCount());
@@ -190,7 +224,8 @@ public class AzureTestCaseHandler extends TestCaseHandler implements PrimaryHand
             data.put(RDS.Step.Data.DESCRIPTION, ReportUtils.resolveDesc(stepDescription));
             data.put(RDS.Step.Data.TIME_STAMP, time);
             data.put(RDS.Step.Data.STATUS, state.toString());
-            stepData = String.format("[%s]   | %s", state, ReportUtils.resolveDesc(stepDescription));
+            stepData =
+                String.format("[%s]   | %s", state, ReportUtils.resolveDesc(stepDescription));
 
             stepData = stepData.replaceAll("\"", "--");
             stepData = stepData.replaceAll("\\r\\n|\\r|\\n", "");
@@ -207,14 +242,16 @@ public class AzureTestCaseHandler extends TestCaseHandler implements PrimaryHand
                 filename = AppResourcePath.getCurrentResultsPath() + data.get(RDS.Step.Data.LINK);
             }
 
-            String payloadfiles = testCaseData.get(TestCase.SCENARIO_NAME)
-                    + "_"
-                    + testCaseData.get(TestCase.TESTCASE_NAME)
-                    + "_Step-"
-                    + getStepCount()
-                    + "_";
+            String payloadfiles =
+                testCaseData.get(TestCase.SCENARIO_NAME) +
+                "_" +
+                testCaseData.get(TestCase.TESTCASE_NAME) +
+                "_Step-" +
+                getStepCount() +
+                "_";
 
-            String linkPath = AppResourcePath.getCurrentResultsPath() + link + File.separator + payloadfiles;
+            String linkPath =
+                AppResourcePath.getCurrentResultsPath() + link + File.separator + payloadfiles;
 
             if (linkPath.contains("webservice")) {
                 data.put(RDS.Step.Data.LINK, linkPath);
@@ -222,7 +259,6 @@ public class AzureTestCaseHandler extends TestCaseHandler implements PrimaryHand
 
             if (isAzureEnabled()) {
                 try {
-
                     createLogNodes(stepData, state.toString(), filename);
                 } catch (IOException | ParseException e) {
                     LOGGER.log(Level.SEVERE, e.getMessage(), e);
@@ -274,8 +310,8 @@ public class AzureTestCaseHandler extends TestCaseHandler implements PrimaryHand
         }
 
         /*
-		 * remove the reusable from the stack then fall back to iteration if stack is
-		 * empty else update the outer reusable status.
+         * remove the reusable from the stack then fall back to iteration if stack is
+         * empty else update the outer reusable status.
          */
         reusableStack.pop();
         if (reusableStack.empty()) {
@@ -287,7 +323,6 @@ public class AzureTestCaseHandler extends TestCaseHandler implements PrimaryHand
             reusableStack.peek().put(TestCase.STATUS, reusable.get(TestCase.STATUS));
             reusable = reusableStack.peek();
         }
-
     }
 
     @Override
@@ -328,7 +363,12 @@ public class AzureTestCaseHandler extends TestCaseHandler implements PrimaryHand
         }
     }
 
-    private void putStatus(Status state, List<String> optional, String optionalLink, JSONObject data) {
+    private void putStatus(
+        Status state,
+        List<String> optional,
+        String optionalLink,
+        JSONObject data
+    ) {
         switch (state) {
             case DONE:
             case PASSNS:
@@ -344,11 +384,15 @@ public class AzureTestCaseHandler extends TestCaseHandler implements PrimaryHand
             case FAILNS:
                 onSetpFailed();
                 break;
-
         }
     }
 
-    private void takeScreenShot(Status status, List<String> optional, String optionalLink, JSONObject data) {
+    private void takeScreenShot(
+        Status status,
+        List<String> optional,
+        String optionalLink,
+        JSONObject data
+    ) {
         String imgSrc = getScreenShotName();
         switch (status) {
             case PASS:
@@ -375,7 +419,6 @@ public class AzureTestCaseHandler extends TestCaseHandler implements PrimaryHand
         if (status.equals(Status.PASS)) {
             onSetpPassed();
             return screenShotSettings().matches("(Pass|Both)");
-
         }
         return false;
     }
@@ -403,7 +446,6 @@ public class AzureTestCaseHandler extends TestCaseHandler implements PrimaryHand
                 data.put(RDS.Step.Data.LINK, imgSrc);
             }
         }
-
     }
 
     /**
@@ -415,31 +457,46 @@ public class AzureTestCaseHandler extends TestCaseHandler implements PrimaryHand
     @Override
     public Status finalizeReport() {
         updateResults();
-        String prefix = testCaseData.get(TestCase.SCENARIO_NAME) + "_" + testCaseData.get(TestCase.TESTCASE_NAME);
+        String prefix =
+            testCaseData.get(TestCase.SCENARIO_NAME) +
+            "_" +
+            testCaseData.get(TestCase.TESTCASE_NAME);
         File logsFolder = new File(FilePath.getCurrentTestCaseLogsLocation());
         String logPath = logsFolder.getAbsolutePath() + File.separator + prefix + ".txt";
         attachments += "<attachment><filePath>" + logPath + "</filePath></attachment>" + "\n";
 
         File videoFolder = new File(FilePath.getCurrentTestCaseVideosLocation());
         if (videoFolder.exists()) {
-            File testCaseVideo = new File(FilePath.getCurrentTestCaseVideosLocation() + File.separator + prefix);
+            File testCaseVideo = new File(
+                FilePath.getCurrentTestCaseVideosLocation() + File.separator + prefix
+            );
             for (File fileEntry : testCaseVideo.listFiles()) {
-                this.attachments += "<attachment><filePath>" + fileEntry.getAbsolutePath() + "</filePath></attachment>" + "\n";
+                this.attachments +=
+                    "<attachment><filePath>" +
+                    fileEntry.getAbsolutePath() +
+                    "</filePath></attachment>" +
+                    "\n";
             }
         }
 
         String status = "";
         String noError = "This Test Case has no error. For details see the steps below:" + "\n";
         if (this.stacktraceData.isEmpty()) {
-            AzureReport.message = "<message><![CDATA[" + noError + this.messageCDATA + "]]></message>";
+            AzureReport.message =
+                "<message><![CDATA[" + noError + this.messageCDATA + "]]></message>";
         } else {
             AzureReport.message = "<message><![CDATA[" + this.messageCDATA + "]]></message>";
-            AzureReport.stacktrace = "<stack-trace><![CDATA[" + this.stacktraceData + "]]></stack-trace>";
+            AzureReport.stacktrace =
+                "<stack-trace><![CDATA[" + this.stacktraceData + "]]></stack-trace>";
         }
-        AzureReport.failures = "<failure>" + AzureReport.message + AzureReport.stacktrace + "</failure>";
+        AzureReport.failures =
+            "<failure>" + AzureReport.message + AzureReport.stacktrace + "</failure>";
         AzureReport.attachments = "<attachments>" + attachments + "</attachments>";
-        if (testCaseData.get(TestCase.STATUS).equals("PASS") || testCaseData.get(TestCase.STATUS).equals("DONE")
-                || testCaseData.get(TestCase.STATUS).equals("COMPLETE")) {
+        if (
+            testCaseData.get(TestCase.STATUS).equals("PASS") ||
+            testCaseData.get(TestCase.STATUS).equals("DONE") ||
+            testCaseData.get(TestCase.STATUS).equals("COMPLETE")
+        ) {
             status = "Passed";
             AzureReport.passed++;
         } else {
@@ -447,13 +504,23 @@ public class AzureTestCaseHandler extends TestCaseHandler implements PrimaryHand
             AzureReport.failed++;
         }
 
-        AzureReport.testcase += "<test-case id=\"" + getUUID() + "\" name=\"" + testCaseData.get(TestCase.TESTCASE_NAME)
-                + "\" fullname=\"" + testCaseData.get(TestCase.TESTCASE_NAME) + "\" result=\"" + status + "\" time=\""
-                + duration(testCaseData.get(TestCase.EXE_TIME).toString()) + "\">" + AzureReport.failures + AzureReport.attachments
-                + "</test-case>";
+        AzureReport.testcase +=
+            "<test-case id=\"" +
+            getUUID() +
+            "\" name=\"" +
+            testCaseData.get(TestCase.TESTCASE_NAME) +
+            "\" fullname=\"" +
+            testCaseData.get(TestCase.TESTCASE_NAME) +
+            "\" result=\"" +
+            status +
+            "\" time=\"" +
+            duration(testCaseData.get(TestCase.EXE_TIME).toString()) +
+            "\">" +
+            AzureReport.failures +
+            AzureReport.attachments +
+            "</test-case>";
         AzureReport.testsuite += AzureReport.testcase;
         return report.getCurrentStatus();
-
     }
 
     public String getUUID() {
@@ -475,9 +542,11 @@ public class AzureTestCaseHandler extends TestCaseHandler implements PrimaryHand
         testCaseData.put(TestCase.ITERATIONS, iterCounter);
         testCaseData.put(TestCase.NO_OF_TESTS, getStepCount());
         testCaseData.put(TestCase.NO_OF_FAIL_TESTS, String.valueOf(this.FailedSteps));
-        testCaseData.put(TestCase.NO_OF_PASS_TESTS, String.valueOf(this.DoneSteps + this.PassedSteps));
+        testCaseData.put(
+            TestCase.NO_OF_PASS_TESTS,
+            String.valueOf(this.DoneSteps + this.PassedSteps)
+        );
         testCaseData.put(TestCase.STATUS, getCurrentStatus().toString());
-
     }
 
     private DateTimeUtils startTime() {
@@ -513,36 +582,42 @@ public class AzureTestCaseHandler extends TestCaseHandler implements PrimaryHand
         this.stacktraceData = AzureReport.stacktraceData;
     }
 
-    public void createLogNodes(String stepdata, String status, String filepath) throws IOException, ParseException {
-        String prefix = testCaseData.get(TestCase.SCENARIO_NAME) + "_" + testCaseData.get(TestCase.TESTCASE_NAME);
+    public void createLogNodes(String stepdata, String status, String filepath)
+        throws IOException, ParseException {
+        String prefix =
+            testCaseData.get(TestCase.SCENARIO_NAME) +
+            "_" +
+            testCaseData.get(TestCase.TESTCASE_NAME);
         this.messageCDATA += "Step " + getStepCount() + ":   " + stepdata + "\n";
         if (filepath.equalsIgnoreCase("")) {
-
-            if (status.contains("PASS") || status.contains("DONE") || status.contains("COMPLETE")) {
-
-            } else {
+            if (
+                status.contains("PASS") || status.contains("DONE") || status.contains("COMPLETE")
+            ) {} else {
                 this.stacktraceData += "Step " + getStepCount() + ":   " + stepdata + "\n";
             }
-
         } else {
             File attachment = new File(new File(filepath).getCanonicalPath());
             if (attachment.isDirectory()) {
                 for (File fileEntry : attachment.listFiles()) {
                     if (fileEntry.getName().contains(prefix)) {
-                        this.attachments += "<attachment><filePath>" + fileEntry.getAbsolutePath() + "</filePath></attachment>" + "\n";
+                        this.attachments +=
+                            "<attachment><filePath>" +
+                            fileEntry.getAbsolutePath() +
+                            "</filePath></attachment>" +
+                            "\n";
                     }
                 }
             } else {
                 filepath = attachment.getAbsolutePath();
-                this.attachments += "<attachment><filePath>" + filepath + "</filePath></attachment>" + "\n";
+                this.attachments +=
+                    "<attachment><filePath>" + filepath + "</filePath></attachment>" + "\n";
             }
 
-            if (status.contains("PASS") || status.contains("DONE") || status.contains("COMPLETE")) {
-
-            } else {
+            if (
+                status.contains("PASS") || status.contains("DONE") || status.contains("COMPLETE")
+            ) {} else {
                 this.stacktraceData += "Step " + getStepCount() + ":   " + stepdata + "\n";
             }
         }
-
     }
 }

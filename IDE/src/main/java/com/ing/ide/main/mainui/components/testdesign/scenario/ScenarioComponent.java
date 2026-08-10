@@ -1,9 +1,10 @@
-
 package com.ing.ide.main.mainui.components.testdesign.scenario;
 
+import com.ing.datalib.component.ReusableRef;
 import com.ing.datalib.component.Scenario;
 import com.ing.datalib.component.TestCase;
 import com.ing.datalib.component.TestStep;
+import com.ing.ide.main.mainui.components.testdesign.ReusableComponentDialog;
 import com.ing.ide.main.mainui.components.testdesign.TestDesign;
 import com.ing.ide.main.utils.Utils;
 import com.ing.ide.main.utils.table.XTable;
@@ -25,10 +26,9 @@ import javax.swing.table.DefaultTableModel;
 
 /**
  *
- * 
+ *
  */
 public class ScenarioComponent extends JPanel implements ActionListener {
-
     private final TestDesign testDesign;
 
     private final ScenarioToolBar toolBar;
@@ -63,7 +63,7 @@ public class ScenarioComponent extends JPanel implements ActionListener {
         if (getCurrentScenario() != null) {
             getCurrentScenario().save();
         }
-        
+
         Scenario scenario = (Scenario) obj;
         getScenarioTable().setModel(new DefaultTableModel());
         getScenarioTable().setModel(testDesign.getProject().getTableModelFor(scenario));
@@ -75,7 +75,7 @@ public class ScenarioComponent extends JPanel implements ActionListener {
         toolBar.changeSave(false);
         for (TestCase testCase : getCurrentScenario().getTestcasesAlone()) {
             if (!testCase.isSaved()) {
-//                toolBar.changeSave(true);
+                //                toolBar.changeSave(true);
                 break;
             }
         }
@@ -83,7 +83,9 @@ public class ScenarioComponent extends JPanel implements ActionListener {
 
     public void refreshTitle() {
         if (getCurrentScenario() != null) {
-            toolBar.setPlaceHolderText(getCurrentScenario().getName());
+            toolBar.setPlaceHolderText(
+                getCurrentScenario().getName() + " (" + getCurrentScenario().getScopeLabel() + ")"
+            );
         }
     }
 
@@ -92,54 +94,74 @@ public class ScenarioComponent extends JPanel implements ActionListener {
     }
 
     private void initTableListeners() {
-        scenarioTable.setActionFor("Insert", new AbstractAction() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                insertComp();
+        scenarioTable.setActionFor(
+            "Insert",
+            new AbstractAction() {
+
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    insertComp();
+                }
             }
-        });
-        scenarioTable.setActionFor("Add", new AbstractAction() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                addComp();
+        );
+        scenarioTable.setActionFor(
+            "Add",
+            new AbstractAction() {
+
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    addComp();
+                }
             }
-        });
-        scenarioTable.setActionFor("Delete", new AbstractAction() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                removeComp();
+        );
+        scenarioTable.setActionFor(
+            "Delete",
+            new AbstractAction() {
+
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    removeComp();
+                }
             }
-        });
-        scenarioTable.setActionFor("Save", new AbstractAction() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                save();
+        );
+        scenarioTable.setActionFor(
+            "Save",
+            new AbstractAction() {
+
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    save();
+                }
             }
-        });
-        scenarioTable.setActionFor("Reload", new AbstractAction() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                reload();
+        );
+        scenarioTable.setActionFor(
+            "Reload",
+            new AbstractAction() {
+
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    reload();
+                }
             }
-        });
-     /*   scenarioTable.setActionFor("Search", new AbstractAction() {
+        );
+        /*   scenarioTable.setActionFor("Search", new AbstractAction() {
             @Override
             public void actionPerformed(ActionEvent e) {
                 toolBar.focusSearch();
             }
         });*/
         scenarioTable.setTransferHandler(new ScenarioDnD());
-        scenarioTable.addMouseListener(new MouseAdapter() {
+        scenarioTable.addMouseListener(
+            new MouseAdapter() {
 
-            @Override
-            public void mouseClicked(MouseEvent me) {
-                if (SwingUtilities.isLeftMouseButton(me) && me.isAltDown()) {
-                    goToSelectedReusable();
+                @Override
+                public void mouseClicked(MouseEvent me) {
+                    if (SwingUtilities.isLeftMouseButton(me) && me.isAltDown()) {
+                        goToSelectedReusable();
+                    }
                 }
             }
-
-        });
-
+        );
     }
 
     @Override
@@ -157,7 +179,7 @@ public class ScenarioComponent extends JPanel implements ActionListener {
             case "Reload":
                 reload();
                 break;
-          /*  case "Search":
+            /*  case "Search":
                 scenarioTable.searchFor(((JTextField) ae.getSource()).getText());
                 break;*/
             case "GoToNextSearch":
@@ -187,27 +209,76 @@ public class ScenarioComponent extends JPanel implements ActionListener {
                 TestStep tStep = testCase.getTestSteps().get(scenarioTable.getSelectedColumn() - 1);
                 String[] reusableData = tStep.getReusableData();
                 if (reusableData != null) {
-                    // Try reusable scenarios first, then fall back to regular scenarios
-                    Scenario scenario = testDesign.getProject().getReusableScenarioByName(reusableData[0]);
-                    if (scenario == null) {
-                        scenario = testDesign.getProject().getScenarioByName(reusableData[0]);
+                    ReusableRef ref;
+                    try {
+                        ref = tStep.getEffectiveReusableRef();
+                    } catch (IllegalArgumentException ex) {
+                        ref =
+                            new ReusableRef(
+                                ReusableRef.Scope.UNSCOPED,
+                                reusableData[0],
+                                reusableData[1]
+                            );
                     }
-                    
+                    if (ref == null) {
+                        ref =
+                            new ReusableRef(
+                                ReusableRef.Scope.UNSCOPED,
+                                reusableData[0],
+                                reusableData[1]
+                            );
+                    }
+
+                    Scenario scenario = null;
+                    if (ref.getScope() == ReusableRef.Scope.PROJECT) {
+                        scenario =
+                            testDesign
+                                .getProject()
+                                .getReusableScenarioByName(ref.getScenarioName());
+                    } else if (ref.getScope() == ReusableRef.Scope.SHARED) {
+                        scenario =
+                            testDesign
+                                .getProject()
+                                .getSharedReusableScenarioByName(ref.getScenarioName());
+                    } else {
+                        scenario =
+                            testDesign
+                                .getProject()
+                                .getReusableScenarioByName(ref.getScenarioName());
+                        if (scenario == null) {
+                            scenario =
+                                testDesign
+                                    .getProject()
+                                    .getSharedReusableScenarioByName(ref.getScenarioName());
+                        }
+                    }
+
                     if (scenario != null) {
-                        TestCase rtestCase = scenario.getTestCaseByName(reusableData[1]);
+                        TestCase rtestCase = scenario.getTestCaseByName(ref.getTestCaseName());
                         if (rtestCase != null) {
                             testDesign.loadTableModelForSelection(rtestCase);
                         } else {
-                            Notification.show("TestCase [" + reusableData[1]
-                                    + "] not present in the Scenario [" + reusableData[0] + "]");
+                            Notification.show(
+                                "TestCase [" +
+                                ref.getTestCaseName() +
+                                "] not present in the Scenario [" +
+                                ref.getScenarioName() +
+                                "]"
+                            );
                         }
                     } else {
-                        Notification.show("Scenario [" + reusableData[0]
-                                + "] not present in the project");
+                        Notification.show(
+                            "Scenario [" +
+                            ref.getScenarioName() +
+                            "] not present in selected reusable scope"
+                        );
                     }
                 } else {
                     testDesign.loadTableModelForSelection(testCase);
-                    testDesign.getTestCaseComp().getTestCaseTable().changeSelection(scenarioTable.getSelectedColumn() - 1, 3, false, false);
+                    testDesign
+                        .getTestCaseComp()
+                        .getTestCaseTable()
+                        .changeSelection(scenarioTable.getSelectedColumn() - 1, 3, false, false);
                 }
             } else {
                 testDesign.loadTableModelForSelection(testCase);
@@ -226,14 +297,51 @@ public class ScenarioComponent extends JPanel implements ActionListener {
                 if (to >= testCase.getRowCount()) {
                     to = testCase.getRowCount() - 1;
                 }
-                String name = JOptionPane.showInputDialog("Enter the Reusable Name");
-                if (name != null && !name.trim().isEmpty()) {
-                    TestCase reusable = testCase.createAsReusable(name, from, to);
+                ReusableComponentDialog.Result result = ReusableComponentDialog.prompt(
+                    this,
+                    testDesign.getProject()
+                );
+                if (result != null) {
+                    Scenario targetScenario;
+                    if (result.isSharedScope()) {
+                        targetScenario =
+                            testDesign
+                                .getProject()
+                                .getSharedReusableScenarioByName(result.getScenarioName());
+                        if (targetScenario == null) {
+                            targetScenario =
+                                testDesign
+                                    .getProject()
+                                    .addSharedReusableScenario(result.getScenarioName());
+                        }
+                    } else {
+                        targetScenario =
+                            testDesign
+                                .getProject()
+                                .getReusableScenarioByName(result.getScenarioName());
+                        if (targetScenario == null) {
+                            targetScenario =
+                                testDesign
+                                    .getProject()
+                                    .addReusableScenario(result.getScenarioName());
+                        }
+                    }
+                    TestCase reusable = testCase.createAsReusable(
+                        targetScenario,
+                        result.getReusableName(),
+                        from,
+                        to
+                    );
                     if (reusable != null) {
-                        testDesign.getReusableTree().getTreeModel().addTestCase(reusable);
+                        testCase.save();
+                        if (result.isSharedScope()) {
+                            testDesign.getSharedReusableTree().getTreeModel().addTestCase(reusable);
+                        } else {
+                            testDesign.getReusableTree().getTreeModel().addTestCase(reusable);
+                        }
                         getCurrentScenario().fireTableStructureChanged();
                     } else {
-                        Notification.show("Couldn't Create Reusable - " + name);
+                        Notification.show("Couldn't Create Reusable - " + result.getReusableName());
                     }
                 }
             }
@@ -242,9 +350,10 @@ public class ScenarioComponent extends JPanel implements ActionListener {
 
     private TestCase getSelectedTestCase() {
         if (scenarioTable.getSelectedRow() != -1) {
-            return getCurrentScenario().
-                    getTestCaseByName(scenarioTable.getValueAt(
-                            scenarioTable.getSelectedRow(), 0).toString());
+            return getCurrentScenario()
+                .getTestCaseByName(
+                    scenarioTable.getValueAt(scenarioTable.getSelectedRow(), 0).toString()
+                );
         }
         return null;
     }
@@ -322,5 +431,4 @@ public class ScenarioComponent extends JPanel implements ActionListener {
                 break;
         }
     }
-
 }

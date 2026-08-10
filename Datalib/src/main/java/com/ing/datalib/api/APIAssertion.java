@@ -8,7 +8,6 @@ import java.io.Serializable;
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class APIAssertion implements Serializable {
-
     private static final long serialVersionUID = 1L;
 
     /**
@@ -55,7 +54,7 @@ public class APIAssertion implements Serializable {
     private String id;
     private String name;
     private AssertionType type;
-    private String target;  // e.g., "$.user.id" for JSON_PATH, "Content-Type" for HEADER
+    private String target; // e.g., "$.user.id" for JSON_PATH, "Content-Type" for HEADER
     private Operator operator;
     private String expectedValue;
     private boolean enabled;
@@ -68,7 +67,12 @@ public class APIAssertion implements Serializable {
         this.enabled = true;
     }
 
-    public APIAssertion(AssertionType type, String target, Operator operator, String expectedValue) {
+    public APIAssertion(
+        AssertionType type,
+        String target,
+        Operator operator,
+        String expectedValue
+    ) {
         this();
         this.type = type;
         this.target = target;
@@ -111,6 +115,25 @@ public class APIAssertion implements Serializable {
         assertion.setTarget(path);
         assertion.setOperator(Operator.EXISTS);
         assertion.setName("JSON path " + path + " exists");
+        return assertion;
+    }
+
+    public static APIAssertion xPath(String path, Operator operator, String expectedValue) {
+        APIAssertion assertion = new APIAssertion();
+        assertion.setType(AssertionType.XPATH);
+        assertion.setTarget(path);
+        assertion.setOperator(operator);
+        assertion.setExpectedValue(expectedValue);
+        assertion.setName("XPath " + path + " " + operator + " " + expectedValue);
+        return assertion;
+    }
+
+    public static APIAssertion xPathExists(String path) {
+        APIAssertion assertion = new APIAssertion();
+        assertion.setType(AssertionType.XPATH);
+        assertion.setTarget(path);
+        assertion.setOperator(Operator.EXISTS);
+        assertion.setName("XPath " + path + " exists");
         return assertion;
     }
 
@@ -234,6 +257,8 @@ public class APIAssertion implements Serializable {
 
     @Override
     public String toString() {
-        return (name != null && !name.isEmpty()) ? name : type + " " + operator + " " + expectedValue;
+        return (name != null && !name.isEmpty())
+            ? name
+            : type + " " + operator + " " + expectedValue;
     }
 }

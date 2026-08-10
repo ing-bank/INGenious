@@ -1,4 +1,3 @@
-
 package com.ing.ide.main.utils;
 
 import com.ing.ide.main.ui.About;
@@ -12,7 +11,6 @@ import javax.swing.JFileChooser;
 import org.apache.commons.io.FileUtils;
 
 public class CMProjectCreator {
-
     private static CMProjectCreator projCreator;
 
     private final File engineLoc = new File("Engine");
@@ -21,12 +19,14 @@ public class CMProjectCreator {
 
     private final File dotClassPath = new File(engineLoc, ".classpath");
 
-    private final File sampleScript = new File("Configuration" + File.separator + "SampleScript.java");
+    private final File sampleScript = new File(
+        "Configuration" + File.separator + "SampleScript.java"
+    );
 
-    private final String enginePath
-            = "<classpathentry kind=\"lib\" path=\"../lib/ingenious-engine-"
-            + About.getBuildVersion()
-            + ".jar\"/>\n";
+    private final String enginePath =
+        "<classpathentry kind=\"lib\" path=\"../lib/ingenious-engine-" +
+        About.getBuildVersion() +
+        ".jar\"/>\n";
 
     public static void createCMProject() {
         if (projCreator == null) {
@@ -50,7 +50,8 @@ public class CMProjectCreator {
     private void createDotProject(File location) {
         try {
             String content = FileUtils.readFileToString(dotproject, Charset.defaultCharset());
-            content = content.replaceFirst("<name>(.*)<\\/name>", "<name>Custom_Method_Project<\\/name>");
+            content =
+                content.replaceFirst("<name>(.*)<\\/name>", "<name>Custom_Method_Project<\\/name>");
             File projFile = new File(location, dotproject.getName());
             FileUtils.writeStringToFile(projFile, content, Charset.defaultCharset());
         } catch (IOException ex) {
@@ -75,7 +76,10 @@ public class CMProjectCreator {
             File src = new File(location, "src");
             new File(src, "test" + File.separator + "java").mkdirs();
             new File(src, "main" + File.separator + "resources").mkdirs();
-            File packageF = new File(src, "main" + File.separator + "java" + File.separator + "sample");
+            File packageF = new File(
+                src,
+                "main" + File.separator + "java" + File.separator + "sample"
+            );
             packageF.mkdirs();
             String content = FileUtils.readFileToString(sampleScript, Charset.defaultCharset());
             content = "package sample; \n".concat(content);
@@ -97,5 +101,4 @@ public class CMProjectCreator {
         }
         return null;
     }
-
 }

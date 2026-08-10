@@ -1,4 +1,3 @@
-
 package com.ing.ide.main.utils.fileoperation;
 
 import com.ing.ide.util.logging.UILogger;
@@ -14,10 +13,9 @@ import org.apache.commons.io.FileUtils;
 
 /**
  *
- * 
+ *
  */
 public class FileOptions {
-
     private static final org.slf4j.Logger LOG = UILogger.getLogger(FileOptions.class.getName());
 
     public static void createDirectory(String path) {
@@ -60,7 +58,12 @@ public class FileOptions {
     }
 
     public static void copyFile(String source, String destination) {
-        if (source != null && source.trim().length() > 0 && destination != null && destination.trim().length() > 0) {
+        if (
+            source != null &&
+            source.trim().length() > 0 &&
+            destination != null &&
+            destination.trim().length() > 0
+        ) {
             File sourceFile = new File(source);
             File destFile = new File(destination);
             try {
@@ -75,7 +78,12 @@ public class FileOptions {
     }
 
     public static void copyFileAs(String source, String destination) {
-        if (source != null && source.trim().length() > 0 && destination != null && destination.trim().length() > 0) {
+        if (
+            source != null &&
+            source.trim().length() > 0 &&
+            destination != null &&
+            destination.trim().length() > 0
+        ) {
             File sourceFile = new File(source);
             File destFile = new File(destination);
             try {
@@ -112,5 +120,4 @@ public class FileOptions {
             Logger.getLogger(FileOptions.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
-
 }

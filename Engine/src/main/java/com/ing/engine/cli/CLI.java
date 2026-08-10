@@ -1,4 +1,3 @@
-
 package com.ing.engine.cli;
 
 import com.ing.datalib.util.data.FileScanner;
@@ -25,7 +24,6 @@ import org.json.simple.JSONValue;
  *
  */
 public class CLI {
-
     private static final Logger LOG = Logger.getLogger(CLI.class.getName());
 
     static void t() {
@@ -36,8 +34,10 @@ public class CLI {
         HelpFormatter formatter = new HelpFormatter();
         formatter.setDescPadding(0);
         formatter.setOptionComparator(null);
-        System.out.println("CLI\n"
-                + "Invoke command line options  for retrieving execution details, setting variable, change settings etc.");
+        System.out.println(
+            "CLI\n" +
+            "Invoke command line options  for retrieving execution details, setting variable, change settings etc."
+        );
         formatter.printHelp("\ningenious.bat", LookUp.OPTIONS, true);
     }
 
@@ -47,7 +47,7 @@ public class CLI {
             SystemDefaults.CLVars.put(vals[0], vals[1]);
         } else {
             /*
-            * handle as a flag if it doesn't match key=var
+             * handle as a flag if it doesn't match key=var
              */
             SystemDefaults.CLVars.put(val, "true");
         }
@@ -104,8 +104,9 @@ public class CLI {
             } else {
                 gSettings.setBrowser("");
             }
-            if(execution.containsKey(Op.TAGS))
-              gSettings.setTags(execution.get(Op.TAGS).getValue());
+            if (execution.containsKey(Op.TAGS)) gSettings.setTags(
+                execution.get(Op.TAGS).getValue()
+            );
             gSettings.setTestRun(false);
         } else {
             gSettings.setScenario(execution.get(Op.SC_NAME).getValue());
@@ -172,7 +173,6 @@ public class CLI {
             } else {
                 System.out.println(data);
             }
-
         }
 
         static class exe {
@@ -200,7 +200,6 @@ public class CLI {
             }
 
             static class data {
-
                 public static final String FN = "data.js";
 
                 static void loc() {
@@ -213,7 +212,6 @@ public class CLI {
             }
 
             static class log {
-
                 public static final String FN = "console.txt";
 
                 static void loc() {
@@ -226,7 +224,6 @@ public class CLI {
             }
 
             static class perf {
-
                 public static final String FN = "perfLog.js";
 
                 static void loc() {
@@ -240,13 +237,14 @@ public class CLI {
                             if (arg != null) {
                                 tolerance = Integer.valueOf(arg);
                             }
-                        } catch (Exception ex) {
-                        }
+                        } catch (Exception ex) {}
                         String data = read(true, FN);
                         // settings.ProjectSettings.setProjectLocation(getProject().getAbsolutePath());
                         JSONObject res = Performance.checkPageLoading(data, tolerance);
                         if (statusOnly) {
-                            System.out.println(String.valueOf(result(Boolean.valueOf(res.get("status") + ""))));
+                            System.out.println(
+                                String.valueOf(result(Boolean.valueOf(res.get("status") + "")))
+                            );
                         } else {
                             System.out.println(String.valueOf(res));
                         }
@@ -274,7 +272,6 @@ public class CLI {
                 } else {
                     System.out.println(data);
                 }
-
             }
 
             private static boolean isDir(File dir) {
@@ -297,14 +294,14 @@ public class CLI {
     }
 
     public static class Op {
-
-        public static final String B_DATE = "bDate", B_TIME = "bTime", B_VERSION = "bVersion", HELP = "help",
-                TIME = "t", DONT_LAUNCH_SUMMARY = "dont_launch_report", SET_VAR = "setVar", SET_ENV = "setEnv",
-                LATEST_EXE = "latest_exe", LATEST_EXE_STATUS = "latest_exe_status", LATEST_EXE_LOC = "latest_exe_loc",
-                LATEST_EXE_DATA_LOC = "latest_exe_data_loc", LATEST_EXE_DATA_RAW = "latest_exe_data_raw",
-                LATEST_EXE_LOG_LOC = "latest_exe_log_loc", LATEST_EXE_LOG_RAW = "latest_exe_log_raw",
-                LATEST_EXE_PERF_STAT = "latest_exe_perf_status", PLOAD_PERF = "checkPagePerf",
-                LATEST_EXE_PERF_REPORT = "latest_exe_perf_report", HELLO = "hi";
+        public static final String B_DATE = "bDate", B_TIME = "bTime", B_VERSION =
+            "bVersion", HELP = "help", TIME = "t", DONT_LAUNCH_SUMMARY =
+            "dont_launch_report", SET_VAR = "setVar", SET_ENV = "setEnv", LATEST_EXE =
+            "latest_exe", LATEST_EXE_STATUS = "latest_exe_status", LATEST_EXE_LOC =
+            "latest_exe_loc", LATEST_EXE_DATA_LOC = "latest_exe_data_loc", LATEST_EXE_DATA_RAW =
+            "latest_exe_data_raw", LATEST_EXE_LOG_LOC = "latest_exe_log_loc", LATEST_EXE_LOG_RAW =
+            "latest_exe_log_raw", LATEST_EXE_PERF_STAT = "latest_exe_perf_status", PLOAD_PERF =
+            "checkPagePerf", LATEST_EXE_PERF_REPORT = "latest_exe_perf_report", HELLO = "hi";
         public static final String RE_RUN = "rerun";
         public static final String RUN = "run";
         public static final String STANDALONE_REPORT = "standalone_report";

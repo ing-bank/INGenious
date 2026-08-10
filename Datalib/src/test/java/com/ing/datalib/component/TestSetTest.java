@@ -5,7 +5,6 @@ import static org.mockito.Mockito.*;
 
 import java.io.File;
 import java.io.IOException;
-
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
@@ -15,7 +14,6 @@ import org.testng.annotations.Test;
  * getExecutableSteps, move operations, save state, getLocation, TableModel.
  */
 public class TestSetTest {
-
     private Release release;
     private Project project;
     private TestSet testSet;
@@ -24,8 +22,8 @@ public class TestSetTest {
     @BeforeMethod
     public void setUp() throws IOException {
         // TestSet constructor creates ExecutionSettings that needs project location
-        tempProjectDir = new File(System.getProperty("java.io.tmpdir"),
-                "TestSetTest_" + System.nanoTime());
+        tempProjectDir =
+            new File(System.getProperty("java.io.tmpdir"), "TestSetTest_" + System.nanoTime());
         new File(tempProjectDir, "Settings/TestExecution/Release1/TS_Smoke").mkdirs();
 
         project = mock(Project.class);
@@ -34,8 +32,14 @@ public class TestSetTest {
         release = mock(Release.class);
         when(release.getProject()).thenReturn(project);
         when(release.getName()).thenReturn("Release1");
-        when(release.getLocation()).thenReturn(
-                tempProjectDir.getAbsolutePath() + File.separator + "TestLab" + File.separator + "Release1");
+        when(release.getLocation())
+            .thenReturn(
+                tempProjectDir.getAbsolutePath() +
+                File.separator +
+                "TestLab" +
+                File.separator +
+                "Release1"
+            );
 
         testSet = new TestSet(release, "TS_Smoke.csv");
     }
@@ -75,7 +79,7 @@ public class TestSetTest {
 
     @Test
     public void testGetLocation() {
-        String expected = release.getLocation() + File.separator + "TS_Smoke.csv";
+        String expected = release.getLocation() + File.separator + "TS_Smoke.yaml";
         assertThat(testSet.getLocation()).isEqualTo(expected);
     }
 

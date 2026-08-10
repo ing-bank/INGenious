@@ -1,19 +1,4 @@
-
 package com.ing.engine.reporting.impl.rp;
-
-import java.io.File;
-import java.io.IOException;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Stack;
-
-import org.apache.http.client.ClientProtocolException;
-import org.apache.http.client.HttpClient;
-import org.apache.http.impl.client.HttpClientBuilder;
-import org.json.simple.JSONArray;
-import org.json.simple.JSONObject;
-import org.json.simple.parser.ParseException;
 
 import com.ing.engine.constants.AppResourcePath;
 import com.ing.engine.core.Control;
@@ -30,10 +15,22 @@ import com.ing.engine.reporting.util.RDS;
 import com.ing.engine.reporting.util.RDS.TestCase;
 import com.ing.engine.reporting.util.ReportUtils;
 import com.ing.ingenious.api.status.Status;
+import java.io.File;
+import java.io.IOException;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Stack;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.apache.http.client.ClientProtocolException;
+import org.apache.http.client.HttpClient;
+import org.apache.http.impl.client.HttpClientBuilder;
+import org.json.simple.JSONArray;
+import org.json.simple.JSONObject;
+import org.json.simple.parser.ParseException;
 
-@SuppressWarnings({"unchecked"})
+@SuppressWarnings({ "unchecked" })
 public class RPTestCaseHandler extends TestCaseHandler implements PrimaryHandler {
     private static final Logger LOGGER = Logger.getLogger(RPTestCaseHandler.class.getName());
 
@@ -44,57 +41,84 @@ public class RPTestCaseHandler extends TestCaseHandler implements PrimaryHandler
     String DATAF = "[<DATA>]";
     boolean isIteration = true;
     Stack<JSONObject> reusableStack = new Stack<>();
-    
+
     private StringBuffer SourceDoc;
     public File ReportFile;
     public HttpClient client = HttpClientBuilder.create().useSystemProperties().build();
     public static Map<String, String> itemIds = new HashMap<String, String>();
-    
+
     String CurrentComponent = "";
-    
+
     int ComponentCounter = 0;
     int iterCounter = 0;
-    
+
     int FailedSteps = 0;
     int PassedSteps = 0;
     int DoneSteps = 0;
-    
+
     String testcasename = "";
     String description = "";
     String platform = "";
     String browserName = "";
     String iterationValue = "";
-    
+
     public RPTestCaseHandler(TestCaseReport report) {
         super(report);
     }
-    
+
     public boolean isRPEnabled() {
         if (!RunManager.getGlobalSettings().isTestRun()) {
-            return Control.getCurrentProject().getProjectSettings()
-                    .getExecSettings(RunManager.getGlobalSettings().getRelease(), RunManager.getGlobalSettings().getTestSet()).getRunSettings().isRPUpdate();
+            return Control
+                .getCurrentProject()
+                .getProjectSettings()
+                .getExecSettings(
+                    RunManager.getGlobalSettings().getRelease(),
+                    RunManager.getGlobalSettings().getTestSet()
+                )
+                .getRunSettings()
+                .isRPUpdate();
         }
         return false;
     }
-    
+
     private String getRPValue(String property) {
-        return Control.getCurrentProject().getProjectSettings().getRPSettings().getProperty(property);
+        return Control
+            .getCurrentProject()
+            .getProjectSettings()
+            .getRPSettings()
+            .getProperty(property);
     }
-    
+
     @Override
     public void setPlaywrightDriver(PlaywrightDriverCreation driver) {
         testCaseData.put(TestCase.B_VERSION, getPlaywrightDriver().getBrowserVersion());
-        testCaseData.put(TestCase.PLATFORM, System.getProperty("os.name")+ " " +System.getProperty("os.version")+ " " +System.getProperty("os.arch"));
+        testCaseData.put(
+            TestCase.PLATFORM,
+            System.getProperty("os.name") +
+            " " +
+            System.getProperty("os.version") +
+            " " +
+            System.getProperty("os.arch")
+        );
         testCaseData.put(TestCase.BROWSER, getPlaywrightDriver().getCurrentBrowser());
-        testCaseData.put("browserTypeLabel", resolveBrowserTypeLabel(driver != null ? driver.getRunContext() : null, false));
+        testCaseData.put(
+            "browserTypeLabel",
+            resolveBrowserTypeLabel(driver != null ? driver.getRunContext() : null, false)
+        );
     }
-    
+
     @Override
     public void setWebDriver(WebDriverCreation driver) {
         testCaseData.put(TestCase.B_VERSION, getWebDriver().getCurrentBrowserVersion());
         testCaseData.put(TestCase.PLATFORM, getWebDriver().getPlatform());
         testCaseData.put(TestCase.BROWSER, getWebDriver().getCurrentBrowser());
-        testCaseData.put("browserTypeLabel", resolveBrowserTypeLabel(driver != null ? driver.getRunContext() : null, driver != null && driver.isMobileExecution()));
+        testCaseData.put(
+            "browserTypeLabel",
+            resolveBrowserTypeLabel(
+                driver != null ? driver.getRunContext() : null,
+                driver != null && driver.isMobileExecution()
+            )
+        );
     }
 
     /**
@@ -107,11 +131,17 @@ public class RPTestCaseHandler extends TestCaseHandler implements PrimaryHandler
         try {
             if (runContext != null) {
                 String browserName = runContext.BrowserName;
-                if (isMobile || "Android".equalsIgnoreCase(browserName) || "iOS".equalsIgnoreCase(browserName)) {
+                if (
+                    isMobile ||
+                    "Android".equalsIgnoreCase(browserName) ||
+                    "iOS".equalsIgnoreCase(browserName)
+                ) {
                     return "Device";
-                } else if ("Chromium".equalsIgnoreCase(browserName) ||
-                        "WebKit".equalsIgnoreCase(browserName) ||
-                        "Firefox".equalsIgnoreCase(browserName)) {
+                } else if (
+                    "Chromium".equalsIgnoreCase(browserName) ||
+                    "WebKit".equalsIgnoreCase(browserName) ||
+                    "Firefox".equalsIgnoreCase(browserName)
+                ) {
                     return "Browser";
                 } else {
                     return "Browser/Device";
@@ -122,7 +152,7 @@ public class RPTestCaseHandler extends TestCaseHandler implements PrimaryHandler
         }
         return "Browser/Device";
     }
-    
+
     @Override
     public void setSapSession(com.ing.engine.drivers.SAPSessionCreation session) {
         if (session != null) {
@@ -131,19 +161,26 @@ public class RPTestCaseHandler extends TestCaseHandler implements PrimaryHandler
             testCaseData.put(TestCase.BROWSER, session.getCurrentBrowser());
         }
     }
-    
+
     @Override
     public void createReport(RunContext runContext, String runTime) {
         System.out.println("Starting test case exec : " + runContext.TestCase);
         if (isRPEnabled()) {
             try {
-               // testcasename = runContext.Scenario + "_" + runContext.TestCase + "_" + runContext.Iteration + "_" + runContext.BrowserName; 
+                // testcasename = runContext.Scenario + "_" + runContext.TestCase + "_" + runContext.Iteration + "_" + runContext.BrowserName;
                 testcasename = runContext.Scenario + ":" + runContext.TestCase;
-            	description = runContext.Description;
-            	platform = runContext.PlatformValue;
-            	browserName = runContext.BrowserName;
-            	iterationValue = runContext.Iteration;
-            	startItem(getRPValue("rp.endpoint"), getRPValue("rp.uuid"), RunManager.getGlobalSettings().getTestSet(), getRPValue("rp.project"), ReportPortalClient.LaunchID, testcasename);
+                description = runContext.Description;
+                platform = runContext.PlatformValue;
+                browserName = runContext.BrowserName;
+                iterationValue = runContext.Iteration;
+                startItem(
+                    getRPValue("rp.endpoint"),
+                    getRPValue("rp.uuid"),
+                    RunManager.getGlobalSettings().getTestSet(),
+                    getRPValue("rp.project"),
+                    ReportPortalClient.LaunchID,
+                    testcasename
+                );
             } catch (Exception e) {
                 // TODO Auto-generated catch block
                 e.printStackTrace();
@@ -155,23 +192,27 @@ public class RPTestCaseHandler extends TestCaseHandler implements PrimaryHandler
         testCaseData.put(TestCase.START_TIME, runTime);
         testCaseData.put(TestCase.ITERATION_TYPE, runContext.Iteration);
     }
-    
+
     @Override
     public Object getData() {
         // TODO Auto-generated method stub
         return testCaseData;
     }
-    
+
     @Override
     public File getFile() {
         // TODO Auto-generated method stub
         return null;
     }
-    
+
     @Override
-    public void updateTestLog(String stepName, String stepDescription, Status state,
-            String link, List<String> links) {
-        
+    public void updateTestLog(
+        String stepName,
+        String stepDescription,
+        Status state,
+        String link,
+        List<String> links
+    ) {
         String time = DateTimeUtils.DateTimeNow();
         String stepData = "";
         JSONObject step;
@@ -184,36 +225,47 @@ public class RPTestCaseHandler extends TestCaseHandler implements PrimaryHandler
             data.put(RDS.Step.Data.DESCRIPTION, ReportUtils.resolveDesc(stepDescription));
             data.put(RDS.Step.Data.TIME_STAMP, time);
             data.put(RDS.Step.Data.STATUS, state.toString());
-            stepData = String.format("[%s]   | %s", state, ReportUtils.resolveDesc(stepDescription));
-            
+            stepData =
+                String.format("[%s]   | %s", state, ReportUtils.resolveDesc(stepDescription));
+
             stepData = stepData.replaceAll("\"", "--");
             stepData = stepData.replaceAll("\\r\\n|\\r|\\n", "");
             stepData = stepData.replaceAll("<br>", "");
             stepData = stepData.replaceAll("#CTAG", "");
-            
+
             //System.out.println("stepData : " + stepData);
-            
+
             if (link != null) {
                 data.put(RDS.Step.Data.LINK, link);
             }
             putStatus(state, links, link, data);
             String filename = "";
-            
+
             if (data.get(RDS.Step.Data.LINK) != null) {
                 filename = AppResourcePath.getCurrentResultsPath() + data.get(RDS.Step.Data.LINK);
             }
-            
-            String payloadfile = testCaseData.get(TestCase.SCENARIO_NAME)
-            		             + "_"
-            		             + testCaseData.get(TestCase.TESTCASE_NAME)
-            		             + "_Step-"
-            		             + getStepCount()
-            		             + "_Response.txt";
-            
+
+            String payloadfile =
+                testCaseData.get(TestCase.SCENARIO_NAME) +
+                "_" +
+                testCaseData.get(TestCase.TESTCASE_NAME) +
+                "_Step-" +
+                getStepCount() +
+                "_Response.txt";
+
             if (isRPEnabled()) {
                 try {
-                    sendLog(payloadfile,getRPValue("rp.endpoint"), getRPValue("rp.uuid"), RunManager.getGlobalSettings().getTestSet(), getRPValue("rp.project"), testcasename,
-                            state.toString(), stepData, filename);
+                    sendLog(
+                        payloadfile,
+                        getRPValue("rp.endpoint"),
+                        getRPValue("rp.uuid"),
+                        RunManager.getGlobalSettings().getTestSet(),
+                        getRPValue("rp.project"),
+                        testcasename,
+                        state.toString(),
+                        stepData,
+                        filename
+                    );
                 } catch (IOException | ParseException e) {
                     LOGGER.log(Level.SEVERE, e.getMessage(), e);
                 }
@@ -227,7 +279,7 @@ public class RPTestCaseHandler extends TestCaseHandler implements PrimaryHandler
             ex.printStackTrace();
         }
     }
-    
+
     /**
      * creates new iteration object
      *
@@ -241,7 +293,7 @@ public class RPTestCaseHandler extends TestCaseHandler implements PrimaryHandler
         iteration = RDS.getNewIteration(Iterationid);
         isIteration = true;
     }
-    
+
     /**
      * creates new reusable object
      *
@@ -254,7 +306,7 @@ public class RPTestCaseHandler extends TestCaseHandler implements PrimaryHandler
         reusableStack.push(reusable);
         isIteration = false;
     }
-    
+
     @Override
     public void endComponent(String string) {
         reusable.put(RDS.Step.END_TIME, DateTimeUtils.DateTimeNow());
@@ -274,9 +326,8 @@ public class RPTestCaseHandler extends TestCaseHandler implements PrimaryHandler
             reusableStack.peek().put(TestCase.STATUS, completedReusable.get(TestCase.STATUS));
             reusable = reusableStack.peek();
         }
-        
     }
-    
+
     @Override
     public void endIteration(int CurrentTestCaseIteration) {
         if (iteration.get(TestCase.STATUS).equals("")) {
@@ -284,7 +335,7 @@ public class RPTestCaseHandler extends TestCaseHandler implements PrimaryHandler
         }
         Steps.add(iteration);
     }
-    
+
     private void onSetpDone() {
         DoneSteps++;
         if (reusable != null && reusable.get(TestCase.STATUS).equals("")) {
@@ -294,7 +345,7 @@ public class RPTestCaseHandler extends TestCaseHandler implements PrimaryHandler
             iteration.put(TestCase.STATUS, "PASS");
         }
     }
-    
+
     private void onSetpPassed() {
         PassedSteps++;
         if (reusable != null && reusable.get(TestCase.STATUS).equals("")) {
@@ -304,7 +355,7 @@ public class RPTestCaseHandler extends TestCaseHandler implements PrimaryHandler
             iteration.put(TestCase.STATUS, "PASS");
         }
     }
-    
+
     private void onSetpFailed() {
         FailedSteps++;
         if (iteration != null) {
@@ -314,8 +365,13 @@ public class RPTestCaseHandler extends TestCaseHandler implements PrimaryHandler
             reusable.put(TestCase.STATUS, "FAIL");
         }
     }
-    
-    private void putStatus(Status state, List<String> optional, String optionalLink, JSONObject data) {
+
+    private void putStatus(
+        Status state,
+        List<String> optional,
+        String optionalLink,
+        JSONObject data
+    ) {
         switch (state) {
             case DONE:
             case PASSNS:
@@ -331,11 +387,15 @@ public class RPTestCaseHandler extends TestCaseHandler implements PrimaryHandler
             case FAILNS:
                 onSetpFailed();
                 break;
-                
         }
     }
-    
-    private void takeScreenShot(Status status, List<String> optional, String optionalLink, JSONObject data) {
+
+    private void takeScreenShot(
+        Status status,
+        List<String> optional,
+        String optionalLink,
+        JSONObject data
+    ) {
         String imgSrc = getScreenShotName();
         switch (status) {
             case PASS:
@@ -353,7 +413,7 @@ public class RPTestCaseHandler extends TestCaseHandler implements PrimaryHandler
                 break;
         }
     }
-    
+
     private Boolean canTakeScreenShot(Status status) {
         if (status.equals(Status.FAIL)) {
             onSetpFailed();
@@ -362,15 +422,14 @@ public class RPTestCaseHandler extends TestCaseHandler implements PrimaryHandler
         if (status.equals(Status.PASS)) {
             onSetpPassed();
             return screenShotSettings().matches("(Pass|Both)");
-            
         }
         return false;
     }
-    
+
     private static String screenShotSettings() {
         return Control.exe.getExecSettings().getRunSettings().getScreenShotFor();
     }
-    
+
     /**
      * takes new screen shot and updates the the json object for that step
      *
@@ -386,13 +445,12 @@ public class RPTestCaseHandler extends TestCaseHandler implements PrimaryHandler
             if (optional != null) {
                 data.put(RDS.Step.Data.OBJECTS, optional.get(0));
             }
-            if (ReportUtils.takeScreenshot(getPlaywrightDriver(),getWebDriver(), imgSrc)) {
+            if (ReportUtils.takeScreenshot(getPlaywrightDriver(), getWebDriver(), imgSrc)) {
                 data.put(RDS.Step.Data.LINK, imgSrc);
             }
         }
-        
     }
-    
+
     /**
      * finalize the test case execution and create standalone test case report
      * file for upload purpose
@@ -404,7 +462,7 @@ public class RPTestCaseHandler extends TestCaseHandler implements PrimaryHandler
         updateResults();
         return report.getCurrentStatus();
     }
-    
+
     /*private static final Logger LOG = Logger.getLogger(TestCaseReport.class.getName());*/
     /**
      * update the test case execution details to the json DATA file
@@ -420,15 +478,17 @@ public class RPTestCaseHandler extends TestCaseHandler implements PrimaryHandler
         testCaseData.put(TestCase.ITERATIONS, iterCounter);
         testCaseData.put(TestCase.NO_OF_TESTS, getStepCount());
         testCaseData.put(TestCase.NO_OF_FAIL_TESTS, String.valueOf(this.FailedSteps));
-        testCaseData.put(TestCase.NO_OF_PASS_TESTS, String.valueOf(this.DoneSteps + this.PassedSteps));
+        testCaseData.put(
+            TestCase.NO_OF_PASS_TESTS,
+            String.valueOf(this.DoneSteps + this.PassedSteps)
+        );
         testCaseData.put(TestCase.STATUS, getCurrentStatus().toString());
-        
     }
-    
+
     private DateTimeUtils startTime() {
         return report.startTime;
     }
-    
+
     /* private void printReport() {
     System.out.println("\n---------------------------------------------------");
     print("Testcase Name", testCaseData.get(TestCase.SCENARIO_NAME)
@@ -451,15 +511,52 @@ public class RPTestCaseHandler extends TestCaseHandler implements PrimaryHandler
             return Status.PASS;
         }
     }
-    
-    public void startItem(String rp_endpoint, String rp_uuid, String rp_launch, String rp_project, String launchId,
-            String testcaseName) throws ClientProtocolException, IOException, ParseException {
-        ReportPortalClient.startItem(rp_endpoint, rp_uuid, rp_launch, rp_project, launchId, testcaseName, browserName, platform, iterationValue, description);
+
+    public void startItem(
+        String rp_endpoint,
+        String rp_uuid,
+        String rp_launch,
+        String rp_project,
+        String launchId,
+        String testcaseName
+    )
+        throws ClientProtocolException, IOException, ParseException {
+        ReportPortalClient.startItem(
+            rp_endpoint,
+            rp_uuid,
+            rp_launch,
+            rp_project,
+            launchId,
+            testcaseName,
+            browserName,
+            platform,
+            iterationValue,
+            description
+        );
     }
-    
-    public void sendLog(String payloadfile,String rp_endpoint, String rp_uuid, String rp_launch, String rp_project, String testitemID,
-            String status, String teststepdata, String filename) throws IOException, ParseException {
-        ReportPortalClient.sendLog(payloadfile,rp_endpoint, rp_uuid, rp_launch, rp_project, testitemID, status, teststepdata, filename);
-        
+
+    public void sendLog(
+        String payloadfile,
+        String rp_endpoint,
+        String rp_uuid,
+        String rp_launch,
+        String rp_project,
+        String testitemID,
+        String status,
+        String teststepdata,
+        String filename
+    )
+        throws IOException, ParseException {
+        ReportPortalClient.sendLog(
+            payloadfile,
+            rp_endpoint,
+            rp_uuid,
+            rp_launch,
+            rp_project,
+            testitemID,
+            status,
+            teststepdata,
+            filename
+        );
     }
 }

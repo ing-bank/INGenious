@@ -1,14 +1,12 @@
-
 package com.ing.ide.util.compiler;
 
 import java.io.File;
 
 /**
  *
- * 
+ *
  */
 public interface CompilerF {
-
     /**
      * create a script file to compile the java file
      *

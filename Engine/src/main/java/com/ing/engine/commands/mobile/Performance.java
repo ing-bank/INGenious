@@ -1,4 +1,3 @@
-
 package com.ing.engine.commands.mobile;
 
 import com.ing.engine.commands.browser.Command;
@@ -11,8 +10,8 @@ import com.ing.engine.reporting.performance.har.Entry;
 import com.ing.engine.reporting.performance.har.Har;
 import com.ing.engine.reporting.performance.har.Har.Log;
 import com.ing.engine.reporting.performance.har.Page;
-import com.ing.ingenious.api.status.Status;
 import com.ing.ingenious.api.annotation.Action;
+import com.ing.ingenious.api.status.Status;
 import com.ing.ingenious.api.types.InputType;
 import com.ing.ingenious.api.types.ObjectType;
 import java.util.Objects;
@@ -25,14 +24,13 @@ import org.openqa.selenium.JavascriptExecutor;
 
 /**
  *
- * 
+ *
  */
 public class Performance extends Command {
 
     public Performance(CommandControl cc) {
         super(cc);
     }
-
     /*
     @Action(object = ObjectType.MOBILE, desc = "To delete all the cookies", input = InputType.NO)
     public void ClearMobileCache() {

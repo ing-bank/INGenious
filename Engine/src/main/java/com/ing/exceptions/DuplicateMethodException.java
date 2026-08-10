@@ -10,9 +10,8 @@ package com.ing.exceptions;
  * @see com.ing.engine.support.methodInf.MethodInfoManager
  */
 public class DuplicateMethodException extends Exception {
-    
     private static final long serialVersionUID = 1L;
-    
+
     /**
      * Constructs a new DuplicateMethodException with the specified detail message.
      *

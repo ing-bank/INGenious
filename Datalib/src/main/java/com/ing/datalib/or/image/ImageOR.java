@@ -1,14 +1,13 @@
-
 package com.ing.datalib.or.image;
 
-import com.ing.datalib.or.ObjectRepository;
-import com.ing.datalib.or.common.ORRootInf;
-import com.ing.datalib.or.common.ORUtils;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlRootElement;
+import com.ing.datalib.or.ObjectRepository;
+import com.ing.datalib.or.common.ORRootInf;
+import com.ing.datalib.or.common.ORUtils;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -20,17 +19,18 @@ import javax.swing.tree.TreeNode;
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @JacksonXmlRootElement(localName = "Root")
 public class ImageOR implements ORRootInf<ImageORPage> {
-
-    public final static List<String> OBJECT_PROPS
-            = new ArrayList<>(Arrays.asList(
-                    "Coordinates",
-                    "Index",
-                    "Offset",
-                    "Precision",
-                    "ROI",
-                    "Reference",
-                    "Text",
-                    "Url"));
+    public static final List<String> OBJECT_PROPS = new ArrayList<>(
+        Arrays.asList(
+            "Coordinates",
+            "Index",
+            "Offset",
+            "Precision",
+            "ROI",
+            "Reference",
+            "Text",
+            "Url"
+        )
+    );
 
     @JacksonXmlProperty(isAttribute = true, localName = "ref")
     private String name;
@@ -153,8 +153,7 @@ public class ImageOR implements ORRootInf<ImageORPage> {
     @JsonIgnore
     @Override
     public int getChildCount() {
-        return pages == null ? 0
-                : pages.size();
+        return pages == null ? 0 : pages.size();
     }
 
     @JsonIgnore
@@ -207,7 +206,7 @@ public class ImageOR implements ORRootInf<ImageORPage> {
     @JsonIgnore
     @Override
     public TreeNode[] getPath() {
-        return new TreeNode[]{this};
+        return new TreeNode[] { this };
     }
 
     @JsonIgnore

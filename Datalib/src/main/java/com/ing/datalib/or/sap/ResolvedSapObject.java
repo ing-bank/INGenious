@@ -8,33 +8,37 @@ import com.ing.datalib.or.sap.SapOR.ORScope;
  * page name, object name, and resolved object group.
  */
 public class ResolvedSapObject {
-
     private final ORScope scope;
     private final String pageName;
     private final String objectName;
     private final ObjectGroup<SapORObject> group;
 
-    public ResolvedSapObject(ORScope scope, String pageName, String objectName, ObjectGroup<SapORObject> group) {
+    public ResolvedSapObject(
+        ORScope scope,
+        String pageName,
+        String objectName,
+        ObjectGroup<SapORObject> group
+    ) {
         this.scope = scope;
         this.pageName = pageName;
         this.objectName = objectName;
         this.group = group;
     }
 
-    public ORScope getScope() { 
-        return scope; 
+    public ORScope getScope() {
+        return scope;
     }
-    
-    public String getPageName() { 
-        return pageName; 
+
+    public String getPageName() {
+        return pageName;
     }
-    
-    public String getObjectName() { 
-        return objectName; 
+
+    public String getObjectName() {
+        return objectName;
     }
-    
-    public ObjectGroup<SapORObject> getGroup() { 
-        return group; 
+
+    public ObjectGroup<SapORObject> getGroup() {
+        return group;
     }
 
     /**
@@ -44,12 +48,12 @@ public class ResolvedSapObject {
         return (group != null && !group.getObjects().isEmpty()) ? group.getObjects().get(0) : null;
     }
 
-    public boolean isFromProject() { 
-        return scope == ORScope.PROJECT; 
+    public boolean isFromProject() {
+        return scope == ORScope.PROJECT;
     }
-    
-    public boolean isFromShared()  { 
-        return scope == ORScope.SHARED; 
+
+    public boolean isFromShared() {
+        return scope == ORScope.SHARED;
     }
 
     public boolean isPresent() {
@@ -57,11 +61,19 @@ public class ResolvedSapObject {
     }
 
     public String debugString() {
-        return "ResolvedSapObject{scope=" + scope
-                + ", page='" + pageName + '\''
-                + ", object='" + objectName + '\''
-                + ", objectCount=" + (group == null ? 0 : group.getObjects().size())
-                + '}';
+        return (
+            "ResolvedSapObject{scope=" +
+            scope +
+            ", page='" +
+            pageName +
+            '\'' +
+            ", object='" +
+            objectName +
+            '\'' +
+            ", objectCount=" +
+            (group == null ? 0 : group.getObjects().size()) +
+            '}'
+        );
     }
 
     /**
@@ -80,9 +92,12 @@ public class ResolvedSapObject {
         public String qualified() {
             if (scope == null) return name;
             switch (scope) {
-                case PROJECT: return "[Project] " + name;
-                case SHARED:  return "[Shared] " + name;
-                default:      return name;
+                case PROJECT:
+                    return "[Project] " + name;
+                case SHARED:
+                    return "[Shared] " + name;
+                default:
+                    return name;
             }
         }
 

@@ -1,9 +1,8 @@
 package com.ing.ide.main.mainui.components.apitester.util;
 
 import com.ing.ide.main.Main;
-
-import javax.swing.*;
 import java.awt.*;
+import javax.swing.*;
 
 /**
  * Theme-aware color provider for API Tester components.

@@ -1,4 +1,3 @@
-
 package com.ing.engine.galenWrapper;
 
 import com.galenframework.page.PageElement;
@@ -12,10 +11,9 @@ import org.openqa.selenium.WebElement;
 
 /**
  *
- * 
+ *
  */
 public class PageWrapper extends SeleniumPage {
-
     Map<String, WebElement> elementMap = new HashMap<>();
     private WebDriver driver;
 
@@ -38,7 +36,7 @@ public class PageWrapper extends SeleniumPage {
 
     @Override
     public PageElement getObject(String objectName, Locator lctr) {
-        return new WebPageElement(driver,objectName, elementMap.get(objectName), null);
+        return new WebPageElement(driver, objectName, elementMap.get(objectName), null);
     }
 
     public WebDriver getDriver() {

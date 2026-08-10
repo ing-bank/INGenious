@@ -1,7 +1,9 @@
-
 package com.ing.ide.main.explorer;
 
+import static javax.swing.SwingConstants.CENTER;
+
 import com.ing.ide.main.explorer.settings.Settings;
+import com.ing.ide.main.fx.INGIcons;
 import com.ing.ide.util.Border;
 import com.ing.ide.util.Listeners;
 import com.ing.ide.util.Notification;
@@ -30,19 +32,16 @@ import javax.swing.ImageIcon;
 import javax.swing.JCheckBox;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
-import static javax.swing.SwingConstants.CENTER;
 import javax.swing.SwingUtilities;
 import javax.swing.border.LineBorder;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.ArrayUtils;
-import com.ing.ide.main.fx.INGIcons;
 
 /**
  *
- * 
+ *
  */
 public class ImageGallery extends javax.swing.JPanel {
-
     /**
      * Creates new form ImageGallery
      */
@@ -51,10 +50,13 @@ public class ImageGallery extends javax.swing.JPanel {
     private final List<String> selflist = new ArrayList<>();
     private final List<JPanel> thumbList = new ArrayList<>();
     private final Map<String, Image> thumbs = new HashMap<>();
-    private static final Dimension THUMB_SIZE = new Dimension(100, 100),
-            PREVIEW_SIZE = new Dimension(650, 350),
-            CB_SIZE = new Dimension(16, 16),
-            CL_SIZE = new Dimension(18, 18);
+    private static final Dimension THUMB_SIZE = new Dimension(
+        100,
+        100
+    ), PREVIEW_SIZE = new Dimension(650, 350), CB_SIZE = new Dimension(
+        16,
+        16
+    ), CL_SIZE = new Dimension(18, 18);
     private JPanel selected;
     private MouseListener thumbselected;
     private MouseListener previewClicked;
@@ -64,49 +66,55 @@ public class ImageGallery extends javax.swing.JPanel {
     public ImageGallery(final String ext) {
         close = INGIcons.swingColored("icon.close16", 16);
         closesel = INGIcons.swingColored("icon.selected_close", 16);
-        thumbselected = new MouseAdapter() {
+        thumbselected =
+            new MouseAdapter() {
 
-            @Override
-            public void mouseClicked(MouseEvent e) {
-                thumbSelected(e.getSource());
-            }
+                @Override
+                public void mouseClicked(MouseEvent e) {
+                    thumbSelected(e.getSource());
+                }
+            };
+        previewClicked =
+            new MouseAdapter() {
 
-        };
-        previewClicked = new MouseAdapter() {
+                @Override
+                public void mouseClicked(MouseEvent e) {
+                    if (SwingUtilities.isRightMouseButton(e) && previewObj.isEnabled()) {
+                        previewObj.setEnabled(false);
+                        EventQueue.invokeLater(
+                            new Runnable() {
 
-            @Override
-            public void mouseClicked(MouseEvent e) {
-                if (SwingUtilities.isRightMouseButton(e) && previewObj.isEnabled()) {
-                    previewObj.setEnabled(false);
-                    EventQueue.invokeLater(new Runnable() {
-                        @Override
-                        public void run() {
-                            openEditor();
-                            EventQueue.invokeLater(new Runnable() {
                                 @Override
                                 public void run() {
-                                    previewObj.setEnabled(true);
+                                    openEditor();
+                                    EventQueue.invokeLater(
+                                        new Runnable() {
+
+                                            @Override
+                                            public void run() {
+                                                previewObj.setEnabled(true);
+                                            }
+                                        }
+                                    );
                                 }
-                            });
-                        }
-                    });
-
+                            }
+                        );
+                    }
                 }
-
-            }
-
-        };
+            };
         initComponents();
         previewObj.setSize(previewpanel.getSize());
         previewpanel.addMouseListener(previewClicked);
 
         this.setName("ScreenShots");
-        imagefilter = new FileFilter() {
-            @Override
-            public boolean accept(File pathname) {
-                return pathname.isFile() && pathname.getAbsolutePath().endsWith("." + ext);
-            }
-        };
+        imagefilter =
+            new FileFilter() {
+
+                @Override
+                public boolean accept(File pathname) {
+                    return pathname.isFile() && pathname.getAbsolutePath().endsWith("." + ext);
+                }
+            };
     }
 
     /**
@@ -141,8 +149,7 @@ public class ImageGallery extends javax.swing.JPanel {
                 args[i] = selected.getName();
             }
         }
-        return ArrayUtils.addAll(new String[]{curreditor}, args);
-
+        return ArrayUtils.addAll(new String[] { curreditor }, args);
     }
 
     /**
@@ -208,7 +215,6 @@ public class ImageGallery extends javax.swing.JPanel {
         for (final File f : files) {
             addThumb(f);
         }
-
     }
 
     /**
@@ -219,7 +225,6 @@ public class ImageGallery extends javax.swing.JPanel {
     private void addThumb(File f) {
         JPanel thumb = getPanel(f.getAbsolutePath());
         thumbPanel.add(thumb);
-
     }
 
     /**
@@ -231,6 +236,7 @@ public class ImageGallery extends javax.swing.JPanel {
     JPanel getPanel(final String f) {
         setThumbImage(f);
         JPanel p = new JPanel() {
+
             @Override
             public void paintComponent(Graphics g) {
                 g.drawImage(thumbs.get(f), 0, 0, null);
@@ -259,20 +265,21 @@ public class ImageGallery extends javax.swing.JPanel {
         cb.setText("");
         cb.setSelected(false);
         cb.setName(f);
-        cb.addActionListener(new ActionListener() {
+        cb.addActionListener(
+            new ActionListener() {
 
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                if (cb.isSelected()) {
-                    selflist.add(f);
-                } else {
-                    selflist.remove(f);
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    if (cb.isSelected()) {
+                        selflist.add(f);
+                    } else {
+                        selflist.remove(f);
+                    }
                 }
             }
-        });
+        );
         cb.setPreferredSize(CB_SIZE);
         return cb;
-
     }
 
     /**
@@ -285,12 +292,15 @@ public class ImageGallery extends javax.swing.JPanel {
         JCheckBox cb = new JCheckBox();
         cb.setIcon(close);
         cb.setSelectedIcon(closesel);
-        cb.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                removeThumbPanel(p);
+        cb.addActionListener(
+            new ActionListener() {
+
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    removeThumbPanel(p);
+                }
             }
-        });
+        );
         cb.setPreferredSize(CL_SIZE);
         cb.setMaximumSize(CL_SIZE);
         return cb;
@@ -324,7 +334,6 @@ public class ImageGallery extends javax.swing.JPanel {
      */
     void removeImage(String file) {
         FileUtils.deleteQuietly(new File(file));
-
     }
 
     /**
@@ -338,12 +347,15 @@ public class ImageGallery extends javax.swing.JPanel {
      * refresh the UI after change
      */
     void repaintLater(final JComponent c) {
-        SwingUtilities.invokeLater(new Runnable() {
-            @Override
-            public void run() {
-                c.repaint();
+        SwingUtilities.invokeLater(
+            new Runnable() {
+
+                @Override
+                public void run() {
+                    c.repaint();
+                }
             }
-        });
+        );
     }
 
     /**
@@ -357,22 +369,52 @@ public class ImageGallery extends javax.swing.JPanel {
         javax.swing.GroupLayout pLayout = new javax.swing.GroupLayout(p);
         p.setLayout(pLayout);
         pLayout.setHorizontalGroup(
-                pLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                .addGroup(pLayout.createSequentialGroup()
-                        .addComponent(c1, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE)
-                        .addContainerGap(85, Short.MAX_VALUE))
-                .addGroup(javax.swing.GroupLayout.Alignment.TRAILING, pLayout.createSequentialGroup()
+            pLayout
+                .createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                .addGroup(
+                    pLayout
+                        .createSequentialGroup()
+                        .addComponent(
+                            c1,
+                            javax.swing.GroupLayout.PREFERRED_SIZE,
+                            16,
+                            javax.swing.GroupLayout.PREFERRED_SIZE
+                        )
+                        .addContainerGap(85, Short.MAX_VALUE)
+                )
+                .addGroup(
+                    javax.swing.GroupLayout.Alignment.TRAILING,
+                    pLayout
+                        .createSequentialGroup()
                         .addGap(0, 0, Short.MAX_VALUE)
-                        .addComponent(c2, javax.swing.GroupLayout.PREFERRED_SIZE, 16, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addComponent(
+                            c2,
+                            javax.swing.GroupLayout.PREFERRED_SIZE,
+                            16,
+                            javax.swing.GroupLayout.PREFERRED_SIZE
+                        )
+                )
         );
         pLayout.setVerticalGroup(
-                pLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                .addGroup(pLayout.createSequentialGroup()
+            pLayout
+                .createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                .addGroup(
+                    pLayout
+                        .createSequentialGroup()
                         .addComponent(c2)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 68, Short.MAX_VALUE)
-                        .addComponent(c1, javax.swing.GroupLayout.PREFERRED_SIZE, 19, javax.swing.GroupLayout.PREFERRED_SIZE))
+                        .addPreferredGap(
+                            javax.swing.LayoutStyle.ComponentPlacement.RELATED,
+                            68,
+                            Short.MAX_VALUE
+                        )
+                        .addComponent(
+                            c1,
+                            javax.swing.GroupLayout.PREFERRED_SIZE,
+                            19,
+                            javax.swing.GroupLayout.PREFERRED_SIZE
+                        )
+                )
         );
-
     }
 
     /**
@@ -383,7 +425,9 @@ public class ImageGallery extends javax.swing.JPanel {
      */
     Image setThumbImage(String f) {
         ImageIcon icon = new ImageIcon(Toolkit.getDefaultToolkit().createImage(f));
-        Image img = icon.getImage().getScaledInstance(THUMB_SIZE.width, THUMB_SIZE.width, Image.SCALE_SMOOTH);
+        Image img = icon
+            .getImage()
+            .getScaledInstance(THUMB_SIZE.width, THUMB_SIZE.width, Image.SCALE_SMOOTH);
         thumbs.put(f, img);
         return img;
     }
@@ -394,10 +438,11 @@ public class ImageGallery extends javax.swing.JPanel {
      * @param path
      */
     private void setPreview(String path) {
-
         ImageIcon icon = new ImageIcon(path);
         int w = icon.getIconWidth() > PREVIEW_SIZE.width ? PREVIEW_SIZE.width : icon.getIconWidth();
-        int h = icon.getIconHeight() > PREVIEW_SIZE.height ? PREVIEW_SIZE.height : icon.getIconHeight();
+        int h = icon.getIconHeight() > PREVIEW_SIZE.height
+            ? PREVIEW_SIZE.height
+            : icon.getIconHeight();
         Image img = icon.getImage().getScaledInstance(w, h, Image.SCALE_SMOOTH);
         previewObj.setIcon(new ImageIcon(img));
         previewObj.setHorizontalAlignment(CENTER);
@@ -434,17 +479,11 @@ public class ImageGallery extends javax.swing.JPanel {
         }
     }
 
-    public void onEmpty() {
+    public void onEmpty() {}
 
-    }
+    public void Hide() {}
 
-    public void Hide() {
-
-    }
-
-    public void Show() {
-
-    }
+    public void Show() {}
 
     /**
      * This method is called from within the constructor to initialize the form.
@@ -454,7 +493,6 @@ public class ImageGallery extends javax.swing.JPanel {
     @SuppressWarnings("unchecked")
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
-
         jSplitPane1 = new javax.swing.JSplitPane();
         previewpanel = new javax.swing.JPanel();
         previewObj = new javax.swing.JLabel();
@@ -473,14 +511,20 @@ public class ImageGallery extends javax.swing.JPanel {
         jSplitPane1.setResizeWeight(0.8);
         jSplitPane1.setToolTipText("");
 
-        previewpanel.setBorder(new javax.swing.border.LineBorder(new java.awt.Color(204, 204, 204), 1, true));
+        previewpanel.setBorder(
+            new javax.swing.border.LineBorder(new java.awt.Color(204, 204, 204), 1, true)
+        );
         previewpanel.setLayout(new java.awt.GridLayout(1, 0));
         previewpanel.add(previewObj);
 
         jSplitPane1.setTopComponent(previewpanel);
 
-        thumbnailpanel.setHorizontalScrollBarPolicy(javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_ALWAYS);
-        thumbnailpanel.setVerticalScrollBarPolicy(javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_NEVER);
+        thumbnailpanel.setHorizontalScrollBarPolicy(
+            javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_ALWAYS
+        );
+        thumbnailpanel.setVerticalScrollBarPolicy(
+            javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_NEVER
+        );
         thumbnailpanel.setMaximumSize(new java.awt.Dimension(550, 130));
         thumbnailpanel.setMinimumSize(new java.awt.Dimension(550, 130));
         thumbnailpanel.setPreferredSize(new java.awt.Dimension(550, 130));
@@ -488,7 +532,11 @@ public class ImageGallery extends javax.swing.JPanel {
 
         thumbPanel.setMaximumSize(new java.awt.Dimension(2147483647, 128));
         thumbPanel.setMinimumSize(new java.awt.Dimension(546, 128));
-        java.awt.FlowLayout flowLayout1 = new java.awt.FlowLayout(java.awt.FlowLayout.CENTER, 25, 5);
+        java.awt.FlowLayout flowLayout1 = new java.awt.FlowLayout(
+            java.awt.FlowLayout.CENTER,
+            25,
+            5
+        );
         flowLayout1.setAlignOnBaseline(true);
         thumbPanel.setLayout(flowLayout1);
         thumbnailpanel.setViewportView(thumbPanel);
@@ -498,17 +546,31 @@ public class ImageGallery extends javax.swing.JPanel {
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
         layout.setHorizontalGroup(
-            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(jSplitPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 653, javax.swing.GroupLayout.PREFERRED_SIZE)
+            layout
+                .createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                .addComponent(
+                    jSplitPane1,
+                    javax.swing.GroupLayout.PREFERRED_SIZE,
+                    653,
+                    javax.swing.GroupLayout.PREFERRED_SIZE
+                )
         );
         layout.setVerticalGroup(
-            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(layout.createSequentialGroup()
-                .addComponent(jSplitPane1, javax.swing.GroupLayout.PREFERRED_SIZE, 481, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(0, 0, Short.MAX_VALUE))
+            layout
+                .createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                .addGroup(
+                    layout
+                        .createSequentialGroup()
+                        .addComponent(
+                            jSplitPane1,
+                            javax.swing.GroupLayout.PREFERRED_SIZE,
+                            481,
+                            javax.swing.GroupLayout.PREFERRED_SIZE
+                        )
+                        .addGap(0, 0, Short.MAX_VALUE)
+                )
         );
-    }// </editor-fold>//GEN-END:initComponents
-
+    } // </editor-fold>//GEN-END:initComponents
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JSplitPane jSplitPane1;

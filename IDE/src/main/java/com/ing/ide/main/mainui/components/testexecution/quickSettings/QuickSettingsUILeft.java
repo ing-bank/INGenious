@@ -1,4 +1,3 @@
-
 package com.ing.ide.main.mainui.components.testexecution.quickSettings;
 
 import com.ing.datalib.settings.RunSettings;
@@ -13,7 +12,6 @@ import javax.swing.UIManager;
  *
  */
 public class QuickSettingsUILeft extends QuickSettingsUI {
-
     RunSettings runSettings;
 
     /**
@@ -32,7 +30,6 @@ public class QuickSettingsUILeft extends QuickSettingsUI {
     @SuppressWarnings("unchecked")
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
-
         iterGroup = new javax.swing.ButtonGroup();
         iterMode = new javax.swing.JLabel();
         ContinueOnError = new javax.swing.JRadioButton();
@@ -56,156 +53,234 @@ public class QuickSettingsUILeft extends QuickSettingsUI {
         ContinueOnError.setFont(UIManager.getFont("TableMenu.font"));
         ContinueOnError.setText("Continue");
         ContinueOnError.setName("ContinueOnError"); // NOI18N
-        ContinueOnError.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                ContinueOnErrorActionPerformed(evt);
+        ContinueOnError.addActionListener(
+            new java.awt.event.ActionListener() {
+
+                public void actionPerformed(java.awt.event.ActionEvent evt) {
+                    ContinueOnErrorActionPerformed(evt);
+                }
             }
-        });
+        );
 
         BreakOnError.setFont(UIManager.getFont("TableMenu.font"));
         BreakOnError.setText("Break");
         BreakOnError.setName("BreakOnError"); // NOI18N
-        BreakOnError.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                BreakOnErrorActionPerformed(evt);
+        BreakOnError.addActionListener(
+            new java.awt.event.ActionListener() {
+
+                public void actionPerformed(java.awt.event.ActionEvent evt) {
+                    BreakOnErrorActionPerformed(evt);
+                }
             }
-        });
+        );
 
         screenShotFor.setFont(UIManager.getFont("Table.font"));
         screenShotFor.setText("Screenshot");
 
         passCheckBox.setFont(UIManager.getFont("TableMenu.font"));
         passCheckBox.setText("Pass");
-        passCheckBox.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                passCheckBoxActionPerformed(evt);
+        passCheckBox.addActionListener(
+            new java.awt.event.ActionListener() {
+
+                public void actionPerformed(java.awt.event.ActionEvent evt) {
+                    passCheckBoxActionPerformed(evt);
+                }
             }
-        });
+        );
 
         failCheckBox.setFont(UIManager.getFont("TableMenu.font"));
         failCheckBox.setText("Fail");
-        failCheckBox.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                failCheckBoxActionPerformed(evt);
+        failCheckBox.addActionListener(
+            new java.awt.event.ActionListener() {
+
+                public void actionPerformed(java.awt.event.ActionEvent evt) {
+                    failCheckBoxActionPerformed(evt);
+                }
             }
-        });
+        );
 
         useExistingDriver.setFont(UIManager.getFont("TableMenu.font"));
         useExistingDriver.setText("Use Existing Browser");
-        useExistingDriver.setToolTipText("Will use the same browser instance for all the TestCases and Iterations in Testsets");
+        useExistingDriver.setToolTipText(
+            "Will use the same browser instance for all the TestCases and Iterations in Testsets"
+        );
         useExistingDriver.setEnabled(false);
-        useExistingDriver.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                useExistingDriverActionPerformed(evt);
+        useExistingDriver.addActionListener(
+            new java.awt.event.ActionListener() {
+
+                public void actionPerformed(java.awt.event.ActionEvent evt) {
+                    useExistingDriverActionPerformed(evt);
+                }
             }
-        });
+        );
 
         reportPerformanceLog.setFont(UIManager.getFont("TableMenu.font"));
         reportPerformanceLog.setText("Performance Reporting");
         reportPerformanceLog.setToolTipText("Report page performance logs.");
         reportPerformanceLog.setFocusCycleRoot(true);
-        reportPerformanceLog.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                reportPerformanceLogActionPerformed(evt);
+        reportPerformanceLog.addActionListener(
+            new java.awt.event.ActionListener() {
+
+                public void actionPerformed(java.awt.event.ActionEvent evt) {
+                    reportPerformanceLogActionPerformed(evt);
+                }
             }
-        });
+        );
 
         fullpagescreenshot.setFont(UIManager.getFont("TableMenu.font"));
         fullpagescreenshot.setText("Take Full Page Screenshot");
-        fullpagescreenshot.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                fullpagescreenshotActionPerformed(evt);
+        fullpagescreenshot.addActionListener(
+            new java.awt.event.ActionListener() {
+
+                public void actionPerformed(java.awt.event.ActionEvent evt) {
+                    fullpagescreenshotActionPerformed(evt);
+                }
             }
-        });
+        );
 
         jLabel1.setText("(On Error)");
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(this);
         this.setLayout(layout);
         layout.setHorizontalGroup(
-            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(layout.createSequentialGroup()
-                .addContainerGap()
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addComponent(fullpagescreenshot)
-                    .addGroup(layout.createSequentialGroup()
-                        .addComponent(passCheckBox)
-                        .addGap(18, 18, 18)
-                        .addComponent(failCheckBox))
-                    .addGroup(layout.createSequentialGroup()
-                        .addComponent(ContinueOnError)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                        .addComponent(BreakOnError))
-                    .addComponent(screenShotFor)
-                    .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING, false)
-                        .addComponent(useExistingDriver, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
-                        .addComponent(reportPerformanceLog))
-                    .addGroup(layout.createSequentialGroup()
-                        .addComponent(iterMode)
-                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                        .addComponent(jLabel1)))
-                .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
-            .addComponent(jSeparator1)
-            .addComponent(jSeparator2)
+            layout
+                .createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                .addGroup(
+                    layout
+                        .createSequentialGroup()
+                        .addContainerGap()
+                        .addGroup(
+                            layout
+                                .createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                .addComponent(fullpagescreenshot)
+                                .addGroup(
+                                    layout
+                                        .createSequentialGroup()
+                                        .addComponent(passCheckBox)
+                                        .addGap(18, 18, 18)
+                                        .addComponent(failCheckBox)
+                                )
+                                .addGroup(
+                                    layout
+                                        .createSequentialGroup()
+                                        .addComponent(ContinueOnError)
+                                        .addPreferredGap(
+                                            javax.swing.LayoutStyle.ComponentPlacement.UNRELATED
+                                        )
+                                        .addComponent(BreakOnError)
+                                )
+                                .addComponent(screenShotFor)
+                                .addGroup(
+                                    layout
+                                        .createParallelGroup(
+                                            javax.swing.GroupLayout.Alignment.LEADING,
+                                            false
+                                        )
+                                        .addComponent(
+                                            useExistingDriver,
+                                            javax.swing.GroupLayout.DEFAULT_SIZE,
+                                            javax.swing.GroupLayout.DEFAULT_SIZE,
+                                            Short.MAX_VALUE
+                                        )
+                                        .addComponent(reportPerformanceLog)
+                                )
+                                .addGroup(
+                                    layout
+                                        .createSequentialGroup()
+                                        .addComponent(iterMode)
+                                        .addPreferredGap(
+                                            javax.swing.LayoutStyle.ComponentPlacement.RELATED
+                                        )
+                                        .addComponent(jLabel1)
+                                )
+                        )
+                        .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                )
+                .addComponent(jSeparator1)
+                .addComponent(jSeparator2)
         );
         layout.setVerticalGroup(
-            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(layout.createSequentialGroup()
-                .addContainerGap()
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(iterMode)
-                    .addComponent(jLabel1))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(ContinueOnError)
-                    .addComponent(BreakOnError))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addComponent(jSeparator1, javax.swing.GroupLayout.PREFERRED_SIZE, 5, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
-                .addComponent(screenShotFor)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addGroup(layout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(passCheckBox)
-                    .addComponent(failCheckBox))
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addComponent(fullpagescreenshot)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addComponent(jSeparator2, javax.swing.GroupLayout.PREFERRED_SIZE, 4, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(7, 7, 7)
-                .addComponent(useExistingDriver)
-                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
-                .addComponent(reportPerformanceLog)
-                .addContainerGap(20, Short.MAX_VALUE))
+            layout
+                .createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                .addGroup(
+                    layout
+                        .createSequentialGroup()
+                        .addContainerGap()
+                        .addGroup(
+                            layout
+                                .createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                                .addComponent(iterMode)
+                                .addComponent(jLabel1)
+                        )
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addGroup(
+                            layout
+                                .createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                                .addComponent(ContinueOnError)
+                                .addComponent(BreakOnError)
+                        )
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addComponent(
+                            jSeparator1,
+                            javax.swing.GroupLayout.PREFERRED_SIZE,
+                            5,
+                            javax.swing.GroupLayout.PREFERRED_SIZE
+                        )
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED)
+                        .addComponent(screenShotFor)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addGroup(
+                            layout
+                                .createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                                .addComponent(passCheckBox)
+                                .addComponent(failCheckBox)
+                        )
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addComponent(fullpagescreenshot)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addComponent(
+                            jSeparator2,
+                            javax.swing.GroupLayout.PREFERRED_SIZE,
+                            4,
+                            javax.swing.GroupLayout.PREFERRED_SIZE
+                        )
+                        .addGap(7, 7, 7)
+                        .addComponent(useExistingDriver)
+                        .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
+                        .addComponent(reportPerformanceLog)
+                        .addContainerGap(20, Short.MAX_VALUE)
+                )
         );
-    }// </editor-fold>//GEN-END:initComponents
+    } // </editor-fold>//GEN-END:initComponents
 
-    private void ContinueOnErrorActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_ContinueOnErrorActionPerformed
+    private void ContinueOnErrorActionPerformed(java.awt.event.ActionEvent evt) { //GEN-FIRST:event_ContinueOnErrorActionPerformed
         runSettings.setIterationMode(ContinueOnError.getName());
-    }//GEN-LAST:event_ContinueOnErrorActionPerformed
+    } //GEN-LAST:event_ContinueOnErrorActionPerformed
 
-    private void BreakOnErrorActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_BreakOnErrorActionPerformed
+    private void BreakOnErrorActionPerformed(java.awt.event.ActionEvent evt) { //GEN-FIRST:event_BreakOnErrorActionPerformed
         runSettings.setIterationMode(BreakOnError.getName());
-    }//GEN-LAST:event_BreakOnErrorActionPerformed
+    } //GEN-LAST:event_BreakOnErrorActionPerformed
 
-    private void passCheckBoxActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_passCheckBoxActionPerformed
+    private void passCheckBoxActionPerformed(java.awt.event.ActionEvent evt) { //GEN-FIRST:event_passCheckBoxActionPerformed
         runSettings.setScreenShotFor(getPassFail());
-    }//GEN-LAST:event_passCheckBoxActionPerformed
+    } //GEN-LAST:event_passCheckBoxActionPerformed
 
-    private void failCheckBoxActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_failCheckBoxActionPerformed
+    private void failCheckBoxActionPerformed(java.awt.event.ActionEvent evt) { //GEN-FIRST:event_failCheckBoxActionPerformed
         runSettings.setScreenShotFor(getPassFail());
-    }//GEN-LAST:event_failCheckBoxActionPerformed
+    } //GEN-LAST:event_failCheckBoxActionPerformed
 
-    private void fullpagescreenshotActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_fullpagescreenshotActionPerformed
+    private void fullpagescreenshotActionPerformed(java.awt.event.ActionEvent evt) { //GEN-FIRST:event_fullpagescreenshotActionPerformed
         runSettings.setTakeFullPageScreenShot(fullpagescreenshot.isSelected());
-    }//GEN-LAST:event_fullpagescreenshotActionPerformed
+    } //GEN-LAST:event_fullpagescreenshotActionPerformed
 
-    private void useExistingDriverActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_useExistingDriverActionPerformed
+    private void useExistingDriverActionPerformed(java.awt.event.ActionEvent evt) { //GEN-FIRST:event_useExistingDriverActionPerformed
         runSettings.useExistingDriver(useExistingDriver.isSelected());
-    }//GEN-LAST:event_useExistingDriverActionPerformed
+    } //GEN-LAST:event_useExistingDriverActionPerformed
 
-    private void reportPerformanceLogActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_reportPerformanceLogActionPerformed
+    private void reportPerformanceLogActionPerformed(java.awt.event.ActionEvent evt) { //GEN-FIRST:event_reportPerformanceLogActionPerformed
         runSettings.setReportPerformanceLog(reportPerformanceLog.isSelected());
-    }//GEN-LAST:event_reportPerformanceLogActionPerformed
+    } //GEN-LAST:event_reportPerformanceLogActionPerformed
+
     private String getPassFail() {
         if (passCheckBox.isSelected() && failCheckBox.isSelected()) {
             return "Both";
@@ -241,7 +316,7 @@ public class QuickSettingsUILeft extends QuickSettingsUI {
         useExistingDriver.setSelected(x.useExistingDriver());
         reportPerformanceLog.setSelected(x.isPerformanceLogEnabled());
     }
-    
+
     /**
      * Apply dark mode colors to all components
      */
@@ -249,63 +324,62 @@ public class QuickSettingsUILeft extends QuickSettingsUI {
         Color panelBg = UIManager.getColor("Panel.background");
         Color panelFg = UIManager.getColor("Panel.foreground");
         Color separatorColor = UIManager.getColor("Separator.foreground");
-        
+
         // Ensure colors are set (use defaults if UIManager doesn't have them yet)
         if (panelBg == null) panelBg = new Color(37, 32, 48); // darkPanel
         if (panelFg == null) panelFg = new Color(232, 226, 229); // warmText
         if (separatorColor == null) separatorColor = new Color(58, 53, 69); // dividerGray
-        
+
         setBackground(panelBg);
         setOpaque(true);
         setForeground(panelFg);
-        
+
         // Apply foreground to labels
         iterMode.setForeground(panelFg);
         iterMode.setBackground(panelBg);
         iterMode.setOpaque(true);
-        
+
         screenShotFor.setForeground(panelFg);
         screenShotFor.setBackground(panelBg);
         screenShotFor.setOpaque(true);
-        
+
         jLabel1.setForeground(panelFg);
         jLabel1.setBackground(panelBg);
         jLabel1.setOpaque(true);
-        
+
         // Apply foreground and background to checkboxes and radio buttons
         ContinueOnError.setForeground(panelFg);
         ContinueOnError.setBackground(panelBg);
         ContinueOnError.setOpaque(true);
-        
+
         BreakOnError.setForeground(panelFg);
         BreakOnError.setBackground(panelBg);
         BreakOnError.setOpaque(true);
-        
+
         passCheckBox.setForeground(panelFg);
         passCheckBox.setBackground(panelBg);
         passCheckBox.setOpaque(true);
-        
+
         failCheckBox.setForeground(panelFg);
         failCheckBox.setBackground(panelBg);
         failCheckBox.setOpaque(true);
-        
+
         useExistingDriver.setForeground(panelFg);
         useExistingDriver.setBackground(panelBg);
         useExistingDriver.setOpaque(true);
-        
+
         reportPerformanceLog.setForeground(panelFg);
         reportPerformanceLog.setBackground(panelBg);
         reportPerformanceLog.setOpaque(true);
-        
+
         fullpagescreenshot.setForeground(panelFg);
         fullpagescreenshot.setBackground(panelBg);
         fullpagescreenshot.setOpaque(true);
-        
+
         // Set separator colors
         jSeparator1.setForeground(separatorColor);
         jSeparator2.setForeground(separatorColor);
     }
-
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JRadioButton BreakOnError;

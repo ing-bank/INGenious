@@ -12,7 +12,6 @@ import java.util.UUID;
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class APIRequest implements Serializable {
-
     private static final long serialVersionUID = 1L;
 
     /**
@@ -47,6 +46,7 @@ public class APIRequest implements Serializable {
     private boolean followRedirects;
     private boolean sslVerificationEnabled;
     private CertificateConfig certificateConfig;
+    private ProxyConfig proxyConfig;
 
     public APIRequest() {
         this.id = UUID.randomUUID().toString();
@@ -63,6 +63,7 @@ public class APIRequest implements Serializable {
         this.followRedirects = true;
         this.sslVerificationEnabled = true;
         this.certificateConfig = new CertificateConfig();
+        this.proxyConfig = new ProxyConfig();
     }
 
     public APIRequest(String name, HttpMethod method, String url) {
@@ -293,6 +294,15 @@ public class APIRequest implements Serializable {
         this.updatedAt = Instant.now().toEpochMilli();
     }
 
+    public ProxyConfig getProxyConfig() {
+        return proxyConfig;
+    }
+
+    public void setProxyConfig(ProxyConfig proxyConfig) {
+        this.proxyConfig = proxyConfig;
+        this.updatedAt = Instant.now().toEpochMilli();
+    }
+
     /**
      * Returns enabled headers only.
      */
@@ -338,7 +348,7 @@ public class APIRequest implements Serializable {
         copy.setSslVerificationEnabled(this.sslVerificationEnabled);
         copy.setPreRequestScript(this.preRequestScript);
         copy.setTestScript(this.testScript);
-        
+
         // Deep copy collections
         if (this.queryParams != null) {
             copy.setQueryParams(new ArrayList<>());
@@ -367,13 +377,16 @@ public class APIRequest implements Serializable {
         if (this.certificateConfig != null) {
             copy.setCertificateConfig(this.certificateConfig.copy());
         }
+        if (this.proxyConfig != null) {
+            copy.setProxyConfig(this.proxyConfig.copy());
+        }
         if (this.assertions != null) {
             copy.setAssertions(new ArrayList<>());
             for (APIAssertion a : this.assertions) {
                 copy.getAssertions().add(a.copy());
             }
         }
-        
+
         return copy;
     }
 

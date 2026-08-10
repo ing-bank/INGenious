@@ -1,4 +1,3 @@
-
 package com.ing.ide.main.utils.table;
 
 import com.ing.datalib.component.DataModel;
@@ -14,16 +13,14 @@ import javax.swing.JTable;
 
 /**
  *
- * 
+ *
  */
 public class XTableUtils {
-
     private static final String LINE_BREAK = "\n";
     private static final String CELL_BREAK = "\t";
     private static final Clipboard CLIPBOARD = Toolkit.getDefaultToolkit().getSystemClipboard();
 
     public static void copyToClipboard(JTable table, boolean isCut) {
-        
         int numCols = table.getSelectedColumnCount();
         int numRows = table.getSelectedRowCount();
         int[] rowsSelected = table.getSelectedRows();
@@ -78,9 +75,12 @@ public class XTableUtils {
 
         String pasteString;
         try {
-            pasteString = (String) (CLIPBOARD.getContents(null).getTransferData(DataFlavor.stringFlavor));
+            pasteString =
+                (String) (CLIPBOARD.getContents(null).getTransferData(DataFlavor.stringFlavor));
         } catch (Exception e) {
-            Logger.getLogger(XTableUtils.class.getName()).log(Level.WARNING, "Invalid Paste Type", e);
+            Logger
+                .getLogger(XTableUtils.class.getName())
+                .log(Level.WARNING, "Invalid Paste Type", e);
             return;
         }
         if (table.getModel() instanceof UndoRedoModel) {
@@ -107,5 +107,4 @@ public class XTableUtils {
             ((UndoRedoModel) table.getModel()).stopGroupEdit();
         }
     }
-    
 }

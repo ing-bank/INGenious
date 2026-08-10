@@ -1,5 +1,6 @@
-
 package com.ing.ide.util;
+
+import static javax.swing.JComponent.WHEN_FOCUSED;
 
 import java.awt.BasicStroke;
 import java.awt.Color;
@@ -18,16 +19,14 @@ import java.awt.geom.Rectangle2D;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.JComponent;
-import static javax.swing.JComponent.WHEN_FOCUSED;
 import javax.swing.KeyStroke;
 import javax.swing.SwingUtilities;
 
 /**
  *
- * 
+ *
  */
 public class SelectionManager implements MouseListener, MouseMotionListener, KeyListener {
-
     private final JComponent com;
     private Point click, start, end;
     public boolean drag = false;
@@ -45,18 +44,18 @@ public class SelectionManager implements MouseListener, MouseMotionListener, Key
         end = new Point(0, 0);
         click = new Point(0, 0);
         selection = new Rectangle2D.Double();
-        escape = new AbstractAction() {
+        escape =
+            new AbstractAction() {
 
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                removeSelection();
-            }
-        };
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    removeSelection();
+                }
+            };
         com.getInputMap(WHEN_FOCUSED).put(KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, 0), "escape");
         com.getActionMap().put("escape", escape);
         com.setFocusable(true);
         com.requestFocus();
-
     }
 
     private void initListeners() {
@@ -93,19 +92,22 @@ public class SelectionManager implements MouseListener, MouseMotionListener, Key
         start.y = 0;
         end.x = 0;
         end.y = 0;
-
     }
 
     public String getSelectedCoordAsString() {
-        return selection.getBounds().x + ","
-                + selection.getBounds().y + ","
-                + selection.getBounds().width + ","
-                + selection.getBounds().height;
+        return (
+            selection.getBounds().x +
+            "," +
+            selection.getBounds().y +
+            "," +
+            selection.getBounds().width +
+            "," +
+            selection.getBounds().height
+        );
     }
 
     @Override
-    public void mouseClicked(MouseEvent e) {
-    }
+    public void mouseClicked(MouseEvent e) {}
 
     @Override
     public void mousePressed(MouseEvent e) {
@@ -135,7 +137,6 @@ public class SelectionManager implements MouseListener, MouseMotionListener, Key
             end.y = e.getY();
             drag = false;
         }
-
     }
 
     private void removeSelection() {
@@ -160,8 +161,7 @@ public class SelectionManager implements MouseListener, MouseMotionListener, Key
     private void drawSelection(Graphics2D g2d) {
         selection.setFrameFromDiagonal(start, end);
         Rectangle select = this.selection.getBounds();
-        g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING,
-                RenderingHints.VALUE_ANTIALIAS_OFF);
+        g2d.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_OFF);
 
         g2d.setStroke(new BasicStroke(1.8f));
         g2d.setColor(Color.RED);
@@ -169,27 +169,20 @@ public class SelectionManager implements MouseListener, MouseMotionListener, Key
     }
 
     @Override
-    public void mouseEntered(MouseEvent e) {
-    }
+    public void mouseEntered(MouseEvent e) {}
 
     @Override
-    public void mouseExited(MouseEvent e) {
-    }
+    public void mouseExited(MouseEvent e) {}
 
     @Override
-    public void mouseMoved(MouseEvent e) {
-    }
+    public void mouseMoved(MouseEvent e) {}
 
     @Override
-    public void keyPressed(KeyEvent e) {
-    }
+    public void keyPressed(KeyEvent e) {}
 
     @Override
-    public void keyTyped(KeyEvent e) {
-    }
+    public void keyTyped(KeyEvent e) {}
 
     @Override
-    public void keyReleased(KeyEvent e) {
-    }
-
+    public void keyReleased(KeyEvent e) {}
 }

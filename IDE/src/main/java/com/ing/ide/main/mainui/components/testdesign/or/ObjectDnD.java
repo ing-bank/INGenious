@@ -1,5 +1,7 @@
-
 package com.ing.ide.main.mainui.components.testdesign.or;
+
+import static javax.swing.TransferHandler.COPY_OR_MOVE;
+import static javax.swing.TransferHandler.MOVE;
 
 import com.ing.datalib.or.common.ORObjectInf;
 import com.ing.datalib.or.common.ORPageInf;
@@ -18,8 +20,6 @@ import java.util.logging.Logger;
 import javax.swing.JComponent;
 import javax.swing.JTree;
 import javax.swing.TransferHandler;
-import static javax.swing.TransferHandler.COPY_OR_MOVE;
-import static javax.swing.TransferHandler.MOVE;
 import javax.swing.TransferHandler.TransferSupport;
 import javax.swing.tree.DefaultTreeModel;
 import javax.swing.tree.TreeNode;
@@ -27,11 +27,13 @@ import javax.swing.tree.TreePath;
 
 /**
  *
- * 
+ *
  */
 public class ObjectDnD extends TransferHandler {
-
-    public static final DataFlavor OBJECT_FLAVOR = new DataFlavor(ObjectRepDnD.class, ObjectRepDnD.class.getSimpleName());
+    public static final DataFlavor OBJECT_FLAVOR = new DataFlavor(
+        ObjectRepDnD.class,
+        ObjectRepDnD.class.getSimpleName()
+    );
 
     private final JTree tree;
 
@@ -63,7 +65,7 @@ public class ObjectDnD extends TransferHandler {
                     pages.add((ORPageInf) selected);
                 } /*else if (selected instanceof ObjectGroup) {
                     groups.add((ObjectGroup) selected);
-                }*/ else if (selected instanceof ORObjectInf) {
+                }*/else if (selected instanceof ORObjectInf) {
                     objects.add((ORObjectInf) selected);
                 }
             }
@@ -71,7 +73,10 @@ public class ObjectDnD extends TransferHandler {
                 return new TransferableNode(new ObjectRepDnD().withPages(pages), OBJECT_FLAVOR);
             }
             if (!groups.isEmpty()) {
-                return new TransferableNode(new ObjectRepDnD().withObjectGroups(groups), OBJECT_FLAVOR);
+                return new TransferableNode(
+                    new ObjectRepDnD().withObjectGroups(groups),
+                    OBJECT_FLAVOR
+                );
             }
             if (!objects.isEmpty()) {
                 return new TransferableNode(new ObjectRepDnD().withObjects(objects), OBJECT_FLAVOR);
@@ -82,14 +87,16 @@ public class ObjectDnD extends TransferHandler {
 
     @Override
     public boolean canImport(TransferSupport ts) {
-        return ts.getComponent().equals(tree)
-                && ts.isDataFlavorSupported(OBJECT_FLAVOR)
-                && getDestinationObject(ts) != null
-                && !(getDestinationObject(ts) instanceof ORRootInf);
+        return (
+            ts.getComponent().equals(tree) &&
+            ts.isDataFlavorSupported(OBJECT_FLAVOR) &&
+            getDestinationObject(ts) != null &&
+            !(getDestinationObject(ts) instanceof ORRootInf)
+        );
     }
 
     @Override
-public boolean importData(TransferSupport ts) {
+    public boolean importData(TransferSupport ts) {
         /**********************************Commented out to disable accidental Object grouping ********************/
         if (canImport(ts)) {
             ObjectRepDnD oDnd;
@@ -101,31 +108,31 @@ public boolean importData(TransferSupport ts) {
             }
             Object object = getDestinationObject(ts);
             Boolean shouldCut = ts.isDrop() ? ts.getDropAction() == MOVE : isCut;
-//            if (object instanceof ORPageInf) {
-//                if (oDnd.isGroup()) {
-//                    copyObjectGroups((ORPageInf) object, oDnd, shouldCut);
-//                    return true;
-//                } else if (oDnd.isObject()) {
-                    copyObjects((ORPageInf) object, oDnd, shouldCut);
-                    return true;
-//                }
-//            } /*else if (object instanceof ObjectGroup) {
-//                if (oDnd.isObject()) {
-//                    copyObjects((ObjectGroup) object, oDnd, shouldCut);
-//                    return true;
-//                }
-//            } else if (object instanceof ORObjectInf) {
-//                if (oDnd.isObject()) {
-//                    if (copyObjects(((ORObjectInf) object).getParent(), oDnd, shouldCut)) {
-//                        if (((ORObjectInf) object).getParent().getChildCount() == 2) {
-//                            reload(((ORObjectInf) object).getParent().getParent());
-//                        }
-//                    }
-//                    return true;
-//                }
-//            }
-//        }
-//            }
+            //            if (object instanceof ORPageInf) {
+            //                if (oDnd.isGroup()) {
+            //                    copyObjectGroups((ORPageInf) object, oDnd, shouldCut);
+            //                    return true;
+            //                } else if (oDnd.isObject()) {
+            copyObjects((ORPageInf) object, oDnd, shouldCut);
+            return true;
+            //                }
+            //            } /*else if (object instanceof ObjectGroup) {
+            //                if (oDnd.isObject()) {
+            //                    copyObjects((ObjectGroup) object, oDnd, shouldCut);
+            //                    return true;
+            //                }
+            //            } else if (object instanceof ORObjectInf) {
+            //                if (oDnd.isObject()) {
+            //                    if (copyObjects(((ORObjectInf) object).getParent(), oDnd, shouldCut)) {
+            //                        if (((ORObjectInf) object).getParent().getChildCount() == 2) {
+            //                            reload(((ORObjectInf) object).getParent().getParent());
+            //                        }
+            //                    }
+            //                    return true;
+            //                }
+            //            }
+            //        }
+            //            }
         }
         return false;
     }
@@ -146,7 +153,7 @@ public boolean importData(TransferSupport ts) {
     @Override
     protected void exportDone(JComponent source, Transferable data, int action) {
         isCut = action == MOVE;
-//        super.exportDone(source, data, action);
+        //        super.exportDone(source, data, action);
     }
 
     private void copyObjects(ORPageInf page, ObjectRepDnD oDnd, Boolean shouldCut) {
@@ -154,13 +161,13 @@ public boolean importData(TransferSupport ts) {
             if (value.contains("###")) {
                 String[] objVals = value.split("###");
                 if (objVals.length == 3) {
-                    ObjectGroup parent = getRoot().getPageByName(objVals[2])
-                            .getObjectGroupByName(objVals[1]);
+                    ObjectGroup parent = getRoot()
+                        .getPageByName(objVals[2])
+                        .getObjectGroupByName(objVals[1]);
                     ORObjectInf obj = parent.getObjectByName(objVals[0]);
 
                     if (shouldCut) {
-                        if (obj.getPage().equals(page)
-                                && parent.getObjects().size() == 1) {
+                        if (obj.getPage().equals(page) && parent.getObjects().size() == 1) {
                             continue;
                         }
                     }
@@ -170,12 +177,18 @@ public boolean importData(TransferSupport ts) {
                         obj.clone(newObj);
                         objectAdded(newObj);
                         if (shouldCut) {
-                            FileOptions.moveDirectory(obj.getRepLocation(), newObj.getRepLocation());
+                            FileOptions.moveDirectory(
+                                obj.getRepLocation(),
+                                newObj.getRepLocation()
+                            );
                             objectRemoved(obj);
                             refactorCObject(parent, newObj.getParent());
                             obj.removeFromParent();
                         } else {
-                            FileOptions.copyDirectory(obj.getRepLocation(), newObj.getRepLocation());
+                            FileOptions.copyDirectory(
+                                obj.getRepLocation(),
+                                newObj.getRepLocation()
+                            );
                         }
                     }
                 }
@@ -188,8 +201,9 @@ public boolean importData(TransferSupport ts) {
             if (value.contains("###")) {
                 String[] objVals = value.split("###");
                 if (objVals.length == 3) {
-                    ObjectGroup parent = getRoot().getPageByName(objVals[2])
-                            .getObjectGroupByName(objVals[1]);
+                    ObjectGroup parent = getRoot()
+                        .getPageByName(objVals[2])
+                        .getObjectGroupByName(objVals[1]);
                     ORObjectInf obj = parent.getObjectByName(objVals[0]);
 
                     if (shouldCut) {
@@ -198,18 +212,23 @@ public boolean importData(TransferSupport ts) {
                         }
                     }
 
-                    ORObjectInf newObj = group.addObject(
-                            getObjectName(obj.getName(), group));
+                    ORObjectInf newObj = group.addObject(getObjectName(obj.getName(), group));
                     if (newObj != null) {
                         obj.clone(newObj);
                         objectAdded(newObj);
                         if (shouldCut) {
-                            FileOptions.moveDirectory(obj.getRepLocation(), newObj.getRepLocation());
+                            FileOptions.moveDirectory(
+                                obj.getRepLocation(),
+                                newObj.getRepLocation()
+                            );
                             objectRemoved(obj);
                             refactorCObject(parent, newObj.getParent());
                             obj.removeFromParent();
                         } else {
-                            FileOptions.copyDirectory(obj.getRepLocation(), newObj.getRepLocation());
+                            FileOptions.copyDirectory(
+                                obj.getRepLocation(),
+                                newObj.getRepLocation()
+                            );
                         }
                         return true;
                     }
@@ -256,12 +275,18 @@ public boolean importData(TransferSupport ts) {
                         obj.clone(newObj);
                         nodeAdded(newObj);
                         if (shouldCut) {
-                            FileOptions.moveDirectory(obj.getRepLocation(), newObj.getRepLocation());
+                            FileOptions.moveDirectory(
+                                obj.getRepLocation(),
+                                newObj.getRepLocation()
+                            );
                             nodeRemoved(obj);
                             refactorObject(obj, newObj);
                             obj.removeFromParent();
                         } else {
-                            FileOptions.copyDirectory(obj.getRepLocation(), newObj.getRepLocation());
+                            FileOptions.copyDirectory(
+                                obj.getRepLocation(),
+                                newObj.getRepLocation()
+                            );
                         }
                     }
                 }
@@ -276,7 +301,10 @@ public boolean importData(TransferSupport ts) {
         } else {
             parent = object.getParent();
         }
-        ((DefaultTreeModel) tree.getModel()).nodesWereInserted(parent, new int[]{parent.getChildCount() - 1});
+        ((DefaultTreeModel) tree.getModel()).nodesWereInserted(
+                parent,
+                new int[] { parent.getChildCount() - 1 }
+            );
     }
 
     private void reload(ORPageInf page) {
@@ -293,27 +321,51 @@ public boolean importData(TransferSupport ts) {
             parent = object.getParent();
             child = object;
         }
-        ((DefaultTreeModel) tree.getModel()).nodesWereRemoved(parent, new int[]{parent.getIndex(child)}, new Object[]{child});
+        ((DefaultTreeModel) tree.getModel()).nodesWereRemoved(
+                parent,
+                new int[] { parent.getIndex(child) },
+                new Object[] { child }
+            );
     }
 
     private void nodeAdded(TreeNode node) {
-        ((DefaultTreeModel) tree.getModel()).nodesWereInserted(node.getParent(), new int[]{node.getParent().getChildCount() - 1});
+        ((DefaultTreeModel) tree.getModel()).nodesWereInserted(
+                node.getParent(),
+                new int[] { node.getParent().getChildCount() - 1 }
+            );
     }
 
     private void nodeRemoved(TreeNode node) {
-        ((DefaultTreeModel) tree.getModel()).nodesWereRemoved(node.getParent(), new int[]{node.getParent().getIndex(node)}, new Object[]{node});
+        ((DefaultTreeModel) tree.getModel()).nodesWereRemoved(
+                node.getParent(),
+                new int[] { node.getParent().getIndex(node) },
+                new Object[] { node }
+            );
     }
 
     private void refactorCObject(ObjectGroup fromObject, ObjectGroup toObject) {
         if (fromObject.getChildCount() == 1) {
-            getRoot().getObjectRepository().getsProject()
-                    .refactorObjectName(fromObject.getParent().getName(), fromObject.getName(), toObject.getParent().getName(), toObject.getName());
+            getRoot()
+                .getObjectRepository()
+                .getsProject()
+                .refactorObjectName(
+                    fromObject.getParent().getName(),
+                    fromObject.getName(),
+                    toObject.getParent().getName(),
+                    toObject.getName()
+                );
         }
     }
 
     private void refactorObject(ObjectGroup fromObject, ObjectGroup toObject) {
-        getRoot().getObjectRepository().getsProject()
-                .refactorObjectName(fromObject.getParent().getName(), fromObject.getName(), toObject.getParent().getName(), toObject.getName());
+        getRoot()
+            .getObjectRepository()
+            .getsProject()
+            .refactorObjectName(
+                fromObject.getParent().getName(),
+                fromObject.getName(),
+                toObject.getParent().getName(),
+                toObject.getName()
+            );
     }
-
 }

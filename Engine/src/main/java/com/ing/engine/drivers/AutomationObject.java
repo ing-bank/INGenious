@@ -6,15 +6,15 @@ import com.ing.datalib.or.common.ObjectGroup;
 import com.ing.datalib.or.mobile.MobileORObject;
 import com.ing.datalib.or.mobile.MobileORPage;
 import com.ing.datalib.or.mobile.ResolvedMobileObject;
+import com.ing.datalib.or.sap.ResolvedSapObject;
 import com.ing.datalib.or.structureddata.ResolvedStructuredDataObject;
 import com.ing.datalib.or.structureddata.StructuredDataORObject;
+import com.ing.datalib.or.web.ResolvedWebObject;
 import com.ing.datalib.or.web.WebORObject;
 import com.ing.datalib.or.web.WebORPage;
-import com.ing.datalib.or.web.ResolvedWebObject;
-import com.ing.datalib.or.sap.ResolvedSapObject;
 import com.ing.engine.constants.SystemDefaults;
-import com.ing.engine.core.Control;
 import com.ing.engine.core.CommandControl;
+import com.ing.engine.core.Control;
 import com.ing.engine.reporting.intf.Report;
 import com.ing.ingenious.api.contract.drivers.AutomationObjectApi;
 import com.ing.ingenious.api.status.Status;
@@ -60,8 +60,7 @@ public class AutomationObject implements AutomationObjectApi {
     static HashMap<String, String> chainLocatorMaping = new HashMap<String, String>();
     public static final Map<String, List<String>> locatorFiltersMap = new HashMap<>();
 
-    public AutomationObject() {
-    }
+    public AutomationObject() {}
 
     public AutomationObject(Page Page) {
         this.page = Page;
@@ -70,8 +69,11 @@ public class AutomationObject implements AutomationObjectApi {
     public AutomationObject(BrowserContext BrowserContext) {
         this.browserContext = BrowserContext;
     }
-    
-    public enum LocatorType { LOCATOR, FRAMELOCATOR }
+
+    public enum LocatorType {
+        LOCATOR,
+        FRAMELOCATOR
+    }
 
     /**
      *
@@ -108,7 +110,12 @@ public class AutomationObject implements AutomationObjectApi {
         return getElementFromList(findElements(getORObject(pageKey, objectKey), null));
     }
 
-    public Locator findElement(String objectKey, String pageKey, String Attribute, FindType condition) {
+    public Locator findElement(
+        String objectKey,
+        String pageKey,
+        String Attribute,
+        FindType condition
+    ) {
         pageName = pageKey;
         objectName = objectKey;
         findType = condition;
@@ -129,12 +136,16 @@ public class AutomationObject implements AutomationObjectApi {
         return findElements(objectKey, pageKey, null, condition);
     }
 
-    public List<Locator> findElements(String objectKey, String pageKey, String Attribute, FindType condition) {
+    public List<Locator> findElements(
+        String objectKey,
+        String pageKey,
+        String Attribute,
+        FindType condition
+    ) {
         return findElements(objectKey, pageKey, Attribute, condition);
     }
 
     private Locator getElementFromList(List<Locator> elements) {
-
         return elements != null && !elements.isEmpty() ? elements.get(0) : null;
     }
 
@@ -146,43 +157,66 @@ public class AutomationObject implements AutomationObjectApi {
             if (wresolved != null && wresolved.getGroup() != null) {
                 return wresolved.getGroup();
             }
-        } catch (Exception ignore) { }
+        } catch (Exception ignore) {}
         try {
             ResolvedMobileObject.PageRef mref = ResolvedMobileObject.PageRef.parse(page);
             ResolvedMobileObject mresolved = objRep.resolveMobileObject(mref, object);
             if (mresolved != null && mresolved.getGroup() != null) {
                 return mresolved.getGroup();
             }
-        } catch (Exception ignore) { }
+        } catch (Exception ignore) {}
         try {
-            ResolvedStructuredDataObject.PageRef sdref = ResolvedStructuredDataObject.PageRef.parse(page);
-            ResolvedStructuredDataObject sdresolved = objRep.resolveStructuredDataObject(sdref, object);
+            ResolvedStructuredDataObject.PageRef sdref = ResolvedStructuredDataObject.PageRef.parse(
+                page
+            );
+            ResolvedStructuredDataObject sdresolved = objRep.resolveStructuredDataObject(
+                sdref,
+                object
+            );
             if (sdresolved != null && sdresolved.getGroup() != null) {
                 return sdresolved.getGroup();
             }
-        } catch (Exception ignore) { }
+        } catch (Exception ignore) {}
         try {
             ResolvedSapObject.PageRef sref = ResolvedSapObject.PageRef.parse(page);
             ResolvedSapObject sresolved = objRep.resolveSapObject(sref, object);
             if (sresolved != null && sresolved.getGroup() != null) {
                 return sresolved.getGroup();
             }
-        } catch (Exception ignore) { }
+        } catch (Exception ignore) {}
         if (objRep.getWebOR() != null && objRep.getWebOR().getPageByName(page) != null) {
             return objRep.getWebOR().getPageByName(page).getObjectGroupByName(object);
-        } else if (objRep.getWebSharedOR() != null && objRep.getWebSharedOR().getPageByName(page) != null) {
+        } else if (
+            objRep.getWebSharedOR() != null && objRep.getWebSharedOR().getPageByName(page) != null
+        ) {
             return objRep.getWebSharedOR().getPageByName(page).getObjectGroupByName(object);
-        } else if (objRep.getMobileOR() != null && objRep.getMobileOR().getPageByName(page) != null) {
+        } else if (
+            objRep.getMobileOR() != null && objRep.getMobileOR().getPageByName(page) != null
+        ) {
             return objRep.getMobileOR().getPageByName(page).getObjectGroupByName(object);
-        } else if (objRep.getMobileSharedOR() != null && objRep.getMobileSharedOR().getPageByName(page) != null) {
+        } else if (
+            objRep.getMobileSharedOR() != null &&
+            objRep.getMobileSharedOR().getPageByName(page) != null
+        ) {
             return objRep.getMobileSharedOR().getPageByName(page).getObjectGroupByName(object);
-        } else if (objRep.getStructuredDataOR() != null && objRep.getStructuredDataOR().getPageByName(page) != null) {
+        } else if (
+            objRep.getStructuredDataOR() != null &&
+            objRep.getStructuredDataOR().getPageByName(page) != null
+        ) {
             return objRep.getStructuredDataOR().getPageByName(page).getObjectGroupByName(object);
-        } else if (objRep.getStructuredDataSharedOR() != null && objRep.getStructuredDataSharedOR().getPageByName(page) != null) {
-            return objRep.getStructuredDataSharedOR().getPageByName(page).getObjectGroupByName(object);
+        } else if (
+            objRep.getStructuredDataSharedOR() != null &&
+            objRep.getStructuredDataSharedOR().getPageByName(page) != null
+        ) {
+            return objRep
+                .getStructuredDataSharedOR()
+                .getPageByName(page)
+                .getObjectGroupByName(object);
         } else if (objRep.getSapOR() != null && objRep.getSapOR().getPageByName(page) != null) {
             return objRep.getSapOR().getPageByName(page).getObjectGroupByName(object);
-        } else if (objRep.getSapSharedOR() != null && objRep.getSapSharedOR().getPageByName(page) != null) {
+        } else if (
+            objRep.getSapSharedOR() != null && objRep.getSapSharedOR().getPageByName(page) != null
+        ) {
             return objRep.getSapSharedOR().getPageByName(page).getObjectGroupByName(object);
         }
         return null;
@@ -191,7 +225,7 @@ public class AutomationObject implements AutomationObjectApi {
     public String getObjectProperty(String pageName, String objectName, String propertyName) {
         return getWebObject(pageName, objectName).getAttributeByName(propertyName);
     }
-    
+
     public ObjectGroup<WebORObject> getWebObjects(String page, String object) {
         ObjectRepository objRep = Control.getCurrentProject().getObjectRepository();
 
@@ -201,10 +235,12 @@ public class AutomationObject implements AutomationObjectApi {
             if (resolved != null && resolved.getGroup() != null) {
                 return (ObjectGroup<WebORObject>) resolved.getGroup();
             }
-        } catch (Exception ignore) { }
+        } catch (Exception ignore) {}
         if (objRep.getWebOR() != null && objRep.getWebOR().getPageByName(page) != null) {
             return objRep.getWebOR().getPageByName(page).getObjectGroupByName(object);
-        } else if (objRep.getWebSharedOR() != null && objRep.getWebSharedOR().getPageByName(page) != null) {
+        } else if (
+            objRep.getWebSharedOR() != null && objRep.getWebSharedOR().getPageByName(page) != null
+        ) {
             return objRep.getWebSharedOR().getPageByName(page).getObjectGroupByName(object);
         }
         return null;
@@ -222,7 +258,10 @@ public class AutomationObject implements AutomationObjectApi {
         ObjectRepository objRep = Control.getCurrentProject().getObjectRepository();
         if (objRep.getMobileOR() != null && objRep.getMobileOR().getPageByName(page) != null) {
             return objRep.getMobileOR().getPageByName(page).getObjectGroupByName(object);
-        } else if (objRep.getMobileSharedOR() != null && objRep.getMobileSharedOR().getPageByName(page) != null) {
+        } else if (
+            objRep.getMobileSharedOR() != null &&
+            objRep.getMobileSharedOR().getPageByName(page) != null
+        ) {
             return objRep.getMobileSharedOR().getPageByName(page).getObjectGroupByName(object);
         }
         return null;
@@ -231,19 +270,44 @@ public class AutomationObject implements AutomationObjectApi {
     public MobileORObject getMobileObject(String page, String object) {
         ObjectRepository objRep = Control.getCurrentProject().getObjectRepository();
         if (objRep.getMobileOR() != null && objRep.getMobileOR().getPageByName(page) != null) {
-            return objRep.getMobileOR().getPageByName(page).getObjectGroupByName(object).getObjects().get(0);
-        } else if (objRep.getMobileSharedOR() != null && objRep.getMobileSharedOR().getPageByName(page) != null) {
-            return objRep.getMobileSharedOR().getPageByName(page).getObjectGroupByName(object).getObjects().get(0);
+            return objRep
+                .getMobileOR()
+                .getPageByName(page)
+                .getObjectGroupByName(object)
+                .getObjects()
+                .get(0);
+        } else if (
+            objRep.getMobileSharedOR() != null &&
+            objRep.getMobileSharedOR().getPageByName(page) != null
+        ) {
+            return objRep
+                .getMobileSharedOR()
+                .getPageByName(page)
+                .getObjectGroupByName(object)
+                .getObjects()
+                .get(0);
         }
         return null;
     }
 
-    public ObjectGroup<StructuredDataORObject> getStructuredDataObjects(String page, String object) {
+    public ObjectGroup<StructuredDataORObject> getStructuredDataObjects(
+        String page,
+        String object
+    ) {
         ObjectRepository objRep = Control.getCurrentProject().getObjectRepository();
-        if (objRep.getStructuredDataOR() != null && objRep.getStructuredDataOR().getPageByName(page) != null) {
+        if (
+            objRep.getStructuredDataOR() != null &&
+            objRep.getStructuredDataOR().getPageByName(page) != null
+        ) {
             return objRep.getStructuredDataOR().getPageByName(page).getObjectGroupByName(object);
-        } else if (objRep.getStructuredDataSharedOR() != null && objRep.getStructuredDataSharedOR().getPageByName(page) != null) {
-            return objRep.getStructuredDataSharedOR().getPageByName(page).getObjectGroupByName(object);
+        } else if (
+            objRep.getStructuredDataSharedOR() != null &&
+            objRep.getStructuredDataSharedOR().getPageByName(page) != null
+        ) {
+            return objRep
+                .getStructuredDataSharedOR()
+                .getPageByName(page)
+                .getObjectGroupByName(object);
         }
         return null;
     }
@@ -251,19 +315,30 @@ public class AutomationObject implements AutomationObjectApi {
     public StructuredDataORObject getStructuredDataObject(String page, String object) {
         ObjectRepository objRep = Control.getCurrentProject().getObjectRepository();
         if (objRep.getMobileOR() != null && objRep.getMobileOR().getPageByName(page) != null) {
-            return objRep.getStructuredDataOR().getPageByName(page).getObjectGroupByName(object).getObjects().get(0);
-        } else if (objRep.getStructuredDataSharedOR() != null && objRep.getStructuredDataSharedOR().getPageByName(page) != null) {
-            return objRep.getStructuredDataSharedOR().getPageByName(page).getObjectGroupByName(object).getObjects().get(0);
+            return objRep
+                .getStructuredDataOR()
+                .getPageByName(page)
+                .getObjectGroupByName(object)
+                .getObjects()
+                .get(0);
+        } else if (
+            objRep.getStructuredDataSharedOR() != null &&
+            objRep.getStructuredDataSharedOR().getPageByName(page) != null
+        ) {
+            return objRep
+                .getStructuredDataSharedOR()
+                .getPageByName(page)
+                .getObjectGroupByName(object)
+                .getObjects()
+                .get(0);
         }
         return null;
     }
 
-    @SuppressWarnings({"unchecked", "rawtypes"})
+    @SuppressWarnings({ "unchecked", "rawtypes" })
     private synchronized List<Locator> findElements(ObjectGroup objectGroup, String prop) {
-
         if (objectGroup != null && !objectGroup.getObjects().isEmpty()) {
             if (objectGroup.getObjects().get(0) instanceof WebORObject) {
-
                 return getWElements(objectGroup, prop);
             }
         }
@@ -288,7 +363,12 @@ public class AutomationObject implements AutomationObjectApi {
         return elements;
     }
 
-    private void printStats(List<Locator> elements, ObjectGroup<?> objectGroup, long startTime, long stopTime) {
+    private void printStats(
+        List<Locator> elements,
+        ObjectGroup<?> objectGroup,
+        long startTime,
+        long stopTime
+    ) {
         if (getElementFromList(elements) != null) {
             System.out.println(elements);
             System.out.println(foundElementIn(objectGroup, stopTime, startTime));
@@ -301,103 +381,158 @@ public class AutomationObject implements AutomationObjectApi {
         return String.format("Object being identified with [%s] = [%s], ", attr, val);
     }
 
-    private static String foundElementIn(ObjectGroup<?> objectGroup, long stopTime, long startTime) {
-        return String.format("Object [%s] found in [%s] ms", objectGroup.getName(), (stopTime - startTime) / 1000000);
+    private static String foundElementIn(
+        ObjectGroup<?> objectGroup,
+        long stopTime,
+        long startTime
+    ) {
+        return String.format(
+            "Object [%s] found in [%s] ms",
+            objectGroup.getName(),
+            (stopTime - startTime) / 1000000
+        );
     }
 
     private String notFoundIn(ObjectGroup<?> objectGroup) {
-        return String.format("Couldn't find Object '%s' in stipulated Time '%s' Seconds", objectGroup.getName(),
-                String.valueOf(getWaitTime().toSeconds()));
+        return String.format(
+            "Couldn't find Object '%s' in stipulated Time '%s' Seconds",
+            objectGroup.getName(),
+            String.valueOf(getWaitTime().toSeconds())
+        );
     }
 
     private List<Locator> getElements(final List<ORAttribute> attributes) {
-        return getElementsInternal(LocatorType.LOCATOR, attributes, (tag, value, options) -> {
-            Locator locator = null;
-            switch (tag) {
-                case "Text":
-                    locator = this.page.getByText(value, (Page.GetByTextOptions) options);
-                    break;
-                case "Label":
-                    locator = this.page.getByLabel(value, (Page.GetByLabelOptions) options);
-                    break;
-                case "Placeholder":
-                    locator = this.page.getByPlaceholder(value, (Page.GetByPlaceholderOptions) options);
-                    break;
-                case "AltText":
-                    locator = this.page.getByAltText(value, (Page.GetByAltTextOptions) options);
-                    break;
-                case "Title":
-                    locator = this.page.getByTitle(value, (Page.GetByTitleOptions) options);
-                    break;
-                case "TestId":
-                    locator = this.page.getByTestId(value);
-                    break;
-                case "css":
-                    locator = this.page.locator("css=" + value);
-                    break;
-                case "xpath":
-                    locator = this.page.locator("xpath=" + value);
-                    break;
-                case "Role":
-                    locator = createRoleLocator(value, this.page, (Page.GetByRoleOptions) options);
-                    break;
-                case "ChainedLocator":
-                    locator = createChainedLocator(value, this.page);
-                    break;
-                default:
-                    locator = null;
+        return getElementsInternal(
+            LocatorType.LOCATOR,
+            attributes,
+            (tag, value, options) -> {
+                Locator locator = null;
+                switch (tag) {
+                    case "Text":
+                        locator = this.page.getByText(value, (Page.GetByTextOptions) options);
+                        break;
+                    case "Label":
+                        locator = this.page.getByLabel(value, (Page.GetByLabelOptions) options);
+                        break;
+                    case "Placeholder":
+                        locator =
+                            this.page.getByPlaceholder(
+                                    value,
+                                    (Page.GetByPlaceholderOptions) options
+                                );
+                        break;
+                    case "AltText":
+                        locator = this.page.getByAltText(value, (Page.GetByAltTextOptions) options);
+                        break;
+                    case "Title":
+                        locator = this.page.getByTitle(value, (Page.GetByTitleOptions) options);
+                        break;
+                    case "TestId":
+                        locator = this.page.getByTestId(value);
+                        break;
+                    case "css":
+                        locator = this.page.locator("css=" + value);
+                        break;
+                    case "xpath":
+                        locator = this.page.locator("xpath=" + value);
+                        break;
+                    case "Role":
+                        locator =
+                            createRoleLocator(value, this.page, (Page.GetByRoleOptions) options);
+                        break;
+                    case "ChainedLocator":
+                        locator = createChainedLocator(value, this.page);
+                        break;
+                    case "JSPath":
+                        locator = createJSPathLocator(value, this.page);
+                        break;
+                    default:
+                        locator = null;
+                }
+                // Apply filter if required
+                if (locator != null) {
+                    locator = setFilter(locator);
+                }
+                return locator;
             }
-            // Apply filter if required
-            if (locator != null) {
-                locator = setFilter(locator);
-            }
-            return locator;
-        });
+        );
     }
 
-    private List<Locator> getElements(FrameLocator framelocator, final List<ORAttribute> attributes) {
-        return getElementsInternal(LocatorType.FRAMELOCATOR, attributes, (tag, value, options) -> {
-            Locator locator = null;
-            switch (tag) {
-                case "Text":
-                    locator = framelocator.getByText(value, (FrameLocator.GetByTextOptions) options);
-                    break;
-                case "Label":
-                    locator = framelocator.getByLabel(value, (FrameLocator.GetByLabelOptions) options);
-                    break;
-                case "Placeholder":
-                    locator = framelocator.getByPlaceholder(value, (FrameLocator.GetByPlaceholderOptions) options);
-                    break;
-                case "AltText":
-                    locator = framelocator.getByAltText(value, (FrameLocator.GetByAltTextOptions) options);
-                    break;
-                case "Title":
-                    locator = framelocator.getByTitle(value, (FrameLocator.GetByTitleOptions) options);
-                    break;
-                case "TestId":
-                    locator = framelocator.getByTestId(value);
-                    break;
-                case "css":
-                    locator = framelocator.locator("css=" + value).first();
-                    break;
-                case "xpath":
-                    locator = framelocator.locator("xpath=" + value);
-                    break;
-                case "Role":
-                    locator = createRoleLocator(value, framelocator, (FrameLocator.GetByRoleOptions) options);
-                    break;
-                case "ChainedLocator":
-                    locator = createChainedLocator(value, framelocator);
-                    break;
-                default:
-                    locator = null;
+    private List<Locator> getElements(
+        FrameLocator framelocator,
+        final List<ORAttribute> attributes
+    ) {
+        return getElementsInternal(
+            LocatorType.FRAMELOCATOR,
+            attributes,
+            (tag, value, options) -> {
+                Locator locator = null;
+                switch (tag) {
+                    case "Text":
+                        locator =
+                            framelocator.getByText(value, (FrameLocator.GetByTextOptions) options);
+                        break;
+                    case "Label":
+                        locator =
+                            framelocator.getByLabel(
+                                value,
+                                (FrameLocator.GetByLabelOptions) options
+                            );
+                        break;
+                    case "Placeholder":
+                        locator =
+                            framelocator.getByPlaceholder(
+                                value,
+                                (FrameLocator.GetByPlaceholderOptions) options
+                            );
+                        break;
+                    case "AltText":
+                        locator =
+                            framelocator.getByAltText(
+                                value,
+                                (FrameLocator.GetByAltTextOptions) options
+                            );
+                        break;
+                    case "Title":
+                        locator =
+                            framelocator.getByTitle(
+                                value,
+                                (FrameLocator.GetByTitleOptions) options
+                            );
+                        break;
+                    case "TestId":
+                        locator = framelocator.getByTestId(value);
+                        break;
+                    case "css":
+                        locator = framelocator.locator("css=" + value).first();
+                        break;
+                    case "xpath":
+                        locator = framelocator.locator("xpath=" + value);
+                        break;
+                    case "Role":
+                        locator =
+                            createRoleLocator(
+                                value,
+                                framelocator,
+                                (FrameLocator.GetByRoleOptions) options
+                            );
+                        break;
+                    case "ChainedLocator":
+                        locator = createChainedLocator(value, framelocator);
+                        break;
+                    case "JSPath":
+                        locator = createJSPathLocator(value, framelocator);
+                        break;
+                    default:
+                        locator = null;
+                }
+                // Apply filter if required
+                if (locator != null) {
+                    locator = setFilter(locator);
+                }
+                return locator;
             }
-            // Apply filter if required
-            if (locator != null) {
-                locator = setFilter(locator);
-            }
-            return locator;
-        });
+        );
     }
 
     private static Locator chainLocators(String selector, int index, Page page, Locator locator) {
@@ -408,16 +543,15 @@ public class AutomationObject implements AutomationObjectApi {
         String tag = selector.split("\\(")[0];
 
         switch (tag) {
-
             case "locator":
                 Page.LocatorOptions pageLocatorOptions = new Page.LocatorOptions();
                 Locator.LocatorOptions locatorLocatorOptions = new Locator.LocatorOptions();
-                locator = (index == 0) ? page.locator(chainLocatorMaping.get("locator"), pageLocatorOptions)
+                locator =
+                    (index == 0)
+                        ? page.locator(chainLocatorMaping.get("locator"), pageLocatorOptions)
                         : locator.locator(chainLocatorMaping.get("locator"), locatorLocatorOptions);
                 break;
-
             case "getByRole":
-
                 Page.GetByRoleOptions pageRoleOptions = new Page.GetByRoleOptions();
                 Locator.GetByRoleOptions locatorRoleOptions = new Locator.GetByRoleOptions();
 
@@ -430,13 +564,18 @@ public class AutomationObject implements AutomationObjectApi {
                     locatorRoleOptions.setExact(true);
                 }
 
-                locator = (index == 0)
-                        ? page.getByRole(AriaRole.valueOf(chainLocatorMaping.get("roleType")), pageRoleOptions)
-                        : locator.getByRole(AriaRole.valueOf(chainLocatorMaping.get("roleType")), locatorRoleOptions);
+                locator =
+                    (index == 0)
+                        ? page.getByRole(
+                            AriaRole.valueOf(chainLocatorMaping.get("roleType")),
+                            pageRoleOptions
+                        )
+                        : locator.getByRole(
+                            AriaRole.valueOf(chainLocatorMaping.get("roleType")),
+                            locatorRoleOptions
+                        );
                 break;
-
             case "filter":
-
                 Locator.FilterOptions locatorFilterOptions = new Locator.FilterOptions();
 
                 if (chainLocatorMaping.containsKey("setHasText")) {
@@ -446,9 +585,7 @@ public class AutomationObject implements AutomationObjectApi {
                 locator = locator.filter(locatorFilterOptions);
 
                 break;
-
             case "getByPlaceholder":
-
                 Page.GetByPlaceholderOptions pagePlaceHolderOptions = new Page.GetByPlaceholderOptions();
                 Locator.GetByPlaceholderOptions locatorPlaceHolderOptions = new Locator.GetByPlaceholderOptions();
 
@@ -457,14 +594,19 @@ public class AutomationObject implements AutomationObjectApi {
                     locatorPlaceHolderOptions.setExact(true);
                 }
 
-                locator = (index == 0)
-                        ? page.getByPlaceholder(chainLocatorMaping.get("placeholder"), pagePlaceHolderOptions)
-                        : locator.getByPlaceholder(chainLocatorMaping.get("placeholder"), locatorPlaceHolderOptions);
+                locator =
+                    (index == 0)
+                        ? page.getByPlaceholder(
+                            chainLocatorMaping.get("placeholder"),
+                            pagePlaceHolderOptions
+                        )
+                        : locator.getByPlaceholder(
+                            chainLocatorMaping.get("placeholder"),
+                            locatorPlaceHolderOptions
+                        );
 
                 break;
-
             case "getByText":
-
                 Page.GetByTextOptions pageTextOptions = new Page.GetByTextOptions();
                 Locator.GetByTextOptions locatorTextOptions = new Locator.GetByTextOptions();
 
@@ -473,12 +615,12 @@ public class AutomationObject implements AutomationObjectApi {
                     locatorTextOptions.setExact(true);
                 }
 
-                locator = (index == 0) ? page.getByText(chainLocatorMaping.get("text"), pageTextOptions)
+                locator =
+                    (index == 0)
+                        ? page.getByText(chainLocatorMaping.get("text"), pageTextOptions)
                         : locator.getByText(chainLocatorMaping.get("text"), locatorTextOptions);
                 break;
-
             case "getByAltText":
-
                 Page.GetByAltTextOptions pageAltTextOptions = new Page.GetByAltTextOptions();
                 Locator.GetByAltTextOptions locatorAltTextOptions = new Locator.GetByAltTextOptions();
 
@@ -487,12 +629,15 @@ public class AutomationObject implements AutomationObjectApi {
                     locatorAltTextOptions.setExact(true);
                 }
 
-                locator = (index == 0) ? page.getByAltText(chainLocatorMaping.get("altText"), pageAltTextOptions)
-                        : locator.getByAltText(chainLocatorMaping.get("altText"), locatorAltTextOptions);
+                locator =
+                    (index == 0)
+                        ? page.getByAltText(chainLocatorMaping.get("altText"), pageAltTextOptions)
+                        : locator.getByAltText(
+                            chainLocatorMaping.get("altText"),
+                            locatorAltTextOptions
+                        );
                 break;
-
             case "getByLabel":
-
                 Page.GetByLabelOptions pageLableOptions = new Page.GetByLabelOptions();
                 Locator.GetByLabelOptions locatorLableOptions = new Locator.GetByLabelOptions();
 
@@ -501,10 +646,11 @@ public class AutomationObject implements AutomationObjectApi {
                     locatorLableOptions.setExact(true);
                 }
 
-                locator = (index == 0) ? page.getByLabel(chainLocatorMaping.get("label"), pageLableOptions)
+                locator =
+                    (index == 0)
+                        ? page.getByLabel(chainLocatorMaping.get("label"), pageLableOptions)
                         : locator.getByLabel(chainLocatorMaping.get("label"), locatorLableOptions);
                 break;
-
         }
 
         if (selector.matches("first\\(\\)")) {
@@ -525,7 +671,12 @@ public class AutomationObject implements AutomationObjectApi {
         return locator;
     }
 
-    private static Locator chainLocators(String selector, int index, FrameLocator framelocator, Locator locator) {
+    private static Locator chainLocators(
+        String selector,
+        int index,
+        FrameLocator framelocator,
+        Locator locator
+    ) {
         Pattern pattern = null;
         Matcher matcher = null;
         chainLocatorMaping.clear();
@@ -533,16 +684,18 @@ public class AutomationObject implements AutomationObjectApi {
         String tag = selector.split("\\(")[0];
 
         switch (tag) {
-
             case "locator":
                 FrameLocator.LocatorOptions pageLocatorOptions = new FrameLocator.LocatorOptions();
                 Locator.LocatorOptions locatorLocatorOptions = new Locator.LocatorOptions();
-                locator = (index == 0) ? framelocator.locator(chainLocatorMaping.get("locator"), pageLocatorOptions)
+                locator =
+                    (index == 0)
+                        ? framelocator.locator(
+                            chainLocatorMaping.get("locator"),
+                            pageLocatorOptions
+                        )
                         : locator.locator(chainLocatorMaping.get("locator"), locatorLocatorOptions);
                 break;
-
             case "getByRole":
-
                 FrameLocator.GetByRoleOptions pageRoleOptions = new FrameLocator.GetByRoleOptions();
                 Locator.GetByRoleOptions locatorRoleOptions = new Locator.GetByRoleOptions();
 
@@ -555,13 +708,18 @@ public class AutomationObject implements AutomationObjectApi {
                     locatorRoleOptions.setExact(true);
                 }
 
-                locator = (index == 0)
-                        ? framelocator.getByRole(AriaRole.valueOf(chainLocatorMaping.get("roleType")), pageRoleOptions)
-                        : locator.getByRole(AriaRole.valueOf(chainLocatorMaping.get("roleType")), locatorRoleOptions);
+                locator =
+                    (index == 0)
+                        ? framelocator.getByRole(
+                            AriaRole.valueOf(chainLocatorMaping.get("roleType")),
+                            pageRoleOptions
+                        )
+                        : locator.getByRole(
+                            AriaRole.valueOf(chainLocatorMaping.get("roleType")),
+                            locatorRoleOptions
+                        );
                 break;
-
             case "filter":
-
                 Locator.FilterOptions locatorFilterOptions = new Locator.FilterOptions();
 
                 if (chainLocatorMaping.containsKey("setHasText")) {
@@ -571,9 +729,7 @@ public class AutomationObject implements AutomationObjectApi {
                 locator = locator.filter(locatorFilterOptions);
 
                 break;
-
             case "getByPlaceholder":
-
                 FrameLocator.GetByPlaceholderOptions pagePlaceHolderOptions = new FrameLocator.GetByPlaceholderOptions();
                 Locator.GetByPlaceholderOptions locatorPlaceHolderOptions = new Locator.GetByPlaceholderOptions();
 
@@ -582,14 +738,19 @@ public class AutomationObject implements AutomationObjectApi {
                     locatorPlaceHolderOptions.setExact(true);
                 }
 
-                locator = (index == 0)
-                        ? framelocator.getByPlaceholder(chainLocatorMaping.get("placeholder"), pagePlaceHolderOptions)
-                        : locator.getByPlaceholder(chainLocatorMaping.get("placeholder"), locatorPlaceHolderOptions);
+                locator =
+                    (index == 0)
+                        ? framelocator.getByPlaceholder(
+                            chainLocatorMaping.get("placeholder"),
+                            pagePlaceHolderOptions
+                        )
+                        : locator.getByPlaceholder(
+                            chainLocatorMaping.get("placeholder"),
+                            locatorPlaceHolderOptions
+                        );
 
                 break;
-
             case "getByText":
-
                 FrameLocator.GetByTextOptions pageTextOptions = new FrameLocator.GetByTextOptions();
                 Locator.GetByTextOptions locatorTextOptions = new Locator.GetByTextOptions();
 
@@ -598,12 +759,12 @@ public class AutomationObject implements AutomationObjectApi {
                     locatorTextOptions.setExact(true);
                 }
 
-                locator = (index == 0) ? framelocator.getByText(chainLocatorMaping.get("text"), pageTextOptions)
+                locator =
+                    (index == 0)
+                        ? framelocator.getByText(chainLocatorMaping.get("text"), pageTextOptions)
                         : locator.getByText(chainLocatorMaping.get("text"), locatorTextOptions);
                 break;
-
             case "getByAltText":
-
                 FrameLocator.GetByAltTextOptions pageAltTextOptions = new FrameLocator.GetByAltTextOptions();
                 Locator.GetByAltTextOptions locatorAltTextOptions = new Locator.GetByAltTextOptions();
 
@@ -612,12 +773,18 @@ public class AutomationObject implements AutomationObjectApi {
                     locatorAltTextOptions.setExact(true);
                 }
 
-                locator = (index == 0) ? framelocator.getByAltText(chainLocatorMaping.get("altText"), pageAltTextOptions)
-                        : locator.getByAltText(chainLocatorMaping.get("altText"), locatorAltTextOptions);
+                locator =
+                    (index == 0)
+                        ? framelocator.getByAltText(
+                            chainLocatorMaping.get("altText"),
+                            pageAltTextOptions
+                        )
+                        : locator.getByAltText(
+                            chainLocatorMaping.get("altText"),
+                            locatorAltTextOptions
+                        );
                 break;
-
             case "getByLabel":
-
                 FrameLocator.GetByLabelOptions pageLableOptions = new FrameLocator.GetByLabelOptions();
                 Locator.GetByLabelOptions locatorLableOptions = new Locator.GetByLabelOptions();
 
@@ -626,10 +793,11 @@ public class AutomationObject implements AutomationObjectApi {
                     locatorLableOptions.setExact(true);
                 }
 
-                locator = (index == 0) ? framelocator.getByLabel(chainLocatorMaping.get("label"), pageLableOptions)
+                locator =
+                    (index == 0)
+                        ? framelocator.getByLabel(chainLocatorMaping.get("label"), pageLableOptions)
                         : locator.getByLabel(chainLocatorMaping.get("label"), locatorLableOptions);
                 break;
-
         }
 
         if (selector.matches("first\\(\\)")) {
@@ -656,7 +824,6 @@ public class AutomationObject implements AutomationObjectApi {
         }
         String tag = selector.split("\\(")[0];
         switch (tag) {
-
             case "getByRole":
                 String roleType = selector.split("AriaRole.")[1].split(",")[0];
                 if (roleType.contains(")")) {
@@ -669,60 +836,47 @@ public class AutomationObject implements AutomationObjectApi {
                     chainLocatorMaping.put("setName", setName);
                 }
                 break;
-
             case "locator":
-                String locator = selector.split("locator\\(\"")[1].split("\"\\)")[0].replace("\\", "").trim();
+                String locator = selector
+                    .split("locator\\(\"")[1].split("\"\\)")[0].replace("\\", "")
+                    .trim();
                 chainLocatorMaping.put("locator", locator);
                 //  System.out.println("locator in chainMapping : " + chainLocatorMaping.get("locator"));
 
                 break;
-
             case "filter":
-
                 if (selector.contains("setHasText(\"")) {
                     String setHasText = selector.split("setHasText\\(\"")[1].split("\"")[0];
                     chainLocatorMaping.put("setHasText", setHasText);
-
                 }
 
                 break;
-
             case "getByPlaceholder":
-
                 String placeholder = selector.split("getByPlaceholder\\(\"")[1].split("\"")[0];
                 chainLocatorMaping.put("placeholder", placeholder);
                 break;
-
             case "getByLabel":
-
                 String label = selector.split("getByLabel\\(\"")[1].split("\"")[0];
                 chainLocatorMaping.put("label", label);
 
                 break;
-
             case "getByAltText":
-
                 String altText = selector.split("getByAltText\\(\"")[1].split("\"")[0];
                 chainLocatorMaping.put("lable", altText);
 
                 break;
-
             case "getByText":
                 String text = selector.split("getByText\\(\"")[1].split("\"")[0];
                 chainLocatorMaping.put("text", text);
                 break;
-
             case "frameLocator":
                 String frameLocator = selector.split("frameLocator\\(\"")[1].split("\"\\)")[0];
                 chainLocatorMaping.put("frameLocator", frameLocator);
                 break;
-
         }
-
     }
 
     private FrameLocator switchFrame(String frameData) {
-
         FrameLocator frameLocator = null;
         try {
             if (frameData != null && !frameData.trim().isEmpty()) {
@@ -750,7 +904,9 @@ public class AutomationObject implements AutomationObjectApi {
                 value = value.replace(Key, globalDynamicValue.get(Key));
             }
         }
-        if (dynamicValue.containsKey(pageName) && dynamicValue.get(pageName).containsKey(objectName)) {
+        if (
+            dynamicValue.containsKey(pageName) && dynamicValue.get(pageName).containsKey(objectName)
+        ) {
             for (String Key : dynamicValue.get(pageName).get(objectName).keySet()) {
                 value = value.replace(Key, dynamicValue.get(pageName).get(objectName).get(Key));
             }
@@ -761,7 +917,6 @@ public class AutomationObject implements AutomationObjectApi {
 
     public void setDriver(Page page) {
         this.page = page;
-
     }
 
     private String stripScope(String pageKey) {
@@ -792,7 +947,6 @@ public class AutomationObject implements AutomationObjectApi {
                 wPage = objRep.getWebOR().getPageByName(ref.name);
                 if (wPage == null) wPage = objRep.getWebSharedOR().getPageByName(ref.name);
             }
-
         } catch (Exception ignore) {
             // If parsing fails, treat as plain page name
             wPage = objRep.getWebOR().getPageByName(page);
@@ -835,7 +989,11 @@ public class AutomationObject implements AutomationObjectApi {
         return this.waitTime != null ? this.waitTime : SystemDefaults.elementWaitTime;
     }
 
-    public void storeElementDetailsinOR(List<ORAttribute> attributes, String attribute, String value) {
+    public void storeElementDetailsinOR(
+        List<ORAttribute> attributes,
+        String attribute,
+        String value
+    ) {
         for (ORAttribute attr : attributes) {
             if (attr.getName().contentEquals(attribute)) {
                 attr.setValue(value);
@@ -871,7 +1029,11 @@ public class AutomationObject implements AutomationObjectApi {
         Locator create(String tag, String value, Object options);
     }
 
-    private List<Locator> getElementsInternal(LocatorType locatorType, final List<ORAttribute> attributes, LocatorFactory factory) {
+    private List<Locator> getElementsInternal(
+        LocatorType locatorType,
+        final List<ORAttribute> attributes,
+        LocatorFactory factory
+    ) {
         if (attributes == null || attributes.isEmpty()) return null;
         List<Locator> elements = new ArrayList<Locator>();
         for (ORAttribute attr : attributes) {
@@ -893,11 +1055,11 @@ public class AutomationObject implements AutomationObjectApi {
             case "Text":
                 Page.GetByTextOptions textOptions = new Page.GetByTextOptions();
                 FrameLocator.GetByTextOptions textFrameLocatorOptions = new FrameLocator.GetByTextOptions();
-                
-                if (locatorType.equals(LocatorType.LOCATOR)){
+
+                if (locatorType.equals(LocatorType.LOCATOR)) {
                     textOptions.setExact(exact);
                     return textOptions;
-                } else if (locatorType.equals(LocatorType.FRAMELOCATOR)){
+                } else if (locatorType.equals(LocatorType.FRAMELOCATOR)) {
                     textFrameLocatorOptions.setExact(exact);
                     return textFrameLocatorOptions;
                 }
@@ -906,10 +1068,10 @@ public class AutomationObject implements AutomationObjectApi {
                 Page.GetByLabelOptions labelOptions = new Page.GetByLabelOptions();
                 FrameLocator.GetByLabelOptions labelFrameLocatorOptions = new FrameLocator.GetByLabelOptions();
 
-                if (locatorType.equals(LocatorType.LOCATOR)){
+                if (locatorType.equals(LocatorType.LOCATOR)) {
                     labelOptions.setExact(exact);
                     return labelOptions;
-                } else if (locatorType.equals(LocatorType.FRAMELOCATOR)){
+                } else if (locatorType.equals(LocatorType.FRAMELOCATOR)) {
                     labelFrameLocatorOptions.setExact(exact);
                     return labelFrameLocatorOptions;
                 }
@@ -918,10 +1080,10 @@ public class AutomationObject implements AutomationObjectApi {
                 Page.GetByPlaceholderOptions placeholderOptions = new Page.GetByPlaceholderOptions();
                 FrameLocator.GetByPlaceholderOptions placeholderFrameLocatorOptions = new FrameLocator.GetByPlaceholderOptions();
 
-                if (locatorType.equals(LocatorType.LOCATOR)){
+                if (locatorType.equals(LocatorType.LOCATOR)) {
                     placeholderOptions.setExact(exact);
                     return placeholderOptions;
-                } else if (locatorType.equals(LocatorType.FRAMELOCATOR)){
+                } else if (locatorType.equals(LocatorType.FRAMELOCATOR)) {
                     placeholderFrameLocatorOptions.setExact(exact);
                     return placeholderFrameLocatorOptions;
                 }
@@ -930,10 +1092,10 @@ public class AutomationObject implements AutomationObjectApi {
                 Page.GetByAltTextOptions altTextOptions = new Page.GetByAltTextOptions();
                 FrameLocator.GetByAltTextOptions altTextFrameLocatorOptions = new FrameLocator.GetByAltTextOptions();
 
-                if (locatorType.equals(LocatorType.LOCATOR)){
+                if (locatorType.equals(LocatorType.LOCATOR)) {
                     altTextOptions.setExact(exact);
                     return altTextOptions;
-                } else if (locatorType.equals(LocatorType.FRAMELOCATOR)){
+                } else if (locatorType.equals(LocatorType.FRAMELOCATOR)) {
                     altTextFrameLocatorOptions.setExact(exact);
                     return altTextFrameLocatorOptions;
                 }
@@ -942,10 +1104,10 @@ public class AutomationObject implements AutomationObjectApi {
                 Page.GetByTitleOptions titleOptions = new Page.GetByTitleOptions();
                 FrameLocator.GetByTitleOptions titleFrameLocatorOptions = new FrameLocator.GetByTitleOptions();
 
-                if (locatorType.equals(LocatorType.LOCATOR)){
+                if (locatorType.equals(LocatorType.LOCATOR)) {
                     titleOptions.setExact(exact);
                     return titleOptions;
-                } else if (locatorType.equals(LocatorType.FRAMELOCATOR)){
+                } else if (locatorType.equals(LocatorType.FRAMELOCATOR)) {
                     titleFrameLocatorOptions.setExact(exact);
                     return titleFrameLocatorOptions;
                 }
@@ -954,10 +1116,10 @@ public class AutomationObject implements AutomationObjectApi {
                 Page.GetByRoleOptions roleOptions = new Page.GetByRoleOptions();
                 FrameLocator.GetByRoleOptions roleFrameLocatorOptions = new FrameLocator.GetByRoleOptions();
 
-                if (locatorType.equals(LocatorType.LOCATOR)){
+                if (locatorType.equals(LocatorType.LOCATOR)) {
                     roleOptions.setExact(exact);
                     return roleOptions;
-                } else if (locatorType.equals(LocatorType.FRAMELOCATOR)){
+                } else if (locatorType.equals(LocatorType.FRAMELOCATOR)) {
                     roleFrameLocatorOptions.setExact(exact);
                     return roleFrameLocatorOptions;
                 }
@@ -979,7 +1141,11 @@ public class AutomationObject implements AutomationObjectApi {
         }
     }
 
-    private Locator createRoleLocator(String value, FrameLocator framelocator, FrameLocator.GetByRoleOptions roleOptions) {
+    private Locator createRoleLocator(
+        String value,
+        FrameLocator framelocator,
+        FrameLocator.GetByRoleOptions roleOptions
+    ) {
         if (value.contains(";")) {
             String[] parts = value.split(";");
             String roleType = parts[0].toUpperCase();
@@ -1010,6 +1176,68 @@ public class AutomationObject implements AutomationObjectApi {
         return locator;
     }
 
+    /**
+     * Pattern matching the inner selector of one or more {@code querySelector(...)} /
+     * {@code querySelectorAll(...)} calls, e.g. the {@code "#main > div.item"} inside a
+     * DevTools "Copy JS path" expression like {@code document.querySelector("#main > div.item")}.
+     */
+    private static final Pattern JS_PATH_QUERY_SELECTOR = Pattern.compile(
+        "querySelector(?:All)?\\(\\s*([\"'`])(.*?)\\1\\s*\\)",
+        Pattern.DOTALL
+    );
+
+    /**
+     * Extracts a CSS selector from a JSPath value.
+     * <p>
+     * Browser DevTools ("Copy &gt; Copy JS path") produce expressions such as
+     * {@code document.querySelector("#app > div > button")} or chained
+     * {@code document.querySelector("a").querySelector("b")}. The selector(s) inside the
+     * {@code querySelector} call(s) are extracted and joined with a descendant combinator so the
+     * result can be used directly by a Playwright CSS locator. If the value does not contain a
+     * {@code querySelector} call it is treated as a raw CSS selector.
+     *
+     * @param value the JSPath expression or raw CSS selector
+     * @return the extracted CSS selector
+     */
+    private static String extractJSPathSelector(String value) {
+        String trimmed = value == null ? "" : value.trim();
+        Matcher matcher = JS_PATH_QUERY_SELECTOR.matcher(trimmed);
+        StringBuilder selector = new StringBuilder();
+        while (matcher.find()) {
+            if (selector.length() > 0) {
+                selector.append(" ");
+            }
+            selector.append(matcher.group(2).trim());
+        }
+        return selector.length() > 0 ? selector.toString() : trimmed;
+    }
+
+    /**
+     * Resolves an element from a JSPath expression.
+     * <p>
+     * <b>Note:</b> JSPath identification is <i>discouraged</i>. It maps to Playwright's
+     * ElementHandle-style evaluation (see
+     * <a href="https://playwright.dev/java/docs/api/class-elementhandle">ElementHandle</a>),
+     * which lacks the auto-waiting and resilience of Locator-based strategies. Prefer Role, Text,
+     * Label, css or xpath where possible. The JSPath CSS selector is extracted and wrapped in a
+     * Playwright CSS locator to retain auto-waiting behaviour.
+     */
+    private Locator createJSPathLocator(String value, Page page) {
+        String selector = extractJSPathSelector(value);
+        if (selector.isEmpty()) {
+            return null;
+        }
+        return page.locator("css=" + selector);
+    }
+
+    private Locator createJSPathLocator(String value, FrameLocator framelocator) {
+        String selector = extractJSPathSelector(value);
+        if (selector.isEmpty()) {
+            return null;
+        }
+        return framelocator.locator("css=" + selector);
+    }
+
     public void addFilter(String locatorKey, String filter) {
         locatorFiltersMap.computeIfAbsent(locatorKey, k -> new ArrayList<>()).add(filter);
     }
@@ -1028,20 +1256,18 @@ public class AutomationObject implements AutomationObjectApi {
                 }
                 locator = locator.filter(options);
                 if (value.startsWith("setIndex: ")) {
-                   locator = locator.nth(Integer.parseInt(value.replace("setIndex: ", "")));
+                    locator = locator.nth(Integer.parseInt(value.replace("setIndex: ", "")));
                 }
             }
-               if(!Action.contains("setFilter")) {
-                   locatorFiltersMap.remove(pageName + objectName); // Clear only for this locator
-               }
-
+            if (!Action.contains("setFilter")) {
+                locatorFiltersMap.remove(pageName + objectName); // Clear only for this locator
+            }
         }
 
         return locator;
     }
 
     // ===== API Interface Implementations (Object type wrappers) =====
-    
 
     /**
      * Sets the Playwright Page instance for this automation object.
@@ -1055,7 +1281,6 @@ public class AutomationObject implements AutomationObjectApi {
         setPage((Page) page);
     }
 
-
     /**
      * Sets the Playwright Page instance as the driver for this automation object.
      * <p>
@@ -1067,7 +1292,6 @@ public class AutomationObject implements AutomationObjectApi {
     public void setDriver(Object page) {
         setDriver((Page) page);
     }
-
 
     /**
      * Finds a single element on the page using the provided keys and condition.
@@ -1084,7 +1308,6 @@ public class AutomationObject implements AutomationObjectApi {
     public Object findElement(Object page, String objectKey, String pageKey, FindType condition) {
         return findElement((Page) page, objectKey, pageKey, condition);
     }
-    
 
     /**
      * Finds all elements matching the given keys and returns them as a list of Objects.
@@ -1100,7 +1323,6 @@ public class AutomationObject implements AutomationObjectApi {
         List<Locator> locators = findElements(objectKey, pageKey);
         return locators != null ? new ArrayList<>(locators) : null;
     }
-    
 
     /**
      * Finds all elements matching the given keys and attribute, returning them as a list of Objects.
@@ -1117,7 +1339,6 @@ public class AutomationObject implements AutomationObjectApi {
         List<Locator> locators = findElements(objectKey, pageKey, attribute);
         return locators != null ? new ArrayList<>(locators) : null;
     }
-    
 
     /**
      * Finds all elements matching the given keys and condition, returning them as a list of Objects.
@@ -1134,7 +1355,6 @@ public class AutomationObject implements AutomationObjectApi {
         List<Locator> locators = findElements(objectKey, pageKey, condition);
         return locators != null ? new ArrayList<>(locators) : null;
     }
-    
 
     /**
      * Finds all elements matching the given keys, attribute, and condition, returning them as a list of Objects.
@@ -1148,11 +1368,15 @@ public class AutomationObject implements AutomationObjectApi {
      * @return a list of Objects (cast each to {@link Locator}), or null if none found
      */
     @Override
-    public List<Object> findElementsList(String objectKey, String pageKey, String attribute, FindType condition) {
+    public List<Object> findElementsList(
+        String objectKey,
+        String pageKey,
+        String attribute,
+        FindType condition
+    ) {
         List<Locator> locators = findElements(objectKey, pageKey, attribute, condition);
         return locators != null ? new ArrayList<>(locators) : null;
     }
-
 
     /**
      * Stores the given attribute value in the object repository for the specified element.
@@ -1168,7 +1392,6 @@ public class AutomationObject implements AutomationObjectApi {
         storeElementDetailsinOR((List<ORAttribute>) attributes, attribute, value);
     }
 
-
     /**
      * Retrieves the value of the specified attribute from the given attributes list.
      * <p>
@@ -1182,5 +1405,4 @@ public class AutomationObject implements AutomationObjectApi {
     public String getAttributeValue(Object attributes, String attribute) {
         return getAttributeValue((List<ORAttribute>) attributes, attribute);
     }
-
 }

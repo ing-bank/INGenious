@@ -9,7 +9,6 @@ import java.util.Objects;
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class KeyValuePair implements Serializable {
-
     private static final long serialVersionUID = 1L;
 
     private String key;
@@ -78,9 +77,11 @@ public class KeyValuePair implements Serializable {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         KeyValuePair that = (KeyValuePair) o;
-        return enabled == that.enabled &&
-                Objects.equals(key, that.key) &&
-                Objects.equals(value, that.value);
+        return (
+            enabled == that.enabled &&
+            Objects.equals(key, that.key) &&
+            Objects.equals(value, that.value)
+        );
     }
 
     @Override

@@ -1,12 +1,11 @@
-
 package com.ing.ide.main.mainui.components.testdesign.or;
 
 import com.ing.datalib.or.common.ORObjectInf;
 import com.ing.datalib.or.common.ORPageInf;
 import com.ing.datalib.or.common.ObjectGroup;
 import com.ing.datalib.or.mobile.MobileOR;
-import com.ing.datalib.or.structureddata.StructuredDataOR;
 import com.ing.datalib.or.sap.SapOR;
+import com.ing.datalib.or.structureddata.StructuredDataOR;
 import com.ing.datalib.or.web.WebOR;
 import java.util.ArrayList;
 import java.util.List;
@@ -25,7 +24,6 @@ import java.util.List;
  * </p>
  */
 public class ObjectRepDnD {
-
     Boolean isPage = false;
     Boolean isGroup = false;
     Boolean isObject = false;
@@ -76,7 +74,9 @@ public class ObjectRepDnD {
         isObject = true;
         for (ORObjectInf object : objects) {
             ORPageInf page = object.getPage();
-            values.add(object.getName() + SEP + object.getParent().toString() + SEP + pageToken(page));
+            values.add(
+                object.getName() + SEP + object.getParent().toString() + SEP + pageToken(page)
+            );
             components.add(object);
         }
         return this;
@@ -104,7 +104,7 @@ public class ObjectRepDnD {
         }
         return null;
     }
-    
+
     private String scopeOf(ORPageInf page) {
         if (page == null) {
             return "PROJECT";

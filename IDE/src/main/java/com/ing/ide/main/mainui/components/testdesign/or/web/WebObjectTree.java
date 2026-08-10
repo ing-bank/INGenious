@@ -1,4 +1,3 @@
-
 package com.ing.ide.main.mainui.components.testdesign.or.web;
 
 import com.ing.datalib.component.Project;
@@ -6,7 +5,10 @@ import com.ing.datalib.component.TestCase;
 import com.ing.datalib.or.ObjectRepository;
 import com.ing.datalib.or.common.ORObjectInf;
 import com.ing.datalib.or.common.ORRootInf;
+import com.ing.datalib.or.common.ObjectGroup;
+import com.ing.datalib.or.web.WebOR;
 import com.ing.datalib.or.web.WebORObject;
+import com.ing.datalib.or.web.WebORPage;
 import com.ing.ide.main.mainui.components.testdesign.TestDesign;
 import com.ing.ide.main.mainui.components.testdesign.or.ObjectTree;
 import java.util.List;
@@ -52,23 +54,64 @@ public class WebObjectTree extends ObjectTree {
     }
 
     void changeFrameData(String frameText) {
-        WebORObject obj = (WebORObject) getSelectedObject();
+        WebORObject obj = getSelectedWebObject();
         if (obj != null) {
             obj.setFrame(frameText);
         }
     }
 
+    /**
+     * Resolves the {@link WebORObject} currently shown in the details table. When an
+     * {@link ObjectGroup} node is selected, the table loads the group's first child, so the
+     * frame edit must be applied to that same object rather than to the (non-object) group node.
+     */
+    private WebORObject getSelectedWebObject() {
+        ORObjectInf selected = getSelectedObject();
+        if (selected instanceof WebORObject) {
+            return (WebORObject) selected;
+        }
+        ObjectGroup group = getSelectedObjectGroup();
+        if (group != null && group.getChildAt(0) instanceof WebORObject) {
+            return (WebORObject) group.getChildAt(0);
+        }
+        return null;
+    }
+
     @Override
-    public void showImpactedTestCases(List<TestCase> testcases, String pageName, String objectName) {
+    public void showImpactedTestCases(
+        List<TestCase> testcases,
+        String pageName,
+        String objectName
+    ) {
         oRPanel.getTestDesign().getImpactUI().loadForObject(testcases, pageName, objectName);
     }
 
     @Override
     public ORRootInf getOR() {
         ObjectRepository repo = oRPanel.getProject().getObjectRepository();
-        return (source == ORSource.SHARED)
-                ? repo.getWebSharedOR()
-                : repo.getWebOR();
+        return (source == ORSource.SHARED) ? repo.getWebSharedOR() : repo.getWebOR();
+    }
+
+    /**
+     * Reloads this tree and keeps the given page expanded so newly added objects (e.g. during
+     * Playwright live recording) remain visible without the user having to expand it manually.
+     *
+     * @param pageName the page to keep expanded after reload
+     */
+    public void reloadAndExpandPage(String pageName) {
+        reload();
+        if (pageName == null || pageName.isEmpty()) {
+            return;
+        }
+        ORRootInf root = getOR();
+        if (root instanceof WebOR) {
+            WebORPage page = ((WebOR) root).getPageByName(pageName);
+            if (page != null) {
+                TreePath path = page.getTreePath();
+                getTree().expandPath(path);
+                getTree().scrollPathToVisible(path);
+            }
+        }
     }
 
     @Override
@@ -92,7 +135,7 @@ public class WebObjectTree extends ObjectTree {
         PROJECT,
         SHARED
     }
-    
+
     public WebORPanel getORPanel() {
         return oRPanel;
     }

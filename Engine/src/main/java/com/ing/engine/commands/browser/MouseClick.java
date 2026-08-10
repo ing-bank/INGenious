@@ -1,17 +1,16 @@
 package com.ing.engine.commands.browser;
 
 import com.ing.engine.core.CommandControl;
-import com.ing.ingenious.api.status.Status;
 import com.ing.ingenious.api.annotation.Action;
+import com.ing.ingenious.api.exception.ActionException;
+import com.ing.ingenious.api.status.Status;
 import com.ing.ingenious.api.types.InputType;
 import com.ing.ingenious.api.types.ObjectType;
 import com.microsoft.playwright.Locator;
-import com.ing.ingenious.api.exception.ActionException;
 import com.microsoft.playwright.PlaywrightException;
 import com.microsoft.playwright.options.KeyboardModifier;
 import com.microsoft.playwright.options.MouseButton;
 import java.util.Arrays;
-
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -28,7 +27,11 @@ public class MouseClick extends General {
             Report.updateTestLog(Action, "Clicking on " + "[" + ObjectName + "]", Status.DONE);
         } catch (PlaywrightException e) {
             Logger.getLogger(this.getClass().getName()).log(Level.OFF, null, e);
-            Report.updateTestLog("Could not perfom [" + Action + "] action", "Error: " + e.getMessage(), Status.FAIL);
+            Report.updateTestLog(
+                "Could not perfom [" + Action + "] action",
+                "Error: " + e.getMessage(),
+                Status.FAIL
+            );
             throw new ActionException(e);
         }
     }
@@ -40,14 +43,22 @@ public class MouseClick extends General {
             if (Locator.isVisible()) {
                 Click();
             } else {
-                Report.updateTestLog(Action, "Element [" + ObjectName + "] not Visible", Status.DONE);
+                Report.updateTestLog(
+                    Action,
+                    "Element [" + ObjectName + "] not Visible",
+                    Status.DONE
+                );
             }
         } else {
             Report.updateTestLog(Action, "Element [" + ObjectName + "] not Exists", Status.DONE);
         }
     }
 
-    @Action(object = ObjectType.PLAYWRIGHT, desc = "Click the [<Object>] if Data Exists", input = InputType.YES)
+    @Action(
+        object = ObjectType.PLAYWRIGHT,
+        desc = "Click the [<Object>] if Data Exists",
+        input = InputType.YES
+    )
     public void ClickIfDataExists() {
         Page.waitForLoadState();
         if (!Data.isEmpty()) {
@@ -61,10 +72,18 @@ public class MouseClick extends General {
     public void DoubleClick() {
         try {
             Locator.dblclick();
-            Report.updateTestLog(Action, "Double Clicking on " + "[" + ObjectName + "]", Status.DONE);
+            Report.updateTestLog(
+                Action,
+                "Double Clicking on " + "[" + ObjectName + "]",
+                Status.DONE
+            );
         } catch (Exception e) {
             Logger.getLogger(this.getClass().getName()).log(Level.OFF, null, e);
-            Report.updateTestLog("Could not perfom [" + Action + "] action", "Error: " + e.getMessage(), Status.FAIL);
+            Report.updateTestLog(
+                "Could not perfom [" + Action + "] action",
+                "Error: " + e.getMessage(),
+                Status.FAIL
+            );
             throw new ActionException(e);
         }
     }
@@ -73,10 +92,18 @@ public class MouseClick extends General {
     public void RightClick() {
         try {
             Locator.click(new Locator.ClickOptions().setButton(MouseButton.RIGHT));
-            Report.updateTestLog(Action, "Right Clicking on " + "[" + ObjectName + "]", Status.DONE);
+            Report.updateTestLog(
+                Action,
+                "Right Clicking on " + "[" + ObjectName + "]",
+                Status.DONE
+            );
         } catch (Exception e) {
             Logger.getLogger(this.getClass().getName()).log(Level.OFF, null, e);
-            Report.updateTestLog("Could not perfom [" + Action + "] action", "Error: " + e.getMessage(), Status.FAIL);
+            Report.updateTestLog(
+                "Could not perfom [" + Action + "] action",
+                "Error: " + e.getMessage(),
+                Status.FAIL
+            );
             throw new ActionException(e);
         }
     }
@@ -84,11 +111,21 @@ public class MouseClick extends General {
     @Action(object = ObjectType.PLAYWRIGHT, desc = "Shift Click the [<Object>]")
     public void ShiftClick() {
         try {
-            Locator.click(new Locator.ClickOptions().setModifiers(Arrays.asList(KeyboardModifier.SHIFT)));
-            Report.updateTestLog(Action, "Shift Clicking on " + "[" + ObjectName + "]", Status.DONE);
+            Locator.click(
+                new Locator.ClickOptions().setModifiers(Arrays.asList(KeyboardModifier.SHIFT))
+            );
+            Report.updateTestLog(
+                Action,
+                "Shift Clicking on " + "[" + ObjectName + "]",
+                Status.DONE
+            );
         } catch (Exception e) {
             Logger.getLogger(this.getClass().getName()).log(Level.OFF, null, e);
-            Report.updateTestLog("Could not perfom [" + Action + "] action", "Error: " + e.getMessage(), Status.FAIL);
+            Report.updateTestLog(
+                "Could not perfom [" + Action + "] action",
+                "Error: " + e.getMessage(),
+                Status.FAIL
+            );
             throw new ActionException(e);
         }
     }
@@ -100,7 +137,11 @@ public class MouseClick extends General {
             Report.updateTestLog(Action, "Hovering on " + "[" + ObjectName + "]", Status.DONE);
         } catch (Exception e) {
             Logger.getLogger(this.getClass().getName()).log(Level.OFF, null, e);
-            Report.updateTestLog("Could not perfom [" + Action + "] action", "Error: " + e.getMessage(), Status.FAIL);
+            Report.updateTestLog(
+                "Could not perfom [" + Action + "] action",
+                "Error: " + e.getMessage(),
+                Status.FAIL
+            );
             throw new ActionException(e);
         }
     }
@@ -112,7 +153,11 @@ public class MouseClick extends General {
             Report.updateTestLog(Action, "Pressed Mouse Up", Status.DONE);
         } catch (Exception e) {
             Logger.getLogger(this.getClass().getName()).log(Level.OFF, null, e);
-            Report.updateTestLog("Could not perfom [" + Action + "] action", "Error: " + e.getMessage(), Status.FAIL);
+            Report.updateTestLog(
+                "Could not perfom [" + Action + "] action",
+                "Error: " + e.getMessage(),
+                Status.FAIL
+            );
             throw new ActionException(e);
         }
     }
@@ -124,9 +169,12 @@ public class MouseClick extends General {
             Report.updateTestLog(Action, "Pressed Mouse Down", Status.DONE);
         } catch (Exception e) {
             Logger.getLogger(this.getClass().getName()).log(Level.OFF, null, e);
-            Report.updateTestLog("Could not perfom [" + Action + "] action", "Element not Found. Error: " + e.getMessage(), Status.FAIL);
+            Report.updateTestLog(
+                "Could not perfom [" + Action + "] action",
+                "Element not Found. Error: " + e.getMessage(),
+                Status.FAIL
+            );
             throw new ActionException(e);
         }
     }
-
 }

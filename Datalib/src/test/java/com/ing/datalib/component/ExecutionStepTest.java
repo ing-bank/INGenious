@@ -1,6 +1,7 @@
 package com.ing.datalib.component;
 
 import static org.assertj.core.api.Assertions.assertThat;
+
 import org.testng.annotations.Test;
 
 public class ExecutionStepTest {
@@ -16,8 +17,16 @@ public class ExecutionStepTest {
     @Test
     public void testHeadersGetValues() {
         assertThat(ExecutionStep.HEADERS.getValues())
-                .containsExactly("Execute", "TestScenario", "TestCase", "Iteration",
-                        "Status", "Browser", "BrowserVersion", "Platform");
+            .containsExactly(
+                "Execute",
+                "TestScenario",
+                "TestCase",
+                "Iteration",
+                "Status",
+                "Browser",
+                "BrowserVersion",
+                "Platform"
+            );
     }
 
     @Test
@@ -55,13 +64,14 @@ public class ExecutionStepTest {
     @Test
     public void testFluentSetters() {
         ExecutionStep step = createEmptyStep();
-        ExecutionStep result = step.setTestScenario("Login")
-                .setTestCase("TC01")
-                .setBrowser("Chromium")
-                .setBrowserVersion("120")
-                .setPlatform("Windows")
-                .setIteration("All")
-                .setStatus("Pass");
+        ExecutionStep result = step
+            .setTestScenario("Login")
+            .setTestCase("TC01")
+            .setBrowser("Chromium")
+            .setBrowserVersion("120")
+            .setPlatform("Windows")
+            .setIteration("All")
+            .setStatus("Pass");
         assertThat(result).isSameAs(step);
         assertThat(step.getTestScenarioName()).isEqualTo("Login");
         assertThat(step.getTestCaseName()).isEqualTo("TC01");

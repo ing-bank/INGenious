@@ -1,4 +1,3 @@
-
 package com.ing.datalib.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -15,38 +14,70 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
-@JsonPropertyOrder({
-    "id",
-    "name",
-    "version",
-    "attributes",
-    "tags",
-    "_meta",
-    "data"
-})
-
+@JsonPropertyOrder(
+    {
+        "id",
+        "name",
+        "version",
+        "testCaseFormat",
+        "autoMigrateCsvToYaml",
+        "keepCsvBackupOnMigrate",
+        "attributes",
+        "tags",
+        "_meta",
+        "data"
+    }
+)
 /**
  *
- * 
+ *
  */
 public class ProjectInfo {
-
     @JsonProperty("name")
     private String name;
+
     @JsonProperty("id")
     private String id;
+
     @JsonProperty("_meta")
     private MetaList meta = new MetaList();
+
     @JsonProperty("attributes")
     private Attributes attributes = new Attributes();
+
     @JsonProperty("tags")
     private Tags tags = new Tags();
+
     @JsonProperty("data")
     private Data data = new Data();
-    
+
     @JsonProperty("version")
-    private String version; 
-            
+    private String version;
+
+    /**
+     * On-disk test case format. {@code "CSV"} or {@code "YAML"}. When absent
+     * {@code YAML} is assumed for new writes; existing {@code .csv} files on
+     * disk are still read transparently. See
+     * {@code YAML_TESTCASE_MIGRATION_PLAN.md} §4.4.
+     */
+    @JsonProperty("testCaseFormat")
+    private String testCaseFormat;
+
+    /**
+     * Whether the application should auto-migrate CSV test cases to YAML on
+     * project load. Defaults to {@code true} (auto-migration enabled).
+     * Set to {@code false} to explicitly disable auto-migration.
+     */
+    @JsonProperty("autoMigrateCsvToYaml")
+    private Boolean autoMigrateCsvToYaml;
+
+    /**
+     * Whether to keep the original CSV files in {@code .migration-backup/}
+     * after a successful migration. Defaults to {@code true} for safety.
+     */
+    @JsonProperty("keepCsvBackupOnMigrate")
+    private Boolean keepCsvBackupOnMigrate;
+
     @JsonProperty("name")
     public String getName() {
         return name;
@@ -56,7 +87,7 @@ public class ProjectInfo {
     public void setName(String name) {
         this.name = name;
     }
-    
+
     @JsonProperty("version")
     public String getVersion() {
         return version;
@@ -66,7 +97,7 @@ public class ProjectInfo {
     public void setVersion(String version) {
         this.version = version;
     }
-    
+
     @JsonProperty("id")
     public String getId() {
         return id;
@@ -151,8 +182,9 @@ public class ProjectInfo {
     @JsonIgnore
     public List<Tag> getAllTags(Tags t) {
         if (t != null) {
-            return Stream.concat(t.stream(), getAllTags())
-                    .collect(Collectors.toCollection(Tags::new));
+            return Stream
+                .concat(t.stream(), getAllTags())
+                .collect(Collectors.toCollection(Tags::new));
         } else {
             return getAllTags().collect(Collectors.toCollection(Tags::new));
         }
@@ -160,13 +192,54 @@ public class ProjectInfo {
 
     @JsonIgnore
     private Stream<Tag> getAllTags() {
-        return Stream.concat(data.stream().flatMap(item -> item.getTags().stream()),
-                Stream.concat(tags.stream(), getMetaTags()));
+        return Stream.concat(
+            data.stream().flatMap(item -> item.getTags().stream()),
+            Stream.concat(tags.stream(), getMetaTags())
+        );
     }
 
     @JsonIgnore
     private Stream<Tag> getMetaTags() {
         return meta.stream().filter(Meta::isTag).map(Meta::toTag);
+    }
+
+    /**
+     * Renames a tag across all locations in the project: meta tags, project-level tags,
+     * scenario tags, and data item (test case) tags.
+     *
+     * @param oldValue the current tag name
+     * @param newValue the new tag name
+     */
+    @JsonIgnore
+    public void renameAll(String oldValue, String newValue) {
+        if (Objects.equals(oldValue, newValue) || oldValue == null || newValue == null) {
+            return;
+        }
+        // Rename in meta tags
+        for (Meta m : meta) {
+            if (m.isTag() && oldValue.equals(m.getName())) {
+                m.setName(newValue);
+            }
+            for (Tag t : m.getTags()) {
+                if (oldValue.equals(t.getValue())) {
+                    t.setValue(newValue);
+                }
+            }
+        }
+        // Rename in project-level tags
+        for (Tag t : tags) {
+            if (oldValue.equals(t.getValue())) {
+                t.setValue(newValue);
+            }
+        }
+        // Rename in data item (test case) tags
+        for (DataItem item : data) {
+            for (Tag t : item.getTags()) {
+                if (oldValue.equals(t.getValue())) {
+                    t.setValue(newValue);
+                }
+            }
+        }
     }
 
     @JsonIgnore
@@ -183,8 +256,7 @@ public class ProjectInfo {
 
     @JsonIgnore
     public String toJson() throws JsonProcessingException {
-        return new ObjectMapper().writerWithDefaultPrettyPrinter()
-                .writeValueAsString(this);
+        return new ObjectMapper().writerWithDefaultPrettyPrinter().writeValueAsString(this);
     }
 
     @JsonIgnore
@@ -218,12 +290,19 @@ public class ProjectInfo {
     public void removeAll(Tag tag) {
         getMeta().remove(tag);
         getTags().remove(tag);
-        getData().stream().forEach(tc -> {
-            tc.getTags().removeTag(tag);
-        });
-        findScenarios().forEach(scn -> {
-            scn.getTags().removeTag(tag);
-        });
+        getData()
+            .stream()
+            .forEach(
+                tc -> {
+                    tc.getTags().removeTag(tag);
+                }
+            );
+        findScenarios()
+            .forEach(
+                scn -> {
+                    scn.getTags().removeTag(tag);
+                }
+            );
     }
 
     @JsonIgnore
@@ -231,4 +310,33 @@ public class ProjectInfo {
         return Meta.Attributes.scenario.name().equals(m.getType());
     }
 
+    @JsonProperty("testCaseFormat")
+    public String getTestCaseFormat() {
+        return testCaseFormat;
+    }
+
+    @JsonProperty("testCaseFormat")
+    public void setTestCaseFormat(String testCaseFormat) {
+        this.testCaseFormat = testCaseFormat;
+    }
+
+    @JsonProperty("autoMigrateCsvToYaml")
+    public Boolean getAutoMigrateCsvToYaml() {
+        return autoMigrateCsvToYaml;
+    }
+
+    @JsonProperty("autoMigrateCsvToYaml")
+    public void setAutoMigrateCsvToYaml(Boolean autoMigrateCsvToYaml) {
+        this.autoMigrateCsvToYaml = autoMigrateCsvToYaml;
+    }
+
+    @JsonProperty("keepCsvBackupOnMigrate")
+    public Boolean getKeepCsvBackupOnMigrate() {
+        return keepCsvBackupOnMigrate;
+    }
+
+    @JsonProperty("keepCsvBackupOnMigrate")
+    public void setKeepCsvBackupOnMigrate(Boolean keepCsvBackupOnMigrate) {
+        this.keepCsvBackupOnMigrate = keepCsvBackupOnMigrate;
+    }
 }

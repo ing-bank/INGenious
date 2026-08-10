@@ -1,15 +1,18 @@
-
 package com.ing.engine.reporting.reportportal;
 
+import com.ing.engine.core.Control;
+import com.ing.engine.core.RunContext;
+import com.ing.engine.core.RunManager;
+import com.ing.engine.reporting.impl.rp.RPTestCaseHandler;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.UUID;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import java.util.UUID;
 import org.apache.http.HttpEntity;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.ClientProtocolException;
@@ -23,18 +26,16 @@ import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.parser.ParseException;
 
-import com.ing.engine.core.RunContext;
-import com.ing.engine.core.Control;
-import com.ing.engine.core.RunManager;
-import com.ing.engine.reporting.impl.rp.RPTestCaseHandler;
-
 public class ReportPortalClient {
-
     public static String LaunchID;
     public static RunContext runContext;
 
     private static String getRPValue(String property) {
-        return Control.getCurrentProject().getProjectSettings().getRPSettings().getProperty(property);
+        return Control
+            .getCurrentProject()
+            .getProjectSettings()
+            .getRPSettings()
+            .getProperty(property);
     }
 
     /**
@@ -47,15 +48,24 @@ public class ReportPortalClient {
      * @throws IOException
      * @throws ParseException
      */
-    public static void startLaunch(String rp_endpoint, String rp_project, String rp_uuid, String rp_launch)
-            throws ClientProtocolException, IOException, ParseException {
+    public static void startLaunch(
+        String rp_endpoint,
+        String rp_project,
+        String rp_uuid,
+        String rp_launch
+    )
+        throws ClientProtocolException, IOException, ParseException {
         try {
             HttpPost postRequest = new HttpPost(rp_endpoint + "/api/v1/" + rp_project + "/launch");
             postRequest.addHeader("accept", "application/json");
             postRequest.addHeader("Authorization", "bearer " + rp_uuid);
 
-            String description = "Project : " + RunManager.getGlobalSettings().getProjectName() + "\n"
-                    + "Release : " + RunManager.getGlobalSettings().getRelease();
+            String description =
+                "Project : " +
+                RunManager.getGlobalSettings().getProjectName() +
+                "\n" +
+                "Release : " +
+                RunManager.getGlobalSettings().getRelease();
             String timeStamp = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ").format(new Date());
             JSONObject startLaunchJSON = new JSONObject();
             startLaunchJSON.put("description", description);
@@ -64,22 +74,54 @@ public class ReportPortalClient {
             startLaunchJSON.put("start_time", timeStamp);
 
             JSONArray fields = new JSONArray();
-            fields.add("Execution Mode :" + Control.getCurrentProject().getProjectSettings().getExecSettings().getRunSettings().getExecutionMode());
-            fields.add("Thread count :" + Control.exe.getExecSettings().getRunSettings().getThreadCount());
-            fields.add("Execution Environment :" + Control.getCurrentProject().getProjectSettings().getExecSettings().getRunSettings().getTestEnv());
+            fields.add(
+                "Execution Mode :" +
+                Control
+                    .getCurrentProject()
+                    .getProjectSettings()
+                    .getExecSettings()
+                    .getRunSettings()
+                    .getExecutionMode()
+            );
+            fields.add(
+                "Thread count :" + Control.exe.getExecSettings().getRunSettings().getThreadCount()
+            );
+            fields.add(
+                "Execution Environment :" +
+                Control
+                    .getCurrentProject()
+                    .getProjectSettings()
+                    .getExecSettings()
+                    .getRunSettings()
+                    .getTestEnv()
+            );
 
             startLaunchJSON.put("tags", fields);
 
             //System.out.println("startLaunchJSON.toJSONString() : " + startLaunchJSON.toJSONString());
-            StringEntity requestEntity = new StringEntity(startLaunchJSON.toJSONString(), ContentType.APPLICATION_JSON);
+            StringEntity requestEntity = new StringEntity(
+                startLaunchJSON.toJSONString(),
+                ContentType.APPLICATION_JSON
+            );
 
             postRequest.setEntity(requestEntity);
-            HttpResponse response = HttpClientBuilder.create().useSystemProperties().build().execute(postRequest);
+            HttpResponse response = HttpClientBuilder
+                .create()
+                .useSystemProperties()
+                .build()
+                .execute(postRequest);
             if (response.getStatusLine().getStatusCode() != 201) {
-                Logger.getLogger(ReportPortalClient.class.getName()).log(Level.SEVERE, "Failed : HTTP error code : {0}",
-                        response.getStatusLine().getStatusCode());
+                Logger
+                    .getLogger(ReportPortalClient.class.getName())
+                    .log(
+                        Level.SEVERE,
+                        "Failed : HTTP error code : {0}",
+                        response.getStatusLine().getStatusCode()
+                    );
             }
-            BufferedReader br = new BufferedReader(new InputStreamReader((response.getEntity().getContent())));
+            BufferedReader br = new BufferedReader(
+                new InputStreamReader((response.getEntity().getContent()))
+            );
             String output;
             String resp = "";
             System.out.println("Output from Server .... \n");
@@ -89,15 +131,25 @@ public class ReportPortalClient {
             ReportPortalClient.LaunchID = Utility.getID(resp);
         } catch (Exception e) {
             Logger.getLogger(ReportPortalClient.class.getName()).log(Level.SEVERE, null, e);
-        } finally {
-
-        }
+        } finally {}
     }
 
-    public static void finishLaunch(String rp_endpoint, String rp_uuid, String rp_launch, String rp_project,
-            String status) throws ClientProtocolException, IOException, ParseException {
+    public static void finishLaunch(
+        String rp_endpoint,
+        String rp_uuid,
+        String rp_launch,
+        String rp_project,
+        String status
+    )
+        throws ClientProtocolException, IOException, ParseException {
         HttpPut putRequest = new HttpPut(
-                rp_endpoint + "/api/v1/" + rp_project + "/launch/" + ReportPortalClient.LaunchID + "/finish");
+            rp_endpoint +
+            "/api/v1/" +
+            rp_project +
+            "/launch/" +
+            ReportPortalClient.LaunchID +
+            "/finish"
+        );
         putRequest.addHeader("accept", "application/json");
         putRequest.addHeader("Authorization", "bearer " + rp_uuid);
         String timeStamp = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ").format(new Date());
@@ -105,17 +157,31 @@ public class ReportPortalClient {
         //finishLaunchJSON.put("description", "string");
         finishLaunchJSON.put("end_time", timeStamp);
         finishLaunchJSON.put("status", status);
-        
-       // System.out.println("finishLaunchJSON.toJSONString() : " + finishLaunchJSON.toJSONString());
-        StringEntity requestEntity = new StringEntity(finishLaunchJSON.toJSONString(), ContentType.APPLICATION_JSON);
+
+        // System.out.println("finishLaunchJSON.toJSONString() : " + finishLaunchJSON.toJSONString());
+        StringEntity requestEntity = new StringEntity(
+            finishLaunchJSON.toJSONString(),
+            ContentType.APPLICATION_JSON
+        );
 
         putRequest.setEntity(requestEntity);
-        HttpResponse response = HttpClientBuilder.create().useSystemProperties().build().execute(putRequest);
+        HttpResponse response = HttpClientBuilder
+            .create()
+            .useSystemProperties()
+            .build()
+            .execute(putRequest);
         if (response.getStatusLine().getStatusCode() != 200) {
-            Logger.getLogger(ReportPortalClient.class.getName()).log(Level.SEVERE, "Failed : HTTP error code : {0}",
-                    response.getStatusLine().getStatusCode());
+            Logger
+                .getLogger(ReportPortalClient.class.getName())
+                .log(
+                    Level.SEVERE,
+                    "Failed : HTTP error code : {0}",
+                    response.getStatusLine().getStatusCode()
+                );
         }
-        BufferedReader br = new BufferedReader(new InputStreamReader((response.getEntity().getContent())));
+        BufferedReader br = new BufferedReader(
+            new InputStreamReader((response.getEntity().getContent()))
+        );
         String output;
         String resp = "";
         System.out.println("Output from Server .... \n");
@@ -124,10 +190,19 @@ public class ReportPortalClient {
         }
     }
 
-    public static void finishItem(String rp_endpoint, String rp_uuid, String rp_launch, String rp_project,
-            String testitemID, String status) throws IOException, ParseException {
+    public static void finishItem(
+        String rp_endpoint,
+        String rp_uuid,
+        String rp_launch,
+        String rp_project,
+        String testitemID,
+        String status
+    )
+        throws IOException, ParseException {
         testitemID = RPTestCaseHandler.itemIds.get(testitemID);
-        HttpPut putRequest = new HttpPut(rp_endpoint + "/api/v1/" + rp_project + "/item/" + testitemID);
+        HttpPut putRequest = new HttpPut(
+            rp_endpoint + "/api/v1/" + rp_project + "/item/" + testitemID
+        );
         putRequest.addHeader("accept", "application/json");
         putRequest.addHeader("Authorization", "bearer " + rp_uuid);
         String timeStamp = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ").format(new Date());
@@ -147,15 +222,29 @@ public class ReportPortalClient {
         finishItemJSON.put("issue", issueJSON);
         finishItemJSON.put("retry", "true");
         finishItemJSON.put("status", status);
-        StringEntity requestEntity = new StringEntity(finishItemJSON.toJSONString(), ContentType.APPLICATION_JSON);
+        StringEntity requestEntity = new StringEntity(
+            finishItemJSON.toJSONString(),
+            ContentType.APPLICATION_JSON
+        );
 
         putRequest.setEntity(requestEntity);
-        HttpResponse response = HttpClientBuilder.create().useSystemProperties().build().execute(putRequest);
+        HttpResponse response = HttpClientBuilder
+            .create()
+            .useSystemProperties()
+            .build()
+            .execute(putRequest);
         if (response.getStatusLine().getStatusCode() != 200) {
-            Logger.getLogger(ReportPortalClient.class.getName()).log(Level.SEVERE, "Failed : HTTP error code : {0}",
-                    response.getStatusLine().getStatusCode());
+            Logger
+                .getLogger(ReportPortalClient.class.getName())
+                .log(
+                    Level.SEVERE,
+                    "Failed : HTTP error code : {0}",
+                    response.getStatusLine().getStatusCode()
+                );
         }
-        BufferedReader br = new BufferedReader(new InputStreamReader((response.getEntity().getContent())));
+        BufferedReader br = new BufferedReader(
+            new InputStreamReader((response.getEntity().getContent()))
+        );
         String output;
         String resp = "";
         System.out.println("Output from Server .... \n");
@@ -164,8 +253,19 @@ public class ReportPortalClient {
         }
     }
 
-    public static void startItem(String rp_endpoint, String rp_uuid, String rp_launch, String rp_project,
-            String launchId, String testcaseName, String browserName, String platform, String iterationValue, String description) throws ClientProtocolException, IOException, ParseException {
+    public static void startItem(
+        String rp_endpoint,
+        String rp_uuid,
+        String rp_launch,
+        String rp_project,
+        String launchId,
+        String testcaseName,
+        String browserName,
+        String platform,
+        String iterationValue,
+        String description
+    )
+        throws ClientProtocolException, IOException, ParseException {
         UUID uuid = UUID.randomUUID();
         String uuidAsString = uuid.toString();
         HttpPost postRequest = new HttpPost(rp_endpoint + "/api/v1/" + rp_project + "/item");
@@ -202,15 +302,29 @@ public class ReportPortalClient {
 
         startItemJSON.put("tags", fields);
         //System.out.println("startItemJSON.toJSONString(): " + startItemJSON.toJSONString());
-        StringEntity requestEntity = new StringEntity(startItemJSON.toJSONString(), ContentType.APPLICATION_JSON);
+        StringEntity requestEntity = new StringEntity(
+            startItemJSON.toJSONString(),
+            ContentType.APPLICATION_JSON
+        );
 
         postRequest.setEntity(requestEntity);
-        HttpResponse response = HttpClientBuilder.create().useSystemProperties().build().execute(postRequest);
+        HttpResponse response = HttpClientBuilder
+            .create()
+            .useSystemProperties()
+            .build()
+            .execute(postRequest);
         if (response.getStatusLine().getStatusCode() != 201) {
-            Logger.getLogger(ReportPortalClient.class.getName()).log(Level.SEVERE, "Failed : HTTP error code : {0}",
-                    response.getStatusLine().getStatusCode());
+            Logger
+                .getLogger(ReportPortalClient.class.getName())
+                .log(
+                    Level.SEVERE,
+                    "Failed : HTTP error code : {0}",
+                    response.getStatusLine().getStatusCode()
+                );
         }
-        BufferedReader br = new BufferedReader(new InputStreamReader((response.getEntity().getContent())));
+        BufferedReader br = new BufferedReader(
+            new InputStreamReader((response.getEntity().getContent()))
+        );
         String output;
         String resp = "";
         //System.out.println("Output from Server .... \n");
@@ -220,8 +334,18 @@ public class ReportPortalClient {
         RPTestCaseHandler.itemIds.put(testcaseName, Utility.getID(resp));
     }
 
-    public static void sendLog(String payloadfile, String rp_endpoint, String rp_uuid, String rp_launch, String rp_project,
-            String testitemID, String status, String teststepdata, String filename) throws IOException, ParseException {
+    public static void sendLog(
+        String payloadfile,
+        String rp_endpoint,
+        String rp_uuid,
+        String rp_launch,
+        String rp_project,
+        String testitemID,
+        String status,
+        String teststepdata,
+        String filename
+    )
+        throws IOException, ParseException {
         testitemID = RPTestCaseHandler.itemIds.get(testitemID);
         HttpPost putRequest = new HttpPost(rp_endpoint + "/api/v1/" + rp_project + "/log");
         putRequest.addHeader("accept", "application/json");
@@ -229,7 +353,6 @@ public class ReportPortalClient {
         String timeStamp = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ssZ").format(new Date());
 
         if (filename.equalsIgnoreCase("")) {
-
             JSONObject sendLogEntityJSON = new JSONObject();
             sendLogEntityJSON.put("item_id", testitemID);
             if (status.contains("PASS") || status.contains("DONE") || status.contains("COMPLETE")) {
@@ -243,10 +366,11 @@ public class ReportPortalClient {
             JSONObject filearray_Obj = new JSONObject();
             filearray_Obj.put("name", "none");
             sendLogEntityJSON.put("file", filearray_Obj);
-            StringEntity requestEntity = new StringEntity(sendLogEntityJSON.toJSONString(),
-                    ContentType.APPLICATION_JSON);
+            StringEntity requestEntity = new StringEntity(
+                sendLogEntityJSON.toJSONString(),
+                ContentType.APPLICATION_JSON
+            );
             putRequest.setEntity(requestEntity);
-
         } else {
             File f = new File(new File(filename).getCanonicalPath());
             JSONArray sendLog_array = new JSONArray();
@@ -273,7 +397,6 @@ public class ReportPortalClient {
                         break;
                     }
                 }
-
             } else {
                 attachmentName = f.getName();
                 contentType = "image/png";
@@ -286,11 +409,10 @@ public class ReportPortalClient {
             sendLogMEntityJSON.put("file", filearray_Obj);
 
             sendLog_array.add(sendLogMEntityJSON);
-
-//            HttpEntity entity = MultipartEntityBuilder.create()
-//                    .addTextBody("json_request_part", sendLog_array.toJSONString(), ContentType.APPLICATION_JSON)
-//                    .addBinaryBody(attachmentName, attachment, ContentType.create(contentType), attachmentName).build();
-        //    putRequest.setEntity(entity);
+            //            HttpEntity entity = MultipartEntityBuilder.create()
+            //                    .addTextBody("json_request_part", sendLog_array.toJSONString(), ContentType.APPLICATION_JSON)
+            //                    .addBinaryBody(attachmentName, attachment, ContentType.create(contentType), attachmentName).build();
+            //    putRequest.setEntity(entity);
         }
 
         HttpResponse response = null;
@@ -301,8 +423,13 @@ public class ReportPortalClient {
             Logger.getLogger(ReportPortalClient.class.getName()).log(Level.SEVERE, null, e);
         }
         if (response.getStatusLine().getStatusCode() != 201) {
-            Logger.getLogger(ReportPortalClient.class.getName()).log(Level.SEVERE, "Failed : HTTP error code : {0}",
-                    response.getStatusLine().getStatusCode());
+            Logger
+                .getLogger(ReportPortalClient.class.getName())
+                .log(
+                    Level.SEVERE,
+                    "Failed : HTTP error code : {0}",
+                    response.getStatusLine().getStatusCode()
+                );
         }
         BufferedReader br = null;
         try {
@@ -319,7 +446,5 @@ public class ReportPortalClient {
         } catch (IOException e) {
             Logger.getLogger(ReportPortalClient.class.getName()).log(Level.SEVERE, null, e);
         }
-
     }
-
 }

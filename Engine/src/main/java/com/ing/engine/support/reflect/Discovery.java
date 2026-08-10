@@ -1,4 +1,3 @@
-
 package com.ing.engine.support.reflect;
 
 import com.ing.engine.constants.FilePath;
@@ -23,7 +22,6 @@ import java.util.logging.Logger;
  * and retrieve user-defined methods for command execution and reflection-based operations.
  */
 public class Discovery {
-
     private static final Logger LOG = Logger.getLogger(Discovery.class.getName());
 
     private static List<Class<?>> classList;
@@ -69,7 +67,7 @@ public class Discovery {
         try {
             File directory = new File(FilePath.getAppRoot(), "userdefined");
             if (directory.exists()) {
-                URL[] urls = new URL[]{directory.toURI().toURL()};
+                URL[] urls = new URL[] { directory.toURI().toURL() };
                 String[] files = directory.list();
                 for (String file : files) {
                     if (file.endsWith(".class")) {
@@ -82,7 +80,9 @@ public class Discovery {
                             }
                         } catch (ClassNotFoundException e) {
                             LOG.log(Level.SEVERE, null, e);
-                            throw new RuntimeException("ClassNotFoundException loading " + className);
+                            throw new RuntimeException(
+                                "ClassNotFoundException loading " + className
+                            );
                         }
                     }
                 }
@@ -120,7 +120,7 @@ public class Discovery {
             Logger.getLogger(Discovery.class.getName()).log(Level.SEVERE, null, ex);
         }
         if (packages == null) {
-            packages = new String[]{"com.ing.engine.commands"};
+            packages = new String[] { "com.ing.engine.commands" };
         }
     }
 
@@ -159,14 +159,15 @@ public class Discovery {
         for (Class<?> classs : clazzes) {
             Method[] method = classs.getMethods();
             for (Method m : method) {
-                if (m.getParameterTypes().length == 0
-                        && m.getReturnType() == void.class && !Modifier.isFinal(m.getModifiers())) {
+                if (
+                    m.getParameterTypes().length == 0 &&
+                    m.getReturnType() == void.class &&
+                    !Modifier.isFinal(m.getModifiers())
+                ) {
                     userMethods.add(m.getName());
                 }
             }
-
         }
         return userMethods;
     }
-
 }

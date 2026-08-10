@@ -1,4 +1,3 @@
-
 package com.ing.datalib.testdata.view;
 
 import com.ing.datalib.testdata.model.Record;
@@ -25,19 +24,23 @@ import java.util.Set;
  *
  */
 public abstract class TestDataView implements TestDataViewApi {
-
-    public final static String ALL = ".*";
+    public static final String ALL = ".*";
     public final Map<String, List<List<String>>> VIEWS = new HashMap<>();
 
-    abstract public List columns();
+    public abstract List columns();
 
-    abstract public List records();
+    public abstract List records();
 
-    abstract public int index(String field);
+    public abstract int index(String field);
 
-    abstract public boolean canUpdate(String field);
+    public abstract boolean canUpdate(String field);
 
-    abstract public List<String> addRecord(String scenario, String testcase, String iteration, String subIteration);
+    public abstract List<String> addRecord(
+        String scenario,
+        String testcase,
+        String iteration,
+        String subIteration
+    );
 
     public void clear() {
         VIEWS.clear();
@@ -173,7 +176,7 @@ public abstract class TestDataView implements TestDataViewApi {
      */
     public Set<String> getIterations() {
         Set<String> iters = new LinkedHashSet<>();
-        for (Object iter : getFields(records(), Record.HEADERS[2])) {
+        for (Object iter : getFields(records(), Record.HEADERS[3])) {
             iters.add((String) iter);
         }
         return iters;
@@ -190,7 +193,7 @@ public abstract class TestDataView implements TestDataViewApi {
      */
     public Set<String> getSubIterations() {
         Set<String> iters = new LinkedHashSet<>();
-        for (Object iter : getFields(records(), Record.HEADERS[3])) {
+        for (Object iter : getFields(records(), Record.HEADERS[4])) {
             iters.add((String) iter);
         }
         return iters;
@@ -259,6 +262,28 @@ public abstract class TestDataView implements TestDataViewApi {
 
     /**
      * finds the records and return view object with that subset of records for
+     * the given query args, filtered by scope.
+     *
+     * <br>
+     * use wildcard (.*) if needed
+     * <br>
+     *
+     * @param scn scenario
+     * @param tc testcase
+     * @param scope the scope filter ([Project], [Shared], or empty for test plan)
+     * @return the view
+     */
+    public TestDataView withTestcaseAndScope(String scn, String tc, String scope) {
+        String key = scn + "#" + tc + "#scope:" + scope;
+        if (!VIEWS.containsKey(key)) {
+            return indexWithScope(key, scn, tc, ALL, ALL, scope);
+        } else {
+            return toView(get(key));
+        }
+    }
+
+    /**
+     * finds the records and return view object with that subset of records for
      * the given query args.
      *
      * <br>
@@ -288,6 +313,28 @@ public abstract class TestDataView implements TestDataViewApi {
 
     /**
      * finds the records and return view object with that subset of records for
+     * the given query args, filtered by scope.
+     * <br>
+     * use wildcard (.*) if needed
+     * <br>
+     *
+     * @param scn scenario
+     * @param tc testcase
+     * @param iter iteration
+     * @param scope the scope filter ([Project], [Shared], or empty for test plan)
+     * @return the view
+     */
+    public TestDataView withIterAndScope(String scn, String tc, String iter, String scope) {
+        String key = scn + "#" + tc + "#" + iter + "#scope:" + scope;
+        if (!VIEWS.containsKey(key)) {
+            return indexWithScope(key, scn, tc, iter, ALL, scope);
+        } else {
+            return toView(get(key));
+        }
+    }
+
+    /**
+     * finds the records and return view object with that subset of records for
      * the given query args.
      *
      * <br>
@@ -304,10 +351,73 @@ public abstract class TestDataView implements TestDataViewApi {
         return withSubIter(scn, tc, iter, subIter, false);
     }
 
-    public TestDataView withSubIter(String scn, String tc, String iter, String subIter, Boolean addIfNotPresent) {
+    public TestDataView withSubIter(
+        String scn,
+        String tc,
+        String iter,
+        String subIter,
+        Boolean addIfNotPresent
+    ) {
         String key = scn + "#" + tc + "#" + iter + "#" + subIter;
         if (!VIEWS.containsKey(key)) {
             return index(key, scn, tc, iter, subIter);
+        } else {
+            if (addIfNotPresent && get(key).isEmpty()) {
+                add(key, addRecord(scn, tc, iter, subIter));
+            }
+            return toView(get(key));
+        }
+    }
+
+    /**
+     * Create a view of records that match scenario, testcase, iteration,
+     * subIteration AND scope.
+     * <br>
+     * The resulting view will contain only records that match ALL criteria
+     * including the scope filter.
+     * <br>
+     *
+     * @param scn scenario
+     * @param tc testcase
+     * @param iter iteration
+     * @param subIter sub iteration
+     * @param scope scope filter (e.g., "[Project]", "[Shared]", or empty for test plan)
+     * @return the view
+     */
+    public TestDataView withSubIterAndScope(
+        String scn,
+        String tc,
+        String iter,
+        String subIter,
+        String scope
+    ) {
+        return withSubIterAndScope(scn, tc, iter, subIter, scope, false);
+    }
+
+    /**
+     * Create a view of records that match scenario, testcase, iteration,
+     * subIteration AND scope, with option to add record if not found.
+     * <br>
+     *
+     * @param scn scenario
+     * @param tc testcase
+     * @param iter iteration
+     * @param subIter sub iteration
+     * @param scope scope filter (e.g., "[Project]", "[Shared]", or empty for test plan)
+     * @param addIfNotPresent if true, adds a new record when none found
+     * @return the view
+     */
+    public TestDataView withSubIterAndScope(
+        String scn,
+        String tc,
+        String iter,
+        String subIter,
+        String scope,
+        Boolean addIfNotPresent
+    ) {
+        String key = scn + "#" + tc + "#" + iter + "#" + subIter + "#" + scope;
+        if (!VIEWS.containsKey(key)) {
+            return indexWithScope(key, scn, tc, iter, subIter, scope);
         } else {
             if (addIfNotPresent && get(key).isEmpty()) {
                 add(key, addRecord(scn, tc, iter, subIter));
@@ -336,7 +446,21 @@ public abstract class TestDataView implements TestDataViewApi {
         VIEWS.put(key, v.records());
         return v;
     }
-//</editor-fold>
+
+    private TestDataView indexWithScope(
+        String key,
+        String scn,
+        String tc,
+        String iter,
+        String subIter,
+        String scope
+    ) {
+        TestDataView v = getViewWithScope(scn, tc, iter, subIter, scope);
+        VIEWS.put(key, v.records());
+        return v;
+    }
+
+    //</editor-fold>
 
     private TestDataView getView(String scnOrgid) {
         return toView(getRecords(records(), scnOrgid));
@@ -346,6 +470,16 @@ public abstract class TestDataView implements TestDataViewApi {
         return toView(getRecords(records(), scn, tc, iter, subIter));
     }
 
+    private TestDataView getViewWithScope(
+        String scn,
+        String tc,
+        String iter,
+        String subIter,
+        String scope
+    ) {
+        return toView(getRecordsWithScope(records(), scn, tc, iter, subIter, scope));
+    }
+
     private List getRecords(List records, String scnOrgid) {
         List<Object> view = new ArrayList();
         for (Object r : records) {
@@ -353,9 +487,7 @@ public abstract class TestDataView implements TestDataViewApi {
                 if (((List) r).get(0).toString().matches(scnOrgid)) {
                     view.add(r);
                 }
-            } catch (Exception ex) {
-
-            }
+            } catch (Exception ex) {}
         }
         return view;
     }
@@ -365,13 +497,52 @@ public abstract class TestDataView implements TestDataViewApi {
         for (Object rObj : records) {
             Record r = (Record) rObj;
             try {
-                if (r.getScenario().matches(scn) && r.getTestcase().matches(tc)
-                        && r.getIteration().matches(iter) && r.getSubIteration().matches(subIter)) {
+                if (
+                    r.getScenario().matches(scn) &&
+                    r.getTestcase().matches(tc) &&
+                    r.getIteration().matches(iter) &&
+                    r.getSubIteration().matches(subIter)
+                ) {
                     view.add(r);
                 }
-            } catch (Exception ex) {
+            } catch (Exception ex) {}
+        }
+        return view;
+    }
 
-            }
+    private List getRecordsWithScope(
+        List records,
+        String scn,
+        String tc,
+        String iter,
+        String subIter,
+        String scope
+    ) {
+        List<Record> view = new ArrayList();
+        for (Object rObj : records) {
+            Record r = (Record) rObj;
+            try {
+                boolean scopeMatches = true;
+                if (scope != null && !scope.isEmpty()) {
+                    // If scope is provided, only match records with that exact scope
+                    String recordScope = r.getScope();
+                    scopeMatches = (recordScope != null && recordScope.equals(scope));
+                } else {
+                    // For empty scope (test plan), only match records with empty scope
+                    String recordScope = r.getScope();
+                    scopeMatches = (recordScope == null || recordScope.isEmpty());
+                }
+
+                if (
+                    r.getScenario().matches(scn) &&
+                    r.getTestcase().matches(tc) &&
+                    r.getIteration().matches(iter) &&
+                    r.getSubIteration().matches(subIter) &&
+                    scopeMatches
+                ) {
+                    view.add(r);
+                }
+            } catch (Exception ex) {}
         }
         return view;
     }
@@ -379,6 +550,7 @@ public abstract class TestDataView implements TestDataViewApi {
     private TestDataView toView(final List l) {
         final TestDataView parent = this;
         return new TestDataView() {
+
             @Override
             public List records() {
                 return l;
@@ -400,11 +572,14 @@ public abstract class TestDataView implements TestDataViewApi {
             }
 
             @Override
-            public List<String> addRecord(String scenario, String testcase, String iteration, String subIteration) {
+            public List<String> addRecord(
+                String scenario,
+                String testcase,
+                String iteration,
+                String subIteration
+            ) {
                 return parent.addRecord(scenario, testcase, iteration, subIteration);
             }
-
         };
     }
-
 }

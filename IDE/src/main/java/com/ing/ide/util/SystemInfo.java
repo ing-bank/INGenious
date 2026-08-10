@@ -1,31 +1,31 @@
-
 package com.ing.ide.util;
 
 /**
  *
- * 
+ *
  */
 public class SystemInfo {
+    private static final String[] OS_INFO = { "os.name", "os.version", "os.arch" }, OS_INFO_NAME = {
+        "OS Name         : ",
+        "OS Version      : ",
+        "OS Architecture : "
+    }, JAVA_INFO = {
+        "java.vm.version",
+        "java.home",
+        "java.version",
+        "java.runtime.version",
+        "java.class.path",
+        "sun.io.unicode.encoding"
+    }, FILE_SYS_INFO = { "user.dir", "file.separator", "path.separator" }, JAVA_INFO_NAME = {
+        "Java VM Version      : ",
+        "Java Home            : ",
+        "Java Version         : ",
+        "Java Runtime Version : ",
+        "Java ClassPath       : ",
+        "IO Unicode Encoding  : "
+    }, FIEL_SYS_INFO_NAME = { "User Directory : ", "File Separator : ", "Path Separator : " };
 
-    private static final String[] OS_INFO = {"os.name", "os.version", "os.arch"},
-            OS_INFO_NAME = {"OS Name         : ",
-                "OS Version      : ",
-                "OS Architecture : "},
-            JAVA_INFO = {"java.vm.version", "java.home", "java.version", "java.runtime.version", "java.class.path", "sun.io.unicode.encoding"},
-            FILE_SYS_INFO = {"user.dir", "file.separator", "path.separator"},
-            JAVA_INFO_NAME = {"Java VM Version      : ",
-                "Java Home            : ",
-                "Java Version         : ",
-                "Java Runtime Version : ",
-                "Java ClassPath       : ",
-                "IO Unicode Encoding  : "},
-            FIEL_SYS_INFO_NAME = {"User Directory : ",
-                "File Separator : ",
-                "Path Separator : "};
-
-   private SystemInfo(){
-       
-   }
+    private SystemInfo() {}
 
     public static String getOSInfo() {
         String info = "";
@@ -60,8 +60,8 @@ public class SystemInfo {
     public static boolean isWindows() {
         return System.getProperty(OS_INFO[0]).toLowerCase().contains("windows");
     }
-     public static boolean osx() {
+
+    public static boolean osx() {
         return System.getProperty(OS_INFO[0]).toLowerCase().contains("mac");
     }
-
 }

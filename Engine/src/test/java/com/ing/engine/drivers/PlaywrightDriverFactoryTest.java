@@ -3,7 +3,6 @@ package com.ing.engine.drivers;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.lang.reflect.Method;
-
 import org.testng.annotations.Test;
 
 /**
@@ -104,8 +103,7 @@ public class PlaywrightDriverFactoryTest {
 
     @Test
     public void testSetViewportSizeWithDimensions() throws Exception {
-        com.microsoft.playwright.Browser.NewContextOptions opts =
-                new com.microsoft.playwright.Browser.NewContextOptions();
+        com.microsoft.playwright.Browser.NewContextOptions opts = new com.microsoft.playwright.Browser.NewContextOptions();
 
         invokeSetViewportSize(opts, "1920,1080");
 
@@ -115,8 +113,7 @@ public class PlaywrightDriverFactoryTest {
 
     @Test
     public void testSetViewportSizeMaximized() throws Exception {
-        com.microsoft.playwright.Browser.NewContextOptions opts =
-                new com.microsoft.playwright.Browser.NewContextOptions();
+        com.microsoft.playwright.Browser.NewContextOptions opts = new com.microsoft.playwright.Browser.NewContextOptions();
 
         invokeSetViewportSize(opts, "maximized");
 
@@ -126,8 +123,7 @@ public class PlaywrightDriverFactoryTest {
 
     @Test
     public void testSetViewportSizeInvalidValue() throws Exception {
-        com.microsoft.playwright.Browser.NewContextOptions opts =
-                new com.microsoft.playwright.Browser.NewContextOptions();
+        com.microsoft.playwright.Browser.NewContextOptions opts = new com.microsoft.playwright.Browser.NewContextOptions();
 
         PlaywrightDriverFactory.isViewPortSizeMaximized = true; // pre-set
         invokeSetViewportSize(opts, "invalid");
@@ -139,8 +135,7 @@ public class PlaywrightDriverFactoryTest {
 
     @Test
     public void testSetGeolocationParsesCoordinates() throws Exception {
-        com.microsoft.playwright.Browser.NewContextOptions opts =
-                new com.microsoft.playwright.Browser.NewContextOptions();
+        com.microsoft.playwright.Browser.NewContextOptions opts = new com.microsoft.playwright.Browser.NewContextOptions();
 
         invokeSetGeolocation(opts, "51.5074,-0.1278");
         // No exception → coordinates parsed successfully
@@ -150,8 +145,7 @@ public class PlaywrightDriverFactoryTest {
 
     @Test
     public void testSetScreenSizeParsesDimensions() throws Exception {
-        com.microsoft.playwright.Browser.NewContextOptions opts =
-                new com.microsoft.playwright.Browser.NewContextOptions();
+        com.microsoft.playwright.Browser.NewContextOptions opts = new com.microsoft.playwright.Browser.NewContextOptions();
 
         invokeSetScreenSize(opts, "1920,1080");
         // No exception → dimensions parsed successfully
@@ -161,8 +155,7 @@ public class PlaywrightDriverFactoryTest {
 
     @Test
     public void testSetRecordVideoSizeParsesDimensions() throws Exception {
-        com.microsoft.playwright.Browser.NewContextOptions opts =
-                new com.microsoft.playwright.Browser.NewContextOptions();
+        com.microsoft.playwright.Browser.NewContextOptions opts = new com.microsoft.playwright.Browser.NewContextOptions();
 
         invokeSetRecordVideoSize(opts, "1280,720");
         // No exception → dimensions parsed successfully
@@ -171,40 +164,71 @@ public class PlaywrightDriverFactoryTest {
     // ── Reflection utility methods ──────────────────────────────────────
 
     private Object invokeGetPropertyValue(String value) throws Exception {
-        Method m = PlaywrightDriverFactory.class.getDeclaredMethod(
-                "getPropertyValueAsDesiredType", String.class);
+        Method m =
+            PlaywrightDriverFactory.class.getDeclaredMethod(
+                    "getPropertyValueAsDesiredType",
+                    String.class
+                );
         m.setAccessible(true);
         return m.invoke(null, value);
     }
 
-    private void invokeSetViewportSize(com.microsoft.playwright.Browser.NewContextOptions opts,
-                                       String value) throws Exception {
-        Method m = PlaywrightDriverFactory.class.getDeclaredMethod(
-                "setViewportSize", com.microsoft.playwright.Browser.NewContextOptions.class, String.class);
+    private void invokeSetViewportSize(
+        com.microsoft.playwright.Browser.NewContextOptions opts,
+        String value
+    )
+        throws Exception {
+        Method m =
+            PlaywrightDriverFactory.class.getDeclaredMethod(
+                    "setViewportSize",
+                    com.microsoft.playwright.Browser.NewContextOptions.class,
+                    String.class
+                );
         m.setAccessible(true);
         m.invoke(null, opts, value);
     }
 
-    private void invokeSetGeolocation(com.microsoft.playwright.Browser.NewContextOptions opts,
-                                      String value) throws Exception {
-        Method m = PlaywrightDriverFactory.class.getDeclaredMethod(
-                "setGeolocation", com.microsoft.playwright.Browser.NewContextOptions.class, String.class);
+    private void invokeSetGeolocation(
+        com.microsoft.playwright.Browser.NewContextOptions opts,
+        String value
+    )
+        throws Exception {
+        Method m =
+            PlaywrightDriverFactory.class.getDeclaredMethod(
+                    "setGeolocation",
+                    com.microsoft.playwright.Browser.NewContextOptions.class,
+                    String.class
+                );
         m.setAccessible(true);
         m.invoke(null, opts, value);
     }
 
-    private void invokeSetScreenSize(com.microsoft.playwright.Browser.NewContextOptions opts,
-                                     String value) throws Exception {
-        Method m = PlaywrightDriverFactory.class.getDeclaredMethod(
-                "setScreenSize", com.microsoft.playwright.Browser.NewContextOptions.class, String.class);
+    private void invokeSetScreenSize(
+        com.microsoft.playwright.Browser.NewContextOptions opts,
+        String value
+    )
+        throws Exception {
+        Method m =
+            PlaywrightDriverFactory.class.getDeclaredMethod(
+                    "setScreenSize",
+                    com.microsoft.playwright.Browser.NewContextOptions.class,
+                    String.class
+                );
         m.setAccessible(true);
         m.invoke(null, opts, value);
     }
 
-    private void invokeSetRecordVideoSize(com.microsoft.playwright.Browser.NewContextOptions opts,
-                                          String value) throws Exception {
-        Method m = PlaywrightDriverFactory.class.getDeclaredMethod(
-                "setRecordVideoSize", com.microsoft.playwright.Browser.NewContextOptions.class, String.class);
+    private void invokeSetRecordVideoSize(
+        com.microsoft.playwright.Browser.NewContextOptions opts,
+        String value
+    )
+        throws Exception {
+        Method m =
+            PlaywrightDriverFactory.class.getDeclaredMethod(
+                    "setRecordVideoSize",
+                    com.microsoft.playwright.Browser.NewContextOptions.class,
+                    String.class
+                );
         m.setAccessible(true);
         m.invoke(null, opts, value);
     }

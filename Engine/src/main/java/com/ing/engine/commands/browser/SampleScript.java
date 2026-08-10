@@ -1,4 +1,3 @@
-
 package com.ing.engine.commands.browser;
 
 import com.ing.datalib.testdata.view.TestDataView;
@@ -11,30 +10,39 @@ import com.microsoft.playwright.Locator;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
 public class SampleScript extends General {
+
     // create your own function
 
     public SampleScript(CommandControl cc) {
         super(cc);
     }
 
-    public void prinThis(String argumentShouldNotBeGiven
-    /**
-     * No argument should be specifed Then only will be executed[show in
-     * action column]
-     */
+    public void prinThis(
+        String argumentShouldNotBeGiven
+        /**
+         * No argument should be specifed Then only will be executed[show in
+         * action column]
+         */
     ) {
-
-  
         try {
-            Locator.click();//Object in ObjectName is resolved as WebElement and assigned to this variable[Element]
+            Locator.click(); //Object in ObjectName is resolved as WebElement and assigned to this variable[Element]
 
-            System.out.println(ObjectName + "ObjectName used in ObjectColumn in the currentTestStep");
-            System.out.println(Description + "Description used in DescriptionColumn in the currentTestStep");
-            System.out.println(Action + "Action/Command used in ActionColumn in the currentTestStep");
+            System.out.println(
+                ObjectName + "ObjectName used in ObjectColumn in the currentTestStep"
+            );
+            System.out.println(
+                Description + "Description used in DescriptionColumn in the currentTestStep"
+            );
+            System.out.println(
+                Action + "Action/Command used in ActionColumn in the currentTestStep"
+            );
             System.out.println(Input + "Input used in InputColumn in the currentTestStep");
             System.out.println(Data + "Resolved Input used in InputColumn in the currentTestStep");
-            System.out.println(Reference + "Reference/PageName used in ReferenceColumn in the currentTestStep");
+            System.out.println(
+                Reference + "Reference/PageName used in ReferenceColumn in the currentTestStep"
+            );
 
             System.out.println(getCurrentBrowserName() + "To get the current browserName");
 
@@ -45,7 +53,7 @@ public class SampleScript extends General {
             //If you want to access the userdefined data created from options pane you can use it in two ways
             //One
             value = getVar("%userdefinedVar%");
-            value = getVar("userdefinedVar");//This also will work
+            value = getVar("userdefinedVar"); //This also will work
             //Two
             value = getUserDefinedData("userdefinedVar");
 
@@ -59,8 +67,8 @@ public class SampleScript extends General {
             addGlobalVar("%dyanmicVar%", "Value to be Stored");
 
             // Using Inbuilt findMethod
-            AObject.findElement(ObjectName, Reference);//To find the current step's object
-            AObject.findElements(ObjectName, Reference);//To find the current step's object
+            AObject.findElement(ObjectName, Reference); //To find the current step's object
+            AObject.findElements(ObjectName, Reference); //To find the current step's object
 
             // to access the object value pass ObjectNameand PageName as inputs
             // ObjectName=p
@@ -69,13 +77,12 @@ public class SampleScript extends General {
             List<Locator> elementList = AObject.findElements("p", "Yahoo");
 
             // -----Using Conditioned FindMethod
-          //  element = AObject.findElement("p", "Yahoo", ObjectProperty.Id);
+            //  element = AObject.findElement("p", "Yahoo", ObjectProperty.Id);
             elementList = AObject.findElements("p", "Yahoo", ObjectProperty.ClassName);
 
             //-----Using Own findMethod
-           // element = Driver.findElement(By.id(Data));
+            // element = Driver.findElement(By.id(Data));
 
-         
             element.fill("Normal");
 
             element.fill(Data);
@@ -83,7 +90,8 @@ public class SampleScript extends General {
             //To get a property of an object from ObjectRepository
             String prop = AObject.getWebObject("pageName", "objectName").getId();
 
-            prop = AObject.getWebObject(Reference, ObjectName).getAttributeByName(ObjectProperty.Id);//to get current step object's id property
+            prop =
+                AObject.getWebObject(Reference, ObjectName).getAttributeByName(ObjectProperty.Id); //to get current step object's id property
 
             System.out.println(prop);
 
@@ -97,11 +105,11 @@ public class SampleScript extends General {
 
             //To get all the subiteration values for current Scenario/TestCase/Iteration
             testDataView.records();
-            
+
             // to access the data from DataSheets pass TestDataname and
             // Column name as inputs
             // Don't pass GlobalData as inputsheet
-            //                              SheetName,Columnname  
+            //                              SheetName,Columnname
             String input = userData.getData("Sample", "Data1");
 
             //To get values from specified Iteration and subiteration
@@ -126,7 +134,11 @@ public class SampleScript extends General {
             Report.updateTestLog("Userdefined Action ", "Operation Done successfully", Status.PASS);
 
             //To display in Report with custom html tags
-            Report.updateTestLog("Userdefined Action ", "#CTAG <b>Operation Done successfully</b>", Status.PASS);
+            Report.updateTestLog(
+                "Userdefined Action ",
+                "#CTAG <b>Operation Done successfully</b>",
+                Status.PASS
+            );
 
             //To get the current Iteration
             userData.getIteration();
@@ -147,9 +159,8 @@ public class SampleScript extends General {
             Boolean something = false;
             if (something) {
                 SystemDefaults.stopCurrentIteration.set(true);
-                SystemDefaults.stopExecution.set(true);//Stop the execution
+                SystemDefaults.stopExecution.set(true); //Stop the execution
             }
-
 
             //Old school
             executeMethod(element, "Click");
@@ -158,24 +169,24 @@ public class SampleScript extends General {
             executeMethod(element, "Set", input);
 
             //To execute Other Testcases//testWeb:search
-            //               scearioname,testcasename,subiteration 
+            //               scearioname,testcasename,subiteration
             executeTestCase("OnlineShopping", "BuyProduct", 2);
             //               scearioname,testcasename
             executeTestCase("OnlineShopping", "BuyProduct");
-
             // -----------------------//
         } catch (Exception ex) {
             Logger.getLogger(this.getClass().getName()).log(Level.OFF, null, ex);
         }
-
     }
 
-    public void handleCondition(String argumentShouldNotBeGiven
-    /**
-     * No argument should be specifed Then only will be executed[show in
-     * action column]
-     */
-    ) throws UnCaughtException {
+    public void handleCondition(
+        String argumentShouldNotBeGiven
+        /**
+         * No argument should be specifed Then only will be executed[show in
+         * action column]
+         */
+    )
+        throws UnCaughtException {
         //Getting object from the object repository
         Locator element = AObject.findElement("ObjectName", "PageName");
         //Putting condition on object
@@ -191,6 +202,4 @@ public class SampleScript extends General {
             Report.updateTestLog("Userdefined Action ", "switch to origional", Status.DONE);
         }
     }
-
-    
 }

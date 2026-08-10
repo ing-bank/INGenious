@@ -1,4 +1,3 @@
-
 package com.ing.datalib.undoredo;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -6,10 +5,9 @@ import javax.swing.table.AbstractTableModel;
 
 /**
  *
- * 
+ *
  */
 public abstract class UndoRedoModel extends AbstractTableModel {
-
     private final CommonUndoManager undoManager;
 
     public UndoRedoModel() {
@@ -28,9 +26,9 @@ public abstract class UndoRedoModel extends AbstractTableModel {
     @Override
     public void setValueAt(Object value, int row, int column) {
         Object oldValue = getValueAt(row, column);
-        undoManager.addEdit(new CellUndoableEdit(
-                this, undoManager.getProgress(),
-                row, column, oldValue, value));
+        undoManager.addEdit(
+            new CellUndoableEdit(this, undoManager.getProgress(), row, column, oldValue, value)
+        );
     }
 
     public void clearValues(int[] rows, int columns[]) {
@@ -52,23 +50,19 @@ public abstract class UndoRedoModel extends AbstractTableModel {
     }
 
     public void rowDeleted(int row) {
-        undoManager.addEdit(new RowUndoableEdit(
-                this, undoManager.getProgress(), row, false));
+        undoManager.addEdit(new RowUndoableEdit(this, undoManager.getProgress(), row, false));
     }
 
     public void rowAdded(int row) {
-        undoManager.addEdit(new RowUndoableEdit(
-                this, undoManager.getProgress(), row, true));
+        undoManager.addEdit(new RowUndoableEdit(this, undoManager.getProgress(), row, true));
     }
 
     public void columnAdded(String name) {
-        undoManager.addEdit(new ColUndoableEdit(
-                this, undoManager.getProgress(), name, true));
+        undoManager.addEdit(new ColUndoableEdit(this, undoManager.getProgress(), name, true));
     }
 
     public void columnRemoved(int index) {
-        undoManager.addEdit(new ColUndoableEdit(
-                this, undoManager.getProgress(), index, false));
+        undoManager.addEdit(new ColUndoableEdit(this, undoManager.getProgress(), index, false));
     }
 
     public abstract void removeRow(int row);
@@ -78,5 +72,4 @@ public abstract class UndoRedoModel extends AbstractTableModel {
     public abstract void insertColumnAt(int colIndex, String colName, Object[] values);
 
     public abstract void removeColumn(int colIndex);
-
 }

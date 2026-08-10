@@ -1,4 +1,3 @@
-
 package com.ing.ide.main.explorer.settings;
 
 import com.ing.ide.util.data.FileScanner;
@@ -14,18 +13,25 @@ import org.json.simple.JSONValue;
 
 /**
  *
- * 
+ *
  */
 public class ReportingModuleSettings {
-
     private static final String DBNAME = "XPLOR_SETTINGS";
-    public String[] fieldHeaders = {"moduleId", "fieldId", "show", "fieldName", "fieldType", "fieldValue"},
-            fieldDefValues = {"", "", "", "", "", ""},
-            moduleHeaders = {"moduleId"},
-            moduleDefValues = {""};
+    public String[] fieldHeaders = {
+        "moduleId",
+        "fieldId",
+        "show",
+        "fieldName",
+        "fieldType",
+        "fieldValue"
+    }, fieldDefValues = { "", "", "", "", "", "" }, moduleHeaders = {
+        "moduleId"
+    }, moduleDefValues = { "" };
     private static ReportingModuleSettings settings;
     JSONObject data;
-    private static final org.slf4j.Logger LOG = UILogger.getLogger(ReportingModuleSettings.class.getName());
+    private static final org.slf4j.Logger LOG = UILogger.getLogger(
+        ReportingModuleSettings.class.getName()
+    );
 
     public ReportingModuleSettings() {
         init();
@@ -111,8 +117,15 @@ public class ReportingModuleSettings {
      * @return the _jsonFile
      */
     public String getFile() throws IOException {
-       return new File(System.getProperty("user.dir") + File.separator
-                + "Configuration" + File.separator + DBNAME + ".json").getCanonicalPath();
+        return new File(
+            System.getProperty("user.dir") +
+            File.separator +
+            "Configuration" +
+            File.separator +
+            DBNAME +
+            ".json"
+        )
+        .getCanonicalPath();
     }
 
     /**
@@ -121,11 +134,13 @@ public class ReportingModuleSettings {
      * @param fields
      * @param moduleId
      */
-    public void updateFields(List<HashMap<String, String>> fields, String moduleId) throws IOException {
-
+    public void updateFields(List<HashMap<String, String>> fields, String moduleId)
+        throws IOException {
         for (HashMap<String, String> properties : fields) {
-            ((JSONObject) ((JSONObject) data.get("fields")).get(moduleId))
-                    .put(properties.get(fieldHeaders[1]), properties);
+            ((JSONObject) ((JSONObject) data.get("fields")).get(moduleId)).put(
+                    properties.get(fieldHeaders[1]),
+                    properties
+                );
         }
         save();
     }
@@ -135,7 +150,7 @@ public class ReportingModuleSettings {
      *
      * @param modules
      */
-    public void updateModules(List<HashMap<String, String>> modules) throws IOException{
+    public void updateModules(List<HashMap<String, String>> modules) throws IOException {
         this.cleanModules();
         for (HashMap<String, String> properties : modules) {
             ((JSONArray) data.get("modules")).add(properties.get(moduleHeaders[0]));
@@ -143,7 +158,7 @@ public class ReportingModuleSettings {
         save();
     }
 
-    public void save() throws IOException{
+    public void save() throws IOException {
         FileScanner.writeFile(new File(getFile()), data.toJSONString());
     }
 }

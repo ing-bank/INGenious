@@ -1,4 +1,3 @@
-
 package com.ing.storywriter.bdd.ui.handlers;
 
 import java.awt.datatransfer.DataFlavor;
@@ -20,7 +19,6 @@ import javax.swing.TransferHandler;
  *
  */
 public class FeatureListTransferHandler extends TransferHandler {
-
     private static final Logger LOG = Logger.getLogger(FeatureListTransferHandler.class.getName());
     private final Consumer<File> onFeature;
     private final ToSafe<File> toSafe = new ToSafe<>();
@@ -45,7 +43,11 @@ public class FeatureListTransferHandler extends TransferHandler {
 
     private Boolean dropFeature(TransferHandler.TransferSupport support) {
         try {
-            dropFeature((List<File>) support.getTransferable().getTransferData(DataFlavor.javaFileListFlavor));
+            dropFeature(
+                (List<File>) support
+                    .getTransferable()
+                    .getTransferData(DataFlavor.javaFileListFlavor)
+            );
             return true;
         } catch (UnsupportedFlavorException | IOException ex) {
             LOG.log(Level.SEVERE, ex.getMessage(), ex);
@@ -55,11 +57,22 @@ public class FeatureListTransferHandler extends TransferHandler {
     }
 
     private void dropFeature(List<File> files) {
-        Stream.concat(
+        Stream
+            .concat(
                 toSafe.list(files).stream().filter(FEATURE_FILE),
-                toSafe.list(files).stream().filter(File::isDirectory).flatMap(
-                dir -> Arrays.asList(toSafe.array(dir.listFiles())).stream().filter(FEATURE_FILE))
-        ).forEach(onFeature);
+                toSafe
+                    .list(files)
+                    .stream()
+                    .filter(File::isDirectory)
+                    .flatMap(
+                        dir ->
+                            Arrays
+                                .asList(toSafe.array(dir.listFiles()))
+                                .stream()
+                                .filter(FEATURE_FILE)
+                    )
+            )
+            .forEach(onFeature);
     }
 
     class ToSafe<T extends Object> {
@@ -77,5 +90,4 @@ public class FeatureListTransferHandler extends TransferHandler {
     public boolean canImport(TransferHandler.TransferSupport support) {
         return support.isDataFlavorSupported(DataFlavor.javaFileListFlavor);
     }
-
 }

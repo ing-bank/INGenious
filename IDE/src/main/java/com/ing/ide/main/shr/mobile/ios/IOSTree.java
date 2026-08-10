@@ -1,4 +1,3 @@
-
 package com.ing.ide.main.shr.mobile.ios;
 
 import com.ing.datalib.component.utils.XMLOperation;
@@ -16,10 +15,9 @@ import org.w3c.dom.NodeList;
 
 /**
  *
- * 
+ *
  */
 public class IOSTree extends MobileTree {
-
     private static IOSTree andTree;
     private String xmlContent;
 
@@ -31,12 +29,12 @@ public class IOSTree extends MobileTree {
     }
 
     private static String sanitizePathTraversal(String filepath) throws IOException {
-       // Path p = Paths.get(filepath);
+        // Path p = Paths.get(filepath);
         return new File(filepath).getCanonicalPath();
     }
-    
+
     @Override
-    public void loadTree (String xml)  {
+    public void loadTree(String xml) {
         xmlContent = xml;
         Document doc = null;
         try {
@@ -60,8 +58,7 @@ public class IOSTree extends MobileTree {
         NodeList nodeList = parent.getChildNodes();
         int maxcount = 2000;
         int loopcount = nodeList.getLength();
-        if(loopcount>maxcount)
-            loopcount = maxcount;
+        if (loopcount > maxcount) loopcount = maxcount;
         for (int i = 0; i < loopcount; i++) {
             Node node = nodeList.item(i);
             if (Node.ELEMENT_NODE == node.getNodeType()) {
@@ -102,5 +99,4 @@ public class IOSTree extends MobileTree {
             }
         }
     }
-
 }

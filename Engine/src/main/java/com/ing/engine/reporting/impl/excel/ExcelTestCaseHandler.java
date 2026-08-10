@@ -1,4 +1,3 @@
-
 package com.ing.engine.reporting.impl.excel;
 
 import com.ing.datalib.util.data.FileScanner;
@@ -29,9 +28,8 @@ import org.json.simple.JSONObject;
  *
  *
  */
-@SuppressWarnings({"unchecked"})
+@SuppressWarnings({ "unchecked" })
 public class ExcelTestCaseHandler extends TestCaseHandler implements PrimaryHandler {
-
     JSONObject testCaseData = new JSONObject();
     JSONArray Steps = new JSONArray();
     JSONObject iteration;
@@ -54,25 +52,40 @@ public class ExcelTestCaseHandler extends TestCaseHandler implements PrimaryHand
 
     public ExcelTestCaseHandler(TestCaseReport report) {
         super(report);
-
     }
 
-   @Override
+    @Override
     public void setPlaywrightDriver(PlaywrightDriverCreation driver) {
         testCaseData.put(TestCase.B_VERSION, getPlaywrightDriver().getBrowserVersion());
-        testCaseData.put(TestCase.PLATFORM, System.getProperty("os.name")+ " " +System.getProperty("os.version")+ " " +System.getProperty("os.arch"));
+        testCaseData.put(
+            TestCase.PLATFORM,
+            System.getProperty("os.name") +
+            " " +
+            System.getProperty("os.version") +
+            " " +
+            System.getProperty("os.arch")
+        );
         testCaseData.put(TestCase.BROWSER, getPlaywrightDriver().getCurrentBrowser());
-        testCaseData.put("browserTypeLabel", resolveBrowserTypeLabel(driver != null ? driver.getRunContext() : null, false));
+        testCaseData.put(
+            "browserTypeLabel",
+            resolveBrowserTypeLabel(driver != null ? driver.getRunContext() : null, false)
+        );
     }
-    
+
     @Override
     public void setWebDriver(WebDriverCreation driver) {
         testCaseData.put(TestCase.B_VERSION, getWebDriver().getCurrentBrowserVersion());
         testCaseData.put(TestCase.PLATFORM, getWebDriver().getPlatform());
         testCaseData.put(TestCase.BROWSER, getWebDriver().getCurrentBrowser());
-        testCaseData.put("browserTypeLabel", resolveBrowserTypeLabel(driver != null ? driver.getRunContext() : null, driver != null && driver.isMobileExecution()));
-    }    
-    
+        testCaseData.put(
+            "browserTypeLabel",
+            resolveBrowserTypeLabel(
+                driver != null ? driver.getRunContext() : null,
+                driver != null && driver.isMobileExecution()
+            )
+        );
+    }
+
     /**
      * Returns the dynamic label for browser/device for reporting.
      * @param runContext The RunContext (may be null)
@@ -83,11 +96,17 @@ public class ExcelTestCaseHandler extends TestCaseHandler implements PrimaryHand
         try {
             if (runContext != null) {
                 String browserName = runContext.BrowserName;
-                if (isMobile || "Android".equalsIgnoreCase(browserName) || "iOS".equalsIgnoreCase(browserName)) {
+                if (
+                    isMobile ||
+                    "Android".equalsIgnoreCase(browserName) ||
+                    "iOS".equalsIgnoreCase(browserName)
+                ) {
                     return "Device";
-                } else if ("Chromium".equalsIgnoreCase(browserName) ||
-                        "WebKit".equalsIgnoreCase(browserName) ||
-                        "Firefox".equalsIgnoreCase(browserName)) {
+                } else if (
+                    "Chromium".equalsIgnoreCase(browserName) ||
+                    "WebKit".equalsIgnoreCase(browserName) ||
+                    "Firefox".equalsIgnoreCase(browserName)
+                ) {
                     return "Browser";
                 } else {
                     return "Browser/Device";
@@ -98,7 +117,7 @@ public class ExcelTestCaseHandler extends TestCaseHandler implements PrimaryHand
         }
         return "Browser/Device";
     }
-    
+
     @Override
     public void setSapSession(com.ing.engine.drivers.SAPSessionCreation session) {
         if (session != null) {
@@ -112,7 +131,8 @@ public class ExcelTestCaseHandler extends TestCaseHandler implements PrimaryHand
     public void createReport(RunContext runContext, String runTime) {
         try {
             ReportFile = new File(getReportLoc(), runContext.getName() + ".html");
-            SourceDoc = new StringBuffer(FileScanner.readFile(new File(FilePath.getTCReportTemplate())));
+            SourceDoc =
+                new StringBuffer(FileScanner.readFile(new File(FilePath.getTCReportTemplate())));
             ReportFile.createNewFile();
         } catch (Exception ex) {
             throw new RuntimeException(ex);
@@ -125,9 +145,13 @@ public class ExcelTestCaseHandler extends TestCaseHandler implements PrimaryHand
     }
 
     @Override
-    public void updateTestLog(String stepName, String stepDescription, Status state,
-            String link, List<String> links) {
-
+    public void updateTestLog(
+        String stepName,
+        String stepDescription,
+        Status state,
+        String link,
+        List<String> links
+    ) {
         String time = DateTimeUtils.DateTimeNow();
         JSONObject step;
         try {
@@ -200,7 +224,6 @@ public class ExcelTestCaseHandler extends TestCaseHandler implements PrimaryHand
             reusableStack.peek().put(TestCase.STATUS, completedReusable.get(TestCase.STATUS));
             reusable = reusableStack.peek();
         }
-
     }
 
     @Override
@@ -212,7 +235,7 @@ public class ExcelTestCaseHandler extends TestCaseHandler implements PrimaryHand
     }
 
     private void onSetpDone() {
-        DoneSteps++;                
+        DoneSteps++;
         if (reusable != null && reusable.get(TestCase.STATUS).equals("")) {
             reusable.put(TestCase.STATUS, "PASS");
         }
@@ -241,7 +264,12 @@ public class ExcelTestCaseHandler extends TestCaseHandler implements PrimaryHand
         }
     }
 
-    private void putStatus(Status state, List<String> optional, String optionalLink, JSONObject data) {
+    private void putStatus(
+        Status state,
+        List<String> optional,
+        String optionalLink,
+        JSONObject data
+    ) {
         switch (state) {
             case DONE:
             case PASSNS:
@@ -257,11 +285,15 @@ public class ExcelTestCaseHandler extends TestCaseHandler implements PrimaryHand
             case FAILNS:
                 onSetpFailed();
                 break;
-
         }
     }
 
-    private void takeScreenShot(Status status, List<String> optional, String optionalLink, JSONObject data) {
+    private void takeScreenShot(
+        Status status,
+        List<String> optional,
+        String optionalLink,
+        JSONObject data
+    ) {
         String imgSrc = getScreenShotName();
         switch (status) {
             case PASS:
@@ -288,7 +320,6 @@ public class ExcelTestCaseHandler extends TestCaseHandler implements PrimaryHand
         if (status.equals(Status.PASS)) {
             onSetpPassed();
             return screenShotSettings().matches("(Pass|Both)");
-
         }
         return false;
     }
@@ -312,11 +343,10 @@ public class ExcelTestCaseHandler extends TestCaseHandler implements PrimaryHand
             if (optional != null) {
                 data.put(RDS.Step.Data.OBJECTS, optional.get(0));
             }
-            if (ReportUtils.takeScreenshot(getPlaywrightDriver(),getWebDriver(), imgSrc)) {
+            if (ReportUtils.takeScreenshot(getPlaywrightDriver(), getWebDriver(), imgSrc)) {
                 data.put(RDS.Step.Data.LINK, imgSrc);
             }
         }
-
     }
 
     /**
@@ -331,7 +361,9 @@ public class ExcelTestCaseHandler extends TestCaseHandler implements PrimaryHand
         try (BufferedWriter bufwriter = new BufferedWriter(new FileWriter(ReportFile));) {
             JSONObject singleTestcasereport = (JSONObject) testCaseData.clone();
             ReportUtils.loadDefaultTheme(singleTestcasereport);
-            String tempDoc = SourceDoc.toString().replace(DATAF, singleTestcasereport.toJSONString());
+            String tempDoc = SourceDoc
+                .toString()
+                .replace(DATAF, singleTestcasereport.toJSONString());
             bufwriter.write(tempDoc);
         } catch (Exception ex) {
             LOG.log(Level.SEVERE, null, ex);
@@ -339,6 +371,7 @@ public class ExcelTestCaseHandler extends TestCaseHandler implements PrimaryHand
         printReport();
         return report.getCurrentStatus();
     }
+
     private static final Logger LOG = Logger.getLogger(TestCaseReport.class.getName());
 
     /**
@@ -355,9 +388,11 @@ public class ExcelTestCaseHandler extends TestCaseHandler implements PrimaryHand
         testCaseData.put(TestCase.ITERATIONS, iterCounter);
         testCaseData.put(TestCase.NO_OF_TESTS, getStepCount());
         testCaseData.put(TestCase.NO_OF_FAIL_TESTS, String.valueOf(this.FailedSteps));
-        testCaseData.put(TestCase.NO_OF_PASS_TESTS, String.valueOf(this.DoneSteps + this.PassedSteps));
+        testCaseData.put(
+            TestCase.NO_OF_PASS_TESTS,
+            String.valueOf(this.DoneSteps + this.PassedSteps)
+        );
         testCaseData.put(TestCase.STATUS, getCurrentStatus().toString());
-
     }
 
     private DateTimeUtils startTime() {
@@ -366,8 +401,12 @@ public class ExcelTestCaseHandler extends TestCaseHandler implements PrimaryHand
 
     private void printReport() {
         System.out.println("\n---------------------------------------------------");
-        print("Testcase Name", testCaseData.get(TestCase.SCENARIO_NAME)
-                + ":" + testCaseData.get(TestCase.TESTCASE_NAME));
+        print(
+            "Testcase Name",
+            testCaseData.get(TestCase.SCENARIO_NAME) +
+            ":" +
+            testCaseData.get(TestCase.TESTCASE_NAME)
+        );
         print("Executed Steps", testCaseData.get(TestCase.NO_OF_TESTS));
         print("Passed Steps", testCaseData.get(TestCase.NO_OF_PASS_TESTS));
         print("Failed Steps", testCaseData.get(TestCase.NO_OF_FAIL_TESTS));

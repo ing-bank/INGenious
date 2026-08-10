@@ -7,33 +7,35 @@ import com.ing.datalib.or.common.ObjectGroup;
 import com.ing.datalib.or.image.ImageORObject;
 import com.ing.engine.core.CommandControl;
 import com.ing.engine.drivers.AutomationObject;
+import com.ing.engine.drivers.MobileObject;
 import com.ing.engine.drivers.PlaywrightDriverCreation;
+import com.ing.engine.drivers.SAPObject;
+import com.ing.engine.drivers.StructuredDataObject;
+import com.ing.engine.drivers.WebDriverCreation;
 import com.ing.engine.execution.data.UserDataAccess;
 import com.ing.engine.reporting.TestCaseReport;
-import com.microsoft.playwright.APIRequestContext;
-import com.microsoft.playwright.APIResponse;
-import com.microsoft.playwright.BrowserContext;
-import com.microsoft.playwright.Locator;
-import com.microsoft.playwright.Page;
-import com.microsoft.playwright.Playwright;
-import java.time.Instant;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Stack;
-
-import com.ing.engine.drivers.WebDriverCreation;
-import com.ing.engine.drivers.MobileObject;
 import com.ing.ingenious.api.contract.CommandPluginApi;
 import com.ing.ingenious.api.contract.data.UserDataAccessApi;
 import com.ing.ingenious.api.contract.drivers.AutomationObjectApi;
 import com.ing.ingenious.api.contract.drivers.MobileObjectApi;
 import com.ing.ingenious.api.contract.drivers.PlaywrightDriverCreationApi;
 import com.ing.ingenious.api.contract.reports.TestCaseReportApi;
-import com.ing.engine.drivers.StructuredDataObject;
+import com.jacob.activeX.ActiveXComponent;
+import com.jacob.com.Dispatch;
+import com.microsoft.playwright.APIRequestContext;
+import com.microsoft.playwright.APIResponse;
+import com.microsoft.playwright.BrowserContext;
+import com.microsoft.playwright.Locator;
+import com.microsoft.playwright.Page;
+import com.microsoft.playwright.Playwright;
 import java.io.File;
+import java.time.Instant;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
+import java.util.Stack;
 import javax.jms.Destination;
 import javax.jms.JMSConsumer;
 import javax.jms.JMSContext;
@@ -41,9 +43,6 @@ import javax.jms.JMSProducer;
 import javax.jms.TextMessage;
 import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.WebElement;
-import com.jacob.activeX.ActiveXComponent;
-import com.jacob.com.Dispatch;
-import com.ing.engine.drivers.SAPObject;
 
 /** Kafka Imports */
 // import org.apache.kafka.common.header.Header;
@@ -55,7 +54,6 @@ import com.ing.engine.drivers.SAPObject;
 // import org.apache.kafka.clients.producer.ProducerRecord;
 
 public class Command implements CommandPluginApi {
-
     public Page Page;
     public Playwright Playwright;
     public BrowserContext BrowserContext;
@@ -78,7 +76,7 @@ public class Command implements CommandPluginApi {
     public WebDriver mDriver;
     public WebElement Element;
     public MobileObject mObject;
-    
+
     //For SAP Testing
     public ActiveXComponent SAPsession;
     public SAPObject SAPObject;
@@ -88,28 +86,28 @@ public class Command implements CommandPluginApi {
     /**
      * ******API*******
      */
-    static public Map<String, String> endPoints = new HashMap<>();
-    static public Map<String, ArrayList<String>> headers = new HashMap<>();
-    static public Map<String, ArrayList<String>> urlParams = new HashMap<>();
-    static public Map<String, String> responsebodies = new HashMap<>();
-    static public Map<String, String> responsecodes = new HashMap<>();
-    static public Map<String, String> responsemessages = new HashMap<>();
-    static public Map<String, APIRequestContext> requests = new HashMap<>();
-    static public Map<String, APIResponse> responses = new HashMap<>();
-    static public Map<String, java.net.http.HttpRequest.Builder> httpRequestBuilder = new HashMap<>();
-    static public Map<String, java.net.http.HttpRequest> httpRequest = new HashMap<>();
-    static public Map<String, java.net.http.HttpClient.Builder> httpClientBuilder = new HashMap<>();
-    static public Map<String, java.net.http.HttpClient> httpClient = new HashMap<>();
-    static public Map<String, java.net.http.HttpResponse> response = new HashMap<>();
-    static public Map<String, String> httpagents = new HashMap<>();
-    static public Map<String, Instant> before = new HashMap<>();
-    static public Map<String, Instant> after = new HashMap<>();
-    static public Map<String, Long> duration = new HashMap<>();
-    static public HashMap<String, String> headerMap = new HashMap<>();
-    static public Map<String, HashMap<String,String>> headerKeyValueMap = new HashMap<>();
-    
+    public static Map<String, String> endPoints = new HashMap<>();
+    public static Map<String, ArrayList<String>> headers = new HashMap<>();
+    public static Map<String, ArrayList<String>> urlParams = new HashMap<>();
+    public static Map<String, String> responsebodies = new HashMap<>();
+    public static Map<String, String> responsecodes = new HashMap<>();
+    public static Map<String, String> responsemessages = new HashMap<>();
+    public static Map<String, APIRequestContext> requests = new HashMap<>();
+    public static Map<String, APIResponse> responses = new HashMap<>();
+    public static Map<String, java.net.http.HttpRequest.Builder> httpRequestBuilder = new HashMap<>();
+    public static Map<String, java.net.http.HttpRequest> httpRequest = new HashMap<>();
+    public static Map<String, java.net.http.HttpClient.Builder> httpClientBuilder = new HashMap<>();
+    public static Map<String, java.net.http.HttpClient> httpClient = new HashMap<>();
+    public static Map<String, java.net.http.HttpResponse> response = new HashMap<>();
+    public static Map<String, String> httpagents = new HashMap<>();
+    public static Map<String, Instant> before = new HashMap<>();
+    public static Map<String, Instant> after = new HashMap<>();
+    public static Map<String, Long> duration = new HashMap<>();
+    public static HashMap<String, String> headerMap = new HashMap<>();
+    public static Map<String, HashMap<String, String>> headerKeyValueMap = new HashMap<>();
+
     public String key;
-    static public String basicAuthorization;
+    public static String basicAuthorization;
     /**
      * ************************
      */
@@ -117,48 +115,47 @@ public class Command implements CommandPluginApi {
     /**
      * Playwright Mocking *
      */
-    static public Map<String, String> mockEndPoints = new HashMap<>();
+    public static Map<String, String> mockEndPoints = new HashMap<>();
 
     /**
      * ************************
      */
-    
+
     /**
      * Data faker *
      */
-    static public Map<String, Faker> faker = new HashMap<>();
+    public static Map<String, Faker> faker = new HashMap<>();
 
     /**
      * ************************
      */
-    
+
     /**
      * *** Queue ****
      */
-    static public Map<String, String> jmsHost = new HashMap<>();
-    static public Map<String, Integer> jmsPort = new HashMap<>();
-    static public Map<String, String> jmsChannel = new HashMap<>();
-    static public Map<String, String> jmsQmgr = new HashMap<>();
-    static public Map<String, String> jmsUsername = new HashMap<>();
-    static public Map<String, String> jmsPassword = new HashMap<>();
-    static public Map<String, String> WMQ_SSL_CIPHER_SUITE = new HashMap<>();
-    static public Map<String, String> jmsReqQueueName = new HashMap<>();
-    static public Map<String, String> jmsRespQueueName = new HashMap<>();
-    static public Map<String, JMSContext> jmsContext = new HashMap<>();
-    static public Map<String, Destination> jmsDestination = new HashMap<>();
-    static public Map<String, JMSProducer> jmsProducer = new HashMap<>();
-    static public Map<String, JMSConsumer> jmsConsumer = new HashMap<>();
-    static public Map<String, JmsFactoryFactory> jmsFactoryFactory = new HashMap<>();
-    static public Map<String, JmsConnectionFactory> jmsConnectionFactory = new HashMap<>();
-    static public Map<String, TextMessage> jmsMessage = new HashMap<>();
-    static public Map<String, String> jmsCorrelationID = new HashMap<>();
-    static public Map<String, String> receivedMessage = new HashMap<>();
+    public static Map<String, String> jmsHost = new HashMap<>();
+    public static Map<String, Integer> jmsPort = new HashMap<>();
+    public static Map<String, String> jmsChannel = new HashMap<>();
+    public static Map<String, String> jmsQmgr = new HashMap<>();
+    public static Map<String, String> jmsUsername = new HashMap<>();
+    public static Map<String, String> jmsPassword = new HashMap<>();
+    public static Map<String, String> WMQ_SSL_CIPHER_SUITE = new HashMap<>();
+    public static Map<String, String> jmsReqQueueName = new HashMap<>();
+    public static Map<String, String> jmsRespQueueName = new HashMap<>();
+    public static Map<String, JMSContext> jmsContext = new HashMap<>();
+    public static Map<String, Destination> jmsDestination = new HashMap<>();
+    public static Map<String, JMSProducer> jmsProducer = new HashMap<>();
+    public static Map<String, JMSConsumer> jmsConsumer = new HashMap<>();
+    public static Map<String, JmsFactoryFactory> jmsFactoryFactory = new HashMap<>();
+    public static Map<String, JmsConnectionFactory> jmsConnectionFactory = new HashMap<>();
+    public static Map<String, TextMessage> jmsMessage = new HashMap<>();
+    public static Map<String, String> jmsCorrelationID = new HashMap<>();
+    public static Map<String, String> receivedMessage = new HashMap<>();
 
     /**
      * **********
      */
-    
-    
+
     /**
      * *** Kafka Parameters ****
      */
@@ -177,7 +174,7 @@ public class Command implements CommandPluginApi {
     // static public Map<String, String> kafkaValueSerializer = new HashMap<>();
     // static public Map<String, String> kafkaValueDeserializer = new HashMap<>();
     // static public Map<String, Integer> kafkaConsumerPollRetries = new HashMap<>();
-    // static public Map<String, Long> kafkaConsumerPollDuration = new HashMap<>();   
+    // static public Map<String, Long> kafkaConsumerPollDuration = new HashMap<>();
     // static public Map<String, Schema> kafkaAvroSchema =new HashMap<>();
     // static public Map<String, ProducerRecord<String, GenericRecord>> kafkaGenericRecord =new HashMap<>();
     // static public Map<String, GenericRecord> kafkaGenericRecordValue =new HashMap<>();
@@ -251,6 +248,13 @@ public class Command implements CommandPluginApi {
             Action = Commander.Action;
             userData = Commander.userData;
         }
+        // STRUCTUREDDATA actions (JSON/XML path assertions on Webservice responses)
+        // are driver-agnostic. The webDriver/SAP branches above don't copy SObject,
+        // so do it here so that STRUCTUREDDATA actions can resolve OR references
+        // regardless of execution mode.
+        if (SObject == null) {
+            SObject = Commander.SObject;
+        }
         /**
          * ******Webservice*******
          */
@@ -263,7 +267,7 @@ public class Command implements CommandPluginApi {
     public void addVar(String key, String val) {
         Commander.addVar(key, val);
     }
-    
+
     public String getRuntimeVar(String key) {
         return Commander.getRuntimeVar(key);
     }
@@ -283,14 +287,14 @@ public class Command implements CommandPluginApi {
         return Commander.getUserDefinedData(key);
     }
 
-    public String getDatasheet(String key){
+    public String getDatasheet(String key) {
         return Commander.getDatasheet(key);
     }
-    
+
     public Properties getDataBaseData(String val) {
         return Commander.getDataBaseProperty(val);
     }
-    
+
     public File getDBFile(String val) {
         return new File(Commander.getDBFile(val));
     }
@@ -362,8 +366,8 @@ public class Command implements CommandPluginApi {
     public boolean browserAction() {
         return "browser".equalsIgnoreCase(ObjectName);
     }
-    
-    public String resolveAllRuntimeVars(String str){
+
+    public String resolveAllRuntimeVars(String str) {
         return Commander.resolveAllRuntimeVars(str);
     }
 
@@ -396,10 +400,10 @@ public class Command implements CommandPluginApi {
 
     /**
      * Checks if a runtime or user-defined variable exists.
-     * 
+     *
      * <p>This method delegates to CommandControl's isVarExist method to verify whether
      * a variable is defined. See {@link CommandControl#isVarExist(String)} for details.</p>
-     * 
+     *
      * @param key the variable key to check, with or without percent signs (e.g., "%varName%" or "varName")
      * @return true if the variable exists and has a non-null value, false otherwise
      */
@@ -410,7 +414,7 @@ public class Command implements CommandPluginApi {
     /**
      * ******************************
      */
-    
+
     /**
      * Implementation of {@link CommandPluginApi#getReport()} for the API-plugin contract.
      * @return the TestCaseReportApi instance for logging test results

@@ -1,6 +1,7 @@
 package com.ing.storywriter.bdd.data;
 
 import static org.assertj.core.api.Assertions.assertThat;
+
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -16,7 +17,6 @@ import org.testng.annotations.Test;
  * Tests for StoryParser — reads feature files into Story objects.
  */
 public class StoryParserTest {
-
     private Path tempDir;
 
     @BeforeMethod
@@ -26,10 +26,11 @@ public class StoryParserTest {
 
     @AfterMethod
     public void tearDown() throws IOException {
-        Files.walk(tempDir)
-                .sorted(Comparator.reverseOrder())
-                .map(Path::toFile)
-                .forEach(File::delete);
+        Files
+            .walk(tempDir)
+            .sorted(Comparator.reverseOrder())
+            .map(Path::toFile)
+            .forEach(File::delete);
     }
 
     @Test

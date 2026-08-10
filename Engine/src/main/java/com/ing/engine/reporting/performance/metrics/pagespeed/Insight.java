@@ -1,4 +1,3 @@
-
 package com.ing.engine.reporting.performance.metrics.pagespeed;
 
 import java.util.regex.Matcher;
@@ -9,14 +8,13 @@ import org.json.simple.JSONObject;
 /**
  * page speed insights helper object with validation and rules
  *
- * 
+ *
  * @param <K> key
  * @param <V> value
- * 
+ *
  */
 @SuppressWarnings("unchecked")
 public class Insight<K, V> extends JSONObject {
-
     private static final long serialVersionUID = 1L;
 
     public Insight(String name, int score) {
@@ -33,7 +31,6 @@ public class Insight<K, V> extends JSONObject {
             put("data", new JSONArray());
         }
         ((JSONArray) this.get("data")).add(parseData(data));
-
     }
 
     /**
@@ -56,5 +53,4 @@ public class Insight<K, V> extends JSONObject {
 
         return data;
     }
-
 }

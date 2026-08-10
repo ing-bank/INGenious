@@ -31,29 +31,32 @@ public class createParentPOM {
             // Get target pom and source pom for properties
             String targetPath = args[0];
             String propertiesSourcePath = args[1];
-            
+
             // Copy properties from main pom to target pom
             String sourcePomContent = Files.readString(Paths.get(propertiesSourcePath));
             String propertiesContent = getPropertiesContent(sourcePomContent);
             String destinationPomContent = Files.readString(Paths.get(targetPath));
-            String updatedDestinationPomContent = updatePropertiesContent(destinationPomContent, propertiesContent);
+            String updatedDestinationPomContent = updatePropertiesContent(
+                destinationPomContent,
+                propertiesContent
+            );
             Files.write(Paths.get(targetPath), updatedDestinationPomContent.getBytes());
             System.out.println("Properties copied successfully!");
-            
+
             // Create a new document for the source/parent pom.xml file
             Document parentDocument = createSourceDocument(propertiesSourcePath);
 
             // Create a new document for the target pom.xml file
             Document targetDocument = createTargetDocument(targetPath);
-            
+
             // Copy the version value from the source/parent pom.xml file to the target pom.xml
             copySourceVersionValue(parentDocument, targetDocument);
 
             System.out.println("TargetPath = " + targetPath);
             // Remove content under dependencies,repositories and pluginRepositories tag from target document
-            removeExisting(targetDocument,"dependencies");
-            removeExisting(targetDocument,"repositories");
-            removeExisting(targetDocument,"pluginRepositories");
+            removeExisting(targetDocument, "dependencies");
+            removeExisting(targetDocument, "repositories");
+            removeExisting(targetDocument, "pluginRepositories");
 
             // Copy dependencies from modules pom to target pom
             for (int i = 2; i < args.length; i++) {
@@ -63,14 +66,14 @@ public class createParentPOM {
 
                 // Copy repositories and pluginRepositories
                 if (args[i].contains("Engine")) {
-                    copyChilds(sourceDocument, targetDocument,"repositories");
+                    copyChilds(sourceDocument, targetDocument, "repositories");
                     //removeDuplicates(targetDocument,"repositories","repository");
-                    copyChilds(sourceDocument, targetDocument,"pluginRepositories");
+                    copyChilds(sourceDocument, targetDocument, "pluginRepositories");
                     //removeDuplicates(targetDocument,"pluginRepositories","pluginRepository");
                 }
                 // Copy dependencies
-                copyChilds(sourceDocument, targetDocument,"dependencies");
-                removeDuplicates(targetDocument,"dependencies","dependency");
+                copyChilds(sourceDocument, targetDocument, "dependencies");
+                removeDuplicates(targetDocument, "dependencies", "dependency");
 
                 // Remove engine artifact
                 removeEngineArtifact(targetDocument);
@@ -87,26 +90,31 @@ public class createParentPOM {
         return pomSections[1];
     }
 
-    private static String updatePropertiesContent(String destinationPomContent, String propertiesContent) {
+    private static String updatePropertiesContent(
+        String destinationPomContent,
+        String propertiesContent
+    ) {
         String[] pomSections = destinationPomContent.split("<properties>|</properties>");
         return destinationPomContent.replace(pomSections[1], propertiesContent);
     }
 
-    private static Document createTargetDocument(String targetPath) throws ParserConfigurationException, SAXException, IOException {
+    private static Document createTargetDocument(String targetPath)
+        throws ParserConfigurationException, SAXException, IOException {
         DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
         DocumentBuilder document = dbFactory.newDocumentBuilder();
         File targetPomPath = new File(targetPath);
         return document.parse(targetPomPath);
     }
 
-    private static Document createSourceDocument(String sourcePath) throws ParserConfigurationException, SAXException, IOException {
-    	DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
+    private static Document createSourceDocument(String sourcePath)
+        throws ParserConfigurationException, SAXException, IOException {
+        DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
         DocumentBuilder document = dbFactory.newDocumentBuilder();
         File sourcePomPath = new File(sourcePath);
         return document.parse(sourcePomPath);
     }
 
-    private static void removeExisting(Document targetDocument,String tagName) {
+    private static void removeExisting(Document targetDocument, String tagName) {
         NodeList dependencyList = targetDocument.getElementsByTagName(tagName);
         if (dependencyList.getLength() > 0) {
             Node dependenciesNode = dependencyList.item(0);
@@ -116,9 +124,13 @@ public class createParentPOM {
         }
     }
 
-    private static void copyChilds(Document sourceDocument, Document targetDocument,String tagName) {
-        Node sourceNode = getNodes(sourceDocument,tagName);
-        Node targetNode = getNodes(targetDocument,tagName);
+    private static void copyChilds(
+        Document sourceDocument,
+        Document targetDocument,
+        String tagName
+    ) {
+        Node sourceNode = getNodes(sourceDocument, tagName);
+        Node targetNode = getNodes(targetDocument, tagName);
         if (sourceNode != null && targetNode != null) {
             copyNodes(sourceNode, targetNode, targetDocument);
         }
@@ -133,8 +145,12 @@ public class createParentPOM {
         }
     }
 
-    private static void removeDuplicates(Document targetDocument, String tagName, String childTagName) {
-        Node dependenciesNode = getNodes(targetDocument,tagName);
+    private static void removeDuplicates(
+        Document targetDocument,
+        String tagName,
+        String childTagName
+    ) {
+        Node dependenciesNode = getNodes(targetDocument, tagName);
         if (dependenciesNode != null) {
             removeDuplicateNodes(dependenciesNode, childTagName);
             System.out.println("Duplicate removed successfully");
@@ -165,46 +181,55 @@ public class createParentPOM {
         for (int j = 0; j < childNodes.getLength(); j++) {
             Node child = childNodes.item(j);
             if (child.getNodeType() == Node.ELEMENT_NODE) {
-                sb.append(child.getNodeName()).append(":").append(child.getTextContent().trim()).append(":");
+                sb
+                    .append(child.getNodeName())
+                    .append(":")
+                    .append(child.getTextContent().trim())
+                    .append(":");
             }
         }
         return sb.toString();
     }
 
-    private static void removeEngineArtifact(Document targetDocument) throws XPathExpressionException {
+    private static void removeEngineArtifact(Document targetDocument)
+        throws XPathExpressionException {
         XPathFactory xpathFactory = XPathFactory.newInstance();
         XPath xpath = xpathFactory.newXPath();
         String artifactId = "ingenious-engine";
         XPathExpression expression = xpath.compile("//dependency[artifactId='" + artifactId + "']");
-        NodeList dependencyNodes = (NodeList) expression.evaluate(targetDocument, XPathConstants.NODESET);
+        NodeList dependencyNodes = (NodeList) expression.evaluate(
+            targetDocument,
+            XPathConstants.NODESET
+        );
         for (int k = 0; k < dependencyNodes.getLength(); k++) {
             Node dependencyNode = dependencyNodes.item(k);
             Node parent = dependencyNode.getParentNode();
             parent.removeChild(dependencyNode);
         }
     }
-    
+
     private static Node getVersionNode(Document doc) throws XPathExpressionException {
-    	XPathFactory xpathFactory = XPathFactory.newInstance();
-    	XPath xpath = xpathFactory.newXPath();
-    	XPathExpression expr = xpath.compile("//project/version");
-    	NodeList nodeList = (NodeList) expr.evaluate(doc,
-    	    XPathConstants.NODE);
-    	return nodeList.getLength() > 0 ? nodeList.item(0) : null;	
-    } 
-    
-    private static void copySourceVersionValue(Document source, Document target) throws XPathExpressionException {
-    	String version = getSourceVersionNumber(source);
-    	System.out.println("Setting version value to: " + version);
-    	Node node = getVersionNode(target);
-    	node.setNodeValue(version);
+        XPathFactory xpathFactory = XPathFactory.newInstance();
+        XPath xpath = xpathFactory.newXPath();
+        XPathExpression expr = xpath.compile("//project/version");
+        NodeList nodeList = (NodeList) expr.evaluate(doc, XPathConstants.NODE);
+        return nodeList.getLength() > 0 ? nodeList.item(0) : null;
     }
-    
-    private static String getSourceVersionNumber(Document parentDocument) throws XPathExpressionException {
-    	XPathFactory xpathFactory = XPathFactory.newInstance();
-    	XPath xpath = xpathFactory.newXPath();
-    	XPathExpression expr = xpath.compile("//project/version");
-    	return (String) expr.evaluate(parentDocument, XPathConstants.STRING);
+
+    private static void copySourceVersionValue(Document source, Document target)
+        throws XPathExpressionException {
+        String version = getSourceVersionNumber(source);
+        System.out.println("Setting version value to: " + version);
+        Node node = getVersionNode(target);
+        node.setNodeValue(version);
+    }
+
+    private static String getSourceVersionNumber(Document parentDocument)
+        throws XPathExpressionException {
+        XPathFactory xpathFactory = XPathFactory.newInstance();
+        XPath xpath = xpathFactory.newXPath();
+        XPathExpression expr = xpath.compile("//project/version");
+        return (String) expr.evaluate(parentDocument, XPathConstants.STRING);
     }
 
     private static Node getNodes(Document doc, String tagName) {
@@ -219,5 +244,4 @@ public class createParentPOM {
         StreamResult streamResult = new StreamResult(file);
         transformer.transform(domSource, streamResult);
     }
-
 }

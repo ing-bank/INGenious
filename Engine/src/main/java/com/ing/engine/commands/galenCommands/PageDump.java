@@ -1,12 +1,11 @@
-
 package com.ing.engine.commands.galenCommands;
 
 import com.ing.engine.constants.FilePath;
 import com.ing.engine.core.CommandControl;
 import com.ing.engine.core.Control;
 import com.ing.engine.galenWrapper.GalenWrapper;
-import com.ing.ingenious.api.status.Status;
 import com.ing.ingenious.api.annotation.Action;
+import com.ing.ingenious.api.status.Status;
 import com.ing.ingenious.api.types.InputType;
 import com.ing.ingenious.api.types.ObjectType;
 import java.io.File;
@@ -17,14 +16,14 @@ import org.apache.commons.io.FileUtils;
 
 /**
  *
- * 
+ *
  */
 public class PageDump extends General {
 
     public PageDump(CommandControl cc) {
         super(cc);
     }
-/*
+    /*
     @Action(object = ObjectType.BROWSER, desc = "Creates Page dump for Page [<Data>]", input = InputType.YES)
     public void createPageDump() {
         checkIfDumpResourceExists();

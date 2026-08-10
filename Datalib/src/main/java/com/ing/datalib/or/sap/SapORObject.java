@@ -1,18 +1,4 @@
-
 package com.ing.datalib.or.sap;
-
-import java.io.File;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Enumeration;
-import java.util.EventListener;
-import java.util.List;
-import java.util.Objects;
-
-import javax.swing.event.TableModelEvent;
-import javax.swing.event.TableModelListener;
-import javax.swing.tree.TreeNode;
-import javax.swing.tree.TreePath;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -24,10 +10,20 @@ import com.ing.datalib.or.common.ORObjectInf;
 import com.ing.datalib.or.common.ORUtils;
 import com.ing.datalib.or.common.ObjectGroup;
 import com.ing.datalib.undoredo.UndoRedoModel;
+import java.io.File;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Enumeration;
+import java.util.EventListener;
+import java.util.List;
+import java.util.Objects;
+import javax.swing.event.TableModelEvent;
+import javax.swing.event.TableModelListener;
+import javax.swing.tree.TreeNode;
+import javax.swing.tree.TreePath;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class SapORObject extends UndoRedoModel implements ORObjectInf {
-
     @JacksonXmlProperty(isAttribute = true, localName = "ref")
     private String name;
 
@@ -100,7 +96,7 @@ public class SapORObject extends UndoRedoModel implements ORObjectInf {
     public void setFrame(String frame) {
         this.frame = frame;
     }
-    
+
     @JsonIgnore
     @Override
     public TreeNode getChildAt(int i) {
@@ -321,7 +317,8 @@ public class SapORObject extends UndoRedoModel implements ORObjectInf {
         if (getParent().getChildCount() == 1) {
             flag = getParent().rename(newName);
         }
-        if (flag && getParent().getObjectByName(newName) == null) {
+        ORObjectInf existing = getParent().getObjectByName(newName);
+        if (flag && (existing == null || existing == this)) {
             if (FileUtils.renameFile(getRepLocation(), newName)) {
                 setName(newName);
                 changeSave();
@@ -402,22 +399,72 @@ public class SapORObject extends UndoRedoModel implements ORObjectInf {
         }
     }
 
+    /**
+     * Adds a new attribute to the end of the attribute list.
+     */
     @JsonIgnore
     public void addNewAttribute() {
+        addNewAttributeAt(attributes.size());
+    }
+
+    /**
+     * Adds a named attribute to the end of the attribute list.
+     *
+     * @param attrName attribute name to add
+     */
+    @JsonIgnore
+    public void addNewAttribute(String attrName) {
+        addNewAttributeAt(attrName, attributes.size());
+    }
+
+    /**
+     * Adds a uniquely named new attribute at the specified index.
+     *
+     * @param index insertion index
+     * @return inserted row index, or {@code -1} if insertion failed
+     */
+    @JsonIgnore
+    public int addNewAttributeAt(int index) {
         String newAttrName = "NewProp";
         int i = 1;
+
         while (getAttribute(newAttrName) != null) {
             newAttrName = "NewProp" + i++;
         }
-        addNewAttribute(newAttrName);
+
+        return addNewAttributeAt(newAttrName, index);
+    }
+
+    /**
+     * Adds a named attribute at the specified index.
+     *
+     * @param attrName attribute name to add
+     * @param index insertion index
+     * @return inserted row index, or {@code -1} if the attribute already exists
+     */
+    @JsonIgnore
+    public int addNewAttributeAt(String attrName, int index) {
+        if (getAttribute(attrName) != null) {
+            return -1;
+        }
+
+        if (index < 0 || index > attributes.size()) {
+            index = attributes.size();
+        }
+
+        attributes.add(index, new ORAttribute(attrName, index));
+        refreshPreferences();
+
+        super.rowAdded(index);
+        fireTableRowsInserted(index, index);
+
+        return index;
     }
 
     @JsonIgnore
-    public void addNewAttribute(String attrName) {
-        if (getAttribute(attrName) == null) {
-            attributes.add(new ORAttribute(attrName, attributes.size()));
-            super.rowAdded(attributes.size() - 1);
-            fireTableRowsInserted(attributes.size() - 1, attributes.size() - 1);
+    private void refreshPreferences() {
+        for (int i = 0; i < attributes.size(); i++) {
+            attributes.get(i).setPreference(String.valueOf(i + 1));
         }
     }
 
@@ -460,7 +507,12 @@ public class SapORObject extends UndoRedoModel implements ORObjectInf {
     public Boolean isEqualOf(ORObjectInf obj) {
         SapORObject object = (SapORObject) obj;
         for (ORAttribute attribute : attributes) {
-            if (!Objects.equals(attribute.getValue(), object.getAttributeByName(attribute.getName()))) {
+            if (
+                !Objects.equals(
+                    attribute.getValue(),
+                    object.getAttributeByName(attribute.getName())
+                )
+            ) {
                 return false;
             }
         }

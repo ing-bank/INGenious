@@ -1,4 +1,3 @@
-
 package com.ing.storywriter.bdd.ui;
 
 import java.awt.event.ActionEvent;
@@ -26,7 +25,6 @@ import javax.swing.JMenuItem;
  *
  */
 public class RecentItems {
-
     private static List<String> recentProjects;
     private static File recentProjFile;
     private static JMenuItem recentItemMenu;
@@ -76,7 +74,6 @@ public class RecentItems {
         } else {
             loadrecent();
         }
-
     }
 
     String toName(String file) {
@@ -92,18 +89,21 @@ public class RecentItems {
      * @see MainWindow#openproj(java.lang.String)
      */
     private void addlistener(final JMenuItem recentItem) {
-        recentItem.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                try {
-                    UIControl.ctrl.loadProj(recentItem.getToolTipText());
-                    addentry(recentItem.getToolTipText());
-                    updateMenu(UIControl.ctrl.ui.recentsMenu);
-                } catch (Exception ex) {
-                    Logger.getLogger(RecentItems.class.getName()).log(Level.SEVERE, null, ex);
+        recentItem.addActionListener(
+            new ActionListener() {
+
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    try {
+                        UIControl.ctrl.loadProj(recentItem.getToolTipText());
+                        addentry(recentItem.getToolTipText());
+                        updateMenu(UIControl.ctrl.ui.recentsMenu);
+                    } catch (Exception ex) {
+                        Logger.getLogger(RecentItems.class.getName()).log(Level.SEVERE, null, ex);
+                    }
                 }
             }
-        });
+        );
     }
 
     /**
@@ -180,13 +180,13 @@ public class RecentItems {
             recentsFile.clear();
             StringBuilder sb = new StringBuilder();
             for (String p : recentProjects) {
-               // recentsFile.setProperty(p, toName(p));
-               sb.append(p+"="+toName(p)+"\n");
+                // recentsFile.setProperty(p, toName(p));
+                sb.append(p + "=" + toName(p) + "\n");
             }
-           // recentsFile.store(new FileWriter(recentProjFile),null);
-           BufferedWriter writer = new BufferedWriter(new FileWriter(recentProjFile));
-           writer.write(sb.toString());
-           writer.close();
+            // recentsFile.store(new FileWriter(recentProjFile),null);
+            BufferedWriter writer = new BufferedWriter(new FileWriter(recentProjFile));
+            writer.write(sb.toString());
+            writer.close();
         } catch (IOException ex) {
             Logger.getLogger(RecentItems.class.getName()).log(Level.SEVERE, null, ex);
         }

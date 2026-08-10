@@ -1,21 +1,18 @@
-
 package com.ing.engine.util.data;
+
+import static org.testng.Assert.assertEquals;
 
 import com.ing.engine.util.data.KeyMap;
 import java.util.HashMap;
 import java.util.Map;
-import static org.testng.Assert.assertEquals;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 public class KeyMapTest {
-
     private final Map vMap = new HashMap();
 
-    public KeyMapTest() {
-    }
-
+    public KeyMapTest() {}
 
     @BeforeMethod
     public void setUp() {
@@ -39,14 +36,14 @@ public class KeyMapTest {
         vMap.clear();
     }
 
-
     /**
      * Test of resolveContextVars method, of class KeyMap.
      */
     @Test
     public void testResolveContextVars() {
         System.out.println("resolveContextVars");
-        String in = "this is a {scenario}/{testset} -> {testset}/{release} for {project}.{release}.{testcase} ";
+        String in =
+            "this is a {scenario}/{testset} -> {testset}/{release} for {project}.{release}.{testcase} ";
         String expResult = "this is a myscn/ts -> ts/rel for pro.rel.tc ";
         String result = KeyMap.resolveContextVars(in, vMap);
         assertEquals(expResult, result);
@@ -58,11 +55,11 @@ public class KeyMapTest {
     @Test
     public void testResolveEnvVars() {
         System.out.println("resolveEnvVars");
-        String in = "${val.1}-${var.1}-${val.2}-${val.1}-${val.3}-${val.4}-${var.4}-${var.1}-${var.2}-";
+        String in =
+            "${val.1}-${var.1}-${val.2}-${val.1}-${val.3}-${val.4}-${var.4}-${var.1}-${var.2}-";
         String expResult = "1-x-b-1-c-val.4-var.4-x-y-";
         String result = KeyMap.resolveEnvVars(in);
         assertEquals(expResult, result);
-
     }
 
     /**
@@ -70,9 +67,9 @@ public class KeyMapTest {
      */
     @Test
     public void testReplaceKeysUserVariables() {
-
         System.out.println("replaceKeys");
-        String in = "this is a %scenario%/%testset% -> %testset%/%release% for %project%.%testcase%/%%release%%. ";
+        String in =
+            "this is a %scenario%/%testset% -> %testset%/%release% for %project%.%testcase%/%%release%%. ";
 
         boolean preserveKeys = true;
         String result;
@@ -82,7 +79,6 @@ public class KeyMapTest {
         expResult = "this is a myscn/ts -> ts/rel for pro.tc/L2. ";
         result = KeyMap.replaceKeys(in, KeyMap.USER_VARS, preserveKeys, 2, vMap);
         assertEquals(expResult, result);
-
     }
 
     /**
@@ -91,11 +87,10 @@ public class KeyMapTest {
     @Test
     public void testReplaceKeys_String_Pattern() {
         System.out.println("replaceKeys");
-        String in = "${val.1}-${var.1}-${val.2}-${val.1}-${val.3}-${val.4}-${var.4}-${var.1}-${var.2}-";
+        String in =
+            "${val.1}-${var.1}-${val.2}-${val.1}-${val.3}-${val.4}-${var.4}-${var.1}-${var.2}-";
         String expResult = "1-x-b-1-c-val.4-var.4-x-y-";
         String result = KeyMap.replaceKeys(in, KeyMap.ENV_VARS);
         assertEquals(expResult, result);
-
     }
-
 }

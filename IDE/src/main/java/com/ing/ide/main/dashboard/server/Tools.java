@@ -1,10 +1,10 @@
-
 package com.ing.ide.main.dashboard.server;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.net.InetAddress;
+import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
@@ -17,10 +17,9 @@ import java.util.logging.Logger;
 
 /**
  *
- * 
+ *
  */
 public class Tools {
-
     private static final Logger LOG = Logger.getLogger(Tools.class.getName());
     private static final String FORMAR = "dd-MM-yyyy";
     private static final long MILLS_IN_DAY = 1000L * 60 * 60 * 24;
@@ -35,7 +34,6 @@ public class Tools {
 
     public static synchronized String readFile(File path) throws Exception {
         return scanFile(path);
-
     }
 
     public static synchronized String scanFile(File path) throws Exception {
@@ -73,7 +71,6 @@ public class Tools {
     private static long toMillis(int days) {
         return MILLS_IN_DAY * (long) days;
     }
-  
 
     /**
      * @return the formatter
@@ -102,16 +99,18 @@ public class Tools {
     }
 
     public static boolean verifyLocalPort(String server, int port) {
-        try {
-            new ServerSocket(port).close();
+        try (ServerSocket socket = new ServerSocket()) {
+            socket.setReuseAddress(true);
+            socket.bind(new InetSocketAddress(port));
             return false;
         } catch (IOException e) {
-            throw new RuntimeException("Couldn't create " + server + ". Port " + port + " already in use");
+            throw new RuntimeException(
+                "Couldn't create " + server + ". Port " + port + " already in use"
+            );
         }
     }
 
     public static Date getScheduledTime() {
-
         Calendar startTime = Calendar.getInstance();
         Calendar now = Calendar.getInstance();
         startTime.set(Calendar.HOUR_OF_DAY, 0);
@@ -132,7 +131,6 @@ public class Tools {
         } catch (Exception ex) {
             return def;
         }
-
     }
 
     public static String IP() {
@@ -143,5 +141,4 @@ public class Tools {
             return "0.0.0.0";
         }
     }
-
 }

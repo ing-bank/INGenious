@@ -1,6 +1,7 @@
 package com.ing.datalib.settings;
 
 import static org.assertj.core.api.Assertions.assertThat;
+
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -17,7 +18,6 @@ import org.testng.annotations.Test;
  * Note: ContextOptions uses static fields, so tests must run sequentially.
  */
 public class ContextOptionsTest {
-
     private Path tempDir;
 
     @BeforeMethod
@@ -27,10 +27,11 @@ public class ContextOptionsTest {
 
     @AfterMethod
     public void tearDown() throws IOException {
-        Files.walk(tempDir)
-                .sorted(Comparator.reverseOrder())
-                .map(Path::toFile)
-                .forEach(File::delete);
+        Files
+            .walk(tempDir)
+            .sorted(Comparator.reverseOrder())
+            .map(Path::toFile)
+            .forEach(File::delete);
     }
 
     @Test
@@ -144,7 +145,8 @@ public class ContextOptionsTest {
 
         ContextOptions co2 = new ContextOptions(tempDir.toString());
         assertThat(co2.getContextList()).contains("persistTest");
-        assertThat(co2.getContextOptionsFor("persistTest").getProperty("persisted")).isEqualTo("true");
+        assertThat(co2.getContextOptionsFor("persistTest").getProperty("persisted"))
+            .isEqualTo("true");
     }
 
     @Test

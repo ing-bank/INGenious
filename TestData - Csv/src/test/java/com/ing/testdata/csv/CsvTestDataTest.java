@@ -1,6 +1,7 @@
 package com.ing.testdata.csv;
 
 import static org.assertj.core.api.Assertions.assertThat;
+
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -16,7 +17,6 @@ import org.testng.annotations.Test;
  * Tests for CsvTestData — CSV-backed test data model.
  */
 public class CsvTestDataTest {
-
     private Path tempDir;
 
     @BeforeMethod
@@ -26,10 +26,11 @@ public class CsvTestDataTest {
 
     @AfterMethod
     public void tearDown() throws IOException {
-        Files.walk(tempDir)
-                .sorted(Comparator.reverseOrder())
-                .map(Path::toFile)
-                .forEach(File::delete);
+        Files
+            .walk(tempDir)
+            .sorted(Comparator.reverseOrder())
+            .map(Path::toFile)
+            .forEach(File::delete);
     }
 
     @Test
@@ -133,6 +134,38 @@ public class CsvTestDataTest {
         String location = tempDir.resolve("data.csv").toString();
         CsvTestData td = new CsvTestData(location);
         assertThat(td.getNewRecord()).isNotNull().isEmpty();
+    }
+
+    /**
+     * Regression test for scope-aware iteration lookups: the same Scenario/TestCase/Iteration
+     * combination can exist in two different reusable scopes with different sub-iteration
+     * data, and {@code withIterAndScope} must only return the sub-iterations for the
+     * requested scope rather than merging or matching whichever scope happens to come first.
+     */
+    @Test
+    public void testWithIterAndScopeDisambiguatesSameNameAcrossScopes() throws IOException {
+        File csvFile = tempDir.resolve("ScopedIter.csv").toFile();
+        try (FileWriter fw = new FileWriter(csvFile)) {
+            fw.write("Scenario,Flow,Scope,Iteration,SubIteration,CustomerID\n");
+            fw.write("Login,Step1,[Project],1,1,proj-cust-1\n");
+            fw.write("Login,Step1,[Project],1,2,proj-cust-2\n");
+            fw.write("Login,Step1,[Shared],1,1,shared-cust-1\n");
+        }
+
+        CsvTestData td = new CsvTestData(csvFile.getAbsolutePath());
+        td.loadRecords(csvFile);
+
+        Set<String> projectSubIters = td
+            .view()
+            .withIterAndScope("Login", "Step1", "1", "[Project]")
+            .getSubIterations();
+        assertThat(projectSubIters).containsExactlyInAnyOrder("1", "2");
+
+        Set<String> sharedSubIters = td
+            .view()
+            .withIterAndScope("Login", "Step1", "1", "[Shared]")
+            .getSubIterations();
+        assertThat(sharedSubIters).containsExactly("1");
     }
 
     @Test

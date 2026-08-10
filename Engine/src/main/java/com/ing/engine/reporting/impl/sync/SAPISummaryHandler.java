@@ -1,4 +1,3 @@
-
 package com.ing.engine.reporting.impl.sync;
 
 import com.ing.datalib.settings.RunSettings;
@@ -17,10 +16,9 @@ import org.json.simple.JSONObject;
 
 /**
  *
- * 
+ *
  */
 public class SAPISummaryHandler extends SummaryHandler {
-
     public ApiLink sapi_Link;
     private int PassedTestCases;
     private int FailedTestCases;
@@ -29,8 +27,7 @@ public class SAPISummaryHandler extends SummaryHandler {
         super(report);
         try {
             sapi_Link = new ApiLink();
-        } catch (MalformedURLException ex) {
-        }
+        } catch (MalformedURLException ex) {}
     }
 
     /**
@@ -41,7 +38,6 @@ public class SAPISummaryHandler extends SummaryHandler {
      */
     @Override
     public synchronized void createReport(String runTime, int size) {
-
         try {
             if (sapi_Link != null) {
                 sapi_Link.setThreads(getRunSettings().getThreadCount());
@@ -52,9 +48,7 @@ public class SAPISummaryHandler extends SummaryHandler {
                 sapi_Link.setRunName(FilePath.getCurrentReportFolderName());
                 sapi_Link.clientData((JSONObject) report.pHandler.getData());
                 sapi_Link.update();
-            } else {
-                
-            }
+            } else {}
         } catch (Exception ex) {
             Logger.getLogger(SAPISummaryHandler.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -73,19 +67,26 @@ public class SAPISummaryHandler extends SummaryHandler {
      * @param executionTime
      */
     @Override
-    public synchronized void updateTestCaseResults(RunContext runContext,
-            TestCaseReport report, Status state, String executionTime) {
+    public synchronized void updateTestCaseResults(
+        RunContext runContext,
+        TestCaseReport report,
+        Status state,
+        String executionTime
+    ) {
         if (sapi_Link != null) {
             if (state.equals(Status.PASS)) {
                 PassedTestCases++;
             } else {
                 FailedTestCases++;
             }
-            System.out.println(String.format("Updating results to SAPI, Passed : [%s] : Failed [%s]",
-                    PassedTestCases, FailedTestCases));
+            System.out.println(
+                String.format(
+                    "Updating results to SAPI, Passed : [%s] : Failed [%s]",
+                    PassedTestCases,
+                    FailedTestCases
+                )
+            );
             sapi_Link.update(PassedTestCases, FailedTestCases);
         }
-
     }
-
 }

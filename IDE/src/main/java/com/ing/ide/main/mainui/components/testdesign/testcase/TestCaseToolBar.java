@@ -22,7 +22,6 @@ import javax.swing.UIManager;
  *
  */
 public class TestCaseToolBar extends JToolBar {
-
     private final TestCaseComponent testCaseComp;
 
     private JButton saveButton;
@@ -39,14 +38,22 @@ public class TestCaseToolBar extends JToolBar {
     private JPopupMenu browsersMenu;
 
     private ButtonGroup browserSelectButtonGroup;
-    
+
     private boolean isRecording = false;
 
     public TestCaseToolBar(TestCaseComponent testCaseComp) {
         this.testCaseComp = testCaseComp;
         setFloatable(false);
         setOpaque(false);
-        setBorder(javax.swing.BorderFactory.createMatteBorder(0, 0, 1, 0, UIManager.getColor("Separator.foreground")));
+        setBorder(
+            javax.swing.BorderFactory.createMatteBorder(
+                0,
+                0,
+                1,
+                0,
+                UIManager.getColor("Separator.foreground")
+            )
+        );
         setLayout(new javax.swing.BoxLayout(this, javax.swing.BoxLayout.X_AXIS));
         init();
     }
@@ -85,12 +92,17 @@ public class TestCaseToolBar extends JToolBar {
         debugButton.setComponentPopupMenu(browsersMenu);
         addSeparator();
 
-        JButton addRowButton = Utils.createButton("Add Row", "add", ""
-                + "Ctrl+Plus to add a row at last"
-                + "<br>"
-                + "Ctrl+I to insert a row before the selected row"
-                + "<br>"
-                + "Ctrl+R to replicate the row", testCaseComp);
+        JButton addRowButton = Utils.createButton(
+            "Add Row",
+            "add",
+            "" +
+            "Ctrl+Plus to add a row at last" +
+            "<br>" +
+            "Ctrl+I to insert a row before the selected row" +
+            "<br>" +
+            "Ctrl+R to replicate the row",
+            testCaseComp
+        );
         add(addRowButton);
         JButton removeRow = Utils.createButton("Delete Rows", "remove", "Ctrl+Minus", testCaseComp);
         add(removeRow);
@@ -102,11 +114,17 @@ public class TestCaseToolBar extends JToolBar {
 
         add(saveButton = Utils.createButton("Save", "save", "Ctrl+S", testCaseComp));
         add(Utils.createButton("Reload", "reload", "F5", testCaseComp));
-        add(Utils.createButton("Open with System Editor", "openwithsystemeditor", "Ctrl+Alt+O", testCaseComp));
+        add(
+            Utils.createButton(
+                "Open with System Editor",
+                "openwithsystemeditor",
+                "Ctrl+Alt+O",
+                testCaseComp
+            )
+        );
         saveButton.setEnabled(false);
 
         setConsoleVisible(false);
-
     }
 
     void setConsoleVisible(Boolean flag) {
@@ -115,26 +133,26 @@ public class TestCaseToolBar extends JToolBar {
 
     void loadBrowsers(List<String> emulators) {
         browsersMenu.removeAll();
-        
+
         // Add Playwright browsers first
         List<String> browsers = PlaywrightDriverFactory.Browser.getValuesAsList();
         setBrowserListPopupMenu(browsers);
-        
+
         // Extract SAP and add it with separator
         List<String> emulatorsCopy = new ArrayList<>(emulators);
         boolean hasSAP = emulatorsCopy.remove("SAP");
-        
+
         if (hasSAP) {
             browsersMenu.addSeparator();
             setBrowserListPopupMenu(List.of("SAP"));
         }
-        
+
         // Add remaining emulators
         if (!emulatorsCopy.isEmpty()) {
             browsersMenu.addSeparator();
             setBrowserListPopupMenu(emulatorsCopy);
         }
-        
+
         selectABrowser();
     }
 
@@ -152,22 +170,27 @@ public class TestCaseToolBar extends JToolBar {
             browsersMenu.add(browserMenuItem = new JRadioButtonMenuItem(browser));
             browserMenuItem.setActionCommand(browser);
             browserMenuItem.setFont(UIManager.getFont("TableMenu.font"));
-            browserMenuItem.addItemListener((ItemEvent ie) -> {
-                if (ie.getStateChange() == ItemEvent.SELECTED) {
-
-                    String selBrowser = ((JRadioButtonMenuItem) ie.getSource()).getText() + ". Right Click to change the browser";
-                    if (((JRadioButtonMenuItem) ie.getSource()).getText().equalsIgnoreCase("ProtractorJS")) {
-                        selBrowser = "Ensure that ProtractorJS is installed globally";
-                        runButton.setToolTipText(selBrowser);
-                        debugButton.setToolTipText(selBrowser);
-                    } else {
-                        runButton.setToolTipText("Run [F6] - with " + selBrowser);
-                        debugButton.setToolTipText("Debug [Ctrl+F6] - with " + selBrowser);
+            browserMenuItem.addItemListener(
+                (ItemEvent ie) -> {
+                    if (ie.getStateChange() == ItemEvent.SELECTED) {
+                        String selBrowser =
+                            ((JRadioButtonMenuItem) ie.getSource()).getText() +
+                            ". Right Click to change the browser";
+                        if (
+                            ((JRadioButtonMenuItem) ie.getSource()).getText()
+                                .equalsIgnoreCase("ProtractorJS")
+                        ) {
+                            selBrowser = "Ensure that ProtractorJS is installed globally";
+                            runButton.setToolTipText(selBrowser);
+                            debugButton.setToolTipText(selBrowser);
+                        } else {
+                            runButton.setToolTipText("Run [F6] - with " + selBrowser);
+                            debugButton.setToolTipText("Debug [Ctrl+F6] - with " + selBrowser);
+                        }
                     }
                 }
-            });
+            );
             browserSelectButtonGroup.add(browserMenuItem);
-
         }
     }
 
@@ -184,14 +207,20 @@ public class TestCaseToolBar extends JToolBar {
             browser = RunManager.getGlobalSettings().getBrowser();
         }
         if (browser != null) {
-            for (Enumeration<AbstractButton> buttons = browserSelectButtonGroup.getElements(); buttons.hasMoreElements();) {
+            for (
+                Enumeration<AbstractButton> buttons = browserSelectButtonGroup.getElements();
+                buttons.hasMoreElements();
+            ) {
                 AbstractButton button = buttons.nextElement();
                 if (button.getActionCommand().equals(browser)) {
                     button.setSelected(true);
                 }
             }
         } else {
-            browserSelectButtonGroup.setSelected(browserSelectButtonGroup.getElements().nextElement().getModel(), true);
+            browserSelectButtonGroup.setSelected(
+                browserSelectButtonGroup.getElements().nextElement().getModel(),
+                true
+            );
         }
     }
 
@@ -208,14 +237,28 @@ public class TestCaseToolBar extends JToolBar {
         runButton.setActionCommand("StopRun");
         runButton.setIcon(Utils.getIconByResourceName("/ui/resources/stop"));
     }
-    
+
     void toggleRecording() {
         record.setEnabled(false);
     }
-    
+
     public void enableRecordButton() {
         record.setEnabled(true);
-        record.setToolTipText("Start Recording");
+        record.setToolTipText(isRecording ? "Stop Recording" : "Start Recording");
     }
 
+    public boolean isRecording() {
+        return isRecording;
+    }
+
+    public void setRecordingState(boolean recording) {
+        isRecording = recording;
+        record.setIcon(
+            recording
+                ? IconSettings.getIconSettings().getRecordStopIcon()
+                : IconSettings.getIconSettings().getRecordStartIcon()
+        );
+        record.setToolTipText(recording ? "Stop Recording" : "Start Recording");
+        record.setEnabled(true);
+    }
 }
