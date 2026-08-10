@@ -1,9 +1,0 @@
-page: WPage0
-scope: PROJECT
-elements:
-  WObject0:
-    css: '#username'
-  WObject1:
-    css: '#password'
-  WObject2:
-    role: Button;Login

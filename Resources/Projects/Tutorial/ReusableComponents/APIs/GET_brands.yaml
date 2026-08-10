@@ -1,0 +1,27 @@
+schemaVersion: 1
+testCase: GET_brands
+scenario: APIs
+steps:
+  - step: 1
+    object: Webservice
+    description: Set API Endpoint
+    action: setEndPoint
+    input: '@https://api.practicesoftwaretesting.com/brands'
+
+  - step: 2
+    object: Webservice
+    description: "Add Header: accept"
+    action: addHeader
+    input: '@accept=application/json'
+
+  - step: 3
+    object: Webservice
+    description: Execute GET Request
+    action: getRestRequest
+
+  - step: 4
+    object: Webservice
+    description: 'Assert Response Body contains '
+    action: assertResponsebodycontains
+    input: '@ForgeFlex Tools'
+    reference: "[Project] APIRequest"

@@ -1,0 +1,9 @@
+schemaVersion: 1
+testCase: My maximum mortgage
+scenario: MortgageFlow
+steps:
+  - step: 1
+    object: My maximum mortgage
+    description: "Assert if [<Object>] is visible"
+    action: assertElementIsVisible
+    reference: "[Project] Max Mortgage"

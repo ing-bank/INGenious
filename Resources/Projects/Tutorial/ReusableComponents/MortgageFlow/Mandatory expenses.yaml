@@ -1,0 +1,23 @@
+schemaVersion: 1
+testCase: Mandatory expenses
+scenario: MortgageFlow
+steps:
+  - step: 1
+    object: Debt
+    description: "Set object [<Object>] property  as [<Data>] at runtime"
+    action: setObjectProperty
+    input: Situation:Debt
+    condition: '#debt'
+    reference: "[Project] Personal Situation"
+
+  - step: 2
+    object: Debt
+    description: "Check the [<Object>] element"
+    action: Check
+    reference: "[Project] Personal Situation"
+
+  - step: 3
+    object: "[Next] Button"
+    description: "Click the [<Object>] "
+    action: Click
+    reference: "[Project] Personal Situation"

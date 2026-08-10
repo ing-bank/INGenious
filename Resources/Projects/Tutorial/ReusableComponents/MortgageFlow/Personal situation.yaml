@@ -1,0 +1,30 @@
+schemaVersion: 1
+testCase: Personal situation
+scenario: MortgageFlow
+steps:
+  - step: 1
+    object: Buying Situation
+    description: "Set object [<Object>] property  as [<Data>] at runtime"
+    action: setObjectProperty
+    input: Situation:Buying Situation
+    condition: '#buyingSituation'
+    reference: "[Project] Personal Situation"
+
+  - step: 2
+    object: Buying Situation
+    description: "Click the [<Object>] "
+    action: Click
+    reference: "[Project] Personal Situation"
+
+  - step: 3
+    object: Age
+    description: "Enter the value [<Data>] in the Field [<Object>]"
+    action: Fill
+    input: Situation:Age
+    reference: "[Project] Personal Situation"
+
+  - step: 4
+    object: "[Next] Button"
+    description: "Click the [<Object>] "
+    action: Click
+    reference: "[Project] Personal Situation"

@@ -1,0 +1,25 @@
+page: Personal Situation
+scope: PROJECT
+elements:
+  Within 3 to 6 months:
+    text: Within 3 to 6 months
+  Your plans Energy Label:
+    label: Which energy label
+  Employment:
+    text: Employment
+  Permanent contract:
+    text: Permanent contract
+  What is your gross yearly:
+    role: TEXTBOX;What is your gross yearly
+  Debt:
+    text: "#debt"
+    exact:
+      - text
+  Buying Situation:
+    text: "#buyingSituation"
+    exact:
+      - text
+  Age:
+    label: Your age
+  '[Next] Button':
+    role: BUTTON;Next

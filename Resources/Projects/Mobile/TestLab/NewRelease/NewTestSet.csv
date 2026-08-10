@@ -1,3 +1,0 @@
-Execute,TestScenario,TestCase,Iteration,Status,Browser,BrowserVersion,Platform
-true,AppTesting,Purchase Product_Android,Single,NoRun,Chromium,Default,Any
-true,AppTesting,Purchase Product_iOS,Single,NoRun,Chromium,Default,Any

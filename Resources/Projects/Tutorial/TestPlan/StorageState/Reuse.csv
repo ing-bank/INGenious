@@ -1,4 +1,0 @@
-Step,ObjectName,Description,Action,Input,Condition,Reference
-1,Browser,Open the Url [<Data>] in the Browser,Open,@http://localhost:3000/user/settings,,
-2,General,Wait for [<Data>] milli seconds,pause,@1,,
-3,Logout,"Click the [<Object>] ",Click,,,Myfirstscript

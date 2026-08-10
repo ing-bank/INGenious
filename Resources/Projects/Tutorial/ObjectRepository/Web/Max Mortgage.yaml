@@ -1,0 +1,5 @@
+page: Max Mortgage
+scope: PROJECT
+elements:
+  My maximum mortgage:
+    role: HEADING;My maximum mortgage
