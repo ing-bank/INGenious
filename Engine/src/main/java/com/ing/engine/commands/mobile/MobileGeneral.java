@@ -6,10 +6,19 @@ import com.ing.ingenious.api.contract.MobilePluginApi;
 import com.ing.ingenious.api.contract.drivers.MobileObjectApi;
 import com.ing.ingenious.api.exception.mobile.ElementException;
 import com.ing.ingenious.api.exception.mobile.ElementException.ExceptionType;
+import io.appium.java_client.android.AndroidDriver;
+import io.appium.java_client.ios.IOSDriver;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import org.openqa.selenium.JavascriptExecutor;
 import org.openqa.selenium.NoAlertPresentException;
+import org.openqa.selenium.UnsupportedCommandException;
+import org.openqa.selenium.WebDriverException;
 
 public class MobileGeneral extends Command implements MobilePluginApi {
 
@@ -139,5 +148,118 @@ public class MobileGeneral extends Command implements MobilePluginApi {
     @Override
     public Object getElement() {
         return Element;
+    }
+
+    /**
+     * Executes a shake gesture with provider-aware fallbacks.
+     *
+     * <p>Order:
+     * 1) LambdaTest custom executor (works for LambdaTest real devices)
+     * 2) Appium native mobile: shake (when supported by the provider)
+     * 3) Android-only sensor emulation fallback via mobile: sensorSet
+     * </p>
+     *
+     * @return execution detail used in reporting
+     */
+    protected String executeShakeGesture() {
+        if (tryLambdaExecutorShake()) {
+            return "using LambdaTest executor";
+        }
+
+        try {
+            ((JavascriptExecutor) mDriver).executeScript("mobile: shake");
+            return "using Appium mobile: shake";
+        } catch (Exception mobileShakeException) {
+            if (isUnsupportedShakeCommand(mobileShakeException)) {
+                if (tryAndroidSensorShake()) {
+                    return "using Android sensor emulation fallback";
+                }
+                throw new WebDriverException(
+                    "Shake is unsupported by the current device provider",
+                    mobileShakeException
+                );
+            }
+            throw mobileShakeException;
+        }
+    }
+
+    private boolean tryLambdaExecutorShake() {
+        String[] lambdaShakeScripts = {
+            "lambda_executor: {\"action\": \"shake\"}",
+            "lambda_executor: {\"action\": \"gestures\", \"arguments\": {\"shake\": true}}"
+        };
+
+        for (String lambdaScript : lambdaShakeScripts) {
+            try {
+                ((JavascriptExecutor) mDriver).executeScript(lambdaScript);
+                return true;
+            } catch (Exception e) {
+                Logger.getLogger(this.getClass().getName()).log(Level.FINE, null, e);
+            }
+        }
+        return false;
+    }
+
+    private boolean tryAndroidSensorShake() {
+        if (!(mDriver instanceof AndroidDriver)) {
+            return false;
+        }
+
+        List<List<Double>> vectors = Arrays.asList(
+            Arrays.asList(9.8, 0.0, 0.0),
+            Arrays.asList(-9.8, 0.0, 0.0)
+        );
+
+        try {
+            for (List<Double> vector : vectors) {
+                if (!trySensorSetVariants(vector)) {
+                    return false;
+                }
+            }
+            return true;
+        } catch (Exception e) {
+            Logger.getLogger(this.getClass().getName()).log(Level.FINE, null, e);
+            return false;
+        }
+    }
+
+    private boolean trySensorSetVariants(List<Double> vector) {
+        // Different Appium providers validate sensorSet payloads differently.
+        String sensorValue = vector.get(0) + ":" + vector.get(1) + ":" + vector.get(2);
+        List<Map<String, Object>> variants = Arrays.asList(
+            Map.of("sensorType", "acceleration", "value", sensorValue),
+            Map.of("sensorType", "accelerometer", "value", sensorValue)
+        );
+
+        for (Map<String, Object> args : variants) {
+            try {
+                ((JavascriptExecutor) mDriver).executeScript("mobile: sensorSet", args);
+                return true;
+            } catch (Exception e) {
+                Logger.getLogger(this.getClass().getName()).log(Level.FINE, null, e);
+            }
+        }
+        return false;
+    }
+
+    private boolean isUnsupportedShakeCommand(Exception exception) {
+        Throwable current = exception;
+        while (current != null) {
+            if (current instanceof UnsupportedCommandException) {
+                return true;
+            }
+            String message = current.getMessage();
+            if (message != null) {
+                String normalized = message.toLowerCase();
+                if (
+                    normalized.contains("unknown mobile command \"mobile: shake\"") ||
+                    normalized.contains("shake is not supported on real devices")
+                ) {
+                    return true;
+                }
+            }
+            current = current.getCause();
+        }
+        return false;
     }
 }

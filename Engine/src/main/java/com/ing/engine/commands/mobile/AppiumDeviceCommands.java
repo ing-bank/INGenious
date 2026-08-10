@@ -448,15 +448,25 @@ public class AppiumDeviceCommands extends MobileGeneral {
         }
     }
 
-    @Action(object = ObjectType.MOBILE, desc = "Shake Device")
+    @Action(
+        object = ObjectType.MOBILE,
+        desc = "Shake Device",
+        input = InputType.NO,
+        condition = InputType.NO
+    )
     public void shake() {
         try {
-            if (mDriver instanceof AndroidDriver) {
-                ((AndroidDriver) mDriver).executeScript("mobile: shake");
-            } else if (mDriver instanceof IOSDriver) {
-                ((IOSDriver) mDriver).executeScript("mobile: shake");
+            String executionMode = executeShakeGesture();
+            String normalizedMode = executionMode.toLowerCase();
+            if (normalizedMode.contains("skipped") || normalizedMode.contains("unsupported")) {
+                Report.updateTestLog(
+                    Action,
+                    "Unable to perform Shake operation, " + executionMode,
+                    Status.FAIL
+                );
+                return;
             }
-            Report.updateTestLog(Action, "Performed Shake Operation", Status.DONE);
+            Report.updateTestLog(Action, "Performed Shake Operation " + executionMode, Status.DONE);
         } catch (Exception e) {
             Logger.getLogger(this.getClass().getName()).log(Level.OFF, null, e);
             Report.updateTestLog(
