@@ -1,21 +1,19 @@
 package com.ing.util.matomo.config;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.io.FileInputStream;
-import java.util.logging.Level;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Properties;
+import java.util.logging.Level;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Configuration handler for Matomo tracking settings.
  * Reads configuration from matomo.properties file.
  */
 public class MatomoConfig {
-
     private static final Logger logger = LoggerFactory.getLogger(MatomoConfig.class);
     private static final String CONFIG_FILE = "matomo.properties";
 
@@ -29,13 +27,12 @@ public class MatomoConfig {
      * @throws IllegalStateException if configuration file cannot be loaded or required properties are missing
      */
     public MatomoConfig(String location) {
-        // logger.info("Matomo configuration location: location={}", 
+        // logger.info("Matomo configuration location: location={}",
         //            location);
         this.properties = loadProperties(location);
         this.matomoUrl = getRequiredProperty(this.properties, "URL");
         this.siteId = Integer.parseInt(getRequiredProperty(this.properties, "siteID"));
-        
-        // logger.info("Matomo configuration loaded: URL={}, SiteId={}", 
+        // logger.info("Matomo configuration loaded: URL={}, SiteId={}",
         //            matomoUrl, siteId);
     }
 
@@ -95,7 +92,9 @@ public class MatomoConfig {
     private String getRequiredProperty(Properties properties, String key) {
         String value = properties.getProperty(key);
         if (value == null || value.trim().isEmpty()) {
-            throw new IllegalStateException("Required property '" + key + "' is missing in " + CONFIG_FILE);
+            throw new IllegalStateException(
+                "Required property '" + key + "' is missing in " + CONFIG_FILE
+            );
         }
         return value.trim();
     }
@@ -114,9 +113,6 @@ public class MatomoConfig {
 
     @Override
     public String toString() {
-        return "MatomoConfig{" +
-                "matomoUrl='" + matomoUrl + '\'' +
-                ", siteId=" + siteId +
-                '}';
+        return "MatomoConfig{" + "matomoUrl='" + matomoUrl + '\'' + ", siteId=" + siteId + '}';
     }
 }

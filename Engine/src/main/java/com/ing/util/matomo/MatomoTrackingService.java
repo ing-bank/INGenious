@@ -1,13 +1,10 @@
 package com.ing.util.matomo;
 
-import com.ing.engine.constants.FilePath;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.ing.engine.constants.FilePath;
 import com.ing.util.matomo.config.MatomoConfig;
 import com.ing.util.matomo.service.MatomoSender;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
@@ -19,6 +16,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Service for tracking INGenious test execution metrics to Matomo.
@@ -49,26 +48,25 @@ public class MatomoTrackingService {
     }
 
     private static final Logger logger = LoggerFactory.getLogger(MatomoTrackingService.class);
-    
+
     // Azure DevOps environment variables
     private static final String BUILD_REPOSITORY_NAME = "BUILD_REPOSITORY_NAME";
     private static final String BUILD_REQUESTED_FOR = "BUILD_REQUESTEDFOR";
     private static final String SYSTEM_TEAMPROJECT = "SYSTEM_TEAMPROJECT";
     private static final String AGENT_NAME = "AGENT_NAME";
     private static final String TF_BUILD = "TF_BUILD";
-    
+
     // Event configuration
     private static final String EVENT_CATEGORY = "Test Execution";
     private int PCODE_DIMENSION_ID;
     private int SUT_DIMENSION_ID;
     private int EXEC_ENV_DIMENSION_ID;
 
-    
     private final MatomoSender sender;
     private final ObjectMapper objectMapper;
     private final String configLocation;
     private final String userProfilePath;
-    
+
     /**
      * Constructs MatomoTrackingService with default configuration.
      */
@@ -81,10 +79,11 @@ public class MatomoTrackingService {
 
         this.PCODE_DIMENSION_ID = Integer.parseInt(config.getProperty("pcodeDimensionID"));
         this.SUT_DIMENSION_ID = Integer.parseInt(config.getProperty("SUTDimensionID"));
-        this.EXEC_ENV_DIMENSION_ID = Integer.parseInt(config.getProperty("executionEnvDimensionID"));
+        this.EXEC_ENV_DIMENSION_ID =
+            Integer.parseInt(config.getProperty("executionEnvDimensionID"));
         // logger.info("MatomoTrackingService initialized");
     }
-    
+
     /**
      * Constructs MatomoTrackingService with provided sender (for testing).
      *
@@ -96,7 +95,7 @@ public class MatomoTrackingService {
         this.configLocation = null;
         this.userProfilePath = null;
     }
-    
+
     /**
      * Tracks a test execution event to Matomo.
      * Detects whether running in Azure DevOps pipeline or locally.
@@ -104,25 +103,24 @@ public class MatomoTrackingService {
     public void trackTestExecution() {
         try {
             ExecutionContext context = detectExecutionContext();
-            
+
             if (context == null) {
                 logger.warn("Could not detect execution context, skipping Matomo tracking");
                 return;
             }
-            
+
             String json = buildTrackingJson(context);
-            
-            // logger.info("Tracking test execution: pcode={}, environment={}", 
+
+            // logger.info("Tracking test execution: pcode={}, environment={}",
             //            context.pcode, context.isAzureDevOps ? "Azure DevOps" : "Local");
-            
+
             boolean success = sender.sendMetrics(json);
-            
             // if (success) {
             //     logger.info("Test execution tracked successfully to Matomo");
             // } else {
             //     logger.warn("Failed to track test execution to Matomo");
             // }
-            
+
         } catch (Exception e) {
             logger.error("Error tracking test execution to Matomo", e);
         }
@@ -160,7 +158,7 @@ public class MatomoTrackingService {
 
         return new MissingRequiredProfileFields(sutMissing, pcodeMissing);
     }
-    
+
     /**
      * Detects the execution context (Azure DevOps or local).
      *
@@ -179,7 +177,7 @@ public class MatomoTrackingService {
         String tfBuild = System.getenv(TF_BUILD);
         return "True".equalsIgnoreCase(tfBuild);
     }
-    
+
     /**
      * Detects execution context from Azure DevOps environment variables.
      *
@@ -198,27 +196,27 @@ public class MatomoTrackingService {
             logger.warn("SUT property not found in profile properties file");
             return null;
         }
-        
+
         // Get repository name and extract first 6 characters as pcode
         String repoName = System.getenv(BUILD_REPOSITORY_NAME);
         if (repoName == null || repoName.isEmpty()) {
             logger.warn("BUILD_REPOSITORY_NAME environment variable not found");
             return null;
         }
-        
+
         String pcode = extractPcodeFromRepoName(repoName);
-        
+
         // logger.info("Azure DevOps context: pcode={}", pcode);
-        
+
         ExecutionContext context = new ExecutionContext();
         context.pcode = pcode;
         context.sut = sut;
         context.executionEnvironment = "pipelines -" + System.getenv(AGENT_NAME);
         context.isAzureDevOps = true;
-        
+
         return context;
     }
-    
+
     /**
      * Extracts pcode from repository name (first 6 characters).
      *
@@ -233,7 +231,7 @@ public class MatomoTrackingService {
             return repoName.toLowerCase();
         }
     }
-    
+
     /**
      * Detects execution context from local profile properties file.
      *
@@ -246,28 +244,28 @@ public class MatomoTrackingService {
             return null;
         }
 
-            String pcode = properties.getProperty("pcode");
-            String sut = properties.getProperty("SUT");
-            
-            if (pcode == null || pcode.trim().isEmpty()) {
-                logger.warn("pcode property not found in profile properties file");
-                return null;
-            }
-            
-            if (sut == null || sut.trim().isEmpty()) {
-                logger.warn("SUT property not found in profile properties file");
-                return null;
-            }
-            
-            // logger.info("Local context from profile properties: pcode={}, SUT={}", pcode, sut);
-            
-            ExecutionContext context = new ExecutionContext();
-            context.pcode = pcode;
-            context.sut = sut;
-            context.executionEnvironment = "local - " + System.getProperty("os.name");
-            context.isAzureDevOps = false;
-            
-            return context;
+        String pcode = properties.getProperty("pcode");
+        String sut = properties.getProperty("SUT");
+
+        if (pcode == null || pcode.trim().isEmpty()) {
+            logger.warn("pcode property not found in profile properties file");
+            return null;
+        }
+
+        if (sut == null || sut.trim().isEmpty()) {
+            logger.warn("SUT property not found in profile properties file");
+            return null;
+        }
+
+        // logger.info("Local context from profile properties: pcode={}, SUT={}", pcode, sut);
+
+        ExecutionContext context = new ExecutionContext();
+        context.pcode = pcode;
+        context.sut = sut;
+        context.executionEnvironment = "local - " + System.getProperty("os.name");
+        context.isAzureDevOps = false;
+
+        return context;
     }
 
     private Properties loadUserProfileProperties() {
@@ -291,7 +289,7 @@ public class MatomoTrackingService {
             return null;
         }
     }
-    
+
     // /**
     //  * Finds the profile.json file in the Configuration directory.
     //  * Searches relative to the current working directory.
@@ -307,7 +305,7 @@ public class MatomoTrackingService {
     //         "Resources/Configuration/profile.json",
     //         "../Resources/Configuration/profile.json"
     //     };
-        
+
     //     for (String location : locations) {
     //         Path path = Paths.get(location);
     //         if (Files.exists(path)) {
@@ -315,11 +313,11 @@ public class MatomoTrackingService {
     //             return path;
     //         }
     //     }
-        
+
     //     logger.warn("profile.json not found in any expected location");
     //     return null;
     // }
-    
+
     /**
      * Builds the JSON tracking payload for Matomo.
      *
@@ -338,7 +336,7 @@ public class MatomoTrackingService {
         addCustomDimension(customDimensions, EXEC_ENV_DIMENSION_ID, context.executionEnvironment);
 
         payload.put("customDimensions", customDimensions);
-        
+
         try {
             return objectMapper.writeValueAsString(payload);
         } catch (IOException e) {
@@ -347,7 +345,11 @@ public class MatomoTrackingService {
         }
     }
 
-    private void addCustomDimension(List<Map<String, Object>> customDimensions, int id, String value) {
+    private void addCustomDimension(
+        List<Map<String, Object>> customDimensions,
+        int id,
+        String value
+    ) {
         if (id <= 0 || value == null || value.trim().isEmpty()) {
             return;
         }
@@ -357,7 +359,7 @@ public class MatomoTrackingService {
         customDimension.put("value", value);
         customDimensions.add(customDimension);
     }
-    
+
     /**
      * Closes the sender and releases resources.
      */
@@ -366,7 +368,7 @@ public class MatomoTrackingService {
             sender.close();
         }
     }
-    
+
     /**
      * Internal class to hold execution context information.
      */

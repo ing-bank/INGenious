@@ -134,11 +134,15 @@ public class Control {
         MatomoTrackingService matomoTracker = null;
         try {
             initRun();
-            
+
             // Track test execution to Matomo
             try {
                 // String configLocation = exe.getProject().getProjectSettings().getLocation() + "/matomo.properties";
-                matomoTracker = new MatomoTrackingService(FilePath.getMatomoPropertiesPath(), FilePath.getUserProfilePath());
+                matomoTracker =
+                    new MatomoTrackingService(
+                        FilePath.getMatomoPropertiesPath(),
+                        FilePath.getUserProfilePath()
+                    );
 
                 MissingRequiredProfileFields missingFields = matomoTracker.getMissingRequiredProfileFields();
 
@@ -151,7 +155,7 @@ public class Control {
             } catch (Exception e) {
                 LOG.log(Level.WARNING, "Failed to track test execution to Matomo", e);
             }
-            
+
             TMIntegration.init(ReportManager);
             ReportManager.createReport(DateTimeUtils.DateTimeNow(), RunManager.queue().size());
             ThreadPool threadPool = new ThreadPool(
@@ -212,7 +216,7 @@ public class Control {
             }
 
             endExecution();
-                        // Clean up Matomo tracker
+            // Clean up Matomo tracker
             if (matomoTracker != null) {
                 try {
                     matomoTracker.close();
@@ -220,7 +224,6 @@ public class Control {
                     LOG.log(Level.WARNING, "Error closing Matomo tracker", e);
                 }
             }
-
         }
     }
 
@@ -240,13 +243,24 @@ public class Control {
                     Object dialog = constructor.newInstance((Frame) null);
 
                     Method highlightMethod = dialogClass.getMethod(
-                            "highlightMissingRequiredFields", boolean.class, boolean.class);
-                    highlightMethod.invoke(dialog, missingFields.isSutMissing(), missingFields.isPcodeMissing());
+                        "highlightMissingRequiredFields",
+                        boolean.class,
+                        boolean.class
+                    );
+                    highlightMethod.invoke(
+                        dialog,
+                        missingFields.isSutMissing(),
+                        missingFields.isPcodeMissing()
+                    );
 
                     Method setVisibleMethod = dialogClass.getMethod("setVisible", boolean.class);
                     setVisibleMethod.invoke(dialog, true);
                 } catch (Exception ex) {
-                    LOG.log(Level.WARNING, "Unable to open ProfileDialog for missing profile values", ex);
+                    LOG.log(
+                        Level.WARNING,
+                        "Unable to open ProfileDialog for missing profile values",
+                        ex
+                    );
                 }
             };
 
@@ -256,7 +270,11 @@ public class Control {
                 SwingUtilities.invokeLater(showDialogTask);
             }
         } catch (Exception ex) {
-            LOG.log(Level.WARNING, "Unable to trigger ProfileDialog for missing profile values", ex);
+            LOG.log(
+                Level.WARNING,
+                "Unable to trigger ProfileDialog for missing profile values",
+                ex
+            );
         }
     }
 

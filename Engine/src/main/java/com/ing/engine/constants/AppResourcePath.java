@@ -50,8 +50,8 @@ public class AppResourcePath {
 
     private static final String CHROME_ADDON = "Chrome" + File.separator + "ingenious.crx";
 
-    private final static String MATOMO_PROPERTIES = "matomo.properties";
-    private final static String USER_PROFILE = "userProfile.properties";
+    private static final String MATOMO_PROPERTIES = "matomo.properties";
+    private static final String USER_PROFILE = "userProfile.properties";
 
     private static final String STEPMAP_FILE = "StepMap.csv";
     private static final String APP_SETTINGS = "app.settings";

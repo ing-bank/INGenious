@@ -3,24 +3,22 @@ package com.ing.util.matomo.service;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.ing.util.matomo.config.MatomoConfig;
-import org.matomo.java.tracking.*;
-import org.matomo.java.tracking.parameters.VisitorId;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import java.io.IOException;
 import java.net.URI;
 import java.util.HashMap;
 import java.util.Map;
+import org.matomo.java.tracking.*;
+import org.matomo.java.tracking.parameters.VisitorId;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Service class for sending INGenious adoption KPI metrics to Matomo.
  * This class handles JSON input conversion and Matomo event tracking.
  */
 public class MatomoSender {
-
     private static final Logger logger = LoggerFactory.getLogger(MatomoSender.class);
-    
+
     private final MatomoTracker tracker;
     private final MatomoConfig config;
     private final ObjectMapper objectMapper;
@@ -41,20 +39,20 @@ public class MatomoSender {
      */
     public MatomoSender(MatomoConfig config) {
         this.config = config;
-        
+
         // Build tracker configuration using the official SDK pattern
-        TrackerConfiguration trackerConfig = TrackerConfiguration.builder()
-                .apiEndpoint(URI.create(config.getMatomoUrl()))
-                .defaultSiteId(config.getSiteId())
-                .disableSslCertValidation(true)
-                .build();
-        
+        TrackerConfiguration trackerConfig = TrackerConfiguration
+            .builder()
+            .apiEndpoint(URI.create(config.getMatomoUrl()))
+            .defaultSiteId(config.getSiteId())
+            .disableSslCertValidation(true)
+            .build();
+
         // logger.info("tracker Matomo URL={}", trackerConfig.getApiEndpoint());
         // logger.info("tracker Matomo Site ID={}", trackerConfig.getDefaultSiteId());
-        
+
         this.tracker = new MatomoTracker(trackerConfig);
         this.objectMapper = new ObjectMapper();
-        
         // logger.info("MatomoSender initialized with config: {}", config);
     }
 
@@ -75,50 +73,48 @@ public class MatomoSender {
 
         // Parse JSON into JsonNode for flexible schema handling
         JsonNode jsonNode = objectMapper.readTree(jsonInput);
-        
+
         // Validate required fields
         String eventCategory = validateRequiredField(jsonNode, "EventCategory");
         if (eventCategory == null) return false;
-        
+
         String eventAction = validateRequiredField(jsonNode, "EventAction");
         if (eventAction == null) return false;
-        
+
         // String visitorID = validateRequiredField(jsonNode, "visitorID");
         // if (visitorID == null) return false;
-        
+
         // Extract optional fields
         String eventName = extractOptionalString(jsonNode, "EventName");
         Double eventValue = extractOptionalDouble(jsonNode, "EventValue");
         Map<Integer, String> customDimensions = extractCustomDimensions(jsonNode);
         if (customDimensions == null) return false; // validation failed
-        
+
         // Build and send request
         try {
             MatomoRequest request = buildMatomoRequest(
-                eventCategory, 
-                eventAction, 
-                eventName, 
-                eventValue, 
-                // visitorID, 
+                eventCategory,
+                eventAction,
+                eventName,
+                eventValue,
+                // visitorID,
                 customDimensions
             );
-            
-            // logger.info("Sending event to Matomo: category={}, action={}, name={}", 
+
+            // logger.info("Sending event to Matomo: category={}, action={}, name={}",
             //            eventCategory, eventAction, eventName);
-            
+
             tracker.sendBulkRequestAsync(request).join();
-            
-            
+
             logger.info("Event sent successfully to Matomo");
             return true;
-            
         } catch (Exception e) {
             // Extract root cause for detailed error info
             Throwable cause = e;
             while (cause.getCause() != null && cause.getCause() != cause) {
                 cause = cause.getCause();
             }
-            
+
             // Extract HTTP code from error message if present
             String errorMsg = cause.getMessage();
             String httpCode = "Unknown";
@@ -129,15 +125,19 @@ public class MatomoSender {
                 if (endIdx == -1) endIdx = errorMsg.length();
                 httpCode = errorMsg.substring(idx, endIdx).trim();
             }
-            
-            logger.error("Matomo request failed - HTTP {}: {} ({})", 
-                        httpCode, errorMsg, cause.getClass().getSimpleName());
+
+            logger.error(
+                "Matomo request failed - HTTP {}: {} ({})",
+                httpCode,
+                errorMsg,
+                cause.getClass().getSimpleName()
+            );
             logger.error("Full exception details:", e);
-            
+
             return false;
         }
     }
-    
+
     /**
      * Validates a required field exists and is non-blank.
      *
@@ -150,22 +150,22 @@ public class MatomoSender {
             logger.error("Required field '{}' is missing from JSON input", fieldName);
             return null;
         }
-        
+
         JsonNode fieldNode = jsonNode.get(fieldName);
         if (fieldNode.isNull()) {
             logger.error("Required field '{}' is null", fieldName);
             return null;
         }
-        
+
         String value = fieldNode.asText();
         if (value == null || value.trim().isEmpty()) {
             logger.error("Required field '{}' is blank", fieldName);
             return null;
         }
-        
+
         return value;
     }
-    
+
     /**
      * Extracts an optional string field from JSON.
      *
@@ -179,7 +179,7 @@ public class MatomoSender {
         }
         return jsonNode.get(fieldName).asText();
     }
-    
+
     /**
      * Extracts an optional double field from JSON.
      *
@@ -193,7 +193,7 @@ public class MatomoSender {
         }
         return jsonNode.get(fieldName).asDouble();
     }
-    
+
     /**
      * Extracts and validates custom dimensions from JSON.
      * Expected format: [{"id": 1, "value": "p33148"}, {"id": 2, "value": "dev"}]
@@ -205,13 +205,13 @@ public class MatomoSender {
         if (!jsonNode.has("customDimensions") || jsonNode.get("customDimensions").isNull()) {
             return new HashMap<>();
         }
-        
+
         JsonNode dimensionsNode = jsonNode.get("customDimensions");
         if (!dimensionsNode.isArray()) {
             logger.error("customDimensions must be an array");
             return null;
         }
-        
+
         Map<Integer, String> dimensions = new HashMap<>();
         for (JsonNode dimNode : dimensionsNode) {
             if (!dimNode.has("id") || dimNode.get("id").isNull()) {
@@ -222,13 +222,13 @@ public class MatomoSender {
                 logger.error("Custom dimension missing 'value' field: {}", dimNode);
                 return null;
             }
-            
+
             int id = dimNode.get("id").asInt();
             String value = dimNode.get("value").asText();
             dimensions.put(id, value);
             logger.debug("Extracted custom dimension: id={}, value={}", id, value);
         }
-        
+
         return dimensions;
     }
 
@@ -244,25 +244,25 @@ public class MatomoSender {
      * @return configured MatomoRequest
      */
     private MatomoRequest buildMatomoRequest(
-            String eventCategory,
-            String eventAction,
-            String eventName,
-            Double eventValue,
-            // String visitorID,
-            Map<Integer, String> customDimensions) {
-        
+        String eventCategory,
+        String eventAction,
+        String eventName,
+        Double eventValue,
+        // String visitorID,
+        Map<Integer, String> customDimensions
+    ) {
         // Use MatomoRequests.event() as recommended by the SDK documentation
         MatomoRequest.MatomoRequestBuilder builder = MatomoRequests.event(
-                eventCategory,
-                eventAction,
-                eventName,
-                eventValue
+            eventCategory,
+            eventAction,
+            eventName,
+            eventValue
         );
 
         // Add custom dimensions using additionalParameters Map
         if (customDimensions != null && !customDimensions.isEmpty()) {
             Map<String, Object> additionalParams = new HashMap<>();
-            
+
             for (Map.Entry<Integer, String> entry : customDimensions.entrySet()) {
                 // Add custom dimension as additional parameter
                 // Format: dimension<id> = value
@@ -270,10 +270,10 @@ public class MatomoSender {
                 additionalParams.put(paramKey, entry.getValue());
                 logger.debug("Added custom dimension {}: {}", entry.getKey(), entry.getValue());
             }
-            
+
             builder.additionalParameters(additionalParams);
         }
-        
+
         // Set visitor ID
         // builder.visitorId(VisitorId.fromString(visitorID));
 
@@ -289,7 +289,7 @@ public class MatomoSender {
 
         return request;
     }
-    
+
     /**
      * Sends a batch of adoption metrics to Matomo.
      *
