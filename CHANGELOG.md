@@ -169,6 +169,7 @@ Release Date: <insert date of release>
 
 - Renamed "LambdaTest Capabilities" to "LambdaTest Grid Capabilities"
 - Unified Mobile Scroll for Android + iOS
+- Allowed shake to execute for IOS devices
 
 #### Deprecated
 
