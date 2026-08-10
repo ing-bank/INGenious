@@ -1,14 +1,14 @@
 package com.ing.datalib.or.structureddata;
 
-import com.ing.datalib.component.utils.FileUtils;
-import com.ing.datalib.or.common.ORPageInf;
-import com.ing.datalib.or.common.ORUtils;
-import com.ing.datalib.or.common.ObjectGroup;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
 import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
+import com.ing.datalib.component.utils.FileUtils;
+import com.ing.datalib.or.common.ORPageInf;
+import com.ing.datalib.or.common.ORUtils;
+import com.ing.datalib.or.common.ObjectGroup;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -22,9 +22,8 @@ import javax.swing.tree.TreePath;
  * Contains object groups for API objects.
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
-@JsonIgnoreProperties({"root"})
+@JsonIgnoreProperties({ "root" })
 public class StructuredDataORPage implements ORPageInf<StructuredDataORObject, StructuredDataOR> {
-
     @JacksonXmlProperty(isAttribute = true, localName = "ref")
     private String name;
 
@@ -121,10 +120,11 @@ public class StructuredDataORPage implements ORPageInf<StructuredDataORObject, S
             // Structured Data OR uses YAML format - no folder creation needed
             group.addObject(groupName);
             root.setSaved(false);
-            
+
             // Auto-save for YAML format
-            if (root.getObjectRepository() != null 
-                && root.getObjectRepository().isUsingYamlFormat()) {
+            if (
+                root.getObjectRepository() != null && root.getObjectRepository().isUsingYamlFormat()
+            ) {
                 root.getObjectRepository().saveStructuredDataPageNow(this);
             }
             return group;
@@ -134,7 +134,10 @@ public class StructuredDataORPage implements ORPageInf<StructuredDataORObject, S
 
     @JsonIgnore
     @Override
-    public StructuredDataORObject getNewObject(String objectName, ObjectGroup<StructuredDataORObject> group) {
+    public StructuredDataORObject getNewObject(
+        String objectName,
+        ObjectGroup<StructuredDataORObject> group
+    ) {
         return new StructuredDataORObject(objectName, group);
     }
 
@@ -235,7 +238,7 @@ public class StructuredDataORPage implements ORPageInf<StructuredDataORObject, S
     @JsonIgnore
     @Override
     public TreeNode[] getPath() {
-        return new TreeNode[]{root, this};
+        return new TreeNode[] { root, this };
     }
 
     @JsonIgnore
@@ -259,9 +262,7 @@ public class StructuredDataORPage implements ORPageInf<StructuredDataORObject, S
     @JsonIgnore
     @Override
     public Boolean rename(String newName) {
-        getRoot()
-            .getObjectRepository()
-            .renamePage(this, newName);
+        getRoot().getObjectRepository().renamePage(this, newName);
         return true;
     }
 }

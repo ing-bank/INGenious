@@ -6,13 +6,11 @@ import static org.mockito.Mockito.*;
 import com.ing.engine.constants.AppResourcePath;
 import com.ing.engine.constants.SystemDefaults;
 import eu.infomas.annotation.AnnotationDetector;
-
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.concurrent.atomic.AtomicBoolean;
-
 import org.mockito.MockedStatic;
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
@@ -29,7 +27,6 @@ import org.testng.annotations.Test;
  * (inherited by FilePath), so we mock AppResourcePath.
  */
 public class AnnontationUtilTest {
-
     private boolean savedGetClassesFromJar;
 
     @BeforeMethod
@@ -49,7 +46,9 @@ public class AnnontationUtilTest {
         AnnotationDetector detector = mock(AnnotationDetector.class);
 
         try (MockedStatic<AppResourcePath> fpMock = mockStatic(AppResourcePath.class)) {
-            fpMock.when(AppResourcePath::getAppRoot).thenReturn(System.getProperty("java.io.tmpdir"));
+            fpMock
+                .when(AppResourcePath::getAppRoot)
+                .thenReturn(System.getProperty("java.io.tmpdir"));
             fpMock.when(AppResourcePath::getEngineJarPath).thenReturn("/nonexistent/engine.jar");
 
             AnnontationUtil.detect(detector, "com.ing.engine.commands");
@@ -85,7 +84,9 @@ public class AnnontationUtilTest {
         AnnotationDetector detector = mock(AnnotationDetector.class);
 
         try (MockedStatic<AppResourcePath> fpMock = mockStatic(AppResourcePath.class)) {
-            fpMock.when(AppResourcePath::getAppRoot).thenReturn(System.getProperty("java.io.tmpdir"));
+            fpMock
+                .when(AppResourcePath::getAppRoot)
+                .thenReturn(System.getProperty("java.io.tmpdir"));
 
             AnnontationUtil.detect(detector, "com.pkg1", "com.pkg2", "com.pkg3");
 

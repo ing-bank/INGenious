@@ -1,4 +1,3 @@
-
 package com.ing.datalib.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -8,25 +7,21 @@ import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import java.util.List;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
-@JsonPropertyOrder({
-    "id",
-    "name",
-    "tags",
-    "attributes"
-})
-
+@JsonPropertyOrder({ "id", "name", "tags", "attributes" })
 /**
  *
- * 
+ *
  */
 public class DataItem {
-
     @JsonProperty("name")
     private String name;
+
     @JsonProperty("id")
     private String id;
+
     @JsonProperty("attributes")
     private Attributes attributes = new Attributes();
+
     @JsonProperty("tags")
     private Tags tags = new Tags();
 

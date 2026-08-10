@@ -2,9 +2,9 @@ package com.ing.engine.commands.mobile;
 
 import com.ing.engine.commands.browser.Command;
 import com.ing.engine.core.CommandControl;
+import com.ing.ingenious.api.annotation.Action;
 import com.ing.ingenious.api.exception.mobile.ElementException;
 import com.ing.ingenious.api.status.Status;
-import com.ing.ingenious.api.annotation.Action;
 import com.ing.ingenious.api.types.InputType;
 import com.ing.ingenious.api.types.ObjectType;
 import org.openqa.selenium.WebElement;
@@ -12,9 +12,9 @@ import org.openqa.selenium.WebElement;
 public class RelativeCommand extends Command {
 
     private enum RelativeAction {
-
-        TAP, SET
-    };
+        TAP,
+        SET
+    }
 
     public RelativeCommand(CommandControl cc) {
         super(cc);
@@ -40,24 +40,42 @@ public class RelativeCommand extends Command {
                             break;
                     }
                 } else {
-                    throw new ElementException(ElementException.ExceptionType.Element_Not_Found, ObjectName);
+                    throw new ElementException(
+                        ElementException.ExceptionType.Element_Not_Found,
+                        ObjectName
+                    );
                 }
             } else {
-                throw new ElementException(ElementException.ExceptionType.Element_Not_Found, Condition);
+                throw new ElementException(
+                    ElementException.ExceptionType.Element_Not_Found,
+                    Condition
+                );
             }
         } else {
-            Report.updateTestLog(Action, "No Relative Element Found in Condition Column", Status.DEBUG);
+            Report.updateTestLog(
+                Action,
+                "No Relative Element Found in Condition Column",
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.APP, desc = "Tap on element based on parent [<Object>]", condition = InputType.YES)
+    @Action(
+        object = ObjectType.APP,
+        desc = "Tap on element based on parent [<Object>]",
+        condition = InputType.YES
+    )
     public void Tap_Relative() {
         doRelative(RelativeAction.TAP);
     }
 
-    @Action(object = ObjectType.APP, desc = "Set [<Data>] on element based on parent [<Object>]", input = InputType.YES, condition = InputType.YES)
+    @Action(
+        object = ObjectType.APP,
+        desc = "Set [<Data>] on element based on parent [<Object>]",
+        input = InputType.YES,
+        condition = InputType.YES
+    )
     public void set_Relative() {
         doRelative(RelativeAction.SET);
     }
-
 }

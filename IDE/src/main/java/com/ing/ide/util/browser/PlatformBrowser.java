@@ -1,4 +1,3 @@
-
 package com.ing.ide.util.browser;
 
 public class PlatformBrowser {

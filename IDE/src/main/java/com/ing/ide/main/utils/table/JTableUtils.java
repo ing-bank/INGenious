@@ -1,9 +1,10 @@
-
 package com.ing.ide.main.utils.table;
 
+import static javax.swing.JComponent.WHEN_FOCUSED;
+
+import com.google.common.primitives.Ints;
 import com.ing.ide.main.utils.keys.Keystroke;
 import com.ing.ide.util.Canvas;
-import com.google.common.primitives.Ints;
 import java.awt.HeadlessException;
 import java.awt.Rectangle;
 import java.awt.Toolkit;
@@ -33,7 +34,6 @@ import javax.swing.ActionMap;
 import javax.swing.DefaultCellEditor;
 import javax.swing.InputMap;
 import javax.swing.JComponent;
-import static javax.swing.JComponent.WHEN_FOCUSED;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
 import javax.swing.JPopupMenu;
@@ -55,7 +55,6 @@ import org.apache.commons.lang3.ArrayUtils;
  *
  */
 public class JTableUtils {
-
     public static TableColumn column = null;
     public static JPopupMenu renamePopup = null;
     public static JTableHeader head = null;
@@ -67,50 +66,55 @@ public class JTableUtils {
     public static final JMenuItem CUT = new JMenuItem("Cut");
     public static final JMenuItem PASTE = new JMenuItem("Paste");
 
-    static {        
-        
+    static {
         COPY.setIcon(new Canvas.EmptyIcon());
-        COPY.addActionListener(new ActionListener() {
+        COPY.addActionListener(
+            new ActionListener() {
 
-            @Override
-            public void actionPerformed(ActionEvent e) {                           
-                JPopupMenu p = (JPopupMenu) COPY.getParent();
-                Object val = p.getClientProperty("Table");
-                if (val != null) {
-                    JTable tble = (JTable) val;
-                    JTableUtils.cancelEditing(tble);
-                    JTableUtils.copyToClipboard(false, tble);
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    JPopupMenu p = (JPopupMenu) COPY.getParent();
+                    Object val = p.getClientProperty("Table");
+                    if (val != null) {
+                        JTable tble = (JTable) val;
+                        JTableUtils.cancelEditing(tble);
+                        JTableUtils.copyToClipboard(false, tble);
+                    }
                 }
             }
-        });
+        );
         COPY.setAccelerator(Keystroke.COPY);
-        CUT.addActionListener(new ActionListener() {
+        CUT.addActionListener(
+            new ActionListener() {
 
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                JPopupMenu p = (JPopupMenu) CUT.getParent();
-                Object val = p.getClientProperty("Table");
-                if (val != null) {
-                    JTable tble = (JTable) val;
-                    JTableUtils.cancelEditing(tble);
-                    JTableUtils.copyToClipboard(true, tble);
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    JPopupMenu p = (JPopupMenu) CUT.getParent();
+                    Object val = p.getClientProperty("Table");
+                    if (val != null) {
+                        JTable tble = (JTable) val;
+                        JTableUtils.cancelEditing(tble);
+                        JTableUtils.copyToClipboard(true, tble);
+                    }
                 }
             }
-        });
+        );
         CUT.setAccelerator(Keystroke.CUT);
-        PASTE.addActionListener(new ActionListener() {
+        PASTE.addActionListener(
+            new ActionListener() {
 
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                JPopupMenu p = (JPopupMenu) PASTE.getParent();
-                Object val = p.getClientProperty("Table");
-                if (val != null) {
-                    JTable tble = (JTable) val;
-                    JTableUtils.cancelEditing(tble);
-                    JTableUtils.pasteFromClipboard(tble);
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    JPopupMenu p = (JPopupMenu) PASTE.getParent();
+                    Object val = p.getClientProperty("Table");
+                    if (val != null) {
+                        JTable tble = (JTable) val;
+                        JTableUtils.cancelEditing(tble);
+                        JTableUtils.pasteFromClipboard(tble);
+                    }
                 }
             }
-        });
+        );
         PASTE.setAccelerator(Keystroke.PASTE);
     }
 
@@ -123,72 +127,81 @@ public class JTableUtils {
      */
     public static void addlisteners(final JTable table, Boolean hasFixedRows) {
         table.setSurrendersFocusOnKeystroke(false);
-        table.addKeyListener(new KeyAdapter() {
-            @Override
-            public void keyReleased(KeyEvent e) {
-                if (e.isControlDown() || e.isMetaDown() && !e.isShiftDown() && !e.isAltDown()) {
-               // if ((e.getModifiersEx() & KeyEvent.CTRL_DOWN_MASK) != 0 || (e.getModifiersEx() & KeyEvent.META_DOWN_MASK) != 0){
-                    switch (e.getKeyCode()) {
-                        case KeyEvent.VK_C:
-                            cancelEditing(table);
-                            copyToClipboard(false, table);
-                            break;
-                        case KeyEvent.VK_X:
-                            cancelEditing(table);
-                            copyToClipboard(true, table);
-                            break;
-                        case KeyEvent.VK_V:
-                            cancelEditing(table);
-                            pasteFromClipboard(table);
-                            break;
-                        case KeyEvent.VK_D:
-                            cancelEditing(table);
-                            pasteFromAbove(table);
-                            break;
-                        default:
-                            break;
-                    }
+        table.addKeyListener(
+            new KeyAdapter() {
 
+                @Override
+                public void keyReleased(KeyEvent e) {
+                    if (e.isControlDown() || e.isMetaDown() && !e.isShiftDown() && !e.isAltDown()) {
+                        // if ((e.getModifiersEx() & KeyEvent.CTRL_DOWN_MASK) != 0 || (e.getModifiersEx() & KeyEvent.META_DOWN_MASK) != 0){
+                        switch (e.getKeyCode()) {
+                            case KeyEvent.VK_C:
+                                cancelEditing(table);
+                                copyToClipboard(false, table);
+                                break;
+                            case KeyEvent.VK_X:
+                                cancelEditing(table);
+                                copyToClipboard(true, table);
+                                break;
+                            case KeyEvent.VK_V:
+                                cancelEditing(table);
+                                pasteFromClipboard(table);
+                                break;
+                            case KeyEvent.VK_D:
+                                cancelEditing(table);
+                                pasteFromAbove(table);
+                                break;
+                            default:
+                                break;
+                        }
+                    }
                 }
             }
-        });
+        );
 
         if (!hasFixedRows) {
             Object val = table.getClientProperty("Popup");
             if (val != null) {
-                table.getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT).put(CUT.getAccelerator(), "cut");
+                table
+                    .getInputMap(JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT)
+                    .put(CUT.getAccelerator(), "cut");
                 final JPopupMenu pop = (JPopupMenu) val;
-                pop.addPopupMenuListener(new PopupMenuListener() {
-                    @Override
-                    public void popupMenuWillBecomeVisible(PopupMenuEvent pme) {
-                        pop.add(CUT);
-                        pop.add(COPY);
-                        pop.add(PASTE);
-                    }
+                pop.addPopupMenuListener(
+                    new PopupMenuListener() {
 
-                    @Override
-                    public void popupMenuCanceled(PopupMenuEvent pme) {
-                    }
+                        @Override
+                        public void popupMenuWillBecomeVisible(PopupMenuEvent pme) {
+                            pop.add(CUT);
+                            pop.add(COPY);
+                            pop.add(PASTE);
+                        }
 
-                    @Override
-                    public void popupMenuWillBecomeInvisible(PopupMenuEvent pme) {
+                        @Override
+                        public void popupMenuCanceled(PopupMenuEvent pme) {}
 
+                        @Override
+                        public void popupMenuWillBecomeInvisible(PopupMenuEvent pme) {}
                     }
-                });
+                );
             }
-            table.addMouseListener(new MouseAdapter() {
-                @Override
-                public void mouseClicked(MouseEvent event) {
-                    addEmptyRowatEnd(table);
-                }
-            });
-            table.addKeyListener(new KeyAdapter() {
+            table.addMouseListener(
+                new MouseAdapter() {
 
-                @Override
-                public void keyTyped(KeyEvent e) {
-                    addEmptyRowatEnd(table);
+                    @Override
+                    public void mouseClicked(MouseEvent event) {
+                        addEmptyRowatEnd(table);
+                    }
                 }
-            });
+            );
+            table.addKeyListener(
+                new KeyAdapter() {
+
+                    @Override
+                    public void keyTyped(KeyEvent e) {
+                        addEmptyRowatEnd(table);
+                    }
+                }
+            );
         }
         clearTableSelectionOnDelete(table);
     }
@@ -235,9 +248,18 @@ public class JTableUtils {
             int numRows = table.getSelectedRowCount();
             int[] rowsSelected = table.getSelectedRows();
             int[] colsSelected = table.getSelectedColumns();
-            if (numRows != rowsSelected[rowsSelected.length - 1] - rowsSelected[0] + 1 || numRows != rowsSelected.length
-                    || numCols != colsSelected[colsSelected.length - 1] - colsSelected[0] + 1 || numCols != colsSelected.length) {
-                JOptionPane.showMessageDialog(null, "Invalid Selection", "Invalid Selection", JOptionPane.ERROR_MESSAGE);
+            if (
+                numRows != rowsSelected[rowsSelected.length - 1] - rowsSelected[0] + 1 ||
+                numRows != rowsSelected.length ||
+                numCols != colsSelected[colsSelected.length - 1] - colsSelected[0] + 1 ||
+                numCols != colsSelected.length
+            ) {
+                JOptionPane.showMessageDialog(
+                    null,
+                    "Invalid Selection",
+                    "Invalid Selection",
+                    JOptionPane.ERROR_MESSAGE
+                );
                 return;
             }
             StringBuilder excelStr = new StringBuilder();
@@ -261,7 +283,6 @@ public class JTableUtils {
                 StringSelection sel = new StringSelection(excelStr.toString());
                 CLIPBOARD.setContents(sel, sel);
             }
-
         } catch (HeadlessException ex) {
             Logger.getLogger(JTableUtils.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -278,7 +299,10 @@ public class JTableUtils {
         int startCol = table.getSelectedColumns()[0];
         String pasteString;
         try {
-            pasteString = (String) (CLIPBOARD.getContents(CLIPBOARD).getTransferData(DataFlavor.stringFlavor));
+            pasteString =
+                (String) (
+                    CLIPBOARD.getContents(CLIPBOARD).getTransferData(DataFlavor.stringFlavor)
+                );
         } catch (UnsupportedFlavorException | IOException ex) {
             Logger.getLogger(JTableUtils.class.getName()).log(Level.SEVERE, null, ex);
             return;
@@ -341,16 +365,18 @@ public class JTableUtils {
         InputMap inputMap = table.getInputMap(WHEN_FOCUSED);
         ActionMap actionMap = table.getActionMap();
         inputMap.put(Keystroke.DELETE, "delete");
-        actionMap.put("delete", new AbstractAction() {
-            private static final long serialVersionUID = 1L;
+        actionMap.put(
+            "delete",
+            new AbstractAction() {
+                private static final long serialVersionUID = 1L;
 
-            @Override
-            public void actionPerformed(ActionEvent evt) {
-                cancelEditing(table);
-                ClearSelection(table);
+                @Override
+                public void actionPerformed(ActionEvent evt) {
+                    cancelEditing(table);
+                    ClearSelection(table);
+                }
             }
-
-        });
+        );
     }
 
     /**
@@ -365,33 +391,28 @@ public class JTableUtils {
             ((DefaultTableModel) table.getModel()).moveRow(sRow, sRow, sRow - 1);
             table.getSelectionModel().setSelectionInterval(sRow - 1, sRow - 1);
         }
-
     }
-    
+
     public static void moveColumnLeft(JTable table) {
         try {
             TableColumnModel tcm = table.getColumnModel();
-            int sCol  = table.getSelectedColumn();
-            
-            tcm.moveColumn(sCol, sCol-1);
+            int sCol = table.getSelectedColumn();
 
+            tcm.moveColumn(sCol, sCol - 1);
         } catch (Exception e) {
             Logger.getLogger(JTableUtils.class.getName()).log(Level.SEVERE, null, e);
         }
-
     }
-    
+
     public static void moveColumnRight(JTable table) {
         try {
             TableColumnModel tcm = table.getColumnModel();
-            int sCol  = table.getSelectedColumn();
-            
-            tcm.moveColumn(sCol, sCol+1);
+            int sCol = table.getSelectedColumn();
 
+            tcm.moveColumn(sCol, sCol + 1);
         } catch (Exception e) {
             Logger.getLogger(JTableUtils.class.getName()).log(Level.SEVERE, null, e);
         }
-
     }
 
     /**
@@ -417,19 +438,21 @@ public class JTableUtils {
      * @param lmt re-ordering limit
      */
     public static void setReorderColumn(JTable table, final int lmt) {
-        table.setColumnModel(new DefaultTableColumnModel() {
-            private static final long serialVersionUID = 1L;
+        table.setColumnModel(
+            new DefaultTableColumnModel() {
+                private static final long serialVersionUID = 1L;
 
-            @Override
-            public void moveColumn(int columnIndex, int newIndex) {
-                if (columnIndex <= lmt) {
-                    return;
-                } else if (newIndex <= lmt) {
-                    return;
+                @Override
+                public void moveColumn(int columnIndex, int newIndex) {
+                    if (columnIndex <= lmt) {
+                        return;
+                    } else if (newIndex <= lmt) {
+                        return;
+                    }
+                    super.moveColumn(columnIndex, newIndex);
                 }
-                super.moveColumn(columnIndex, newIndex);
             }
-        });
+        );
     }
 
     /**
@@ -498,7 +521,6 @@ public class JTableUtils {
      */
     public static void exportToCSV(JTable table, File file, Boolean hflag) throws IOException {
         exportModelToCSV(table, file, hflag);
-
     }
 
     public static void exportModelToCSV(JTable table, File file, Boolean hflag) throws IOException {
@@ -507,8 +529,9 @@ public class JTableUtils {
         ArrayList<String[]> data = new ArrayList<>();
         ArrayList<Integer> expList = new ArrayList<>();
         ArrayList<String> row = new ArrayList<>();
-        int colCount = table.getColumnModel().getColumnCount(),
-                rowCount = table.getModel().getRowCount(), i;
+        int colCount = table.getColumnModel().getColumnCount(), rowCount = table
+            .getModel()
+            .getRowCount(), i;
         for (i = 0; i < colCount; i++) {
             Object hval = table.getColumnName(i);
             if (hval == null || "".equals(hval.toString())) {
@@ -528,9 +551,9 @@ public class JTableUtils {
             }
             data.add(row.toArray(new String[row.size()]));
         }
-//        try (CSVWriter<String[]> csvWriter = CSVWriterBuilder.newDefaultWriter(new FileWriter(file))) {
-//            csvWriter.writeAll(data);
-//        }
+        //        try (CSVWriter<String[]> csvWriter = CSVWriterBuilder.newDefaultWriter(new FileWriter(file))) {
+        //            csvWriter.writeAll(data);
+        //        }
 
     }
 
@@ -563,7 +586,6 @@ public class JTableUtils {
         } catch (Exception ex) {
             Logger.getLogger(JTableUtils.class.getName()).log(Level.SEVERE, null, ex);
         }
-
     }
 
     /**
@@ -578,9 +600,8 @@ public class JTableUtils {
         cancelEditing(table);
         ArrayList<Integer> dRows = new ArrayList<>();
         HashMap<String, Integer> uniqRows = new HashMap<>();
-        List<Integer> dontCheckIndex = Arrays.asList(new Integer[]{0, 4});//left the first column [ececute] and 5 column status
-        int colCount = table.getColumnCount(),
-                rowCount = table.getModel().getRowCount(), i;
+        List<Integer> dontCheckIndex = Arrays.asList(new Integer[] { 0, 4 }); //left the first column [ececute] and 5 column status
+        int colCount = table.getColumnCount(), rowCount = table.getModel().getRowCount(), i;
         for (i = 0; i < rowCount; i++) {
             String row = "";
             for (int j = 0; j < colCount; j++) {
@@ -627,7 +648,6 @@ public class JTableUtils {
                 Logger.getLogger(JTableUtils.class.getName()).log(Level.SEVERE, null, ex);
             }
         }
-
     }
 
     /**
@@ -655,7 +675,6 @@ public class JTableUtils {
             }
             ((DefaultTableModel) table.getModel()).removeRow(row);
         }
-
     }
 
     /**
@@ -678,11 +697,9 @@ public class JTableUtils {
                     tcm.removeColumn(tcm.getColumn(i));
                 }
             }
-
         } catch (Exception e) {
             Logger.getLogger(JTableUtils.class.getName()).log(Level.SEVERE, null, e);
         }
-
     }
 
     /**
@@ -750,16 +767,17 @@ public class JTableUtils {
             DefaultTableModel tableM1 = new DefaultTableModel();
             TableModelListener[] listeners = tableM.getTableModelListeners();
 
-            tableM1.setDataVector(newvectoraddcol(tableM.getDataVector(), sc), getColumnIdentifiersaddcol(sc + 1, table));
+            tableM1.setDataVector(
+                newvectoraddcol(tableM.getDataVector(), sc),
+                getColumnIdentifiersaddcol(sc + 1, table)
+            );
             table.setModel(tableM1);
             for (TableModelListener l : listeners) {
                 tableM1.addTableModelListener(l);
             }
-
         } catch (Exception ex) {
             Logger.getLogger(JTableUtils.class.getName()).log(Level.SEVERE, null, ex);
         }
-
     }
 
     /**
@@ -814,7 +832,11 @@ public class JTableUtils {
         int rowindex = table.getRowCount();
         if (table.getSelectedRow() > -1) {
             ((DefaultTableModel) table.getModel()).addRow(nullRow);
-            ((DefaultTableModel) table.getModel()).moveRow(table.getRowCount() - 1, table.getRowCount() - 1, table.getSelectedRow());
+            ((DefaultTableModel) table.getModel()).moveRow(
+                    table.getRowCount() - 1,
+                    table.getRowCount() - 1,
+                    table.getSelectedRow()
+                );
             rowindex = table.getSelectedRow();
         } else {
             ((DefaultTableModel) table.getModel()).addRow(nullRow);
@@ -830,13 +852,12 @@ public class JTableUtils {
      * @param text new name
      * @return the modified column model
      */
-    static Vector<String> getColumnIdentifiers(JTable table, int index, String text) {//create new header vector for modified tableM
+    static Vector<String> getColumnIdentifiers(JTable table, int index, String text) { //create new header vector for modified tableM
         Vector<String> columnIdentifiers = new Vector<>();
         int j = 0;
         while (j < table.getColumnCount()) {
             if (j == index) {
                 columnIdentifiers.add(text);
-
             } else {
                 columnIdentifiers.add(table.getColumnName(j));
             }
@@ -853,10 +874,8 @@ public class JTableUtils {
      * @return <code>true</code> if present else <code>false</code>
      */
     public static Boolean checkColumn(JTable table, String name) {
-
         int j = 0;
         while (j < table.getColumnCount()) {
-
             if (table.getColumnName(j).equals(name)) {
                 return true;
             }
@@ -927,33 +946,53 @@ public class JTableUtils {
             }
         }
     }
-    
+
     public class CustomTableCellEditor extends DefaultCellEditor {
 
-    public CustomTableCellEditor() {
-        super(new JTextField());
-        JTextField editor = (JTextField) getComponent();
-        int menuShortcutKeyMask = Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx();
+        public CustomTableCellEditor() {
+            super(new JTextField());
+            JTextField editor = (JTextField) getComponent();
+            int menuShortcutKeyMask = Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx();
 
-        // Remove default Ctrl key bindings
-        editor.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_X, menuShortcutKeyMask), "none");
-        editor.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_C, menuShortcutKeyMask), "none");
-        editor.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_V, menuShortcutKeyMask), "none");
-        editor.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_A, menuShortcutKeyMask), "none");
+            // Remove default Ctrl key bindings
+            editor
+                .getInputMap()
+                .put(KeyStroke.getKeyStroke(KeyEvent.VK_X, menuShortcutKeyMask), "none");
+            editor
+                .getInputMap()
+                .put(KeyStroke.getKeyStroke(KeyEvent.VK_C, menuShortcutKeyMask), "none");
+            editor
+                .getInputMap()
+                .put(KeyStroke.getKeyStroke(KeyEvent.VK_V, menuShortcutKeyMask), "none");
+            editor
+                .getInputMap()
+                .put(KeyStroke.getKeyStroke(KeyEvent.VK_A, menuShortcutKeyMask), "none");
 
-        // Add Cmd key bindings
-        editor.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_X, menuShortcutKeyMask), "cut");
-        editor.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_C, menuShortcutKeyMask), "copy");
-        editor.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_V, menuShortcutKeyMask), "paste");
-        editor.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_A, menuShortcutKeyMask), "selectAll");
-        editor.getActionMap().put("selectAll", new AbstractAction() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                editor.selectAll();
-            }
-        });
+            // Add Cmd key bindings
+            editor
+                .getInputMap()
+                .put(KeyStroke.getKeyStroke(KeyEvent.VK_X, menuShortcutKeyMask), "cut");
+            editor
+                .getInputMap()
+                .put(KeyStroke.getKeyStroke(KeyEvent.VK_C, menuShortcutKeyMask), "copy");
+            editor
+                .getInputMap()
+                .put(KeyStroke.getKeyStroke(KeyEvent.VK_V, menuShortcutKeyMask), "paste");
+            editor
+                .getInputMap()
+                .put(KeyStroke.getKeyStroke(KeyEvent.VK_A, menuShortcutKeyMask), "selectAll");
+            editor
+                .getActionMap()
+                .put(
+                    "selectAll",
+                    new AbstractAction() {
+
+                        @Override
+                        public void actionPerformed(ActionEvent e) {
+                            editor.selectAll();
+                        }
+                    }
+                );
+        }
     }
-}
-    
-
 }

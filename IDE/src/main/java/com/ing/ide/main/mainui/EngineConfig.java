@@ -1,4 +1,3 @@
-
 package com.ing.ide.main.mainui;
 
 import com.ing.datalib.component.Project;
@@ -14,17 +13,23 @@ import java.util.logging.Logger;
 
 /**
  *
- * 
+ *
  */
 public class EngineConfig {
 
     public static void runProject(Project project) {
         try {
-            Duration defWaitTime = Duration.ofSeconds(Integer.valueOf(AppSettings.get(APP_SETTINGS.DEFAULT_WAIT_TIME.getKey())));
-            Duration elementWaitTime = Duration.ofSeconds(Integer.valueOf(AppSettings.get(APP_SETTINGS.ELEMENT_WAIT_TIME.getKey())));
+            Duration defWaitTime = Duration.ofSeconds(
+                Integer.valueOf(AppSettings.get(APP_SETTINGS.DEFAULT_WAIT_TIME.getKey()))
+            );
+            Duration elementWaitTime = Duration.ofSeconds(
+                Integer.valueOf(AppSettings.get(APP_SETTINGS.ELEMENT_WAIT_TIME.getKey()))
+            );
             SystemDefaults.elementWaitTime = (elementWaitTime);
             SystemDefaults.waitTime = (defWaitTime);
-            Boolean standAlone = Boolean.valueOf(AppSettings.get(APP_SETTINGS.STANDALONE_REPORT.getKey()));
+            Boolean standAlone = Boolean.valueOf(
+                AppSettings.get(APP_SETTINGS.STANDALONE_REPORT.getKey())
+            );
             if (standAlone) {
                 SystemDefaults.CLVars.put("createStandaloneReport", "true");
             } else {

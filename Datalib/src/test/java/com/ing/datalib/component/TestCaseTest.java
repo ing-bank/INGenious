@@ -4,7 +4,6 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.*;
 
 import java.io.File;
-
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
@@ -13,7 +12,6 @@ import org.testng.annotations.Test;
  * move/toggle operations, getKey, isReusable, copyValuesTo, save state.
  */
 public class TestCaseTest {
-
     private Scenario scenario;
     private Project project;
     private TestCase testCase;
@@ -54,8 +52,10 @@ public class TestCaseTest {
 
     @Test
     public void testGetLocation() {
-        assertThat(testCase.getLocation()).isEqualTo(
-                "/tmp/test-project/TestPlan/LoginScenario" + File.separator + "TC_Login.csv");
+        assertThat(testCase.getLocation())
+            .isEqualTo(
+                "/tmp/test-project/TestPlan/LoginScenario" + File.separator + "TC_Login.yaml"
+            );
     }
 
     // ---- toString ----
@@ -255,6 +255,7 @@ public class TestCaseTest {
         testCase.addReusableStep("LoginScenario:LoginReusable");
         assertThat(testCase.getTestSteps()).hasSize(1);
         assertThat(testCase.getTestSteps().get(0).getObject()).isEqualTo("Execute");
-        assertThat(testCase.getTestSteps().get(0).getAction()).isEqualTo("LoginScenario:LoginReusable");
+        assertThat(testCase.getTestSteps().get(0).getAction())
+            .isEqualTo("LoginScenario:LoginReusable");
     }
 }

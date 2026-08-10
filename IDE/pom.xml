@@ -4,7 +4,7 @@
 	<parent>
 		<groupId>com.ing</groupId>
 		<artifactId>ingenious-playwright</artifactId>
-		<version>3.0.0-preview</version>
+		<version>3.0.0-ING</version>
 	</parent>
 	<artifactId>ingenious-ide</artifactId>
 	<packaging>jar</packaging>
@@ -192,14 +192,14 @@
 			<type>jar</type>
 		</dependency>
 		<dependency>
-			<groupId>org.eclipse.jetty</groupId>
-			<artifactId>jetty-servlet</artifactId>
+			<groupId>org.eclipse.jetty.ee8</groupId>
+			<artifactId>jetty-ee8-servlet</artifactId>
 			<version>${jetty.version}</version>
 			<type>jar</type>
 		</dependency>
 		<dependency>
-			<groupId>org.eclipse.jetty.websocket</groupId>
-			<artifactId>websocket-servlet</artifactId>
+			<groupId>org.eclipse.jetty.ee8.websocket</groupId>
+			<artifactId>jetty-ee8-websocket-jetty-server</artifactId>
 			<version>${jetty.version}</version>
 			<type>jar</type>
 		</dependency>
@@ -239,6 +239,25 @@
 			<artifactId>javafx-base</artifactId>
 			<version>${javafx.version}</version>
 			<classifier>${mac.version}</classifier>
+		</dependency>
+		<!-- Test Dependencies -->
+		<dependency>
+			<groupId>org.testng</groupId>
+			<artifactId>testng</artifactId>
+			<version>${testng.version}</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.mockito</groupId>
+			<artifactId>mockito-core</artifactId>
+			<version>${mockito.version}</version>
+			<scope>test</scope>
+		</dependency>
+		<dependency>
+			<groupId>org.assertj</groupId>
+			<artifactId>assertj-core</artifactId>
+			<version>${assertj.version}</version>
+			<scope>test</scope>
 		</dependency>
     </dependencies>
 	<build>

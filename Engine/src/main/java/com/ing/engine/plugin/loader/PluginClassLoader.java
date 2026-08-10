@@ -11,7 +11,6 @@ import java.util.Enumeration;
  * classes/resources from the parent class loader if needed.
  */
 public class PluginClassLoader extends URLClassLoader {
-
     /**
      * The parent class loader for delegation.
      */
@@ -32,12 +31,12 @@ public class PluginClassLoader extends URLClassLoader {
      * </ul>
      */
     private static final String[] PARENT_FIRST_PACKAGES = {
-        "com.microsoft.playwright.",     // Playwright
-        "com.ing.ingenious.api.",        // INGenious API
-        "com.ing.engine.",               // Engine
-        "io.appium.java_client.",        // Appium - used by mobile
-        "org.openqa.selenium.",          // Selenium - used by mobile
-        "java.",                         // Java standard
+        "com.microsoft.playwright.", // Playwright
+        "com.ing.ingenious.api.", // INGenious API
+        "com.ing.engine.", // Engine
+        "io.appium.java_client.", // Appium - used by mobile
+        "org.openqa.selenium.", // Selenium - used by mobile
+        "java.", // Java standard
         "javax."
     };
 
@@ -48,7 +47,7 @@ public class PluginClassLoader extends URLClassLoader {
      * @param parent the parent class loader for delegation
      */
     public PluginClassLoader(URL[] urls, ClassLoader parent) {
-        super(urls, parent); 
+        super(urls, parent);
         this.parent = parent;
     }
 
@@ -72,7 +71,7 @@ public class PluginClassLoader extends URLClassLoader {
         synchronized (getClassLoadingLock(name)) {
             // Check if class is already loaded
             Class<?> c = findLoadedClass(name);
-            
+
             // Check if should be parent-first
             for (String pkg : PARENT_FIRST_PACKAGES) {
                 if (name.startsWith(pkg)) {
@@ -89,7 +88,7 @@ public class PluginClassLoader extends URLClassLoader {
                     }
                 }
             }
-            
+
             // Child-first for everything else
             if (c == null) {
                 try {
@@ -147,7 +146,7 @@ public class PluginClassLoader extends URLClassLoader {
     public Enumeration<URL> getResources(String name) throws IOException {
         Enumeration<URL> pluginResources = findResources(name);
         Enumeration<URL> parentResources = parent.getResources(name);
-        return new CompoundEnumeration<>(new Enumeration[]{pluginResources, parentResources});
+        return new CompoundEnumeration<>(new Enumeration[] { pluginResources, parentResources });
     }
 
     /**

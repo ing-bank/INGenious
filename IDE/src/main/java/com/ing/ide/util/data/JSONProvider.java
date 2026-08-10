@@ -1,4 +1,3 @@
-
 package com.ing.ide.util.data;
 
 import java.util.Map;
@@ -7,7 +6,7 @@ import org.json.simple.JSONValue;
 
 /**
  *
- * 
+ *
  */
 public class JSONProvider {
 
@@ -15,8 +14,7 @@ public class JSONProvider {
         return JSONObject.toJSONString(map);
     }
 
-    public static Map<String, String> getJSONMap(String json) {        
+    public static Map<String, String> getJSONMap(String json) {
         return (Map<String, String>) JSONValue.parse(json);
     }
-
 }

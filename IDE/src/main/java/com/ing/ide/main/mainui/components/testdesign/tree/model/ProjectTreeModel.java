@@ -1,4 +1,3 @@
-
 package com.ing.ide.main.mainui.components.testdesign.tree.model;
 
 import com.ing.datalib.component.Scenario;
@@ -9,7 +8,7 @@ import javax.swing.tree.TreePath;
 
 /**
  *
- * 
+ *
  * @param <T>
  */
 public abstract class ProjectTreeModel<T extends GroupNode> extends CommonTreeModel {
@@ -42,6 +41,6 @@ public abstract class ProjectTreeModel<T extends GroupNode> extends CommonTreeMo
     }
 
     public abstract TestCaseNode addTestCase(TestCase testCase);
-    
+
     public abstract void onScenarioRename(Scenario scenario);
 }

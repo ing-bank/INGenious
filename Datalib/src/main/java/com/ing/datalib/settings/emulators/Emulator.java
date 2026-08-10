@@ -1,4 +1,3 @@
-
 package com.ing.datalib.settings.emulators;
 
 import com.fasterxml.jackson.annotation.JsonAnyGetter;
@@ -13,33 +12,30 @@ import javax.annotation.processing.Generated;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 @Generated("org.jsonschema2pojo")
-@JsonPropertyOrder({
-    "Name",
-    "Type",
-    "AppiumURL",
-    "Size",
-    "Driver",
-    "UserAgent"
-})
+@JsonPropertyOrder({ "Name", "Type", "AppiumURL", "Size", "Driver", "UserAgent" })
 public class Emulator {
-
     @JsonProperty("Name")
     private String name;
+
     @JsonProperty("Type")
     private String type;
+
     @JsonProperty("Remote URL")
     private String remoteUrl;
+
     @JsonProperty("Size")
     private String size;
+
     @JsonProperty("Driver")
     private String driver;
+
     @JsonProperty("UserAgent")
     private String userAgent;
+
     @JsonIgnore
     private Map<String, Object> additionalProperties = new HashMap<>();
 
-    public Emulator() {
-    }
+    public Emulator() {}
 
     public Emulator(String name) {
         this.name = name;
@@ -164,5 +160,4 @@ public class Emulator {
     public void setAdditionalProperty(String name, Object value) {
         this.additionalProperties.put(name, value);
     }
-
 }

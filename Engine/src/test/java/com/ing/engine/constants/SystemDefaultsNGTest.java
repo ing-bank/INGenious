@@ -1,8 +1,8 @@
-
 package com.ing.engine.constants;
 
-import java.util.regex.Pattern;
 import static org.testng.Assert.*;
+
+import java.util.regex.Pattern;
 import org.testng.annotations.Test;
 
 public class SystemDefaultsNGTest {
@@ -15,8 +15,13 @@ public class SystemDefaultsNGTest {
         System.out.println("getBuildVersion");
         String result = SystemDefaults.getBuildVersion();
         Pattern pattern = Pattern.compile("^(?:(\\d+)\\.)?(?:(\\d+)\\.)?(\\*|\\d+)$");
-        Pattern previewPattern = Pattern.compile("^(?:(\\d+)\\.)?(?:(\\d+)\\.)?(\\*|\\d+)-preview$");
-        assertEquals((pattern.matcher(result).matches() || previewPattern.matcher(result).matches()), true);
+        Pattern previewPattern = Pattern.compile(
+            "^(?:(\\d+)\\.)?(?:(\\d+)\\.)?(\\*|\\d+)-preview$"
+        );
+        assertEquals(
+            (pattern.matcher(result).matches() || previewPattern.matcher(result).matches()),
+            true
+        );
     }
 
     /**
@@ -27,5 +32,4 @@ public class SystemDefaultsNGTest {
         System.out.println("printSystemInfo");
         SystemDefaults.printSystemInfo();
     }
-
 }

@@ -1,5 +1,6 @@
-
 package com.ing.ide.main.settings;
+
+import static javax.swing.JComponent.WHEN_FOCUSED;
 
 import com.ing.engine.core.TMIntegration;
 import com.ing.ide.main.utils.keys.Keystroke;
@@ -12,14 +13,13 @@ import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.ActionMap;
 import javax.swing.InputMap;
-import static javax.swing.JComponent.WHEN_FOCUSED;
 import javax.swing.JMenuItem;
 import javax.swing.JPopupMenu;
 import javax.swing.JTable;
 
 /**
  *
- * 
+ *
  */
 public class TMSettingsControl {
 
@@ -40,6 +40,7 @@ public class TMSettingsControl {
 
     private static AbstractAction getEncryptAction(final JTable table) {
         return new AbstractAction() {
+
             @Override
             public void actionPerformed(ActionEvent me) {
                 try {
@@ -50,12 +51,11 @@ public class TMSettingsControl {
                         table.setValueAt(TMIntegration.encrypt(data), row, col);
                     }
                 } catch (HeadlessException ex) {
-                    Logger.getLogger(TMSettingsControl.class.getName())
-                            .log(Level.SEVERE, ex.getMessage(), ex);
+                    Logger
+                        .getLogger(TMSettingsControl.class.getName())
+                        .log(Level.SEVERE, ex.getMessage(), ex);
                 }
-
             }
         };
     }
-
 }

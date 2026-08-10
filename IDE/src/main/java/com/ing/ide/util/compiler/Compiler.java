@@ -1,14 +1,12 @@
-
 package com.ing.ide.util.compiler;
 
 import java.io.File;
 
 /**
  *
- * 
+ *
  */
 public class Compiler implements CompilerF {
-
     public String sourceFile;
     public String libLocation = "./lib";
     public String javaPath;
@@ -42,7 +40,6 @@ public class Compiler implements CompilerF {
             return new MacCompiler(src, lib, jpath);
         }
         return null;
-
     }
 
     /**

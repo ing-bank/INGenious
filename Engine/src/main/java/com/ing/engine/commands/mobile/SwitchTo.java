@@ -1,14 +1,13 @@
-
 package com.ing.engine.commands.mobile;
 
-import com.ing.engine.core.CommandControl;
-import com.ing.ingenious.api.exception.ForcedException;
-import com.ing.ingenious.api.status.Status;
-import com.ing.ingenious.api.annotation.Action;
-import com.ing.ingenious.api.types.InputType;
-import com.ing.ingenious.api.types.ObjectType;
 import com.galenframework.specs.SpecText;
 import com.ing.engine.commands.browser.Command;
+import com.ing.engine.core.CommandControl;
+import com.ing.ingenious.api.annotation.Action;
+import com.ing.ingenious.api.exception.ForcedException;
+import com.ing.ingenious.api.status.Status;
+import com.ing.ingenious.api.types.InputType;
+import com.ing.ingenious.api.types.ObjectType;
 import java.util.Set;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -19,8 +18,7 @@ public class SwitchTo extends Command {
     public SwitchTo(CommandControl cc) {
         super(cc);
     }
-
-/*
+    /*
     @Action(object = ObjectType.MOBILE, desc = "Switch to frame by name: [<Data>]", input = InputType.YES)
     public void switchToFrame() {
         String strTargetFrame = Data;

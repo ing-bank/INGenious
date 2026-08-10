@@ -1,15 +1,14 @@
-
 package com.ing.datalib.or.image;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.ing.datalib.component.utils.FileUtils;
 import com.ing.datalib.or.common.ORAttribute;
 import com.ing.datalib.or.common.ORObjectInf;
 import com.ing.datalib.or.common.ORUtils;
 import com.ing.datalib.or.common.ObjectGroup;
 import com.ing.datalib.undoredo.UndoRedoModel;
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import java.awt.Dimension;
 import java.awt.HeadlessException;
 import java.awt.Point;
@@ -26,7 +25,6 @@ import javax.swing.tree.TreeNode;
 import javax.swing.tree.TreePath;
 
 public class ImageORObject extends UndoRedoModel implements ORObjectInf {
-
     @JacksonXmlProperty(isAttribute = true, localName = "ref")
     private String name;
 
@@ -151,8 +149,9 @@ public class ImageORObject extends UndoRedoModel implements ORObjectInf {
         String offset = getAttributeByName("Offset");
         if (offset.matches("[+-]?[0-9]+,[+-]?[0-9]+")) {
             return new Point(
-                    Integer.valueOf(offset.split(",", 2)[0]),
-                    Integer.valueOf(offset.split(",", 2)[1]));
+                Integer.valueOf(offset.split(",", 2)[0]),
+                Integer.valueOf(offset.split(",", 2)[1])
+            );
         }
         return new Point();
     }
@@ -210,10 +209,11 @@ public class ImageORObject extends UndoRedoModel implements ORObjectInf {
         if (val.matches("[0-9]+,[0-9]+,[0-9]+,[0-9]+")) {
             String[] r = val.split(",", -1);
             return new Rectangle(
-                    Integer.valueOf(r[0]),
-                    Integer.valueOf(r[1]),
-                    Integer.valueOf(r[2]),
-                    Integer.valueOf(r[3]));
+                Integer.valueOf(r[0]),
+                Integer.valueOf(r[1]),
+                Integer.valueOf(r[2]),
+                Integer.valueOf(r[3])
+            );
         }
         return new Rectangle(0, 0, getDefault().width, getDefault().height);
     }
@@ -329,7 +329,12 @@ public class ImageORObject extends UndoRedoModel implements ORObjectInf {
     public Boolean isEqualOf(ORObjectInf obj) {
         ImageORObject object = (ImageORObject) obj;
         for (ORAttribute attribute : attributes) {
-            if (!Objects.equals(attribute.getValue(), object.getAttributeByName(attribute.getName()))) {
+            if (
+                !Objects.equals(
+                    attribute.getValue(),
+                    object.getAttributeByName(attribute.getName())
+                )
+            ) {
                 return false;
             }
         }
@@ -460,7 +465,8 @@ public class ImageORObject extends UndoRedoModel implements ORObjectInf {
         if (getParent().getChildCount() == 1) {
             flag = getParent().rename(newName);
         }
-        if (flag && getParent().getObjectByName(newName) == null) {
+        ORObjectInf existing = getParent().getObjectByName(newName);
+        if (flag && (existing == null || existing == this)) {
             if (FileUtils.renameFile(getRepLocation(), newName)) {
                 setName(newName);
                 changeSave();

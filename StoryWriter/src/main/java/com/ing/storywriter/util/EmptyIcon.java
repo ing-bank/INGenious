@@ -1,4 +1,3 @@
-
 package com.ing.storywriter.util;
 
 import java.awt.Component;
@@ -13,8 +12,7 @@ public class EmptyIcon implements Icon {
     private final int height = 10;
 
     @Override
-    public void paintIcon(Component c, Graphics g, int x, int y) {
-    }
+    public void paintIcon(Component c, Graphics g, int x, int y) {}
 
     @Override
     public int getIconWidth() {
@@ -25,5 +23,4 @@ public class EmptyIcon implements Icon {
     public int getIconHeight() {
         return height;
     }
-    
 }

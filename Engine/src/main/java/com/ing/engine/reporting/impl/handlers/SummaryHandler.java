@@ -1,4 +1,3 @@
-
 package com.ing.engine.reporting.impl.handlers;
 
 import com.ing.engine.core.RunContext;
@@ -10,10 +9,9 @@ import com.ing.ingenious.api.status.Status;
 
 /**
  *
- * 
+ *
  */
 public class SummaryHandler implements OverviewReport {
-
     public SummaryReport report;
 
     public SummaryHandler(SummaryReport report) {
@@ -21,29 +19,31 @@ public class SummaryHandler implements OverviewReport {
     }
 
     @Override
-    public void createReport(String runTime,int size) {
-   
-    }
+    public void createReport(String runTime, int size) {}
 
     @Override
-    public void updateTestCaseResults(String testScenario, String testCase,
-            String Iteration, String testDescription, String executionTime, 
-            String fileName, Status state, String Browser) {
-    }
+    public void updateTestCaseResults(
+        String testScenario,
+        String testCase,
+        String Iteration,
+        String testDescription,
+        String executionTime,
+        String fileName,
+        Status state,
+        String Browser
+    ) {}
 
     @Override
-    public void updateTestCaseResults(RunContext runContext, TestCaseReport report,
-            Status state, String executionTime) {
-    }
+    public void updateTestCaseResults(
+        RunContext runContext,
+        TestCaseReport report,
+        Status state,
+        String executionTime
+    ) {}
 
     @Override
-    public void finalizeReport() {
-
-    }
+    public void finalizeReport() {}
 
     @SuppressWarnings("rawtypes")
-	public void addHar(Har<String, Har.Log> h, TestCaseReport report, String pageName) {
-
-    }
-
+    public void addHar(Har<String, Har.Log> h, TestCaseReport report, String pageName) {}
 }

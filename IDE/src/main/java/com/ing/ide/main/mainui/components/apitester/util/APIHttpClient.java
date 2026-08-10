@@ -3,9 +3,9 @@ package com.ing.ide.main.mainui.components.apitester.util;
 import com.ing.datalib.api.*;
 import com.jayway.jsonpath.JsonPath;
 import com.jayway.jsonpath.PathNotFoundException;
-
-import javax.net.ssl.*;
 import java.io.*;
+import java.net.InetSocketAddress;
+import java.net.ProxySelector;
 import java.net.URI;
 import java.net.URLEncoder;
 import java.net.http.HttpClient;
@@ -24,15 +24,67 @@ import java.util.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
+import javax.net.ssl.*;
 
 /**
  * HTTP client wrapper for executing API requests.
  * Built on top of Java 11+ HttpClient.
  */
 public class APIHttpClient {
-
     private static final Logger LOG = Logger.getLogger(APIHttpClient.class.getName());
-    
+
+    /**
+     * Request headers that the JDK {@link HttpClient} restricts by default. The API Workbench
+     * relaxes them so users can faithfully replay pasted curl commands that set headers such as
+     * {@code Host}, {@code Connection} or {@code Content-Length}.
+     */
+    private static final String[] RELAXED_RESTRICTED_HEADERS = {
+        "host",
+        "connection",
+        "content-length",
+        "upgrade",
+        "expect",
+        "via",
+        "date",
+        "accept-encoding"
+    };
+
+    static {
+        relaxRestrictedHeaders();
+    }
+
+    /**
+     * Merges {@link #RELAXED_RESTRICTED_HEADERS} into the {@code jdk.httpclient.allowRestrictedHeaders}
+     * system property without clobbering any value already configured (for example, one supplied via
+     * a {@code -D} flag in the launcher scripts).
+     * <p>
+     * This is a defensive fallback for contexts where the app is NOT started through the launcher
+     * scripts (IDE/debugger, tests). In production the launcher's {@code -D} flag is the primary
+     * mechanism and guarantees the property is set before any {@link HttpClient} initializes. The
+     * property is read only once by the JDK, so a launcher value always wins on ordering; this merge
+     * only takes effect when nothing set it yet — which is also when the API tester is the first HTTP
+     * user in the JVM.
+     */
+    private static void relaxRestrictedHeaders() {
+        try {
+            String key = "jdk.httpclient.allowRestrictedHeaders";
+            String existing = System.getProperty(key, "");
+            java.util.LinkedHashSet<String> allowed = new java.util.LinkedHashSet<>();
+            for (String h : existing.split(",")) {
+                String trimmed = h.trim().toLowerCase();
+                if (!trimmed.isEmpty()) {
+                    allowed.add(trimmed);
+                }
+            }
+            for (String h : RELAXED_RESTRICTED_HEADERS) {
+                allowed.add(h);
+            }
+            System.setProperty(key, String.join(",", allowed));
+        } catch (Exception e) {
+            LOG.log(Level.WARNING, "Failed to relax restricted HTTP headers", e);
+        }
+    }
+
     private final HttpClient httpClient;
     private final HttpClient insecureHttpClient;
     private boolean trustAllCertificates;
@@ -52,31 +104,38 @@ public class APIHttpClient {
     }
 
     private HttpClient createSecureClient() {
-        return HttpClient.newBuilder()
-                .version(HttpClient.Version.HTTP_1_1)
-                .connectTimeout(Duration.ofMillis(defaultTimeout))
-                .followRedirects(HttpClient.Redirect.NORMAL)
-                .build();
+        return HttpClient
+            .newBuilder()
+            .version(HttpClient.Version.HTTP_1_1)
+            .connectTimeout(Duration.ofMillis(defaultTimeout))
+            .followRedirects(HttpClient.Redirect.NORMAL)
+            .build();
     }
 
     private HttpClient createInsecureClient() {
         try {
-            TrustManager[] trustAllCerts = new TrustManager[]{
+            TrustManager[] trustAllCerts = new TrustManager[] {
                 new X509TrustManager() {
-                    public X509Certificate[] getAcceptedIssuers() { return new X509Certificate[0]; }
+
+                    public X509Certificate[] getAcceptedIssuers() {
+                        return new X509Certificate[0];
+                    }
+
                     public void checkClientTrusted(X509Certificate[] certs, String authType) {}
+
                     public void checkServerTrusted(X509Certificate[] certs, String authType) {}
                 }
             };
             SSLContext sslContext = SSLContext.getInstance("TLS");
             sslContext.init(null, trustAllCerts, new SecureRandom());
-            
-            return HttpClient.newBuilder()
-                    .version(HttpClient.Version.HTTP_1_1)
-                    .connectTimeout(Duration.ofMillis(defaultTimeout))
-                    .followRedirects(HttpClient.Redirect.NORMAL)
-                    .sslContext(sslContext)
-                    .build();
+
+            return HttpClient
+                .newBuilder()
+                .version(HttpClient.Version.HTTP_1_1)
+                .connectTimeout(Duration.ofMillis(defaultTimeout))
+                .followRedirects(HttpClient.Redirect.NORMAL)
+                .sslContext(sslContext)
+                .build();
         } catch (NoSuchAlgorithmException | KeyManagementException e) {
             LOG.log(Level.WARNING, "Failed to create insecure client, falling back to secure", e);
             return createSecureClient();
@@ -90,61 +149,74 @@ public class APIHttpClient {
         try {
             // Resolve variables in URL
             String resolvedUrl = resolveVariables(request.getUrl());
-            
+
             // Build query string
             String queryString = buildQueryString(request.getEnabledQueryParams());
             if (!queryString.isEmpty()) {
                 resolvedUrl += (resolvedUrl.contains("?") ? "&" : "?") + queryString;
             }
-            
+
             // Add API key as query param if configured
             if (request.getAuth() != null) {
                 KeyValuePair apiKeyParam = request.getAuth().getApiKeyQueryParam();
                 if (apiKeyParam != null) {
-                    String paramStr = encode(apiKeyParam.getKey()) + "=" + encode(resolveVariables(apiKeyParam.getValue()));
+                    String paramStr =
+                        encode(apiKeyParam.getKey()) +
+                        "=" +
+                        encode(resolveVariables(apiKeyParam.getValue()));
                     resolvedUrl += (resolvedUrl.contains("?") ? "&" : "?") + paramStr;
                 }
             }
-            
+
             URI uri = URI.create(resolvedUrl);
-            
+
             // Build the request
-            HttpRequest.Builder builder = HttpRequest.newBuilder()
-                    .uri(uri)
-                    .timeout(Duration.ofMillis(request.getTimeout() > 0 ? request.getTimeout() : defaultTimeout));
-            
+            HttpRequest.Builder builder = HttpRequest
+                .newBuilder()
+                .uri(uri)
+                .timeout(
+                    Duration.ofMillis(
+                        request.getTimeout() > 0 ? request.getTimeout() : defaultTimeout
+                    )
+                );
+
             // Add headers
             addHeaders(builder, request);
-            
+
             // Set method and body
             setMethodAndBody(builder, request);
-            
+
             HttpRequest httpRequest = builder.build();
-            
+
             // Execute the request with appropriate SSL configuration
             Instant start = Instant.now();
             HttpClient client = getHttpClient(request);
-            HttpResponse<String> httpResponse = client.send(httpRequest, HttpResponse.BodyHandlers.ofString());
+            HttpResponse<String> httpResponse = client.send(
+                httpRequest,
+                HttpResponse.BodyHandlers.ofString()
+            );
             long responseTimeMs = Duration.between(start, Instant.now()).toMillis();
-            
+
             // Build response
             Map<String, List<String>> headers = new HashMap<>(httpResponse.headers().map());
             APIResponse response = new APIResponse(
-                    httpResponse.statusCode(),
-                    httpResponse.body(),
-                    headers,
-                    responseTimeMs
+                httpResponse.statusCode(),
+                httpResponse.body(),
+                headers,
+                responseTimeMs
             );
             response.setRequestId(request.getId());
-            
+
             // Run assertions
             if (request.getAssertions() != null && !request.getAssertions().isEmpty()) {
-                List<APIResponse.AssertionResult> results = runAssertions(request.getAssertions(), response);
+                List<APIResponse.AssertionResult> results = runAssertions(
+                    request.getAssertions(),
+                    response
+                );
                 response.setAssertionResults(results);
             }
-            
+
             return response;
-            
         } catch (IOException e) {
             LOG.log(Level.SEVERE, "IO error executing request", e);
             return APIResponse.error("Connection error: " + e.getMessage());
@@ -161,26 +233,26 @@ public class APIHttpClient {
     private void addHeaders(HttpRequest.Builder builder, APIRequest request) {
         // Add default headers
         Map<String, String> headers = new LinkedHashMap<>();
-        
+
         // Add request headers
         for (KeyValuePair header : request.getEnabledHeaders()) {
             headers.put(header.getKey(), resolveVariables(header.getValue()));
         }
-        
+
         // Add authorization header
         if (request.getAuth() != null) {
             String authHeader = request.getAuth().getAuthorizationHeader();
             if (authHeader != null) {
                 headers.put("Authorization", resolveVariables(authHeader));
             }
-            
+
             // Add API key header if configured
             KeyValuePair apiKeyHeader = request.getAuth().getApiKeyHeader();
             if (apiKeyHeader != null) {
                 headers.put(apiKeyHeader.getKey(), resolveVariables(apiKeyHeader.getValue()));
             }
         }
-        
+
         // Add Content-Type if body has content
         if (request.getBody() != null && request.getBody().hasContent()) {
             String contentType = request.getBody().getContentType();
@@ -188,16 +260,32 @@ public class APIHttpClient {
                 headers.put("Content-Type", contentType);
             }
         }
-        
-        // Apply headers to builder
+
+        // Apply headers to builder. A header may still be rejected as restricted depending on the
+        // JDK version / property timing; skip it gracefully rather than failing the whole request.
         for (Map.Entry<String, String> entry : headers.entrySet()) {
-            builder.header(entry.getKey(), entry.getValue());
+            // The JDK HttpClient manages these itself: Content-Length is computed from the body
+            // publisher (a manual value can conflict), and Accept-Encoding controls automatic
+            // response decompression — forwarding "gzip" would yield a compressed, unreadable body.
+            // Drop them so pasted curl commands render cleanly.
+            String name = entry.getKey();
+            if (
+                "content-length".equalsIgnoreCase(name) || "accept-encoding".equalsIgnoreCase(name)
+            ) {
+                LOG.log(Level.FINE, "Dropping client-managed request header: " + name);
+                continue;
+            }
+            try {
+                builder.header(name, entry.getValue());
+            } catch (IllegalArgumentException e) {
+                LOG.log(Level.WARNING, "Skipping restricted/invalid request header: " + name, e);
+            }
         }
     }
 
     private void setMethodAndBody(HttpRequest.Builder builder, APIRequest request) {
         HttpRequest.BodyPublisher bodyPublisher = buildBodyPublisher(request.getBody());
-        
+
         switch (request.getMethod()) {
             case GET:
                 builder.GET();
@@ -229,22 +317,23 @@ public class APIHttpClient {
         if (body == null || !body.hasContent()) {
             return HttpRequest.BodyPublishers.noBody();
         }
-        
+
         switch (body.getBodyType()) {
             case RAW:
                 String content = resolveVariables(body.getRawContent());
                 return HttpRequest.BodyPublishers.ofString(content);
-                
             case URL_ENCODED:
                 StringBuilder sb = new StringBuilder();
                 for (KeyValuePair kvp : body.getUrlEncodedData()) {
                     if (kvp.isEnabled()) {
                         if (sb.length() > 0) sb.append("&");
-                        sb.append(encode(kvp.getKey())).append("=").append(encode(resolveVariables(kvp.getValue())));
+                        sb
+                            .append(encode(kvp.getKey()))
+                            .append("=")
+                            .append(encode(resolveVariables(kvp.getValue())));
                     }
                 }
                 return HttpRequest.BodyPublishers.ofString(sb.toString());
-                
             case GRAPHQL:
                 // GraphQL is sent as JSON
                 String query = body.getGraphqlQuery();
@@ -255,7 +344,6 @@ public class APIHttpClient {
                 }
                 graphqlBody += "}";
                 return HttpRequest.BodyPublishers.ofString(graphqlBody);
-                
             default:
                 return HttpRequest.BodyPublishers.noBody();
         }
@@ -269,7 +357,10 @@ public class APIHttpClient {
         for (KeyValuePair param : params) {
             if (param.isEnabled()) {
                 if (sb.length() > 0) sb.append("&");
-                sb.append(encode(param.getKey())).append("=").append(encode(resolveVariables(param.getValue())));
+                sb
+                    .append(encode(param.getKey()))
+                    .append("=")
+                    .append(encode(resolveVariables(param.getValue())));
             }
         }
         return sb.toString();
@@ -288,31 +379,39 @@ public class APIHttpClient {
 
     private String escapeJson(String value) {
         if (value == null) return "null";
-        return "\"" + value
+        return (
+            "\"" +
+            value
                 .replace("\\", "\\\\")
                 .replace("\"", "\\\"")
                 .replace("\n", "\\n")
                 .replace("\r", "\\r")
-                .replace("\t", "\\t")
-                + "\"";
+                .replace("\t", "\\t") +
+            "\""
+        );
     }
 
     /**
      * Runs assertions against the response.
      */
-    private List<APIResponse.AssertionResult> runAssertions(List<APIAssertion> assertions, APIResponse response) {
+    private List<APIResponse.AssertionResult> runAssertions(
+        List<APIAssertion> assertions,
+        APIResponse response
+    ) {
         List<APIResponse.AssertionResult> results = new ArrayList<>();
-        
+
         for (APIAssertion assertion : assertions) {
             if (!assertion.isEnabled()) {
                 continue;
             }
-            
+
             APIResponse.AssertionResult result = new APIResponse.AssertionResult();
             result.setAssertionId(assertion.getId());
-            result.setAssertionName(assertion.getName() != null ? assertion.getName() : assertion.toString());
+            result.setAssertionName(
+                assertion.getName() != null ? assertion.getName() : assertion.toString()
+            );
             result.setExpectedValue(assertion.getExpectedValue());
-            
+
             try {
                 boolean passed = evaluateAssertion(assertion, response, result);
                 result.setPassed(passed);
@@ -323,52 +422,61 @@ public class APIHttpClient {
                 result.setPassed(false);
                 result.setMessage("Error: " + e.getMessage());
             }
-            
+
             results.add(result);
         }
-        
+
         return results;
     }
 
-    private boolean evaluateAssertion(APIAssertion assertion, APIResponse response, APIResponse.AssertionResult result) {
+    private boolean evaluateAssertion(
+        APIAssertion assertion,
+        APIResponse response,
+        APIResponse.AssertionResult result
+    ) {
         String actual;
-        
+
         switch (assertion.getType()) {
             case STATUS_CODE:
                 actual = String.valueOf(response.getStatusCode());
                 result.setActualValue(actual);
                 return compare(actual, assertion.getOperator(), assertion.getExpectedValue());
-                
             case RESPONSE_TIME:
                 actual = String.valueOf(response.getResponseTimeMs());
                 result.setActualValue(actual + " ms");
                 return compare(actual, assertion.getOperator(), assertion.getExpectedValue());
-                
             case HEADER:
                 actual = response.getHeader(assertion.getTarget());
                 result.setActualValue(actual);
                 return compare(actual, assertion.getOperator(), assertion.getExpectedValue());
-                
             case CONTENT_TYPE:
                 actual = response.getContentType();
                 result.setActualValue(actual);
                 return compare(actual, assertion.getOperator(), assertion.getExpectedValue());
-                
             case BODY_CONTAINS:
                 actual = response.getBody();
-                result.setActualValue(actual != null && actual.length() > 100 ? actual.substring(0, 100) + "..." : actual);
+                result.setActualValue(
+                    actual != null && actual.length() > 100
+                        ? actual.substring(0, 100) + "..."
+                        : actual
+                );
                 return actual != null && actual.contains(assertion.getExpectedValue());
-                
             case BODY_EQUALS:
                 actual = response.getBody();
-                result.setActualValue(actual != null && actual.length() > 100 ? actual.substring(0, 100) + "..." : actual);
+                result.setActualValue(
+                    actual != null && actual.length() > 100
+                        ? actual.substring(0, 100) + "..."
+                        : actual
+                );
                 return Objects.equals(actual, assertion.getExpectedValue());
-                
             case BODY_MATCHES_REGEX:
                 actual = response.getBody();
-                result.setActualValue(actual != null && actual.length() > 100 ? actual.substring(0, 100) + "..." : actual);
+                result.setActualValue(
+                    actual != null && actual.length() > 100
+                        ? actual.substring(0, 100) + "..."
+                        : actual
+                );
                 return actual != null && Pattern.matches(assertion.getExpectedValue(), actual);
-                
             case JSON_PATH:
                 try {
                     Object jsonValue = JsonPath.read(response.getBody(), assertion.getTarget());
@@ -380,7 +488,6 @@ public class APIHttpClient {
                     result.setMessage("JSON path not found: " + assertion.getTarget());
                     return assertion.getOperator() == APIAssertion.Operator.NOT_EXISTS;
                 }
-                
             default:
                 result.setMessage("Unsupported assertion type: " + assertion.getType());
                 return false;
@@ -439,32 +546,87 @@ public class APIHttpClient {
      */
     private HttpClient getHttpClient(APIRequest request) {
         CertificateConfig certConfig = request.getCertificateConfig();
-        
-        // If certificates are configured, create a custom client
-        if (certConfig != null && certConfig.isEnabled() && certConfig.hasValidConfig()) {
+        ProxyConfig proxyConfig = request.getProxyConfig();
+        boolean useProxy = proxyConfig != null && proxyConfig.hasValidConfig();
+        boolean useCerts =
+            certConfig != null && certConfig.isEnabled() && certConfig.hasValidConfig();
+
+        // If certificates and/or a proxy are configured, create a custom client
+        if (useCerts || useProxy) {
             try {
-                SSLContext sslContext = createCertificateSSLContext(certConfig, !request.isSslVerificationEnabled());
-                return HttpClient.newBuilder()
-                        .version(HttpClient.Version.HTTP_1_1)
-                        .connectTimeout(Duration.ofMillis(request.getTimeout() > 0 ? request.getTimeout() : defaultTimeout))
-                        .followRedirects(HttpClient.Redirect.NORMAL)
-                        .sslContext(sslContext)
-                        .build();
+                HttpClient.Builder builder = HttpClient
+                    .newBuilder()
+                    .version(HttpClient.Version.HTTP_1_1)
+                    .connectTimeout(
+                        Duration.ofMillis(
+                            request.getTimeout() > 0 ? request.getTimeout() : defaultTimeout
+                        )
+                    )
+                    .followRedirects(HttpClient.Redirect.NORMAL);
+
+                if (useCerts) {
+                    SSLContext sslContext = createCertificateSSLContext(
+                        certConfig,
+                        !request.isSslVerificationEnabled()
+                    );
+                    builder.sslContext(sslContext);
+                } else if (trustAllCertificates) {
+                    builder.sslContext(buildTrustAllSSLContext());
+                }
+
+                if (useProxy) {
+                    builder.proxy(
+                        ProxySelector.of(
+                            new InetSocketAddress(
+                                proxyConfig.getHost().trim(),
+                                Integer.parseInt(proxyConfig.getPort().trim())
+                            )
+                        )
+                    );
+                }
+
+                return builder.build();
             } catch (Exception e) {
-                LOG.log(Level.WARNING, "Failed to create SSL context with certificates, using default", e);
+                LOG.log(
+                    Level.WARNING,
+                    "Failed to create custom HTTP client (certificate/proxy), using default",
+                    e
+                );
             }
         }
-        
-        // Fall back to standard clients  
+
+        // Fall back to standard clients
         return trustAllCertificates ? insecureHttpClient : httpClient;
+    }
+
+    /**
+     * Builds an SSL context that trusts all server certificates.
+     */
+    private SSLContext buildTrustAllSSLContext() throws Exception {
+        TrustManager[] trustAllCerts = new TrustManager[] {
+            new X509TrustManager() {
+
+                public X509Certificate[] getAcceptedIssuers() {
+                    return new X509Certificate[0];
+                }
+
+                public void checkClientTrusted(X509Certificate[] certs, String authType) {}
+
+                public void checkServerTrusted(X509Certificate[] certs, String authType) {}
+            }
+        };
+        SSLContext sslContext = SSLContext.getInstance("TLS");
+        sslContext.init(null, trustAllCerts, new SecureRandom());
+        return sslContext;
     }
 
     /**
      * Creates an SSL context with client certificates and optionally trusts all server certificates.
      */
-    private SSLContext createCertificateSSLContext(CertificateConfig certConfig, boolean trustAll) throws Exception {
+    private SSLContext createCertificateSSLContext(CertificateConfig certConfig, boolean trustAll)
+        throws Exception {
         SSLContext sslContext = SSLContext.getInstance("TLS");
-        
+
         // Setup KeyManager for client certificates
         KeyManager[] keyManagers = null;
         if (certConfig.getCertificateType() == CertificateConfig.CertificateType.PFX) {
@@ -472,23 +634,29 @@ public class APIHttpClient {
         } else {
             keyManagers = createPemKeyManagers(certConfig);
         }
-        
+
         // Setup TrustManager
         TrustManager[] trustManagers;
         if (trustAll) {
             // Trust all certificates
-            trustManagers = new TrustManager[]{
-                new X509TrustManager() {
-                    public X509Certificate[] getAcceptedIssuers() { return new X509Certificate[0]; }
-                    public void checkClientTrusted(X509Certificate[] certs, String authType) {}
-                    public void checkServerTrusted(X509Certificate[] certs, String authType) {}
-                }
-            };
+            trustManagers =
+                new TrustManager[] {
+                    new X509TrustManager() {
+
+                        public X509Certificate[] getAcceptedIssuers() {
+                            return new X509Certificate[0];
+                        }
+
+                        public void checkClientTrusted(X509Certificate[] certs, String authType) {}
+
+                        public void checkServerTrusted(X509Certificate[] certs, String authType) {}
+                    }
+                };
         } else {
             // Use custom CA if provided, otherwise use default
             trustManagers = createTrustManagers(certConfig);
         }
-        
+
         sslContext.init(keyManagers, trustManagers, new SecureRandom());
         return sslContext;
     }
@@ -496,19 +664,21 @@ public class APIHttpClient {
     private KeyManager[] createPfxKeyManagers(CertificateConfig certConfig) throws Exception {
         String pfxPath = certConfig.getPfxPath();
         String passphrase = certConfig.getPassphrase();
-        
+
         if (pfxPath == null || pfxPath.trim().isEmpty()) {
             return null;
         }
-        
+
         KeyStore keyStore = KeyStore.getInstance("PKCS12");
         char[] password = passphrase != null ? passphrase.toCharArray() : new char[0];
-        
+
         try (FileInputStream fis = new FileInputStream(pfxPath)) {
             keyStore.load(fis, password);
         }
-        
-        KeyManagerFactory kmf = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
+
+        KeyManagerFactory kmf = KeyManagerFactory.getInstance(
+            KeyManagerFactory.getDefaultAlgorithm()
+        );
         kmf.init(keyStore, password);
         return kmf.getKeyManagers();
     }
@@ -517,60 +687,75 @@ public class APIHttpClient {
         String clientCertPath = certConfig.getClientCertPath();
         String clientKeyPath = certConfig.getClientKeyPath();
         String passphrase = certConfig.getPassphrase();
-        
-        if (clientCertPath == null || clientCertPath.trim().isEmpty() ||
-            clientKeyPath == null || clientKeyPath.trim().isEmpty()) {
+
+        if (
+            clientCertPath == null ||
+            clientCertPath.trim().isEmpty() ||
+            clientKeyPath == null ||
+            clientKeyPath.trim().isEmpty()
+        ) {
             return null;
         }
-        
+
         // Load client certificate
         X509Certificate clientCert = loadPemCertificate(clientCertPath);
-        
+
         // Load private key
         PrivateKey privateKey = loadPemPrivateKey(clientKeyPath, passphrase);
-        
+
         // Create keystore with client certificate
         KeyStore keyStore = KeyStore.getInstance("JKS");
         keyStore.load(null, null);
-        keyStore.setKeyEntry("client", privateKey, new char[0], new java.security.cert.Certificate[]{clientCert});
-        
-        KeyManagerFactory kmf = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
+        keyStore.setKeyEntry(
+            "client",
+            privateKey,
+            new char[0],
+            new java.security.cert.Certificate[] { clientCert }
+        );
+
+        KeyManagerFactory kmf = KeyManagerFactory.getInstance(
+            KeyManagerFactory.getDefaultAlgorithm()
+        );
         kmf.init(keyStore, new char[0]);
         return kmf.getKeyManagers();
     }
 
     private TrustManager[] createTrustManagers(CertificateConfig certConfig) throws Exception {
         String caCertPath = certConfig.getCaCertPath();
-        
+
         if (caCertPath == null || caCertPath.trim().isEmpty()) {
             // Use system default trust managers
-            TrustManagerFactory tmf = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
+            TrustManagerFactory tmf = TrustManagerFactory.getInstance(
+                TrustManagerFactory.getDefaultAlgorithm()
+            );
             tmf.init((KeyStore) null);
             return tmf.getTrustManagers();
         }
-        
+
         // Load CA certificate
         X509Certificate caCert = loadPemCertificate(caCertPath);
-        
+
         // Create trust store with CA certificate
         KeyStore trustStore = KeyStore.getInstance("JKS");
         trustStore.load(null, null);
         trustStore.setCertificateEntry("ca", caCert);
-        
-        TrustManagerFactory tmf = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
+
+        TrustManagerFactory tmf = TrustManagerFactory.getInstance(
+            TrustManagerFactory.getDefaultAlgorithm()
+        );
         tmf.init(trustStore);
         return tmf.getTrustManagers();
     }
 
     private X509Certificate loadPemCertificate(String certPath) throws Exception {
         String pemContent = new String(Files.readAllBytes(Paths.get(certPath)));
-        
+
         // Extract certificate content between BEGIN/END markers
         String certContent = pemContent
-                .replaceAll("-----BEGIN CERTIFICATE-----", "")
-                .replaceAll("-----END CERTIFICATE-----", "")
-                .replaceAll("\\s", "");
-        
+            .replaceAll("-----BEGIN CERTIFICATE-----", "")
+            .replaceAll("-----END CERTIFICATE-----", "")
+            .replaceAll("\\s", "");
+
         byte[] certBytes = Base64.getDecoder().decode(certContent);
         CertificateFactory cf = CertificateFactory.getInstance("X.509");
         return (X509Certificate) cf.generateCertificate(new ByteArrayInputStream(certBytes));
@@ -578,23 +763,25 @@ public class APIHttpClient {
 
     private PrivateKey loadPemPrivateKey(String keyPath, String passphrase) throws Exception {
         String pemContent = new String(Files.readAllBytes(Paths.get(keyPath)));
-        
+
         // Handle encrypted private keys (basic support)
         if (pemContent.contains("ENCRYPTED")) {
-            throw new UnsupportedOperationException("Encrypted PEM private keys are not yet supported. Use PFX format or unencrypted PEM keys.");
+            throw new UnsupportedOperationException(
+                "Encrypted PEM private keys are not yet supported. Use PFX format or unencrypted PEM keys."
+            );
         }
-        
+
         // Extract private key content between BEGIN/END markers
         String keyContent = pemContent
-                .replaceAll("-----BEGIN (RSA |EC |)PRIVATE KEY-----", "")
-                .replaceAll("-----END (RSA |EC |)PRIVATE KEY-----", "")
-                .replaceAll("\\s", "");
-        
+            .replaceAll("-----BEGIN (RSA |EC |)PRIVATE KEY-----", "")
+            .replaceAll("-----END (RSA |EC |)PRIVATE KEY-----", "")
+            .replaceAll("\\s", "");
+
         byte[] keyBytes = Base64.getDecoder().decode(keyContent);
         PKCS8EncodedKeySpec keySpec = new PKCS8EncodedKeySpec(keyBytes);
-        
+
         // Try different key algorithms
-        for (String algorithm : new String[]{"RSA", "EC", "DSA"}) {
+        for (String algorithm : new String[] { "RSA", "EC", "DSA" }) {
             try {
                 KeyFactory kf = KeyFactory.getInstance(algorithm);
                 return kf.generatePrivate(keySpec);
@@ -602,8 +789,10 @@ public class APIHttpClient {
                 // Try next algorithm
             }
         }
-        
-        throw new GeneralSecurityException("Unable to load private key - unsupported format or algorithm");
+
+        throw new GeneralSecurityException(
+            "Unable to load private key - unsupported format or algorithm"
+        );
     }
 
     // Getters and Setters

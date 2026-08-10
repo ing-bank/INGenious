@@ -1,4 +1,3 @@
-
 package com.ing.engine.galenWrapper.SpecValidation;
 
 import com.galenframework.specs.SpecText;
@@ -11,13 +10,18 @@ import java.util.List;
 
 /**
  *
- * 
+ *
  * @param <T>
  */
 public abstract class SpecValidationTextWrapper<T extends SpecText> extends SpecValidationText<T> {
 
     @Override
-    abstract public ValidationResult check(PageValidation pageValidation, String objectName, T spec) throws ValidationErrorException;
+    public abstract ValidationResult check(
+        PageValidation pageValidation,
+        String objectName,
+        T spec
+    )
+        throws ValidationErrorException;
 
     public String applyOperationsTo(String text, List<String> operations) {
         if (operations != null) {

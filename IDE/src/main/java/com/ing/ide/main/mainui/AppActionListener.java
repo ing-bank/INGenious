@@ -1,24 +1,24 @@
-
 package com.ing.ide.main.mainui;
 
 import com.ing.engine.support.methodInf.MethodInfoManager;
 import com.ing.exceptions.DuplicateMethodException;
+import com.ing.ide.main.Main;
 import com.ing.ide.main.bdd.BddParser;
 import com.ing.ide.main.explorer.ExplorerBar;
-import com.ing.ide.main.Main;
+import com.ing.ide.main.googlerecordingjson.JsonParser;
 import com.ing.ide.main.help.Help;
 import com.ing.ide.main.mainui.components.testdesign.testdata.ImportTestData;
-import com.ing.ide.main.settings.INGeniousSettings;
-import com.ing.ide.main.settings.DriverSettings;
-import com.ing.ide.main.settings.TMSettings;
-import com.ing.ide.main.googlerecordingjson.JsonParser;
 import com.ing.ide.main.playwrightrecording.PlaywrightRecordingParser;
 import com.ing.ide.main.playwrightrecording.RecordedStepsNameDialogue;
 import com.ing.ide.main.sapscript.SapScriptParser;
+import com.ing.ide.main.settings.DriverSettings;
+import com.ing.ide.main.settings.INGeniousSettings;
+import com.ing.ide.main.settings.TMSettings;
 import com.ing.ide.main.ui.AboutUI;
 import com.ing.ide.main.ui.InjectScript;
 import com.ing.ide.main.ui.NewProject;
 import com.ing.ide.main.ui.Options;
+import com.ing.ide.main.ui.ProfileDialog;
 import com.ing.ide.main.utils.CMProjectCreator;
 import com.ing.ide.main.utils.Utils;
 import com.ing.ide.util.Notification;
@@ -28,17 +28,14 @@ import java.awt.event.ActionListener;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.Arrays;
 import java.util.Comparator;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class AppActionListener implements ActionListener {
-
     private final AppMainFrame sMainFrame;
 
     private final NewProject nProject;
@@ -54,23 +51,23 @@ public class AppActionListener implements ActionListener {
     //private final SchedulerUI scheduler;
 
     private final BddParser bddParser;
-    
+
     private final JsonParser jsonParser;
-    
+
     private final SapScriptParser sapScriptParser;
 
     private final InjectScript injectScript;
 
     private final ImportTestData importTestData;
-    
+
     private final AppToolBar appToolBar;
-    
+
     private Timer autoSaveTimer;
-    
+
     private boolean autoSaveEnabled = false;
-    
+
     //private static AppActionListener instance;
-    
+
     public AppActionListener(AppMainFrame sMainFrame, AppToolBar appToolBar) throws IOException {
         this.sMainFrame = sMainFrame;
         this.appToolBar = appToolBar;
@@ -79,7 +76,7 @@ public class AppActionListener implements ActionListener {
         driverSettings = new DriverSettings(sMainFrame);
         tmSettings = new TMSettings(sMainFrame);
         options = new Options();
-       // scheduler = new SchedulerUI();
+        // scheduler = new SchedulerUI();
         bddParser = new BddParser(sMainFrame);
         jsonParser = new JsonParser(sMainFrame);
         sapScriptParser = new SapScriptParser(sMainFrame);
@@ -112,30 +109,32 @@ public class AppActionListener implements ActionListener {
                 } else {
                     stopAutoSave();
                 }
-                break;    
+                break;
             case "Recorder":
-            {
-                try {
-                    sMainFrame.getTestDesign().getTestCaseComp().record();
-                } catch (IOException ex) {
-                    Logger.getLogger(AppActionListener.class.getName()).log(Level.SEVERE, null, ex);
+                {
+                    try {
+                        sMainFrame.getTestDesign().getTestCaseComp().record();
+                    } catch (IOException ex) {
+                        Logger
+                            .getLogger(AppActionListener.class.getName())
+                            .log(Level.SEVERE, null, ex);
+                    }
                 }
-            }
                 break;
-
-           case "Mobile Spy":
-               sMainFrame.getSpyHealReco().showMobileSpy();
-              break;
+            case "Mobile Spy":
+                sMainFrame.getSpyHealReco().showMobileSpy();
+                break;
             case "Exploratory":
-            {
-                try {
-                    ExplorerBar.showExplorerBar(sMainFrame);
-                } catch (IOException ex) {
-                    Logger.getLogger(AppActionListener.class.getName()).log(Level.SEVERE, null, ex);
+                {
+                    try {
+                        ExplorerBar.showExplorerBar(sMainFrame);
+                    } catch (IOException ex) {
+                        Logger
+                            .getLogger(AppActionListener.class.getName())
+                            .log(Level.SEVERE, null, ex);
+                    }
                 }
-            }
                 break;
-
             case "Multiple Environment":
                 sMainFrame.getTestDesign().getTestDatacomp().switchEnvView();
                 break;
@@ -143,20 +142,24 @@ public class AppActionListener implements ActionListener {
                 importTestData.importTestData();
                 break;
             case "Inject Script":
-            {
-                try {
-                    injectScript.load();
-                } catch (IOException ex) {
-                    Logger.getLogger(AppActionListener.class.getName()).log(Level.SEVERE, null, ex);
+                {
+                    try {
+                        injectScript.load();
+                    } catch (IOException ex) {
+                        Logger
+                            .getLogger(AppActionListener.class.getName())
+                            .log(Level.SEVERE, null, ex);
+                    }
                 }
-            }
                 break;
-
-            case "Run Settings":
+            case "Settings":
                 openSettings();
                 break;
-            case "Browser Configuration":
+            case "Archetype Configurations":
                 driverSettings.open();
+                break;
+            case "Profile":
+                openProfile();
                 break;
             case "AzureDevOps TestPlan Configuration":
                 tmSettings.open();
@@ -165,15 +168,16 @@ public class AppActionListener implements ActionListener {
                 options.showOptions();
                 break;
             case "Import Feature File":
-            {
-                try {
-                    bddParser.parse(Utils.openDialog("Feature File", "feature"));
-                } catch (IOException ex) {
-                    Logger.getLogger(AppActionListener.class.getName()).log(Level.SEVERE, null, ex);
+                {
+                    try {
+                        bddParser.parse(Utils.openDialog("Feature File", "feature"));
+                    } catch (IOException ex) {
+                        Logger
+                            .getLogger(AppActionListener.class.getName())
+                            .log(Level.SEVERE, null, ex);
+                    }
                 }
-            }
                 break;
-
             case "Open Feature Editor":
                 bddParser.openEditor();
                 break;
@@ -201,6 +205,9 @@ public class AppActionListener implements ActionListener {
             case "API Workbench":
                 sMainFrame.showAPITester();
                 break;
+            case "AI Assistant":
+                sMainFrame.showAICopilot();
+                break;
             case "Refresh":
                 doRefresh();
                 break;
@@ -216,29 +223,44 @@ public class AppActionListener implements ActionListener {
                 break;
             case "Import JSON":
                 {
-                    try {  
-                        String ProjectLocation=sMainFrame.getProject().getLocation();
+                    try {
+                        String ProjectLocation = sMainFrame.getProject().getLocation();
                         sMainFrame.loadProject(ProjectLocation);
                         jsonParser.parse(Utils.openDialog("JSON File", "json"));
-                        sMainFrame.loadProject(ProjectLocation);                                     
+                        sMainFrame.loadProject(ProjectLocation);
                     } catch (IOException ex) {
-                        Logger.getLogger(AppActionListener.class.getName()).log(Level.SEVERE, null, ex);
+                        Logger
+                            .getLogger(AppActionListener.class.getName())
+                            .log(Level.SEVERE, null, ex);
                     }
-                } 
-                 break;
+                }
+                break;
             case "Import via Playwright Recorder":
                 {
                     try {
-                        String ScenarioName = RecordedStepsNameDialogue.getScenarioName();
-                        PlaywrightRecordingParser playwrightRecordingParser = new PlaywrightRecordingParser(sMainFrame);
+                        String requestedScenarioName = RecordedStepsNameDialogue.getScenarioName();
+                        PlaywrightRecordingParser playwrightRecordingParser = new PlaywrightRecordingParser(
+                            sMainFrame
+                        );
                         String ProjectLocation = sMainFrame.getProject().getLocation();
+                        String scenarioName = resolveUniqueScenarioName(
+                            ProjectLocation,
+                            requestedScenarioName
+                        );
                         sMainFrame.loadProject(ProjectLocation);
-                        File recordingDir = new File(ProjectLocation + File.separator + "Recording");
-                        File[] recordingFiles = recordingDir.listFiles((dir, name) -> name.startsWith("recording_") && name.endsWith(".txt"));
+                        File recordingDir = new File(
+                            ProjectLocation + File.separator + "Recording"
+                        );
+                        File[] recordingFiles = recordingDir.listFiles(
+                            (dir, name) -> name.startsWith("recording_") && name.endsWith(".txt")
+                        );
                         if (recordingFiles != null && recordingFiles.length > 0) {
-                            Arrays.sort(recordingFiles, Comparator.comparingLong(File::lastModified).reversed());
+                            Arrays.sort(
+                                recordingFiles,
+                                Comparator.comparingLong(File::lastModified).reversed()
+                            );
                             File latestFile = recordingFiles[0];
-                            File duplicateFile = new File(recordingDir, ScenarioName + ".txt");
+                            File duplicateFile = new File(recordingDir, scenarioName + ".txt");
                             try {
                                 Files.copy(latestFile.toPath(), duplicateFile.toPath());
                             } catch (IOException e) {
@@ -246,64 +268,88 @@ public class AppActionListener implements ActionListener {
                             }
 
                             playwrightRecordingParser.playwrightParser(duplicateFile);
-                            sMainFrame.loadProject(ProjectLocation);  
+                            sMainFrame.loadProject(ProjectLocation);
                         } else {
                             System.out.println("No recording file found.");
-                        }    
+                        }
                     } catch (Exception ex) {
-                        Logger.getLogger(AppActionListener.class.getName()).log(Level.SEVERE, null, ex);
+                        Logger
+                            .getLogger(AppActionListener.class.getName())
+                            .log(Level.SEVERE, null, ex);
                     }
-                } 
-                 break;
-            case "Import Playwright Recording":    
+                }
+                break;
+            case "Import Playwright Recording":
                 {
                     try {
-                        PlaywrightRecordingParser playwrightRecordingParser=new PlaywrightRecordingParser(sMainFrame);
-                        String ProjectLocation=sMainFrame.getProject().getLocation();
+                        PlaywrightRecordingParser playwrightRecordingParser = new PlaywrightRecordingParser(
+                            sMainFrame
+                        );
+                        String ProjectLocation = sMainFrame.getProject().getLocation();
                         sMainFrame.loadProject(ProjectLocation);
-                        playwrightRecordingParser.playwrightParser(Utils.openDialog("Playwright Recording File", "txt"));
-                        sMainFrame.loadProject(ProjectLocation);                                     
+                        playwrightRecordingParser.playwrightParser(
+                            Utils.openDialog("Playwright Recording File", "txt", "java")
+                        );
+                        sMainFrame.loadProject(ProjectLocation);
                     } catch (Exception ex) {
-                        Logger.getLogger(AppActionListener.class.getName()).log(Level.SEVERE, null, ex);
+                        Logger
+                            .getLogger(AppActionListener.class.getName())
+                            .log(Level.SEVERE, null, ex);
                     }
-                } 
-                 break;
+                }
+                break;
             case "Import SAP Recording":
                 {
                     handleSapImport(null); // All languages
                 }
-                break; 
+                break;
             default:
                 // Handle language-specific SAP imports
                 if (ae.getActionCommand().startsWith("Import SAP Recording:")) {
-                    String language = ae.getActionCommand().substring("Import SAP Recording:".length());
+                    String language = ae
+                        .getActionCommand()
+                        .substring("Import SAP Recording:".length());
                     handleSapImport(language);
+                } else if (ae.getActionCommand().startsWith("Import Collection:")) {
+                    String fmt = ae.getActionCommand().substring("Import Collection:".length());
+                    com.ing.datalib.api.importer.ImportSource src;
+                    try {
+                        src = com.ing.datalib.api.importer.ImportSource.valueOf(fmt.toUpperCase());
+                    } catch (IllegalArgumentException ex) {
+                        src = com.ing.datalib.api.importer.ImportSource.POSTMAN;
+                    }
+                    new com.ing.ide.main.mainui.components.apitester.importing.ImportCollectionAction(
+                        sMainFrame
+                    )
+                    .openWizard(src);
                 } else {
                     System.out.println("UNHANDLED ACTION: [" + ae.getActionCommand() + "]");
                     sMainFrame.getLoader().showIDontCare();
                 }
         }
     }
-    
+
     /**
      * Handle SAP script import with optional language filter.
      * @param language Specific language filter (VBScript, JavaScript, etc.) or null for all languages
      */
     private void handleSapImport(String language) {
         try {
-            System.out.println("DEBUG: Import SAP Recording clicked" + (language != null ? " for " + language : ""));
-            
+            System.out.println(
+                "DEBUG: Import SAP Recording clicked" + (language != null ? " for " + language : "")
+            );
+
             if (sMainFrame.getProject() == null) {
                 Notification.show("Please open a project first before importing SAP scripts.");
                 System.out.println("ERROR: No project loaded");
                 return;
             }
-            
+
             String projectLocation = sMainFrame.getProject().getLocation();
             System.out.println("DEBUG: Project location: " + projectLocation);
-            
+
             File sapScriptFile;
-            
+
             // Use language-specific file dialog or all languages
             if (language != null) {
                 switch (language) {
@@ -329,22 +375,33 @@ public class AppActionListener implements ActionListener {
                     //     sapScriptFile = Utils.openDialog("VB.NET SAP Files (*.vb)", "vb");
                     //     break;
                     case "Java":
-                        sapScriptFile = Utils.openDialog("Java SAP Files (*.java, *.jsh)", "java", "jsh");
+                        sapScriptFile =
+                            Utils.openDialog("Java SAP Files (*.java, *.jsh)", "java", "jsh");
                         break;
                     default:
-                        sapScriptFile = Utils.openDialog("SAP GUI Script Files (PS1, JAVA)", 
-                            "ps1", "java", "jsh");
+                        sapScriptFile =
+                            Utils.openDialog(
+                                "SAP GUI Script Files (PS1, JAVA)",
+                                "ps1",
+                                "java",
+                                "jsh"
+                            );
                 }
             } else {
                 // All languages (only PowerShell and Java supported)
-                sapScriptFile = Utils.openDialog("SAP GUI Script Files (PS1, JAVA)", 
-                    "ps1", "java", "jsh");
+                sapScriptFile =
+                    Utils.openDialog("SAP GUI Script Files (PS1, JAVA)", "ps1", "java", "jsh");
             }
-            
-            System.out.println("DEBUG: Selected file: " + (sapScriptFile != null ? sapScriptFile.getAbsolutePath() : "null"));
-            
+
+            System.out.println(
+                "DEBUG: Selected file: " +
+                (sapScriptFile != null ? sapScriptFile.getAbsolutePath() : "null")
+            );
+
             if (sapScriptFile != null && sapScriptFile.exists()) {
-                System.out.println("INFO: Importing SAP Script Tracker file: " + sapScriptFile.getName());
+                System.out.println(
+                    "INFO: Importing SAP Script Tracker file: " + sapScriptFile.getName()
+                );
                 sapScriptParser.parseSapScript(sapScriptFile);
                 sMainFrame.loadProject(projectLocation);
                 Notification.show("SAP Script imported successfully and test cases created.");
@@ -354,20 +411,26 @@ public class AppActionListener implements ActionListener {
         } catch (Exception ex) {
             System.err.println("ERROR: Exception in Import SAP Recording: " + ex.getMessage());
             ex.printStackTrace();
-            Logger.getLogger(AppActionListener.class.getName()).log(Level.SEVERE, 
-                "Error importing SAP Script Tracker file", ex);
+            Logger
+                .getLogger(AppActionListener.class.getName())
+                .log(Level.SEVERE, "Error importing SAP Script Tracker file", ex);
             Notification.show("Failed to import SAP Script: " + ex.getMessage());
         }
     }
-    
+
     private void startAutoSave() {
         autoSaveTimer = new Timer();
-        autoSaveTimer.schedule(new TimerTask() {
-            @Override
-            public void run() {
-                sMainFrame.autoSave();
-            }
-        }, 0, 60000); // Save every 60 seconds
+        autoSaveTimer.schedule(
+            new TimerTask() {
+
+                @Override
+                public void run() {
+                    sMainFrame.autoSave();
+                }
+            },
+            0,
+            60000
+        ); // Save every 60 seconds
     }
 
     private void stopAutoSave() {
@@ -392,8 +455,10 @@ public class AppActionListener implements ActionListener {
 
     private void openSettings() {
         if (sMainFrame.isTestExecution()) {
-            com.ing.datalib.component.TestSet obj = sMainFrame.getTestExecution().getTestSetComp()
-                    .getCurrentTestSet();
+            com.ing.datalib.component.TestSet obj = sMainFrame
+                .getTestExecution()
+                .getTestSetComp()
+                .getCurrentTestSet();
             if (obj != null) {
                 cogITSSettings.loadSettings(obj.getExecSettings());
             }
@@ -427,11 +492,13 @@ public class AppActionListener implements ActionListener {
         try {
             MethodInfoManager.load();
         } catch (DuplicateMethodException ex) {
-            System.getLogger(AppActionListener.class.getName()).log(System.Logger.Level.ERROR, (String) null, ex);
+            System
+                .getLogger(AppActionListener.class.getName())
+                .log(System.Logger.Level.ERROR, (String) null, ex);
             System.exit(1);
         }
-    }      
-      
+    }
+
     /**
      * Closes the BDD editor (StoryWriter) if it is open.
      */
@@ -441,4 +508,31 @@ public class AppActionListener implements ActionListener {
         }
     }
 
+    private String resolveUniqueScenarioName(String projectLocation, String requestedName) {
+        String baseName = (requestedName == null || requestedName.trim().isEmpty())
+            ? "NewScenario"
+            : requestedName.trim();
+        String candidate = baseName;
+        int counter = 1;
+        while (scenarioNameExists(projectLocation, candidate)) {
+            candidate = baseName + "_" + counter;
+            counter++;
+        }
+        return candidate;
+    }
+
+    private boolean scenarioNameExists(String projectLocation, String scenarioName) {
+        File scenarioDir = new File(
+            projectLocation + File.separator + "TestPlan" + File.separator + scenarioName
+        );
+        File recordingFile = new File(
+            projectLocation + File.separator + "Recording" + File.separator + scenarioName + ".txt"
+        );
+        return scenarioDir.exists() || recordingFile.exists();
+    }
+
+    private void openProfile() {
+        ProfileDialog dialog = new ProfileDialog(sMainFrame);
+        dialog.setVisible(true);
+    }
 }

@@ -1,20 +1,19 @@
-
 package com.ing.engine.commands.galenCommands;
 
+import com.galenframework.specs.SpecCss;
+import com.galenframework.specs.SpecText.Type;
 import com.ing.engine.core.CommandControl;
 import com.ing.engine.galenWrapper.SpecValidation.SpecReader;
 import com.ing.ingenious.api.annotation.Action;
 import com.ing.ingenious.api.types.InputType;
 import com.ing.ingenious.api.types.ObjectType;
-import com.galenframework.specs.SpecCss;
-import com.galenframework.specs.SpecText.Type;
 
 public class CssProperties extends General {
 
     public CssProperties(CommandControl cc) {
         super(cc);
     }
-/*
+    /*
     private void assertElementCss(Type type) {
         SpecCss spec = SpecReader.reader().getSpecCSS(type, Data);
         spec.setOriginalText(getMessage(spec));

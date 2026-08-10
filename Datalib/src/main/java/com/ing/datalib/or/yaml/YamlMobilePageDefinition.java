@@ -1,9 +1,5 @@
 package com.ing.datalib.or.yaml;
 
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
@@ -11,16 +7,19 @@ import com.ing.datalib.or.common.ObjectGroup;
 import com.ing.datalib.or.mobile.MobileOR;
 import com.ing.datalib.or.mobile.MobileORObject;
 import com.ing.datalib.or.mobile.MobileORPage;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * YAML representation of a Mobile OR page.
- * 
+ *
  * Example YAML output:
  * <pre>
  * page: LoginScreen
  * packageName: com.example.app
  * description: Login screen with username and password fields
- * 
+ *
  * elements:
  *   usernameField:
  *     accessibility: username_input
@@ -33,26 +32,26 @@ import com.ing.datalib.or.mobile.MobileORPage;
  * </pre>
  */
 @JsonInclude(JsonInclude.Include.NON_EMPTY)
-@JsonPropertyOrder({"page", "scope", "packageName", "description", "platform", "tags", "elements"})
+@JsonPropertyOrder(
+    { "page", "scope", "packageName", "description", "platform", "tags", "elements" }
+)
 public class YamlMobilePageDefinition {
-    
     private String page;
-    private String packageName;  // Mobile-specific: app package name
+    private String packageName; // Mobile-specific: app package name
     private String description;
-    private String platform;     // "android" | "ios" | "both"
+    private String platform; // "android" | "ios" | "both"
     private List<String> tags;
     private Map<String, YamlMobileElementDefinition> elements = new LinkedHashMap<>();
     private MobileOR.ORScope scope;
-    
-    public YamlMobilePageDefinition() {
-    }
-    
+
+    public YamlMobilePageDefinition() {}
+
     public YamlMobilePageDefinition(String page) {
         this.page = page;
     }
-    
+
     // ==================== Getters and Setters ====================
-    
+
     public String getPage() {
         return page;
     }
@@ -108,9 +107,9 @@ public class YamlMobilePageDefinition {
     public void setElements(Map<String, YamlMobileElementDefinition> elements) {
         this.elements = elements;
     }
-    
+
     // ==================== Conversion Methods ====================
-    
+
     /**
      * Convert a MobileORPage to YamlMobilePageDefinition.
      */
@@ -118,57 +117,66 @@ public class YamlMobilePageDefinition {
         YamlMobilePageDefinition yaml = new YamlMobilePageDefinition();
         yaml.setPage(page.getName());
         yaml.setPackageName(page.getPackageName());
-        
+
         if (page.getRoot() != null) {
             yaml.setScope(page.getRoot().getScope());
         }
-        
+
         // Iterate through object groups and objects using Lists
         for (ObjectGroup<MobileORObject> group : page.getObjectGroups()) {
             for (MobileORObject obj : group.getObjects()) {
-                YamlMobileElementDefinition element = YamlMobileElementDefinition.fromMobileORObject(obj);
+                YamlMobileElementDefinition element = YamlMobileElementDefinition.fromMobileORObject(
+                    obj
+                );
                 // Use object name as key
                 yaml.getElements().put(obj.getName(), element);
             }
         }
-        
+
         return yaml;
     }
-    
+
     /**
      * Convert YamlMobilePageDefinition to a MobileORPage.
      */
     public MobileORPage toMobileORPage(MobileOR root) {
         MobileORPage page = new MobileORPage(this.page, root);
-        
-        if (this.scope != null && root != null && this.scope != root.getScope()) { 
-            throw new IllegalStateException("Scope mismatch: YAML Mobile page '" + page + "' declares scope " + scope + " but is loaded under OR scope " + root.getScope());
+
+        if (this.scope != null && root != null && this.scope != root.getScope()) {
+            throw new IllegalStateException(
+                "Scope mismatch: YAML Mobile page '" +
+                page +
+                "' declares scope " +
+                scope +
+                " but is loaded under OR scope " +
+                root.getScope()
+            );
         }
-        
+
         if (this.packageName != null && !this.packageName.isEmpty()) {
             page.setPackageName(this.packageName);
         }
-        
+
         // Convert each element to MobileORObject using direct list manipulation
         // to avoid calling factory methods that require ObjectRepository
         for (Map.Entry<String, YamlMobileElementDefinition> entry : elements.entrySet()) {
             String elementName = entry.getKey();
             YamlMobileElementDefinition elementDef = entry.getValue();
-            
+
             // Create object group directly
             ObjectGroup<MobileORObject> group = new ObjectGroup<>(elementName, page);
-            
+
             // Create object and add to group
             MobileORObject obj = elementDef.toMobileORObject(elementName, group);
             group.getObjects().add(obj);
-            
+
             // Add group to page directly
             page.getObjectGroups().add(group);
         }
-        
+
         return page;
     }
-    
+
     /**
      * Get the number of elements in this page.
      */
@@ -176,21 +184,21 @@ public class YamlMobilePageDefinition {
     public int getElementCount() {
         return elements.size();
     }
-    
+
     /**
      * Add an element to this page.
      */
     public void addElement(String name, YamlMobileElementDefinition element) {
         elements.put(name, element);
     }
-    
+
     /**
      * Get an element by name.
      */
     public YamlMobileElementDefinition getElement(String name) {
         return elements.get(name);
     }
-    
+
     /**
      * Check if page has an element with the given name.
      */

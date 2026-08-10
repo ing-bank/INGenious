@@ -5,11 +5,10 @@ import com.github.javafaker.Faker;
 import com.github.javafaker.Internet;
 import com.ing.engine.commands.browser.Command;
 import com.ing.engine.core.CommandControl;
-import com.ing.ingenious.api.status.Status;
 import com.ing.ingenious.api.annotation.Action;
+import com.ing.ingenious.api.status.Status;
 import com.ing.ingenious.api.types.InputType;
 import com.ing.ingenious.api.types.ObjectType;
-
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -36,12 +35,23 @@ public class SyntheticDataGenerator extends Command {
             faker.put(key, fakerWithLocale);
             Report.updateTestLog(Action, "Faker locale set to " + locale, Status.DONE);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during locale setup", ex);
-            Report.updateTestLog(Action, "Error setting locale: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during locale setup", ex);
+            Report.updateTestLog(
+                Action,
+                "Error setting locale: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random street address", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random street address",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void streetAddress() {
         try {
             String strObj = Input;
@@ -51,12 +61,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, streetAddress);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating data: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating data: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random street name", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random street name",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void streetName() {
         try {
             String strObj = Input;
@@ -66,12 +87,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, streetName);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating data: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating data: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random secondary address", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random secondary address",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void secondaryAddress() {
         try {
             String strObj = Input;
@@ -81,12 +113,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, secondaryAddress);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating data: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating data: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random building number", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random building number",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void buildingNumber() {
         try {
             String strObj = Input;
@@ -96,12 +139,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, buildingNumber);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating data: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating data: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random address city", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random address city",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void city() {
         try {
             String strObj = Input;
@@ -111,12 +165,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, city);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating data: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating data: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random city prefix", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random city prefix",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void cityPrefix() {
         try {
             String strObj = Input;
@@ -126,12 +191,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, cityPrefix);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating data: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating data: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random city suffix", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random city suffix",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void citySuffix() {
         try {
             String strObj = Input;
@@ -141,12 +217,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, citySuffix);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating data: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating data: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random zip code", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random zip code",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void zipCode() {
         try {
             String strObj = Input;
@@ -156,12 +243,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, zipCode);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating data: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating data: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random zip code by state", input = InputType.YES, condition = InputType.YES)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random zip code by state",
+        input = InputType.YES,
+        condition = InputType.YES
+    )
     public void zipCodeByState() {
         try {
             String strObj = Input;
@@ -172,12 +270,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, zipCodeByState);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating data: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating data: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random state", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random state",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void state() {
         try {
             String strObj = Input;
@@ -187,12 +296,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, state);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating data: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating data: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random state abbreviation", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random state abbreviation",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void stateAbbreviation() {
         try {
             String strObj = Input;
@@ -202,12 +322,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, stateAbbreviation);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating data: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating data: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random country", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random country",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void country() {
         try {
             String strObj = Input;
@@ -217,12 +348,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, country);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating data: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating data: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random country code", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random country code",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void countryCode() {
         try {
             String strObj = Input;
@@ -232,12 +374,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, countryCode);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating data: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating data: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random latitude", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random latitude",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void latitude() {
         try {
             String strObj = Input;
@@ -247,12 +400,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, latitude);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating data: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating data: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random longitude", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random longitude",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void longitude() {
         try {
             String strObj = Input;
@@ -262,12 +426,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, longitude);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating data: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating data: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random full address", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random full address",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void fullAddress() {
         try {
             String strObj = Input;
@@ -277,12 +452,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, fullAddress);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating data: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating data: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate country by zip code", input = InputType.YES, condition = InputType.YES)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate country by zip code",
+        input = InputType.YES,
+        condition = InputType.YES
+    )
     public void countryByZipCode() {
         try {
             String strObj = Input;
@@ -293,12 +479,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, countryByZipCode);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating data: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating data: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random street address including secondary", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random street address including secondary",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void streetAddressIncludeSecondary() {
         try {
             String strObj = Input;
@@ -309,12 +506,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, streetAddress);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating data: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating data: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random street address number", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random street address number",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void streetAddressNumber() {
         try {
             String strObj = Input;
@@ -324,12 +532,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, streetAddressNumber);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating data: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating data: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random street prefix", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random street prefix",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void streetPrefix() {
         try {
             String strObj = Input;
@@ -339,12 +558,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, streetPrefix);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating data: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating data: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random street suffix", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random street suffix",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void streetSuffix() {
         try {
             String strObj = Input;
@@ -354,12 +584,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, streetSuffix);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating data: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating data: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random time zone", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random time zone",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void timezone() {
         try {
             String strObj = Input;
@@ -369,12 +610,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, timezone);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating data: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating data: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random city Name", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random city Name",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void cityName() {
         try {
             String strObj = Input;
@@ -384,12 +636,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, cityName);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating data: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating data: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random address first name", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random address first name",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void addressFirstName() {
         try {
             String strObj = Input;
@@ -399,12 +662,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, firstName);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating data: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating data: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random address last name", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random address last name",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void addressLastName() {
         try {
             String strObj = Input;
@@ -414,12 +688,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, lastName);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating data: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating data: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random God's name", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random God's name",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void god() {
         try {
             String strObj = Input;
@@ -429,12 +714,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, god);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating data: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating data: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a primordial deity's name", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a primordial deity's name",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void primordial() {
         try {
             String strObj = Input;
@@ -444,12 +740,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, primordial);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating data: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating data: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random titan's name", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random titan's name",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void titan() {
         try {
             String strObj = Input;
@@ -459,12 +766,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, titan);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating data: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating data: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random hero's name", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random hero's name",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void hero() {
         try {
             String strObj = Input;
@@ -474,12 +792,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, hero);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating data: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating data: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random application name", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random application name",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void appName() {
         try {
             String strObj = Input;
@@ -489,12 +818,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, appName);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating data: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating data: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random application version", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random application version",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void appVersion() {
         try {
             String strObj = Input;
@@ -504,12 +844,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, appVersion);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating data: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating data: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random application author", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random application author",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void appAuthor() {
         try {
             String strObj = Input;
@@ -519,12 +870,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, appAuthor);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating data: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating data: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random artist's name", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random artist's name",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void artistName() {
         try {
             String strObj = Input;
@@ -534,12 +896,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, artistName);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating data: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating data: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random avatar URL", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random avatar URL",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void avatarUrl() {
         try {
             String strObj = Input;
@@ -549,12 +922,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, avatarUrl);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating data: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating data: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random aircraft name", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random aircraft name",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void aircraft() {
         try {
             String strObj = Input;
@@ -564,12 +948,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, aircraft);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating data: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating data: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random airport name", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random airport name",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void airport() {
         try {
             String strObj = Input;
@@ -579,12 +974,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, airport);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating data: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating data: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random METAR", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random METAR",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void metar() {
         try {
             String strObj = Input;
@@ -594,12 +1000,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, metar);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating data: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating data: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a character name from Back to the Future", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a character name from Back to the Future",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void characterBackToTheFuture() {
         try {
             String strObj = Input;
@@ -609,12 +1026,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, character);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating data: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating data: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a quote from Back to the Future", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a quote from Back to the Future",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void quoteBackToTheFuture() {
         try {
             String strObj = Input;
@@ -624,12 +1052,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, quote);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating data: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating data: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a date from Back to the Future", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a date from Back to the Future",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void dateBackToTheFuture() {
         try {
             String strObj = Input;
@@ -639,12 +1078,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, date);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating data: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating data: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random beer name", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random beer name",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void beerName() {
         try {
             String strObj = Input;
@@ -654,12 +1104,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, beerName);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating data: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating data: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random beer style", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random beer style",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void beerStyle() {
         try {
             String strObj = Input;
@@ -669,12 +1130,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, beerStyle);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating data: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating data: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random beer hop variety", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random beer hop variety",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void beerHop() {
         try {
             String strObj = Input;
@@ -684,12 +1156,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, beerHop);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating data: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating data: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random beer yeast variety", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random beer yeast variety",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void beerYeast() {
         try {
             String strObj = Input;
@@ -699,12 +1182,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, beerYeast);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating data: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating data: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random beer malt variety", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random beer malt variety",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void beerMalt() {
         try {
             String strObj = Input;
@@ -714,12 +1208,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, beerMalt);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating data: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating data: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random book title", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random book title",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void bookTitle() {
         try {
             String strObj = Input;
@@ -729,12 +1234,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, bookTitle);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating data: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating data: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random book author", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random book author",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void bookAuthor() {
         try {
             String strObj = Input;
@@ -744,12 +1260,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, bookAuthor);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating data: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating data: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random book genre", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random book genre",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void bookGenre() {
         try {
             String strObj = Input;
@@ -759,12 +1286,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, bookGenre);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating data: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating data: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random book publisher", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random book publisher",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void bookPublisher() {
         try {
             String strObj = Input;
@@ -774,12 +1312,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, bookPublisher);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating data: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating data: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random boolean value", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random boolean value",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void randomBool() {
         try {
             String strObj = Input;
@@ -789,12 +1338,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, Boolean.toString(randomBool));
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating data: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating data: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random credit card number", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random credit card number",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void creditCardNumber() {
         try {
             String strObj = Input;
@@ -804,12 +1364,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, creditCardNumber);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating data: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating data: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random credit card type", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random credit card type",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void creditCardType() {
         try {
             String strObj = Input;
@@ -819,12 +1390,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, creditCardType);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating data: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating data: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random credit card expiration date", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random credit card expiration date",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void creditCardExpiry() {
         try {
             String strObj = Input;
@@ -834,12 +1416,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, creditCardExpiry);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating data: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating data: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random cat name", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random cat name",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void catName() {
         try {
             String strObj = Input;
@@ -849,12 +1442,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, catName);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating data: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating data: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random cat breed", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random cat breed",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void catBreed() {
         try {
             String strObj = Input;
@@ -864,12 +1468,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, catBreed);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating data: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating data: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random cat registry", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random cat registry",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void catRegistry() {
         try {
             String strObj = Input;
@@ -879,12 +1494,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, catRegistry);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating data: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating data: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random Chuck Norris fact", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random Chuck Norris fact",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void chuckNorrisFact() {
         try {
             String strObj = Input;
@@ -894,12 +1520,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, chuckNorrisFact);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating data: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating data: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random ISBN-10 number", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random ISBN-10 number",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void isbn10() {
         try {
             String strObj = Input;
@@ -909,12 +1546,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, isbn10);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating data: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating data: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random ISBN-13 number", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random ISBN-13 number",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void isbn13() {
         try {
             String strObj = Input;
@@ -924,12 +1572,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, isbn13);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating data: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating data: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random GTIN-8 code", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random GTIN-8 code",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void gtin8() {
         try {
             String strObj = Input;
@@ -939,12 +1598,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, gtin8);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating data: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating data: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random GTIN-13 code", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random GTIN-13 code",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void gtin13() {
         try {
             String strObj = Input;
@@ -954,12 +1624,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, gtin13);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating data: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating data: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random EAN-8 code", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random EAN-8 code",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void ean8() {
         try {
             String strObj = Input;
@@ -969,12 +1650,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, ean8);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating data: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating data: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random EAN-13 code", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random EAN-13 code",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void ean13() {
         try {
             String strObj = Input;
@@ -984,12 +1676,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, ean13);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating data: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating data: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random ASIN number", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random ASIN number",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void asin() {
         try {
             String strObj = Input;
@@ -999,12 +1702,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, issn);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating data: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating data: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random IMEI number", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random IMEI number",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void imei() {
         try {
             String strObj = Input;
@@ -1014,12 +1728,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, issn);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating data: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating data: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random ISBN group", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random ISBN group",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void isbnGroup() {
         try {
             String strObj = Input;
@@ -1029,12 +1754,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, isbnGroup);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating data: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating data: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random ISBN GS1 number", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random ISBN GS1 number",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void isbnGs1() {
         try {
             String strObj = Input;
@@ -1044,12 +1780,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, isbnGs1);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating data: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating data: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random ISBN registrant number", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random ISBN registrant number",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void isbnRegistrant() {
         try {
             String strObj = Input;
@@ -1059,12 +1806,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, isbnRegistrant);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating data: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating data: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random ISBN-10 number with separator", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random ISBN-10 number with separator",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void isbn10WithSeparator() {
         try {
             String strObj = Input;
@@ -1075,12 +1833,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, isbn10);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating data: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating data: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random ISBN-13 number with separator", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random ISBN-13 number with separator",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void isbn13WithSeparator() {
         try {
             String strObj = Input;
@@ -1091,12 +1860,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, isbn13);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating data: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating data: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random color name", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random color name",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void colorName() {
         try {
             String strObj = Input;
@@ -1106,12 +1886,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, colorName);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating data: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating data: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random hexadecimal color code", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random hexadecimal color code",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void hex() {
         try {
             String strObj = Input;
@@ -1121,12 +1912,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, hex);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating data: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating data: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random hexadecimal color code (full form)", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random hexadecimal color code (full form)",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void hexIncludeHashSign() {
         try {
             String strObj = Input;
@@ -1137,12 +1939,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, hex);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating data: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating data: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random product name", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random product name",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void productName() {
         try {
             String strObj = Input;
@@ -1152,12 +1965,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, productName);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating data: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating data: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random commerce department name", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random commerce department name",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void commerceDepartment() {
         try {
             String strObj = Input;
@@ -1167,12 +1991,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, department);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating data: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating data: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random price", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random price",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void commercePrice() {
         try {
             String strObj = Input;
@@ -1182,12 +2017,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, price);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating data: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating data: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate price within a range", input = InputType.YES, condition = InputType.YES)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate price within a range",
+        input = InputType.YES,
+        condition = InputType.YES
+    )
     public void priceWithinRange() {
         try {
             String strObj = Input;
@@ -1201,12 +2047,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, price);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating data: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating data: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random material name", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random material name",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void commerceMaterial() {
         try {
             String strObj = Input;
@@ -1216,12 +2073,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, material);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating data: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating data: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random color name", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random color name",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void commerceColor() {
         try {
             String strObj = Input;
@@ -1231,12 +2099,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, color);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating data: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating data: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random promotion code", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random promotion code",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void promotionCode() {
         try {
             String strObj = Input;
@@ -1246,12 +2125,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, promotionCode);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating data: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating data: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random promotion code with digits", input = InputType.YES, condition = InputType.YES)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random promotion code with digits",
+        input = InputType.YES,
+        condition = InputType.YES
+    )
     public void promotionCodeWithDigits() {
         try {
             String strObj = Input;
@@ -1263,12 +2153,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, promotionCode);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating data: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating data: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random company name", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random company name",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void companyName() {
         try {
             String strObj = Input;
@@ -1278,12 +2179,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, companyName);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating data: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating data: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random company industry", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random company industry",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void companyIndustry() {
         try {
             String strObj = Input;
@@ -1293,12 +2205,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, companyIndustry);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating data: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating data: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random company catchphrase", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random company catchphrase",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void companyCatchPhrase() {
         try {
             String strObj = Input;
@@ -1308,12 +2231,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, companyCatchPhrase);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating data: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating data: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random company buzzword", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random company buzzword",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void companyBuzzword() {
         try {
             String strObj = Input;
@@ -1323,12 +2257,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, companyBuzzword);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating data: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating data: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random BS (business speak)", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random BS (business speak)",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void companyBS() {
         try {
             String strObj = Input;
@@ -1338,12 +2283,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, bs);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating data: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating data: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random company logo URL", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random company logo URL",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void companyLogo() {
         try {
             String strObj = Input;
@@ -1353,12 +2309,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, logo);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating data: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating data: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random profession", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random profession",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void profession() {
         try {
             String strObj = Input;
@@ -1368,12 +2335,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, profession);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating data: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating data: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random company suffix", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random company suffix",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void companySuffix() {
         try {
             String strObj = Input;
@@ -1383,12 +2361,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, suffix);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating data: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating data: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random company URL", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random company URL",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void companyUrl() {
         try {
             String strObj = Input;
@@ -1398,12 +2387,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, url);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating data: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating data: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random capital city", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random capital city",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void capital() {
         try {
             String strObj = Input;
@@ -1413,12 +2413,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, capital);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating data: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating data: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random 2-letter country code", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random 2-letter country code",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void countryCode2() {
         try {
             String strObj = Input;
@@ -1428,12 +2439,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, countryCode2);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating data: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating data: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random 3-letter country code", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random 3-letter country code",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void countryCode3() {
         try {
             String strObj = Input;
@@ -1443,12 +2465,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, countryCode3);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating data: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating data: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random currency name", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random currency name",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void countryCurrency() {
         try {
             String strObj = Input;
@@ -1458,12 +2491,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, currency);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating data: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating data: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random currency code", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random currency code",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void countryCurrencyCode() {
         try {
             String strObj = Input;
@@ -1473,12 +2517,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, currencyCode);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating data: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating data: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random country flag", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random country flag",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void flag() {
         try {
             String strObj = Input;
@@ -1488,12 +2543,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, flag);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating data: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating data: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random country name", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random country name",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void countryName() {
         try {
             String strObj = Input;
@@ -1503,12 +2569,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, name);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating data: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating data: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random MD5 hash", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random MD5 hash",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void md5() {
         try {
             String strObj = Input;
@@ -1518,12 +2595,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, md5);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating data: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating data: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random SHA-1 hash", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random SHA-1 hash",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void sha1() {
         try {
             String strObj = Input;
@@ -1533,12 +2621,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, sha1);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating data: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating data: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random SHA-256 hash", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random SHA-256 hash",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void sha256() {
         try {
             String strObj = Input;
@@ -1548,12 +2647,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, sha256);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating data: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating data: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random SHA-512 hash", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random SHA-512 hash",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void sha512() {
         try {
             String strObj = Input;
@@ -1563,12 +2673,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, sha512);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating data: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating data: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random currency name", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random currency name",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void currencyName() {
         try {
             String strObj = Input;
@@ -1578,12 +2699,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, currency);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating data: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating data: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random currency code", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random currency code",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void currencyCode() {
         try {
             String strObj = Input;
@@ -1593,12 +2725,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, currencyCode);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating data: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating data: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generates a future date from now", input = InputType.YES, condition = InputType.YES)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generates a future date from now",
+        input = InputType.YES,
+        condition = InputType.YES
+    )
     public void futureUpto() {
         try {
             String strObj = Input;
@@ -1612,12 +2755,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, futureDate.toString());
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating data: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating data: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generates a future date from now, with a minimum time", input = InputType.YES, condition = InputType.YES)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generates a future date from now, with a minimum time",
+        input = InputType.YES,
+        condition = InputType.YES
+    )
     public void futureWithinRange() {
         try {
             String strObj = Input;
@@ -1633,12 +2787,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, futureDate.toString());
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating data: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating data: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generates a future date relative to the reference date", input = InputType.YES, condition = InputType.YES)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generates a future date relative to the reference date",
+        input = InputType.YES,
+        condition = InputType.YES
+    )
     public void futureUptoBasedOnRefDate() {
         try {
             String strObj = Input;
@@ -1655,12 +2820,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, futureDate.toString());
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating data: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating data: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generates a past date from now", input = InputType.YES, condition = InputType.YES)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generates a past date from now",
+        input = InputType.YES,
+        condition = InputType.YES
+    )
     public void pastUpto() {
         try {
             String strObj = Input;
@@ -1674,12 +2850,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, pastDate.toString());
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating data: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating data: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generates a past date from now, with a minimum time", input = InputType.YES, condition = InputType.YES)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generates a past date from now, with a minimum time",
+        input = InputType.YES,
+        condition = InputType.YES
+    )
     public void pastWithinRange() {
         try {
             String strObj = Input;
@@ -1695,12 +2882,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, pastDate.toString());
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating data: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating data: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generates a past date relative to the reference date", input = InputType.YES, condition = InputType.YES)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generates a past date relative to the reference date",
+        input = InputType.YES,
+        condition = InputType.YES
+    )
     public void pastUptoBasedOnRefDate() {
         try {
             String strObj = Input;
@@ -1717,12 +2915,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, pastDate.toString());
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating data: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating data: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random date between two dates", input = InputType.YES, condition = InputType.YES)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random date between two dates",
+        input = InputType.YES,
+        condition = InputType.YES
+    )
     public void dateBetween() {
         try {
             String strObj = Input;
@@ -1737,12 +2946,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, betweenDate.toString());
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating data: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating data: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generates a random birthday between 65 and 18 years ago", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generates a random birthday between 65 and 18 years ago",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void birthday() {
         try {
             String strObj = Input;
@@ -1752,12 +2972,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, birthdayDate.toString());
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating data: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating data: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generates a random birthday between two ages", input = InputType.YES, condition = InputType.YES)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generates a random birthday between two ages",
+        input = InputType.YES,
+        condition = InputType.YES
+    )
     public void birthdayWithinRange() {
         try {
             String strObj = Input;
@@ -1771,12 +3002,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, birthdayDate.toString());
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating data: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating data: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random race", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random race",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void race() {
         try {
             String strObj = Input;
@@ -1786,12 +3028,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, race);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating data: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating data: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random educational attainment", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random educational attainment",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void educationalAttainment() {
         try {
             String strObj = Input;
@@ -1801,12 +3054,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, educationalAttainment);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating data: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating data: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random demographic sex", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random demographic sex",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void sex() {
         try {
             String strObj = Input;
@@ -1816,12 +3080,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, sex);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating data: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating data: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random marital status", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random marital status",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void maritalStatus() {
         try {
             String strObj = Input;
@@ -1831,12 +3106,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, maritalStatus);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating data: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating data: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random demographic D.P.", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random demographic D.P.",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void demonym() {
         try {
             String strObj = Input;
@@ -1846,12 +3132,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, demonym);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating data: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating data: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random dog name", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random dog name",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void dogName() {
         try {
             String strObj = Input;
@@ -1861,12 +3158,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, name);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating data: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating data: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random dog breed", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random dog breed",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void dogBreed() {
         try {
             String strObj = Input;
@@ -1876,12 +3184,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, breed);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating data: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating data: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random dog sound", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random dog sound",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void dogSound() {
         try {
             String strObj = Input;
@@ -1891,12 +3210,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, sound);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating data: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating data: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random dog age", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random dog age",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void dogAge() {
         try {
             String strObj = Input;
@@ -1906,12 +3236,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, age);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating data: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating data: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random dog coat length", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random dog coat length",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void dogCoatLength() {
         try {
             String strObj = Input;
@@ -1921,12 +3262,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, coatLength);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating data: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating data: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random dog size", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random dog size",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void dogSize() {
         try {
             String strObj = Input;
@@ -1936,12 +3288,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, size);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating data: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating data: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random dog gender", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random dog gender",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void dogGender() {
         try {
             String strObj = Input;
@@ -1951,12 +3314,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, gender);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating data: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating data: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random dog meme phrase", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random dog meme phrase",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void memePhrase() {
         try {
             String strObj = Input;
@@ -1966,12 +3340,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, memePhrase);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating data: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating data: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random Dragon Ball character name", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random Dragon Ball character name",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void characterDragonBall() {
         try {
             String strObj = Input;
@@ -1981,12 +3366,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, character);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating data: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating data: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random university name", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random university name",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void university() {
         try {
             String strObj = Input;
@@ -1996,12 +3392,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, university);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating data: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating data: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random course name", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random course name",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void course() {
         try {
             String strObj = Input;
@@ -2011,12 +3418,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, course);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating data: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating data: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random campus name", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random campus name",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void campus() {
         try {
             String strObj = Input;
@@ -2026,12 +3444,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, campus);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating data: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating data: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random secondary school name", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random secondary school name",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void secondarySchool() {
         try {
             String strObj = Input;
@@ -2041,12 +3470,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, secondarySchool);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating data: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating data: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random esports team name", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random esports team name",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void esportsTeam() {
         try {
             String strObj = Input;
@@ -2056,12 +3496,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, team);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating data: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating data: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random esports player name", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random esports player name",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void esportsPlayer() {
         try {
             String strObj = Input;
@@ -2071,12 +3522,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, player);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating data: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating data: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random esports game name", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random esports game name",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void esportsGame() {
         try {
             String strObj = Input;
@@ -2086,12 +3548,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, game);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating data: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating data: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random esports event name", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random esports event name",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void esportsEvent() {
         try {
             String strObj = Input;
@@ -2101,12 +3574,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, event);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating data: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating data: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random esports league", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random esports league",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void esportsLeague() {
         try {
             String strObj = Input;
@@ -2116,12 +3600,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, league);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating data: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating data: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random file name", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random file name",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void fileName() {
         try {
             String strObj = Input;
@@ -2131,12 +3626,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, fileName);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating data: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating data: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random file name with details", input = InputType.YES, condition = InputType.YES)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random file name with details",
+        input = InputType.YES,
+        condition = InputType.YES
+    )
     public void fileNameWithDetails() {
         try {
             String strObj = Input;
@@ -2144,18 +3650,32 @@ public class SyntheticDataGenerator extends Command {
             String nameOrNull = Condition.split(":", 4)[1];
             String extensionOrNull = Condition.split(":", 4)[2];
             String separatorOrNull = Condition.split(":", 4)[3];
-            String fileName = faker.get(key).file().fileName(dirOrNull, nameOrNull, extensionOrNull, separatorOrNull);
+            String fileName = faker
+                .get(key)
+                .file()
+                .fileName(dirOrNull, nameOrNull, extensionOrNull, separatorOrNull);
             Report.updateTestLog(Action, "Generated data: " + fileName, Status.DONE);
             String sheetName = strObj.split(":", 2)[0];
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, fileName);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating data: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating data: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random mime type", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random mime type",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void mimeType() {
         try {
             String strObj = Input;
@@ -2165,12 +3685,22 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, mimeType);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating data: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating data: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random file name with an optional file extension", input = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random file name with an optional file extension",
+        input = InputType.NO
+    )
     public void fileNameWithExtension() {
         try {
             String strObj = Input;
@@ -2180,12 +3710,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, fileNameWithExtension);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating data: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating data: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random credit card number", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random credit card number",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void financeCreditCardNumber() {
         try {
             String strObj = Input;
@@ -2195,12 +3736,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, creditCard);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating data: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating data: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random credit card number based on type", input = InputType.YES, condition = InputType.YES)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random credit card number based on type",
+        input = InputType.YES,
+        condition = InputType.YES
+    )
     public void creditCardNumberBasedOnType() {
         try {
             String strObj = Input;
@@ -2212,12 +3764,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, creditCard);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating data: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating data: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random BIC (Bank Identifier Code)", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random BIC (Bank Identifier Code)",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void bic() {
         try {
             String strObj = Input;
@@ -2227,12 +3790,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, bic);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating data: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating data: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random IBAN (International Bank Account Number)", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random IBAN (International Bank Account Number)",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void iban() {
         try {
             String strObj = Input;
@@ -2242,12 +3816,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, iban);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating data: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating data: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random IBAN with a specific country code", input = InputType.YES, condition = InputType.YES)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random IBAN with a specific country code",
+        input = InputType.YES,
+        condition = InputType.YES
+    )
     public void ibanByCountry() {
         try {
             String strObj = Input;
@@ -2258,12 +3843,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, iban);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating data: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating data: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random ingredient", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random ingredient",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void ingredient() {
         try {
             String strObj = Input;
@@ -2273,12 +3869,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, ingredient);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating data: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating data: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random spice", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random spice",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void spice() {
         try {
             String strObj = Input;
@@ -2288,12 +3895,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, spice);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating data: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating data: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random measurement", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random measurement",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void measurement() {
         try {
             String strObj = Input;
@@ -2303,12 +3921,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, measurement);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating data: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating data: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random character name from the TV show \"Friends\"", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random character name from the TV show \"Friends\"",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void characterFriends() {
         try {
             String strObj = Input;
@@ -2318,12 +3947,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, character);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating data: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating data: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random location from the TV show \"Friends\"", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random location from the TV show \"Friends\"",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void locationFriends() {
         try {
             String strObj = Input;
@@ -2333,12 +3973,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, location);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating data: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating data: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random quote from the TV show \"Friends\"", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random quote from the TV show \"Friends\"",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void quoteFriends() {
         try {
             String strObj = Input;
@@ -2348,12 +3999,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, quote);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating data: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating data: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random funny name", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random funny name",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void funnyName() {
         try {
             String strObj = Input;
@@ -2363,12 +4025,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, name);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating data: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating data: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random character name from the Game of Thrones series", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random character name from the Game of Thrones series",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void characterGOT() {
         try {
             String strObj = Input;
@@ -2378,12 +4051,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, character);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating data: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating data: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random house name from the Game of Thrones series", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random house name from the Game of Thrones series",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void houseGOT() {
         try {
             String strObj = Input;
@@ -2393,12 +4077,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, house);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating data: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating data: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random city name from the Game of Thrones series", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random city name from the Game of Thrones series",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void cityGOT() {
         try {
             String strObj = Input;
@@ -2408,12 +4103,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, city);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating data: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating data: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random dragon name from the Game of Thrones series", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random dragon name from the Game of Thrones series",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void dragonGOT() {
         try {
             String strObj = Input;
@@ -2423,12 +4129,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, dragon);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating data: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating data: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random quote from the Game of Thrones series", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random quote from the Game of Thrones series",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void quoteGOT() {
         try {
             String strObj = Input;
@@ -2438,12 +4155,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, quote);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating data: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating data: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random abbreviation used in hacker slang", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random abbreviation used in hacker slang",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void hackerAbbreviation() {
         try {
             String strObj = Input;
@@ -2453,12 +4181,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, abbreviation);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating data: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating data: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random adjective used in hacker slang", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random adjective used in hacker slang",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void hackerAdjective() {
         try {
             String strObj = Input;
@@ -2468,12 +4207,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, adjective);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating data: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating data: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random noun used in hacker slang", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random noun used in hacker slang",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void hackerNoun() {
         try {
             String strObj = Input;
@@ -2483,12 +4233,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, noun);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating data: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating data: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random verb used in hacker slang", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random verb used in hacker slang",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void hackerVerb() {
         try {
             String strObj = Input;
@@ -2498,12 +4259,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, verb);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating data: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating data: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random ingverb used in hacker slang", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random ingverb used in hacker slang",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void hackerIngVerb() {
         try {
             String strObj = Input;
@@ -2513,12 +4285,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, ingVerb);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating data: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating data: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random character name from the Harry Potter series", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random character name from the Harry Potter series",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void characterHarryPotter() {
         try {
             String strObj = Input;
@@ -2528,12 +4311,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, character);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating data: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating data: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random location from the Harry Potter series", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random location from the Harry Potter series",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void locationHarryPotter() {
         try {
             String strObj = Input;
@@ -2543,12 +4337,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, location);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating data: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating data: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random quote from the Harry Potter series", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random quote from the Harry Potter series",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void quoteHarryPotter() {
         try {
             String strObj = Input;
@@ -2558,12 +4363,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, quote);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating data: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating data: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random book name from the Harry Potter series", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random book name from the Harry Potter series",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void bookHarryPotter() {
         try {
             String strObj = Input;
@@ -2573,12 +4389,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, book);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating data: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating data: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random word related to hipster culture", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random word related to hipster culture",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void hipsterWord() {
         try {
             String strObj = Input;
@@ -2588,12 +4415,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, word);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating data: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating data: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random character name from the Hitchhiker's Guide to the Galaxy series", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random character name from the Hitchhiker's Guide to the Galaxy series",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void characterHitchhiker() {
         try {
             String strObj = Input;
@@ -2603,12 +4441,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, character);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating data: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating data: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random location name from the Hitchhiker's Guide to the Galaxy series", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random location name from the Hitchhiker's Guide to the Galaxy series",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void locationHitchhiker() {
         try {
             String strObj = Input;
@@ -2618,12 +4467,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, location);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating data: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating data: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random marvin quote from the Hitchhiker's Guide to the Galaxy series", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random marvin quote from the Hitchhiker's Guide to the Galaxy series",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void marvinQuoteHitchhiker() {
         try {
             String strObj = Input;
@@ -2633,12 +4493,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, quote);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating data: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating data: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random quote from the Hitchhiker's Guide to the Galaxy series", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random quote from the Hitchhiker's Guide to the Galaxy series",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void quoteHitchhiker() {
         try {
             String strObj = Input;
@@ -2648,12 +4519,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, quote);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating data: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating data: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random planet name from the Hitchhiker's Guide to the Galaxy series", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random planet name from the Hitchhiker's Guide to the Galaxy series",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void planetHitchhiker() {
         try {
             String strObj = Input;
@@ -2663,12 +4545,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, planet);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating data: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating data: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random species name from the Hitchhiker's Guide to the Galaxy series", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random species name from the Hitchhiker's Guide to the Galaxy series",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void specieHitchhiker() {
         try {
             String strObj = Input;
@@ -2678,12 +4571,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, species);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating data: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating data: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random starship from the Hitchhiker's Guide to the Galaxy series", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random starship from the Hitchhiker's Guide to the Galaxy series",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void starshipHitchhiker() {
         try {
             String strObj = Input;
@@ -2693,12 +4597,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, starShip);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating data: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating data: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random character name from The Hobbit series", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random character name from The Hobbit series",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void characterHobbit() {
         try {
             String strObj = Input;
@@ -2708,12 +4623,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, character);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating data: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating data: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random location name from The Hobbit series", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random location name from The Hobbit series",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void locationHobbit() {
         try {
             String strObj = Input;
@@ -2723,12 +4649,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, location);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating data: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating data: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random quote from The Hobbit series", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random quote from The Hobbit series",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void quoteHobbit() {
         try {
             String strObj = Input;
@@ -2738,12 +4675,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, quote);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating data: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating data: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random hobbit Thorins Company from The Hobbit series", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random hobbit Thorins Company from The Hobbit series",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void thorinsCompanyHobbit() {
         try {
             String strObj = Input;
@@ -2753,12 +4701,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, company);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating data: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating data: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random character name from How I Met Your Mother", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random character name from How I Met Your Mother",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void characterHowIMetYourMother() {
         try {
             String strObj = Input;
@@ -2768,12 +4727,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, character);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating data: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating data: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random quote from How I Met Your Mother", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random quote from How I Met Your Mother",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void quoteHowIMetYourMother() {
         try {
             String strObj = Input;
@@ -2783,12 +4753,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, quote);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating data: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating data: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random catchphrase from How I Met Your Mother", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random catchphrase from How I Met Your Mother",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void catchPhraseHowIMetYourMother() {
         try {
             String strObj = Input;
@@ -2798,12 +4779,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, catchphrase);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating data: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating data: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random high five from How I Met Your Mother", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random high five from How I Met Your Mother",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void highFiveHowIMetYourMother() {
         try {
             String strObj = Input;
@@ -2813,12 +4805,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, highFive);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating data: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating data: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a valid random ID number", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a valid random ID number",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void validIdNumber() {
         try {
             String strObj = Input;
@@ -2828,12 +4831,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, validId);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating valid ID: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating valid ID: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate an invalid random ID number", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate an invalid random ID number",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void invalidIdNumber() {
         try {
             String strObj = Input;
@@ -2843,12 +4857,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, invalidId);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating invalid ID: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating invalid ID: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random valid SSN", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random valid SSN",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void validSsn() {
         try {
             String strObj = Input;
@@ -2858,12 +4883,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, validSsn);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating valid SSN: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating valid SSN: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random invalid SSN", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random invalid SSN",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void invalidSsn() {
         try {
             String strObj = Input;
@@ -2873,12 +4909,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, invalidSsn);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating invalid SSN: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating invalid SSN: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random valid SSN", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random valid SSN",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void ssnValid() {
         try {
             String strObj = Input;
@@ -2888,12 +4935,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, ssnValid);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating valid SSN: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating valid SSN: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random email address", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random email address",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void emailAddress() {
         try {
             String strObj = Input;
@@ -2903,12 +4961,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, email);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating email: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating email: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random email address with local part", input = InputType.YES, condition = InputType.YES)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random email address with local part",
+        input = InputType.YES,
+        condition = InputType.YES
+    )
     public void emailAddressWithLocalPart() {
         try {
             String strObj = Input;
@@ -2919,12 +4988,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, email);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating email: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating email: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random safe email address", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random safe email address",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void safeEmailAddress() {
         try {
             String strObj = Input;
@@ -2934,12 +5014,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, safeEmail);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating safe email: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating safe email: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random safe email address with local part", input = InputType.YES, condition = InputType.YES)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random safe email address with local part",
+        input = InputType.YES,
+        condition = InputType.YES
+    )
     public void safeEmailAddressWithLocalPart() {
         try {
             String strObj = Input;
@@ -2950,12 +5041,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, safeEmail);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating safe email: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating safe email: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random domain name", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random domain name",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void domainName() {
         try {
             String strObj = Input;
@@ -2965,12 +5067,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, domainName);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating domain name: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating domain name: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random domain suffix", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random domain suffix",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void domainSuffix() {
         try {
             String strObj = Input;
@@ -2980,12 +5093,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, domainSuffix);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating domain name: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating domain name: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random domain Word", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random domain Word",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void domainWord() {
         try {
             String strObj = Input;
@@ -2995,12 +5119,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, domainWord);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating domain name: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating domain name: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random URL", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random URL",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void internetUrl() {
         try {
             String strObj = Input;
@@ -3010,12 +5145,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, url);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating URL: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating URL: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random IP (IPv4) address", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random IP (IPv4) address",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void ipV4Address() {
         try {
             String strObj = Input;
@@ -3025,12 +5171,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, ipV4);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating IPv4 Address: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating IPv4 Address: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random IP (IPv6) address", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random IP (IPv6) address",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void ipV6Address() {
         try {
             String strObj = Input;
@@ -3040,12 +5197,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, ipV6);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating IPv6 Address: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating IPv6 Address: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random IP (IPv4) CIDR address", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random IP (IPv4) CIDR address",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void ipV4Cidr() {
         try {
             String strObj = Input;
@@ -3055,12 +5223,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, ipV4);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating IPv4 Address: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating IPv4 Address: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random IP (IPv6) CIDR address", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random IP (IPv6) CIDR address",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void ipV6Cidr() {
         try {
             String strObj = Input;
@@ -3070,12 +5249,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, ipV6);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating IPv6 Address: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating IPv6 Address: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random MAC address", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random MAC address",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void macAddress() {
         try {
             String strObj = Input;
@@ -3085,12 +5275,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, macAddress);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating MAC Address: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating MAC Address: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random MAC address with Prefix", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random MAC address with Prefix",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void macAddressWithPrefix() {
         try {
             String strObj = Input;
@@ -3101,12 +5302,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, macAddress);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating MAC Address: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating MAC Address: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random private IP (IPv4) address", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random private IP (IPv4) address",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void privateIpV4Address() {
         try {
             String strObj = Input;
@@ -3116,12 +5328,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, ipV4);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating IPv4 Address: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating IPv4 Address: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random public IP (IPv6) address", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random public IP (IPv6) address",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void publicIpV6Address() {
         try {
             String strObj = Input;
@@ -3131,12 +5354,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, ipV6);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating IPv6 Address: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating IPv6 Address: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random internet avatar", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random internet avatar",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void internetAvatar() {
         try {
             String strObj = Input;
@@ -3146,12 +5380,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, avatar);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating IPv6 Address: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating IPv6 Address: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random internet image", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random internet image",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void internetImage() {
         try {
             String strObj = Input;
@@ -3161,12 +5406,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, image);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating IPv6 Address: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating IPv6 Address: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random internet image with specs", input = InputType.YES, condition = InputType.YES)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random internet image with specs",
+        input = InputType.YES,
+        condition = InputType.YES
+    )
     public void internetImageWithSpecs() {
         try {
             String strObj = Input;
@@ -3183,12 +5439,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, image);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating IPv6 Address: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating IPv6 Address: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random password with custom length", input = InputType.YES, condition = InputType.YES)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random password with custom length",
+        input = InputType.YES,
+        condition = InputType.YES
+    )
     public void internetPasswordWithLength() {
         try {
             String strObj = Input;
@@ -3202,12 +5469,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, password);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating password: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating password: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random password", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random password",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void internetPassword() {
         try {
             String strObj = Input;
@@ -3217,12 +5495,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, password);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating password: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating password: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random password including digits", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random password including digits",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void internetPasswordWithDigits() {
         try {
             String strObj = Input;
@@ -3233,12 +5522,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, password);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating password: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating password: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random password with custom length and uppercase included", input = InputType.YES, condition = InputType.YES)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random password with custom length and uppercase included",
+        input = InputType.YES,
+        condition = InputType.YES
+    )
     public void internetPasswordWithLengthUppercase() {
         try {
             String strObj = Input;
@@ -3247,18 +5547,32 @@ public class SyntheticDataGenerator extends Command {
             int minLength = Integer.parseInt(minStr);
             int maxLength = Integer.parseInt(maxStr);
             boolean includeUppercase = true;
-            String password = faker.get(key).internet().password(minLength, maxLength, includeUppercase);
+            String password = faker
+                .get(key)
+                .internet()
+                .password(minLength, maxLength, includeUppercase);
             Report.updateTestLog(Action, "Generated data: " + password, Status.DONE);
             String sheetName = strObj.split(":", 2)[0];
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, password);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating password: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating password: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random password with custom length, uppercase and special character", input = InputType.YES, condition = InputType.YES)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random password with custom length, uppercase and special character",
+        input = InputType.YES,
+        condition = InputType.YES
+    )
     public void internetPasswordWithLengthUppercaseSpecial() {
         try {
             String strObj = Input;
@@ -3268,18 +5582,32 @@ public class SyntheticDataGenerator extends Command {
             int maxLength = Integer.parseInt(maxStr);
             boolean includeUppercase = true;
             boolean includeSpecial = true;
-            String password = faker.get(key).internet().password(minLength, maxLength, includeUppercase, includeSpecial);
+            String password = faker
+                .get(key)
+                .internet()
+                .password(minLength, maxLength, includeUppercase, includeSpecial);
             Report.updateTestLog(Action, "Generated data: " + password, Status.DONE);
             String sheetName = strObj.split(":", 2)[0];
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, password);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating password: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating password: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random password with custom length, uppercase, special character and digits", input = InputType.YES, condition = InputType.YES)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random password with custom length, uppercase, special character and digits",
+        input = InputType.YES,
+        condition = InputType.YES
+    )
     public void internetPasswordwithUppercaseSpecialDigit() {
         try {
             String strObj = Input;
@@ -3290,18 +5618,32 @@ public class SyntheticDataGenerator extends Command {
             boolean includeUppercase = true;
             boolean includeSpecial = true;
             boolean includeDigit = true;
-            String password = faker.get(key).internet().password(minLength, maxLength, includeUppercase, includeSpecial, includeDigit);
+            String password = faker
+                .get(key)
+                .internet()
+                .password(minLength, maxLength, includeUppercase, includeSpecial, includeDigit);
             Report.updateTestLog(Action, "Generated data: " + password, Status.DONE);
             String sheetName = strObj.split(":", 2)[0];
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, password);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating password: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating password: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random slug (like a URL slug)", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random slug (like a URL slug)",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void slug() {
         try {
             String strObj = Input;
@@ -3311,12 +5653,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, slug);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating slug: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating slug: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random slug (like a URL slug) with specs", input = InputType.YES, condition = InputType.YES)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random slug (like a URL slug) with specs",
+        input = InputType.YES,
+        condition = InputType.YES
+    )
     public void slugWithSpecs() {
         try {
             String strObj = Input;
@@ -3333,12 +5686,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, slug);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating slug: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating slug: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random user agent with Agent type", input = InputType.YES, condition = InputType.YES)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random user agent with Agent type",
+        input = InputType.YES,
+        condition = InputType.YES
+    )
     public void userAgentWithAgentType() {
         try {
             String strObj = Input;
@@ -3350,12 +5714,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, userAgent1);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating slug: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating slug: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random user agent", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random user agent",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void userAgentAny() {
         try {
             String strObj = Input;
@@ -3365,12 +5740,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, userAgentAny);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating slug: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating slug: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate any random uuid", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate any random uuid",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void internetUUID() {
         try {
             String strObj = Input;
@@ -3380,12 +5766,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, uuid);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating slug: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating slug: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random job title", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random job title",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void jobTitle() {
         try {
             String strObj = Input;
@@ -3395,12 +5792,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, jobTitle);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating job title: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating job title: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random field of job", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random field of job",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void jobField() {
         try {
             String strObj = Input;
@@ -3410,12 +5818,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, jobField);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating job field: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating job field: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random key skill for the job", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random key skill for the job",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void jobKeySkills() {
         try {
             String strObj = Input;
@@ -3425,12 +5844,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, keySkill);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating job key skill: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating job key skill: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random seniority level for the job", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random seniority level for the job",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void jobSeniority() {
         try {
             String strObj = Input;
@@ -3440,12 +5870,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, seniority);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating job seniority: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating job seniority: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random job position", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random job position",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void jobPosition() {
         try {
             String strObj = Input;
@@ -3455,12 +5896,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, position);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating job position: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating job position: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random League of Legends champion", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random League of Legends champion",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void championLOL() {
         try {
             String strObj = Input;
@@ -3470,12 +5922,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, champion);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating champion: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating champion: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random League of Legends summoner spell", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random League of Legends summoner spell",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void summonerSpellLOL() {
         try {
             String strObj = Input;
@@ -3485,12 +5948,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, summonerSpell);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating summoner spell: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating summoner spell: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random League of Legends masteries", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random League of Legends masteries",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void masteriesLOL() {
         try {
             String strObj = Input;
@@ -3500,12 +5974,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, mastery);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating mastery: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating mastery: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random League of Legends quote", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random League of Legends quote",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void quoteLOL() {
         try {
             String strObj = Input;
@@ -3515,12 +6000,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, quote);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating quote: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating quote: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random League of Legends rank", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random League of Legends rank",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void rankLOL() {
         try {
             String strObj = Input;
@@ -3530,12 +6026,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, rank);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating rank: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating rank: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random League of Legends location", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random League of Legends location",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void locationLOL() {
         try {
             String strObj = Input;
@@ -3545,12 +6052,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, location);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating rank: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating rank: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random character name from The Big Lebowski", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random character name from The Big Lebowski",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void characterLebowski() {
         try {
             String strObj = Input;
@@ -3560,12 +6078,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, character);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating Lebowski character: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating Lebowski character: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random quote from The Big Lebowski", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random quote from The Big Lebowski",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void quoteLebowski() {
         try {
             String strObj = Input;
@@ -3575,12 +6104,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, quote);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating Lebowski quote: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating Lebowski quote: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random actor from The Big Lebowski", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random actor from The Big Lebowski",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void actorLebowski() {
         try {
             String strObj = Input;
@@ -3590,12 +6130,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, actor);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating Lebowski quote: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating Lebowski quote: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random Lord of the Rings character name", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random Lord of the Rings character name",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void characterLordOfTheRings() {
         try {
             String strObj = Input;
@@ -3605,12 +6156,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, character);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating Lord of the Rings character: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating Lord of the Rings character: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random Lord of the Rings location", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random Lord of the Rings location",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void locationLordOfTheRings() {
         try {
             String strObj = Input;
@@ -3620,12 +6182,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, location);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating Lord of the Rings location: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating Lord of the Rings location: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random Lorem word", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random Lorem word",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void loremWord() {
         try {
             String strObj = Input;
@@ -3635,12 +6208,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, word);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating Lorem word: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating Lorem word: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate random Lorem words", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate random Lorem words",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void loremWords() {
         try {
             String strObj = Input;
@@ -3650,12 +6234,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, word.toString());
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating Lorem word: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating Lorem word: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a list of random Lorem words", input = InputType.YES, condition = InputType.YES)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a list of random Lorem words",
+        input = InputType.YES,
+        condition = InputType.YES
+    )
     public void loremWordsWithCount() {
         try {
             String strObj = Input;
@@ -3667,12 +6262,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, words.toString());
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating Lorem words: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating Lorem words: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random Lorem sentence", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random Lorem sentence",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void sentence() {
         try {
             String strObj = Input;
@@ -3682,29 +6288,55 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, sentence);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating Lorem sentence: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating Lorem sentence: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random Lorem sentence with a given word count", input = InputType.YES, condition = InputType.YES)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random Lorem sentence with a given word count",
+        input = InputType.YES,
+        condition = InputType.YES
+    )
     public void sentenceWithCount() {
         try {
             String strObj = Input;
             String wordCountStr = Condition;
             int wordCount = Integer.parseInt(wordCountStr);
             String sentence = faker.get(key).lorem().sentence(wordCount);
-            Report.updateTestLog(Action, "Generated data: " + sentence + ": " + sentence, Status.DONE);
+            Report.updateTestLog(
+                Action,
+                "Generated data: " + sentence + ": " + sentence,
+                Status.DONE
+            );
             String sheetName = strObj.split(":", 2)[0];
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, sentence);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating Lorem sentence: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating Lorem sentence: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random Lorem sentence with a given word count and words to add", input = InputType.YES, condition = InputType.YES)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random Lorem sentence with a given word count and words to add",
+        input = InputType.YES,
+        condition = InputType.YES
+    )
     public void sentenceWithCountAndRandomWords() {
         try {
             String strObj = Input;
@@ -3713,34 +6345,64 @@ public class SyntheticDataGenerator extends Command {
             int wordCount = Integer.parseInt(wordCountStr);
             int randomWordsToAdd = Integer.parseInt(wordsToAddStr);
             String sentence = faker.get(key).lorem().sentence(wordCount, randomWordsToAdd);
-            Report.updateTestLog(Action, "Generated data: " + sentence + ": " + sentence, Status.DONE);
+            Report.updateTestLog(
+                Action,
+                "Generated data: " + sentence + ": " + sentence,
+                Status.DONE
+            );
             String sheetName = strObj.split(":", 2)[0];
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, sentence);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating Lorem sentence: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating Lorem sentence: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random Lorem sentence with a given sentence count", input = InputType.YES, condition = InputType.YES)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random Lorem sentence with a given sentence count",
+        input = InputType.YES,
+        condition = InputType.YES
+    )
     public void sentences() {
         try {
             String strObj = Input;
             String sentenceCountStr = Condition;
             int sentenceCount = Integer.parseInt(sentenceCountStr);
             String sentence = faker.get(key).lorem().sentence(sentenceCount);
-            Report.updateTestLog(Action, "Generated data: " + sentence + ": " + sentence, Status.DONE);
+            Report.updateTestLog(
+                Action,
+                "Generated data: " + sentence + ": " + sentence,
+                Status.DONE
+            );
             String sheetName = strObj.split(":", 2)[0];
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, sentence);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating Lorem sentence: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating Lorem sentence: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random Lorem paragraph", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random Lorem paragraph",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void paragraph() {
         try {
             String strObj = Input;
@@ -3750,29 +6412,55 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, paragraph);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating Lorem paragraph: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating Lorem paragraph: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random Lorem paragraph with a given sentence count", input = InputType.YES, condition = InputType.YES)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random Lorem paragraph with a given sentence count",
+        input = InputType.YES,
+        condition = InputType.YES
+    )
     public void paragraphWithSentenceCount() {
         try {
             String strObj = Input;
             String sentenceCountStr = Condition;
             int sentenceCount = Integer.parseInt(sentenceCountStr);
             String paragraph = faker.get(key).lorem().paragraph(sentenceCount);
-            Report.updateTestLog(Action, "Generated data: " + sentenceCount + ": " + paragraph, Status.DONE);
+            Report.updateTestLog(
+                Action,
+                "Generated data: " + sentenceCount + ": " + paragraph,
+                Status.DONE
+            );
             String sheetName = strObj.split(":", 2)[0];
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, paragraph);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating Lorem paragraph: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating Lorem paragraph: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a list of random Lorem paragraphs", input = InputType.YES, condition = InputType.YES)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a list of random Lorem paragraphs",
+        input = InputType.YES,
+        condition = InputType.YES
+    )
     public void paragraphsWithParagraphCount() {
         try {
             String strObj = Input;
@@ -3784,12 +6472,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, paragraphs.toString());
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating Lorem paragraphs: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating Lorem paragraphs: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random Lorem character", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random Lorem character",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void loremCharacter() {
         try {
             String strObj = Input;
@@ -3799,12 +6498,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, Character.toString(character));
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating Lorem paragraphs: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating Lorem paragraphs: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate random Lorem characters", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate random Lorem characters",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void loremCharacters() {
         try {
             String strObj = Input;
@@ -3814,12 +6524,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, characters);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating Lorem paragraphs: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating Lorem paragraphs: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate random Lorem character including uppercase", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate random Lorem character including uppercase",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void loremCharacterIncludeUpperCase() {
         try {
             String strObj = Input;
@@ -3830,12 +6551,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, Character.toString(character));
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating Lorem paragraphs: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating Lorem paragraphs: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate random Lorem characters including uppercase", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate random Lorem characters including uppercase",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void loremCharactersIncludeUpperCase() {
         try {
             String strObj = Input;
@@ -3846,12 +6578,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, characters);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating Lorem paragraphs: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating Lorem paragraphs: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate random Lorem characters with fixed number of characters", input = InputType.YES, condition = InputType.YES)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate random Lorem characters with fixed number of characters",
+        input = InputType.YES,
+        condition = InputType.YES
+    )
     public void loremCharactersWithNumberOfChars() {
         try {
             String strObj = Input;
@@ -3863,30 +6606,55 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, characters);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating Lorem paragraphs: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating Lorem paragraphs: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate random Lorem characters with fixed number of characters and uppercase", input = InputType.YES, condition = InputType.YES)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate random Lorem characters with fixed number of characters and uppercase",
+        input = InputType.YES,
+        condition = InputType.YES
+    )
     public void loremCharactersWithNumberOfCharsUpperCase() {
         try {
             String strObj = Input;
             String charsStr = Condition;
             int fixedNumberOfCharacters = Integer.parseInt(charsStr);
             boolean includeUppercase = true;
-            String characters = faker.get(key).lorem().characters(fixedNumberOfCharacters, includeUppercase);
+            String characters = faker
+                .get(key)
+                .lorem()
+                .characters(fixedNumberOfCharacters, includeUppercase);
             Report.updateTestLog(Action, "Generated data: " + characters, Status.DONE);
             String sheetName = strObj.split(":", 2)[0];
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, characters);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating Lorem paragraphs: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating Lorem paragraphs: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate random Lorem characters with fixed number of characters, uppercase and digit", input = InputType.YES, condition = InputType.YES)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate random Lorem characters with fixed number of characters, uppercase and digit",
+        input = InputType.YES,
+        condition = InputType.YES
+    )
     public void loremCharactersWithNumberOfCharsUpperCaseDigit() {
         try {
             String strObj = Input;
@@ -3894,18 +6662,32 @@ public class SyntheticDataGenerator extends Command {
             int fixedNumberOfCharacters = Integer.parseInt(charsStr);
             boolean includeUppercase = true;
             boolean includeDigit = true;
-            String characters = faker.get(key).lorem().characters(fixedNumberOfCharacters, includeUppercase, includeDigit);
+            String characters = faker
+                .get(key)
+                .lorem()
+                .characters(fixedNumberOfCharacters, includeUppercase, includeDigit);
             Report.updateTestLog(Action, "Generated data: " + characters, Status.DONE);
             String sheetName = strObj.split(":", 2)[0];
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, characters);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating Lorem paragraphs: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating Lorem paragraphs: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate random Lorem characters with min and max length", input = InputType.YES, condition = InputType.YES)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate random Lorem characters with min and max length",
+        input = InputType.YES,
+        condition = InputType.YES
+    )
     public void loremCharactersWithinLength() {
         try {
             String strObj = Input;
@@ -3919,12 +6701,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, characters);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating Lorem paragraphs: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating Lorem paragraphs: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate random Lorem characters with min and max length including uppercase", input = InputType.YES, condition = InputType.YES)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate random Lorem characters with min and max length including uppercase",
+        input = InputType.YES,
+        condition = InputType.YES
+    )
     public void loremCharactersWithinLengthUpperCase() {
         try {
             String strObj = Input;
@@ -3933,18 +6726,32 @@ public class SyntheticDataGenerator extends Command {
             int minimumLength = Integer.parseInt(minStr);
             int maximumLength = Integer.parseInt(maxStr);
             boolean includeUppercase = true;
-            String characters = faker.get(key).lorem().characters(minimumLength, maximumLength, includeUppercase);
+            String characters = faker
+                .get(key)
+                .lorem()
+                .characters(minimumLength, maximumLength, includeUppercase);
             Report.updateTestLog(Action, "Generated data: " + characters, Status.DONE);
             String sheetName = strObj.split(":", 2)[0];
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, characters);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating Lorem paragraphs: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating Lorem paragraphs: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a list of random Lorem characters with min and max length including uppercase and digits", input = InputType.YES, condition = InputType.YES)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a list of random Lorem characters with min and max length including uppercase and digits",
+        input = InputType.YES,
+        condition = InputType.YES
+    )
     public void loremCharactersWithinLengthUpperCaseDigit() {
         try {
             String strObj = Input;
@@ -3954,18 +6761,32 @@ public class SyntheticDataGenerator extends Command {
             int maximumLength = Integer.parseInt(maxStr);
             boolean includeUppercase = true;
             boolean includeDigit = true;
-            String characters = faker.get(key).lorem().characters(minimumLength, maximumLength, includeUppercase, includeDigit);
+            String characters = faker
+                .get(key)
+                .lorem()
+                .characters(minimumLength, maximumLength, includeUppercase, includeDigit);
             Report.updateTestLog(Action, "Generated data: " + characters, Status.DONE);
             String sheetName = strObj.split(":", 2)[0];
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, characters);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating Lorem paragraphs: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating Lorem paragraphs: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random Lorem fixed string", input = InputType.YES, condition = InputType.YES)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random Lorem fixed string",
+        input = InputType.YES,
+        condition = InputType.YES
+    )
     public void loremFixedString() {
         try {
             String strObj = Input;
@@ -3977,12 +6798,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, characters);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating Lorem paragraphs: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating Lorem paragraphs: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random Matz quote", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random Matz quote",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void quoteMatz() {
         try {
             String strObj = Input;
@@ -3992,12 +6824,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, quote);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating Matz quote: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating Matz quote: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random medical disease name", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random medical disease name",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void diseaseName() {
         try {
             String strObj = Input;
@@ -4007,12 +6850,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, disease);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating Medical disease name: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating Medical disease name: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random medical hospital name", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random medical hospital name",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void hospitalName() {
         try {
             String strObj = Input;
@@ -4022,12 +6876,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, hospital);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating Medical hospital name: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating Medical hospital name: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random medical medication name", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random medical medication name",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void medicineName() {
         try {
             String strObj = Input;
@@ -4037,12 +6902,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, medication);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating Medical medication name: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating Medical medication name: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random medical symptom", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random medical symptom",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void symptoms() {
         try {
             String strObj = Input;
@@ -4052,12 +6928,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, symptom);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating Medical symptom: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating Medical symptom: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random music genre", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random music genre",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void musicGenre() {
         try {
             String strObj = Input;
@@ -4067,12 +6954,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, genre);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating Music genre: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating Music genre: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random musical instrument", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random musical instrument",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void musicalInstrument() {
         try {
             String strObj = Input;
@@ -4082,12 +6980,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, instrument);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating Music instrument: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating Music instrument: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random music chord", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random music chord",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void musicChord() {
         try {
             String strObj = Input;
@@ -4097,12 +7006,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, chord);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating Music band: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating Music band: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random music key", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random music key",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void musicKey() {
         try {
             String strObj = Input;
@@ -4112,12 +7032,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, key);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating Music artist: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating Music artist: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random first name", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random first name",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void firstName() {
         try {
             String strObj = Input;
@@ -4127,12 +7058,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, firstName);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating first name: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating first name: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random last name", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random last name",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void lastName() {
         try {
             String strObj = Input;
@@ -4142,12 +7084,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, lastName);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating last name: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating last name: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random full name", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random full name",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void fullName() {
         try {
             String strObj = Input;
@@ -4157,12 +7110,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, fullName);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating full name: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating full name: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random name with prefix", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random name with prefix",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void namePrefix() {
         try {
             String strObj = Input;
@@ -4172,12 +7136,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, prefix);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating name with prefix: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating name with prefix: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random name with suffix", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random name with suffix",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void nameSuffix() {
         try {
             String strObj = Input;
@@ -4187,12 +7162,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, suffix);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating name with suffix: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating name with suffix: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random name title", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random name title",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void nameTitle() {
         try {
             String strObj = Input;
@@ -4202,12 +7188,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, title);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating title: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating title: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random username", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random username",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void username() {
         try {
             String strObj = Input;
@@ -4217,13 +7214,24 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, username);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating username: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating username: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
     //check this name()
-    @Action(object = ObjectType.DATA, desc = "Generate a random name", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random name",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void name() {
         try {
             String strObj = Input;
@@ -4233,12 +7241,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, name);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating username: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating username: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random name with middle name", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random name with middle name",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void nameWithMiddleName() {
         try {
             String strObj = Input;
@@ -4248,12 +7267,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, name);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating username: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating username: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random digit", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random digit",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void digit() {
         try {
             String strObj = Input;
@@ -4263,12 +7293,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, digit);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating digit: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating digit: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate random digits", input = InputType.YES, condition = InputType.YES)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate random digits",
+        input = InputType.YES,
+        condition = InputType.YES
+    )
     public void digits() {
         try {
             String strObj = Input;
@@ -4280,12 +7321,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, digit);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating digits: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating digits: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random number", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random number",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void randomNumber() {
         try {
             String strObj = Input;
@@ -4295,12 +7347,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, Long.toString(randomNumber));
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating random number: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating random number: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random number from 0-9 (both inclusive)", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random number from 0-9 (both inclusive)",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void randomDigit() {
         try {
             String strObj = Input;
@@ -4310,12 +7373,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, Integer.toString(randomDigit));
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating random digit: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating random digit: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random number from 1-9 (both inclusive)", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random number from 1-9 (both inclusive)",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void randomDigitNot0() {
         try {
             String strObj = Input;
@@ -4325,12 +7399,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, Integer.toString(randomDigit));
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating random digit: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating random digit: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random number between 2 integers", input = InputType.YES, condition = InputType.YES)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random number between 2 integers",
+        input = InputType.YES,
+        condition = InputType.YES
+    )
     public void randomIntegerNumberBetween() {
         try {
             String strObj = Input;
@@ -4344,12 +7429,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, Integer.toString(randomNumber));
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating random number: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating random number: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random number between 2 long numbers", input = InputType.YES, condition = InputType.YES)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random number between 2 long numbers",
+        input = InputType.YES,
+        condition = InputType.YES
+    )
     public void randomLongNumberBetween() {
         try {
             String strObj = Input;
@@ -4363,12 +7459,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, Long.toString(randomNumber));
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating random number: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating random number: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random double between 2 integers with maximum number of decimals", input = InputType.YES, condition = InputType.YES)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random double between 2 integers with maximum number of decimals",
+        input = InputType.YES,
+        condition = InputType.YES
+    )
     public void randomDoubleBetweenIntegers() {
         try {
             String strObj = Input;
@@ -4384,12 +7491,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, Double.toString(randomNumber));
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating random number: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating random number: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random double between 2 Long numbers with maximum number of decimals", input = InputType.YES, condition = InputType.YES)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random double between 2 Long numbers with maximum number of decimals",
+        input = InputType.YES,
+        condition = InputType.YES
+    )
     public void randomDoubleBetweenLong() {
         try {
             String strObj = Input;
@@ -4405,12 +7523,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, Double.toString(randomNumber));
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating random number between 1 and 100: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating random number between 1 and 100: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random number with specific number of digits", input = InputType.YES, condition = InputType.YES)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random number with specific number of digits",
+        input = InputType.YES,
+        condition = InputType.YES
+    )
     public void randomNumberWithNoOfDigits() {
         try {
             String strObj = Input;
@@ -4423,12 +7552,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, Long.toString(randomNumber));
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating random number: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating random number: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Pick a random boolean value (true or false)", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Pick a random boolean value (true or false)",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void optionFromBoolean() {
         try {
             String strObj = Input;
@@ -4438,12 +7578,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, Boolean.toString(randomBoolean));
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating boolean: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating boolean: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Pick a random value from a predefined list of integers", input = InputType.YES, condition = InputType.YES)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Pick a random value from a predefined list of integers",
+        input = InputType.YES,
+        condition = InputType.YES
+    )
     public void optionFromIntegers() {
         try {
             String strObj = Input;
@@ -4459,12 +7610,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, Long.toString(randomNumber));
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating integer: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating integer: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Pick a random value from a predefined list of doubles", input = InputType.YES, condition = InputType.YES)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Pick a random value from a predefined list of doubles",
+        input = InputType.YES,
+        condition = InputType.YES
+    )
     public void optionFromDoubles() {
         try {
             String strObj = Input;
@@ -4480,12 +7642,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, Double.toString(randomDouble));
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating double: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating double: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Pick a random value from a predefined list of Longs", input = InputType.YES, condition = InputType.YES)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Pick a random value from a predefined list of Longs",
+        input = InputType.YES,
+        condition = InputType.YES
+    )
     public void optionFromLong() {
         try {
             String strObj = Input;
@@ -4501,12 +7674,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, Long.toString(randomDouble));
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating double: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating double: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Pick a random value from a predefined list of strings", input = InputType.YES, condition = InputType.YES)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Pick a random value from a predefined list of strings",
+        input = InputType.YES,
+        condition = InputType.YES
+    )
     public void optionFromStrings() {
         try {
             String strObj = Input;
@@ -4522,12 +7706,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, randomString);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating string: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating string: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate next element from an array of strings", input = InputType.YES, condition = InputType.YES)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate next element from an array of strings",
+        input = InputType.YES,
+        condition = InputType.YES
+    )
     public void nextElementStringArray() {
         try {
             String strObj = Input;
@@ -4543,8 +7738,14 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, element);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating element from string array: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating element from string array: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
@@ -4555,17 +7756,34 @@ public class SyntheticDataGenerator extends Command {
             Day element = faker.get(key).options().nextElement(days);
             Report.updateTestLog(Action, "Generated data: " + element, Status.DONE);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during element generation from enum", ex);
-            Report.updateTestLog(Action, "Error generating element from enum: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during element generation from enum", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating element from enum: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
     // Enum for demonstration
     public enum Day {
-        MONDAY, TUESDAY, WEDNESDAY, THURSDAY, FRIDAY, SATURDAY, SUNDAY
+        MONDAY,
+        TUESDAY,
+        WEDNESDAY,
+        THURSDAY,
+        FRIDAY,
+        SATURDAY,
+        SUNDAY
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random Overwatch hero", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random Overwatch hero",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void heroOverWatch() {
         try {
             String strObj = Input;
@@ -4575,12 +7793,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, hero);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating Overwatch hero: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating Overwatch hero: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random Overwatch location", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random Overwatch location",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void locationOverWatch() {
         try {
             String strObj = Input;
@@ -4590,12 +7819,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, location);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating Overwatch location: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating Overwatch location: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random Overwatch quote", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random Overwatch quote",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void quoteOverWatch() {
         try {
             String strObj = Input;
@@ -4605,12 +7845,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, quote);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating Overwatch quote: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating Overwatch quote: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random phone number", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random phone number",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void phoneNumber() {
         try {
             String strObj = Input;
@@ -4620,12 +7871,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, phoneNumber);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating phone number: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating phone number: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random cell phone number", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random cell phone number",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void cellPhone() {
         try {
             String strObj = Input;
@@ -4635,12 +7897,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, phoneNumber);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating phone number: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating phone number: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random Pokemon name", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random Pokemon name",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void namePokemon() {
         try {
             String strObj = Input;
@@ -4650,12 +7923,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, pokemonName);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating Pokemon name: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating Pokemon name: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random Pokemon location", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random Pokemon location",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void locationPokemon() {
         try {
             String strObj = Input;
@@ -4665,12 +7949,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, pokemonLocation);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating Pokemon location: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating Pokemon location: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random hex", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random hex",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void randomHex() {
         try {
             String strObj = Input;
@@ -4680,12 +7975,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, hex);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating random integer: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating random integer: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random hex with specified length", input = InputType.YES, condition = InputType.YES)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random hex with specified length",
+        input = InputType.YES,
+        condition = InputType.YES
+    )
     public void randomHexWithLength() {
         try {
             String strObj = Input;
@@ -4697,12 +8003,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, hex);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating random integer: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating random integer: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random integer with length", input = InputType.YES, condition = InputType.YES)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random integer with length",
+        input = InputType.YES,
+        condition = InputType.YES
+    )
     public void randomNextIntWithLength() {
         try {
             String strObj = Input;
@@ -4714,12 +8031,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, Integer.toString(randomInt));
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating random integer in range: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating random integer in range: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random integer within a range", input = InputType.YES, condition = InputType.YES)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random integer within a range",
+        input = InputType.YES,
+        condition = InputType.YES
+    )
     public void randomNextIntInRange() {
         try {
             String strObj = Input;
@@ -4733,12 +8061,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, Integer.toString(randomInt));
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating random integer in range: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating random integer in range: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random long number", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random long number",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void randomNextLong() {
         try {
             String strObj = Input;
@@ -4748,12 +8087,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, Long.toString(randomLong));
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating random long: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating random long: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random long number with length", input = InputType.YES, condition = InputType.YES)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random long number with length",
+        input = InputType.YES,
+        condition = InputType.YES
+    )
     public void randomNextLongWithLength() {
         try {
             String strObj = Input;
@@ -4765,12 +8115,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, Long.toString(randomLong));
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating random long: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating random long: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random boolean value", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random boolean value",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void randomNextBoolean() {
         try {
             String strObj = Input;
@@ -4780,12 +8141,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, Boolean.toString(randomBoolean));
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating random boolean: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating random boolean: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random Double number", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random Double number",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void randomNextDouble() {
         try {
             String strObj = Input;
@@ -4795,12 +8167,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, Double.toString(randomDouble));
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating random float: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating random float: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random Rick and Morty character", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random Rick and Morty character",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void characterRickAndMorty() {
         try {
             String strObj = Input;
@@ -4810,12 +8193,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, character);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating Rick and Morty character: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating Rick and Morty character: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random Rick and Morty location", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random Rick and Morty location",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void locationRickAndMorty() {
         try {
             String strObj = Input;
@@ -4825,12 +8219,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, location);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating Rick and Morty location: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating Rick and Morty location: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random Rick and Morty quote", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random Rick and Morty quote",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void quoteRickAndMorty() {
         try {
             String strObj = Input;
@@ -4840,12 +8245,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, quote);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating Rick and Morty quote: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating Rick and Morty quote: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random Robin quote", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random Robin quote",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void quoteRobin() {
         try {
             String strObj = Input;
@@ -4855,12 +8271,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, quote);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating Rick and Morty quote: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating Rick and Morty quote: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random RockBand name", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random RockBand name",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void nameRockBand() {
         try {
             String strObj = Input;
@@ -4870,12 +8297,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, name);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating Rick and Morty quote: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating Rick and Morty quote: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random Hamlet quote", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random Hamlet quote",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void quoteHamlet() {
         try {
             String strObj = Input;
@@ -4885,12 +8323,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, hamletQuote);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating Hamlet quote: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating Hamlet quote: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random As You Like It quote", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random As You Like It quote",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void quoteAsYouLikeIt() {
         try {
             String strObj = Input;
@@ -4900,12 +8349,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, asYouLikeItQuote);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating As You Like It quote: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating As You Like It quote: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random King Richard III quote", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random King Richard III quote",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void quoteKingRichard() {
         try {
             String strObj = Input;
@@ -4915,12 +8375,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, kingRichardQuote);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating King Richard III quote: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating King Richard III quote: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random Romeo and Juliet quote", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random Romeo and Juliet quote",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void quoteRomeoAndJuliet() {
         try {
             String strObj = Input;
@@ -4930,12 +8401,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, romeoAndJulietQuote);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating Romeo and Juliet quote: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating Romeo and Juliet quote: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random Slack emoji", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random Slack emoji",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void slackEmoji() {
         try {
             String strObj = Input;
@@ -4945,12 +8427,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, emoji);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating Slack People Emoji: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating Slack People Emoji: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random Slack emoji related to people", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random Slack emoji related to people",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void slackEmojiPeople() {
         try {
             String strObj = Input;
@@ -4960,12 +8453,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, peopleEmoji);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating Slack People Emoji: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating Slack People Emoji: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random Slack emoji related to nature", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random Slack emoji related to nature",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void slackEmojiNature() {
         try {
             String strObj = Input;
@@ -4975,12 +8479,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, natureEmoji);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating Slack Nature Emoji: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating Slack Nature Emoji: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random Slack emoji related to food and drink", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random Slack emoji related to food and drink",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void slackEmojiFoodAndDrink() {
         try {
             String strObj = Input;
@@ -4990,12 +8505,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, foodAndDrinkEmoji);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating Slack Food and Drink Emoji: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating Slack Food and Drink Emoji: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random Slack emoji related to celebration", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random Slack emoji related to celebration",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void slackEmojiCelebration() {
         try {
             String strObj = Input;
@@ -5005,12 +8531,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, celebrationEmoji);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating Slack Celebration Emoji: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating Slack Celebration Emoji: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random Slack emoji related to activity", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random Slack emoji related to activity",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void slackEmojiActivity() {
         try {
             String strObj = Input;
@@ -5020,12 +8557,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, activityEmoji);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating Slack Activity Emoji: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating Slack Activity Emoji: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random Slack emoji related to travel and places", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random Slack emoji related to travel and places",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void slackEmojiTravelAndPlaces() {
         try {
             String strObj = Input;
@@ -5035,12 +8583,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, travelAndPlacesEmoji);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating Slack Travel and Places Emoji: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating Slack Travel and Places Emoji: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random Slack emoji related to objects and symbols", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random Slack emoji related to objects and symbols",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void slackEmojiObjectsAndSymbols() {
         try {
             String strObj = Input;
@@ -5050,12 +8609,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, objectsAndSymbolsEmoji);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating Slack Objects and Symbols Emoji: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating Slack Objects and Symbols Emoji: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random Slack emoji related to custom emojis", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random Slack emoji related to custom emojis",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void slackEmojiCustom() {
         try {
             String strObj = Input;
@@ -5065,12 +8635,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, customEmoji);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating Slack Custom Emoji: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating Slack Custom Emoji: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random planet name", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random planet name",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void planet() {
         try {
             String strObj = Input;
@@ -5080,12 +8661,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, planet);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating planet: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating planet: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random moon name", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random moon name",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void moon() {
         try {
             String strObj = Input;
@@ -5095,12 +8687,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, moon);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating moon: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating moon: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random galaxy name", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random galaxy name",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void galaxy() {
         try {
             String strObj = Input;
@@ -5110,12 +8713,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, galaxy);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating galaxy: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating galaxy: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random nebula name", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random nebula name",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void nebula() {
         try {
             String strObj = Input;
@@ -5125,12 +8739,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, nebula);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating nebula: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating nebula: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random star cluster name", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random star cluster name",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void starCluster() {
         try {
             String strObj = Input;
@@ -5140,12 +8765,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, starCluster);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating star cluster: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating star cluster: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random constellation name", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random constellation name",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void constellation() {
         try {
             String strObj = Input;
@@ -5155,12 +8791,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, constellation);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating constellation: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating constellation: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random star name", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random star name",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void star() {
         try {
             String strObj = Input;
@@ -5170,12 +8817,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, star);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating star: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating star: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random agency name", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random agency name",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void spaceAgency() {
         try {
             String strObj = Input;
@@ -5185,12 +8843,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, agency);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating space agency: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating space agency: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random agency abbreviation", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random agency abbreviation",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void spaceAgencyAbbreviation() {
         try {
             String strObj = Input;
@@ -5200,12 +8869,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, agencyAbbreviation);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating space agency abbreviation: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating space agency abbreviation: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random space company name", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random space company name",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void spaceCompany() {
         try {
             String strObj = Input;
@@ -5215,12 +8895,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, company);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating space company: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating space company: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random distance measurement", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random distance measurement",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void distanceMeasurement() {
         try {
             String strObj = Input;
@@ -5230,12 +8921,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, distanceMeasurement);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating distance measurement: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating distance measurement: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random meteorite name", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random meteorite name",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void meteorite() {
         try {
             String strObj = Input;
@@ -5245,12 +8947,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, meteorite);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating meteorite: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating meteorite: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random nasa space craft name", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random nasa space craft name",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void nasaSpaceCraft() {
         try {
             String strObj = Input;
@@ -5260,12 +8973,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, spaceCraft);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating meteorite: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating meteorite: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random Star Trek character name", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random Star Trek character name",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void characterStarTrek() {
         try {
             String strObj = Input;
@@ -5275,12 +8999,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, character);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating Star Trek character: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating Star Trek character: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random Star Trek location", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random Star Trek location",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void locationStarTrek() {
         try {
             String strObj = Input;
@@ -5290,12 +9025,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, location);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating Star Trek location: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating Star Trek location: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random Star Trek species", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random Star Trek species",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void specieStarTrek() {
         try {
             String strObj = Input;
@@ -5305,12 +9051,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, species);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating Star Trek species: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating Star Trek species: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random Star Trek villain", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random Star Trek villain",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void villainStarTrek() {
         try {
             String strObj = Input;
@@ -5320,12 +9077,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, villain);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating Star Trek villain: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating Star Trek villain: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random stock ticker symbol from the NYSE exchange", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random stock ticker symbol from the NYSE exchange",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void nyseSymbol() {
         try {
             String strObj = Input;
@@ -5335,12 +9103,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, nyse);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating NYSE stock symbol: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating NYSE stock symbol: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random stock ticker symbol from the NSDQ exchange", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random stock ticker symbol from the NSDQ exchange",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void nsdqSymbol() {
         try {
             String strObj = Input;
@@ -5350,12 +9129,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, nsdq);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating NYSE stock symbol: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating NYSE stock symbol: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random superhero name", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random superhero name",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void superheroName() {
         try {
             String strObj = Input;
@@ -5365,12 +9155,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, name);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during superhero name generation", ex);
-            Report.updateTestLog(Action, "Error generating superhero name: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during superhero name generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating superhero name: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random superhero power", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random superhero power",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void superheroPower() {
         try {
             String strObj = Input;
@@ -5380,12 +9181,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, power);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating superhero power: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating superhero power: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random superhero prefix", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random superhero prefix",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void superheroPrefix() {
         try {
             String strObj = Input;
@@ -5395,12 +9207,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, prefix);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating superhero prefix: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating superhero prefix: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random superhero suffix", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random superhero suffix",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void superheroSuffix() {
         try {
             String strObj = Input;
@@ -5410,12 +9233,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, suffix);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating superhero suffix: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating superhero suffix: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random superhero descriptor", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random superhero descriptor",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void superheroDescriptor() {
         try {
             String strObj = Input;
@@ -5425,12 +9259,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, descriptor);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating superhero descriptor: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating superhero descriptor: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random team name", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random team name",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void teamName() {
         try {
             String strObj = Input;
@@ -5440,12 +9285,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, teamName);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating team name: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating team name: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random team sport", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random team sport",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void teamSport() {
         try {
             String strObj = Input;
@@ -5455,12 +9311,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, sport);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating team sport: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating team sport: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random team state", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random team state",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void teamState() {
         try {
             String strObj = Input;
@@ -5470,12 +9337,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, state);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating team mascot: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating team mascot: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random team creature", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random team creature",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void teamCreature() {
         try {
             String strObj = Input;
@@ -5485,12 +9363,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, creature);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating team member: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating team member: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random Twin Peaks character", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random Twin Peaks character",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void characterTwinPeaks() {
         try {
             String strObj = Input;
@@ -5500,12 +9389,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, character);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating Twin Peaks character: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating Twin Peaks character: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random Twin Peaks location", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random Twin Peaks location",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void locationTwinPeaks() {
         try {
             String strObj = Input;
@@ -5515,12 +9415,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, location);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating Twin Peaks location: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating Twin Peaks location: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random Twin Peaks quote", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random Twin Peaks quote",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void quoteTwinPeaks() {
         try {
             String strObj = Input;
@@ -5530,12 +9441,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, quote);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating Twin Peaks quote: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating Twin Peaks quote: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random university name", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random university name",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void universityName() {
         try {
             String strObj = Input;
@@ -5545,12 +9467,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, universityName);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating university name: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating university name: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random university prefix", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random university prefix",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void universityPrefix() {
         try {
             String strObj = Input;
@@ -5560,12 +9493,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, universityPrefix);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating university name: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating university name: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random university suffix", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random university suffix",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void universitySuffix() {
         try {
             String strObj = Input;
@@ -5575,12 +9519,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, universitySuffix);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating university name: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating university name: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random weather description", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random weather description",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void weatherDescription() {
         try {
             String strObj = Input;
@@ -5590,12 +9545,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, description);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating weather description: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating weather description: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random temperature in Celsius", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random temperature in Celsius",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void temperatureCelsius() {
         try {
             String strObj = Input;
@@ -5605,12 +9571,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, temperature);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating temperature: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating temperature: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random temperature in Fahrenheit", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random temperature in Fahrenheit",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void temperatureFahrenheit() {
         try {
             String strObj = Input;
@@ -5620,12 +9597,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, temperature);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating humidity: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating humidity: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random temperature in Celsius within a range", input = InputType.YES, condition = InputType.YES)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random temperature in Celsius within a range",
+        input = InputType.YES,
+        condition = InputType.YES
+    )
     public void temperatureCelsiusWithinRange() {
         try {
             String strObj = Input;
@@ -5639,12 +9627,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, temperature);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating temperature: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating temperature: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random temperature in Fahrenheit within a range", input = InputType.YES, condition = InputType.YES)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random temperature in Fahrenheit within a range",
+        input = InputType.YES,
+        condition = InputType.YES
+    )
     public void temperatureFahrenheitWithinRange() {
         try {
             String strObj = Input;
@@ -5658,12 +9657,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, temperature);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating humidity: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating humidity: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random Witcher character", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random Witcher character",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void characterWitcher() {
         try {
             String strObj = Input;
@@ -5673,12 +9683,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, character);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating Witcher character: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating Witcher character: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random Witcher location", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random Witcher location",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void locationWitcher() {
         try {
             String strObj = Input;
@@ -5688,12 +9709,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, location);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating Witcher location: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating Witcher location: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random Witcher quote", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random Witcher quote",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void quoteWitcher() {
         try {
             String strObj = Input;
@@ -5703,12 +9735,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, quote);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating Witcher quote: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating Witcher quote: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random Witcher", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random Witcher",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void witcher() {
         try {
             String strObj = Input;
@@ -5718,12 +9761,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, item);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating Witcher item: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating Witcher item: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random Witcher monster", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random Witcher monster",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void monsterWitcher() {
         try {
             String strObj = Input;
@@ -5733,12 +9787,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, monster);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating Witcher item: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating Witcher item: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random Witcher school", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random Witcher school",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void schoolWitcher() {
         try {
             String strObj = Input;
@@ -5748,12 +9813,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, school);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating Witcher item: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating Witcher item: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random yoda Quote", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random yoda Quote",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void quoteYoda() {
         try {
             String strObj = Input;
@@ -5763,12 +9839,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, quote);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating Witcher item: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating Witcher item: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random Zelda character", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random Zelda character",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void characterZelda() {
         try {
             String strObj = Input;
@@ -5778,12 +9865,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, character);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating Zelda quote: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating Zelda quote: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random Zelda game", input = InputType.YES, condition = InputType.NO)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random Zelda game",
+        input = InputType.YES,
+        condition = InputType.NO
+    )
     public void gameZelda() {
         try {
             String strObj = Input;
@@ -5793,12 +9891,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, game);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating Zelda quote: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating Zelda quote: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random expression based on input string", input = InputType.YES, condition = InputType.YES)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random expression based on input string",
+        input = InputType.YES,
+        condition = InputType.YES
+    )
     public void expression() {
         try {
             String strObj = Input;
@@ -5809,12 +9918,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, evaluated);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating data: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating data: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random expression based on input pattern", input = InputType.YES, condition = InputType.YES)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random expression based on input pattern",
+        input = InputType.YES,
+        condition = InputType.YES
+    )
     public void bothify() {
         try {
             String strObj = Input;
@@ -5825,12 +9945,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, evaluated);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating data: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating data: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random expression based on input pattern", input = InputType.YES, condition = InputType.YES)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random expression based on input pattern",
+        input = InputType.YES,
+        condition = InputType.YES
+    )
     public void bothifyWithUpper() {
         try {
             String strObj = Input;
@@ -5842,12 +9973,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, evaluated);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating data: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating data: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random expression based on input pattern", input = InputType.YES, condition = InputType.YES)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random expression based on input pattern",
+        input = InputType.YES,
+        condition = InputType.YES
+    )
     public void letterify() {
         try {
             String strObj = Input;
@@ -5858,12 +10000,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, evaluated);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating data: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating data: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random expression based on input pattern", input = InputType.YES, condition = InputType.YES)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random expression based on input pattern",
+        input = InputType.YES,
+        condition = InputType.YES
+    )
     public void letterifyWithUpper() {
         try {
             String strObj = Input;
@@ -5875,12 +10028,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, evaluated);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating data: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating data: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random expression based on input pattern", input = InputType.YES, condition = InputType.YES)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random expression based on input pattern",
+        input = InputType.YES,
+        condition = InputType.YES
+    )
     public void numerify() {
         try {
             String strObj = Input;
@@ -5891,12 +10055,23 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, evaluated);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating data: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating data: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 
-    @Action(object = ObjectType.DATA, desc = "Generate a random expression based on input pattern", input = InputType.YES, condition = InputType.YES)
+    @Action(
+        object = ObjectType.DATA,
+        desc = "Generate a random expression based on input pattern",
+        input = InputType.YES,
+        condition = InputType.YES
+    )
     public void regexify() {
         try {
             String strObj = Input;
@@ -5907,8 +10082,14 @@ public class SyntheticDataGenerator extends Command {
             String columnName = strObj.split(":", 2)[1];
             userData.putData(sheetName, columnName, evaluated);
         } catch (Exception ex) {
-            Logger.getLogger(this.getClass().getName()).log(Level.SEVERE, "Exception during data generation", ex);
-            Report.updateTestLog(Action, "Error generating data: " + "\n" + ex.getMessage(), Status.DEBUG);
+            Logger
+                .getLogger(this.getClass().getName())
+                .log(Level.SEVERE, "Exception during data generation", ex);
+            Report.updateTestLog(
+                Action,
+                "Error generating data: " + "\n" + ex.getMessage(),
+                Status.DEBUG
+            );
         }
     }
 }

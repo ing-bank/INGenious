@@ -1,23 +1,22 @@
-
 package com.ing.engine.commands.galenCommands;
 
-import com.ing.engine.core.CommandControl;
-import com.ing.engine.galenWrapper.SpecValidation.SpecReader;
-import com.ing.ingenious.api.annotation.Action;
-import com.ing.ingenious.api.types.InputType;
-import com.ing.ingenious.api.types.ObjectType;
 import com.galenframework.specs.Range;
 import com.galenframework.specs.SpecAbove;
 import com.galenframework.specs.SpecBelow;
 import com.galenframework.specs.SpecLeftOf;
 import com.galenframework.specs.SpecRightOf;
+import com.ing.engine.core.CommandControl;
+import com.ing.engine.galenWrapper.SpecValidation.SpecReader;
+import com.ing.ingenious.api.annotation.Action;
+import com.ing.ingenious.api.types.InputType;
+import com.ing.ingenious.api.types.ObjectType;
 
 public class Direction extends General {
 
     public Direction(CommandControl cc) {
         super(cc);
     }
-/*
+    /*
     @Action(object = ObjectType.APP, desc ="Assert if [<Object>] is  above [<Data>]", input =InputType.OPTIONAL, condition = InputType.YES)
     public void assertElementAbove() {
         SpecAbove spec = SpecReader.reader().getSpecAbove(Condition, Data);

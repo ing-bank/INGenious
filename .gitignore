@@ -33,6 +33,7 @@ nb-configuration.xml
 .classpath
 .idea/
 .project
+.vscode/
 
 # System Files
 .DS_Store

@@ -17,7 +17,6 @@ import javax.crypto.spec.SecretKeySpec;
 import org.apache.commons.io.FileUtils;
 
 public class Encryption {
-
     GCMParameterSpec gcmParameterSpec;
 
     static Encryption encrypt;
@@ -60,8 +59,9 @@ public class Encryption {
         try {
             Cipher cipher = Cipher.getInstance("AES/GCM/NoPadding");
             cipher.init(Cipher.ENCRYPT_MODE, secretKey, gcmParameterSpec);
-            return Base64.getEncoder().encodeToString(cipher.doFinal(strToEncrypt.getBytes("UTF-8")));
-
+            return Base64
+                .getEncoder()
+                .encodeToString(cipher.doFinal(strToEncrypt.getBytes("UTF-8")));
         } catch (Exception ex) {
             Logger.getLogger(Encryption.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -85,12 +85,13 @@ public class Encryption {
             if (encFile.exists()) {
                 return FileUtils.readFileToString(encFile, "UTF-8");
             } else {
-                Logger.getLogger(Encryption.class.getName()).log(Level.SEVERE, "Key File not exist");
+                Logger
+                    .getLogger(Encryption.class.getName())
+                    .log(Level.SEVERE, "Key File not exist");
             }
         } catch (IOException ex) {
             Logger.getLogger(Encryption.class.getName()).log(Level.SEVERE, null, ex);
         }
         return null;
     }
-
 }

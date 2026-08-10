@@ -1,9 +1,9 @@
 package com.ing.engine.commands.browser;
 
 import com.ing.engine.core.CommandControl;
+import com.ing.ingenious.api.annotation.Action;
 import com.ing.ingenious.api.exception.ActionException;
 import com.ing.ingenious.api.status.Status;
-import com.ing.ingenious.api.annotation.Action;
 import com.ing.ingenious.api.types.InputType;
 import com.ing.ingenious.api.types.ObjectType;
 import java.util.logging.Level;
@@ -15,34 +15,60 @@ public class SelectOptions extends General {
         super(cc);
     }
 
-    @Action(object = ObjectType.PLAYWRIGHT, desc = "Select item in [<Object>] which has text: [<Data>]", input = InputType.YES)
+    @Action(
+        object = ObjectType.PLAYWRIGHT,
+        desc = "Select item in [<Object>] which has text: [<Data>]",
+        input = InputType.YES
+    )
     public void SelectSingleByText() {
         try {
             Locator.selectOption(Data);
-            Report.updateTestLog(Action, "Item '" + Data
-                    + "' is selected" + " from list [" + ObjectName + "]", Status.DONE);
+            Report.updateTestLog(
+                Action,
+                "Item '" + Data + "' is selected" + " from list [" + ObjectName + "]",
+                Status.DONE
+            );
         } catch (Exception e) {
             Logger.getLogger(this.getClass().getName()).log(Level.OFF, null, e);
-            Report.updateTestLog("Could not perfom [" + Action + "] action", "Error: " + e.getMessage(), Status.FAIL);
+            Report.updateTestLog(
+                "Could not perfom [" + Action + "] action",
+                "Error: " + e.getMessage(),
+                Status.FAIL
+            );
             throw new ActionException(e);
         }
     }
 
-    @Action(object = ObjectType.PLAYWRIGHT, desc = "Select items [<Data>] of [<Object>] by visible Text", input = InputType.YES)
+    @Action(
+        object = ObjectType.PLAYWRIGHT,
+        desc = "Select items [<Data>] of [<Object>] by visible Text",
+        input = InputType.YES
+    )
     public void SelectMultipleByText() {
         try {
             String options[] = Data.split("|");
             Locator.selectOption(options);
-            Report.updateTestLog(Action, "Items '" + Data
-                    + "' are selected" + " from list [" + ObjectName + "]", Status.DONE);
+            Report.updateTestLog(
+                Action,
+                "Items '" + Data + "' are selected" + " from list [" + ObjectName + "]",
+                Status.DONE
+            );
         } catch (Exception e) {
             Logger.getLogger(this.getClass().getName()).log(Level.OFF, null, e);
-            Report.updateTestLog("Could not perfom [" + Action + "] action", "Error: " + e.getMessage(), Status.FAIL);
+            Report.updateTestLog(
+                "Could not perfom [" + Action + "] action",
+                "Error: " + e.getMessage(),
+                Status.FAIL
+            );
             throw new ActionException(e);
         }
     }
 
-    @Action(object = ObjectType.PLAYWRIGHT, desc = "Select item in [<Object>] which has text: [<Data>] if it Data exists", input = InputType.YES)
+    @Action(
+        object = ObjectType.PLAYWRIGHT,
+        desc = "Select item in [<Object>] which has text: [<Data>] if it Data exists",
+        input = InputType.YES
+    )
     public void SelectSingleByTextIfDataExists() {
         Page.waitForLoadState();
         if (!Data.isEmpty()) {
@@ -52,7 +78,11 @@ public class SelectOptions extends General {
         }
     }
 
-     @Action(object = ObjectType.PLAYWRIGHT, desc = "Select item in [<Object>] if visible which has text: [<Data>]", input = InputType.YES)
+    @Action(
+        object = ObjectType.PLAYWRIGHT,
+        desc = "Select item in [<Object>] if visible which has text: [<Data>]",
+        input = InputType.YES
+    )
     public void SelectSingleByTextIfVisible() {
         Page.waitForLoadState();
         if (Locator.isVisible()) {

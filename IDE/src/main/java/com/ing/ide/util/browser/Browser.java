@@ -1,14 +1,12 @@
-
 package com.ing.ide.util.browser;
 
 import java.awt.Component;
 
 /**
  *
- * 
+ *
  */
 public interface Browser {
-
     public void load();
 
     public Component getComponent();
@@ -20,7 +18,6 @@ public interface Browser {
     public void back();
 
     public void next();
-    
-    public String getUrl();
 
+    public String getUrl();
 }

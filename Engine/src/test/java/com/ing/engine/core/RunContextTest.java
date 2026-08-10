@@ -10,7 +10,6 @@ import org.testng.annotations.Test;
  * Tests for RunContext POJO — fields, getName(), print(), defaults.
  */
 public class RunContextTest {
-
     private RunContext ctx;
 
     @BeforeMethod

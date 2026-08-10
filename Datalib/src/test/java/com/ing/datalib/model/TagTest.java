@@ -1,6 +1,7 @@
 package com.ing.datalib.model;
 
 import static org.assertj.core.api.Assertions.assertThat;
+
 import org.testng.annotations.Test;
 
 public class TagTest {

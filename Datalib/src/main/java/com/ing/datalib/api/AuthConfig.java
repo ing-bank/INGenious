@@ -9,7 +9,6 @@ import java.util.Base64;
  */
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class AuthConfig implements Serializable {
-
     private static final long serialVersionUID = 1L;
 
     /**
@@ -32,20 +31,20 @@ public class AuthConfig implements Serializable {
     }
 
     private AuthType authType;
-    
+
     // Basic Auth
     private String basicUsername;
     private String basicPassword;
-    
+
     // Bearer Token
     private String bearerToken;
     private String bearerPrefix;
-    
+
     // API Key
     private String apiKeyName;
     private String apiKeyValue;
     private ApiKeyLocation apiKeyLocation;
-    
+
     // OAuth2
     private String oauth2AccessToken;
     private String oauth2TokenUrl;
@@ -223,7 +222,11 @@ public class AuthConfig implements Serializable {
                 }
                 break;
             case API_KEY:
-                if (apiKeyLocation == ApiKeyLocation.HEADER && apiKeyName != null && apiKeyValue != null) {
+                if (
+                    apiKeyLocation == ApiKeyLocation.HEADER &&
+                    apiKeyName != null &&
+                    apiKeyValue != null
+                ) {
                     return null; // API key header is separate, not Authorization
                 }
                 break;
@@ -240,8 +243,12 @@ public class AuthConfig implements Serializable {
      * Returns the API key header name and value if auth type is API_KEY with HEADER location.
      */
     public KeyValuePair getApiKeyHeader() {
-        if (authType == AuthType.API_KEY && apiKeyLocation == ApiKeyLocation.HEADER 
-                && apiKeyName != null && apiKeyValue != null) {
+        if (
+            authType == AuthType.API_KEY &&
+            apiKeyLocation == ApiKeyLocation.HEADER &&
+            apiKeyName != null &&
+            apiKeyValue != null
+        ) {
             return new KeyValuePair(apiKeyName, apiKeyValue);
         }
         return null;
@@ -251,8 +258,12 @@ public class AuthConfig implements Serializable {
      * Returns the API key query param if auth type is API_KEY with QUERY_PARAM location.
      */
     public KeyValuePair getApiKeyQueryParam() {
-        if (authType == AuthType.API_KEY && apiKeyLocation == ApiKeyLocation.QUERY_PARAM 
-                && apiKeyName != null && apiKeyValue != null) {
+        if (
+            authType == AuthType.API_KEY &&
+            apiKeyLocation == ApiKeyLocation.QUERY_PARAM &&
+            apiKeyName != null &&
+            apiKeyValue != null
+        ) {
             return new KeyValuePair(apiKeyName, apiKeyValue);
         }
         return null;

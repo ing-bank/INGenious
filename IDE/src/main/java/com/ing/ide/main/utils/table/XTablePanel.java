@@ -1,6 +1,6 @@
-
 package com.ing.ide.main.utils.table;
 
+import com.ing.ide.main.fx.INGIcons;
 import com.ing.ide.main.settings.TMSettingsControl;
 import com.ing.ide.main.utils.keys.Keystroke;
 import com.ing.ide.util.Utility;
@@ -29,7 +29,6 @@ import javax.swing.JPopupMenu;
 import javax.swing.JScrollPane;
 import javax.swing.JTable;
 import javax.swing.JTextArea;
-import com.ing.ide.main.fx.INGIcons;
 import javax.swing.JToolBar;
 import javax.swing.SwingUtilities;
 import javax.swing.border.TitledBorder;
@@ -40,7 +39,6 @@ import javax.swing.table.DefaultTableModel;
  *
  */
 public class XTablePanel extends JPanel {
-
     public final XTable table;
 
     private final JTextArea textArea;
@@ -54,39 +52,39 @@ public class XTablePanel extends JPanel {
     public JToolBar toolBar;
 
     public boolean addEncryption;
-    
+
     // Theme-aware color helpers
     private static boolean isDarkMode() {
         return com.ing.ide.main.Main.isDarkMode();
     }
-    
+
     private static Color getBgColor() {
         return isDarkMode() ? new Color(30, 26, 36) : Color.WHITE;
     }
-    
+
     private static Color getPanelBgColor() {
         return isDarkMode() ? new Color(37, 32, 48) : new Color(250, 250, 248);
     }
-    
+
     private static Color getBorderColor() {
         return isDarkMode() ? new Color(60, 50, 80) : new Color(229, 214, 255);
     }
-    
+
     private static Color getTextColor() {
         return isDarkMode() ? new Color(232, 226, 229) : new Color(77, 0, 32);
     }
-    
+
     private static Color getInputBgColor() {
         return isDarkMode() ? new Color(45, 40, 55) : Color.WHITE;
     }
-    
+
     private static Color getAccentColor() {
         return isDarkMode() ? new Color(255, 102, 0) : new Color(119, 36, 255);
     }
 
     public XTablePanel(boolean addEncryption) {
         super();
-        table = new XTable(new DefaultTableModel(new Object[]{"Property", "Value"}, 0));
+        table = new XTable(new DefaultTableModel(new Object[] { "Property", "Value" }, 0));
         textArea = new JTextArea();
         this.addEncryption = addEncryption;
         init();
@@ -97,23 +95,23 @@ public class XTablePanel extends JPanel {
         setLayout(new BorderLayout());
         setBackground(getBgColor());
         setOpaque(true);
-        
+
         // Use theme-aware border instead of raised bevel
         setBorder(BorderFactory.createLineBorder(getBorderColor(), 1));
-        
+
         cardLayout = new CardLayout();
         cardPanel = new JPanel(cardLayout);
         cardPanel.setBackground(getBgColor());
-        
+
         JScrollPane tableScrollPane = new JScrollPane(table);
         tableScrollPane.setBackground(getBgColor());
         tableScrollPane.getViewport().setBackground(getInputBgColor());
         tableScrollPane.setBorder(BorderFactory.createEmptyBorder());
-        
+
         JScrollPane textScrollPane = new JScrollPane(textArea);
         textScrollPane.setBackground(getBgColor());
         textScrollPane.getViewport().setBackground(getInputBgColor());
-        
+
         cardPanel.add(tableScrollPane, "Table");
         cardPanel.add(textScrollPane, "TextArea");
 
@@ -124,11 +122,17 @@ public class XTablePanel extends JPanel {
         textArea.setBackground(getInputBgColor());
         textArea.setForeground(getTextColor());
         textArea.setCaretColor(getAccentColor());
-        textArea.setBorder(BorderFactory.createTitledBorder(
-            BorderFactory.createLineBorder(getBorderColor()), "S",
-            TitledBorder.DEFAULT_JUSTIFICATION, TitledBorder.DEFAULT_POSITION,
-            null, getTextColor()));
-        
+        textArea.setBorder(
+            BorderFactory.createTitledBorder(
+                BorderFactory.createLineBorder(getBorderColor()),
+                "S",
+                TitledBorder.DEFAULT_JUSTIFICATION,
+                TitledBorder.DEFAULT_POSITION,
+                null,
+                getTextColor()
+            )
+        );
+
         // Style table with theme-aware colors
         table.setBackground(getInputBgColor());
         table.setForeground(getTextColor());
@@ -139,40 +143,46 @@ public class XTablePanel extends JPanel {
             table.getTableHeader().setBackground(getPanelBgColor());
             table.getTableHeader().setForeground(getTextColor());
         }
-        
+
         if (addEncryption) {
             addEncryptionAction();
         }
     }
 
     private void addExpandArea() {
-        table.addMouseListener(new MouseAdapter() {
-            @Override
-            public void mouseClicked(MouseEvent me) {
-                if (me.isControlDown() && SwingUtilities.isRightMouseButton(me)) {
-                    int row = table.rowAtPoint(me.getPoint());
-                    int col = table.columnAtPoint(me.getPoint());
-                    if (row >= 0 && col == 1) {
-                        expandedRow = row;
-                        ((TitledBorder) textArea.getBorder()).setTitle(
-                                Objects.toString(table.getValueAt(row, 0), "Prop")
-                        );
-                        textArea.setText(Objects.toString(table.getValueAt(row, col), ""));
-                        cardLayout.show(cardPanel, "TextArea");
+        table.addMouseListener(
+            new MouseAdapter() {
+
+                @Override
+                public void mouseClicked(MouseEvent me) {
+                    if (me.isControlDown() && SwingUtilities.isRightMouseButton(me)) {
+                        int row = table.rowAtPoint(me.getPoint());
+                        int col = table.columnAtPoint(me.getPoint());
+                        if (row >= 0 && col == 1) {
+                            expandedRow = row;
+                            ((TitledBorder) textArea.getBorder()).setTitle(
+                                    Objects.toString(table.getValueAt(row, 0), "Prop")
+                                );
+                            textArea.setText(Objects.toString(table.getValueAt(row, col), ""));
+                            cardLayout.show(cardPanel, "TextArea");
+                        }
                     }
                 }
             }
-        });
+        );
 
-        textArea.addMouseListener(new MouseAdapter() {
-            @Override
-            public void mouseClicked(MouseEvent me) {
-                if (me.isControlDown() && SwingUtilities.isRightMouseButton(me)) {
-                    table.setValueAt(textArea.getText(), expandedRow, 1);
-                    cardLayout.show(cardPanel, "Table");
+        textArea.addMouseListener(
+            new MouseAdapter() {
+
+                @Override
+                public void mouseClicked(MouseEvent me) {
+                    if (me.isControlDown() && SwingUtilities.isRightMouseButton(me)) {
+                        table.setValueAt(textArea.getText(), expandedRow, 1);
+                        cardLayout.show(cardPanel, "Table");
+                    }
                 }
             }
-        });
+        );
     }
 
     public void addToolBarComp(JComponent comp) {
@@ -188,26 +198,29 @@ public class XTablePanel extends JPanel {
         toolbar.setPreferredSize(new Dimension(92, 32));
         toolbar.setMinimumSize(new Dimension(92, 32));
 
-        JButton addRow = new JButton(
-                INGIcons.swingColored("icon.add", 16));
+        JButton addRow = new JButton(INGIcons.swingColored("icon.add", 16));
         addRow.setToolTipText("Add Row");
         addRow.setBackground(getPanelBgColor());
         addRow.setBorderPainted(false);
         addRow.setFocusPainted(false);
-        addRow.addActionListener((ActionEvent ae) -> {
-            JTableUtils.addrow(table);
-        });
-        JButton delete = new JButton(
-                INGIcons.swingColored("icon.rem", 16));
+        addRow.addActionListener(
+            (ActionEvent ae) -> {
+                JTableUtils.addrow(table);
+            }
+        );
+        JButton delete = new JButton(INGIcons.swingColored("icon.rem", 16));
         delete.setToolTipText("Delete Rows");
         delete.setBackground(getPanelBgColor());
         delete.setBorderPainted(false);
         delete.setFocusPainted(false);
-        delete.addActionListener((ActionEvent ae) -> {
-            JTableUtils.deleterow(table);
-        });
-        toolbar.add(new Box.Filler(
-                new Dimension(0, 0), new Dimension(0, 0), new Dimension(32767, 32767)));
+        delete.addActionListener(
+            (ActionEvent ae) -> {
+                JTableUtils.deleterow(table);
+            }
+        );
+        toolbar.add(
+            new Box.Filler(new Dimension(0, 0), new Dimension(0, 0), new Dimension(32767, 32767))
+        );
         toolbar.add(addRow);
         toolbar.add(delete);
 
@@ -231,6 +244,7 @@ public class XTablePanel extends JPanel {
 
     private static AbstractAction getEncryptAction(final JTable table) {
         return new AbstractAction() {
+
             @Override
             public void actionPerformed(ActionEvent me) {
                 try {
@@ -241,12 +255,11 @@ public class XTablePanel extends JPanel {
                         table.setValueAt(Utility.encrypt(data), row, col);
                     }
                 } catch (HeadlessException ex) {
-                    Logger.getLogger(TMSettingsControl.class.getName())
-                            .log(Level.SEVERE, ex.getMessage(), ex);
+                    Logger
+                        .getLogger(TMSettingsControl.class.getName())
+                        .log(Level.SEVERE, ex.getMessage(), ex);
                 }
-
             }
         };
     }
-
 }

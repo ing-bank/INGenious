@@ -1,8 +1,8 @@
-
 package com.ing.engine.execution.exceptions.data;
 
-import com.ing.engine.execution.exception.data.GlobalDataNotFoundException;
 import static org.testng.Assert.assertEquals;
+
+import com.ing.engine.execution.exception.data.GlobalDataNotFoundException;
 import org.testng.annotations.Test;
 
 public class GlobalDataNotFoundExceptionTest {
@@ -13,13 +13,12 @@ public class GlobalDataNotFoundExceptionTest {
     @Test
     public void testGetTemplate() {
         System.out.println("getTemplate- GlobalData");
-        String expResult = "{0} \n[Env : {1} | Field : {2} | GID : {3} | TestCase : {4}/{5} | Reusabe : {6}/{7} ]";
+        String expResult =
+            "{0} \n[Env : {1} | Field : {2} | GID : {3} | TestCase : {4}/{5} | Reusable : {6}/{7} ]";
         String result = GlobalDataNotFoundException.getTemplate(true);
-        assertEquals( expResult, result);
+        assertEquals(expResult, result);
         expResult = "{0} \n[Env : {1} | Field : {2} | GID : {3} | TestCase : {4}/{5} ]";
         result = GlobalDataNotFoundException.getTemplate(false);
-        assertEquals( expResult, result);
-
+        assertEquals(expResult, result);
     }
-
 }

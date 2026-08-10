@@ -1,4 +1,3 @@
-
 package com.ing.ide.main.mainui.components.testexecution.testset;
 
 import com.ing.datalib.component.ExecutionStep;
@@ -42,10 +41,9 @@ import javax.swing.table.TableColumnModel;
 
 /**
  *
- * 
+ *
  */
 public class TestSetComponent extends JPanel implements ActionListener {
-
     private final TestExecution testExecution;
 
     private final TestSetToolBar toolBar;
@@ -66,20 +64,20 @@ public class TestSetComponent extends JPanel implements ActionListener {
 
     public TestSetComponent(TestExecution testExecution) {
         this.testExecution = testExecution;
-        testSetTable = new XTable() {
+        testSetTable =
+            new XTable() {
 
-            @Override
-            public Component prepareEditor(TableCellEditor editor, int row, int column) {
-                Component c = super.prepareEditor(editor, row, column);
-                if (c instanceof JCheckBox) {
-                    JCheckBox b = (JCheckBox) c;
-                    b.setBackground(getSelectionBackground());
-                    b.setBorderPainted(true);
+                @Override
+                public Component prepareEditor(TableCellEditor editor, int row, int column) {
+                    Component c = super.prepareEditor(editor, row, column);
+                    if (c instanceof JCheckBox) {
+                        JCheckBox b = (JCheckBox) c;
+                        b.setBackground(getSelectionBackground());
+                        b.setBorderPainted(true);
+                    }
+                    return c;
                 }
-                return c;
-            }
-
-        };
+            };
         toolBar = new TestSetToolBar(this);
         validator = new TestSetValidator(testSetTable);
         popupMenu = new TestSetPopupMenu(this);
@@ -91,23 +89,26 @@ public class TestSetComponent extends JPanel implements ActionListener {
     private void init() {
         new StatusSorter();
         setLayout(new BorderLayout());
-        
+
         add(toolBar, BorderLayout.NORTH);
         JScrollPane scrollPane = new JScrollPane(testSetTable);
         add(scrollPane, BorderLayout.CENTER);
         testSetTable.setComponentPopupMenu(popupMenu);
         initTableListeners();
         initRunner();
-        quickSettings.setOnUpdate(new AbstractAction() {
-            @Override
-            public void actionPerformed(ActionEvent ae) {
-                if (QuickSettings.Actions.SAVE.name().equals(ae.getActionCommand())) {
-                    changeSave(true);
-                } else {
-                    changeSave(false);
+        quickSettings.setOnUpdate(
+            new AbstractAction() {
+
+                @Override
+                public void actionPerformed(ActionEvent ae) {
+                    if (QuickSettings.Actions.SAVE.name().equals(ae.getActionCommand())) {
+                        changeSave(true);
+                    } else {
+                        changeSave(false);
+                    }
                 }
             }
-        });
+        );
     }
 
     public JTable getTestSetTable() {
@@ -141,7 +142,9 @@ public class TestSetComponent extends JPanel implements ActionListener {
     }
 
     public void refreshTitle() {
-        toolBar.setPlaceHolderText(getCurrentTestSet().getRelease().getName() + " - " + getCurrentTestSet().getName());
+        toolBar.setPlaceHolderText(
+            getCurrentTestSet().getRelease().getName() + " - " + getCurrentTestSet().getName()
+        );
     }
 
     public void load() {
@@ -150,124 +153,191 @@ public class TestSetComponent extends JPanel implements ActionListener {
     }
 
     public void loadBrowsers() {
-        popupMenu.loadBrowsers(testExecution.getProject().getProjectSettings().getEmulators().getEmulatorNames());
+        java.util.List<String> names = new java.util.ArrayList<>(
+            testExecution.getProject().getProjectSettings().getEmulators().getEmulatorNames()
+        );
+        for (String d : testExecution
+            .getProject()
+            .getProjectSettings()
+            .getDevices()
+            .getDeviceNames()) {
+            if (!names.contains(d)) names.add(d);
+        }
+        popupMenu.loadBrowsers(names);
         tsAutoSuggest.loadBrowsers();
     }
 
     private void initTableListeners() {
-        testSetTable.setActionFor("Insert", new AbstractAction() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                insertRow();
-            }
-        });
-        testSetTable.setActionFor("Add", new AbstractAction() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                addRow();
-            }
-        });
-        testSetTable.setActionFor("Delete", new AbstractAction() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                deleteSelectedRows();
-            }
-        });
-        testSetTable.setActionFor("Clear", new AbstractAction() {
-            @Override
-            public void actionPerformed(ActionEvent ae) {
-                clearValues();
-            }
-        });
-        testSetTable.setActionFor("Replicate", new AbstractAction() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                replicateRow();
-            }
-        });
-        testSetTable.setActionFor("Save", new AbstractAction() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                save();
-            }
-        });
-        testSetTable.setActionFor("Reload", new AbstractAction() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                reload();
-            }
-        });
-        testSetTable.setActionFor("Open", new AbstractAction() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                openWithSystemEditor();
-            }
+        testSetTable.setActionFor(
+            "Insert",
+            new AbstractAction() {
 
-        });
-        testSetTable.setActionFor("Search", new AbstractAction() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                toolBar.focusSearch();
-            }
-        });
-
-        testSetTable.setActionFor("Copy Above", new AbstractAction() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                copyAbove();
-            }
-        });
-
-        testSetTable.setActionFor("MoveUp", new AbstractAction() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                moveRowUp();
-            }
-        });
-        testSetTable.setActionFor("MoveDown", new AbstractAction() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                moveRowDown();
-            }
-        });
-        testSetTable.setKeyStrokeFor("RunTestSet", Keystroke.F6);
-        testSetTable.setActionFor("RunTestSet", new AbstractAction() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                run();
-            }
-        });
-        saveListener = new SaveListener() {
-            @Override
-            public void onSave(Boolean bln) {
-                changeSave(bln);
-            }
-        };
-
-        testSetTable.addMouseListener(new MouseAdapter() {
-
-            @Override
-            public void mouseClicked(MouseEvent me) {
-                if (SwingUtilities.isLeftMouseButton(me) && me.isAltDown()) {
-                    goToSelectedTestCase();
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    insertRow();
                 }
             }
+        );
+        testSetTable.setActionFor(
+            "Add",
+            new AbstractAction() {
 
-        });
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    addRow();
+                }
+            }
+        );
+        testSetTable.setActionFor(
+            "Delete",
+            new AbstractAction() {
 
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    deleteSelectedRows();
+                }
+            }
+        );
+        testSetTable.setActionFor(
+            "Clear",
+            new AbstractAction() {
+
+                @Override
+                public void actionPerformed(ActionEvent ae) {
+                    clearValues();
+                }
+            }
+        );
+        testSetTable.setActionFor(
+            "Replicate",
+            new AbstractAction() {
+
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    replicateRow();
+                }
+            }
+        );
+        testSetTable.setActionFor(
+            "Save",
+            new AbstractAction() {
+
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    save();
+                }
+            }
+        );
+        testSetTable.setActionFor(
+            "Reload",
+            new AbstractAction() {
+
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    reload();
+                }
+            }
+        );
+        testSetTable.setActionFor(
+            "Open",
+            new AbstractAction() {
+
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    openWithSystemEditor();
+                }
+            }
+        );
+        testSetTable.setActionFor(
+            "Search",
+            new AbstractAction() {
+
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    toolBar.focusSearch();
+                }
+            }
+        );
+
+        testSetTable.setActionFor(
+            "Copy Above",
+            new AbstractAction() {
+
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    copyAbove();
+                }
+            }
+        );
+
+        testSetTable.setActionFor(
+            "MoveUp",
+            new AbstractAction() {
+
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    moveRowUp();
+                }
+            }
+        );
+        testSetTable.setActionFor(
+            "MoveDown",
+            new AbstractAction() {
+
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    moveRowDown();
+                }
+            }
+        );
+        testSetTable.setKeyStrokeFor("RunTestSet", Keystroke.F6);
+        testSetTable.setActionFor(
+            "RunTestSet",
+            new AbstractAction() {
+
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    run();
+                }
+            }
+        );
+        saveListener =
+            new SaveListener() {
+
+                @Override
+                public void onSave(Boolean bln) {
+                    changeSave(bln);
+                }
+            };
+
+        testSetTable.addMouseListener(
+            new MouseAdapter() {
+
+                @Override
+                public void mouseClicked(MouseEvent me) {
+                    if (SwingUtilities.isLeftMouseButton(me) && me.isAltDown()) {
+                        goToSelectedTestCase();
+                    }
+                }
+            }
+        );
     }
 
     private void initRunner() {
-        runner = new Thread(new Runnable() {
-            @Override
-            public void run() {
-                toolBar.stopMode();
-                RunManager.getGlobalSettings().setFor(getCurrentTestSet());
-                testExecution.getTestExecutionUI().getConsolePanel().start();
-                EngineConfig.runProject(testExecution.getProject());
-                toolBar.startMode();
-            }
-        });
+        runner =
+            new Thread(
+                new Runnable() {
+
+                    @Override
+                    public void run() {
+                        toolBar.stopMode();
+                        RunManager.getGlobalSettings().setFor(getCurrentTestSet());
+                        testExecution.getTestExecutionUI().getConsolePanel().start();
+                        EngineConfig.runProject(testExecution.getProject());
+                        toolBar.startMode();
+                    }
+                }
+            );
     }
 
     private void changeSave(Boolean bln) {
@@ -373,7 +443,8 @@ public class TestSetComponent extends JPanel implements ActionListener {
         if (testSetTable.getSelectedRow() != -1) {
             for (int row : testSetTable.getSelectedRows()) {
                 getCurrentTestSet().getTestSteps().get(row).setBrowser(browserName);
-                getCurrentTestSet().fireTableCellUpdated(row, ExecutionStep.HEADERS.Browser.getIndex());
+                getCurrentTestSet()
+                    .fireTableCellUpdated(row, ExecutionStep.HEADERS.Browser.getIndex());
             }
         }
     }
@@ -397,8 +468,10 @@ public class TestSetComponent extends JPanel implements ActionListener {
 
     public ExecutionStep insertRowBelow() {
         stopCellEditing();
-        if (testSetTable.getSelectedRow() != -1
-                && testSetTable.getSelectedRow() + 1 < testSetTable.getRowCount()) {
+        if (
+            testSetTable.getSelectedRow() != -1 &&
+            testSetTable.getSelectedRow() + 1 < testSetTable.getRowCount()
+        ) {
             return getCurrentTestSet().addNewStepAt(testSetTable.getSelectedRow() + 1);
         } else {
             return getCurrentTestSet().addNewStep();
@@ -455,9 +528,8 @@ public class TestSetComponent extends JPanel implements ActionListener {
     private void clearValues() {
         stopCellEditing();
         if (testSetTable.getSelectedRowCount() > 0) {
-            getCurrentTestSet().clearValues(
-                    testSetTable.getSelectedRows(),
-                    testSetTable.getSelectedColumns());
+            getCurrentTestSet()
+                .clearValues(testSetTable.getSelectedRows(), testSetTable.getSelectedColumns());
         }
     }
 
@@ -482,8 +554,8 @@ public class TestSetComponent extends JPanel implements ActionListener {
         if (testSetTable.getSelectedRows().length > 0) {
             for (int row : testSetTable.getSelectedRows()) {
                 getCurrentTestSet().getTestSteps().get(row).setStatus(status);
-                getCurrentTestSet().fireTableCellUpdated(row,
-                        ExecutionStep.HEADERS.Status.getIndex());
+                getCurrentTestSet()
+                    .fireTableCellUpdated(row, ExecutionStep.HEADERS.Status.getIndex());
             }
         }
     }
@@ -520,8 +592,7 @@ public class TestSetComponent extends JPanel implements ActionListener {
             TestCase testCase = getSelectedStep().getTestCase();
             if (testCase != null) {
                 testExecution.getsMainFrame().showTestDesign();
-                testExecution.getsMainFrame().
-                        getTestDesign().loadTableModelForSelection(testCase);
+                testExecution.getsMainFrame().getTestDesign().loadTableModelForSelection(testCase);
             } else {
                 Notification.show("Testcase not present in the project");
             }
@@ -604,26 +675,29 @@ public class TestSetComponent extends JPanel implements ActionListener {
             menuItem.setActionCommand(actionCommand);
             return menuItem;
         }
-
     }
 
     class StatusSorter {
-
-        String[] statuses = new String[]{"NoRun", "Passed", "Failed", ".*"};
+        String[] statuses = new String[] { "NoRun", "Passed", "Failed", ".*" };
         int currentStatus = 0;
 
         public StatusSorter() {
-            testSetTable.getTableHeader().addMouseListener(new MouseAdapter() {
-                @Override
-                public void mouseClicked(MouseEvent me) {
-                    TableColumnModel columnModel = testSetTable.getColumnModel();
-                    int vci = columnModel.getColumnIndexAtX(me.getX());
-                    int mci = testSetTable.convertColumnIndexToModel(vci);
-                    if (mci == ExecutionStep.HEADERS.Status.getIndex()) {
-                        sort();
+            testSetTable
+                .getTableHeader()
+                .addMouseListener(
+                    new MouseAdapter() {
+
+                        @Override
+                        public void mouseClicked(MouseEvent me) {
+                            TableColumnModel columnModel = testSetTable.getColumnModel();
+                            int vci = columnModel.getColumnIndexAtX(me.getX());
+                            int mci = testSetTable.convertColumnIndexToModel(vci);
+                            if (mci == ExecutionStep.HEADERS.Status.getIndex()) {
+                                sort();
+                            }
+                        }
                     }
-                }
-            });
+                );
         }
 
         private void sort() {
@@ -645,6 +719,7 @@ public class TestSetComponent extends JPanel implements ActionListener {
 
         private Comparator getStepComparator() {
             return new Comparator<ExecutionStep>() {
+
                 @Override
                 public int compare(ExecutionStep t, ExecutionStep t1) {
                     return t.getStatus().compareTo(t1.getStatus());

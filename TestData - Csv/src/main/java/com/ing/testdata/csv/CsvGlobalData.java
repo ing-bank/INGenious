@@ -1,4 +1,3 @@
-
 package com.ing.testdata.csv;
 
 import com.ing.datalib.testdata.model.AbstractDataModel;
@@ -56,5 +55,4 @@ public class CsvGlobalData extends GlobalDataModel {
     public AbstractDataModel loadRecords() {
         throw new UnsupportedOperationException("Not supported yet."); //To change body of generated methods, choose Tools | Templates.
     }
-
 }

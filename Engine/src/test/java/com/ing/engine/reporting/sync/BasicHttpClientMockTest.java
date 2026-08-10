@@ -9,7 +9,6 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
 import org.apache.http.NameValuePair;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpPatch;
@@ -25,7 +24,6 @@ import org.testng.annotations.Test;
  * Replaces the disabled tests in BasicHttpClientTest.
  */
 public class BasicHttpClientMockTest {
-
     private URL testUrl;
     private BasicHttpClient client;
 

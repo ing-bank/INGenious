@@ -1,12 +1,11 @@
-
 package com.ing.engine.commands.galenCommands;
 
-import com.ing.engine.core.CommandControl;
-import com.ing.engine.galenWrapper.PageValidationWrapper;
-import com.ing.engine.galenWrapper.PageWrapper;
 import com.galenframework.specs.Spec;
 import com.galenframework.specs.SpecImage;
 import com.galenframework.validation.ValidationResult;
+import com.ing.engine.core.CommandControl;
+import com.ing.engine.galenWrapper.PageValidationWrapper;
+import com.ing.engine.galenWrapper.PageWrapper;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -19,10 +18,10 @@ import org.openqa.selenium.WebElement;
 public class General extends Report {
 
     public enum RelativeElement {
-
-        WebElement, WebElementList, None;
-
-    };
+        WebElement,
+        WebElementList,
+        None
+    }
 
     public General(CommandControl cc) {
         super(cc);
@@ -74,11 +73,19 @@ public class General extends Report {
             elementMap.put(ObjectName, Element);
         }
         if (spec instanceof SpecImage) {
-            Optional.ofNullable(((SpecImage) spec).getIgnoredObjectExpressions())
-                    .ifPresent((ioe) -> ioe.stream().flatMap((expr) -> Stream.of(expr.split(",")))
-                    .forEach((String object) -> {
-                        elementMap.put(object, mObject.findElement(object, Reference));
-                    }));
+            Optional
+                .ofNullable(((SpecImage) spec).getIgnoredObjectExpressions())
+                .ifPresent(
+                    ioe ->
+                        ioe
+                            .stream()
+                            .flatMap(expr -> Stream.of(expr.split(",")))
+                            .forEach(
+                                (String object) -> {
+                                    elementMap.put(object, mObject.findElement(object, Reference));
+                                }
+                            )
+                );
         }
         return new PageValidationWrapper(new PageWrapper(mDriver, elementMap), elementMap);
     }
@@ -99,11 +106,9 @@ public class General extends Report {
                 onError(spec, result);
             } else {
                 onSuccess(spec, result);
-
             }
         } catch (Exception ex) {
-            Logger.getLogger(General.class
-                    .getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(General.class.getName()).log(Level.SEVERE, null, ex);
             onError(ex);
         }
     }
@@ -111,5 +116,4 @@ public class General extends Report {
     public void validate(Spec spec) {
         validate(spec, RelativeElement.WebElement);
     }
-
 }

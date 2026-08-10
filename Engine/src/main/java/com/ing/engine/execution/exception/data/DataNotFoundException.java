@@ -1,4 +1,3 @@
-
 package com.ing.engine.execution.exception.data;
 
 import com.ing.engine.execution.run.TestCaseRunner;
@@ -6,10 +5,9 @@ import java.text.MessageFormat;
 
 /**
  *
- * 
+ *
  */
 public class DataNotFoundException extends RuntimeException {
-
     /**
      *
      */
@@ -21,22 +19,26 @@ public class DataNotFoundException extends RuntimeException {
     public DataNotFoundException(String name) {
         super(name);
     }
-    
+
     public static String getFormatted(String template, Object... args) {
         return MessageFormat.format(template, args);
     }
 
     public static String getTemplate(Boolean isReusable) {
-        return "{0} \n[Env : {1} | Field : {2} | TestCase : {4}/{5}"
-                + (isReusable ? " | Reusabe : {6}/{7} ]" : " ]");
+        return (
+            "{0} \n[Env : {1} | Field : {2} | TestCase : {4}/{5}" +
+            (isReusable ? " | Reusable : {6}/{7} ]" : " ]")
+        );
     }
 
     public enum Cause {
-        Data, Iteration, SubIteration, EndOfDataSheet
+        Data,
+        Iteration,
+        SubIteration,
+        EndOfDataSheet
     }
 
     public class CauseInfo {
-
         public Cause type;
         public String info;
 
@@ -52,11 +54,9 @@ public class DataNotFoundException extends RuntimeException {
         public boolean isSubIter() {
             return type == Cause.SubIteration;
         }
-        
+
         public boolean isEndData() {
             return type == Cause.EndOfDataSheet;
         }
-
     }
-
 }

@@ -1,6 +1,6 @@
-
 package com.ing.datalib.component;
 
+import com.ing.datalib.component.io.TestCaseStoreFactory;
 import com.ing.datalib.component.utils.FileUtils;
 import java.io.File;
 import java.util.ArrayList;
@@ -8,10 +8,9 @@ import java.util.List;
 
 /**
  *
- * 
+ *
  */
 public class Release extends DataModel {
-
     private final Project project;
 
     private final List<TestSet> testSets = new ArrayList<>();
@@ -64,16 +63,14 @@ public class Release extends DataModel {
     }
 
     public void removeTestSet(TestSet testSet) {
-        if (testSets.remove(testSet)) {
-
-        }
+        if (testSets.remove(testSet)) {}
     }
 
     private void loadTestSets() {
         File relDir = new File(getLocation());
         if (relDir.exists()) {
-            for (String testSet : relDir.list(FileUtils.CSV_FILTER)) {
-                testSets.add(new TestSet(this, testSet));
+            for (String baseName : TestCaseStoreFactory.listLogicalFiles(relDir).keySet()) {
+                testSets.add(new TestSet(this, baseName));
             }
         }
     }
@@ -146,8 +143,8 @@ public class Release extends DataModel {
     @Override
     public void setValueAt(Object aValue, int rowIndex, int columnIndex) {
         if (columnIndex == 0) {
-//            testSets.get(rowIndex).setName(aValue.toString());
-//            project.reload(testSets.get(rowIndex));
+            //            testSets.get(rowIndex).setName(aValue.toString());
+            //            project.reload(testSets.get(rowIndex));
         } else {
             testSets.get(rowIndex).setValueAt(aValue, columnIndex - 1, 3);
         }
@@ -171,14 +168,14 @@ public class Release extends DataModel {
     public String printString() {
         StringBuilder builder = new StringBuilder();
         builder
-                .append("\t")
-                .append("Release - ")
-                .append(name)
-                .append("\n")
-                .append("\t")
-                .append("TestSet - ")
-                .append(testSets.size())
-                .append("\n");
+            .append("\t")
+            .append("Release - ")
+            .append(name)
+            .append("\n")
+            .append("\t")
+            .append("TestSet - ")
+            .append(testSets.size())
+            .append("\n");
         for (TestSet testSet : testSets) {
             builder.append(testSet.printString());
         }
@@ -196,13 +193,21 @@ public class Release extends DataModel {
         }
     }
 
-    public void refactorTestCase(String scenarioName, String oldTestCaseName, String newTestCaseName) {
+    public void refactorTestCase(
+        String scenarioName,
+        String oldTestCaseName,
+        String newTestCaseName
+    ) {
         for (TestSet testSet : testSets) {
             testSet.refactorTestCase(scenarioName, oldTestCaseName, newTestCaseName);
         }
     }
 
-    public void refactorTestCaseScenario(String testCaseName, String oldScenarioName, String newScenarioName) {
+    public void refactorTestCaseScenario(
+        String testCaseName,
+        String oldScenarioName,
+        String newScenarioName
+    ) {
         for (TestSet testSet : testSets) {
             testSet.refactorTestCaseScenario(testCaseName, oldScenarioName, newScenarioName);
         }
@@ -210,7 +215,8 @@ public class Release extends DataModel {
 
     @Override
     public Boolean rename(String newName) {
-        if (getProject().getReleaseByName(newName) == null) {
+        Release existing = getProject().getReleaseByName(newName);
+        if (existing == null || existing == this) {
             if (FileUtils.renameFile(getLocation(), newName)) {
                 name = newName;
                 for (TestSet testSet : testSets) {
@@ -230,5 +236,4 @@ public class Release extends DataModel {
         }
         return false;
     }
-
 }

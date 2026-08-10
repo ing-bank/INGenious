@@ -1,10 +1,5 @@
-
 package com.ing.engine.commands.galenCommands;
 
-import com.ing.engine.commands.browser.Command;
-import com.ing.engine.constants.FilePath;
-import com.ing.engine.core.CommandControl;
-import com.ing.ingenious.api.status.Status;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.galenframework.rainbow4j.Rainbow4J;
@@ -13,6 +8,10 @@ import com.galenframework.validation.ImageComparison;
 import com.galenframework.validation.ValidationErrorException;
 import com.galenframework.validation.ValidationObject;
 import com.galenframework.validation.ValidationResult;
+import com.ing.engine.commands.browser.Command;
+import com.ing.engine.constants.FilePath;
+import com.ing.engine.core.CommandControl;
+import com.ing.ingenious.api.status.Status;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
@@ -29,7 +28,6 @@ import java.util.logging.Logger;
  *
  */
 public class Report extends Command {
-
     ObjectMapper obMapper = new ObjectMapper();
 
     public Report(CommandControl cc) {
@@ -37,13 +35,19 @@ public class Report extends Command {
     }
 
     public void onSuccess(Spec spec, ValidationResult result) {
-        ValidationErrorException exception = new ValidationErrorException().withValidationObjects(result.getValidationObjects()).withMessage(spec.toText());
+        ValidationErrorException exception = new ValidationErrorException()
+            .withValidationObjects(result.getValidationObjects())
+            .withMessage(spec.toText());
         onResult(exception.asValidationResult(spec), Status.PASS);
     }
 
     public void onError(Spec spec, ValidationResult result) {
         if (result.getError().getImageComparison() != null) {
-            onResult(result, Status.FAIL, saveImageComparison(result.getError().getImageComparison()));
+            onResult(
+                result,
+                Status.FAIL,
+                saveImageComparison(result.getError().getImageComparison())
+            );
         } else {
             onResult(result, Status.FAIL);
         }
@@ -56,7 +60,12 @@ public class Report extends Command {
     private void onResult(ValidationResult result, Status status) {
         if (result.getError().getMessages() != null) {
             for (String message : result.getError().getMessages()) {
-                Report.updateTestLog(Action, message, status, getObjectAreas(result.getValidationObjects()));
+                Report.updateTestLog(
+                    Action,
+                    message,
+                    status,
+                    getObjectAreas(result.getValidationObjects())
+                );
             }
         }
     }
@@ -76,11 +85,18 @@ public class Report extends Command {
                 if (vobject.getArea() != null) {
                     Map<String, String> obMap = new HashMap<>();
                     obMap.put("name", vobject.getName());
-                    obMap.put("area", "["
-                            + vobject.getArea().getLeft() + ","
-                            + vobject.getArea().getTop() + ","
-                            + vobject.getArea().getWidth() + ","
-                            + vobject.getArea().getHeight() + "]");
+                    obMap.put(
+                        "area",
+                        "[" +
+                        vobject.getArea().getLeft() +
+                        "," +
+                        vobject.getArea().getTop() +
+                        "," +
+                        vobject.getArea().getWidth() +
+                        "," +
+                        vobject.getArea().getHeight() +
+                        "]"
+                    );
                     objectList.add(obMap);
                 }
             }
@@ -98,9 +114,26 @@ public class Report extends Command {
     private ArrayList<String> saveImageComparison(ImageComparison imageComparison) {
         ArrayList<String> imageList = new ArrayList<>();
         try {
-            imageList.add(saveImageComparison(ObjectName + "-expected", Rainbow4J.loadImage(imageComparison.getSampleFilteredImage().getAbsolutePath())));
-            imageList.add(saveImageComparison(ObjectName + "-actual", Rainbow4J.loadImage(imageComparison.getOriginalFilteredImage().getAbsolutePath())));
-            imageList.add(saveImageComparison(ObjectName + "-map", Rainbow4J.loadImage(imageComparison.getComparisonMap().getAbsolutePath())));
+            imageList.add(
+                saveImageComparison(
+                    ObjectName + "-expected",
+                    Rainbow4J.loadImage(imageComparison.getSampleFilteredImage().getAbsolutePath())
+                )
+            );
+            imageList.add(
+                saveImageComparison(
+                    ObjectName + "-actual",
+                    Rainbow4J.loadImage(
+                        imageComparison.getOriginalFilteredImage().getAbsolutePath()
+                    )
+                )
+            );
+            imageList.add(
+                saveImageComparison(
+                    ObjectName + "-map",
+                    Rainbow4J.loadImage(imageComparison.getComparisonMap().getAbsolutePath())
+                )
+            );
         } catch (IOException e) {
             Logger.getLogger(Report.class.getName()).log(Level.SEVERE, null, e);
         }
@@ -120,7 +153,14 @@ public class Report extends Command {
     }
 
     private String getImageName(String name, int count) {
-        String imageName = FilePath.getCurrentResultsPath() + File.separator + "img" + File.separator + name + count + ".png";
+        String imageName =
+            FilePath.getCurrentResultsPath() +
+            File.separator +
+            "img" +
+            File.separator +
+            name +
+            count +
+            ".png";
         File file = new File(imageName);
         if (file.exists()) {
             return getImageName(name, count++);

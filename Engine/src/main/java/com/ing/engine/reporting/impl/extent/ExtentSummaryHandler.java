@@ -1,31 +1,29 @@
-
 package com.ing.engine.reporting.impl.extent;
 
-import java.io.File;
-import java.io.IOException;
-import org.apache.http.client.ClientProtocolException;
-import org.json.simple.parser.ParseException;
-import com.ing.engine.constants.FilePath;
 import com.aventstack.extentreports.ExtentReports;
 import com.aventstack.extentreports.ExtentTest;
 import com.aventstack.extentreports.reporter.ExtentSparkReporter;
 import com.aventstack.extentreports.reporter.configuration.Theme;
+import com.ing.engine.constants.FilePath;
 import com.ing.engine.constants.SystemDefaults;
 import com.ing.engine.core.Control;
 import com.ing.engine.core.RunContext;
 import com.ing.engine.core.RunManager;
 import com.ing.engine.reporting.SummaryReport;
 import com.ing.engine.reporting.TestCaseReport;
+import com.ing.engine.reporting.extentreport.ExtentReport;
 import com.ing.engine.reporting.impl.handlers.PrimaryHandler;
 import com.ing.engine.reporting.impl.handlers.SummaryHandler;
-import com.ing.engine.reporting.extentreport.ExtentReport;
 import com.ing.engine.support.DesktopApi;
 import com.ing.ingenious.api.status.Status;
+import java.io.File;
+import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.apache.http.client.ClientProtocolException;
+import org.json.simple.parser.ParseException;
 
 public class ExtentSummaryHandler extends SummaryHandler implements PrimaryHandler {
-
     private static final Logger LOGGER = Logger.getLogger(ExtentSummaryHandler.class.getName());
 
     int FailedTestCases = 0;
@@ -54,13 +52,24 @@ public class ExtentSummaryHandler extends SummaryHandler implements PrimaryHandl
     }
 
     private String getExtentSetting(String property) {
-        return Control.getCurrentProject().getProjectSettings().getExtentSettings().getProperty(property);
+        return Control
+            .getCurrentProject()
+            .getProjectSettings()
+            .getExtentSettings()
+            .getProperty(property);
     }
 
     public boolean isExtentEnabled() {
         if (!RunManager.getGlobalSettings().isTestRun()) {
-            return Control.getCurrentProject().getProjectSettings()
-                    .getExecSettings(RunManager.getGlobalSettings().getRelease(), RunManager.getGlobalSettings().getTestSet()).getRunSettings().isExtentReport();
+            return Control
+                .getCurrentProject()
+                .getProjectSettings()
+                .getExecSettings(
+                    RunManager.getGlobalSettings().getRelease(),
+                    RunManager.getGlobalSettings().getTestSet()
+                )
+                .getRunSettings()
+                .isExtentReport();
         }
 
         return false;
@@ -69,7 +78,13 @@ public class ExtentSummaryHandler extends SummaryHandler implements PrimaryHandl
     private void startLaunch(String testset) {
         if (isExtentEnabled()) {
             try {
-                initiateExtentReport(getExtentSetting("HTML-Theme"), testset + " : Execution Report", testset + " : Execution Report");
+                // The Extent report theme is intentionally hard-coded to "dark";
+                // the per-project "Extent Report Settings" tab has been removed.
+                initiateExtentReport(
+                    "dark",
+                    testset + " : Execution Report",
+                    testset + " : Execution Report"
+                );
             } catch (IOException | ParseException e) {
                 LOGGER.log(Level.SEVERE, e.getMessage(), e);
             }
@@ -99,8 +114,12 @@ public class ExtentSummaryHandler extends SummaryHandler implements PrimaryHandl
 
     @SuppressWarnings("unchecked")
     @Override
-    public synchronized void updateTestCaseResults(RunContext runContext, TestCaseReport report, Status state,
-            String executionTime) {
+    public synchronized void updateTestCaseResults(
+        RunContext runContext,
+        TestCaseReport report,
+        Status state,
+        String executionTime
+    ) {
         String status;
         if (state.equals(Status.PASS)) {
             status = "Passed";
@@ -123,13 +142,10 @@ public class ExtentSummaryHandler extends SummaryHandler implements PrimaryHandl
                 }
             }
         }
-
     }
 
-    public void flushExtentReport()
-            throws ClientProtocolException, IOException, ParseException {
+    public void flushExtentReport() throws ClientProtocolException, IOException, ParseException {
         extentReport.extentReports.flush();
-
     }
 
     /**
@@ -142,8 +158,7 @@ public class ExtentSummaryHandler extends SummaryHandler implements PrimaryHandl
     }
 
     public void initiateExtentReport(String theme, String docTitle, String reportName)
-            throws ClientProtocolException, IOException, ParseException {
-
+        throws ClientProtocolException, IOException, ParseException {
         extentReport.sparkReporter = new ExtentSparkReporter(FilePath.getCurrentExtentReportPath());
         if (theme.trim().equalsIgnoreCase("dark")) {
             extentReport.sparkReporter.config().setTheme(Theme.DARK);
@@ -153,16 +168,29 @@ public class ExtentSummaryHandler extends SummaryHandler implements PrimaryHandl
         extentReport.sparkReporter.config().setDocumentTitle(docTitle);
         extentReport.sparkReporter.config().setReportName(reportName);
         extentReport.sparkReporter.config().setCss(".uri-anchor, .pointer {display: none; }");
-        extentReport.sparkReporter.config().setJs("var x = document.getElementsByClassName(\"badge badge-gradient-primary\");for (let i = 0; i < x.length; i++) {x[i].innerHTML = \"Click to view screenshot\";}");
-        
+        extentReport
+            .sparkReporter.config()
+            .setJs(
+                "var x = document.getElementsByClassName(\"badge badge-gradient-primary\");for (let i = 0; i < x.length; i++) {x[i].innerHTML = \"Click to view screenshot\";}"
+            );
 
         extentReport.extentReports = new ExtentReports();
-        
-        extentReport.extentReports.setSystemInfo("Execution Mode", Control.getCurrentProject().getProjectSettings().getExecSettings().getRunSettings().getExecutionMode());
-        extentReport.extentReports.setSystemInfo("Thread count", String.valueOf(Control.exe.getExecSettings().getRunSettings().getThreadCount()));
+
+        extentReport.extentReports.setSystemInfo(
+            "Execution Mode",
+            Control
+                .getCurrentProject()
+                .getProjectSettings()
+                .getExecSettings()
+                .getRunSettings()
+                .getExecutionMode()
+        );
+        extentReport.extentReports.setSystemInfo(
+            "Thread count",
+            String.valueOf(Control.exe.getExecSettings().getRunSettings().getThreadCount())
+        );
         extentReport.extentReports.setSystemInfo("Execution Environment", Control.exe.runEnv());
-        
+
         extentReport.extentReports.attachReporter(extentReport.sparkReporter);
     }
-
 }

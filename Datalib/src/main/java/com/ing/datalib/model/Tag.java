@@ -1,4 +1,3 @@
-
 package com.ing.datalib.model;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -8,16 +7,12 @@ import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 import java.util.Objects;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
-@JsonPropertyOrder({
-    "value"
-})
-
+@JsonPropertyOrder({ "value" })
 /**
  *
- * 
+ *
  */
 public class Tag {
-
     @JsonProperty("value")
     private String value;
 

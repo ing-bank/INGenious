@@ -6,7 +6,6 @@ import static org.mockito.Mockito.*;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
@@ -17,7 +16,6 @@ import org.testng.annotations.Test;
  * Uses a temp directory to satisfy filesystem I/O in loadTestcases().
  */
 public class ScenarioTest {
-
     private File tempProjectDir;
     private File testPlanDir;
     private File scenarioDir;
@@ -26,8 +24,8 @@ public class ScenarioTest {
     @BeforeMethod
     public void setUp() throws IOException {
         // Create temp project structure: {project}/TestPlan/{scenarioName}/
-        tempProjectDir = new File(System.getProperty("java.io.tmpdir"),
-                "ScenarioTest_" + System.nanoTime());
+        tempProjectDir =
+            new File(System.getProperty("java.io.tmpdir"), "ScenarioTest_" + System.nanoTime());
         testPlanDir = new File(tempProjectDir, "TestPlan");
         scenarioDir = new File(testPlanDir, "LoginScenario");
         scenarioDir.mkdirs();
@@ -95,8 +93,14 @@ public class ScenarioTest {
     @Test
     public void testGetLocation() {
         Scenario scenario = new Scenario(project, "LoginScenario");
-        assertThat(scenario.getLocation()).isEqualTo(
-                tempProjectDir.getAbsolutePath() + File.separator + "TestPlan" + File.separator + "LoginScenario");
+        assertThat(scenario.getLocation())
+            .isEqualTo(
+                tempProjectDir.getAbsolutePath() +
+                File.separator +
+                "TestPlan" +
+                File.separator +
+                "LoginScenario"
+            );
     }
 
     // ---- getName / toString ----
@@ -111,6 +115,34 @@ public class ScenarioTest {
     public void testToString() {
         Scenario scenario = new Scenario(project, "LoginScenario");
         assertThat(scenario.toString()).isEqualTo("LoginScenario");
+    }
+
+    // ---- getScopeLabel ----
+
+    @Test
+    public void testGetScopeLabel_testPlan() {
+        Scenario scenario = new Scenario(project, "LoginScenario", Scenario.Source.TEST_PLAN);
+        assertThat(scenario.getScopeLabel()).isEqualTo("TestPlan");
+    }
+
+    @Test
+    public void testGetScopeLabel_reusableComponents() {
+        Scenario scenario = new Scenario(
+            project,
+            "LoginScenario",
+            Scenario.Source.REUSABLE_COMPONENTS
+        );
+        assertThat(scenario.getScopeLabel()).isEqualTo("Project");
+    }
+
+    @Test
+    public void testGetScopeLabel_sharedReusableComponents() {
+        Scenario scenario = new Scenario(
+            project,
+            "LoginScenario",
+            Scenario.Source.SHARED_REUSABLE_COMPONENTS
+        );
+        assertThat(scenario.getScopeLabel()).isEqualTo("Shared");
     }
 
     // ---- getTestCaseByName ----

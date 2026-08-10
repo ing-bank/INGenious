@@ -1,14 +1,13 @@
-
 package com.ing.engine.commands.galenCommands;
 
+import com.galenframework.specs.Location;
+import com.galenframework.specs.Side;
+import com.galenframework.specs.SpecOn;
 import com.ing.engine.core.CommandControl;
 import com.ing.engine.galenWrapper.SpecValidation.SpecReader;
 import com.ing.ingenious.api.annotation.Action;
 import com.ing.ingenious.api.types.InputType;
 import com.ing.ingenious.api.types.ObjectType;
-import com.galenframework.specs.Location;
-import com.galenframework.specs.Side;
-import com.galenframework.specs.SpecOn;
 import java.util.List;
 
 public class On extends General {
@@ -16,7 +15,7 @@ public class On extends General {
     public On(CommandControl cc) {
         super(cc);
     }
-/*
+    /*
     private void asssertElementOn(Side horizontal, Side vertical) {
         SpecOn spec = SpecReader.reader().getSpecOn(Condition, horizontal, vertical, Data);
         spec.setOriginalText(getMessage(horizontal, vertical, spec.getLocations()));

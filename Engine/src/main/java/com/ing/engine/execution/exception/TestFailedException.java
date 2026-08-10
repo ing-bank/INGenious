@@ -1,8 +1,6 @@
-
 package com.ing.engine.execution.exception;
 
 public class TestFailedException extends RuntimeException {
-
     private String testName;
 
     public TestFailedException(String scenario, String testcase, Throwable ex) {
@@ -18,5 +16,4 @@ public class TestFailedException extends RuntimeException {
     public String getMessage() {
         return String.format("Error in testcase [%s]", testName);
     }
-
 }

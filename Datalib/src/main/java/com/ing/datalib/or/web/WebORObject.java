@@ -1,16 +1,15 @@
-
 package com.ing.datalib.or.web;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
+import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import com.ing.datalib.component.utils.FileUtils;
 import com.ing.datalib.or.common.ORAttribute;
 import com.ing.datalib.or.common.ORObjectInf;
 import com.ing.datalib.or.common.ORUtils;
 import com.ing.datalib.or.common.ObjectGroup;
 import com.ing.datalib.undoredo.UndoRedoModel;
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonInclude;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlElementWrapper;
-import com.fasterxml.jackson.dataformat.xml.annotation.JacksonXmlProperty;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -31,7 +30,6 @@ import javax.swing.tree.TreePath;
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class WebORObject extends UndoRedoModel implements ORObjectInf {
-
     @JacksonXmlProperty(isAttribute = true, localName = "ref")
     private String name;
 
@@ -111,7 +109,7 @@ public class WebORObject extends UndoRedoModel implements ORObjectInf {
         group.getObjects().remove(this);
         if (!group.getParent().getRoot().getObjectRepository().isUsingYamlFormat()) {
             FileUtils.deleteFile(getRepLocation());
-        } 
+        }
     }
 
     @JsonIgnore
@@ -209,7 +207,9 @@ public class WebORObject extends UndoRedoModel implements ORObjectInf {
                 fireTableCellUpdated(rowIndex, columnIndex);
             }
         } else if (columnIndex == 2) {
-            boolean exactValue = (value instanceof Boolean) ? (Boolean) value : Boolean.parseBoolean(value.toString());
+            boolean exactValue = (value instanceof Boolean)
+                ? (Boolean) value
+                : Boolean.parseBoolean(value.toString());
             if (attr.isExact() != exactValue) {
                 super.setValueAt(value, rowIndex, columnIndex);
                 attr.setExact(exactValue);
@@ -227,10 +227,15 @@ public class WebORObject extends UndoRedoModel implements ORObjectInf {
     @JsonIgnore
     @Override
     public boolean isCellEditable(int row, int column) {
-        // Exact column (2) is not editable for xpath, css, TestId
+        // Exact column (2) is not editable for xpath, css, TestId, JSPath
         if (column == 2 && row < attributes.size()) {
             String attrName = attributes.get(row).getName();
-            if ("xpath".equals(attrName) || "css".equals(attrName) || "TestId".equals(attrName)) {
+            if (
+                "xpath".equals(attrName) ||
+                "css".equals(attrName) ||
+                "TestId".equals(attrName) ||
+                "JSPath".equals(attrName)
+            ) {
                 return false;
             }
         }
@@ -255,10 +260,12 @@ public class WebORObject extends UndoRedoModel implements ORObjectInf {
         if (group != null) {
             WebORPage page = (WebORPage) group.getParent();
             page.getRoot().setSaved(false);
-            
+
             // Auto-save for YAML format
-            if (page.getRoot().getObjectRepository() != null 
-                && page.getRoot().getObjectRepository().isUsingYamlFormat()) {
+            if (
+                page.getRoot().getObjectRepository() != null &&
+                page.getRoot().getObjectRepository().isUsingYamlFormat()
+            ) {
                 page.getRoot().getObjectRepository().saveWebPageNow(page);
             }
         }
@@ -354,13 +361,18 @@ public class WebORObject extends UndoRedoModel implements ORObjectInf {
     @JsonIgnore
     @Override
     public Boolean rename(String newName) {
+        boolean renamedParent = true;
         if (getParent().getChildCount() == 1) {
-            getParent().rename(newName);
+            renamedParent = getParent().rename(newName);
+            if (!renamedParent) {
+                return false;
+            }
         }
         if (newName == null || newName.isBlank()) {
             return false;
         }
-        if (getParent().getObjectByName(newName) != null) {
+        ORObjectInf existing = getParent().getObjectByName(newName);
+        if (existing != null && existing != this) {
             return false;
         }
         setName(newName);
@@ -429,12 +441,12 @@ public class WebORObject extends UndoRedoModel implements ORObjectInf {
     public String getType() {
         return getAttributeByName("type");
     }
-    
+
     @JsonIgnore
     public String getNLPlocator() {
         return getAttributeByName("NLP_locator");
     }
-    
+
     @JsonIgnore
     public String getUserdefinedLocator() {
         return getAttributeByName("user_defined_locator");
@@ -499,12 +511,12 @@ public class WebORObject extends UndoRedoModel implements ORObjectInf {
     public void setType(String val) {
         setAttributeByName("type", val);
     }
-    
+
     @JsonIgnore
     public void setNLPlocator(String val) {
         setAttributeByName("NLP_locator", val);
     }
-    
+
     @JsonIgnore
     public void setUserdefinedLocator(String val) {
         setAttributeByName("user_defined_locator", val);
@@ -520,22 +532,72 @@ public class WebORObject extends UndoRedoModel implements ORObjectInf {
         }
     }
 
+    /**
+     * Adds a new attribute to the end of the attribute list.
+     */
     @JsonIgnore
     public void addNewAttribute() {
+        addNewAttributeAt(attributes.size());
+    }
+
+    /**
+     * Adds a named attribute to the end of the attribute list.
+     *
+     * @param attrName attribute name to add
+     */
+    @JsonIgnore
+    public void addNewAttribute(String attrName) {
+        addNewAttributeAt(attrName, attributes.size());
+    }
+
+    /**
+     * Adds a uniquely named new attribute at the specified index.
+     *
+     * @param index insertion index
+     * @return inserted row index, or {@code -1} if insertion failed
+     */
+    @JsonIgnore
+    public int addNewAttributeAt(int index) {
         String newAttrName = "NewProp";
         int i = 1;
+
         while (getAttribute(newAttrName) != null) {
             newAttrName = "NewProp" + i++;
         }
-        addNewAttribute(newAttrName);
+
+        return addNewAttributeAt(newAttrName, index);
+    }
+
+    /**
+     * Adds a named attribute at the specified index.
+     *
+     * @param attrName attribute name to add
+     * @param index insertion index
+     * @return inserted row index, or {@code -1} if the attribute already exists
+     */
+    @JsonIgnore
+    public int addNewAttributeAt(String attrName, int index) {
+        if (getAttribute(attrName) != null) {
+            return -1;
+        }
+
+        if (index < 0 || index > attributes.size()) {
+            index = attributes.size();
+        }
+
+        attributes.add(index, new ORAttribute(attrName, index));
+        refreshPreferences();
+
+        super.rowAdded(index);
+        fireTableRowsInserted(index, index);
+
+        return index;
     }
 
     @JsonIgnore
-    public void addNewAttribute(String attrName) {
-        if (getAttribute(attrName) == null) {
-            attributes.add(new ORAttribute(attrName, attributes.size()));
-            super.rowAdded(attributes.size() - 1);
-            fireTableRowsInserted(attributes.size() - 1, attributes.size() - 1);
+    private void refreshPreferences() {
+        for (int i = 0; i < attributes.size(); i++) {
+            attributes.get(i).setPreference(String.valueOf(i + 1));
         }
     }
 
@@ -579,7 +641,12 @@ public class WebORObject extends UndoRedoModel implements ORObjectInf {
         WebORObject object = (WebORObject) obj;
         if (frame.equals(object.getFrame())) {
             for (ORAttribute attribute : attributes) {
-                if (!Objects.equals(attribute.getValue(), object.getAttributeByName(attribute.getName()))) {
+                if (
+                    !Objects.equals(
+                        attribute.getValue(),
+                        object.getAttributeByName(attribute.getName())
+                    )
+                ) {
                     return false;
                 }
             }

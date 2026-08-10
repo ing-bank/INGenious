@@ -6,7 +6,6 @@ import static org.mockito.Mockito.*;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-
 import org.testng.annotations.AfterMethod;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
@@ -17,7 +16,6 @@ import org.testng.annotations.Test;
  * Uses a temp directory to satisfy filesystem I/O in loadTestSets().
  */
 public class ReleaseTest {
-
     private File tempProjectDir;
     private File testLabDir;
     private File releaseDir;
@@ -26,8 +24,8 @@ public class ReleaseTest {
     @BeforeMethod
     public void setUp() throws IOException {
         // Create temp project structure: {project}/TestLab/{releaseName}/
-        tempProjectDir = new File(System.getProperty("java.io.tmpdir"),
-                "ReleaseTest_" + System.nanoTime());
+        tempProjectDir =
+            new File(System.getProperty("java.io.tmpdir"), "ReleaseTest_" + System.nanoTime());
         testLabDir = new File(tempProjectDir, "TestLab");
         releaseDir = new File(testLabDir, "Release1");
         releaseDir.mkdirs();
@@ -51,7 +49,9 @@ public class ReleaseTest {
     private void createCsvFile(File dir, String name) throws IOException {
         File f = new File(dir, name);
         try (FileWriter w = new FileWriter(f)) {
-            w.write("Execute,TestScenario,TestCase,Description,Iteration,Browser,Platform,Status\n");
+            w.write(
+                "Execute,TestScenario,TestCase,Description,Iteration,Browser,Platform,Status\n"
+            );
         }
     }
 
@@ -97,8 +97,14 @@ public class ReleaseTest {
     @Test
     public void testGetLocation() {
         Release release = new Release(project, "Release1");
-        assertThat(release.getLocation()).isEqualTo(
-                tempProjectDir.getAbsolutePath() + File.separator + "TestLab" + File.separator + "Release1");
+        assertThat(release.getLocation())
+            .isEqualTo(
+                tempProjectDir.getAbsolutePath() +
+                File.separator +
+                "TestLab" +
+                File.separator +
+                "Release1"
+            );
     }
 
     // ---- getName / toString ----

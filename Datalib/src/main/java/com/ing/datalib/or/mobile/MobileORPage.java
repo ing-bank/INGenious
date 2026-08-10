@@ -1,14 +1,4 @@
-
 package com.ing.datalib.or.mobile;
-
-import java.io.File;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.Enumeration;
-import java.util.List;
-
-import javax.swing.tree.TreeNode;
-import javax.swing.tree.TreePath;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonInclude;
@@ -18,6 +8,13 @@ import com.ing.datalib.or.common.ORPageInf;
 import com.ing.datalib.or.common.ORUtils;
 import com.ing.datalib.or.common.ObjectGroup;
 import com.ing.datalib.or.mobile.MobileOR.ORScope;
+import java.io.File;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Enumeration;
+import java.util.List;
+import javax.swing.tree.TreeNode;
+import javax.swing.tree.TreePath;
 
 /**
  * Represents a single mobile object inside a MobileOR page, containing a collection of
@@ -27,7 +24,6 @@ import com.ing.datalib.or.mobile.MobileOR.ORScope;
  */
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class MobileORPage implements ORPageInf<MobileORObject, MobileOR> {
-
     @JacksonXmlProperty(isAttribute = true, localName = "ref")
     private String name;
 
@@ -40,7 +36,7 @@ public class MobileORPage implements ORPageInf<MobileORObject, MobileOR> {
 
     @JsonIgnore
     private MobileOR root;
-    
+
     @JacksonXmlProperty(isAttribute = true, localName = "source")
     private ORScope source = ORScope.PROJECT;
 
@@ -125,15 +121,19 @@ public class MobileORPage implements ORPageInf<MobileORObject, MobileOR> {
             ObjectGroup<MobileORObject> group = new ObjectGroup<>(groupName, this);
             objectGroups.add(group);
             // Only create folder for non-YAML formats
-            if (root.getObjectRepository() == null || !root.getObjectRepository().isUsingYamlFormat()) {
+            if (
+                root.getObjectRepository() == null ||
+                !root.getObjectRepository().isUsingYamlFormat()
+            ) {
                 new File(group.getRepLocation()).mkdirs();
             }
             group.addObject(groupName);
             root.setSaved(false);
-            
+
             // Auto-save for YAML format
-            if (root.getObjectRepository() != null 
-                && root.getObjectRepository().isUsingYamlFormat()) {
+            if (
+                root.getObjectRepository() != null && root.getObjectRepository().isUsingYamlFormat()
+            ) {
                 root.getObjectRepository().saveMobilePageNow(this);
             }
             return group;
@@ -192,8 +192,7 @@ public class MobileORPage implements ORPageInf<MobileORObject, MobileOR> {
     @JsonIgnore
     @Override
     public int getChildCount() {
-        return objectGroups == null ? 0
-                : objectGroups.size();
+        return objectGroups == null ? 0 : objectGroups.size();
     }
 
     @JsonIgnore
@@ -257,9 +256,7 @@ public class MobileORPage implements ORPageInf<MobileORObject, MobileOR> {
 
     @Override
     public Boolean rename(String newName) {
-        getRoot()
-            .getObjectRepository()
-            .renamePage(this, newName);
+        getRoot().getObjectRepository().renamePage(this, newName);
         return true;
     }
 
@@ -274,7 +271,7 @@ public class MobileORPage implements ORPageInf<MobileORObject, MobileOR> {
     public void sort() {
         ORUtils.sort(this);
     }
-    
+
     public ORScope getSource() {
         return source;
     }

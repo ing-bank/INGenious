@@ -1,4 +1,3 @@
-
 package com.ing.datalib.model;
 
 import java.util.ArrayList;
@@ -10,7 +9,7 @@ import java.util.stream.Stream;
 
 /**
  *
- * 
+ *
  */
 public class MetaList extends ArrayList<Meta> {
 

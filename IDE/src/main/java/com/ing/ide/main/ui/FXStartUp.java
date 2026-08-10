@@ -7,6 +7,12 @@ import com.ing.ide.main.utils.INGeniousFileChooser;
 import com.ing.ide.main.utils.recentItem.RecentItem;
 import com.ing.ide.settings.AppSettings;
 import com.ing.ide.util.Validator;
+import java.io.File;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+import java.util.logging.Logger;
 import javafx.application.Platform;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
@@ -17,16 +23,9 @@ import javafx.scene.Scene;
 import javafx.scene.control.*;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
+import javax.swing.*;
 import org.kordamp.ikonli.javafx.FontIcon;
 import org.kordamp.ikonli.materialdesign2.*;
-
-import javax.swing.*;
-import java.io.File;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
-import java.util.logging.Logger;
 
 /**
  * Beautiful JavaFX-based StartUp screen for INGenious Playwright Studio.
@@ -36,7 +35,6 @@ import java.util.logging.Logger;
  * Recent, Application (default projects location), System (file chooser), New.
  */
 public class FXStartUp extends JDialog {
-
     private static final Logger LOG = Logger.getLogger(FXStartUp.class.getName());
 
     private final AppMainFrame sMainFrame;
@@ -65,12 +63,15 @@ public class FXStartUp extends JDialog {
         setModal(true);
         setTitle("INGenious Playwright Studio");
         setDefaultCloseOperation(DISPOSE_ON_CLOSE);
-        addWindowListener(new java.awt.event.WindowAdapter() {
-            @Override
-            public void windowClosing(java.awt.event.WindowEvent evt) {
-                sMainFrame.quit();
+        addWindowListener(
+            new java.awt.event.WindowAdapter() {
+
+                @Override
+                public void windowClosing(java.awt.event.WindowEvent evt) {
+                    sMainFrame.quit();
+                }
             }
-        });
+        );
 
         fxPanel = new JFXPanel();
         getContentPane().add(fxPanel);
@@ -78,10 +79,12 @@ public class FXStartUp extends JDialog {
         // Prevents macOS NSTrackingRectTag crash when showIt() triggers
         // a JFXPanel resize before Glass tracking rects are initialised.
         CountDownLatch sceneReady = new CountDownLatch(1);
-        Platform.runLater(() -> {
-            buildUI();
-            sceneReady.countDown();
-        });
+        Platform.runLater(
+            () -> {
+                buildUI();
+                sceneReady.countDown();
+            }
+        );
         try {
             sceneReady.await(5, TimeUnit.SECONDS);
         } catch (InterruptedException e) {
@@ -137,10 +140,26 @@ public class FXStartUp extends JDialog {
         // Navigation buttons
         navGroup = new ToggleGroup();
 
-        ToggleButton recentBtn = createNavButton("Recent", MaterialDesignH.HISTORY, "startup-nav-recent");
-        ToggleButton appBtn = createNavButton("Projects", MaterialDesignA.APPLICATION, "startup-nav-app");
-        ToggleButton systemBtn = createNavButton("Browse", MaterialDesignF.FOLDER_SEARCH, "startup-nav-system");
-        ToggleButton newBtn = createNavButton("New Project", MaterialDesignP.PLUS_CIRCLE, "startup-nav-new");
+        ToggleButton recentBtn = createNavButton(
+            "Recent",
+            MaterialDesignH.HISTORY,
+            "startup-nav-recent"
+        );
+        ToggleButton appBtn = createNavButton(
+            "Projects",
+            MaterialDesignA.APPLICATION,
+            "startup-nav-app"
+        );
+        ToggleButton systemBtn = createNavButton(
+            "Browse",
+            MaterialDesignF.FOLDER_SEARCH,
+            "startup-nav-system"
+        );
+        ToggleButton newBtn = createNavButton(
+            "New Project",
+            MaterialDesignP.PLUS_CIRCLE,
+            "startup-nav-new"
+        );
 
         recentBtn.setToggleGroup(navGroup);
         appBtn.setToggleGroup(navGroup);
@@ -148,9 +167,13 @@ public class FXStartUp extends JDialog {
         newBtn.setToggleGroup(navGroup);
 
         // Prevent deselecting all buttons
-        navGroup.selectedToggleProperty().addListener((obs, oldVal, newVal) -> {
-            if (newVal == null) oldVal.setSelected(true);
-        });
+        navGroup
+            .selectedToggleProperty()
+            .addListener(
+                (obs, oldVal, newVal) -> {
+                    if (newVal == null) oldVal.setSelected(true);
+                }
+            );
 
         // Handle navigation
         recentBtn.setOnAction(e -> showPanel("Recent"));
@@ -165,22 +188,27 @@ public class FXStartUp extends JDialog {
         CheckBox autoOpen = new CheckBox("Auto-open last project");
         autoOpen.getStyleClass().add("startup-auto-open");
         autoOpen.setSelected(AppSettings.canOpenRecentProjects());
-        autoOpen.selectedProperty().addListener((obs, ov, nv) -> {
-            AppSettings.openRecentProjectsOnLaunch(nv);
-            recentChanged = true;
-        });
+        autoOpen
+            .selectedProperty()
+            .addListener(
+                (obs, ov, nv) -> {
+                    AppSettings.openRecentProjectsOnLaunch(nv);
+                    recentChanged = true;
+                }
+            );
 
-        sidebar.getChildren().addAll(
-                brandBox,
-                recentBtn, appBtn, systemBtn, newBtn,
-                spacer,
-                autoOpen
-        );
+        sidebar
+            .getChildren()
+            .addAll(brandBox, recentBtn, appBtn, systemBtn, newBtn, spacer, autoOpen);
 
         return sidebar;
     }
 
-    private ToggleButton createNavButton(String text, org.kordamp.ikonli.Ikon ikon, String styleClass) {
+    private ToggleButton createNavButton(
+        String text,
+        org.kordamp.ikonli.Ikon ikon,
+        String styleClass
+    ) {
         FontIcon icon = new FontIcon(ikon);
         icon.setIconSize(18);
         icon.getStyleClass().add("startup-nav-icon");
@@ -238,11 +266,16 @@ public class FXStartUp extends JDialog {
             recentList.getStyleClass().add("startup-list");
         }
         recentList.setCellFactory(lv -> new RecentItemCell());
-        recentList.setOnMouseClicked(e -> {
-            if (e.getClickCount() == 2 && recentList.getSelectionModel().getSelectedItem() != null) {
-                loadProject(recentList.getSelectionModel().getSelectedItem().getLocation());
+        recentList.setOnMouseClicked(
+            e -> {
+                if (
+                    e.getClickCount() == 2 &&
+                    recentList.getSelectionModel().getSelectedItem() != null
+                ) {
+                    loadProject(recentList.getSelectionModel().getSelectedItem().getLocation());
+                }
             }
-        });
+        );
         VBox.setVgrow(recentList, Priority.ALWAYS);
 
         panel.getChildren().addAll(title, hint, recentList);
@@ -277,12 +310,16 @@ public class FXStartUp extends JDialog {
             appList.getStyleClass().add("startup-list");
         }
         appList.setCellFactory(lv -> new ProjectItemCell());
-        appList.setOnMouseClicked(e -> {
-            if (e.getClickCount() == 2 && appList.getSelectionModel().getSelectedItem() != null) {
-                String projName = appList.getSelectionModel().getSelectedItem();
-                loadProject(new File("Projects" + File.separator + projName).getAbsolutePath());
+        appList.setOnMouseClicked(
+            e -> {
+                if (
+                    e.getClickCount() == 2 && appList.getSelectionModel().getSelectedItem() != null
+                ) {
+                    String projName = appList.getSelectionModel().getSelectedItem();
+                    loadProject(new File("Projects" + File.separator + projName).getAbsolutePath());
+                }
             }
-        });
+        );
         VBox.setVgrow(appList, Priority.ALWAYS);
 
         panel.getChildren().addAll(title, loc, appList);
@@ -331,8 +368,10 @@ public class FXStartUp extends JDialog {
         // Test Data Type
         Label tdLabel = new Label("Test Data Type");
         tdLabel.getStyleClass().add("startup-field-label");
-        testDataTypeCombo = new ComboBox<>(FXCollections.observableArrayList(
-                TestDataFactory.getDATA_PROVIDER_NAMES()));
+        testDataTypeCombo =
+            new ComboBox<>(
+                FXCollections.observableArrayList(TestDataFactory.getDATA_PROVIDER_NAMES())
+            );
         testDataTypeCombo.getStyleClass().add("startup-field");
         testDataTypeCombo.setMaxWidth(400);
         if (!testDataTypeCombo.getItems().isEmpty()) {
@@ -354,13 +393,18 @@ public class FXStartUp extends JDialog {
         VBox formBox = new VBox(8);
         formBox.setAlignment(Pos.CENTER_LEFT);
         formBox.setMaxWidth(400);
-        formBox.getChildren().addAll(
-                nameLabel, projNameField,
+        formBox
+            .getChildren()
+            .addAll(
+                nameLabel,
+                projNameField,
                 new Region(),
-                locLabel, projLocationField,
+                locLabel,
+                projLocationField,
                 new Region(),
-                tdLabel, testDataTypeCombo
-        );
+                tdLabel,
+                testDataTypeCombo
+            );
 
         HBox btnBox = new HBox(createBtn);
         btnBox.setAlignment(Pos.CENTER);
@@ -374,17 +418,19 @@ public class FXStartUp extends JDialog {
 
     private void showSystemChooser() {
         // Run Swing file chooser on EDT
-        SwingUtilities.invokeLater(() -> {
-            INGeniousFileChooser.OPEN_PROJECT.afterFileSelected = this::loadProject;
-            int result = INGeniousFileChooser.OPEN_PROJECT.showOpenDialog(this);
-            if (result == JFileChooser.APPROVE_OPTION) {
-                File selected = INGeniousFileChooser.OPEN_PROJECT.getSelectedFile();
-                if (selected != null) {
-                    loadProject(selected.getAbsolutePath());
+        SwingUtilities.invokeLater(
+            () -> {
+                INGeniousFileChooser.OPEN_PROJECT.afterFileSelected = this::loadProject;
+                int result = INGeniousFileChooser.OPEN_PROJECT.showOpenDialog(this);
+                if (result == JFileChooser.APPROVE_OPTION) {
+                    File selected = INGeniousFileChooser.OPEN_PROJECT.getSelectedFile();
+                    if (selected != null) {
+                        loadProject(selected.getAbsolutePath());
+                    }
                 }
+                INGeniousFileChooser.OPEN_PROJECT.afterFileSelected = null;
             }
-            INGeniousFileChooser.OPEN_PROJECT.afterFileSelected = null;
-        });
+        );
     }
 
     // ── Data Loading ──
@@ -424,7 +470,9 @@ public class FXStartUp extends JDialog {
             if (files != null) {
                 for (File project : files) {
                     if (project.isDirectory()) {
-                        File[] dotProject = project.listFiles((dir, name) -> name.endsWith(".project"));
+                        File[] dotProject = project.listFiles(
+                            (dir, name) -> name.endsWith(".project")
+                        );
                         if (dotProject != null && dotProject.length > 0) {
                             items.add(project.getName());
                         }
@@ -455,34 +503,43 @@ public class FXStartUp extends JDialog {
         if (recentChanged) {
             AppSettings.store("Options Changed");
         }
-        SwingUtilities.invokeLater(() -> {
-            sMainFrame.createProject(name, location,
-                    testDataTypeCombo.getSelectionModel().getSelectedItem());
-            closeWindow();
-            sMainFrame.adjustUI();
-            sMainFrame.setVisible(true);
-        });
+        SwingUtilities.invokeLater(
+            () -> {
+                sMainFrame.createProject(
+                    name,
+                    location,
+                    testDataTypeCombo.getSelectionModel().getSelectedItem()
+                );
+                closeWindow();
+                sMainFrame.adjustUI();
+                sMainFrame.setVisible(true);
+            }
+        );
     }
 
     private void loadProject(String location) {
         if (new File(location).exists()) {
-            SwingUtilities.invokeLater(() -> {
-                sMainFrame.loadProject(location);
-                closeWindow();
-                sMainFrame.adjustUI();
-                sMainFrame.setVisible(true);
-                if (recentChanged) {
-                    AppSettings.store("Options Changed");
+            SwingUtilities.invokeLater(
+                () -> {
+                    sMainFrame.loadProject(location);
+                    closeWindow();
+                    sMainFrame.adjustUI();
+                    sMainFrame.setVisible(true);
+                    if (recentChanged) {
+                        AppSettings.store("Options Changed");
+                    }
                 }
-            });
+            );
         }
     }
 
     private void closeWindow() {
-        SwingUtilities.invokeLater(() -> {
-            INGeniousFileChooser.OPEN_PROJECT.afterFileSelected = null;
-            setVisible(false);
-        });
+        SwingUtilities.invokeLater(
+            () -> {
+                INGeniousFileChooser.OPEN_PROJECT.afterFileSelected = null;
+                setVisible(false);
+            }
+        );
     }
 
     private void showError(String msg) {
@@ -502,6 +559,7 @@ public class FXStartUp extends JDialog {
      * A beautifully styled list cell for recent project items.
      */
     private static class RecentItemCell extends ListCell<RecentItem> {
+
         @Override
         protected void updateItem(RecentItem item, boolean empty) {
             super.updateItem(item, empty);
@@ -537,6 +595,7 @@ public class FXStartUp extends JDialog {
      * A styled list cell for application/project directory items.
      */
     private static class ProjectItemCell extends ListCell<String> {
+
         @Override
         protected void updateItem(String item, boolean empty) {
             super.updateItem(item, empty);

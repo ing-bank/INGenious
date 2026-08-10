@@ -2,8 +2,8 @@ package com.ing.engine.commands.mobile;
 
 import com.ing.engine.commands.browser.Command;
 import com.ing.engine.core.CommandControl;
-import com.ing.ingenious.api.status.Status;
 import com.ing.ingenious.api.annotation.Action;
+import com.ing.ingenious.api.status.Status;
 import com.ing.ingenious.api.types.ObjectType;
 import java.util.List;
 import java.util.logging.Level;
@@ -16,7 +16,7 @@ public class CheckBox extends Command {
     public CheckBox(CommandControl cc) {
         super(cc);
     }
-/*
+    /*
     @Action(object = ObjectType.APP, desc = "Check the [<Object>] element")
     public void check() {
         if (Element != null) {

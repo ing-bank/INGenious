@@ -1,4 +1,3 @@
-
 package com.ing.datalib.undoredo;
 
 import java.util.ArrayList;
@@ -10,10 +9,9 @@ import javax.swing.undo.UndoableEdit;
 
 /**
  *
- * 
+ *
  */
 public class CommonUndoManager extends UndoManager {
-
     private final UndoRedoProgress progress;
 
     private final List<UndoableEdit> groupEdits;
@@ -80,5 +78,4 @@ public class CommonUndoManager extends UndoManager {
             super.undo();
         }
     }
-
 }

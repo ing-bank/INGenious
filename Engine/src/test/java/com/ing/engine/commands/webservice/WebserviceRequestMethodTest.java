@@ -43,7 +43,8 @@ public class WebserviceRequestMethodTest {
 
     @Test
     public void testDeleteWithPayloadValue() {
-        assertThat(RequestMethodType.valueOf("DELETEWITHPAYLOAD")).isEqualTo(RequestMethodType.DELETEWITHPAYLOAD);
+        assertThat(RequestMethodType.valueOf("DELETEWITHPAYLOAD"))
+            .isEqualTo(RequestMethodType.DELETEWITHPAYLOAD);
     }
 
     @Test

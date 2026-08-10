@@ -2,14 +2,13 @@ package com.ing.engine.cli.commands;
 
 import com.ing.engine.cli.INGeniousCLI;
 import com.ing.engine.cli.LookUp;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.Callable;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Option;
 import picocli.CommandLine.ParentCommand;
 import picocli.CommandLine.Unmatched;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.Callable;
 
 /**
  * Legacy command wrapper for backward compatibility.
@@ -21,44 +20,43 @@ import java.util.concurrent.Callable;
     description = "Execute using legacy CLI arguments (for backward compatibility)"
 )
 public class LegacyCommand implements Callable<Integer> {
-
     @ParentCommand
     private INGeniousCLI parent;
 
-    @Option(names = {"-run"}, description = "Execute tests")
+    @Option(names = { "-run" }, description = "Execute tests")
     private boolean run;
 
-    @Option(names = {"-rerun"}, description = "Rerun failed tests")
+    @Option(names = { "-rerun" }, description = "Rerun failed tests")
     private String rerunPath;
 
-    @Option(names = {"-project_location"}, description = "Project location")
+    @Option(names = { "-project_location" }, description = "Project location")
     private String projectLocation;
 
-    @Option(names = {"-scenario"}, description = "Scenario name")
+    @Option(names = { "-scenario" }, description = "Scenario name")
     private String scenario;
 
-    @Option(names = {"-testcase"}, description = "Test case name")
+    @Option(names = { "-testcase" }, description = "Test case name")
     private String testcase;
 
-    @Option(names = {"-release"}, description = "Release name")
+    @Option(names = { "-release" }, description = "Release name")
     private String release;
 
-    @Option(names = {"-testset"}, description = "Test set name")
+    @Option(names = { "-testset" }, description = "Test set name")
     private String testset;
 
-    @Option(names = {"-browser"}, description = "Browser name")
+    @Option(names = { "-browser" }, description = "Browser name")
     private String browser;
 
-    @Option(names = {"-setThreads"}, description = "Number of threads")
+    @Option(names = { "-setThreads" }, description = "Number of threads")
     private String threads;
 
-    @Option(names = {"-tags"}, description = "Test tags")
+    @Option(names = { "-tags" }, description = "Test tags")
     private String tags;
 
-    @Option(names = {"-env"}, description = "Environment")
+    @Option(names = { "-env" }, description = "Environment")
     private String environment;
 
-    @Option(names = {"-latest_exe_status"}, description = "Get latest execution status")
+    @Option(names = { "-latest_exe_status" }, description = "Get latest execution status")
     private boolean latestStatus;
 
     @Unmatched
@@ -109,8 +107,8 @@ public class LegacyCommand implements Callable<Integer> {
         }
 
         if (threads != null) {
-            legacyArgs.add("-setThreads");
-            legacyArgs.add(threads);
+            legacyArgs.add("-setEnv");
+            legacyArgs.add("run.ThreadCount=" + threads);
         }
 
         if (tags != null) {
@@ -148,10 +146,10 @@ public class LegacyCommand implements Callable<Integer> {
      */
     public static String[] convertToLegacyArgs(String[] newArgs) {
         List<String> legacyArgs = new ArrayList<>();
-        
+
         for (int i = 0; i < newArgs.length; i++) {
             String arg = newArgs[i];
-            
+
             switch (arg) {
                 case "--project":
                 case "-p":
@@ -160,7 +158,6 @@ public class LegacyCommand implements Callable<Integer> {
                         legacyArgs.add(newArgs[++i]);
                     }
                     break;
-                    
                 case "--scenario":
                 case "-s":
                     legacyArgs.add("-scenario");
@@ -168,7 +165,6 @@ public class LegacyCommand implements Callable<Integer> {
                         legacyArgs.add(newArgs[++i]);
                     }
                     break;
-                    
                 case "--testcase":
                 case "-t":
                     legacyArgs.add("-testcase");
@@ -176,7 +172,6 @@ public class LegacyCommand implements Callable<Integer> {
                         legacyArgs.add(newArgs[++i]);
                     }
                     break;
-                    
                 case "--browser":
                 case "-b":
                     legacyArgs.add("-browser");
@@ -184,25 +179,22 @@ public class LegacyCommand implements Callable<Integer> {
                         legacyArgs.add(newArgs[++i]);
                     }
                     break;
-                    
                 case "--parallel":
-                    legacyArgs.add("-setThreads");
+                    legacyArgs.add("-setEnv");
                     if (i + 1 < newArgs.length) {
-                        legacyArgs.add(newArgs[++i]);
+                        legacyArgs.add("run.ThreadCount=" + newArgs[++i]);
                     }
                     break;
-                    
                 case "--headless":
                     legacyArgs.add("-op_setHeadless");
                     legacyArgs.add("true");
                     break;
-                    
                 default:
                     // Pass through as-is
                     legacyArgs.add(arg);
             }
         }
-        
+
         return legacyArgs.toArray(new String[0]);
     }
 }

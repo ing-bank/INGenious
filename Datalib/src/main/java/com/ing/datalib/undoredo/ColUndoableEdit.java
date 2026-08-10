@@ -1,4 +1,3 @@
-
 package com.ing.datalib.undoredo;
 
 import javax.swing.table.AbstractTableModel;
@@ -7,18 +6,22 @@ import javax.swing.undo.CannotUndoException;
 
 /**
  *
- * 
+ *
  */
 public class ColUndoableEdit extends CommonUndoableEdit {
-
     private final String colName;
     private final int colIndex;
     private final Object[] values;
 
     private final Boolean added;
 
-    public ColUndoableEdit(AbstractTableModel model, UndoRedoProgress progress,
-            String colName, int colIndex, Boolean added) {
+    public ColUndoableEdit(
+        AbstractTableModel model,
+        UndoRedoProgress progress,
+        String colName,
+        int colIndex,
+        Boolean added
+    ) {
         super(model, progress);
         this.colName = colName;
         this.colIndex = colIndex;
@@ -27,8 +30,12 @@ public class ColUndoableEdit extends CommonUndoableEdit {
         loadValuesFromModel();
     }
 
-    public ColUndoableEdit(AbstractTableModel model, UndoRedoProgress progress,
-            int colIndex, Boolean added) {
+    public ColUndoableEdit(
+        AbstractTableModel model,
+        UndoRedoProgress progress,
+        int colIndex,
+        Boolean added
+    ) {
         super(model, progress);
         this.colName = getModel().getColumnName(colIndex);
         this.colIndex = colIndex;
@@ -37,8 +44,12 @@ public class ColUndoableEdit extends CommonUndoableEdit {
         loadValuesFromModel();
     }
 
-    public ColUndoableEdit(AbstractTableModel model, UndoRedoProgress progress,
-            String colName, Boolean added) {
+    public ColUndoableEdit(
+        AbstractTableModel model,
+        UndoRedoProgress progress,
+        String colName,
+        Boolean added
+    ) {
         super(model, progress);
         this.colName = colName;
         this.colIndex = getModel().findColumn(colName);

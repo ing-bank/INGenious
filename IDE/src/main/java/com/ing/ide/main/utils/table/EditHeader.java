@@ -30,7 +30,6 @@ import javax.swing.table.TableColumn;
  *
  */
 public class EditHeader {
-
     private final JTableHeader header;
     private final JPopupMenu renamePopup;
     private final JTextField text;
@@ -46,7 +45,11 @@ public class EditHeader {
         return new EditHeader(table, null, dontEditTheseColums);
     }
 
-    public static EditHeader setEditableHeader(JTable table, Action action, Integer... dontEditTheseColums) {
+    public static EditHeader setEditableHeader(
+        JTable table,
+        Action action,
+        Integer... dontEditTheseColums
+    ) {
         return new EditHeader(table, action, dontEditTheseColums);
     }
 
@@ -54,48 +57,63 @@ public class EditHeader {
         header = table.getTableHeader();
         this.action = action;
         this.dontEditTheseColums = dontEditTheseColums;
-        this.editAdatper = new MouseAdapter() {
-            @Override
-            public void mouseClicked(MouseEvent event) {
-                if ((SwingUtilities.isLeftMouseButton(event) && event.getClickCount() == 2)
-                        || SwingUtilities.isMiddleMouseButton(event)) {
-                    editColumnAt(event.getPoint());
+        this.editAdatper =
+            new MouseAdapter() {
+
+                @Override
+                public void mouseClicked(MouseEvent event) {
+                    if (
+                        (SwingUtilities.isLeftMouseButton(event) && event.getClickCount() == 2) ||
+                        SwingUtilities.isMiddleMouseButton(event)
+                    ) {
+                        editColumnAt(event.getPoint());
+                    }
                 }
-            }
-        };
+            };
         header.addMouseListener(editAdatper);
         text = new JTextField();
-        
-        changeDefaultKeyBindings(text);
-        
-        text.setBorder(null);
-        text.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                renameColumn();
-            }
-        });
 
-        text.addFocusListener(new FocusAdapter() {
-            @Override
-            public void focusLost(FocusEvent fe) {
-                if (!cancelEdit) {
+        changeDefaultKeyBindings(text);
+
+        text.setBorder(null);
+        text.addActionListener(
+            new ActionListener() {
+
+                @Override
+                public void actionPerformed(ActionEvent e) {
                     renameColumn();
                 }
-                cancelEdit = false;
             }
+        );
 
-        });
+        text.addFocusListener(
+            new FocusAdapter() {
+
+                @Override
+                public void focusLost(FocusEvent fe) {
+                    if (!cancelEdit) {
+                        renameColumn();
+                    }
+                    cancelEdit = false;
+                }
+            }
+        );
 
         text.getInputMap(JComponent.WHEN_FOCUSED).put(KeyStroke.getKeyStroke("ESCAPE"), "Cancel");
 
-        text.getActionMap().put("Cancel", new AbstractAction() {
-            @Override
-            public void actionPerformed(ActionEvent ae) {
-                cancelEdit = true;
-                renamePopup.setVisible(false);
-            }
-        });
+        text
+            .getActionMap()
+            .put(
+                "Cancel",
+                new AbstractAction() {
+
+                    @Override
+                    public void actionPerformed(ActionEvent ae) {
+                        cancelEdit = true;
+                        renamePopup.setVisible(false);
+                    }
+                }
+            );
 
         renamePopup = new JPopupMenu();
         renamePopup.setBorder(new MatteBorder(0, 1, 1, 1, Color.DARK_GRAY));
@@ -104,12 +122,18 @@ public class EditHeader {
 
     private void editColumnAt(Point p) {
         int columnIndex = header.columnAtPoint(p);
-        if (columnIndex != -1 && dontEditTheseColums != null && !Arrays.asList(dontEditTheseColums).contains(columnIndex)) {
+        if (
+            columnIndex != -1 &&
+            dontEditTheseColums != null &&
+            !Arrays.asList(dontEditTheseColums).contains(columnIndex)
+        ) {
             column = header.getColumnModel().getColumn(columnIndex);
             Rectangle columnRectangle = header.getHeaderRect(columnIndex);
 
             text.setText(column.getHeaderValue().toString());
-            renamePopup.setPreferredSize(new Dimension(columnRectangle.width, columnRectangle.height - 1));
+            renamePopup.setPreferredSize(
+                new Dimension(columnRectangle.width, columnRectangle.height - 1)
+            );
             renamePopup.show(header, columnRectangle.x, 0);
 
             text.requestFocusInWindow();
@@ -120,7 +144,11 @@ public class EditHeader {
     private void renameColumn() {
         Object oldvalue = column.getHeaderValue();
         String newvalue = text.getText();
-        if (!newvalue.isEmpty() && !newvalue.equals(oldvalue.toString()) && isItOkToNameThisColumnWith(newvalue)) {
+        if (
+            !newvalue.isEmpty() &&
+            !newvalue.equals(oldvalue.toString()) &&
+            isItOkToNameThisColumnWith(newvalue)
+        ) {
             if (action != null) {
                 action.putValue("oldvalue", oldvalue);
                 action.putValue("newvalue", newvalue);
@@ -154,18 +182,28 @@ public class EditHeader {
     }
 
     private void changeDefaultKeyBindings(JTextField editor) {
-
         int menuShortcutKeyMask = Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx();
         editor.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_X, menuShortcutKeyMask), "cut");
-        editor.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_C, menuShortcutKeyMask), "copy");
-        editor.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_V, menuShortcutKeyMask), "paste");
-        editor.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_A, menuShortcutKeyMask), "selectAll");
-        editor.getActionMap().put("selectAll", new AbstractAction() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                editor.selectAll();
-            }
-        });
+        editor
+            .getInputMap()
+            .put(KeyStroke.getKeyStroke(KeyEvent.VK_C, menuShortcutKeyMask), "copy");
+        editor
+            .getInputMap()
+            .put(KeyStroke.getKeyStroke(KeyEvent.VK_V, menuShortcutKeyMask), "paste");
+        editor
+            .getInputMap()
+            .put(KeyStroke.getKeyStroke(KeyEvent.VK_A, menuShortcutKeyMask), "selectAll");
+        editor
+            .getActionMap()
+            .put(
+                "selectAll",
+                new AbstractAction() {
 
+                    @Override
+                    public void actionPerformed(ActionEvent e) {
+                        editor.selectAll();
+                    }
+                }
+            );
     }
 }

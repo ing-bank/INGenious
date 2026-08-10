@@ -1,4 +1,3 @@
-
 package com.ing.storywriter.util;
 
 import java.io.BufferedWriter;
@@ -16,13 +15,14 @@ import javax.swing.filechooser.FileNameExtensionFilter;
  *
  */
 public class Tools {
-
     static SimpleDateFormat formatter = new SimpleDateFormat("dd-MM-yyyy");
     private static final long millisinDay = 1000 * 60 * 60 * 24;
-    public static FileNameExtensionFilter json = new FileNameExtensionFilter("BDD proj", "json"),
-            feature = new FileNameExtensionFilter("BDD Story", "feature");
+    public static FileNameExtensionFilter json = new FileNameExtensionFilter(
+        "BDD proj",
+        "json"
+    ), feature = new FileNameExtensionFilter("BDD Story", "feature");
 
-    synchronized public static void writeFile(File f, String s) {
+    public static synchronized void writeFile(File f, String s) {
         try (BufferedWriter out = new BufferedWriter(new FileWriter(f));) {
             out.write((s));
         } catch (Exception ex) {
@@ -30,12 +30,11 @@ public class Tools {
         }
     }
 
-    synchronized public static String readFile(File path) throws Exception {
+    public static synchronized String readFile(File path) throws Exception {
         return (new Scanner(path).useDelimiter("\\A").next());
     }
 
-    synchronized public static long getMillisNow(String dateInString) {
-
+    public static synchronized long getMillisNow(String dateInString) {
         try {
             Date date = formatter.parse(dateInString), now = new Date();
             return date.getTime() - now.getTime();

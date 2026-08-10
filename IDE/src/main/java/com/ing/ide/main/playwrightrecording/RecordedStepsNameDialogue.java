@@ -7,18 +7,19 @@ import java.awt.event.WindowEvent;
 import javax.swing.JFrame;
 
 public class RecordedStepsNameDialogue extends javax.swing.JFrame {
-    
-    private static final java.util.logging.Logger logger = java.util.logging.Logger.getLogger(RecordedStepsNameDialogue.class.getName());
-    
+    private static final java.util.logging.Logger logger = java.util.logging.Logger.getLogger(
+        RecordedStepsNameDialogue.class.getName()
+    );
+
     public static String ScenarioName;
-    
+
     private final AppMainFrame sMainFrame;
     private javax.swing.JLabel errorLabel;
-    
+
     public RecordedStepsNameDialogue(AppMainFrame sMainFrame) {
         this.sMainFrame = sMainFrame;
         initComponents();
-        
+
         // Add error label programmatically
         errorLabel = new javax.swing.JLabel();
         errorLabel.setFont(new java.awt.Font("SansSerif", 0, 11));
@@ -26,37 +27,43 @@ public class RecordedStepsNameDialogue extends javax.swing.JFrame {
         errorLabel.setText("");
         errorLabel.setVisible(false);
         errorLabel.setHorizontalAlignment(javax.swing.SwingConstants.CENTER);
-        
+
         // Use null layout for absolute positioning
         jPanel1.setLayout(null);
-        
+
         // Reposition existing components
         jLabel1.setBounds(35, 89, 360, 16);
         errorLabel.setBounds(35, 118, 360, 20); // Wider to fit full error message
         jTextField1.setBounds(62, 140, 309, 22);
         jButton1.setBounds(175, 194, 80, 26);
-        
+
         // Add error label
         jPanel1.add(errorLabel);
-        
+
         // Add listener to clear error when user types
-        jTextField1.addKeyListener(new java.awt.event.KeyAdapter() {
-            @Override
-            public void keyTyped(java.awt.event.KeyEvent evt) {
-                if (errorLabel.isVisible()) {
-                    errorLabel.setVisible(false);
+        jTextField1.addKeyListener(
+            new java.awt.event.KeyAdapter() {
+
+                @Override
+                public void keyTyped(java.awt.event.KeyEvent evt) {
+                    if (errorLabel.isVisible()) {
+                        errorLabel.setVisible(false);
+                    }
                 }
             }
-        });
-        
+        );
+
         setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
-        addWindowListener(new WindowAdapter() {
-            @Override
-            public void windowClosing(WindowEvent e) { 
-                setVisible(false);
-                dispose(); 
+        addWindowListener(
+            new WindowAdapter() {
+
+                @Override
+                public void windowClosing(WindowEvent e) {
+                    setVisible(false);
+                    dispose();
+                }
             }
-        });
+        );
     }
 
     /**
@@ -67,7 +74,6 @@ public class RecordedStepsNameDialogue extends javax.swing.JFrame {
     @SuppressWarnings("unchecked")
     // <editor-fold defaultstate="collapsed" desc="Generated Code">//GEN-BEGIN:initComponents
     private void initComponents() {
-
         jPanel1 = new javax.swing.JPanel();
         jLabel1 = new javax.swing.JLabel();
         jTextField1 = new javax.swing.JTextField();
@@ -83,70 +89,108 @@ public class RecordedStepsNameDialogue extends javax.swing.JFrame {
 
         jTextField1.setText("NewScenario");
         jTextField1.setToolTipText("");
-        jTextField1.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jTextField1ActionPerformed(evt);
+        jTextField1.addActionListener(
+            new java.awt.event.ActionListener() {
+
+                public void actionPerformed(java.awt.event.ActionEvent evt) {
+                    jTextField1ActionPerformed(evt);
+                }
             }
-        });
+        );
 
         jButton1.setText("OK");
         jButton1.setActionCommand("");
-        jButton1.addActionListener(new java.awt.event.ActionListener() {
-            public void actionPerformed(java.awt.event.ActionEvent evt) {
-                jButton1ActionPerformed(evt);
+        jButton1.addActionListener(
+            new java.awt.event.ActionListener() {
+
+                public void actionPerformed(java.awt.event.ActionEvent evt) {
+                    jButton1ActionPerformed(evt);
+                }
             }
-        });
+        );
 
         javax.swing.GroupLayout jPanel1Layout = new javax.swing.GroupLayout(jPanel1);
         jPanel1.setLayout(jPanel1Layout);
         jPanel1Layout.setHorizontalGroup(
-            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel1Layout.createSequentialGroup()
-                .addGroup(jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-                    .addGroup(jPanel1Layout.createSequentialGroup()
-                        .addGap(35, 35, 35)
-                        .addComponent(jLabel1))
-                    .addGroup(jPanel1Layout.createSequentialGroup()
-                        .addGap(62, 62, 62)
-                        .addComponent(jTextField1, javax.swing.GroupLayout.PREFERRED_SIZE, 309, javax.swing.GroupLayout.PREFERRED_SIZE))
-                    .addGroup(jPanel1Layout.createSequentialGroup()
-                        .addGap(175, 175, 175)
-                        .addComponent(jButton1)))
-                .addContainerGap(34, Short.MAX_VALUE))
+            jPanel1Layout
+                .createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                .addGroup(
+                    jPanel1Layout
+                        .createSequentialGroup()
+                        .addGroup(
+                            jPanel1Layout
+                                .createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                                .addGroup(
+                                    jPanel1Layout
+                                        .createSequentialGroup()
+                                        .addGap(35, 35, 35)
+                                        .addComponent(jLabel1)
+                                )
+                                .addGroup(
+                                    jPanel1Layout
+                                        .createSequentialGroup()
+                                        .addGap(62, 62, 62)
+                                        .addComponent(
+                                            jTextField1,
+                                            javax.swing.GroupLayout.PREFERRED_SIZE,
+                                            309,
+                                            javax.swing.GroupLayout.PREFERRED_SIZE
+                                        )
+                                )
+                                .addGroup(
+                                    jPanel1Layout
+                                        .createSequentialGroup()
+                                        .addGap(175, 175, 175)
+                                        .addComponent(jButton1)
+                                )
+                        )
+                        .addContainerGap(34, Short.MAX_VALUE)
+                )
         );
         jPanel1Layout.setVerticalGroup(
-            jPanel1Layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addGroup(jPanel1Layout.createSequentialGroup()
-                .addGap(89, 89, 89)
-                .addComponent(jLabel1)
-                .addGap(27, 27, 27)
-                .addComponent(jTextField1, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addGap(32, 32, 32)
-                .addComponent(jButton1)
-                .addContainerGap(91, Short.MAX_VALUE))
+            jPanel1Layout
+                .createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                .addGroup(
+                    jPanel1Layout
+                        .createSequentialGroup()
+                        .addGap(89, 89, 89)
+                        .addComponent(jLabel1)
+                        .addGap(27, 27, 27)
+                        .addComponent(
+                            jTextField1,
+                            javax.swing.GroupLayout.PREFERRED_SIZE,
+                            javax.swing.GroupLayout.DEFAULT_SIZE,
+                            javax.swing.GroupLayout.PREFERRED_SIZE
+                        )
+                        .addGap(32, 32, 32)
+                        .addComponent(jButton1)
+                        .addContainerGap(91, Short.MAX_VALUE)
+                )
         );
 
         javax.swing.GroupLayout layout = new javax.swing.GroupLayout(getContentPane());
         getContentPane().setLayout(layout);
         layout.setHorizontalGroup(
-            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, 430, Short.MAX_VALUE)
+            layout
+                .createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, 430, Short.MAX_VALUE)
         );
         layout.setVerticalGroup(
-            layout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
-            .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, 300, Short.MAX_VALUE)
+            layout
+                .createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
+                .addComponent(jPanel1, javax.swing.GroupLayout.DEFAULT_SIZE, 300, Short.MAX_VALUE)
         );
 
         pack();
-    }// </editor-fold>//GEN-END:initComponents
+    } // </editor-fold>//GEN-END:initComponents
 
-    private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jButton1ActionPerformed
+    private void jButton1ActionPerformed(java.awt.event.ActionEvent evt) { //GEN-FIRST:event_jButton1ActionPerformed
         // Sanitize the scenario name by removing leading whitespace
         String scenarioName = jTextField1.getText();
         if (scenarioName != null) {
             scenarioName = scenarioName.replaceAll("^\\s+", ""); // Remove leading whitespace
         }
-        
+
         // Validate that the name is not empty after sanitization
         if (scenarioName == null || scenarioName.trim().isEmpty()) {
             // Show error inline instead of popup
@@ -154,20 +198,22 @@ public class RecordedStepsNameDialogue extends javax.swing.JFrame {
             errorLabel.setVisible(true);
             return; // Don't proceed with the import
         }
-        
+
         // Clear any previous error
         errorLabel.setVisible(false);
-        
+
         RecordedStepsNameDialogue.setScenarioName(scenarioName);
-        ActionEvent newEvent = new ActionEvent(this, ActionEvent.ACTION_PERFORMED, "Import via Playwright Recorder");
+        ActionEvent newEvent = new ActionEvent(
+            this,
+            ActionEvent.ACTION_PERFORMED,
+            "Import via Playwright Recorder"
+        );
         sMainFrame.getsActionListener().actionPerformed(newEvent);
         setVisible(false);
         dispose();
-    }//GEN-LAST:event_jButton1ActionPerformed
+    } //GEN-LAST:event_jButton1ActionPerformed
 
-    private void jTextField1ActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_jTextField1ActionPerformed
-
-    }//GEN-LAST:event_jTextField1ActionPerformed
+    private void jTextField1ActionPerformed(java.awt.event.ActionEvent evt) {} //GEN-FIRST:event_jTextField1ActionPerformed //GEN-LAST:event_jTextField1ActionPerformed
 
     public static void setScenarioName(String name) {
         ScenarioName = name;
@@ -176,10 +222,10 @@ public class RecordedStepsNameDialogue extends javax.swing.JFrame {
     public static String getScenarioName() {
         return ScenarioName;
     }
+
     /**
      * @param args the command line arguments
      */
-
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JButton jButton1;

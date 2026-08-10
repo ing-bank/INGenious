@@ -8,7 +8,6 @@ import java.util.logging.Logger;
  *
  */
 public class Functions extends FunctionsLib {
-
     private static final Logger LOG = Logger.getLogger(Functions.class.getName());
 
     public Object Date(String... args) {

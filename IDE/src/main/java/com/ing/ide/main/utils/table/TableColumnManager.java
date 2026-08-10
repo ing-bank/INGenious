@@ -1,4 +1,3 @@
-
 package com.ing.ide.main.utils.table;
 
 import java.awt.*;
@@ -20,8 +19,7 @@ import javax.swing.table.*;
  *
  */
 public class TableColumnManager
-        implements MouseListener, ActionListener, TableColumnModelListener, PropertyChangeListener {
-
+    implements MouseListener, ActionListener, TableColumnModelListener, PropertyChangeListener {
     private JTable table;
     private TableColumnModel tcm;
     private boolean menuPopup;
@@ -209,17 +207,17 @@ public class TableColumnManager
                 TableColumn visibleColumn = allColumns.get(i);
                 to = tcm.getColumnIndex(visibleColumn.getHeaderValue()) + 1;
                 break;
-            } catch (IllegalArgumentException e) {
-            }
+            } catch (IllegalArgumentException e) {}
         }
 
         tcm.moveColumn(from, to);
 
         tcm.addColumnModelListener(this);
     }
-//
-//  Implement MouseListener
-//
+
+    //
+    //  Implement MouseListener
+    //
 
     @Override
     public void mousePressed(MouseEvent e) {
@@ -232,16 +230,13 @@ public class TableColumnManager
     }
 
     @Override
-    public void mouseClicked(MouseEvent e) {
-    }
+    public void mouseClicked(MouseEvent e) {}
 
     @Override
-    public void mouseEntered(MouseEvent e) {
-    }
+    public void mouseEntered(MouseEvent e) {}
 
     @Override
-    public void mouseExited(MouseEvent e) {
-    }
+    public void mouseExited(MouseEvent e) {}
 
     private void checkForPopup(MouseEvent e) {
         if (e.isPopupTrigger()) {
@@ -293,9 +288,10 @@ public class TableColumnManager
         Rectangle r = header.getHeaderRect(index);
         popup.show(header, r.x, r.height);
     }
-//
-//  Implement ActionListener
-//
+
+    //
+    //  Implement ActionListener
+    //
 
     /*
      *  A table column will either be added to the table or removed from the
@@ -311,9 +307,10 @@ public class TableColumnManager
             hideColumn(item.getText());
         }
     }
-//
-//  Implement TableColumnModelListener
-//
+
+    //
+    //  Implement TableColumnModelListener
+    //
 
     @Override
     public void columnAdded(TableColumnModelEvent e) {
@@ -322,8 +319,7 @@ public class TableColumnManager
 
         TableColumn column = tcm.getColumn(e.getToIndex());
 
-        if (allColumns.contains(column)) {
-        } else {
+        if (allColumns.contains(column)) {} else {
             allColumns.add(column);
         }
     }
@@ -352,19 +348,17 @@ public class TableColumnManager
     }
 
     @Override
-    public void columnMarginChanged(ChangeEvent e) {
-    }
+    public void columnMarginChanged(ChangeEvent e) {}
 
     @Override
-    public void columnRemoved(TableColumnModelEvent e) {
-    }
+    public void columnRemoved(TableColumnModelEvent e) {}
 
     @Override
-    public void columnSelectionChanged(ListSelectionEvent e) {
-    }
-//
-//  Implement PropertyChangeListener
-//
+    public void columnSelectionChanged(ListSelectionEvent e) {}
+
+    //
+    //  Implement PropertyChangeListener
+    //
 
     @Override
     public void propertyChange(PropertyChangeEvent e) {
@@ -376,8 +370,8 @@ public class TableColumnManager
     }
 
     /*
-	 *  Allows you to select a specific menu item when the popup is
-	 *  displayed. (ie. this is a bug? fix)
+     *  Allows you to select a specific menu item when the popup is
+     *  displayed. (ie. this is a bug? fix)
      */
     class SelectPopupMenu extends JPopupMenu {
 
@@ -389,12 +383,15 @@ public class TableColumnManager
             me[0] = (MenuElement) this;
             me[1] = getSubElements()[index];
 
-            SwingUtilities.invokeLater(new Runnable() {
-                @Override
-                public void run() {
-                    MenuSelectionManager.defaultManager().setSelectedPath(me);
+            SwingUtilities.invokeLater(
+                new Runnable() {
+
+                    @Override
+                    public void run() {
+                        MenuSelectionManager.defaultManager().setSelectedPath(me);
+                    }
                 }
-            });
+            );
         }
-    };
+    }
 }

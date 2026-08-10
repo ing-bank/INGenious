@@ -1,4 +1,3 @@
-
 package com.ing.engine.reporting.performance.metrics;
 
 import com.ing.engine.constants.FilePath;
@@ -10,11 +9,13 @@ import org.json.simple.JSONObject;
 
 /**
  *
- * 
+ *
  */
 public class MetricsProvider {
-
-    private static final File H_PS_EXE = new File(FilePath.getConfigurationPath(), "har_to_pagespeed.exe");
+    private static final File H_PS_EXE = new File(
+        FilePath.getConfigurationPath(),
+        "har_to_pagespeed.exe"
+    );
 
     public static final String MODULE = "perf.metrics.module";
 
@@ -41,32 +42,36 @@ public class MetricsProvider {
                 default:
                     return FilePath.getConfigurationPath();
             }
-
         }
     }
 
-    public static PageMetrics getMetrics(Har<?, ?> har, int i, String harName,
-            PerformanceReport.Report r) {
+    public static PageMetrics getMetrics(
+        Har<?, ?> har,
+        int i,
+        String harName,
+        PerformanceReport.Report r
+    ) {
         PageMetrics metrics;
         switch (getProvider()) {
             default:
-                metrics = new PageSpeed(((JSONObject) har.log().pages.get(0)).
-                        get("title").toString() + " " + harName,
-                        r.savedHars.get(harName).get(i), H_PS_EXE);
+                metrics =
+                    new PageSpeed(
+                        ((JSONObject) har.log().pages.get(0)).get("title").toString() +
+                        " " +
+                        harName,
+                        r.savedHars.get(harName).get(i),
+                        H_PS_EXE
+                    );
                 break;
         }
         return metrics;
     }
 
     private static Module getProvider() {
-        return Module.toModule(
-                System.getProperty(MODULE, Module.DEF.name())
-                        .toUpperCase()
-        );
+        return Module.toModule(System.getProperty(MODULE, Module.DEF.name()).toUpperCase());
     }
 
     public static boolean isModule(Module m) {
         return getProvider().equals(m);
     }
-
 }

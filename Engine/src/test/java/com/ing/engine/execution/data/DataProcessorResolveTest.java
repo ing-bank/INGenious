@@ -1,6 +1,7 @@
 package com.ing.engine.execution.data;
 
 import static org.assertj.core.api.Assertions.assertThat;
+
 import org.testng.annotations.Test;
 
 /**
@@ -63,7 +64,7 @@ public class DataProcessorResolveTest {
 
     @Test
     public void testDataSheetPatternMultipleColons() {
-        // "A:B:C" still matches ^[A-Za-z].*:[A-Za-z].* 
+        // "A:B:C" still matches ^[A-Za-z].*:[A-Za-z].*
         assertThat(DataProcessor.isInputPatternDataSheet("A:B:C")).isTrue();
     }
 

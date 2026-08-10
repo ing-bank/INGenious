@@ -1,13 +1,12 @@
-
 package com.ing.engine.commands.galenCommands;
 
+import com.galenframework.specs.Location;
+import com.galenframework.specs.SpecNear;
 import com.ing.engine.core.CommandControl;
 import com.ing.engine.galenWrapper.SpecValidation.SpecReader;
 import com.ing.ingenious.api.annotation.Action;
 import com.ing.ingenious.api.types.InputType;
 import com.ing.ingenious.api.types.ObjectType;
-import com.galenframework.specs.Location;
-import com.galenframework.specs.SpecNear;
 import java.util.List;
 
 public class Near extends General {
@@ -15,7 +14,7 @@ public class Near extends General {
     public Near(CommandControl cc) {
         super(cc);
     }
-/*
+    /*
     @Action(object = ObjectType.APP, 
     		desc ="Assert if [<Object>] is near [<Object2>] [<Data>]", 
     		input =InputType.OPTIONAL, 

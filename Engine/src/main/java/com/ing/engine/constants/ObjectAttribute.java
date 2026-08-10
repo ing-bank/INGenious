@@ -1,12 +1,10 @@
-
 package com.ing.engine.constants;
 
 /**
  *
- * 
+ *
  */
 public final class ObjectAttribute {
-
     public static final String name = "ref";
     public static final String value = "value";
     public static final String type = "type";

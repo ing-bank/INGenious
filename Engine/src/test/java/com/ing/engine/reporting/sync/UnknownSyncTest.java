@@ -6,7 +6,6 @@ import com.ing.engine.reporting.util.TestInfo;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
-
 import org.json.simple.JSONObject;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
@@ -17,7 +16,6 @@ import org.testng.annotations.Test;
  * createIssue → null, getModule → "UNKNOWN", disConnect → no-op.
  */
 public class UnknownSyncTest {
-
     private Unknown unknown;
 
     @BeforeMethod
@@ -32,9 +30,20 @@ public class UnknownSyncTest {
 
     @Test
     public void testUpdateResultsReturnsFalse() {
-        TestInfo testInfo = new TestInfo("sc", "tc", "desc", "1", "0s",
-                "2024-01-01", "10:00", "Chromium", "120", "macOS",
-                new java.util.Date(), new java.util.Date());
+        TestInfo testInfo = new TestInfo(
+            "sc",
+            "tc",
+            "desc",
+            "1",
+            "0s",
+            "2024-01-01",
+            "10:00",
+            "Chromium",
+            "120",
+            "macOS",
+            new java.util.Date(),
+            new java.util.Date()
+        );
         List<File> attach = new ArrayList<>();
         assertThat(unknown.updateResults(testInfo, "PASS", attach)).isFalse();
     }

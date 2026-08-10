@@ -3,7 +3,6 @@ package com.ing.engine.constants;
 import static org.assertj.core.api.Assertions.assertThat;
 
 import java.io.File;
-
 import org.testng.annotations.Test;
 
 /**
@@ -78,13 +77,6 @@ public class AppResourcePathTest {
     public void testGetExplorerConfig() {
         String path = AppResourcePath.getExplorerConfig();
         assertThat(path).endsWith("ExplorerConfig.properties");
-        assertThat(path).contains("Configuration");
-    }
-
-    @Test
-    public void testGetChromeEmulatorsFile() {
-        String path = AppResourcePath.getChromeEmulatorsFile();
-        assertThat(path).endsWith("chrome-emulators.json");
         assertThat(path).contains("Configuration");
     }
 

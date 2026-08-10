@@ -2,6 +2,9 @@ package com.ing.ide.main.fx;
 
 import com.ing.ide.main.Main;
 import com.ing.ide.main.mainui.AppActionListener;
+import java.util.concurrent.CountDownLatch;
+import java.util.concurrent.TimeUnit;
+import java.util.logging.Logger;
 import javafx.application.Platform;
 import javafx.embed.swing.JFXPanel;
 import javafx.geometry.Pos;
@@ -16,9 +19,6 @@ import javafx.scene.layout.Pane;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.VBox;
 import javax.swing.SwingUtilities;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.TimeUnit;
-import java.util.logging.Logger;
 
 /**
  * JavaFX-based ToolBar wrapped in a JFXPanel for embedding in Swing.
@@ -26,7 +26,6 @@ import java.util.logging.Logger;
  * Icons are rendered via Ikonli web font icons (INGIcons).
  */
 public class FXToolBar extends JFXPanel {
-
     private static final Logger LOG = Logger.getLogger(FXToolBar.class.getName());
 
     private final AppActionListener actionListener;
@@ -37,10 +36,12 @@ public class FXToolBar extends JFXPanel {
     public FXToolBar(AppActionListener actionListener) {
         this.actionListener = actionListener;
         CountDownLatch sceneReady = new CountDownLatch(1);
-        Platform.runLater(() -> {
-            initFX();
-            sceneReady.countDown();
-        });
+        Platform.runLater(
+            () -> {
+                initFX();
+                sceneReady.countDown();
+            }
+        );
         try {
             sceneReady.await(5, TimeUnit.SECONDS);
         } catch (InterruptedException e) {
@@ -51,7 +52,9 @@ public class FXToolBar extends JFXPanel {
     private void initFX() {
         toolBar = new javafx.scene.control.ToolBar();
 
-        toolBar.getItems().addAll(
+        toolBar
+            .getItems()
+            .addAll(
                 createButton("New Project", "NewProject"),
                 createButton("Open Project", "OpenProject"),
                 new Separator(),
@@ -59,13 +62,15 @@ public class FXToolBar extends JFXPanel {
                 new Separator(),
                 createAutoSaveSection(),
                 new Separator(),
-                createButton("Run Settings", "RunSettings"),
-                createButton("Browser Configuration", "BrowserConfiguration"),
+                createButton("Settings", "RunSettings"),
+                createButton("Archetype Configurations", "BrowserConfiguration"),
                 new Separator(),
                 createAPITesterButton(),
-                createSpacer()
+                //createAICopilotButton(),
+                createSpacer(),
+                createProfileButton()
                 //, createDarkModeToggle()
-        );
+            );
 
         VBox root = new VBox(toolBar);
         root.getStyleClass().add("light-theme");
@@ -91,19 +96,52 @@ public class FXToolBar extends JFXPanel {
         return btn;
     }
 
+    private Button createProfileButton() {
+        Button btn = new Button();
+        btn.setTooltip(new Tooltip("Profile - Configure System Under Test and PCode"));
+
+        org.kordamp.ikonli.javafx.FontIcon icon = INGIcons.fxColored("Profile", 18);
+        if (icon != null) {
+            btn.setGraphic(icon);
+        } else {
+            btn.setText("Profile");
+        }
+
+        btn.setOnAction(e -> fireSwingAction("Profile"));
+        return btn;
+    }
+
     private Button createAPITesterButton() {
-        Button btn = new Button("API Workbench");
-        btn.getStyleClass().add("api-tester-btn");
+        Button btn = new Button("Workbench");
+        btn.getStyleClass().add("workbench-btn");
         btn.setTooltip(new Tooltip("Open API Testing Console - Test REST APIs like Postman"));
-        
-        // API icon with vibrant cyan color - use registered icon from INGIcons
-        org.kordamp.ikonli.javafx.FontIcon icon = INGIcons.fxColored("APITester", 16);
+
+        // Keep the icon explicitly black to match the neutral Workbench style.
+        org.kordamp.ikonli.javafx.FontIcon icon = INGIcons.fx(
+            "APITester",
+            16,
+            javafx.scene.paint.Color.BLACK
+        );
+        if (icon != null) {
+            btn.setGraphic(icon);
+        }
+
+        btn.setOnAction(e -> fireSwingAction("API Workbench"));
+        return btn;
+    }
+
+    private Button createAICopilotButton() {
+        Button btn = new Button("AI Assistant");
+        btn.getStyleClass().add("api-tester-btn");
+        btn.setTooltip(new Tooltip("Open the INGenious AI Assistant (GitHub Models)"));
+
+        org.kordamp.ikonli.javafx.FontIcon icon = INGIcons.fxColored("AICopilot", 16);
         if (icon != null) {
             icon.setIconColor(INGIcons.CLR_DATA);
             btn.setGraphic(icon);
         }
-        
-        btn.setOnAction(e -> fireSwingAction("API Workbench"));
+
+        btn.setOnAction(e -> fireSwingAction("AI Assistant"));
         return btn;
     }
 
@@ -112,14 +150,16 @@ public class FXToolBar extends JFXPanel {
         label.getStyleClass().add("auto-save-label");
 
         autoSaveToggle = new ToggleButton("OFF");
-        autoSaveToggle.setOnAction(e -> {
-            if (autoSaveToggle.isSelected()) {
-                autoSaveToggle.setText("ON");
-            } else {
-                autoSaveToggle.setText("OFF");
+        autoSaveToggle.setOnAction(
+            e -> {
+                if (autoSaveToggle.isSelected()) {
+                    autoSaveToggle.setText("ON");
+                } else {
+                    autoSaveToggle.setText("OFF");
+                }
+                fireSwingAction("Auto Save");
             }
-            fireSwingAction("Auto Save");
-        });
+        );
 
         HBox section = new HBox(6, label, autoSaveToggle);
         section.setAlignment(Pos.CENTER);
@@ -128,11 +168,15 @@ public class FXToolBar extends JFXPanel {
 
     private HBox createDarkModeToggle() {
         // Sun icon for light mode, Moon icon for dark mode
-        org.kordamp.ikonli.javafx.FontIcon sunIcon = new org.kordamp.ikonli.javafx.FontIcon("fas-sun");
+        org.kordamp.ikonli.javafx.FontIcon sunIcon = new org.kordamp.ikonli.javafx.FontIcon(
+            "fas-sun"
+        );
         sunIcon.setIconSize(14);
         sunIcon.setIconColor(javafx.scene.paint.Color.web("#FF6200"));
-        
-        org.kordamp.ikonli.javafx.FontIcon moonIcon = new org.kordamp.ikonli.javafx.FontIcon("fas-moon");
+
+        org.kordamp.ikonli.javafx.FontIcon moonIcon = new org.kordamp.ikonli.javafx.FontIcon(
+            "fas-moon"
+        );
         moonIcon.setIconSize(14);
         moonIcon.setIconColor(javafx.scene.paint.Color.web("#7724FF"));
 
@@ -140,32 +184,42 @@ public class FXToolBar extends JFXPanel {
         darkModeToggle.getStyleClass().add("dark-mode-pill");
         darkModeToggle.setSelected(Main.isDarkMode());
         updateDarkModeToggle();
-        
-        darkModeToggle.setOnAction(e -> {
-            fireSwingAction("Dark Mode");
-            // Small delay to let theme switch, then update toggle appearance
-            Platform.runLater(() -> {
-                try { Thread.sleep(100); } catch (InterruptedException ignored) {}
-                Platform.runLater(this::updateDarkModeToggle);
-            });
-        });
+
+        darkModeToggle.setOnAction(
+            e -> {
+                fireSwingAction("Dark Mode");
+                // Small delay to let theme switch, then update toggle appearance
+                Platform.runLater(
+                    () -> {
+                        try {
+                            Thread.sleep(100);
+                        } catch (InterruptedException ignored) {}
+                        Platform.runLater(this::updateDarkModeToggle);
+                    }
+                );
+            }
+        );
 
         HBox section = new HBox(6, darkModeToggle);
         section.setAlignment(Pos.CENTER);
         return section;
     }
-    
+
     private void updateDarkModeToggle() {
         boolean isDark = Main.isDarkMode();
         if (isDark) {
-            org.kordamp.ikonli.javafx.FontIcon moonIcon = new org.kordamp.ikonli.javafx.FontIcon("fas-moon");
+            org.kordamp.ikonli.javafx.FontIcon moonIcon = new org.kordamp.ikonli.javafx.FontIcon(
+                "fas-moon"
+            );
             moonIcon.setIconSize(14);
             moonIcon.setIconColor(javafx.scene.paint.Color.web("#89D6FD"));
             darkModeToggle.setGraphic(moonIcon);
             darkModeToggle.setText("Dark");
             darkModeToggle.setSelected(true);
         } else {
-            org.kordamp.ikonli.javafx.FontIcon sunIcon = new org.kordamp.ikonli.javafx.FontIcon("fas-sun");
+            org.kordamp.ikonli.javafx.FontIcon sunIcon = new org.kordamp.ikonli.javafx.FontIcon(
+                "fas-sun"
+            );
             sunIcon.setIconSize(14);
             sunIcon.setIconColor(javafx.scene.paint.Color.web("#FF6200"));
             darkModeToggle.setGraphic(sunIcon);
@@ -184,11 +238,16 @@ public class FXToolBar extends JFXPanel {
      * Bridges JavaFX button clicks to Swing AppActionListener.
      */
     private void fireSwingAction(String command) {
-        SwingUtilities.invokeLater(() -> {
-            java.awt.event.ActionEvent swingEvent = new java.awt.event.ActionEvent(
-                    this, java.awt.event.ActionEvent.ACTION_PERFORMED, command);
-            actionListener.actionPerformed(swingEvent);
-        });
+        SwingUtilities.invokeLater(
+            () -> {
+                java.awt.event.ActionEvent swingEvent = new java.awt.event.ActionEvent(
+                    this,
+                    java.awt.event.ActionEvent.ACTION_PERFORMED,
+                    command
+                );
+                actionListener.actionPerformed(swingEvent);
+            }
+        );
     }
 
     /**

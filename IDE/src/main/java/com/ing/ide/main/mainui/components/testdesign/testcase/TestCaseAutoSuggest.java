@@ -1,38 +1,38 @@
 package com.ing.ide.main.mainui.components.testdesign.testcase;
 
-import com.ing.datalib.component.Project;
-import com.ing.datalib.component.Scenario;
-import com.ing.datalib.component.TestCase;
-import com.ing.datalib.component.TestData;
-import com.ing.datalib.component.TestStep;
-
 import static com.ing.datalib.component.TestStep.HEADERS.Action;
 import static com.ing.datalib.component.TestStep.HEADERS.Condition;
 import static com.ing.datalib.component.TestStep.HEADERS.Description;
 import static com.ing.datalib.component.TestStep.HEADERS.Input;
 import static com.ing.datalib.component.TestStep.HEADERS.ObjectName;
 import static com.ing.datalib.component.TestStep.HEADERS.Reference;
-import com.ing.datalib.or.structureddata.ResolvedStructuredDataObject;
-import com.ing.datalib.or.structureddata.ResolvedStructuredDataObject;
+
+import com.ing.datalib.component.Project;
+import com.ing.datalib.component.Scenario;
+import com.ing.datalib.component.TestCase;
+import com.ing.datalib.component.TestData;
+import com.ing.datalib.component.TestStep;
 import com.ing.datalib.or.mobile.ResolvedMobileObject;
 import com.ing.datalib.or.sap.ResolvedSapObject;
+import com.ing.datalib.or.structureddata.ResolvedStructuredDataObject;
 import com.ing.datalib.or.web.ResolvedWebObject;
 import com.ing.datalib.testdata.model.Record;
 import com.ing.datalib.testdata.model.TestDataModel;
 import com.ing.engine.support.ObjectTypeUtil;
 import com.ing.engine.support.methodInf.MethodInfoManager;
-import com.ing.ingenious.api.types.ObjectType;
 import com.ing.engine.util.data.fx.FParser;
-import com.ing.ide.main.utils.table.SQLTextArea;
-import com.ing.ide.main.utils.table.WebservicePayloadArea;
+import com.ing.ide.main.mainui.components.testdesign.TestDesign;
 import com.ing.ide.main.utils.table.EndPointTextArea;
+import com.ing.ide.main.utils.table.SQLTextArea;
 import com.ing.ide.main.utils.table.StringOperationsPayloadArea;
+import com.ing.ide.main.utils.table.WebservicePayloadArea;
 import com.ing.ide.main.utils.table.autosuggest.AutoSuggest;
-import com.ing.ide.main.utils.table.autosuggest.InputMainAutoSuggest;
 import com.ing.ide.main.utils.table.autosuggest.AutoSuggestCellEditor;
-import com.ing.ide.main.utils.table.autosuggest.InputAutoSuggestCellEditor;
 import com.ing.ide.main.utils.table.autosuggest.ComboSeparatorsRenderer;
-
+import com.ing.ide.main.utils.table.autosuggest.InputAutoSuggestCellEditor;
+import com.ing.ide.main.utils.table.autosuggest.InputMainAutoSuggest;
+import com.ing.ingenious.api.types.ObjectType;
+import java.awt.Color;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
@@ -64,6 +64,7 @@ import javax.swing.Timer;
  */
 public class TestCaseAutoSuggest {
     private final Project sProject;
+    private final TestDesign testDesign;
     final JTable table;
 
     private AutoSuggest objAutoSuggest;
@@ -71,46 +72,162 @@ public class TestCaseAutoSuggest {
     private AutoSuggest actionAutoSuggest;
     private InputAutoSuggest inputAutoSuggest;
 
-    public TestCaseAutoSuggest(Project sProject, JTable table) {
+    public TestCaseAutoSuggest(Project sProject, JTable table, TestDesign testDesign) {
         this.sProject = sProject;
         this.table = table;
+        this.testDesign = testDesign;
         initAutoSuggest();
         installMouseListener();
     }
 
     private void initAutoSuggest() {
-        objAutoSuggest = new AutoSuggest().withSearchList(getObjectList())
-                .withOnHide(stopEditingOnFocusLost());
+        objAutoSuggest =
+            new AutoSuggest().withSearchList(getObjectList()).withOnHide(stopEditingOnFocusLost());
 
-        conditionAutoSuggest = (ConditionAutoSuggest) new ConditionAutoSuggest()
-                .withOnHide(stopEditingOnFocusLost());
+        conditionAutoSuggest =
+            (ConditionAutoSuggest) new ConditionAutoSuggest().withOnHide(stopEditingOnFocusLost());
         conditionAutoSuggest.setRenderer(
-                new ComboSeparatorsRenderer(conditionAutoSuggest.getRenderer()) {
-                    @Override
-                    protected boolean addSeparatorAfter(JList list, Object value, int index) {
-                        return "End Param:@n".equals(value)
-                                || "End Loop:@n".equals(value)
-                                || "GlobalObject".equals(value);
+            new ComboSeparatorsRenderer(conditionAutoSuggest.getRenderer()) {
+
+                @Override
+                protected boolean addSeparatorAfter(JList list, Object value, int index) {
+                    return (
+                        "End Param:@n".equals(value) ||
+                        "End Loop:@n".equals(value) ||
+                        "GlobalObject".equals(value)
+                    );
+                }
+            }
+        );
+
+        actionAutoSuggest = new ActionAutoSuggest().withOnHide(stopEditingOnFocusLost());
+
+        // Phase 5.4: Add custom renderer for scope prefix display with separators
+        actionAutoSuggest.setRenderer(
+            new ComboSeparatorsRenderer(actionAutoSuggest.getRenderer()) {
+
+                @Override
+                protected void customizeListItemComponent(
+                    java.awt.Component comp,
+                    JList list,
+                    Object value,
+                    int index,
+                    boolean isSelected,
+                    boolean cellHasFocus
+                ) {
+                    if (!(comp instanceof javax.swing.JLabel) || value == null) {
+                        return;
                     }
-                });
+                    javax.swing.JLabel lbl = (javax.swing.JLabel) comp;
+                    String raw = value.toString();
+                    lbl.setText(removeScopePrefix(raw));
+                    if (raw.startsWith("[Shared]")) {
+                        // Keep shared items readable on hover/selection by using shared-specific shades.
+                        if (isSelected) {
+                            lbl.setOpaque(true);
+                            lbl.setBackground(new Color(213, 238, 220));
+                            lbl.setForeground(new Color(0, 83, 0));
+                        } else {
+                            lbl.setForeground(new Color(0, 128, 0));
+                        }
+                    } else if (raw.startsWith("[Project]")) {
+                        if (isSelected) {
+                            lbl.setOpaque(true);
+                        }
+                        lbl.setForeground(Color.BLACK);
+                    }
+                }
 
-        actionAutoSuggest = new ActionAutoSuggest()
-                .withOnHide(stopEditingOnFocusLost());
+                @Override
+                protected boolean addHeaderBefore(JList list, Object value, int index) {
+                    if (value == null) {
+                        return false;
+                    }
+                    String current = value.toString();
+                    if (current.startsWith("[Project]")) {
+                        return (
+                            index == 0 ||
+                            !Objects
+                                .toString(list.getModel().getElementAt(index - 1), "")
+                                .startsWith("[Project]")
+                        );
+                    }
+                    if (current.startsWith("[Shared]")) {
+                        return (
+                            index == 0 ||
+                            !Objects
+                                .toString(list.getModel().getElementAt(index - 1), "")
+                                .startsWith("[Shared]")
+                        );
+                    }
+                    return false;
+                }
 
-        inputAutoSuggest = (InputAutoSuggest) new InputAutoSuggest()
-                .withOnHide(stopEditingOnFocusLost());
+                @Override
+                protected String getHeaderLabel(JList list, Object value, int index) {
+                    if (value == null) {
+                        return "";
+                    }
+                    String current = value.toString();
+                    if (current.startsWith("[Project]")) {
+                        return "Project Reusables";
+                    }
+                    if (current.startsWith("[Shared]")) {
+                        return "Shared Reusables";
+                    }
+                    return "";
+                }
+
+                @Override
+                protected Color getHeaderForeground(
+                    JList list,
+                    Object value,
+                    int index,
+                    java.awt.Component comp
+                ) {
+                    if (value == null) {
+                        return Color.DARK_GRAY;
+                    }
+                    String current = value.toString();
+                    if (current.startsWith("[Shared]")) {
+                        return new Color(0, 128, 0);
+                    }
+                    return Color.BLACK;
+                }
+
+                @Override
+                protected boolean addSeparatorAfter(JList list, Object value, int index) {
+                    if (value == null) return false;
+                    String val = value.toString();
+                    // Add separator after last [Project] item before [Shared] items
+                    if (index < list.getModel().getSize() - 1) {
+                        Object nextValue = list.getModel().getElementAt(index + 1);
+                        if (nextValue != null) {
+                            String current = val;
+                            String next = nextValue.toString();
+                            return current.startsWith("[Project]") && next.startsWith("[Shared]");
+                        }
+                    }
+                    return false;
+                }
+            }
+        );
+
+        inputAutoSuggest =
+            (InputAutoSuggest) new InputAutoSuggest().withOnHide(stopEditingOnFocusLost());
     }
 
-    private boolean isStringOpsEditor(){
+    private boolean isStringOpsEditor() {
         int row = table.getSelectedRow();
         String value = "";
-        if(row >= 0) value = table.getModel().getValueAt(row, 1).toString();
-        if(!value.matches("String Operations")) return false;
+        if (row >= 0) value = table.getModel().getValueAt(row, 1).toString();
+        if (!value.matches("String Operations")) return false;
         return true;
     }
 
     private Action stopEditingOnFocusLost() {
         return new AbstractAction() {
+
             @Override
             public void actionPerformed(ActionEvent ae) {
                 if (table.isEditing()) {
@@ -123,10 +240,22 @@ public class TestCaseAutoSuggest {
     public void installForTestCase() {
         table.getColumnModel().getColumn(0).setMaxWidth(50);
         table.getColumnModel().getColumn(Action.getIndex()).setPreferredWidth(250);
-        table.getColumnModel().getColumn(ObjectName.getIndex()).setCellEditor(new AutoSuggestCellEditor(objAutoSuggest));
-        table.getColumnModel().getColumn(Action.getIndex()).setCellEditor(new AutoSuggestCellEditor(actionAutoSuggest));
-        table.getColumnModel().getColumn(Condition.getIndex()).setCellEditor(new AutoSuggestCellEditor(conditionAutoSuggest));
-        table.getColumnModel().getColumn(Input.getIndex()).setCellEditor(new InputAutoSuggestCellEditor(inputAutoSuggest));
+        table
+            .getColumnModel()
+            .getColumn(ObjectName.getIndex())
+            .setCellEditor(new AutoSuggestCellEditor(objAutoSuggest));
+        table
+            .getColumnModel()
+            .getColumn(Action.getIndex())
+            .setCellEditor(new AutoSuggestCellEditor(actionAutoSuggest));
+        table
+            .getColumnModel()
+            .getColumn(Condition.getIndex())
+            .setCellEditor(new AutoSuggestCellEditor(conditionAutoSuggest));
+        table
+            .getColumnModel()
+            .getColumn(Input.getIndex())
+            .setCellEditor(new InputAutoSuggestCellEditor(inputAutoSuggest));
     }
 
     /**
@@ -148,7 +277,7 @@ public class TestCaseAutoSuggest {
         List values = sProject.getProjectSettings().getContextSettings().getContextList();
         List newList = new ArrayList<>();
         for (Object string : values) {
-            newList.add("#"+string);
+            newList.add("#" + string);
         }
         return newList;
     }
@@ -157,7 +286,7 @@ public class TestCaseAutoSuggest {
         List values = sProject.getProjectSettings().getDatabaseSettings().getDbList();
         List newList = new ArrayList<>();
         for (Object string : values) {
-            newList.add("#"+string);
+            newList.add("#" + string);
         }
         return newList;
     }
@@ -166,43 +295,49 @@ public class TestCaseAutoSuggest {
         List values = sProject.getProjectSettings().getDriverSettings().getAPIList();
         List newList = new ArrayList<>();
         for (Object string : values) {
-            newList.add("#"+string);
+            newList.add("#" + string);
         }
         return newList;
     }
 
     private void startEditing(final AutoSuggest suggest) {
-        SwingUtilities.invokeLater(new Runnable() {
-            @Override
-            public void run() {
-                if (!table.isEditing()) {
-                    table.editCellAt(table.getSelectedRow(), table.getSelectedColumn());
-                    boolean isStringOpsEditor = isStringOpsEditor();
-                    if(!isStringOpsEditor){
-                        suggest.getTextField().setText(suggest.getText() + ":");
-                        suggest.getTextField().requestFocusInWindow();
-                        suggest.updateList();
+        SwingUtilities.invokeLater(
+            new Runnable() {
+
+                @Override
+                public void run() {
+                    if (!table.isEditing()) {
+                        table.editCellAt(table.getSelectedRow(), table.getSelectedColumn());
+                        boolean isStringOpsEditor = isStringOpsEditor();
+                        if (!isStringOpsEditor) {
+                            suggest.getTextField().setText(suggest.getText() + ":");
+                            suggest.getTextField().requestFocusInWindow();
+                            suggest.updateList();
+                        }
                     }
                 }
             }
-        });
+        );
     }
 
     private void startEditing(final InputMainAutoSuggest suggest) {
-        SwingUtilities.invokeLater(new Runnable() {
-            @Override
-            public void run() {
-                if (!table.isEditing()) {
-                    table.editCellAt(table.getSelectedRow(), table.getSelectedColumn());
-                    boolean isStringOpsEditor = isStringOpsEditor();
-                    if(!isStringOpsEditor){
-                        suggest.getTextField().setText(suggest.getText() + ":");
-                        suggest.getTextField().requestFocusInWindow();
-                        suggest.updateList();
+        SwingUtilities.invokeLater(
+            new Runnable() {
+
+                @Override
+                public void run() {
+                    if (!table.isEditing()) {
+                        table.editCellAt(table.getSelectedRow(), table.getSelectedColumn());
+                        boolean isStringOpsEditor = isStringOpsEditor();
+                        if (!isStringOpsEditor) {
+                            suggest.getTextField().setText(suggest.getText() + ":");
+                            suggest.getTextField().requestFocusInWindow();
+                            suggest.updateList();
+                        }
                     }
                 }
             }
-        });
+        );
     }
 
     private void installMouseListener() {
@@ -218,8 +353,11 @@ public class TestCaseAutoSuggest {
     }
 
     private boolean isDataBaseQueryStep(TestStep step) {
-        return step != null && step.isDatabaseStep() && (step.getAction().contains("execute")
-                || step.getAction().contains("storeResult"));
+        return (
+            step != null &&
+            step.isDatabaseStep() &&
+            (step.getAction().contains("execute") || step.getAction().contains("storeResult"))
+        );
     }
 
     private boolean isProtractorjsStep(TestStep step) {
@@ -227,14 +365,22 @@ public class TestCaseAutoSuggest {
     }
 
     private boolean isRestWebservicePostStep(TestStep step) {
-        return step != null && step.isWebserviceStep() && (step.getAction().contains("postRest")
-                || step.getAction().contains("putRest")
-                || step.getAction().contains("patchRest")
-                || step.getAction().contains("deleteWithPayload"));
+        return (
+            step != null &&
+            step.isWebserviceStep() &&
+            (
+                step.getAction().contains("postRest") ||
+                step.getAction().contains("putRest") ||
+                step.getAction().contains("patchRest") ||
+                step.getAction().contains("deleteWithPayload")
+            )
+        );
     }
 
     private boolean isSetEndPointStep(TestStep step) {
-        return step != null && step.isWebserviceStep() && (step.getAction().contains("setEndPoint"));
+        return (
+            step != null && step.isWebserviceStep() && (step.getAction().contains("setEndPoint"))
+        );
     }
 
     private boolean isSOAPWebservicePostStep(TestStep step) {
@@ -246,16 +392,25 @@ public class TestCaseAutoSuggest {
     }
 
     private boolean isMessageStep(TestStep step) {
-        return step != null && step.isMessageStep() && (step.getAction().contains("setText")
-                || step.getAction().contains("produceMessage"));
+        return (
+            step != null &&
+            step.isMessageStep() &&
+            (step.getAction().contains("setText") || step.getAction().contains("produceMessage"))
+        );
     }
 
     private boolean isRouteFulfillEndpointStep(TestStep step) {
-        return step != null && step.isBrowserStep() && (step.getAction().contains("RouteFulfillEndpoint"));
+        return (
+            step != null &&
+            step.isBrowserStep() &&
+            (step.getAction().contains("RouteFulfillEndpoint"))
+        );
     }
 
     private boolean isRouteFulfillSetBodyStep(TestStep step) {
-        return step != null && step.isBrowserStep() && step.getAction().contains("RouteFulfillSetBody");
+        return (
+            step != null && step.isBrowserStep() && step.getAction().contains("RouteFulfillSetBody")
+        );
     }
 
     private boolean isStringOperationsStep(TestStep step) {
@@ -265,9 +420,11 @@ public class TestCaseAutoSuggest {
     class ConditionAutoSuggest extends AutoSuggest {
 
         private List getConditionBasedOnText(String value) {
-            String objectName = Objects.toString(table.getValueAt(
-                    table.getSelectedRow(), ObjectName.getIndex()), "");
-            if ("Webservice".equals(objectName)){
+            String objectName = Objects.toString(
+                table.getValueAt(table.getSelectedRow(), ObjectName.getIndex()),
+                ""
+            );
+            if ("Webservice".equals(objectName)) {
                 return getAPIAliasList();
             } else {
                 return getContextAliasList();
@@ -301,7 +458,32 @@ public class TestCaseAutoSuggest {
 
     class ActionAutoSuggest extends AutoSuggest {
 
-         /**
+        @Override
+        public void setSelectedItem(Object o) {
+            if (o instanceof String) {
+                String selected = (String) o;
+                if (selected.startsWith("[Project]") || selected.startsWith("[Shared]")) {
+                    String scopeToken = selected.startsWith("[Shared]") ? "[Shared]" : "[Project]";
+                    String actionValue = removeScopePrefix(selected);
+                    if (
+                        table.getSelectedRow() >= 0 &&
+                        "Execute".equalsIgnoreCase(
+                                Objects.toString(
+                                    table.getValueAt(table.getSelectedRow(), ObjectName.getIndex()),
+                                    ""
+                                )
+                            )
+                    ) {
+                        table.setValueAt(scopeToken, table.getSelectedRow(), Reference.getIndex());
+                    }
+                    super.setSelectedItem(actionValue);
+                    return;
+                }
+            }
+            super.setSelectedItem(o);
+        }
+
+        /**
          * Retrieves available actions for the currently selected object in the test design table.
          * <p>
          * Returns action methods appropriate for the object type (Browser, Database, Webservice, etc.)
@@ -314,12 +496,16 @@ public class TestCaseAutoSuggest {
          * @see ObjectTypeUtil#isKnownType(String)
          */
         private List<String> getActionBasedOnObject() {
-            String objectName = Objects.toString(table.getValueAt(
-                    table.getSelectedRow(), ObjectName.getIndex()), "");
-            String pageToken = Objects.toString(table.getValueAt(
-                    table.getSelectedRow(), Reference.getIndex()), "");
+            String objectName = Objects.toString(
+                table.getValueAt(table.getSelectedRow(), ObjectName.getIndex()),
+                ""
+            );
+            String pageToken = Objects.toString(
+                table.getValueAt(table.getSelectedRow(), Reference.getIndex()),
+                ""
+            );
 
-            if ("Execute".equals(objectName)) {
+            if ("Execute".equalsIgnoreCase(objectName)) {
                 return getReusables();
             }
 
@@ -332,46 +518,62 @@ public class TestCaseAutoSuggest {
             }
 
             if (isWebObject(objectName, pageToken)) {
-                return MethodInfoManager.getMethodListFor(ObjectType.PLAYWRIGHT, ObjectType.WEB, ObjectType.ANY);
+                return MethodInfoManager.getMethodListFor(
+                    ObjectType.PLAYWRIGHT,
+                    ObjectType.WEB,
+                    ObjectType.ANY
+                );
             }
 
             if (isMobileObject(objectName, pageToken)) {
                 return MethodInfoManager.getMethodListFor(ObjectType.APP);
             }
-            
+
             if (isStructuredDataObject(objectName, pageToken)) {
                 return MethodInfoManager.getMethodListFor(ObjectType.STRUCTUREDDATA);
             }
-    
+
             if (isSapObject(objectName, pageToken)) {
                 return MethodInfoManager.getMethodListFor(ObjectType.SAP);
             }
-            
+
             return new ArrayList<>();
         }
 
         private List<String> getReusables() {
             List<String> reusableList = new ArrayList<>();
+
+            // Add [Project] scoped reusables
             for (Scenario scenario : sProject.getReusableScenarios()) {
                 for (TestCase testCase : scenario.getTestCases()) {
-                    reusableList.add(scenario.getName() + ":" + testCase.getName());
+                    reusableList.add("[Project] " + scenario.getName() + ":" + testCase.getName());
                 }
             }
+
+            // Add [Shared] scoped reusables
+            for (Scenario scenario : sProject.getSharedScenarios()) {
+                for (TestCase testCase : scenario.getTestCases()) {
+                    reusableList.add("[Shared] " + scenario.getName() + ":" + testCase.getName());
+                }
+            }
+
             return reusableList;
         }
 
         private boolean isWebObject(String objectName, String pageToken) {
-            if (pageToken == null
-                    || pageToken.isBlank()
-                    || objectName == null
-                    || objectName.isBlank()) {
+            if (
+                pageToken == null ||
+                pageToken.isBlank() ||
+                objectName == null ||
+                objectName.isBlank()
+            ) {
                 return false;
             }
             var repo = sProject.getObjectRepository();
             ResolvedWebObject.PageRef ref = ResolvedWebObject.PageRef.parse(pageToken);
             ResolvedWebObject r = (ref != null && ref.name != null && ref.scope != null)
-                    ? repo.resolveWebObject(ref, objectName)
-                    : repo.resolveWebObjectWithScope(pageToken, objectName);
+                ? repo.resolveWebObject(ref, objectName)
+                : repo.resolveWebObjectWithScope(pageToken, objectName);
             return r != null && r.isPresent();
         }
 
@@ -380,36 +582,42 @@ public class TestCaseAutoSuggest {
          * instead of directly accessing getMobileOR()/pages.
          */
         private boolean isMobileObject(String objectName, String pageToken) {
-            if (pageToken == null
-                    || pageToken.isBlank()
-                    || objectName == null
-                    || objectName.isBlank()) {
+            if (
+                pageToken == null ||
+                pageToken.isBlank() ||
+                objectName == null ||
+                objectName.isBlank()
+            ) {
                 return false;
             }
             var repo = sProject.getObjectRepository();
             ResolvedMobileObject.PageRef ref = ResolvedMobileObject.PageRef.parse(pageToken);
             ResolvedMobileObject r = (ref != null && ref.name != null && ref.scope != null)
-                    ? repo.resolveMobileObject(ref, objectName)
-                    : repo.resolveMobileObjectWithScope(pageToken, objectName);
+                ? repo.resolveMobileObject(ref, objectName)
+                : repo.resolveMobileObjectWithScope(pageToken, objectName);
             return r != null && r.isPresent();
         }
-        
+
         /**
          * Detect Structured Data objects via Structured Data resolver (supports scoped refs + shared)
          * instead of directly accessing getStructuredDataOR()/pages.
          */
         private boolean isStructuredDataObject(String objectName, String pageToken) {
-            if (pageToken == null
-                    || pageToken.isBlank()
-                    || objectName == null
-                    || objectName.isBlank()) {
+            if (
+                pageToken == null ||
+                pageToken.isBlank() ||
+                objectName == null ||
+                objectName.isBlank()
+            ) {
                 return false;
             }
             var repo = sProject.getObjectRepository();
-            ResolvedStructuredDataObject.PageRef ref = ResolvedStructuredDataObject.PageRef.parse(pageToken);
+            ResolvedStructuredDataObject.PageRef ref = ResolvedStructuredDataObject.PageRef.parse(
+                pageToken
+            );
             ResolvedStructuredDataObject r = (ref != null && ref.name != null && ref.scope != null)
-                    ? repo.resolveStructuredDataObject(ref, objectName)
-                    : repo.resolveStructuredDataObjectWithScope(pageToken, objectName);
+                ? repo.resolveStructuredDataObject(ref, objectName)
+                : repo.resolveStructuredDataObjectWithScope(pageToken, objectName);
             return r != null && r.isPresent();
         }
 
@@ -418,17 +626,19 @@ public class TestCaseAutoSuggest {
          * instead of directly accessing getSapOR()/pages.
          */
         private boolean isSapObject(String objectName, String pageToken) {
-            if (pageToken == null
-                    || pageToken.isBlank()
-                    || objectName == null
-                    || objectName.isBlank()) {
+            if (
+                pageToken == null ||
+                pageToken.isBlank() ||
+                objectName == null ||
+                objectName.isBlank()
+            ) {
                 return false;
             }
             var repo = sProject.getObjectRepository();
             ResolvedSapObject.PageRef ref = ResolvedSapObject.PageRef.parse(pageToken);
             ResolvedSapObject r = (ref != null && ref.name != null && ref.scope != null)
-                    ? repo.resolveSapObject(ref, objectName)
-                    : repo.resolveSapObjectWithScope(pageToken, objectName);
+                ? repo.resolveSapObject(ref, objectName)
+                : repo.resolveSapObjectWithScope(pageToken, objectName);
             return r != null && r.isPresent();
         }
 
@@ -439,8 +649,18 @@ public class TestCaseAutoSuggest {
 
         @Override
         public void afterReset() {
+            String actionText = getText();
+            if (actionText.startsWith("[Project]") || actionText.startsWith("[Shared]")) {
+                String scopeToken = actionText.startsWith("[Shared]") ? "[Shared]" : "[Project]";
+                String actionValue = removeScopePrefix(actionText);
+                table.setValueAt(scopeToken, table.getSelectedRow(), Reference.getIndex());
+                table.setValueAt(actionValue, table.getSelectedRow(), Action.getIndex());
+            }
+            // Set description if empty
             String val = Objects.toString(
-                    table.getValueAt(table.getSelectedRow(), Description.getIndex()), "");
+                table.getValueAt(table.getSelectedRow(), Description.getIndex()),
+                ""
+            );
             if (val.trim().isEmpty()) {
                 String desc = MethodInfoManager.getDescriptionFor(getText());
                 table.setValueAt(desc, table.getSelectedRow(), Description.getIndex());
@@ -452,7 +672,7 @@ public class TestCaseAutoSuggest {
         Boolean isPending = false;
         private String prevText;
 
-        public InputAutoSuggest(){
+        public InputAutoSuggest() {
             super.setTable(TestCaseAutoSuggest.this.table);
         }
 
@@ -461,14 +681,17 @@ public class TestCaseAutoSuggest {
                 return getUserDefinedList();
             } else if (value.startsWith("=")) {
                 return getFunctionList();
-            } else if(value.startsWith("#")) {
+            } else if (value.startsWith("#")) {
                 return getDatabaseAliasList();
             }
             return setupTestData(value);
         }
 
         public List getUserDefinedList() {
-            Set udSet = sProject.getProjectSettings().getUserDefinedSettings().stringPropertyNames();
+            Set udSet = sProject
+                .getProjectSettings()
+                .getUserDefinedSettings()
+                .stringPropertyNames();
             List values = new ArrayList<>();
             for (Object string : udSet) {
                 values.add("%".concat((String) string).concat("%"));
@@ -513,24 +736,42 @@ public class TestCaseAutoSuggest {
         public List getTestData() {
             List retList = new ArrayList<>();
             Set tdList = new LinkedHashSet<>();
-            sProject.getTestData().getAllEnvironments().stream().forEach((sTestData) -> {
-                for (TestDataModel stdList : sTestData.getTestDataList()) {
-                    tdList.add(stdList.getName());
-                }
-            });
-            tdList.stream().forEach((string) -> {
-                List tdCols = setupTestData(string + ":");
-                tdCols.stream().forEach((tdCol) -> {
-                    retList.add(string + ":" + tdCol);
-                });
-            });
+            sProject
+                .getTestData()
+                .getAllEnvironments()
+                .stream()
+                .forEach(
+                    sTestData -> {
+                        for (TestDataModel stdList : sTestData.getTestDataList()) {
+                            tdList.add(stdList.getName());
+                        }
+                    }
+                );
+            tdList
+                .stream()
+                .forEach(
+                    string -> {
+                        List tdCols = setupTestData(string + ":");
+                        tdCols
+                            .stream()
+                            .forEach(
+                                tdCol -> {
+                                    retList.add(string + ":" + tdCol);
+                                }
+                            );
+                    }
+                );
             return retList;
         }
 
         @Override
         public void setSelectedItem(Object o) {
             boolean isStringOpsEditor = isStringOpsEditor();
-            if (o != null && !o.toString().matches("(@.+)\n(=.+)\n(%.+%)") && !o.toString().contains(":")) {
+            if (
+                o != null &&
+                !o.toString().matches("(@.+)\n(=.+)\n(%.+%)") &&
+                !o.toString().contains(":")
+            ) {
                 if (isPending && prevText != null && !isStringOpsEditor) {
                     o = prevText + ":" + o.toString();
                 } else if (isPending && prevText != null && isStringOpsEditor) {
@@ -565,7 +806,11 @@ public class TestCaseAutoSuggest {
         public void afterReset() {
             prevText = null;
             isPending = false;
-            if (!getText().isEmpty() && !getText().matches("^[\\%\\@].*") && !getText().contains(":")) {
+            if (
+                !getText().isEmpty() &&
+                !getText().matches("^[\\%\\@].*") &&
+                !getText().contains(":")
+            ) {
                 startEditing(this);
             }
         }
@@ -594,14 +839,27 @@ public class TestCaseAutoSuggest {
     }
 
     class MouseAdapterImpl extends MouseAdapter {
+
         @Override
         public void mouseClicked(MouseEvent me) {
             boolean isInputclicked = table.columnAtPoint(me.getPoint()) == Input.getIndex();
+            boolean isActionClicked = table.columnAtPoint(me.getPoint()) == Action.getIndex();
+
             if (me.isAltDown()) {
                 if (table.rowAtPoint(me.getPoint()) != -1 && getTestCase(table) != null) {
-                    TestStep step = getTestCase(table).getTestSteps().get(table.rowAtPoint(me.getPoint()));
-                    if ((isDataBaseQueryStep(step) && table.columnAtPoint(me.getPoint()) == Input.getIndex())
-                            || (isProtractorjsStep(step) && table.columnAtPoint(me.getPoint()) == Input.getIndex())) {
+                    TestStep step = getTestCase(table)
+                        .getTestSteps()
+                        .get(table.rowAtPoint(me.getPoint()));
+                    if (
+                        (
+                            isDataBaseQueryStep(step) &&
+                            table.columnAtPoint(me.getPoint()) == Input.getIndex()
+                        ) ||
+                        (
+                            isProtractorjsStep(step) &&
+                            table.columnAtPoint(me.getPoint()) == Input.getIndex()
+                        )
+                    ) {
                         new SQLTextArea(null, step, getInputs());
                     }
                     if ((isRestWebservicePostStep(step) && isInputclicked)) {
@@ -630,7 +888,22 @@ public class TestCaseAutoSuggest {
                     }
                 }
             }
+            // Double-click on reusable steps allows editing; navigation is disabled
+            // Use context menu "Go To Reusable" for navigation instead
         }
+    }
+
+    private String removeScopePrefix(String text) {
+        if (text == null) {
+            return "";
+        }
+        if (text.startsWith("[Project]")) {
+            return text.substring("[Project]".length()).trim();
+        }
+        if (text.startsWith("[Shared]")) {
+            return text.substring("[Shared]".length()).trim();
+        }
+        return text;
     }
 
     public List getInputs() {
@@ -640,7 +913,6 @@ public class TestCaseAutoSuggest {
     }
 
     class MouseMotionAdapterImpl extends MouseMotionAdapter {
-
         private Point hintCell = new Point(-1, -1);
         private Timer showTimer;
         private Timer hideTimer;
@@ -654,45 +926,66 @@ public class TestCaseAutoSuggest {
             actionItem = new JMenuItem();
             popup.add(actionItem);
 
-            actionItem.addActionListener((ActionEvent ae) -> {
-                if (currentStep == null) return;
+            actionItem.addActionListener(
+                (ActionEvent ae) -> {
+                    if (currentStep == null) return;
 
-                if (isProtractorjsStep(currentStep) || isDataBaseQueryStep(currentStep)) {
-                    new SQLTextArea(null, currentStep, getInputs());
-                } else if (isRestWebservicePostStep(currentStep) ||
-                        (currentStep.isWebserviceStep() && currentStep.getAction().contains("postSoap")) ||
-                        (currentStep.isBrowserStep() && currentStep.getAction().contains("RouteFulfillSetBody"))) {
-                    new WebservicePayloadArea(
+                    if (isProtractorjsStep(currentStep) || isDataBaseQueryStep(currentStep)) {
+                        new SQLTextArea(null, currentStep, getInputs());
+                    } else if (
+                        isRestWebservicePostStep(currentStep) ||
+                        (
+                            currentStep.isWebserviceStep() &&
+                            currentStep.getAction().contains("postSoap")
+                        ) ||
+                        (
+                            currentStep.isBrowserStep() &&
+                            currentStep.getAction().contains("RouteFulfillSetBody")
+                        )
+                    ) {
+                        new WebservicePayloadArea(
                             null,
                             currentStep,
                             isRestWebservicePostStep(currentStep) ? "REST" : "SOAP",
                             getInputs()
-                    );
-                } else if (isSetEndPointStep(currentStep) || isRouteFulfillEndpointStep(currentStep)) {
-                    new EndPointTextArea(null, currentStep, getInputs());
-                } else if (isFileStep(currentStep) || isMessageStep(currentStep)) {
-                    new WebservicePayloadArea(null, currentStep, "SOAP", getInputs());
-                } else if (isStringOperationsStep(currentStep)) {
-                    new StringOperationsPayloadArea(null, currentStep, getInputs());
-                }
+                        );
+                    } else if (
+                        isSetEndPointStep(currentStep) || isRouteFulfillEndpointStep(currentStep)
+                    ) {
+                        new EndPointTextArea(null, currentStep, getInputs());
+                    } else if (isFileStep(currentStep) || isMessageStep(currentStep)) {
+                        new WebservicePayloadArea(null, currentStep, "SOAP", getInputs());
+                    } else if (isStringOperationsStep(currentStep)) {
+                        new StringOperationsPayloadArea(null, currentStep, getInputs());
+                    }
 
-                hidePopupNow();
-            });
-
-            showTimer = new Timer(650, (ActionEvent ae) -> {
-                if (hintCell.x != -1 && hintCell.y != -1) {
-                    Rectangle bounds = table.getCellRect(hintCell.y, hintCell.x, true);
-                    popup.show(table, bounds.x, bounds.y + bounds.height);
+                    hidePopupNow();
                 }
-            });
+            );
+
+            showTimer =
+                new Timer(
+                    650,
+                    (ActionEvent ae) -> {
+                        if (hintCell.x != -1 && hintCell.y != -1) {
+                            Rectangle bounds = table.getCellRect(hintCell.y, hintCell.x, true);
+                            popup.show(table, bounds.x, bounds.y + bounds.height);
+                        }
+                    }
+                );
             showTimer.setRepeats(false);
 
-            hideTimer = new Timer(250, (ActionEvent ae) -> {
-                hidePopupNow();
-            });
+            hideTimer =
+                new Timer(
+                    250,
+                    (ActionEvent ae) -> {
+                        hidePopupNow();
+                    }
+                );
             hideTimer.setRepeats(false);
 
             MouseAdapter popupMouseAdapter = new MouseAdapter() {
+
                 @Override
                 public void mouseEntered(MouseEvent e) {
                     cancelHideTimer();
@@ -707,22 +1000,25 @@ public class TestCaseAutoSuggest {
             popup.addMouseListener(popupMouseAdapter);
             actionItem.addMouseListener(popupMouseAdapter);
 
-            table.addMouseListener(new MouseAdapter() {
-                @Override
-                public void mouseExited(MouseEvent e) {
-                    if (isMouseOverPopup(e)) {
-                        cancelHideTimer();
-                        return;
+            table.addMouseListener(
+                new MouseAdapter() {
+
+                    @Override
+                    public void mouseExited(MouseEvent e) {
+                        if (isMouseOverPopup(e)) {
+                            cancelHideTimer();
+                            return;
+                        }
+
+                        scheduleHidePopup();
                     }
 
-                    scheduleHidePopup();
+                    @Override
+                    public void mouseEntered(MouseEvent e) {
+                        cancelHideTimer();
+                    }
                 }
-
-                @Override
-                public void mouseEntered(MouseEvent e) {
-                    cancelHideTimer();
-                }
-            });
+            );
         }
 
         private void scheduleHidePopup() {
@@ -808,9 +1104,13 @@ public class TestCaseAutoSuggest {
             } else if (isProtractorjsStep(step)) {
                 actionItem.setText("Click to open ProtractorJS command editor");
                 return true;
-            } else if (isSOAPWebservicePostStep(step) || isRestWebservicePostStep(step) ||
-                    isSetEndPointStep(step) || isRouteFulfillEndpointStep(step) ||
-                    isRouteFulfillSetBodyStep(step)) {
+            } else if (
+                isSOAPWebservicePostStep(step) ||
+                isRestWebservicePostStep(step) ||
+                isSetEndPointStep(step) ||
+                isRouteFulfillEndpointStep(step) ||
+                isRouteFulfillSetBodyStep(step)
+            ) {
                 actionItem.setText("Click to Open Webservice Editor");
                 return true;
             } else if (isFileStep(step)) {

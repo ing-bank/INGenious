@@ -7,14 +7,12 @@ import javax.swing.DefaultCellEditor;
  * @author Julie Ann Ayap
  */
 public class InputAutoSuggestCellEditor extends DefaultCellEditor {
-
     InputMainAutoSuggest autosugg;
 
     public InputAutoSuggestCellEditor(InputMainAutoSuggest jcb) {
         super(jcb);
         autosugg = jcb;
         setClickCountToStart(2);
-        
     }
 
     @Override
@@ -28,5 +26,4 @@ public class InputAutoSuggestCellEditor extends DefaultCellEditor {
         }
         return false;
     }
-
 }

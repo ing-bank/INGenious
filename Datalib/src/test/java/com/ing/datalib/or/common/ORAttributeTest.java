@@ -1,6 +1,7 @@
 package com.ing.datalib.or.common;
 
 import static org.assertj.core.api.Assertions.assertThat;
+
 import org.testng.annotations.Test;
 
 public class ORAttributeTest {

@@ -15,45 +15,45 @@ import java.util.logging.Logger;
  *
  */
 public class AppResourcePath {
+    private static final String RESULTS_FOLDER = "Results";
+    private static final String REPORT_TEMPLATE_FOLDER = "ReportTemplate";
+    private static final String CONFIG = "Configuration";
+    private static final String GLOBAL_PROPERTIES = "Global Settings.properties";
 
-    private final static String RESULTS_FOLDER = "Results";
-    private final static String REPORT_TEMPLATE_FOLDER = "ReportTemplate";
-    private final static String CONFIG = "Configuration";
-    private final static String GLOBAL_PROPERTIES = "Global Settings.properties";
+    private static final String EXTERNAL_COMMANDS_CONFIG = "commands";
 
-    private final static String EXTERNAL_COMMANDS_CONFIG = "commands";
-
-    private final static String EXTENT_HTML = "extent.html";
-    private final static String AZURE_XML = "azure.xml";
-    private final static String EXTENT_PDF = "extent.pdf";
-    private final static String TC_REPORT_HTML = "testCase.html";
-    private final static String DETAILED_HTML = "detailed.html";
-    private final static String PERF_HTML = "perfReport.html";
-    private final static String REPORT_HISTORY_HTML = "ReportHistory.html";
-    private final static String VIDEO_HTML = "videoReport.html";
-    private final static String REPORT_DATA = "data.js";
-    private final static String REPORT_HISTORY_DATA = "reportHistory.js";
+    private static final String EXTENT_HTML = "extent.html";
+    private static final String AZURE_XML = "azure.xml";
+    private static final String EXTENT_PDF = "extent.pdf";
+    private static final String TC_REPORT_HTML = "testCase.html";
+    private static final String DETAILED_HTML = "detailed.html";
+    private static final String PERF_HTML = "perfReport.html";
+    private static final String REPORT_HISTORY_HTML = "ReportHistory.html";
+    private static final String VIDEO_HTML = "videoReport.html";
+    private static final String REPORT_DATA = "data.js";
+    private static final String REPORT_HISTORY_DATA = "reportHistory.js";
 
     // Modern v2 report templates (Alpine.js, Tailwind CSS, Chart.js)
-    public final static String SUMMARY_HTML_V2 = "summary-v2.html";
-    private final static String DETAILED_HTML_V2 = "detailed-v2.html";
-    private final static String TC_REPORT_HTML_V2 = "testCase-v2.html";
-    private final static String PERF_HTML_V2 = "perfReport-v2.html";
-    private final static String VIDEO_HTML_V2 = "videoReport-v2.html";
+    public static final String SUMMARY_HTML_V2 = "summary-v2.html";
+    private static final String DETAILED_HTML_V2 = "detailed-v2.html";
+    private static final String TC_REPORT_HTML_V2 = "testCase-v2.html";
+    private static final String PERF_HTML_V2 = "perfReport-v2.html";
+    private static final String VIDEO_HTML_V2 = "videoReport-v2.html";
 
-    private final static String EXPLORER_CONFIG = "ExplorerConfig.properties";
+    private static final String EXPLORER_CONFIG = "ExplorerConfig.properties";
 
-    private final static String ENC = ".enc";
+    private static final String ENC = ".enc";
 
-    private final static String CHROME_EMULATOR_FILE = "chrome-emulators.json";
+    private static final String ADDON_LOCATION = "Extensions";
 
-    private final static String ADDON_LOCATION = "Extensions";
+    private static final String FF_ADDON = "FireFox" + File.separator + "ingenious.xpi";
 
-    private final static String FF_ADDON = "FireFox" + File.separator + "ingenious.xpi";
+    private static final String CHROME_ADDON = "Chrome" + File.separator + "ingenious.crx";
 
-    private final static String CHROME_ADDON = "Chrome" + File.separator + "ingenious.crx";
+    private static final String MATOMO_PROPERTIES = "matomo.properties";
+    private static final String USER_PROFILE = "userProfile.properties";
 
-    private final static String STEPMAP_FILE = "StepMap.csv";
+    private static final String STEPMAP_FILE = "StepMap.csv";
     private static final String APP_SETTINGS = "app.settings";
 
     private static String date;
@@ -89,12 +89,14 @@ public class AppResourcePath {
         return getConfigurationPath() + File.separator + EXPLORER_CONFIG;
     }
 
-    public static String getChromeEmulatorsFile() {
-        return getConfigurationPath() + File.separator + CHROME_EMULATOR_FILE;
-    }
-
     public static String getReportThemePreviewPath() {
-        return getConfigurationPath() + File.separator + REPORT_TEMPLATE_FOLDER + File.separator + "preview";
+        return (
+            getConfigurationPath() +
+            File.separator +
+            REPORT_TEMPLATE_FOLDER +
+            File.separator +
+            "preview"
+        );
     }
 
     public static String getReportThemePath() {
@@ -102,19 +104,43 @@ public class AppResourcePath {
     }
 
     public static String getReportResourcePath() {
-        return getConfigurationPath() + File.separator + REPORT_TEMPLATE_FOLDER + File.separator + "media";
+        return (
+            getConfigurationPath() +
+            File.separator +
+            REPORT_TEMPLATE_FOLDER +
+            File.separator +
+            "media"
+        );
     }
 
     public static String getMailReportTemplatePath() {
-        return getConfigurationPath() + File.separator + REPORT_TEMPLATE_FOLDER + File.separator + "mailReport";
+        return (
+            getConfigurationPath() +
+            File.separator +
+            REPORT_TEMPLATE_FOLDER +
+            File.separator +
+            "mailReport"
+        );
     }
 
     public static String getaXeReportTemplatePath() {
-        return getConfigurationPath() + File.separator + REPORT_TEMPLATE_FOLDER + File.separator + "aXe";
+        return (
+            getConfigurationPath() +
+            File.separator +
+            REPORT_TEMPLATE_FOLDER +
+            File.separator +
+            "aXe"
+        );
     }
 
     public static String getReportTemplatePath() {
-        return getConfigurationPath() + File.separator + REPORT_TEMPLATE_FOLDER + File.separator + "html";
+        return (
+            getConfigurationPath() +
+            File.separator +
+            REPORT_TEMPLATE_FOLDER +
+            File.separator +
+            "html"
+        );
     }
 
     public static String getPageDumpResourcePath() {
@@ -152,11 +178,23 @@ public class AppResourcePath {
 
     private static String getResultPath() {
         if (RunManager.getGlobalSettings().isTestRun()) {
-            return File.separator + "TestDesign" + File.separator + RunManager.getGlobalSettings().getScenario()
-                    + File.separator + RunManager.getGlobalSettings().getTestCase();
+            return (
+                File.separator +
+                "TestDesign" +
+                File.separator +
+                RunManager.getGlobalSettings().getScenario() +
+                File.separator +
+                RunManager.getGlobalSettings().getTestCase()
+            );
         }
-        return File.separator + "TestExecution" + File.separator + RunManager.getGlobalSettings().getRelease()
-                + File.separator + RunManager.getGlobalSettings().getTestSet();
+        return (
+            File.separator +
+            "TestExecution" +
+            File.separator +
+            RunManager.getGlobalSettings().getRelease() +
+            File.separator +
+            RunManager.getGlobalSettings().getTestSet()
+        );
     }
 
     public static String getCurrentResultsPath() {
@@ -168,15 +206,39 @@ public class AppResourcePath {
     }
 
     public static String getCurrentTestCaseLogsLocation() {
-        return getCurrentResultsLocation() + File.separator + date + " " + time + File.separator + "logs";
+        return (
+            getCurrentResultsLocation() +
+            File.separator +
+            date +
+            " " +
+            time +
+            File.separator +
+            "logs"
+        );
     }
 
     public static String getCurrentTestCaseAccessibilityLocation() {
-        return getCurrentResultsLocation() + File.separator + date + " " + time + File.separator + "aXe";
+        return (
+            getCurrentResultsLocation() +
+            File.separator +
+            date +
+            " " +
+            time +
+            File.separator +
+            "aXe"
+        );
     }
 
     public static String getCurrentTestCaseVideosLocation() {
-        return getCurrentResultsLocation() + File.separator + date + " " + time + File.separator + "videos";
+        return (
+            getCurrentResultsLocation() +
+            File.separator +
+            date +
+            " " +
+            time +
+            File.separator +
+            "videos"
+        );
     }
 
     public static String getLatestResultsLocation() {
@@ -231,6 +293,14 @@ public class AppResourcePath {
         return time;
     }
 
+    public static String getMatomoPropertiesPath() {
+        return getConfigurationPath() + File.separator + MATOMO_PROPERTIES;
+    }
+
+    public static String getUserProfilePath() {
+        return getConfigurationPath() + File.separator + USER_PROFILE;
+    }
+
     /**
      * Addon Path
      *
@@ -254,11 +324,15 @@ public class AppResourcePath {
 
     public static String getEngineJarPath() {
         try {
-            return Files.find(
+            return Files
+                .find(
                     Paths.get(getAppRoot(), "lib"),
                     1,
                     (path, bfa) -> path.toFile().getName().matches("ingenious-engine.*.jar")
-            ).map(Path::toString).findFirst().orElse("");
+                )
+                .map(Path::toString)
+                .findFirst()
+                .orElse("");
         } catch (IOException ex) {
             Logger.getLogger(AppResourcePath.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -296,46 +370,52 @@ public class AppResourcePath {
     public static String getCurrentVideoReportHTMLPath() {
         return getCurrentResultsPath() + File.separator + VIDEO_HTML;
     }
-    
+
     // ========== Modern v2 Report Paths ==========
-    
+
     public static String getSummaryHTMLPathV2() {
         return getReportTemplatePath() + File.separator + SUMMARY_HTML_V2;
     }
-    
+
     public static String getDetailedHTMLPathV2() {
         return getReportTemplatePath() + File.separator + DETAILED_HTML_V2;
     }
-    
+
     public static String getTCReportTemplateV2() {
         return getReportTemplatePath() + File.separator + TC_REPORT_HTML_V2;
     }
-    
+
     public static String getPerfReportHTMLPathV2() {
         return getReportTemplatePath() + File.separator + PERF_HTML_V2;
     }
-    
+
     public static String getVideoReportHTMLPathV2() {
         return getReportTemplatePath() + File.separator + VIDEO_HTML_V2;
     }
-    
+
     public static String getCurrentSummaryHTMLPathV2() {
         return getCurrentResultsPath() + File.separator + SUMMARY_HTML_V2;
     }
-    
+
     public static String getCurrentDetailedHTMLPathV2() {
         return getCurrentResultsPath() + File.separator + DETAILED_HTML_V2;
     }
-    
+
     public static String getCurrentPerfReportHTMLPathV2() {
         return getCurrentResultsPath() + File.separator + PERF_HTML_V2;
     }
-    
+
     public static String getCurrentVideoReportHTMLPathV2() {
         return getCurrentResultsPath() + File.separator + VIDEO_HTML_V2;
     }
-    
+
     public static String getReportMediaPath() {
-        return getConfigurationPath() + File.separator + REPORT_TEMPLATE_FOLDER + File.separator + "media";
+        return (
+            getConfigurationPath() +
+            File.separator +
+            REPORT_TEMPLATE_FOLDER +
+            File.separator +
+            "media"
+        );
     }
 }

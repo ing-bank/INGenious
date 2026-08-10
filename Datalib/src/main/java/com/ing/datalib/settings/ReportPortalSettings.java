@@ -1,8 +1,7 @@
-
 package com.ing.datalib.settings;
 
 public class ReportPortalSettings extends AbstractPropSettings {
-    
+
     public ReportPortalSettings(String location) {
         super(location, "reportportal");
         if (isEmpty()) {
@@ -15,5 +14,4 @@ public class ReportPortalSettings extends AbstractPropSettings {
         put("rp.uuid", "");
         put("rp.project", "");
     }
-    
 }

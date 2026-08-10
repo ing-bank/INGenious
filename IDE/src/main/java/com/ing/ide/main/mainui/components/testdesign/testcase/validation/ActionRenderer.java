@@ -1,11 +1,12 @@
 package com.ing.ide.main.mainui.components.testdesign.testcase.validation;
 
+import com.ing.datalib.component.ReusableRef;
 import com.ing.datalib.component.Scenario;
 import com.ing.datalib.component.TestStep;
-import com.ing.datalib.or.web.ResolvedWebObject;
-import com.ing.datalib.or.structureddata.ResolvedStructuredDataObject;
 import com.ing.datalib.or.mobile.ResolvedMobileObject;
 import com.ing.datalib.or.sap.ResolvedSapObject;
+import com.ing.datalib.or.structureddata.ResolvedStructuredDataObject;
+import com.ing.datalib.or.web.ResolvedWebObject;
 import com.ing.engine.support.ObjectTypeUtil;
 import com.ing.engine.support.methodInf.MethodInfoManager;
 import com.ing.ingenious.api.types.ObjectType;
@@ -21,9 +22,10 @@ import javax.swing.UIManager;
  *
  */
 public class ActionRenderer extends AbstractRenderer {
-
     final String actionNotPresent = "Action not available/Not a valid action";
     final String reusableNotPresent = "Reusable is not available in the Project";
+    final String reusableHasError = "Reusable has IDE validation error(s)";
+    final String reusableNotPresentScoped = "Reusable is not available in %s scope";
 
     public ActionRenderer() {
         super("Action Shouldn't be empty.It should be either an action or Reusable");
@@ -39,10 +41,15 @@ public class ActionRenderer extends AbstractRenderer {
                     setEmpty(comp);
                 }
             } else if (step.isReusableStep()) {
-                if (isReusablePresent(step)) {
-                    setDefault(comp);
+                if (!isReusablePresent(step)) {
+                    // Use scope-aware error message if reference is scoped
+                    String errorMsg = getReusableErrorMessage(step.getAction());
+                    setNotPresent(comp, errorMsg);
+                } else if (TestCaseValidation.reusableHasError(step)) {
+                    setNotPresent(comp, reusableHasError);
                 } else {
-                    setNotPresent(comp, reusableNotPresent);
+                    setDefault(comp);
+                    applyReusableScopeColor(comp, step.getReference());
                 }
             } else if (step.isWebserviceStartStep()) {
                 setWebserviceStart(comp);
@@ -68,11 +75,41 @@ public class ActionRenderer extends AbstractRenderer {
     }
 
     private Boolean isReusablePresent(TestStep step) {
-        String[] data = step.getReusableData();
-        Scenario scenario = step.getProject().getReusableScenarioByName(data[0]);
-        if (scenario != null) {
-            return scenario.getTestCaseByName(data[1]) != null;
+        ReusableRef ref;
+        try {
+            ref = step.getEffectiveReusableRef();
+        } catch (IllegalArgumentException ex) {
+            return false;
         }
+        if (ref == null) {
+            return false;
+        }
+
+        String scenarioName = ref.getScenarioName();
+        String testCaseName = ref.getTestCaseName();
+
+        if (
+            ref.getScope() == ReusableRef.Scope.PROJECT ||
+            ref.getScope() == ReusableRef.Scope.UNSCOPED
+        ) {
+            Scenario scenario = step.getProject().getReusableScenarioByName(scenarioName);
+            if (scenario != null && scenario.getTestCaseByName(testCaseName) != null) {
+                return true;
+            }
+        }
+
+        if (
+            ref.getScope() == ReusableRef.Scope.SHARED ||
+            ref.getScope() == ReusableRef.Scope.UNSCOPED
+        ) {
+            Scenario sharedScenario = step
+                .getProject()
+                .getSharedReusableScenarioByName(scenarioName);
+            if (sharedScenario != null && sharedScenario.getTestCaseByName(testCaseName) != null) {
+                return true;
+            }
+        }
+
         return false;
     }
 
@@ -108,7 +145,9 @@ public class ActionRenderer extends AbstractRenderer {
         }
 
         if (isWebObject(step)) {
-            return MethodInfoManager.getMethodListFor(ObjectType.PLAYWRIGHT, ObjectType.WEB).contains(action);
+            return MethodInfoManager
+                .getMethodListFor(ObjectType.PLAYWRIGHT, ObjectType.WEB)
+                .contains(action);
         }
 
         if (isMobileObject(step)) {
@@ -125,6 +164,11 @@ public class ActionRenderer extends AbstractRenderer {
 
         // Fallback to generic actions available for any object
         return MethodInfoManager.getMethodListFor(ObjectType.ANY).contains(action);
+    }
+
+    @Override
+    protected Object getColumnValue(TestStep step) {
+        return step.getAction();
     }
 
     private boolean isWebObject(TestStep step) {
@@ -157,14 +201,16 @@ public class ActionRenderer extends AbstractRenderer {
         String pageToken = step.getReference();
         String objectName = step.getObject();
 
-        ResolvedStructuredDataObject.PageRef ref = ResolvedStructuredDataObject.PageRef.parse(pageToken);
+        ResolvedStructuredDataObject.PageRef ref = ResolvedStructuredDataObject.PageRef.parse(
+            pageToken
+        );
         ResolvedStructuredDataObject r = (ref != null && ref.name != null && ref.scope != null)
             ? repo.resolveStructuredDataObject(ref, objectName)
             : repo.resolveStructuredDataObjectWithScope(pageToken, objectName);
 
         return r != null && r.isPresent();
     }
-    
+
     private boolean isSapObject(TestStep step) {
         var repo = step.getProject().getObjectRepository();
         String pageToken = step.getReference();
@@ -176,5 +222,33 @@ public class ActionRenderer extends AbstractRenderer {
             : repo.resolveSapObjectWithScope(pageToken, objectName);
 
         return r != null && r.isPresent();
+    }
+
+    /**
+     * Gets the scope-aware error message for reusable validation.
+     * If the reference is scoped (e.g., [PROJECT] or [SHARED]), includes scope in the message.
+     *
+     * @param refString the reusable reference string
+     * @return appropriate error message with scope information if applicable
+     */
+    private String getReusableErrorMessage(String refString) {
+        try {
+            ReusableRef ref = ReusableRef.parse(refString);
+            if (ref.getScope() != ReusableRef.Scope.UNSCOPED) {
+                return String.format(reusableNotPresentScoped, ref.getScope());
+            }
+        } catch (IllegalArgumentException ex) {
+            return reusableNotPresent;
+        }
+        return reusableNotPresent;
+    }
+
+    private void applyReusableScopeColor(JComponent comp, String reference) {
+        String ref = Objects.toString(reference, "").trim();
+        if (ref.startsWith("[Shared]")) {
+            comp.setForeground(new Color(0, 128, 0));
+        } else if (ref.startsWith("[Project]")) {
+            comp.setForeground(Color.BLACK);
+        }
     }
 }

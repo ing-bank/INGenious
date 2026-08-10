@@ -1,9 +1,8 @@
-
 package com.ing.datalib.settings;
 
 /**
  *
- * 
+ *
  */
 public class DatabaseSettings extends AbstractPropSettings {
 

@@ -1,4 +1,3 @@
-
 package com.ing.engine.reporting.performance;
 
 import com.ing.engine.constants.FilePath;
@@ -26,18 +25,16 @@ import org.json.simple.JSONObject;
 /**
  * Performance reporting Har waterfall for timings and pagespeed metrics
  *
- * 
- * 
+ *
+ *
  */
-@SuppressWarnings({"rawtypes", "unchecked"})
+@SuppressWarnings({ "rawtypes", "unchecked" })
 public class PerformanceReport {
-
     private static final Logger LOG = Logger.getLogger(PerformanceReport.class.getName());
     JSONObject pLog = new JSONObject();
     public Map<String, Report> gdata;
 
     public class Report {
-
         public Map<String, List<Har<String, Log>>> hars = new LinkedHashMap<>();
         public Map<String, List<File>> savedHars = new LinkedHashMap<>();
     }
@@ -71,14 +68,28 @@ public class PerformanceReport {
         greport.hars.get(harName).add(h);
         h.updateConfig(report, pageName, greport.hars.get(harName).size());
         if (pageName == null || pageName.isEmpty()) {
-            pageName = report.Scenario + "-" + report.TestCase + "_page_" + greport.hars.get(harName).size();
+            pageName =
+                report.Scenario +
+                "-" +
+                report.TestCase +
+                "_page_" +
+                greport.hars.get(harName).size();
         }
         File dest = new File(FilePath.getCurrentPerfReportHarPath(), pageName);
         if (!dest.exists()) {
             dest.mkdirs();
         }
-        File harFile = new File(dest, FilePath.getCurrentReportFolderName() + "_" + harName + "_"
-                + greport.hars.get(harName).size() + "_" + pageName + ".har");
+        File harFile = new File(
+            dest,
+            FilePath.getCurrentReportFolderName() +
+            "_" +
+            harName +
+            "_" +
+            greport.hars.get(harName).size() +
+            "_" +
+            pageName +
+            ".har"
+        );
         storeHar(harFile, h);
         greport.savedHars.get(harName).add(harFile);
     }
@@ -117,7 +128,9 @@ public class PerformanceReport {
             pLog.clear();
             gdata.clear();
         } else {
-            System.out.println("Performance log not found. Make sure \"capturePageTimings\" action is included in testcase. ");
+            System.out.println(
+                "Performance log not found. Make sure \"capturePageTimings\" action is included in testcase. "
+            );
         }
     }
 
@@ -152,7 +165,12 @@ public class PerformanceReport {
             for (String har : gdata.get(g).savedHars.keySet()) {
                 List<Har<String, Log>> hars = gdata.get(g).hars.get(har);
                 for (int i = 0; i < hars.size(); i++) {
-                    PageMetrics metrics = MetricsProvider.getMetrics(hars.get(i), i, har, gdata.get(g));
+                    PageMetrics metrics = MetricsProvider.getMetrics(
+                        hars.get(i),
+                        i,
+                        har,
+                        gdata.get(g)
+                    );
                     psList.add(metrics);
                 }
             }
@@ -173,8 +191,6 @@ public class PerformanceReport {
         return data;
     }
 
-    
-
     public void storeHar(File f, Har<?, ?> har) {
         try (PrintWriter w = new PrintWriter(f);) {
             w.write(har.toJSONString());
@@ -184,9 +200,24 @@ public class PerformanceReport {
     }
 
     private static String getFullName(TestCaseReport r) {
-        return r.Scenario + "-" + r.TestCase + "_[i" + r.getIter() + "  "
-                + r.getPlaywrightDriver().getCurrentBrowser() + "v" + r.getPlaywrightDriver().getBrowserVersion()
-                + " " + System.getProperty("os.name")+ " " +System.getProperty("os.version")+ " " +System.getProperty("os.arch") + "]";
+        return (
+            r.Scenario +
+            "-" +
+            r.TestCase +
+            "_[i" +
+            r.getIter() +
+            "  " +
+            r.getPlaywrightDriver().getCurrentBrowser() +
+            "v" +
+            r.getPlaywrightDriver().getBrowserVersion() +
+            " " +
+            System.getProperty("os.name") +
+            " " +
+            System.getProperty("os.version") +
+            " " +
+            System.getProperty("os.arch") +
+            "]"
+        );
     }
 
     private static String getName(String sc, String tc) {

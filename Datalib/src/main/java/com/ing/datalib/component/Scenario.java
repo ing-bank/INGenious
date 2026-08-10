@@ -1,11 +1,12 @@
 package com.ing.datalib.component;
 
+import com.ing.datalib.component.io.TestCaseStoreFactory;
+import com.ing.datalib.component.utils.FileUtils;
+import com.ing.datalib.component.utils.SortOrderStore;
+import com.ing.datalib.or.web.WebOR.ORScope;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
-
-import com.ing.datalib.component.utils.FileUtils;
-import com.ing.datalib.or.web.WebOR.ORScope;
 
 /**
  * Represents a scenario within a project’s TestPlan and serves as a container for related test cases.
@@ -26,7 +27,8 @@ public class Scenario extends DataModel {
 
     public enum Source {
         TEST_PLAN,
-        REUSABLE_COMPONENTS
+        REUSABLE_COMPONENTS,
+        SHARED_REUSABLE_COMPONENTS
     }
 
     private final Project project;
@@ -38,6 +40,12 @@ public class Scenario extends DataModel {
     private final Source source;
 
     /**
+     * When true, skips migrations on scenario/test case load to ensure read-only validation.
+     * Propagated from parent Project when loaded in read-only mode.
+     */
+    private boolean readOnlyMode = false;
+
+    /**
      * Constructs a scenario in the Test Plan.
      * @param project parent project
      * @param name scenario name
@@ -47,10 +55,10 @@ public class Scenario extends DataModel {
     }
 
     /**
-     * Constructs a scenario with specified source (Test Plan or Reusable Components).
+     * Constructs a scenario with specified source (Test Plan, Reusable Components, or Shared Reusable Components).
      * @param project parent project
      * @param name scenario name
-     * @param source scenario source (TEST_PLAN or REUSABLE_COMPONENTS)
+     * @param source scenario source (TEST_PLAN, REUSABLE_COMPONENTS, or SHARED_REUSABLE_COMPONENTS)
      */
     public Scenario(Project project, String name, Source source) {
         this.project = project;
@@ -75,18 +83,36 @@ public class Scenario extends DataModel {
         if (base == null) {
             return "";
         }
-        String dir = source == Source.REUSABLE_COMPONENTS
-                ? Project.REUSABLE_COMPONENTS_DIR
-                : Project.TEST_PLAN_DIR;
+        String dir;
+        if (source == Source.REUSABLE_COMPONENTS) {
+            dir = Project.REUSABLE_COMPONENTS_DIR;
+        } else if (source == Source.SHARED_REUSABLE_COMPONENTS) {
+            dir = Project.SHARED_REUSABLE_COMPONENTS_DIR;
+        } else {
+            dir = Project.TEST_PLAN_DIR;
+        }
         return base + File.separator + dir + File.separator + name;
     }
 
     /**
-     * Checks if this is a reusable scenario.
+     * Checks if this is a reusable scenario (Project-scoped).
      * @return true if this scenario is in Reusable Components, false otherwise
      */
     public boolean isReusableScenario() {
         return source == Source.REUSABLE_COMPONENTS;
+    }
+
+    /**
+     * Checks if this is a shared reusable scenario.
+     * @return true if this scenario is in Shared Reusable Components, false otherwise
+     */
+    public boolean isSharedReusableScenario() {
+        return source == Source.SHARED_REUSABLE_COMPONENTS;
+    }
+
+    /**
+     * Returns the source of this scenario.
+     * @return TEST_PLAN, REUSABLE_COMPONENTS, or SHARED_rce.REUSABLE_COMPONENTS;
     }
 
     /**
@@ -95,6 +121,21 @@ public class Scenario extends DataModel {
      */
     public Source getSource() {
         return source;
+    }
+
+    /**
+     * Returns a short, human-readable label for this scenario's scope, for display purposes
+     * (e.g. the Test Design search box), reflecting which scope is currently active.
+     * @return "TestPlan", "Project", or "Shared"
+     */
+    public String getScopeLabel() {
+        if (source == Source.REUSABLE_COMPONENTS) {
+            return "Project";
+        }
+        if (source == Source.SHARED_REUSABLE_COMPONENTS) {
+            return "Shared";
+        }
+        return "TestPlan";
     }
 
     /**
@@ -114,6 +155,20 @@ public class Scenario extends DataModel {
     }
 
     /**
+     * Sets the read-only mode for this Scenario and propagates to all child TestCases.
+     * When true, prevents scenario and test case migrations during load.
+     *
+     * @param readOnly true to enable read-only mode
+     */
+    public void setReadOnlyMode(boolean readOnly) {
+        this.readOnlyMode = readOnly;
+        // Propagate to all child test cases
+        for (TestCase tc : testCases) {
+            tc.setReadOnlyMode(readOnly);
+        }
+    }
+
+    /**
      * Finds a test case by name.
      * @param name test case name (case-insensitive)
      * @return the test case if found, null otherwise
@@ -126,18 +181,18 @@ public class Scenario extends DataModel {
         }
         return null;
     }
+
     /**
-     * Finds a test case by name.
+     * Finds a Test Plan test case by name.
      * @param scenarioName scenario name (case-insensitive)
      * @param testCaseName test case name (case-insensitive)
-     * @return the reusable test case if found, null otherwise
+     * @return the Test Plan test case if found, null otherwise
      */
     public TestCase getTestCaseByName(String scenarioName, String testCaseName) {
-        Scenario sc = project.getScenarioByName(scenarioName);
+        Scenario sc = project.getTestPlanScenarioByName(scenarioName);
         if (sc == null) {
             return null;
         }
-        
         List<TestCase> tc = sc.getTestCases();
         String tc_name;
         for (TestCase testcase : tc) {
@@ -160,7 +215,6 @@ public class Scenario extends DataModel {
         if (sc == null) {
             return null;
         }
-
         List<TestCase> reusables = sc.getTestCases();
         String tc_name;
         for (TestCase testcase : reusables) {
@@ -187,13 +241,19 @@ public class Scenario extends DataModel {
     }
 
     /**
-     * Loads all test case CSV files from the scenario directory.
+     * Loads test case files from the scenario directory. Enumerates both CSV
+     * and YAML files, deduplicating by base name (YAML wins when both formats
+     * exist for the same name).
      */
     private void loadTestcases() {
         File scenDir = new File(getLocation());
         if (scenDir.exists()) {
-            for (String testCase : scenDir.list(FileUtils.CSV_FILTER)) {
-                testCases.add(new TestCase(this, testCase));
+            List<String> names = new ArrayList<>(
+                TestCaseStoreFactory.listLogicalFiles(scenDir).keySet()
+            );
+            names = SortOrderStore.apply(scenDir, names);
+            for (String baseName : names) {
+                testCases.add(new TestCase(this, baseName));
             }
         }
     }
@@ -217,14 +277,13 @@ public class Scenario extends DataModel {
 
     /**
      * Adds a new test case to this scenario.
+     * Validates that the test case name is unique within this scenario. The same name may be
+     * reused in different scenarios (across Test Plan, Reusable and Shared Reusable scopes).
      * @param testCaseName name of the test case to add
-     * @return the created test case, or null if it already exists
+     * @return the created test case, or null if it already exists in this scenario
      */
     public TestCase addTestCase(String testCaseName) {
         if (getTestCaseByName(testCaseName) == null) {
-            if (project.hasTestCaseInAnyScenario(getName(), testCaseName)) {
-                return null;
-            }
             TestCase tc = new TestCase(this, testCaseName);
             testCases.add(tc);
             tc.setSaved(false);
@@ -240,9 +299,7 @@ public class Scenario extends DataModel {
      * @param testCase test case to remove
      */
     public void removeTestCase(TestCase testCase) {
-        if (testCases.remove(testCase)) {
-
-        }
+        if (testCases.remove(testCase)) {}
     }
 
     /**
@@ -343,8 +400,8 @@ public class Scenario extends DataModel {
     @Override
     public void setValueAt(Object aValue, int rowIndex, int columnIndex) {
         if (columnIndex == 0) {
-//            testCases.get(rowIndex).setName(aValue.toString());
-//            project.reload(testCases.get(rowIndex));
+            //            testCases.get(rowIndex).setName(aValue.toString());
+            //            project.reload(testCases.get(rowIndex));
         } else {
             getTestcasesAlone().get(rowIndex).setValueAt(aValue, columnIndex - 1, 3);
         }
@@ -385,14 +442,14 @@ public class Scenario extends DataModel {
     public String printString() {
         StringBuilder builder = new StringBuilder();
         builder
-                .append("\t")
-                .append("Scenario - ")
-                .append(name)
-                .append("\n")
-                .append("\t")
-                .append("TestCases - ")
-                .append(testCases.size())
-                .append("\n");
+            .append("\t")
+            .append("Scenario - ")
+            .append(name)
+            .append("\n")
+            .append("\t")
+            .append("TestCases - ")
+            .append(testCases.size())
+            .append("\n");
         for (TestCase testCase : testCases) {
             builder.append(testCase.toString());
         }
@@ -500,7 +557,11 @@ public class Scenario extends DataModel {
      * @param oldTestCaseName old test case name
      * @param newTestCaseName new test case name
      */
-    public void refactorTestCase(String scenarioName, String oldTestCaseName, String newTestCaseName) {
+    public void refactorTestCase(
+        String scenarioName,
+        String oldTestCaseName,
+        String newTestCaseName
+    ) {
         for (TestCase testcase : testCases) {
             testcase.refactorTestCase(scenarioName, oldTestCaseName, newTestCaseName);
         }
@@ -512,7 +573,11 @@ public class Scenario extends DataModel {
      * @param oldScenarioName old scenario name
      * @param newScenarioName new scenario name
      */
-    public void refactorTestCaseScenario(String testCaseName, String oldScenarioName, String newScenarioName) {
+    public void refactorTestCaseScenario(
+        String testCaseName,
+        String oldScenarioName,
+        String newScenarioName
+    ) {
         for (TestCase testcase : testCases) {
             testcase.refactorTestCaseScenario(testCaseName, oldScenarioName, newScenarioName);
         }
@@ -530,7 +595,12 @@ public class Scenario extends DataModel {
         }
     }
 
-    public void refactorObjectName(String oldpageName, String oldObjName, String newPageName, String newObjName) {
+    public void refactorObjectName(
+        String oldpageName,
+        String oldObjName,
+        String newPageName,
+        String newObjName
+    ) {
         for (TestCase testCase : testCases) {
             testCase.refactorObjectName(oldpageName, oldObjName, newPageName, newObjName);
         }
@@ -563,7 +633,11 @@ public class Scenario extends DataModel {
         }
     }
 
-    public void refactorTestDataColumn(String testDataName, String oldColumnName, String newColumnName) {
+    public void refactorTestDataColumn(
+        String testDataName,
+        String oldColumnName,
+        String newColumnName
+    ) {
         for (TestCase testCase : testCases) {
             testCase.refactorTestDataColumn(testDataName, oldColumnName, newColumnName);
         }
@@ -620,7 +694,8 @@ public class Scenario extends DataModel {
      */
     @Override
     public Boolean rename(String newName) {
-        if (getProject().getTestPlanScenarioByName(newName) == null) {
+        Scenario existing = getProject().getTestPlanScenarioByName(newName);
+        if (existing == null || existing == this) {
             if (FileUtils.renameFile(getLocation(), newName)) {
                 getProject().refactorScenario(name, newName);
                 name = newName;
@@ -629,24 +704,55 @@ public class Scenario extends DataModel {
         }
         return false;
     }
+
     /**
-     * Renames this scenario.
+     * Renames this scenario in Reusable Components.
+     * Removes stale scenarios whose directories no longer exist on disk before checking uniqueness.
      * @param newName new scenario name
      * @return true if successful, false if a scenario with the new name already exists
      */
-    
+
     public Boolean renameReusable(String newName) {
-        if (getProject().getReusableScenarioByName(newName) == null) {
+        Project p = getProject();
+        // Clean up stale reusable scenarios first
+        List<Scenario> reusables = p.getReusableScenarios();
+        reusables.removeIf(s -> !new File(s.getLocation()).exists());
+
+        Scenario existing = p.getReusableScenarioByName(newName);
+        if (existing == null || existing == this) {
             if (FileUtils.renameFile(getLocation(), newName)) {
-                getProject().refactorScenario(name, newName);
+                p.refactorScenario(name, newName);
                 name = newName;
                 return true;
             }
         }
-        
+
         return false;
     }
-    
+
+    /**
+     * Renames this shared reusable scenario.
+     * Removes stale scenarios whose directories no longer exist on disk before checking uniqueness.
+     * @param newName new scenario name
+     * @return true if successful, false if a scenario with the new name already exists
+     */
+    public Boolean renameSharedReusable(String newName) {
+        Project p = getProject();
+        // Clean up stale shared reusable scenarios first
+        List<Scenario> sharedReusables = p.getSharedScenarios();
+        sharedReusables.removeIf(s -> !new File(s.getLocation()).exists());
+
+        if (p.getSharedReusableScenarioByName(newName) == null) {
+            if (FileUtils.renameFile(getLocation(), newName)) {
+                p.refactorScenario(name, newName);
+                name = newName;
+                return true;
+            }
+        }
+
+        return false;
+    }
+
     /**
      * Deletes this scenario from disk and removes it from the project.
      * @return true if successful, false otherwise

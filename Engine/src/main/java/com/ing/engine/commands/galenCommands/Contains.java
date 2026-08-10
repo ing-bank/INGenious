@@ -1,12 +1,11 @@
-
 package com.ing.engine.commands.galenCommands;
 
+import com.galenframework.specs.SpecContains;
 import com.ing.engine.core.CommandControl;
 import com.ing.engine.galenWrapper.SpecValidation.SpecReader;
 import com.ing.ingenious.api.annotation.Action;
 import com.ing.ingenious.api.types.InputType;
 import com.ing.ingenious.api.types.ObjectType;
-import com.galenframework.specs.SpecContains;
 
 public class Contains extends General {
 
@@ -20,19 +19,21 @@ public class Contains extends General {
         validate(spec, RelativeElement.WebElementList);
     }
 
-    
-    @Action(object = ObjectType.APP, 
-    		desc ="Assert if [<Object>] contains <Object2> ", 
-    	
-    		condition = InputType.YES)
+    @Action(
+        object = ObjectType.APP,
+        desc = "Assert if [<Object>] contains <Object2> ",
+        condition = InputType.YES
+    )
     public void assertElementContains() {
         assertElementContains(false);
     }
 
-    @Action(object = ObjectType.APP, 
-    		desc ="Assert if [<Object>] partly contains  <Object2> ", 
-    		input =InputType.NO, 
-    		condition = InputType.YES)
+    @Action(
+        object = ObjectType.APP,
+        desc = "Assert if [<Object>] partly contains  <Object2> ",
+        input = InputType.NO,
+        condition = InputType.YES
+    )
     public void assertElementContainsPartly() {
         assertElementContains(true);
     }
@@ -41,5 +42,4 @@ public class Contains extends General {
         String partly = isPartly ? " partly " : "";
         return String.format("%s %scontains %s", ObjectName, partly, Condition);
     }
-
 }

@@ -1,4 +1,3 @@
-
 package com.ing.datalib.settings;
 
 public class ContextSettings extends AbstractPropSettings {
@@ -17,5 +16,4 @@ public class ContextSettings extends AbstractPropSettings {
         put("useStorageState", "false");
         put("storageStatePath", "");
     }
-    
 }

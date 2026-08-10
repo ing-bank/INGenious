@@ -4,12 +4,12 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.ing</groupId>
     <artifactId>ingenious-playwright</artifactId>
-    <version>3.0.0-preview</version>
+    <version>3.0.0-ING</version>
     <packaging>pom</packaging>
     <modules>
         <module>StoryWriter</module>
-        <module>Datalib</module>
         <module>TestData - Csv</module>
+        <module>Datalib</module>
         <module>Engine</module>
         <module>IDE</module>
         <module>Common</module>
@@ -19,19 +19,19 @@
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <playwright.version>1.58.0</playwright.version>
+        <playwright.version>1.56.0</playwright.version>
         <commons-cli.version>1.4</commons-cli.version>
         <javamail.version>1.4.7</javamail.version>
         <json-simple.version>1.1.1</json-simple.version>
         <jcsv.version>1.4.0</jcsv.version>
         <javafx.version>17.0.14</javafx.version>
-        <jackson.version>2.15.2</jackson.version>
+        <jackson.version>2.18.9</jackson.version>
         <commonscsv.version>1.10.0</commonscsv.version>
         <commons-codec.version>1.16.0</commons-codec.version>
         <commons-io.version>2.15.0</commons-io.version>
         <commons-lang3.version>3.12.0</commons-lang3.version>
         <annon.detect>3.0.5</annon.detect>
-        <jetty.version>9.4.57.v20241219</jetty.version>
+        <jetty.version>12.0.38</jetty.version>
         <gherkin.version>5.0.0</gherkin.version>
         <autocomplete.version>3.0.0</autocomplete.version>
         <apache.poi.version>5.2.5</apache.poi.version>
@@ -54,7 +54,7 @@
         <commons-lang.version>2.6</commons-lang.version>
         <httpcore.version>4.4.16</httpcore.version>
         <guava.version>32.0.1-jre</guava.version>
-        <appium.version>10.0.0</appium.version>
+        <appium.version>10.1.1</appium.version>
         <javafaker.version>1.0.2</javafaker.version>
         <kafka-clients.version>3.9.0</kafka-clients.version>
         <avro.version>1.12.0</avro.version>
@@ -69,14 +69,34 @@
         <ikonli.version>12.3.1</ikonli.version>
 
         <mockito.version>5.14.2</mockito.version>
-        <assertj.version>3.26.3</assertj.version>
+        <assertj.version>3.27.7</assertj.version>
 
         <java.version>17</java.version>
         <maven.compiler.source>${java.version}</maven.compiler.source>
         <maven.compiler.target>${java.version}</maven.compiler.target>
 
+        <bouncycastle.version>1.85</bouncycastle.version>
     </properties>
     <name>ingenious</name>
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>org.bouncycastle</groupId>
+                <artifactId>bcprov-jdk18on</artifactId>
+                <version>${bouncycastle.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.bouncycastle</groupId>
+                <artifactId>bcpkix-jdk18on</artifactId>
+                <version>${bouncycastle.version}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.bouncycastle</groupId>
+                <artifactId>bcutil-jdk18on</artifactId>
+                <version>${bouncycastle.version}</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
     <build>
         <pluginManagement>
             <plugins>
@@ -112,6 +132,16 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
             </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>3.0.0-M7</version>
+                <configuration>
+                    <systemPropertyVariables>
+                        <net.bytebuddy.experimental>true</net.bytebuddy.experimental>
+                    </systemPropertyVariables>
+                </configuration>
+            </plugin>
             <!-- JaCoCo for code coverage -->
             <plugin>
                 <groupId>org.jacoco</groupId>
@@ -124,10 +154,11 @@
                         </goals>
                     </execution>
                     <execution>
-                        <id>report</id>
-                        <phase>test</phase>
+                        <id>report-aggregate</id>
+                        <inherited>false</inherited>
+                        <phase>verify</phase>
                         <goals>
-                            <goal>report</goal>
+                            <goal>report-aggregate</goal>
                         </goals>
                     </execution>
                 </executions>
@@ -147,6 +178,64 @@
                 <artifactId>versions-maven-plugin</artifactId>
                 <version>2.18.0</version>
             </plugin>
+            <plugin>
+                <groupId>com.hubspot.maven.plugins</groupId>
+                <artifactId>prettier-maven-plugin</artifactId>
+                <version>0.22</version> <!-- Check for the latest version on Maven Central -->
+                <configuration>
+                    <!-- Optional: specific Prettier settings -->
+                    <printWidth>100</printWidth>
+                    <tabWidth>4</tabWidth>
+                    <useTabs>false</useTabs>
+                </configuration>
+                <executions>
+                    <execution>
+                    <phase>validate</phase>
+                    <goals>
+                        <goal>write</goal> <!-- Use 'check' in CI environments -->
+                    </goals>
+                    </execution>
+                </executions>
+            </plugin>
         </plugins>
     </build>
+
+    <repositories>
+        <repository>
+            <id>P33148-incoming-mvn</id>
+            <url>https://pkgs.dev.azure.com/INGCDaaS/IngOne/_packaging/P33148-incoming-mvn/maven/v1</url>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+            <snapshots>
+                <enabled>true</enabled>
+            </snapshots>
+        </repository>
+        <repository>
+            <id>P33148-outgoing-mvn</id>
+            <url>https://pkgs.dev.azure.com/INGCDaaS/IngOne/_packaging/P33148-outgoing-mvn/maven/v1</url>
+            <releases>
+                <enabled>true</enabled>
+            </releases>
+            <snapshots>
+                <enabled>true</enabled>
+            </snapshots>
+        </repository>
+    </repositories>
+
+    <pluginRepositories>
+        <pluginRepository>
+            <id>P33148-incoming-mvn</id>
+            <url>
+                https://pkgs.dev.azure.com/INGCDaaS/IngOne/_packaging/P33148-incoming-mvn/maven/v1
+            </url>
+        </pluginRepository>
+    </pluginRepositories>
+
+    <distributionManagement>
+        <repository>
+            <id>P33148-outgoing-mvn</id>
+            <url>https://pkgs.dev.azure.com/INGCDaaS/IngOne/_packaging/P33148-outgoing-mvn/maven/v1</url>
+        </repository>
+    </distributionManagement>
 </project>

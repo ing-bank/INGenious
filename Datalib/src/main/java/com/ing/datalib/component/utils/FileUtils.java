@@ -1,4 +1,3 @@
-
 package com.ing.datalib.component.utils;
 
 import java.io.File;
@@ -27,7 +26,6 @@ import org.apache.commons.csv.CSVRecord;
  *
  */
 public class FileUtils {
-
     private static final Logger LOGGER = Logger.getLogger(FileUtils.class.getName());
 
     private static final JFileChooser SAVE_AS_LOC = new JFileChooser();
@@ -35,7 +33,9 @@ public class FileUtils {
     static {
         SAVE_AS_LOC.setApproveButtonText("Save");
     }
+
     public static final FilenameFilter DIR_FILTER = new FilenameFilter() {
+
         @Override
         public boolean accept(File dir, String name) {
             return new File(dir, name).isDirectory();
@@ -43,16 +43,34 @@ public class FileUtils {
     };
 
     public static final FilenameFilter CSV_FILTER = new FilenameFilter() {
+
         @Override
         public boolean accept(File dir, String name) {
             return name.matches(".*\\.csv");
         }
     };
 
+    /**
+     * Matches YAML test case / test set files ({@code .yaml} or {@code .yml}).
+     * Introduced by the YAML test case migration; coexists with
+     * {@link #CSV_FILTER} during the dual-format period.
+     */
+    public static final FilenameFilter YAML_FILTER = new FilenameFilter() {
+
+        @Override
+        public boolean accept(File dir, String name) {
+            return name.matches("(?i).*\\.ya?ml");
+        }
+    };
+
     public static void loadFileinTable(File file, JTable table) {
         if (file.exists()) {
             try (Reader in = new FileReader(file)) {
-                CSVParser parser = CSVFormat.EXCEL.withHeader().withSkipHeaderRecord().withIgnoreEmptyLines().parse(in);
+                CSVParser parser = CSVFormat
+                    .EXCEL.withHeader()
+                    .withSkipHeaderRecord()
+                    .withIgnoreEmptyLines()
+                    .parse(in);
                 if (!parser.getHeaderMap().isEmpty()) {
                     DefaultTableModel model = (DefaultTableModel) table.getModel();
                     for (String columnHeader : parser.getHeaderMap().keySet()) {
@@ -73,14 +91,18 @@ public class FileUtils {
                 LOGGER.log(Level.SEVERE, null, ex);
             }
         } else {
-           // LOGGER.log(Level.SEVERE, "File [{0}] doesn''t exist", file.getAbsolutePath());
+            // LOGGER.log(Level.SEVERE, "File [{0}] doesn''t exist", file.getAbsolutePath());
         }
     }
 
     public static List<CSVRecord> getRecords(File file) {
         if (file.exists()) {
             try (Reader in = new FileReader(file)) {
-                CSVParser parser = CSVFormat.EXCEL.withHeader().withSkipHeaderRecord().withIgnoreEmptyLines().parse(in);
+                CSVParser parser = CSVFormat
+                    .EXCEL.withHeader()
+                    .withSkipHeaderRecord()
+                    .withIgnoreEmptyLines()
+                    .parse(in);
                 if (!parser.getHeaderMap().isEmpty()) {
                     return parser.getRecords();
                 }
@@ -88,7 +110,7 @@ public class FileUtils {
                 LOGGER.log(Level.SEVERE, null, ex);
             }
         } else {
-          //  LOGGER.log(Level.SEVERE, "File [{0}] doesn''t exist", file.getAbsolutePath());
+            //  LOGGER.log(Level.SEVERE, "File [{0}] doesn''t exist", file.getAbsolutePath());
         }
         return new ArrayList<>();
     }
@@ -96,7 +118,11 @@ public class FileUtils {
     public static CSVHParser getCSVHParser(File file) {
         if (file.exists()) {
             try (Reader in = new FileReader(file)) {
-                CSVParser parser = CSVFormat.EXCEL.withHeader().withSkipHeaderRecord().withIgnoreEmptyLines().parse(in);
+                CSVParser parser = CSVFormat
+                    .EXCEL.withHeader()
+                    .withSkipHeaderRecord()
+                    .withIgnoreEmptyLines()
+                    .parse(in);
                 if (!parser.getHeaderMap().isEmpty()) {
                     return new CSVHParser(parser.getHeaderMap(), parser.getRecords());
                 }
@@ -134,24 +160,43 @@ public class FileUtils {
         Path p = Paths.get(filename);
         return p.getFileName().toString();
     }
-    
+
     public static Boolean renameFile(String fromFile, String toName) {
         try {
             File src = new File(fromFile);
             if (src.exists()) {
                 File target = new File(src.getParent(), sanitizePathTraversal(toName));
-                if (target.exists()) {
-                    LOGGER.log(Level.INFO, "A File with Name '{1}' already exists, failed to rename '{0}'",
-                            new Object[]{fromFile, toName});
+                // A case-only rename (e.g. "Page" -> "page") keeps the same file on
+                // case-insensitive file systems (default on macOS/Windows). It must be
+                // allowed even though target.exists() reports true for the source itself.
+                boolean caseOnlyChange =
+                    src.getName().equalsIgnoreCase(target.getName()) &&
+                    !src.getName().equals(target.getName());
+                if (target.exists() && !caseOnlyChange) {
+                    LOGGER.log(
+                        Level.INFO,
+                        "A File with Name '{1}' already exists, failed to rename '{0}'",
+                        new Object[] { fromFile, toName }
+                    );
                     return false;
                 }
-                Files.move(src.toPath(), target.toPath());
+                if (caseOnlyChange) {
+                    // Two-step move so the change is applied on case-insensitive file systems.
+                    File tmp = new File(
+                        src.getParent(),
+                        target.getName() + "_ing_rename_" + System.nanoTime()
+                    );
+                    Files.move(src.toPath(), tmp.toPath());
+                    Files.move(tmp.toPath(), target.toPath());
+                } else {
+                    Files.move(src.toPath(), target.toPath());
+                }
             }
         } catch (IOException ex) {
             Logger.getLogger(FileUtils.class.getName()).log(Level.SEVERE, null, ex);
             return false;
         }
-        LOGGER.log(Level.INFO, "{0} Renamed to {1}", new Object[]{fromFile, toName});
+        LOGGER.log(Level.INFO, "{0} Renamed to {1}", new Object[] { fromFile, toName });
         return true;
     }
 
@@ -166,9 +211,9 @@ public class FileUtils {
                     subFile.delete();
                 }
             }
-            LOGGER.log(Level.INFO, "Deleting {0}", new Object[]{location});    
+            LOGGER.log(Level.INFO, "Deleting {0}", new Object[] { location });
             return file.delete();
         }
-       return true;
+        return true;
     }
 }

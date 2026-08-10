@@ -19,6 +19,7 @@ import org.openqa.selenium.remote.DesiredCapabilities;
  * @author Jayant Borude
  */
 public class SAPSessionFactory {
+
     // work for SAP
 
     static Process startSAPProcess(RunContext context, ProjectSettings settings) {
@@ -35,7 +36,6 @@ public class SAPSessionFactory {
     }
 
     static ActiveXComponent createSAPSession(RunContext context, ProjectSettings settings) {
-
         DesiredCapabilities caps = getCapability(context.BrowserName, settings);
         String SAPconnectionName = caps.getCapability("connectionName").toString();
         String dllPath = caps.getCapability("dllPath").toString();
@@ -52,7 +52,9 @@ public class SAPSessionFactory {
             Dispatch sapROTEntry = sapROTWrapper.invoke("GetROTEntry", "SAPGUI").toDispatch();
             Variant scriptEngine = Dispatch.call(sapROTEntry, "GetScriptingEngine");
             ActiveXComponent guiApp = new ActiveXComponent(scriptEngine.toDispatch());
-            ActiveXComponent connection = new ActiveXComponent(guiApp.invoke("OpenConnection", SAPconnectionName).toDispatch());
+            ActiveXComponent connection = new ActiveXComponent(
+                guiApp.invoke("OpenConnection", SAPconnectionName).toDispatch()
+            );
             session = new ActiveXComponent(connection.invoke("Children", 0).toDispatch());
         } catch (Exception e) {
             System.out.println("Error in creating SAP session : " + e.getMessage());
@@ -65,10 +67,20 @@ public class SAPSessionFactory {
         DesiredCapabilities caps = new DesiredCapabilities();
         Properties prop = settings.getCapabilities().getCapabiltiesFor(browserName);
         if (prop != null) {
-            prop.keySet().stream().forEach((key) -> {
-                caps.setCapability(key.toString(),
-                        getPropertyValueAsDesiredType(key.toString(), prop.getProperty(key.toString())));
-            });
+            prop
+                .keySet()
+                .stream()
+                .forEach(
+                    key -> {
+                        caps.setCapability(
+                            key.toString(),
+                            getPropertyValueAsDesiredType(
+                                key.toString(),
+                                prop.getProperty(key.toString())
+                            )
+                        );
+                    }
+                );
         }
         return caps;
     }
@@ -84,5 +96,4 @@ public class SAPSessionFactory {
         }
         return value;
     }
-
 }
