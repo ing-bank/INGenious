@@ -144,6 +144,12 @@ Release Date: <insert date of release>
 - Fixed Live Recorder to prevent test case overwrite by appending suffix to duplicate names
 - Fixed Hard Assertions waiting for timeout instead of failing immediately
 - Fixed Debug Mode resume behavior for reusable test case breakpoints
+- Restored Har Compare static asset routing after Jetty 12 dropped its `"/*"` → root context-path normalization
+- Resolved Har Compare static resources 404ing due to Jetty 12's stricter resource-alias check on the unnormalized `./web` base path
+- Fixed Har Compare WebSocket handshake failing with `IllegalStateException: WebSocketComponents has not been created` by explicitly registering `JettyWebSocketServletContainerInitializer`
+- Fixed Dashboard server incorrectly attempting to rebind its port on repeated "Har Compare" opens by checking actual Jetty server state instead of the wrapper thread's liveness
+- Hardened Dashboard server's local port availability check against false positives from lingering `TIME_WAIT` sockets
+- Fixed Har Compare throwing `NullPointerException` when `config.json` was empty or corrupted
 
 ### Mobile App Testing
 
@@ -301,6 +307,13 @@ Release Date: <insert date of release>
 
 #### Added
 #### Changed
+
+- Upgraded `jackson-core`/`jackson-databind`/`jackson-annotations`/`jackson-dataformat-xml`/`jackson-dataformat-yaml` from 2.15.2 to 2.18.9 (fixes async-parser DoS advisories GHSA-72hv-8253-57qq and GHSA-r7wm-3cxj-wff9)
+- Pinned `bcprov-jdk18on`/`bcpkix-jdk18on`/`bcutil-jdk18on` (transitive via the IBM MQ client) to 1.85 via `dependencyManagement`, fixing six CVEs including three Critical-severity issues present in 1.83
+- Upgraded `io.appium:java-client` from 10.0.0 to 10.1.1 (fixes CVE-2026-43910, SSRF via `directConnect`)
+- Upgraded `org.assertj:assertj-core` from 3.26.3 to 3.27.7 (fixes CVE-2026-24400, XXE in `isXmlEqualTo`)
+- Upgraded Jetty from 9.4.57.v20241219 to 12.0.38, migrating the IDE's embedded dashboard server from `jetty-servlet`/`websocket-servlet` to the Jetty 12 EE8 equivalents (`jetty-ee8-servlet`, `jetty-ee8-websocket-jetty-server`) while retaining the `javax.servlet` namespace (fixes CVE-2025-5115, CVE-2024-6763, CVE-2026-6790)
+
 #### Deprecated
 #### Removed
 #### Fixed

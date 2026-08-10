@@ -22,7 +22,7 @@ public class DashBoardManager {
     }
 
     public DashBoardServer server() {
-        if (server == null || !server.isAlive()) {
+        if (server == null || !server.isRunning()) {
             server = new DashBoardServer();
             server.prepare();
             server.start();
@@ -31,7 +31,7 @@ public class DashBoardManager {
     }
 
     public void stopServer() {
-        if (server != null && server.isAlive()) {
+        if (server != null && server.isRunning()) {
             server.stopServer();
         }
     }

@@ -2,19 +2,21 @@ package com.ing.ide.main.dashboard.server;
 
 import com.ing.ide.main.dashboard.server.websocket.HarServlet;
 import com.ing.ide.settings.AppSettings;
+import java.io.File;
+import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import org.eclipse.jetty.ee8.servlet.ServletContextHandler;
+import org.eclipse.jetty.ee8.servlet.ServletHolder;
+import org.eclipse.jetty.ee8.websocket.api.StatusCode;
+import org.eclipse.jetty.ee8.websocket.server.config.JettyWebSocketServletContainerInitializer;
 import org.eclipse.jetty.server.Connector;
 import org.eclipse.jetty.server.Handler;
 import org.eclipse.jetty.server.Server;
 import org.eclipse.jetty.server.ServerConnector;
 import org.eclipse.jetty.server.handler.ContextHandler;
 import org.eclipse.jetty.server.handler.DefaultHandler;
-import org.eclipse.jetty.server.handler.HandlerList;
 import org.eclipse.jetty.server.handler.ResourceHandler;
-import org.eclipse.jetty.servlet.ServletContextHandler;
-import org.eclipse.jetty.servlet.ServletHolder;
-import org.eclipse.jetty.websocket.api.StatusCode;
 
 @SuppressWarnings("unchecked")
 public class DashBoardServer extends Thread {
@@ -37,9 +39,10 @@ public class DashBoardServer extends Thread {
             Tools.verifyLocalPort("DBServer ", port());
             server = new Server();
             DefaultHandler webHandler = new DefaultHandler();
-            HandlerList handlers = new HandlerList();
-            handlers.setHandlers(
-                new Handler[] { getResourceHandler(), getUIWSHandler(), webHandler }
+            Handler.Sequence handlers = new Handler.Sequence(
+                getResourceHandler(),
+                getUIWSHandler(),
+                webHandler
             );
 
             ServerConnector connector = new ServerConnector(server);
@@ -70,19 +73,23 @@ public class DashBoardServer extends Thread {
         return "http://127.0.0.1:" + port();
     }
 
+    public boolean isRunning() {
+        return server != null && server.isStarted();
+    }
+
     public static int port() {
         return Integer.valueOf(AppSettings.get(AppSettings.APP_SETTINGS.HAR_PORT.getKey()));
     }
 
-    ContextHandler getResourceHandler() {
+    ContextHandler getResourceHandler() throws IOException {
         ContextHandler root = new ContextHandler();
-        root.setContextPath("/*");
+        root.setContextPath("/");
 
         ResourceHandler resourceHandler = new ResourceHandler();
-        resourceHandler.setDirectoriesListed(true);
+        resourceHandler.setDirAllowed(true);
 
         resourceHandler.setWelcomeFiles(new String[] { HOME });
-        resourceHandler.setResourceBase(R_BASE);
+        resourceHandler.setBaseResourceAsString(new File(R_BASE).getCanonicalPath());
 
         root.setHandler(resourceHandler);
 
@@ -93,9 +100,11 @@ public class DashBoardServer extends Thread {
         ServletContextHandler context = new ServletContextHandler(ServletContextHandler.SESSIONS);
         context.setContextPath("/");
 
+        JettyWebSocketServletContainerInitializer.configure(context, null);
+
         ServletHolder holderEvents = getServlet();
         context.addServlet(holderEvents, "/dashboard/har");
-        return context;
+        return context.getCoreContextHandler();
     }
 
     public ServletHolder getServlet() {

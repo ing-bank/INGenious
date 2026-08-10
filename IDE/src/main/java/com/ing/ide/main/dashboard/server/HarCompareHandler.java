@@ -7,7 +7,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.eclipse.jetty.websocket.api.WebSocketAdapter;
+import org.eclipse.jetty.ee8.websocket.api.WebSocketAdapter;
 import org.json.simple.JSONArray;
 import org.json.simple.JSONObject;
 import org.json.simple.JSONValue;
@@ -240,7 +240,10 @@ public class HarCompareHandler implements Handler {
     public static void init() throws Exception {
         conf = new JSONObject();
         if (DashBoardData.config().exists()) {
-            conf = (JSONObject) JSONValue.parse(Tools.readFile(DashBoardData.config()));
+            Object parsed = JSONValue.parse(Tools.readFile(DashBoardData.config()));
+            if (parsed instanceof JSONObject) {
+                conf = (JSONObject) parsed;
+            }
         } else if (DashBoardData.config().getParentFile().exists()) {
             DashBoardData.config().createNewFile();
         }
