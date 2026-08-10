@@ -347,7 +347,7 @@ public class AppMainFrame extends JFrame {
     }
 
     private String getAppTitle() {
-        return "INGenious Playwright Studio " + About.getBuildVersion() + " (ING)";
+        return "INGenious Playwright Studio " + About.getBuildVersion();
     }
 
     public String getCurrentSlide() {
